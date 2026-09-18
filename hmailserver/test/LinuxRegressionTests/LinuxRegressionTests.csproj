@@ -109,6 +109,7 @@
     <Compile Include="..\RegressionTests\API\RestApiDkimRotation.cs" Link="API\RestApiDkimRotation.cs" />
     <Compile Include="..\RegressionTests\API\RestApiReputationWatch.cs" Link="API\RestApiReputationWatch.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSetupChecklist.cs" Link="API\RestApiSetupChecklist.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiSampleDomain.cs" Link="API\RestApiSampleDomain.cs" />
     <Compile Include="..\RegressionTests\API\RestApiAccountRules.cs" Link="API\RestApiAccountRules.cs" />
     <Compile Include="..\RegressionTests\Rules\MailFlowRules.cs" Link="Rules\MailFlowRules.cs" />
     <Compile Include="..\RegressionTests\Rules\OutboundContentPolicy.cs" Link="Rules\OutboundContentPolicy.cs" />

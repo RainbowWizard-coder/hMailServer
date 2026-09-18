@@ -18,7 +18,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
 | desktop pages read | 63 |
-| REST routes (path and method) | 431, 192 of them writes |
+| REST routes (path and method) | 434, 193 of them writes |
 | Deck views | 35 |
 
 ## Missing over REST, by interface
@@ -701,13 +701,16 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Account | `UnlockMailbox` | AccountDialog | `POST /api/v1/accounts/{address}/review/unlock`<br>`POST /api/v1/accounts/{address}/unlock` |
 | Aliases | `Add` | DomainsView | - |
 | Utilities | `AddSuppression` | SuppressionListView | - |
+| Utilities | `CreateSampleDomain` | WelcomeView | `POST /api/v1/setup/sample-domain`<br>`DELETE /api/v1/setup/sample-domain` |
 | Utilities | `EmailAllAccounts` | UtilityViews | - |
 | Utilities | `EraseAddressTraces` | AccountDialog | `POST /api/v1/addresses/erase` |
 | Utilities | `GetAuditTrail` | AuditTrailView | - |
 | Utilities | `GetBounceCounts` | SuppressionListView | - |
 | Utilities | `GetMetricHistory` | DashboardView | - |
+| Utilities | `GetSampleDomain` | WelcomeView | `POST /api/v1/setup/sample-domain`<br>`DELETE /api/v1/setup/sample-domain` |
 | Utilities | `GetSuppressionList` | SuppressionListView | - |
 | Utilities | `PerformMaintenance` | ServerSettingsView | - |
+| Utilities | `RemoveSampleDomain` | WelcomeView | `POST /api/v1/accounts/{address}/move`<br>`POST /api/v1/setup/sample-domain`<br>`DELETE /api/v1/setup/sample-domain` |
 | Utilities | `RemoveSuppression` | SuppressionListView | `POST /api/v1/accounts/{address}/move` |
 | Utilities | `ResolveMXRecords` | UtilityViews | - |
 | Utilities | `VerifyAuditTrail` | AuditTrailView | - |
@@ -953,6 +956,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/settings/scripting` | Scripting | `enabled`, `language` | yes |
 | `POST /api/v1/settings/scripting/check` | Scripting | - | yes |
 | `POST /api/v1/settings/scripting/reload` | Scripting | - | yes |
+| `POST /api/v1/setup/sample-domain` | ? | `manage_server`, `sample_domain_id` | yes |
 | `POST /api/v1/sieve/evaluate` | - | `action`, `address`, `body`, `domain`, `keys`, `message`, `script` | - |
 | `POST /api/v1/surbl-servers` | SURBLServer | `active`, `code`, `dns_host`, `domain`, `domains`, `expected_result`, `keys`, `message`, `read`, `reject_message`, `score` | yes |
 | `PUT /api/v1/surbl-servers/{id}` | SURBLServer | `active`, `body`, `code`, `dns_host`, `domain`, `domains`, `expected_result`, `field`, `keys`, `message`, `read`, `reject_message`, `score`, `value` | - |
@@ -971,7 +975,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | View | Routes called |
 |---|---|
 | `dash` | `GET /api/v1/status` |
-| `checklist` | `GET /api/v1/setup/checklist` |
+| `checklist` | `GET /api/v1/setup/checklist`, `DELETE /api/v1/setup/sample-domain`, `GET /api/v1/setup/sample-domain`, `POST /api/v1/setup/sample-domain` |
 | `domains` | `DELETE /api/v1/accounts/{}`, `GET /api/v1/accounts/{}`, `PUT /api/v1/accounts/{}`, `GET /api/v1/accounts/{}/move`, `POST /api/v1/accounts/{}/move`, `PUT /api/v1/accounts/{}/openpgp`, `DELETE /api/v1/accounts/{}/openpgp/{}`, `POST /api/v1/accounts/{}/password`, `DELETE /api/v1/accounts/{}/push`, `POST /api/v1/accounts/{}/unlock`, `POST /api/v1/addresses/erase`, `DELETE /api/v1/aliases/{}`, `GET /api/v1/domains`, `POST /api/v1/domains`, `DELETE /api/v1/domains/{}`, `PUT /api/v1/domains/{}`, `GET /api/v1/domains/{}/accounts`, `POST /api/v1/domains/{}/accounts`, `GET /api/v1/domains/{}/aliases`, `POST /api/v1/domains/{}/aliases`, `GET /api/v1/domains/{}/complaints?limit={}&offset={}`, `GET /api/v1/domains/{}/dmarc-reports/{}`, `GET /api/v1/domains/{}/domain-aliases`, `POST /api/v1/domains/{}/domain-aliases`, `DELETE /api/v1/domains/{}/domain-aliases/{}`, `GET /api/v1/domains/{}/lists`, `POST /api/v1/domains/{}/lists`, `GET /api/v1/domains/{}/openpgp`, `GET /api/v1/domains/{}/sender-list`, `POST /api/v1/domains/{}/sender-list`, `DELETE /api/v1/domains/{}/sender-list/{}`, `GET /api/v1/domains/{}/spam-traps`, `POST /api/v1/domains/{}/spam-traps`, `GET /api/v1/domains/{}/spam-traps/hits?limit=10`, `POST /api/v1/domains/{}/suppressions`, `DELETE /api/v1/domains/{}/suppressions/{}`, `DELETE /api/v1/lists/{}`, `PUT /api/v1/lists/{}`, `GET /api/v1/openapi.json`, `DELETE /api/v1/spam-traps/{}` |
 | `groups` | `GET /api/v1/groups`, `POST /api/v1/groups`, `DELETE /api/v1/groups/{}`, `PUT /api/v1/groups/{}`, `GET /api/v1/groups/{}/members`, `POST /api/v1/groups/{}/members`, `DELETE /api/v1/groups/{}/members/{}`, `GET /api/v1/openapi.json` |
 | `ipranges` | `GET /api/v1/ipranges`, `POST /api/v1/ipranges`, `DELETE /api/v1/ipranges/{}`, `PUT /api/v1/ipranges/{}`, `GET /api/v1/openapi.json` |

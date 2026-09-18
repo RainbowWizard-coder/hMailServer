@@ -1961,6 +1961,10 @@ namespace HM
             return HandleAccountReview_(caller, route, GetRequestBody_(request));
          case RouteSetupChecklist:
             return HandleSetupChecklist_(route);
+         case RouteSampleDomainGet:
+         case RouteSampleDomainCreate:
+         case RouteSampleDomainRemove:
+            return HandleSampleDomain_(route);
          case RouteDomainRuleList:
          case RouteDomainRuleCreate:
          case RouteDomainRuleUpdate:
@@ -4732,6 +4736,18 @@ namespace HM
          route.kind = RouteSetupChecklist;
          return;
       }
+      if (path == "/api/v1/setup/sample-domain")
+      {
+         if (method == "GET")
+            route.kind = RouteSampleDomainGet;
+         else if (method == "POST")
+            route.kind = RouteSampleDomainCreate;
+         else if (method == "DELETE")
+            route.kind = RouteSampleDomainRemove;
+
+         if (route.kind != RouteUnknown)
+            return;
+      }
       if (method == "GET" && path.StartsWith(domainsPrefix) && path.EndsWith("/dkim"))
       {
          AnsiString domainName = path.Mid(domainsPrefix.GetLength(),
@@ -5746,6 +5762,11 @@ namespace HM
       // A check makes this server send queries to third parties and rewrites what
       // the report says, neither of which a read-only credential should cause.
       case RouteReputationCheck:
+      // The sample domain makes a domain, three mailboxes with a documented
+      // password, a list, a rule and eight messages - or takes all of it away
+      // again. Nothing this API does changes more in one call.
+      case RouteSampleDomainCreate:
+      case RouteSampleDomainRemove:
          return true;
 
       default:
@@ -5891,6 +5912,10 @@ namespace HM
       // and for these the classification says what kind of route it is, not what
       case RouteReputationGet:
       case RouteSetupChecklist:
+      // Whether the sample domain is there, and what its addresses and its one
+      // password are, is a fact of the server's shape like the checklist above;
+      // making it and removing it are the server administrator's, below.
+      case RouteSampleDomainGet:
       // Whether the administrator password has a second factor is one fact of
       // the server's shape - the checklist above says the same thing - so a
       // reader may read it; enrolling and disabling are the password's alone.
@@ -6424,6 +6449,15 @@ namespace HM
       // and TLS-RPT reports removed, which is also why it is refused to a
       // confined credential below.
       case RouteDomainReportsExpire:
+      // Making and removing the sample domain. ManageServer rather than
+      // ManageDomains, deliberately: the accounts it makes all carry one
+      // password that is printed in the documentation, so whoever may ask for
+      // them is agreeing that this server is not yet taking real mail - and the
+      // removal deletes a whole domain with everything in it, including anything
+      // a learner put there. That is acting as the server, which is what
+      // ManageServer names.
+      case RouteSampleDomainCreate:
+      case RouteSampleDomainRemove:
          return RolePermission::ManageServer;
 
       default:
@@ -7093,6 +7127,11 @@ namespace HM
       // destination and the administrator's second factor, none of which is
       // any domain's.
       case RouteSetupChecklist:
+      // The sample domain is a domain this server does not have yet, so a
+      // credential confined to the domains it does have names nothing here.
+      case RouteSampleDomainGet:
+      case RouteSampleDomainCreate:
+      case RouteSampleDomainRemove:
          // IP ranges, certificates, global rules, the logs, the backup, the
          // server settings and the update check are all server-wide: none of
          // them belongs to a domain, and the logs in particular carry every
@@ -15039,6 +15078,7 @@ namespace HM
       openApiJson += OpenApiReputationPaths_();
       openApiJson += OpenApiAccountReviewPaths_();
       openApiJson += OpenApiSetupChecklistPaths_();
+      openApiJson += OpenApiSampleDomainPaths_();
       openApiJson += OpenApiAccountRulesPaths_();
       openApiJson += OpenApiDomainRulesPaths_();
       openApiJson += OpenApiOperatorPaths_();

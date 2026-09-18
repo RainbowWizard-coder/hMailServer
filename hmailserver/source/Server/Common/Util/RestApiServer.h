@@ -243,6 +243,14 @@ namespace HM
          // domain's: the submission port, the backup destination and the
          // administrator's second factor belong to no domain.
          RouteSetupChecklist,
+         // The sample domain (RestApiSampleDomain.cpp): example.test with three
+         // accounts, a list, a rule and a handful of delivered messages, made in
+         // one call and removed in one. The server's own, like the checklist it
+         // sits beside, and the two that change anything are the server
+         // administrator's - they create mailboxes with a documented password.
+         RouteSampleDomainGet,
+         RouteSampleDomainCreate,
+         RouteSampleDomainRemove,
          RouteRuleList,
          RouteLogList,
          RouteLogTail,
@@ -1425,6 +1433,11 @@ namespace HM
 
       HttpResponse HandleSetupChecklist_(const Route &route);
       static AnsiString OpenApiSetupChecklistPaths_();
+
+      // The sample domain (RestApiSampleDomain.cpp): its state, making it and
+      // removing it.
+      HttpResponse HandleSampleDomain_(const Route &route);
+      static AnsiString OpenApiSampleDomainPaths_();
       HttpResponse HandleListRules_(__int64 accountId, __int64 domainId = 0);
       HttpResponse HandleListLogs_();
       HttpResponse HandleLogTail_(const AnsiString &name, const AnsiString &query);

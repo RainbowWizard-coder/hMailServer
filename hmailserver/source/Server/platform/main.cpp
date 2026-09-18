@@ -43,6 +43,7 @@
 #include "../Common/Application/Version.h"
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/IniSettingStore.h"
+#include "../Common/Application/SampleDomain.h"
 #include "../Common/Application/Logger.h"
 #include "../Common/Util/Utilities.h"
 #include "../Common/Application/Constants.h"
@@ -155,6 +156,21 @@ namespace
          "                    must be 0-65535 and RestApiBindAddress an IP address\n"
          "                    or localhost. Run it as root, as --set-admin-password\n"
          "                    is: the file is root's.\n"
+         "  --sample-domain create\n"
+         "  --sample-domain remove\n"
+         "                    make a throwaway example.test - three mailboxes\n"
+         "                    with one documented password, a distribution list\n"
+         "                    of the three, one rule and eight delivered\n"
+         "                    messages - so that every page of an administration\n"
+         "                    interface has something in it while somebody is\n"
+         "                    learning, and take all of it away again, saying\n"
+         "                    what went. A domain named example.test that this\n"
+         "                    did not make is never created over and never\n"
+         "                    removed. Run it as the user the service runs as:\n"
+         "                    it reads the configuration, opens the database and\n"
+         "                    writes to the log directory as the server does.\n"
+         "                    Remove the sample before this server takes real\n"
+         "                    mail - the password is in the documentation.\n"
          "  --verify-update <file>\n"
          "                    check a downloaded release file - a package or an\n"
          "                    AppImage - against the Sigstore bundle beside it\n"
@@ -816,6 +832,79 @@ namespace
 
 namespace
 {
+   // --sample-domain create|remove: a throwaway example.test, made and removed
+   // from the command line. The one place this platform has no other door to it:
+   // the REST API answers the same two calls, but the listener may not be on yet
+   // and this is the row's "one command".
+   //
+   // Unlike --set-setting, which needs the settings store and nothing else, this
+   // needs the whole configuration - the rule machinery, the caches and the
+   // recipient parser that expands the distribution list - so it starts the
+   // application the way the service starts it and stops short of opening a
+   // listener. Nothing is accepted and nothing is delivered by this process.
+   //
+   // The messages go into the delivery queue. A server running beside this picks
+   // them up on its next pass, which is within the minute; a stopped one delivers
+   // them when it starts. That is said below rather than left to be discovered.
+   //
+   // InitInstance is the whole of start-up short of the listeners, so it also
+   // runs AutoBanFirewall::Synchronise. That does nothing at all unless
+   // AutoBanFirewallEnabled is on, which it is not on a stock server; where it IS
+   // on, this re-synchronises the firewall as a start would. It is idempotent -
+   // the rules it writes are the rules it would have written anyway - but a
+   // command that says "sample domain" and touches nft is worth writing down.
+   int SampleDomainCommand(const std::string &verb)
+   {
+      const bool creating = verb == "create";
+      if (!creating && verb != "remove")
+      {
+         std::fprintf(stderr, "--sample-domain takes create or remove; for example --sample-domain create.\n");
+         return 2;
+      }
+
+      HM::String error;
+      if (!HM::Application::Instance()->InitInstance(error))
+      {
+         std::fprintf(stderr, "hMailServer could not read its configuration and open its database: %s\nNothing was changed.\n",
+            HM::AnsiString(error).c_str());
+         return 1;
+      }
+
+      HM::AnsiString report;
+      HM::String sentence;
+      const HM::SampleDomain::Outcome outcome = creating
+         ? HM::SampleDomain::Create(report, sentence)
+         : HM::SampleDomain::Remove(report, sentence);
+
+      int result = 1;
+      if (outcome == HM::SampleDomain::OutcomeDone)
+      {
+         std::printf("%s\n", HM::AnsiString(sentence).c_str());
+
+         if (creating)
+         {
+            // The password is in the sentence printed above, and that is the one
+            // time anything says it: it is minted per creation and nothing keeps
+            // the clear text, so it cannot be looked up afterwards.
+            std::printf("The messages are in the delivery queue: a running server delivers them within a minute, and a stopped one when it starts.\n");
+            std::printf("Remove the sample - hmailserver --sample-domain remove - before this server takes real mail.\n");
+         }
+
+         result = 0;
+      }
+      else
+      {
+         std::fprintf(stderr, "%s\n", HM::AnsiString(sentence).c_str());
+         result = outcome == HM::SampleDomain::OutcomeRefused ? 2 : 1;
+      }
+
+      HM::Application::Instance()->ExitInstance();
+      return result;
+   }
+}
+
+namespace
+{
    // --verify-update: the live update's verification, on its own, for the
    // helper that applies the update as root. hmailserver-update has already
    // been handed a package the SERVER verified; this is root's own check of the
@@ -872,6 +961,7 @@ int main(int argc, char *argv[])
 {
    std::string configuration;
    std::string set_setting;
+   std::string sample_domain;
    std::string verify_update;
    bool check_only = false;
    bool set_password = false;
@@ -921,6 +1011,16 @@ int main(int argc, char *argv[])
             return 2;
          }
          set_setting = argv[++index];
+         continue;
+      }
+      if (argument == "--sample-domain")
+      {
+         if (index + 1 >= argc)
+         {
+            std::fprintf(stderr, "--sample-domain needs create or remove; for example --sample-domain create.\n");
+            return 2;
+         }
+         sample_domain = argv[++index];
          continue;
       }
       if (argument == "--config")
@@ -1023,6 +1123,9 @@ int main(int argc, char *argv[])
 
    if (!set_setting.empty())
       return SetSetting(set_setting);
+
+   if (!sample_domain.empty())
+      return SampleDomainCommand(sample_domain);
 
    if (check_only)
    {

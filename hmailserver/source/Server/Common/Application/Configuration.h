@@ -233,6 +233,11 @@ namespace HM
       int GetReaderOfflineDaysMax() const;
       void SetReaderOfflineDaysMax(int days);
 
+      // The database id of the example.test the sample domain made
+      // (SampleDomain.h), or 0 when it made none. Written by SampleDomain alone.
+      __int64 GetSampleDomainId() const;
+      void SetSampleDomainId(__int64 domainId);
+
       // The address the links to messages that expire are written against
       // (ConfidentialMessages.h); empty falls back to the two base URLs below.
       String GetConfidentialBaseUrl() const;

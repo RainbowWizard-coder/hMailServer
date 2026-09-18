@@ -1186,6 +1186,8 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="auditrevert")revertAuditedChange(d.id);
   else if(d.act==="repwatchcheck")runReputationCheck();
   else if(d.act==="checklistagain")render();
+  else if(d.act==="samplecreate")createSampleDomain();
+  else if(d.act==="sampleremove")removeSampleDomain();
   else if(d.act==="rdnew")openRemoteDomain(0);
   else if(d.act==="devshow")showDevices();
   else if(d.act==="devrevoke")revokeDevice(d.id);
@@ -5234,6 +5236,7 @@ const CHECKLIST_TEXT={
   domain_none:K("No domain has been added yet."),
   domain_none_active:K("{0} domains, none of them active."),
   domain_count:K("Active domains: {0} of {1}."),
+  sample_domain:K("{0} is the sample domain and is not counted here; remove it when you are done with it."),
   account_none:K("No account has been added in any domain."),
   account_count:K("Accounts: {0}."),
   submission_none:K("No port takes message submission, so mail clients cannot send through this server."),
@@ -5267,8 +5270,85 @@ function checklistText(finding){
   const key=CHECKLIST_TEXT[finding.code];
   return key?tf(key,...(finding.args||[])):(finding.text||finding.code||"");
 }
+/* ---------- the sample domain ----------
+   A throwaway example.test with three mailboxes, a distribution list, a rule
+   and a handful of delivered messages, so that every view here has something
+   in it while somebody is learning - and one button that takes all of it away
+   again and says what went.
+
+   It sits under the checklist because that is the view somebody opens in the
+   first hour, and the checklist deliberately leaves the sample out of its
+   counts: a sample domain is not this server's first domain. The card has
+   four shapes - none here, ours here, a domain of that name that this server
+   did not make, which is refused in both directions and says so, and a server
+   whose domain table could not be read, where nothing is offered at all.
+
+   THE PASSWORD is minted by the server when the sample is made and is in the
+   answer to that one call; nothing stores it and no later read can tell us
+   what it was. So it is held here, in this page's memory, for as long as this
+   tab is open, and shown on the card - not in the toast, which goes away
+   while somebody is still writing it down. A reload loses it, which is the
+   truth rather than a defect.
+
+   It is held WITH the domain id it was minted for, and shown only when the
+   sample on the server is still that one. Otherwise a tab that made a sample,
+   and then watched somebody else remove it and make another, would print the
+   first sample's password beside the second sample's mailboxes. */
+let samplePassword_="",samplePasswordFor_=0;
+function sampleDomainCard(sample){
+  if(!sample)return "";
+  const state=sample.state||"absent";
+  const mayChange=may("manage_server");
+  let body="",button="";
+  if(state==="present"){
+    body=`<p class="note">${escHtml(tf("{0} is here: {1}, the list {2}, and one rule that files invoices.",
+      sample.domain||"",(sample.accounts||[]).join(", "),sample.list||""))}</p>`+
+      (samplePassword_&&samplePasswordFor_===Number(sample.domain_id)
+        ?`<p class="note"><b>${escHtml(tf("All of the mailboxes sign in with the password {0}. It is shown here once - write it down, because this server did not keep it.",samplePassword_))}</b></p>`
+        :`<p class="note">${escHtml(t("The one password for all of the mailboxes was shown when the sample was made and was not kept; remove the sample and make it again to be given another."))}</p>`)+
+      `<p class="note">${escHtml(t("It is left out of the checklist above, because a sample domain is not this server's first domain."))}</p>`;
+    button=mayChange?'<button class="btn danger sm" data-act="sampleremove">'+t("Remove the sample domain")+"</button>":"";
+  }else if(state==="foreign"){
+    body=`<p class="note">${escHtml(tf("A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted.",sample.domain||""))}</p>`;
+  }else if(state==="unknown"){
+    body=`<p class="note">${escHtml(t("This server could not read its domain table, so it cannot say whether the sample is here. Nothing is offered until it can."))}</p>`;
+  }else{
+    body=`<p class="note">${escHtml(tf("Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every view has something in it while you learn.",sample.domain||""))}</p>`+
+      `<p class="note">${escHtml(t("Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail."))}</p>`;
+    button=mayChange?'<button class="btn ghost sm" data-act="samplecreate">'+t("Make a sample domain")+"</button>":"";
+  }
+  return `<div class="card flat" id="sampleCard">
+    <div class="row" style="gap:10px;align-items:center"><b>${escHtml(t("A sample domain to learn on"))}</b></div>
+    ${body}
+    <div class="row" style="gap:10px;align-items:center">${button}</div>
+    <div class="err" id="err_sample"></div></div>`;
+}
+async function createSampleDomain(){
+  setErr("err_sample","");
+  try{
+    const answer=await api("/api/v1/setup/sample-domain",{method:"POST",body:"{}"});
+    samplePassword_=answer.password||"";
+    samplePasswordFor_=Number(answer.domain_id)||0;
+    toast(tf("{0} made: {1} mailboxes, and {2} messages on their way",answer.domain||"",Number(answer.accounts_created)||0,Number(answer.messages)||0));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_sample",e.message);}
+}
+async function removeSampleDomain(){
+  if(!confirm(t("Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too.")))return;
+  setErr("err_sample","");
+  try{
+    const answer=await api("/api/v1/setup/sample-domain",{method:"DELETE"});
+    samplePassword_="";samplePasswordFor_=0;
+    toast(tf("{0} removed: {1} mailboxes and {2} messages",answer.domain||"",Number(answer.accounts)||0,Number(answer.messages)||0));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_sample",e.message);}
+}
 async function renderChecklist(){
   const answer=await api("/api/v1/setup/checklist");
+  // The sample is asked for beside the list rather than inside it: a server
+  // that cannot answer this one still draws the eight items it could.
+  let sample=null;
+  try{sample=await api("/api/v1/setup/sample-domain");}catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}sample=null;}
   const items=answer.items||[];
   const cards=items.map(item=>{
     const findings=(item.findings||[]).map(f=>'<li>'+checklistPill(f.state)+' '+escHtml(checklistText(f))+'</li>').join("");
@@ -5288,7 +5368,8 @@ async function renderChecklist(){
         <button class="btn ghost sm" data-act="checklistagain">${t("Check again")}</button>
       </div>
     </div>
-    ${cards.join("")}</div>`;
+    ${cards.join("")}
+    ${sampleDomainCard(sample)}</div>`;
 }
 
 const REPUTATION_STATUS={listed:K("Listed"),not_listed:K("Not listed"),refused:K("Refused"),

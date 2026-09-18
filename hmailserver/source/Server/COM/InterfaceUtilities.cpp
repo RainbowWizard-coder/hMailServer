@@ -38,6 +38,7 @@
 #include "../Common/Util/Unicode.h"
 #include "../Common/Util/ReputationWatch.h"
 #include "../Common/Util/SetupChecklist.h"
+#include "../Common/Application/SampleDomain.h"
 #include "../Common/Util/AuditRevert.h"
 #include "../Common/Util/AuditTrail.h"
 #include "../Common/Persistence/PersistentAccount.h"
@@ -1997,6 +1998,86 @@ STDMETHODIMP InterfaceUtilities::GetSetupChecklist(VARIANT_BOOL LookUpDns, BSTR 
          return authentication_->GetAccessDenied();
 
       HM::String json = HM::String(HM::SetupChecklist::Json(LookUpDns == VARIANT_TRUE));
+      *Json = json.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// THE SAMPLE DOMAIN, over COM: what the Control Panel's Welcome page uses.
+//
+// All three are the server administrator's. Making one creates mailboxes whose
+// password is in the documentation, and removing one deletes a whole domain with
+// everything in it - neither is a domain administrator's to do, and the sample's
+// domain is one this server does not have yet in any case.
+//
+// A refusal - example.test is already here, or is here and was not made by this -
+// is an error with the server's own sentence on it, so that the page shows what
+// the server said rather than a sentence of its own that could drift from it.
+STDMETHODIMP InterfaceUtilities::GetSampleDomain(BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String json = HM::String(HM::SampleDomain::StateJson());
+      *Json = json.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::CreateSampleDomain(BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::AnsiString report;
+      HM::String sentence;
+      if (HM::SampleDomain::Create(report, sentence) != HM::SampleDomain::OutcomeDone)
+         return COMError::GenerateError(sentence);
+
+      HM::String json = HM::String(report);
+      *Json = json.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceUtilities::RemoveSampleDomain(BSTR *Json)
+{
+   try
+   {
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::AnsiString report;
+      HM::String sentence;
+      if (HM::SampleDomain::Remove(report, sentence) != HM::SampleDomain::OutcomeDone)
+         return COMError::GenerateError(sentence);
+
+      HM::String json = HM::String(report);
       *Json = json.AllocSysString();
       return S_OK;
    }

@@ -440,6 +440,9 @@
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>在此处填写域名，要求服务器本机加入该域，因为 Windows 是用 LogonUser 来验证的。在未加入域的计算机上，每一次尝试都会像密码错误一样失败 - 包括仅仅是域名拼写有误的情况 - 因此在未加入域的服务器上这样配置的邮箱永远无法登录，也永远不会说明原因。如果服务器未加入域，请改用“目录身份验证”页上的 LDAP 目录身份验证：它通过网络绑定到目录，不需要加入域。</value>
   </data>
+  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
+    <value>此服务器上存在名为 {0} 的域，而它不是样例创建的，因此这里既不会创建它，也不会删除它。如果不需要，请自行删除该域。</value>
+  </data>
   <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
     <value>出站主机不断变化的域通常通过 HELO 名称识别；不伪造任何内容的域通过信封发件人识别。</value>
   </data>
@@ -4612,6 +4615,9 @@
   <data name="Maintenance for the IMAP folder state. Nothing here changes a message; the folder UID counter is bookkeeping that IMAP clients rely on to tell one message from another." xml:space="preserve">
     <value>IMAP 文件夹状态的维护。此处没有任何操作会更改邮件；文件夹 UID 计数器是 IMAP 客户端赖以区分邮件的簿记数据。</value>
   </data>
+  <data name="Make a sample _domain" xml:space="preserve">
+    <value>创建样例域 (_D)</value>
+  </data>
   <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
     <value>管理本服务器托管的域及其邮箱。</value>
   </data>
@@ -5421,6 +5427,9 @@
   </data>
   <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>无需处理 - 全部 {0} 项外部设置检查都已完成或不需要。</value>
+  </data>
+  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
+    <value>此服务器上还没有可看的内容？这会创建 {0}，带三个邮箱、一个通讯组列表、一条规则和若干已投递的邮件，让您学习时每个页面里都有内容。所有邮箱都使用同一个密码登录，该密码由本服务器现在生成并只显示一次，请记下来，并在此服务器接收真实邮件之前移除样例。</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>未应用任何内容：在确认窗口打开期间选项发生了变化，因此预览不再描述此操作会做什么。请重新运行预览。</value>
@@ -6318,6 +6327,9 @@
   <data name="Re_move action" xml:space="preserve">
     <value>移除操作(_M)</value>
   </data>
+  <data name="Re_move the sample domain" xml:space="preserve">
+    <value>移除样例域 (_M)</value>
+  </data>
   <data name="Re_voke / restore" xml:space="preserve">
     <value>吊销 / 恢复(_V)</value>
   </data>
@@ -6567,6 +6579,9 @@
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>是否从此列表中移除收件人 {0}？</value>
+  </data>
+  <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
+    <value>移除样例域及其中的所有邮箱、邮件和规则吗？之后添加到它里面的内容也会一并移除。</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>从此组中移除所选账户</value>
@@ -9147,6 +9162,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>这在发送方服务器等待其 DATA 应答时运行，因此这个数字是对最坏情况的承诺，而不是提示。它既限制连接也限制应答: 否则一台机器已经消失的引擎会在每封邮件上耗掉操作系统自身的 TCP 超时。</value>
   </data>
+  <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
+    <value>本服务器无法读取域表，因此无法说明样例是否存在。在能读取之前不提供任何操作。</value>
+  </data>
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>此服务器不轮换 DKIM 密钥；它比此控制面板旧。</value>
   </data>
@@ -11370,6 +11388,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} 已下载并通过验证</value>
   </data>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
+    <value>{0} 已存在：邮箱 {1}、列表 {2}，以及一条归档发票的规则。所有邮箱共用的密码在创建样例时显示过一次，并未保存；如需新密码，请先移除样例再重新创建。它不计入第一小时的检查清单，因为样例域不是此服务器的第一个域。</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} 已开启，但分数为 0，因此它对每封邮件都要付出一次查找，却永远无法改变结果。请给它一个分数，或者把它关掉。</value>
   </data>
@@ -11381,6 +11402,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} 已开启，但无法运行。{1} 它被要求执行的每一次扫描都会失败，而失败的扫描并不等于失败的邮件：错误会被记录下来，邮件则会像已经检查过并判定干净一样被投递。</value>
+  </data>
+  <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
+    <value>{0} 是样例域，此处不计入；用完后请将其移除。</value>
   </data>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} 又是 {1} 了。</value>
@@ -11520,11 +11544,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
     <value>有 {0} 个值无法读取 — {1} 下面的行可能不完整。</value>
   </data>
+  <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
+    <value>已创建 {0}：{1} 个邮箱，{2} 封邮件正在投递到其中。几秒钟后送达。 所有邮箱都使用密码 {3} 登录。它在此处只显示一次，请记下来，因为本服务器并未保存它。</value>
+  </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} 已不在列表中。</value>
   </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>已将 {0} 从列表移除。</value>
+  </data>
+  <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
+    <value>已移除 {0}：{1} 个邮箱、{2} 个通讯组列表、{3} 条规则和 {4} 封邮件随之移除。</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} 具有完全权限</value>

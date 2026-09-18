@@ -440,6 +440,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Tähän merkitty toimialueen nimi edellyttää, että PALVELIMEN oma tietokone on liitetty kyseiseen toimialueeseen, koska Windows vahvistaa sen LogonUser-kutsulla. Liittämättömältä tietokoneelta jokainen yritys epäonnistuu aivan kuin salasana olisi väärä – myös silloin kun toimialueen nimi on vain kirjoitettu väärin – joten näin määritetty postilaatikko ei liittämättömällä palvelimella voi koskaan kirjautua sisään eikä koskaan kerro miksi. Jos palvelinta ei ole liitetty toimialueeseen, käytä sen sijaan LDAP-hakemistotodennusta Hakemistotodennus-sivulla: se muodostaa sidonnan hakemistoon verkon yli eikä vaadi toimialueeseen liittämistä.</value>
   </data>
+  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
+    <value>Tällä palvelimella on toimialue nimeltä {0}, jota näyte ei luonut, joten mikään täällä ei luo eikä poista sitä. Poista toimialue itse, jos sitä ei haluta.</value>
+  </data>
   <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
     <value>Verkkotunnus, jonka lähtevät palvelimet vaihtuvat, tunnistetaan yleensä HELO-nimestä; verkkotunnus, joka ei väärennä mitään, kuoren lähettäjästä.</value>
   </data>
@@ -4612,6 +4615,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Maintenance for the IMAP folder state. Nothing here changes a message; the folder UID counter is bookkeeping that IMAP clients rely on to tell one message from another." xml:space="preserve">
     <value>IMAP-kansiotilan ylläpito. Mikään täällä ei muuta viestiä; kansion UID-laskuri on kirjanpitoa, johon IMAP-asiakkaat luottavat erottaakseen viestin toisesta.</value>
   </data>
+  <data name="Make a sample _domain" xml:space="preserve">
+    <value>Luo näytetoimialue (_D)</value>
+  </data>
   <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
     <value>Hallitse tämän palvelimen isännöimiä verkkotunnuksia ja niiden postilaatikoita.</value>
   </data>
@@ -5421,6 +5427,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>Mikään ei vaadi huomiota - kaikki {0} ulkoista määritystarkistusta on tehty tai niitä ei tarvita.</value>
+  </data>
+  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
+    <value>Eikö tällä palvelimella ole vielä mitään katsottavaa? Tämä luo toimialueen {0}, jossa on kolme postilaatikkoa, jakelulista, sääntö ja kourallinen toimitettuja viestejä, jotta jokaisella sivulla on jotain opettelun ajan. Kaikki postilaatikot kirjautuvat yhdellä salasanalla, jonka tämä palvelin luo nyt ja näyttää kerran, joten kirjoita se muistiin - ja poista näyte ennen kuin tämä palvelin ottaa vastaan oikeaa postia.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Mitään ei otettu käyttöön: asetukset muuttuivat vahvistuksen ollessa auki, joten esikatselu ei enää kuvaa, mitä tämä tekisi. Aja esikatselu uudelleen.</value>
@@ -6318,6 +6327,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Re_move action" xml:space="preserve">
     <value>Poi_sta toiminto</value>
   </data>
+  <data name="Re_move the sample domain" xml:space="preserve">
+    <value>Poista näytetoi_mialue</value>
+  </data>
   <data name="Re_voke / restore" xml:space="preserve">
     <value>_Kumoa / palauta</value>
   </data>
@@ -6567,6 +6579,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>Poistetaanko vastaanottaja {0} tältä listalta?</value>
+  </data>
+  <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
+    <value>Poistetaanko näytetoimialue kaikkine postilaatikoineen, viesteineen ja sääntöineen? Myös kaikki siihen lisätty lähtee mukana.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Poista valittu tili tästä ryhmästä</value>
@@ -9147,6 +9162,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Tämä ajetaan, kun lähettävä palvelin odottaa vastausta DATA-komentoon, joten luku on lupaus pahimmasta tapauksesta eikä vihje. Se rajaa sekä yhteyden että vastauksen: moottori, jonka kone on kadonnut, maksaisi muuten käyttöjärjestelmän oman TCP-aikakatkaisun jokaisella viestillä.</value>
   </data>
+  <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
+    <value>Tämä palvelin ei pystynyt lukemaan toimialuetaulukkoaan, joten se ei voi sanoa, onko näyte täällä. Mitään ei tarjota ennen kuin se pystyy.</value>
+  </data>
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>Tämä palvelin ei kierrätä DKIM-avaimia; se on vanhempi kuin tämä Control Panel.</value>
   </data>
@@ -11370,6 +11388,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} on ladattu ja tarkistettu</value>
   </data>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
+    <value>{0} on täällä: postilaatikot {1}, lista {2} ja yksi sääntö, joka arkistoi laskut. Kaikkien postilaatikoiden yhteinen salasana näytettiin näytettä luotaessa eikä sitä tallennettu; poista näyte ja luo se uudelleen saadaksesi uuden. Se jätetään ensimmäisen tunnin tarkistuslistan ulkopuolelle, koska näytetoimialue ei ole tämän palvelimen ensimmäinen toimialue.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} on päällä, mutta sen pistemäärä on 0, joten se maksaa haun jokaisesta viestistä eikä voi koskaan muuttaa lopputulosta. Anna sille pistemäärä tai kytke se pois.</value>
   </data>
@@ -11381,6 +11402,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} on kytketty päälle, mutta ei voi toimia. {1} Jokainen siltä pyydetty skannaus epäonnistuu, eikä epäonnistunut skannaus ole epäonnistunut viesti: virhe kirjataan lokiin ja viesti toimitetaan kuin se olisi tutkittu ja todettu puhtaaksi.</value>
+  </data>
+  <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
+    <value>{0} on näytetoimialue eikä sitä lasketa tähän; poista se, kun olet valmis.</value>
   </data>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} on jälleen {1}.</value>
@@ -11520,11 +11544,17 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
     <value>{0} arvoa ei voitu lukea — {1} Alla olevat rivit voivat olla puutteellisia.</value>
   </data>
+  <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
+    <value>{0} luotiin: {1} postilaatikkoa, ja {2} viestiä matkalla niihin. Ne saapuvat muutamassa sekunnissa. Kaikki postilaatikot kirjautuvat salasanalla {3}. Se näytetään tässä kerran - kirjoita se muistiin, sillä palvelin ei tallentanut sitä.</value>
+  </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} ei ollut enää listalla.</value>
   </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>{0} poistettiin listalta.</value>
+  </data>
+  <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
+    <value>{0} poistettiin: mukana lähti {1} postilaatikkoa, {2} jakelulistaa, {3} sääntöä ja {4} viestiä.</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} täysillä oikeuksilla</value>

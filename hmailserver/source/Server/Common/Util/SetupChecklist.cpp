@@ -29,6 +29,7 @@
 //   domain_none              No domain has been added yet.
 //   domain_none_active       {0} domains, none of them active.
 //   domain_count             Active domains: {0} of {1}.
+//   sample_domain            {0} is the sample domain and is not counted here.
 //   account_none             No account has been added in any domain.
 //   account_count            Accounts: {0}.
 //   submission_none          No port takes message submission.
@@ -69,6 +70,17 @@
 // A lookup that fails is cannot_tell, not action_needed: a resolver that is down
 // says nothing about the zone. An empty answer, or an answer with no record of
 // the kind asked for, is action_needed.
+//
+// THE SAMPLE DOMAIN IS NOT A DOMAIN HERE
+//
+// example.test as the sample made it (Application/SampleDomain.h) is left out of
+// every item: it is not the administrator's first domain, its mailboxes are not
+// their first accounts, and its records are not theirs to publish - .test is a
+// reserved name that no zone answers for, so looking it up would put three
+// cannot_tell findings on a list somebody is reading to learn what is left to do.
+// The domain item says it is there, with a not_needed finding, so that the reader
+// is told why the count is what it is rather than left to wonder. An example.test
+// somebody made themselves is a domain like any other and is counted.
 #include "StdAfx.h"
 #include "SetupChecklist.h"
 
@@ -76,6 +88,7 @@
 #include "Unicode.h"
 #include "../Application/Configuration.h"
 #include "../Application/IniFileSettings.h"
+#include "../Application/SampleDomain.h"
 #include "../BO/Domain.h"
 #include "../BO/Domains.h"
 #include "../BO/SSLCertificate.h"
@@ -147,6 +160,7 @@ namespace HM
             { "domain_none", "No domain has been added yet." },
             { "domain_none_active", "{0} domains, none of them active." },
             { "domain_count", "Active domains: {0} of {1}." },
+            { "sample_domain", "{0} is the sample domain and is not counted here; remove it when you are done with it." },
             { "account_none", "No account has been added in any domain." },
             { "account_count", "Accounts: {0}." },
             { "submission_none", "No port takes message submission, so mail clients cannot send through this server." },
@@ -333,10 +347,19 @@ namespace HM
          Add(item, StateActionNeeded, "record_missing", args);
       }
 
+      // Every account on the server, less the sample domain's three when the
+      // sample is there. excludeDomainId is 0 when it is not, and the statement
+      // is then the one this has always asked.
       long long
-      CountAccounts()
+      CountAccounts(__int64 excludeDomainId)
       {
-         SQLCommand command(_T("select count(*) as accountcount from hm_accounts"));
+         SQLCommand command(excludeDomainId == 0
+            ? _T("select count(*) as accountcount from hm_accounts")
+            : _T("select count(*) as accountcount from hm_accounts where accountdomainid <> @DOMAINID"));
+
+         if (excludeDomainId != 0)
+            command.AddParameter("@DOMAINID", excludeDomainId);
+
          std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
          if (!recordset || recordset->IsEOF())
             return 0;
@@ -372,12 +395,22 @@ namespace HM
       Domains domains;
       domains.Refresh();
 
+      // The sample's domain, if the sample made one. 0 otherwise, and 0 for an
+      // example.test the sample did not make.
+      const __int64 sampleDomainId = SampleDomain::PresentDomainId();
+      AnsiString sampleDomainName;
+
       std::vector<std::shared_ptr<Domain>> active;
       int total = 0;
       for (std::shared_ptr<Domain> domain : domains.GetVector())
       {
          if (!domain)
             continue;
+         if (sampleDomainId != 0 && domain->GetID() == sampleDomainId)
+         {
+            sampleDomainName = Utf8(domain->GetName());
+            continue;
+         }
          total++;
          if (domain->GetIsActive())
             active.push_back(domain);
@@ -393,11 +426,17 @@ namespace HM
          Add(domainItem, StateActionNeeded, "domain_none_active", { Number(total) });
       else
          Add(domainItem, StateDone, "domain_count", { Number((long long) active.size()), Number(total) });
+
+      // Last, and not_needed, so that it says why the count is what it is
+      // without being able to change the item's state.
+      if (!sampleDomainName.empty())
+         Add(domainItem, StateNotNeeded, "sample_domain", { sampleDomainName });
+
       items.push_back(domainItem);
 
       Item accountItem;
       accountItem.key = "account";
-      const long long accounts = CountAccounts();
+      const long long accounts = CountAccounts(sampleDomainId);
       if (accounts == 0)
          Add(accountItem, StateActionNeeded, "account_none");
       else

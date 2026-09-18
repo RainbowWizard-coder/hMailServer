@@ -1145,9 +1145,6 @@ const ROLE_CATALOGUE = [
    { name: 'helpdesk', description: 'Resets a password, unlocks an account and reads a message trace.', builtin: true,
      permissions: 'view_accounts,view_message_trace,reset_password,unlock_account' },
    { name: 'auditor', description: 'Reads everything and changes nothing, the audit trail included.', builtin: true,
-   reputationChecks: 0,
-   auditReverts: 0,
-   checklistReads: 0,
      permissions: 'view_configuration,view_accounts,view_logs,view_audit' },
    { name: 'logreader', description: 'Reads the logs.', builtin: false, permissions: 'view_logs' }
 ];
@@ -1178,6 +1175,19 @@ function rotationDoc(domain, current, retiring) {
 }
 
 const state = {
+   // What the recorded server has been asked to do, for the checks that count it.
+   reputationChecks: 0,
+   auditReverts: 0,
+   checklistReads: 0,
+   // The sample domain, which the checklist view draws beside the eight items.
+   // It starts absent, is made by the button and is taken away by the other one.
+   // The state document carries no password: the server mints one per creation and
+   // keeps only its hash, so this is what a page can read back.
+   sampleDomain: {
+      state: 'absent', domain: 'example.test', domain_id: 0, exists: false,
+      list: 'everyone@example.test', password_shown_once: true,
+      accounts: ['alice@example.test', 'bob@example.test', 'carol@example.test']
+   },
    // The newest journal row per address, written by a move.
    moves: {},
    assignments: [{ address: 'anna@example.com', role: 'helpdesk', domains: '' }],
@@ -2032,6 +2042,21 @@ function answer(method, path, headers, raw) {
    }
    if (path === '/api/v1/reputation' && method === 'GET') { return json(200, state.reputation); }
    if (path === '/api/v1/setup/checklist' && method === 'GET') { state.checklistReads += 1; return json(200, state.checklist); }
+   if (path === '/api/v1/setup/sample-domain' && method === 'GET') { return json(200, state.sampleDomain); }
+   if (path === '/api/v1/setup/sample-domain' && method === 'POST') {
+      if (state.sampleDomain.exists) { return json(409, { error: 'example.test already exists' }); }
+      state.sampleDomain = Object.assign({}, state.sampleDomain, { state: 'present', domain_id: 42, exists: true });
+      return json(201, { created: true, domain: 'example.test', domain_id: 42, password: '7TQ4M-KJ9XD-2VWHF-BNRE5',
+         accounts_created: 3, list: 'everyone@example.test', list_members: 3, rules: 1, messages: 8, deliveries: 14,
+         message: 'example.test was created with 3 mailboxes, the list everyone@example.test and 8 messages on their way into it. '
+            + 'All of the mailboxes sign in with the password 7TQ4M-KJ9XD-2VWHF-BNRE5, which is shown here once and is not stored anywhere.' });
+   }
+   if (path === '/api/v1/setup/sample-domain' && method === 'DELETE') {
+      if (!state.sampleDomain.exists) { return json(409, { error: 'There is no sample domain on this server, so nothing was removed.' }); }
+      state.sampleDomain = Object.assign({}, state.sampleDomain, { state: 'absent', domain_id: 0, exists: false });
+      return json(200, { removed: true, domain: 'example.test', domain_id: 42, accounts: 3, lists: 1, rules: 1, messages: 14, queued: 0,
+         message: 'example.test was removed: 3 mailboxes, 1 distribution list(s), 1 rule(s) and 14 message(s) went with it.' });
+   }
    if (path === '/api/v1/reputation/check' && method === 'POST') {
       state.reputationChecks += 1;
       // A check is what turns an unanswered list into an answer: after it, the list
@@ -5526,7 +5551,13 @@ async function main() {
    state.checklist = {
       generated: 1789000200, dns_looked_up: true, done: 0, action_needed: 5, cannot_tell: 0, not_needed: 3,
       items: [
-         { key: 'domain', state: 'action_needed', findings: [{ state: 'action_needed', code: 'domain_none', args: [], text: 'No domain has been added yet.' }] },
+         { key: 'domain', state: 'action_needed', findings: [
+            { state: 'action_needed', code: 'domain_none', args: [], text: 'No domain has been added yet.' },
+            // The sample's own finding, with a text this page must NOT use: the
+            // code is in CHECKLIST_TEXT, so the page has words of its own for it
+            // in every language, and a code that had been left out would show
+            // this English sentence instead.
+            { state: 'not_needed', code: 'sample_domain', args: ['example.test'], text: 'the sentence the server sent, which this page has no need of' }] },
          { key: 'account', state: 'action_needed', findings: [{ state: 'action_needed', code: 'account_none', args: [], text: 'No account has been added in any domain.' }] },
          { key: 'submission', state: 'action_needed', findings: [{ state: 'action_needed', code: 'submission_plain', args: ['587'], text: 'Port 587 takes submission without TLS, so passwords and mail would cross the network in the clear.' }] },
          { key: 'spf', state: 'not_needed', findings: [{ state: 'not_needed', code: 'no_active_domain', args: [], text: 'No active domain, so there is nothing to publish yet.' }] },
@@ -5545,6 +5576,113 @@ async function main() {
       content().querySelector('.checkitem[data-key="spf"]').textContent.indexOf('Not needed') >= 0 &&
       content().querySelector('.checkitem[data-key="spf"] .pill[data-level]') === null,
       content().querySelector('.checkitem[data-key="spf"]').textContent);
+   check('the sample domain finding is drawn from this page\'s own words, not the server\'s',
+      content().querySelector('.checkitem[data-key="domain"]').textContent
+         .indexOf('example.test is the sample domain and is not counted here; remove it when you are done with it.') >= 0 &&
+      content().querySelector('.checkitem[data-key="domain"]').textContent.indexOf('the sentence the server sent') < 0,
+      content().querySelector('.checkitem[data-key="domain"]').textContent);
+
+   // ---- the sample domain, on the same view
+   check('the card offers to make one when there is none, and says what it costs',
+      $('#sampleCard') !== null && $('#sampleCard').textContent.indexOf('A sample domain to learn on') >= 0 &&
+      $('#sampleCard').textContent.indexOf('This makes example.test with three mailboxes') >= 0 &&
+      $('#sampleCard').textContent.indexOf('mints now and shows once') >= 0 &&
+      content().querySelector('button[data-act="samplecreate"]') !== null &&
+      content().querySelector('button[data-act="sampleremove"]') === null,
+      $('#sampleCard') ? $('#sampleCard').textContent : 'no card');
+
+   // A sample this tab did not make: the password is not in the state document
+   // and this page never had it, so the card says where it went rather than
+   // leaving a blank where a secret used to be.
+   state.sampleDomain = Object.assign({}, state.sampleDomain, { state: 'present', domain_id: 42, exists: true });
+   click(act('checklistagain'));
+   await flush();
+   check('a sample this browser did not make says the password was shown once and not kept',
+      $('#sampleCard').textContent.indexOf('was shown when the sample was made and was not kept') >= 0 &&
+      content().querySelector('button[data-act="sampleremove"]') !== null,
+      $('#sampleCard').textContent);
+
+   // A server that could not read its domain table: neither button, because it
+   // has just said it does not know whether the sample is there.
+   state.sampleDomain = Object.assign({}, state.sampleDomain, { state: 'unknown', domain_id: 0, exists: false });
+   click(act('checklistagain'));
+   await flush();
+   check('a domain table that could not be read offers neither button and says so',
+      $('#sampleCard').textContent.indexOf('could not read its domain table') >= 0 &&
+      content().querySelector('button[data-act="samplecreate"]') === null &&
+      content().querySelector('button[data-act="sampleremove"]') === null,
+      $('#sampleCard').textContent);
+   state.sampleDomain = Object.assign({}, state.sampleDomain, { state: 'absent', domain_id: 0, exists: false });
+   click(act('checklistagain'));
+   await flush();
+
+   before = requests.length;
+   click(act('samplecreate'));
+   await flush();
+   check('Make a sample domain posts once and reads the view again',
+      called(before, 'POST', '/api/v1/setup/sample-domain').length === 1 &&
+      called(before, 'GET', '/api/v1/setup/sample-domain').length === 1, paths(before));
+   check('the toast counts the mailboxes and the messages on their way',
+      toastText() === 'example.test made: 3 mailboxes, and 8 messages on their way', toastText());
+   check('with one there, the card names the accounts and the list, and offers to remove it',
+      $('#sampleCard').textContent.indexOf('alice@example.test, bob@example.test, carol@example.test') >= 0 &&
+      $('#sampleCard').textContent.indexOf('everyone@example.test') >= 0 &&
+      $('#sampleCard').textContent.indexOf('not this server\'s first domain') >= 0 &&
+      content().querySelector('button[data-act="sampleremove"]') !== null &&
+      content().querySelector('button[data-act="samplecreate"]') === null,
+      $('#sampleCard').textContent);
+   // The password is shown by the card and not by the toast, because a toast goes
+   // away while somebody is still writing it down - and it is the creation's
+   // answer that carries it, because no read of the sample can.
+   check('the password the creation minted is on the card, said to be shown once',
+      $('#sampleCard').textContent.indexOf('7TQ4M-KJ9XD-2VWHF-BNRE5') >= 0 &&
+      $('#sampleCard').textContent.indexOf('this server did not keep it') >= 0 &&
+      toastText().indexOf('7TQ4M') < 0,
+      $('#sampleCard').textContent + ' | ' + toastText());
+
+   // Somebody else removed that sample and made another while this tab watched.
+   // The password this tab holds belongs to the one that has gone, and printing
+   // it beside the new sample's mailboxes would be worse than printing nothing.
+   state.sampleDomain = Object.assign({}, state.sampleDomain, { domain_id: 43 });
+   click(act('checklistagain'));
+   await flush();
+   check('a password minted for a sample that has gone is not shown beside another one',
+      $('#sampleCard').textContent.indexOf('7TQ4M-KJ9XD-2VWHF-BNRE5') < 0 &&
+      $('#sampleCard').textContent.indexOf('was shown when the sample was made and was not kept') >= 0,
+      $('#sampleCard').textContent);
+   state.sampleDomain = Object.assign({}, state.sampleDomain, { domain_id: 42 });
+   click(act('checklistagain'));
+   await flush();
+
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('sampleremove'));
+   await flush();
+   check('removing asks first, and no means nothing is sent',
+      called(before, 'DELETE', '/api/v1/setup/sample-domain').length === 0 &&
+      confirmations[confirmations.length - 1].indexOf('Anything added to it goes too') >= 0,
+      confirmations[confirmations.length - 1]);
+   confirmAnswer = true;
+
+   before = requests.length;
+   click(act('sampleremove'));
+   await flush();
+   check('yes removes it and the toast says what went',
+      called(before, 'DELETE', '/api/v1/setup/sample-domain').length === 1 &&
+      toastText() === 'example.test removed: 3 mailboxes and 14 messages' &&
+      content().querySelector('button[data-act="samplecreate"]') !== null, toastText() + ' | ' + paths(before));
+
+   // An example.test this server did not make: neither button, and the card says
+   // why - the one refusal the whole feature exists to make.
+   state.sampleDomain = Object.assign({}, state.sampleDomain, { state: 'foreign', domain_id: 0, exists: true });
+   click(act('checklistagain'));
+   await flush();
+   check('a domain of that name this server did not make is refused in both directions',
+      $('#sampleCard').textContent.indexOf('the sample did not make it') >= 0 &&
+      content().querySelector('button[data-act="samplecreate"]') === null &&
+      content().querySelector('button[data-act="sampleremove"]') === null,
+      $('#sampleCard').textContent);
+   state.sampleDomain = Object.assign({}, state.sampleDomain, { state: 'absent', exists: false });
 
    // ---- groups: the last thing the census counted as writable over REST and
    // reachable from no view here

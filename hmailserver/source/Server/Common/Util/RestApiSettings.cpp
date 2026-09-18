@@ -867,6 +867,12 @@ namespace
               return String(_T("reader_offline_days_max is between 0 and 365."));
            return String();
         } },
+      // The sample domain (Application/SampleDomain.h): the marker, shown and
+      // never sent. It is written by POST and DELETE /api/v1/setup/sample-domain
+      // and by nothing else, which is what makes the removal exact.
+      { "sample_domain_id", KindInteger, ReadOnly, EffectNow, nullptr,
+        "The database id of the example.test the sample domain made (POST /api/v1/setup/sample-domain), or 0 when it made none. The marker the removal matches against, so that an example.test somebody made by hand is never the one DELETE removes, and the first-hour checklist leaves the sample out of its count. Shown and never sent; a stale id - the domain deleted by hand - is the same as 0.",
+        ROW_NUMBER(Config()->GetSampleDomainId()), nullptr, ROW_NO_CHECK },
       // Compromised-account detection (Util/CompromiseDetector.h): the mode
       // and the thresholds of the four signals. Every range is refused in the
       // setting's own sentence rather than clamped, as the webhook settings are.

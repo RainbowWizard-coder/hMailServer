@@ -440,6 +440,9 @@
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Ім’я домену тут вимагає, щоб сам комп’ютер СЕРВЕРА було приєднано до цього домену, бо Windows перевіряє його через LogonUser. З комп’ютера, не приєднаного до домену, кожна спроба завершується так, ніби пароль неправильний, — зокрема й тоді, коли ім’я домену просто написано з помилкою, — тож поштова скринька, налаштована таким чином на неприєднаному сервері, ніколи не зможе увійти й ніколи не скаже чому. Якщо сервер не приєднано до домену, скористайтеся натомість автентифікацією через каталог LDAP на сторінці «Автентифікація через каталог»: вона виконує прив’язку до каталогу мережею й не потребує приєднання до домену.</value>
   </data>
+  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
+    <value>На цьому сервері є домен з іменем {0}, і зразок його не створював, тож тут ніщо його не створює і не вилучає. Вилучіть цей домен самостійно, якщо він не потрібен.</value>
+  </data>
   <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
     <value>Домен зі змінними вихідними вузлами зазвичай впізнають за іменем HELO; домен, який нічого не підробляє, - за відправником конверта.</value>
   </data>
@@ -4612,6 +4615,9 @@
   <data name="Maintenance for the IMAP folder state. Nothing here changes a message; the folder UID counter is bookkeeping that IMAP clients rely on to tell one message from another." xml:space="preserve">
     <value>Обслуговування стану папок IMAP. Ніщо тут не змінює повідомлення; лічильник UID папки — це облік, на який покладаються клієнти IMAP, щоб відрізняти одне повідомлення від іншого.</value>
   </data>
+  <data name="Make a sample _domain" xml:space="preserve">
+    <value>Створити зразковий домен (_D)</value>
+  </data>
   <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
     <value>Керуйте доменами, які обслуговує цей сервер, та їхніми поштовими скриньками.</value>
   </data>
@@ -5421,6 +5427,9 @@
   </data>
   <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>Ніщо не потребує уваги — усі {0} перевірок зовнішнього налаштування виконано або вони не потрібні.</value>
+  </data>
+  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
+    <value>Поки що нема на що подивитися на цьому сервері? Це створює {0} з трьома скриньками, списком розсилки, одним правилом і кількома доставленими повідомленнями, щоб під час навчання на кожній сторінці щось було. Усі скриньки входять з одним паролем, який цей сервер створює зараз і показує один раз, тож запишіть його - і вилучіть зразок, перш ніж цей сервер прийматиме справжню пошту.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Нічого не застосовано: параметри змінилися, поки підтвердження було відкрите, тому попередній перегляд більше не описує, що це зробило б. Виконайте попередній перегляд ще раз.</value>
@@ -6318,6 +6327,9 @@
   <data name="Re_move action" xml:space="preserve">
     <value>Вилу_чити дію</value>
   </data>
+  <data name="Re_move the sample domain" xml:space="preserve">
+    <value>Вилучити зразковий домен (_M)</value>
+  </data>
   <data name="Re_voke / restore" xml:space="preserve">
     <value>_Відкликати / відновити</value>
   </data>
@@ -6567,6 +6579,9 @@
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>Вилучити отримувача {0} із цього списку?</value>
+  </data>
+  <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
+    <value>Вилучити зразковий домен з усіма скриньками, повідомленнями та правилами в ньому? Усе, що до нього додано, теж зникне.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Вилучити вибраний обліковий запис із цієї групи</value>
@@ -9147,6 +9162,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Це виконується, поки сервер-відправник чекає на відповідь на DATA, тому число - обіцянка про найгірший випадок, а не підказка. Воно обмежує і з'єднання, і відповідь: рушій, чий комп'ютер зник, інакше коштував би власного часу очікування TCP операційної системи на кожному повідомленні.</value>
   </data>
+  <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
+    <value>Цей сервер не зміг прочитати таблицю доменів, тому не може сказати, чи є тут зразок. Доки не зможе, нічого не пропонується.</value>
+  </data>
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>Цей сервер не виконує ротацію ключів DKIM; він старіший за цю Панель керування.</value>
   </data>
@@ -11370,6 +11388,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} завантажено й перевірено</value>
   </data>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
+    <value>{0} тут: скриньки {1}, список {2} і одне правило, що розкладає рахунки. Єдиний пароль для всіх скриньок був показаний під час створення зразка і не зберігався; вилучіть зразок і створіть його знову, щоб отримати новий. У контрольному списку першої години він не враховується, бо зразковий домен не є першим доменом цього сервера.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} увімкнено, але дає оцінку 0, тому коштує пошуку на кожне повідомлення й ніколи не може змінити результат. Задайте оцінку або вимкніть.</value>
   </data>
@@ -11381,6 +11402,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} увімкнено, але не може працювати. {1} Кожне сканування, яке від нього просять, зазнає невдачі, а невдале сканування — це не невдале повідомлення: помилка записується в журнал, а повідомлення доставляється так, ніби його перевірили й визнали чистим.</value>
+  </data>
+  <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
+    <value>{0} — це зразковий домен, і тут він не враховується; вилучіть його, коли закінчите з ним.</value>
   </data>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} знову {1}.</value>
@@ -11520,11 +11544,17 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
     <value>{0} значень не вдалося прочитати — {1} Рядки нижче можуть бути неповними.</value>
   </data>
+  <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
+    <value>{0} створено: {1} скриньок і {2} повідомлень у дорозі до них. Вони надійдуть за кілька секунд. Усі скриньки входять з паролем {3}. Він показаний тут лише раз - запишіть його, бо цей сервер його не зберіг.</value>
+  </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} вже не було у списку.</value>
   </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>{0} вилучено зі списку.</value>
+  </data>
+  <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
+    <value>{0} вилучено: разом з ним пішли {1} скриньок, {2} списків розсилки, {3} правил і {4} повідомлень.</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} з повними повноваженнями</value>

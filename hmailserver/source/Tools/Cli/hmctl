@@ -65,6 +65,13 @@ EXIT_USAGE = 2
 EXIT_AUTH = 3
 EXIT_NOTFOUND = 4
 
+# A refusal: the server understood, could have done it, and said no. It shares
+# its number with EXIT_USAGE, because argparse exits 2 for a command line it
+# cannot parse and that is not ours to change - and because the Linux server's
+# own `hmailserver --sample-domain` answers 2 for the same thing, which is the
+# number a script written against one of the two would already be reading.
+EXIT_REFUSED = 2
+
 
 # ---------------------------------------------------------------------------
 # The resources.
@@ -1884,6 +1891,71 @@ def traphits_command(client, arguments):
     return EXIT_OK
 
 
+def sample_domain_command(client, arguments):
+    """The throwaway example.test, made and removed in one command.
+
+    Three verbs and no options. There is exactly one sample domain, it is always
+    example.test, and what is in it is fixed - a sample with options is a
+    configuration screen, which is the thing this exists to let somebody skip.
+
+    Exit 2 for a refusal rather than 1: "it is already there", "there is none"
+    and "that example.test is not mine" are answers, not failures, and a script
+    that runs create at the start of a demonstration should be able to tell them
+    from a server that could not be reached. The server says all three with 409,
+    which main() would otherwise map to EXIT_ERROR like everything else, so the
+    three calls are made here rather than left to it.
+    """
+    try:
+        if arguments.verb == "create":
+            answer = client.request("POST", "/api/v1/setup/sample-domain", body={}) or {}
+        elif arguments.verb == "remove":
+            answer = client.request("DELETE", "/api/v1/setup/sample-domain") or {}
+        else:
+            answer = client.request("GET", "/api/v1/setup/sample-domain") or {}
+    except ApiError as error:
+        if error.status != 409:
+            raise
+        print("hmctl: %s" % error.message, file=sys.stderr)
+        return EXIT_REFUSED
+
+    if arguments.json:
+        render(answer, True)
+        return EXIT_OK
+
+    if arguments.verb in ("create", "remove"):
+        # The message carries the password on a creation, because the server
+        # mints one per sample and keeps only its hash: this line is the one
+        # time anything says it.
+        print(answer.get("message") or "")
+        if arguments.verb == "create":
+            print("The messages are delivered through the server's own path and arrive in a few seconds.")
+            print("Remove the sample - hmctl sample-domain remove - before this server takes real mail.")
+        return EXIT_OK
+
+    state = answer.get("state", "")
+    print("domain    %s" % answer.get("domain", ""))
+    print("state     %s" % state)
+    if state == "present":
+        print("accounts  %s" % ", ".join(answer.get("accounts") or []))
+        print("list      %s" % answer.get("list", ""))
+        print("password  (shown once when the sample was made; not stored)")
+        print("")
+        print("Remove it - hmctl sample-domain remove - before this server takes real mail.")
+    elif state == "foreign":
+        print("")
+        print("A domain of that name is on this server and the sample did not make it,")
+        print("so create and remove both refuse. Delete it yourself if it is not wanted.")
+    elif state == "unknown":
+        print("")
+        print("The server could not read its domain table, so it cannot say whether the")
+        print("sample is here. create and remove both refuse until it can.")
+    else:
+        print("")
+        print("No sample domain. hmctl sample-domain create makes one.")
+
+    return EXIT_OK
+
+
 def report_command(client, arguments):
     """The reports: a section of one, for a window and optionally one domain.
 
@@ -2538,6 +2610,17 @@ def build_parser():
     hits_clear = traphits_verbs.add_parser("clear", parents=[common],
                                            help="clear the record; the bans and blocked senders it made stay")
     hits_clear.set_defaults(domain=None, limit=None)
+
+    sample = commands.add_parser("sample-domain",
+                                 help="a throwaway example.test with three mailboxes, a list, a rule and some delivered mail")
+    sample.set_defaults(handler=sample_domain_command)
+    sample_verbs = sample.add_subparsers(dest="verb")
+    sample_verbs.add_parser("status", parents=[common],
+                            help="whether the sample domain is there, and what is in it")
+    sample_verbs.add_parser("create", parents=[common],
+                            help="make it; refused when a domain named example.test is already here")
+    sample_verbs.add_parser("remove", parents=[common],
+                            help="remove it and say what went; never removes an example.test this did not make")
 
     configuration = commands.add_parser("config", help="the whole configuration as one file")
     configuration_verbs = configuration.add_subparsers(dest="verb")

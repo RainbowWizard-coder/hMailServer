@@ -440,6 +440,9 @@ Spara det här svaga lösenordet ändå?</value>
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Ett domännamn här kräver att SERVERNS egen dator är ansluten till den domänen, eftersom Windows validerar det med LogonUser. Från en dator som inte är ansluten misslyckas varje försök som om lösenordet vore fel - även när domännamnet helt enkelt är felstavat - så en brevlåda konfigurerad så här på en oansluten server kan aldrig logga in och säger aldrig varför. Om servern inte är domänansluten, använd LDAP-katalogautentisering på sidan Katalogautentisering i stället: den binder till katalogen över nätverket och kräver ingen domänanslutning.</value>
   </data>
+  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
+    <value>Det finns en domän med namnet {0} på den här servern som provet inte skapade, så ingenting här skapar eller tar bort den. Ta bort den domänen själv om den inte önskas.</value>
+  </data>
   <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
     <value>En domän med växlande utgående värdar känns oftast igen på HELO-namnet; en domän som inte förfalskar något på kuvertavsändaren.</value>
   </data>
@@ -4612,6 +4615,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Maintenance for the IMAP folder state. Nothing here changes a message; the folder UID counter is bookkeeping that IMAP clients rely on to tell one message from another." xml:space="preserve">
     <value>Underhåll av IMAP-mappstatus. Inget här ändrar ett meddelande; mappens UID-räknare är bokföring som IMAP-klienter förlitar sig på för att skilja ett meddelande från ett annat.</value>
   </data>
+  <data name="Make a sample _domain" xml:space="preserve">
+    <value>Skapa en prov_domän</value>
+  </data>
   <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
     <value>Hantera domänerna som den här servern hyser och deras brevlådor.</value>
   </data>
@@ -5421,6 +5427,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>Inget behöver åtgärdas - alla {0} kontroller av extern konfiguration är klara eller behövs inte.</value>
+  </data>
+  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
+    <value>Inget att titta på i den här servern ännu? Detta skapar {0} med tre brevlådor, en distributionslista, en regel och en handfull levererade meddelanden, så att varje sida innehåller något medan du lär dig. Alla brevlådor loggar in med ett enda lösenord, som den här servern skapar nu och visar en gång, så skriv ned det - och ta bort provet innan den här servern tar emot riktig post.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Inget tillämpades: alternativen ändrades medan bekräftelsen var öppen, så förhandsgranskningen beskriver inte längre vad detta skulle göra. Kör förhandsgranskningen igen.</value>
@@ -6318,6 +6327,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Re_move action" xml:space="preserve">
     <value>Ta b_ort åtgärd</value>
   </data>
+  <data name="Re_move the sample domain" xml:space="preserve">
+    <value>Ta bort provdo_mänen</value>
+  </data>
   <data name="Re_voke / restore" xml:space="preserve">
     <value>Åter_kalla / återställ</value>
   </data>
@@ -6567,6 +6579,9 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>Ta bort mottagaren {0} från den här listan?</value>
+  </data>
+  <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
+    <value>Ta bort provdomänen med alla brevlådor, meddelanden och regler i den? Allt som lagts till i den följer med.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Ta bort det valda kontot från den här gruppen</value>
@@ -9147,6 +9162,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Detta körs medan den sändande servern väntar på sitt svar på DATA, så talet är ett löfte om värsta fallet snarare än en vink. Det begränsar anslutningen såväl som svaret: en motor vars dator har försvunnit skulle annars kosta operativsystemets egen TCP-tidsgräns på varje meddelande.</value>
   </data>
+  <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
+    <value>Den här servern kunde inte läsa sin domäntabell och kan därför inte säga om provet finns här. Ingenting erbjuds förrän den kan.</value>
+  </data>
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>Den här servern roterar inte DKIM-nycklar; den är äldre än den här Kontrollpanel.</value>
   </data>
@@ -11370,6 +11388,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} är hämtad och verifierad</value>
   </data>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
+    <value>{0} finns här, med brevlådorna {1}, listan {2} och en regel som sorterar fakturor. Det enda lösenordet för alla brevlådor visades när provet skapades och sparades inte; ta bort provet och skapa det igen för att få ett nytt. Den hålls utanför den första timmens checklista, eftersom en provdomän inte är den här serverns första domän.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} är på men ger 0 poäng, så den kostar en uppslagning för varje meddelande och kan aldrig ändra utfallet. Ge den en poäng, eller stäng av den.</value>
   </data>
@@ -11381,6 +11402,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} är påslagen men kan inte köras. {1} Varje skanning den ombeds göra misslyckas, och en misslyckad skanning är inte ett misslyckat meddelande: felet loggas och meddelandet levereras som om det hade undersökts och befunnits rent.</value>
+  </data>
+  <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
+    <value>{0} är provdomänen och räknas inte med här; ta bort den när du är klar med den.</value>
   </data>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} är {1} igen.</value>
@@ -11520,11 +11544,17 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
     <value>{0} värde(n) kunde inte läsas — {1} Raderna nedan kan vara ofullständiga.</value>
   </data>
+  <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
+    <value>{0} skapades: {1} brevlådor, och {2} meddelanden på väg in i dem. De kommer fram om några sekunder. Alla brevlådor loggar in med lösenordet {3}. Det visas här en enda gång - skriv ned det, för den här servern sparade det inte.</value>
+  </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} fanns inte längre på listan.</value>
   </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>{0} togs bort från listan.</value>
+  </data>
+  <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
+    <value>{0} togs bort: {1} brevlådor, {2} distributionslistor, {3} regler och {4} meddelanden följde med.</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} med full behörighet</value>

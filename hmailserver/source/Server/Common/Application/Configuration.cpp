@@ -271,6 +271,12 @@ namespace HM
       // the reader chooses under it, and chooses nothing until they do.
       property_set_->EnsureLong(PROPERTY_READER_OFFLINE_DAYS_MAX, 30);
 
+      // The sample domain: none made. Not a setting anybody sets - the row is
+      // the marker SampleDomain writes when it makes example.test and clears
+      // when it removes it, kept in hm_settings because that is where a value
+      // the server has to find again on every start lives.
+      property_set_->EnsureLong(PROPERTY_SAMPLE_DOMAIN_ID, 0);
+
       // Messages that expire: no base URL of their own until one is set; the
       // digest's or the import sign-in's serves until then.
       property_set_->EnsureString(PROPERTY_CONFIDENTIAL_BASE_URL, _T(""));
@@ -587,6 +593,18 @@ namespace HM
    Configuration::SetReaderOfflineDaysMax(int days)
    {
       GetSettings()->SetLong(PROPERTY_READER_OFFLINE_DAYS_MAX, days);
+   }
+
+   __int64
+   Configuration::GetSampleDomainId() const
+   {
+      return (__int64) GetSettings()->GetLong(PROPERTY_SAMPLE_DOMAIN_ID);
+   }
+
+   void
+   Configuration::SetSampleDomainId(__int64 domainId)
+   {
+      GetSettings()->SetLong(PROPERTY_SAMPLE_DOMAIN_ID, (long) domainId);
    }
 
    String

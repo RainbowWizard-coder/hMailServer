@@ -2446,6 +2446,34 @@ namespace hMailServer
       }
 
       /// <summary>
+      ///    Utilities.GetSampleDomain, CreateSampleDomain and RemoveSampleDomain: the
+      ///    three routes of /api/v1/setup/sample-domain, which answer the documents
+      ///    SampleDomain::StateJson, ::Create and ::Remove write - the same documents
+      ///    the COM methods answer. A refusal is the route's 409, raised as the COM
+      ///    methods raise it, with the server's own sentence on it.
+      /// </summary>
+      public string GetSampleDomain()
+      {
+         return ServerApi.Get("/api/v1/setup/sample-domain").Expect(200, "GET /api/v1/setup/sample-domain").Body;
+      }
+
+      public string CreateSampleDomain()
+      {
+         var answer = ServerApi.Post("/api/v1/setup/sample-domain", "{}");
+         if (answer.Status == 409 || answer.Status == 500)
+            throw new System.Runtime.InteropServices.COMException(answer.Error);
+         return answer.Expect(201, "POST /api/v1/setup/sample-domain").Body;
+      }
+
+      public string RemoveSampleDomain()
+      {
+         var answer = ServerApi.Delete("/api/v1/setup/sample-domain");
+         if (answer.Status == 409 || answer.Status == 500)
+            throw new System.Runtime.InteropServices.COMException(answer.Error);
+         return answer.Expect(200, "DELETE /api/v1/setup/sample-domain").Body;
+      }
+
+      /// <summary>
       ///    Utilities.GetSessionPolicy: GET /api/v1/domains/{domain}/session-policy for a
       ///    domain, GET /api/v1/session-policy for the server alone - the document
       ///    SessionPolicies::ToJson writes, which is what the COM method answers. A

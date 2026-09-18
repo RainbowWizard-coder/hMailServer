@@ -198,6 +198,11 @@
 // account_number detector searches the readable text for. Empty, the default,
 // is a detector that never fires; a card number and an IBAN need no pattern.
 #define PROPERTY_DLP_ACCOUNT_NUMBER_PATTERN     _T("DlpAccountNumberPattern")
+// The sample domain (Application/SampleDomain.h): the database id of the
+// example.test the sample made, or 0 when it made none. The marker the removal
+// matches against, so that an example.test somebody made by hand is never the
+// one it removes, and the checklist leaves the sample out of its count.
+#define PROPERTY_SAMPLE_DOMAIN_ID               _T("SampleDomainId")
 #define PROPERTY_DOMAIN_REPORT_RETENTION_DAYS   _T("DomainReportRetentionDays")
 // Compromised-account detection (Util/CompromiseDetector.h): what a takeover
 // shape does (0 off, 1 watch, 2 enforce), the baseline window, the history an

@@ -440,6 +440,9 @@
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Имя домена здесь требует, чтобы сам компьютер СЕРВЕРА был присоединён к этому домену, поскольку Windows проверяет его через LogonUser. С компьютера, не присоединённого к домену, любая попытка завершается так, будто пароль неверен, — в том числе когда имя домена просто написано с ошибкой, — поэтому настроенный таким образом почтовый ящик на неприсоединённом сервере никогда не сможет войти и никогда не скажет почему. Если сервер не присоединён к домену, используйте вместо этого аутентификацию через каталог LDAP на странице «Аутентификация через каталог»: она выполняет привязку к каталогу по сети и присоединения к домену не требует.</value>
   </data>
+  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
+    <value>На этом сервере есть домен с именем {0}, и образец его не создавал, поэтому здесь его ничто не создаёт и не удаляет. Удалите этот домен сами, если он не нужен.</value>
+  </data>
   <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
     <value>Домен с постоянно меняющимися исходящими узлами обычно узнают по имени HELO; домен, который ничего не подделывает, - по отправителю конверта.</value>
   </data>
@@ -4612,6 +4615,9 @@ Control Panel может читать файлы сообщений только
   <data name="Maintenance for the IMAP folder state. Nothing here changes a message; the folder UID counter is bookkeeping that IMAP clients rely on to tell one message from another." xml:space="preserve">
     <value>Обслуживание состояния папок IMAP. Ничто здесь не меняет сообщения; счётчик UID папки — это служебный учёт, на который клиенты IMAP опираются, чтобы отличать одно сообщение от другого.</value>
   </data>
+  <data name="Make a sample _domain" xml:space="preserve">
+    <value>Создать образцовый домен (_D)</value>
+  </data>
   <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
     <value>Управление доменами, размещёнными на этом сервере, и их почтовыми ящиками.</value>
   </data>
@@ -5421,6 +5427,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>Внимания ничего не требует — все {0} проверок внешней настройки выполнены или не нужны.</value>
+  </data>
+  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
+    <value>Пока нечего посмотреть на этом сервере? Это создаёт {0} с тремя почтовыми ящиками, списком рассылки, одним правилом и несколькими доставленными сообщениями, чтобы во время обучения на каждой странице что-то было. Все почтовые ящики входят с одним паролем, который этот сервер создаёт сейчас и показывает один раз, - запишите его и удалите образец, прежде чем этот сервер начнёт принимать настоящую почту.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Ничего не применено: пока было открыто подтверждение, параметры изменились, поэтому предварительный просмотр больше не описывает то, что произойдёт. Выполните предварительный просмотр заново.</value>
@@ -6318,6 +6327,9 @@ Control Panel может читать файлы сообщений только
   <data name="Re_move action" xml:space="preserve">
     <value>Уда_лить действие</value>
   </data>
+  <data name="Re_move the sample domain" xml:space="preserve">
+    <value>Удалить образцовый домен (_M)</value>
+  </data>
   <data name="Re_voke / restore" xml:space="preserve">
     <value>_Отозвать / восстановить</value>
   </data>
@@ -6567,6 +6579,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>Удалить получателя {0} из этого списка?</value>
+  </data>
+  <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
+    <value>Удалить образцовый домен со всеми почтовыми ящиками, сообщениями и правилами в нём? Всё, что в него добавлено, тоже исчезнет.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Удалить выбранную учётную запись из этой группы</value>
@@ -9147,6 +9162,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Это выполняется, пока отправляющий сервер ждёт ответа на DATA, поэтому число - обещание о худшем случае, а не подсказка. Оно ограничивает и соединение, и ответ: движок, чья машина исчезла, иначе стоил бы собственного тайм-аута TCP операционной системы на каждом сообщении.</value>
   </data>
+  <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
+    <value>Этот сервер не смог прочитать таблицу доменов, поэтому не может сказать, есть ли здесь образец. Пока не сможет, ничего не предлагается.</value>
+  </data>
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>Этот сервер не выполняет ротацию ключей DKIM; он старше этой версии Control Panel.</value>
   </data>
@@ -11370,6 +11388,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} — загружено и проверено</value>
   </data>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
+    <value>{0} здесь: почтовые ящики {1}, список {2} и одно правило, раскладывающее счета. Единый пароль для всех ящиков был показан при создании образца и не сохранён; удалите образец и создайте его заново, чтобы получить новый. В контрольном списке первого часа он не учитывается, потому что образцовый домен не является первым доменом этого сервера.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0}: включено, но оценка равна 0, поэтому на каждое сообщение тратится один запрос, а на исход это повлиять не может. Задайте ему оценку или выключите его.</value>
   </data>
@@ -11381,6 +11402,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0}: включено, но работать не может. {1} Каждая запрошенная у него проверка завершается ошибкой, а неудавшаяся проверка — это не неудавшееся сообщение: ошибка записывается в журнал, а сообщение доставляется так, как будто его осмотрели и признали чистым.</value>
+  </data>
+  <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
+    <value>{0} - это образцовый домен, и здесь он не учитывается; удалите его, когда закончите с ним.</value>
   </data>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} снова {1}.</value>
@@ -11520,11 +11544,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
     <value>Не удалось прочитать значений: {0} — {1} Строки ниже могут быть неполными.</value>
   </data>
+  <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
+    <value>{0} создан: {1} почтовых ящиков и {2} сообщений на пути к ним. Они придут через несколько секунд. Все почтовые ящики входят с паролем {3}. Он показан здесь один раз - запишите его, сервер его не сохранил.</value>
+  </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} уже не было в списке.</value>
   </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>{0} удалён из списка.</value>
+  </data>
+  <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
+    <value>{0} удалён: вместе с ним ушли {1} почтовых ящиков, {2} списков рассылки, {3} правил и {4} сообщений.</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} с полными правами</value>

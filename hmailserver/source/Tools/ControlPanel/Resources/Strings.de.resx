@@ -440,6 +440,9 @@ Dieses schwache Passwort trotzdem speichern?</value>
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Ein Domänenname hier setzt voraus, dass der Rechner des SERVERS selbst dieser Domäne beigetreten ist, denn Windows prüft ihn mit LogonUser. Von einem nicht beigetretenen Rechner schlägt jeder Versuch fehl, als wäre das Passwort falsch - auch wenn der Domänenname nur falsch geschrieben ist - sodass ein so konfiguriertes Postfach auf einem nicht beigetretenen Server sich nie anmelden kann und nie sagt, warum. Ist der Server nicht Domänenmitglied, verwenden Sie stattdessen die LDAP-Verzeichnisauthentifizierung auf der Seite Verzeichnisauthentifizierung: sie bindet sich über das Netz an das Verzeichnis und braucht keinen Domänenbeitritt.</value>
   </data>
+  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
+    <value>Eine Domäne namens {0} ist auf diesem Server vorhanden, und das Beispiel hat sie nicht angelegt, deshalb legt hier nichts sie an und entfernt sie nichts. Löschen Sie diese Domäne selbst, wenn sie nicht gewollt ist.</value>
+  </data>
   <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
     <value>Eine Domain mit wechselnden ausgehenden Hosts erkennt man meist am HELO-Namen; eine Domain, die nichts fälscht, am Absender des Umschlags.</value>
   </data>
@@ -4612,6 +4615,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="Maintenance for the IMAP folder state. Nothing here changes a message; the folder UID counter is bookkeeping that IMAP clients rely on to tell one message from another." xml:space="preserve">
     <value>Wartung des IMAP-Ordnerzustands. Nichts hier verändert eine Nachricht; der UID-Zähler des Ordners ist Buchführung, auf die sich IMAP-Clients verlassen, um eine Nachricht von einer anderen zu unterscheiden.</value>
   </data>
+  <data name="Make a sample _domain" xml:space="preserve">
+    <value>Beispiel_domäne anlegen</value>
+  </data>
   <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
     <value>Die von diesem Server gehosteten Domänen und ihre Postfächer verwalten.</value>
   </data>
@@ -5421,6 +5427,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   </data>
   <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>Nichts braucht Aufmerksamkeit - alle {0} Prüfungen der externen Einrichtung sind erledigt oder nicht nötig.</value>
+  </data>
+  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
+    <value>Auf diesem Server gibt es noch nichts zu sehen? Dies legt {0} mit drei Postfächern, einer Verteilerliste, einer Regel und einer Handvoll zugestellter Nachrichten an, damit beim Lernen auf jeder Seite etwas steht. Alle Postfächer melden sich mit einem einzigen Kennwort an, das dieser Server jetzt erzeugt und einmal anzeigt - schreiben Sie es auf und entfernen Sie das Beispiel, bevor dieser Server echte Post annimmt.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Es wurde nichts angewendet: die Optionen haben sich geändert, während die Bestätigung offen war, die Vorschau beschreibt also nicht mehr, was dies tun würde. Führen Sie die Vorschau erneut aus.</value>
@@ -6318,6 +6327,9 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
   <data name="Re_move action" xml:space="preserve">
     <value>_Aktion entfernen</value>
   </data>
+  <data name="Re_move the sample domain" xml:space="preserve">
+    <value>Beispieldo_mäne entfernen</value>
+  </data>
   <data name="Re_voke / restore" xml:space="preserve">
     <value>Wi_derrufen / wiederherstellen</value>
   </data>
@@ -6567,6 +6579,9 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>Den Empfänger {0} aus dieser Liste entfernen?</value>
+  </data>
+  <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
+    <value>Die Beispieldomäne mit allen Postfächern, Nachrichten und Regeln darin entfernen? Alles, was hinzugefügt wurde, geht mit.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Das ausgewählte Konto aus dieser Gruppe entfernen</value>
@@ -9147,6 +9162,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Dies läuft, während der sendende Server auf seine Antwort auf DATA wartet, die Zahl ist also ein Versprechen über den schlimmsten Fall und kein Hinweis. Sie begrenzt die Verbindung ebenso wie die Antwort: eine Engine, deren Rechner verschwunden ist, würde sonst bei jeder Nachricht den TCP-Timeout des Betriebssystems selbst kosten.</value>
   </data>
+  <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
+    <value>Dieser Server konnte seine Domänentabelle nicht lesen und kann deshalb nicht sagen, ob das Beispiel vorhanden ist. Bis dahin wird nichts angeboten.</value>
+  </data>
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>Dieser Server rotiert keine DKIM-Schlüssel; er ist älter als dieses Control Panel.</value>
   </data>
@@ -11370,6 +11388,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} ist heruntergeladen und geprüft</value>
   </data>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
+    <value>{0} ist vorhanden, mit den Postfächern {1}, der Liste {2} und einer Regel, die Rechnungen einsortiert. Das eine Kennwort für alle Postfächer wurde beim Anlegen des Beispiels gezeigt und nicht gespeichert; entfernen Sie das Beispiel und legen Sie es erneut an, um ein neues zu erhalten. In der Prüfliste der ersten Stunde bleibt sie unberücksichtigt, denn eine Beispieldomäne ist nicht die erste Domäne dieses Servers.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} ist eingeschaltet, bewertet aber mit 0, kostet also bei jeder Nachricht eine Abfrage und kann am Ergebnis nie etwas ändern. Vergeben Sie eine Bewertung, oder schalten Sie es ab.</value>
   </data>
@@ -11381,6 +11402,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} ist eingeschaltet, kann aber nicht laufen. {1} Jeder Scan, der davon verlangt wird, schlägt fehl, und ein fehlgeschlagener Scan ist keine fehlgeschlagene Nachricht: der Fehler wird protokolliert und die Nachricht wird zugestellt, als wäre sie untersucht und für sauber befunden worden.</value>
+  </data>
+  <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
+    <value>{0} ist die Beispieldomäne und wird hier nicht mitgezählt; entfernen Sie sie, wenn Sie damit fertig sind.</value>
   </data>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} ist wieder {1}.</value>
@@ -11520,11 +11544,17 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
     <value>{0} Wert(e) konnten nicht gelesen werden — {1} Die Zeilen unten sind möglicherweise unvollständig.</value>
   </data>
+  <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
+    <value>{0} wurde angelegt: {1} Postfächer, und {2} Nachrichten sind auf dem Weg hinein. Sie treffen in wenigen Sekunden ein. Alle Postfächer melden sich mit dem Kennwort {3} an. Es wird hier einmal gezeigt - schreiben Sie es auf, denn dieser Server hat es nicht gespeichert.</value>
+  </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} stand nicht mehr auf der Liste.</value>
   </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>{0} wurde von der Liste entfernt.</value>
+  </data>
+  <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
+    <value>{0} wurde entfernt: {1} Postfächer, {2} Verteilerlisten, {3} Regeln und {4} Nachrichten gingen mit.</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} mit voller Berechtigung</value>

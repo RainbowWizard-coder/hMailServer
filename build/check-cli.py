@@ -475,6 +475,25 @@ ANSWERS = {
     # The reputation watch, with nothing listed: one address checked against two
     # lists, an IPv6 address a list does not cover, and a private address that is
     # deliberately not looked up at all.
+    # The sample domain: present, so that status prints what is in it, and so that
+    # remove has something to report. The state document carries no password - the
+    # server mints one per creation and keeps only its hash - so status says so
+    # instead of printing one.
+    ("GET", "/api/v1/setup/sample-domain"): {
+        "state": "present", "domain": "example.test", "domain_id": 42, "exists": True,
+        "list": "everyone@example.test", "password_shown_once": True,
+        "accounts": ["alice@example.test", "bob@example.test", "carol@example.test"]},
+    ("POST", "/api/v1/setup/sample-domain"): (201, {
+        "created": True, "domain": "example.test", "domain_id": 42, "password": "7TQ4M-KJ9XD-2VWHF-BNRE5",
+        "accounts_created": 3, "list": "everyone@example.test", "list_members": 3, "rules": 1,
+        "messages": 8, "deliveries": 14,
+        "message": "example.test was created with 3 mailboxes, the list everyone@example.test and 8 messages on "
+                   "their way into it. All of the mailboxes sign in with the password 7TQ4M-KJ9XD-2VWHF-BNRE5, "
+                   "which is shown here once and is not stored anywhere."}),
+    ("DELETE", "/api/v1/setup/sample-domain"): {
+        "removed": True, "domain": "example.test", "domain_id": 42, "accounts": 3, "lists": 1, "rules": 1,
+        "messages": 14, "queued": 0,
+        "message": "example.test was removed: 3 mailboxes, 1 distribution list(s), 1 rule(s) and 14 message(s) went with it."},
     ("GET", "/api/v1/reputation"): {
         "enabled": True,
         "lists": [{"zone": "bl.example.test", "family": "any", "codes": ""},
@@ -514,6 +533,19 @@ REFUSALS = {
         "status": dict(ROTATION_STATUS, domain="example.net")}),
 }
 
+# Routes that answer once and refuse afterwards, which is what the real one does:
+# a sample domain that is already there is refused with 409. It cannot be a plain
+# REFUSALS entry, because the success case has to be able to run as well - and a
+# route that answers 201 and then 409 to the same call is the server's own
+# behaviour rather than a trick.
+REFUSED_AFTER_THE_FIRST = {
+    ("POST", "/api/v1/setup/sample-domain"): (409, {
+        "error": "The sample domain example.test is already here. Remove it first if you want a fresh one.",
+        "sample": {"state": "present", "domain": "example.test", "domain_id": 42, "exists": True,
+                   "list": "everyone@example.test", "password_shown_once": True,
+                   "accounts": ["alice@example.test", "bob@example.test", "carol@example.test"]}}),
+}
+
 # The one route that answers something other than JSON. Kept apart from ANSWERS
 # because it is decided by the query string, which ANSWERS is keyed without:
 # the point of the case is that the client ASKS for format=csv.
@@ -524,6 +556,10 @@ REPORT_CSV = ("day,domain,incoming,outgoing\r\n"
 class Recorder(BaseHTTPRequestHandler):
     requests = []
     lock = threading.Lock()
+
+    # The routes of REFUSED_AFTER_THE_FIRST that have already been answered once.
+    # Not cleared between cases: "the second time it is asked" is the whole point.
+    served = set()
 
     def log_message(self, *arguments):
         pass
@@ -564,6 +600,20 @@ class Recorder(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(payload)
             return
+
+        if (method, path) in REFUSED_AFTER_THE_FIRST:
+            with Recorder.lock:
+                already = (method, path) in Recorder.served
+                Recorder.served.add((method, path))
+            if already:
+                code, refusal = REFUSED_AFTER_THE_FIRST[(method, path)]
+                payload = json.dumps(refusal).encode("utf-8")
+                self.send_response(code)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
+                return
 
         if (method, path) in REFUSALS:
             code, refusal = REFUSALS[(method, path)]
@@ -870,6 +920,12 @@ CASES = [
      ["192.0.2.25", "not_listed", "not looked up", "10.0.0.5"]),
     ("reputation check", ["reputation", "check"], "POST", "/api/v1/reputation/check", {},
      ["bl.example.test", "lookup(s)"]),
+    ("sample-domain status", ["sample-domain", "status"], "GET", "/api/v1/setup/sample-domain", None,
+     ["example.test", "present", "alice@example.test", "everyone@example.test", "shown once"]),
+    ("sample-domain create", ["sample-domain", "create"], "POST", "/api/v1/setup/sample-domain", {},
+     ["was created with 3 mailboxes", "7TQ4M-KJ9XD-2VWHF-BNRE5", "before this server takes real mail"]),
+    ("sample-domain remove", ["sample-domain", "remove"], "DELETE", "/api/v1/setup/sample-domain", None,
+     ["was removed", "14 message(s) went with it"]),
 ]
 
 
@@ -939,6 +995,16 @@ def run_python_refusals(url):
     check(completed.returncode != 0 and "domain" in (completed.stderr + completed.stdout),
           "hmctl dkim rotate with no domain should say which argument is missing, said: %s%s"
           % (completed.stdout, completed.stderr))
+
+    # The sample domain refused: 409 because it is already there. Exit 2 rather
+    # than 1, which is what the docstring, CommandLine.md and the Linux server's
+    # own --sample-domain all promise - and what lets a script that runs create at
+    # the start of a demonstration tell "already there" from "could not reach the
+    # server", which is also exit 1 everywhere else.
+    completed = run(["sample-domain", "create"])
+    check(completed.returncode == 2 and "already here" in completed.stderr,
+          "hmctl sample-domain create refused with 409 should exit 2 and print the server's sentence, "
+          "exited %d and said: %s%s" % (completed.returncode, completed.stdout, completed.stderr))
 
     # A restore with nothing chosen, and a passphrase asked for as an argument:
     # the two ways somebody reaches for this command and gets it wrong.

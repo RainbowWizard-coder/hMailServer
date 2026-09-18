@@ -1251,9 +1251,22 @@ namespace hMailServer
       public RuleCriterias Criterias { get; } = new RuleCriterias();
       public RuleActions Actions { get; } = new RuleActions();
 
+      /// <summary>
+      ///    A rule as the listing gives it, WITH its criteria and its actions.
+      ///
+      ///    They used to be left empty. That was wrong twice over: a fixture that
+      ///    asks a saved rule what it matches on read an empty list and failed on a
+      ///    line that said nothing about the server, and a fixture that read a rule,
+      ///    changed one field and saved it sent the whole rule back with no criteria
+      ///    and no actions - Save writes both collections out - which over COM would
+      ///    have left them exactly as they were. GET /api/v1/rules and the account's
+      ///    and domain's listings all carry criteria and actions, in the words this
+      ///    file already turns the enumerations into, so filling them is a matter of
+      ///    reading them back the way ToJson wrote them.
+      /// </summary>
       internal static Rule From(JsonElement element, string basePath = "/api/v1/rules")
       {
-         return new Rule
+         var rule = new Rule
          {
             BasePath = basePath,
             ID = ServerApi.LongOf(element, "id"),
@@ -1262,6 +1275,48 @@ namespace hMailServer
             UseAND = !element.TryGetProperty("all_criteria", out var all) || all.ValueKind != JsonValueKind.False,
             Existing = true
          };
+
+         if (element.TryGetProperty("criteria", out var criteria) && criteria.ValueKind == JsonValueKind.Array)
+         {
+            foreach (var entry in criteria.EnumerateArray())
+            {
+               var criterion = rule.Criterias.Add();
+               var field = ServerApi.StringOf(entry, "field");
+               var header = ServerApi.StringOf(entry, "header");
+
+               // The route names the field "header" and puts its name beside it;
+               // anything else is one of the predefined fields and carries no
+               // header, which is what UsePredefined reads.
+               criterion.HeaderField = field == "header" ? header : null;
+               criterion.PredefinedField = field == "header"
+                  ? eRulePredefinedField.eFTUnknown
+                  : RuleCriteria.FieldOf(field);
+               criterion.MatchType = RuleCriteria.MatchOf(ServerApi.StringOf(entry, "match"));
+               criterion.MatchValue = ServerApi.StringOf(entry, "value");
+            }
+         }
+
+         if (element.TryGetProperty("actions", out var actions) && actions.ValueKind == JsonValueKind.Array)
+         {
+            foreach (var entry in actions.EnumerateArray())
+            {
+               var action = rule.Actions.Add();
+               action.Type = RuleAction.TypeOf(ServerApi.StringOf(entry, "type"));
+               action.Value = ServerApi.StringOf(entry, "value");
+               action.To = ServerApi.StringOf(entry, "to");
+               action.FromName = ServerApi.StringOf(entry, "from_name");
+               action.FromAddress = ServerApi.StringOf(entry, "from_address");
+               action.Subject = ServerApi.StringOf(entry, "subject");
+               action.Body = ServerApi.StringOf(entry, "body");
+               action.IMAPFolder = ServerApi.StringOf(entry, "folder");
+               action.ScriptFunctionName = ServerApi.StringOf(entry, "script_function");
+               action.HeaderName = ServerApi.StringOf(entry, "header");
+               if (entry.TryGetProperty("route_id", out var routeId) && routeId.ValueKind == JsonValueKind.Number)
+                  action.RouteID = routeId.GetInt64();
+            }
+         }
+
+         return rule;
       }
 
       public void Save()
@@ -1375,6 +1430,43 @@ namespace hMailServer
          json.Append(",\"value\":").Append(ServerApi.Quote(MatchValue));
          json.Append('}');
          return json.ToString();
+      }
+
+      /// <summary>The field word the route writes, back as the enumeration. FieldName's inverse.</summary>
+      internal static eRulePredefinedField FieldOf(string field)
+      {
+         switch (field)
+         {
+            case "to": return eRulePredefinedField.eFTTo;
+            case "cc": return eRulePredefinedField.eFTCC;
+            case "subject": return eRulePredefinedField.eFTSubject;
+            case "body": return eRulePredefinedField.eFTBody;
+            case "message_size": return eRulePredefinedField.eFTMessageSize;
+            case "recipient_list": return eRulePredefinedField.eFTRecipientList;
+            case "delivery_attempts": return eRulePredefinedField.eFTDeliveryAttempts;
+            case "attachment_name": return eRulePredefinedField.eFTAttachmentName;
+            case "sensitive_content": return eRulePredefinedField.eFTSensitiveContent;
+            case "attachment_type": return eRulePredefinedField.eFTAttachmentType;
+            case "external_recipient": return eRulePredefinedField.eFTExternalRecipient;
+            case "content": return eRulePredefinedField.eFTContent;
+            default: return eRulePredefinedField.eFTFrom;
+         }
+      }
+
+      /// <summary>The match word the route writes, back as the enumeration. MatchName's inverse.</summary>
+      internal static eRuleMatchType MatchOf(string match)
+      {
+         switch (match)
+         {
+            case "not_equals": return eRuleMatchType.eMTNotEquals;
+            case "contains": return eRuleMatchType.eMTContains;
+            case "not_contains": return eRuleMatchType.eMTNotContains;
+            case "less_than": return eRuleMatchType.eMTLessThan;
+            case "greater_than": return eRuleMatchType.eMTGreaterThan;
+            case "regex": return eRuleMatchType.eMTRegExMatch;
+            case "wildcard": return eRuleMatchType.eMTWildcard;
+            default: return eRuleMatchType.eMTEquals;
+         }
       }
 
       private static string FieldName(eRulePredefinedField field)
@@ -1507,6 +1599,29 @@ namespace hMailServer
 
          json.Append('}');
          return json.ToString();
+      }
+
+      /// <summary>The type word the route writes, back as the enumeration. TypeName's inverse.</summary>
+      internal static eRuleActionType TypeOf(string type)
+      {
+         switch (type)
+         {
+            case "move_to_folder": return eRuleActionType.eRAMoveToImapFolder;
+            case "forward": return eRuleActionType.eRAForwardEmail;
+            case "reply": return eRuleActionType.eRAReply;
+            case "send_using_route": return eRuleActionType.eRASendUsingRoute;
+            case "script_function": return eRuleActionType.eRARunScriptFunction;
+            case "stop": return eRuleActionType.eRAStopRuleProcessing;
+            case "set_header": return eRuleActionType.eRASetHeaderValue;
+            case "bind_to_address": return eRuleActionType.eRABindToAddress;
+            case "add_disclaimer": return eRuleActionType.eRAAddDisclaimer;
+            case "reject": return eRuleActionType.eRAReject;
+            case "require_tls": return eRuleActionType.eRARequireTLS;
+            case "quarantine": return eRuleActionType.eRAQuarantine;
+            case "warn_sender": return eRuleActionType.eRAWarnSender;
+            case "copy": return eRuleActionType.eRACreateCopy;
+            default: return eRuleActionType.eRADeleteEmail;
+         }
       }
 
       private static string TypeName(eRuleActionType type)

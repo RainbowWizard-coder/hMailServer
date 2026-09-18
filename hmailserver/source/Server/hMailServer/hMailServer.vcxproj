@@ -624,6 +624,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\PushNotifier.cpp" />
     <ClCompile Include="..\Common\Util\RestApiPush.cpp" />
     <ClCompile Include="..\Common\Util\ReputationWatch.cpp" />
+    <ClCompile Include="..\Common\Application\SampleDomain.cpp" />
     <ClCompile Include="..\Common\Util\SetupChecklist.cpp" />
     <ClCompile Include="..\Common\Util\AuditRevert.cpp" />
     <ClCompile Include="..\Common\Util\QuotaPolicy.cpp" />
@@ -696,6 +697,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiRoles.cpp" />
     <ClCompile Include="..\Common\Util\RestApiDkimRotation.cpp" />
     <ClCompile Include="..\Common\Util\RestApiReputation.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiSampleDomain.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSetupChecklist.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOperator.cpp" />
     <ClCompile Include="..\Common\Util\WebServicesServer.cpp" />
@@ -1528,6 +1530,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\PushSubscriptions.h" />
     <ClInclude Include="..\Common\Util\PushNotifier.h" />
     <ClInclude Include="..\Common\Util\ReputationWatch.h" />
+    <ClInclude Include="..\Common\Application\SampleDomain.h" />
     <ClInclude Include="..\Common\Util\SetupChecklist.h" />
     <ClInclude Include="..\Common\Util\AuditRevert.h" />
     <ClInclude Include="..\Common\Util\QuotaPolicy.h" />

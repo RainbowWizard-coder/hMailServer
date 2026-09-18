@@ -440,6 +440,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Buraya bir etki alanı adı yazılması, SUNUCUNUN kendi bilgisayarının o etki alanına katılmış olmasını gerektirir; çünkü Windows bunu LogonUser ile doğrular. Katılmamış bir bilgisayarda her deneme, parola yanlışmış gibi başarısız olur - etki alanı adı yalnızca yanlış yazıldığında bile - dolayısıyla katılmamış bir sunucuda bu biçimde yapılandırılan bir posta kutusu hiçbir zaman oturum açamaz ve nedenini de hiçbir zaman söylemez. Sunucu bir etki alanına katılmamışsa, bunun yerine Dizin kimlik doğrulaması sayfasındaki LDAP dizin kimlik doğrulamasını kullanın: bu yöntem dizine ağ üzerinden bind ile bağlanır ve etki alanına katılım gerektirmez.</value>
   </data>
+  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
+    <value>Bu sunucuda {0} adlı bir etki alanı var ve onu örnek oluşturmadı, bu yüzden burada hiçbir şey onu oluşturmuyor ya da kaldırmıyor. İstenmiyorsa o etki alanını kendiniz silin.</value>
+  </data>
   <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
     <value>Giden sunucuları sürekli değişen bir alan adı genellikle HELO adından tanınır; hiçbir şeyi sahtelemeyen bir alan adı ise zarf gönderenden.</value>
   </data>
@@ -4612,6 +4615,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Maintenance for the IMAP folder state. Nothing here changes a message; the folder UID counter is bookkeeping that IMAP clients rely on to tell one message from another." xml:space="preserve">
     <value>IMAP klasör durumu için bakım. Buradaki hiçbir şey bir iletiyi değiştirmez; klasör UID sayacı, IMAP istemcilerinin bir iletiyi diğerinden ayırt etmek için güvendiği bir kayıt tutma işidir.</value>
   </data>
+  <data name="Make a sample _domain" xml:space="preserve">
+    <value>Örnek etki alanı oluştur (_D)</value>
+  </data>
   <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
     <value>Bu sunucunun barındırdığı etki alanlarını ve posta kutularını yönetin.</value>
   </data>
@@ -5421,6 +5427,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>Dikkat gerektiren bir şey yok - {0} dış kurulum denetiminin tümü yapıldı ya da gerekmiyor.</value>
+  </data>
+  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
+    <value>Bu sunucuda henüz bakacak bir şey yok mu? Bu, {0} etki alanını üç posta kutusu, bir dağıtım listesi, bir kural ve birkaç teslim edilmiş iletiyle oluşturur; böylece öğrenirken her sayfada bir şeyler olur. Tüm posta kutuları, bu sunucunun şimdi üretip bir kez göstereceği tek bir parolayla oturum açar; parolayı not edin ve bu sunucu gerçek posta almaya başlamadan önce örneği kaldırın.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Hiçbir şey uygulanmadı: onay açıkken seçenekler değişti; bu yüzden ön izleme artık bunun ne yapacağını anlatmıyor. Ön izlemeyi yeniden çalıştırın.</value>
@@ -6318,6 +6327,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Re_move action" xml:space="preserve">
     <value>Eylemi kaldı_r</value>
   </data>
+  <data name="Re_move the sample domain" xml:space="preserve">
+    <value>Örnek etki alanını kaldır (_M)</value>
+  </data>
   <data name="Re_voke / restore" xml:space="preserve">
     <value>İ_ptal et / geri yükle</value>
   </data>
@@ -6567,6 +6579,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>{0} alıcısı bu listeden kaldırılsın mı?</value>
+  </data>
+  <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
+    <value>Örnek etki alanı, içindeki tüm posta kutuları, iletiler ve kurallarla birlikte kaldırılsın mı? Ona eklenen her şey de gider.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Seçili hesabı bu gruptan kaldır</value>
@@ -9147,6 +9162,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Bu, gönderen sunucu DATA yanıtını beklerken çalışır; bu yüzden sayı bir ipucu değil, en kötü durum hakkında bir sözdür. Yanıtın yanı sıra bağlantıyı da sınırlar: makinesi ortadan kaybolmuş bir motor aksi hâlde her iletide işletim sisteminin kendi TCP zaman aşımına mal olurdu.</value>
   </data>
+  <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
+    <value>Bu sunucu etki alanı tablosunu okuyamadı, bu yüzden örneğin burada olup olmadığını söyleyemiyor. Okuyabilene kadar hiçbir şey sunulmaz.</value>
+  </data>
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>Bu sunucu DKIM anahtarlarını döndürmüyor; bu Denetim Masası'ndan daha eski.</value>
   </data>
@@ -11370,6 +11388,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} indirildi ve doğrulandı</value>
   </data>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
+    <value>{0} burada: {1} posta kutuları, {2} listesi ve faturaları dosyalayan bir kural. Tüm posta kutularının tek parolası örnek oluşturulurken gösterildi ve saklanmadı; yenisini almak için örneği kaldırıp yeniden oluşturun. İlk saatin denetim listesinde sayılmaz, çünkü bir örnek etki alanı bu sunucunun ilk etki alanı değildir.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} açık ama 0 puan veriyor; bu yüzden her iletide bir aramaya mal oluyor ve sonucu hiçbir zaman değiştiremiyor. Bir puan verin ya da kapatın.</value>
   </data>
@@ -11381,6 +11402,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} açık ama çalışamıyor. {1} İstenen her tarama başarısız oluyor ve başarısız bir tarama başarısız bir ileti değildir: hata günlüğe yazılır ve ileti incelenip temiz bulunmuş gibi teslim edilir.</value>
+  </data>
+  <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
+    <value>{0} örnek etki alanıdır ve burada sayılmaz; işiniz bittiğinde kaldırın.</value>
   </data>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} yeniden {1}.</value>
@@ -11520,11 +11544,17 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
     <value>{0} değer okunamadı — {1} Aşağıdaki satırlar eksik olabilir.</value>
   </data>
+  <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
+    <value>{0} oluşturuldu: {1} posta kutusu ve onlara doğru yolda olan {2} ileti. Birkaç saniye içinde ulaşırlar. Tüm posta kutuları {3} parolasıyla oturum açar. Burada yalnızca bir kez gösterilir - not edin, çünkü bu sunucu onu saklamadı.</value>
+  </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} artık listede değildi.</value>
   </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>{0} listeden kaldırıldı.</value>
+  </data>
+  <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
+    <value>{0} kaldırıldı: {1} posta kutusu, {2} dağıtım listesi, {3} kural ve {4} ileti onunla birlikte gitti.</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} tam yetkili</value>

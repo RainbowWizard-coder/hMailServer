@@ -34,6 +34,18 @@ namespace HM
       DBLoad_(sSQL);
    }
 
+   bool
+   Domains::RefreshChecked()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Reads all domains from the database, and says whether the read succeeded.
+   // See the header for why the two are not the same question.
+   //---------------------------------------------------------------------------()
+   {
+      String sSQL = "select * from hm_domains order by domainname asc";
+      return DBLoad_(sSQL);
+   }
+
    void 
    Domains::Refresh(__int64 iDomainID)
    //---------------------------------------------------------------------------()

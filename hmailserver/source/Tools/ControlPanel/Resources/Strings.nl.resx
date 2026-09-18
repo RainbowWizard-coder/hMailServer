@@ -440,6 +440,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Een domeinnaam hier vereist dat de computer van de SERVER zelf lid is van dat domein, omdat Windows het valideert met LogonUser. Vanaf een computer die geen lid is mislukt elke poging alsof het wachtwoord fout is - ook wanneer de domeinnaam gewoon verkeerd gespeld is - zodat een postvak dat zo is geconfigureerd op een server zonder domeinlidmaatschap nooit kan aanmelden en nooit zegt waarom. Is de server geen domeinlid, gebruik dan LDAP-directoryauthenticatie op de pagina Directoryauthenticatie: die bindt via het netwerk aan de directory en heeft geen domeinlidmaatschap nodig.</value>
   </data>
+  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
+    <value>Op deze server staat een domein met de naam {0} dat het voorbeeld niet heeft gemaakt, dus hier maakt of verwijdert niets het. Verwijder dat domein zelf als het niet gewenst is.</value>
+  </data>
   <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
     <value>Een domein met wisselende uitgaande hosts herken je meestal aan de HELO-naam; een domein dat niets vervalst aan de envelopafzender.</value>
   </data>
@@ -4612,6 +4615,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Maintenance for the IMAP folder state. Nothing here changes a message; the folder UID counter is bookkeeping that IMAP clients rely on to tell one message from another." xml:space="preserve">
     <value>Onderhoud aan de IMAP-mapstatus. Niets hier wijzigt een bericht; de UID-teller van de map is boekhouding waarop IMAP-clients vertrouwen om het ene bericht van het andere te onderscheiden.</value>
   </data>
+  <data name="Make a sample _domain" xml:space="preserve">
+    <value>Voorbeeld_domein maken</value>
+  </data>
   <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
     <value>Beheer de domeinen die deze server host en hun postvakken.</value>
   </data>
@@ -5421,6 +5427,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>Er is niets dat aandacht vraagt - alle {0} controles van de externe configuratie zijn klaar of niet nodig.</value>
+  </data>
+  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
+    <value>Nog niets te zien op deze server? Dit maakt {0} met drie postbussen, een distributielijst, een regel en een handvol bezorgde berichten, zodat elke pagina iets bevat terwijl u leert. Alle postbussen melden zich aan met één wachtwoord, dat deze server nu maakt en één keer toont, dus schrijf het op - en verwijder het voorbeeld voordat deze server echte post aanneemt.</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>Er is niets toegepast: de opties zijn gewijzigd terwijl de bevestiging openstond, dus het voorbeeld beschrijft niet meer wat dit zou doen. Voer het voorbeeld opnieuw uit.</value>
@@ -6318,6 +6327,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Re_move action" xml:space="preserve">
     <value>Acti_e verwijderen</value>
   </data>
+  <data name="Re_move the sample domain" xml:space="preserve">
+    <value>Voorbeelddo_mein verwijderen</value>
+  </data>
   <data name="Re_voke / restore" xml:space="preserve">
     <value>Intrekken / _herstellen</value>
   </data>
@@ -6567,6 +6579,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>De ontvanger {0} uit deze lijst verwijderen?</value>
+  </data>
+  <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
+    <value>Het voorbeelddomein verwijderen met alle postbussen, berichten en regels erin? Alles wat eraan is toegevoegd gaat mee.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Het geselecteerde account uit deze groep verwijderen</value>
@@ -9147,6 +9162,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Dit draait terwijl de verzendende server op zijn antwoord op DATA wacht, dus het getal is een belofte over het slechtste geval en geen hint. Het begrenst de verbinding én het antwoord: een engine waarvan de machine is verdwenen, zou anders bij elk bericht de eigen TCP-time-out van het besturingssysteem kosten.</value>
   </data>
+  <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
+    <value>Deze server kon zijn domeintabel niet lezen en kan dus niet zeggen of het voorbeeld er staat. Er wordt niets aangeboden tot dat wel lukt.</value>
+  </data>
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>Deze server roteert geen DKIM-sleutels; hij is ouder dan dit Control Panel.</value>
   </data>
@@ -11370,6 +11388,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} is gedownload en geverifieerd</value>
   </data>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
+    <value>{0} staat er, met de postbussen {1}, de lijst {2} en één regel die facturen opbergt. Het ene wachtwoord voor alle postbussen is getoond toen het voorbeeld werd gemaakt en is niet bewaard; verwijder het voorbeeld en maak het opnieuw om een nieuw wachtwoord te krijgen. Het blijft buiten de controlelijst van het eerste uur, want een voorbeelddomein is niet het eerste domein van deze server.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} staat aan maar scoort 0, dus kost het bij elk bericht een opzoeking en kan het de uitkomst nooit veranderen. Geef het een score, of zet het uit.</value>
   </data>
@@ -11381,6 +11402,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} staat aan maar kan niet draaien. {1} Elke scan die eraan wordt gevraagd, mislukt, en een mislukte scan is geen mislukt bericht: de fout wordt gelogd en het bericht wordt bezorgd alsof het was onderzocht en schoon bevonden.</value>
+  </data>
+  <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
+    <value>{0} is het voorbeelddomein en telt hier niet mee; verwijder het wanneer u ermee klaar bent.</value>
   </data>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} is weer {1}.</value>
@@ -11520,11 +11544,17 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
     <value>{0} waarde(n) konden niet worden gelezen — {1} De rijen hieronder kunnen onvolledig zijn.</value>
   </data>
+  <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
+    <value>{0} is gemaakt: {1} postbussen, en {2} berichten onderweg ernaartoe. Ze komen binnen enkele seconden aan. Alle postbussen melden zich aan met het wachtwoord {3}. Het wordt hier één keer getoond - schrijf het op, want deze server heeft het niet bewaard.</value>
+  </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} stond niet meer op de lijst.</value>
   </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>{0} is van de lijst verwijderd.</value>
+  </data>
+  <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
+    <value>{0} is verwijderd: {1} postbussen, {2} distributielijsten, {3} regels en {4} berichten gingen mee.</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} met volledige bevoegdheid</value>

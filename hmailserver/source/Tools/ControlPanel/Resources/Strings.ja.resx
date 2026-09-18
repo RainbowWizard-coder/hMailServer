@@ -440,6 +440,9 @@
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>ここにドメイン名を指定する場合、サーバー自身のコンピューターがそのドメインに参加している必要があります。Windows が LogonUser で検証するためです。参加していないコンピューターからは、ドメイン名を単に打ち間違えた場合も含め、すべての試行がパスワードが違うときとまったく同じように失敗します。そのため、ドメインに参加していないサーバーでこのように設定したメールボックスは決してログインできず、その理由も示されません。サーバーがドメインに参加していない場合は、代わりに「ディレクトリ認証」ページの LDAP ディレクトリ認証を使用してください。こちらはネットワーク越しにディレクトリへバインドするため、ドメインへの参加は不要です。</value>
   </data>
+  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
+    <value>このサーバーには {0} という名前のドメインがありますが、サンプルが作成したものではないため、ここでは作成も削除も行いません。不要であればご自身で削除してください。</value>
+  </data>
   <data name="A domain with rotating outbound hosts is usually recognised by the HELO name; a domain that forges nothing by its envelope sender." xml:space="preserve">
     <value>送信ホストが次々と変わるドメインはたいてい HELO 名で見分けられます。何も偽装しないドメインはエンベロープ送信者で見分けられます。</value>
   </data>
@@ -4612,6 +4615,9 @@
   <data name="Maintenance for the IMAP folder state. Nothing here changes a message; the folder UID counter is bookkeeping that IMAP clients rely on to tell one message from another." xml:space="preserve">
     <value>IMAP フォルダー状態のメンテナンス。ここではメッセージは変更されません。フォルダーの UID カウンターは、IMAP クライアントがメッセージを区別するために頼りにしている帳簿です。</value>
   </data>
+  <data name="Make a sample _domain" xml:space="preserve">
+    <value>サンプルドメインを作成 (_D)</value>
+  </data>
   <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
     <value>このサーバーがホストしているドメインとそのメールボックスを管理します。</value>
   </data>
@@ -5421,6 +5427,9 @@
   </data>
   <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>注意すべきものはありません。{0} 件の外部セットアップ チェックはすべて完了しているか不要です。</value>
+  </data>
+  <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
+    <value>このサーバーにはまだ見るものがありませんか。これは {0} を、3 つのメールボックス、配布リスト、ルール、いくつかの配信済みメッセージとともに作成し、学習中もどのページにも何かが表示されるようにします。すべてのメールボックスは、このサーバーが今生成して一度だけ表示する 1 つのパスワードでサインインします。必ず書き留め、このサーバーが実際のメールを受け取る前にサンプルを削除してください。</value>
   </data>
   <data name="Nothing was applied: the options changed while the confirmation was open, so the preview no longer describes what this would do. Run the preview again." xml:space="preserve">
     <value>何も適用されませんでした: 確認を開いている間にオプションが変更されたため、プレビューはもうこの操作の内容を表していません。プレビューをもう一度実行してください。</value>
@@ -6318,6 +6327,9 @@
   <data name="Re_move action" xml:space="preserve">
     <value>アクションを削除(_M)</value>
   </data>
+  <data name="Re_move the sample domain" xml:space="preserve">
+    <value>サンプルドメインを削除 (_M)</value>
+  </data>
   <data name="Re_voke / restore" xml:space="preserve">
     <value>取り消し / 復元(_V)</value>
   </data>
@@ -6567,6 +6579,9 @@
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>受信者 {0} をこのリストから削除しますか?</value>
+  </data>
+  <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
+    <value>サンプルドメインを、その中のすべてのメールボックス、メッセージ、ルールごと削除しますか。後から追加したものも一緒に削除されます。</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>選択したアカウントをこのグループから削除する</value>
@@ -9147,6 +9162,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>これは送信側サーバーが DATA への応答を待っている間に実行されるため、この数値はヒントではなく最悪の場合についての約束です。応答だけでなく接続も制限します。そうでなければ、マシンが消えてしまったエンジンに対して、メッセージごとに OS 自身の TCP タイムアウトを払うことになります。</value>
   </data>
+  <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
+    <value>このサーバーはドメインテーブルを読めなかったため、サンプルがあるかどうかを答えられません。読めるようになるまで何も提示されません。</value>
+  </data>
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>このサーバーは DKIM 鍵をローテーションしません。このコントロールパネルより古いサーバーです。</value>
   </data>
@@ -11370,6 +11388,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} をダウンロードして検証しました</value>
   </data>
+  <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
+    <value>{0} があります。メールボックス {1}、リスト {2}、および請求書を仕分けるルール 1 件。すべてのメールボックスに共通のパスワードはサンプル作成時に表示され、保存されていません。新しいものを得るには、サンプルを削除して作り直してください。サンプルドメインはこのサーバーの最初のドメインではないため、最初の 1 時間のチェックリストには数えられません。</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} はオンですがスコアが 0 のため、メッセージごとに参照のコストがかかるだけで、結果を変えることは決してありません。スコアを設定するか、オフにしてください。</value>
   </data>
@@ -11381,6 +11402,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} は有効になっていますが実行できません。{1} 要求されたスキャンはすべて失敗します。そして、スキャンの失敗はメッセージの失敗ではありません。エラーはログに記録され、メッセージは検査されて問題なしと判定されたかのように配信されます。</value>
+  </data>
+  <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
+    <value>{0} はサンプルドメインであり、ここでは数えていません。使い終えたら削除してください。</value>
   </data>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} は再び {1} です。</value>
@@ -11520,11 +11544,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
     <value>{0} 件の値を読み取れませんでした — {1} 下の行は不完全な可能性があります。</value>
   </data>
+  <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
+    <value>{0} を作成しました: メールボックス {1} 件、そこへ向かうメッセージ {2} 件。数秒で届きます。 すべてのメールボックスはパスワード {3} でサインインします。ここに表示されるのは一度だけです。サーバーは保存していないので、書き留めてください。</value>
+  </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} はもうリストにありませんでした。</value>
   </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>{0} をリストから削除しました。</value>
+  </data>
+  <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
+    <value>{0} を削除しました: メールボックス {1} 件、配布リスト {2} 件、ルール {3} 件、メッセージ {4} 件が一緒に削除されました。</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} 件は完全な権限</value>

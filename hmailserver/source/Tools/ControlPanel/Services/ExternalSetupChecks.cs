@@ -627,6 +627,7 @@ namespace hMailServer.ControlPanel.Services
          ["domain_none"] = N("No domain has been added yet."),
          ["domain_none_active"] = N("{0} domains, none of them active."),
          ["domain_count"] = N("Active domains: {0} of {1}."),
+         ["sample_domain"] = N("{0} is the sample domain and is not counted here; remove it when you are done with it."),
          ["account_none"] = N("No account has been added in any domain."),
          ["account_count"] = N("Accounts: {0}."),
          ["submission_none"] = N("No port takes message submission, so mail clients cannot send through this server."),

@@ -85,6 +85,10 @@ public:
    STDMETHOD(RunReputationCheck)(/*[out, retval]*/ BSTR *Report);
    STDMETHOD(GetReputationReport)(/*[out, retval]*/ BSTR *Report);
    STDMETHOD(GetSetupChecklist)(/*[in]*/ VARIANT_BOOL LookUpDns, /*[out, retval]*/ BSTR *Json);
+   // The sample domain: what is there, making it and removing it.
+   STDMETHOD(GetSampleDomain)(/*[out, retval]*/ BSTR *Json);
+   STDMETHOD(CreateSampleDomain)(/*[out, retval]*/ BSTR *Json);
+   STDMETHOD(RemoveSampleDomain)(/*[out, retval]*/ BSTR *Json);
    STDMETHOD(GetAuditTrail)(/*[in]*/ BSTR Actor, /*[in]*/ long MaxRows, /*[in]*/ long Offset, /*[out, retval]*/ BSTR *Json);
    STDMETHOD(VerifyAuditTrail)(/*[out, retval]*/ BSTR *Json);
    STDMETHOD(RevertAuditedChange)(/*[in]*/ long AuditId, /*[out, retval]*/ BSTR *RestoredValue);

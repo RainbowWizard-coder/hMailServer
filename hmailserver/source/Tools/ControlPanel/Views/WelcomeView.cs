@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using hMailServer.ControlPanel.Services;
@@ -26,6 +29,38 @@ namespace hMailServer.ControlPanel.Views
          Visibility = Visibility.Collapsed,
          Margin = new Thickness(0, 0, 0, 16)
       };
+
+      // The sample domain (the server's Common/Application/SampleDomain.h): one
+      // button that fills a bare server with something to look at, and one that
+      // takes it away again and says what went. It is a notice beside the walk's,
+      // and for the same reason: an offer that a reader who knows the product
+      // steps past, rather than a step they have to get out of.
+      //
+      // Four shapes. No sample: the offer. Ours: what is in it and the button that
+      // removes it. A domain named example.test that this server did not make:
+      // neither button, and the sentence that says why - the refusal the whole
+      // feature turns on. A server that could not read its domain table: neither
+      // button either, because it has just said it does not know.
+      //
+      // The password is in none of them. It is minted by the server when the
+      // sample is made, shown in the dialog that reports the creation, and never
+      // stored, so there is nothing for this notice to read back.
+      private readonly InlineNotice sample_ = new()
+      {
+         Level = StatusLevel.Information,
+         Visibility = Visibility.Collapsed,
+         Margin = new Thickness(0, 0, 0, 16)
+      };
+
+      private readonly Wpf.Ui.Controls.Button sampleAction_ = new()
+      {
+         Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary
+      };
+
+      // What the last read of the server said, so that the button knows which of
+      // the two calls it is. Empty until the page has been entered.
+      private string sampleState_ = "";
+      private bool sampleBusy_;
 
       public WelcomeView()
       {
@@ -57,6 +92,11 @@ namespace hMailServer.ControlPanel.Views
          start.Click += (s, e) => StartWalk_();
          tourOffer_.Content = start;
          panel.Children.Add(tourOffer_);
+
+         System.Windows.Automation.AutomationProperties.SetAutomationId(sampleAction_, "welcome-sample-domain");
+         sampleAction_.Click += (s, e) => SampleClicked_();
+         sample_.Content = sampleAction_;
+         panel.Children.Add(sample_);
 
          panel.Children.Add(Text(L("Start with what you want to do, browse by area below, or press Ctrl+K to search every page and setting."),
             "TextSecondary", new Thickness(0, 0, 0, 16)));
@@ -182,10 +222,182 @@ namespace hMailServer.ControlPanel.Views
 
          var shell = Application.Current.MainWindow as MainWindow;
          tourOffer_.Visibility = shell != null && !shell.HasFinishedFirstRun ? Visibility.Visible : Visibility.Collapsed;
+
+         LoadSample_();
       }
 
       private static void StartWalk_()
          => (Application.Current.MainWindow as MainWindow)?.StartTour(TourCatalog.FirstRun);
+
+      // ---- the sample domain ----------------------------------------------------
+
+      /// <summary>
+      /// Reads Utilities.GetSampleDomain off the window thread and draws the notice
+      /// from it. Off the thread because the call reads the domain table, and this
+      /// is the first page the application shows: a server whose database is slow
+      /// must not make the Welcome page slow to appear. A read that fails leaves the
+      /// notice hidden - the page has plenty else on it, and an error about a
+      /// feature nobody has asked for yet is noise.
+      /// </summary>
+      private void LoadSample_()
+      {
+         Task.Run(() =>
+         {
+            string json;
+            try
+            {
+               json = (string)ServerSession.Current.Application.Utilities.GetSampleDomain();
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               json = null;
+            }
+
+            Dispatcher.BeginInvoke(new Action(() => ShowSample_(json)));
+         });
+      }
+
+      private void ShowSample_(string json)
+      {
+         sampleState_ = "";
+         if (string.IsNullOrEmpty(json))
+         {
+            sample_.Visibility = Visibility.Collapsed;
+            return;
+         }
+
+         string domain, list;
+         var accounts = new List<string>();
+         try
+         {
+            using JsonDocument document = JsonDocument.Parse(json);
+            JsonElement root = document.RootElement;
+            sampleState_ = root.GetProperty("state").GetString() ?? "";
+            domain = root.GetProperty("domain").GetString() ?? "";
+            list = root.GetProperty("list").GetString() ?? "";
+            foreach (JsonElement address in root.GetProperty("accounts").EnumerateArray())
+               accounts.Add(address.GetString() ?? "");
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            sample_.Visibility = Visibility.Collapsed;
+            return;
+         }
+
+         if (sampleState_ == "present")
+         {
+            sample_.Level = StatusLevel.Good;
+            sample_.Text = F("{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain.",
+               domain, string.Join(", ", accounts), list);
+            sampleAction_.Content = L("Re_move the sample domain");
+            sampleAction_.Visibility = Visibility.Visible;
+         }
+         else if (sampleState_ == "foreign")
+         {
+            sample_.Level = StatusLevel.Warning;
+            sample_.Text = F("A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted.", domain);
+            sampleAction_.Visibility = Visibility.Collapsed;
+         }
+         else if (sampleState_ == "unknown")
+         {
+            // The server could not read its domain table. Offering either button
+            // here would be offering to act on an answer it has just said it does
+            // not have.
+            sample_.Level = StatusLevel.Warning;
+            sample_.Text = L("This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can.");
+            sampleAction_.Visibility = Visibility.Collapsed;
+         }
+         else
+         {
+            sample_.Level = StatusLevel.Information;
+            sample_.Text = F("Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail.", domain);
+            sampleAction_.Content = L("Make a sample _domain");
+            sampleAction_.Visibility = Visibility.Visible;
+         }
+
+         sample_.Visibility = Visibility.Visible;
+      }
+
+      /// <summary>
+      /// Makes the sample or removes it, off the window thread as the read is: the
+      /// creation writes a domain, three mailboxes, a list, a rule and eight messages
+      /// into the delivery queue, and the removal deletes all of it. The refusals -
+      /// example.test already here, or here and not the sample's - come back as the
+      /// server's own sentence on a COM error, which is shown rather than replaced
+      /// with one of this page's that could drift from it.
+      /// </summary>
+      private void SampleClicked_()
+      {
+         if (sampleBusy_)
+            return;
+
+         bool removing = sampleState_ == "present";
+         if (removing && !Dialogs.Confirm(L("Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too."),
+                L("Control Panel"), L("_Remove"), destructive: true))
+            return;
+
+         sampleBusy_ = true;
+         sampleAction_.IsEnabled = false;
+
+         Task.Run(() =>
+         {
+            string json = null;
+            string failure = null;
+            try
+            {
+               json = removing
+                  ? (string)ServerSession.Current.Application.Utilities.RemoveSampleDomain()
+                  : (string)ServerSession.Current.Application.Utilities.CreateSampleDomain();
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               failure = fatalCheck.Message;
+            }
+
+            Dispatcher.BeginInvoke(new Action(() => SampleDone_(removing, json, failure)));
+         });
+      }
+
+      private void SampleDone_(bool removing, string json, string failure)
+      {
+         sampleBusy_ = false;
+         sampleAction_.IsEnabled = true;
+
+         if (failure != null)
+         {
+            Dialogs.Warn(failure, L("Control Panel"));
+            LoadSample_();
+            return;
+         }
+
+         try
+         {
+            using JsonDocument document = JsonDocument.Parse(json ?? "");
+            JsonElement root = document.RootElement;
+            string domain = root.GetProperty("domain").GetString() ?? "";
+
+            if (removing)
+               Dialogs.Info(F("{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it.",
+                  domain, root.GetProperty("accounts").GetInt64(), root.GetProperty("lists").GetInt64(),
+                  root.GetProperty("rules").GetInt64(), root.GetProperty("messages").GetInt64()), L("Control Panel"));
+            else
+               // The password is in this dialog and nowhere else, ever: the server
+               // mints it here and keeps only the hash, so this box is the one
+               // moment anybody can be told it. TryGetProperty rather than
+               // GetProperty, because a server older than this panel answers no
+               // password at all, and losing the whole report over that would be
+               // worse than an empty slot.
+               Dialogs.Info(F("{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it.",
+                  domain, root.GetProperty("accounts_created").GetInt64(), root.GetProperty("messages").GetInt64(),
+                  root.TryGetProperty("password", out JsonElement minted) ? minted.GetString() ?? "" : ""), L("Control Panel"));
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            // The work was done; only the report could not be read.
+         }
+
+         LoadSample_();
+      }
 
       public void OnLeave()
       {
