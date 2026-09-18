@@ -201,6 +201,10 @@ img.avatar{object-fit:cover;vertical-align:middle;margin-inline-end:6px}
 .nav button.unread .nm,.nav button.unread .ct{font-weight:700;color:var(--text)}
 .nav button.child{padding-inline-start:38px}
 .nav button.child2{padding-inline-start:54px}
+.nav.accounts{margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.nav.accounts .avatar{width:20px;height:20px;font-size:9px}
+.nav.accounts button{height:36px}
+.nav.accounts .nm small{display:block;font-size:11px;color:var(--text-2);font-weight:400}
 .nav .chip{font-size:11px}
 .navhead,.nav-heading{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;font-weight:500;letter-spacing:.3px;padding:14px 14px 4px;text-transform:uppercase}
 .navhead .grow{flex:1}
@@ -800,6 +804,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <aside class="side" id="side">
 <button class="compose" id="nav-compose" type="button"><svg class="i"><use href="#i-pen"/></svg><span>Compose</span></button>
 <div class="scroll">
+<nav class="nav accounts" id="account-nav" aria-label="Accounts" hidden></nav>
 <nav class="nav folders" id="folder-nav" aria-label="Folders"></nav>
 <nav class="nav labels" id="label-nav" aria-label="Labels"></nav>
 <div class="navhead">More</div>
@@ -922,6 +927,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div id="label-menu" class="row" hidden></div>
 <pre id="message-headers" class="headers" hidden></pre>
 <div id="message-remote" class="infobar" hidden>Remote images and styles were not loaded. <span id="message-remote-count"></span> <span id="message-remote-habit"></span> <button id="remote-once" class="btn ghost sm" type="button">Show them</button><button id="remote-always" class="btn quiet sm" type="button">Always show from this sender</button></div>
+<div id="message-remote-second" class="infobar" hidden>Remote images are not loaded in a second account's messages. Sign in as this account to see them.</div>
 <div id="message-invitation" class="invite" hidden></div>
 <pre id="message-text" dir="auto"></pre>
 <iframe id="message-html" dir="auto" sandbox="allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer" title="The message as it was sent" hidden></iframe>
@@ -1174,6 +1180,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div class="card">
 <h2>Offline in this browser</h2>
 <p class="note">The mail of the last days you choose - the text, the formatting and the attachments - is kept in this browser's own storage, so it can be read and searched with no connection, and a message written then is sent when one is back. It lives in this browser and nowhere else: anyone who can open this browser can read it, and signing out removes it.</p>
+<p class="note" id="offline-second" hidden></p>
 <form id="offline-form" class="row" hidden>
 <div style="flex:1;min-width:12rem"><label for="pref-offline-days">Keep for reading offline</label><select id="pref-offline-days"></select></div>
 <div style="align-self:flex-end"><button class="btn" type="submit">Save</button></div>
@@ -1187,6 +1194,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div class="card">
 <h2>Notifications on this device</h2>
 <p class="note">A notification can reach this phone or browser even when the page is closed. What it may say is your choice, and each device is asked separately.</p>
+<p class="note" id="push-second" hidden></p>
 <div class="row"><button class="btn" type="button" id="push-subscribe">Turn notifications on for this device</button></div>
 <form id="push-form" class="form" hidden>
 <div class="row">
@@ -1363,6 +1371,21 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </section>
 <section id="accounts-section" class="view page" hidden>
 <div class="card">
+<h2>A second account beside this one</h2>
+<p class="note">Another mailbox on this server, side by side with this one, as Outlook shows two accounts: both appear at the top of the folder column with their unread counts, and one press switches everything - the folders, the mail, the reading pane, a new message's From, the contacts and the settings - to the other. Mail is not collected from it and nothing is copied: each mailbox stays its own.</p>
+<p class="note">Sign in to it here with its address and password. The session that starts lives in this page and nowhere else - not in a cookie and not in this browser's storage - so reloading the page forgets it and you add it again; it ends after the same idle time as any session, and it is listed on that account's Security page as a second account in a webmail page, where it can be ended too. Notifications on this device, mail kept for reading offline and the installed app stay with the account you signed in as, and a message opened in one account is answered from that account only.</p>
+<form id="second-form" class="row">
+<input id="second-address" type="text" maxlength="255" autocomplete="off" placeholder="address@example.com" aria-label="The second account's address" required>
+<input id="second-password" type="password" autocomplete="off" placeholder="Its password" aria-label="The second account's password" required>
+<button class="btn sm" type="submit" id="second-add">Add the account</button>
+</form>
+<div id="second-current" hidden>
+<p class="note" id="second-current-text"></p>
+<div class="row"><button class="btn ghost sm" id="second-switch" type="button">Switch to it</button><button class="btn ghost sm danger" id="second-end" type="button">Remove the second account</button></div>
+</div>
+<div id="second-status" class="status" aria-live="polite"></div>
+</div>
+<div class="card">
 <h2>Other accounts</h2>
 <p class="note">Mail from another mailbox - an old provider, a second address - collected into this one on a schedule. Your server signs in there with the password you give it and brings new mail here through the same spam and virus filters as everything else. Leave a copy there while you try it. When you are moving for good, bring the folders over: what is already there arrives as it is, in folders of the same names, with its flags and dates.</p>
 <p id="fetch-off" class="hint" hidden>Your server does not offer this. Ask whoever runs it.</p>
@@ -1372,6 +1395,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div class="row"><label for="import-keep">After collecting</label><select id="import-keep"><option value="-1">Leave the mail there</option><option value="0">Delete it there</option></select></div>
 <label class="inline"><input id="import-mirror" type="checkbox" checked> Bring the folders over: you choose which once the other server has listed them</label>
 <div class="row"><button class="btn" type="button" id="import-google" hidden>Sign in to Gmail</button><button class="btn" type="button" id="import-microsoft" hidden>Sign in to Outlook.com</button></div>
+<p class="note" id="import-second" hidden></p>
 </div>
 <div id="fetch-folders" hidden>
 <h3 id="fetch-folders-title">Folders to bring over</h3>

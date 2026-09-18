@@ -110,11 +110,18 @@
   var applyLanguagePref = function () { var code = knownLanguage(pref('language') || ''); if (code) { loadLanguage(code); } };
   var say = function (id, text, ok) { var s = el(id); s.textContent = text || ''; s.className = 'status' + (text ? (ok ? ' ok' : ' error') : ''); };
   // The password is sent exactly once, to start the session; from then on
-  // the browser's cookie is the credential and nothing is kept in memory.
-  var call = function (method, path, body, extra) {
+  // the browser's cookie is the credential and nothing is kept in memory -
+  // with one exception the reader asks for: a second account added beside
+  // this one has a session token of its own, held in memory by the block
+  // "A second account in the same page" below, and a request made while that
+  // account is the active one carries it as Authorization: Bearer. `who`
+  // names the account a request is for when it is not the active one:
+  // 'first' or 'second'.
+  var call = function (method, path, body, extra, who) {
     var h = {};
     if (extra) { for (var k in extra) { if (extra[k]) { h[k] = extra[k]; } } }
     if (method !== 'GET') { h['X-Requested-With'] = 'hMailServer'; }
+    var asSecond = bearerFor(h, who);
     var options = { method: method, headers: h, cache: 'no-store', credentials: 'same-origin' };
     if (body !== undefined) { h['Content-Type'] = 'application/json'; options.body = JSON.stringify(body); }
     return fetch(path, options).then(function (response) {
@@ -123,7 +130,13 @@
         try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
         // A 401 that asks for the one-time code is not the session ending:
         // the password was right, and the code is what the form asks for next.
-        if (response.status === 401 && path !== '/api/v1/me' && path !== '/api/v1/session' && !el('account').hidden && response.headers.get('X-hMailServer-OTP') !== 'required') {
+        // A 401 on the second account's token is that session ending, and
+        // that session alone: the page goes back to the first account and
+        // says so, rather than putting the gate up over a session that is
+        // still live.
+        if (response.status === 401 && asSecond && response.headers.get('X-hMailServer-OTP') !== 'required') {
+          secondEnded(t('The second account\'s session has ended. Add it again to go on using it.'));
+        } else if (response.status === 401 && !asSecond && path !== '/api/v1/me' && path.indexOf('/api/v1/session') !== 0 && !el('account').hidden && response.headers.get('X-hMailServer-OTP') !== 'required') {
           showSignIn();
           say('signin-status', t('Your session has ended. Sign in again.'), false);
         }
@@ -140,6 +153,19 @@
       // I wanted', so it reports as the failure it is.
       return { status: 0, data: null, otp: null };
     });
+  };
+  // The same credential rule for the few requests that are not JSON - a part
+  // fetched as bytes, a chunk of a file uploaded, a message the browser
+  // sends after the page has closed: fetch, with the second account's token
+  // added when the request is that account's.
+  var apiFetch = function (url, options, who) {
+    options = options || {};
+    var h = {};
+    if (options.headers) { for (var k in options.headers) { h[k] = options.headers[k]; } }
+    bearerFor(h, who);
+    options.headers = h;
+    if (!options.credentials) { options.credentials = 'same-origin'; }
+    return fetch(url, options);
   };
   var describe = function (result, fallback) {
     // The suppression list's refusal, said in the reader's language rather than
@@ -365,6 +391,7 @@
     });
     markNav(currentNavHash());
     updateTitle();
+    renderAccountNav();
     renderNotifyFolders();
     fillFolderSelect(el('rule-folder'), 0);
     fillFolderSelect(el('folder-export-target'), 0);
@@ -378,8 +405,10 @@
         renderQuickSteps();
         // The tree goes into the offline store too, so a page opened with no
         // connection has folders to show the kept messages under.
-        folderTreeLast = result.data;
-        if (offline.days) { metaPut('folders', result.data); }
+        if (offlineMine()) {
+          folderTreeLast = result.data;
+          if (offline.days) { metaPut('folders', result.data); }
+        }
       }
       return result;
     });
@@ -968,7 +997,7 @@
     }).slice(0, INLINE_MOST);
     if (!wanted.length) { inlineFor = { id: message.id, images: {} }; return Promise.resolve(inlineFor.images); }
     return Promise.all(wanted.map(function (a) {
-      return fetch('/api/v1/me/messages/' + message.id + '/attachments/' + a.index, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
+      return apiFetch('/api/v1/me/messages/' + message.id + '/attachments/' + a.index, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
         if (response.status !== 200) { return null; }
         return response.blob();
       }).then(function (blob) {
@@ -1035,6 +1064,10 @@
   };
   var TRACKERS = 'hmPortalTrackers';
   var trackerHabit = function (sender, messageId, pixels) {
+    // What this browser learns about senders is the first account's, as
+    // everything it keeps is: nothing is read or written for the second
+    // account, whose messages are shown without the remote-image bar anyway.
+    if (!offlineMine()) { return 0; }
     var record = {};
     try { record = JSON.parse(localStorage.getItem(TRACKERS) || '{}') || {}; } catch (e) { record = {}; }
     var entry = record[sender] || { count: 0, seen: [] };
@@ -1052,15 +1085,49 @@
     var habit = trackerHabit(sender, showing.id, counted.pixels);
     el('message-remote-habit').textContent = habit ? tf('This sender has used tracking pixels in {0} message(s).', habit) : '';
   };
+  // The one blob URL the reading frame may be showing - a second account's
+  // document, fetched with its token - held so that it is released when the
+  // frame moves on: to the next document, to the route, or to nothing. A
+  // blob URL not revoked keeps its bytes for the life of the page.
+  var htmlBlobUrl = '';
+  var htmlBlobRevoke = function () {
+    if (!htmlBlobUrl) { return; }
+    try { URL.revokeObjectURL(htmlBlobUrl); } catch (e) { /* gone already */ }
+    htmlBlobUrl = '';
+  };
   var renderHtml = function () {
     var frame = el('message-html');
-    if (!current || !current.html || !showHtml) { frame.hidden = true; frame.removeAttribute('src'); el('message-text').hidden = false; return Promise.resolve(); }
+    if (!current || !current.html || !showHtml) { frame.hidden = true; frame.removeAttribute('src'); htmlBlobRevoke(); el('message-text').hidden = false; el('message-remote-second').hidden = true; return Promise.resolve(); }
     var showing = current;
     var sender = addressOf(showing.from).toLowerCase();
     var allowed = remoteAllowed.id === showing.id || remoteSenders().indexOf(sender) >= 0;
+    if (onSecond()) {
+      // A frame's own request carries the cookie, which is the first account's,
+      // so the second account's document is fetched here with its token and
+      // shown from a blob. A document shown that way is under this page's own
+      // policy as well as its own (the server writes the policy into the
+      // document too), and this page allows no remote image - so none is
+      // offered: the bar says so instead of the two buttons.
+      el('message-remote').hidden = true;
+      el('message-remote-second').hidden = !showing.html_remote;
+      frame.hidden = false;
+      el('message-text').hidden = true;
+      return apiFetch('/api/v1/me/messages/' + showing.id + '/html', { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
+        if (response.status !== 200) { return null; }
+        return response.text();
+      }, function () { return null; }).then(function (text) {
+        if (current !== showing || !showHtml) { return; }
+        if (text === null) { frame.hidden = true; frame.removeAttribute('src'); htmlBlobRevoke(); el('message-text').hidden = false; return; }
+        htmlBlobRevoke();
+        htmlBlobUrl = URL.createObjectURL(new Blob([text], { type: 'text/html' }));
+        frame.setAttribute('src', htmlBlobUrl);
+      });
+    }
+    el('message-remote-second').hidden = true;
     el('message-remote').hidden = !(showing.html_remote && !allowed);
     if (!el('message-remote').hidden) { describeRemote(showing, sender); }
     frame.setAttribute('src', '/api/v1/me/messages/' + showing.id + '/html' + (allowed ? '?remote=1' : ''));
+    htmlBlobRevoke();
     frame.hidden = false;
     el('message-text').hidden = true;
     return Promise.resolve();
@@ -1161,6 +1228,7 @@
       var link = node('a', undefined, 'att');
       link.href = '/api/v1/me/messages/' + m.id + '/attachments/' + a.index;
       link.setAttribute('download', a.name);
+      guardDownload(link);
       link.setAttribute('title', a.name + ' (' + (a.content_type ? a.content_type + ', ' : '') + format(a.size) + ')');
       link.appendChild(icon('file'));
       var words = node('div');
@@ -1299,7 +1367,7 @@
     if (!list.length) { return Promise.resolve(); }
     el('compose-files-note').textContent = 'Fetching ' + list.length + ' attachment(s)...';
     return Promise.all(list.map(function (a) {
-      return fetch('/api/v1/me/messages/' + message.id + '/attachments/' + a.index, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
+      return apiFetch('/api/v1/me/messages/' + message.id + '/attachments/' + a.index, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
         if (response.status !== 200) { throw new Error(a.name); }
         return response.blob();
       }).then(function (blob) {
@@ -1403,7 +1471,7 @@
       if (offset >= file.size) { return record; }
       el('compose-files-note').textContent = 'Sending ' + file.name + ' as a link: ' + Math.round(100 * offset / file.size) + '%';
       var slice = file.slice(offset, Math.min(file.size, offset + CHUNK));
-      return fetch('/api/v1/me/files/' + record.id + '/content?offset=' + offset, { method: 'PUT', body: slice, headers: { 'X-Requested-With': 'hMailServer', 'Content-Type': 'application/octet-stream' }, cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
+      return apiFetch('/api/v1/me/files/' + record.id + '/content?offset=' + offset, { method: 'PUT', body: slice, headers: { 'X-Requested-With': 'hMailServer', 'Content-Type': 'application/octet-stream' }, cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
         return response.text().then(function (text) {
           var data = null;
           try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
@@ -1640,6 +1708,7 @@
     });
     notifyNewMail(grew);
     updateTitle();
+    renderAccountNav();
     if (fresh) { return true; }
     var nav = el('folder-nav');
     var children = nav.children;
@@ -1898,7 +1967,7 @@
     if (head === 'senders') { showPanel('senders-section', t('Safe senders')); markNav('/senders'); loadSenderList(); loadDigestSetting(); return; }
     if (head === 'subscriptions') { showPanel('subscriptions-section', t('Subscriptions')); markNav('/subscriptions'); loadSubscriptions(); return; }
     if (head === 'masked') { showPanel('masked-section', t('Masked addresses')); markNav('/masked'); loadMaskedAddresses(); return; }
-    if (head === 'accounts') { showPanel('accounts-section', t('Other accounts')); markNav('/accounts'); loadFetchAccounts().then(function () { importOutcome(r.params); }); loadSenderAddresses(); return; }
+    if (head === 'accounts') { showPanel('accounts-section', t('Other accounts')); markNav('/accounts'); renderSecondCard(); loadFetchAccounts().then(function () { importOutcome(r.params); }); loadSenderAddresses(); return; }
     if (head === 'security') { showPanel('security-section', 'Security'); markNav('/security'); loadSecurity(); return; }
     if (head === 'password') {
       if (directoryLinked) { replaceWith('/f/' + inboxId); return; }
@@ -1914,25 +1983,28 @@
   // these caches before they ask the server, and the fragment in the
   // address bar survives a sign-out, so a stale #/m/<id> would repaint
   // the previous account's message to the new one without a request.
-  var forgetAccount = function () {
+  // Two halves. forgetView is what the page holds in memory and on the
+  // screen for the account it is showing - the caches, the open message, the
+  // list, the folders, the draft, the keys - and goes at a sign-out and at a
+  // switch to the second account alike, since the other account must not be
+  // shown any of it. forgetAccount is that and what this browser keeps for
+  // the first account between visits - the offline store, the searches, the
+  // tallies - which a switch keeps and only a sign-out removes.
+  var forgetView = function () {
     // A send still waiting cannot go on a session that has ended.
     cancelUndo();
-    // What this browser learned about whose mail matters to this person goes
-    // with the account, whichever way the session ended - and it is filed
-    // under the address, so it goes before the address does.
-    tallyForget();
     me = '';
     identities = [];
     signature = { enabled: false, text: '' };
     prefs = {};
     document.title = baseTitle;
-    offlineForget();
-    searchesWrite([]);
     hideSearchHistory();
     hideSuggestions();
     clear(el('search-suggest-list'));
-    dueShownForget();
     followUps.day = '';
+    // The events the reminders watch are the account's that was shown: the
+    // next tick reads the next account's own.
+    remindState = { events: [], fetched: 0 };
     replied = {};
     askedReplies = {};
     clear(el('quick-steps'));
@@ -1946,15 +2018,19 @@
     allFolders = [];
     foldersById = {};
     inboxId = 0;
+    // Where the reader was is a folder of the account being left: the next
+    // account's inbox is where the router lands from nothing.
+    state.folderId = 0; state.query = ''; state.everywhere = false; state.before = 0;
     inlineFor = { id: 0, images: null };
     showHtml = false;
     composeKey = '';
     blankCompose();
+    hideCompose();
     forgetSecret();
     smimeForget();
-    emojiForget();
     var frame = el('message-html');
     if (frame) { frame.hidden = true; frame.removeAttribute('src'); }
+    htmlBlobRevoke();
     ['message-list', 'folder-nav', 'message-text', 'message-attachments'].forEach(function (id) {
       var node = el(id);
       if (node) { node.innerHTML = ''; }
@@ -1968,8 +2044,32 @@
       try { history.replaceState(null, '', '#/'); } catch (e) { location.hash = '#/'; }
     }
   };
+  var forgetAccount = function () {
+    // The second account goes with the first: its token was this page's and
+    // the page is signing out. First, so that what is forgotten below is
+    // forgotten as the first account, whose it all is - the stores answer
+    // nothing while the second account is the one shown.
+    secondForget();
+    accounts.active = 'first';
+    forgetView();
+    // What this browser learned about whose mail matters to this person goes
+    // with the account, whichever way the session ended - and it is filed
+    // under the address, so every tally goes rather than one named by it.
+    tallyForget();
+    offlineForget();
+    searchesWrite([]);
+    dueShownForget();
+    emojiForget();
+    accounts.first = { address: '', unseen: 0, inboxId: 0, changes: '' };
+    renderAccountNav();
+  };
   var showSignIn = function () {
     probeStop();
+    // The page is signing out, or the first account's session has ended
+    // under it: the second account's session is ended on the server with
+    // its token, not merely forgotten here to stand until it times out. A
+    // sign-out has ended it already and there is nothing to do.
+    secondEndQuietly();
     forgetAccount();
     el('account').hidden = true;
     el('signin').hidden = false;
@@ -2022,15 +2122,21 @@
       if (result.status === 200 && result.data) { el('filter-script').value = result.data.active || ''; renderRules(result.data.active || ''); }
     });
   };
+  // The account the page shows, read whole: the one the cookie stands for,
+  // or the second one when that is the active one - every loader below asks
+  // through call(), which carries the right credential for whichever it is.
   var load = function (quiet) {
+    var asSecond = onSecond();
     return call('GET', '/api/v1/me').then(function (result) {
       if (result.status === 200 && result.data) {
         me = String(result.data.address || '').toLowerCase();
+        if (asSecond) { accounts.second.address = me; } else { accounts.first.address = me; }
         smimeViaAppPassword = result.data.via_app_password === true;
         offline.only = false;
         offlineRetryStop();
         offlineNote(false);
         render(result.data);
+        renderAccountNav();
         loadQuarantine();
         loadSettings();
         loadPrefs();
@@ -2042,11 +2148,19 @@
           if (pending) { var wanted = pending; pending = ''; replaceWith(wanted); }
           else { route(); }
           probeNow();
+          otherProbeLater();
           followUpsCheck();
           loadOffline();
           return true;
         });
       }
+      // The second account could not be read: its session has ended, or the
+      // server refused it. That account goes, and the page is the first
+      // account's again - the first's session is not what failed here. No
+      // connection at all is not that: the token is kept, and the page falls
+      // back to the first account, whose kept mail is what it can show.
+      if (asSecond && result.status !== 0) { secondEnded(t('The second account\'s session has ended. Add it again to go on using it.')); return false; }
+      if (asSecond) { accounts.active = 'first'; forgetView(); renderAccountNav(); }
       // The server could not be reached at all, and this browser holds mail
       // kept for reading offline: show that, and ask again when the
       // connection is back. A refusal - a session that ended - is not this.
@@ -2075,7 +2189,17 @@
     });
   });
   el('signout').addEventListener('click', function () {
-    flushPending().then(function () { return call('DELETE', '/api/v1/session'); }).then(function () { probe.token = ''; probe.off = false; showSignIn(); });
+    // The second account's session is ended first, with its own token, so
+    // that nothing of this page's stays live on the server after the page
+    // has signed out; then the first's, which clears the cookie. The page's
+    // copy of the token goes before the request is made, so that a refusal
+    // of it - the session already gone - is not read as the session ending
+    // and answered with a reload of the first account under a sign-out.
+    flushPending().then(function () {
+      var token = accounts.second.token;
+      secondForget();
+      return token ? call('DELETE', '/api/v1/session', undefined, { 'Authorization': 'Bearer ' + token }, 'first') : null;
+    }).then(function () { return call('DELETE', '/api/v1/session', undefined, undefined, 'first'); }).then(function () { probe.token = ''; probe.off = false; showSignIn(); });
   });
   el('theme-btn').addEventListener('click', function () {
     var next = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
@@ -2160,7 +2284,7 @@
   // Images among the attachments are shown; a PDF is previewed on request,
   // in a frame of its own, from bytes the page fetched itself.
   var fetchAsDataUrl = function (id, index) {
-    return fetch('/api/v1/me/messages/' + id + '/attachments/' + index, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
+    return apiFetch('/api/v1/me/messages/' + id + '/attachments/' + index, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
       if (response.status !== 200) { return null; }
       return response.blob();
     }).then(function (blob) {
@@ -2194,7 +2318,7 @@
       } else if (type === 'application/pdf' && a.size <= INLINE_TOGETHER) {
         var show = button(t('Preview ') + a.name);
         show.addEventListener('click', function () {
-          fetch('/api/v1/me/messages/' + m.id + '/attachments/' + a.index, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) { return response.status === 200 ? response.blob() : null; }).then(function (blob) {
+          apiFetch('/api/v1/me/messages/' + m.id + '/attachments/' + a.index, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) { return response.status === 200 ? response.blob() : null; }).then(function (blob) {
             if (!blob || current !== m) { return; }
             var frame = document.createElement('iframe');
             frame.setAttribute('referrerpolicy', 'no-referrer'); frame.setAttribute('title', a.name);
@@ -2282,7 +2406,7 @@
   var contactAvatar = function (c) {
     if (c.has_photo) {
       var img = document.createElement('img'); img.className = 'avatar'; img.alt = '';
-      img.src = '/api/v1/me/contacts/' + c.id + '/photo';
+      imageFrom(img, '/api/v1/me/contacts/' + c.id + '/photo');
       return img;
     }
     return node('span', initialsOf(c.name || c.address), 'avatar');
@@ -2802,9 +2926,11 @@
       if (result.status === -1) { return; }
       if (result.status === 0) {
         // No connection: the message waits in this browser and goes when
-        // the connection is back. The form is left as it is.
-        outboxAdd(queued.body);
-        say('compose-status', t('No connection. The message waits here and will be sent when the connection is back.'), false);
+        // the connection is back. The form is left as it is. The outbox is
+        // the first account's; a second account's message stays in the form,
+        // and the form says so.
+        if (outboxAdd(queued.body)) { say('compose-status', t('No connection. The message waits here and will be sent when the connection is back.'), false); }
+        else { say('compose-status', t('No connection. The message is still here; send it again when the connection is back.'), false); }
         return;
       }
       if (result.status === 201) {
@@ -2883,7 +3009,7 @@
     var body = JSON.stringify(pendingSend.body);
     if (body.length < 60000 && !pendingSend.body.sign && !pendingSend.body.encrypt) {
       cancelUndo();
-      fetch('/api/v1/me/messages', { method: 'POST', keepalive: true, credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'hMailServer' }, body: body });
+      apiFetch('/api/v1/me/messages', { method: 'POST', keepalive: true, credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'hMailServer' }, body: body });
       return;
     }
     event.preventDefault();
@@ -2940,17 +3066,24 @@
   // Offered under the box while it is focused and empty; an entry runs that
   // search again, Clear the list empties it. Nothing of it reaches the
   // server, and it goes with the account at sign-out.
+  // The list is the first account's, as everything this browser keeps is:
+  // while the second account is shown, nothing is offered and nothing is
+  // remembered, so that what was looked for in one mailbox is neither
+  // written under the other nor read back to it.
   var SEARCHES = 'hmPortalSearches';
   var searchesRead = function () {
+    if (!offlineMine()) { return []; }
     try {
       var list = JSON.parse(localStorage.getItem(SEARCHES) || '[]');
       return Array.isArray(list) ? list.filter(function (s) { return typeof s === 'string' && s; }).slice(0, 10) : [];
     } catch (e) { return []; }
   };
   var searchesWrite = function (list) {
+    if (!offlineMine()) { return; }
     try { if (list.length) { localStorage.setItem(SEARCHES, JSON.stringify(list)); } else { localStorage.removeItem(SEARCHES); } } catch (e) { /* a browser that keeps nothing */ }
   };
   var rememberSearch = function (text) {
+    if (!offlineMine()) { return; }
     var list = searchesRead().filter(function (s) { return s !== text; });
     list.unshift(text);
     searchesWrite(list.slice(0, 10));
@@ -3475,6 +3608,7 @@
         var which = document.createElement('td');
         if (s.current) { which.appendChild(node('span', t('This browser'), 'badge info')); }
         if (s.support) { which.appendChild(node('span', t('Support (an administrator)'), 'badge warn')); }
+        if (s.bearer) { which.appendChild(node('span', t('A second account in a webmail page'), 'badge')); }
         tr.appendChild(which);
         var actions = document.createElement('td');
         if (!s.current) {
@@ -3976,7 +4110,7 @@
     el('message-smime').hidden = false;
     var ready = smimeState.loaded ? Promise.resolve() : loadSmime();
     ready.then(function () {
-      return fetch('/api/v1/me/messages/' + m.id + '/source', { cache: 'no-store', credentials: 'same-origin' }).then(function (r) { return r.ok ? r.arrayBuffer() : Promise.reject(new Error('HTTP ' + r.status)); });
+      return apiFetch('/api/v1/me/messages/' + m.id + '/source', { cache: 'no-store', credentials: 'same-origin' }).then(function (r) { return r.ok ? r.arrayBuffer() : Promise.reject(new Error('HTTP ' + r.status)); });
     }).then(function (buffer) {
       return smime().readMessage(new Uint8Array(buffer), smimeUnlockedList());
     }).then(function (result) {
@@ -4808,7 +4942,7 @@
       return cid && OWN_IMAGE_ID.test(cid) && lower.indexOf('cid:' + cid) >= 0 && RENDERS[String(a.content_type || '').toLowerCase()];
     });
     return Promise.all(own.map(function (a) {
-      return fetch('/api/v1/me/messages/' + message.id + '/attachments/' + a.index, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
+      return apiFetch('/api/v1/me/messages/' + message.id + '/attachments/' + a.index, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
         return response.status === 200 ? response.blob() : null;
       }).then(function (blob) {
         if (!blob || String(blob.type || '').indexOf('image/') !== 0) { return null; }
@@ -4832,7 +4966,11 @@
   // queued, all of it forgotten at sign-out.
   var offlineData = function () { try { return JSON.parse(localStorage.getItem('hmPortalOffline') || '{}') || {}; } catch (e) { return {}; } };
   var offlineWrite = function (d) { try { localStorage.setItem('hmPortalOffline', JSON.stringify(d)); } catch (e) { /* storage full or refused: nothing kept */ } };
+  // Every write to and read from either store is the first account's: the
+  // second account's mail is never mixed into what this browser keeps, and a
+  // page opened with no connection shows the first account's, whose it is.
   var offlineKeep = function (key, value) {
+    if (!offlineMine()) { return; }
     if (key !== 'list' && value && value.html && value.html.length > 100000) { return; }
     var d = offlineData();
     d.items = d.items || {};
@@ -4844,11 +4982,12 @@
     while (d.order.length > 31) { var old = d.order.shift(); if (old !== 'list') { delete d.items[old]; } else { d.order.push(old); } }
     offlineWrite(d);
   };
-  var offlineRead = function (key) { var d = offlineData(); return d.items && d.items[key] ? d.items[key] : null; };
+  var offlineRead = function (key) { if (!offlineMine()) { return null; } var d = offlineData(); return d.items && d.items[key] ? d.items[key] : null; };
   var offlineForget = function () { try { localStorage.removeItem('hmPortalOffline'); } catch (e) { /* nothing to forget */ } offlineForgetAll(); };
   var offlineNote = function (on) { el('offline-note').hidden = !on; };
-  var outboxAdd = function (body) { var d = offlineData(); d.outbox = d.outbox || []; d.outbox.push(body); offlineWrite(d); };
+  var outboxAdd = function (body) { if (!offlineMine()) { return false; } var d = offlineData(); d.outbox = d.outbox || []; d.outbox.push(body); offlineWrite(d); return true; };
   var outboxFlush = function () {
+    if (!offlineMine()) { return; }
     var d = offlineData();
     if (!d.outbox || !d.outbox.length || el('account').hidden) { return; }
     var queued = d.outbox.slice();
@@ -4978,7 +5117,7 @@
              names: (m.attachments || []).map(function (a) { return String(a.name || '').toLowerCase(); }).join('\n') };
   };
   var offlineFetchPart = function (url) {
-    return fetch(url, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
+    return apiFetch(url, { cache: 'no-store', credentials: 'same-origin' }, 'first').then(function (response) {
       if (response.status !== 200) { return null; }
       return response.blob().then(function (blob) { return { blob: blob, type: response.headers.get('Content-Type') || blob.type || 'application/octet-stream' }; });
     }, function () { return null; });
@@ -5011,7 +5150,7 @@
   // A message the reader opened, or the background run fetched: kept when the
   // window covers it. One already kept has only its flags brought up to date.
   var offlineKeepMessage = function (m) {
-    if (!offline.days || !m || !m.id || m.truncated || !offlineWithin(m.received)) { return Promise.resolve(false); }
+    if (!offlineMine() || !offline.days || !m || !m.id || m.truncated || !offlineWithin(m.received)) { return Promise.resolve(false); }
     return offlineRowsRead().then(function (rows) {
       if (rows[m.id]) { return offlineFlagsSync(m); }
       return offlineParts(m).then(function (parts) {
@@ -5032,6 +5171,7 @@
   };
   // A flag or a folder that moved on the server, or was moved from this page.
   var offlineFlagsSync = function (m) {
+    if (!offlineMine()) { return Promise.resolve(false); }
     return offlineRowsRead().then(function (rows) {
       var row = rows[m.id];
       if (!row) { return false; }
@@ -5086,6 +5226,7 @@
     });
   };
   var offlineMessage = function (id) {
+    if (!offlineMine()) { return Promise.resolve(null); }
     return idb('messages', 'readonly', function (s) { return s.get(id); }).then(function (record) { return record && record.data ? record.data : null; });
   };
   // What the browser allows this site, asked once per run and kept in step
@@ -5101,6 +5242,8 @@
   // The reader's window, then the store brought into step with it.
   var loadOffline = function () {
     if (offline.only) { return Promise.resolve(); }
+    // The second account: the card says whose the store is, and asks nothing.
+    if (!offlineMine()) { renderOfflineCard(); return Promise.resolve(); }
     return call('GET', '/api/v1/me/offline').then(function (result) {
       // Only an answer that really carries the choice is acted on. A request
       // that never arrived, a server that could not read the choice (500),
@@ -5138,7 +5281,7 @@
   // folder that moved is moved here, then the bodies still missing come in
   // newest first, a slice at a time, while the browser has room for them.
   var offlineFill = function () {
-    if (!offline.days || el('account').hidden || offline.only) { return Promise.resolve(); }
+    if (!offlineMine() || !offline.days || el('account').hidden || offline.only) { return Promise.resolve(); }
     if (offline.filling) { offline.again = true; return Promise.resolve(); }
     offline.filling = true;
     var listed = {};
@@ -5184,7 +5327,7 @@
     offline.again = false;
   };
   var offlineFillSoon = function () {
-    if (!offline.days || offline.only) { return; }
+    if (!offlineMine() || !offline.days || offline.only) { return; }
     if (offlineFillTimer) { clearTimeout(offlineFillTimer); }
     offlineFillTimer = setTimeout(function () { offlineFillTimer = 0; offlineFill(); }, 5000);
   };
@@ -5249,6 +5392,7 @@
     });
   };
   var offlineListing = function () {
+    if (!offlineMine()) { return Promise.resolve(null); }
     return offlineRowsRead().then(function (rows) {
       var ids = Object.keys(rows).map(Number);
       if (!ids.length) { return null; }
@@ -5300,6 +5444,14 @@
   // The Settings card: the choice under the ceiling, what is kept and how
   // much, whether the window will fit, and a way to clear it.
   var renderOfflineCard = function () {
+    var second = !offlineMine();
+    el('offline-second').hidden = !second;
+    if (second) {
+      el('offline-second').textContent = tf('What is kept for reading offline belongs to {0}, the account you signed in as. Switch to it to change what is kept.', accounts.first.address);
+      el('offline-form').hidden = true; el('offline-off').hidden = true; el('offline-clear').hidden = true; el('offline-room').hidden = true;
+      el('offline-kept').textContent = '';
+      return;
+    }
     var select = el('pref-offline-days');
     clear(select);
     var steps = OFFLINE_STEPS.filter(function (n) { return n <= offline.ceiling; });
@@ -5365,7 +5517,7 @@
     if (!id || !file) { say('folder-import-status', t('Choose a folder and a .eml file.'), false); return; }
     var reader = new FileReader();
     reader.onload = function () {
-      fetch('/api/v1/me/folders/' + id + '/messages', { method: 'POST', credentials: 'same-origin', cache: 'no-store',
+      apiFetch('/api/v1/me/folders/' + id + '/messages', { method: 'POST', credentials: 'same-origin', cache: 'no-store',
         headers: { 'Content-Type': 'message/rfc822', 'X-Requested-With': 'hMailServer' }, body: String(reader.result) }).then(function (response) {
         if (response.status === 201) { say('folder-import-status', t('Imported into ') + folderName(id) + '.', true); el('folder-import-file').value = ''; lastListing = null; loadFolders(); return; }
         return response.text().then(function (text) { var why = ''; try { why = JSON.parse(text).error || ''; } catch (e) { why = ''; } say('folder-import-status', why || (t('Could not import (') + response.status + ')'), false); });
@@ -5604,10 +5756,18 @@
   // sign-out.
   var DUE_SHOWN = 'hmPortalDueShown';
   var followUps = { day: '' };
+  // Kept in this browser for the first account, whose everything it keeps
+  // is; for the second account, in the page alone, with its token - so a
+  // switch does not announce again what was announced, and nothing of the
+  // second account is written where it would outlive the token.
   var dueShownRead = function () {
+    if (!offlineMine()) { var marks = accounts.second.marks.due; return marks.day === dueToday() ? marks.ids : []; }
     try { var v = JSON.parse(localStorage.getItem(DUE_SHOWN) || 'null'); return v && v.day === dueToday() && Array.isArray(v.ids) ? v.ids : []; } catch (e) { return []; }
   };
-  var dueShownWrite = function (ids) { try { localStorage.setItem(DUE_SHOWN, JSON.stringify({ day: dueToday(), ids: ids })); } catch (e) { /* a browser that keeps nothing */ } };
+  var dueShownWrite = function (ids) {
+    if (!offlineMine()) { accounts.second.marks.due = { day: dueToday(), ids: ids }; return; }
+    try { localStorage.setItem(DUE_SHOWN, JSON.stringify({ day: dueToday(), ids: ids })); } catch (e) { /* a browser that keeps nothing */ }
+  };
   var dueShownForget = function () { try { localStorage.removeItem(DUE_SHOWN); } catch (e) { /* nothing to forget */ } };
   var followUpsCheck = function () {
     followUps.day = dueToday();
@@ -5931,6 +6091,15 @@
   };
   var loadPush = function () {
     if (!el('push-rows') || el('account').hidden) { return Promise.resolve(); }
+    // The subscription this browser holds is the first account's: it is
+    // never handed to the second account's server side, whose push routes
+    // are not asked at all. The card says whose it is.
+    el('push-second').hidden = !onSecond();
+    if (onSecond()) {
+      el('push-second').textContent = tf('Notifications on this device belong to {0}, the account you signed in as. Switch to it to change them.', accounts.first.address);
+      el('push-form').hidden = true; el('push-subscribe').hidden = true; el('push-table').hidden = true; el('push-empty').hidden = true;
+      return Promise.resolve();
+    }
     return call('GET', '/api/v1/me/push').then(function (result) {
       if (result.status !== 200 || !result.data) { return; }
       pushState.enabled = !!result.data.enabled;
@@ -6043,7 +6212,9 @@
     var total = 0;
     notifyFolderIds().forEach(function (id) { var f = foldersById[id]; if (f) { total += f.unseen || 0; } });
     document.title = (total ? '(' + total + ') ' : '') + baseTitle;
-    updateBadge(total);
+    // The installed app's badge is the first account's, as the app is; the
+    // tab's title follows whichever account is shown.
+    if (offlineMine()) { updateBadge(total); }
   };
   var renderNotifyFolders = function () {
     var box = el('notify-folders');
@@ -7539,6 +7710,7 @@
             var link = node('a', undefined, 'att');
             link.href = '/api/v1/me/messages/' + d.id + '/attachments/' + a.index;
             link.setAttribute('download', a.name);
+            guardDownload(link);
             link.appendChild(icon('file'));
             var words = node('div'); words.appendChild(node('div', a.name, 'n')); words.appendChild(node('div', format(a.size), 's'));
             link.appendChild(words);
@@ -7804,6 +7976,11 @@
   var tallyAdd = function (heading, address, by) {
     address = String(address || '').trim().toLowerCase();
     if (!address || !me || address === me || markerMode() !== 'auto') { return; }
+    // The tally is filed under the address, but it is kept in this browser
+    // and would outlive the second account's token: nothing is learned
+    // while that account is shown, and its marker goes by the other reasons
+    // alone, the ones read off the message itself.
+    if (!offlineMine()) { return; }
     var tally = tallyRead();
     var counts = Object.create(null), was = tally[heading];
     if (was && typeof was === 'object') { Object.keys(was).forEach(function (k) { counts[k] = Number(was[k]) || 0; }); }
@@ -8137,7 +8314,7 @@
       subject: t('Phishing report: ') + String(m.subject || ''),
       text: tf('{0} reported this message as phishing. From: {1}. Subject: {2}. Received: {3}. Its source is attached.', me, m.from || '', m.subject || '', m.date || m.received || '')
     };
-    var source = fetch('/api/v1/me/messages/' + m.id + '/source', { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
+    var source = apiFetch('/api/v1/me/messages/' + m.id + '/source', { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
       if (response.status !== 200) { return null; }
       return response.blob().then(function (blob) {
         return new Promise(function (resolve) {
@@ -8472,6 +8649,16 @@
         el('import-google').hidden = !importOffered.google;
         el('import-microsoft').hidden = !importOffered.microsoft;
         el('import-signin').hidden = !importOffered.google && !importOffered.microsoft;
+        // The sign-in at the provider leaves this page and comes back to it
+        // reloaded, and a reload forgets the second account: the page would
+        // be the first account's again with the new row out of sight. So
+        // the two buttons wait while the second account is shown, and the
+        // note says where to do it.
+        var second = onSecond();
+        el('import-google').disabled = second;
+        el('import-microsoft').disabled = second;
+        el('import-second').hidden = !second;
+        if (second) { el('import-second').textContent = tf('Signing in at Gmail or Outlook.com leaves this page and comes back to it reloaded, which forgets the second account. To move mail into {0}, sign in to it on its own.', accounts.second.address); }
       });
     });
   };
@@ -8588,6 +8775,315 @@
       loadFetchAccounts();
     });
   });
+  // ---- A second account in the same page ------------------------------------
+  //
+  // Two mailboxes side by side, which Outlook does and Gmail does not: the
+  // account the cookie stands for - the first, the one the page signed in as -
+  // and one more, added under Settings with its address and password. The
+  // server answers that sign-in in its bearer form (POST /api/v1/session?bearer=1):
+  // the session token in the body and no cookie, because a cookie is one per
+  // origin and the first account's is already there. The token lives in this
+  // closure and nowhere else - not in localStorage, not in sessionStorage, not
+  // in a cookie - so a reload forgets it, and the Settings card says so; its
+  // ceilings are the server's, the same as any session of that account. Every
+  // request made while the second account is the active one carries it as
+  // Authorization: Bearer (call and apiFetch, at the top of this file); a
+  // frame or a link whose request the browser makes on its own would carry the
+  // cookie instead, so for the second account those are fetched here with the
+  // token and shown or saved from a blob (renderHtml, guardDownload, imageFrom).
+  //
+  // A switch is a sign-out of the view and a sign-in of the other account:
+  // forgetView drops everything the page holds for the account shown, and load
+  // reads the other whole, so the folders, the list, the reading pane, the
+  // From of a new message, the contacts and the settings are all the active
+  // account's because nothing else is left. What this browser keeps between
+  // visits stays the first account's: the offline store (offlineMine), the
+  // push subscription and the service worker (loadPush), the app badge. A
+  // message opened in one account is answered from that account: the switch
+  // closes the message and the compose window, saving a draft of what was
+  // written to the account it was written in, so a reply from the other
+  // account to it is not a thing.
+  //
+  // What it costs, said plainly: the token is a credential a script in this
+  // page can read, which the cookie (HttpOnly) is not. The page is served
+  // under a policy that allows no inline script and no eval and loads nothing
+  // from anywhere else (RestApiPortal.cpp), which is what makes that
+  // acceptable; the token is never written to storage or into a URL, never
+  // logged by the server, and never minted for the administrator.
+  // The second account's record, empty: no token, and the two lists of what
+  // was announced to it - follow-ups due today, reminders shown - which the
+  // first account keeps in the browser and the second keeps here, with the
+  // token, so that nothing of it outlives the token.
+  var secondBlank = function () {
+    return { address: '', token: '', unseen: 0, inboxId: 0, changes: '', idle: 0, lifetime: 0, marks: { due: { day: '', ids: [] }, remind: [] } };
+  };
+  var accounts = {
+    first: { address: '', unseen: 0, inboxId: 0, changes: '' },
+    second: secondBlank(),
+    active: 'first'
+  };
+  var onSecond = function () { return accounts.active === 'second' && !!accounts.second.token; };
+  // Whether what this browser keeps - the offline store, the outbox, the app
+  // badge - is the account shown: it is the first account's, always.
+  var offlineMine = function () { return !onSecond(); };
+  var otherOf = function () { return accounts.active === 'second' ? 'first' : 'second'; };
+  // The token onto a request's headers when the request is the second
+  // account's: named by who ('first' or 'second'), or the active account when
+  // it is not named. True when it was added.
+  var bearerFor = function (h, who) {
+    var second = who === 'second' ? true : who === 'first' ? false : onSecond();
+    if (!second || !accounts.second.token || h.Authorization) { return false; }
+    h.Authorization = 'Bearer ' + accounts.second.token;
+    return true;
+  };
+  var activeUnseen = function () { var inbox = foldersById[inboxId]; return inbox ? (inbox.unseen || 0) : 0; };
+  // The two accounts at the top of the folder column, each with its unread
+  // count; the one shown is marked, the other is a button that switches.
+  var renderAccountNav = function () {
+    // What the page cannot offer for the second account is hidden while it
+    // is shown rather than left to fail: a window opened on an address
+    // loads as a reload of this page would, which is as the first account,
+    // and would answer 404 for the second account's message or draft.
+    ['message-popout', 'compose-popout'].forEach(function (id) { if (el(id)) { el(id).hidden = onSecond(); } });
+    var nav = el('account-nav');
+    if (!nav) { return; }
+    var has = !!accounts.second.token;
+    nav.hidden = !has;
+    clear(nav);
+    if (!has) { return; }
+    ['first', 'second'].forEach(function (which) {
+      var rec = accounts[which];
+      var shown = which === accounts.active;
+      var b = node('button', undefined, shown ? 'on' : '');
+      b.type = 'button';
+      b.setAttribute('data-account', which);
+      b.setAttribute('aria-pressed', shown ? 'true' : 'false');
+      b.setAttribute('title', shown ? t('The account shown') : t('Switch to this account'));
+      var ico = node('span', undefined, 'ico');
+      var av = node('span', initialsOf(rec.address), 'avatar');
+      if (av.style) { av.style.background = avatarColour(rec.address); }
+      ico.appendChild(av);
+      b.appendChild(ico);
+      var nm = node('span', rec.address, 'nm');
+      nm.appendChild(node('small', which === 'first' ? t('Signed in') : t('Second account')));
+      b.appendChild(nm);
+      var unseen = shown ? activeUnseen() : (rec.unseen || 0);
+      b.appendChild(node('span', unseen ? String(unseen) : '', 'ct'));
+      if (unseen) { b.classList.add('unread'); }
+      b.addEventListener('click', function () { switchTo(which); });
+      nav.appendChild(b);
+    });
+  };
+  // The inbox of the account not shown, read from a folder listing made as
+  // it: which folder is its inbox, and how much of it is unread.
+  var learnOther = function (which, result) {
+    if (result.status !== 200 || !result.data) { return; }
+    var list = flatten(result.data.folders || [], [], 0);
+    var inbox = list.filter(function (f) { return String(f.path || '').toUpperCase() === 'INBOX'; })[0] || list[0];
+    accounts[which].inboxId = inbox ? inbox.id : 0;
+    accounts[which].unseen = inbox ? (inbox.unseen || 0) : 0;
+    renderAccountNav();
+  };
+  // The count of the account not shown, kept fresh at the probe's slow pace
+  // with the change route, as that account: one small request every half
+  // minute while the tab is in front, none while there is no second account.
+  var otherProbe = { timer: 0 };
+  var otherProbeStop = function () { if (otherProbe.timer) { clearTimeout(otherProbe.timer); otherProbe.timer = 0; } };
+  var otherProbeLater = function () {
+    otherProbeStop();
+    if (!accounts.second.token || el('account').hidden) { return; }
+    otherProbe.timer = setTimeout(otherProbeNow, probeSlowly);
+  };
+  var otherProbeNow = function () {
+    otherProbeStop();
+    if (!accounts.second.token || el('account').hidden) { return Promise.resolve(); }
+    if (document.hidden) { otherProbeLater(); return Promise.resolve(); }
+    var which = otherOf();
+    var rec = accounts[which];
+    return call('GET', '/api/v1/me/changes' + (rec.changes ? '?since=' + encodeURIComponent(rec.changes) : ''), undefined, undefined, which).then(function (result) {
+      if (result.status === 200 && result.data) {
+        rec.changes = result.data.token || rec.changes;
+        (result.data.folders || []).forEach(function (f) { if (f.id === rec.inboxId) { rec.unseen = f.unseen || 0; } });
+        renderAccountNav();
+      }
+      otherProbeLater();
+    });
+  };
+  // The switch. What was being written is kept as a draft of the account it
+  // was written in, as closing the compose window keeps it, and a send still
+  // waiting on the undo delay goes now - both before the credential changes.
+  // Then the view is forgotten and the other account read whole.
+  var switchTo = function (which) {
+    if (which === accounts.active || (which === 'second' && !accounts.second.token)) { return Promise.resolve(false); }
+    var written = !el('compose-section').hidden && (el('compose-to').value.trim() || el('compose-subject').value.trim() || el('compose-text').value.trim());
+    var kept = written && !pendingSend ? saveDraft() : Promise.resolve(0);
+    return kept.then(function () { return flushPending(); }).then(function () {
+      var leaving = accounts[accounts.active];
+      leaving.unseen = activeUnseen();
+      leaving.inboxId = inboxId;
+      leaving.changes = probe.token;
+      probeStop();
+      otherProbeStop();
+      forgetView();
+      accounts.active = which;
+      probe.token = accounts[which].changes || ''; probe.off = false; probeIn = probeEvery;
+      pending = '';
+      renderAccountNav();
+      return load(false);
+    });
+  };
+  // Adding the second account: its password goes to the server once, in the
+  // request that starts its session, and is not kept. The same account twice
+  // is refused here, before any request, when the address is the one the
+  // page knows: the second sign-in from one device would end the first's
+  // session under the one-per-device policy. A spelling the page cannot know
+  // to be the same account - the address at an alias domain - is the
+  // server's to refuse, which it does with 409, said here in the same words.
+  var secondAdd = function (address, password) {
+    address = String(address || '').trim().toLowerCase();
+    if (!address || !password) { say('second-status', t('Enter the address and the password.'), false); return Promise.resolve(false); }
+    if (address === String(accounts.first.address || me || '').toLowerCase()) { say('second-status', t('That is the account you are signed in as.'), false); return Promise.resolve(false); }
+    var basic = 'Basic ' + btoa(unescape(encodeURIComponent(address + ':' + password)));
+    return call('POST', '/api/v1/session?bearer=1', undefined, { 'Authorization': basic }, 'first').then(function (result) {
+      if (result.status === 409) { say('second-status', t('That is the account you are signed in as.'), false); return false; }
+      if (result.status !== 201 || !result.data || !result.data.token) { say('second-status', describe(result, t('Could not sign in to the second account')), false); return false; }
+      // One second account at a time: another replaces it, and the earlier
+      // session is ended rather than left to time out.
+      var earlier = accounts.second.token;
+      if (earlier) { call('DELETE', '/api/v1/session', undefined, { 'Authorization': 'Bearer ' + earlier }, 'first'); }
+      accounts.second = secondBlank();
+      accounts.second.address = String(result.data.address || address).toLowerCase();
+      accounts.second.token = String(result.data.token);
+      accounts.second.idle = Number(result.data.idle_seconds) || 0;
+      accounts.second.lifetime = Number(result.data.lifetime_seconds) || 0;
+      el('second-address').value = '';
+      say('second-status', tf('{0} has been added. Both accounts are at the top of the folder column.', accounts.second.address), true);
+      renderSecondCard();
+      renderAccountNav();
+      return call('GET', '/api/v1/me/folders', undefined, undefined, 'second').then(function (folders) { learnOther('second', folders); otherProbeLater(); return true; });
+    });
+  };
+  var secondEndSession = function () {
+    if (!accounts.second.token) { return Promise.resolve(); }
+    return call('DELETE', '/api/v1/session', undefined, undefined, 'second').then(function () { /* ended, or gone already */ });
+  };
+  var secondForget = function () {
+    otherProbeStop();
+    accounts.second = secondBlank();
+  };
+  // The page is leaving the second account behind for good - signing out,
+  // or the first account's session has ended under it - and the second's
+  // session is ended on the server rather than left to stand until it idles
+  // out. The page's copy of the token goes first, so that the answer,
+  // whatever it is, is not read as that session ending now; the request is
+  // fired and not waited for, with keepalive, since the gate is what comes
+  // next and the page may be going with it.
+  var secondEndQuietly = function () {
+    var token = accounts.second.token;
+    if (!token) { return; }
+    secondForget();
+    try {
+      apiFetch('/api/v1/session', { method: 'DELETE', keepalive: true, cache: 'no-store', credentials: 'same-origin', headers: { 'X-Requested-With': 'hMailServer', 'Authorization': 'Bearer ' + token } }, 'first')
+        .then(null, function () { /* gone already, or no connection */ });
+    } catch (e) { /* a browser that refuses the request */ }
+  };
+  // The second account's session is over - ended by the server, or removed
+  // here: the token is forgotten, and when it was the account shown the page
+  // is the first account's again. Once: every request in flight on the token
+  // answers 401 together, and only the first of them is an event.
+  var secondEnded = function (message) {
+    if (!accounts.second.token) { return; }
+    var wasActive = onSecond();
+    secondForget();
+    if (wasActive) {
+      probeStop();
+      // A send still waiting on the undo delay was the second account's, and
+      // its session is gone: forgetView drops it (its first act is cancelUndo,
+      // so nothing here can send it under the first account's cookie), and
+      // the reader is told rather than left to find the message missing.
+      if (pendingSend) { toast(t('A message waiting to be sent was not sent: the second account\'s session ended first.')); }
+      forgetView();
+      accounts.active = 'first';
+      probe.token = accounts.first.changes || ''; probe.off = false; probeIn = probeEvery;
+      pending = '';
+      renderAccountNav();
+      load(true).then(function () { if (message) { toast(message); } });
+    } else {
+      renderAccountNav();
+      if (message) { toast(message); }
+    }
+    renderSecondCard();
+  };
+  var secondRemove = function () {
+    var address = accounts.second.address;
+    secondEndSession().then(function () { secondEnded(tf('{0} has been removed from this page.', address)); });
+  };
+  // The Settings card: the form while there is no second account, and while
+  // there is one, what it is and where its session lives.
+  var renderSecondCard = function () {
+    if (!el('second-current')) { return; }
+    var has = !!accounts.second.token;
+    el('second-current').hidden = !has;
+    el('second-form').hidden = has;
+    if (!has) { return; }
+    var minutes = Math.round((accounts.second.idle || 0) / 60);
+    el('second-current-text').textContent = onSecond()
+      ? tf('You are looking at {0}; {1} is the account you signed in as. This session lives in this page only: reloading the page forgets it, and it ends after {2} minutes without use.', accounts.second.address, accounts.first.address, minutes)
+      : tf('{0} is added beside {1}. Its session lives in this page only: reloading the page forgets it, and it ends after {2} minutes without use.', accounts.second.address, accounts.first.address, minutes);
+    el('second-switch').textContent = onSecond() ? t('Switch back') : t('Switch to it');
+  };
+  // A link the browser would follow with the cookie - an attachment, the
+  // message source, a folder or the whole account as a download - is fetched
+  // here with the token when the second account is the one shown, and saved
+  // from a blob. The first account's links are untouched: the browser follows
+  // them, with the cookie, as before.
+  var guardDownload = function (link) {
+    link.addEventListener('click', function (event) {
+      if (!onSecond()) { return; }
+      event.preventDefault();
+      var url = link.getAttribute('href') || link.href || '';
+      if (!url || url === '#' || url.indexOf('/api/v1/me/') < 0) { return; }
+      apiFetch(url, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
+        return response.status === 200 ? response.blob() : null;
+      }, function () { return null; }).then(function (blob) {
+        if (!blob) { toast(t('Could not download it.')); return; }
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.setAttribute('download', link.getAttribute('download') || 'download');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { try { URL.revokeObjectURL(a.href); } catch (e) { /* gone already */ } }, 60000);
+      });
+    });
+  };
+  // An image the browser would fetch with the cookie, likewise. The blob URL
+  // is released once the image has it, loaded or failed: an image keeps its
+  // pixels, not the URL they came from.
+  var imageFrom = function (img, url) {
+    if (!onSecond()) { img.src = url; return; }
+    apiFetch(url, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
+      return response.status === 200 ? response.blob() : null;
+    }, function () { return null; }).then(function (blob) {
+      if (!blob) { return; }
+      var blobUrl = URL.createObjectURL(blob);
+      var release = function () { try { URL.revokeObjectURL(blobUrl); } catch (e) { /* gone already */ } };
+      img.addEventListener('load', release);
+      img.addEventListener('error', release);
+      img.src = blobUrl;
+    });
+  };
+  el('second-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    say('second-status', '', true);
+    var password = el('second-password').value;
+    el('second-password').value = '';
+    secondAdd(el('second-address').value, password);
+  });
+  el('second-end').addEventListener('click', function () { secondRemove(); });
+  el('second-switch').addEventListener('click', function () { switchTo(onSecond() ? 'first' : 'second'); });
+  ['message-source', 'export-everything', 'folder-export-link'].forEach(function (id) { if (el(id)) { guardDownload(el(id)); } });
+
   // ---- Recover deleted items -------------------------------------------------
   // What a person deleted within the server's window, put back into the folder
   // it came from or deleted for good. The server keeps the copies and decides
@@ -9704,7 +10200,16 @@
   // ---- reminders while the page is open
   var REMIND_SHOWN = 'hmPortalRemindShown';
   var remindState = { events: [], fetched: 0 };
-  var remindShown = function () { try { return JSON.parse(localStorage.getItem(REMIND_SHOWN) || '[]') || []; } catch (e) { return []; } };
+  // Which reminders were shown: in this browser for the first account, and
+  // in the page alone for the second, as the follow-up marks are.
+  var remindShown = function () {
+    if (!offlineMine()) { return accounts.second.marks.remind.slice(); }
+    try { return JSON.parse(localStorage.getItem(REMIND_SHOWN) || '[]') || []; } catch (e) { return []; }
+  };
+  var remindShownWrite = function (list) {
+    if (!offlineMine()) { accounts.second.marks.remind = list; return; }
+    try { localStorage.setItem(REMIND_SHOWN, JSON.stringify(list)); } catch (e) { /* no storage */ }
+  };
   var remindTick = function () {
     if (el('account').hidden) { return; }
     var now = Date.now();
@@ -9734,7 +10239,7 @@
           try { new Notification(words, { body: spanText(ev), tag: 'hm-event-' + key }); } catch (e) { /* a browser without notifications is still a browser */ }
         }
       });
-      if (changed) { try { localStorage.setItem(REMIND_SHOWN, JSON.stringify(shown.slice(-200))); } catch (e) { /* no storage */ } }
+      if (changed) { remindShownWrite(shown.slice(-200)); }
     });
   };
   setInterval(remindTick, 60000);

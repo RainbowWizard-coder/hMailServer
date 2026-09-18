@@ -855,6 +855,13 @@ namespace HM
          bool via_session = false;
          AnsiString session_hash;
 
+         // True when that session was presented as "Authorization: Bearer
+         // <token>" rather than as the cookie - the form the webmail holds for
+         // an account added beside the one it signed in as. Everything above
+         // holds of it; what differs is that ending it must not touch the
+         // cookie, which is another account's.
+         bool via_bearer = false;
+
          // The client the session belongs to: SignInStore's device key, so that a
          // handler can mark the entry the reader is looking at as this one.
          AnsiString session_device;
@@ -1226,7 +1233,12 @@ namespace HM
       static AnsiString Utf8_(const char *value) { return AnsiString(value); }
       static bool DeleteOwnMessage_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message, std::shared_ptr<IMAPFolder> folder);
       static bool AuthenticateSession_(const AnsiString &request, const IPAddress &peer_address, Caller &caller);
-      HttpResponse HandleSessionCreate_(const Caller &caller, const AnsiString &request);
+      // One session token, however it arrived - the cookie's value, or the
+      // bearer form the webmail holds for a second account - looked up,
+      // policed and written onto the caller. The form it was made in is the
+      // form it is accepted in and no other.
+      static bool AuthenticateSessionToken_(const AnsiString &token, bool presentedAsBearer, const IPAddress &peer_address, Caller &caller);
+      HttpResponse HandleSessionCreate_(const Caller &caller, const AnsiString &request, const AnsiString &query);
       HttpResponse HandleSessionDelete_(const Caller &caller);
       static void RevokeSessionsForAccount_(__int64 accountId, const AnsiString &keepTokenHash);
       static void ClearBrowserSessions_();

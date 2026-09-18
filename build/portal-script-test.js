@@ -951,7 +951,87 @@ function answerFetchAccounts(method, path, body) {
    if (method === 'DELETE') { fetchAccountsState.splice(at, 1); return json(200, { deleted: true }); }
    return json(404, { error: 'not found' });
 }
+// The second account (row L50): the bearer form of a sign-in answers a token
+// in the body and no cookie, and every request that carries that token as
+// Authorization: Bearer is answered as that account - a mailbox of its own,
+// with folders, mail and identities that are not the first account's, so
+// that a page which mixed the two would be caught by what it shows. A bearer
+// that is not the live token is 401, as the server answers a session that
+// has ended. What the fake does not hold for the second account - settings,
+// preferences, the search the follow-ups make - falls through to the
+// recorded server's answers, since the contract under test is which
+// credential each request carries and what the page keeps apart, not what
+// every route holds for a second mailbox.
+const SECOND_ADDRESS = 'other@example.com';
+const SECOND_PASSWORD = 'other-password';
+const SECOND_TOKEN = '0123456789abcdef'.repeat(4);
+let secondToken = '';
+let secondUnseen = 4;
+// The Authorization header of the request being answered, for the routes
+// that answer by it; fetchStub sets it before it asks.
+let currentAuth = '';
+const SECOND_INBOX = { id: 21, account_id: 9, name: 'INBOX', path: 'INBOX', parent_id: 0, special_use: '', subscribed: true, writable: true, messages: 2, unseen: 4, uidvalidity: 1, subfolders: [] };
+const SECOND_SENT = { id: 22, account_id: 9, name: 'Sent', path: 'Sent', parent_id: 0, special_use: '\\Sent', subscribed: true, writable: true, messages: 0, unseen: 0, uidvalidity: 1, subfolders: [] };
+const SECOND_LISTING = [
+   { id: 2102, uid: 2, subject: 'Invoice 4471', from: 'vendor@example.org', to: SECOND_ADDRESS, date: '2026-09-17 10:00', size: 700, flags: { seen: false, flagged: false, draft: false } },
+   { id: 2101, uid: 1, subject: 'Welcome aboard', from: 'Boss <boss@example.org>', to: SECOND_ADDRESS, date: '2026-09-16 09:00', size: 900, flags: { seen: true, flagged: false, draft: false } }
+];
+const SECOND_MESSAGE = {
+   id: 2101, folder_id: 21, uid: 1, subject: 'Welcome aboard', from: 'Boss <boss@example.org>', to: SECOND_ADDRESS, cc: '',
+   date: '2026-09-16 09:00', received: '2026-09-16 09:00:00', size: 900, message_id: '<welcome@example.org>', references: '', in_reply_to: '',
+   text: 'Welcome. The terms are attached.', html: '<p>Welcome.</p><img src="https://tracker.example.org/open.gif">', html_remote: true,
+   flags: { seen: true, flagged: false, draft: false, keywords: [] },
+   attachments: [{ index: 0, name: 'terms.pdf', size: 1200, content_type: 'application/pdf', content_id: '' }]
+};
+// The first account under an alias domain's spelling: the server resolves
+// it to the account the cookie stands for and refuses the form with 409.
+const FIRST_ALIAS_SPELLING = 'user@alias.example';
+function answerSecondSignIn() {
+   const basic = /^Basic (.+)$/.exec(currentAuth);
+   const decoded = basic ? Buffer.from(basic[1], 'base64').toString('utf8') : '';
+   if (decoded === FIRST_ALIAS_SPELLING + ':a-real-password') { return json(409, { error: 'that is the account this browser is already signed in as; a second account is another account' }); }
+   if (decoded !== SECOND_ADDRESS + ':' + SECOND_PASSWORD) { return json(401, { error: 'Not an account\'s credentials.' }); }
+   secondToken = SECOND_TOKEN;
+   return json(201, { address: SECOND_ADDRESS, device: 'web-dev', bearer: true, token: secondToken, idle_seconds: 1800, lifetime_seconds: 43200, one_per_device: false, bound_to_address: false });
+}
+function answerSecond(method, path, body) {
+   if (method === 'DELETE' && path === '/api/v1/session') { secondToken = ''; return json(200, { ended: true, bearer: true }); }
+   if (path === '/api/v1/me' && method === 'GET') {
+      return json(200, { address: SECOND_ADDRESS, quota: { used_bytes: 1048576, limit_mb: 50 }, vacation: { enabled: false, subject: '', message: '', expires: false, expires_date: '' }, second_factor: false, directory_linked: false, password_changed: '2026-09-10' });
+   }
+   if (path === '/api/v1/me/folders' && method === 'GET') {
+      return json(200, { delimiter: '.', folders: [Object.assign({}, SECOND_INBOX, { unseen: secondUnseen }), Object.assign({}, SECOND_SENT)], shared: [] });
+   }
+   if (path === '/api/v1/me/folders/21/messages' && method === 'GET') { return json(200, { total: 2, messages: SECOND_LISTING.map((m) => JSON.parse(JSON.stringify(m))) }); }
+   if (path === '/api/v1/me/folders/22/messages' && method === 'GET') { return json(200, { total: 0, messages: [] }); }
+   if (path === '/api/v1/me/messages/2101' && method === 'GET') { return json(200, JSON.parse(JSON.stringify(SECOND_MESSAGE))); }
+   if (path.startsWith('/api/v1/me/messages/2101/html') && method === 'GET') {
+      return { status: 200, body: '<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src data:; form-action \'none\'; base-uri \'none\'"></head><body><p>Welcome.</p></body></html>', headers: { 'Content-Type': 'text/html; charset=utf-8' } };
+   }
+   if (path === '/api/v1/me/messages/2101/attachments/0' && method === 'GET') { return { status: 200, body: '%PDF', headers: { 'Content-Type': 'application/pdf' } }; }
+   if (path.startsWith('/api/v1/me/changes') && method === 'GET') {
+      return json(200, { token: 'second-' + secondUnseen, changed: false, folders: [{ id: 21, count: 2, unseen: secondUnseen }, { id: 22, count: 0, unseen: 0 }] });
+   }
+   if (path === '/api/v1/me/identities' && method === 'GET') {
+      return json(200, { identities: [{ address: SECOND_ADDRESS, header: 'Other Person <' + SECOND_ADDRESS + '>', kind: 'account', name: 'Other Person' }, { address: 'alias@example.com', header: 'alias@example.com', kind: 'alias', name: '' }] });
+   }
+   if (path === '/api/v1/me/sessions' && method === 'GET') {
+      return json(200, { sessions: [
+         { id: 'aaaaaaaaaaaa', device: 'web-dev', address: '127.0.0.1', created_seconds_ago: 30, idle_seconds: 1, current: true, support: false, bearer: true },
+         { id: 'bbbbbbbbbbbb', device: 'web-other', address: '198.51.100.4', created_seconds_ago: 900, idle_seconds: 60, current: false, support: false, bearer: false }
+      ] });
+   }
+   if (path === '/api/v1/me/drafts' && method === 'POST') { return json(201, { id: 2155 }); }
+   return null;
+}
+
 function answer(method, path, body) {
+   if (method === 'POST' && path === '/api/v1/session?bearer=1') { return answerSecondSignIn(); }
+   if (/^Bearer /.test(currentAuth)) {
+      if (!secondToken || currentAuth !== 'Bearer ' + secondToken) { return json(401, { error: 'the session has ended' }); }
+      const second = answerSecond(method, path, body);
+      if (second) { return second; }
+   }
    if (method === 'POST' && path === '/api/v1/session') { signedIn = true; return json(201, { address: account }); }
    if (method === 'DELETE' && path === '/api/v1/session') { signedIn = false; return json(200, { ended: true }); }
    if (!signedIn) { return json(401, { error: 'Not signed in.' }); }
@@ -1244,8 +1324,9 @@ let networkDownAfter = '';
 function fetchStub(path, options) {
    const method = (options && options.method) || 'GET';
    const headers = (options && options.headers) || {};
-   requests.push({ method, path, headers, body: options && options.body });
+   requests.push({ method, path, headers, body: options && options.body, keepalive: !!(options && options.keepalive) });
    if (networkDown) { return Promise.reject(new TypeError('Failed to fetch')); }
+   currentAuth = String(headers.Authorization || '');
    const reply = answer(method, path, options && options.body);
    if (networkDownAfter && networkDownAfter === method + ' ' + path) { networkDownAfter = ''; networkDown = true; }
    return Promise.resolve({
@@ -5426,6 +5507,401 @@ async function main() {
       dismissAllToasts();
    }
 
+   // ---- A second account in the same page (row L50): a session of its own,
+   // started through the bearer form of the session route and held in memory
+   // only; every request for it under its token and none under the cookie; the
+   // switch, and what stays the first account's whatever is shown.
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const accountNav = () => document.getElementById('account-nav');
+      const accountButtons = () => accountNav().children;
+      const status = () => document.getElementById('second-status');
+      const bearer = 'Bearer ' + SECOND_TOKEN;
+      const asSecond = (from) => since(from).filter((r) => r.headers.Authorization === bearer);
+      const asFirst = (from) => since(from).filter((r) => !r.headers.Authorization);
+      const folderRoutesNow = () => { const out = []; const nav = document.getElementById('folder-nav'); for (let i = 0; i < nav.children.length; i++) { const r = nav.children[i].getAttribute('data-route'); if (r && r.indexOf('/f/') === 0) { out.push(r); } } return out; };
+      // Every blob URL the page makes, held until the page releases it: a
+      // URL not revoked keeps its bytes for the life of the page, so the
+      // count of those still held is what the checks below read.
+      const blobUrls = new Map();
+      const madeUrl = URL.createObjectURL.bind(URL), droppedUrl = URL.revokeObjectURL.bind(URL);
+      URL.createObjectURL = (blob) => { const u = madeUrl(blob); blobUrls.set(u, String((blob && blob.type) || '')); return u; };
+      URL.revokeObjectURL = (u) => { blobUrls.delete(u); droppedUrl(u); };
+      const htmlBlobsHeld = () => [...blobUrls.values()].filter((type) => type === 'text/html').length;
+
+      location.hash = '#/accounts';
+      await flush();
+      check('L50: with one account there is no account switch in the folder column', accountNav().hidden === true, 'hidden=' + accountNav().hidden);
+      check('L50: the Other accounts page offers to add a second account, and shows nothing about one yet',
+         document.getElementById('second-form').hidden === false && document.getElementById('second-current').hidden === true,
+         'form hidden=' + document.getElementById('second-form').hidden + ' current hidden=' + document.getElementById('second-current').hidden);
+
+      // The account already signed in is refused before any request is made:
+      // a second sign-in of the same account from one device would end the
+      // first's session under the one-per-device policy.
+      const beforeSame = requests.length;
+      document.getElementById('second-address').value = 'User@Example.com';
+      document.getElementById('second-password').value = 'a-real-password';
+      document.getElementById('second-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      check('L50: adding the account the page is signed in as is refused without a request', since(beforeSame).length === 0 && status().textContent === words('That is the account you are signed in as.'),
+         since(beforeSame).length + ' requests, ' + status().textContent);
+      check('L50: and the password field was emptied before anything else happened', document.getElementById('second-password').value === '');
+
+      // The same account under a spelling the page cannot know to be the
+      // same - its address at an alias domain - goes to the server, which
+      // knows, and refuses it with 409: said on the card in the same words,
+      // and nothing was added.
+      const beforeAlias = requests.length;
+      document.getElementById('second-address').value = FIRST_ALIAS_SPELLING;
+      document.getElementById('second-password').value = 'a-real-password';
+      document.getElementById('second-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      check('L50: the same account at an alias domain is the server\'s 409, said on the card in the same words, and nothing was added',
+         since(beforeAlias).filter((r) => r.method === 'POST' && r.path === '/api/v1/session?bearer=1').length === 1 && status().textContent === words('That is the account you are signed in as.') &&
+         status().className.indexOf('error') >= 0 && accountNav().hidden === true && document.getElementById('second-form').hidden === false && app.hidden === false,
+         status().textContent + ' hidden=' + accountNav().hidden + ' ' + JSON.stringify(since(beforeAlias).map((r) => r.method + ' ' + r.path)));
+
+      // A wrong password: the server's 401 is this card's refusal, not the
+      // gate - the first account's session did not end.
+      const beforeWrong = requests.length;
+      document.getElementById('second-address').value = SECOND_ADDRESS;
+      document.getElementById('second-password').value = 'not-the-password';
+      document.getElementById('second-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      const wrongSignIn = since(beforeWrong).filter((r) => r.method === 'POST' && r.path === '/api/v1/session?bearer=1');
+      check('L50: a wrong password is one request to the bearer form of the session route, with the password as Basic and the header a write needs',
+         wrongSignIn.length === 1 && /^Basic /.test(wrongSignIn[0].headers.Authorization || '') && wrongSignIn[0].headers['X-Requested-With'] === 'hMailServer',
+         JSON.stringify(wrongSignIn.map((r) => r.headers)));
+      check('L50: and its refusal is said on the card while the page stays signed in', status().className.indexOf('error') >= 0 && app.hidden === false && gate.hidden === true && accountNav().hidden === true,
+         status().textContent + ' app.hidden=' + app.hidden);
+
+      // The right one.
+      const beforeAdd = requests.length;
+      const firstUnseenShown = document.getElementById('folder-nav').children[0].children[2].textContent;
+      document.getElementById('second-address').value = SECOND_ADDRESS;
+      document.getElementById('second-password').value = SECOND_PASSWORD;
+      document.getElementById('second-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      await flush();
+      const signIns = since(beforeAdd).filter((r) => r.path.indexOf('/api/v1/session') === 0);
+      check('L50: the second account is signed in once, through the bearer form, and its password goes nowhere else',
+         signIns.length === 1 && signIns[0].method === 'POST' && signIns[0].path === '/api/v1/session?bearer=1' &&
+         since(beforeAdd).filter((r) => /^Basic /.test(r.headers.Authorization || '')).length === 1,
+         JSON.stringify(signIns.map((r) => r.method + ' ' + r.path)));
+      check('L50: the token is held in memory only: nothing in the browser\'s storage carries it, and no key names one',
+         [...store.values()].every((v) => v.indexOf(SECOND_TOKEN) < 0 && v.indexOf(SECOND_PASSWORD) < 0) && [...store.keys()].every((k) => !/pass|token|secret|auth|bearer/i.test(k)),
+         JSON.stringify([...store.keys()]));
+      check('L50: the switch appears at the top of the folder column with both accounts, the first marked as the one shown',
+         accountNav().hidden === false && accountButtons().length === 2 &&
+         accountButtons()[0].className.indexOf('on') >= 0 && accountButtons()[0].textContent.indexOf('user@example.com') >= 0 && accountButtons()[0].getAttribute('aria-pressed') === 'true' &&
+         accountButtons()[1].className.indexOf('on') < 0 && accountButtons()[1].textContent.indexOf(SECOND_ADDRESS) >= 0 && accountButtons()[1].getAttribute('aria-pressed') === 'false',
+         'hidden=' + accountNav().hidden + ' buttons=' + accountButtons().length + ' ' + (accountButtons()[0] ? accountButtons()[0].className + '|' + accountButtons()[0].textContent : ''));
+      check('L50: the second account\'s unread count was read as it, under its token, and is shown beside it',
+         asSecond(beforeAdd).some((r) => r.method === 'GET' && r.path === '/api/v1/me/folders') && accountButtons()[1].children[2].textContent === '4',
+         'count=' + (accountButtons()[1] ? accountButtons()[1].children[2].textContent : 'none'));
+      check('L50: the first account\'s count beside it is the folder column\'s', accountButtons()[0].children[2].textContent === firstUnseenShown,
+         accountButtons()[0].children[2].textContent + ' vs ' + firstUnseenShown);
+      check('L50: the card now says what was added and where its session lives',
+         document.getElementById('second-current').hidden === false && document.getElementById('second-form').hidden === true &&
+         document.getElementById('second-current-text').textContent === words('{0} is added beside {1}. Its session lives in this page only: reloading the page forgets it, and it ends after {2} minutes without use.').replace('{0}', SECOND_ADDRESS).replace('{1}', 'user@example.com').replace('{2}', '30'),
+         document.getElementById('second-current-text').textContent);
+      check('L50: the page still shows the first account', document.getElementById('who').textContent === 'user@example.com', document.getElementById('who').textContent);
+
+      // The switch: everything the page shows becomes the second account's,
+      // every request from here carries its token and none the cookie alone.
+      const offlineBefore = String(store.get('hmPortalOffline'));
+      store.delete('hmPortalDueShown');
+      const beforeSwitch = requests.length;
+      accountButtons()[1].dispatchEvent(makeEvent('click'));
+      await flush();
+      await flush();
+      await flush();
+      check('L50: after the switch the account, its folders, its identities and its settings are all read under the token',
+         ['/api/v1/me', '/api/v1/me/folders', '/api/v1/me/identities', '/api/v1/me/settings', '/api/v1/me/preferences', '/api/v1/me/folders/21/messages'].every((p) => asSecond(beforeSwitch).some((r) => r.method === 'GET' && r.path === p)),
+         JSON.stringify(asSecond(beforeSwitch).map((r) => r.path)));
+      check('L50: and nothing was asked for as the first account', asFirst(beforeSwitch).length === 0, JSON.stringify(asFirst(beforeSwitch).map((r) => r.path)));
+      check('L50: the token is in no URL', since(beforeSwitch).every((r) => r.path.indexOf(SECOND_TOKEN) < 0));
+      check('L50: the page is the second account\'s: its address, its inbox first in the column, its two messages listed',
+         document.getElementById('who').textContent === SECOND_ADDRESS && folderRoutesNow()[0] === '/f/21' && location.hash === '#/f/21' &&
+         document.getElementById('message-list').children.length === 2 && document.getElementById('message-list').textContent.indexOf('Invoice 4471') >= 0,
+         document.getElementById('who').textContent + ' ' + folderRoutesNow().join(',') + ' ' + location.hash + ' rows=' + document.getElementById('message-list').children.length);
+      check('L50: nothing of the first account\'s list is left on the screen', document.getElementById('message-list').textContent.indexOf('Third') < 0 && document.getElementById('folder-nav').textContent.indexOf('Work') < 0);
+      check('L50: the switch marks the second account as shown and keeps the first\'s count beside it',
+         accountButtons()[1].className.indexOf('on') >= 0 && accountButtons()[0].className.indexOf('on') < 0 && accountButtons()[0].children[2].textContent === firstUnseenShown && accountButtons()[1].children[2].textContent === '4',
+         accountButtons()[0].className + ' ' + accountButtons()[0].children[2].textContent + ' | ' + accountButtons()[1].className + ' ' + accountButtons()[1].children[2].textContent);
+      check('L50: what stays the first account\'s was not asked for as the second: not the push routes, not the offline window',
+         !asSecond(beforeSwitch).some((r) => /^\/api\/v1\/me\/(push|offline)/.test(r.path)), JSON.stringify(asSecond(beforeSwitch).map((r) => r.path).filter((p) => /push|offline/.test(p))));
+      check('L50: the first account\'s offline store is untouched by the switch', String(store.get('hmPortalOffline')) === offlineBefore);
+      // The follow-up due today was found again under the token (the fake
+      // answers the search from the one mailbox) and announced, since the
+      // second account's marks start empty; the mark went into the page and
+      // not into this browser, whose marks are the first account's and were
+      // emptied before the switch to make the write visible.
+      check('L50: what was announced as the second account was marked in the page and not in this browser',
+         document.getElementById('toasts').textContent.indexOf(words('Due for follow-up: {0}').replace('{0}', 'First')) >= 0 && !store.has('hmPortalDueShown'),
+         'toasts=' + document.getElementById('toasts').textContent + ' store=' + String(store.get('hmPortalDueShown')));
+      dismissAllToasts();
+
+      // What this browser keeps of what the reader looked for is the first
+      // account's too: a search made as the second account is neither
+      // remembered nor offered, and the first account's list is not read
+      // back to the second.
+      const searchesBefore = String(store.get('hmPortalSearches'));
+      const searchBox = document.getElementById('mail-search');
+      searchBox.value = '';
+      searchBox.dispatchEvent(makeEvent('focus'));
+      check('L50: the empty search box offers no history while the second account is shown', document.getElementById('search-history').hidden === true, 'hidden=' + document.getElementById('search-history').hidden);
+      searchBox.value = 'second-only';
+      document.getElementById('mail-search-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      check('L50: a search made as the second account is not written to the first account\'s history', String(store.get('hmPortalSearches')) === searchesBefore && String(searchesBefore).indexOf('second-only') < 0,
+         String(store.get('hmPortalSearches')));
+      location.hash = '#/f/21';
+      await flush();
+      await flush();
+
+      // A window opened on an address loads as the first account: the two
+      // pop-out buttons are not offered while the second account is shown.
+      check('L50: the pop-out buttons are hidden while the second account is shown', document.getElementById('message-popout').hidden === true && document.getElementById('compose-popout').hidden === true,
+         'message=' + document.getElementById('message-popout').hidden + ' compose=' + document.getElementById('compose-popout').hidden);
+
+      // The From of a new message is the second account's identities.
+      location.hash = '#/compose';
+      await flush();
+      const fromOptions = []; { const s = document.getElementById('compose-from'); for (let i = 0; i < s.children.length; i++) { fromOptions.push(s.children[i].value); } }
+      check('L50: a new message is written from the second account\'s own identities', document.getElementById('compose-from').hidden === false && fromOptions.indexOf(SECOND_ADDRESS) >= 0 && fromOptions.indexOf('user@example.com') < 0,
+         JSON.stringify(fromOptions));
+      document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+      await flush();
+      dismissAllToasts();
+
+      // A message opened: read under the token; its HTML fetched under the
+      // token and shown from a blob, since the frame's own request would carry
+      // the cookie; its attachment likewise; nothing of it into the first
+      // account's store.
+      const beforeOpen = requests.length;
+      location.hash = '#/m/2101';
+      await flush();
+      await flush();
+      await flush();
+      check('L50: a message of the second account opens, read under the token',
+         document.getElementById('message-view').hidden === false && document.getElementById('message-subject').textContent === 'Welcome aboard' &&
+         asSecond(beforeOpen).some((r) => r.path === '/api/v1/me/messages/2101'),
+         document.getElementById('message-subject').textContent);
+      const frame = document.getElementById('message-html');
+      document.getElementById('message-html-toggle').dispatchEvent(makeEvent('click'));
+      await flush();
+      await flush();
+      check('L50: its HTML is fetched under the token and shown from a blob, not from the route the browser would ask with the cookie',
+         asSecond(beforeOpen).some((r) => r.path === '/api/v1/me/messages/2101/html') && String(frame.getAttribute('src')).indexOf('blob:') === 0 && frame.hidden === false,
+         String(frame.getAttribute('src')));
+      const htmlBlobShown = String(frame.getAttribute('src'));
+      check('L50: the page holds that one blob URL and no other document', htmlBlobsHeld() === 1 && blobUrls.has(htmlBlobShown), htmlBlobsHeld() + ' held');
+      // Shown again - the toggle off and on - the earlier URL is released as
+      // the next one is made: one document held at a time.
+      document.getElementById('message-html-toggle').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('L50: turning the HTML off releases the blob URL', htmlBlobsHeld() === 0 && !blobUrls.has(htmlBlobShown), htmlBlobsHeld() + ' held');
+      document.getElementById('message-html-toggle').dispatchEvent(makeEvent('click'));
+      await flush();
+      await flush();
+      check('L50: and shown again there is one again, a new one', htmlBlobsHeld() === 1 && !blobUrls.has(htmlBlobShown) && String(frame.getAttribute('src')).indexOf('blob:') === 0,
+         htmlBlobsHeld() + ' held, src=' + String(frame.getAttribute('src')));
+      check('L50: remote images are not offered for it, and the bar says so',
+         document.getElementById('message-remote').hidden === true && document.getElementById('message-remote-second').hidden === false,
+         'remote hidden=' + document.getElementById('message-remote').hidden + ' note hidden=' + document.getElementById('message-remote-second').hidden);
+      const attachment = document.getElementById('message-attachments').children[0];
+      const beforeDownload = requests.length;
+      const attachmentClick = makeEvent('click');
+      attachment.dispatchEvent(attachmentClick);
+      await flush();
+      await flush();
+      check('L50: an attachment is fetched under the token rather than followed with the cookie',
+         attachmentClick.defaultPrevented === true && asSecond(beforeDownload).some((r) => r.path === '/api/v1/me/messages/2101/attachments/0'),
+         'prevented=' + attachmentClick.defaultPrevented + ' ' + JSON.stringify(since(beforeDownload).map((r) => r.path)));
+      check('L50: the link itself still names the route, so the first account\'s links are what they were', (attachment.getAttribute('href') || attachment.href) === '/api/v1/me/messages/2101/attachments/0', String(attachment.getAttribute('href') || attachment.href));
+      check('L50: the opened message went into neither of the first account\'s stores',
+         String(store.get('hmPortalOffline')) === offlineBefore && !idbStore('messages').has(2101) && !idbStore('rows').has(2101),
+         'localStorage changed=' + (String(store.get('hmPortalOffline')) !== offlineBefore) + ' idb=' + idbStore('messages').has(2101));
+
+      // The Settings cards for what stays the first account's say whose it is,
+      // and ask the server nothing for the second.
+      const beforeSettings = requests.length;
+      location.hash = '#/settings';
+      await flush();
+      await flush();
+      check('L50: the offline card says the store is the first account\'s and offers no choice for the second',
+         document.getElementById('offline-second').hidden === false && document.getElementById('offline-second').textContent.indexOf('user@example.com') >= 0 && document.getElementById('offline-form').hidden === true,
+         document.getElementById('offline-second').textContent);
+      check('L50: the notifications card says the device\'s subscription is the first account\'s, and the push routes were not asked as the second',
+         document.getElementById('push-second').hidden === false && document.getElementById('push-second').textContent.indexOf('user@example.com') >= 0 && document.getElementById('push-subscribe').hidden === true &&
+         !asSecond(beforeSettings).some((r) => /^\/api\/v1\/me\/(push|offline)/.test(r.path)),
+         document.getElementById('push-second').textContent + ' ' + JSON.stringify(asSecond(beforeSettings).map((r) => r.path)));
+      location.hash = '#/security';
+      await flush();
+      await flush();
+      check('L50: the Security page lists this session as a second account in a webmail page',
+         document.getElementById('session-rows').textContent.indexOf(words('A second account in a webmail page')) >= 0 && document.getElementById('session-rows').textContent.indexOf(words('This browser')) >= 0,
+         document.getElementById('session-rows').textContent);
+      location.hash = '#/accounts';
+      await flush();
+      await flush();
+      check('L50: the card, seen from the second account, says which account the page signed in as and offers the way back',
+         document.getElementById('second-current-text').textContent.indexOf('user@example.com') >= 0 && document.getElementById('second-switch').textContent === words('Switch back'),
+         document.getElementById('second-current-text').textContent + ' | ' + document.getElementById('second-switch').textContent);
+      // The sign-in at a provider leaves the page and comes back to it
+      // reloaded, as the first account: the import waits while the second
+      // account is shown, and the note says so and where to do it.
+      check('L50: moving from Gmail or Outlook.com is offered but waits while the second account is shown, with a note naming it',
+         document.getElementById('import-signin').hidden === false && document.getElementById('import-google').disabled === true && document.getElementById('import-microsoft').disabled === true &&
+         document.getElementById('import-second').hidden === false && document.getElementById('import-second').textContent.indexOf(SECOND_ADDRESS) >= 0,
+         'signin hidden=' + document.getElementById('import-signin').hidden + ' google disabled=' + document.getElementById('import-google').disabled + ' note=' + document.getElementById('import-second').textContent);
+
+      // The count of the account not shown is kept fresh, as that account,
+      // at the slow pace; the shown account's probe runs as itself.
+      const beforeProbes = requests.length;
+      fireTimers();
+      await flush();
+      await flush();
+      const firstProbe = asFirst(beforeProbes);
+      check('L50: the timers ask for the first account\'s changes as the first account, and nothing else as it',
+         firstProbe.length >= 1 && firstProbe.every((r) => r.path.indexOf('/api/v1/me/changes') === 0), JSON.stringify(firstProbe.map((r) => r.path)));
+      check('L50: and the second account\'s change probe runs under its token', asSecond(beforeProbes).some((r) => r.path.indexOf('/api/v1/me/changes') === 0), JSON.stringify(asSecond(beforeProbes).map((r) => r.path)));
+
+      // A message being written survives a switch as a draft of the account it
+      // was written in, saved under that account's credential before the
+      // credential changes.
+      location.hash = '#/compose';
+      await flush();
+      document.getElementById('compose-to').value = 'ann@example.net';
+      document.getElementById('compose-subject').value = 'Written as the second';
+      const beforeBack = requests.length;
+      accountButtons()[0].dispatchEvent(makeEvent('click'));
+      await flush();
+      await flush();
+      await flush();
+      const draftSaves = since(beforeBack).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/drafts');
+      check('L50: switching away saves what was written as a draft, under the token of the account it was written in',
+         draftSaves.length === 1 && draftSaves[0].headers.Authorization === bearer && JSON.parse(draftSaves[0].body).subject === 'Written as the second',
+         JSON.stringify(draftSaves.map((r) => [r.headers.Authorization ? 'bearer' : 'cookie', r.body && r.body.slice(0, 80)])));
+      check('L50: and the draft was saved before the first account was read, so the order cannot cross',
+         since(beforeBack).findIndex((r) => r.path === '/api/v1/me/drafts') < since(beforeBack).findIndex((r) => r.path === '/api/v1/me' && !r.headers.Authorization),
+         JSON.stringify(since(beforeBack).map((r) => (r.headers.Authorization ? 'B ' : 'C ') + r.path)));
+      check('L50: the page is the first account\'s again, read as it, with the compose window blank',
+         document.getElementById('who').textContent === 'user@example.com' && folderRoutesNow()[0] === '/f/1' && asFirst(beforeBack).some((r) => r.path === '/api/v1/me/folders') &&
+         document.getElementById('compose-to').value === '' && document.getElementById('compose-section').hidden === true,
+         document.getElementById('who').textContent + ' ' + folderRoutesNow().join(',') + ' to=' + document.getElementById('compose-to').value);
+      // The draft's own refresh of the folder counts is the second account's too, and it is before the switch: every request under the token precedes the first request as the first account.
+      check('L50: every request under the token came before the first account was read again, so nothing of the two crosses',
+         asSecond(beforeBack).every((r) => r.path === '/api/v1/me/drafts' || r.path === '/api/v1/me/folders') &&
+         since(beforeBack).map((r) => (r.headers.Authorization ? 'B' : 'C')).join('').indexOf('CB') < 0,
+         JSON.stringify(since(beforeBack).map((r) => (r.headers.Authorization ? 'B ' : 'C ') + r.path)));
+      check('L50: the second\'s count is shown beside it, kept from when it was shown', accountButtons()[1].children[2].textContent === '4' && accountButtons()[0].className.indexOf('on') >= 0,
+         accountButtons()[1].children[2].textContent);
+      check('L50: back on the first account the pop-out buttons are offered again', document.getElementById('message-popout').hidden === false && document.getElementById('compose-popout').hidden === false,
+         'message=' + document.getElementById('message-popout').hidden + ' compose=' + document.getElementById('compose-popout').hidden);
+      check('L50: and the switch released the second account\'s document: no blob URL of one is held', htmlBlobsHeld() === 0, htmlBlobsHeld() + ' held');
+      location.hash = '#/accounts';
+      await flush();
+      await flush();
+      check('L50: and the import buttons are live again, with no note', document.getElementById('import-google').disabled === false && document.getElementById('import-second').hidden === true,
+         'google disabled=' + document.getElementById('import-google').disabled + ' note hidden=' + document.getElementById('import-second').hidden);
+      dismissAllToasts();
+
+      // The second account's session ends on the server - it timed out, or was
+      // ended from its own Security page. The page comes back to the first
+      // account, says so, and forgets the token; the gate stays down.
+      secondToken = '';
+      const beforeGone = requests.length;
+      accountButtons()[1].dispatchEvent(makeEvent('click'));
+      await flush();
+      await flush();
+      await flush();
+      check('L50: a token the server no longer knows puts the page back on the first account rather than at the gate',
+         app.hidden === false && gate.hidden === true && document.getElementById('who').textContent === 'user@example.com' && folderRoutesNow()[0] === '/f/1',
+         'app.hidden=' + app.hidden + ' who=' + document.getElementById('who').textContent);
+      check('L50: and says so', document.getElementById('toasts').textContent.indexOf(words('The second account\'s session has ended. Add it again to go on using it.')) >= 0, document.getElementById('toasts').textContent);
+      check('L50: the switch is gone with the token', accountNav().hidden === true, 'hidden=' + accountNav().hidden);
+      location.hash = '#/accounts';
+      await flush();
+      check('L50: and the card offers to add an account again', document.getElementById('second-form').hidden === false && document.getElementById('second-current').hidden === true);
+      check('L50: no request after the refusal carried the old token', asSecond(beforeGone).every((r) => r.path === '/api/v1/me' || r.path === '/api/v1/me/folders' || r.path.indexOf('/api/v1/me/changes') === 0),
+         JSON.stringify(asSecond(beforeGone).map((r) => r.path)));
+      dismissAllToasts();
+
+      // Added again and removed by hand: DELETE with the token, no cookie
+      // touched, the first account still signed in.
+      document.getElementById('second-address').value = SECOND_ADDRESS;
+      document.getElementById('second-password').value = SECOND_PASSWORD;
+      document.getElementById('second-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      await flush();
+      check('L50: the account can be added again after its session ended', accountNav().hidden === false && document.getElementById('second-current').hidden === false, 'hidden=' + accountNav().hidden);
+      const beforeRemove = requests.length;
+      document.getElementById('second-end').dispatchEvent(makeEvent('click'));
+      await flush();
+      await flush();
+      const ended = since(beforeRemove).filter((r) => r.method === 'DELETE' && r.path === '/api/v1/session');
+      check('L50: Remove ends the second account\'s session with its token, and the first account\'s session is not touched',
+         ended.length === 1 && ended[0].headers.Authorization === bearer && ended[0].headers['X-Requested-With'] === 'hMailServer' && signedIn === true && app.hidden === false,
+         JSON.stringify(ended.map((r) => r.headers)) + ' signedIn=' + signedIn);
+      check('L50: the token is forgotten: the switch is gone and the card offers the form', accountNav().hidden === true && document.getElementById('second-form').hidden === false && secondToken === '',
+         'hidden=' + accountNav().hidden + ' token=' + JSON.stringify(secondToken));
+      check('L50: and the removal is said', document.getElementById('toasts').textContent.indexOf(words('{0} has been removed from this page.').replace('{0}', SECOND_ADDRESS)) >= 0, document.getElementById('toasts').textContent);
+      dismissAllToasts();
+
+      // The first account's session ends while the second is shown: a
+      // request on the cookie - the first's count being kept fresh - is
+      // answered 401, and the page goes to the gate. The second account's
+      // session is ended on the server with its token before it is
+      // forgotten, not left standing until it idles out.
+      document.getElementById('second-address').value = SECOND_ADDRESS;
+      document.getElementById('second-password').value = SECOND_PASSWORD;
+      document.getElementById('second-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      await flush();
+      accountButtons()[1].dispatchEvent(makeEvent('click'));
+      await flush();
+      await flush();
+      await flush();
+      check('L50: the second account is shown again, for the first\'s session to end under it', document.getElementById('who').textContent === SECOND_ADDRESS && secondToken === SECOND_TOKEN, document.getElementById('who').textContent);
+      signedIn = false;
+      const beforeLapse = requests.length;
+      fireTimers();
+      await flush();
+      await flush();
+      const lapsed = since(beforeLapse).filter((r) => r.method === 'GET' && r.path.indexOf('/api/v1/me/changes') === 0 && !r.headers.Authorization);
+      const endedWithIt = since(beforeLapse).filter((r) => r.method === 'DELETE' && r.path === '/api/v1/session');
+      check('L50: the first account\'s session ending under the second puts the page at the gate', lapsed.length >= 1 && gate.hidden === false && app.hidden === true && accountNav().hidden === true,
+         lapsed.length + ' cookie probes, gate hidden=' + gate.hidden);
+      check('L50: and the second account\'s session was ended on the server with its token, with keepalive, before the token was forgotten',
+         endedWithIt.length === 1 && endedWithIt[0].headers.Authorization === bearer && endedWithIt[0].headers['X-Requested-With'] === 'hMailServer' && endedWithIt[0].keepalive === true && secondToken === '',
+         JSON.stringify(endedWithIt.map((r) => [r.headers, r.keepalive])) + ' token=' + JSON.stringify(secondToken));
+      check('L50: nothing after that carried the old token', since(beforeLapse).filter((r) => r.headers.Authorization === bearer).every((r) => r.method === 'DELETE' || r.path.indexOf('/api/v1/me/changes') === 0),
+         JSON.stringify(asSecond(beforeLapse).map((r) => r.method + ' ' + r.path)));
+      document.getElementById('address').value = 'user@example.com';
+      document.getElementById('password').value = 'a-real-password';
+      document.getElementById('signin-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      await flush();
+      check('L50: signed in again, with one account', app.hidden === false && gate.hidden === true && accountNav().hidden === true && document.getElementById('who').textContent === 'user@example.com', document.getElementById('who').textContent);
+      dismissAllToasts();
+      location.hash = '#/accounts';
+      await flush();
+
+      // Left added for the sign-out check at the end of the run, which holds
+      // that signing out ends this session too.
+      document.getElementById('second-address').value = SECOND_ADDRESS;
+      document.getElementById('second-password').value = SECOND_PASSWORD;
+      document.getElementById('second-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      await flush();
+      check('L50: added once more, for the sign-out at the end', accountNav().hidden === false && secondToken === SECOND_TOKEN, 'hidden=' + accountNav().hidden);
+      location.hash = '#/f/1';
+      await flush();
+   }
+
    // ---- Web Push: the devices, and the service worker's own handler
    await pushChecks();
 
@@ -5434,6 +5910,9 @@ async function main() {
    document.getElementById('signout').dispatchEvent(makeEvent('click'));
    await flush();
    check('signing out ends the session', called(beforeOut, 'DELETE', '/api/v1/session'));
+   check('L50: and the second account\'s session with it, with its token, before the cookie\'s',
+      since(beforeOut).filter((r) => r.method === 'DELETE' && r.path === '/api/v1/session').map((r) => (r.headers.Authorization === 'Bearer ' + SECOND_TOKEN ? 'bearer' : r.headers.Authorization ? 'other' : 'cookie')).join(',') === 'bearer,cookie' && secondToken === '',
+      JSON.stringify(since(beforeOut).filter((r) => r.path === '/api/v1/session').map((r) => r.headers)));
    check('and shows the sign-in form again', gate.hidden === false && app.hidden === true);
    const stillPolling = requests.length;
    fireTimers();

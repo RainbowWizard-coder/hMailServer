@@ -386,6 +386,15 @@ namespace HM
          // every request it carries is as limited as that password is.
          bool via_app_password = false;
 
+         // The token was answered in the body of the sign-in rather than in a
+         // Set-Cookie, and is accepted as "Authorization: Bearer <token>" and
+         // in no Cookie header - the form the webmail asks for when a person
+         // adds a second account beside the one whose cookie the browser
+         // already holds. A cookie session is not accepted as a bearer either:
+         // a token is accepted in the one place it was made for. Never made
+         // for the administrator, whose session is the Control Deck's cookie.
+         bool bearer = false;
+
          ULONGLONG created_at;
          ULONGLONG last_seen_at;
 
@@ -1015,6 +1024,21 @@ namespace HM
          AnsiString token = headerValue.Mid(7);
          token.Trim();
 
+         // A session token in the bearer form: 64 hex digits and nothing else,
+         // which no API key is - every key begins with "hmapi_". It is the
+         // second account of a webmail page, and it is judged exactly as the
+         // same token in a Cookie header would be: looked up, policed for
+         // idleness, lifetime and address, and dropped when it has expired.
+         // Not counted as an authentication failure when it is not found, as
+         // a cookie that has expired is not: a page whose second session ran
+         // out is an ordinary event, not a guess at a credential, and counting
+         // it would auto-ban the person's own address after three of them.
+         if (IsLowerHex(token, SessionTokenBytes * 2))
+         {
+            AuthenticateSessionToken_(token, true, peer_address, caller);
+            return caller;
+         }
+
          if (!AuthenticateBearer_(token, peer_address, caller))
          {
             // Deliberately does not say whether the token was unknown, expired
@@ -1588,11 +1612,13 @@ namespace HM
          // SameSite=Strict, so another site's request does not carry it, and
          // a request that changes something must carry a header a browser
          // never adds on its own - which another origin cannot add without a
-         // preflight this server never grants.
+         // preflight this server never grants. A session presented in the
+         // bearer form is held to the same header: it is a session, and the
+         // page that holds it is the same page.
          if (caller.via_session && method != "GET" && method != "HEAD" &&
              GetHeader_(request, "x-requested-with") != "hMailServer")
          {
-            return BuildResponse_(403, "{\"error\":\"a request that changes something must carry X-Requested-With: hMailServer when it is authenticated by a session cookie\"}");
+            return BuildResponse_(403, "{\"error\":\"a request that changes something must carry X-Requested-With: hMailServer when it is authenticated by a session cookie or a session token\"}");
          }
 
          if (caller.result == AuthenticationFailed)
@@ -2488,7 +2514,7 @@ namespace HM
             return HandleMeFolderImport_(caller, route.folder_id, GetRequestBody_(request));
 
          case RouteSessionCreate:
-            return HandleSessionCreate_(caller, request);
+            return HandleSessionCreate_(caller, request, route.query);
 
          case RouteSessionDelete:
             return HandleSessionDelete_(caller);
@@ -9830,6 +9856,12 @@ namespace HM
          }
       }
 
+      return AuthenticateSessionToken_(token, false, peer_address, caller);
+   }
+
+   bool
+   RestApiServer::AuthenticateSessionToken_(const AnsiString &token, bool presentedAsBearer, const IPAddress &peer_address, Caller &caller)
+   {
       if (!IsLowerHex(token, SessionTokenBytes * 2))
          return false;
 
@@ -9852,6 +9884,14 @@ namespace HM
          {
             if (!ConstantTimeEquals(presentedHash, it->token_hash))
                continue;
+
+            // The right token in the wrong place: a value that was answered
+            // in a body and has turned up in a Cookie header, or a cookie's
+            // value turned up as a bearer. Neither is how the session was
+            // made, and neither is accepted - refused, and left standing for
+            // the client that holds it properly.
+            if (it->bearer != presentedAsBearer)
+               return false;
 
             // The policy is re-read here rather than remembered from sign-in,
             // so that shortening an idle timeout or turning a switch on reaches
@@ -9915,6 +9955,7 @@ namespace HM
          caller.read_only = false;
          caller.identity = "administrator";
          caller.via_session = true;
+         caller.via_bearer = presentedAsBearer;
          caller.session_hash = presentedHash;
          caller.session_device = device;
          caller.grant = RoleManager::ServerAdministrator();
@@ -9940,10 +9981,30 @@ namespace HM
       caller.identity = AnsiString("account:") + AnsiString(account->GetAddress());
       caller.account = account;
       caller.via_session = true;
+      caller.via_bearer = presentedAsBearer;
       caller.session_hash = presentedHash;
       caller.session_device = device;
       caller.via_app_password = viaAppPassword;
       ApplyAccountGrant_(caller);
+
+      if (presentedAsBearer)
+      {
+         // The bearer form is the mailbox and nothing more. The token is a
+         // credential a page holds in script, which a cross-site script in
+         // that page could read, and that is why the form is refused to the
+         // administrator password - but an account that holds a role would
+         // carry the same reach in the same place: the server administrator's
+         // own mailbox, added as a second account, would put every
+         // administration route behind a script-readable token. So the role
+         // goes, exactly as it goes for an app password (ApplyAccountGrant_)
+         // and for a support session (below): Authorize_ then refuses the
+         // bearer everything outside /api/v1/me, as it refuses an ordinary
+         // account. Nothing the webmail does is lost, since it asks for
+         // nothing else on that token; a role account administers from its
+         // own sign-in, whose cookie no script reads.
+         caller.grant = RoleGrant();
+         caller.domains.clear();
+      }
 
       if (!supportBy.IsEmpty())
       {
@@ -9964,7 +10025,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleSessionCreate_(const Caller &caller, const AnsiString &request)
+   RestApiServer::HandleSessionCreate_(const Caller &caller, const AnsiString &request, const AnsiString &query)
    {
       if (caller.via_session)
          return BuildResponse_(403, "{\"error\":\"a session is started with a password, not with another session\"}");
@@ -9976,6 +10037,41 @@ namespace HM
       std::shared_ptr<const Account> account = caller.account;
       if (!administrator && !account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      // The bearer form, ?bearer=1: the token is answered in the body and no
+      // cookie is set, for a page that already holds one account's cookie and
+      // is adding a second account beside it - a cookie is one per origin,
+      // and the first account's is already there. The page keeps the token in
+      // memory and sends it as Authorization: Bearer on the second account's
+      // requests; the session is in every other respect the one a cookie
+      // would be. Accounts only: the administrator's session is the Control
+      // Deck's cookie, and a token for the administrator held in a page's
+      // script would be the whole server in the reach of one cross-site
+      // script, which is not a thing this route mints.
+      const bool bearer = QueryParameter_(query, "bearer") == "1";
+      if (bearer && administrator)
+         return BuildResponse_(403, "{\"error\":\"the bearer form of a session is for an account added beside another in the webmail; the administrator's session is a cookie\"}");
+
+      if (bearer)
+      {
+         // The account the browser's cookie already stands for is not a
+         // second account. The request carries that cookie - the page sends
+         // it with the Basic sign-in as it sends it with everything - and
+         // when it is this account's, the sign-in is refused here, before
+         // the one-per-device rule below could end the cookie's session for
+         // a sign-in of the same account from the same device: the page
+         // would then find every request on its cookie answered 401 and
+         // sign itself out for having added the account it was already in.
+         // The page refuses the address it knows before asking; this is
+         // for the spellings it cannot know, an alias domain among them,
+         // which PasswordValidator resolves to the one account. A cookie
+         // that has expired, or another account's, or the administrator's,
+         // is not this case, and neither is no cookie at all.
+         Caller viaCookie;
+         viaCookie.peer = caller.peer;
+         if (AuthenticateSession_(request, caller.peer, viaCookie) && viaCookie.account && viaCookie.account->GetID() == account->GetID())
+            return BuildResponse_(409, "{\"error\":\"that is the account this browser is already signed in as; a second account is another account\"}");
+      }
 
       // The stamp an administrator session is checked against on every
       // request, taken now from the credential that was just accepted.
@@ -10063,6 +10159,7 @@ namespace HM
          session.administrator = administrator;
          session.credential_stamp = credentialStamp;
          session.via_app_password = caller.via_app_password;
+         session.bearer = bearer;
          session.created_at = now;
          session.last_seen_at = now;
          session.device = AnsiString(device);
@@ -10089,14 +10186,37 @@ namespace HM
       }
 
       // Braced: LOG_APPLICATION is a macro that carries its own if, and an
-      // unbraced else after it binds to the wrong one.
+      // unbraced else after it binds to the wrong one. The token itself is
+      // in neither line, nor anywhere else the server writes.
       if (administrator)
       {
          LOG_APPLICATION("REST API: the administrator started a browser session from " + String(caller.peer.ToString()) + ".");
       }
+      else if (bearer)
+      {
+         LOG_APPLICATION("REST API: " + account->GetAddress() + " started a browser session in the bearer form (a second account in a webmail page) from " + String(caller.peer.ToString()) + ".");
+      }
       else
       {
          LOG_APPLICATION("REST API: " + account->GetAddress() + " started a browser session from " + String(caller.peer.ToString()) + ".");
+      }
+
+      if (bearer)
+      {
+         // The token in the body and no Set-Cookie at all: the browser's cookie
+         // jar is the first account's, and this answer must not touch it. What
+         // the page holds is a credential a script can read, so the answer
+         // says how long it lasts and the page says where it lives.
+         AnsiString bearerBody;
+         bearerBody.Format("{\"address\":\"%hs\",\"device\":\"%hs\",\"bearer\":true,\"token\":\"%hs\",\"idle_seconds\":%d,\"lifetime_seconds\":%d,\"one_per_device\":%hs,\"bound_to_address\":%hs}",
+            JsonEscape_(Utf8_(account->GetAddress())).c_str(),
+            JsonEscape_(Utf8_(device)).c_str(),
+            token.c_str(),
+            policy.idle_seconds, policy.lifetime_seconds,
+            policy.one_per_device ? "true" : "false",
+            policy.bind_to_address ? "true" : "false");
+
+         return BuildResponse_(201, bearerBody);
       }
 
       // HttpOnly: the script never reads it, so a script that should not be
@@ -10146,6 +10266,12 @@ namespace HM
                }),
             browser_sessions.end());
       }
+
+      // A session that came as a bearer leaves the cookie alone: the cookie
+      // in this browser is another account's session, and clearing it here
+      // would sign that account out for ending this one.
+      if (caller.via_bearer)
+         return BuildResponse_(200, "{\"ended\":true,\"bearer\":true}");
 
       AnsiString cookie;
       cookie.Format("Set-Cookie: %hs=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0%hs\r\n",
@@ -12588,8 +12714,21 @@ namespace HM
       }
 
       bool remote = QueryParameter_(query, "remote") == "1";
+
+      // The policy, once for the header and once inside the document as a
+      // meta tag, so that the document is under it wherever it is shown: in
+      // the frame the page points at this route, and in a frame the page
+      // fills from a blob it fetched - which is how the webmail shows a
+      // second account's message, since a frame's own request carries the
+      // cookie and not that account's bearer. A meta policy cannot carry
+      // sandbox or frame-ancestors, so those stay the header's and the
+      // frame's sandbox attribute's.
+      const AnsiString sources = AnsiString("default-src 'none'; style-src 'unsafe-inline'; img-src data:") + (remote ? " https: http:" : "") +
+         (remote ? "; font-src https: http:" : "") + "; form-action 'none'; base-uri 'none'";
+
       AnsiString document =
-         "<!doctype html><html><head><meta charset=\"utf-8\"><base target=\"_blank\" rel=\"noopener noreferrer\">"
+         "<!doctype html><html><head><meta charset=\"utf-8\"><meta http-equiv=\"Content-Security-Policy\" content=\"" + sources + "\">"
+         "<base target=\"_blank\" rel=\"noopener noreferrer\">"
          "<style>body{font-family:system-ui,sans-serif;margin:.5rem;word-break:break-word}img{max-width:100%}</style></head><body>" + html + "</body></html>";
 
       HttpResponse response;
@@ -12723,15 +12862,19 @@ namespace HM
             if (!first)
                json += ",";
             first = false;
+            // bearer: the session is held by a webmail page as its second
+            // account, beside another account's cookie - so the person can
+            // tell it from their own sign-ins and end it from here.
             AnsiString entry;
-            entry.Format("{\"id\":\"%hs\",\"device\":\"%hs\",\"address\":\"%hs\",\"created_seconds_ago\":%I64u,\"idle_seconds\":%I64u,\"current\":%hs,\"support\":%hs}",
+            entry.Format("{\"id\":\"%hs\",\"device\":\"%hs\",\"address\":\"%hs\",\"created_seconds_ago\":%I64u,\"idle_seconds\":%I64u,\"current\":%hs,\"support\":%hs,\"bearer\":%hs}",
                it->token_hash.Mid(0, 12).c_str(),
                JsonEscape_(it->device).c_str(),
                JsonEscape_(it->bound_address).c_str(),
                (unsigned __int64) ((now - it->created_at) / 1000),
                (unsigned __int64) ((now - it->last_seen_at) / 1000),
                (caller.via_session && ConstantTimeEquals(it->token_hash, caller.session_hash)) ? "true" : "false",
-               it->support_by.IsEmpty() ? "false" : "true");
+               it->support_by.IsEmpty() ? "false" : "true",
+               it->bearer ? "true" : "false");
             json += entry;
          }
       }
@@ -14696,7 +14839,7 @@ namespace HM
          "\"/api/v1/me\":{\"get\":{\"summary\":\"The signed-in account's own state\",\"description\":\"HTTP Basic with the account's address and password - the same credential and the same checks as an IMAP logon, including a per-name lockout and the auto-ban. Refused for the administrator password and for API keys.\",\"responses\":{\"200\":{\"description\":\"address, domain, active, quota (limit_mb, used_bytes), vacation (enabled, active, subject, message, expires, expires_date), password_changed, second_factor, directory_linked\"},\"401\":{\"description\":\"Not an account's credentials\"},\"403\":{\"description\":\"The administrator password or an API key was presented\"}}}},"
          "\"/api/v1/me/password\":{\"post\":{\"summary\":\"Change the signed-in account's password\",\"description\":\"Body: current and new. current has to be the account password itself, not an app password. An account with a second factor sends the code in X-hMailServer-OTP; without it the answer is 401 with X-hMailServer-OTP: required. The password policy, the reuse history and the breach check apply exactly as when an administrator sets a password; a breach-check refusal carries reason (breached or breach_check_unavailable) beside error, for a page to translate.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"current\",\"new\"],\"properties\":{\"current\":{\"type\":\"string\"},\"new\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"Changed\"},\"400\":{\"description\":\"Missing fields, the policy refused the new password (the reason is in error), or it was found in the published breach corpus (reason: breached)\"},\"403\":{\"description\":\"The current password did not match\"},\"409\":{\"description\":\"A directory-linked account, or a recently used password\"},\"503\":{\"description\":\"The breach check could not reach its endpoint and breach_check_unreachable_action is refuse (reason: breach_check_unavailable); nothing changed\"}}}},"
          "\"/api/v1/me/vacation\":{\"put\":{\"summary\":\"Set the signed-in account's automatic reply\",\"description\":\"The whole state at once: enabled (required), subject, message, expires and expires_date (YYYY-MM-DD, required when expires is true).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"enabled\"],\"properties\":{\"enabled\":{\"type\":\"boolean\"},\"subject\":{\"type\":\"string\"},\"message\":{\"type\":\"string\"},\"expires\":{\"type\":\"boolean\"},\"expires_date\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The state as saved\"},\"400\":{\"description\":\"enabled missing, a field over its length, or a malformed expires_date\"}}}},"
-         "\"/api/v1/session\":{\"post\":{\"summary\":\"Start a browser session for the signed-in account, or for the administrator\",\"description\":\"HTTP Basic, once: an account's address and password, or the administrator's name and password - and, when a second factor is enrolled on the administrator credential, the one-time code in X-hMailServer-OTP (without it the answer is 401 with X-hMailServer-OTP: required). Answers 201 with a Set-Cookie (hmailsession; HttpOnly, SameSite=Strict, Secure over TLS). The cookie then authenticates as the credential itself would - an account reaches the /api/v1/me endpoints, the administrator reaches everything but them - without a password, for 30 minutes of idleness and 12 hours at most; a request that changes something must also carry X-Requested-With: hMailServer. A password change ends the account's other sessions, and a change of the administrator password ends every administrator session. An API key cannot start one.\",\"responses\":{\"201\":{\"description\":\"address (an account) or administrator true, with idle_seconds and lifetime_seconds; the cookie in Set-Cookie\"},\"401\":{\"description\":\"Not an account's or the administrator's credentials\"},\"403\":{\"description\":\"A session cookie or an API key was presented\"}}},\"delete\":{\"summary\":\"End the browser session the request came with\",\"responses\":{\"200\":{\"description\":\"Ended; the cookie is cleared\"},\"400\":{\"description\":\"The request carried a password, not a session\"}}},\"get\":{\"summary\":\"What this credential is, and what it may do\",\"description\":\"What the credential this request came in on is, and what it may do: identity, credential (administrator, apikey or account), administrative, role, permissions and domains. Answered to every credential that authenticated, an API key included: a caller must be able to learn what it may do without trying things and reading the 403s, which is what lets the Control Deck leave a view out rather than show one whose every button is refused.\",\"responses\":{\"200\":{\"description\":\"identity, credential, administrative, role, permissions, domains\"}}}},"
+         "\"/api/v1/session\":{\"post\":{\"summary\":\"Start a browser session for the signed-in account, or for the administrator\",\"description\":\"HTTP Basic, once: an account's address and password, or the administrator's name and password - and, when a second factor is enrolled on the administrator credential, the one-time code in X-hMailServer-OTP (without it the answer is 401 with X-hMailServer-OTP: required). Answers 201 with a Set-Cookie (hmailsession; HttpOnly, SameSite=Strict, Secure over TLS). The cookie then authenticates as the credential itself would - an account reaches the /api/v1/me endpoints, the administrator reaches everything but them - without a password, for 30 minutes of idleness and 12 hours at most; a request that changes something must also carry X-Requested-With: hMailServer. A password change ends the account's other sessions, and a change of the administrator password ends every administrator session. An API key cannot start one. The bearer form, ?bearer=1, is for an account only: the session is the same in every respect, but the token is answered in the body as token and no cookie is set, and it is then accepted as Authorization: Bearer <token> and in no Cookie header (a cookie's value is not accepted as a bearer either). It is what the webmail asks for when a person adds a second account beside the one whose cookie the browser already holds - a cookie is one per origin. The page holds the token in memory only, so a reload forgets it; it ends after the same idle time and lifetime as any session of that account, a password change ends it, its rows in GET /api/v1/me/sessions say bearer true, and DELETE /api/v1/session with the bearer ends it without touching the cookie. What the form means: a token a page holds in script is a credential a cross-site script in that page could read, which the cookie is not; the webmail is served under a policy that allows no inline script and no eval, which is why the form is acceptable there and why it is never minted for the administrator (403). For the same reason a bearer session is the mailbox and nothing more: an account that holds an administrative role - an admin level, or a role assignment - reaches the administration API on its password and on its cookie, and never on a bearer, which is refused there (403) as an ordinary account is and answers administrative false to GET /api/v1/session. And the account the request's own cookie stands for is refused the form (409): it is the account the browser is already signed in as, and signing it in again from the same device would end the cookie's session under the one-per-device policy.\",\"responses\":{\"201\":{\"description\":\"address (an account) or administrator true, with idle_seconds and lifetime_seconds; the cookie in Set-Cookie - or, with ?bearer=1, bearer true and the token in the body and no Set-Cookie\"},\"401\":{\"description\":\"Not an account's or the administrator's credentials\"},\"403\":{\"description\":\"A session cookie or an API key was presented, or the bearer form was asked for with the administrator password\"},\"409\":{\"description\":\"The bearer form was asked for with the password of the account the request's cookie already stands for\"}}},\"delete\":{\"summary\":\"End the browser session the request came with\",\"responses\":{\"200\":{\"description\":\"Ended; the cookie is cleared - or, for a session presented as a bearer, ended and bearer true, with no Set-Cookie\"},\"400\":{\"description\":\"The request carried a password, not a session\"}}},\"get\":{\"summary\":\"What this credential is, and what it may do\",\"description\":\"What the credential this request came in on is, and what it may do: identity, credential (administrator, apikey or account), administrative, role, permissions and domains. Answered to every credential that authenticated, an API key included: a caller must be able to learn what it may do without trying things and reading the 403s, which is what lets the Control Deck leave a view out rather than show one whose every button is refused.\",\"responses\":{\"200\":{\"description\":\"identity, credential, administrative, role, permissions, domains\"}}}},"
          "\"/api/v1/me/contacts\":{\"get\":{\"summary\":\"The signed-in account's address book\",\"description\":\"q= narrows to names and addresses containing the text, case-insensitively, which is what the To field's completion asks; limit= caps the answer (200 by default); source=manual is what the person kept and source=collected what they merely wrote to; kind=person or kind=group answers one kind, and without it both are listed; fields=card puts the stored vCard on each contact. Each contact carries kind (person), birthday, note, phones and has_photo, read from the card a phone stored. A group (see /api/v1/me/contacts/groups) is listed with kind group, an empty address, its members and its recipients, so that the completion can offer it by name and expand it. Recipients of what the account sends through the API are added on their own, marked collected.\",\"responses\":{\"200\":{\"description\":\"contacts (id, name, address, source manual|collected, created, kind), count, total\"}}},\"post\":{\"summary\":\"Add a contact\",\"description\":\"Body: address (one e-mail address, or Name <address>), name (optional). One row per address per account.\",\"responses\":{\"201\":{\"description\":\"The contact\"},\"400\":{\"description\":\"Not one address\"},\"409\":{\"description\":\"That address is already a contact; id says which\"}}}},"
          "\"/api/v1/me/contacts/{id}/photo\":{\"get\":{\"summary\":\"The photo on the contact's card\",\"description\":\"The image a phone stored on the card, as it is; 404 for a contact with no card, no photo, or a photo that is only a URL.\",\"responses\":{\"200\":{\"description\":\"The image\"},\"404\":{\"description\":\"No photo\"}}}},"
          "\"/api/v1/me/contacts/{id}\":{\"put\":{\"summary\":\"Change a contact's name or address, or keep a collected address as a contact\",\"description\":\"Body: name and/or address, and/or source, which can only be set to manual - what the person wrote to becomes a contact by their choice, and is served to their phones from then on. Another account's contact is 404.\",\"responses\":{\"200\":{\"description\":\"The contact\"},\"404\":{\"description\":\"No such contact\"},\"409\":{\"description\":\"The new address is already a contact\"}}},\"delete\":{\"summary\":\"Remove a contact\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"404\":{\"description\":\"No such contact\"}}}},"
@@ -14715,7 +14858,7 @@ namespace HM
          "\"/api/v1/me/smime/recipients/{fingerprint}\":{\"delete\":{\"summary\":\"Remove a correspondent's certificate\",\"responses\":{\"200\":{\"description\":\"removed\"},\"404\":{\"description\":\"no such certificate\"}}}},"
          "\"/api/v1/me/smime/chain\":{\"post\":{\"summary\":\"Does a certificate chain end at a root this machine trusts\",\"description\":\"Body: certificates (the leaf first, then its chain; base64 DER each, at most nine), purpose (sign or encrypt). OpenSSL's verdict against the system's roots - the Windows ROOT and CA stores, the distribution's bundle on Linux: trusted, error (OpenSSL's reason when not), depth, roots (how many were consulted; -1 when the platform's bundle was taken), subject, issuer, not_after.\",\"responses\":{\"200\":{\"description\":\"the verdict\"},\"400\":{\"description\":\"not a list of base64 certificates\"}}}},"
          "\"/portal-smime.js\":{\"get\":{\"summary\":\"The webmail's S/MIME module\",\"description\":\"Unauthenticated. DER, X.509, PKCS#8 and PKCS#12, CMS SignedData and EnvelopedData and the MIME around them, on the Web Crypto API; what build/check-portal-smime.js runs against OpenSSL.\",\"responses\":{\"200\":{\"description\":\"The script\"}}}},"
-         "\"/api/v1/me/sessions\":{\"get\":{\"summary\":\"The signed-in account's browser sessions\",\"description\":\"Each: id (twelve hex digits of the token's hash), created_seconds_ago, idle_seconds, current.\",\"responses\":{\"200\":{\"description\":\"sessions\"}}},\"delete\":{\"summary\":\"End every other session\",\"description\":\"The session asking stays; a caller on a password ends them all.\",\"responses\":{\"200\":{\"description\":\"ended (how many)\"}}}},"
+         "\"/api/v1/me/sessions\":{\"get\":{\"summary\":\"The signed-in account's browser sessions\",\"description\":\"Each: id (twelve hex digits of the token's hash), created_seconds_ago, idle_seconds, current, support, and bearer - true for a session a webmail page holds as its second account, beside another account's cookie.\",\"responses\":{\"200\":{\"description\":\"sessions\"}}},\"delete\":{\"summary\":\"End every other session\",\"description\":\"The session asking stays; a caller on a password ends them all.\",\"responses\":{\"200\":{\"description\":\"ended (how many)\"}}}},"
          "\"/api/v1/me/sessions/{id}\":{\"delete\":{\"summary\":\"End one session\",\"responses\":{\"200\":{\"description\":\"Ended\"},\"404\":{\"description\":\"No such session of this account\"}}}},"
          "\"/api/v1/me/devices\":{\"get\":{\"summary\":\"The clients that have signed in to the account\",\"description\":\"One entry per client, most recently used first: id (thirty-two hex characters, what a revoke names), protocol (smtp, pop3, imap, web, dav or managesieve), address, agent (the user agent where the protocol carries one, else empty), credential (password, app_password, token, certificate or single_sign_on), credential_name (the app password's name, where one was used), first_seen, last_seen, sign_ins, revoked, revoked_at and current - true for the client this request came in on, and for none when the request carried a password rather than a session. At most fifty are kept per account; the least recently seen goes when a fifty-first appears.\",\"responses\":{\"200\":{\"description\":\"devices\"}}}},"
          "\"/api/v1/me/devices/{id}\":{\"delete\":{\"summary\":\"Revoke a client: end what it holds now\",\"description\":\"Its browser session is ended (the token is invalidated, so its next request is refused) and its live IMAP, POP3 and SMTP connections are dropped. credential=revoke in the query also deactivates the app password it signed in with, where it used one - which is what stops a stolen client simply signing in again; forget=true removes the entry rather than marking it revoked. A revoke is NOT a ban: the entry stays, marked, and a later sign-in from that client with a credential that still works clears the mark. Refused (403) to a request authenticated with an app password, or by a session started with one. Answers sessions_ended, connections_dropped and credential_disabled.\",\"responses\":{\"200\":{\"description\":\"revoked, forgotten, sessions_ended, connections_dropped, credential_disabled\"},\"400\":{\"description\":\"The id is not thirty-two hex characters\"},\"403\":{\"description\":\"The request came in on an app password\"},\"404\":{\"description\":\"No such device of this account\"}}}},"

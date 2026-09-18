@@ -1,6 +1,8 @@
 Devices, and the session policies
 =================================
 
+A session the webmail holds for a second account added beside the one it signed in as is a session like any other of that account - the same policies, the same list, the same End button - and is listed with `bearer: true` and the badge **A second account in a webmail page**; what that form is and why it exists is in [SecondAccount.md](SecondAccount.md).
+
 Two questions a person and an administrator both ask, and the answers this
 server gives from schema 6050 on:
 

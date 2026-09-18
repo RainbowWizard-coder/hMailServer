@@ -1,6 +1,8 @@
 Offline mail in the webmail
 ===========================
 
+Everything this page describes is the first account's - the one the webmail signed in as. A second account added beside it ([SecondAccount.md](SecondAccount.md)) never enters the store, and the Settings card says so while that account is shown.
+
 Gmail's *offline mail*: the webmail keeps the mail of the last days in the browser's
 own storage, so a person can read and search it - text, formatting and attachments -
 with no connection, and a message written then is sent when one is back.
