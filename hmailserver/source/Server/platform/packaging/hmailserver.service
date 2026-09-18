@@ -75,6 +75,20 @@ TimeoutStopSec=300
 WorkingDirectory=/var/lib/hmailserver
 ReadWritePaths=/var/lib/hmailserver /var/log/hmailserver
 
+# /run/hmailserver: made by systemd for the service when it starts, owned by
+# it, removed when it stops, and writable under ProtectSystem=strict without
+# being listed above. It is where the live update's apply request goes. The
+# service may not run the package manager or stop itself - everything in this
+# file is arranged so that it cannot - so when it has downloaded and verified a
+# package it writes apply-request here and does nothing else;
+# hmailserver-update.path, watching as root, starts hmailserver-update.service,
+# which checks the request, verifies the package again as root, stops this unit,
+# installs, starts it, and writes the outcome the server reports. A server
+# started under a unit without this line has no RUNTIME_DIRECTORY and says so
+# when asked to apply.
+RuntimeDirectory=hmailserver
+RuntimeDirectoryMode=0750
+
 # Ports 25, 110, 143, 465, 587, 993 and 995 are all below 1024 and the process
 # never runs as root, so the one capability it needs is granted ambiently and the
 # bounding set is emptied of everything else. Ambient capabilities survive

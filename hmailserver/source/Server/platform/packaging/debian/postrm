@@ -27,8 +27,10 @@ forget_the_unit()
    # guard.
    if command -v deb-systemd-helper >/dev/null 2>&1; then
       deb-systemd-helper "$1" hmailserver.service >/dev/null 2>&1 || true
+      deb-systemd-helper "$1" hmailserver-update.path >/dev/null 2>&1 || true
    elif command -v systemctl >/dev/null 2>&1; then
       systemctl disable hmailserver.service >/dev/null 2>&1 || true
+      systemctl disable hmailserver-update.path >/dev/null 2>&1 || true
    fi
 
    if [ -d /run/systemd/system ] && command -v systemctl >/dev/null 2>&1; then

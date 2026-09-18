@@ -21,7 +21,9 @@
 #   Server/hMailServer         the ATL executable and its service registration.
 #                              The "service host" row replaces it with a main().
 #   Server/hMailServer.Updater the live-update apply helper: it runs a Windows
-#                              installer, which has no meaning here yet.
+#                              installer. Its counterpart here is the shell
+#                              script platform/packaging/hmailserver-update,
+#                              installed below with the two units that run it.
 #   Server/hMailServer.Minidump  Windows Error Reporting.
 #
 # WINDOWS_ONLY_SOURCES below is the list of core files that wrap a Win32
@@ -366,6 +368,17 @@ install(DIRECTORY ${SERVER_DIR}/../../installation/WebAdmin/languages
 # Absolute for the same reason, and /usr/lib rather than /lib because that is
 # where a distribution's own units live and where systemd looks first.
 install(FILES ${SERVER_DIR}/platform/packaging/hmailserver.service
+   DESTINATION /usr/lib/systemd/system)
+
+# The live update's apply step: the helper the server cannot be (it runs as its
+# own user under a read-only /usr), and the two units that run it as root when
+# the server writes its request to /run/hmailserver. hmailserver-update's header
+# has the whole mechanism; the Windows counterpart is hMailServer.Updater.exe.
+install(PROGRAMS ${SERVER_DIR}/platform/packaging/hmailserver-update
+   DESTINATION lib/hmailserver)
+install(FILES
+   ${SERVER_DIR}/platform/packaging/hmailserver-update.path
+   ${SERVER_DIR}/platform/packaging/hmailserver-update.service
    DESTINATION /usr/lib/systemd/system)
 # /etc, written out rather than taken from CMAKE_INSTALL_SYSCONFDIR. CPack
 # prepends the packaging prefix to every RELATIVE destination, and GNUInstallDirs

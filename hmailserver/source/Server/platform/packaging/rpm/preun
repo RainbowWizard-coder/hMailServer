@@ -25,6 +25,10 @@ if [ "$1" -eq 0 ]; then
       # server drains for ShutdownDrainSeconds before exiting.
       systemctl --no-reload disable hmailserver.service >/dev/null 2>&1 || :
       systemctl stop hmailserver.service >/dev/null 2>&1 || :
+      # And the live update's trigger, which has nothing to watch for once the
+      # server is gone.
+      systemctl --no-reload disable hmailserver-update.path >/dev/null 2>&1 || :
+      systemctl stop hmailserver-update.path >/dev/null 2>&1 || :
    fi
 
    cat <<'MESSAGE'

@@ -13,6 +13,15 @@
 #include "../Application/IniFileSettings.h"
 #include "../Application/ErrorManager.h"
 
+#ifdef HM_PLATFORM_POSIX
+#include "ProcessLauncher.h"
+#include <cstdlib>
+#include <fstream>
+#include <string>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -22,9 +31,20 @@ namespace HM
 {
    namespace
    {
+#ifdef HM_PLATFORM_POSIX
+      const TCHAR *HELPER_NAME = _T("hmailserver-update");
+      // Where the .deb and the .rpm install the helper, and where an AppImage
+      // carries it relative to its own root.
+      const char *PACKAGED_HELPER = "/usr/lib/hmailserver/hmailserver-update";
+      const char *APPIMAGE_HELPER = "/usr/lib/hmailserver/hmailserver-update";
+      // How long the path unit is given to take a request before the next route
+      // is tried. It reacts through inotify, within a second; fifteen is
+      // generous, and a request nobody takes in that time has no taker.
+      const int PATH_UNIT_WAIT_MILLISECONDS = 15000;
+#else
       const TCHAR *SERVICE_NAME = _T("hMailServer");
       const TCHAR *HELPER_NAME = _T("hMailServer.Updater.exe");
-      const int SERVICE_WAIT_SECONDS = 180;
+#endif
 
       String Quote_(const String &text)
       {
@@ -36,22 +56,27 @@ namespace HM
    UpdateInstaller::HelperSourcePath()
    {
 #ifdef HM_PLATFORM_POSIX
-      // The running image's own path, which Application::GetExecutableName reads
-      // from /proc/self/exe, and the separator this platform uses.
-      //
-      // What comes back will not exist. hMailServer.Updater.exe is a Windows
-      // program that stops a Windows service and runs an Inno Setup installer,
-      // and there is no Linux counterpart to point at yet - so Apply below finds
-      // no helper beside the server and refuses with the message it already has,
-      // which says exactly that. Returning the path anyway rather than an empty
-      // string keeps that message specific about what is missing.
-      String path = Application::GetExecutableName();
-      if (path.IsEmpty())
+      // The helper the package installed, or the one the AppImage carries. It
+      // is a shell script - the whole of what root does to apply an update, in a
+      // form that can be read - and hmailserver-update.service runs the packaged
+      // copy by its own path; this function's answer is what Apply checks is
+      // there, and what the systemd-run route copies out of an AppImage.
+      switch (UpdateChecker::DetectInstallKind())
+      {
+      case UpdateChecker::InstallDeb:
+      case UpdateChecker::InstallRpm:
+         return String(PACKAGED_HELPER);
+      case UpdateChecker::InstallAppImage:
+      {
+         // APPDIR is the image's mount point, set by the runtime with APPIMAGE.
+         const char *appdir = getenv("APPDIR");
+         if (!appdir || !*appdir)
+            return _T("");
+         return String(appdir) + String(APPIMAGE_HELPER);
+      }
+      default:
          return _T("");
-      int slash = path.ReverseFind('/');
-      if (slash < 0)
-         return _T("");
-      return path.Left(slash + 1) + HELPER_NAME;
+      }
 #else
       wchar_t module[MAX_PATH];
       DWORD length = GetModuleFileNameW(nullptr, module, MAX_PATH);
@@ -84,7 +109,14 @@ namespace HM
          return false;
       }
 
-      String name = _T("hMailServer-") + runningVersion + _T("-x64.exe");
+      // The running version's own artefact - the installer, or the package this
+      // installation came from - by the name the release flow gave it.
+      String name = UpdateChecker::PlatformInstallerName(runningVersion);
+      if (name.IsEmpty())
+      {
+         why = _T("there is no release artefact for this kind of installation");
+         return false;
+      }
       String path = directory + FileUtilities::PathSeparator + name;
       String bundlePath = path + _T(".cosign.bundle");
 
@@ -96,7 +128,8 @@ namespace HM
       if (FileUtilities::Exists(path) && FileUtilities::Exists(bundlePath))
       {
          SigstoreVerdict verdict;
-         AnsiString bundleJson = AnsiString(Unicode::ToANSI(FileUtilities::ReadCompleteTextFile(bundlePath)));
+         AnsiString bundleJson;
+         SigstoreVerifier::ReadBundle(bundlePath, bundleJson);
          if (SigstoreVerifier::VerifyFile(path, bundleJson, trust, verdict))
          {
             rollbackPath = path;
@@ -111,7 +144,7 @@ namespace HM
          return false;
       if (assets.installer_url.IsEmpty() || assets.bundle_url.IsEmpty())
       {
-         why = Formatter::Format(_T("release {0} carries no x64 installer with a Sigstore bundle."), runningVersion);
+         why = Formatter::Format(_T("release {0} carries no {1} with a Sigstore bundle."), runningVersion, UpdateChecker::MissingArtefactDescription(runningVersion));
          return false;
       }
 
@@ -123,29 +156,177 @@ namespace HM
       return true;
    }
 
+#ifdef HM_PLATFORM_POSIX
+   namespace
+   {
+      // The server's own unit, from the cgroup it runs in: the last component of
+      // its path in /proc/self/cgroup ("0::/system.slice/hmailserver.service").
+      // systemd does not put the unit's name in the environment, and the cgroup
+      // is where it is written down.
+      std::string OwnUnitName_()
+      {
+         std::ifstream cgroup("/proc/self/cgroup");
+         std::string line;
+         while (std::getline(cgroup, line))
+         {
+            size_t slash = line.rfind('/');
+            if (slash == std::string::npos)
+               continue;
+            std::string leaf = line.substr(slash + 1);
+            if (leaf.size() > 8 && leaf.compare(leaf.size() - 8, 8, ".service") == 0)
+               return leaf;
+         }
+         return "hmailserver.service";
+      }
+
+      // The metrics listener's readiness probe, for the helper to wait on, when
+      // the listener is bound where the helper can reach it.
+      std::string ReadyUrl_()
+      {
+         IniFileSettings *settings = IniFileSettings::Instance();
+         int port = settings->GetMetricsServerPort();
+         if (port <= 0)
+            return "";
+         String bind = settings->GetMetricsServerBindAddress();
+         std::string host;
+         if (bind.IsEmpty() || bind == _T("0.0.0.0") || bind == _T("127.0.0.1"))
+            host = "127.0.0.1";
+         else if (bind == _T("::") || bind == _T("::1"))
+            host = "[::1]";
+         else
+            return "";
+         // Over TLS the probe would need the certificate; the helper's curl
+         // speaks plain HTTP to loopback and nothing else, so a TLS listener
+         // is left to the unit's own state.
+         if (!settings->GetMetricsServerCertificateFile().IsEmpty())
+            return "";
+         return "http://" + host + ":" + std::to_string(port) + "/readyz";
+      }
+
+      bool RequestTaken_(const String &requestPath)
+      {
+         for (int waited = 0; waited < PATH_UNIT_WAIT_MILLISECONDS; waited += 100)
+         {
+            if (!FileUtilities::Exists(requestPath))
+               return true;
+            Sleep(100);
+         }
+         return !FileUtilities::Exists(requestPath);
+      }
+   }
+
+   // The POSIX apply: the request written for hmailserver-update, and the two
+   // ways of getting it to a process that runs as root outside this unit.
+   //
+   // The packaged route first. Under the packaged unit RUNTIME_DIRECTORY names
+   // /run/hmailserver, which this process may write and hmailserver-update.path
+   // watches as root; the request goes there and the path unit starts
+   // hmailserver-update.service, whose first act is to remove the file. So a
+   // request that is gone within seconds has been taken, and one that is still
+   // there has no taker - the path unit is not enabled, or this is a unit of
+   // somebody's own.
+   //
+   // Then systemd-run, which starts the helper as a transient unit of its own,
+   // outside this one's cgroup, so that stopping this unit does not kill it.
+   // It needs the privilege to start units, which the packaged service does not
+   // have and is not meant to have; a server that is itself root under a unit -
+   // an AppImage run as a service is the case - has it. The helper is copied out
+   // of the image first, as the Windows helper is copied out of Bin: the image's
+   // mount goes away with the process that mounted it.
+   bool
+   UpdateInstaller::LaunchPosix_(const AnsiString &request, const String &version, const String &helperSource, String &error)
+   {
+      String directory = UpdateDownloader::UpdatesDirectory();
+
+      const char *runtimeVariable = getenv("RUNTIME_DIRECTORY");
+      std::string runtimeDirectory = runtimeVariable ? runtimeVariable : "";
+      // Several RuntimeDirectory= lines make a colon-separated list; ours is one.
+      size_t colon = runtimeDirectory.find(':');
+      if (colon != std::string::npos)
+         runtimeDirectory.resize(colon);
+
+      String untaken;
+      if (!runtimeDirectory.empty())
+      {
+         String requestPath = String(runtimeDirectory.c_str()) + _T("/apply-request");
+         if (!FileUtilities::WriteToFileAtomically(requestPath, request))
+         {
+            untaken = Formatter::Format(_T("the request could not be written to {0}"), requestPath);
+         }
+         else
+         {
+            LOG_APPLICATION(Formatter::Format(_T("Update: the request to apply hMailServer {0} is at {1}; waiting for hmailserver-update.path to take it."), version, requestPath));
+            if (RequestTaken_(requestPath))
+            {
+               LOG_APPLICATION(_T("Update: hmailserver-update.service has taken the request. It stops this unit, installs, starts it and writes the outcome."));
+               return true;
+            }
+            FileUtilities::DeleteFile(requestPath);
+            untaken = Formatter::Format(_T("nothing took the request at {0} within {1} seconds, so hmailserver-update.path is not active (systemctl enable --now hmailserver-update.path)"),
+               requestPath, PATH_UNIT_WAIT_MILLISECONDS / 1000);
+         }
+      }
+      else
+      {
+         untaken = _T("RUNTIME_DIRECTORY is not set, so this server is not running under a unit with RuntimeDirectory=hmailserver and has nowhere the packaged path unit watches to put the request");
+      }
+
+      const bool underSystemd = getenv("INVOCATION_ID") != nullptr;
+      const char *systemdRun = access("/usr/bin/systemd-run", X_OK) == 0 ? "/usr/bin/systemd-run"
+                             : access("/bin/systemd-run", X_OK) == 0 ? "/bin/systemd-run" : nullptr;
+      if (underSystemd && systemdRun)
+      {
+         String requestFile = directory + _T("/apply-") + version + _T(".request");
+         if (!FileUtilities::WriteToFileAtomically(requestFile, request))
+         {
+            error = Formatter::Format(_T("The apply request could not be written to {0}."), requestFile);
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6891, "UpdateInstaller::LaunchPosix_", error);
+            return false;
+         }
+
+         String helper = directory + _T("/") + HELPER_NAME;
+         if (FileUtilities::Exists(helper))
+            FileUtilities::DeleteFile(helper);
+         if (!FileUtilities::Copy(helperSource, helper, false))
+         {
+            error = Formatter::Format(_T("{0} could not be copied to {1}."), helperSource, helper);
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6891, "UpdateInstaller::LaunchPosix_", error);
+            return false;
+         }
+         chmod(std::string(AnsiString(helper).c_str()).c_str(), 0755);
+
+         // A unit named for the version, collected when it is done or has
+         // failed, so that a second attempt at the same version is not refused
+         // for the first one's remains.
+         String command = String(systemdRun) + _T(" --unit=hmailserver-update-") + version + _T(" --collect --quiet -- ")
+            + Quote_(helper) + _T(" apply --request ") + Quote_(requestFile) + _T(" --updates-dir ") + Quote_(directory);
+         LOG_APPLICATION(Formatter::Format(_T("Update: {0}; starting the helper with systemd-run: {1}"), untaken, command));
+
+         ProcessLauncher launcher(command, directory);
+         launcher.SetMaximumRunTime(30000);
+         unsigned int exitCode = 0;
+         if (launcher.Launch(exitCode) && exitCode == 0)
+         {
+            LOG_APPLICATION(_T("Update: systemd-run started the helper as a unit of its own. It stops this unit, applies, starts it and writes the outcome."));
+            return true;
+         }
+
+         FileUtilities::DeleteFile(requestFile);
+         error = Formatter::Format(_T("This server cannot hand the update to a process that could apply it: {0}, and systemd-run exited with {1} - it needs the privilege to start a unit, which the packaged service deliberately lacks. Install the new version the way this one was installed."),
+            untaken, (int) exitCode);
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6892, "UpdateInstaller::LaunchPosix_", error);
+         return false;
+      }
+
+      error = Formatter::Format(_T("This server cannot hand the update to a process that could apply it: {0}{1}. The verified file is waiting where the download put it; install it the way this version was installed."),
+         untaken, underSystemd ? String(_T(", and systemd-run is not on this machine")) : String(_T(", and this server is not running under systemd, so there is no unit for a helper to stop and start")));
+      ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6890, "UpdateInstaller::LaunchPosix_", error);
+      return false;
+   }
+#else
    bool
    UpdateInstaller::Launch_(const String &commandLine, const String &workingDirectory, String &error)
    {
-#ifdef HM_PLATFORM_POSIX
-      // There is nothing here to launch. The command line Apply assembles names
-      // hMailServer.Updater.exe, which stops a Windows service, runs a Windows
-      // installer and starts the service again - three things with no Linux
-      // counterpart yet, and none of them something a fork and an exec could
-      // stand in for. Starting nothing and answering true would be a self-update
-      // that silently did not happen, which is the worst answer available, so
-      // this refuses in the open: the caller is told, and the error log carries
-      // it whether or not the caller passes it on.
-      //
-      // When the "service host" roadmap row lands - a systemd unit and a helper
-      // that can replace the binaries under it - this is where it plugs in.
-      (void) commandLine;
-      (void) workingDirectory;
-
-      error = _T("This build cannot apply an update: the update helper is a Windows program that runs the Windows installer, and this platform has no equivalent yet. Install the new version the way this one was installed.");
-
-      ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6401, "UpdateInstaller::Launch_", error);
-      return false;
-#else
       std::vector<wchar_t> mutableCommand(commandLine.begin(), commandLine.end());
       mutableCommand.push_back(L'\0');
 
@@ -176,8 +357,8 @@ namespace HM
       CloseHandle(process.hThread);
       CloseHandle(process.hProcess);
       return true;
-#endif
    }
+#endif
 
    bool
    UpdateInstaller::Apply(String &error)
@@ -190,6 +371,15 @@ namespace HM
          error = _T("No verified installer is waiting; download one first.");
          return false;
       }
+
+#ifdef HM_PLATFORM_POSIX
+      const UpdateChecker::InstallKind kind = UpdateChecker::DetectInstallKind();
+      if (kind == UpdateChecker::InstallNone)
+      {
+         error = _T("This server was not installed from a .deb, an .rpm or an AppImage, so no release artefact could replace it; install the new version the way this one was installed.");
+         return false;
+      }
+#endif
 
       String helperSource = HelperSourcePath();
       if (helperSource.IsEmpty() || !FileUtilities::Exists(helperSource))
@@ -209,7 +399,9 @@ namespace HM
       }
       String bundlePath = snapshot.installer_path + _T(".cosign.bundle");
       SigstoreVerdict verdict;
-      AnsiString bundleJson = FileUtilities::Exists(bundlePath) ? AnsiString(Unicode::ToANSI(FileUtilities::ReadCompleteTextFile(bundlePath))) : AnsiString();
+      AnsiString bundleJson;
+      if (FileUtilities::Exists(bundlePath))
+         SigstoreVerifier::ReadBundle(bundlePath, bundleJson);
       if (!SigstoreVerifier::VerifyFile(snapshot.installer_path, bundleJson, trust, verdict))
       {
          FileUtilities::DeleteFile(snapshot.installer_path);
@@ -238,6 +430,55 @@ namespace HM
             running, rollbackWhy, snapshot.available_version));
       }
 
+      String outcome = OutcomePath();
+      if (FileUtilities::Exists(outcome))
+         FileUtilities::DeleteFile(outcome);
+
+#ifdef HM_PLATFORM_POSIX
+      // No token here. On Windows the token is what the silent installer's
+      // DBUpdater presents in place of the administrator password; the .deb and
+      // the .rpm run the schema upgrade in their own post-install step, as the
+      // service user, with `hmailserver --upgrade-database`, which needs no
+      // credential - and an AppImage swap moves no schema at all.
+      //
+      // The request, one key=value per line, in the form hmailserver-update's
+      // header documents. Paths only, no quoting: the helper checks each one
+      // and refuses anything outside the Updates directory.
+      AnsiString request;
+      request += "kind=" + AnsiString(UpdateChecker::InstallKindName(kind)) + "\n";
+      request += "version=" + AnsiString(snapshot.available_version) + "\n";
+      request += "package=" + AnsiString(snapshot.installer_path) + "\n";
+      if (!rollbackPath.IsEmpty())
+      {
+         request += "rollback=" + AnsiString(rollbackPath) + "\n";
+         request += "rollback_version=" + AnsiString(running) + "\n";
+      }
+      request += "unit=" + AnsiString(OwnUnitName_().c_str()) + "\n";
+      request += "outcome=" + AnsiString(outcome) + "\n";
+      request += "log=" + AnsiString(directory) + "/apply-" + AnsiString(snapshot.available_version) + ".log\n";
+      request += "wait=" + AnsiString(Formatter::Format(_T("{0}"), IniFileSettings::Instance()->GetUpdateServiceWaitSeconds())) + "\n";
+      std::string readyUrl = ReadyUrl_();
+      if (!readyUrl.empty())
+         request += "ready_url=" + AnsiString(readyUrl.c_str()) + "\n";
+      if (kind == UpdateChecker::InstallAppImage)
+      {
+         const char *image = getenv("APPIMAGE");
+         request += "image=" + AnsiString(image ? image : "") + "\n";
+      }
+
+      if (!LaunchPosix_(request, snapshot.available_version, helperSource, why))
+      {
+         UpdateChecker::RecordFailure(why);
+         LOG_APPLICATION(Formatter::Format(_T("Update apply failed: {0}"), why));
+         error = why;
+         return false;
+      }
+
+      UpdateChecker::RecordInstalling();
+      LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} is being applied by hmailserver-update; the service will stop and start, and the outcome is reported when it does."),
+         snapshot.available_version));
+      return true;
+#else
       AnsiString token;
       if (!UpdateApplyToken::Issue(token, why))
       {
@@ -254,10 +495,6 @@ namespace HM
          error = Formatter::Format(_T("{0} could not be copied to {1}."), helperSource, helper);
          return false;
       }
-
-      String outcome = OutcomePath();
-      if (FileUtilities::Exists(outcome))
-         FileUtilities::DeleteFile(outcome);
 
       String command = Quote_(helper);
       command += _T(" --installer ") + Quote_(snapshot.installer_path);
@@ -296,6 +533,7 @@ namespace HM
       LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} is being applied by {1}; the service will stop and start, and the outcome is reported when it does."),
          snapshot.available_version, helper));
       return true;
+#endif
    }
 
    void

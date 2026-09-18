@@ -69,6 +69,16 @@ namespace HM
 
       static bool VerifyFile(const String &path, const AnsiString &bundleJson, const SigstoreTrust &trust, SigstoreVerdict &verdict);
 
+      // The bundle's bytes, exactly as cosign wrote them, for VerifyFile. Not
+      // ReadCompleteTextFile: that reads text through the wide String and back,
+      // and Rekor's checkpoint carries an em dash - three UTF-8 bytes that no
+      // single-byte locale carries back. On Linux the round trip answered an
+      // empty string (wcstombs refuses U+00E2 in the C locale), so no real
+      // bundle ever verified there; under a UTF-8 locale it would have
+      // double-encoded the three bytes, and the checkpoint's signature is over
+      // the bytes the log wrote. False when the file cannot be read.
+      static bool ReadBundle(const String &path, AnsiString &bundleJson);
+
       static bool Sha256File(const String &path, std::vector<unsigned char> &digest, String &error);
       static bool Base64Decode(const std::string &text, std::vector<unsigned char> &out);
       static std::string Hex(const std::vector<unsigned char> &bytes);

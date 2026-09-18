@@ -70,6 +70,20 @@ if [ -d /run/systemd/system ] && command -v systemctl >/dev/null 2>&1; then
    systemctl daemon-reload >/dev/null 2>&1 || :
 fi
 
+# The live update's trigger: enabled on a first install, and started on a first
+# install and on every upgrade, because a path unit watches nothing until it is
+# active. Started and not restarted - on an upgrade this scriptlet may be
+# running under the very service that trigger started. The server's own unit is
+# handled below, differently on the two paths.
+if command -v systemctl >/dev/null 2>&1; then
+   if [ "$1" -eq 1 ]; then
+      systemctl enable hmailserver-update.path >/dev/null 2>&1 || :
+   fi
+   if [ -d /run/systemd/system ]; then
+      systemctl start hmailserver-update.path >/dev/null 2>&1 || :
+   fi
+fi
+
 if [ "$1" -eq 1 ]; then
    # First install. Enable for the next boot; do not start.
    if command -v systemctl >/dev/null 2>&1; then

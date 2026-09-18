@@ -217,6 +217,17 @@ install -d "${APPDIR}/usr/share/hmailserver/WebAdmin/languages"
 install -m 0644 "${REPO_ROOT}/hmailserver/installation/WebAdmin/languages/"*.json \
    "${APPDIR}/usr/share/hmailserver/WebAdmin/languages/"
 
+# The live update's apply step, at the path the packages install it to, so that
+# an AppImage run under a unit can swap itself: the server copies the script out
+# of the image into its Updates directory and hands it to systemd-run, and the
+# script replaces the image file under the unit and restarts it. The two unit
+# files beside it are references for an administrator who runs the image as a
+# system service and wants the path-unit route the packages use instead;
+# hmailserver-update's header and packaging/README.md say when each applies.
+install -Dm 0755 "${HERE}/hmailserver-update" "${APPDIR}/usr/lib/hmailserver/hmailserver-update"
+install -Dm 0644 "${HERE}/hmailserver-update.path" "${APPDIR}/usr/share/hmailserver/systemd/hmailserver-update.path"
+install -Dm 0644 "${HERE}/hmailserver-update.service" "${APPDIR}/usr/share/hmailserver/systemd/hmailserver-update.service"
+
 # The configuration the AppRun below copies out on first run. It is the packaged
 # default with its absolute paths still in it; AppRun rewrites them, so this file
 # is a template and never read in place.

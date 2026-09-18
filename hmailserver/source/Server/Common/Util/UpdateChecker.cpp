@@ -14,6 +14,11 @@
 #include "../Application/IniFileSettings.h"
 #include "../Application/Version.h"
 
+#ifdef HM_PLATFORM_POSIX
+#include <cstdlib>
+#include <unistd.h>
+#endif
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -26,43 +31,131 @@ namespace
    // The artefact THIS server could install, by the name the release flow gives it.
    //
    // A Windows server wants the installer; a Linux one wants the package its own
-   // package manager understands, and the architecture is part of the name because
-   // one release carries both. A platform with no artefact returns an empty name,
-   // which reads through the rest of this file as "there is nothing here for us" -
-   // the check still reports the version, and the download simply has nothing to
-   // fetch, which is the truth rather than a failure.
+   // package manager installed, or the AppImage it is running from, and the
+   // architecture is part of the name because one release carries both. An
+   // installation with no artefact returns an empty name, which reads through the
+   // rest of this file as "there is nothing here for us" - the check still reports
+   // the version, and the download simply has nothing to fetch, which is the truth
+   // rather than a failure.
    std::string PlatformInstallerName_(const std::string &tag)
    {
 #if defined(HM_PLATFORM_POSIX)
    #if defined(__aarch64__)
       const std::string debianArchitecture = "arm64";
       const std::string rpmArchitecture = "aarch64";
+      const std::string machine = "aarch64";
    #elif defined(__x86_64__)
       const std::string debianArchitecture = "amd64";
       const std::string rpmArchitecture = "x86_64";
+      const std::string machine = "x86_64";
    #else
       const std::string debianArchitecture;
       const std::string rpmArchitecture;
+      const std::string machine;
    #endif
 
       if (debianArchitecture.empty())
          return std::string();
 
-      // Which of the two this machine wants is decided by what is installed, not by
-      // a build-time guess: the same binary runs on Debian and on Fedora.
-      if (access("/usr/bin/dpkg", X_OK) == 0)
+      switch (UpdateChecker::DetectInstallKind())
+      {
+      case UpdateChecker::InstallDeb:
          return "hmailserver_" + tag + "_" + debianArchitecture + ".deb";
-      if (access("/usr/bin/rpm", X_OK) == 0)
+      case UpdateChecker::InstallRpm:
          return "hmailserver-" + tag + "-1." + rpmArchitecture + ".rpm";
-
-      // Arch builds from the PKGBUILD and an AppImage is a try-it-out artefact, so
-      // neither is something this server should hand to an unattended apply.
-      return std::string();
+      case UpdateChecker::InstallAppImage:
+         // build-appimage.sh's OUTPUT_NAME, with uname -m's spelling.
+         return "hMailServer-" + tag + "-" + machine + ".AppImage";
+      default:
+         // A build tree, a tarball, or Arch (which builds from the PKGBUILD):
+         // nothing on the release page replaces what is running.
+         return std::string();
+      }
 #else
       return "hMailServer-" + tag + "-x64.exe";
 #endif
    }
 }
+
+   UpdateChecker::InstallKind
+   UpdateChecker::DetectInstallKind()
+   {
+#if defined(HM_PLATFORM_POSIX)
+      // What is installed decides, not a build-time guess: the same binary runs
+      // on Debian and on Fedora, and out of an AppImage on either.
+      //
+      // The AppImage runtime sets APPIMAGE to the image's own path before it
+      // runs AppRun, and AppRun execs the server with that environment intact.
+      const char *appimage = getenv("APPIMAGE");
+      if (appimage && *appimage)
+         return InstallAppImage;
+
+      // dpkg records every file it installed for a package in
+      // /var/lib/dpkg/info/<package>.list; the file exists exactly while the
+      // package is installed, so it is the record of ownership and not a guess
+      // from "dpkg is on this machine" - a Fedora box with dpkg installed for
+      // building packages must not be told to install a .deb.
+      if (access("/var/lib/dpkg/info/hmailserver.list", F_OK) == 0)
+         return InstallDeb;
+
+      // rpm keeps its database in a format that has changed twice, so the query
+      // is asked of rpm itself, once, and only where rpm is the package manager
+      // rather than merely present: a Debian machine has no /var/lib/rpm and an
+      // rpm-based one has no /var/lib/dpkg/status.
+      if (access("/usr/bin/rpm", X_OK) == 0 && access("/var/lib/dpkg/status", F_OK) != 0)
+      {
+         static int rpmOwnsThis = -1;
+         if (rpmOwnsThis < 0)
+         {
+            // The shell would have run a program named by the environment;
+            // this is the one binary, by its full path, with one argument.
+            const int status = system("/usr/bin/rpm -q hmailserver >/dev/null 2>&1");
+            rpmOwnsThis = (status == 0) ? 1 : 0;
+         }
+         if (rpmOwnsThis == 1)
+            return InstallRpm;
+      }
+
+      return InstallNone;
+#else
+      return InstallWindowsInstaller;
+#endif
+   }
+
+   const char *
+   UpdateChecker::InstallKindName(InstallKind kind)
+   {
+      switch (kind)
+      {
+      case InstallWindowsInstaller: return "installer";
+      case InstallDeb: return "deb";
+      case InstallRpm: return "rpm";
+      case InstallAppImage: return "appimage";
+      case InstallNone:
+      default:
+         return "";
+      }
+   }
+
+   String
+   UpdateChecker::PlatformInstallerName(const String &version)
+   {
+      return String(PlatformInstallerName_(std::string(AnsiString(version).c_str())).c_str());
+   }
+
+   String
+   UpdateChecker::MissingArtefactDescription(const String &version)
+   {
+#if defined(HM_PLATFORM_POSIX)
+      String name = PlatformInstallerName(version);
+      if (name.IsEmpty())
+         return _T("package this server could install: it was not installed from a .deb, an .rpm or an AppImage");
+      return name;
+#else
+      (void) version;
+      return _T("x64 installer");
+#endif
+   }
 
    namespace
    {
@@ -239,7 +332,7 @@ namespace
          message = Formatter::Format(_T("Update check: hMailServer {0} is available (published {1}); this server runs {2}. {3}"),
             release.version, release.published_at, running, release.url);
          if (release.installer_url.IsEmpty())
-            message += _T(" The release carries no x64 installer, so there is nothing to download.");
+            message += Formatter::Format(_T(" The release carries no {0}, so there is nothing to download."), MissingArtefactDescription(release.version));
       }
       else
       {

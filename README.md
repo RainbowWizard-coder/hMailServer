@@ -210,6 +210,11 @@ on Linux. Stored secrets are AES-256-GCM under a key file with mode 0600, which
 is what DPAPI does for a Windows installation. MariaDB is proven live alongside
 PostgreSQL - schema created, account made, message delivered and read back.
 
+Since 18 September 2026 the live update applies on Linux too: the packaged
+`hmailserver-update` script, run as root by a path unit when the unprivileged
+service asks, verifies the package again, stops the unit, installs, starts it
+and rolls back if it does not come back - see *Update check* below.
+
 What is still not there: `Account.ExportMessages`, which writes to the
 server's own disk; a GSSAPI bind for directory authentication (LDAP simple
 binds over LDAPS or StartTLS are the Linux route); and a command that re-keys
@@ -327,6 +332,39 @@ update* and *Install update* for doing any of it by hand, and shows the last
 update's outcome. Starting an install from it closes the Control Panel: the
 installer replaces its files, and a silent installer stops at the first file it
 cannot.
+
+**On Linux** the same four parts run with the package in the installer's place.
+The check looks for the artefact this server was installed from - the `.deb`
+when dpkg's record owns the binary, the `.rpm` when rpm's does, the AppImage
+when the server is running out of one - by the name the release flow gives it,
+and the download and the verification are the same code. The apply is where the
+platform differs: the service runs as `hmailserver` under a unit that keeps
+`/usr` read-only and grants no capability but the one that binds port 25, so it
+can neither run the package manager nor stop itself. It writes a one-file
+request to `/run/hmailserver` (the unit's `RuntimeDirectory`), and
+`hmailserver-update.path`, a root path unit the package enables, starts
+`hmailserver-update.service`, which runs `/usr/lib/hmailserver/hmailserver-update`
+- a shell script, readable end to end. It checks every line of the request
+(every path must be inside the Updates directory that root's own configuration
+names, nothing may be a symlink, the unit must be the server's), verifies the
+package *and* the rollback image against their Sigstore bundles again as root
+with `hmailserver --verify-update` (a service that had been taken over could
+write any request; it cannot forge the release workflow's signature), stops the
+unit, installs with `apt-get`/`dpkg` or `dnf`/`rpm` - or, for an AppImage, copies
+the new image beside the old and renames it into place - starts the unit, waits
+for it to stay up (and for `/readyz` when the metrics listener is on), reinstalls
+the previous version the same way when it does not, and writes the same one-line
+outcome file the Windows helper writes, which the server reports and the Control
+Deck and `GET /api/v1/update` show unchanged. The rollback image is the running
+version's own package, fetched from the release page and verified, as on
+Windows. No token is involved: the package's own post-install step runs the
+schema upgrade. A server not under systemd, or under a unit of your own
+without `RuntimeDirectory=hmailserver` and the path unit, is told so and left
+with the verified file to install by hand; a server that is itself root under
+a unit (an AppImage run as a service) is handed to the script through
+`systemd-run` instead. `hmailserver-update check` says what a machine can do.
+`hmailserver/source/Server/platform/packaging/README.md` has the mechanism in
+full, what needs root, and what was proven how.
 
 Building hMailServer
 ====================

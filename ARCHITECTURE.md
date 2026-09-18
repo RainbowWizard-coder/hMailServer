@@ -43,7 +43,10 @@ Server/
   hMailServer/       Windows service shell (WinMain, service control)
   hMailServer.Minidump/  Crash-dump helper
   hMailServer.Updater/   The live-update apply helper: runs a verified installer,
-                     waits for the service, rolls back (new in 6.2.28)
+                     waits for the service, rolls back (new in 6.2.28). Its Linux
+                     counterpart is `platform/packaging/hmailserver-update`, a
+                     shell script run as root by `hmailserver-update.path` and
+                     `.service` when the server writes its request
   zlib/              Vendored zlib 1.3.1 for IMAP COMPRESS=DEFLATE (new in 6.2.28)
   IMAP/              IMAP
   POP3/              POP3

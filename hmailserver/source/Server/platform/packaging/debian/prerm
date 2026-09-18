@@ -20,6 +20,9 @@ case "$1" in
       # TimeoutStopSec is the ceiling on that.
       if [ -d /run/systemd/system ] && command -v systemctl >/dev/null 2>&1; then
          systemctl stop hmailserver.service >/dev/null 2>&1 || true
+         # The live update's trigger goes with it. Its service is a oneshot that
+         # is only ever running during an apply, which a removal is not.
+         systemctl stop hmailserver-update.path >/dev/null 2>&1 || true
       fi
       ;;
 

@@ -156,7 +156,8 @@ namespace HM
                      String(stated.c_str() + 7), String(SigstoreVerifier::Hex(digest).c_str()));
                else
                {
-                  AnsiString bundleJson = AnsiString(Unicode::ToANSI(FileUtilities::ReadCompleteTextFile(bundlePath)));
+                  AnsiString bundleJson;
+                  SigstoreVerifier::ReadBundle(bundlePath, bundleJson);
                   if (!SigstoreVerifier::VerifyFile(partialPath, bundleJson, trust, verdict))
                      why = Formatter::Format(_T("The installer did not verify against its Sigstore bundle: {0}"), verdict.error);
                   else if (IniFileSettings::Instance()->GetUpdateRequireAuthenticode() && !AuthenticodeTrusted(partialPath, why))
@@ -195,7 +196,7 @@ namespace HM
       }
       if (snapshot.installer_url.IsEmpty() || snapshot.installer_name.IsEmpty())
       {
-         error = Formatter::Format(_T("Release {0} carries no x64 installer to download."), snapshot.available_version);
+         error = Formatter::Format(_T("Release {0} carries no {1} to download."), snapshot.available_version, UpdateChecker::MissingArtefactDescription(snapshot.available_version));
          return false;
       }
       if (snapshot.bundle_url.IsEmpty())

@@ -1,0 +1,38 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The live update's apply step, run as root outside hmailserver.service.
+#
+# Started by hmailserver-update.path when the server writes
+# /run/hmailserver/apply-request. It is a separate unit on purpose: a helper the
+# server forked would live in the server's own cgroup, and `systemctl stop
+# hmailserver` - the first thing the apply does - would kill it along with the
+# server. This is the Linux counterpart of the Windows helper breaking away from
+# the service's job object.
+#
+# What runs is /usr/lib/hmailserver/hmailserver-update, whose header says what
+# it does and what it refuses. The package it installs replaces that very file
+# under it, which is safe: dpkg and rpm write the new file and rename it into
+# place, and the shell keeps reading the old one through the descriptor it
+# already holds.
+#
+# No hardening block here, because the job IS the privileged one: it runs the
+# package manager and stops and starts another unit. What limits it is the
+# script's own checks, which are the whole reason it is a script that can be
+# read rather than a program that cannot.
+
+[Unit]
+Description=hMailServer live update - applies a verified package or AppImage
+Documentation=https://github.com/Progressiverobot/hmailserver
+# Not After= or Requires= hmailserver.service: this unit stops and starts that
+# one itself, and an ordering against it would refuse to run while it is
+# stopping - which is the moment this runs.
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/hmailserver/hmailserver-update apply --request /run/hmailserver/apply-request
+# apt-get fetching a dependency, the server draining for ShutdownDrainSeconds,
+# the wait for it to come back, and the same again for a rollback: an hour is
+# generous, and a run that is still going after an hour is one to look at.
+TimeoutStartSec=1h

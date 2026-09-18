@@ -287,6 +287,9 @@ jobs:
             /usr/share/hmailserver/WebAdmin/languages/de.json \
             /usr/share/hmailserver/WebAdmin/languages/zh-Hans.json \
             /usr/lib/systemd/system/hmailserver.service \
+            /usr/lib/systemd/system/hmailserver-update.path \
+            /usr/lib/systemd/system/hmailserver-update.service \
+            /usr/lib/hmailserver/hmailserver-update \
             /etc/hmailserver/hMailServer.ini \
             /etc/logrotate.d/hmailserver
           do
@@ -307,6 +310,11 @@ jobs:
                    "${GITHUB_WORKSPACE}/hmailserver/installation/WebAdmin/index.html"
 
           systemctl is-enabled hmailserver || true
+          # The live update's trigger: postinst enables and starts it, and the
+          # helper's own check says what the machine can do.
+          systemctl is-enabled hmailserver-update.path
+          systemctl is-active hmailserver-update.path
+          sudo /usr/lib/hmailserver/hmailserver-update check || true
           sudo apt-get remove -y hmailserver
 
       - name: Keep the packages
@@ -678,6 +686,9 @@ jobs:
                 /usr/share/hmailserver/WebAdmin/languages/de.json \
                 /usr/share/hmailserver/WebAdmin/languages/zh-Hans.json \
                 /usr/lib/systemd/system/hmailserver.service \
+                /usr/lib/systemd/system/hmailserver-update.path \
+                /usr/lib/systemd/system/hmailserver-update.service \
+                /usr/lib/hmailserver/hmailserver-update \
                 /etc/hmailserver/hMailServer.ini \
                 /etc/logrotate.d/hmailserver
               do

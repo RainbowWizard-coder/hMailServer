@@ -55,6 +55,8 @@
 #include "../Common/SQL/SQLCommand.h"
 #include "../Common/SQL/SQLScriptRunner.h"
 #include "../Common/Util/CrashOracle.h"
+#include "../Common/Util/SigstoreVerifier.h"
+#include "../Common/Util/UpdateChecker.h"
 #include <dirent.h>
 
 namespace
@@ -153,6 +155,16 @@ namespace
          "                    must be 0-65535 and RestApiBindAddress an IP address\n"
          "                    or localhost. Run it as root, as --set-admin-password\n"
          "                    is: the file is root's.\n"
+         "  --verify-update <file>\n"
+         "                    check a downloaded release file - a package or an\n"
+         "                    AppImage - against the Sigstore bundle beside it\n"
+         "                    (<file>.cosign.bundle), the way the server checks\n"
+         "                    one before it is applied, and exit 0 when it is the\n"
+         "                    release workflow's file and 1 when it is not. The\n"
+         "                    trust is the configuration's (UpdateTrustRootsFile\n"
+         "                    and the settings beside it) or the public Sigstore\n"
+         "                    instance. hmailserver-update runs this as root\n"
+         "                    before it installs anything.\n"
          "  --version         print the version and exit\n"
          "  --help            print this and exit\n"
          "\n"
@@ -802,10 +814,65 @@ namespace
    }
 }
 
+namespace
+{
+   // --verify-update: the live update's verification, on its own, for the
+   // helper that applies the update as root. hmailserver-update has already
+   // been handed a package the SERVER verified; this is root's own check of the
+   // same file before root installs it, so that a service that has been taken
+   // over cannot have root install something the release workflow never signed.
+   // No database, no listener: the configuration file (for a trust root of the
+   // administrator's own, if one is set) and the file. Exit 0 when the file is
+   // the release's, 1 when it is not, 2 when the question could not be asked.
+   int VerifyUpdate(const std::string &file)
+   {
+      HM::IniFileSettings::Instance()->LoadSettings();
+
+      const HM::String path(file.c_str());
+      const HM::String bundlePath = path + _T(".cosign.bundle");
+      if (!HM::FileUtilities::Exists(path))
+      {
+         std::fprintf(stderr, "%s does not exist.\n", file.c_str());
+         return 2;
+      }
+      if (!HM::FileUtilities::Exists(bundlePath))
+      {
+         std::fprintf(stderr, "%s has no Sigstore bundle beside it (%s.cosign.bundle), so it cannot be verified.\n", file.c_str(), file.c_str());
+         return 1;
+      }
+
+      HM::SigstoreTrust trust;
+      HM::String error;
+      if (!HM::SigstoreVerifier::ConfiguredTrust(trust, error))
+      {
+         std::fprintf(stderr, "The trust could not be read: %s\n", HM::AnsiString(error).c_str());
+         return 2;
+      }
+
+      HM::AnsiString bundleJson;
+      if (!HM::SigstoreVerifier::ReadBundle(bundlePath, bundleJson))
+      {
+         std::fprintf(stderr, "%s.cosign.bundle could not be read.\n", file.c_str());
+         return 2;
+      }
+      HM::SigstoreVerdict verdict;
+      if (!HM::SigstoreVerifier::VerifyFile(path, bundleJson, trust, verdict))
+      {
+         std::fprintf(stderr, "%s did not verify against its Sigstore bundle: %s\n", file.c_str(), HM::AnsiString(verdict.error).c_str());
+         return 1;
+      }
+
+      std::printf("%s verifies: signed by %s, recorded by the transparency log at %s.\n",
+         file.c_str(), verdict.identity.c_str(), HM::AnsiString(HM::UpdateChecker::FormatUnixTime(verdict.integrated_time)).c_str());
+      return 0;
+   }
+}
+
 int main(int argc, char *argv[])
 {
    std::string configuration;
    std::string set_setting;
+   std::string verify_update;
    bool check_only = false;
    bool set_password = false;
    bool create_database = false;
@@ -864,6 +931,16 @@ int main(int argc, char *argv[])
             return 2;
          }
          configuration = argv[++index];
+         continue;
+      }
+      if (argument == "--verify-update")
+      {
+         if (index + 1 >= argc)
+         {
+            std::fprintf(stderr, "--verify-update needs the file to check; its bundle is <file>.cosign.bundle beside it.\n");
+            return 2;
+         }
+         verify_update = argv[++index];
          continue;
       }
       std::fprintf(stderr, "Unknown option: %s\nTry --help.\n", argument.c_str());
@@ -934,6 +1011,9 @@ int main(int argc, char *argv[])
          HM::AnsiString(HM::IniFileSettings::Instance()->GetInitializationFile()).c_str());
       return 0;
    }
+
+   if (!verify_update.empty())
+      return VerifyUpdate(verify_update);
 
    if (create_database)
       return CreateDatabase();

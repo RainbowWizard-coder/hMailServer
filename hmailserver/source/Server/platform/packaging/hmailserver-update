@@ -1,0 +1,741 @@
+#!/bin/sh
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The live update's apply step on Linux: what hMailServer.Updater.exe is on Windows.
+#
+# Installed as /usr/lib/hmailserver/hmailserver-update, and carried inside the
+# AppImage at the same relative path. The server cannot replace itself: it runs
+# as the hmailserver user, under a unit that leaves /usr read-only and grants no
+# capability but the one that binds port 25, and the package manager and
+# systemctl both need root. So the server, having checked the package against
+# its Sigstore bundle, writes a REQUEST - one key=value line each for the kind
+# of installation, the version, the package, the rollback image, the unit and
+# where the outcome goes - and this program, started as root OUTSIDE the
+# server's unit, does the rest:
+#
+#   1. reads and removes the request, so that it is acted on once;
+#   2. checks every line of it, because the request came from an unprivileged
+#      process and this one is root: every path must lie inside the Updates
+#      directory named by root's own configuration, nothing may be a symlink,
+#      and the unit must be the server's;
+#   3. stops the unit, so that nothing runs as the service user while root reads
+#      the files it named;
+#   4. verifies the package - and the rollback image - against their Sigstore
+#      bundles AGAIN, as root, with `hmailserver --verify-update`: the same check
+#      the server made, made by a process the server could not have influenced.
+#      A service that has been taken over could write any request it likes; it
+#      cannot forge the release workflow's signature;
+#   5. installs the package (apt-get or dpkg, dnf or rpm) or swaps the AppImage
+#      file under the unit, starts the unit, and waits for it to stay up and,
+#      where the metrics listener is on, for /readyz to answer;
+#   6. if it does not come back, reinstalls the previous version the same way and
+#      waits again;
+#   7. writes ONE line to the outcome file - "<status> <version> <detail>", the
+#      line hMailServer.Updater.exe writes, with the same five statuses: ok,
+#      failed, rolled-back, rollback-failed, no-rollback - which the server reads
+#      and reports the next time its update task runs, and the Control Deck and
+#      GET /api/v1/update show unchanged.
+#
+# How it is started. The packaged unit gives the server /run/hmailserver
+# (RuntimeDirectory=), the server writes the request there, and
+# hmailserver-update.path - a root path unit the package enables - starts
+# hmailserver-update.service, which runs this. That is the least privilege the
+# job can be done with: the service user can ask for exactly this and nothing
+# else, and what it asks for is checked. An AppImage that runs as root under a
+# unit of its own reaches the same script through `systemd-run`, which the
+# server tries when no path unit takes the request.
+#
+# The request. One key=value per line, no quoting, no continuation:
+#
+#   kind=deb|rpm|appimage        how this server was installed
+#   version=<new>                the version being applied
+#   package=/var/lib/hmailserver/Updates/hmailserver_<new>_amd64.deb
+#   rollback=/var/lib/hmailserver/Updates/rollback/hmailserver_<running>_amd64.deb
+#   rollback_version=<running>   (both optional: without them there is no rollback)
+#   unit=hmailserver.service     the unit to stop and start
+#   outcome=/var/lib/hmailserver/Updates/last-apply.txt
+#   log=/var/lib/hmailserver/Updates/apply-<new>.log
+#   wait=180                     seconds to wait for the service to come back
+#   ready_url=http://127.0.0.1:9090/readyz   (optional) the metrics listener's probe
+#   image=/opt/hmailserver/hMailServer.AppImage   (appimage only) the file to swap
+#
+# Usage:
+#   hmailserver-update apply --request FILE [--updates-dir DIR] [--dry-run]
+#   hmailserver-update check
+#
+# --updates-dir is for the systemd-run route, where the caller is already root:
+# the path unit's route reads DataFolder out of /etc/hmailserver/hMailServer.ini,
+# which is root's file, and takes nothing about WHERE from the request.
+# --dry-run says what would be done and does none of it. `check` says whether
+# this machine can apply an update at all, and what is missing if not.
+#
+# POSIX sh, because /bin/sh is dash on Debian. Every external command it runs is
+# named in full at the top so that a reader can see the whole of what root does.
+# build/test-hmailserver-update.sh runs it against fakes for every outcome.
+
+set -u
+
+PROGRAM=/usr/bin/hmailserver
+CONFIG=/etc/hmailserver/hMailServer.ini
+UNIT_DEFAULT=hmailserver.service
+PATH_UNIT=hmailserver-update.path
+
+# How long the unit must stay active before it counts as back, how often it is
+# looked at, and the pause before the stop. The three environment variables
+# exist for build/test-hmailserver-update.sh, which cannot wait ten seconds per
+# case; under the path unit and under systemd-run the environment is systemd's,
+# and nothing sets them. HMAILSERVER_UPDATE_PROGRAM is the same test's way of
+# standing a fake in for /usr/bin/hmailserver.
+SETTLE_SECONDS=${HMAILSERVER_UPDATE_SETTLE_SECONDS:-10}
+POLL_SECONDS=${HMAILSERVER_UPDATE_POLL_SECONDS:-2}
+PAUSE_SECONDS=${HMAILSERVER_UPDATE_PAUSE_SECONDS:-3}
+PROGRAM=${HMAILSERVER_UPDATE_PROGRAM:-$PROGRAM}
+
+REQUEST=""
+UPDATES_DIR=""
+DRY_RUN=0
+
+# ------------------------------------------------------------------ output
+
+now() { date '+%Y-%m-%d %H:%M:%S'; }
+
+LOG_FILE=""
+LOG_OPEN=0
+
+# To standard output always - under the path unit that is the journal,
+# journalctl -u hmailserver-update - and to the log file once LOG_OPEN says the
+# file may be written. It may not be written before the unit is stopped: until
+# then a process running as the service user could replace the file with a
+# symlink between the check and the write, and root would append to whatever it
+# pointed at. After the stop there is no such process.
+say()
+{
+   # Its own variable name: shell variables are global, and a caller that has a
+   # $line of its own would find it replaced by this one.
+   said="$(now)  $*"
+   printf '%s\n' "$said"
+   if [ "$LOG_OPEN" = 1 ] && [ -n "$LOG_FILE" ] && [ ! -L "$LOG_FILE" ]; then
+      printf '%s\n' "$said" >> "$LOG_FILE" 2>/dev/null || true
+   fi
+}
+
+die()
+{
+   status=$1
+   shift
+   say "hmailserver-update: $*"
+   exit "$status"
+}
+
+# ------------------------------------------------------------------ the request
+
+KIND=""
+VERSION=""
+PACKAGE=""
+ROLLBACK=""
+ROLLBACK_VERSION=""
+UNIT="$UNIT_DEFAULT"
+OUTCOME=""
+WAIT=180
+READY_URL=""
+IMAGE=""
+
+read_request()
+{
+   # Read the whole file first and remove it second: under the path unit the
+   # file is in /run/hmailserver, which systemd removes when the unit stops, and
+   # a request that is still there when this program finishes would start it
+   # again. Unknown keys are refused rather than skipped: the server and this
+   # script ship in one package, so a key one of them does not know is a request
+   # from something that is not the server.
+   [ ! -L "$REQUEST" ] || { rm -f "$REQUEST"; die 3 "the request at $REQUEST is a symbolic link, and is not read."; }
+   [ -f "$REQUEST" ] || die 3 "there is no request at $REQUEST."
+   # Bounded: a request is a few hundred bytes, and this is root reading a file
+   # somebody else wrote.
+   text="$(head -c 65536 -- "$REQUEST")"
+   rm -f "$REQUEST" 2>/dev/null || true
+
+   old_ifs=$IFS
+   IFS='
+'
+   for line in $text; do
+      IFS=$old_ifs
+      case "$line" in
+         "") continue ;;
+         *=*) ;;
+         *) refuse "the request has a line that is not key=value" ;;
+      esac
+      key=${line%%=*}
+      value=${line#*=}
+      case "$key" in
+         kind)             KIND=$value ;;
+         version)          VERSION=$value ;;
+         package)          PACKAGE=$value ;;
+         rollback)         ROLLBACK=$value ;;
+         rollback_version) ROLLBACK_VERSION=$value ;;
+         unit)             UNIT=$value ;;
+         outcome)          OUTCOME=$value ;;
+         log)              LOG_FILE=$value ;;
+         wait)             WAIT=$value ;;
+         ready_url)        READY_URL=$value ;;
+         image)            IMAGE=$value ;;
+         *) refuse "the request names a key this program does not know: $key" ;;
+      esac
+   done
+   IFS=$old_ifs
+}
+
+# A refused request is reported where the server will see it - the outcome
+# file - when the outcome path itself has passed its check, and always to the
+# journal. Nothing has been stopped or installed at this point.
+refuse()
+{
+   say "hmailserver-update: the request was refused: $*"
+   if [ -n "$OUTCOME_OK" ]; then
+      write_outcome "failed" "${VERSION:-unknown}" "the request was refused before anything was done: $*"
+   fi
+   exit 4
+}
+
+OUTCOME_OK=""
+
+is_version()
+{
+   case "$1" in
+      ""|*[!0-9A-Za-z._-]*|.*|-*) return 1 ;;
+   esac
+   [ ${#1} -le 64 ]
+}
+
+is_number()
+{
+   case "$1" in
+      ""|*[!0-9]*) return 1 ;;
+   esac
+   return 0
+}
+
+# The path, resolved, lies inside the directory: no symlink anywhere in it
+# leads out. $1 is a path that exists; $2 the directory, already resolved.
+inside()
+{
+   resolved="$(realpath -e -- "$1" 2>/dev/null)" || return 1
+   case "$resolved" in
+      "$2"/*) return 0 ;;
+   esac
+   return 1
+}
+
+# A file this program will READ as root: it exists, it is a regular file, it is
+# not a symlink itself and it resolves to somewhere under the Updates directory.
+check_input_file()
+{
+   what=$1
+   path=$2
+   case "$path" in
+      /*) ;;
+      *) refuse "$what is not an absolute path: $path" ;;
+   esac
+   [ ! -L "$path" ] || refuse "$what is a symbolic link: $path"
+   [ -f "$path" ] || refuse "$what is not a file: $path"
+   inside "$path" "$UPDATES_DIR" || refuse "$what is not inside $UPDATES_DIR: $path"
+}
+
+# A file this program will WRITE as root: its directory IS the Updates
+# directory (not merely under it), and the file, if it is there, is a regular
+# file and not a symlink.
+check_output_file()
+{
+   what=$1
+   path=$2
+   case "$path" in
+      /*) ;;
+      *) refuse "$what is not an absolute path: $path" ;;
+   esac
+   parent="$(realpath -e -- "$(dirname -- "$path")" 2>/dev/null)" || refuse "$what is in a directory that does not exist: $path"
+   [ "$parent" = "$UPDATES_DIR" ] || refuse "$what is not directly inside $UPDATES_DIR: $path"
+   [ ! -L "$path" ] || refuse "$what is a symbolic link: $path"
+   [ ! -e "$path" ] || [ -f "$path" ] || refuse "$what exists and is not a regular file: $path"
+}
+
+# Where the Updates directory is. From --updates-dir when the caller gave one;
+# otherwise from DataFolder in root's own configuration file, which the service
+# cannot write - so the answer is root's and not the requester's.
+find_updates_dir()
+{
+   if [ -z "$UPDATES_DIR" ]; then
+      [ -r "$CONFIG" ] || die 3 "$CONFIG cannot be read, so the Updates directory is not known; give --updates-dir."
+      data="$(sed -n 's/^[[:space:]]*DataFolder[[:space:]]*=[[:space:]]*//p' "$CONFIG" | head -n 1 | tr -d '\r')"
+      [ -n "$data" ] || die 3 "$CONFIG has no DataFolder line, so the Updates directory is not known."
+      UPDATES_DIR="${data%/}/Updates"
+   fi
+   case "$UPDATES_DIR" in
+      /*) ;;
+      *) die 3 "the Updates directory is not an absolute path: $UPDATES_DIR" ;;
+   esac
+   resolved="$(realpath -e -- "$UPDATES_DIR" 2>/dev/null)" || die 3 "the Updates directory does not exist: $UPDATES_DIR"
+   UPDATES_DIR=$resolved
+}
+
+check_request()
+{
+   case "$KIND" in
+      deb|rpm|appimage) ;;
+      *) refuse "kind must be deb, rpm or appimage: '$KIND'" ;;
+   esac
+   is_version "$VERSION" || refuse "version is not a version: '$VERSION'"
+
+   case "$UNIT" in
+      hmailserver.service|hmailserver[0-9A-Za-z@._-]*.service) ;;
+      *) refuse "unit must be the server's own unit: '$UNIT'" ;;
+   esac
+
+   # The outcome first, so that every refusal after this one reaches the server.
+   [ -n "$OUTCOME" ] || refuse "the request names no outcome file"
+   check_output_file "outcome" "$OUTCOME"
+   OUTCOME_OK=1
+
+   if [ -n "$LOG_FILE" ]; then
+      check_output_file "log" "$LOG_FILE"
+   fi
+
+   [ -n "$PACKAGE" ] || refuse "the request names no package"
+   check_input_file "package" "$PACKAGE"
+
+   if [ -n "$ROLLBACK" ] || [ -n "$ROLLBACK_VERSION" ]; then
+      [ -n "$ROLLBACK" ] && [ -n "$ROLLBACK_VERSION" ] || refuse "rollback and rollback_version go together"
+      is_version "$ROLLBACK_VERSION" || refuse "rollback_version is not a version: '$ROLLBACK_VERSION'"
+      check_input_file "rollback" "$ROLLBACK"
+   fi
+
+   if ! is_number "$WAIT" || [ "$WAIT" -lt 1 ] || [ "$WAIT" -gt 3600 ]; then
+      WAIT=180
+   fi
+
+   # Only a loopback /readyz is probed. Anything else is ignored rather than
+   # refused: the probe is a courtesy, and root fetching an arbitrary URL is not.
+   case "$READY_URL" in
+      "") ;;
+      http://127.0.0.1:[0-9]*/readyz|http://localhost:[0-9]*/readyz|http://\[::1\]:[0-9]*/readyz) ;;
+      *) say "ready_url is not a loopback /readyz and is ignored: $READY_URL"; READY_URL="" ;;
+   esac
+
+   if [ "$KIND" = appimage ]; then
+      # The image is executed (to verify the new one) and replaced, by whoever
+      # runs this - root, under the units. It has to be that user's already: a
+      # regular file, owned by them, writable by nobody else, in a directory of
+      # the same standing. A path the requester could write to would let it
+      # choose what root runs.
+      [ -n "$IMAGE" ] || refuse "an appimage request names no image"
+      case "$IMAGE" in
+         /*) ;;
+         *) refuse "image is not an absolute path: $IMAGE" ;;
+      esac
+      [ ! -L "$IMAGE" ] || refuse "image is a symbolic link: $IMAGE"
+      [ -f "$IMAGE" ] || refuse "image is not a file: $IMAGE"
+      me="$(id -u)"
+      owner="$(stat -c '%u' -- "$IMAGE")"
+      mode="$(stat -c '%a' -- "$IMAGE")"
+      [ "$owner" = "$me" ] || refuse "image is not owned by the user applying the update (uid $me): $IMAGE"
+      # Three or four octal digits; the last two - group and others - must not
+      # carry the write bit.
+      case "$mode" in
+         ?[0-5][0-5]|??[0-5][0-5]) ;;
+         *) refuse "image is writable by its group or by others (mode $mode): $IMAGE" ;;
+      esac
+      image_dir="$(dirname -- "$IMAGE")"
+      dir_mode="$(stat -c '%a' -- "$image_dir")"
+      [ "$(stat -c '%u' -- "$image_dir")" = "$me" ] || refuse "the image's directory is not owned by the user applying the update (uid $me): $image_dir"
+      case "$dir_mode" in
+         ?[0-5][0-5]|??[0-5][0-5]) ;;
+         *) refuse "the image's directory is writable by its group or by others (mode $dir_mode): $image_dir" ;;
+      esac
+   else
+      [ -z "$IMAGE" ] || refuse "image is only for an appimage request"
+   fi
+}
+
+# ------------------------------------------------------------------ doing
+
+# Every command that changes the machine goes through here, which is what
+# --dry-run switches off.
+run()
+{
+   if [ "$DRY_RUN" = 1 ]; then
+      say "would run: $*"
+      return 0
+   fi
+   say "running: $*"
+   "$@"
+}
+
+stop_unit()
+{
+   run systemctl stop "$UNIT"
+}
+
+start_unit()
+{
+   run systemctl start "$UNIT"
+}
+
+unit_state()
+{
+   systemctl show -p ActiveState --value "$UNIT" 2>/dev/null || echo unknown
+}
+
+unit_restarts()
+{
+   systemctl show -p NRestarts --value "$UNIT" 2>/dev/null || echo 0
+}
+
+probe_ready()
+{
+   [ -n "$READY_URL" ] || return 0
+   if command -v curl >/dev/null 2>&1; then
+      curl -fsS -m 5 -o /dev/null "$READY_URL" 2>/dev/null
+   elif command -v wget >/dev/null 2>&1; then
+      wget -q -T 5 -O /dev/null "$READY_URL" 2>/dev/null
+   else
+      # Nothing to probe with: the unit's own state is the answer.
+      return 0
+   fi
+}
+
+# True when the unit has been active, unrestarted, for SETTLE_SECONDS in a row -
+# and /readyz answers, when there is one - within WAIT seconds of now. A unit
+# under Restart=on-failure that keeps dying reads active for a moment at a time,
+# which is why "active once" is not the test. WAIT_WHY says, when this answers
+# false, what was seen: the unit's state, that it kept restarting, or that it
+# was active and the probe never answered - a server up without its database
+# reads as the last of those.
+WAIT_WHY=""
+
+wait_for_service()
+{
+   [ "$DRY_RUN" = 1 ] && return 0
+   deadline=$(( $(date +%s) + WAIT ))
+   first_restarts="$(unit_restarts)"
+   base_restarts=$first_restarts
+   steady=0
+   probed=0
+   state=unknown
+   while [ "$(date +%s)" -lt "$deadline" ]; do
+      state="$(unit_state)"
+      restarts="$(unit_restarts)"
+      probed=0
+      if [ "$state" = active ] && [ "$restarts" = "$base_restarts" ]; then
+         if probe_ready; then
+            probed=1
+         fi
+      fi
+      if [ "$probed" = 1 ]; then
+         steady=$((steady + POLL_SECONDS))
+         [ "$steady" -ge "$SETTLE_SECONDS" ] && return 0
+      else
+         steady=0
+         [ "$restarts" = "$base_restarts" ] || base_restarts=$restarts
+      fi
+      sleep "$POLL_SECONDS"
+   done
+   restarts="$(unit_restarts)"
+   if [ "$restarts" != "$first_restarts" ]; then
+      WAIT_WHY="restarted $((restarts - first_restarts)) time(s) in ${WAIT}s"
+   elif [ "$state" = active ] && [ -n "$READY_URL" ]; then
+      WAIT_WHY="active, but $READY_URL did not answer 200"
+   else
+      WAIT_WHY="$state"
+   fi
+   return 1
+}
+
+# hmailserver --verify-update: the file's SHA-256 is the one the bundle signs
+# and the log recorded, the certificate chains to Fulcio at the time the log
+# recorded it, it names this repository's release workflow, and the log vouches
+# for the entry - with the trust the ROOT-OWNED configuration names, or the
+# public Sigstore instance when it names none. For an AppImage the running image
+# is the verifier, with a scratch home so that it reads nobody's configuration
+# and takes the built-in trust.
+verify_file()
+{
+   what=$1
+   file=$2
+   if [ "$DRY_RUN" = 1 ]; then
+      say "would verify $what $file against $file.cosign.bundle"
+      return 0
+   fi
+   say "verifying $what $file against its Sigstore bundle"
+   if [ "$KIND" = appimage ]; then
+      scratch="$(mktemp -d)"
+      HMAILSERVER_HOME="$scratch" "$IMAGE" --verify-update "$file"
+      result=$?
+      rm -rf "$scratch"
+   else
+      "$PROGRAM" --verify-update "$file"
+      result=$?
+   fi
+   return $result
+}
+
+install_package()
+{
+   file=$1
+   downgrade=$2      # 1 for the rollback: an older version over a newer one
+   case "$KIND" in
+      deb)
+         # apt-get where it is, for the dependencies a newer package may add;
+         # dpkg on a machine without it. Both wait for the lock rather than fail
+         # on an unattended-upgrades run that happens to be under way.
+         export DEBIAN_FRONTEND=noninteractive
+         if command -v apt-get >/dev/null 2>&1; then
+            run apt-get install -y --no-install-recommends --allow-downgrades \
+               -o DPkg::Lock::Timeout=300 "$file"
+         else
+            run dpkg -i "$file"
+         fi
+         ;;
+      rpm)
+         if [ "$downgrade" = 1 ]; then
+            # rpm itself, and --oldpackage: the one operation dnf makes hard
+            # is putting an older local file over a newer installed one.
+            run rpm -Uvh --oldpackage "$file"
+         elif command -v dnf >/dev/null 2>&1; then
+            run dnf install -y "$file"
+         else
+            run rpm -Uvh "$file"
+         fi
+         ;;
+      appimage)
+         swap_image "$file"
+         ;;
+   esac
+}
+
+# The AppImage swap. The new file is copied beside the old one first, so that
+# the rename that puts it in place is atomic and on one file system; the old one
+# is kept as <image>.previous, which is what a rollback puts back. Owner and mode
+# follow the file being replaced.
+swap_image()
+{
+   file=$1
+   if [ "$DRY_RUN" = 1 ]; then
+      say "would copy $file to $IMAGE.new, keep $IMAGE as $IMAGE.previous and rename $IMAGE.new to $IMAGE"
+      return 0
+   fi
+   say "swapping $IMAGE for $file"
+   cp -f -- "$file" "$IMAGE.new" || return 1
+   chown --reference="$IMAGE" -- "$IMAGE.new" || return 1
+   chmod --reference="$IMAGE" -- "$IMAGE.new" || return 1
+   rm -f -- "$IMAGE.previous"
+   ln -- "$IMAGE" "$IMAGE.previous" 2>/dev/null || cp -p -- "$IMAGE" "$IMAGE.previous" || return 1
+   mv -f -- "$IMAGE.new" "$IMAGE"
+}
+
+restore_image()
+{
+   if [ "$DRY_RUN" = 1 ]; then
+      say "would rename $IMAGE.previous back to $IMAGE"
+      return 0
+   fi
+   [ -f "$IMAGE.previous" ] || return 1
+   say "putting $IMAGE.previous back as $IMAGE"
+   mv -f -- "$IMAGE.previous" "$IMAGE"
+}
+
+# One line: "<status> <version> <detail>", written whole and renamed into place,
+# owned by whoever owns the Updates directory so that the server can move it
+# aside once it has reported it. A newline inside the detail would make a second
+# line the server never reads, so there is none.
+write_outcome()
+{
+   status=$1
+   version=$2
+   detail="$(printf '%s' "$3" | tr '\n\r' '  ')"
+   line="$status $version $detail"
+   say "outcome: $line"
+   if [ "$DRY_RUN" = 1 ]; then
+      return 0
+   fi
+   [ -n "$OUTCOME" ] || return 0
+   tmp="$OUTCOME.tmp"
+   printf '%s\n' "$line" > "$tmp" || { say "the outcome could not be written to $tmp"; return 1; }
+   chown --reference="$UPDATES_DIR" -- "$tmp" 2>/dev/null || true
+   chmod 0640 -- "$tmp" 2>/dev/null || true
+   mv -f -- "$tmp" "$OUTCOME"
+}
+
+# ------------------------------------------------------------------ apply
+
+apply()
+{
+   read_request
+   find_updates_dir
+   check_request
+
+   if [ -n "$ROLLBACK" ]; then
+      say "hmailserver-update: applying hMailServer $VERSION from $PACKAGE ($KIND); rollback image $ROLLBACK ($ROLLBACK_VERSION); unit $UNIT; waiting up to ${WAIT}s"
+   else
+      say "hmailserver-update: applying hMailServer $VERSION from $PACKAGE ($KIND); no rollback image; unit $UNIT; waiting up to ${WAIT}s"
+   fi
+
+   # The server is answering the request that started this. A moment for that
+   # answer to leave before its listener goes.
+   [ "$DRY_RUN" = 1 ] || sleep "$PAUSE_SECONDS"
+
+   if ! stop_unit; then
+      write_outcome "failed" "$VERSION" "$UNIT could not be stopped, so nothing was installed"
+      return 1
+   fi
+   # Nothing runs as the service user now; the log file may be written.
+   LOG_OPEN=1
+   say "$UNIT is stopped."
+
+   if ! verify_file "the package" "$PACKAGE"; then
+      start_unit
+      write_outcome "failed" "$VERSION" "the package did not verify against its Sigstore bundle when checked as root, so nothing was installed; the service was started again on the version it had"
+      return 1
+   fi
+   if [ -n "$ROLLBACK" ] && ! verify_file "the rollback image" "$ROLLBACK"; then
+      say "the rollback image did not verify; continuing without one."
+      ROLLBACK=""
+      ROLLBACK_VERSION=""
+   fi
+
+   install_package "$PACKAGE" 0
+   code=$?
+   say "the install step exited with $code."
+
+   start_unit
+   if wait_for_service; then
+      running=1
+   else
+      running=0
+   fi
+
+   if [ "$code" = 0 ] && [ "$running" = 1 ]; then
+      write_outcome "ok" "$VERSION" "the package was installed and the service is running"
+      return 0
+   fi
+
+   if [ "$running" = 1 ]; then
+      write_outcome "failed" "$VERSION" "the install step exited with $code but the service is running; see ${LOG_FILE:-the journal of hmailserver-update.service}"
+      return 1
+   fi
+
+   if [ "$code" = 0 ]; then
+      reason="the package was installed but the service was not back after ${WAIT} seconds ($WAIT_WHY)"
+   else
+      reason="the install step exited with $code and the service was not back ($WAIT_WHY)"
+   fi
+
+   if [ -z "$ROLLBACK" ]; then
+      write_outcome "no-rollback" "$VERSION" "$reason; no rollback image was available; see ${LOG_FILE:-the journal of hmailserver-update.service}"
+      return 1
+   fi
+
+   say "rolling back to hMailServer $ROLLBACK_VERSION: $reason"
+   stop_unit
+   if [ "$KIND" = appimage ]; then
+      restore_image
+      rollback_code=$?
+   else
+      install_package "$ROLLBACK" 1
+      rollback_code=$?
+   fi
+   start_unit
+   if wait_for_service; then
+      write_outcome "rolled-back" "$VERSION" "$reason; hMailServer $ROLLBACK_VERSION was reinstalled and the service is running; see ${LOG_FILE:-the journal of hmailserver-update.service}"
+      return 1
+   fi
+
+   write_outcome "rollback-failed" "$VERSION" "$reason; the rollback to $ROLLBACK_VERSION exited with $rollback_code and the service is not back ($WAIT_WHY); see ${LOG_FILE:-the journal of hmailserver-update.service}"
+   return 1
+}
+
+# ------------------------------------------------------------------ check
+
+check()
+{
+   problems=0
+   if [ -x "$PROGRAM" ]; then
+      echo "server:      $PROGRAM ($("$PROGRAM" --version 2>/dev/null || echo 'does not run'))"
+   else
+      echo "server:      $PROGRAM is not here; only an AppImage under a root unit can be updated from this machine"
+   fi
+   if [ -r "$CONFIG" ]; then
+      data="$(sed -n 's/^[[:space:]]*DataFolder[[:space:]]*=[[:space:]]*//p' "$CONFIG" | head -n 1 | tr -d '\r')"
+      echo "updates in:  ${data%/}/Updates"
+   else
+      echo "config:      $CONFIG is not readable (run this as root); the Updates directory comes from its DataFolder"
+      problems=$((problems + 1))
+   fi
+   if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
+      state="$(systemctl is-active "$PATH_UNIT" 2>/dev/null || true)"
+      if [ "$state" = active ]; then
+         echo "trigger:     $PATH_UNIT is active; a request in /run/hmailserver/apply-request starts hmailserver-update.service"
+      else
+         echo "trigger:     $PATH_UNIT is ${state:-not installed}; enable it: systemctl enable --now $PATH_UNIT"
+         problems=$((problems + 1))
+      fi
+      if systemctl show -p RuntimeDirectory --value "$UNIT_DEFAULT" 2>/dev/null | grep -q hmailserver; then
+         echo "runtime dir: $UNIT_DEFAULT has RuntimeDirectory=hmailserver, so the server can write the request"
+      else
+         echo "runtime dir: $UNIT_DEFAULT has no RuntimeDirectory=hmailserver; a server started under an older unit cannot write the request until it is restarted under this one"
+         problems=$((problems + 1))
+      fi
+   else
+      echo "systemd:     not running here; there is no unit to stop and start, so there is no live update on this machine"
+      problems=$((problems + 1))
+   fi
+   if command -v apt-get >/dev/null 2>&1; then
+      echo "installer:   apt-get"
+   elif command -v dpkg >/dev/null 2>&1; then
+      echo "installer:   dpkg"
+   elif command -v dnf >/dev/null 2>&1; then
+      echo "installer:   dnf (rpm --oldpackage for a rollback)"
+   elif command -v rpm >/dev/null 2>&1; then
+      echo "installer:   rpm"
+   else
+      echo "installer:   neither dpkg nor rpm; only an AppImage swap is possible"
+   fi
+   if command -v curl >/dev/null 2>&1 || command -v wget >/dev/null 2>&1; then
+      echo "probe:       /readyz will be probed when the metrics listener is on"
+   else
+      echo "probe:       neither curl nor wget; the unit's own state decides whether the server came back"
+   fi
+   [ "$problems" -eq 0 ]
+}
+
+# ------------------------------------------------------------------ main
+
+usage()
+{
+   echo "usage: hmailserver-update apply --request FILE [--updates-dir DIR] [--dry-run]" >&2
+   echo "       hmailserver-update check" >&2
+   exit 64
+}
+
+verb=${1:-}
+[ $# -ge 1 ] && shift
+case "$verb" in
+   apply)
+      while [ $# -gt 0 ]; do
+         case "$1" in
+            --request) [ $# -ge 2 ] || usage; REQUEST=$2; shift 2 ;;
+            --updates-dir) [ $# -ge 2 ] || usage; UPDATES_DIR=$2; shift 2 ;;
+            --dry-run) DRY_RUN=1; shift ;;
+            *) usage ;;
+         esac
+      done
+      [ -n "$REQUEST" ] || usage
+      apply
+      ;;
+   check)
+      check
+      ;;
+   *)
+      usage
+      ;;
+esac

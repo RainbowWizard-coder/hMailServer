@@ -5,7 +5,10 @@
 # The Compose file and the Helm chart beside the container image, checked the
 # way they will be used: the chart linted and rendered with the values a real
 # install needs, the Compose file resolved by Compose itself. Neither tool is on
-# the bench that gates the code, so this is where they are proven.
+# the bench that gates the code, so this is where they are proven. The second
+# job is the live update's Linux apply step, hmailserver-update: a shell script
+# run against fakes for every outcome it can write, under dash, and its two
+# units and the server's own read by systemd-analyze.
 name: Packaging
 
 on:
@@ -14,11 +17,21 @@ on:
     paths:
       - 'hmailserver/source/Server/platform/packaging/helm/**'
       - 'hmailserver/source/Server/platform/packaging/docker/docker-compose.yml'
+      - 'hmailserver/source/Server/platform/packaging/hmailserver-update'
+      - 'hmailserver/source/Server/platform/packaging/hmailserver-update.path'
+      - 'hmailserver/source/Server/platform/packaging/hmailserver-update.service'
+      - 'hmailserver/source/Server/platform/packaging/hmailserver.service'
+      - 'build/test-hmailserver-update.sh'
       - '.github/workflows/packaging.yml'
   pull_request:
     paths:
       - 'hmailserver/source/Server/platform/packaging/helm/**'
       - 'hmailserver/source/Server/platform/packaging/docker/docker-compose.yml'
+      - 'hmailserver/source/Server/platform/packaging/hmailserver-update'
+      - 'hmailserver/source/Server/platform/packaging/hmailserver-update.path'
+      - 'hmailserver/source/Server/platform/packaging/hmailserver-update.service'
+      - 'hmailserver/source/Server/platform/packaging/hmailserver.service'
+      - 'build/test-hmailserver-update.sh'
       - '.github/workflows/packaging.yml'
 
 permissions:
@@ -68,3 +81,47 @@ jobs:
           printf '%s' x > secrets/db_password
           printf '%s' y > secrets/admin_password
           docker compose config --quiet
+
+  update-helper:
+    name: the update helper applies, rolls back and refuses, against fakes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Every outcome the script can write, each through the real script with
+      # fakes for systemctl, the package managers and the server's
+      # --verify-update on PATH: the deb and rpm installs, the AppImage swap,
+      # the rollbacks, the refusals a root helper owes an unprivileged
+      # requester, and --dry-run. /bin/sh here is dash, which is what the
+      # script is written for.
+      - name: Run the helper against fakes under dash
+        run: |
+          ls -l /bin/sh
+          bash build/test-hmailserver-update.sh
+
+      # The units parse. The only thing systemd-analyze objects to in a checkout
+      # is the executables the package would have installed, which is why the
+      # two ExecStart lines are tolerated by name and nothing else is.
+      - name: The units are valid
+        working-directory: hmailserver/source/Server/platform/packaging
+        run: |
+          set -euo pipefail
+          for unit in hmailserver.service hmailserver-update.path hmailserver-update.service; do
+            out="$(systemd-analyze verify --recursive-errors=no "./${unit}" 2>&1 || true)"
+            problems="$(printf '%s\n' "${out}" | grep -v -E 'Command /usr/(bin/hmailserver|lib/hmailserver/hmailserver-update) is not executable' | grep -v '^$' || true)"
+            if [ -n "${problems}" ]; then
+              echo "::error::${unit} did not verify:"
+              printf '%s\n' "${problems}"
+              exit 1
+            fi
+            echo "${unit}: ok"
+          done

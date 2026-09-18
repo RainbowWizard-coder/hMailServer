@@ -1,0 +1,34 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The trigger for the live update's apply step.
+#
+# hmailserver.service runs as the hmailserver user with /usr read-only and no
+# capability but the one that binds port 25, so it cannot run the package
+# manager and cannot stop and start itself. What it can do is write ONE file:
+# /run/hmailserver is its RuntimeDirectory, and when the server has checked a
+# downloaded package against its Sigstore bundle it writes the request for the
+# apply there. This unit watches for that file, as root, and starts
+# hmailserver-update.service, which reads the request, checks every line of it,
+# verifies the package again as root, and then does what the server may not.
+#
+# The service user can therefore ask for exactly one thing - "apply what I
+# downloaded" - and cannot choose what runs as root or where root writes: the
+# request names files, and hmailserver-update refuses any that are not the
+# package's own, in the Updates directory that root's configuration names.
+#
+# The package enables and starts this unit. Stopping it leaves the server able
+# to check for and download updates and unable to apply them: the apply then
+# reports that nothing took the request.
+
+[Unit]
+Description=hMailServer live update - waits for the server to ask for an apply
+Documentation=https://github.com/Progressiverobot/hmailserver
+
+[Path]
+PathExists=/run/hmailserver/apply-request
+Unit=hmailserver-update.service
+
+[Install]
+WantedBy=multi-user.target

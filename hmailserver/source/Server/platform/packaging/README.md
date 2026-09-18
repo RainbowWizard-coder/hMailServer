@@ -28,6 +28,9 @@ from `hMailServer.sln` and installed by the Inno Setup scripts under
 | `rpm/preun` | The `%preun` scriptlet: stop and disable, but only on a real uninstall. |
 | `PKGBUILD` | The Arch package. Builds from the repository with the same CMakeLists, and uses `sysusers.d` and `tmpfiles.d` instead of an install script - which is what Arch asks for now. |
 | `build-appimage.sh` | Wraps an already-built tree as an AppImage. Read the paragraph at the top of it before using the result for anything. |
+| `hmailserver-update` | The live update's apply step: the Linux counterpart of `hMailServer.Updater.exe`, installed as `/usr/lib/hmailserver/hmailserver-update` and carried inside the AppImage. A POSIX sh script that reads the server's request, checks every line of it, verifies the package again as root, stops the unit, installs (or swaps the AppImage), starts the unit, rolls back when it does not come back, and writes the same one-line outcome the Windows helper writes. `apply`, `check`, `--dry-run`; the header is the specification. |
+| `hmailserver-update.path` | Watches `/run/hmailserver/apply-request` as root and starts the service below when the server writes it. Enabled and started by `postinst` / `%post`. |
+| `hmailserver-update.service` | A `oneshot` that runs `hmailserver-update apply` as root, outside the server's cgroup, so that stopping the server does not kill the helper. |
 
 The `$1` argument means completely different things to dpkg and to rpm - a verb
 in one and a count in the other - and each script says so at the top, because
@@ -154,6 +157,10 @@ From the CMakeLists install rules, with the prefix above:
 /usr/share/hmailserver/WebAdmin/languages/  the Deck's catalogues, one JSON file per
                                             language, served at /deck-lang/<code>.json
 /usr/lib/systemd/system/hmailserver.service the unit
+/usr/lib/systemd/system/hmailserver-update.path     the live update's trigger
+/usr/lib/systemd/system/hmailserver-update.service  and the root service it starts
+/usr/lib/hmailserver/hmailserver-update     the live update's apply step (see below)
+/usr/lib/hmailserver/autoban-hook           what auto-ban runs to reach the firewall
 /etc/hmailserver/hMailServer.ini            the configuration
 /etc/logrotate.d/hmailserver                the log rotation rule
 ```
@@ -377,6 +384,180 @@ listeners, an account was created over the REST API, a message submitted over
 SMTP with authentication was delivered, and the same message was read back over
 IMAP with its subject intact.
 
+## The live update
+
+> In the tree since 18 September 2026.
+
+The server's live update - the check against the release feed, the download
+verified against its Sigstore bundle, the apply with a rollback - was a Windows
+feature with a Windows helper. On this platform the first two parts were already
+the same code; the apply is now these three files, and this is how it goes.
+
+**Who may do what.** `hmailserver.service` runs as `hmailserver` with
+`ProtectSystem=strict`, `NoNewPrivileges=yes` and a capability bounding set of
+`CAP_NET_BIND_SERVICE` alone. It cannot run `dpkg`, cannot `systemctl stop`
+itself, and cannot use `systemd-run` (that needs polkit's leave to start a
+unit, and granting it to the service user would be a broader grant than the
+one thing it needs). `systemd-run` is right where the caller is root, and is
+what the server tries second - see *An AppImage* below. What the service CAN
+do is write a file: the unit gives it `/run/hmailserver` (`RuntimeDirectory=`,
+implicitly writable under `ProtectSystem=strict`, removed when the unit
+stops). So the apply is a request, and the request is taken by root.
+
+**The sequence.** `POST /api/v1/update/install` (or the Deck's button, or the
+`UpdateWindow` opening on a verified download):
+
+1. The server verifies the downloaded package once more, fetches and verifies
+   the running version's own package from the release page as the rollback
+   image (`Updates/rollback/`), exactly as on Windows, and writes
+   `/run/hmailserver/apply-request`: `kind`, `version`, `package`, `rollback`,
+   `rollback_version`, `unit` (read from its own cgroup), `outcome`, `log`,
+   `wait` (`UpdateServiceWaitSeconds`), and `ready_url` when the metrics
+   listener is on loopback without TLS. It waits up to fifteen seconds for the
+   file to be taken, then answers state 4 (installing).
+2. `hmailserver-update.path` sees the file and starts `hmailserver-update.service`,
+   which runs `/usr/lib/hmailserver/hmailserver-update apply --request
+   /run/hmailserver/apply-request` as root. The script reads the file and
+   removes it (once, whatever happens next), and checks every line: `kind` is
+   `deb`, `rpm` or `appimage`; the versions are version-shaped; the unit is
+   `hmailserver*.service`; `outcome` and `log` are directly inside, and
+   `package` and `rollback` somewhere inside, the Updates directory - which it
+   takes from `DataFolder` in `/etc/hmailserver/hMailServer.ini`, root's own
+   file, and never from the request; nothing is a symlink, and every path is
+   resolved before the test. A request that fails a check is refused before
+   anything is stopped, with the refusal written to the outcome file so the
+   Deck shows why.
+3. It stops the unit. From here no process runs as the service user, which is
+   why the log file is only written from here on: before the stop, a process of
+   the service user's could swap the log for a symlink between the check and
+   root's append.
+4. It runs `/usr/bin/hmailserver --verify-update <package>` - the same
+   Sigstore verification the server did (digest, chain at the log's time, the
+   release workflow's identity, the signature, the log's own signature), with
+   the trust `/etc/hmailserver/hMailServer.ini` names or the public instance -
+   and the same for the rollback image. A file that fails is not installed; the
+   unit is started again and the outcome says so. This is the check that makes
+   the request safe to accept from an unprivileged process: a compromised
+   service can write any request it likes, and none of them gets root to
+   install a file the release workflow did not sign.
+5. It installs: `apt-get install -y --no-install-recommends --allow-downgrades
+   -o DPkg::Lock::Timeout=300 <package>` where apt-get exists (so a newer
+   package's dependencies are met, and an `unattended-upgrades` run is waited
+   for rather than tripped over), else `dpkg -i`; `dnf install -y` or
+   `rpm -Uvh` on an rpm system. The package's own `postinst` / `%post` runs the
+   schema upgrade as the service user (`hmailserver --upgrade-database`) as it
+   does on any upgrade; no token is needed, which is why none is issued here.
+6. It starts the unit and waits up to `wait` seconds for it to be `active`,
+   unrestarted, for ten seconds in a row - a unit under `Restart=on-failure`
+   that keeps dying reads active a moment at a time - and for `/readyz` to
+   answer 200 when there is one to ask.
+7. If the service is not back: `rpm -Uvh --oldpackage` or `apt-get ...
+   --allow-downgrades` with the rollback image, start, wait again.
+8. It writes one line to `<DataFolder>/Updates/last-apply.txt` - `ok`,
+   `failed`, `rolled-back`, `rollback-failed` or `no-rollback`, the version,
+   the detail - owned by the service user, and exits. The server's update task
+   reads the file at its next run (within fifteen minutes of the start), logs
+   it, records it for `GET /api/v1/update` and the Deck's *The last install*,
+   and moves it aside as `.reported`. `journalctl -u hmailserver-update` has
+   the whole run; `Updates/apply-<version>.log` has the part after the stop.
+
+**An AppImage.** `kind=appimage` when `APPIMAGE` is in the server's environment,
+which the AppImage runtime sets before AppRun starts it. The artefact is
+`hMailServer-<version>-<arch>.AppImage` from the release page, verified the
+same way, and the apply is a swap: the new file copied beside the old one
+(same file system, so the rename is atomic), the old kept as `<image>.previous`
+- the rollback puts it back - and the unit restarted. The image must be owned
+by the user applying the update (root under the units) and writable by nobody
+else, in a directory of the same standing, because the running image is what
+verifies the new one and is executed to do it. How the request reaches root
+depends on how the image runs: under a unit with `RuntimeDirectory=hmailserver`
+and the two update units installed from `usr/share/hmailserver/systemd/` inside
+the image, the path route above; as root under a unit of its own, the server
+copies the script out of the image into `Updates/` and starts it with
+`systemd-run --unit=hmailserver-update-<version> --collect`, which is the
+outside-the-cgroup start `systemd-run` exists for; from a terminal, or as an
+ordinary user under a unit, it is told there is nothing to hand the update to,
+and the verified file waits in `Updates/` for `mv` by hand. An AppImage is a
+try-it-out artefact and stays one; this is so that trying it out includes the
+update.
+
+**What needs root.** Everything from step 2 on, which is why it is a separate
+unit and not something the server forks: a child of the server lives in the
+server's cgroup and `systemctl stop hmailserver` - the first thing the apply
+does - would kill it. `hmailserver-update check` (as root) says whether a
+machine is set up for this: the path unit active, `RuntimeDirectory` on the
+server's unit, which package tool and probe are there. A server started under
+the unit from before this change has no `RUNTIME_DIRECTORY` until it is
+restarted under the new one - the upgrade that brings this in does that
+restart - and says so if asked to apply before then.
+
+**What is proven, and how.** Three layers, on 18 September 2026.
+
+*The script's logic.* `build/test-hmailserver-update.sh` runs the real script
+under dash against fakes on PATH - a `systemctl` that records what it is asked
+and answers a planned state, package tools that record and exit as planned, an
+`hmailserver --verify-update` that passes when a bundle is beside the file -
+through twenty cases: the five outcomes for a `.deb`, the dpkg fallback, the
+`.rpm` through dnf with its rollback through `rpm --oldpackage`, the AppImage
+swap and its rollback, the refusals (a package outside the Updates directory,
+a symlink, a foreign unit, an unknown key, an outcome path elsewhere, a
+writable image), the root re-verification refusing a tampered file and a
+tampered rollback image, the log written only after the stop, and `--dry-run`
+running nothing: 86 checks, green on Ubuntu 26.04 (dash 0.5.12). It runs in
+`.github/workflows/packaging.yml` on every change to these files, beside
+`systemd-analyze verify` of the three units; the `.deb` and `.rpm` file
+assertions in `linux-build.yml` cover the three new files, and the `.deb` job
+checks that `postinst` left the path unit enabled and active.
+
+*The verification, against a real release.* The Linux binary built from this
+tree ran `hmailserver --verify-update` against the latest release's
+`hmailserver_<version>_amd64.deb` and its `.cosign.bundle` as GitHub serves
+them (the release of 15 September 2026), with the built-in public Sigstore
+trust: it verifies (signed by the `sign-release.yml` workflow, recorded by the
+log at 2026-09-15T01:00:17Z), and the same file with one byte appended is
+refused with the two digests named. Doing this found that no real bundle had
+ever verified on Linux before - see the finding below - and that is fixed in
+the same change.
+
+*The whole apply, for real, under systemd.* In a privileged Ubuntu 26.04
+container running systemd 259 as PID 1 on the lab VM (root inside the
+container, none on the host): the `.deb` from this tree installed with
+`apt-get`, whose `postinst` enabled and started `hmailserver-update.path`;
+PostgreSQL beside it, the schema created, the server started under the
+packaged unit with `/run/hmailserver` owned by `hmailserver` at 0750; a second
+package built from the same tree stamped one patch version higher (call the
+tree's version V and that one V+1); both packages signed under a Sigstore of
+the regression suite's own (`FakeSigstore`, the fake Fulcio and Rekor the
+Windows fixtures verify against), with its trust root and log key named by
+`UpdateTrustRootsFile` and `UpdateLogPublicKeyFile` in the root-owned
+configuration; a release feed on loopback named by `UpdateFeedUrl`. Then, over
+the REST API exactly as the Deck does it: `POST /api/v1/update/check` found
+V+1 by its `.deb` name, `POST .../download` fetched and verified it,
+`POST .../install` fetched and verified V's package as the rollback image,
+wrote the request to `/run/hmailserver` and answered state 4 within a second;
+the path unit started the service, which verified both packages again as
+root, stopped the unit, ran `apt-get install` (a real upgrade, V to V+1,
+`postinst` checking the schema), started the unit, saw it active with
+`/readyz` answering for ten seconds, and wrote `ok <V+1> the package was
+installed and the service is running` - owned by `hmailserver`; the server ran
+V+1, and after its next start `GET /api/v1/update` carried `apply.status: ok`
+and the file had become `.reported`. Then the rollback: the base put back to
+V, PostgreSQL stopped, the same three calls; the upgraded V+1 came up `active`
+but `/readyz` answered 503 for the sixty seconds asked for, the helper said so
+("active, but http://127.0.0.1:9099/readyz did not answer 200"), ran `apt-get
+install --allow-downgrades` with the rollback image (dpkg: "downgrading
+hmailserver (V+1) to (V)"), started the unit, and - PostgreSQL having been
+started again meanwhile - wrote `rolled-back <V+1> ...; hMailServer <V> was
+reinstalled and the service is running`, with the server on V and ready.
+
+What that leaves unproven: the same run against a *release-signed* package
+under the public trust (the packages CI builds carry no bundle;
+`sign-release.yml` signs at release time), which the first release after this
+change is the occasion for; the `.rpm` route on a real dnf host, exercised
+against the fakes only; and the AppImage swap under a real unit, likewise. The
+Windows path is untouched by everything above except the bundle read, which
+now takes the file's bytes as they are on both platforms.
+
 ## What the packaging pass found, and fixed
 
 Each of these would have shipped a broken package, and each is fixed in the
@@ -404,6 +585,15 @@ when the packaging changes.
   first start wrote its log to a file called `Logs\hmailserver_....log` in the
   parent directory and delivery could not create a mailbox. Every join goes
   through `FileUtilities::Combine` and `PathSeparator` now, which is `/` here.
+* **No real Sigstore bundle ever verified on Linux** (found 18 September 2026,
+  by running `--verify-update` against a release's own bundle). The bundle was
+  read with `ReadCompleteTextFile` and turned back into bytes with
+  `Unicode::ToANSI`, a round trip through the wide `String`; Rekor's checkpoint
+  carries an em dash, three UTF-8 bytes that `wcstombs` refuses in the C locale,
+  so the whole bundle came back empty and every download failed as "not JSON".
+  Windows never saw it because its code page carries those bytes through.
+  `SigstoreVerifier::ReadBundle` now reads the file's bytes as they are, on
+  both platforms, everywhere a bundle is read.
 
 ## What is still owed
 

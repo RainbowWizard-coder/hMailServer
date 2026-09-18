@@ -6,8 +6,9 @@
 # The Debian post-installation script, named by CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA.
 #
 # It creates the identity the mail store belongs to, the directories it lives in,
-# and the systemd enablement - and then stops, deliberately, without starting
-# anything. The database is not configured at this point and cannot be: nothing
+# and the systemd enablement (the server's unit, and the path unit that lets a
+# live update be applied) - and then stops, deliberately, without starting the
+# server. The database is not configured at this point and cannot be: nothing
 # in a package knows which backend the administrator has, or its credentials. A
 # server started here would fail to reach a database it has never been told
 # about, and would say so in the log once a second until somebody noticed.
@@ -101,8 +102,20 @@ register_unit()
    # fallback for a system that does not have it.
    if command -v deb-systemd-helper >/dev/null 2>&1; then
       deb-systemd-helper enable hmailserver.service >/dev/null 2>&1 || true
+      deb-systemd-helper enable hmailserver-update.path >/dev/null 2>&1 || true
    elif command -v systemctl >/dev/null 2>&1; then
       systemctl enable hmailserver.service >/dev/null 2>&1 || true
+      systemctl enable hmailserver-update.path >/dev/null 2>&1 || true
+   fi
+
+   # The live update's trigger, enabled above and STARTED here, on a first
+   # install and on every upgrade: a path unit watches nothing until it is
+   # active, and starting one that is already active is a no-op. It is not
+   # restarted, because on an upgrade this very script may be running under the
+   # hmailserver-update.service the trigger started. The server itself stays as
+   # it is - stopped on a first install, restarted below on an upgrade.
+   if [ -d /run/systemd/system ] && command -v systemctl >/dev/null 2>&1; then
+      systemctl start hmailserver-update.path >/dev/null 2>&1 || true
    fi
 }
 

@@ -60,8 +60,10 @@ namespace HM
             {
                String name = file.GetName();
 
-               // The helper, the token and the outcome the next start reports.
+               // The helper (either platform's), the token and the outcome the
+               // next start reports.
                if (name.CompareNoCase(_T("hMailServer.Updater.exe")) == 0 ||
+                   name.CompareNoCase(_T("hmailserver-update")) == 0 ||
                    name.CompareNoCase(_T("apply-token")) == 0 ||
                    name.Find(_T("last-apply")) >= 0)
                   continue;

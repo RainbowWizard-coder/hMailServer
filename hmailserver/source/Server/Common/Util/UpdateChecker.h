@@ -64,6 +64,36 @@ namespace HM
 
       static Snapshot Current();
 
+      // How this server was installed, which decides which of a release's artefacts
+      // it could install and how the apply step goes about it. On Windows always
+      // the installer. On Linux: the .deb when dpkg's record says it owns this
+      // package, the .rpm when rpm's does, the AppImage when the AppImage runtime
+      // says so (APPIMAGE in the environment, set by the runtime before AppRun
+      // starts the server), and nothing for a build tree or a tarball, which no
+      // package could replace.
+      enum InstallKind
+      {
+         InstallWindowsInstaller = 0,
+         InstallDeb,
+         InstallRpm,
+         InstallAppImage,
+         InstallNone
+      };
+      static InstallKind DetectInstallKind();
+      // The word the apply request carries: "deb", "rpm", "appimage"; "installer"
+      // on Windows, "" for none.
+      static const char *InstallKindName(InstallKind kind);
+
+      // The artefact this server could install, by the name the release flow gives
+      // it - hMailServer-<v>-x64.exe, hmailserver_<v>_amd64.deb,
+      // hmailserver-<v>-1.x86_64.rpm, hMailServer-<v>-x86_64.AppImage, or their
+      // AArch64 forms - or empty when there is none for this installation.
+      static String PlatformInstallerName(const String &version);
+
+      // What a message calls that artefact when a release lacks it: "x64 installer"
+      // on Windows (a wording a test pins), or the name itself here.
+      static String MissingArtefactDescription(const String &version);
+
       // Reads the feed on the calling thread. True when it was read and understood;
       // the snapshot then says what it said. False, with error set and the snapshot
       // recording the failure, when it was not. Either way one application-log line.

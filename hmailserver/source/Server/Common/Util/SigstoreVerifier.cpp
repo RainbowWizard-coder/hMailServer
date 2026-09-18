@@ -489,6 +489,37 @@ namespace HM
    }
 
    bool
+   SigstoreVerifier::ReadBundle(const String &path, AnsiString &bundleJson)
+   {
+      bundleJson.Empty();
+#ifdef HM_PLATFORM_POSIX
+      const AnsiString narrow_path = path;
+      std::ifstream file(narrow_path.c_str(), std::ios::binary);
+#else
+      std::ifstream file(path.c_str(), std::ios::binary);
+#endif
+      if (!file)
+         return false;
+
+      // A bundle is eleven kilobytes; UpdateDownloader refuses to fetch one over
+      // a megabyte, and a file past that here is not a bundle either.
+      std::vector<char> bytes;
+      std::vector<char> buffer(64 * 1024);
+      while (file)
+      {
+         file.read(buffer.data(), (std::streamsize) buffer.size());
+         std::streamsize got = file.gcount();
+         if (got > 0)
+            bytes.insert(bytes.end(), buffer.data(), buffer.data() + got);
+         if (bytes.size() > 4 * 1024 * 1024)
+            return false;
+      }
+
+      bundleJson = AnsiString(bytes.data(), (int) bytes.size());
+      return true;
+   }
+
+   bool
    SigstoreVerifier::Sha256File(const String &path, std::vector<unsigned char> &digest, String &error)
    {
 #ifdef HM_PLATFORM_POSIX

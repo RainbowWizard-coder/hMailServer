@@ -19,6 +19,18 @@ namespace HM
    // saying what happened, which ReportLastOutcome reads and reports the next time
    // the service starts.
    //
+   // On Linux the same steps end differently. The service runs as its own user
+   // under a unit that leaves /usr read-only, so it cannot install a package or
+   // stop itself; it writes a REQUEST - the package, the rollback image, the unit,
+   // where the outcome goes - to /run/hmailserver, and hmailserver-update.path, a
+   // root path unit the package enables, starts hmailserver-update.service, which
+   // runs the shell script /usr/lib/hmailserver/hmailserver-update: it checks the
+   // request, verifies the package again as root, stops the unit, installs with
+   // the package manager (or swaps the AppImage file), starts the unit, waits for
+   // it, rolls back if it does not come back, and writes the SAME outcome line.
+   // A server that is itself root under a unit reaches the script through
+   // systemd-run instead; one under no unit is told to install by hand.
+   //
    // A rollback reinstalls the previous binaries; it cannot take the database back.
    // When the new version had already moved the schema and then failed to start, the
    // previous version will refuse the newer schema, and the outcome says so: that is
@@ -34,12 +46,18 @@ namespace HM
       // verdict, then out of the way.
       static void ReportLastOutcome();
 
-      // Bin\hMailServer.Updater.exe, beside the running executable.
+      // Bin\hMailServer.Updater.exe, beside the running executable; on Linux the
+      // packaged /usr/lib/hmailserver/hmailserver-update, or the copy an AppImage
+      // carries at the same relative path.
       static String HelperSourcePath();
       static String OutcomePath();
 
    private:
       static bool EnsureRollbackImage_(const String &runningVersion, String &rollbackPath, String &why);
+      // Windows: starts the helper detached with the assembled command line.
       static bool Launch_(const String &commandLine, const String &workingDirectory, String &error);
+      // POSIX: hands the request to hmailserver-update through the path unit, or
+      // through systemd-run when nothing takes it from /run/hmailserver.
+      static bool LaunchPosix_(const AnsiString &request, const String &version, const String &helperSource, String &error);
    };
 }
