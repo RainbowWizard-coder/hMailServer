@@ -28,6 +28,12 @@ namespace HM
 
    namespace
    {
+      // Named once, because six reads share it and a column added to one of
+      // them and not the others is a row that comes back half read.
+      const char *FullRowSelect =
+         "select contactid, contactaccountid, contactbookid, contactname, contactaddress, contactsource, "
+         "contactcreated, contacturi, contactuid, contactvcard from hm_contacts ";
+
       AnsiString Int64Text(__int64 value)
       {
          AnsiString text;
@@ -35,10 +41,16 @@ namespace HM
          return text;
       }
 
+      String Select(const AnsiString &rest)
+      {
+         return String(AnsiString(FullRowSelect) + rest);
+      }
+
       void ReadRecord(std::shared_ptr<DALRecordset> recordset, ContactRecord &contact)
       {
          contact.id = recordset->GetInt64Value("contactid");
          contact.accountId = recordset->GetInt64Value("contactaccountid");
+         contact.bookId = recordset->GetInt64Value("contactbookid");
          contact.name = recordset->GetStringValue("contactname");
          contact.address = recordset->GetStringValue("contactaddress");
          contact.source = (int) recordset->GetLongValue("contactsource");
@@ -47,6 +59,22 @@ namespace HM
          contact.uid = recordset->GetStringValue("contactuid");
          contact.vcard = recordset->GetStringValue("contactvcard");
       }
+
+      bool ReadAll(std::shared_ptr<DALRecordset> recordset, std::vector<ContactRecord> &contacts)
+      {
+         if (!recordset)
+            return false;
+
+         while (!recordset->IsEOF())
+         {
+            ContactRecord contact;
+            ReadRecord(recordset, contact);
+            contacts.push_back(contact);
+            recordset->MoveNext();
+         }
+
+         return true;
+      }
    }
 
    bool
@@ -54,8 +82,46 @@ namespace HM
    {
       contacts.clear();
 
-      SQLCommand command("select contactid, contactaccountid, contactname, contactaddress, contactsource, contactcreated, contacturi, contactuid, contactvcard from hm_contacts where contactaccountid = @ACCOUNTID order by contactname asc, contactaddress asc");
+      SQLCommand command(Select("where contactaccountid = @ACCOUNTID order by contactname asc, contactaddress asc"));
       command.AddParameter("@ACCOUNTID", accountId);
+
+      return ReadAll(Application::Instance()->GetDBManager()->OpenRecordset(command), contacts);
+   }
+
+   bool
+   ContactStore::ListInBook(__int64 accountId, __int64 bookId, bool isDefault, std::vector<ContactRecord> &contacts)
+   {
+      contacts.clear();
+
+      // The default book also holds every row an upgrade left at 0. The stamping
+      // AddressBookStore::EnsureDefault does is what takes them off 0, and until
+      // it has run for this account they are this book's contacts all the same.
+      AnsiString where = isDefault
+         ? "where contactaccountid = @ACCOUNTID and (contactbookid = @BOOKID or contactbookid = 0) "
+         : "where contactaccountid = @ACCOUNTID and contactbookid = @BOOKID ";
+
+      SQLCommand command(Select(where + "order by contactname asc, contactaddress asc"));
+      command.AddParameter("@ACCOUNTID", accountId);
+      command.AddParameter("@BOOKID", bookId);
+
+      return ReadAll(Application::Instance()->GetDBManager()->OpenRecordset(command), contacts);
+   }
+
+   bool
+   ContactStore::CountInBook(__int64 accountId, __int64 bookId, bool isDefault, int &count)
+   {
+      count = 0;
+
+      // The ids alone. The listing of an account's books asks this once per
+      // book, and a book's cards are the large part of it.
+      AnsiString where = isDefault
+         ? "select contactid from hm_contacts where contactaccountid = @ACCOUNTID and (contactbookid = @BOOKID or contactbookid = 0)"
+         : "select contactid from hm_contacts where contactaccountid = @ACCOUNTID and contactbookid = @BOOKID";
+
+      const String query = String(where);
+      SQLCommand command(query);
+      command.AddParameter("@ACCOUNTID", accountId);
+      command.AddParameter("@BOOKID", bookId);
 
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
       if (!recordset)
@@ -63,9 +129,7 @@ namespace HM
 
       while (!recordset->IsEOF())
       {
-         ContactRecord contact;
-         ReadRecord(recordset, contact);
-         contacts.push_back(contact);
+         count++;
          recordset->MoveNext();
       }
 
@@ -75,9 +139,23 @@ namespace HM
    bool
    ContactStore::Get(__int64 accountId, __int64 id, ContactRecord &contact)
    {
-      SQLCommand command("select contactid, contactaccountid, contactname, contactaddress, contactsource, contactcreated, contacturi, contactuid, contactvcard from hm_contacts where contactid = @ID and contactaccountid = @ACCOUNTID");
+      SQLCommand command(Select("where contactid = @ID and contactaccountid = @ACCOUNTID"));
       command.AddParameter("@ID", id);
       command.AddParameter("@ACCOUNTID", accountId);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset || recordset->IsEOF())
+         return false;
+
+      ReadRecord(recordset, contact);
+      return true;
+   }
+
+   bool
+   ContactStore::GetAny(__int64 id, ContactRecord &contact)
+   {
+      SQLCommand command(Select("where contactid = @ID"));
+      command.AddParameter("@ID", id);
 
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
       if (!recordset || recordset->IsEOF())
@@ -105,10 +183,11 @@ namespace HM
    }
 
    bool
-   ContactStore::Insert(__int64 accountId, const String &name, const String &address, int source, ContactRecord &inserted)
+   ContactStore::Insert(__int64 accountId, __int64 bookId, const String &name, const String &address, int source, ContactRecord &inserted)
    {
       inserted = ContactRecord();
       inserted.accountId = accountId;
+      inserted.bookId = bookId;
       inserted.name = name;
       inserted.address = address;
       inserted.source = source;
@@ -119,6 +198,7 @@ namespace HM
       statement.SetStatementType(SQLStatement::STInsert);
       statement.SetIdentityColumn("contactid");
       statement.AddColumnInt64("contactaccountid", accountId);
+      statement.AddColumnInt64("contactbookid", bookId);
       statement.AddColumn("contactname", name);
       statement.AddColumn("contactaddress", address);
       statement.AddColumnInt64("contactsource", source);
@@ -140,6 +220,17 @@ namespace HM
    {
       SQLCommand command("update hm_contacts set contactsource = @SOURCE where contactid = @ID and contactaccountid = @ACCOUNTID");
       command.AddParameter("@SOURCE", source);
+      command.AddParameter("@ID", id);
+      command.AddParameter("@ACCOUNTID", accountId);
+
+      return Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   bool
+   ContactStore::SetBook(__int64 accountId, __int64 id, __int64 bookId)
+   {
+      SQLCommand command("update hm_contacts set contactbookid = @BOOKID where contactid = @ID and contactaccountid = @ACCOUNTID");
+      command.AddParameter("@BOOKID", bookId);
       command.AddParameter("@ID", id);
       command.AddParameter("@ACCOUNTID", accountId);
 
@@ -180,15 +271,20 @@ namespace HM
    }
 
    bool
-   ContactStore::FindByUri(__int64 accountId, const String &uri, ContactRecord &contact)
+   ContactStore::FindByUri(__int64 accountId, __int64 bookId, bool isDefault, const String &uri, ContactRecord &contact)
    {
       // contacturi is nvarchar(255): a longer name from a request path cannot exist.
       if (uri.IsEmpty() || uri.GetLength() > 255)
          return false;
 
-      SQLCommand command("select contactid, contactaccountid, contactname, contactaddress, contactsource, contactcreated, contacturi, contactuid, contactvcard from hm_contacts where contactaccountid = @ACCOUNTID and contacturi = @URI");
+      AnsiString where = isDefault
+         ? "where contactaccountid = @ACCOUNTID and contacturi = @URI and (contactbookid = @BOOKID or contactbookid = 0)"
+         : "where contactaccountid = @ACCOUNTID and contacturi = @URI and contactbookid = @BOOKID";
+
+      SQLCommand command(Select(where));
       command.AddParameter("@ACCOUNTID", accountId);
       command.AddParameter("@URI", uri);
+      command.AddParameter("@BOOKID", bookId);
 
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
       if (!recordset || recordset->IsEOF())
@@ -199,11 +295,12 @@ namespace HM
    }
 
    bool
-   ContactStore::InsertCard(__int64 accountId, const String &name, const String &address, const String &uri,
+   ContactStore::InsertCard(__int64 accountId, __int64 bookId, const String &name, const String &address, const String &uri,
                             const String &uid, const String &vcard, ContactRecord &inserted)
    {
       inserted = ContactRecord();
       inserted.accountId = accountId;
+      inserted.bookId = bookId;
       inserted.name = name;
       inserted.address = address;
       inserted.source = SourceManual;
@@ -217,6 +314,7 @@ namespace HM
       statement.SetStatementType(SQLStatement::STInsert);
       statement.SetIdentityColumn("contactid");
       statement.AddColumnInt64("contactaccountid", accountId);
+      statement.AddColumnInt64("contactbookid", bookId);
       statement.AddColumn("contactname", name);
       statement.AddColumn("contactaddress", address);
       statement.AddColumnInt64("contactsource", SourceManual);
@@ -379,21 +477,9 @@ namespace HM
       groups.clear();
 
       // A prefix match on the marker, which every backend spells this way.
-      SQLCommand command("select contactid, contactaccountid, contactname, contactaddress, contactsource, contactcreated, contacturi, contactuid, contactvcard from hm_contacts where contactaddress like @MARKER order by contactaccountid asc, contactid asc");
+      SQLCommand command(Select("where contactaddress like @MARKER order by contactaccountid asc, contactid asc"));
       command.AddParameter("@MARKER", String(_T("group:%")));
 
-      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
-      if (!recordset)
-         return false;
-
-      while (!recordset->IsEOF())
-      {
-         ContactRecord group;
-         ReadRecord(recordset, group);
-         groups.push_back(group);
-         recordset->MoveNext();
-      }
-
-      return true;
+      return ReadAll(Application::Instance()->GetDBManager()->OpenRecordset(command), groups);
    }
 }

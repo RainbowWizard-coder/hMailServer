@@ -33,16 +33,35 @@
 //     with no EMAIL is 403 with CARDDAV:valid-address-data and a sentence
 //     saying why: this address book keeps a name and one e-mail address per
 //     contact, and a card without one has nothing to be stored as.
+//
+// SEVERAL ADDRESS BOOKS, AND SHARED ONES (schema 6079, AddressBookStore.h). The
+// home collection holds one collection per book the account can see:
+//
+//   contacts/     the account's default book, at the URL it has always been at,
+//                 so a client that has been syncing since 6.3 keeps syncing.
+//   book-<id>/    another book of the account's own.
+//   shared-<id>/  a book another account shares with this one, by name or with
+//                 the whole domain.
+//
+// A shared collection's contacts are the OWNER'S rows: everything under it is
+// read and written under the owner's account id, and the sharee's own id never
+// reaches a row of it. A book shared read-only refuses PUT and DELETE with 403
+// and says so in current-user-privilege-set, so a client is told before it
+// tries. DELETE on a shared collection gives the share back and leaves the book
+// where it is - exactly what the calendar does.
 
 #include "StdAfx.h"
 
 #include <algorithm>
+#include <map>
+#include <set>
 #include <openssl/sha.h>
 
 #include "CardDavServer.h"
 #include "DavSupport.h"
 #include "CalDavServer.h"
 #include "ContactStore.h"
+#include "AddressBookStore.h"
 #include "ContactGroups.h"
 #include "DirectoryStore.h"
 #include "../Application/Application.h"
@@ -50,6 +69,7 @@
 #include "../SQL/SQLCommand.h"
 #include "VCard.h"
 #include "../BO/Account.h"
+#include "../Cache/CacheContainer.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -78,7 +98,11 @@ namespace HM
       const int MaxCardBytes = 1024 * 1024;
 
       const char *AllowContact = "Allow: OPTIONS, GET, HEAD, PUT, DELETE, PROPFIND, PROPPATCH, REPORT\r\n";
-      const char *AllowCollection = "Allow: OPTIONS, PROPFIND, PROPPATCH, REPORT\r\n";
+      // DELETE is here because a collection somebody shares with the caller can
+      // be left with one (HandleDelete); on the caller's own books it answers
+      // 403 with the reason, which is a refusal rather than a method nobody
+      // has ever heard of.
+      const char *AllowCollection = "Allow: OPTIONS, PROPFIND, PROPPATCH, REPORT, DELETE\r\n";
 
       // The directory is read-only, and says so in the one header a client
       // reads to find out: no PUT, no DELETE, no PROPPATCH.
@@ -97,20 +121,36 @@ namespace HM
          KindHomeCollection,      // /dav/addressbooks/
          KindCalendarsCollection, // /dav/calendars/ - CalDavServer's tree, listed here so the root is complete
          KindHome,                // /dav/addressbooks/<address>/
-         KindAddressBook,         // /dav/addressbooks/<address>/contacts/
-         KindContact,             // .../contacts/<id>.vcf, and the contact exists
-         KindContactSlot,         // .../contacts/<name>, nothing there yet: PUT may create
+         KindAddressBook,         // /dav/addressbooks/<address>/<book>/ - contacts, book-<id> or shared-<id>
+         KindContact,             // .../<book>/<id>.vcf, and the contact exists
+         KindContactSlot,         // .../<book>/<name>, nothing there yet: PUT may create
          KindDirectory,           // /dav/addressbooks/<address>/directory/ - the organisation's, read-only
          KindDirectoryCard,       // .../directory/account-<id>.vcf or list-<id>.vcf
          KindDirectorySlot        // .../directory/<name>, nothing there: a PUT is refused, not 404
       };
 
-      // The three kinds that are the organisation's directory rather than the
-      // account's own address book (DirectoryStore.h).
+      // The three kinds that are the organisation's directory rather than one
+      // of the account's address books (DirectoryStore.h).
       bool IsDirectoryKind(ResourceKind kind)
       {
          return kind == KindDirectory || kind == KindDirectoryCard || kind == KindDirectorySlot;
       }
+
+      // One address book as this request sees it: the row, whose it is, what
+      // the caller may do in it, and where it lives in the tree.
+      struct Book
+      {
+         Book() : shared(false), writable(true), isDefault(false), ownerAccountId(0) { }
+
+         AddressBookRecord record;
+         bool shared;             // somebody else's, shared with the caller
+         bool writable;           // the caller may add, change and delete in it
+         bool isDefault;          // the owner's default book, served at contacts/
+         __int64 ownerAccountId;  // whose rows the contacts in it are
+         AnsiString ownerUtf8;    // and that account's address
+         AnsiString segment;      // "contacts", "book-<id>" or "shared-<id>"
+         AnsiString href;         // the collection's canonical href, with its slash
+      };
 
       struct Resource
       {
@@ -118,12 +158,13 @@ namespace HM
 
          ResourceKind kind;
          AnsiString href;        // the canonical href, percent-encoded
+         Book book;              // KindAddressBook, KindContact and KindContactSlot
          ContactRecord contact;  // KindContact only
          AnsiString slotName;    // KindContactSlot only: the name, decoded
          int directoryIndex = -1;   // KindDirectoryCard only: its place in the loaded directory
       };
 
-      // A member of the address book as the responses see it: the row, the
+      // A member of an address book as the responses see it: the row, the
       // card the server serves for it and that card's ETag.
       //
       // A directory member carries its entry as well, and its card is built
@@ -173,7 +214,7 @@ namespace HM
       // Everything one request needs to know, computed once.
       struct Context
       {
-         Context(const HttpRequest &httpRequest) : request(httpRequest), listed(false), listFailed(false) { }
+         Context(const HttpRequest &httpRequest) : request(httpRequest), booksLoaded(false), booksFailed(false) { }
 
          const HttpRequest &request;
          std::shared_ptr<const Account> account;
@@ -182,25 +223,27 @@ namespace HM
          AnsiString addressUtf8;
          AnsiString principalHref;
          AnsiString homeHref;
-         AnsiString bookHref;
          AnsiString directoryHref;
          __int64 domainId = 0;
 
-         // The address book's members, loaded on first need, and the
-         // directory's beside them. Two vectors and not one, because a PROPFIND
-         // on the home asks both collections for their ctag in one request and
-         // a shared vector would answer one of them the other's.
-         bool listed;
-         bool listFailed;
-         std::vector<Member> members;
+         // Every book the caller can see - its own and the shared ones - loaded
+         // on first need, and the members of each loaded on first need after
+         // that. A PROPFIND of the home collection asks for all of them; a
+         // request inside one book asks for that one.
+         bool booksLoaded;
+         bool booksFailed;
+         std::vector<Book> books;
+         std::map<__int64, std::vector<Member> > membersByBook;
+         std::set<__int64> failedBooks;
 
+         // The organisation's directory, loaded on first need, beside the
+         // books: a PROPFIND on the home asks every collection for its ctag in
+         // one request, and the directory's members are nobody's book.
          bool directoryListed = false;
          bool directoryFailed = false;
          std::vector<Member> directoryMembers;
       };
 
-      // A name-based UUID of a seed, marked as version 8 (RFC 9562 section 5.8)
-      // because its bits come from SHA-256: the same seed gives the same UID.
       // The domain part of an address, for the sentence the directory's
       // description is.
       String DomainPartOf(const String &address)
@@ -209,6 +252,8 @@ namespace HM
          return at < 0 ? String() : address.Mid(at + 1);
       }
 
+      // A name-based UUID of a seed, marked as version 8 (RFC 9562 section 5.8)
+      // because its bits come from SHA-256: the same seed gives the same UID.
       AnsiString StableUidFromSeed_(const AnsiString &seed);
 
       // The UID of a contact the webmail made, which has no card and so no UID
@@ -241,18 +286,22 @@ namespace HM
       }
 
       // The resource name a client created the contact under, or <id>.vcf for
-      // a contact the webmail made.
-      AnsiString ContactHref(const Context &context, const ContactRecord &record)
+      // a contact the webmail made, under the collection of the book it is in.
+      AnsiString ContactHref(const Book &book, const ContactRecord &record)
       {
          if (record.uri.IsEmpty())
-            return context.bookHref + Int64Text(record.id) + ".vcf";
-         return context.bookHref + PercentEncodeSegment(Utf8(record.uri));
+            return book.href + Int64Text(record.id) + ".vcf";
+         return book.href + PercentEncodeSegment(Utf8(record.uri));
       }
 
-      void FillMember(const Context &context, const ContactRecord &record, Member &member)
+      void FillMember(const Book &book, const ContactRecord &record, Member &member)
       {
          member.record = record;
-         member.uid = record.uid.IsEmpty() ? StableUid_(context.addressUtf8, record.id) : Utf8(record.uid);
+
+         // The UID is derived from the address of the account whose row it is -
+         // the book's OWNER - so a contact of a shared book has one identity
+         // however many people read it.
+         member.uid = record.uid.IsEmpty() ? StableUid_(book.ownerUtf8, record.id) : Utf8(record.uid);
 
          // A card a client sent is served as it came, byte for byte, so the
          // ETag the client was given for it is the ETag of what it reads back
@@ -267,7 +316,7 @@ namespace HM
          else
             member.card = VCard::Generate(member.uid, Utf8(record.name), Utf8(record.address));
          member.etag = EtagOf(member.card);
-         member.href = ContactHref(context, record);
+         member.href = ContactHref(book, record);
       }
 
       // The resource name a directory entry is served under. It is derived from
@@ -310,19 +359,126 @@ namespace HM
          member.photoPending = !entry.list && entry.hasPhoto;
       }
 
-      bool EnsureListed(Context &context)
+      // Whether a row of the owner's address book is in this book. The default
+      // book also holds the rows an upgrade left at 0 (ContactStore.h).
+      bool InBook(const Book &book, const ContactRecord &record)
       {
-         if (context.listed)
-            return !context.listFailed;
+         return record.bookId == book.record.id || (book.isDefault && record.bookId == 0);
+      }
 
-         context.listed = true;
-         std::vector<ContactRecord> records;
-         if (!ContactStore::List(context.account->GetID(), records))
+      // And whether this collection serves it. A GROUP row is its owner's own
+      // address book entry: its members are resolved against the owner's WHOLE
+      // address book, across every book of it, so a group of a book somebody
+      // shares with the caller would carry names and addresses out of books
+      // that were never shared. No group is served through a share, in either
+      // direction - a group card PUT into a shared book is refused below for
+      // the same reason.
+      bool ServedIn(const Book &book, const ContactRecord &record)
+      {
+         return !book.shared || !ContactStore::IsGroupAddress(record.address);
+      }
+
+      // The collection for one of the caller's own books, filled in.
+      void FillOwnBook(const Context &context, const AddressBookRecord &record, bool isDefault, Book &book)
+      {
+         book = Book();
+         book.record = record;
+         book.shared = false;
+         book.writable = true;
+         book.isDefault = isDefault;
+         book.ownerAccountId = record.accountId;
+         book.ownerUtf8 = context.addressUtf8;
+         book.segment = isDefault ? AnsiString("contacts") : "book-" + Int64Text(record.id);
+         book.href = context.homeHref + book.segment + "/";
+      }
+
+      // And for one somebody else shares with the caller.
+      void FillSharedBook(const Context &context, const AddressBookRecord &record, bool writable, Book &book)
+      {
+         book = Book();
+         book.record = record;
+         book.shared = true;
+         book.writable = writable;
+         book.isDefault = AddressBookStore::IsDefault(record.accountId, record.id);
+         book.ownerAccountId = record.accountId;
+
+         std::shared_ptr<const Account> owner = CacheContainer::Instance()->GetAccount(record.accountId);
+         String ownerAddress = owner ? owner->GetAddress() : String();
+         ownerAddress.ToLower();
+         book.ownerUtf8 = Utf8(ownerAddress);
+
+         book.segment = "shared-" + Int64Text(record.id);
+         book.href = context.homeHref + book.segment + "/";
+      }
+
+      // Every book the caller can see: its own, default first, then the ones
+      // shared with it by name or through its domain.
+      bool EnsureBooks(Context &context)
+      {
+         if (context.booksLoaded)
+            return !context.booksFailed;
+
+         context.booksLoaded = true;
+
+         std::vector<AddressBookRecord> own;
+         if (!AddressBookStore::ListBooks(context.account->GetID(), own))
          {
-            context.listFailed = true;
+            context.booksFailed = true;
             return false;
          }
 
+         for (size_t i = 0; i < own.size(); i++)
+         {
+            Book book;
+            FillOwnBook(context, own[i], i == 0, book);
+            context.books.push_back(book);
+         }
+
+         // A failed read of hm_addressbookshares fails the whole listing, as a
+         // failed read of the caller's own books does. Swallowed, it would
+         // leave the shared collections out of the tree, Resolve would not find
+         // the one a client asked for, and the answer would be 404 - which is
+         // the client being told its address book was deleted, and a client
+         // told that throws its copy away. booksFailed turns it into the 500
+         // the request is retried after.
+         std::vector<AddressBookRecord> shared;
+         std::vector<AddressBookShareRecord> shares;
+         if (!AddressBookStore::ListSharedWith(context.account->GetID(), context.account->GetDomainID(), shared, shares))
+         {
+            context.books.clear();
+            context.booksFailed = true;
+            return false;
+         }
+
+         for (size_t i = 0; i < shared.size(); i++)
+         {
+            Book book;
+            FillSharedBook(context, shared[i], shares[i].write, book);
+            context.books.push_back(book);
+         }
+
+         return true;
+      }
+
+      // The members of one book, read once per request however many properties
+      // ask for them. Null when the book could not be read.
+      const std::vector<Member> *MembersOf(Context &context, const Book &book)
+      {
+         std::map<__int64, std::vector<Member> >::const_iterator found = context.membersByBook.find(book.record.id);
+         if (found != context.membersByBook.end())
+            return &found->second;
+
+         if (context.failedBooks.find(book.record.id) != context.failedBooks.end())
+            return nullptr;
+
+         std::vector<ContactRecord> records;
+         if (!ContactStore::ListInBook(book.ownerAccountId, book.record.id, book.isDefault, records))
+         {
+            context.failedBooks.insert(book.record.id);
+            return nullptr;
+         }
+
+         std::vector<Member> &members = context.membersByBook[book.record.id];
          for (size_t i = 0; i < records.size(); i++)
          {
             // A collected address - somebody the person wrote to - is not a
@@ -330,12 +486,17 @@ namespace HM
             if (records[i].source == ContactStore::SourceCollected)
                continue;
 
+            // And a group of a book somebody shares with the caller is the
+            // owner's, not theirs.
+            if (!ServedIn(book, records[i]))
+               continue;
+
             Member member;
-            FillMember(context, records[i], member);
-            context.members.push_back(member);
+            FillMember(book, records[i], member);
+            members.push_back(member);
          }
 
-         return true;
+         return &members;
       }
 
       // The organisation's directory of the account's own domain, as cards -
@@ -370,24 +531,24 @@ namespace HM
          return true;
       }
 
-      bool EnsureMembers(Context &context, bool directory)
+      // The directory's members, or null when it could not be read: the shape
+      // MembersOf answers for a book, so that the reports treat the two alike.
+      const std::vector<Member> *DirectoryMembers(Context &context)
       {
-         return directory ? EnsureDirectoryListed(context) : EnsureListed(context);
+         return EnsureDirectoryListed(context) ? &context.directoryMembers : nullptr;
       }
 
-      std::vector<Member> &MembersOf(Context &context, bool directory)
+      // The members a resource's collection serves: the directory's, or those
+      // of the book the resource is in.
+      const std::vector<Member> *MembersFor(Context &context, const Resource &resource)
       {
-         return directory ? context.directoryMembers : context.members;
+         return IsDirectoryKind(resource.kind) ? DirectoryMembers(context) : MembersOf(context, resource.book);
       }
 
-      // The state of the whole collection, from which getctag and the
+      // The state of a whole collection, from which getctag and the
       // sync-token are made: every member's id and ETag, in id order.
-      bool CollectionTag(Context &context, bool directory, AnsiString &tag)
+      bool TagOfMembers(const std::vector<Member> &members, AnsiString &tag)
       {
-         if (!EnsureMembers(context, directory))
-            return false;
-
-         const std::vector<Member> &members = MembersOf(context, directory);
          std::vector<AnsiString> lines;
          for (size_t i = 0; i < members.size(); i++)
             lines.push_back(Int64Text(members[i].record.id) + ":" + members[i].etag);
@@ -401,9 +562,50 @@ namespace HM
          return true;
       }
 
+      bool CollectionTag(Context &context, const Book &book, AnsiString &tag)
+      {
+         const std::vector<Member> *members = MembersOf(context, book);
+         return members ? TagOfMembers(*members, tag) : false;
+      }
+
+      // The tag of whichever collection the resource is: the directory's, or
+      // its book's.
+      bool CollectionTagFor(Context &context, const Resource &resource, AnsiString &tag)
+      {
+         const std::vector<Member> *members = MembersFor(context, resource);
+         return members ? TagOfMembers(*members, tag) : false;
+      }
+
       AnsiString SyncTokenFor(const AnsiString &tag)
       {
          return "urn:x-hmailserver:carddav-sync:" + tag;
+      }
+
+      // Where a contact the caller can see lives in the tree, whichever book
+      // holds it. A 409 names the row that already has an address, and the
+      // address is unique per account rather than per book, so that row may be
+      // in another of the account's books; one in a book the caller cannot see
+      // has no href here, and the refusal names the address instead.
+      AnsiString HrefOfVisibleContact(Context &context, const ContactRecord &record)
+      {
+         if (!EnsureBooks(context))
+            return AnsiString("");
+
+         for (size_t i = 0; i < context.books.size(); i++)
+         {
+            if (context.books[i].ownerAccountId == record.accountId && InBook(context.books[i], record))
+               return ContactHref(context.books[i], record);
+         }
+
+         return AnsiString("");
+      }
+
+      // How a 409 names that row: at its URL when the caller can see where it
+      // is, and not at all when it is in a book they cannot - an empty pair of
+      // brackets said nothing and read like a bug.
+      AnsiString At(const AnsiString &href)
+      {
+         return href.IsEmpty() ? AnsiString("") : " (" + href + ")";
       }
 
       bool SameAddress(const Context &context, const AnsiString &segment)
@@ -530,12 +732,29 @@ namespace HM
                return true;
             }
 
-            if (segments[3] != "contacts")
+            // One of the collections of the home: contacts, book-<id> or
+            // shared-<id>. A segment naming a book the caller cannot see is
+            // simply not found, so the ids of one account's books say nothing
+            // about another's.
+            if (!EnsureBooks(context))
                return false;
+
+            const Book *book = nullptr;
+            for (size_t i = 0; i < context.books.size() && !book; i++)
+            {
+               if (context.books[i].segment == segments[3])
+                  book = &context.books[i];
+            }
+
+            if (!book)
+               return false;
+
+            resource.book = *book;
+
             if (segments.size() == 4)
             {
                resource.kind = KindAddressBook;
-               resource.href = context.bookHref;
+               resource.href = book->href;
                return true;
             }
             if (segments.size() != 5 || trailingSlash || segments[4].IsEmpty())
@@ -543,16 +762,27 @@ namespace HM
 
             // The name a client created a contact under names that contact;
             // <id>.vcf names a contact the webmail made, which has no name of
-            // its own; any other name is a slot a PUT may fill.
+            // its own; any other name is a slot a PUT may fill. Both are asked
+            // within this book, under the account whose rows it holds.
             AnsiString name = segments[4];
             ContactRecord named;
-            if (ContactStore::FindByUri(context.account->GetID(), Wide(name), named) && named.source != ContactStore::SourceCollected)
+            const bool byUri = ContactStore::FindByUri(book->ownerAccountId, book->record.id, book->isDefault, Wide(name), named) &&
+                               named.source != ContactStore::SourceCollected;
+            if (byUri && ServedIn(*book, named))
             {
                resource.kind = KindContact;
                resource.contact = named;
-               resource.href = ContactHref(context, named);
+               resource.href = ContactHref(*book, named);
                return true;
             }
+
+            // A row this collection does not serve - a group of a book somebody
+            // shares with the caller - is not found, and is not a free slot
+            // either: a PUT into its name would leave two rows of the book at
+            // one resource name, which the store does not forbid and a client
+            // could not tell apart.
+            if (byUri)
+               return false;
 
             if (name.EndsWith(".vcf"))
             {
@@ -568,18 +798,24 @@ namespace HM
                      id = id * 10 + (idText[i] - '0');
 
                   ContactRecord record;
-                  if (id > 0 && ContactStore::Get(context.account->GetID(), id, record) && record.uri.IsEmpty() && record.source != ContactStore::SourceCollected)
+                  if (id > 0 && ContactStore::Get(book->ownerAccountId, id, record) && InBook(*book, record) &&
+                      record.uri.IsEmpty() && record.source != ContactStore::SourceCollected)
                   {
+                     // The same rule, and for the same reason: <id>.vcf is the
+                     // name that row is served under, so it is never a slot.
+                     if (!ServedIn(*book, record))
+                        return false;
+
                      resource.kind = KindContact;
                      resource.contact = record;
-                     resource.href = ContactHref(context, record);
+                     resource.href = ContactHref(*book, record);
                      return true;
                   }
                }
             }
 
             resource.kind = KindContactSlot;
-            resource.href = context.bookHref + PercentEncodeSegment(name);
+            resource.href = book->href + PercentEncodeSegment(name);
             resource.slotName = name;
             return true;
          }
@@ -713,7 +949,7 @@ namespace HM
       {
          ResourceKind kind = resource.kind;
          bool isContact = kind == KindContact || kind == KindDirectoryCard;
-         bool isCollection = !isContact && kind != KindContactSlot;
+         bool isCollection = !isContact && kind != KindContactSlot && kind != KindDirectorySlot;
          const bool directory = IsDirectoryKind(kind);
          const bool anyBook = kind == KindAddressBook || kind == KindDirectory;
 
@@ -741,8 +977,11 @@ namespace HM
                case KindHomeCollection: innerXml = "Address books"; break;
                case KindCalendarsCollection: innerXml = "Calendars"; break;
                case KindHome: innerXml = XmlEscape("Address books of " + context.addressUtf8); break;
-               case KindAddressBook: innerXml = "Contacts"; break;
                case KindDirectory: innerXml = "Directory"; break;
+               case KindAddressBook:
+                  innerXml = XmlEscape(Utf8(resource.book.record.name) +
+                     (resource.book.shared ? AnsiString(" (") + resource.book.ownerUtf8 + ")" : AnsiString("")));
+                  break;
                case KindContact:
                case KindDirectoryCard:
                   innerXml = XmlEscape(resource.contact.name.IsEmpty() ? Utf8(resource.contact.address) : Utf8(resource.contact.name));
@@ -772,22 +1011,32 @@ namespace HM
 
             if (property.name == "owner" && (kind == KindHome || anyBook || isContact))
             {
-               innerXml = Href(context.principalHref);
+               // A shared collection's owner is the account whose rows it holds,
+               // not the one reading it.
+               if (kind != KindHome && resource.book.shared)
+                  innerXml = Href(AnsiString(CardDavServer::ContextPath) + "principals/" + PercentEncodeSegment(resource.book.ownerUtf8) + "/");
+               else
+                  innerXml = Href(context.principalHref);
                return true;
             }
 
             if (property.name == "current-user-privilege-set" && (kind == KindPrincipal || kind == KindHome || anyBook || isContact))
             {
-               // The directory is the organisation's, kept by the
-               // administrator and by each person's own settings, so a phone is
-               // told plainly that it may read it and nothing else - rather
-               // than being allowed to try a PUT and told 403 at the end of it.
-               if (directory)
-                  innerXml = "<D:privilege><D:read/></D:privilege><D:privilege><D:read-current-user-privilege-set/></D:privilege>";
-               else
-                  innerXml = "<D:privilege><D:read/></D:privilege><D:privilege><D:write/></D:privilege>"
-                             "<D:privilege><D:write-content/></D:privilege><D:privilege><D:bind/></D:privilege>"
-                             "<D:privilege><D:unbind/></D:privilege><D:privilege><D:read-current-user-privilege-set/></D:privilege>";
+               // A book shared read-only grants reading and nothing else, so a
+               // client is told before it tries to write; everything the caller
+               // owns, or is shared with write, is writable. The directory is
+               // the organisation's, kept by the administrator and by each
+               // person's own settings, so a phone is told plainly that it may
+               // read it and nothing else - rather than being allowed to try a
+               // PUT and told 403 at the end of it.
+               const bool writable = directory ? false : (kind == KindPrincipal || kind == KindHome) ? true : resource.book.writable;
+
+               innerXml = "<D:privilege><D:read/></D:privilege>"
+                          "<D:privilege><D:read-current-user-privilege-set/></D:privilege>";
+               if (writable)
+                  innerXml += "<D:privilege><D:write/></D:privilege>"
+                              "<D:privilege><D:write-content/></D:privilege><D:privilege><D:bind/></D:privilege>"
+                              "<D:privilege><D:unbind/></D:privilege>";
                return true;
             }
 
@@ -802,7 +1051,7 @@ namespace HM
             if (property.name == "sync-token" && anyBook)
             {
                AnsiString tag;
-               if (!CollectionTag(context, kind == KindDirectory, tag))
+               if (!CollectionTagFor(context, resource, tag))
                   return false;
                innerXml = XmlEscape(SyncTokenFor(tag));
                return true;
@@ -854,7 +1103,10 @@ namespace HM
                {
                   innerXml = directory
                      ? XmlEscape("The people and lists of " + Utf8(DomainPartOf(context.addressWide)) + ", read-only")
-                     : XmlEscape("The contacts of " + context.addressUtf8);
+                     : XmlEscape(Utf8(resource.book.record.name) + " of " + resource.book.ownerUtf8 +
+                          (resource.book.shared
+                             ? (resource.book.writable ? ", shared with you" : ", shared with you read-only")
+                             : AnsiString("")));
                   return true;
                }
                if (property.name == "max-resource-size")
@@ -903,10 +1155,10 @@ namespace HM
 
          if (property.ns == NsCalendarServer)
          {
-            if (property.name == "getctag" && (kind == KindAddressBook || kind == KindDirectory))
+            if (property.name == "getctag" && anyBook)
             {
                AnsiString tag;
-               if (!CollectionTag(context, kind == KindDirectory, tag))
+               if (!CollectionTagFor(context, resource, tag))
                   return false;
                innerXml = XmlEscape(tag);
                return true;
@@ -1016,10 +1268,12 @@ namespace HM
          return xml;
       }
 
-      AnsiString ResponseForMember(Context &context, const Member &member, const PropertyRequest &request, bool directory = false)
+      AnsiString ResponseForMember(Context &context, const Book &book, const Member &member, const PropertyRequest &request,
+                                   bool directory = false)
       {
          Resource resource;
          resource.kind = directory ? KindDirectoryCard : KindContact;
+         resource.book = book;
          resource.contact = member.record;
          resource.href = member.href;
          return ResponseFor(context, resource, &member, request);
@@ -1128,8 +1382,15 @@ namespace HM
          Member selfMember;
          if (resource.kind == KindContact)
          {
-            FillMember(context, resource.contact, selfMember);
+            FillMember(resource.book, resource.contact, selfMember);
             self = &selfMember;
+         }
+         else if (resource.kind == KindDirectoryCard)
+         {
+            // Resolve found the card in the listing, and its member is there.
+            const std::vector<Member> *members = DirectoryMembers(context);
+            if (members && resource.directoryIndex >= 0 && (size_t) resource.directoryIndex < members->size())
+               self = &(*members)[resource.directoryIndex];
          }
          xml += ResponseFor(context, resource, self, request);
 
@@ -1173,14 +1434,21 @@ namespace HM
             }
             case KindHome:
             {
-               Resource book;
-               book.kind = KindAddressBook;
-               book.href = context.bookHref;
-               xml += ResponseFor(context, book, nullptr, request);
+               // Every book the caller can see: its own, then the ones shared
+               // with it. This is how a phone finds a shared address book at all.
+               if (!EnsureBooks(context))
+                  return Text(500, "the address books could not be read");
+               for (size_t i = 0; i < context.books.size(); i++)
+               {
+                  Resource book;
+                  book.kind = KindAddressBook;
+                  book.book = context.books[i];
+                  book.href = context.books[i].href;
+                  xml += ResponseFor(context, book, nullptr, request);
+               }
 
-               // The organisation's directory beside the account's own book,
-               // so a client that walks the home finds it without being told
-               // its address.
+               // The organisation's directory beside the books, so a client
+               // that walks the home finds it without being told its address.
                Resource directory;
                directory.kind = KindDirectory;
                directory.href = context.directoryHref;
@@ -1189,18 +1457,20 @@ namespace HM
             }
             case KindAddressBook:
             {
-               if (!EnsureListed(context))
+               const std::vector<Member> *members = MembersOf(context, resource.book);
+               if (!members)
                   return Text(500, "the contacts could not be read");
-               for (size_t i = 0; i < context.members.size(); i++)
-                  xml += ResponseForMember(context, context.members[i], request);
+               for (size_t i = 0; i < members->size(); i++)
+                  xml += ResponseForMember(context, resource.book, (*members)[i], request);
                break;
             }
             case KindDirectory:
             {
-               if (!EnsureDirectoryListed(context))
+               const std::vector<Member> *members = DirectoryMembers(context);
+               if (!members)
                   return Text(500, "the directory could not be read");
-               for (size_t i = 0; i < context.directoryMembers.size(); i++)
-                  xml += ResponseForMember(context, context.directoryMembers[i], request, true);
+               for (size_t i = 0; i < members->size(); i++)
+                  xml += ResponseForMember(context, resource.book, (*members)[i], request, true);
                break;
             }
             default:
@@ -1268,7 +1538,8 @@ namespace HM
          if (resource.kind == KindRoot)
          {
             AnsiString text = "hMailServer CardDAV and CalDAV. Your principal is " + context.principalHref +
-               ", your address book is " + context.bookHref + ", your organisation's directory is " + context.directoryHref +
+               ", your address books are under " + context.homeHref + " (contacts/ is your own, shared-<id>/ is one shared with you),"
+               " your organisation's directory is " + context.directoryHref +
                " and your calendar is " + CalDavServer::HomeHref(context.addressUtf8) + "calendar/.";
             return Respond(200, "text/plain; charset=utf-8", head ? AnsiString("") : text + "\r\n");
          }
@@ -1282,14 +1553,15 @@ namespace HM
          Member member;
          if (resource.kind == KindDirectoryCard)
          {
-            if (!EnsureDirectoryListed(context))
+            const std::vector<Member> *members = DirectoryMembers(context);
+            if (!members)
                return Text(500, "the directory could not be read");
-            if (resource.directoryIndex < 0 || (size_t) resource.directoryIndex >= context.directoryMembers.size())
+            if (resource.directoryIndex < 0 || (size_t) resource.directoryIndex >= members->size())
                return NotFound();
-            member = context.directoryMembers[resource.directoryIndex];
+            member = (*members)[resource.directoryIndex];
          }
          else
-            FillMember(context, resource.contact, member);
+            FillMember(resource.book, resource.contact, member);
 
          AnsiString headers = "ETag: " + member.etag + "\r\n";
 
@@ -1331,6 +1603,11 @@ namespace HM
          if (resource.kind != KindContact && resource.kind != KindContactSlot)
             return MethodNotAllowed(resource);
 
+         // A book shared read-only. current-user-privilege-set said so before
+         // the client tried, and this is the answer if it tries anyway.
+         if (!resource.book.writable)
+            return Text(403, "this address book is shared with you read-only");
+
          const HttpRequest &request = context.request;
 
          if (!IsVCardContentType(request.Header("content-type")))
@@ -1356,6 +1633,20 @@ namespace HM
          // with one address are. Its members are kept as the client wrote
          // them and resolved when they are read.
          const bool isGroup = VCard::IsGroup(properties);
+
+         // A group is never written into a book somebody else owns. The row
+         // would be the OWNER'S - every row of a shared book is - and a group's
+         // members resolve against its owner's whole address book, so a
+         // writable share would otherwise be a way of asking for the contacts
+         // of the books that were NOT shared: put a group here naming rows by
+         // address or by the UID a row of theirs is served under, then read the
+         // resolved members back. It would also plant a name the owner's own
+         // compose expands. No group is shared, in either direction: what a
+         // read-only collection already refuses, a writable one refuses here.
+         if (isGroup && resource.book.shared)
+            return DavError(403, "<C:valid-address-data/>",
+               "A group is the address book owner's own entry and is not written into a book that is shared with you; "
+               "make it in your own address book, where its members are yours.");
 
          // The same ceiling the API writes under, because the cost of reading
          // a group is the cost of its members and both surfaces write into one
@@ -1387,7 +1678,11 @@ namespace HM
          if (isGroup && name.IsEmpty())
             return DavError(403, "<C:valid-address-data/>", "A group needs a name: the card has no FN.");
 
-         __int64 accountId = context.account->GetID();
+         // Every row written here is the BOOK OWNER'S, whoever is writing it:
+         // a contact added to a book somebody shares with you is theirs, and
+         // goes with the book if the share is taken back.
+         const __int64 accountId = resource.book.ownerAccountId;
+         const __int64 bookId = resource.book.record.id;
 
          // The card's own UID is kept; a card without one gets a stable one -
          // for an existing contact the one it had, for a new one derived from
@@ -1397,8 +1692,8 @@ namespace HM
          if (uid.IsEmpty())
          {
             uid = resource.kind == KindContact
-               ? (resource.contact.uid.IsEmpty() ? StableUid_(context.addressUtf8, resource.contact.id) : Utf8(resource.contact.uid))
-               : StableUidFromSeed_("hMailServer.carddav.resource:" + context.addressUtf8 + ":" + resource.slotName);
+               ? (resource.contact.uid.IsEmpty() ? StableUid_(resource.book.ownerUtf8, resource.contact.id) : Utf8(resource.contact.uid))
+               : StableUidFromSeed_("hMailServer.carddav.resource:" + resource.book.ownerUtf8 + ":" + resource.book.segment + ":" + resource.slotName);
          }
          if (isGroup && uid.GetLength() > ContactGroups::MaximumUidLength)
             return DavError(403, "<C:valid-address-data/>", "A group's UID is at most " + IntText(ContactGroups::MaximumUidLength) + " characters here.");
@@ -1418,21 +1713,22 @@ namespace HM
          if (resource.kind == KindContact)
          {
             Member current;
-            FillMember(context, resource.contact, current);
+            FillMember(resource.book, resource.contact, current);
             if (!PreconditionsHold(request, current.etag))
                return Text(412, "precondition failed: the contact has changed since it was read, or If-None-Match: * named an existing resource",
                   "ETag: " + current.etag + "\r\n");
 
-            // The address is the row's identity in this store: moving this
-            // contact onto another contact's address would be two rows for
-            // one address, which the table refuses.
+            // The address is the row's identity in this store, and it is unique
+            // per ACCOUNT rather than per book: moving this contact onto another
+            // contact's address would be two rows for one address, which the
+            // table refuses, and the other row may be in another book.
             __int64 other = 0;
             if (ContactStore::FindByAddress(accountId, address, other) && other != resource.contact.id)
             {
                ContactRecord otherRecord;
-               AnsiString otherHref = ContactStore::Get(accountId, other, otherRecord) ? ContactHref(context, otherRecord) : AnsiString("");
-               return Text(409, "another contact of this address book already has " + identity +
-                  " (" + otherHref + "); a contact is one address here, and a group one UID");
+               AnsiString otherHref = ContactStore::Get(accountId, other, otherRecord) ? HrefOfVisibleContact(context, otherRecord) : AnsiString("");
+               return Text(409, "another contact of this address book's account already has " + identity +
+                  At(otherHref) + "; a contact is one address here, in one of its books, and a group one UID");
             }
 
             if (!ContactStore::UpdateCard(accountId, resource.contact.id, name, address, Wide(uid), Wide(card)))
@@ -1444,7 +1740,7 @@ namespace HM
             updated.uid = Wide(uid);
             updated.vcard = Wide(card);
             Member written;
-            FillMember(context, updated, written);
+            FillMember(resource.book, updated, written);
             LOG_DEBUG("CardDAV: " + String(context.addressUtf8) + " updated contact " + StringParser::IntToString(updated.id) + ".");
             return Respond(204, "text/plain", "", "ETag: " + written.etag + "\r\n");
          }
@@ -1464,8 +1760,17 @@ namespace HM
          ContactRecord record;
          if (ContactStore::FindByAddress(accountId, address, existing))
          {
+            // A collected row is adopted only when it is ALREADY in this book.
+            // The lookup above is per ACCOUNT, because the unique index is, so
+            // the row it found may be in another of the owner's books - their
+            // private default book is where every address they write to is
+            // collected (ContactCard.cpp) - and adopting it there would take a
+            // row out of a book they never shared and put it, rewritten under
+            // the writer's card, into one they did. A book shared with somebody
+            // is not a way to move the owner's contacts into it.
             ContactRecord existingRecord;
-            if (!isGroup && ContactStore::Get(accountId, existing, existingRecord) && existingRecord.source == ContactStore::SourceCollected)
+            if (!isGroup && ContactStore::Get(accountId, existing, existingRecord) &&
+                existingRecord.source == ContactStore::SourceCollected && InBook(resource.book, existingRecord))
             {
                // A collected address the phone was never shown: the phone's card
                // becomes the contact, under the phone's name, kept from now on.
@@ -1485,15 +1790,15 @@ namespace HM
                }
 
                Member kept;
-               FillMember(context, record, kept);
+               FillMember(resource.book, record, kept);
                LOG_DEBUG("CardDAV: " + String(context.addressUtf8) + " kept collected contact " + StringParser::IntToString(record.id) + " at " + String(kept.href) + ".");
 
                return Respond(201, "text/plain", "", "ETag: " + kept.etag + "\r\nLocation: " + kept.href + "\r\n");
             }
 
-            AnsiString existingHref = ContactStore::Get(accountId, existing, existingRecord) ? ContactHref(context, existingRecord) : AnsiString("");
-            return Text(409, "this address book already has a contact with " + identity +
-               " (" + existingHref + "); a contact is one address here, and a group one UID - update that one, or delete it first");
+            AnsiString existingHref = ContactStore::Get(accountId, existing, existingRecord) ? HrefOfVisibleContact(context, existingRecord) : AnsiString("");
+            return Text(409, "this address book's account already has a contact with " + identity +
+               At(existingHref) + "; a contact is one address here, in one of its books, and a group one UID - update that one, or delete it first");
          }
 
          // And the ceiling on how many groups one book holds, for the same
@@ -1506,7 +1811,7 @@ namespace HM
                   " groups it may; delete one before making another");
          }
 
-         if (!ContactStore::InsertCard(accountId, name, address, Wide(resource.slotName), Wide(uid), Wide(card), record))
+         if (!ContactStore::InsertCard(accountId, bookId, name, address, Wide(resource.slotName), Wide(uid), Wide(card), record))
          {
             // Two clients creating the same address at once: the second insert
             // is refused by the table's unique index, and the answer is the same
@@ -1514,14 +1819,14 @@ namespace HM
             if (ContactStore::FindByAddress(accountId, address, existing))
             {
                ContactRecord existingRecord;
-               AnsiString existingHref = ContactStore::Get(accountId, existing, existingRecord) ? ContactHref(context, existingRecord) : AnsiString("");
-               return Text(409, "this address book already has a contact with " + identity + " (" + existingHref + ")");
+               AnsiString existingHref = ContactStore::Get(accountId, existing, existingRecord) ? HrefOfVisibleContact(context, existingRecord) : AnsiString("");
+               return Text(409, "this address book's account already has a contact with " + identity + At(existingHref));
             }
             return Text(500, "the contact could not be saved");
          }
 
          Member created;
-         FillMember(context, record, created);
+         FillMember(resource.book, record, created);
          LOG_DEBUG("CardDAV: " + String(context.addressUtf8) + " created contact " + StringParser::IntToString(record.id) + " at " + String(created.href) + ".");
 
          // The contact lives where the client put it: the Location is the
@@ -1537,19 +1842,53 @@ namespace HM
 
          if (resource.kind == KindContactSlot)
             return NotFound();
+
+         if (resource.kind == KindAddressBook)
+         {
+            // A collection somebody shares with the caller: the share is given
+            // back and the book stays where it is, exactly as leaving a shared
+            // calendar does. The caller's own books are made and removed from
+            // the webmail, not from here.
+            if (!resource.book.shared)
+               return Text(403, "your own address books are not deleted over CardDAV; use the Contacts page");
+
+            // Only the share made to this account. One made to the whole domain
+            // is not this person's to take back - doing so here would take the
+            // book away from everybody else in the domain as well.
+            AddressBookShareRecord own;
+            if (!AddressBookStore::ShareOf(resource.book.record.id, context.account->GetID(), 0, own))
+               return Text(403, "this address book is shared with your whole domain; only its owner can take that share back");
+
+            if (!AddressBookStore::Unshare(resource.book.record.id, context.account->GetID(), 0))
+               return Text(500, "the share could not be removed");
+
+            LOG_DEBUG("CardDAV: " + String(context.addressUtf8) + " left the shared address book " +
+               String(Int64Text(resource.book.record.id)) + ".");
+            return Respond(204, "text/plain", "");
+         }
+
          if (resource.kind != KindContact)
-            return Text(403, "the address book and the collections above it cannot be deleted");
+            return Text(403, "the collections above an address book cannot be deleted");
+
+         if (!resource.book.writable)
+            return Text(403, "this address book is shared with you read-only");
 
          Member current;
-         FillMember(context, resource.contact, current);
+         FillMember(resource.book, resource.contact, current);
          if (!PreconditionsHold(context.request, current.etag))
             return Text(412, "precondition failed: the contact has changed since it was read", "ETag: " + current.etag + "\r\n");
 
-         if (!ContactStore::Delete(context.account->GetID(), resource.contact.id))
+         // The row is the book owner's, whoever is deleting it.
+         if (!ContactStore::Delete(resource.book.ownerAccountId, resource.contact.id))
             return NotFound();
 
-         // The groups that named it no longer do (ContactGroups.h).
-         ContactGroups::ForgetMember(context.account, resource.contact);
+         // The groups that named it no longer do (ContactGroups.h) - the OWNER'S
+         // groups, since the row was theirs.
+         std::shared_ptr<const Account> owner = resource.book.shared
+            ? CacheContainer::Instance()->GetAccount(resource.book.ownerAccountId)
+            : context.account;
+         if (owner)
+            ContactGroups::ForgetMember(owner, resource.contact);
 
          LOG_DEBUG("CardDAV: " + String(context.addressUtf8) + " deleted contact " + StringParser::IntToString(resource.contact.id) + ".");
          return Respond(204, "text/plain", "");
@@ -1559,7 +1898,7 @@ namespace HM
       // The reports
       //------------------------------------------------------------------------
 
-      HttpResponse HandleMultiget(Context &context, const XmlElement &report, bool directory)
+      HttpResponse HandleMultiget(Context &context, const Resource &resource, const XmlElement &report)
       {
          PropertyRequest request;
          if (const XmlElement *prop = report.Child(NsDav, "prop"))
@@ -1571,10 +1910,10 @@ namespace HM
             request.names.push_back(PropertyName(NsCardDav, "address-data"));
          }
 
-         if (!EnsureMembers(context, directory))
+         const bool directory = IsDirectoryKind(resource.kind);
+         const std::vector<Member> *members = MembersFor(context, resource);
+         if (!members)
             return Text(500, directory ? "the directory could not be read" : "the contacts could not be read");
-
-         const std::vector<Member> &members = MembersOf(context, directory);
 
          AnsiString xml = MultistatusOpen();
          size_t hrefs = 0;
@@ -1610,14 +1949,14 @@ namespace HM
             if (!answered.insert(wanted).second)
                continue;
             const Member *found = nullptr;
-            for (size_t j = 0; !found && j < members.size(); j++)
+            for (size_t j = 0; !found && j < members->size(); j++)
             {
-               if (PercentDecode(members[j].href) == wanted)
-                  found = &members[j];
+               if (PercentDecode((*members)[j].href) == wanted)
+                  found = &(*members)[j];
             }
 
             if (found)
-               xml += ResponseForMember(context, *found, request, directory);
+               xml += ResponseForMember(context, resource.book, *found, request, directory);
             else
                xml += " <D:response>\r\n  " + Href(href) + "\r\n  <D:status>HTTP/1.1 404 Not Found</D:status>\r\n </D:response>\r\n";
          }
@@ -1799,7 +2138,7 @@ namespace HM
          return filter.allOf ? allMatched : anyMatched;
       }
 
-      HttpResponse HandleQuery(Context &context, const XmlElement &report, bool directory)
+      HttpResponse HandleQuery(Context &context, const Resource &resource, const XmlElement &report)
       {
          PropertyRequest request;
          if (const XmlElement *prop = report.Child(NsDav, "prop"))
@@ -1826,20 +2165,20 @@ namespace HM
             }
          }
 
-         if (!EnsureMembers(context, directory))
+         const bool directory = IsDirectoryKind(resource.kind);
+         const std::vector<Member> *members = MembersFor(context, resource);
+         if (!members)
             return Text(500, directory ? "the directory could not be read" : "the contacts could not be read");
-
-         const std::vector<Member> &members = MembersOf(context, directory);
 
          AnsiString xml = MultistatusOpen();
          int answered = 0;
-         for (size_t i = 0; i < members.size(); i++)
+         for (size_t i = 0; i < members->size(); i++)
          {
             if (limit >= 0 && answered >= limit)
                break;
-            if (!FilterMatches(filter, members[i]))
+            if (!FilterMatches(filter, (*members)[i]))
                continue;
-            xml += ResponseForMember(context, members[i], request, directory);
+            xml += ResponseForMember(context, resource.book, (*members)[i], request, directory);
             answered++;
          }
 
@@ -1847,7 +2186,7 @@ namespace HM
          return Xml(207, xml);
       }
 
-      HttpResponse HandleSyncCollection(Context &context, const XmlElement &report, bool directory)
+      HttpResponse HandleSyncCollection(Context &context, const Resource &resource, const XmlElement &report)
       {
          PropertyRequest request;
          if (const XmlElement *prop = report.Child(NsDav, "prop"))
@@ -1862,20 +2201,23 @@ namespace HM
          if (const XmlElement *token = report.Child(NsDav, "sync-token"))
             presented = Trimmed(token->text);
 
+         const bool directory = IsDirectoryKind(resource.kind);
          AnsiString tag;
-         if (!CollectionTag(context, directory, tag))
+         if (!CollectionTagFor(context, resource, tag))
             return Text(500, directory ? "the directory could not be read" : "the contacts could not be read");
          AnsiString current = SyncTokenFor(tag);
 
-         const std::vector<Member> &members = MembersOf(context, directory);
+         const std::vector<Member> *members = MembersFor(context, resource);
+         if (!members)
+            return Text(500, directory ? "the directory could not be read" : "the contacts could not be read");
 
          AnsiString xml = MultistatusOpen();
 
          if (presented.IsEmpty())
          {
             // The initial sync: everything.
-            for (size_t i = 0; i < members.size(); i++)
-               xml += ResponseForMember(context, members[i], request, directory);
+            for (size_t i = 0; i < members->size(); i++)
+               xml += ResponseForMember(context, resource.book, (*members)[i], request, directory);
          }
          else if (presented != current)
          {
@@ -1909,22 +2251,21 @@ namespace HM
          if (!multiget && !query && !sync)
             return DavError(403, "<D:supported-report/>", "The reports here are addressbook-multiget, addressbook-query and sync-collection.");
 
-         // multiget is allowed at the address book and at a contact; the
-         // other two are questions about the collection. The directory answers
-         // all three the same way, since a phone that subscribes to it polls it
-         // exactly as it polls the account's own book.
-         const bool directory = IsDirectoryKind(resource.kind);
+         // multiget is allowed at an address book and at a contact; the other
+         // two are questions about the collection. The directory answers all
+         // three the same way, since a phone that subscribes to it polls it
+         // exactly as it polls the account's own books.
          bool onBook = resource.kind == KindAddressBook || resource.kind == KindDirectory;
          bool onContact = resource.kind == KindContact || resource.kind == KindDirectoryCard;
          if (!onBook && !(multiget && onContact))
-            return DavError(403, "<D:supported-report/>", "This report applies to the address book, " + context.bookHref +
+            return DavError(403, "<D:supported-report/>", "This report applies to an address book under " + context.homeHref +
                ", or to the directory, " + context.directoryHref + ".");
 
          if (multiget)
-            return HandleMultiget(context, root, directory);
+            return HandleMultiget(context, resource, root);
          if (query)
-            return HandleQuery(context, root, directory);
-         return HandleSyncCollection(context, root, directory);
+            return HandleQuery(context, resource, root);
+         return HandleSyncCollection(context, resource, root);
       }
    }
 
@@ -1990,7 +2331,6 @@ namespace HM
       AnsiString segment = PercentEncodeSegment(context.addressUtf8);
       context.principalHref = AnsiString(ContextPath) + "principals/" + segment + "/";
       context.homeHref = AnsiString(ContextPath) + "addressbooks/" + segment + "/";
-      context.bookHref = context.homeHref + "contacts/";
       context.directoryHref = context.homeHref + "directory/";
       context.domainId = context.account->GetDomainID();
 
@@ -2001,7 +2341,16 @@ namespace HM
 
       Resource resource;
       if (!Resolve(context, request.target, resource, readsCards))
+      {
+         // A collection is named by the book it is, so a store that could not be
+         // read makes every one of them unresolvable. Answering 404 for that
+         // would tell a client its address book had been deleted, and a client
+         // told that throws its copy away; 500 is a failure it retries.
+         if (context.booksFailed)
+            return Text(500, "the address books could not be read");
+
          return NotFound();
+      }
 
       HttpResponse response;
       try
@@ -2023,7 +2372,7 @@ namespace HM
          else if (method == "DELETE")
             response = HandleDelete(context, resource);
          else if (method == "MKCOL" || method == "MKCALENDAR")
-            response = Text(403, "this server keeps one address book per account, Contacts, the organisation's Directory beside it, and one calendar, Calendar; no collection can be made");
+            response = Text(403, "an address book is made from the Contacts page of the webmail or over /api/v1/me/address-books, not from here, and a calendar from the Calendar page; no collection can be made over DAV");
          else
             response = MethodNotAllowed(resource);
       }

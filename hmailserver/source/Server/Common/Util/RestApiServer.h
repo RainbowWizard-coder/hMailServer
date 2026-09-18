@@ -142,6 +142,25 @@ namespace HM
       // JsonEscape_ of Utf8_, for the helpers of a route file outside the class.
       static AnsiString JsonEscapeUtf8(const String &value);
 
+      // An address book the signed-in account can see: one of its own, or one
+      // another account shares with it or with its whole domain
+      // (RestApiAddressBooks.cpp). Plain fields rather than the store's record,
+      // so that the contacts routes can ask about a book without this header
+      // pulling in AddressBookStore.h.
+      struct VisibleBook
+      {
+         VisibleBook() : id(0), ownerAccountId(0), created(0), mine(true), writable(true), isDefault(false) { }
+
+         __int64 id;
+         __int64 ownerAccountId;   // whose rows the contacts in it are
+         __int64 created;          // UTC seconds
+         String name;
+         String owner;             // the owner's address, lower-cased
+         bool mine;                // the signed-in account owns it
+         bool writable;            // it may add, change and delete in it
+         bool isDefault;           // the owner's default book
+      };
+
       // One address the signed-in account may write as (RestApiIdentities.cpp).
       struct Identity
       {
@@ -324,6 +343,16 @@ namespace HM
          RouteMeDirectoryOwnPut,
          RouteMeDirectoryOwnPhoto,
          RouteMeDirectoryPhoto,
+
+         // The account's address books and who they are shared with
+         // (RestApiAddressBooks.cpp).
+         RouteMeAddressBooks,
+         RouteMeAddressBookCreate,
+         RouteMeAddressBookUpdate,
+         RouteMeAddressBookDelete,
+         RouteMeAddressBookShares,
+         RouteMeAddressBookSharePut,
+         RouteMeAddressBookShareDelete,
 
          // The account's calendars, events, tasks and the invitations its
          // mail carries (RestApiCalendar.cpp).
@@ -629,6 +658,13 @@ namespace HM
       // Authorize_ as the other routes under an address are.
       RouteAccountDeviceList,
       RouteAccountDeviceDelete,
+         // An account's address books and who they are shared with, read and
+         // a share removed by an administrator (RestApiAddressBooks.cpp).
+         // Scoped to the address's domain in Authorize_ as the rest are. There
+         // is no route here that reads a shared book's CONTACTS: an
+         // administrator sees the shape of the sharing, not the address book.
+         RouteAccountAddressBooks,
+         RouteAccountAddressBookShareDelete,
          // The account groups (RestApiGroups.cpp): Settings.Groups, Group and
          // Group.Members over COM. A group holds accounts of any domain and is
          // an ACL principal, so the resource is server-wide and refused for
@@ -1134,8 +1170,33 @@ namespace HM
       // name and members, one member added or removed. memberReference is the
       // path segment under /members - a contact id or an address.
       static HttpResponse HandleMeContactGroups_(const Caller &caller, RouteKind kind, __int64 groupId, const AnsiString &memberReference, const AnsiString &requestBody);
-      static AnsiString ContactGroupJson_(const ContactGroup &group, const ContactRecord *record, bool includeCard);
+      static AnsiString ContactGroupJson_(const ContactGroup &group, const ContactRecord *record, bool includeCard, const VisibleBook *book = nullptr);
       static AnsiString OpenApiContactGroupsPaths_();
+
+      // The account's address books and their shares (RestApiAddressBooks.cpp).
+      static HttpResponse HandleMeAddressBooks_(const Caller &caller);
+      static HttpResponse HandleMeAddressBookCreate_(const Caller &caller, const AnsiString &requestBody);
+      static HttpResponse HandleMeAddressBookUpdate_(const Caller &caller, __int64 bookId, const AnsiString &requestBody);
+      static HttpResponse HandleMeAddressBookDelete_(const Caller &caller, __int64 bookId);
+      static HttpResponse HandleMeAddressBookShares_(const Caller &caller, __int64 bookId);
+      static HttpResponse HandleMeAddressBookSharePut_(const Caller &caller, __int64 bookId, const AnsiString &target, const AnsiString &requestBody);
+      static HttpResponse HandleMeAddressBookShareDelete_(const Caller &caller, __int64 bookId, const AnsiString &target);
+      static HttpResponse HandleAccountAddressBooks_(const AnsiString &address);
+      static HttpResponse HandleAccountAddressBookShareDelete_(const AnsiString &address, __int64 bookId, const AnsiString &target);
+      static AnsiString OpenApiAddressBookPaths_();
+
+      // Every book the account can see, its own first (the default before the
+      // rest), then the ones shared with it. False when they could not be read.
+      static bool VisibleBooks_(std::shared_ptr<const Account> account, std::vector<VisibleBook> &books);
+
+      // One of them by id. A book the account cannot see is simply not found.
+      static bool FindVisibleBook_(std::shared_ptr<const Account> account, __int64 bookId, VisibleBook &found);
+
+      // The contact a /me/contacts/{id} request is about, and the book it is
+      // in - one of the account's own or one shared with it. needWrite refuses
+      // a book shared read-only. status and problem carry the refusal.
+      static bool FindVisibleContact_(std::shared_ptr<const Account> account, __int64 id, bool needWrite,
+                                      ContactRecord &contact, VisibleBook &book, int &status, AnsiString &problem);
 
       // The account's calendars, events, tasks and invitations (RestApiCalendar.cpp).
       static HttpResponse HandleMeCalendars_(const Caller &caller);
@@ -1159,7 +1220,7 @@ namespace HM
       static bool FindStoredEvent_(std::shared_ptr<const Account> account, const AnsiString &uid, CalendarRecord &calendar, CalendarObjectRecord &record);
       static AnsiString OpenApiCalendarPaths_();
       static void CollectContacts_(std::shared_ptr<const Account> account, const std::vector<String> &entries);
-      static AnsiString ContactJson_(const ContactRecord &contact, bool includeCard);
+      static AnsiString ContactJson_(const ContactRecord &contact, bool includeCard, const VisibleBook *book = nullptr);
 
       // Who the account may write as, and the From a send or draft asked for (RestApiIdentities.cpp).
       static HttpResponse HandleMeIdentities_(const Caller &caller);

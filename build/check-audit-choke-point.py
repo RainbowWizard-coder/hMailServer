@@ -144,6 +144,7 @@ ALLOWED = {
       "Common/Util/SignInStore.cpp",                # a device revoked, from every interface at once
       "Common/Util/RestApiAccountRecovery.cpp",     # a recovery address set or cleared, and a set of recovery codes made
       "Common/Util/RestApiDirectory.cpp",           # somebody's directory opt-out set or cleared by another hand
+      "Common/Util/RestApiAddressBooks.cpp",        # DELETE /api/v1/accounts/{address}/address-books/{id}/shares/{target}
    },
    "AuditTrail::SetActor(": {
       "Common/Util/AuditTrail.cpp",                 # AuditScope itself
@@ -236,6 +237,9 @@ REQUIRED = [
    ("Common/Util/SignInStore.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("device"), record.device, _T("revoked"), detail);',
     "a device revoked is no longer recorded - hm_signins is not an audited table (a sign-in would be recorded on every authentication) and the sessions and connections a revoke ends leave no row at all, so the strongest thing anybody can do about a client they do not recognise would be the one thing the trail did not hold"),
+   ("Common/Util/RestApiAddressBooks.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("address-book-share-removed"),',
+    "a share of somebody's address book removed by an administrator is no longer recorded - hm_addressbookshares is the account's own table and is not audited, so the statement chokepoint does not record the delete, and an operator undoing a person's own sharing decision would leave no trace"),
    ("Common/Util/RestApiServer.cpp",
     "AuditScope auditScope(AuditActorFor_(caller));",
     "REST no longer says who is making a change"),
@@ -398,6 +402,9 @@ NOT_AUDITED = {
                    "it. The one field of it that is not that is the opt-out, which is a decision of the person's that somebody else "
                    "can reverse: a change of diroptout by any hand but the person's own is recorded through AuditTrail::RecordEvent "
                    "as directory-opt-out-changed, by PUT /api/v1/accounts/{address}/directory and by Account.Save() over COM.",
+   "hm_addressbooks": "an account's own address books, made and named by it in the portal.",
+   "hm_addressbookshares": "who else an account shares an address book with - one account, or a whole domain - written by the account itself in the portal, "
+                           "and removable by an administrator over /api/v1/accounts/{address}/address-books, which IS audited as an event.",
    "hm_recoverable": "copies of the messages an account deleted, written as the delete happens and ended by the retention sweep or the account itself; traffic.",
    "hm_accountrecovery": "the recovery address an account set for itself, written by the account over /api/v1/me/recovery and cleared by the account or by an administrator. "
                          "Not listed, because the row is also written with no actor at all - the unauthenticated page a confirmation link opens marks it confirmed - and a listed table would record that as a change nobody made. "

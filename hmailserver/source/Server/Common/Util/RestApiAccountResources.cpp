@@ -1576,6 +1576,41 @@ namespace HM
          return route.kind != RouteUnknown;
       }
 
+      // /address-books and /address-books/<id>/shares/<target>: the shape of
+      // an account's sharing, read by an administrator, and one share removed.
+      // The handlers are in RestApiAddressBooks.cpp; the parsing is here
+      // because this is where the address has been split off.
+      const AnsiString addressBooks = "/address-books";
+
+      if (tail == addressBooks)
+      {
+         if (method == "GET")
+            route.kind = RouteAccountAddressBooks;
+
+         return route.kind != RouteUnknown;
+      }
+
+      if (tail.StartsWith(addressBooks + "/"))
+      {
+         AnsiString rest = tail.Mid(addressBooks.GetLength() + 1);
+         const AnsiString shares = "/shares/";
+         int sharesAt = rest.Find(shares);
+
+         __int64 bookId = 0;
+         if (method == "DELETE" && sharesAt > 0 && ParseId(rest.Mid(0, sharesAt), bookId))
+         {
+            AnsiString target = rest.Mid(sharesAt + shares.GetLength());
+            if (!target.IsEmpty() && target.Find("/") < 0)
+            {
+               route.kind = RouteAccountAddressBookShareDelete;
+               route.record_id = bookId;
+               route.name = DecodePathSegment_(target);
+            }
+         }
+
+         return route.kind != RouteUnknown;
+      }
+
       // /openpgp and /openpgp/<fingerprint>: the account's OpenPGP public keys,
       // administered under its address. The handlers are in RestApiOpenPgp.cpp;
       // the parsing is here because this is where the address has been split off.

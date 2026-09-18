@@ -1,4 +1,4 @@
-// https://www.progressiverobot.com
+﻿// https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -151,6 +151,45 @@ namespace RegressionTests.Infrastructure
          Response fetched = Dav("GET", AddressBook + "grace.vcf", null, null);
          Assert.AreEqual(200, fetched.Status, "Body: " + fetched.Body);
          Assert.AreEqual(card, fetched.Body, "The stored vCard did not come back byte for byte.");
+      }
+
+      // -------------------------------------------------------- hm_addressbooks
+
+      [Test]
+      [Description("hm_addressbooks: the account's address books survive a backup and a restore that deleted the domain, "
+                   + "and every contact comes back in the book it was in - which a restore can only do because a contact "
+                   + "carries its book's NAME rather than an id the restore reassigns")]
+      public void TheAddressBooksComeBack()
+      {
+         Response made = Rest("POST", "/api/v1/me/address-books", User(), "{\"name\":\"Suppliers\"}");
+         Assert.AreEqual(201, made.Status, "Body: " + made.Body);
+         long suppliers = long.Parse(Regex.Match(made.Body, "\"id\":([0-9]+)").Groups[1].Value);
+
+         Response inDefault = Rest("POST", "/api/v1/me/contacts", User(),
+            "{\"name\":\"Ada Lovelace\",\"address\":\"ada@example.com\"}");
+         Assert.AreEqual(201, inDefault.Status, "Body: " + inDefault.Body);
+         Response inSuppliers = Rest("POST", "/api/v1/me/contacts", User(),
+            "{\"name\":\"Bolt Supply\",\"address\":\"bolt@example.com\",\"book\":" + suppliers + "}");
+         Assert.AreEqual(201, inSuppliers.Status, "Body: " + inSuppliers.Body);
+
+         BackupDeleteAndRestore();
+
+         Response books = Rest("GET", "/api/v1/me/address-books", User());
+         Assert.AreEqual(200, books.Status, "Body: " + books.Body);
+         StringAssert.Contains("\"name\":\"Contacts\"", books.Body);
+         StringAssert.Contains("\"name\":\"Suppliers\"", books.Body);
+
+         // The ids are the restore's own, so the book is found again by name.
+         long restored = long.Parse(Regex.Match(books.Body, "\"id\":([0-9]+),\"name\":\"Suppliers\"").Groups[1].Value);
+         Response restoredBook = Rest("GET", "/api/v1/me/contacts?book=" + restored, User());
+         Assert.AreEqual(200, restoredBook.Status, "Body: " + restoredBook.Body);
+         StringAssert.Contains("bolt@example.com", restoredBook.Body);
+         StringAssert.DoesNotContain("ada@example.com", restoredBook.Body,
+            "A contact came back in a book it was never in.");
+
+         // And the other one is where it was, in the default book.
+         long defaultBook = long.Parse(Regex.Match(books.Body, "\"id\":([0-9]+),\"name\":\"Contacts\"").Groups[1].Value);
+         StringAssert.Contains("ada@example.com", Rest("GET", "/api/v1/me/contacts?book=" + defaultBook, User()).Body);
       }
 
       // ----------------------------------------------------------- hm_directory

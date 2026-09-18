@@ -37,6 +37,10 @@ if exists (select * from sysobjects where id = object_id('hm_senderaddresses') a
 if exists (select * from sysobjects where id = object_id('hm_calendarshares') and objectproperty(id, 'isusertable') = 1) drop table hm_calendarshares
 if exists (select * from sysobjects where id = object_id('hm_calendarobjects') and objectproperty(id, 'isusertable') = 1) drop table hm_calendarobjects
 if exists (select * from sysobjects where id = object_id('hm_calendars') and objectproperty(id, 'isusertable') = 1) drop table hm_calendars
+if exists (select * from sysobjects where id = object_id('hm_addressbookshares') and objectproperty(id, 'isusertable') = 1) drop table hm_addressbookshares
+
+if exists (select * from sysobjects where id = object_id('hm_addressbooks') and objectproperty(id, 'isusertable') = 1) drop table hm_addressbooks
+
 if exists (select * from sysobjects where id = object_id('hm_contacts') and objectproperty(id, 'isusertable') = 1) drop table hm_contacts
 if exists (select * from sysobjects where id = object_id('hm_pushsubscriptions') and objectproperty(id, 'isusertable') = 1) drop table hm_pushsubscriptions
 if exists (select * from sysobjects where id = object_id('hm_accountprefs') and objectproperty(id, 'isusertable') = 1) drop table hm_accountprefs
@@ -645,12 +649,41 @@ create table hm_contacts
 	contactcreated datetime not null,
 	contacturi nvarchar(255) not null default '',
 	contactuid nvarchar(255) not null default '',
-	contactvcard ntext not null default ''
+	contactvcard ntext not null default '',
+	contactbookid int not null default 0
 )
 
 ALTER TABLE hm_contacts ADD CONSTRAINT hm_contacts_pk PRIMARY KEY NONCLUSTERED (contactid)
 
 CREATE UNIQUE CLUSTERED INDEX idx_hm_contacts_account ON hm_contacts (contactaccountid, contactaddress)
+
+CREATE INDEX idx_hm_contacts_book ON hm_contacts (contactbookid)
+
+create table hm_addressbooks
+(
+	bookid int identity(1,1) not null,
+	bookaccountid int not null,
+	bookname nvarchar(255) not null,
+	bookcreated bigint not null
+)
+
+ALTER TABLE hm_addressbooks ADD CONSTRAINT hm_addressbooks_pk PRIMARY KEY NONCLUSTERED (bookid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_addressbooks_account ON hm_addressbooks (bookaccountid, bookname)
+
+create table hm_addressbookshares
+(
+	shareid int identity(1,1) not null,
+	sharebookid int not null,
+	shareaccountid int not null,
+	sharedomainid int not null,
+	sharewrite int not null,
+	sharecreated bigint not null
+)
+
+ALTER TABLE hm_addressbookshares ADD CONSTRAINT hm_addressbookshares_pk PRIMARY KEY NONCLUSTERED (shareid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_addressbookshares_target ON hm_addressbookshares (sharebookid, shareaccountid, sharedomainid)
 
 create table hm_accountprefs
 (
@@ -1828,6 +1861,10 @@ ALTER TABLE hm_apppasswords ADD CONSTRAINT fk_hm_apppasswords_account FOREIGN KE
 
 ALTER TABLE hm_contacts ADD CONSTRAINT fk_hm_contacts_account FOREIGN KEY (contactaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
+ALTER TABLE hm_addressbooks ADD CONSTRAINT fk_hm_addressbooks_account FOREIGN KEY (bookaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+ALTER TABLE hm_addressbookshares ADD CONSTRAINT fk_hm_addressbookshares_book FOREIGN KEY (sharebookid) REFERENCES hm_addressbooks (bookid) ON DELETE CASCADE
+
 ALTER TABLE hm_accountprefs ADD CONSTRAINT fk_hm_accountprefs_account FOREIGN KEY (prefaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
 ALTER TABLE hm_scheduled ADD CONSTRAINT fk_hm_scheduled_account FOREIGN KEY (schedaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
@@ -2512,4 +2549,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0)
 
-insert into hm_dbversion values (6078)
+insert into hm_dbversion values (6079)

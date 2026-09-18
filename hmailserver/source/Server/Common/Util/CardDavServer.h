@@ -2,19 +2,25 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-// CardDAV (RFC 6352) over the account's address book, served by the web
+// CardDAV (RFC 6352) over the account's address books, served by the web
 // services listener under /dav/ so that a phone or a desktop client syncs the
-// contacts the webmail keeps. One address book per account, "Contacts", whose
-// members are the rows of hm_contacts (ContactStore) as vCard 3.0.
+// contacts the webmail keeps. Their members are the rows of hm_contacts
+// (ContactStore) as vCard 3.0.
 //
 // The tree a client walks, from the RFC 6764 well-known redirect:
 //
 //    /dav/                                     the context path: PROPFIND here
 //                                              answers current-user-principal
 //    /dav/principals/<address>/                the principal: addressbook-home-set
-//    /dav/addressbooks/<address>/              the home: two child collections
-//    /dav/addressbooks/<address>/contacts/     the address book: getctag,
+//    /dav/addressbooks/<address>/              the home: one child collection per
+//                                              book the account can see, and the
+//                                              directory beside them
+//    /dav/addressbooks/<address>/contacts/     the default address book: getctag,
 //                                              sync-token, the reports
+//    /dav/addressbooks/<address>/book-<id>/    another book of the account's own
+//    /dav/addressbooks/<address>/shared-<id>/  a book another account shares with
+//                                              it (AddressBookStore.h), read-only
+//                                              or writable as the share says
 //    /dav/addressbooks/<address>/contacts/<id>.vcf   one contact
 //    /dav/addressbooks/<address>/directory/    the organisation's directory
 //                                              (DirectoryStore.h): every active,
@@ -27,9 +33,14 @@
 //                                              says so before a client tries -
 //                                              and it answers the same three
 //                                              reports, so a phone subscribes
-//                                              to it as it does to the book.
+//                                              to it as it does to a book.
 //    /dav/addressbooks/<address>/directory/account-<id>.vcf   one person
 //    /dav/addressbooks/<address>/directory/list-<id>.vcf      one list
+//
+// A shared collection holds its OWNER'S rows: they are read and written under
+// the owner's account id, a read-only one refuses PUT and DELETE with 403 and
+// says so in current-user-privilege-set, and DELETE on the collection itself
+// gives the share back rather than deleting anybody's contacts.
 //
 // Every request under /dav/ is HTTP Basic as the account - the address and the
 // password, or an app password - through AccountLogon, the same check as an

@@ -584,4 +584,11 @@
 //      the person themselves sets. Every column is empty or off, and an account
 //      with no row is listed from hm_accounts alone, so an upgraded database
 //      lists exactly the names and addresses it already held.
-#define REQUIRED_DB_VERSION            6078
+// 6079 adds hm_addressbooks and hm_addressbookshares (Util/AddressBookStore.h):
+//      an account may keep several address books, and share one of them with
+//      another account or with a whole domain, read-only or writable. hm_contacts
+//      gains contactbookid, which is 0 on every row an upgrade finds - meaning
+//      "the account's default book" - and is stamped with that book's id the
+//      first time anything asks the account for its books, so the upgrade needs
+//      no data migration and an untouched installation behaves exactly as it did.
+#define REQUIRED_DB_VERSION            6079

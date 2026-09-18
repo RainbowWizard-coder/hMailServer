@@ -1250,6 +1250,17 @@ namespace DBUpdater
          // exists for.
          new SchemaProbe(6078, "hm_directory.diroptout",
                          "update hm_directory set diroptout = diroptout where 1 = 0"),
+         // Upgrade6078to6079* - shared address books: the books an account keeps,
+         // the shares that hand one to another account or to a whole domain, and
+         // the column on hm_contacts that says which book a contact is in. The
+         // column is the one an ALTER adds to an existing table, so it is the one
+         // that can fail while the step still stamps the version.
+         new SchemaProbe(6079, "hm_addressbooks.bookname",
+                         "update hm_addressbooks set bookname = bookname where 1 = 0"),
+         new SchemaProbe(6079, "hm_addressbookshares.sharewrite",
+                         "update hm_addressbookshares set sharewrite = sharewrite where 1 = 0"),
+         new SchemaProbe(6079, "hm_contacts.contactbookid",
+                         "update hm_contacts set contactbookid = contactbookid where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

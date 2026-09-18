@@ -8,6 +8,7 @@
 
 #include "../BO/Account.h"
 #include "RoleManager.h"
+#include "../Util/AddressBookStore.h"
 #include "../Util/Encoding/Base64.h"
 #include "../Util/Time.h"
 #include "../Util/Unicode.h"
@@ -36,9 +37,18 @@ namespace HM
 
    const AccountStores::Store AccountStores::stores_[] =
    {
-      // The address book (schema 6032, extended for CardDAV at 6040). Read and
-      // written by the webmail's /api/v1/me/contacts and by the CardDAV address
-      // book; ContactStore owns the SQL.
+      // The account's address books (schema 6079). BEFORE hm_contacts on
+      // purpose: a contact carries the NAME of the book it is in rather than an
+      // id the restore reassigns (RoleAddressBook), and the archive is read in
+      // the order it was written, so the books have to be back before the
+      // contacts that name them. Losing them would put every contact of a team
+      // book into the person's own and hand nobody back the share.
+      { _T("hm_addressbooks"), 0 },
+
+      // The address book (schema 6032, extended for CardDAV at 6040, and for
+      // several books at 6079). Read and written by the webmail's
+      // /api/v1/me/contacts and by the CardDAV address books; ContactStore owns
+      // the SQL.
       { _T("hm_contacts"), 0 },
 
       // The account's entry in the organisation's directory (schema 6078): its
@@ -162,8 +172,14 @@ namespace HM
 
    const AccountStores::Column AccountStores::columns_[] =
    {
+      { _T("hm_addressbooks"), _T("bookid"),         AccountStores::RoleIdentity },
+      { _T("hm_addressbooks"), _T("bookaccountid"),  AccountStores::RoleAccount },
+      { _T("hm_addressbooks"), _T("bookname"),       AccountStores::RoleText },
+      { _T("hm_addressbooks"), _T("bookcreated"),    AccountStores::RoleNumber },
+
       { _T("hm_contacts"), _T("contactid"),          AccountStores::RoleIdentity },
       { _T("hm_contacts"), _T("contactaccountid"),   AccountStores::RoleAccount },
+      { _T("hm_contacts"), _T("contactbookid"),      AccountStores::RoleAddressBook },
       { _T("hm_contacts"), _T("contactname"),        AccountStores::RoleText },
       { _T("hm_contacts"), _T("contactaddress"),     AccountStores::RoleText },
       { _T("hm_contacts"), _T("contactsource"),      AccountStores::RoleNumber },
@@ -387,6 +403,10 @@ namespace HM
         _T("The messages the compromised-account detection kept out of the delivery queue for review, keyed on a message id the restore reassigns, like hm_messagerecipients: a held message is in flight, not in a mailbox, and the backup carries mailboxes.") },
       { _T("hm_calendarshares"),
         _T("A share names another account of this server by id, which an archive restored elsewhere cannot map; the person shares again.") },
+      { _T("hm_addressbookshares"),
+        _T("Who else an address book is shared with: another account of this server by id, or a whole domain by id, neither of which an archive restored elsewhere can map - ")
+        _T("and an id that IS restored is reassigned, so a carried row would hand somebody's address book to whoever took the number. The books themselves are carried ")
+        _T("(hm_addressbooks) with the contacts in them; the sharing is set again, and the audit trail holds who set it before.") },
       { _T("hm_autoreplies"),
         _T("The out-of-office memory of who was answered and when. Not carried: a restored account answers each sender once more, which is what the reply is for, and carrying it would revive a memory of senders the backup pre-dates.") },
       { _T("hm_imapexpunged"),
@@ -1013,6 +1033,26 @@ namespace HM
                   }
                   break;
 
+               case AccountStores::RoleAddressBook:
+                  {
+                     // The book's name, never its id (see RoleAddressBook). No
+                     // reference at all means the account's default book, which
+                     // is what 0 means and what every contact carried before
+                     // schema 6079 - so an archive of this store written for an
+                     // account nobody has asked for its books is read back
+                     // exactly as it was written. A book that has gone does not
+                     // drop the contact: it comes back in the default book.
+                     String bookName;
+
+                     if (AddressBookStore::NameOf(accountId, row.numbers[(size_t) index], bookName))
+                     {
+                        XNode *reference = rowNode->AppendChild(ReferenceElement);
+                        reference->AppendAttr(ColumnAttribute, name.c_str());
+                        WriteValue_(reference, NameAttribute, bookName);
+                     }
+                  }
+                  break;
+
                case AccountStores::RoleAdministrativeRole:
                   {
                      String roleName;
@@ -1166,6 +1206,23 @@ namespace HM
                      }
 
                      statement.AddColumnInt64(name, folderId);
+                  }
+                  break;
+
+               case AccountStores::RoleAddressBook:
+                  {
+                     XNode *reference = FindReference_(rowNode, name);
+                     String bookName;
+                     __int64 bookId = 0;
+
+                     if (reference && ReadValue_(reference, NameAttribute, bookName) && !bookName.IsEmpty())
+                        bookId = AddressBookStore::IdOfName(account.GetID(), bookName);
+
+                     // 0 is the account's default book, and is the right answer
+                     // for an archive written before schema 6079 (no reference)
+                     // as well as for one naming a book that is not there. The
+                     // contact comes back rather than being dropped.
+                     statement.AddColumnInt64(name, bookId);
                   }
                   break;
 

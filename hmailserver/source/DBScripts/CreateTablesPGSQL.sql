@@ -42,6 +42,10 @@ select hm_drop_table('hm_calendarobjects');
 
 select hm_drop_table('hm_calendars');
 
+select hm_drop_table('hm_addressbookshares');
+
+select hm_drop_table('hm_addressbooks');
+
 select hm_drop_table('hm_contacts');
 
 select hm_drop_table('hm_pushsubscriptions');
@@ -524,10 +528,35 @@ create table hm_contacts
 	contactcreated timestamp not null,
 	contacturi varchar(255) not null default '',
 	contactuid varchar(255) not null default '',
-	contactvcard text not null default ''
+	contactvcard text not null default '',
+	contactbookid int not null default 0
 );
 
 CREATE UNIQUE INDEX idx_hm_contacts_account ON hm_contacts (contactaccountid, contactaddress);
+
+CREATE INDEX idx_hm_contacts_book ON hm_contacts (contactbookid);
+
+create table hm_addressbooks
+(
+	bookid serial not null primary key,
+	bookaccountid int not null,
+	bookname varchar(255) not null,
+	bookcreated bigint not null
+);
+
+CREATE UNIQUE INDEX idx_hm_addressbooks_account ON hm_addressbooks (bookaccountid, bookname);
+
+create table hm_addressbookshares
+(
+	shareid serial not null primary key,
+	sharebookid int not null,
+	shareaccountid int not null,
+	sharedomainid int not null,
+	sharewrite int not null,
+	sharecreated bigint not null
+);
+
+CREATE UNIQUE INDEX idx_hm_addressbookshares_target ON hm_addressbookshares (sharebookid, shareaccountid, sharedomainid);
 
 create table hm_accountprefs
 (
@@ -1602,6 +1631,10 @@ ALTER TABLE hm_apppasswords ADD CONSTRAINT fk_hm_apppasswords_account FOREIGN KE
 
 ALTER TABLE hm_contacts ADD CONSTRAINT fk_hm_contacts_account FOREIGN KEY (contactaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
+ALTER TABLE hm_addressbooks ADD CONSTRAINT fk_hm_addressbooks_account FOREIGN KEY (bookaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_addressbookshares ADD CONSTRAINT fk_hm_addressbookshares_book FOREIGN KEY (sharebookid) REFERENCES hm_addressbooks (bookid) ON DELETE CASCADE;
+
 ALTER TABLE hm_accountprefs ADD CONSTRAINT fk_hm_accountprefs_account FOREIGN KEY (prefaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_scheduled ADD CONSTRAINT fk_hm_scheduled_account FOREIGN KEY (schedaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
@@ -2230,4 +2263,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0);
 
-insert into hm_dbversion values (6078);
+insert into hm_dbversion values (6079);

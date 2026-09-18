@@ -877,12 +877,83 @@ function answerRecovery(method, path, body) {
 // person, as the server's listing does, so that the page's telling of a group
 // from a contact is tested against the real shape and not an absence.
 function contactBook() {
+   // Every row says which address book it is in, as the server's listing does
+   // for book=all (AddressBookStore.h): three in the account's own default book
+   // and one in a book another account shares with it, read-only.
+   const own = (row) => Object.assign({ book_id: 1, book_name: 'Contacts', book_owner: 'user@example.com', book_mine: true, book_writable: true }, row);
    return [
-      { id: 1, name: 'Alice Example', address: 'alice@example.net', source: 'manual', kind: 'person', birthday: '', note: '', phones: [], has_photo: false },
-      { id: 2, name: 'Alan Hidden', address: 'al@example.org', source: 'collected', kind: 'person', birthday: '', note: '', phones: [], has_photo: false },
-      { id: 3, name: 'Carol Card', address: 'carol@example.org', source: 'manual', kind: 'person', birthday: '1985-04-12', note: 'Met at the conference.', phones: ['+1 555 0100'], has_photo: true,
-        card: 'BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Carol Card\r\nN:Card;Carol;;;\r\nEMAIL;TYPE=INTERNET:carol@example.org\r\nTEL:+1 555 0100\r\nBDAY:1985-04-12\r\nNOTE:Met at the conference.\r\nEND:VCARD\r\n' }
+      own({ id: 1, name: 'Alice Example', address: 'alice@example.net', source: 'manual', kind: 'person', birthday: '', note: '', phones: [], has_photo: false }),
+      own({ id: 2, name: 'Alan Hidden', address: 'al@example.org', source: 'collected', kind: 'person', birthday: '', note: '', phones: [], has_photo: false }),
+      own({ id: 3, name: 'Carol Card', address: 'carol@example.org', source: 'manual', kind: 'person', birthday: '1985-04-12', note: 'Met at the conference.', phones: ['+1 555 0100'], has_photo: true,
+        card: 'BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Carol Card\r\nN:Card;Carol;;;\r\nEMAIL;TYPE=INTERNET:carol@example.org\r\nTEL:+1 555 0100\r\nBDAY:1985-04-12\r\nNOTE:Met at the conference.\r\nEND:VCARD\r\n' }),
+      { id: 9, name: 'Dana Shared', address: 'dana@example.org', source: 'manual', kind: 'person', birthday: '', note: '', phones: [], has_photo: false,
+        book_id: 5, book_name: 'Team', book_owner: 'boss@example.com', book_mine: false, book_writable: false }
    ];
+}
+
+// The books the account can see: its own default, and one boss@example.com
+// shares with it read-only. The shares of an own book are the owner's to see,
+// so only its own rows carry a shares array.
+let addressBooks = [
+   { id: 1, name: 'Contacts', owner: 'user@example.com', mine: true, writable: true, is_default: true, created: 1758000000, contacts: 3, shares: [] },
+   { id: 5, name: 'Team', owner: 'boss@example.com', mine: false, writable: false, is_default: false, created: 1758000000, contacts: 1 }
+];
+let addressBookNextId = 11;
+// Whether the stubbed listing carries a group out of the book somebody shares
+// with the reader. Off, because the server does not; turned on for the one
+// check that asks the page what it does when a listing carries one anyway.
+let sharedGroupListed = false;
+function answerAddressBooks(method, path, body) {
+   if (!path.startsWith('/api/v1/me/address-books')) { return null; }
+   const wanted = JSON.parse(body || '{}');
+   if (path === '/api/v1/me/address-books') {
+      if (method === 'GET') { return json(200, { books: addressBooks, count: addressBooks.length }); }
+      if (method === 'POST') {
+         const name = String(wanted.name || '').trim();
+         if (!name) { return json(400, { error: 'name is required' }); }
+         if (addressBooks.some((b) => b.mine && b.name === name)) { return json(409, { error: 'an address book of that name exists' }); }
+         const made = { id: addressBookNextId++, name, owner: 'user@example.com', mine: true, writable: true, is_default: false, created: 1758000001, contacts: 0, shares: [] };
+         addressBooks.push(made);
+         return json(201, made);
+      }
+      return json(405, { error: 'method not allowed' });
+   }
+   const rest = path.slice('/api/v1/me/address-books/'.length);
+   const shareAt = rest.indexOf('/shares');
+   const id = Number(shareAt > 0 ? rest.slice(0, shareAt) : rest);
+   const book = addressBooks.find((b) => b.id === id);
+   if (!book) { return json(404, { error: 'no such address book' }); }
+   if (shareAt > 0) {
+      if (!book.mine) { return json(403, { error: 'only the address book\'s owner shares it' }); }
+      const target = decodeURIComponent(rest.slice(shareAt + '/shares/'.length));
+      book.shares = book.shares || [];
+      if (method === 'PUT') {
+         const kind = target.indexOf('@') >= 0 ? 'account' : 'domain';
+         const found = book.shares.find((s) => s.target === target);
+         if (found) { found.write = !!wanted.write; } else { book.shares.push({ target, kind, write: !!wanted.write, created: 1758000002 }); }
+         return json(200, book);
+      }
+      if (method === 'DELETE') {
+         const at = book.shares.findIndex((s) => s.target === target);
+         if (at < 0) { return json(404, { error: 'the address book is not shared with that target' }); }
+         book.shares.splice(at, 1);
+         return json(200, book);
+      }
+      return json(405, { error: 'method not allowed' });
+   }
+   if (method === 'PUT') {
+      if (!book.mine) { return json(403, { error: 'the address book is another account\'s' }); }
+      book.name = String(wanted.name || book.name);
+      return json(200, book);
+   }
+   if (method === 'DELETE') {
+      const at = addressBooks.indexOf(book);
+      if (!book.mine) { addressBooks.splice(at, 1); return json(200, { left: true }); }
+      if (book.is_default) { return json(403, { error: 'the default address book cannot be deleted' }); }
+      addressBooks.splice(at, 1);
+      return json(200, { deleted: true });
+   }
+   return json(405, { error: 'method not allowed' });
 }
 // Contact groups (ContactGroups.h): rows of the same address book whose kind is
 // group, with the members the card names and the recipients they reach - a
@@ -1323,6 +1394,8 @@ function answer(method, path, body) {
    if (path === '/api/v1/me/settings' && method === 'GET') {
       return json(200, { name: { first: 'A', last: 'B' }, forwarding: { enabled: false, address: '', keep_original: true }, signature: { enabled: false, text: '' } });
    }
+   const books = answerAddressBooks(method, path, body);
+   if (books) { return books; }
    if (/^\/api\/v1\/me\/contacts\/\d+$/.test(path) && method === 'DELETE') { return json(200, { deleted: true }); }
    if (/^\/api\/v1\/me\/contacts\/\d+$/.test(path) && method === 'PUT') {
       const changed = JSON.parse(body || '{}');
@@ -1339,7 +1412,22 @@ function answer(method, path, body) {
       // by name; kind= answers one kind alone.
       const q = decodeURIComponent((path.split('q=')[1] || '').split('&')[0]).toLowerCase();
       const kind = (path.split('kind=')[1] || '').split('&')[0];
-      const book = contactBook().concat(contactGroups.map(contactGroupJson));
+      // book= is one book's id, "all" for every book the account can see, or
+      // absent for its own - which is what the exports and the group member
+      // field ask for.
+      const which = (path.split('book=')[1] || '').split('&')[0];
+      const groups = contactGroups.map(contactGroupJson).map((g) => Object.assign({ book_id: 1, book_name: 'Contacts', book_owner: 'user@example.com', book_mine: true, book_writable: true }, g));
+      // The server never lists a group of a book somebody shares with the
+      // reader (RestApiContacts.cpp). This is the answer it would give if one
+      // ever did, so that the page can be asked what it does with it.
+      if (sharedGroupListed) {
+         groups.push({ id: 77, name: 'Their Team', address: '', kind: 'group', source: 'manual', birthday: '', note: '', phones: [], has_photo: false,
+            members: [{ id: 0, name: 'Zed Private', address: 'zed@example.net' }],
+            recipients: [{ id: 0, name: 'Zed Private', address: 'zed@example.net' }],
+            book_id: 5, book_name: 'Team', book_owner: 'boss@example.com', book_mine: false, book_writable: false });
+      }
+      const book = contactBook().concat(groups)
+         .filter((c) => (which === 'all' ? true : (which ? c.book_id === Number(which) : c.book_mine !== false)));
       const withCards = path.indexOf('fields=card') >= 0;
       const found = book.filter((c) => (!kind || kind === c.kind) && (c.name.toLowerCase().indexOf(q) >= 0 || (!!c.address && c.address.indexOf(q) >= 0)))
          .map((c) => { const copy = Object.assign({}, c); if (!withCards) { delete copy.card; } return copy; });
@@ -4793,7 +4881,7 @@ async function main() {
       await flush();
       const offered = popupOf(to).children;
       check('the To field offers the group by its name, with how many people it reaches',
-         called(beforeOffer, 'GET', '/api/v1/me/contacts?limit=8&q=Tea') && offered.length === 1 &&
+         called(beforeOffer, 'GET', '/api/v1/me/contacts?limit=8&q=Tea&book=all') && offered.length === 1 &&
             offered[0].textContent.indexOf('Team') >= 0 && offered[0].textContent.indexOf(fill('{0} member(s)', 2)) >= 0,
          popupOf(to).textContent);
       to.dispatchEvent(makeEvent('keydown', { key: 'Enter' }));
@@ -6548,6 +6636,11 @@ async function main() {
       await flush();
    }
 
+   // ---- Shared address books: the books beside the contacts, the Sharing
+   // panel the owner sees, and a book shared read-only that offers no way to
+   // change anything (AddressBookStore.h, docs/SharedAddressBooks.md).
+   await addressBookChecks();
+
    // ---- Web Push: the devices, and the service worker's own handler
    await pushChecks();
 
@@ -6752,6 +6845,199 @@ async function main() {
 // service worker is loaded into a world of its own and handed a push event -
 // which is the only way to find out what a reader would actually see.
 let germanCatalogue = null;
+async function addressBookChecks() {
+   // The page is in German by now, so every text a reader sees is the
+   // catalogue's; asserting the English would prove it was NOT translated.
+   const said = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+   const filled = (english, ...values) => values.reduce((s, v, i) => s.split('{' + i + '}').join(String(v)), said(english));
+   const walkAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+   const popupOf = (input) => input.parentNode.children.filter((n) => String(n.className) === 'complete')[0];
+   const dismissAllToasts = () => { const buttons = walkAll(document.getElementById('toasts'), (n) => n.tagName === 'BUTTON' && n.getAttribute('aria-label') === 'Dismiss'); buttons.forEach((b) => b.dispatchEvent(makeEvent('click'))); };
+
+   const before = requests.length;
+   location.hash = '#/contacts';
+   await flush();
+   await flush();
+
+   const select = document.getElementById('book-select');
+   check('the address books are read when the Contacts page is opened, and both are offered',
+      called(before, 'GET', '/api/v1/me/address-books') && select.children.length === 2 &&
+      select.children[0].textContent.indexOf('Contacts') >= 0 && select.children[1].textContent.indexOf('boss@example.com') >= 0,
+      select.textContent);
+   check('the contacts are asked for every book the reader can see, and the page draws the one chosen',
+      called(before, 'GET', '/api/v1/me/contacts?limit=1000&book=all') &&
+      document.getElementById('contact-rows').textContent.indexOf('dana@example.org') < 0 &&
+      document.getElementById('contact-rows').textContent.indexOf('carol@example.org') >= 0,
+      document.getElementById('contact-rows').textContent);
+
+   // The owner's panel: who it is shared with, and with what.
+   document.getElementById('book-manage').dispatchEvent(makeEvent('click'));
+   await flush();
+   const target = document.getElementById('book-share-target');
+   check('Sharing opens the owner\'s panel, with a field for an address or a domain name', !!target && document.getElementById('book-detail').hidden === false);
+   const beforeShare = requests.length;
+   target.value = 'Boss@Example.com';
+   document.getElementById('book-share-write').checked = true;
+   target.parentNode.dispatchEvent(makeEvent('submit'));
+   await flush();
+   await flush();
+   const shared = since(beforeShare).filter((r) => r.method === 'PUT' && r.path.indexOf('/api/v1/me/address-books/1/shares/') === 0).map((r) => ({ path: r.path, body: JSON.parse(r.body) }))[0];
+   check('sharing sends the target lower-cased in the path and what it may do in the body',
+      !!shared && decodeURIComponent(shared.path.split('/shares/')[1]) === 'boss@example.com' && shared.body.write === true,
+      JSON.stringify(shared));
+   check('and the share is then drawn, saying it can edit',
+      document.getElementById('book-detail').textContent.indexOf('boss@example.com') >= 0 &&
+      document.getElementById('book-detail').textContent.indexOf(said('can edit')) >= 0,
+      document.getElementById('book-detail').textContent);
+
+   // A domain name shares with everybody in it, and the row says so.
+   const beforeDomain = requests.length;
+   document.getElementById('book-share-target').value = 'example.com';
+   document.getElementById('book-share-write').checked = false;
+   document.getElementById('book-share-target').parentNode.dispatchEvent(makeEvent('submit'));
+   await flush();
+   await flush();
+   check('a domain name is sent as it is typed and is drawn as the whole domain, read-only',
+      called(beforeDomain, 'PUT', '/api/v1/me/address-books/1/shares/example.com') &&
+      document.getElementById('book-detail').textContent.indexOf(said('every account in the domain')) >= 0 &&
+      document.getElementById('book-detail').textContent.indexOf(said('read-only')) >= 0,
+      document.getElementById('book-detail').textContent);
+
+   const beforeUnshare = requests.length;
+   const removes = walkAll(document.getElementById('book-detail'), (n) => n.tagName === 'BUTTON' && n.textContent === said('Remove'));
+   removes[0].dispatchEvent(makeEvent('click'));
+   await flush();
+   await flush();
+   check('Remove takes one share back and leaves the other',
+      called(beforeUnshare, 'DELETE', '/api/v1/me/address-books/1/shares/boss%40example.com') &&
+      document.getElementById('book-detail').textContent.indexOf('boss@example.com') < 0 &&
+      document.getElementById('book-detail').textContent.indexOf('example.com') >= 0,
+      document.getElementById('book-detail').textContent);
+
+   // A second book of the reader's own.
+   const beforeMade = requests.length;
+   document.getElementById('book-name').value = 'Suppliers';
+   document.getElementById('book-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   await flush();
+   const made = since(beforeMade).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/address-books').map((r) => JSON.parse(r.body))[0];
+   check('a new address book is made by name and becomes the one the page is in',
+      !!made && made.name === 'Suppliers' && select.children.length === 3 && Number(select.value) === 11,
+      JSON.stringify(made) + ' value=' + select.value);
+   check('a contact added now names the book it goes in', true);
+   const beforeAdd = requests.length;
+   document.getElementById('contact-name').value = 'Supplier One';
+   document.getElementById('contact-address').value = 'one@supplier.example';
+   document.getElementById('contact-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   const added = since(beforeAdd).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/contacts').map((r) => JSON.parse(r.body))[0];
+   check('and the contact form sends that book with the contact', !!added && added.book === 11, JSON.stringify(added));
+
+   const beforeDelete = requests.length;
+   confirmAnswer = true;
+   const deleteButton = walkAll(document.getElementById('book-detail'), (n) => n.tagName === 'BUTTON' && n.textContent === said('Delete this address book'))[0];
+   deleteButton.dispatchEvent(makeEvent('click'));
+   await flush();
+   await flush();
+   check('deleting a book asks first, naming it and what goes with it, and then removes it',
+      confirms[confirms.length - 1] === filled('Delete the address book \"{0}\" and every contact in it?', 'Suppliers') &&
+      called(beforeDelete, 'DELETE', '/api/v1/me/address-books/11') && select.children.length === 2,
+      confirms[confirms.length - 1] + ' | ' + select.children.length);
+
+   // The book somebody shares read-only: its contact is drawn, and there is no
+   // way on the page to change anything in it.
+   select.value = '5';
+   select.dispatchEvent(makeEvent('change'));
+   await flush();
+   check('choosing a book shared read-only draws its contacts and nobody else\'s',
+      document.getElementById('contact-rows').textContent.indexOf('dana@example.org') >= 0 &&
+      document.getElementById('contact-rows').textContent.indexOf('carol@example.org') < 0,
+      document.getElementById('contact-rows').textContent);
+   check('the add form is gone and the page says the book is read-only',
+      document.getElementById('contact-form').hidden === true && document.getElementById('contact-readonly').hidden === false &&
+      document.getElementById('contact-readonly').textContent === said('This address book is shared with you read-only.'),
+      document.getElementById('contact-readonly').textContent);
+   check('Import is gone with it, since every card it posted would be refused, and Export stays, since reading is what a share is for',
+      document.getElementById('contact-import').hidden === true &&
+      document.getElementById('contact-export-vcf').hidden === false,
+      'import=' + document.getElementById('contact-import').hidden + ' export=' + document.getElementById('contact-export-vcf').hidden);
+   const danaRow = Array.from(document.getElementById('contact-rows').children)[0];
+   check('and its contact offers Write and no Remove, because the server would refuse the delete',
+      Array.from(danaRow.children[3].children).map((b) => b.textContent).join(',') === said('Write'),
+      Array.from(danaRow.children[3].children).map((b) => b.textContent).join(','));
+
+   // Leaving it gives the share back and takes the book off the page.
+   document.getElementById('book-manage').dispatchEvent(makeEvent('click'));
+   await flush();
+   const beforeLeave = requests.length;
+   const leave = walkAll(document.getElementById('book-detail'), (n) => n.tagName === 'BUTTON' && n.textContent === said('Leave this address book'))[0];
+   check('a book shared with the reader offers to be left rather than deleted', !!leave,
+      document.getElementById('book-detail').textContent);
+   leave.dispatchEvent(makeEvent('click'));
+   await flush();
+   await flush();
+   check('leaving it gives the share back and the book is gone from the page',
+      called(beforeLeave, 'DELETE', '/api/v1/me/address-books/5') && select.children.length === 1,
+      select.textContent);
+   check('and Import is offered again in the reader\'s own book',
+      document.getElementById('contact-import').hidden === false && document.getElementById('contact-form').hidden === false,
+      'import=' + document.getElementById('contact-import').hidden);
+
+   // The To field completes from every book the reader can see, and says whose
+   // a shared one is. The book is back for this, since leaving it took it away.
+   addressBooks.push({ id: 5, name: 'Team', owner: 'boss@example.com', mine: false, writable: false, is_default: false, created: 1758000000, contacts: 1 });
+   location.hash = '#/compose';
+   await flush();
+   const to = document.getElementById('compose-to');
+   to.value = 'dana';
+   const beforeOffer = requests.length;
+   to.dispatchEvent(makeEvent('input'));
+   fireTimers();
+   await flush();
+   const offered = popupOf(to).children;
+   check('the To field asks every book the reader can see and labels the shared one with its name',
+      called(beforeOffer, 'GET', '/api/v1/me/contacts?limit=8&q=dana&book=all') && offered.length === 1 &&
+      offered[0].textContent.indexOf('Dana Shared') >= 0 && offered[0].textContent.indexOf('Team') >= 0,
+      popupOf(to).textContent);
+
+   // A group is NEVER shared: it is one account's own entry and expands against
+   // that account's whole address book, so a group of a shared book would carry
+   // the names and addresses of contacts in books nobody shared. The server
+   // lists none (RestApiContacts.cpp); this asks what the page would do with
+   // one if a listing ever carried it, which is the same thing.
+   sharedGroupListed = true;
+   to.value = 'their';
+   const beforeGroupOffer = requests.length;
+   to.dispatchEvent(makeEvent('input'));
+   fireTimers();
+   await flush();
+   await flush();
+   check('a group out of a book somebody shares with the reader is not offered in To, and so cannot expand into its members',
+      called(beforeGroupOffer, 'GET', '/api/v1/me/contacts?limit=8&q=their&book=all') &&
+      popupOf(to).hidden === true && popupOf(to).textContent.indexOf('Their Team') < 0 &&
+      to.value === 'their',
+      popupOf(to).textContent + ' hidden=' + popupOf(to).hidden);
+   document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+   await flush();
+   dismissAllToasts();
+
+   location.hash = '#/contacts';
+   await flush();
+   await flush();
+   select.value = '5';
+   select.dispatchEvent(makeEvent('change'));
+   await flush();
+   check('and it is not drawn in the Groups card of that book either',
+      document.getElementById('group-rows').textContent.indexOf('Their Team') < 0 &&
+      document.getElementById('contact-rows').textContent.indexOf('Their Team') < 0 &&
+      document.getElementById('group-empty').hidden === false,
+      document.getElementById('group-rows').textContent);
+   sharedGroupListed = false;
+
+   location.hash = '#/f/1';
+   await flush();
+}
+
 async function pushChecks() {
    // The page has been switched to German by the checks above, so every text a
    // reader sees here is the catalogue's. Asserting the English would prove the

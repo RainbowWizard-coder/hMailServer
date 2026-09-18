@@ -62,6 +62,10 @@ drop table if exists hm_calendarobjects;
 
 drop table if exists hm_calendars;
 
+drop table if exists hm_addressbookshares;
+
+drop table if exists hm_addressbooks;
+
 drop table if exists hm_contacts;
 
 drop table if exists hm_pushsubscriptions;
@@ -516,10 +520,35 @@ create table hm_contacts
 	contactcreated datetime not null,
 	contacturi varchar(255) not null default '',
 	contactuid varchar(255) not null default '',
-	contactvcard mediumtext not null
+	contactvcard mediumtext not null,
+	contactbookid int not null default 0
 ) DEFAULT CHARSET=utf8;
 
 CREATE UNIQUE INDEX idx_hm_contacts_account ON hm_contacts (contactaccountid, contactaddress);
+
+CREATE INDEX idx_hm_contacts_book ON hm_contacts (contactbookid);
+
+create table hm_addressbooks
+(
+	bookid int auto_increment not null, primary key(`bookid`), unique(`bookid`),
+	bookaccountid int not null,
+	bookname varchar(255) not null,
+	bookcreated bigint not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_addressbooks_account ON hm_addressbooks (bookaccountid, bookname);
+
+create table hm_addressbookshares
+(
+	shareid int auto_increment not null, primary key(`shareid`), unique(`shareid`),
+	sharebookid int not null,
+	shareaccountid int not null,
+	sharedomainid int not null,
+	sharewrite int not null,
+	sharecreated bigint not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_addressbookshares_target ON hm_addressbookshares (sharebookid, shareaccountid, sharedomainid);
 
 create table hm_accountprefs
 (
@@ -1608,6 +1637,10 @@ ALTER TABLE hm_apppasswords ENGINE=InnoDB;
 
 ALTER TABLE hm_contacts ENGINE=InnoDB;
 
+ALTER TABLE hm_addressbooks ENGINE=InnoDB;
+
+ALTER TABLE hm_addressbookshares ENGINE=InnoDB;
+
 ALTER TABLE hm_accountprefs ENGINE=InnoDB;
 
 ALTER TABLE hm_scheduled ENGINE=InnoDB;
@@ -1697,6 +1730,10 @@ ALTER TABLE hm_fetchaccounts_uids ADD CONSTRAINT fk_hm_fetchaccounts_uids_fa FOR
 ALTER TABLE hm_apppasswords ADD CONSTRAINT fk_hm_apppasswords_account FOREIGN KEY (apaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_contacts ADD CONSTRAINT fk_hm_contacts_account FOREIGN KEY (contactaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_addressbooks ADD CONSTRAINT fk_hm_addressbooks_account FOREIGN KEY (bookaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_addressbookshares ADD CONSTRAINT fk_hm_addressbookshares_book FOREIGN KEY (sharebookid) REFERENCES hm_addressbooks (bookid) ON DELETE CASCADE;
 
 ALTER TABLE hm_accountprefs ADD CONSTRAINT fk_hm_accountprefs_account FOREIGN KEY (prefaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
@@ -2364,4 +2401,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0);
 
-insert into hm_dbversion values (6078);
+insert into hm_dbversion values (6079);

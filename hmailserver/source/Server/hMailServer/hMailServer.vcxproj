@@ -652,6 +652,8 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiMailbox.cpp" />
     <ClCompile Include="..\Common\Util\RestApiMailboxMove.cpp" />
     <ClCompile Include="..\Common\Util\RestApiContacts.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiAddressBooks.cpp" />
+    <ClCompile Include="..\Common\Util\AddressBookStore.cpp" />
     <ClCompile Include="..\Common\Util\RestApiContactGroups.cpp" />
     <ClCompile Include="..\Common\Util\ContactGroups.cpp" />
     <ClCompile Include="..\Common\Util\RestApiCalendar.cpp" />
@@ -1563,6 +1565,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\PersonExport.h" />
     <ClInclude Include="..\Common\Util\ContactCard.h" />
     <ClInclude Include="..\Common\Util\ContactGroups.h" />
+    <ClInclude Include="..\Common\Util\AddressBookStore.h" />
     <ClInclude Include="..\Common\Application\DomainSamples.h" />
     <ClInclude Include="..\Common\Util\ZipWriter.h" />
     <ClInclude Include="..\Common\Util\MessageExport.h" />

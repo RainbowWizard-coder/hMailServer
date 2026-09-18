@@ -19,6 +19,7 @@
 #include "../AntiSpam/SpamTrapMonitor.h"
 #include "../Util/Journaling.h"
 #include "../Util/DomainReports.h"
+#include "../Util/AddressBookStore.h"
 
 #include "../Util/Crypt.h"
 #include "../BO/Domain.h"
@@ -455,6 +456,20 @@ namespace HM
          {
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6751, "PersistentDomain::DeleteObject",
                Formatter::Format("Domain {0} is being deleted but its allow and block list could not be, and will be left behind referring to a domain that no longer exists.",
+                  iDomainID));
+         }
+
+         // The address books other accounts shared with the whole of this domain
+         // (AddressBookStore.h). sharedomainid carries no foreign key - it is 0
+         // on every share made to one account, and a column that may be 0 cannot
+         // reference anything - so nothing cascades it, and domain ids are
+         // reissued: a row left behind would hand somebody's address book to
+         // whichever domain takes the number next. Reported rather than fatal,
+         // as the two below are.
+         if (!AddressBookStore::UnshareAllForDomain(iDomainID))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7030, "PersistentDomain::DeleteObject",
+               Formatter::Format("Domain {0} is being deleted but the address books shared with the whole domain could not be unshared, and those shares will be left behind referring to a domain that no longer exists.",
                   iDomainID));
          }
 

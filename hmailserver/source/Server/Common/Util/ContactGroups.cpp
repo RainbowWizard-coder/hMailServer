@@ -11,6 +11,7 @@
 
 #include "ContactGroups.h"
 #include "ContactStore.h"
+#include "AddressBookStore.h"
 #include "CardDavServer.h"
 #include "VCard.h"
 #include "Unicode.h"
@@ -565,7 +566,17 @@ namespace HM
 
       AnsiString uid = Utf8(guid);
       AnsiString card = VCard::GenerateGroup(uid, Utf8(name), references);
-      return ContactStore::InsertCard(account->GetID(), name, ContactStore::GroupAddress(guid), String(), guid, Wide(card), inserted);
+
+      // A group is made in the account's default book. Its members are resolved
+      // against the whole address book rather than against one book of it, so
+      // which book holds the group row decides only where a CardDAV client
+      // finds the card - and is why no group is ever read or written through a
+      // SHARE: a group of a book somebody shares would answer with the names
+      // and addresses of rows in the books they did not share, so the listing
+      // leaves it out and a group card PUT into somebody else's book is refused
+      // (RestApiContacts.cpp, CardDavServer.cpp, SharedAddressBooks.md).
+      const __int64 bookId = AddressBookStore::DefaultBookId(account->GetID());
+      return ContactStore::InsertCard(account->GetID(), bookId, name, ContactStore::GroupAddress(guid), String(), guid, Wide(card), inserted);
    }
 
    bool

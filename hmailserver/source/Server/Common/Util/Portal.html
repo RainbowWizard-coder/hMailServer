@@ -979,6 +979,20 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 
 <section id="contacts-section" class="view page" hidden>
 <div class="page-head"><h1>Contacts</h1></div>
+<div class="card" id="contact-books">
+<h2>Address books</h2>
+<p class="hint">Your contacts are kept in address books. Share one with a colleague, or with your whole domain, and they see it in their webmail and on their phone.</p>
+<div class="row">
+<select id="book-select" aria-label="Address book"></select>
+<button class="btn ghost sm" type="button" id="book-manage">Sharing</button>
+</div>
+<form id="book-form" class="row">
+<input id="book-name" type="text" maxlength="255" placeholder="New address book" aria-label="New address book" required>
+<button class="btn sm" type="submit">Add</button>
+</form>
+<div id="book-status" class="status" aria-live="polite"></div>
+<div id="book-detail" hidden></div>
+</div>
 <div class="card">
 <p class="hint">Everyone you write to is offered under Other contacts; the To, Cc and Bcc fields complete from both as you type.</p>
 <form id="contact-form" class="row">
@@ -987,9 +1001,10 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <button class="btn sm" type="submit">Add</button>
 </form>
 <div id="contact-status" class="status" aria-live="polite"></div>
-<div class="row"><button class="btn ghost sm" type="button" id="contact-export-vcf">Export as vCard</button><button class="btn ghost sm" type="button" id="contact-export-csv">Export as CSV</button><label class="btn ghost sm" for="contact-import-file">Import</label><input id="contact-import-file" type="file" accept=".vcf,.vcard,.csv,text/vcard,text/csv" hidden></div>
+<div class="row"><button class="btn ghost sm" type="button" id="contact-export-vcf">Export as vCard</button><button class="btn ghost sm" type="button" id="contact-export-csv">Export as CSV</button><label class="btn ghost sm" for="contact-import-file" id="contact-import">Import</label><input id="contact-import-file" type="file" accept=".vcf,.vcard,.csv,text/vcard,text/csv" hidden></div>
 <table class="list" id="contact-table"><thead><tr><th>Name</th><th>Address</th><th>Details</th><th></th></tr></thead><tbody id="contact-rows"></tbody></table>
 <div id="contact-empty" class="hint" hidden>No contacts yet. Send a message, or add one above.</div>
+<div id="contact-readonly" class="hint" hidden>This address book is shared with you read-only.</div>
 </div>
 <div class="card" id="contact-groups">
 <h2>Groups</h2>

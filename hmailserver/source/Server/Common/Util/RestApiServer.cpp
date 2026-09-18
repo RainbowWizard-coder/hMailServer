@@ -2462,6 +2462,21 @@ namespace HM
          case RouteMeContactGroupMemberRemove:
             return HandleMeContactGroups_(caller, route.kind, route.record_id, route.name, GetRequestBody_(request));
 
+         case RouteMeAddressBooks:
+            return HandleMeAddressBooks_(caller);
+         case RouteMeAddressBookCreate:
+            return HandleMeAddressBookCreate_(caller, GetRequestBody_(request));
+         case RouteMeAddressBookUpdate:
+            return HandleMeAddressBookUpdate_(caller, route.message_id, GetRequestBody_(request));
+         case RouteMeAddressBookDelete:
+            return HandleMeAddressBookDelete_(caller, route.message_id);
+         case RouteMeAddressBookShares:
+            return HandleMeAddressBookShares_(caller, route.message_id);
+         case RouteMeAddressBookSharePut:
+            return HandleMeAddressBookSharePut_(caller, route.message_id, route.identifier, GetRequestBody_(request));
+         case RouteMeAddressBookShareDelete:
+            return HandleMeAddressBookShareDelete_(caller, route.message_id, route.identifier);
+
          case RouteMeCalendars:
             return HandleMeCalendars_(caller);
          case RouteMeCalendarCreate:
@@ -2730,6 +2745,11 @@ namespace HM
          case RouteAccountDeviceDelete:
             return HandleAccountResources_(route, GetRequestBody_(request));
 
+         case RouteAccountAddressBooks:
+            return HandleAccountAddressBooks_(route.identifier);
+         case RouteAccountAddressBookShareDelete:
+            return HandleAccountAddressBookShareDelete_(route.identifier, route.record_id, route.name);
+
          case RouteOpenApi:
             return HandleOpenApi_();
 
@@ -2951,6 +2971,51 @@ namespace HM
                route.kind = RouteMeContactDelete;
          }
 
+         return;
+      }
+
+      // The account's address books and their shares (RestApiAddressBooks.cpp).
+      // A share's target is an address or a domain name, so it is decoded here
+      // as the group member reference above is.
+      const AnsiString meBooksPath = "/api/v1/me/address-books";
+      if (path == meBooksPath)
+      {
+         if (method == "GET")
+            route.kind = RouteMeAddressBooks;
+         else if (method == "POST")
+            route.kind = RouteMeAddressBookCreate;
+         return;
+      }
+      if (path.StartsWith(meBooksPath + "/"))
+      {
+         AnsiString rest = path.Mid(meBooksPath.GetLength() + 1);
+         const AnsiString sharesSegment = "/shares";
+         int sharesAt = rest.Find(sharesSegment);
+         if (sharesAt > 0)
+         {
+            if (!ParseQueueId(rest.Mid(0, sharesAt), route.message_id))
+               return;
+
+            AnsiString after = rest.Mid(sharesAt + sharesSegment.GetLength());
+            if (after.IsEmpty() && method == "GET")
+               route.kind = RouteMeAddressBookShares;
+            else if (after.GetLength() > 1 && after.StartsWith("/") && after.Find("/", 1) < 0)
+            {
+               route.identifier = DecodePathSegment_(after.Mid(1));
+               if (method == "PUT")
+                  route.kind = RouteMeAddressBookSharePut;
+               else if (method == "DELETE")
+                  route.kind = RouteMeAddressBookShareDelete;
+            }
+            return;
+         }
+         if (ParseQueueId(rest, route.message_id))
+         {
+            if (method == "PUT")
+               route.kind = RouteMeAddressBookUpdate;
+            else if (method == "DELETE")
+               route.kind = RouteMeAddressBookDelete;
+         }
          return;
       }
 
@@ -5885,6 +5950,15 @@ namespace HM
       case RouteMeContactGroupDelete:
       case RouteMeContactGroupMemberAdd:
       case RouteMeContactGroupMemberRemove:
+      // An address book made, renamed or deleted, and who it is shared with.
+      // Sharing one hands somebody else every contact in it, which is the
+      // strongest of these and the reason the share routes are here.
+      case RouteMeAddressBookCreate:
+      case RouteMeAddressBookUpdate:
+      case RouteMeAddressBookDelete:
+      case RouteMeAddressBookSharePut:
+      case RouteMeAddressBookShareDelete:
+      case RouteAccountAddressBookShareDelete:
       case RouteApiKeyCreate:
       case RouteApiKeyRevoke:
       case RouteAccountCreate:
@@ -6457,6 +6531,12 @@ namespace HM
       // me" needs exactly this, which is why it sits with the names rather
       // than with the mailbox.
       case RouteAccountDeviceList:
+      // Which address books an account keeps, how many contacts each holds and
+      // who each is shared with. Not the contacts: this is the shape of the
+      // sharing, which is what an operator asked about a team's address book
+      // needs, and it sits with the other reads of an account rather than with
+      // the mailbox - which is also what keeps an auditor able to see it.
+      case RouteAccountAddressBooks:
       case RouteGroupList:
       case RouteGroupGet:
       case RouteGroupMemberList:
@@ -6606,6 +6686,11 @@ namespace HM
       // password behind it, which is a change to the account's credentials -
       // so it sits with issuing one rather than with reading the list.
       case RouteAccountDeviceDelete:
+      // Undoing a person's own decision to share an address book: administering
+      // that account in that domain, and never an auditor's or a help desk's -
+      // taking a share back can leave a team without the address book it works
+      // from.
+      case RouteAccountAddressBookShareDelete:
       // A domain's own allow and block list is a property of the domain, as
       // its limits and its aliases are, and COM's Domain.SenderList answers a
       // domain administrator; the server's list is ManageSettings's, below.
@@ -7022,6 +7107,11 @@ namespace HM
       case RouteAccountMessageCopy:
       case RouteAccountDeviceList:
       case RouteAccountDeviceDelete:
+      // An account's address books and their shares are named by an address in
+      // the path and nothing else, so they are scoped to that address's domain
+      // exactly as the routes above are.
+      case RouteAccountAddressBooks:
+      case RouteAccountAddressBookShareDelete:
       case RouteAccountSupportSession:
       // The account's keys are named by an address in the path and nothing
       // else. Without this, a credential issued for one domain could publish
@@ -10102,6 +10192,13 @@ namespace HM
       case RouteMeContactGroupDelete:
       case RouteMeContactGroupMemberAdd:
       case RouteMeContactGroupMemberRemove:
+      case RouteMeAddressBooks:
+      case RouteMeAddressBookCreate:
+      case RouteMeAddressBookUpdate:
+      case RouteMeAddressBookDelete:
+      case RouteMeAddressBookShares:
+      case RouteMeAddressBookSharePut:
+      case RouteMeAddressBookShareDelete:
       case RouteMe:
       case RouteMePassword:
       case RouteMeVacation:
@@ -15515,6 +15612,7 @@ namespace HM
       openApiJson += OpenApiDirectoryPaths_();
       openApiJson += OpenApiConfidentialPaths_();
       openApiJson += OpenApiContactGroupsPaths_();
+      openApiJson += OpenApiAddressBookPaths_();
       openApiJson += OpenApiOfflinePaths_();
       openApiJson += OpenApiAdministrationPaths_();
       openApiJson += OpenApiAntiSpamListsPaths_();

@@ -5,6 +5,7 @@
 #include "StdAfx.h"
 #include "ContactCard.h"
 #include "ContactStore.h"
+#include "AddressBookStore.h"
 #include "VCard.h"
 #include "Unicode.h"
 #include "Encoding/Base64.h"
@@ -167,6 +168,11 @@ namespace HM
       String own = account->GetAddress();
       own.ToLower();
 
+      // A collected address goes into the account's default book: it is a
+      // suggestion the person has not kept, and putting one into a book they
+      // share with a team would put every address they write to in front of it.
+      const __int64 bookId = AddressBookStore::DefaultBookId(account->GetID());
+
       for (const String &entry : entries)
       {
          String name;
@@ -180,7 +186,7 @@ namespace HM
             continue;
 
          ContactRecord inserted;
-         ContactStore::Insert(account->GetID(), name, address, ContactStore::SourceCollected, inserted);
+         ContactStore::Insert(account->GetID(), bookId, name, address, ContactStore::SourceCollected, inserted);
       }
    }
 }

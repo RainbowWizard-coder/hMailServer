@@ -16,16 +16,39 @@
 // is a row of the same store and is listed here with kind group, its members
 // resolved, so the completion offers it by name; its own routes are
 // RestApiContactGroups.cpp.
+//
+// SEVERAL BOOKS, AND SHARED ONES (schema 6079, AddressBookStore.h). Every
+// contact is in an address book, and book= says which one this request is
+// about:
+//
+//   absent   every book the account OWNS, which with no books made is exactly
+//            what this route answered before 6079 and exactly what the CSV and
+//            vCard exports still mean by "my contacts".
+//   <id>     that one book: one of the account's own, or one shared with it.
+//   all      every book it can see, its own first and then the shared ones,
+//            each contact carrying the book it is in - which is what the To
+//            field's completion asks for, so that a colleague in a team's book
+//            is offered and is labelled with whose book it came from.
+//
+// A contact of a book somebody shares belongs to the book's OWNER: it is read
+// and written under the owner's account id, and a book shared read-only refuses
+// every write with 403.
 
 #include "StdAfx.h"
+
+#include <map>
+#include <memory>
+
 #include "RestApiServer.h"
 #include "HttpServer.h"
+#include "AddressBookStore.h"
 #include "ContactStore.h"
 #include "ContactCard.h"
 #include "ContactGroups.h"
 #include "Unicode.h"
 #include "VCard.h"
 #include "../BO/Account.h"
+#include "../Cache/CacheContainer.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -45,6 +68,17 @@ namespace HM
          text.Format("%I64d", value);
          return text;
       }
+
+      // The three fields a listing puts on every contact when more than one
+      // book is in the answer, so the page can say where each came from.
+      AnsiString BookFields(const RestApiServer::VisibleBook &book)
+      {
+         return AnsiString(",\"book_id\":") + Int64Text(book.id) +
+            ",\"book_name\":\"" + RestApiServer::JsonEscapeUtf8(book.name) +
+            "\",\"book_owner\":\"" + RestApiServer::JsonEscapeUtf8(book.owner) +
+            "\",\"book_mine\":" + (book.mine ? "true" : "false") +
+            ",\"book_writable\":" + (book.writable ? "true" : "false");
+      }
    }
 
    // A contact as the page reads it: the row, and what the card a phone
@@ -52,8 +86,9 @@ namespace HM
    // phones, whether there is a photo (served at /photo, since it is an image
    // and not something to hand out a thousand times in a listing) - and the
    // card itself when asked for (fields=card), so an export carries it whole.
+   // book, when there is one, says which address book the contact is in.
    AnsiString
-   RestApiServer::ContactJson_(const ContactRecord &contact, bool includeCard)
+   RestApiServer::ContactJson_(const ContactRecord &contact, bool includeCard, const VisibleBook *book)
    {
       ContactCard::Fields fields;
       ContactCard::Read(contact.vcard, fields);
@@ -73,6 +108,9 @@ namespace HM
          "\",\"phones\":" + phones +
          ",\"has_photo\":" + (fields.hasPhoto ? "true" : "false");
 
+      if (book)
+         json += BookFields(*book);
+
       if (includeCard)
          json += ",\"card\":\"" + JsonEscape_(Utf8_(contact.vcard)) + "\"";
 
@@ -91,7 +129,8 @@ namespace HM
       // (the completion popup's use); limit= caps the answer, 200 by default;
       // source= is manual (what the person kept) or collected (what they wrote
       // to); kind= is person or group, both without it; fields=card puts the
-      // stored card on each contact.
+      // stored card on each contact; book= is one book's id, "all" for every
+      // book the account can see, or absent for its own books.
       String needle = String(QueryParameter_(query, "q"));
       needle.ToLower();
       AnsiString sourceFilter = QueryParameter_(query, "source");
@@ -112,60 +151,120 @@ namespace HM
             limit = ContactListMaximumLimit;
       }
 
-      std::vector<ContactRecord> contacts;
-      if (!ContactStore::List(account->GetID(), contacts))
-         return BuildResponse_(500, "{\"error\":\"the contacts could not be read\"}");
+      std::vector<VisibleBook> visible;
+      if (!VisibleBooks_(account, visible))
+         return BuildResponse_(500, "{\"error\":\"the address books could not be read\"}");
 
-      // A group (ContactGroups.h) is listed among the contacts with its
-      // members resolved against the rows already in hand, so that the
-      // completion offers it by name and expands it with no second request.
-      // The index is built once for the whole listing: every group of the
-      // book is resolved against it, so a card is parsed once and a row's
-      // UID computed once however many groups name it.
-      String accountAddress = account->GetAddress();
-      accountAddress.ToLower();
-      const AnsiString accountAddressUtf8 = Utf8_(accountAddress);
-      ContactGroupIndex groupIndex(accountAddressUtf8, contacts);
+      AnsiString bookFilter = QueryParameter_(query, "book");
+      std::vector<VisibleBook> books;
+      if (bookFilter.IsEmpty())
+      {
+         // The account's own books. With no book made this is the one default
+         // book, which is every contact it has - what this route has always
+         // answered.
+         for (size_t i = 0; i < visible.size(); i++)
+         {
+            if (visible[i].mine)
+               books.push_back(visible[i]);
+         }
+      }
+      else if (bookFilter == "all")
+      {
+         books = visible;
+      }
+      else
+      {
+         __int64 wanted = _atoi64(bookFilter.c_str());
+         for (size_t i = 0; i < visible.size(); i++)
+         {
+            if (visible[i].id == wanted && wanted > 0)
+               books.push_back(visible[i]);
+         }
+         if (books.empty())
+            return BuildResponse_(404, "{\"error\":\"no such address book\"}");
+      }
+
+      // More than one book in the answer means every contact says which it is
+      // in; one book means the page already knows.
+      const bool label = books.size() > 1 || bookFilter == "all";
 
       AnsiString json = "{\"contacts\":[";
       int count = 0;
       int total = 0;
-      for (const ContactRecord &contact : contacts)
+
+      // One group index, for the READER'S OWN address book, built at most once
+      // however many of its books this listing walks. There is never one for
+      // anybody else's, because a group of a book somebody shares with the
+      // reader is not listed at all: a group is one account's own entry and
+      // resolves against that account's WHOLE address book - every book of it,
+      // shared or not - so listing one to a sharee would answer with the names
+      // and addresses of contacts in books that were never shared. That is why
+      // a group card is also refused on a CardDAV PUT into somebody else's
+      // book: a writable share would otherwise be a way to ask for the owner's
+      // private rows by planting a group that names them.
+      std::shared_ptr<ContactGroupIndex> index;
+
+      for (size_t b = 0; b < books.size(); b++)
       {
-         const bool group = ContactGroups::IsGroup(contact);
-         if (!kindFilter.IsEmpty() && (kindFilter == "group") != group)
-            continue;
+         const VisibleBook &book = books[b];
 
-         if (!sourceFilter.IsEmpty() && (sourceFilter == "collected") != (contact.source == ContactStore::SourceCollected))
-            continue;
+         std::vector<ContactRecord> contacts;
+         if (!ContactStore::ListInBook(book.ownerAccountId, book.id, book.isDefault, contacts))
+            return BuildResponse_(500, "{\"error\":\"the contacts could not be read\"}");
 
-         bool matches = needle.IsEmpty();
-         if (!matches)
+         for (const ContactRecord &contact : contacts)
          {
-            String lowerName = contact.name;
-            lowerName.ToLower();
-            String lowerAddress = group ? String() : contact.address;
-            lowerAddress.ToLower();
-            matches = lowerName.Find(needle) >= 0 || (!lowerAddress.IsEmpty() && lowerAddress.Find(needle) >= 0);
-         }
+            const bool group = ContactGroups::IsGroup(contact);
+            if (!kindFilter.IsEmpty() && (kindFilter == "group") != group)
+               continue;
 
-         if (matches)
-         {
-            total++;
-            if (count < limit)
+            // A group row in somebody else's book is theirs, not the reader's.
+            if (group && !book.mine)
+               continue;
+
+            if (!sourceFilter.IsEmpty() && (sourceFilter == "collected") != (contact.source == ContactStore::SourceCollected))
+               continue;
+
+            bool matches = needle.IsEmpty();
+            if (!matches)
             {
-               if (count > 0)
-                  json += ",";
-               if (group)
-               {
-                  ContactGroup resolved;
-                  ContactGroups::Resolve(groupIndex, contact, resolved);
-                  json += ContactGroupJson_(resolved, &contact, includeCard);
-               }
-               else
-                  json += ContactJson_(contact, includeCard);
-               count++;
+               String lowerName = contact.name;
+               lowerName.ToLower();
+               String lowerAddress = group ? String() : contact.address;
+               lowerAddress.ToLower();
+               matches = lowerName.Find(needle) >= 0 || (!lowerAddress.IsEmpty() && lowerAddress.Find(needle) >= 0);
             }
+
+            if (!matches)
+               continue;
+
+            total++;
+            if (count >= limit)
+               continue;
+
+            if (count > 0)
+               json += ",";
+
+            if (group)
+            {
+               if (!index)
+               {
+                  String readerAddress = account->GetAddress();
+                  readerAddress.ToLower();
+
+                  std::vector<ContactRecord> all;
+                  ContactStore::List(account->GetID(), all);
+                  index = std::shared_ptr<ContactGroupIndex>(new ContactGroupIndex(Utf8_(readerAddress), all));
+               }
+
+               ContactGroup resolved;
+               ContactGroups::Resolve(*index, contact, resolved);
+               json += ContactGroupJson_(resolved, &contact, includeCard, label ? &book : nullptr);
+            }
+            else
+               json += ContactJson_(contact, includeCard, label ? &book : nullptr);
+
+            count++;
          }
       }
 
@@ -179,6 +278,33 @@ namespace HM
       std::shared_ptr<const Account> account = caller.account;
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      // Which book it goes in: the one the body names, or the account's own
+      // default. A book shared read-only refuses it here as CardDAV does.
+      // 0 is the account's default book everywhere in this feature - it is what
+      // every contact carried before schema 6079 - so a client that sends it
+      // means the default book rather than a book that is not there.
+      __int64 wanted = 0;
+      const bool named = requestBody.Find("\"book\"") >= 0 && JsonWholeNumber_(requestBody, "book", wanted) >= 0;
+      if (requestBody.Find("\"book\"") >= 0 && !named)
+         return BuildResponse_(400, "{\"error\":\"book must be an address book's id\"}");
+
+      VisibleBook book;
+      if (named && wanted > 0)
+      {
+         if (!FindVisibleBook_(account, wanted, book))
+            return BuildResponse_(404, "{\"error\":\"no such address book\"}");
+         if (!book.writable)
+            return BuildResponse_(403, "{\"error\":\"this address book is shared with you read-only\"}");
+      }
+      else
+      {
+         AddressBookRecord defaultBook;
+         if (!AddressBookStore::EnsureDefault(account->GetID(), defaultBook))
+            return BuildResponse_(500, "{\"error\":\"the address books could not be read\"}");
+         if (!FindVisibleBook_(account, defaultBook.id, book))
+            return BuildResponse_(500, "{\"error\":\"the address books could not be read\"}");
+      }
 
       // Body: name and address; or card, a vCard kept as sent - what the page's
       // import hands over, so a card exported from a phone and brought in here
@@ -228,18 +354,20 @@ namespace HM
       if (!ContactStore::IsValidAddress(address))
          return BuildResponse_(400, "{\"error\":\"address must be one e-mail address\"}");
 
+      // The address is unique per ACCOUNT rather than per book, so the row that
+      // already has it may be in another book of the owner's.
       __int64 existing = 0;
-      if (ContactStore::FindByAddress(account->GetID(), address, existing))
+      if (ContactStore::FindByAddress(book.ownerAccountId, address, existing))
          return BuildResponse_(409, "{\"error\":\"a contact with that address exists\",\"id\":" + Int64Text(existing) + "}");
 
       ContactRecord inserted;
       bool ok = card.IsEmpty()
-         ? ContactStore::Insert(account->GetID(), name, address, ContactStore::SourceManual, inserted)
-         : ContactStore::InsertCard(account->GetID(), name, address, String(), uid, card, inserted);
+         ? ContactStore::Insert(book.ownerAccountId, book.id, name, address, ContactStore::SourceManual, inserted)
+         : ContactStore::InsertCard(book.ownerAccountId, book.id, name, address, String(), uid, card, inserted);
       if (!ok)
          return BuildResponse_(500, "{\"error\":\"the contact could not be saved\"}");
 
-      return BuildResponse_(201, ContactJson_(inserted, false));
+      return BuildResponse_(201, ContactJson_(inserted, false, &book));
    }
 
    HttpResponse
@@ -249,11 +377,17 @@ namespace HM
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
-      // The row must be this account's; another account's id is 404, not 403,
-      // so that the ids of one address book say nothing about another.
+      // The row must be in a book the account can see and may write to; one it
+      // cannot see at all is 404, not 403, so that the ids of one address book
+      // say nothing about another.
       ContactRecord contact;
-      if (!ContactStore::Get(account->GetID(), id, contact))
-         return BuildResponse_(404, "{\"error\":\"no such contact\"}");
+      VisibleBook book;
+      int status = 404;
+      AnsiString problem;
+      if (!FindVisibleContact_(account, id, true, contact, book, status, problem))
+         return BuildResponse_(status, "{\"error\":\"" + JsonEscape_(problem) + "\"}");
+
+      const __int64 ownerId = book.ownerAccountId;
 
       // A group has no address to change and a card whose name is written
       // another way: its own routes do that (RestApiContactGroups.cpp).
@@ -280,8 +414,36 @@ namespace HM
             return BuildResponse_(400, "{\"error\":\"address must be one e-mail address\"}");
 
          __int64 other = 0;
-         if (ContactStore::FindByAddress(account->GetID(), address, other) && other != id)
+         if (ContactStore::FindByAddress(ownerId, address, other) && other != id)
             return BuildResponse_(409, "{\"error\":\"a contact with that address exists\",\"id\":" + Int64Text(other) + "}");
+      }
+
+      // book: moved from one address book to another. Both must belong to the
+      // same account - the row is that account's, and moving it into somebody
+      // else's book would be giving away a contact rather than moving one - and
+      // the destination must be writable.
+      VisibleBook destination = book;
+      if (requestBody.Find("\"book\"") >= 0)
+      {
+         __int64 wanted = 0;
+         if (JsonWholeNumber_(requestBody, "book", wanted) < 0)
+            return BuildResponse_(400, "{\"error\":\"book must be an address book's id\"}");
+
+         // 0 is the account's default book, as it is everywhere else here.
+         if (wanted <= 0)
+         {
+            AddressBookRecord defaultBook;
+            if (!AddressBookStore::EnsureDefault(account->GetID(), defaultBook))
+               return BuildResponse_(500, "{\"error\":\"the address books could not be read\"}");
+            wanted = defaultBook.id;
+         }
+
+         if (!FindVisibleBook_(account, wanted, destination))
+            return BuildResponse_(404, "{\"error\":\"no such address book\"}");
+         if (destination.ownerAccountId != ownerId)
+            return BuildResponse_(400, "{\"error\":\"a contact is moved between the books of one account; add it to the other book instead\"}");
+         if (!destination.writable)
+            return BuildResponse_(403, "{\"error\":\"this address book is shared with you read-only\"}");
       }
 
       // source: manual keeps a collected address as a contact, which is the
@@ -297,17 +459,20 @@ namespace HM
             return BuildResponse_(400, "{\"error\":\"source can only be set to manual, which keeps a collected address as a contact\"}");
       }
 
-      if (!ContactStore::Update(account->GetID(), id, name, address))
+      if (!ContactStore::Update(ownerId, id, name, address))
          return BuildResponse_(500, "{\"error\":\"the contact could not be saved\"}");
 
-      if (source != contact.source && !ContactStore::SetSource(account->GetID(), id, source))
+      if (source != contact.source && !ContactStore::SetSource(ownerId, id, source))
          return BuildResponse_(500, "{\"error\":\"the contact could not be kept\"}");
 
+      if (destination.id != book.id && !ContactStore::SetBook(ownerId, id, destination.id))
+         return BuildResponse_(500, "{\"error\":\"the contact could not be moved\"}");
+
       ContactRecord saved;
-      if (!ContactStore::Get(account->GetID(), id, saved))
+      if (!ContactStore::Get(ownerId, id, saved))
          return BuildResponse_(500, "{\"error\":\"the contact could not be read back\"}");
 
-      return BuildResponse_(200, ContactJson_(saved, false));
+      return BuildResponse_(200, ContactJson_(saved, false, &destination));
    }
 
    HttpResponse
@@ -318,15 +483,21 @@ namespace HM
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
       ContactRecord contact;
-      if (!ContactStore::Get(account->GetID(), id, contact))
-         return BuildResponse_(404, "{\"error\":\"no such contact\"}");
+      VisibleBook book;
+      int status = 404;
+      AnsiString problem;
+      if (!FindVisibleContact_(account, id, true, contact, book, status, problem))
+         return BuildResponse_(status, "{\"error\":\"" + JsonEscape_(problem) + "\"}");
 
-      if (!ContactStore::Delete(account->GetID(), id))
+      if (!ContactStore::Delete(book.ownerAccountId, id))
          return BuildResponse_(500, "{\"error\":\"the contact could not be deleted\"}");
 
       // The groups that named it - a contact or a group in a group - no
-      // longer do (ContactGroups.h).
-      ContactGroups::ForgetMember(account, contact);
+      // longer do (ContactGroups.h). The OWNER's groups, since the row was
+      // theirs.
+      std::shared_ptr<const Account> owner = book.mine ? account : CacheContainer::Instance()->GetAccount(book.ownerAccountId);
+      if (owner)
+         ContactGroups::ForgetMember(owner, contact);
 
       return BuildResponse_(200, "{\"deleted\":true}");
    }
@@ -349,8 +520,11 @@ namespace HM
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
       ContactRecord contact;
-      if (!ContactStore::Get(account->GetID(), id, contact))
-         return BuildResponse_(404, "{\"error\":\"no such contact\"}");
+      VisibleBook book;
+      int status = 404;
+      AnsiString problem;
+      if (!FindVisibleContact_(account, id, false, contact, book, status, problem))
+         return BuildResponse_(status, "{\"error\":\"" + JsonEscape_(problem) + "\"}");
 
       AnsiString bytes;
       AnsiString contentType;

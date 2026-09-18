@@ -25,6 +25,7 @@
 #include "../BO/Domain.h"
 #include "../Util/PasswordHistory.h"
 #include "../Util/CalendarStore.h"
+#include "../Util/AddressBookStore.h"
 #include "../Util/CompromiseDetector.h"
 #include "PersistenceMode.h"
 
@@ -114,6 +115,13 @@ namespace HM
       // their shares go with the account through the foreign keys.
       if (!CalendarStore::UnshareAll(iID))
          orphans.push_back(_T("the calendar shares granted to it"));
+
+      // And the address books other accounts shared with it. Its own books, the
+      // contacts in them and the shares OF them go with the account through the
+      // foreign keys; what is left is the rows naming it as a sharee, which name
+      // it in a column that carries no key (AddressBookStore.h).
+      if (!AddressBookStore::UnshareAllForAccount(iID))
+         orphans.push_back(_T("the address book shares granted to it"));
 
       // Delete fetch accounts connected to this account. This one returns void, so
       // there is nothing to check - noted rather than silently skipped.

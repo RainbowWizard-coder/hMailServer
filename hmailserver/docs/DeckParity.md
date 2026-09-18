@@ -18,7 +18,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
 | desktop pages read | 65 |
-| REST routes (path and method) | 462, 205 of them writes |
+| REST routes (path and method) | 471, 208 of them writes |
 | Deck views | 37 |
 
 ## Missing over REST, by interface
@@ -870,6 +870,9 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/journal-rules` | - | `account`, `address`, `direction`, `domain`, `enabled`, `force`, `from`, `header`, `journal_address`, `keys`, `message`, `mode`, `note`, `read`, `scope`, `sender`, `target` | yes |
 | `PUT /api/v1/journal-rules/{id}` | - | `account`, `address`, `body`, `direction`, `domain`, `enabled`, `field`, `force`, `from`, `header`, `journal_address`, `keys`, `message`, `mode`, `note`, `read`, `scope`, `sender`, `target`, `value` | yes |
 | `PUT /api/v1/lists/{address}` | DistributionList | `active`, `bounce_address`, `create`, `domain`, `domain_members`, `field`, `members`, `membership`, `mode`, `moderator_address`, `require_auth`, `require_sender_address`, `to`, `value` | yes |
+| `POST /api/v1/me/address-books` | ? | `account`, `name` | - |
+| `PUT /api/v1/me/address-books/{id}` | ? | `account`, `book`, `name` | - |
+| `PUT /api/v1/me/address-books/{id}/shares/{target}` | ? | `read`, `write` | - |
 | `POST /api/v1/me/app-passwords` | AppPassword | `account`, `address`, `code`, `name`, `password`, `text`, `to` | - |
 | `POST /api/v1/me/calendar/events` | ? | `address`, `addresses`, `alarm_minutes`, `all_day`, `attendees`, `calendar`, `card`, `description`, `end`, `event`, `first`, `invite`, `location`, `rrule`, `start`, `summary`, `text`, `to`, `tz` | - |
 | `PUT /api/v1/me/calendar/events/{id}` | ? | `address`, `addresses`, `alarm_minutes`, `all_day`, `attendees`, `calendar`, `card`, `description`, `end`, `event`, `first`, `invite`, `location`, `recurrence_id`, `rrule`, `start`, `summary`, `text`, `to`, `tz` | - |
@@ -878,8 +881,8 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/me/calendars/{id}/shares/{address}` | ? | `account`, `calendar`, `current`, `read`, `write` | - |
 | `POST /api/v1/me/confidential/{id}/revoke` | ? | - | - |
 | `POST /api/v1/me/contacts` | ? | `account`, `address`, `name` | - |
-| `POST /api/v1/me/contacts/groups` | Group | `account`, `address`, `group`, `members`, `name`, `read`, `to` | - |
-| `PUT /api/v1/me/contacts/groups/{id}` | Group | `account`, `address`, `card`, `group`, `members`, `name`, `read`, `to` | - |
+| `POST /api/v1/me/contacts/groups` | Group | `account`, `address`, `book`, `group`, `members`, `name`, `read`, `to` | - |
+| `PUT /api/v1/me/contacts/groups/{id}` | Group | `account`, `address`, `book`, `card`, `group`, `members`, `name`, `read`, `to` | - |
 | `POST /api/v1/me/contacts/groups/{id}/members` | DistributionListRecipient, GroupMember | `address`, `group`, `last` | - |
 | `PUT /api/v1/me/contacts/{id}` | ? | `account`, `address`, `from`, `name`, `source`, `to` | - |
 | `PUT /api/v1/me/directory/me` | ? | `opt_out` | - |

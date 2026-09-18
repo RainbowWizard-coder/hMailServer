@@ -1981,7 +1981,7 @@
     if (head === 'folders') { showPanel('folders-section', 'Manage folders'); markNav('/folders'); renderFolderAdmin(); return; }
     if (head === 'settings') { showPanel('settings-section', 'Settings'); markNav('/settings'); loadPush(); loadOffline(); loadDirectoryCard(); return; }
     if (head === 'filters') { showPanel('filter-section', 'Filters'); markNav('/filters'); renderColourRules(); return; }
-    if (head === 'contacts') { showPanel('contacts-section', 'Contacts'); markNav('/contacts'); loadContacts(); return; }
+    if (head === 'contacts') { showPanel('contacts-section', 'Contacts'); markNav('/contacts'); loadBooks().then(loadContacts); return; }
     if (head === 'directory') { showPanel('directory-section', t('Directory')); markNav('/directory'); loadDirectory(); return; }
     if (head === 'calendar') { showPanel('calendar-section', t('Calendar')); markNav('/calendar'); openCalendar(r.params); return; }
     if (head === 'tasks') { showPanel('tasks-section', t('Tasks')); markNav('/tasks'); loadTasks(); return; }
@@ -2042,6 +2042,7 @@
     prefetched = {};
     judged = {}; judgedByPage = {}; openedIds = {}; judgeWaiting = false;
     contactsCache = null;
+    bookState = { books: [], current: 0, detail: false };
     current = null;
     lastListing = null;
     listRows = [];
@@ -2546,6 +2547,148 @@
   el('message-forward').addEventListener('click', function () { if (current) { go('/compose?forward=' + current.id); } });
   el('message-edit').addEventListener('click', function () { if (current) { go('/compose?draft=' + current.id); } });
   el('compose-discard').addEventListener('click', function () { composeKey = newComposeKey(); blankCompose(); closeCompose(); toast(t('Discarded.')); });
+  // ---- Address books ---------------------------------------------------------
+  // The page works in one address book at a time. The account's own come first,
+  // the default before the rest, then the books other people share with it -
+  // read-only or writable as the share says. Sharing is the owner's panel: an
+  // address shares with one account, a domain name with every account in it.
+  var bookState = { books: [], current: 0, detail: false };
+  var BOOK_CHOSEN = 'hm-portal-book';
+  var bookById = function (id) {
+    var found = null;
+    bookState.books.forEach(function (b) { if (b.id === id) { found = b; } });
+    return found;
+  };
+  var currentBook = function () { return bookById(bookState.current); };
+  var renderBookDetail = function () {
+    var box = el('book-detail');
+    clear(box);
+    var b = currentBook();
+    box.hidden = !bookState.detail || !b;
+    if (box.hidden) { return; }
+    if (!b.mine) {
+      box.appendChild(node('p', tf('Shared by {0}', b.owner) + ' \u00b7 ' + (b.writable ? t('you can add and change contacts') : t('read-only')), 'hint'));
+      var leave = button(t('Leave this address book'), 'btn ghost sm');
+      leave.addEventListener('click', function () {
+        call('DELETE', '/api/v1/me/address-books/' + b.id).then(function (result) {
+          if (result.status !== 200) { say('book-status', describe(result, t('Could not leave the address book')), false); return; }
+          bookState.current = 0; bookState.detail = false;
+          loadBooks().then(loadContacts);
+        });
+      });
+      box.appendChild(leave);
+      return;
+    }
+    var form = node('form', undefined, 'row');
+    var name = document.createElement('input');
+    name.type = 'text'; name.value = b.name; name.id = 'book-detail-name';
+    name.setAttribute('aria-label', t('Address book name')); name.setAttribute('maxlength', '255');
+    var save = button(t('Save'), 'btn sm'); save.type = 'submit';
+    form.appendChild(name); form.appendChild(save);
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      call('PUT', '/api/v1/me/address-books/' + b.id, { name: name.value }).then(function (result) {
+        if (result.status !== 200) { say('book-status', describe(result, t('Could not save the address book')), false); return; }
+        loadBooks();
+      });
+    });
+    box.appendChild(form);
+
+    box.appendChild(node('h3', t('Sharing')));
+    var shareForm = node('form', undefined, 'row');
+    var target = document.createElement('input');
+    target.type = 'text'; target.id = 'book-share-target';
+    target.setAttribute('placeholder', 'someone@' + (String(me || '').split('@')[1] || 'example.com'));
+    target.setAttribute('aria-label', t('Share with'));
+    var writeLabel = node('label');
+    var write = document.createElement('input'); write.type = 'checkbox'; write.id = 'book-share-write';
+    writeLabel.appendChild(write); writeLabel.appendChild(node('span', ' ' + t('Can edit')));
+    var share = button(t('Share'), 'btn sm'); share.type = 'submit';
+    shareForm.appendChild(target); shareForm.appendChild(writeLabel); shareForm.appendChild(share);
+    shareForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var who = target.value.trim().toLowerCase();
+      if (!who) { return; }
+      call('PUT', '/api/v1/me/address-books/' + b.id + '/shares/' + encodeURIComponent(who), { write: write.checked }).then(function (result) {
+        if (result.status !== 200) { say('book-status', describe(result, t('Could not share the address book')), false); return; }
+        say('book-status', tf('Shared with {0}.', who), true);
+        target.value = '';
+        loadBooks();
+      });
+    });
+    box.appendChild(shareForm);
+    (b.shares || []).forEach(function (s) {
+      var row = node('div', undefined, 'row book-share');
+      row.appendChild(node('span', s.target + ' \u00b7 ' + (s.write ? t('can edit') : t('read-only')) +
+        (s.kind === 'domain' ? ' \u00b7 ' + t('every account in the domain') : '')));
+      var remove = button(t('Remove'), 'btn quiet sm');
+      remove.addEventListener('click', function () {
+        call('DELETE', '/api/v1/me/address-books/' + b.id + '/shares/' + encodeURIComponent(s.target)).then(function (result) {
+          if (result.status !== 200) { say('book-status', describe(result, t('Could not remove the share')), false); return; }
+          loadBooks();
+        });
+      });
+      row.appendChild(remove);
+      box.appendChild(row);
+    });
+    box.appendChild(node('p', t('Someone you share with sees these contacts in their webmail and on their phone, read-only unless they can edit.'), 'hint'));
+    if (!b.is_default) {
+      var del = button(t('Delete this address book'), 'btn quiet sm');
+      del.addEventListener('click', function () {
+        if (!window.confirm(tf('Delete the address book "{0}" and every contact in it?', b.name))) { return; }
+        call('DELETE', '/api/v1/me/address-books/' + b.id).then(function (result) {
+          if (result.status !== 200) { say('book-status', describe(result, t('Could not delete the address book')), false); return; }
+          bookState.current = 0; bookState.detail = false;
+          loadBooks().then(loadContacts);
+        });
+      });
+      box.appendChild(del);
+    }
+  };
+  var renderBooks = function () {
+    var select = el('book-select');
+    clear(select);
+    bookState.books.forEach(function (b) {
+      var o = document.createElement('option');
+      o.value = String(b.id);
+      o.textContent = (b.mine ? b.name : b.name + ' (' + b.owner + ')') + ' \u00b7 ' + b.contacts;
+      select.appendChild(o);
+    });
+    select.value = String(bookState.current);
+    renderBookDetail();
+  };
+  var loadBooks = function () {
+    return call('GET', '/api/v1/me/address-books').then(function (result) {
+      if (result.status !== 200 || !result.data) { say('book-status', describe(result, t('Could not read the address books')), false); return []; }
+      bookState.books = result.data.books || [];
+      if (!bookById(bookState.current)) {
+        var remembered = 0;
+        try { remembered = parseInt(localStorage.getItem(BOOK_CHOSEN) || '0', 10) || 0; } catch (e) { remembered = 0; }
+        bookState.current = bookById(remembered) ? remembered : (bookState.books.length ? bookState.books[0].id : 0);
+      }
+      renderBooks();
+      return bookState.books;
+    });
+  };
+  el('book-select').addEventListener('change', function () {
+    bookState.current = parseInt(el('book-select').value, 10) || 0;
+    try { localStorage.setItem(BOOK_CHOSEN, String(bookState.current)); } catch (e) { /* no storage */ }
+    renderBookDetail();
+    renderContacts(contactsCache || []);
+  });
+  el('book-manage').addEventListener('click', function () { bookState.detail = !bookState.detail; renderBookDetail(); });
+  el('book-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    say('book-status', '', true);
+    call('POST', '/api/v1/me/address-books', { name: el('book-name').value }).then(function (result) {
+      if (result.status !== 201) { say('book-status', describe(result, t('Could not make the address book')), false); return; }
+      el('book-name').value = '';
+      bookState.current = (result.data && result.data.id) || bookState.current;
+      bookState.detail = true;
+      loadBooks().then(loadContacts);
+    });
+  });
+
   // ---- Contacts ------------------------------------------------------------
   var contactsCache = null;
   // The card a phone stored, beside the name: the birthday (marked on the
@@ -2573,13 +2716,16 @@
   var contactButtons = function (c) {
     var write = document.createElement('button'); write.type = 'button'; write.className = 'btn ghost'; write.textContent = t('Write');
     write.addEventListener('click', function () { composeTo(c.name ? c.name + ' <' + c.address + '>' : c.address); });
+    // A book shared read-only offers Write and nothing else: the server would
+    // refuse the delete, and a button that cannot work is worse than none.
+    if (c.book_writable === false) { return [write]; }
     var remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn ghost'; remove.textContent = t('Remove');
     remove.addEventListener('click', function () {
       call('DELETE', '/api/v1/me/contacts/' + c.id).then(function (result) {
         if (result.status !== 200) { say('contact-status', describe(result, t('Could not remove the contact')), false); return; }
         contactsCache = null; loadContacts();
         toast(t('Contact removed.'), function () {
-          call('POST', '/api/v1/me/contacts', { name: c.name || '', address: c.address }).then(function (back) {
+          call('POST', '/api/v1/me/contacts', { name: c.name || '', address: c.address, book: c.book_id || bookState.current }).then(function (back) {
             if (back.status !== 201) { say('contact-status', describe(back, t('Could not add the contact')), false); }
             contactsCache = null; loadContacts();
           });
@@ -2591,10 +2737,23 @@
   // What the person kept, and - apart - what they merely wrote to: a collected
   // address is a suggestion until it is kept, and only a kept one reaches
   // the phone over CardDAV.
-  var renderContacts = function (list) {
+  var renderContacts = function (all) {
+    // The listing carries every book the reader can see (book=all) and each
+    // contact says which it is in; this draws the one chosen above. Groups are
+    // one account's own and are drawn for the reader's own books only.
+    var list = all.filter(function (c) { return !bookState.current || c.book_id === bookState.current; });
+    var book = currentBook();
+    var writable = !book || book.writable !== false;
+    el('contact-form').hidden = !writable;
+    el('contact-readonly').hidden = writable;
+    // Import goes with the add form: every card it posts would be refused 403
+    // by a book shared read-only and the count would simply say none were
+    // imported, which is the same reason the Remove button is not drawn there.
+    // Export stays: reading a book shared with you is the whole point of it.
+    el('contact-import').hidden = !writable;
     var kept = list.filter(function (c) { return c.kind !== 'group' && c.source !== 'collected'; });
     var other = list.filter(function (c) { return c.kind !== 'group' && c.source === 'collected'; });
-    renderGroups(list.filter(function (c) { return c.kind === 'group'; }));
+    renderGroups(list.filter(function (c) { return c.kind === 'group' && c.book_mine !== false; }));
     var rows = el('contact-rows');
     rows.textContent = '';
     kept.forEach(function (c) {
@@ -2633,7 +2792,7 @@
     el('contact-other').hidden = other.length === 0;
   };
   var loadContacts = function () {
-    return call('GET', '/api/v1/me/contacts?limit=1000').then(function (result) {
+    return call('GET', '/api/v1/me/contacts?limit=1000&book=all').then(function (result) {
       if (result.status !== 200 || !result.data) { say('contact-status', describe(result, t('Could not read the contacts')), false); return []; }
       contactsCache = result.data.contacts || [];
       renderContacts(contactsCache);
@@ -2643,7 +2802,7 @@
   el('contact-form').addEventListener('submit', function (event) {
     event.preventDefault();
     say('contact-status', '', true);
-    call('POST', '/api/v1/me/contacts', { name: el('contact-name').value, address: el('contact-address').value }).then(function (result) {
+    call('POST', '/api/v1/me/contacts', { name: el('contact-name').value, address: el('contact-address').value, book: bookState.current }).then(function (result) {
       if (result.status === 201) { el('contact-name').value = ''; el('contact-address').value = ''; contactsCache = null; loadContacts(); return; }
       say('contact-status', describe(result, t('Could not add the contact')), false);
     });
@@ -2870,7 +3029,10 @@
     } catch (why) { /* nothing to download with */ }
   };
   var exportContacts = function (asCsv) {
-    var list = contactsCache || [];
+    // What leaves in a file is the reader's own address books. A book somebody
+    // shares with them is theirs, and exporting it here would take a copy of
+    // somebody else's contacts out of the server without their knowing.
+    var list = (contactsCache || []).filter(function (c) { return c.book_mine !== false; });
     if (!list.length) { say('contact-status', t('No contacts yet. Send a message, or add one above.'), false); return; }
     if (asCsv) {
       downloadText('contacts.csv', 'text/csv', contactsToCsv(list));
@@ -2917,7 +3079,7 @@
             return call('POST', '/api/v1/me/contacts/groups', { name: c.name, members: members })
               .then(function (result) { if (result.status === 201) { imported++; } });
           }
-          var body = { name: c.name, address: c.address };
+          var body = { name: c.name, address: c.address, book: bookState.current };
           if (c.card) { body.card = c.card; }
           return call('POST', '/api/v1/me/contacts', body).then(function (result) { if (result.status === 201) { imported++; } });
         });
@@ -2949,8 +3111,14 @@
     var entryOf = function (c) { return c.kind === 'group' ? groupEntries(c) : (c.name ? c.name + ' <' + c.address + '>' : c.address); };
     var take = function (c) { var t = token(); var entry = entryOf(c); if (!entry) { close(); return; } input.value = (t.head ? t.head + ' ' : '') + entry + ', '; close(); input.focus(); };
     var mark = function (n) { marked = n; for (var i = 0; i < list.children.length; i++) { list.children[i].classList.toggle('on', i === marked); } };
-    var show = function (found) {
+    var show = function (offered) {
       close();
+      // A group is one account's own address book entry and expands against
+      // that account's WHOLE address book, so the server lists none from a
+      // book somebody shares with the reader. The page says the same thing,
+      // so that a listing which did carry one would still not expand it into
+      // the names and addresses of contacts nobody shared.
+      var found = offered.filter(function (c) { return !(c.kind === 'group' && c.book_mine === false); });
       if (!found.length) { return; }
       items = found;
       found.forEach(function (c, i) {
@@ -2962,6 +3130,7 @@
         ad.textContent = c.kind === 'group' ? tf('{0} member(s)', (c.recipients || []).length)
           : c.directory ? (c.name ? c.address + ' - ' : '') + (c.list ? t('Distribution list') : t('Directory'))
           : (c.name ? c.address : '');
+        if (c.book_mine === false) { ad.textContent = (ad.textContent ? ad.textContent + ' \u00b7 ' : '') + c.book_name; }
         li.appendChild(nm); li.appendChild(ad);
         li.addEventListener('mousedown', function (e) { e.preventDefault(); take(c); });
         list.appendChild(li);
@@ -2980,7 +3149,10 @@
         // offered once, as the contact, because that is the one carrying the
         // name the reader chose. The member field of a group asks for people
         // the reader keeps, so it does not ask the directory at all.
-        var mine = call('GET', '/api/v1/me/contacts?limit=8&q=' + encodeURIComponent(q) + (persons ? '&kind=person' : ''));
+        // The member field of a group takes the account's own contacts; the To,
+        // Cc and Bcc fields take every book the reader can see, the shared ones
+        // labelled with whose they are.
+        var mine = call('GET', '/api/v1/me/contacts?limit=8&q=' + encodeURIComponent(q) + (persons ? '&kind=person' : '&book=all'));
         var theirs = persons ? Promise.resolve([]) : directorySuggest(q);
         Promise.all([mine, theirs]).then(function (both) {
           var result = both[0];
@@ -2990,7 +3162,11 @@
           contacts.forEach(function (c) { if (c.address) { known[String(c.address).toLowerCase()] = true; } });
           var extra = (both[1] || []).filter(function (e) { return e.address && !known[String(e.address).toLowerCase()]; })
             .map(function (e) { return { name: e.name, address: e.address, kind: 'person', directory: true, title: e.title, department: e.department, list: e.kind === 'list' }; });
-          show(contacts.concat(extra).slice(0, 8));
+          // Up to eight of the reader's own contacts, from every book they can
+          // see, and then up to five people or lists from the directory who
+          // are not among them: the known before the findable, and the
+          // findable never pushed off the end by a full address book.
+          show(contacts.slice(0, 8).concat(extra.slice(0, 5)));
         });
       }, 120);
     });

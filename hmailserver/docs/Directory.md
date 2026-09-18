@@ -108,18 +108,19 @@ which used to be called Directory, is now called Windows directory, because two
 tabs called Directory in one dialog is a trap.) **The Control Deck** has the
 same card in its account editor.
 
-**CardDAV.** A second, read-only collection beside the account's own address
-book:
+**CardDAV.** One more collection, read-only, beside the account's own address
+books and the ones shared with it ([SharedAddressBooks.md](SharedAddressBooks.md)):
 
 ```
 /dav/addressbooks/<address>/contacts/    the account's own book, read and write
+/dav/addressbooks/<address>/book-<id>/   another of its own; shared-<id>/ one shared with it
 /dav/addressbooks/<address>/directory/   the organisation's, read-only
 /dav/addressbooks/<address>/directory/account-<id>.vcf
 /dav/addressbooks/<address>/directory/list-<id>.vcf
 ```
 
-A PROPFIND on the home lists both, so a client that walks the tree finds it
-without being told its address. The collection answers `getctag`, `sync-token`
+A PROPFIND on the home lists the directory beside every book, so a client that
+walks the tree finds it without being told its address. The collection answers `getctag`, `sync-token`
 and the three reports the account's own book answers, so a phone subscribes to
 it and polls it in exactly the same way. `current-user-privilege-set` says
 `read` and nothing else, and PUT, DELETE and PROPPATCH are refused 403 with the

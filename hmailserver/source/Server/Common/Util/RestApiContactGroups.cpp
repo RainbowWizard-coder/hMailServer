@@ -260,7 +260,7 @@ namespace HM
    }
 
    AnsiString
-   RestApiServer::ContactGroupJson_(const ContactGroup &group, const ContactRecord *record, bool includeCard)
+   RestApiServer::ContactGroupJson_(const ContactGroup &group, const ContactRecord *record, bool includeCard, const VisibleBook *book)
    {
       AnsiString members = "[";
       for (size_t i = 0; i < group.members.size(); i++)
@@ -293,6 +293,20 @@ namespace HM
          "\",\"kind\":\"group\",\"uid\":\"" + JsonEscape_(group.uid) +
          "\",\"members\":" + members +
          ",\"recipients\":" + recipients;
+
+      // Which address book it is in, when the listing carries more than one
+      // (RestApiContacts.cpp). Always one of the READER'S own books: a group
+      // is one account's entry and resolves against that account's whole
+      // address book, so no group of a book somebody shares with the reader is
+      // listed - the label says which of their own books this one is in.
+      if (book)
+      {
+         json += ",\"book_id\":" + Int64Text(book->id) +
+            ",\"book_name\":\"" + JsonEscapeUtf8(book->name) +
+            "\",\"book_owner\":\"" + JsonEscapeUtf8(book->owner) +
+            "\",\"book_mine\":" + AnsiString(book->mine ? "true" : "false") +
+            ",\"book_writable\":" + AnsiString(book->writable ? "true" : "false");
+      }
 
       if (includeCard && record)
          json += ",\"card\":\"" + JsonEscape_(Utf8_(record->vcard)) + "\"";

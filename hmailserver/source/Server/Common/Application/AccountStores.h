@@ -161,6 +161,20 @@ namespace HM
          // A folder id. Carried as the folder's path, for the same reason.
          RoleFolder,
 
+         // An address book id (hm_contacts.contactbookid). Carried as the book's
+         // NAME, because the id is this server's numbering of hm_addressbooks
+         // and the restore reassigns it: a contact written back under an old
+         // number would be in whichever book happened to take it. The books are
+         // restored before the contacts - hm_addressbooks comes first in
+         // stores_, and the archive is read in the order it was written - so the
+         // name resolves. Unlike a folder or a message, a book that cannot be
+         // resolved does NOT drop the row: 0 means "the account's default book",
+         // which is what every contact carried before schema 6079 and what an
+         // archive written before it says by carrying no reference at all, so an
+         // unresolvable name puts the contact in the default book rather than
+         // losing it.
+         RoleAddressBook,
+
          // A role id (hm_roleassignments.raroleid). Carried as the role's name,
          // because an id is this server's numbering of hm_roles and an archive can
          // be restored onto a server that numbered its custom roles differently -
