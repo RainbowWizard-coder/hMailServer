@@ -390,6 +390,7 @@ namespace
    {
       boost::lock_guard<boost::mutex> guard(mutex_);
       snapshot_.state = StateInstalling;
+      snapshot_.installing_since_unix = (__int64) time(nullptr);
       snapshot_.last_error.Empty();
    }
 
@@ -404,6 +405,25 @@ namespace
       // the restart, the service is running now, and the next check decides.
       if (snapshot_.state == StateInstalling)
          snapshot_.state = StateNotChecked;
+      snapshot_.installing_since_unix = 0;
+   }
+
+   bool
+   UpdateChecker::RecordInstallingTimedOut(__int64 allowedSeconds, const String &reason)
+   {
+      boost::lock_guard<boost::mutex> guard(mutex_);
+      if (snapshot_.state != StateInstalling || snapshot_.installing_since_unix == 0)
+         return false;
+      if ((__int64) time(nullptr) - snapshot_.installing_since_unix < allowedSeconds)
+         return false;
+      // The snapshot lives in this process. A helper that got as far as stopping
+      // the service would have ended it, and the process that came back would
+      // start with a fresh snapshot and read the outcome file; that this one is
+      // still here, still installing, means the helper never got that far.
+      snapshot_.state = StateFailed;
+      snapshot_.last_error = reason;
+      snapshot_.installing_since_unix = 0;
+      return true;
    }
 
    AnsiString

@@ -271,11 +271,35 @@ namespace HM
          untaken = _T("RUNTIME_DIRECTORY is not set, so this server is not running under a unit with RuntimeDirectory=hmailserver and has nowhere the packaged path unit watches to put the request");
       }
 
+      // The second route: systemd-run, which starts the helper as a transient
+      // unit of its own. It needs the right to start units, which the packaged
+      // service does not have (PolicyKit refuses it, and the error below says
+      // so); a server that is itself root under a unit - an AppImage run that
+      // way - has it. INVOCATION_ID says only that a unit is running us, not
+      // who we are; systemd-run's own answer settles the rest.
       const bool underSystemd = getenv("INVOCATION_ID") != nullptr;
       const char *systemdRun = access("/usr/bin/systemd-run", X_OK) == 0 ? "/usr/bin/systemd-run"
                              : access("/bin/systemd-run", X_OK) == 0 ? "/bin/systemd-run" : nullptr;
       if (underSystemd && systemdRun)
       {
+         // The version names the transient unit, so it has to be a unit name's
+         // kind of text. It comes from the release feed, not from anything a
+         // client sent, and a release is tagged with letters, digits, dots and
+         // dashes; anything else is refused rather than put on a command line.
+         std::string plain = std::string(AnsiString(version).c_str());
+         bool nameable = !plain.empty() && plain.size() <= 64;
+         for (size_t i = 0; nameable && i < plain.size(); ++i)
+         {
+            char c = plain[i];
+            nameable = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '.' || c == '-' || c == '_';
+         }
+         if (!nameable)
+         {
+            error = Formatter::Format(_T("The version {0} is not a name a unit can carry, so the helper was not started."), version);
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6891, "UpdateInstaller::LaunchPosix_", error);
+            return false;
+         }
+
          String requestFile = directory + _T("/apply-") + version + _T(".request");
          if (!FileUtilities::WriteToFileAtomically(requestFile, request))
          {

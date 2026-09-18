@@ -8,11 +8,13 @@
 #include "Application.h"
 #include "BackupManager.h"
 #include "Configuration.h"
+#include "ErrorManager.h"
 #include "../Util/UpdateChecker.h"
 #include "../Util/UpdateDownloader.h"
 #include "../Util/UpdateInstaller.h"
 #include "../Util/FileUtilities.h"
 #include "../Util/FileInfo.h"
+#include <ctime>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -138,6 +140,33 @@ namespace HM
       UpdateInstaller::ReportLastOutcome();
 
       IniFileSettings *settings = IniFileSettings::Instance();
+
+      // And one that was handed over and never answered. A helper that stops the
+      // service ends this process; that this process is still here, still saying
+      // "installing", means the helper never got that far - it refused the
+      // request or died before installing anything. On Linux a refusal is
+      // written to the helper's journal and nowhere else, deliberately: it
+      // writes nothing into the service user's directory while the service may
+      // be running. The wait the request allowed for the service to come back,
+      // plus the quarter of an hour between runs of this task, is long enough
+      // to be sure that silence is the answer.
+      {
+         UpdateChecker::Snapshot handed = UpdateChecker::Current();
+         __int64 allowed = (__int64) settings->GetUpdateServiceWaitSeconds() + 900;
+         __int64 elapsed = handed.installing_since_unix > 0 ? (__int64) time(nullptr) - handed.installing_since_unix : 0;
+#ifdef HM_PLATFORM_POSIX
+         const TCHAR *where = _T("journalctl -u hmailserver-update.service says why");
+#else
+         const TCHAR *where = _T("the updater's log in the Updates directory says why, if it got as far as writing one");
+#endif
+         String reason = Formatter::Format(_T("hMailServer {0} was handed to the update helper {1} seconds ago and this service was never stopped, so the helper refused the request or failed before installing anything; {2}."),
+            handed.available_version, elapsed, where);
+         if (UpdateChecker::RecordInstallingTimedOut(allowed, reason))
+         {
+            LOG_APPLICATION(Formatter::Format(_T("Update apply failed: {0}"), reason));
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6893, "UpdateCheckTask::DoWork", reason);
+         }
+      }
       if (!settings->GetUpdateCheckEnabled())
          return;
 

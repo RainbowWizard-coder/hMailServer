@@ -19,14 +19,28 @@
 #   2. checks every line of it, because the request came from an unprivileged
 #      process and this one is root: every path must lie inside the Updates
 #      directory named by root's own configuration, nothing may be a symlink,
-#      and the unit must be the server's;
+#      and the unit must be the server's. A request that fails here is refused
+#      in the journal and NOWHERE ELSE: the Updates directory belongs to the
+#      service user, a process of theirs may still be running, and root writes
+#      nothing into a directory whose owner is alive to swap a file for a
+#      symlink between the check and the write. The server notices a request
+#      that was taken and never answered, and reports that;
 #   3. stops the unit, so that nothing runs as the service user while root reads
-#      the files it named;
+#      the files it named or writes beside them. From here on the directory is
+#      quiet (the unit's control group is empty, and the service user has no
+#      session, no cron and no way out of the group), and every file root makes
+#      in it is made under a name nobody could have planted - mktemp, O_EXCL -
+#      and renamed into place, which replaces a symlink and never follows one;
 #   4. verifies the package - and the rollback image - against their Sigstore
 #      bundles AGAIN, as root, with `hmailserver --verify-update`: the same check
 #      the server made, made by a process the server could not have influenced.
 #      A service that has been taken over could write any request it likes; it
-#      cannot forge the release workflow's signature;
+#      cannot forge the release workflow's signature. And a signature is not
+#      enough: every past release is signed too, so the package's own version -
+#      read from the package, not from the request - must be NEWER than the
+#      version the package database says is installed, and a rollback image
+#      must be exactly that installed version. A taken-over service cannot
+#      have root put a signed but superseded release back;
 #   5. installs the package (apt-get or dpkg, dnf or rpm) or swaps the AppImage
 #      file under the unit, starts the unit, and waits for it to stay up and,
 #      where the metrics listener is on, for /readyz to answer;
@@ -102,23 +116,45 @@ DRY_RUN=0
 now() { date '+%Y-%m-%d %H:%M:%S'; }
 
 LOG_FILE=""
-LOG_OPEN=0
+LOG_TMP=""
 
 # To standard output always - under the path unit that is the journal,
-# journalctl -u hmailserver-update - and to the log file once LOG_OPEN says the
-# file may be written. It may not be written before the unit is stopped: until
-# then a process running as the service user could replace the file with a
-# symlink between the check and the write, and root would append to whatever it
-# pointed at. After the stop there is no such process.
+# journalctl -u hmailserver-update - and to the log file once open_log has made
+# one. That happens after the unit is stopped and not before: until then a
+# process running as the service user could put a symlink where root is about
+# to write, and root would append to whatever it pointed at. After the stop
+# there is no such process, and the file written is one this program made
+# under a name nobody could have planted; it takes the requested name, by
+# rename, when this program is done.
 say()
 {
    # Its own variable name: shell variables are global, and a caller that has a
    # $line of its own would find it replaced by this one.
    said="$(now)  $*"
    printf '%s\n' "$said"
-   if [ "$LOG_OPEN" = 1 ] && [ -n "$LOG_FILE" ] && [ ! -L "$LOG_FILE" ]; then
-      printf '%s\n' "$said" >> "$LOG_FILE" 2>/dev/null || true
+   if [ -n "$LOG_TMP" ]; then
+      printf '%s\n' "$said" >> "$LOG_TMP" 2>/dev/null || true
    fi
+}
+
+open_log()
+{
+   [ -n "$LOG_FILE" ] || return 0
+   [ "$DRY_RUN" = 1 ] && return 0
+   LOG_TMP="$(mktemp "$UPDATES_DIR/apply.XXXXXX" 2>/dev/null)" || { LOG_TMP=""; say "no log file could be made in $UPDATES_DIR; the journal has everything"; return 0; }
+   trap finish_log EXIT
+}
+
+# The log takes the name the request asked for. mv renames: a symlink at that
+# name is replaced, not followed. Owned like the Updates directory, so that the
+# server can read it and remove it.
+finish_log()
+{
+   [ -n "$LOG_TMP" ] || return 0
+   chown --reference="$UPDATES_DIR" -- "$LOG_TMP" 2>/dev/null || true
+   chmod 0640 -- "$LOG_TMP" 2>/dev/null || true
+   mv -f -- "$LOG_TMP" "$LOG_FILE" 2>/dev/null || true
+   LOG_TMP=""
 }
 
 die()
@@ -187,19 +223,17 @@ read_request()
    IFS=$old_ifs
 }
 
-# A refused request is reported where the server will see it - the outcome
-# file - when the outcome path itself has passed its check, and always to the
-# journal. Nothing has been stopped or installed at this point.
+# A refused request is reported to the journal and nowhere else. Nothing has
+# been stopped, so a process may still be running as the owner of the Updates
+# directory, and root does not write into a directory whose owner is alive to
+# swap a file for a symlink between the check and the write - not even the one
+# line that would say why. The server sees a request that was taken and never
+# answered within its wait, and reports that with a pointer to this journal.
 refuse()
 {
    say "hmailserver-update: the request was refused: $*"
-   if [ -n "$OUTCOME_OK" ]; then
-      write_outcome "failed" "${VERSION:-unknown}" "the request was refused before anything was done: $*"
-   fi
    exit 4
 }
-
-OUTCOME_OK=""
 
 is_version()
 {
@@ -292,10 +326,8 @@ check_request()
       *) refuse "unit must be the server's own unit: '$UNIT'" ;;
    esac
 
-   # The outcome first, so that every refusal after this one reaches the server.
    [ -n "$OUTCOME" ] || refuse "the request names no outcome file"
    check_output_file "outcome" "$OUTCOME"
-   OUTCOME_OK=1
 
    if [ -n "$LOG_FILE" ]; then
       check_output_file "log" "$LOG_FILE"
@@ -340,16 +372,17 @@ check_request()
       mode="$(stat -c '%a' -- "$IMAGE")"
       [ "$owner" = "$me" ] || refuse "image is not owned by the user applying the update (uid $me): $IMAGE"
       # Three or four octal digits; the last two - group and others - must not
-      # carry the write bit.
+      # carry the write bit, which is the 2 in 2, 3, 6 and 7: 0, 1, 4 and 5 are
+      # the digits without it.
       case "$mode" in
-         ?[0-5][0-5]|??[0-5][0-5]) ;;
+         ?[0145][0145]|??[0145][0145]) ;;
          *) refuse "image is writable by its group or by others (mode $mode): $IMAGE" ;;
       esac
       image_dir="$(dirname -- "$IMAGE")"
       dir_mode="$(stat -c '%a' -- "$image_dir")"
       [ "$(stat -c '%u' -- "$image_dir")" = "$me" ] || refuse "the image's directory is not owned by the user applying the update (uid $me): $image_dir"
       case "$dir_mode" in
-         ?[0-5][0-5]|??[0-5][0-5]) ;;
+         ?[0145][0145]|??[0145][0145]) ;;
          *) refuse "the image's directory is writable by its group or by others (mode $dir_mode): $image_dir" ;;
       esac
    else
@@ -479,6 +512,60 @@ verify_file()
    return $result
 }
 
+# The upstream version a package carries, read from the package itself - the
+# deb's control file, the rpm's header, the AppImage's own --version - and never
+# from the request or the file name. Empty when it cannot be read.
+package_version()
+{
+   file=$1
+   case "$KIND" in
+      deb)
+         v="$(dpkg-deb -f "$file" Version 2>/dev/null)" || v=""
+         # A Debian revision, if a package ever carries one, is not the version.
+         v=${v%-*}
+         ;;
+      rpm)
+         v="$(rpm -qp --qf '%{VERSION}' "$file" 2>/dev/null)" || v=""
+         ;;
+      appimage)
+         # A verified image only: this runs it.
+         v="$("$file" --version 2>/dev/null | sed -n 's/^hMailServer \([^ ]*\).*/\1/p' | head -n 1)"
+         ;;
+   esac
+   printf '%s' "$v"
+}
+
+# The version installed now, from the package database - or, for an AppImage,
+# from the running image. Empty when there is none, or it cannot be read.
+installed_version()
+{
+   case "$KIND" in
+      deb)
+         v="$(dpkg-query -W -f='${Version}' hmailserver 2>/dev/null)" || v=""
+         v=${v%-*}
+         ;;
+      rpm)
+         v="$(rpm -q --qf '%{VERSION}' hmailserver 2>/dev/null)" || v=""
+         ;;
+      appimage)
+         v="$("$IMAGE" --version 2>/dev/null | sed -n 's/^hMailServer \([^ ]*\).*/\1/p' | head -n 1)"
+         ;;
+   esac
+   printf '%s' "$v"
+}
+
+# True when $1 is a newer version than $2: dpkg's own comparison where dpkg is,
+# GNU version sort otherwise. Equal is not newer.
+is_newer()
+{
+   [ "$1" != "$2" ] || return 1
+   if [ "$KIND" = deb ] && command -v dpkg >/dev/null 2>&1; then
+      dpkg --compare-versions "$1" gt "$2"
+      return $?
+   fi
+   [ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | tail -n 1)" = "$1" ]
+}
+
 install_package()
 {
    file=$1
@@ -487,11 +574,17 @@ install_package()
       deb)
          # apt-get where it is, for the dependencies a newer package may add;
          # dpkg on a machine without it. Both wait for the lock rather than fail
-         # on an unattended-upgrades run that happens to be under way.
+         # on an unattended-upgrades run that happens to be under way. Only the
+         # rollback is allowed to be a downgrade.
          export DEBIAN_FRONTEND=noninteractive
          if command -v apt-get >/dev/null 2>&1; then
-            run apt-get install -y --no-install-recommends --allow-downgrades \
-               -o DPkg::Lock::Timeout=300 "$file"
+            if [ "$downgrade" = 1 ]; then
+               run apt-get install -y --no-install-recommends --allow-downgrades \
+                  -o DPkg::Lock::Timeout=300 "$file"
+            else
+               run apt-get install -y --no-install-recommends \
+                  -o DPkg::Lock::Timeout=300 "$file"
+            fi
          else
             run dpkg -i "$file"
          fi
@@ -544,10 +637,14 @@ restore_image()
    mv -f -- "$IMAGE.previous" "$IMAGE"
 }
 
-# One line: "<status> <version> <detail>", written whole and renamed into place,
-# owned by whoever owns the Updates directory so that the server can move it
-# aside once it has reported it. A newline inside the detail would make a second
-# line the server never reads, so there is none.
+# One line: "<status> <version> <detail>", written whole to a file this program
+# makes under a name nobody could have planted (mktemp: a random name, opened
+# O_EXCL, so no symlink waiting under a guessable name is ever followed) and
+# renamed into place - which replaces whatever is at the outcome path, symlink
+# included, without following it. Owned by whoever owns the Updates directory
+# so that the server can move it aside once it has reported it. A newline
+# inside the detail would make a second line the server never reads, so there
+# is none. Only called after the unit is stopped, never on a refusal.
 write_outcome()
 {
    status=$1
@@ -559,8 +656,8 @@ write_outcome()
       return 0
    fi
    [ -n "$OUTCOME" ] || return 0
-   tmp="$OUTCOME.tmp"
-   printf '%s\n' "$line" > "$tmp" || { say "the outcome could not be written to $tmp"; return 1; }
+   tmp="$(mktemp "$UPDATES_DIR/last-apply.XXXXXX" 2>/dev/null)" || { say "no file could be made in $UPDATES_DIR for the outcome"; return 1; }
+   printf '%s\n' "$line" > "$tmp" || { say "the outcome could not be written to $tmp"; rm -f -- "$tmp"; return 1; }
    chown --reference="$UPDATES_DIR" -- "$tmp" 2>/dev/null || true
    chmod 0640 -- "$tmp" 2>/dev/null || true
    mv -f -- "$tmp" "$OUTCOME"
@@ -585,11 +682,12 @@ apply()
    [ "$DRY_RUN" = 1 ] || sleep "$PAUSE_SECONDS"
 
    if ! stop_unit; then
-      write_outcome "failed" "$VERSION" "$UNIT could not be stopped, so nothing was installed"
+      say "hmailserver-update: $UNIT could not be stopped, so nothing was installed and nothing is written."
       return 1
    fi
-   # Nothing runs as the service user now; the log file may be written.
-   LOG_OPEN=1
+   # Nothing runs as the service user now; the Updates directory may be
+   # written, and the log starts.
+   open_log
    say "$UNIT is stopped."
 
    if ! verify_file "the package" "$PACKAGE"; then
@@ -597,10 +695,46 @@ apply()
       write_outcome "failed" "$VERSION" "the package did not verify against its Sigstore bundle when checked as root, so nothing was installed; the service was started again on the version it had"
       return 1
    fi
+
+   # Signed is not enough: every release ever made is signed. The package must
+   # be newer than what the package database says is installed - both read by
+   # root, neither taken from the request - or a taken-over service could have
+   # a superseded release put back.
+   new_version="$(package_version "$PACKAGE")"
+   old_version="$(installed_version)"
+   if [ -z "$new_version" ]; then
+      start_unit
+      write_outcome "failed" "$VERSION" "the package's own version could not be read from it, so nothing was installed; the service was started again on the version it had"
+      return 1
+   fi
+   if [ "$new_version" != "$VERSION" ]; then
+      say "the request says version $VERSION and the package says $new_version; the package's word is the one reported."
+      VERSION=$new_version
+   fi
+   if [ -n "$old_version" ] && ! is_newer "$new_version" "$old_version"; then
+      start_unit
+      write_outcome "failed" "$VERSION" "the package is version $new_version and the installed version is $old_version: not an upgrade, so nothing was installed; the service was started again on the version it had"
+      return 1
+   fi
+   [ -n "$old_version" ] || say "no installed version is recorded for hmailserver; installing $new_version over whatever is here."
+
    if [ -n "$ROLLBACK" ] && ! verify_file "the rollback image" "$ROLLBACK"; then
       say "the rollback image did not verify; continuing without one."
       ROLLBACK=""
       ROLLBACK_VERSION=""
+   fi
+   # The rollback image, when there is one, must be the version installed now:
+   # for a package, checked against the package database; an AppImage rolls
+   # back to the file it replaced, whatever the request named.
+   if [ -n "$ROLLBACK" ] && [ "$KIND" != appimage ]; then
+      rollback_version="$(package_version "$ROLLBACK")"
+      if [ -z "$old_version" ] || [ "$rollback_version" != "$old_version" ]; then
+         say "the rollback image is version '${rollback_version:-unreadable}' and the installed version is '${old_version:-unknown}'; continuing without one."
+         ROLLBACK=""
+         ROLLBACK_VERSION=""
+      else
+         ROLLBACK_VERSION=$rollback_version
+      fi
    fi
 
    install_package "$PACKAGE" 0

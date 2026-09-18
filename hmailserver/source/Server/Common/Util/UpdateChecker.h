@@ -38,7 +38,7 @@ namespace HM
 
       struct Snapshot
       {
-         Snapshot() : state(StateNotChecked), installer_size(0), integrated_time(0), last_check_unix(0) {}
+         Snapshot() : state(StateNotChecked), installer_size(0), integrated_time(0), installing_since_unix(0), last_check_unix(0) {}
 
          State state;
          String available_version;     // "6.2.28"; empty unless a newer release is known
@@ -57,6 +57,7 @@ namespace HM
          String apply_status;          // the helper's last outcome: ok, failed, rolled-back, rollback-failed, no-rollback
          String apply_version;         // the version that outcome was about
          String apply_detail;          // what the helper said
+         __int64 installing_since_unix; // when the installer was handed over, Unix seconds; 0 unless StateInstalling
          String last_checked;          // local time; empty until a check has completed
          __int64 last_check_unix;      // the same as Unix seconds; 0 until then
          String last_error;            // empty unless the last check failed
@@ -123,6 +124,12 @@ namespace HM
       static void RecordInstalling();
       // The helper's outcome, read at startup by UpdateInstaller::ReportLastOutcome.
       static void RecordApplyOutcome(const String &status, const String &version, const String &detail);
+      // True, once, when the installer was handed over more than allowedSeconds
+      // ago and this same process is still running with no outcome to show for
+      // it: the helper never stopped the service, so it refused the request or
+      // died before installing anything. The state becomes StateFailed with the
+      // reason given, and the question is not asked again for that hand-over.
+      static bool RecordInstallingTimedOut(__int64 allowedSeconds, const String &reason);
 
       // One release's installer and bundle, as a rollback image needs them.
       struct ReleaseAssets

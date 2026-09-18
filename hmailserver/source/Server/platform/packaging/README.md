@@ -425,28 +425,49 @@ stops). So the apply is a request, and the request is taken by root.
    takes from `DataFolder` in `/etc/hmailserver/hMailServer.ini`, root's own
    file, and never from the request; nothing is a symlink, and every path is
    resolved before the test. A request that fails a check is refused before
-   anything is stopped, with the refusal written to the outcome file so the
-   Deck shows why.
-3. It stops the unit. From here no process runs as the service user, which is
-   why the log file is only written from here on: before the stop, a process of
-   the service user's could swap the log for a symlink between the check and
-   root's append.
+   anything is stopped, in the journal (`journalctl -u hmailserver-update`)
+   and nowhere else: the Updates directory is the service user's, a process of
+   theirs may still be running, and root writes nothing - not even the line
+   that would say why - into a directory whose owner is alive to swap a file
+   for a symlink between the check and the write. The server notices a request
+   that was taken and never answered (its update task, once `wait` plus a
+   quarter of an hour has passed with the state still 4 and no restart) and
+   reports it as failed, pointing at that journal.
+3. It stops the unit. From here no process runs as the service user - the
+   unit's control group is emptied, and the service user has no session, no
+   cron and no way out of it - which is why the Updates directory is only
+   written from here on. What root writes there is made under a random name
+   (`mktemp`, so nothing anyone planted under a guessable name is opened) and
+   renamed into place, which replaces a symlink at the destination and never
+   follows one; the log file and the outcome file are both written that way.
 4. It runs `/usr/bin/hmailserver --verify-update <package>` - the same
    Sigstore verification the server did (digest, chain at the log's time, the
    release workflow's identity, the signature, the log's own signature), with
    the trust `/etc/hmailserver/hMailServer.ini` names or the public instance -
    and the same for the rollback image. A file that fails is not installed; the
-   unit is started again and the outcome says so. This is the check that makes
+   unit is started again and the outcome says so. Then the version rule,
+   because a signature alone would let a taken-over service have root put a
+   signed but superseded release back: the version is read from the package
+   itself (`dpkg-deb -f ... Version`, `rpm -qp --qf %{VERSION}`, or the
+   verified AppImage's own `--version`) and compared, with `dpkg
+   --compare-versions` or `sort -V`, with what the package database says is
+   installed (`dpkg-query -W`, `rpm -q`, the running image's `--version`). Not
+   newer means not installed, and the unit is started again; a rollback image
+   whose version is not the installed one is dropped, so the rollback can only
+   ever put back what was running; and the request's `version` line is
+   reported only when the package agrees with it. Together these are what make
    the request safe to accept from an unprivileged process: a compromised
    service can write any request it likes, and none of them gets root to
-   install a file the release workflow did not sign.
-5. It installs: `apt-get install -y --no-install-recommends --allow-downgrades
+   install a file the release workflow did not sign, or one that is not an
+   upgrade.
+5. It installs: `apt-get install -y --no-install-recommends
    -o DPkg::Lock::Timeout=300 <package>` where apt-get exists (so a newer
    package's dependencies are met, and an `unattended-upgrades` run is waited
    for rather than tripped over), else `dpkg -i`; `dnf install -y` or
-   `rpm -Uvh` on an rpm system. The package's own `postinst` / `%post` runs the
-   schema upgrade as the service user (`hmailserver --upgrade-database`) as it
-   does on any upgrade; no token is needed, which is why none is issued here.
+   `rpm -Uvh` on an rpm system. Only the rollback passes `--allow-downgrades`.
+   The package's own `postinst` / `%post` runs the schema upgrade as the
+   service user (`hmailserver --upgrade-database`) as it does on any upgrade;
+   no token is needed, which is why none is issued here.
 6. It starts the unit and waits up to `wait` seconds for it to be `active`,
    unrestarted, for ten seconds in a row - a unit under `Restart=on-failure`
    that keeps dying reads active a moment at a time - and for `/readyz` to
@@ -497,13 +518,21 @@ restart - and says so if asked to apply before then.
 under dash against fakes on PATH - a `systemctl` that records what it is asked
 and answers a planned state, package tools that record and exit as planned, an
 `hmailserver --verify-update` that passes when a bundle is beside the file -
-through twenty cases: the five outcomes for a `.deb`, the dpkg fallback, the
-`.rpm` through dnf with its rollback through `rpm --oldpackage`, the AppImage
-swap and its rollback, the refusals (a package outside the Updates directory,
-a symlink, a foreign unit, an unknown key, an outcome path elsewhere, a
-writable image), the root re-verification refusing a tampered file and a
-tampered rollback image, the log written only after the stop, and `--dry-run`
-running nothing: 86 checks, green on Ubuntu 26.04 (dash 0.5.12). It runs in
+through thirty-one cases: the five outcomes for a `.deb`, the dpkg fallback,
+the `.rpm` through dnf with its rollback through `rpm --oldpackage`, the
+AppImage swap and its rollback, the refusals (a package outside the Updates
+directory, a symlink, a foreign unit, an unknown key, an outcome path
+elsewhere; each in the journal alone, with nothing written into the
+requester's directory), the symlinks a requester might plant where root is
+about to write (followed by nothing, the victim file unchanged), the root
+re-verification refusing a tampered file and a tampered rollback image, the
+version rule (a signed package that is not newer than the installed one, for a
+`.deb` and for an AppImage; the request's version line overruled by the
+package's; a rollback image that is not the installed version dropped; no
+installed version recorded), an image with any write bit for its group or
+others (0777, 0620, 0642, 0664) and a directory with one, the log written only
+after the stop, and `--dry-run` running nothing: 138 checks, green on Ubuntu
+26.04 (dash 0.5.12). It runs in
 `.github/workflows/packaging.yml` on every change to these files, beside
 `systemd-analyze verify` of the three units; the `.deb` and `.rpm` file
 assertions in `linux-build.yml` cover the three new files, and the `.deb` job
