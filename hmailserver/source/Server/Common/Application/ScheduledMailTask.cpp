@@ -25,6 +25,7 @@
 #include "../Util/RestApiServer.h"
 #include "../Util/ConfidentialMessages.h"
 #include "../Util/ProtectedMessages.h"
+#include "../Util/MessageRecall.h"
 #include "../Util/CompromiseDetector.h"
 #include "../BO/MessageRecipient.h"
 #include "../Util/ContactGroups.h"
@@ -177,6 +178,8 @@ namespace HM
       RestApiServer::SweepExpiredFiles();
       ConfidentialMessages::Sweep(false);
       ProtectedMessages::Sweep(false);
+      // And the recall rows older than RecallDays (MessageRecall.h).
+      MessageRecall::Sweep();
    }
 
    int

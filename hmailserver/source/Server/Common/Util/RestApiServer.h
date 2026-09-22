@@ -423,6 +423,7 @@ namespace HM
          RouteMeZeroAccessPut,
          RouteMeZeroAccessRewrap,
          RouteMeZeroAccessDelete,
+         RouteMeRecall,
          RouteMeMessageReceipt,
          RouteMeMessageUnsubscribe,
          RouteMeSubscriptions,
@@ -1374,6 +1375,10 @@ namespace HM
       static HttpResponse HandleMeZeroAccessRewrap_(const Caller &caller, const AnsiString &requestBody);
       static HttpResponse HandleMeZeroAccessDelete_(const Caller &caller);
       static AnsiString ZeroAccessJson_(std::shared_ptr<const Account> account);
+
+      // Message recall within the server (RestApiMessageRecall.cpp).
+      static HttpResponse HandleMeRecall_(const Caller &caller, const AnsiString &requestBody);
+      static AnsiString OpenApiMessageRecallPaths_();
       // A password change for a zero-access mailbox carries the key sealed
       // again under the new password, or is refused: 0 to go ahead, else the
       // status and a sentence. rewrapped is written after the password is.

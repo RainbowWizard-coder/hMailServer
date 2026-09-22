@@ -1299,6 +1299,11 @@ namespace DBUpdater
                          "update hm_domains set domainrestricteddomains = domainrestricteddomains where 1 = 0"),
          new SchemaProbe(6084, "hm_accounts.accountrestricteddelivery",
                          "update hm_accounts set accountrestricteddelivery = accountrestricteddelivery where 1 = 0"),
+         // Upgrade6084to6085* - message recall within the server: the table of
+         // recipient rows, probed through the column the delivery hook reads
+         // (the queue row the message was accepted as).
+         new SchemaProbe(6085, "hm_recall.recallqueueid",
+                         "update hm_recall set recallqueueid = recallqueueid where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

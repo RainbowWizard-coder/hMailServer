@@ -24,6 +24,7 @@
 #include "../Util/RecoverableStore.h"
 #include "../Util/ConfidentialMessages.h"
 #include "../Util/ProtectedMessages.h"
+#include "../Util/MessageRecall.h"
 #include "../Util/AccountRecovery.h"
 #include "../Util/DomainReports.h"
 #include "../Util/CompromiseDetector.h"
@@ -400,6 +401,9 @@ namespace HM
       RecoverableStore::Sweep();
       ConfidentialMessages::Sweep(true);
       ProtectedMessages::Sweep(true);
+      // And the recall rows older than RecallDays (MessageRecall.h): the
+      // minute task sweeps them too; this is the sweep that runs on demand.
+      MessageRecall::Sweep();
 
       // And the recovery links that have been used or have run out: a
       // capability nobody can present any more is a row, not a capability.

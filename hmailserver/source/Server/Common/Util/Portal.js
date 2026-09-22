@@ -282,6 +282,9 @@
 
   var state = { folderId: 0, query: '', everywhere: false, before: 0 };
   var me = '';
+  // How many days after sending the server still offers Recall on a Sent
+  // message (recall_days on /api/v1/me); 0 until the account is loaded.
+  var recallDays = 0;
   var directoryLinked = false;
   var quarantineOn = true;
 
@@ -754,6 +757,7 @@
     var what = node('div', undefined, 'what');
     what.appendChild(node('span', m.subject || t('(no subject)'), 'subject'));
     if (m.flags && m.flags.keywords && m.flags.keywords.length) { what.appendChild(chipsFor(m.flags.keywords)); }
+    if (isRecalled(m)) { what.appendChild(node('span', t('Recalled'), 'badge warn')); }
     if (m.folder && state.everywhere) { what.appendChild(node('span', m.folder, 'badge')); }
     var nudge = nudgeFor(m, folderId);
     if (nudge) { entry.nudge = node('span', nudge, 'nudge'); what.appendChild(entry.nudge); }
@@ -1176,6 +1180,7 @@
     el('message-mute').textContent = isMuted(current) ? t('Unmute') : t('Mute');
     el('message-important').textContent = isImportant(current) ? t('Not important') : t('Mark as important');
     el('message-important').hidden = !markable(current.folder_id);
+    el('message-recall').hidden = !recallable(current, current.folder_id || state.folderId);
     var junk = el('message-junk');
     var isJunk = folderIs(current.folder_id, 'Junk');
     junk.setAttribute('title', isJunk ? t('Not junk') : t('Junk'));
@@ -1223,6 +1228,7 @@
       badges.appendChild(node('span', k.toUpperCase() + ' ' + v, 'badge ' + cls));
     });
     if (m.external) { badges.appendChild(node('span', t('External sender'), 'badge warn')); }
+    if (isRecalled(m)) { badges.appendChild(node('span', t('Recalled'), 'badge warn')); }
     el('message-remote').hidden = true;
     warnAbout(m);
     previewAttachments(m);
@@ -2186,6 +2192,7 @@
     return call('GET', '/api/v1/me').then(function (result) {
       if (result.status === 200 && result.data) {
         me = String(result.data.address || '').toLowerCase();
+        recallDays = Number(result.data.recall_days) || 0;
         if (asSecond) { accounts.second.address = me; } else { accounts.first.address = me; }
         smimeViaAppPassword = result.data.via_app_password === true;
         offline.only = false;
@@ -8445,6 +8452,53 @@
     el('compose-subject').focus();
   };
 
+  // ---- Recall: withdraw a sent message from the people here who have not read it
+  // Message recall within the server (MessageRecall.h, docs/MessageRecall.md).
+  // Offered on a message in the folder designated \Sent whose From is the
+  // account or one of its identities and which is younger than recall_days
+  // (from /api/v1/me). The server answers what became of each copy: the
+  // unread ones deleted, the read ones left with their readers, and nobody
+  // outside this server reached. No notice goes to anybody; the Sent row
+  // wears the $Recalled keyword afterwards, shown as a badge.
+  var RECALLED = '$Recalled';
+  var isRecalled = function (m) { return keywordsOf(m).some(function (k) { return String(k).toLowerCase() === RECALLED.toLowerCase(); }); };
+  var ownAddress = function (address) {
+    address = String(address || '').toLowerCase();
+    if (!address) { return false; }
+    if (address === me) { return true; }
+    return identities.some(function (i) { return String(i.address || '').toLowerCase() === address; });
+  };
+  var recallable = function (m, folderId) {
+    if (!m || !recallDays || !m.message_id || !folderIs(folderId, 'Sent') || (m.flags && m.flags.draft)) { return false; }
+    if (!ownAddress(addressOf(m.from || ''))) { return false; }
+    var days = daysOld(m);
+    return days >= 0 && days < recallDays;
+  };
+  var markRecalled = function (id) {
+    var mark = function (x) { if (x && x.id === id && !isRecalled(x)) { x.flags = x.flags || {}; x.flags.keywords = (x.flags.keywords || []).concat([RECALLED]); } };
+    mark(current);
+    if (lastPage) { (lastPage.messages || []).forEach(mark); }
+  };
+  var recallOutcome = function (d) {
+    var text = tf('Recalled from {0}, already read by {1}, not on this server: {2}', Number(d.recalled) || 0, Number(d.read) || 0, Number(d.elsewhere) || 0);
+    if (Number(d.gone) > 0) { text += ' ' + tf('({0} already gone.)', d.gone); }
+    return text;
+  };
+  var recallMessage = function (m) {
+    if (!m || !m.message_id) { return; }
+    if (!window.confirm(t('Recall this message from the people on this server who have not read it? Whoever has read it keeps it, and nobody outside this server is reached.'))) { return; }
+    call('POST', '/api/v1/me/recall', { message_id: m.message_id, sent_id: m.id }).then(function (result) {
+      if (result.status !== 200 || !result.data) { toast(describe(result, t('Could not recall it'))); return; }
+      if (Number(result.data.recalled) > 0) {
+        markRecalled(m.id);
+        if (current && current.id === m.id) { el('message-badges').appendChild(node('span', t('Recalled'), 'badge warn')); }
+      }
+      toast(recallOutcome(result.data));
+      if (lastPage) { renderMessages(lastPage); }
+    });
+  };
+  el('message-recall').addEventListener('click', function () { closeMenus(); if (current) { recallMessage(current); } });
+
   // ---- Print ----------------------------------------------------------------
   el('message-print').addEventListener('click', function () { window.print(); });
   el('message-pin').addEventListener('click', function () { closeMenus(); if (current) { pinMessages([current.id], !isPinned(current)); } });
@@ -11541,6 +11595,8 @@
       // Only a conversation has anything to clean up.
       if (act === 'cleanup') { items[i].hidden = !(entry.ms && entry.ms.length > 1); }
       if (act === 'junk') { items[i].textContent = folderIs(entry.folderId, 'Junk') ? t('Not junk') : t('Junk'); }
+      // Only a Sent message of the account's own, young enough to recall.
+      if (act === 'recall') { items[i].hidden = !recallable(m, entry.folderId); }
     }
     renderContextTabs(m);
     menu.hidden = false;
@@ -11572,6 +11628,7 @@
     else if (act === 'sweep') { sweepSender(addressOf(m.from), entry.folderId); }
     else if (act === 'mute') { muteThread(entry, !isMuted(m)); }
     else if (act === 'cleanup') { cleanUpConversation(entry.ms || [m]); }
+    else if (act === 'recall') { recallMessage(m); }
     else if (act === 'tab') { moveSenderToTab(addressOf(m.from), event.target.getAttribute('data-tab')); }
   });
   document.addEventListener('click', function (event) {

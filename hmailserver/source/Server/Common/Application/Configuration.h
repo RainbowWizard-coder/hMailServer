@@ -535,6 +535,11 @@ namespace HM
       // many days its ciphertext is kept for the reading page, 1 to 365.
       int GetProtectedMessageDays();
       void SetProtectedMessageDays(int days);
+      // Message recall within the server (Common/Util/MessageRecall.h): how
+      // many days after sending an account may still withdraw the unread
+      // copies, and how long the rows are kept. 1 to 365.
+      int GetRecallDays();
+      void SetRecallDays(int days);
 
       // Web Push (see Common/Util/WebPush.h). Seven rows in hm_settings; the
       // getters clamp, so a hand-edited row cannot make a time to live of a year

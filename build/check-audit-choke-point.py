@@ -431,6 +431,7 @@ NOT_AUDITED = {
    "hm_smimekeys": "an account's own S/MIME certificates, kept for it by the portal.",
    "hm_pgpring": "an account's own OpenPGP keys and its correspondents' public keys, kept for it by the webmail; the secret half is encrypted where this server cannot see it.",
    "hm_zeroaccess": "a zero-access mailbox's two sealed copies of its own key and the derivation parameters, kept for it by the webmail; the person's own, written by the self-service routes, and this server can open neither copy.",
+   "hm_recall": "message recall within the server: one row per local recipient of a message an account sent, written at acceptance and delivery, marked by the account's own recall and ended by the sweep; traffic.",
    "hm_digeststate": "when each account last had a quarantine digest and whether it opted out, written by the digest task and by the "
                      "account itself in the webmail; the domain's switch and hour are hm_domains columns, which are audited.",
    "hm_digesttokens": "the digest's one-use release links, written by the digest task and spent by whoever follows one; traffic, and "

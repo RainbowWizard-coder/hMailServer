@@ -61,6 +61,8 @@ select hm_drop_table('hm_pgpring');
 
 select hm_drop_table('hm_protectedmessages');
 
+select hm_drop_table('hm_recall');
+
 select hm_drop_table('hm_dmarcreportrecords');
 
 select hm_drop_table('hm_dmarcreports');
@@ -2127,6 +2129,27 @@ ALTER TABLE hm_zeroaccess ADD CONSTRAINT fk_hm_zeroaccess_account FOREIGN KEY (z
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ZeroAccessAllowed', '', 0);
 
+create table hm_recall
+(
+	recallid serial not null primary key,
+	recallsenderid int not null,
+	recallmsgid varchar(255) not null,
+	recallrecipientid int not null,
+	recallqueueid bigint not null,
+	recallmessageid bigint not null,
+	recallcreated bigint not null,
+	recallrecalledat bigint not null,
+	recalloutcome int not null
+);
+
+CREATE INDEX idx_hm_recall_sender ON hm_recall (recallsenderid);
+
+CREATE INDEX idx_hm_recall_queue ON hm_recall (recallqueueid);
+
+ALTER TABLE hm_recall ADD CONSTRAINT fk_hm_recall_sender FOREIGN KEY (recallsenderid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('RecallDays', '', 14);
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPWebKeyDirectoryEnabled', '', 0);
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPKeyMaximumBytes', '', 65536);
@@ -2348,4 +2371,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0);
 
-insert into hm_dbversion values (6084);
+insert into hm_dbversion values (6085);

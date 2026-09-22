@@ -881,6 +881,12 @@ namespace
            return String();
         } },
 
+      // Message recall within the server (Util/MessageRecall.h).
+      { "recall_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many days after sending a message to other accounts on this server its sender may still recall it from the webmail - the unread copies deleted, the read ones left - and how long the rows that make that possible are kept. A recall of an older message answers 404 as if it had never been recorded. 1 to 365; 14 by default.",
+        ROW_NUMBER(Config()->GetRecallDays()), ROW_SET(Config()->SetRecallDays((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 365) ? String(_T("recall_days must be between 1 and 365.")) : String(); } },
+
       // The organisation's directory (Util/DirectoryStore.h).
       { "directory_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether every active account and enabled distribution list of a domain is answered to the people of that domain - in the webmail's Directory page, in the To, Cc and Bcc completion beside the reader's own contacts, and as a read-only Directory address book over CardDAV. On by default, as Outlook's Global Address List and Google's directory are. It never crosses a domain: a reader is answered their own domain and no other, whatever else the server hosts. Turn it off on a server whose one domain holds people who are not one organisation, where a listing of every address would be an address list for whoever signs in.",

@@ -93,6 +93,7 @@
 #include "Unicode.h"
 #include "../Application/FolderManager.h"
 #include "../BO/ACLPermission.h"
+#include "MessageRecall.h"
 #include "../Tracking/ChangeNotification.h"
 #include "../Tracking/NotificationServer.h"
 #include "MessageUtilities.h"
@@ -2676,6 +2677,9 @@ namespace HM
          case RouteMeZeroAccessDelete:
             return HandleMeZeroAccessDelete_(caller);
 
+         case RouteMeRecall:
+            return HandleMeRecall_(caller, GetRequestBody_(request));
+
          case RouteMeStorage:
             return HandleMeStorage_(caller);
 
@@ -3365,6 +3369,13 @@ namespace HM
       if (path == "/api/v1/me/zero-access/rewrap" && method == "PUT")
       {
          route.kind = RouteMeZeroAccessRewrap;
+         return;
+      }
+
+      // Message recall within the server (RestApiMessageRecall.cpp).
+      if (path == "/api/v1/me/recall" && method == "POST")
+      {
+         route.kind = RouteMeRecall;
          return;
       }
 
@@ -6287,6 +6298,8 @@ namespace HM
       case RouteMeZeroAccessPut:
       case RouteMeZeroAccessRewrap:
       case RouteMeZeroAccessDelete:
+      // A recall deletes other people's unread copies of what the caller sent.
+      case RouteMeRecall:
       case RouteSettingsOpenPgpPut:
       case RouteAccountOpenPgpPut:
       case RouteAccountOpenPgpDelete:
@@ -10326,6 +10339,7 @@ namespace HM
       case RouteMeDevices:
       case RouteMeDeviceDelete:
       case RouteMeStorage:
+      case RouteMeRecall:
       case RouteMeSmime:
       case RouteMeSmimeOwnPut:
       case RouteMeSmimeOwnDelete:
@@ -10452,7 +10466,7 @@ namespace HM
          "{\"address\":\"%hs\",\"domain\":\"%hs\",\"active\":%hs,"
          "\"quota\":{\"limit_mb\":%d,\"used_bytes\":%I64d},"
          "\"vacation\":{\"enabled\":%hs,\"active\":%hs,\"subject\":\"%hs\",\"message\":\"%hs\",\"expires\":%hs,\"expires_date\":\"%hs\"},"
-         "\"password_changed\":\"%hs\",\"second_factor\":%hs,\"directory_linked\":%hs}",
+         "\"password_changed\":\"%hs\",\"second_factor\":%hs,\"directory_linked\":%hs,\"recall_days\":%d}",
          JsonEscape_(Utf8_(account->GetAddress())).c_str(),
          JsonEscape_(Utf8_(StringParser::ExtractDomain(account->GetAddress()))).c_str(),
          account->GetActive() ? "true" : "false",
@@ -10468,7 +10482,10 @@ namespace HM
          JsonEscape_(Utf8_(account->GetVacationExpiresDate().Mid(0, 10))).c_str(),
          JsonEscape_(Utf8_(account->GetPasswordChanged())).c_str(),
          account->GetTotpSecret().IsEmpty() ? "false" : "true",
-         account->GetIsAD() ? "true" : "false");
+         account->GetIsAD() ? "true" : "false",
+         // Message recall (MessageRecall.h): how young a Sent message has to
+         // be for the page to offer Recall on it.
+         Configuration::Instance()->GetRecallDays());
 
       return BuildResponse_(200, json);
    }
@@ -14552,6 +14569,14 @@ namespace HM
          CompromiseDetector::Apply(shape, message->GetID(), from, recipientList, JsonUtf8Value_(requestBody, "subject"), (__int64) message->GetSize());
       }
 
+      // Message recall within the server (MessageRecall.h): one row per local
+      // recipient, keyed by the account that is sending - which this route
+      // knows outright - and by the queue row just saved. A message that
+      // expires has Withdraw of its own and is not recorded; the file in the
+      // queue is the notice, whose Message-ID is not the message's.
+      if (!confidential)
+         MessageRecall::Record(account, message, "the webmail");
+
       // A copy for the folder designated \Sent, marked read, before the queue
       // takes the file - when the account has such a folder and its quota
       // allows. Without one the message is sent and not kept, as over SMTP. A
@@ -15933,6 +15958,7 @@ namespace HM
       openApiJson += OpenApiOpenPgpPaths_();
       openApiJson += OpenApiWebhooksPaths_();
       openApiJson += OpenApiMailboxMovePaths_();
+      openApiJson += OpenApiMessageRecallPaths_();
       openApiJson += openApiTail;
 
       // The same bytes for every caller, built on every call: compressed once.

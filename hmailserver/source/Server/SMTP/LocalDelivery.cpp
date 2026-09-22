@@ -63,6 +63,7 @@
 #include "RuleResult.h"
 #include "../Common/Util/Imip.h"
 #include "../Common/Util/ZeroAccess.h"
+#include "../Common/Util/MessageRecall.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -477,6 +478,17 @@ namespace HM
 
          return;
       }
+
+      // Message recall within the server (Common/Util/MessageRecall.h,
+      // docs/MessageRecall.md): here, once the copy is real, the row the
+      // acceptance recorded for (this queue message, this recipient) learns
+      // which hm_messages row is the recipient's copy; a recipient reached by
+      // expansion after RCPT TO, with no row of its own, gets one when rows
+      // for the same queue message exist. Only a copy in the account's own
+      // mailbox: a message a rule filed into a public folder is nobody's to
+      // recall. A message nobody recorded costs one indexed select.
+      if (accountLevelMessage->GetAccountID() == account->GetID())
+         MessageRecall::Delivered(original_message_->GetID(), account, accountLevelMessage->GetID());
 
       // Tell the folder container that the users inbox is updated this will
       // cause a refresh in the imap server whenever a new imap command is sent.

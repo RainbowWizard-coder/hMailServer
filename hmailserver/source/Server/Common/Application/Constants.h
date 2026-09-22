@@ -341,6 +341,11 @@
 // kept for its reading page before the ciphertext goes: the default a sender
 // gets, and the most a sender may ask for. 1 to 365, 30 by default.
 #define PROPERTY_PROTECTED_MESSAGE_DAYS         _T("ProtectedMessageDays")
+// Message recall within the server (Util/MessageRecall.h, docs/MessageRecall.md):
+// how many days after a message was sent from one of this server's accounts
+// to another its sender may still withdraw the unread copies, and how long
+// the rows that make that possible are kept. 1 to 365, 14 by default.
+#define PROPERTY_RECALL_DAYS                    _T("RecallDays")
 // Zero-access mailboxes (docs/ZeroAccess.md). OFF: an administrator has to
 // allow the opt-in before any account can make it, because a mailbox with this
 // on is one the administrator cannot read, search, export or recover, and a
@@ -666,4 +671,17 @@
 //      for a recipient reached by expansion, a forward or an auto-reply. Every
 //      domain an upgrade finds names nothing and every account follows it, so
 //      an upgraded server delivers exactly as it did.
-#define REQUIRED_DB_VERSION            6084
+// 6085 adds hm_recall (Util/MessageRecall.h): message recall within the
+//      server. One row per local recipient of a message one of this server's
+//      own accounts submitted - over authenticated SMTP or from the webmail -
+//      holding the sender's account id, the message's Message-ID without its
+//      angle brackets, the recipient's account id, the queue row the message
+//      was accepted as, the recipient's hm_messages row once delivered (0
+//      until then), when it was recorded, and when and how it was recalled.
+//      POST /api/v1/me/recall deletes the copies that are still unread. The
+//      step also seeds RecallDays (14): rows older than that are swept and a
+//      recall of an older message answers 404. Nothing is recorded for mail
+//      from outside or for an unauthenticated submission, and nothing is
+//      there until an account sends, so an upgraded server behaves exactly
+//      as it did.
+#define REQUIRED_DB_VERSION            6085

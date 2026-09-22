@@ -93,6 +93,7 @@
 #include "../Common/Util/DiskSpace.h"
 #include "../Common/Util/RateLimiter.h"
 #include "../Common/Util/CompromiseDetector.h"
+#include "../Common/Util/MessageRecall.h"
 #include "../Common/SQL/DatabaseUnavailableMarker.h"
 
 #include "RecipientCallout.h"
@@ -2758,6 +2759,21 @@ namespace HM
                   }
                }
                CompromiseDetector::Apply(shape, current_message_->GetID(), current_message_->GetFromAddress(), recipientList, subject, (__int64) current_message_->GetSize());
+            }
+
+            // Message recall within the server (Common/Util/MessageRecall.h,
+            // docs/MessageRecall.md): one row per recipient that resolved to a
+            // local account, under the account that SIGNED IN - never the
+            // envelope sender, which an unauthenticated session from a local
+            // range may write in anybody's name. After the save, because the
+            // rows are keyed by the queue row's id, which is what ties a list
+            // member's copy at delivery to this submission without trusting a
+            // header. A message from outside costs one empty test here.
+            if (isAuthenticated_ && !username_.IsEmpty())
+            {
+               std::shared_ptr<const Account> writer = CacheContainer::Instance()->GetAccount(DefaultDomain::ApplyDefaultDomain(username_));
+               if (writer)
+                  MessageRecall::Record(writer, current_message_, "SMTP");
             }
 
             // This session addressed a spam trap and then sent this message to a

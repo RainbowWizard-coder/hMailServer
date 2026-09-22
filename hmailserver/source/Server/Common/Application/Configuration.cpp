@@ -2234,6 +2234,18 @@ namespace HM
       GetSettings()->SetLong(PROPERTY_PROTECTED_MESSAGE_DAYS, ClampSetting(days, 1, 365));
    }
 
+   int
+   Configuration::GetRecallDays()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_RECALL_DAYS), 1, 365);
+   }
+
+   void
+   Configuration::SetRecallDays(int days)
+   {
+      GetSettings()->SetLong(PROPERTY_RECALL_DAYS, ClampSetting(days, 1, 365));
+   }
+
    bool
    Configuration::GetWebPushEnabled()
    {

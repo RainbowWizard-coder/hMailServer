@@ -448,6 +448,9 @@ namespace HM
         _T("A restore elsewhere could not serve the links, and the sender's own copy of the notice is in the Sent folder the backup carries; what the recipient read is theirs, in their own browser.") },
       { _T("hm_confidential"),
         _T("Messages that expire, kept outside the message store behind links that name this server and end on a timer. The sender's own copy is in the mailbox the backup carries; a copy made to be deleted at a time is not one to carry into an archive that outlives it, and a restore elsewhere could not serve its links.") },
+      { _T("hm_recall"),
+        _T("Message recall within the server: one row per local recipient of a message an account sent, keyed by the hm_messages rows of the queue message and of the recipient's copy, which a restore renumbers, and kept for RecallDays only. ")
+        _T("Traffic, not configuration: a restored server cannot withdraw what was sent before the backup, and the Sent copy's $Recalled keyword, which the backup carries, is the record of what was.") },
       { _T("hm_accountactivity"),
         _T("The compromised-account detection's baseline: one row per authenticated submission for the last CompromiseBaselineDays days, and nothing older. It is a rolling record of traffic, rebuilt by the traffic itself within the window; a restored account starts with no baseline and is judged by the two floors alone until it has one, which is how a new account is judged too.") },
       { _T("hm_accountrecipients"),
