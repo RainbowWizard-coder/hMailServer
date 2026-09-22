@@ -291,6 +291,14 @@ namespace HM
          RouteBackupStart,
          RouteBackupStatus,
          RouteBackupRestore,
+         // One mailbox, or one message, put back from an archive in the
+         // backup destination (RestApiBackupMailbox.cpp): the archives there,
+         // an account's folders and messages as an archive holds them, the
+         // restore, and what became of one.
+         RouteBackupArchiveList,
+         RouteBackupMailboxList,
+         RouteBackupMailboxRestore,
+         RouteBackupMailboxRestoreStatus,
          RouteSettingsGet,
          RouteArchiveSearch,
          RouteArchiveGet,
@@ -1776,6 +1784,14 @@ namespace HM
       HttpResponse HandleBackupStart_();
       HttpResponse HandleBackupStatus_();
       HttpResponse HandleBackupRestore_(const AnsiString &requestBody);
+      // One mailbox or one message from an archive (RestApiBackupMailbox.cpp).
+      HttpResponse HandleBackupArchiveList_();
+      HttpResponse HandleBackupMailboxList_(const Route &route, const AnsiString &request);
+      HttpResponse HandleBackupMailboxRestore_(const Route &route, const AnsiString &requestBody);
+      HttpResponse HandleBackupMailboxRestoreStatus_(const Route &route);
+      // Its two helpers: a value as a quoted JSON string, and a refusal body.
+      static AnsiString BackupJsonQuoted_(const String &value);
+      static HttpResponse BackupRefusal_(int statusCode, const String &reason);
       HttpResponse HandleSettings_();
       HttpResponse HandleServerReinitialize_();
       static void ReinitializeAfterTheAnswer_();

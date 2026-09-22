@@ -5,6 +5,8 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using hMailServer.ControlPanel.Services;
@@ -305,6 +307,200 @@ namespace hMailServer.ControlPanel.Views
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
             MessageBox.Show(F("Could not start the restore: {0}", ex.Message), L("Control Panel"));
+         }
+      }
+
+      // ---- One mailbox, or one message, from an archive ------------------------
+      //
+      // BackupManager.RestoreMailbox, RestoreMessage, DescribeMailbox and
+      // MailboxRestoreStatus over COM: the same operation the Deck reaches over
+      // REST. The archive is named as the destination lists it, or by its path
+      // inside the destination; anything else the server refuses with its own
+      // sentence, before anything is touched. What became of a job is read back
+      // from the server and shown under the button.
+
+      private int lastMailboxRestoreJob_;
+
+      private bool ReadMailboxRestoreInputs_(out string archive, out string address)
+      {
+         archive = MailboxArchiveBox.Text.Trim();
+         address = MailboxAddressBox.Text.Trim();
+
+         if (archive.Length == 0)
+         {
+            MessageBox.Show(L("Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination."), L("Control Panel"));
+            return false;
+         }
+
+         if (address.Length == 0)
+         {
+            MessageBox.Show(L("Enter the address of the account whose mailbox to restore."), L("Control Panel"));
+            return false;
+         }
+
+         return true;
+      }
+
+      private void ShowMailboxRestoreOutcome_(string json)
+      {
+         try
+         {
+            using JsonDocument document = JsonDocument.Parse(json);
+            JsonElement root = document.RootElement;
+
+            string text = F("Job {0} is {1}: {2} folders, {3} messages added, {4} skipped as still in the mailbox, {5} failed.",
+               Number_(root, "job"), Text_(root, "state"), Number_(root, "folders"), Number_(root, "added"), Number_(root, "skipped"), Number_(root, "failed"));
+
+            string error = Text_(root, "error");
+            if (error.Length > 0)
+               text += " " + error;
+
+            MailboxRestoreOutcome.Text = text;
+         }
+         catch (JsonException)
+         {
+            MailboxRestoreOutcome.Text = json;
+         }
+
+         MailboxRestoreStatusButton.IsEnabled = lastMailboxRestoreJob_ > 0;
+      }
+
+      private static string Text_(JsonElement element, string name)
+         => element.TryGetProperty(name, out JsonElement value) && value.ValueKind == JsonValueKind.String ? value.GetString() ?? "" : "";
+
+      private static long Number_(JsonElement element, string name)
+         => element.TryGetProperty(name, out JsonElement value) && value.ValueKind == JsonValueKind.Number ? value.GetInt64() : 0;
+
+      private void RestoreMailbox_Click(object sender, RoutedEventArgs e)
+      {
+         if (!ReadMailboxRestoreInputs_(out string archive, out string address))
+            return;
+
+         bool replace = MailboxModeReplace.IsChecked is true;
+
+         string question = replace
+            ? F("Replace the mailbox of {0} with the one in the archive?\n\nEvery folder is emptied first: mail that arrived since the backup is gone.", address)
+            : F("Merge the folders and messages of the archive into the mailbox of {0}?\n\nNothing already there is removed.", address);
+
+         if (MessageBox.Show(question, L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            return;
+
+         try
+         {
+            dynamic manager = ServerSession.Current.Application.BackupManager;
+            int job = (int)manager.RestoreMailbox(archive, address, replace ? "replace" : "merge", MailboxPassphraseBox.Password ?? "");
+            lastMailboxRestoreJob_ = job;
+            string status = (string)manager.MailboxRestoreStatus(job);
+            ServerSession.Release(manager);
+
+            ShowMailboxRestoreOutcome_(status);
+            ShowNotice_(StatusLevel.Good, F("Mailbox restore {0} started - runs in the background on the server.", job));
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            MessageBox.Show(F("Could not start the mailbox restore: {0}", ex.Message), L("Control Panel"));
+         }
+      }
+
+      private void RefreshMailboxRestore_Click(object sender, RoutedEventArgs e)
+      {
+         if (lastMailboxRestoreJob_ <= 0)
+            return;
+
+         try
+         {
+            dynamic manager = ServerSession.Current.Application.BackupManager;
+            string status = (string)manager.MailboxRestoreStatus(lastMailboxRestoreJob_);
+            ServerSession.Release(manager);
+            ShowMailboxRestoreOutcome_(status);
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            MessageBox.Show(F("Could not read the outcome: {0}", ex.Message), L("Control Panel"));
+         }
+      }
+
+      private void ListArchivedMessages_Click(object sender, RoutedEventArgs e)
+      {
+         if (!ReadMailboxRestoreInputs_(out string archive, out string address))
+            return;
+
+         try
+         {
+            dynamic manager = ServerSession.Current.Application.BackupManager;
+            string json = (string)manager.DescribeMailbox(archive, address, MailboxPassphraseBox.Password ?? "");
+            ServerSession.Release(manager);
+
+            var lines = new StringBuilder();
+
+            using (JsonDocument document = JsonDocument.Parse(json))
+            {
+               JsonElement root = document.RootElement;
+
+               if (root.TryGetProperty("folders", out JsonElement folders) && folders.ValueKind == JsonValueKind.Array)
+               {
+                  foreach (JsonElement folder in folders.EnumerateArray())
+                  {
+                     if (!folder.TryGetProperty("messages", out JsonElement messages) || messages.ValueKind != JsonValueKind.Array)
+                        continue;
+
+                     foreach (JsonElement message in messages.EnumerateArray())
+                     {
+                        lines.Append(Number_(message, "id").ToString(CultureInfo.InvariantCulture).PadRight(10));
+                        lines.Append(Text_(message, "date")).Append("  ");
+                        lines.Append(Text_(message, "folder")).Append("  ");
+                        lines.Append(Text_(message, "from")).Append("  ");
+                        lines.Append(Text_(message, "subject"));
+                        lines.AppendLine();
+                     }
+                  }
+               }
+
+               if (lines.Length == 0)
+                  lines.AppendLine(L("The archive holds no messages for this account."));
+
+               string note = Text_(root, "subjects_note");
+               if (note.Length > 0)
+                  lines.AppendLine(note);
+            }
+
+            ArchivedMessagesBox.Text = lines.ToString();
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            MessageBox.Show(F("Could not list the messages: {0}", ex.Message), L("Control Panel"));
+         }
+      }
+
+      private void RestoreArchivedMessage_Click(object sender, RoutedEventArgs e)
+      {
+         if (!ReadMailboxRestoreInputs_(out string archive, out string address))
+            return;
+
+         if (!long.TryParse(ArchivedMessageIdBox.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out long messageId) || messageId <= 0)
+         {
+            MessageBox.Show(L("Enter the id of the message, as the listing shows it."), L("Control Panel"));
+            return;
+         }
+
+         if (MessageBox.Show(F("Put message {0} back into the mailbox of {1}?", messageId, address), L("Control Panel"),
+                             MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+         try
+         {
+            dynamic manager = ServerSession.Current.Application.BackupManager;
+            int job = (int)manager.RestoreMessage(archive, address, messageId, ArchivedMessageFolderBox.Text.Trim(), MailboxPassphraseBox.Password ?? "");
+            lastMailboxRestoreJob_ = job;
+            string status = (string)manager.MailboxRestoreStatus(job);
+            ServerSession.Release(manager);
+
+            ShowMailboxRestoreOutcome_(status);
+            ShowNotice_(StatusLevel.Good, F("Message restore {0} started - runs in the background on the server.", job));
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            MessageBox.Show(F("Could not start the message restore: {0}", ex.Message), L("Control Panel"));
          }
       }
 

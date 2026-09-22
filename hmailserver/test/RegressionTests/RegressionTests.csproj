@@ -520,6 +520,7 @@
     <Compile Include="API\ChangedFromStock.cs" />
     <Compile Include="API\Unicode.cs" />
     <Compile Include="Infrastructure\BackupRestore.cs" />
+    <Compile Include="Infrastructure\MailboxRestore.cs" />
     <Compile Include="Infrastructure\BackupAccountStores.cs" />
     <Compile Include="API\RestApiOpenPgp.cs" />
     <Compile Include="Security\OpenPgpWebKeyDirectory.cs" />

@@ -136,6 +136,8 @@ ALLOWED = {
       "Common/Util/RestApiPush.cpp",                # DELETE /api/v1/accounts/{address}/push
       "COM/InterfaceBackup.cpp",                    # Backup.StartRestore
       "Common/Util/RestApiServer.cpp",              # POST /api/v1/backup/restore
+      "COM/InterfaceBackupManager.cpp",             # BackupManager.RestoreMailbox and RestoreMessage
+      "Common/Util/RestApiBackupMailbox.cpp",       # POST /api/v1/backup/{archive}/mailboxes/{address}/restore
       "Common/Util/RestApiSettings.cpp",            # POST /api/v1/settings/logon-failures/clear
       "COM/InterfaceSettings.cpp",                  # Settings.ClearLogonFailureList
       "Common/Util/RestApiSpamTraps.cpp",           # DELETE /api/v1/spam-traps/hits
@@ -249,6 +251,15 @@ REQUIRED = [
    ("COM/InterfaceBackup.cpp",
     'HM::AuditTrail::Instance()->RecordEvent(_T("backup"), backup_->GetBackupFile(), _T("restore started"),',
     "a restore started over COM is no longer recorded - the restore itself runs on the maintenance work queue with no actor on it, so the request is the only half that can be"),
+   ("Common/Util/RestApiBackupMailbox.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("backup"), job->GetRequest().archive_file, _T("mailbox restore started"),',
+    "a mailbox restore started over REST is no longer recorded - it runs on the maintenance work queue with no actor on it, so the request is the only half that can be"),
+   ("COM/InterfaceBackupManager.cpp",
+    'HM::AuditTrail::Instance()->RecordEvent(_T("backup"), job->GetRequest().archive_file, _T("mailbox restore started"),',
+    "a mailbox restore started over COM is no longer recorded - it runs on the maintenance work queue with no actor on it, so the request is the only half that can be"),
+   ("COM/InterfaceBackupManager.cpp",
+    "if (!GetIsServerAdmin())",
+    "BackupManager.RestoreMailbox no longer asks the question that installs the actor, so the row it writes is attributed to whoever used that COM pool thread last"),
    ("COM/InterfaceBackup.cpp",
     "if (!GetIsServerAdmin())",
     "Backup.StartRestore no longer asks the question that installs the actor, so the row it writes is attributed to whoever used that COM pool thread last"),

@@ -2209,6 +2209,14 @@ namespace HM
             return HandleBackupStatus_();
          case RouteBackupRestore:
             return HandleBackupRestore_(GetRequestBody_(request));
+         case RouteBackupArchiveList:
+            return HandleBackupArchiveList_();
+         case RouteBackupMailboxList:
+            return HandleBackupMailboxList_(route, request);
+         case RouteBackupMailboxRestore:
+            return HandleBackupMailboxRestore_(route, GetRequestBody_(request));
+         case RouteBackupMailboxRestoreStatus:
+            return HandleBackupMailboxRestoreStatus_(route);
          case RouteSettingsGet:
             return HandleSettings_();
          case RouteSettingsPut:
@@ -5570,6 +5578,66 @@ namespace HM
          route.kind = RouteBackupRestore;
          return;
       }
+      if (path == "/api/v1/backup/archives" && method == "GET")
+      {
+         route.kind = RouteBackupArchiveList;
+         return;
+      }
+      // What became of one mailbox restore, by the job number the start
+      // answered.
+      const AnsiString mailboxRestoreJobPrefix = "/api/v1/backup/restore-mailbox/";
+      if (method == "GET" && path.StartsWith(mailboxRestoreJobPrefix))
+      {
+         AnsiString idPart = path.Mid(mailboxRestoreJobPrefix.GetLength());
+         __int64 job = 0;
+         if (idPart.Find("/") < 0 && ParseQueueId(idPart, job))
+         {
+            route.kind = RouteBackupMailboxRestoreStatus;
+            route.record_id = job;
+         }
+         return;
+      }
+      // /api/v1/backup/{archive}/mailboxes/{address} and .../restore. The
+      // archive is the identifier and the address is the name: neither is a
+      // domain for Authorize_ to scope by, since an archive is server-wide and
+      // the routes are refused to a domain-confined credential below. Parsed
+      // after the fixed backup routes, so "restore" and "archives" are never
+      // taken for an archive's name.
+      const AnsiString backupPrefix = "/api/v1/backup/";
+      if (path.StartsWith(backupPrefix))
+      {
+         AnsiString rest = path.Mid(backupPrefix.GetLength());
+         int firstSlash = rest.Find("/");
+         if (firstSlash > 0)
+         {
+            AnsiString archive = rest.Left(firstSlash);
+            AnsiString tail = rest.Mid(firstSlash + 1);
+            const AnsiString mailboxes = "mailboxes/";
+            if (tail.StartsWith(mailboxes))
+            {
+               AnsiString address = tail.Mid(mailboxes.GetLength());
+               const AnsiString restoreSuffix = "/restore";
+               if (method == "GET" && !address.IsEmpty() && address.Find("/") < 0)
+               {
+                  route.kind = RouteBackupMailboxList;
+                  route.identifier = archive;
+                  route.name = address;
+                  return;
+               }
+               if (method == "POST" && address.EndsWith(restoreSuffix))
+               {
+                  address = address.Left(address.GetLength() - restoreSuffix.GetLength());
+                  if (!address.IsEmpty() && address.Find("/") < 0)
+                  {
+                     route.kind = RouteBackupMailboxRestore;
+                     route.identifier = archive;
+                     route.name = address;
+                  }
+                  return;
+               }
+            }
+         }
+      }
       if (path == "/api/v1/backup")
       {
          if (method == "POST")
@@ -6258,6 +6326,9 @@ namespace HM
       // The most destructive thing this API can be asked to do: it deletes every
       // domain, account and public folder and puts the archive's back.
       case RouteBackupRestore:
+      // One mailbox put back from an archive: adds rows and files to an
+      // account, and in replace mode empties its folders first.
+      case RouteBackupMailboxRestore:
       case RouteAuditRevert:
       case RouteSettingsPut:
       case RouteSettingsAntiSpamPut:
@@ -6627,6 +6698,11 @@ namespace HM
       case RouteAccountOpenPgpList:
       case RouteDomainOpenPgpList:
       case RouteBackupStatus:
+      // The archives in the backup destination - names, sizes and whether each
+      // is encrypted, nothing inside one - and what became of a mailbox
+      // restore: reads of the server's state, as the backup status is.
+      case RouteBackupArchiveList:
+      case RouteBackupMailboxRestoreStatus:
       case RouteSettingsCacheGet:
       case RouteSettingsIndexingGet:
       case RouteServerMessageList:
@@ -6804,6 +6880,9 @@ namespace HM
       case RouteAccountFolderMessageList:
       case RouteAccountMessageGet:
       case RouteAccountMessageSource:
+      // An account's folders and messages as a backup archive holds them -
+      // senders, dates and subjects - which is reading the mailbox as it was.
+      case RouteBackupMailboxList:
          return RolePermission::ViewMailbox;
 
       // Writing in another person's mailbox, and the support session, which
@@ -7102,6 +7181,9 @@ namespace HM
       // Restoring is the backup's other half and acts on the whole server, so it
       // is the same permission - the one an auditor does not hold.
       case RouteBackupRestore:
+      // Restoring one mailbox from an archive is a restore: the same roles
+      // that may restore the server may put one mailbox of it back.
+      case RouteBackupMailboxRestore:
       case RouteScriptingReload:
       case RouteCacheClear:
       case RouteIndexingIndex:
@@ -7698,6 +7780,13 @@ namespace HM
       case RouteBackupStart:
       case RouteBackupRestore:
       case RouteBackupStatus:
+      // An archive holds every domain on the server, and the directory it
+      // sits in is the server's: a credential confined to named domains is
+      // refused the listing, a mailbox read out of one, and a restore from one.
+      case RouteBackupArchiveList:
+      case RouteBackupMailboxList:
+      case RouteBackupMailboxRestore:
+      case RouteBackupMailboxRestoreStatus:
       // The complaint settings apply to every domain, the rates are every
       // domain's, and the sweep prunes every domain's rows.
       case RouteSettingsComplaintsGet:
@@ -15950,6 +16039,14 @@ namespace HM
          "\"post\":{\"summary\":\"Start a backup with the configured settings\",\"description\":\"Runs on the maintenance queue; poll GET for the outcome.\",\"responses\":{\"202\":{\"description\":\"Started\"},\"409\":{\"description\":\"A backup or restore is already running, or the backup is not configured\"}}}},"
          "\"/api/v1/backup/restore\":{"
          "\"post\":{\"summary\":\"Restore a backup archive\",\"description\":\"Body: file (the archive's path on this server, required), passphrase (the one the archive was encrypted with; accepted here and never stored, logged or returned), and restore_settings, restore_domains and restore_messages - at least one of them true, and messages only together with domains. The archive is opened and everything that can be checked is checked before anything is changed: an encrypted archive with no passphrase, a wrong passphrase, a damaged archive, a part the archive does not hold, or an archive from a newer hMailServer is refused with the reason and nothing on this server is touched. What follows is destructive - the restore deletes every domain, account and public folder it is replacing - and runs on the maintenance queue; poll GET /api/v1/backup for the outcome. The check itself is bounded at two minutes so that an archive on a drive that has stopped answering cannot hold a worker thread; that answers 504 and starts nothing, and the Control Panel, which waits as long as it takes, still restores such an archive. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"file\"],\"properties\":{\"file\":{\"type\":\"string\",\"description\":\"The archive's path on the server\"},\"passphrase\":{\"type\":\"string\",\"writeOnly\":true,\"description\":\"The passphrase an encrypted archive was written with\"},\"restore_settings\":{\"type\":\"boolean\"},\"restore_domains\":{\"type\":\"boolean\"},\"restore_messages\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"202\":{\"description\":\"Started: encrypted, and contains (settings, domains, messages)\"},\"400\":{\"description\":\"Refused before anything was changed; the reason is in error\"},\"409\":{\"description\":\"A backup or restore is already running\"},\"504\":{\"description\":\"The archive could not be read within the two minutes this route allows - a slow or unresponsive drive, not a verdict on the archive; nothing was started\"}}}},"
+         "\"/api/v1/backup/archives\":{"
+         "\"get\":{\"summary\":\"The backup archives in the backup destination\",\"description\":\"Every archive this server wrote into its backup destination (HMBackup YYYY-MM-DD HHMMSS.7z), newest first: name, path, when it was taken (from the name), size and whether it is encrypted. The names are what the mailbox routes take as {archive}. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"destination and archives (name, path, created, size, encrypted)\"}}}},"
+         "\"/api/v1/backup/{archive}/mailboxes/{address}\":{"
+         "\"get\":{\"summary\":\"One account's folders and messages as a backup archive holds them\",\"description\":\"The archive is a name the listing answers, or a path inside the backup destination; anything outside it is refused with 400, and an account the archive does not hold with 404. Each folder: path, subscribed, special_use and its messages (id - the message's id in the archive, which the restore route takes -, folder, subject, from, date, size, flags, keywords). Subjects are read from the message files, staged from the archive for it, for a listing of at most 500 messages; a larger mailbox is listed without them, and the query parameter folder narrows the listing to one folder path. An encrypted archive needs its passphrase in the X-hMailServer-Backup-Passphrase header. Bounded at two minutes, as the restore route is: past that it answers 504 and nothing was judged.\",\"parameters\":[{\"name\":\"folder\",\"in\":\"query\",\"schema\":{\"type\":\"string\"},\"description\":\"One folder path, to list only it\"}],\"responses\":{\"200\":{\"description\":\"archive, address, folders, messages (the count), subjects (whether they were read) and subjects_note\"},\"400\":{\"description\":\"The archive is outside the backup destination, cannot be read, or holds no messages; the reason is in error\"},\"404\":{\"description\":\"No such archive in the destination, or the archive has no such account\"},\"504\":{\"description\":\"The archive could not be read within two minutes; nothing was judged\"}}}},"
+         "\"/api/v1/backup/{archive}/mailboxes/{address}/restore\":{"
+         "\"post\":{\"summary\":\"Restore one mailbox, or one message, from a backup archive\",\"description\":\"Body: mode (merge, the default, or replace), message (the id of one message from the listing, to put back only it), folder (with message: the live folder path to put it in, default the folder it was in) and passphrase (an encrypted archive's; accepted here and never stored, logged or returned). Merge creates each archived folder that is missing and adds each archived message whose file is not already in the live mailbox - the same file name, in whatever folder, is the same message, so merging twice adds nothing the second time; flags, keywords and dates come back as the archive holds them. Replace empties every live folder of the account first and then fills as merge would, so the mailbox is the archive's: mail that arrived since the backup is gone (kept in the recover-deleted store for RecoverDeletedDays, as an emptied folder's is). Neither touches the account's settings, rules, contacts or calendars, nor any other account, and the account must exist on this server. Everything that can be checked is checked before anything runs: the archive is opened and its version checked, the account found in it and here, the message found. The restore then runs on the maintenance queue under the same slot as a whole restore - two restores never overlap - and reports itself to the backup log; poll the status route the answer names. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"mode\":{\"type\":\"string\",\"enum\":[\"merge\",\"replace\"],\"description\":\"merge (default) adds what is missing; replace empties the live folders first\"},\"message\":{\"type\":\"integer\",\"description\":\"One message's id from the listing, to restore only it\"},\"folder\":{\"type\":\"string\",\"description\":\"With message: the live folder to put it in (default: the folder it was in)\"},\"passphrase\":{\"type\":\"string\",\"writeOnly\":true,\"description\":\"The passphrase an encrypted archive was written with\"}}}}}},\"responses\":{\"202\":{\"description\":\"Queued: job (the number), state, archive, address, mode, message and status (the route to poll)\"},\"400\":{\"description\":\"Refused before anything was changed; the reason is in error\"},\"404\":{\"description\":\"No such archive, no such account in the archive or on this server, or no such message\"},\"409\":{\"description\":\"A backup or restore is already running\"},\"504\":{\"description\":\"The archive could not be read within two minutes; nothing was started\"}}}},"
+         "\"/api/v1/backup/restore-mailbox/{job}\":{"
+         "\"get\":{\"summary\":\"What became of one mailbox restore\",\"description\":\"By the job number the start answered. state is queued, running, done or failed; folders is the live folders written to, added, skipped (still in the mailbox: the same file name) and failed (a file the archive does not hold, or a row that could not be written) are the counts; error is the reason a failed job failed. The last fifty jobs are kept for the life of the process.\",\"responses\":{\"200\":{\"description\":\"job, state, archive, address, mode, message, folders, added, skipped, failed, error, started, finished\"},\"404\":{\"description\":\"No such job\"}}}},"
          "\"/api/v1/archive\":{\"get\":{\"summary\":\"Search the archive index\",\"description\":\"Query parameters: domain and mailbox (exact), sender, recipient and subject (contains), since and until (YYYY-MM-DD HH:MM:SS), hold=1 for held copies only, limit (1-1000, default 200). Newest first. A domain-restricted key must name one of its domains.\",\"responses\":{\"200\":{\"description\":\"Array of archive entries: id, time, domain, mailbox, direction, sender, recipients, subject, message_id, path, size, hold\"},\"403\":{\"description\":\"A domain-restricted key without a domain of its own\"}}}},"
          "\"/api/v1/archive/{id}\":{\"get\":{\"summary\":\"One archive entry\",\"responses\":{\"200\":{\"description\":\"The entry\"},\"404\":{\"description\":\"Unknown id\"}}}},"
          "\"/api/v1/archive/{id}/hold\":{"

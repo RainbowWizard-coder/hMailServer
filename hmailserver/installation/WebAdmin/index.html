@@ -1184,6 +1184,10 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="backupstatus")render();
   else if(d.act==="backuprestore")startRestore();
   else if(d.act==="backupclearpass")clearBackupPassphrase();
+  else if(d.act==="mailboxrestore")startMailboxRestore();
+  else if(d.act==="mailboxrestorestatus")readMailboxRestoreOutcome(d.job);
+  else if(d.act==="mailboxlist")listArchivedMailbox();
+  else if(d.act==="messagerestore")restoreArchivedMessage(d.id,d.folder);
   else if(d.act==="add")addAccount(d.domain);
   else if(d.act==="del")delAccount(d.address,d.domain);
   else if(d.act==="retry")retryMsg(d.id);
@@ -5634,6 +5638,14 @@ async function renderBackup(){
   let status=null,statusError="";
   try{status=await api("/api/v1/backup");}catch(e){if(e.message==="auth")throw e;statusError=e.message;}
   const log=status&&Array.isArray(status.log)?status.log:[];
+  // The archives in the destination, for the two mailbox pickers below. A
+  // destination with none in it is said, not drawn as an empty select.
+  let archives=[],archivesError="";
+  try{const a=await api("/api/v1/backup/archives");archives=Array.isArray(a.archives)?a.archives:[];}catch(e){if(e.message==="auth")throw e;archivesError=e.message;}
+  const archiveOptions=archives.length?archives.map(a=>`<option value="${escHtml(a.name)}">${escHtml(a.name)}${a.encrypted?" ("+t("encrypted")+")":""}</option>`).join(""):
+    `<option value="">${t("(no archives in the backup destination)")}</option>`;
+  const mailboxRestoreProps=operation("/api/v1/backup/{archive}/mailboxes/{address}/restore","post");
+  const mailboxListProps=operation("/api/v1/backup/{archive}/mailboxes/{address}","get");
   $("#content").innerHTML=`<div class="view">
     <div class="sect"><h2>${t("Backup")} <code class="muted">PUT /api/v1/settings/backup</code></h2>
       <div class="card flat">
@@ -5657,6 +5669,38 @@ async function renderBackup(){
           <button class="btn danger" data-act="backuprestore">${t("Start restore")}</button>
           <div class="err" id="err_backuprestore"></div>
         </div>
+      </div></div>
+    <div class="sect"><h2>${t("Restore a mailbox")} <code class="muted">POST /api/v1/backup/{archive}/mailboxes/{address}/restore</code></h2>
+      <div class="card flat">
+        <p class="note">${escHtml(mailboxRestoreProps.description||"")}</p>
+        ${archivesError?'<div class="err">'+escHtml(archivesError)+'</div>':""}
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <select id="mbr_archive" title="${t("Archive")}">${archiveOptions}</select>
+          <input id="mbr_address" placeholder="${t("Account address")}" style="flex:1 1 220px">
+          <input id="mbr_passphrase" type="password" placeholder="${t("only for an encrypted archive")}" autocomplete="off" style="flex:1 1 180px">
+        </div>
+        <div class="row" style="gap:16px;flex-wrap:wrap;margin-top:12px">
+          <label><input type="radio" name="mbr_mode" id="mbr_mode_merge" value="merge" checked> ${t("Merge: add the archive's folders and messages that the mailbox lacks; nothing already there is removed")}</label>
+          <label><input type="radio" name="mbr_mode" id="mbr_mode_replace" value="replace"> ${t("Replace: empty every folder first, so the mailbox is the archive's - mail that arrived since the backup is gone")}</label>
+        </div>
+        <div class="row" style="margin-top:18px">
+          <button class="btn danger" data-act="mailboxrestore">${t("Restore the mailbox")}</button>
+          <div class="err" id="err_mailboxrestore"></div>
+        </div>
+        <div id="mbr_outcome"></div>
+      </div></div>
+    <div class="sect"><h2>${t("Restore one message")} <code class="muted">GET /api/v1/backup/{archive}/mailboxes/{address}</code></h2>
+      <div class="card flat">
+        <p class="note">${escHtml(mailboxListProps.description||"")}</p>
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <select id="mbm_archive" title="${t("Archive")}">${archiveOptions}</select>
+          <input id="mbm_address" placeholder="${t("Account address")}" style="flex:1 1 220px">
+          <input id="mbm_passphrase" type="password" placeholder="${t("only for an encrypted archive")}" autocomplete="off" style="flex:1 1 180px">
+          <input id="mbm_folder" placeholder="${t("Into this folder (empty: the one it was in)")}" style="flex:1 1 220px">
+          <button class="btn" data-act="mailboxlist">${t("List the archive's messages")}</button>
+        </div>
+        <div class="err" id="err_mailboxlist"></div>
+        <div id="mbm_list"></div>
       </div></div>
     <div class="sect"><h2>${t("Status")} <code class="muted">GET /api/v1/backup</code></h2>
       <div class="card flat">
@@ -5694,6 +5738,72 @@ async function clearBackupPassphrase(){
   try{await api("/api/v1/settings/backup",{method:"PUT",body:JSON.stringify({encryption_passphrase:""})});
     toast(t("Backups from now on are not encrypted"));await render();}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_set_backup",e.message);}
+}
+/* One mailbox, or one message, from an archive in the backup destination.
+   The archive is chosen from the listing - never typed as a path - and the
+   two refusals the page makes itself are the ones that would cost a round
+   trip to be told: no archive, no address. Replace is confirmed in the words
+   that say what it destroys; merge is confirmed too, since it writes into
+   somebody's mailbox. What became of the job is read back from its status
+   route and shown under the button, and can be read again while it runs. */
+function mailboxRoute(archive,address,suffix){
+  return "/api/v1/backup/"+encodeURIComponent(archive)+"/mailboxes/"+encodeURIComponent(address)+(suffix||"");
+}
+function outcomeHtml(o){
+  const line=tf("Job {0} is {1}: {2} folders, {3} messages added, {4} skipped as still in the mailbox, {5} failed.",o.job,o.state,o.folders,o.added,o.skipped,o.failed);
+  return `<p class="note" id="mbr_outcome_text" style="margin-top:12px">${escHtml(line)}${o.error?" "+escHtml(o.error):""}</p>
+    <div class="row"><button class="btn ghost sm" data-act="mailboxrestorestatus" data-job="${escHtml(String(o.job))}">${t("Re-read the outcome")}</button></div>`;
+}
+async function readMailboxRestoreOutcome(job){
+  setErr("err_mailboxrestore","");
+  try{const o=await api("/api/v1/backup/restore-mailbox/"+encodeURIComponent(job));$("#mbr_outcome").innerHTML=outcomeHtml(o);}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_mailboxrestore",e.message);}
+}
+async function startMailboxRestore(){
+  setErr("err_mailboxrestore","");
+  const archive=$("#mbr_archive").value,address=$("#mbr_address").value.trim(),passphrase=$("#mbr_passphrase").value;
+  const mode=$("#mbr_mode_replace").checked?"replace":"merge";
+  if(!archive){setErr("err_mailboxrestore",t("Choose an archive from the backup destination."));return;}
+  if(!address){setErr("err_mailboxrestore",t("Give the address of the account whose mailbox to restore."));return;}
+  const question=mode==="replace"
+    ?tf("Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone.",address)
+    :tf("Merge the archive's folders and messages into the mailbox of {0}? Nothing already there is removed.",address);
+  if(!confirm(question)) return;
+  const body={mode:mode};
+  if(passphrase)body.passphrase=passphrase;
+  try{const a=await api(mailboxRoute(archive,address,"/restore"),{method:"POST",body:JSON.stringify(body)});
+    toast(t("Mailbox restore started"));$("#mbr_passphrase").value="";await readMailboxRestoreOutcome(a.job);}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_mailboxrestore",e.message);}
+}
+async function listArchivedMailbox(){
+  setErr("err_mailboxlist","");
+  const archive=$("#mbm_archive").value,address=$("#mbm_address").value.trim(),passphrase=$("#mbm_passphrase").value;
+  if(!archive){setErr("err_mailboxlist",t("Choose an archive from the backup destination."));return;}
+  if(!address){setErr("err_mailboxlist",t("Give the address of the account whose mailbox to restore."));return;}
+  try{
+    const opts={};
+    if(passphrase)opts.headers={"X-hMailServer-Backup-Passphrase":passphrase};
+    const listing=await api(mailboxRoute(archive,address),opts);
+    const rows=[];
+    (listing.folders||[]).forEach(f=>(f.messages||[]).forEach(m=>rows.push(m)));
+    const note=listing.subjects?"":'<p class="note">'+escHtml(listing.subjects_note||"")+"</p>";
+    $("#mbm_list").innerHTML=note+(rows.length?`<table class="grid" style="margin-top:12px"><thead><tr><th>${t("Folder")}</th><th>${t("Subject")}</th><th>${t("From")}</th><th>${t("When")}</th><th>${t("Size")}</th><th></th></tr></thead><tbody>`+
+      rows.map(m=>`<tr><td>${escHtml(m.folder)}</td><td>${escHtml(m.subject||"")}</td><td>${escHtml(m.from||"")}</td><td>${escHtml(m.date||"")}</td><td>${escHtml(String(m.size))}</td>
+        <td style="text-align:right;white-space:nowrap"><button class="btn sm" data-act="messagerestore" data-id="${escHtml(String(m.id))}" data-folder="${escHtml(m.folder)}">${t("Restore")}</button></td></tr>`).join("")+"</tbody></table>"
+      :'<p class="note">'+t("The archive holds no messages for this account.")+"</p>");
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_mailboxlist",e.message);}
+}
+async function restoreArchivedMessage(id,archivedFolder){
+  setErr("err_mailboxlist","");
+  const archive=$("#mbm_archive").value,address=$("#mbm_address").value.trim(),passphrase=$("#mbm_passphrase").value;
+  const folder=$("#mbm_folder").value.trim();
+  if(!confirm(tf("Put this message back into the mailbox of {0}?",address))) return;
+  const body={message:Number(id)};
+  if(folder)body.folder=folder;
+  if(passphrase)body.passphrase=passphrase;
+  try{const a=await api(mailboxRoute(archive,address,"/restore"),{method:"POST",body:JSON.stringify(body)});
+    toast(t("Message restore started"));await readMailboxRestoreOutcome(a.job);}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_mailboxlist",e.message);}
 }
 
 /* ---------- Server messages ----------

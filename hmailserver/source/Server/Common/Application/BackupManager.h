@@ -7,6 +7,7 @@
 namespace HM
 {
    class Backup;
+   class MailboxRestore;
    class Task;
 
    class BackupManager
@@ -64,6 +65,14 @@ namespace HM
       bool StartRestore(std::shared_ptr<Backup> pBackup);
       // Starts a restore of the backup. Restors the part of the
       // backup specified by iRestoreMode.
+
+      // Queues a restore of one mailbox, or one message, prepared by
+      // MailboxRestore::Prepare, under the same run slot a whole restore
+      // holds. False, with the reason, when a backup or restore is already
+      // running or the queue is not there - reported to the caller, which
+      // answers 409, and not through OnBackupFailed: a collision between two
+      // administrators is not a critical error of the server.
+      bool StartMailboxRestore(std::shared_ptr<MailboxRestore> job, String &failureReason);
 
       // What a restore is about to do, in the words the audit trail records it
       // with: which parts, and whether the archive is an encrypted one.

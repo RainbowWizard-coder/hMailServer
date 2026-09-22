@@ -7,6 +7,7 @@
 #include "../hMailServer/resource.h"       // main symbols
 #include "../hMailServer/hMailServer.h"
 
+#include "../Common/Application/MailboxRestore.h"
 
 // InterfaceBackupManager
 
@@ -54,6 +55,17 @@ public:
    STDMETHOD(StartBackup)();
    STDMETHOD(LoadBackup)(/*[in]*/ BSTR sXMLFile, /*[out, retval]*/ IInterfaceBackup **pVal);
    STDMETHOD(LoadEncryptedBackup)(/*[in]*/ BSTR File, /*[in]*/ BSTR Passphrase, /*[out, retval]*/ IInterfaceBackup **pVal);
+
+   // One mailbox, or one message, from an archive (MailboxRestore).
+   STDMETHOD(RestoreMailbox)(/*[in]*/ BSTR File, /*[in]*/ BSTR Address, /*[in]*/ BSTR Mode, /*[in]*/ BSTR Passphrase, /*[out, retval]*/ long *Job);
+   STDMETHOD(RestoreMessage)(/*[in]*/ BSTR File, /*[in]*/ BSTR Address, /*[in]*/ hyper MessageID, /*[in]*/ BSTR Folder, /*[in]*/ BSTR Passphrase, /*[out, retval]*/ long *Job);
+   STDMETHOD(DescribeMailbox)(/*[in]*/ BSTR File, /*[in]*/ BSTR Address, /*[in]*/ BSTR Passphrase, /*[out, retval]*/ BSTR *Json);
+   STDMETHOD(MailboxRestoreStatus)(/*[in]*/ long Job, /*[out, retval]*/ BSTR *Json);
+
+private:
+   // The two restores share everything but the request: checked on this
+   // thread, queued under the run slot, recorded on the audit trail.
+   HRESULT StartMailboxRestore_(const HM::MailboxRestore::Request &request, long *Job);
 
 private:
    std::shared_ptr<HM::BackupManager> backup_manager_;

@@ -6,6 +6,7 @@
 #include "./BackupTask.h"
 #include "BackupExecuter.h"
 #include "BackupManager.h"
+#include "MailboxRestore.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -27,23 +28,36 @@ namespace HM
    void
    BackupTask::DoWork()
    {
-      BackupExecuter oBE;
-      if (do_backup_)
+      if (mailbox_restore_)
       {
-         oBE.StartBackup();
+         mailbox_restore_->Run();
       }
       else
       {
-         oBE.StartRestore(backup_);
+         BackupExecuter oBE;
+         if (do_backup_)
+         {
+            oBE.StartBackup();
+         }
+         else
+         {
+            oBE.StartRestore(backup_);
+         }
       }
 
       Application::Instance()->GetBackupManager()->OnThreadStopped();
    }
 
 
-   void 
+   void
    BackupTask::SetBackupToRestore(std::shared_ptr<Backup> pBackup)
    {
       backup_ = pBackup;
+   }
+
+   void
+   BackupTask::SetMailboxRestore(std::shared_ptr<MailboxRestore> job)
+   {
+      mailbox_restore_ = job;
    }
 }

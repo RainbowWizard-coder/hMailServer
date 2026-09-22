@@ -148,6 +148,54 @@
                     <ui:Button Content="{loc:L 'Start _restore'}" Appearance="Danger" Click="StartRestore_Click" HorizontalAlignment="Left" />
                 </scaffold:Card.Footer>
             </scaffold:Card>
+
+            <scaffold:Card Title="{loc:L 'Restore a mailbox'}"
+                           Description="{loc:L 'The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination.'}">
+                <StackPanel>
+                    <scaffold:FieldRow Label="{loc:L 'Archive in the backup destination (_name or path)'}">
+                        <ui:TextBox x:Name="MailboxArchiveBox" />
+                    </scaffold:FieldRow>
+                    <scaffold:FieldRow Label="{loc:L 'Account address (_whose mailbox)'}" Margin="0,12,0,0">
+                        <ui:TextBox x:Name="MailboxAddressBox" />
+                    </scaffold:FieldRow>
+                    <RadioButton x:Name="MailboxModeMerge" GroupName="MailboxMode" IsChecked="True" Margin="0,12,0,8"
+                                 Content="{loc:L 'Merge: add the folders and messages of the archive that the mailbox lacks; _nothing already there is removed'}" />
+                    <RadioButton x:Name="MailboxModeReplace" GroupName="MailboxMode" Margin="0,0,0,12"
+                                 Content="{loc:L 'Rep_lace: empty every folder first, so the mailbox is the one in the archive - mail that arrived since the backup is gone'}" />
+                    <scaffold:FieldRow Label="{loc:L 'Passphrase, i_f the archive is encrypted'}"
+                                       Hint="{loc:L 'Only for an archive that was written with a passphrase.'}">
+                        <local:PasswordField x:Name="MailboxPassphraseBox" />
+                    </scaffold:FieldRow>
+                    <TextBlock x:Name="MailboxRestoreOutcome" TextWrapping="Wrap" Margin="0,12,0,0" />
+                </StackPanel>
+                <scaffold:Card.Footer>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Button Content="{loc:L 'Restore the mailbo_x'}" Appearance="Danger" Click="RestoreMailbox_Click" Margin="0,0,8,0" />
+                        <ui:Button x:Name="MailboxRestoreStatusButton" Content="{loc:L 'Re-read the o_utcome'}" Click="RefreshMailboxRestore_Click" IsEnabled="False" />
+                    </StackPanel>
+                </scaffold:Card.Footer>
+            </scaffold:Card>
+
+            <scaffold:Card Title="{loc:L 'Restore one message'}"
+                           Description="{loc:L 'List the messages of an account as the archive above holds them, then put one back - into the folder it was in, or into a named one. A message whose file is still in the mailbox is not added twice. The archive, address and passphrase are the ones in the card above.'}">
+                <StackPanel>
+                    <ui:TextBox x:Name="ArchivedMessagesBox" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+                                MinHeight="120" MaxHeight="260" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                FontFamily="Consolas" Margin="0,0,0,12" />
+                    <scaffold:FieldRow Label="{loc:L 'Message _id, from the listing'}">
+                        <ui:TextBox x:Name="ArchivedMessageIdBox" MaxWidth="200" HorizontalAlignment="Left" />
+                    </scaffold:FieldRow>
+                    <scaffold:FieldRow Label="{loc:L 'Into this folder (empt_y: the one it was in)'}" Margin="0,12,0,0">
+                        <ui:TextBox x:Name="ArchivedMessageFolderBox" />
+                    </scaffold:FieldRow>
+                </StackPanel>
+                <scaffold:Card.Footer>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Button Content="{loc:L 'List the messages _in the archive'}" Click="ListArchivedMessages_Click" Margin="0,0,8,0" />
+                        <ui:Button Content="{loc:L '_Put the message back'}" Appearance="Primary" Click="RestoreArchivedMessage_Click" />
+                    </StackPanel>
+                </scaffold:Card.Footer>
+            </scaffold:Card>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

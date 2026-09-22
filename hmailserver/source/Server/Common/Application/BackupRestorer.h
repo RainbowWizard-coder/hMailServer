@@ -107,6 +107,37 @@ namespace HM
       // as it was.
       bool Prepare(std::shared_ptr<Backup> backup, String &failureReason);
 
+      // Opens an archive for a restore of PART of it - one account's mailbox, or
+      // one message of it (MailboxRestore) - the way Prepare opens one for a
+      // whole restore: the index read and checked, the version checked. Nothing
+      // is staged; the caller stages the one directory it needs with
+      // StageAccountMessageStore. The timeout and openTimedOut are
+      // ReadArchiveIndex's, for the caller that is on an HTTP worker.
+      bool OpenIndex(const String &archiveFile, const String &passphrase, unsigned int archiveOpenTimeoutMilliseconds,
+                     String &failureReason, bool *openTimedOut);
+
+      // What the opened index says the archive contains: a combination of
+      // Backup::BackupOptions. Valid after OpenIndex or Prepare.
+      int GetArchiveContents() const;
+
+      // Stages one account's message files - DataBackup\<domain>\<account> and
+      // nothing else - so that restoring one mailbox never extracts the whole
+      // store for it. Afterwards GetStagedMessageStore is the ACCOUNT's directory
+      // (the two-character fan-out folders are under it), or is empty when the
+      // archive holds no files under that name, which the caller judges: an
+      // account whose folders held nothing has no directory in the archive, and
+      // one whose index lists messages but whose files are missing was backed up
+      // with BackupMessagesDBOnly. Needs OpenIndex first and an archive that
+      // contains messages. The directory names are the store's own
+      // (StoreDirectoryName), which is how the executer wrote them.
+      //
+      // The timeout bounds the archiver run, for the listing that stages on an
+      // HTTP worker to read subjects; zero is no bound, which the restore itself
+      // uses. On the bound the staged directory is whatever had been extracted
+      // and timedOut says so.
+      bool StageAccountMessageStore(const String &archiveFile, const String &domainDirectory, const String &accountDirectory,
+                                    unsigned int archiveOpenTimeoutMilliseconds, bool *timedOut, String &failureReason);
+
       // The <Backup> element of the validated index. Owned by this object - it dies
       // with the BackupRestorer, so the restore has to finish inside its lifetime.
       XNode *GetBackupNode();

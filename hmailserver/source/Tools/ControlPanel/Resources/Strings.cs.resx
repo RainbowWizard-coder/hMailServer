@@ -791,6 +791,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Account address" xml:space="preserve">
     <value>Adresa účtu</value>
   </data>
+  <data name="Account address (_whose mailbox)" xml:space="preserve">
+    <value>Adresa účtu (_čí schránka)</value>
+  </data>
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>TTL cache účtů (sekundy)</value>
   </data>
@@ -1376,6 +1379,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Složka archivu (prázdné = archivace vypnuta)</value>
+  </data>
+  <data name="Archive in the backup destination (_name or path)" xml:space="preserve">
+    <value>Archiv v cíli zálohy (_název nebo cesta)</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after. Applies after a service restart." xml:space="preserve">
     <value>ArchiveDir je surová kopie každé zprávy, která projde serverem, a dosud z něj nikdy nic neodstranilo – na vytíženém serveru je to tedy adresář, který jen roste, a správce, který se to dozví, je ten, komu se zaplnil disk. Toto jej prořezává. 0 uchová vše a je to záměrně výchozí hodnota: archiv se obvykle uchovává z právního nebo smluvního důvodu a server, který by z něj po aktualizaci začal mazat, by ničil přesně to, co mu bylo svěřeno k uchování. Úklid odstraňuje vždy jen soubory .eml, takže cokoli jiného v archivu uchováváte, zůstane nedotčeno, a probíhá při startu a poté každých dvanáct hodin. Projeví se po restartu služby.</value>
@@ -2352,6 +2358,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Could not list domains — " xml:space="preserve">
     <value>Nepodařilo se vypsat domény —</value>
   </data>
+  <data name="Could not list the messages: {0}" xml:space="preserve">
+    <value>Zprávy se nepodařilo vypsat: {0}</value>
+  </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>Nepodařilo se načíst složky:</value>
   </data>
@@ -2428,6 +2437,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
    {0}
 
 {1}</value>
+  </data>
+  <data name="Could not read the outcome: {0}" xml:space="preserve">
+    <value>Výsledek se nepodařilo přečíst: {0}</value>
   </data>
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Fotografii se nepodařilo přečíst: {0}</value>
@@ -2506,6 +2518,12 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Nepodařilo se spustit zálohu: {0}</value>
+  </data>
+  <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
+    <value>Obnovu schránky se nepodařilo spustit: {0}</value>
+  </data>
+  <data name="Could not start the message restore: {0}" xml:space="preserve">
+    <value>Obnovu zprávy se nepodařilo spustit: {0}</value>
   </data>
   <data name="Could not start the restore: {0}" xml:space="preserve">
     <value>Nepodařilo se spustit obnovení: {0}</value>
@@ -3368,6 +3386,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter the 6-digit code from your authenticator app:" xml:space="preserve">
     <value>Zadejte 6místný kód z ověřovací aplikace:</value>
   </data>
+  <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
+    <value>Zadejte adresu účtu, jehož schránku chcete obnovit.</value>
+  </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Nejdřív zadejte cestu k clamscan.exe.</value>
   </data>
@@ -3376,6 +3397,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Zadejte vypršení ve tvaru RRRR-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
+    <value>Zadejte id zprávy tak, jak ho ukazuje výpis.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Zadejte heslo, kterým se má archiv šifrovat, a napište je znovu níže.</value>
@@ -4261,6 +4285,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Interface" xml:space="preserve">
     <value>Rozhraní</value>
   </data>
+  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
+    <value>Do této složky (_prázdné: do té, ve které byla)</value>
+  </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Limit neplatných příkazů</value>
   </data>
@@ -4311,6 +4338,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>URL sady JWK (podpisové klíče publikované poskytovatelem; prázdné = pouze soubor klíče)</value>
+  </data>
+  <data name="Job {0} is {1}: {2} folders, {3} messages added, {4} skipped as still in the mailbox, {5} failed." xml:space="preserve">
+    <value>Úloha {0} je {1}: {2} složek, {3} zpráv přidáno, {4} přeskočeno jako stále ve schránce, {5} selhalo.</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Žurnálování a dvojí doručení</value>
@@ -4485,6 +4515,12 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="List the local ports where AUTH should not be advertised - typically a port 25 that only takes inbound mail." xml:space="preserve">
     <value>Uveďte místní porty, kde nemá být AUTH nabízeno – typicky port 25, který přijímá pouze příchozí poštu.</value>
+  </data>
+  <data name="List the messages _in the archive" xml:space="preserve">
+    <value>Vypsat zpr_ávy v archivu</value>
+  </data>
+  <data name="List the messages of an account as the archive above holds them, then put one back - into the folder it was in, or into a named one. A message whose file is still in the mailbox is not added twice. The archive, address and passphrase are the ones in the card above." xml:space="preserve">
+    <value>Vypište zprávy účtu tak, jak je drží archiv výše, a pak jednu vraťte - do složky, ve které byla, nebo do pojmenované. Zpráva, jejíž soubor je stále ve schránce, se nepřidá dvakrát. Archiv, adresa a heslo jsou ty z karty výše.</value>
   </data>
   <data name="Listed" xml:space="preserve">
     <value>Na seznamu</value>
@@ -4714,6 +4750,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>Hesla poštovních schránek se nastavují na účtu, uvnitř jeho domény.</value>
   </data>
+  <data name="Mailbox restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>Obnova schránky {0} spuštěna - běží na pozadí na serveru.</value>
+  </data>
   <data name="Mailbox that receives TLS reports for {0}" xml:space="preserve">
     <value>Poštovní schránka, která přijímá hlášení TLS pro {0}</value>
   </data>
@@ -4885,6 +4924,14 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Merge SpamAssassin score into hMailServer score" xml:space="preserve">
     <value>Sloučit skóre SpamAssassinu do skóre hMailServeru</value>
   </data>
+  <data name="Merge the folders and messages of the archive into the mailbox of {0}?&#10;&#10;Nothing already there is removed." xml:space="preserve">
+    <value>Sloučit složky a zprávy z archivu do schránky {0}?
+
+Nic, co tam již je, se neodstraní.</value>
+  </data>
+  <data name="Merge: add the folders and messages of the archive that the mailbox lacks; _nothing already there is removed" xml:space="preserve">
+    <value>Sloučit: přidat složky a zprávy z archivu, které ve schránce _chybí; nic, co tam již je, se neodstraní</value>
+  </data>
   <data name="Merging is off, so the fixed score is used however sure SpamAssassin was." xml:space="preserve">
     <value>Sloučení je vypnuté, takže se použije pevné skóre bez ohledu na to, jak jistý si SpamAssassin byl.</value>
   </data>
@@ -4896,6 +4943,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Message ID" xml:space="preserve">
     <value>ID zprávy</value>
+  </data>
+  <data name="Message _id, from the listing" xml:space="preserve">
+    <value>Id zprávy z výp_isu</value>
   </data>
   <data name="Message archiving" xml:space="preserve">
     <value>Archivace zpráv</value>
@@ -4920,6 +4970,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Message modifications: the spam headers, the signature, the List-* headers, or the write of the modified message back to disk." xml:space="preserve">
     <value>Úpravy zprávy: spamové hlavičky, podpis, hlavičky List-* nebo zápis upravené zprávy zpět na disk.</value>
+  </data>
+  <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>Obnova zprávy {0} spuštěna - běží na pozadí na serveru.</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>Velikost zprávy</value>
@@ -5091,6 +5144,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>Jmenné servery</value>
+  </data>
+  <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>Pojmenujte archiv tak, jak ho uvádí cíl zálohy (HMBackup YYYY-MM-DD HHMMSS.7z), nebo cestou uvnitř cíle.</value>
   </data>
   <data name="Name, certificate file and private key file are required." xml:space="preserve">
     <value>Název, soubor certifikátu a soubor soukromého klíče jsou povinné.</value>
@@ -5755,6 +5811,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>Uvedeny jsou pouze domény s nastaveným názvem domény Active Directory – právě toto pole spojuje poštovní doménu s adresářem. Převádět domény po jedné je rozumný způsob, jak to udělat napoprvé.</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase." xml:space="preserve">
+    <value>Jen pro archiv, který byl zapsán s heslem.</value>
+  </data>
   <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
     <value>Pouze pro archiv, který byl zapsán s heslem. Bez správného hesla archiv vůbec nelze otevřít a obnovení je odmítnuto dříve, než se na tomto serveru cokoli změní.</value>
   </data>
@@ -6051,6 +6110,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
     <value>Heslo, pokud je archiv ši_frovaný</value>
+  </data>
+  <data name="Passphrase, i_f the archive is encrypted" xml:space="preserve">
+    <value>Heslo, pokud je archiv ši_frován</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Heslo</value>
@@ -6375,6 +6437,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Put a setting back" xml:space="preserve">
     <value>Vrátit nastavení</value>
   </data>
+  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
+    <value>Vrátit zprávu {0} do schránky {1}?</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Vrátit {0} na hodnotu před touto změnou? Vrácení se zaznamená jako samostatná změna.</value>
   </data>
@@ -6464,6 +6529,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Re-read the key store from disk" xml:space="preserve">
     <value>Znovu načíst úložiště klíčů z disku</value>
+  </data>
+  <data name="Re-read the o_utcome" xml:space="preserve">
+    <value>Znovu načíst výsl_edek</value>
   </data>
   <data name="Re-read the schedule from hMailServer.ini and look at the destination folder again" xml:space="preserve">
     <value>Znovu načíst plán z hMailServer.ini a znovu se podívat na cílovou složku</value>
@@ -6789,6 +6857,9 @@ Poštovní schránka a její zprávy se přesunou na novou adresu. Pošta odesla
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>Obnovit nebo nainstalovat certifikát</value>
   </data>
+  <data name="Rep_lace: empty every folder first, so the mailbox is the one in the archive - mail that arrived since the backup is gone" xml:space="preserve">
+    <value>Nahradit: nejprve vyprázdnit každou složku, aby schránka _byla ta z archivu - pošta, která přišla od zálohy, bude pryč</value>
+  </data>
   <data name="Repair" xml:space="preserve">
     <value>Opravit</value>
   </data>
@@ -6807,6 +6878,11 @@ SMTP 25 a 587, POP3 110, IMAP 143 – bez zabezpečení připojení. TLS porty a
   </data>
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>Nahradit IP klienta u ověřených uživatelů (prázdné = ponechat skutečnou IP)</value>
+  </data>
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+    <value>Nahradit schránku {0} tou z archivu?
+
+Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude pryč.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Nahradí každý port standardní sadou: SMTP 25 a 587, POP3 110, IMAP 143, vše bez zabezpečení připojení.</value>
@@ -6943,6 +7019,9 @@ SMTP 25 a 587, POP3 110, IMAP 143 – bez zabezpečení připojení. TLS porty a
   <data name="Restore" xml:space="preserve">
     <value>Obnovit</value>
   </data>
+  <data name="Restore a mailbox" xml:space="preserve">
+    <value>Obnovit schránku</value>
+  </data>
   <data name="Restore configuration, domains and messages from a backup file." xml:space="preserve">
     <value>Obnovte konfiguraci, domény a zprávy ze souboru zálohy.</value>
   </data>
@@ -6955,8 +7034,14 @@ SMTP 25 a 587, POP3 110, IMAP 143 – bez zabezpečení připojení. TLS porty a
   <data name="Restore messa_ges" xml:space="preserve">
     <value>Obnovit zpráv_y</value>
   </data>
+  <data name="Restore one message" xml:space="preserve">
+    <value>Obnovit jednu zprávu</value>
+  </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Obnovení spuštěno – běží na pozadí na serveru.</value>
+  </data>
+  <data name="Restore the mailbo_x" xml:space="preserve">
+    <value>Obnovit sc_hránku</value>
   </data>
   <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
     <value>Obnovení nahradí současná data vybraných kategorií obsahem zálohy.
@@ -8580,6 +8665,9 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Nastavení antiviru nelze přečíst.</value>
   </data>
+  <data name="The archive holds no messages for this account." xml:space="preserve">
+    <value>Archiv pro tento účet neobsahuje žádné zprávy.</value>
+  </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Přílohy se nahradí a zpráva se doručí. Na tuto akci se nevztahuje ani jedno z nastavení oznámení — upozornění „message deleted“ server odesílá pouze tehdy, když je akcí smazání zprávy.</value>
   </data>
@@ -8787,6 +8875,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   </data>
   <data name="The folder UID counters have been recalculated. Clients that cached the old values will resynchronise on their next connection." xml:space="preserve">
     <value>Čítače UID složek byly přepočítány. Klienti, kteří měli staré hodnoty v cache, se při příštím připojení znovu synchronizují.</value>
+  </data>
+  <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>Složky a zprávy jednoho účtu vrácené z archivu v cíli zálohy, aniž by se sáhlo na nastavení, pravidla, kontakty nebo kalendáře účtu, nebo na jiný účet. Archiv se pojmenuje tak, jak ho uvádí cíl (HMBackup YYYY-MM-DD HHMMSS.7z), nebo cestou uvnitř cíle.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Texty pozdravu, nedoručenek a chyb, které server posílá zpět klientům.</value>
@@ -10559,6 +10650,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>_Vrátit</value>
+  </data>
+  <data name="_Put the message back" xml:space="preserve">
+    <value>Vrátit zprávu (_f)</value>
   </data>
   <data name="_Query" xml:space="preserve">
     <value>_Dotaz</value>

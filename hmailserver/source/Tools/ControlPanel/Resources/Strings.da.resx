@@ -791,6 +791,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Account address" xml:space="preserve">
     <value>Kontoadresse</value>
   </data>
+  <data name="Account address (_whose mailbox)" xml:space="preserve">
+    <value>Kontoadresse (_hvis postkasse)</value>
+  </data>
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>TTL for kontocache (sekunder)</value>
   </data>
@@ -1376,6 +1379,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Arkivmappe (tom = arkivering slået fra)</value>
+  </data>
+  <data name="Archive in the backup destination (_name or path)" xml:space="preserve">
+    <value>Arkiv i backupdestinationen (_navn eller sti)</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after. Applies after a service restart." xml:space="preserve">
     <value>ArchiveDir er en rå kopi af hver eneste meddelelse, der passerer gennem serveren, og indtil nu har intet nogensinde fjernet noget fra den – så på en travl server er det en mappe, der kun vokser, og den administrator, der finder ud af det, er den, hvis disk løb fuld. Dette beskærer den. 0 beholder alt, og det er standarden med vilje: et arkiv opbevares som regel af juridiske eller kontraktlige årsager, og en server, der ved en opgradering begyndte at slette fra et arkiv, ville ødelægge præcis det, den fik besked på at bevare. Oprydningen fjerner kun .eml-filer, så alt andet, du gemmer i arkivet, bliver ladt i fred, og den kører ved opstart og hver tolvte time derefter. Træder i kraft efter en genstart af tjenesten.</value>
@@ -2352,6 +2358,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Could not list domains — " xml:space="preserve">
     <value>Kunne ikke liste domæner —</value>
   </data>
+  <data name="Could not list the messages: {0}" xml:space="preserve">
+    <value>Beskederne kunne ikke vises: {0}</value>
+  </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>Kunne ikke indlæse mapper:</value>
   </data>
@@ -2428,6 +2437,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
    {0}
 
 {1}</value>
+  </data>
+  <data name="Could not read the outcome: {0}" xml:space="preserve">
+    <value>Resultatet kunne ikke læses: {0}</value>
   </data>
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Billedet kunne ikke læses: {0}</value>
@@ -2506,6 +2518,12 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Kunne ikke starte sikkerhedskopieringen: {0}</value>
+  </data>
+  <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
+    <value>Gendannelsen af postkassen kunne ikke startes: {0}</value>
+  </data>
+  <data name="Could not start the message restore: {0}" xml:space="preserve">
+    <value>Gendannelsen af beskeden kunne ikke startes: {0}</value>
   </data>
   <data name="Could not start the restore: {0}" xml:space="preserve">
     <value>Kunne ikke starte gendannelsen: {0}</value>
@@ -3368,6 +3386,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Enter the 6-digit code from your authenticator app:" xml:space="preserve">
     <value>Indtast den 6-cifrede kode fra din godkendelsesapp:</value>
   </data>
+  <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
+    <value>Angiv adressen på den konto, hvis postkasse skal gendannes.</value>
+  </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Indtast først stien til clamscan.exe.</value>
   </data>
@@ -3376,6 +3397,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Indtast udløbet som YYYY-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
+    <value>Angiv beskedens id, som listen viser det.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Angiv den adgangssætning, arkivet skal krypteres med, og skriv den igen nedenfor.</value>
@@ -4261,6 +4285,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Interface" xml:space="preserve">
     <value>Grænseflade</value>
   </data>
+  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
+    <value>Ind i denne mappe (_tom: den, den lå i)</value>
+  </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Grænse for ugyldige kommandoer</value>
   </data>
@@ -4311,6 +4338,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set-URL (udbyderens offentliggjorte signeringsnøgler; tomt = kun nøglefilen)</value>
+  </data>
+  <data name="Job {0} is {1}: {2} folders, {3} messages added, {4} skipped as still in the mailbox, {5} failed." xml:space="preserve">
+    <value>Job {0} er {1}: {2} mapper, {3} beskeder tilføjet, {4} sprunget over som stadig i postkassen, {5} mislykkedes.</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Journalisering og dobbelt levering</value>
@@ -4485,6 +4515,12 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="List the local ports where AUTH should not be advertised - typically a port 25 that only takes inbound mail." xml:space="preserve">
     <value>Angiv de lokale porte, hvor AUTH ikke skal annonceres - typisk en port 25, der kun tager imod indgående post.</value>
+  </data>
+  <data name="List the messages _in the archive" xml:space="preserve">
+    <value>Vis _beskederne i arkivet</value>
+  </data>
+  <data name="List the messages of an account as the archive above holds them, then put one back - into the folder it was in, or into a named one. A message whose file is still in the mailbox is not added twice. The archive, address and passphrase are the ones in the card above." xml:space="preserve">
+    <value>Vis en kontos beskeder, som arkivet ovenfor rummer dem, og læg så én tilbage - i den mappe, den lå i, eller i en navngiven. En besked, hvis fil stadig ligger i postkassen, tilføjes ikke to gange. Arkivet, adressen og adgangssætningen er dem i kortet ovenfor.</value>
   </data>
   <data name="Listed" xml:space="preserve">
     <value>Listet</value>
@@ -4714,6 +4750,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>Postkasseadgangskoder sættes på kontoen, inde i dens domæne.</value>
   </data>
+  <data name="Mailbox restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>Gendannelse af postkasse {0} startet - kører i baggrunden på serveren.</value>
+  </data>
   <data name="Mailbox that receives TLS reports for {0}" xml:space="preserve">
     <value>Postkasse, der modtager TLS-rapporter for {0}</value>
   </data>
@@ -4885,6 +4924,14 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Merge SpamAssassin score into hMailServer score" xml:space="preserve">
     <value>Flet SpamAssassin-scoren ind i hMailServer-scoren</value>
   </data>
+  <data name="Merge the folders and messages of the archive into the mailbox of {0}?&#10;&#10;Nothing already there is removed." xml:space="preserve">
+    <value>Flet arkivets mapper og beskeder ind i postkassen for {0}?
+
+Intet, der allerede er der, fjernes.</value>
+  </data>
+  <data name="Merge: add the folders and messages of the archive that the mailbox lacks; _nothing already there is removed" xml:space="preserve">
+    <value>_Flet: tilføj de af arkivets mapper og beskeder, som postkassen mangler; intet, der allerede er der, fjernes</value>
+  </data>
   <data name="Merging is off, so the fixed score is used however sure SpamAssassin was." xml:space="preserve">
     <value>Fletning er slået fra, så den faste score bruges, uanset hvor sikker SpamAssassin var.</value>
   </data>
@@ -4896,6 +4943,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Message ID" xml:space="preserve">
     <value>Meddelelses-id</value>
+  </data>
+  <data name="Message _id, from the listing" xml:space="preserve">
+    <value>Beskedens _id, fra listen</value>
   </data>
   <data name="Message archiving" xml:space="preserve">
     <value>Meddelelsesarkivering</value>
@@ -4920,6 +4970,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Message modifications: the spam headers, the signature, the List-* headers, or the write of the modified message back to disk." xml:space="preserve">
     <value>Ændringer af meddelelsen: spamheaderne, signaturen, List-*-headerne eller skrivningen af den ændrede meddelelse tilbage til disken.</value>
+  </data>
+  <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>Gendannelse af besked {0} startet - kører i baggrunden på serveren.</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>Meddelelsesstørrelse</value>
@@ -5091,6 +5144,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>Navneservere</value>
+  </data>
+  <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>Navngiv arkivet, som backupdestinationen viser det (HMBackup YYYY-MM-DD HHMMSS.7z), eller ved dets sti inde i destinationen.</value>
   </data>
   <data name="Name, certificate file and private key file are required." xml:space="preserve">
     <value>Navn, certifikatfil og privat nøglefil skal angives.</value>
@@ -5755,6 +5811,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>Kun domæner med et Active Directory-domænenavn angivet vises - det felt er det, der knytter et maildomæne til et katalog. At tage ét domæne over ad gangen er den fornuftige måde at gøre det på første gang.</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase." xml:space="preserve">
+    <value>Kun for et arkiv, der blev skrevet med en adgangssætning.</value>
+  </data>
   <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
     <value>Kun til et arkiv, der er skrevet med en adgangssætning. Uden den rigtige kan arkivet slet ikke åbnes, og gendannelsen afvises, før noget på denne server røres.</value>
   </data>
@@ -6051,6 +6110,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
     <value>Adgangssætning, hvis arkivet er kry_pteret</value>
+  </data>
+  <data name="Passphrase, i_f the archive is encrypted" xml:space="preserve">
+    <value>Adgangssætning, hvis arkivet er kr_ypteret</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Adgangskode</value>
@@ -6375,6 +6437,9 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Put a setting back" xml:space="preserve">
     <value>Sæt en indstilling tilbage</value>
   </data>
+  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
+    <value>Læg besked {0} tilbage i postkassen for {1}?</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Sæt {0} tilbage til den værdi, den havde før denne ændring? Tilbagesætningen registreres som en ændring i sig selv.</value>
   </data>
@@ -6464,6 +6529,9 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   </data>
   <data name="Re-read the key store from disk" xml:space="preserve">
     <value>Genindlæs nøglelageret fra disken</value>
+  </data>
+  <data name="Re-read the o_utcome" xml:space="preserve">
+    <value>Genindlæs res_ultatet</value>
   </data>
   <data name="Re-read the schedule from hMailServer.ini and look at the destination folder again" xml:space="preserve">
     <value>Genindlæs tidsplanen fra hMailServer.ini, og se på destinationsmappen igen</value>
@@ -6789,6 +6857,9 @@ Postkassen og dens meddelelser flytter til den nye adresse. Post sendt til den g
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>Forny eller installér et certifikat</value>
   </data>
+  <data name="Rep_lace: empty every folder first, so the mailbox is the one in the archive - mail that arrived since the backup is gone" xml:space="preserve">
+    <value>Erstat: tøm _hver mappe først, så postkassen er den i arkivet - post, der er kommet siden backuppen, er væk</value>
+  </data>
   <data name="Repair" xml:space="preserve">
     <value>Reparér</value>
   </data>
@@ -6807,6 +6878,11 @@ SMTP 25 og 587, POP3 110, IMAP 143 - uden forbindelsessikkerhed. TLS-porte og br
   </data>
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>Erstat klient-IP'en for godkendte brugere (tomt = behold den rigtige IP)</value>
+  </data>
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+    <value>Erstat postkassen for {0} med den i arkivet?
+
+Hver mappe tømmes først: post, der er kommet siden backuppen, er væk.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Erstatter hver port med standardsættet: SMTP 25 og 587, POP3 110, IMAP 143, alle uden forbindelsessikkerhed.</value>
@@ -6943,6 +7019,9 @@ SMTP 25 og 587, POP3 110, IMAP 143 - uden forbindelsessikkerhed. TLS-porte og br
   <data name="Restore" xml:space="preserve">
     <value>Gendan</value>
   </data>
+  <data name="Restore a mailbox" xml:space="preserve">
+    <value>Gendan en postkasse</value>
+  </data>
   <data name="Restore configuration, domains and messages from a backup file." xml:space="preserve">
     <value>Gendan konfiguration, domæner og meddelelser fra en sikkerhedskopifil.</value>
   </data>
@@ -6955,8 +7034,14 @@ SMTP 25 og 587, POP3 110, IMAP 143 - uden forbindelsessikkerhed. TLS-porte og br
   <data name="Restore messa_ges" xml:space="preserve">
     <value>G_endan meddelelser</value>
   </data>
+  <data name="Restore one message" xml:space="preserve">
+    <value>Gendan én besked</value>
+  </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Gendannelse startet - kører i baggrunden på serveren.</value>
+  </data>
+  <data name="Restore the mailbo_x" xml:space="preserve">
+    <value>Gendan postk_assen</value>
   </data>
   <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
     <value>Gendannelse erstatter de nuværende data for de valgte kategorier med sikkerhedskopiens indhold.
@@ -8580,6 +8665,9 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Antiviruskonfigurationen kunne ikke læses.</value>
   </data>
+  <data name="The archive holds no messages for this account." xml:space="preserve">
+    <value>Arkivet indeholder ingen beskeder for denne konto.</value>
+  </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>De vedhæftede filer erstattes, og meddelelsen leveres. Ingen af meddelelsesindstillingerne gælder for denne handling — serveren sender kun beskeden "meddelelse slettet", når handlingen er at slette meddelelsen.</value>
   </data>
@@ -8787,6 +8875,9 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   </data>
   <data name="The folder UID counters have been recalculated. Clients that cached the old values will resynchronise on their next connection." xml:space="preserve">
     <value>Mappernes UID-tællere er genberegnet. Klienter, der har cachet de gamle værdier, synkroniserer igen ved næste forbindelse.</value>
+  </data>
+  <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>Én kontos mapper og beskeder lagt tilbage fra et arkiv i backupdestinationen, uden at røre kontoens indstillinger, regler, kontakter eller kalendere, eller nogen anden konto. Arkivet navngives, som destinationen viser det (HMBackup YYYY-MM-DD HHMMSS.7z), eller ved dets sti inde i destinationen.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>De hilsen-, afvisnings- og fejltekster, serveren sender tilbage til klienter.</value>
@@ -10559,6 +10650,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>Sæt _tilbage</value>
+  </data>
+  <data name="_Put the message back" xml:space="preserve">
+    <value>_Læg beskeden tilbage</value>
   </data>
   <data name="_Query" xml:space="preserve">
     <value>_Forespørgsel</value>

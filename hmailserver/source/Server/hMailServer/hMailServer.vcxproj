@@ -279,6 +279,7 @@ EXIT 0
     <ClCompile Include="..\Common\Application\BackupManager.cpp" />
     <ClCompile Include="..\Common\Application\BackupRestorer.cpp" />
     <ClCompile Include="..\Common\Application\BackupRetention.cpp" />
+    <ClCompile Include="..\Common\Application\MailboxRestore.cpp" />
     <ClCompile Include="..\Common\Application\BackupScheduleTask.cpp" />
     <ClCompile Include="..\Common\Application\BackupTask.cpp" />
     <ClCompile Include="..\Common\Application\Configuration.cpp" />
@@ -627,6 +628,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\PushSubscriptions.cpp" />
     <ClCompile Include="..\Common\Util\PushNotifier.cpp" />
     <ClCompile Include="..\Common\Util\RestApiPush.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiBackupMailbox.cpp" />
     <ClCompile Include="..\Common\Util\ReputationWatch.cpp" />
     <ClCompile Include="..\Common\Application\SampleDomain.cpp" />
     <ClCompile Include="..\Common\Util\SetupChecklist.cpp" />
@@ -1171,6 +1173,7 @@ EXIT 0
     <ClInclude Include="..\Common\Application\BackupManager.h" />
     <ClInclude Include="..\Common\Application\BackupRestorer.h" />
     <ClInclude Include="..\Common\Application\BackupRetention.h" />
+    <ClInclude Include="..\Common\Application\MailboxRestore.h" />
     <ClInclude Include="..\Common\Application\BackupScheduleTask.h" />
     <ClInclude Include="..\Common\Application\BackupTask.h" />
     <ClInclude Include="..\Common\Application\Configuration.h" />

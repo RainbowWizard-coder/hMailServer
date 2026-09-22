@@ -791,6 +791,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Account address" xml:space="preserve">
     <value>Hesap adresi</value>
   </data>
+  <data name="Account address (_whose mailbox)" xml:space="preserve">
+    <value>Hesap adresi (_kimin posta kutusu)</value>
+  </data>
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>Hesap önbelleği TTL süresi (saniye)</value>
   </data>
@@ -1376,6 +1379,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Arşiv klasörü (boş = arşivleme kapalı)</value>
+  </data>
+  <data name="Archive in the backup destination (_name or path)" xml:space="preserve">
+    <value>Yedekleme hedefindeki arşiv (_ad veya yol)</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after. Applies after a service restart." xml:space="preserve">
     <value>ArchiveDir, sunucudan geçen her iletinin ham bir kopyasıdır ve bugüne kadar içinden hiçbir şey silinmemiştir - dolayısıyla yoğun bir sunucuda yalnızca büyüyen bir klasördür ve bunu fark eden yönetici, diski dolmuş olan yöneticidir. Bu ayar onu budar. 0 her şeyi saklar ve varsayılanın bu olması bilinçlidir: bir arşiv genellikle yasal veya sözleşmeye dayalı bir nedenle tutulur ve yükseltme sırasında arşivden silmeye başlayan bir sunucu, tam da saklaması söylenen şeyi yok ediyor olurdu. Temizlik yalnızca .eml dosyalarını siler; dolayısıyla arşivde tuttuğunuz başka her şeye dokunulmaz. Temizlik, başlangıçta ve ardından her on iki saatte bir çalışır. Hizmet yeniden başlatıldıktan sonra geçerli olur.</value>
@@ -2352,6 +2358,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Could not list domains — " xml:space="preserve">
     <value>Etki alanları listelenemedi —</value>
   </data>
+  <data name="Could not list the messages: {0}" xml:space="preserve">
+    <value>İletiler listelenemedi: {0}</value>
+  </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>Klasörler yüklenemedi:</value>
   </data>
@@ -2428,6 +2437,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
    {0}
 
 {1}</value>
+  </data>
+  <data name="Could not read the outcome: {0}" xml:space="preserve">
+    <value>Sonuç okunamadı: {0}</value>
   </data>
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Fotoğraf okunamadı: {0}</value>
@@ -2506,6 +2518,12 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Yedekleme başlatılamadı: {0}</value>
+  </data>
+  <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
+    <value>Posta kutusu geri yükleme başlatılamadı: {0}</value>
+  </data>
+  <data name="Could not start the message restore: {0}" xml:space="preserve">
+    <value>İleti geri yükleme başlatılamadı: {0}</value>
   </data>
   <data name="Could not start the restore: {0}" xml:space="preserve">
     <value>Geri yükleme başlatılamadı: {0}</value>
@@ -3368,6 +3386,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter the 6-digit code from your authenticator app:" xml:space="preserve">
     <value>Kimlik doğrulayıcı uygulamanızdaki 6 haneli kodu girin:</value>
   </data>
+  <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
+    <value>Posta kutusu geri yüklenecek hesabın adresini girin.</value>
+  </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Önce clamscan.exe yolunu girin.</value>
   </data>
@@ -3376,6 +3397,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Süre sonunu YYYY-MM-DD HH:MM:SS olarak girin.</value>
+  </data>
+  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
+    <value>İletinin kimliğini listede göründüğü gibi girin.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Arşivin şifreleneceği parola tümcesini girin ve aşağıya bir kez daha yazın.</value>
@@ -4261,6 +4285,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Interface" xml:space="preserve">
     <value>Arayüz</value>
   </data>
+  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
+    <value>Bu klasöre (_boş: bulunduğu klasöre)</value>
+  </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Geçersiz komut sınırı</value>
   </data>
@@ -4311,6 +4338,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set URL'si (sağlayıcının yayımlanan imzalama anahtarları; boş = yalnızca anahtar dosyası)</value>
+  </data>
+  <data name="Job {0} is {1}: {2} folders, {3} messages added, {4} skipped as still in the mailbox, {5} failed." xml:space="preserve">
+    <value>İş {0} şu durumda: {1}. {2} klasör, {3} ileti eklendi, {4} ileti hâlâ posta kutusunda olduğundan atlandı, {5} ileti başarısız.</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Günlükleme ve çift teslim</value>
@@ -4485,6 +4515,12 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="List the local ports where AUTH should not be advertised - typically a port 25 that only takes inbound mail." xml:space="preserve">
     <value>AUTH'un duyurulmaması gereken yerel portları listeleyin - genellikle yalnızca gelen posta alan bir 25 portu.</value>
+  </data>
+  <data name="List the messages _in the archive" xml:space="preserve">
+    <value>Ar_şivdeki iletileri listele</value>
+  </data>
+  <data name="List the messages of an account as the archive above holds them, then put one back - into the folder it was in, or into a named one. A message whose file is still in the mailbox is not added twice. The archive, address and passphrase are the ones in the card above." xml:space="preserve">
+    <value>Bir hesabın iletilerini yukarıdaki arşivde bulundukları hâliyle listeler ve sonra birini geri koyar - bulunduğu klasöre ya da adı verilen bir klasöre. Dosyası hâlâ posta kutusunda olan bir ileti iki kez eklenmez. Arşiv, adres ve parola yukarıdaki karttakilerdir.</value>
   </data>
   <data name="Listed" xml:space="preserve">
     <value>Listede</value>
@@ -4714,6 +4750,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>Posta kutusu parolaları hesap üzerinde, etki alanının içinde ayarlanır.</value>
   </data>
+  <data name="Mailbox restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>Posta kutusu geri yükleme {0} başlatıldı - sunucuda arka planda çalışır.</value>
+  </data>
   <data name="Mailbox that receives TLS reports for {0}" xml:space="preserve">
     <value>{0} için TLS raporlarını alan posta kutusu</value>
   </data>
@@ -4885,6 +4924,14 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Merge SpamAssassin score into hMailServer score" xml:space="preserve">
     <value>SpamAssassin puanını hMailServer puanıyla birleştir</value>
   </data>
+  <data name="Merge the folders and messages of the archive into the mailbox of {0}?&#10;&#10;Nothing already there is removed." xml:space="preserve">
+    <value>Arşivin klasörleri ve iletileri {0} posta kutusuyla birleştirilsin mi?
+
+Zaten orada olan hiçbir şey silinmez.</value>
+  </data>
+  <data name="Merge: add the folders and messages of the archive that the mailbox lacks; _nothing already there is removed" xml:space="preserve">
+    <value>Birleştir: arşivin posta kutusunda bulunmayan klasörlerini ve iletilerini ekle; zate_n orada olan hiçbir şey silinmez</value>
+  </data>
   <data name="Merging is off, so the fixed score is used however sure SpamAssassin was." xml:space="preserve">
     <value>Birleştirme kapalı; bu yüzden SpamAssassin ne kadar emin olursa olsun sabit puan kullanılır.</value>
   </data>
@@ -4896,6 +4943,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Message ID" xml:space="preserve">
     <value>İleti kimliği</value>
+  </data>
+  <data name="Message _id, from the listing" xml:space="preserve">
+    <value>Listedeki ileti k_imliği</value>
   </data>
   <data name="Message archiving" xml:space="preserve">
     <value>İleti arşivleme</value>
@@ -4920,6 +4970,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Message modifications: the spam headers, the signature, the List-* headers, or the write of the modified message back to disk." xml:space="preserve">
     <value>İleti değişiklikleri: spam başlıkları, imza, List-* başlıkları ya da değiştirilen iletinin diske geri yazılması.</value>
+  </data>
+  <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>İleti geri yükleme {0} başlatıldı - sunucuda arka planda çalışır.</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>İleti boyutu</value>
@@ -5091,6 +5144,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>Ad sunucuları</value>
+  </data>
+  <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>Arşivi yedekleme hedefinin listelediği adla (HMBackup YYYY-MM-DD HHMMSS.7z) ya da hedef içindeki yoluyla belirtin.</value>
   </data>
   <data name="Name, certificate file and private key file are required." xml:space="preserve">
     <value>Ad, sertifika dosyası ve özel anahtar dosyası gereklidir.</value>
@@ -5755,6 +5811,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>Yalnızca Active Directory etki alanı adı ayarlanmış etki alanları listelenir - bir posta etki alanını bir dizine bağlayan alan odur. İlk seferinde etki alanlarını teker teker geçirmek aklı başında yoldur.</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase." xml:space="preserve">
+    <value>Yalnızca parolayla yazılmış bir arşiv için.</value>
+  </data>
   <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
     <value>Yalnızca bir parola tümcesiyle yazılmış arşivler için. Doğrusu olmadan arşiv hiç açılmaz ve geri yükleme, bu sunucuda hiçbir şeye dokunulmadan önce reddedilir.</value>
   </data>
@@ -6051,6 +6110,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
     <value>Arşiv şifreliyse parola tümces_i</value>
+  </data>
+  <data name="Passphrase, i_f the archive is encrypted" xml:space="preserve">
+    <value>Parola, arşiv şi_freliyse</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Parola</value>
@@ -6375,6 +6437,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Put a setting back" xml:space="preserve">
     <value>Bir ayarı geri al</value>
   </data>
+  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
+    <value>İleti {0} {1} posta kutusuna geri konsun mu?</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>{0} bu değişiklikten önceki değerine geri alınsın mı? Geri alma, kendi başına bir değişiklik olarak kaydedilir.</value>
   </data>
@@ -6464,6 +6529,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Re-read the key store from disk" xml:space="preserve">
     <value>Anahtar deposunu diskten yeniden oku</value>
+  </data>
+  <data name="Re-read the o_utcome" xml:space="preserve">
+    <value>Sonucu yeniden _oku</value>
   </data>
   <data name="Re-read the schedule from hMailServer.ini and look at the destination folder again" xml:space="preserve">
     <value>Zamanlamayı hMailServer.ini'den yeniden oku ve hedef klasöre yeniden bak</value>
@@ -6789,6 +6857,9 @@ Posta kutusu ve iletileri yeni adrese taşınır. Eski adrese gönderilen posta,
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>Sertifika yenile ya da yükle</value>
   </data>
+  <data name="Rep_lace: empty every folder first, so the mailbox is the one in the archive - mail that arrived since the backup is gone" xml:space="preserve">
+    <value>Değiştir: _önce her klasörü boşalt, böylece posta kutusu arşivdekiyle aynı olur - yedeklemeden sonra gelen postalar kaybolur</value>
+  </data>
   <data name="Repair" xml:space="preserve">
     <value>Onar</value>
   </data>
@@ -6807,6 +6878,11 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan. TLS portlar
   </data>
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>Kimliği doğrulanmış kullanıcılar için istemci IP'sini şununla değiştir (boş = gerçek IP'yi koru)</value>
+  </data>
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+    <value>{0} posta kutusu arşivdekiyle değiştirilsin mi?
+
+Önce her klasör boşaltılır: yedeklemeden sonra gelen postalar kaybolur.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Her portu standart kümeyle değiştirir: SMTP 25 ve 587, POP3 110, IMAP 143, hepsi bağlantı güvenliği olmadan.</value>
@@ -6943,6 +7019,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan. TLS portlar
   <data name="Restore" xml:space="preserve">
     <value>Geri yükle</value>
   </data>
+  <data name="Restore a mailbox" xml:space="preserve">
+    <value>Bir posta kutusunu geri yükle</value>
+  </data>
   <data name="Restore configuration, domains and messages from a backup file." xml:space="preserve">
     <value>Yapılandırmayı, etki alanlarını ve iletileri bir yedek dosyasından geri yükleyin.</value>
   </data>
@@ -6955,8 +7034,14 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan. TLS portlar
   <data name="Restore messa_ges" xml:space="preserve">
     <value>_İletileri geri yükle</value>
   </data>
+  <data name="Restore one message" xml:space="preserve">
+    <value>Tek bir iletiyi geri yükle</value>
+  </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Geri yükleme başlatıldı - sunucuda arka planda çalışır.</value>
+  </data>
+  <data name="Restore the mailbo_x" xml:space="preserve">
+    <value>Posta kutusunu geri yükle (_x)</value>
   </data>
   <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
     <value>Geri yüklemek, seçili kategorilerdeki geçerli verileri yedeğin içeriğiyle değiştirir.
@@ -8580,6 +8665,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Virüsten koruma yapılandırması okunamadı.</value>
   </data>
+  <data name="The archive holds no messages for this account." xml:space="preserve">
+    <value>Arşivde bu hesap için ileti yok.</value>
+  </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Ekler değiştirilir ve ileti teslim edilir. Bu eyleme hiçbir bildirim ayarı uygulanmaz — sunucu "ileti silindi" bildirimini yalnızca eylem iletiyi silmek olduğunda gönderir.</value>
   </data>
@@ -8787,6 +8875,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   </data>
   <data name="The folder UID counters have been recalculated. Clients that cached the old values will resynchronise on their next connection." xml:space="preserve">
     <value>Klasör UID sayaçları yeniden hesaplandı. Eski değerleri önbelleğe almış istemciler bir sonraki bağlantılarında yeniden eşitlenecek.</value>
+  </data>
+  <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>Bir hesabın klasörleri ve iletileri, hesabın ayarlarına, kurallarına, kişilerine veya takvimlerine ya da başka bir hesaba dokunulmadan yedekleme hedefindeki bir arşivden geri konur. Arşiv, hedefin listelediği adla (HMBackup YYYY-MM-DD HHMMSS.7z) ya da hedef içindeki yoluyla belirtilir.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Sunucunun istemcilere geri gönderdiği karşılama, geri dönme ve hata metinleri.</value>
@@ -10559,6 +10650,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>_Geri al</value>
+  </data>
+  <data name="_Put the message back" xml:space="preserve">
+    <value>İletiyi geri koy (_c)</value>
   </data>
   <data name="_Query" xml:space="preserve">
     <value>_Sorgu</value>

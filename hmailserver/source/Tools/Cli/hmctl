@@ -347,7 +347,7 @@ class Client:
             return "Basic " + base64.b64encode(raw).decode("ascii")
         return None
 
-    def request(self, method, path, body=None, query=None):
+    def request(self, method, path, body=None, query=None, headers=None):
         url = self.url + path
         if query:
             pairs = [(k, v) for k, v in query.items() if v is not None]
@@ -355,7 +355,11 @@ class Client:
                 url += "?" + urllib.parse.urlencode(pairs)
 
         data = None
+        extra = headers or {}
         headers = {"Accept": "application/json", "User-Agent": "hmctl/" + VERSION}
+        # A caller's own header, for the one GET that carries a secret: the
+        # archive listing's passphrase, which a GET has no body to put in.
+        headers.update(extra)
         if body is not None:
             data = json.dumps(body).encode("utf-8")
             headers["Content-Type"] = "application/json"
@@ -921,6 +925,96 @@ def backup_passphrase_command(client, arguments):
     return EXIT_OK
 
 
+def mailbox_route(archive, address, suffix=""):
+    """The mailbox routes name the archive and the account in the path; both
+    are encoded, since an archive's name has spaces in it and an address an @."""
+    return "/api/v1/backup/%s/mailboxes/%s%s" % (urllib.parse.quote(archive, safe=""), urllib.parse.quote(address, safe=""), suffix)
+
+
+def backup_archives_command(client, arguments):
+    answer = client.request("GET", "/api/v1/backup/archives") or {}
+    if arguments.json:
+        render(answer, True)
+        return EXIT_OK
+    archives = answer.get("archives") or []
+    if not archives:
+        print("no archives in the backup destination %s." % (answer.get("destination") or "(none set)"))
+        return EXIT_OK
+    print("archives in %s, newest first:" % answer.get("destination", ""))
+    for archive in archives:
+        print("  %s  %s  %s byte(s)%s" % (archive.get("created", ""), archive.get("name", ""), archive.get("size", 0),
+                                         "  (encrypted)" if archive.get("encrypted") else ""))
+    return EXIT_OK
+
+
+def backup_mailbox_command(client, arguments):
+    passphrase = read_backup_passphrase(arguments)
+    headers = {"X-hMailServer-Backup-Passphrase": passphrase} if passphrase else None
+    path = mailbox_route(arguments.archive, arguments.address)
+    if arguments.folder:
+        path += "?folder=" + urllib.parse.quote(arguments.folder, safe="")
+    answer = client.request("GET", path, headers=headers) or {}
+    if arguments.json:
+        render(answer, True)
+        return EXIT_OK
+    print("%s in %s: %s message(s) in %s folder(s)%s" % (
+        answer.get("address", arguments.address), answer.get("archive", arguments.archive), answer.get("messages", 0),
+        len(answer.get("folders") or []), "" if answer.get("subjects") else "; " + (answer.get("subjects_note") or "subjects not read")))
+    for folder in answer.get("folders") or []:
+        print("  %s (%d)" % (folder.get("path", ""), len(folder.get("messages") or [])))
+        for message in folder.get("messages") or []:
+            print("    %-8s %s  %s  %s  %s byte(s)" % (message.get("id", ""), message.get("date", ""), message.get("from", ""),
+                                                        message.get("subject", ""), message.get("size", 0)))
+    return EXIT_OK
+
+
+def backup_restore_mailbox_command(client, arguments):
+    if arguments.merge and arguments.replace:
+        raise ApiError(0, "choose one of --merge and --replace")
+    if arguments.folder and not arguments.message:
+        raise ApiError(0, "--folder names where one message goes; give --message ID with it")
+
+    body = {}
+    if arguments.message:
+        body["message"] = arguments.message
+        if arguments.folder:
+            body["folder"] = arguments.folder
+    else:
+        body["mode"] = "replace" if arguments.replace else "merge"
+
+    passphrase = read_backup_passphrase(arguments)
+    if passphrase is not None:
+        body["passphrase"] = passphrase
+
+    answer = client.request("POST", mailbox_route(arguments.archive, arguments.address, "/restore"), body=body) or {}
+
+    if arguments.json:
+        render(answer, True)
+        return EXIT_OK
+
+    if arguments.message:
+        print("restore of message %s of %s from %s started as job %s%s." % (
+            arguments.message, arguments.address, arguments.archive, answer.get("job"),
+            " into " + arguments.folder if arguments.folder else ""))
+    else:
+        print("%s of the mailbox of %s from %s started as job %s." % (
+            "replace" if arguments.replace else "merge", arguments.address, arguments.archive, answer.get("job")))
+    print("It runs in the server; `hmctl backup restore-status %s` says how it went." % answer.get("job"))
+    return EXIT_OK
+
+
+def backup_restore_status_command(client, arguments):
+    answer = client.request("GET", "/api/v1/backup/restore-mailbox/%d" % arguments.job) or {}
+    if arguments.json:
+        render(answer, True)
+        return EXIT_OK
+    print("job %s is %s: %s of %s from %s; %s folder(s), %s added, %s skipped as still in the mailbox, %s failed%s" % (
+        answer.get("job"), answer.get("state"), answer.get("mode"), answer.get("address"), answer.get("archive"),
+        answer.get("folders", 0), answer.get("added", 0), answer.get("skipped", 0), answer.get("failed", 0),
+        ("; " + answer["error"]) if answer.get("error") else "."))
+    return EXIT_OK
+
+
 def backup_command(client, arguments):
     if arguments.verb == "start":
         render(client.request("POST", "/api/v1/backup", body={}), arguments.json)
@@ -928,6 +1022,14 @@ def backup_command(client, arguments):
         return backup_restore_command(client, arguments)
     elif arguments.verb == "passphrase":
         return backup_passphrase_command(client, arguments)
+    elif arguments.verb == "archives":
+        return backup_archives_command(client, arguments)
+    elif arguments.verb == "mailbox":
+        return backup_mailbox_command(client, arguments)
+    elif arguments.verb == "restore-mailbox":
+        return backup_restore_mailbox_command(client, arguments)
+    elif arguments.verb == "restore-status":
+        return backup_restore_status_command(client, arguments)
     else:
         render(client.request("GET", "/api/v1/backup"), arguments.json)
     return EXIT_OK
@@ -2518,6 +2620,41 @@ def build_parser():
                                    help="a file holding the passphrase, or - for standard input")
     backup_passphrase.add_argument("--ask", dest="ask_passphrase", action="store_true",
                                    help="ask for the passphrase here, twice, not echoed")
+
+    # One mailbox, or one message, from an archive in the backup destination.
+    backup_verbs.add_parser("archives", parents=[common], help="the archives in the backup destination, newest first")
+
+    backup_mailbox = backup_verbs.add_parser(
+        "mailbox", parents=[common],
+        help="one account's folders and messages as an archive holds them, with the ids restore-mailbox takes")
+    backup_mailbox.add_argument("archive", help="the archive's name as `backup archives` lists it, or its path in the destination")
+    backup_mailbox.add_argument("address", help="the account")
+    backup_mailbox.add_argument("--folder", help="list one folder path only")
+    backup_mailbox.add_argument("--passphrase-file", metavar="FILE",
+                                help="a file holding an encrypted archive's passphrase, or - for standard input")
+    backup_mailbox.add_argument("--ask", dest="ask_passphrase", action="store_true",
+                                help="ask for the archive's passphrase here, not echoed")
+
+    backup_restore_mailbox = backup_verbs.add_parser(
+        "restore-mailbox", parents=[common],
+        help="put one account's mailbox back from an archive (merge, the default, or replace), or one message of it")
+    backup_restore_mailbox.add_argument("archive", help="the archive's name as `backup archives` lists it, or its path in the destination")
+    backup_restore_mailbox.add_argument("address", help="the account; it has to exist on the server")
+    backup_restore_mailbox.add_argument("--merge", action="store_true",
+                                        help="add the archive's folders and messages the mailbox lacks; nothing there is removed (the default)")
+    backup_restore_mailbox.add_argument("--replace", action="store_true",
+                                        help="empty every live folder first, so the mailbox is the archive's - mail since the backup is gone")
+    backup_restore_mailbox.add_argument("--message", type=int, metavar="ID",
+                                        help="restore only this message, by the id `backup mailbox` lists")
+    backup_restore_mailbox.add_argument("--folder", help="with --message: the live folder to put it in (default: the one it was in)")
+    backup_restore_mailbox.add_argument("--passphrase-file", metavar="FILE",
+                                        help="a file holding an encrypted archive's passphrase, or - for standard input")
+    backup_restore_mailbox.add_argument("--ask", dest="ask_passphrase", action="store_true",
+                                        help="ask for the archive's passphrase here, not echoed")
+
+    backup_restore_status = backup_verbs.add_parser(
+        "restore-status", parents=[common], help="what became of a mailbox restore, by its job number")
+    backup_restore_status.add_argument("job", type=int)
 
     match = commands.add_parser("match", parents=[common], help="try a rule criterion against a value")
     match.set_defaults(handler=rule_match_command)

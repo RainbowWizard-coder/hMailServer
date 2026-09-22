@@ -791,6 +791,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Account address" xml:space="preserve">
     <value>Accountadres</value>
   </data>
+  <data name="Account address (_whose mailbox)" xml:space="preserve">
+    <value>Accountadres (_wiens mailbox)</value>
+  </data>
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>TTL van accountcache (seconden)</value>
   </data>
@@ -1376,6 +1379,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Archiefmap (leeg = archivering uit)</value>
+  </data>
+  <data name="Archive in the backup destination (_name or path)" xml:space="preserve">
+    <value>Archief in de back-upbestemming (_naam of pad)</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after. Applies after a service restart." xml:space="preserve">
     <value>ArchiveDir is een ruwe kopie van elk bericht dat door de server gaat, en tot nu toe verwijderde niets er ooit iets uit - dus op een drukke server is het een map die alleen maar groeit, en de beheerder die daar achter komt is degene wiens schijf vol is gelopen. Dit snoeit hem. 0 bewaart alles, en dat is met opzet de standaard: een archief wordt meestal om een juridische of contractuele reden bewaard, en een server die er bij een upgrade uit begon te verwijderen zou precies vernietigen wat hem is opgedragen te bewaren. De opruiming verwijdert alleen .eml-bestanden, dus al het andere dat u in het archief bewaart blijft met rust, en hij draait bij het opstarten en daarna elke twaalf uur. Geldt na een herstart van de service.</value>
@@ -2352,6 +2358,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Could not list domains — " xml:space="preserve">
     <value>Kon de domeinen niet opsommen — </value>
   </data>
+  <data name="Could not list the messages: {0}" xml:space="preserve">
+    <value>De berichten konden niet worden getoond: {0}</value>
+  </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>Kon de mappen niet laden: </value>
   </data>
@@ -2428,6 +2437,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
    {0}
 
 {1}</value>
+  </data>
+  <data name="Could not read the outcome: {0}" xml:space="preserve">
+    <value>Het resultaat kon niet worden gelezen: {0}</value>
   </data>
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>De foto kon niet worden gelezen: {0}</value>
@@ -2506,6 +2518,12 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Kon de back-up niet starten: {0}</value>
+  </data>
+  <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
+    <value>Het herstel van de mailbox kon niet worden gestart: {0}</value>
+  </data>
+  <data name="Could not start the message restore: {0}" xml:space="preserve">
+    <value>Het herstel van het bericht kon niet worden gestart: {0}</value>
   </data>
   <data name="Could not start the restore: {0}" xml:space="preserve">
     <value>Kon het herstel niet starten: {0}</value>
@@ -3368,6 +3386,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enter the 6-digit code from your authenticator app:" xml:space="preserve">
     <value>Voer de 6-cijferige code uit uw authenticator-app in:</value>
   </data>
+  <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
+    <value>Geef het adres van het account waarvan de mailbox moet worden hersteld.</value>
+  </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Voer eerst het pad naar clamscan.exe in.</value>
   </data>
@@ -3376,6 +3397,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Voer de vervaldatum in als YYYY-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
+    <value>Geef de id van het bericht zoals de lijst die toont.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Voer de wachtwoordzin in waarmee het archief versleuteld moet worden, en typ hem hieronder nog eens.</value>
@@ -4261,6 +4285,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Interface" xml:space="preserve">
     <value>Interface</value>
   </data>
+  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
+    <value>In deze map (leeg: de map waarin het _stond)</value>
+  </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Limiet voor ongeldige commando's</value>
   </data>
@@ -4311,6 +4338,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set-URL (de door de provider gepubliceerde ondertekeningssleutels; leeg = alleen het sleutelbestand)</value>
+  </data>
+  <data name="Job {0} is {1}: {2} folders, {3} messages added, {4} skipped as still in the mailbox, {5} failed." xml:space="preserve">
+    <value>Taak {0} is {1}: {2} mappen, {3} berichten toegevoegd, {4} overgeslagen omdat ze nog in de mailbox staan, {5} mislukt.</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Journaling en dubbele bezorging</value>
@@ -4485,6 +4515,12 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="List the local ports where AUTH should not be advertised - typically a port 25 that only takes inbound mail." xml:space="preserve">
     <value>Som de lokale poorten op waar AUTH niet moet worden aangeboden - meestal een poort 25 die alleen inkomende mail aanneemt.</value>
+  </data>
+  <data name="List the messages _in the archive" xml:space="preserve">
+    <value>Berichten in het archie_f tonen</value>
+  </data>
+  <data name="List the messages of an account as the archive above holds them, then put one back - into the folder it was in, or into a named one. A message whose file is still in the mailbox is not added twice. The archive, address and passphrase are the ones in the card above." xml:space="preserve">
+    <value>Toont de berichten van een account zoals het archief hierboven ze bevat, en zet er dan één terug - in de map waarin het stond, of in een genoemde map. Een bericht waarvan het bestand nog in de mailbox staat, wordt niet twee keer toegevoegd. Het archief, het adres en de wachtwoordzin zijn die van de kaart hierboven.</value>
   </data>
   <data name="Listed" xml:space="preserve">
     <value>Op de lijst</value>
@@ -4714,6 +4750,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>Postvakwachtwoorden worden op het account ingesteld, binnen het domein ervan.</value>
   </data>
+  <data name="Mailbox restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>Herstel van mailbox {0} gestart - loopt op de achtergrond op de server.</value>
+  </data>
   <data name="Mailbox that receives TLS reports for {0}" xml:space="preserve">
     <value>Postvak dat de TLS-rapporten voor {0} ontvangt</value>
   </data>
@@ -4885,6 +4924,14 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Merge SpamAssassin score into hMailServer score" xml:space="preserve">
     <value>De SpamAssassin-score samenvoegen met de hMailServer-score</value>
   </data>
+  <data name="Merge the folders and messages of the archive into the mailbox of {0}?&#10;&#10;Nothing already there is removed." xml:space="preserve">
+    <value>De mappen en berichten uit het archief samenvoegen met de mailbox van {0}?
+
+Niets wat er al staat wordt verwijderd.</value>
+  </data>
+  <data name="Merge: add the folders and messages of the archive that the mailbox lacks; _nothing already there is removed" xml:space="preserve">
+    <value>Samenvoegen: de mappen en berichten _uit het archief toevoegen die in de mailbox ontbreken; niets wat er al staat wordt verwijderd</value>
+  </data>
   <data name="Merging is off, so the fixed score is used however sure SpamAssassin was." xml:space="preserve">
     <value>Samenvoegen staat uit, dus de vaste score wordt gebruikt hoe zeker SpamAssassin ook was.</value>
   </data>
@@ -4896,6 +4943,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Message ID" xml:space="preserve">
     <value>Bericht-ID</value>
+  </data>
+  <data name="Message _id, from the listing" xml:space="preserve">
+    <value>Bericht-_id, uit de lijst</value>
   </data>
   <data name="Message archiving" xml:space="preserve">
     <value>Berichtarchivering</value>
@@ -4920,6 +4970,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Message modifications: the spam headers, the signature, the List-* headers, or the write of the modified message back to disk." xml:space="preserve">
     <value>Berichtwijzigingen: de spamheaders, de handtekening, de List-*-headers, of het terugschrijven van het gewijzigde bericht naar schijf.</value>
+  </data>
+  <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>Herstel van bericht {0} gestart - loopt op de achtergrond op de server.</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>Berichtgrootte</value>
@@ -5091,6 +5144,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>Naamservers</value>
+  </data>
+  <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>Noem het archief zoals de back-upbestemming het toont (HMBackup YYYY-MM-DD HHMMSS.7z), of met zijn pad binnen de bestemming.</value>
   </data>
   <data name="Name, certificate file and private key file are required." xml:space="preserve">
     <value>Naam, certificaatbestand en privésleutelbestand zijn verplicht.</value>
@@ -5755,6 +5811,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>Alleen domeinen waarvoor een Active Directory-domeinnaam is ingesteld worden vermeld - dat veld is wat een maildomein aan een directory koppelt. Eén domein tegelijk overzetten is de verstandige manier om dit de eerste keer te doen.</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase." xml:space="preserve">
+    <value>Alleen voor een archief dat met een wachtwoordzin is geschreven.</value>
+  </data>
   <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
     <value>Alleen voor een archief dat met een wachtwoordzin is geschreven. Zonder de juiste gaat het archief helemaal niet open, en het herstel wordt geweigerd voordat er op deze server iets wordt aangeraakt.</value>
   </data>
@@ -6051,6 +6110,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
     <value>Wachtwoordzin, als het archief versleuteld _is</value>
+  </data>
+  <data name="Passphrase, i_f the archive is encrypted" xml:space="preserve">
+    <value>Wachtwoordzin, als het archie_f versleuteld is</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Wachtwoord</value>
@@ -6375,6 +6437,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Put a setting back" xml:space="preserve">
     <value>Een instelling terugzetten</value>
   </data>
+  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
+    <value>Bericht {0} terugzetten in de mailbox van {1}?</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>{0} terugzetten naar de waarde van vóór deze wijziging? Het terugzetten wordt als eigen wijziging vastgelegd.</value>
   </data>
@@ -6464,6 +6529,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Re-read the key store from disk" xml:space="preserve">
     <value>De sleutelopslag opnieuw van schijf lezen</value>
+  </data>
+  <data name="Re-read the o_utcome" xml:space="preserve">
+    <value>Resultaat o_pnieuw lezen</value>
   </data>
   <data name="Re-read the schedule from hMailServer.ini and look at the destination folder again" xml:space="preserve">
     <value>Het schema opnieuw uit hMailServer.ini lezen en opnieuw naar de bestemmingsmap kijken</value>
@@ -6789,6 +6857,9 @@ Het postvak en zijn berichten verhuizen naar het nieuwe adres. Mail naar het oud
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>Een certificaat verlengen of installeren</value>
   </data>
+  <data name="Rep_lace: empty every folder first, so the mailbox is the one in the archive - mail that arrived since the backup is gone" xml:space="preserve">
+    <value>Vervangen: eerst elke map leegmaken, _zodat de mailbox die van het archief is - post die sinds de back-up is binnengekomen, is weg</value>
+  </data>
   <data name="Repair" xml:space="preserve">
     <value>Repareren</value>
   </data>
@@ -6807,6 +6878,11 @@ SMTP 25 en 587, POP3 110, IMAP 143 - zonder verbindingsbeveiliging. TLS-poorten 
   </data>
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>Het client-IP vervangen voor geauthenticeerde gebruikers (leeg = het echte IP behouden)</value>
+  </data>
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+    <value>De mailbox van {0} vervangen door die uit het archief?
+
+Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Vervangt elke poort door de standaardset: SMTP 25 en 587, POP3 110, IMAP 143, alle zonder verbindingsbeveiliging.</value>
@@ -6943,6 +7019,9 @@ SMTP 25 en 587, POP3 110, IMAP 143 - zonder verbindingsbeveiliging. TLS-poorten 
   <data name="Restore" xml:space="preserve">
     <value>Herstellen</value>
   </data>
+  <data name="Restore a mailbox" xml:space="preserve">
+    <value>Een mailbox herstellen</value>
+  </data>
   <data name="Restore configuration, domains and messages from a backup file." xml:space="preserve">
     <value>Configuratie, domeinen en berichten uit een back-upbestand herstellen.</value>
   </data>
@@ -6955,8 +7034,14 @@ SMTP 25 en 587, POP3 110, IMAP 143 - zonder verbindingsbeveiliging. TLS-poorten 
   <data name="Restore messa_ges" xml:space="preserve">
     <value>Berich_ten herstellen</value>
   </data>
+  <data name="Restore one message" xml:space="preserve">
+    <value>Eén bericht herstellen</value>
+  </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Herstel gestart - het draait op de achtergrond op de server.</value>
+  </data>
+  <data name="Restore the mailbo_x" xml:space="preserve">
+    <value>De mailbo_x herstellen</value>
   </data>
   <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
     <value>Herstellen vervangt de huidige gegevens voor de geselecteerde categorieën door de inhoud van de back-up.
@@ -8580,6 +8665,9 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>De antivirusconfiguratie kon niet worden gelezen.</value>
   </data>
+  <data name="The archive holds no messages for this account." xml:space="preserve">
+    <value>Het archief bevat geen berichten voor dit account.</value>
+  </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>De bijlagen worden vervangen en het bericht wordt bezorgd. Geen van beide meldingsinstellingen geldt voor deze actie — de server stuurt de melding "bericht verwijderd" alleen wanneer de actie is het bericht te verwijderen.</value>
   </data>
@@ -8787,6 +8875,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   </data>
   <data name="The folder UID counters have been recalculated. Clients that cached the old values will resynchronise on their next connection." xml:space="preserve">
     <value>De UID-tellers van de mappen zijn opnieuw berekend. Clients die de oude waarden in hun cache hadden, synchroniseren bij hun volgende verbinding opnieuw.</value>
+  </data>
+  <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>De mappen en berichten van één account teruggezet uit een archief in de back-upbestemming, zonder de instellingen, regels, contacten of agenda's van het account of enig ander account aan te raken. Het archief wordt genoemd zoals de bestemming het toont (HMBackup YYYY-MM-DD HHMMSS.7z), of met zijn pad binnen de bestemming.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>De begroetings-, bounce- en foutteksten die de server naar clients terugstuurt.</value>
@@ -10559,6 +10650,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>_Terugzetten</value>
+  </data>
+  <data name="_Put the message back" xml:space="preserve">
+    <value>Bericht teru_gzetten</value>
   </data>
   <data name="_Query" xml:space="preserve">
     <value>_Query</value>

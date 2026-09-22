@@ -791,6 +791,9 @@ Control Panel может читать файлы сообщений только
   <data name="Account address" xml:space="preserve">
     <value>Адрес учётной записи</value>
   </data>
+  <data name="Account address (_whose mailbox)" xml:space="preserve">
+    <value>Адрес учётной записи (_чей ящик)</value>
+  </data>
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>TTL кэша учётных записей (секунды)</value>
   </data>
@@ -1376,6 +1379,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Папка архива (пусто — архивирование выключено)</value>
+  </data>
+  <data name="Archive in the backup destination (_name or path)" xml:space="preserve">
+    <value>Архив в месте назначения резервных копий (_имя или путь)</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after. Applies after a service restart." xml:space="preserve">
     <value>ArchiveDir — это необработанная копия каждого сообщения, проходящего через сервер, и до сих пор оттуда ничто и никогда не удалялось, так что на нагруженном сервере это каталог, который только растёт, а узнаёт об этом тот администратор, у которого заполнился диск. Этот параметр его подчищает. 0 сохраняет всё, и это значение по умолчанию выбрано намеренно: архив обычно ведут по юридическим или договорным причинам, и сервер, который при обновлении начал бы из него удалять, уничтожал бы ровно то, что ему велели хранить. Очистка удаляет только файлы .eml, поэтому всё прочее, что вы держите в архиве, остаётся нетронутым; она выполняется при запуске и далее каждые двенадцать часов. Вступает в силу после перезапуска службы.</value>
@@ -2352,6 +2358,9 @@ Control Panel может читать файлы сообщений только
   <data name="Could not list domains — " xml:space="preserve">
     <value>Не удалось получить список доменов — </value>
   </data>
+  <data name="Could not list the messages: {0}" xml:space="preserve">
+    <value>Не удалось перечислить сообщения: {0}</value>
+  </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>Не удалось загрузить папки: </value>
   </data>
@@ -2428,6 +2437,9 @@ Control Panel может читать файлы сообщений только
    {0}
 
 {1}</value>
+  </data>
+  <data name="Could not read the outcome: {0}" xml:space="preserve">
+    <value>Не удалось прочитать результат: {0}</value>
   </data>
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Не удалось прочитать фотографию: {0}</value>
@@ -2506,6 +2518,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Не удалось запустить резервное копирование: {0}</value>
+  </data>
+  <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
+    <value>Не удалось запустить восстановление ящика: {0}</value>
+  </data>
+  <data name="Could not start the message restore: {0}" xml:space="preserve">
+    <value>Не удалось запустить восстановление сообщения: {0}</value>
   </data>
   <data name="Could not start the restore: {0}" xml:space="preserve">
     <value>Не удалось запустить восстановление: {0}</value>
@@ -3368,6 +3386,9 @@ Control Panel может читать файлы сообщений только
   <data name="Enter the 6-digit code from your authenticator app:" xml:space="preserve">
     <value>Введите 6-значный код из приложения-аутентификатора:</value>
   </data>
+  <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
+    <value>Укажите адрес учётной записи, почтовый ящик которой нужно восстановить.</value>
+  </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Сначала укажите путь к clamscan.exe.</value>
   </data>
@@ -3376,6 +3397,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Введите срок истечения в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС.</value>
+  </data>
+  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
+    <value>Укажите идентификатор сообщения так, как он показан в списке.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Введите парольную фразу, которой будет зашифрован архив, и наберите её ещё раз ниже.</value>
@@ -4261,6 +4285,9 @@ Control Panel может читать файлы сообщений только
   <data name="Interface" xml:space="preserve">
     <value>Интерфейс</value>
   </data>
+  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
+    <value>В эту папку (_пусто: в ту, где оно было)</value>
+  </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Предел недопустимых команд</value>
   </data>
@@ -4311,6 +4338,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>URL набора JWK (опубликованные поставщиком ключи подписи; пусто — только файл ключа)</value>
+  </data>
+  <data name="Job {0} is {1}: {2} folders, {3} messages added, {4} skipped as still in the mailbox, {5} failed." xml:space="preserve">
+    <value>Задание {0}: {1}. Папок: {2}, добавлено сообщений: {3}, пропущено (ещё в ящике): {4}, не удалось: {5}.</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Журналирование и двойная доставка</value>
@@ -4485,6 +4515,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="List the local ports where AUTH should not be advertised - typically a port 25 that only takes inbound mail." xml:space="preserve">
     <value>Перечислите локальные порты, на которых не следует объявлять AUTH, — обычно это порт 25, принимающий только входящую почту.</value>
+  </data>
+  <data name="List the messages _in the archive" xml:space="preserve">
+    <value>Показат_ь сообщения архива</value>
+  </data>
+  <data name="List the messages of an account as the archive above holds them, then put one back - into the folder it was in, or into a named one. A message whose file is still in the mailbox is not added twice. The archive, address and passphrase are the ones in the card above." xml:space="preserve">
+    <value>Показывает сообщения учётной записи так, как их хранит архив выше, и возвращает одно - в папку, где оно было, или в указанную. Сообщение, файл которого ещё в ящике, дважды не добавляется. Архив, адрес и парольная фраза берутся из карточки выше.</value>
   </data>
   <data name="Listed" xml:space="preserve">
     <value>В списке</value>
@@ -4714,6 +4750,9 @@ Control Panel может читать файлы сообщений только
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>Пароли почтовых ящиков задаются в учётной записи, внутри её домена.</value>
   </data>
+  <data name="Mailbox restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>Восстановление ящика {0} запущено - выполняется в фоне на сервере.</value>
+  </data>
   <data name="Mailbox that receives TLS reports for {0}" xml:space="preserve">
     <value>Почтовый ящик, который получает отчёты TLS для {0}</value>
   </data>
@@ -4885,6 +4924,14 @@ Control Panel может читать файлы сообщений только
   <data name="Merge SpamAssassin score into hMailServer score" xml:space="preserve">
     <value>Объединять оценку SpamAssassin с оценкой hMailServer</value>
   </data>
+  <data name="Merge the folders and messages of the archive into the mailbox of {0}?&#10;&#10;Nothing already there is removed." xml:space="preserve">
+    <value>Объединить папки и сообщения архива с ящиком {0}?
+
+Ничего из того, что уже там есть, не удаляется.</value>
+  </data>
+  <data name="Merge: add the folders and messages of the archive that the mailbox lacks; _nothing already there is removed" xml:space="preserve">
+    <value>Объединить: добавить папки и сообщения архива, _которых нет в ящике; ничего из того, что уже там есть, не удаляется</value>
+  </data>
   <data name="Merging is off, so the fixed score is used however sure SpamAssassin was." xml:space="preserve">
     <value>Объединение выключено, поэтому используется фиксированная оценка, насколько бы уверен ни был SpamAssassin.</value>
   </data>
@@ -4896,6 +4943,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Message ID" xml:space="preserve">
     <value>Идентификатор сообщения</value>
+  </data>
+  <data name="Message _id, from the listing" xml:space="preserve">
+    <value>_Идентификатор сообщения из списка</value>
   </data>
   <data name="Message archiving" xml:space="preserve">
     <value>Архивирование сообщений</value>
@@ -4920,6 +4970,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Message modifications: the spam headers, the signature, the List-* headers, or the write of the modified message back to disk." xml:space="preserve">
     <value>Изменения сообщения: заголовки спама, подпись, заголовки List-* или запись изменённого сообщения обратно на диск.</value>
+  </data>
+  <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>Восстановление сообщения {0} запущено - выполняется в фоне на сервере.</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>Размер сообщения</value>
@@ -5091,6 +5144,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>Серверы имён</value>
+  </data>
+  <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>Укажите архив так, как его перечисляет место назначения резервных копий (HMBackup YYYY-MM-DD HHMMSS.7z), или по пути внутри него.</value>
   </data>
   <data name="Name, certificate file and private key file are required." xml:space="preserve">
     <value>Требуются имя, файл сертификата и файл закрытого ключа.</value>
@@ -5755,6 +5811,9 @@ Control Panel может читать файлы сообщений только
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>Здесь перечислены только домены, у которых задано имя домена Active Directory: именно это поле связывает почтовый домен с каталогом. В первый раз разумнее переносить по одному домену за раз.</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase." xml:space="preserve">
+    <value>Только для архива, записанного с парольной фразой.</value>
+  </data>
   <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
     <value>Только для архива, записанного с парольной фразой. Без правильной фразы архив вообще не открывается, и восстановление отклоняется до того, как на этом сервере что-либо будет тронуто.</value>
   </data>
@@ -6051,6 +6110,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
     <value>Парольная фраза, _если архив зашифрован</value>
+  </data>
+  <data name="Passphrase, i_f the archive is encrypted" xml:space="preserve">
+    <value>Парольная фраза, если архив _зашифрован</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Пароль</value>
@@ -6375,6 +6437,9 @@ Control Panel может читать файлы сообщений только
   <data name="Put a setting back" xml:space="preserve">
     <value>Вернуть настройку</value>
   </data>
+  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
+    <value>Вернуть сообщение {0} в ящик {1}?</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Вернуть {0} к значению до этого изменения? Возврат записывается как отдельное изменение.</value>
   </data>
@@ -6464,6 +6529,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Re-read the key store from disk" xml:space="preserve">
     <value>Перечитать хранилище ключей с диска</value>
+  </data>
+  <data name="Re-read the o_utcome" xml:space="preserve">
+    <value>Перечитать рез_ультат</value>
   </data>
   <data name="Re-read the schedule from hMailServer.ini and look at the destination folder again" xml:space="preserve">
     <value>Перечитать расписание из hMailServer.ini и снова просмотреть папку назначения</value>
@@ -6789,6 +6857,9 @@ Control Panel может читать файлы сообщений только
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>Обновить или установить сертификат</value>
   </data>
+  <data name="Rep_lace: empty every folder first, so the mailbox is the one in the archive - mail that arrived since the backup is gone" xml:space="preserve">
+    <value>Заменить: сначала очистить каждую папку, чтобы ящик стал таким, как в архиве - почта, пришедшая после резервного копирования, пропадёт (_l)</value>
+  </data>
   <data name="Repair" xml:space="preserve">
     <value>Исправить</value>
   </data>
@@ -6807,6 +6878,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>Заменять IP клиента для прошедших аутентификацию пользователей (пусто — сохранять настоящий IP)</value>
+  </data>
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+    <value>Заменить ящик {0} ящиком из архива?
+
+Сначала каждая папка будет очищена: почта, пришедшая после резервного копирования, пропадёт.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Заменяет все порты стандартным набором: SMTP 25 и 587, POP3 110, IMAP 143 — все без защиты подключения.</value>
@@ -6943,6 +7019,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Restore" xml:space="preserve">
     <value>Восстановление</value>
   </data>
+  <data name="Restore a mailbox" xml:space="preserve">
+    <value>Восстановить ящик</value>
+  </data>
   <data name="Restore configuration, domains and messages from a backup file." xml:space="preserve">
     <value>Восстановление конфигурации, доменов и сообщений из файла резервной копии.</value>
   </data>
@@ -6955,8 +7034,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Restore messa_ges" xml:space="preserve">
     <value>Восс_тановить сообщения</value>
   </data>
+  <data name="Restore one message" xml:space="preserve">
+    <value>Восстановить одно сообщение</value>
+  </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Восстановление запущено — выполняется в фоне на сервере.</value>
+  </data>
+  <data name="Restore the mailbo_x" xml:space="preserve">
+    <value>Восстановить почтовый ящик (_x)</value>
   </data>
   <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
     <value>Восстановление заменяет текущие данные в выбранных категориях содержимым резервной копии.
@@ -8580,6 +8665,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Не удалось прочитать конфигурацию антивируса.</value>
   </data>
+  <data name="The archive holds no messages for this account." xml:space="preserve">
+    <value>В архиве нет сообщений для этой учётной записи.</value>
+  </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Вложения заменяются, и сообщение доставляется. Ни один из параметров уведомления к этому действию не относится — уведомление «сообщение удалено» сервер отправляет только тогда, когда действием является удаление сообщения.</value>
   </data>
@@ -8787,6 +8875,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The folder UID counters have been recalculated. Clients that cached the old values will resynchronise on their next connection." xml:space="preserve">
     <value>Счётчики UID папок пересчитаны. Клиенты, закешировавшие старые значения, пересинхронизируются при следующем подключении.</value>
+  </data>
+  <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>Папки и сообщения одной учётной записи, возвращённые из архива в месте назначения резервных копий, без изменения настроек, правил, контактов и календарей учётной записи и без затрагивания других учётных записей. Архив указывается так, как его перечисляет место назначения (HMBackup YYYY-MM-DD HHMMSS.7z), или по пути внутри него.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Тексты приветствия, возвратов и ошибок, которые сервер отправляет клиентам.</value>
@@ -10559,6 +10650,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>_Вернуть</value>
+  </data>
+  <data name="_Put the message back" xml:space="preserve">
+    <value>В_ернуть сообщение</value>
   </data>
   <data name="_Query" xml:space="preserve">
     <value>_Запрос</value>

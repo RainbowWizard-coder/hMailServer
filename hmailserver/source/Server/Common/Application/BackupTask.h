@@ -8,6 +8,8 @@
 
 namespace HM
 {
+   class MailboxRestore;
+
    class BackupTask : public Task
    {
    public:
@@ -18,10 +20,17 @@ namespace HM
 
       void SetBackupToRestore(std::shared_ptr<Backup> pBackup);
 
+      // The third kind of run: one mailbox, or one message, put back from an
+      // archive (MailboxRestore). On this task rather than a task of its own so
+      // that it holds the same run slot a whole restore holds, and two restores
+      // - or a restore and a backup - never overlap.
+      void SetMailboxRestore(std::shared_ptr<MailboxRestore> job);
+
    private:
 
       bool do_backup_;
-      
+
       std::shared_ptr<Backup> backup_;
+      std::shared_ptr<MailboxRestore> mailbox_restore_;
    };
 }

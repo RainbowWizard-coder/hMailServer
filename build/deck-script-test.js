@@ -1170,6 +1170,27 @@ const spec = {
                restore_messages: { type: 'boolean' }
             }, ['file'])
          }
+      },
+      '/api/v1/backup/archives': {
+         get: { summary: 'The backup archives in the backup destination', description: 'Every archive this server wrote into its backup destination, newest first.' }
+      },
+      '/api/v1/backup/{archive}/mailboxes/{address}': {
+         get: { summary: 'One account\'s folders and messages as a backup archive holds them', description: 'The archive is a name the listing answers; each message has the id the restore route takes.' }
+      },
+      '/api/v1/backup/{archive}/mailboxes/{address}/restore': {
+         post: {
+            summary: 'Restore one mailbox, or one message, from a backup archive',
+            description: 'Body: mode (merge or replace), message, folder and passphrase. Merge adds what is missing; replace empties every live folder first.',
+            requestBody: body({
+               mode: { type: 'string', enum: ['merge', 'replace'] },
+               message: { type: 'integer' },
+               folder: { type: 'string' },
+               passphrase: { type: 'string', writeOnly: true }
+            }, [])
+         }
+      },
+      '/api/v1/backup/restore-mailbox/{job}': {
+         get: { summary: 'What became of one mailbox restore' }
       }
    }
 };
@@ -1340,6 +1361,18 @@ const state = {
    fetcherDown: false,
    backup: { status: '', log: ['2026-09-13 02:00:00 Backup started.', '2026-09-13 02:00:09 Backup completed.'] },
    backupRunning: false,
+   backupArchives: { destination: '/var/backups/hmailserver', archives: [
+      { name: 'HMBackup 2026-09-21 020000.7z', path: '/var/backups/hmailserver/HMBackup 2026-09-21 020000.7z', created: '2026-09-21 02:00:00', size: 1048576, encrypted: true },
+      { name: 'HMBackup 2026-09-20 020000.7z', path: '/var/backups/hmailserver/HMBackup 2026-09-20 020000.7z', created: '2026-09-20 02:00:00', size: 1000000, encrypted: false }
+   ] },
+   archivedMailbox: { archive: '/var/backups/hmailserver/HMBackup 2026-09-20 020000.7z', address: 'ann@example.test', folders: [
+      { path: 'INBOX', subscribed: true, special_use: 0, messages: [
+         { id: 4101, folder: 'INBOX', subject: 'The Tuesday figures', from: 'bob@example.test', date: '2026-09-15 09:12:00', size: 2048, flags: 1, keywords: '' },
+         { id: 4102, folder: 'INBOX', subject: 'Lunch?', from: 'carol@example.test', date: '2026-09-16 11:40:00', size: 900, flags: 0, keywords: '' } ] },
+      { path: 'Projects.Alpha', subscribed: true, special_use: 0, messages: [
+         { id: 4103, folder: 'Projects.Alpha', subject: 'Alpha kick-off', from: 'dave@example.test', date: '2026-09-17 15:00:00', size: 4096, flags: 1, keywords: '$label1' } ] }
+   ], messages: 3, subjects: true, subjects_note: '' },
+   mailboxRestoreJobs: {},
    scriptReloads: 0,
    scriptProblem: '',
    // What POST /api/v1/settings/breach-check/test answers.
@@ -2181,6 +2214,40 @@ function answer(method, path, headers, raw) {
       }
       state.backup.log.push('2026-09-14 11:05:00 Restore started');
       return json(202, { started: true, encrypted: true, contains: { settings: false, domains: true, messages: true } });
+   }
+
+   // One mailbox from an archive, as MailboxRestore and RestApiBackupMailbox
+   // answer: the archives in the destination, an account's folders and
+   // messages out of one, the restore queued as a job, and the job's outcome.
+   if (path === '/api/v1/backup/archives' && method === 'GET') { return json(200, state.backupArchives); }
+   if (path.indexOf('/api/v1/backup/restore-mailbox/') === 0 && method === 'GET') {
+      const job = Number(path.substring('/api/v1/backup/restore-mailbox/'.length));
+      const outcome = state.mailboxRestoreJobs[job];
+      if (!outcome) { return json(404, { error: 'no such mailbox restore job; the last fifty are kept for the life of the process' }); }
+      return json(200, outcome);
+   }
+   const mailboxMatch = /^\/api\/v1\/backup\/([^/]+)\/mailboxes\/([^/]+)(\/restore)?$/.exec(path);
+   if (mailboxMatch) {
+      const archive = decodeURIComponent(mailboxMatch[1]);
+      const address = decodeURIComponent(mailboxMatch[2]);
+      if (archive.indexOf('outside') >= 0) { return json(400, { error: 'The archive path ' + archive + ' is not inside the backup destination /var/backups/hmailserver. A mailbox is restored from an archive this server wrote there, and from nowhere else.' }); }
+      if (!state.backupArchives.archives.some((a) => a.name === archive)) { return json(404, { error: 'There is no archive ' + archive + ' in the backup destination.' }); }
+      if (archive.indexOf('2026-09-21') >= 0 && (headers['X-hMailServer-Backup-Passphrase'] || headers['x-hmailserver-backup-passphrase'] || parsed.passphrase) !== 'correct horse battery staple') {
+         return json(400, { error: 'The backup archive ' + archive + ' is encrypted, and no passphrase was given for it.' });
+      }
+      if (address !== 'ann@example.test') { return json(404, { error: 'The archive ' + archive + ' has no account ' + address + '. Nothing has been changed on this server.' }); }
+      if (!mailboxMatch[3] && method === 'GET') { return json(200, state.archivedMailbox); }
+      if (mailboxMatch[3] && method === 'POST') {
+         if (parsed.mode !== undefined && parsed.mode !== 'merge' && parsed.mode !== 'replace') { return json(400, { error: 'mode must be merge or replace' }); }
+         if (state.backupRunning) { return json(409, { error: 'A backup or restore is already running; a mailbox restore waits for it. Ask again when it has finished.', status: '' }); }
+         const job = nextId++;
+         const mode = parsed.message ? 'message' : (parsed.mode || 'merge');
+         state.mailboxRestoreJobs[job] = { job: job, state: 'done', archive: '/var/backups/hmailserver/' + archive, address: address, mode: mode,
+            message: parsed.message || 0, folders: mode === 'message' ? 1 : 3, added: mode === 'message' ? 1 : 12, skipped: mode === 'replace' ? 0 : 4, failed: 0, error: '',
+            started: '2026-09-22 12:00:00', finished: '2026-09-22 12:00:03' };
+         state.backup.log.push('2026-09-22 12:00:00 Mailbox restore ' + job + ' queued');
+         return json(202, { job: job, state: 'queued', archive: '/var/backups/hmailserver/' + archive, address: address, mode: mode, message: parsed.message || 0, status: '/api/v1/backup/restore-mailbox/' + job });
+      }
    }
 
    if (path === '/api/v1/ipranges' && method === 'GET') { return json(200, state.ranges); }
@@ -4891,6 +4958,106 @@ async function main() {
       '{"file":"/var/backups/hmailserver/HMBackup 2026-09-15 020000.7z","passphrase":"correct horse battery staple","restore_settings":false,"restore_domains":true,"restore_messages":true}',
       JSON.stringify(restoreSent));
    check('the page says so and reads the view again', toastText() === 'Restore started' && called(before, 'GET', '/api/v1/backup').length === 1, toastText());
+
+   // ---- one mailbox, or one message, from an archive in the destination
+   check('the backup view read the archive listing for its two pickers, and drew the archives newest first with the encrypted one marked',
+      requests.filter((r) => r.method === 'GET' && r.path === '/api/v1/backup/archives').length >= 1 && $$('#mbr_archive option').length === 2 &&
+      $$('#mbr_archive option')[0].value === 'HMBackup 2026-09-21 020000.7z' && $$('#mbr_archive option')[0].textContent.indexOf('(encrypted)') >= 0 &&
+      $$('#mbm_archive option').length === 2 && document.getElementById('mbr_mode_merge').checked === true, paths(0));
+   check('the two cards say what the routes say', content().textContent.indexOf('Merge adds what is missing; replace empties every live folder first.') >= 0 &&
+      content().textContent.indexOf('each message has the id the restore route takes') >= 0);
+
+   before = requests.length;
+   click(act('mailboxrestore'));
+   await flush();
+   check('a mailbox restore with no address is refused by the page, without a request',
+      document.getElementById('err_mailboxrestore').textContent.indexOf('address of the account') >= 0 &&
+      called(before, 'POST', /^\/api\/v1\/backup\//).length === 0);
+
+   setValue('mbr_address', 'ann@example.test');
+   setValue('mbr_archive', 'HMBackup 2026-09-20 020000.7z');
+   setChecked('mbr_mode_replace', true);
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('mailboxrestore'));
+   await flush();
+   check('replace asks in the words that say what it destroys, and a no sends nothing',
+      confirmations[confirmations.length - 1].indexOf('Every folder is emptied first') >= 0 &&
+      confirmations[confirmations.length - 1].indexOf('ann@example.test') >= 0 && called(before, 'POST', /^\/api\/v1\/backup\//).length === 0);
+
+   confirmAnswer = true;
+   before = requests.length;
+   click(act('mailboxrestore'));
+   await flush();
+   let mailboxSent = lastBody(before, 'POST', '/api/v1/backup/HMBackup%202026-09-20%20020000.7z/mailboxes/ann%40example.test/restore');
+   check('a yes sends the restore to the archive and address, encoded, with the mode and no passphrase', JSON.stringify(mailboxSent) === '{"mode":"replace"}', JSON.stringify(mailboxSent));
+   check('then reads the job\'s outcome and shows its counts', called(before, 'GET', /^\/api\/v1\/backup\/restore-mailbox\//).length === 1 && toastText() === 'Mailbox restore started' &&
+      document.getElementById('mbr_outcome_text').textContent.indexOf('3 folders, 12 messages added, 0 skipped as still in the mailbox, 0 failed') >= 0, toastText());
+
+   setChecked('mbr_mode_replace', false);
+   setChecked('mbr_mode_merge', true);
+   setValue('mbr_archive', 'HMBackup 2026-09-21 020000.7z');
+   before = requests.length;
+   click(act('mailboxrestore'));
+   await flush();
+   check('merge asks in its own words, and an encrypted archive with no passphrase shows the server\'s own sentence',
+      confirmations[confirmations.length - 1].indexOf('Nothing already there is removed') >= 0 &&
+      document.getElementById('err_mailboxrestore').textContent.indexOf('is encrypted, and no passphrase was given') >= 0);
+
+   setValue('mbr_passphrase', 'correct horse battery staple');
+   before = requests.length;
+   click(act('mailboxrestore'));
+   await flush();
+   mailboxSent = lastBody(before, 'POST', '/api/v1/backup/HMBackup%202026-09-21%20020000.7z/mailboxes/ann%40example.test/restore');
+   check('with it, merge is sent with the passphrase, and the box is emptied afterwards', JSON.stringify(mailboxSent) === '{"mode":"merge","passphrase":"correct horse battery staple"}' &&
+      document.getElementById('mbr_passphrase').value === '', JSON.stringify(mailboxSent));
+
+   before = requests.length;
+   click(act('mailboxrestorestatus'));
+   await flush();
+   check('Re-read the outcome reads the job again', called(before, 'GET', /^\/api\/v1\/backup\/restore-mailbox\//).length === 1);
+
+   // The one-message card: the listing, then one row put back into a named folder.
+   setValue('mbm_address', 'nobody@example.test');
+   setValue('mbm_archive', 'HMBackup 2026-09-20 020000.7z');
+   before = requests.length;
+   click(act('mailboxlist'));
+   await flush();
+   check('an account the archive does not hold is the server\'s 404 beside the button',
+      document.getElementById('err_mailboxlist').textContent.indexOf('has no account nobody@example.test') >= 0);
+
+   setValue('mbm_address', 'ann@example.test');
+   before = requests.length;
+   click(act('mailboxlist'));
+   await flush();
+   check('the listing is asked for by archive and address, and drawn one row per message with its folder, subject, sender and a Restore button',
+      called(before, 'GET', '/api/v1/backup/HMBackup%202026-09-20%20020000.7z/mailboxes/ann%40example.test').length === 1 &&
+      $$('#mbm_list tbody tr').length === 3 && $$('#mbm_list tbody tr')[2].textContent.indexOf('Projects.Alpha') >= 0 &&
+      $$('#mbm_list tbody tr')[0].textContent.indexOf('The Tuesday figures') >= 0 && $$('#mbm_list tbody tr')[0].textContent.indexOf('bob@example.test') >= 0 &&
+      $$('[data-act="messagerestore"]').length === 3 && $$('[data-act="messagerestore"]')[1].dataset.id === '4102', paths(before));
+
+   setValue('mbm_folder', 'Restored');
+   confirmAnswer = false;
+   before = requests.length;
+   click($$('[data-act="messagerestore"]')[1]);
+   await flush();
+   check('a message restore asks first, and a no sends nothing', confirmations[confirmations.length - 1].indexOf('Put this message back') >= 0 &&
+      called(before, 'POST', /^\/api\/v1\/backup\//).length === 0);
+
+   confirmAnswer = true;
+   before = requests.length;
+   click($$('[data-act="messagerestore"]')[1]);
+   await flush();
+   const messageSent = lastBody(before, 'POST', '/api/v1/backup/HMBackup%202026-09-20%20020000.7z/mailboxes/ann%40example.test/restore');
+   check('a yes sends that message\'s id and the folder typed', JSON.stringify(messageSent) === '{"message":4102,"folder":"Restored"}', JSON.stringify(messageSent));
+   check('and shows the job\'s outcome', toastText() === 'Message restore started' && document.getElementById('mbr_outcome_text').textContent.indexOf('1 folders, 1 messages added') >= 0, toastText());
+
+   state.backupRunning = true;
+   before = requests.length;
+   click($$('[data-act="messagerestore"]')[0]);
+   await flush();
+   check('a restore while a backup runs is the server\'s 409 beside the list', document.getElementById('err_mailboxlist').textContent.indexOf('already running') >= 0);
+   state.backupRunning = false;
 
    // ---- the server messages
    before = requests.length;

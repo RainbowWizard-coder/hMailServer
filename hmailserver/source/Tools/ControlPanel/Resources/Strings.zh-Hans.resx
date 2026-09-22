@@ -791,6 +791,9 @@
   <data name="Account address" xml:space="preserve">
     <value>账户地址</value>
   </data>
+  <data name="Account address (_whose mailbox)" xml:space="preserve">
+    <value>账户地址 (谁的邮箱)(_W)</value>
+  </data>
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>账户缓存 TTL（秒）</value>
   </data>
@@ -1376,6 +1379,9 @@
   </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>存档文件夹（留空 = 关闭存档）</value>
+  </data>
+  <data name="Archive in the backup destination (_name or path)" xml:space="preserve">
+    <value>备份目标中的存档 (名称或路径)(_N)</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after. Applies after a service restart." xml:space="preserve">
     <value>ArchiveDir 保存的是经过服务器的每一封邮件的原始副本，而直到现在都没有任何机制从中删除任何东西 - 因此在繁忙的服务器上，它是一个只增不减的目录，而发现这一点的管理员往往就是磁盘被写满的那一位。此项会对它进行清理。0 表示保留全部，而且这是刻意为之的默认值：保留存档通常出于法律或合同上的原因，而一台在升级后开始从中删除内容的服务器，恰恰会销毁它被要求保留的东西。清理只会删除 .eml 文件，因此您在存档中保存的其他内容不会被动；它在启动时运行，此后每十二小时运行一次。需要重启服务后生效。</value>
@@ -2352,6 +2358,9 @@
   <data name="Could not list domains — " xml:space="preserve">
     <value>无法列出域 — </value>
   </data>
+  <data name="Could not list the messages: {0}" xml:space="preserve">
+    <value>无法列出邮件: {0}</value>
+  </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>无法加载文件夹： </value>
   </data>
@@ -2428,6 +2437,9 @@
    {0}
 
 {1}</value>
+  </data>
+  <data name="Could not read the outcome: {0}" xml:space="preserve">
+    <value>无法读取结果: {0}</value>
   </data>
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>无法读取照片：{0}</value>
@@ -2506,6 +2518,12 @@
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>无法开始备份：{0}</value>
+  </data>
+  <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
+    <value>无法开始恢复邮箱: {0}</value>
+  </data>
+  <data name="Could not start the message restore: {0}" xml:space="preserve">
+    <value>无法开始恢复邮件: {0}</value>
   </data>
   <data name="Could not start the restore: {0}" xml:space="preserve">
     <value>无法开始还原：{0}</value>
@@ -3368,6 +3386,9 @@
   <data name="Enter the 6-digit code from your authenticator app:" xml:space="preserve">
     <value>输入身份验证器应用中的 6 位代码：</value>
   </data>
+  <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
+    <value>请输入要恢复其邮箱的账户地址。</value>
+  </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>请先输入 clamscan.exe 的路径。</value>
   </data>
@@ -3376,6 +3397,9 @@
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>请以 YYYY-MM-DD HH:MM:SS 格式输入到期时间。</value>
+  </data>
+  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
+    <value>请输入列表中显示的邮件 ID。</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>请输入用来加密存档的口令，并在下面再输入一次。</value>
@@ -4261,6 +4285,9 @@
   <data name="Interface" xml:space="preserve">
     <value>接口</value>
   </data>
+  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
+    <value>恢复到此文件夹 (留空: 原来所在的文件夹)(_Y)</value>
+  </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>无效命令限制</value>
   </data>
@@ -4311,6 +4338,9 @@
   </data>
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK 集 URL（提供方发布的签名密钥；留空 = 仅使用密钥文件）</value>
+  </data>
+  <data name="Job {0} is {1}: {2} folders, {3} messages added, {4} skipped as still in the mailbox, {5} failed." xml:space="preserve">
+    <value>作业 {0} 状态为 {1}: {2} 个文件夹, 已添加 {3} 封, 因仍在邮箱中而跳过 {4} 封, 失败 {5} 封。</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>日志归档与双重投递</value>
@@ -4485,6 +4515,12 @@
   </data>
   <data name="List the local ports where AUTH should not be advertised - typically a port 25 that only takes inbound mail." xml:space="preserve">
     <value>列出不应通告 AUTH 的本地端口 - 通常是只接收入站邮件的 25 端口。</value>
+  </data>
+  <data name="List the messages _in the archive" xml:space="preserve">
+    <value>列出存档中的邮件(_I)</value>
+  </data>
+  <data name="List the messages of an account as the archive above holds them, then put one back - into the folder it was in, or into a named one. A message whose file is still in the mailbox is not added twice. The archive, address and passphrase are the ones in the card above." xml:space="preserve">
+    <value>按上方存档的内容列出账户的邮件, 然后把其中一封放回去 - 放回原来所在的文件夹, 或放到指定的文件夹。文件仍在邮箱中的邮件不会重复添加。存档、地址和口令沿用上方卡片中的。</value>
   </data>
   <data name="Listed" xml:space="preserve">
     <value>已列入</value>
@@ -4714,6 +4750,9 @@
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>邮箱密码在账户上设置，位于其域内。</value>
   </data>
+  <data name="Mailbox restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>邮箱恢复 {0} 已开始 - 在服务器后台运行。</value>
+  </data>
   <data name="Mailbox that receives TLS reports for {0}" xml:space="preserve">
     <value>接收 {0} 的 TLS 报告的邮箱</value>
   </data>
@@ -4885,6 +4924,14 @@
   <data name="Merge SpamAssassin score into hMailServer score" xml:space="preserve">
     <value>把 SpamAssassin 分数合并到 hMailServer 分数中</value>
   </data>
+  <data name="Merge the folders and messages of the archive into the mailbox of {0}?&#10;&#10;Nothing already there is removed." xml:space="preserve">
+    <value>将存档中的文件夹和邮件合并到 {0} 的邮箱?
+
+已有的内容不会被删除。</value>
+  </data>
+  <data name="Merge: add the folders and messages of the archive that the mailbox lacks; _nothing already there is removed" xml:space="preserve">
+    <value>合并: 添加邮箱中缺少的存档文件夹和邮件; 已有的内容不会被删除(_N)</value>
+  </data>
   <data name="Merging is off, so the fixed score is used however sure SpamAssassin was." xml:space="preserve">
     <value>合并已关闭，因此无论 SpamAssassin 多么确定，都使用固定分数。</value>
   </data>
@@ -4896,6 +4943,9 @@
   </data>
   <data name="Message ID" xml:space="preserve">
     <value>邮件 ID</value>
+  </data>
+  <data name="Message _id, from the listing" xml:space="preserve">
+    <value>列表中的邮件 ID(_I)</value>
   </data>
   <data name="Message archiving" xml:space="preserve">
     <value>邮件存档</value>
@@ -4920,6 +4970,9 @@
   </data>
   <data name="Message modifications: the spam headers, the signature, the List-* headers, or the write of the modified message back to disk." xml:space="preserve">
     <value>邮件修改：垃圾邮件标头、签名、List-* 标头，或者把修改后的邮件写回磁盘。</value>
+  </data>
+  <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>邮件恢复 {0} 已开始 - 在服务器后台运行。</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>邮件大小</value>
@@ -5091,6 +5144,9 @@
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>名称服务器</value>
+  </data>
+  <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>请按备份目标中列出的名称 (HMBackup YYYY-MM-DD HHMMSS.7z) 或其在备份目标内的路径指定存档。</value>
   </data>
   <data name="Name, certificate file and private key file are required." xml:space="preserve">
     <value>必须填写名称、证书文件和私钥文件。</value>
@@ -5755,6 +5811,9 @@
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>只列出设置了 Active Directory 域名的域 - 正是该字段把邮件域与目录关联起来。第一次做这件事时，一次只迁移一个域才是明智的做法。</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase." xml:space="preserve">
+    <value>仅用于以口令写入的存档。</value>
+  </data>
   <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
     <value>仅适用于使用口令写入的存档。没有正确的口令，存档根本无法打开，还原会在本服务器上的任何内容被改动之前被拒绝。</value>
   </data>
@@ -6051,6 +6110,9 @@
   </data>
   <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
     <value>存档已加密时使用的口令(_I)</value>
+  </data>
+  <data name="Passphrase, i_f the archive is encrypted" xml:space="preserve">
+    <value>口令 (如果存档已加密)(_F)</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>密码</value>
@@ -6375,6 +6437,9 @@
   <data name="Put a setting back" xml:space="preserve">
     <value>恢复设置</value>
   </data>
+  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
+    <value>将邮件 {0} 放回 {1} 的邮箱?</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>将 {0} 恢复为此更改之前的值？恢复操作本身会记录为一项更改。</value>
   </data>
@@ -6464,6 +6529,9 @@
   </data>
   <data name="Re-read the key store from disk" xml:space="preserve">
     <value>从磁盘重新读取密钥存储</value>
+  </data>
+  <data name="Re-read the o_utcome" xml:space="preserve">
+    <value>重新读取结果(_U)</value>
   </data>
   <data name="Re-read the schedule from hMailServer.ini and look at the destination folder again" xml:space="preserve">
     <value>从 hMailServer.ini 重新读取计划，并再次查看目标文件夹</value>
@@ -6789,6 +6857,9 @@
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>续订或安装证书</value>
   </data>
+  <data name="Rep_lace: empty every folder first, so the mailbox is the one in the archive - mail that arrived since the backup is gone" xml:space="preserve">
+    <value>替换: 先清空每个文件夹, 使邮箱与存档一致 - 备份之后收到的邮件将丢失(_L)</value>
+  </data>
   <data name="Repair" xml:space="preserve">
     <value>修复</value>
   </data>
@@ -6807,6 +6878,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>为已验证用户替换客户端 IP（留空 = 保留真实 IP）</value>
+  </data>
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+    <value>用存档中的邮箱替换 {0} 的邮箱?
+
+会先清空每个文件夹: 备份之后收到的邮件将丢失。</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>把每个端口都替换为标准组合：SMTP 25 和 587、POP3 110、IMAP 143，全部不带连接安全。</value>
@@ -6943,6 +7019,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Restore" xml:space="preserve">
     <value>还原</value>
   </data>
+  <data name="Restore a mailbox" xml:space="preserve">
+    <value>恢复邮箱</value>
+  </data>
   <data name="Restore configuration, domains and messages from a backup file." xml:space="preserve">
     <value>从备份文件还原配置、域和邮件。</value>
   </data>
@@ -6955,8 +7034,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Restore messa_ges" xml:space="preserve">
     <value>还原邮件(_G)</value>
   </data>
+  <data name="Restore one message" xml:space="preserve">
+    <value>恢复一封邮件</value>
+  </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>还原已开始 - 在服务器上后台运行。</value>
+  </data>
+  <data name="Restore the mailbo_x" xml:space="preserve">
+    <value>恢复该邮箱(_X)</value>
   </data>
   <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
     <value>还原会用备份内容替换所选类别的当前数据。
@@ -8580,6 +8665,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>无法读取防病毒配置。</value>
   </data>
+  <data name="The archive holds no messages for this account." xml:space="preserve">
+    <value>存档中没有此账户的邮件。</value>
+  </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>附件被替换，邮件被投递。两个通知设置都不适用于此操作 — 服务器只在操作是删除邮件时才发送“邮件已删除”通知。</value>
   </data>
@@ -8787,6 +8875,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The folder UID counters have been recalculated. Clients that cached the old values will resynchronise on their next connection." xml:space="preserve">
     <value>文件夹 UID 计数器已重新计算。缓存了旧值的客户端会在下次连接时重新同步。</value>
+  </data>
+  <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>从备份目标中的存档放回一个账户的文件夹和邮件, 不触及该账户的设置、规则、联系人或日历, 也不触及其他账户。存档按备份目标中列出的名称 (HMBackup YYYY-MM-DD HHMMSS.7z) 或其在备份目标内的路径指定。</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>服务器返回给客户端的问候、退信和错误文本。</value>
@@ -10559,6 +10650,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>恢复(_P)</value>
+  </data>
+  <data name="_Put the message back" xml:space="preserve">
+    <value>放回邮件(_P)</value>
   </data>
   <data name="_Query" xml:space="preserve">
     <value>查询(_Q)</value>

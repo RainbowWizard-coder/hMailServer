@@ -791,6 +791,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Account address" xml:space="preserve">
     <value>Dirección de la cuenta</value>
   </data>
+  <data name="Account address (_whose mailbox)" xml:space="preserve">
+    <value>Dirección de la cuenta (_de qué buzón)</value>
+  </data>
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>TTL de la caché de cuentas (segundos)</value>
   </data>
@@ -1376,6 +1379,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Carpeta de archivo (vacío = archivado desactivado)</value>
+  </data>
+  <data name="Archive in the backup destination (_name or path)" xml:space="preserve">
+    <value>Archivo en el destino de copia de seguridad (_nombre o ruta)</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after. Applies after a service restart." xml:space="preserve">
     <value>ArchiveDir es una copia en bruto de cada mensaje que pasa por el servidor, y hasta ahora nada quitaba nunca nada de ahí - así que en un servidor ocupado es un directorio que solo crece, y el administrador que se entera es aquel cuyo disco se llenó. Esto lo poda. 0 lo conserva todo, y es el valor por defecto a propósito: un archivo suele conservarse por un motivo legal o contractual, y un servidor que empezara a borrar de él al actualizar destruiría precisamente lo que se le dijo que guardara. El barrido solo elimina archivos .eml, así que cualquier otra cosa que guarde en el archivo queda intacta, y se ejecuta al arrancar y cada doce horas después. Se aplica tras reiniciar el servicio.</value>
@@ -2352,6 +2358,9 @@ Los detalles completos se escribieron en:
   <data name="Could not list domains — " xml:space="preserve">
     <value>No se pudieron listar los dominios —</value>
   </data>
+  <data name="Could not list the messages: {0}" xml:space="preserve">
+    <value>No se pudieron listar los mensajes: {0}</value>
+  </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>No se pudieron cargar las carpetas:</value>
   </data>
@@ -2428,6 +2437,9 @@ Los detalles completos se escribieron en:
    {0}
 
 {1}</value>
+  </data>
+  <data name="Could not read the outcome: {0}" xml:space="preserve">
+    <value>No se pudo leer el resultado: {0}</value>
   </data>
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>No se ha podido leer la foto: {0}</value>
@@ -2506,6 +2518,12 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>No se pudo iniciar la copia: {0}</value>
+  </data>
+  <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
+    <value>No se pudo iniciar la restauración del buzón: {0}</value>
+  </data>
+  <data name="Could not start the message restore: {0}" xml:space="preserve">
+    <value>No se pudo iniciar la restauración del mensaje: {0}</value>
   </data>
   <data name="Could not start the restore: {0}" xml:space="preserve">
     <value>No se pudo iniciar la restauración: {0}</value>
@@ -3368,6 +3386,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Enter the 6-digit code from your authenticator app:" xml:space="preserve">
     <value>Introduzca el código de 6 dígitos de su aplicación de autenticación:</value>
   </data>
+  <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
+    <value>Indique la dirección de la cuenta cuyo buzón se va a restaurar.</value>
+  </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Introduzca antes la ruta de clamscan.exe.</value>
   </data>
@@ -3376,6 +3397,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Introduzca la caducidad como AAAA-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
+    <value>Indique el id del mensaje, tal como lo muestra la lista.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Escriba la frase de contraseña con la que se cifrará el archivo y vuelva a escribirla abajo.</value>
@@ -4261,6 +4285,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Interface" xml:space="preserve">
     <value>Interfaz</value>
   </data>
+  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
+    <value>En esta carpeta (_vacío: en la que estaba)</value>
+  </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Límite de comandos no válidos</value>
   </data>
@@ -4311,6 +4338,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>URL del conjunto JWK (las claves de firma publicadas del proveedor; vacío = solo el archivo de clave)</value>
+  </data>
+  <data name="Job {0} is {1}: {2} folders, {3} messages added, {4} skipped as still in the mailbox, {5} failed." xml:space="preserve">
+    <value>El trabajo {0} está {1}: {2} carpetas, {3} mensajes añadidos, {4} omitidos por seguir en el buzón, {5} fallidos.</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Registro de correo y entrega doble</value>
@@ -4485,6 +4515,12 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="List the local ports where AUTH should not be advertised - typically a port 25 that only takes inbound mail." xml:space="preserve">
     <value>Enumere los puertos locales donde AUTH no debe anunciarse - normalmente un puerto 25 que solo acepta correo entrante.</value>
+  </data>
+  <data name="List the messages _in the archive" xml:space="preserve">
+    <value>Listar los mensajes del arc_hivo</value>
+  </data>
+  <data name="List the messages of an account as the archive above holds them, then put one back - into the folder it was in, or into a named one. A message whose file is still in the mailbox is not added twice. The archive, address and passphrase are the ones in the card above." xml:space="preserve">
+    <value>Lista los mensajes de una cuenta tal como los contiene el archivo de arriba y devuelve uno - a la carpeta en la que estaba, o a una con nombre. Un mensaje cuyo fichero sigue en el buzón no se añade dos veces. El archivo, la dirección y la frase de contraseña son los de la tarjeta de arriba.</value>
   </data>
   <data name="Listed" xml:space="preserve">
     <value>En la lista</value>
@@ -4714,6 +4750,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>Las contraseñas de buzón se definen en la cuenta, dentro de su dominio.</value>
   </data>
+  <data name="Mailbox restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>Restauración del buzón {0} iniciada - se ejecuta en segundo plano en el servidor.</value>
+  </data>
   <data name="Mailbox that receives TLS reports for {0}" xml:space="preserve">
     <value>Buzón que recibe los informes TLS de {0}</value>
   </data>
@@ -4885,6 +4924,14 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Merge SpamAssassin score into hMailServer score" xml:space="preserve">
     <value>Fusionar la puntuación de SpamAssassin con la puntuación de hMailServer</value>
   </data>
+  <data name="Merge the folders and messages of the archive into the mailbox of {0}?&#10;&#10;Nothing already there is removed." xml:space="preserve">
+    <value>¿Combinar las carpetas y mensajes del archivo en el buzón de {0}?
+
+No se elimina nada de lo que ya está.</value>
+  </data>
+  <data name="Merge: add the folders and messages of the archive that the mailbox lacks; _nothing already there is removed" xml:space="preserve">
+    <value>Combinar: añadir _las carpetas y mensajes del archivo que faltan en el buzón; no se elimina nada de lo que ya está</value>
+  </data>
   <data name="Merging is off, so the fixed score is used however sure SpamAssassin was." xml:space="preserve">
     <value>La fusión está desactivada, así que se usa la puntuación fija por muy seguro que estuviera SpamAssassin.</value>
   </data>
@@ -4896,6 +4943,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Message ID" xml:space="preserve">
     <value>ID de mensaje</value>
+  </data>
+  <data name="Message _id, from the listing" xml:space="preserve">
+    <value>Id del mensaje, de la l_ista</value>
   </data>
   <data name="Message archiving" xml:space="preserve">
     <value>Archivado de mensajes</value>
@@ -4920,6 +4970,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Message modifications: the spam headers, the signature, the List-* headers, or the write of the modified message back to disk." xml:space="preserve">
     <value>Modificaciones del mensaje: las cabeceras de spam, la firma, las cabeceras List-*, o la escritura del mensaje modificado de vuelta al disco.</value>
+  </data>
+  <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>Restauración del mensaje {0} iniciada - se ejecuta en segundo plano en el servidor.</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>Tamaño del mensaje</value>
@@ -5091,6 +5144,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>Servidores de nombres</value>
+  </data>
+  <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>Nombre el archivo tal como lo lista el destino de copia de seguridad (HMBackup YYYY-MM-DD HHMMSS.7z), o por su ruta dentro del destino.</value>
   </data>
   <data name="Name, certificate file and private key file are required." xml:space="preserve">
     <value>El nombre, el archivo de certificado y el archivo de clave privada son obligatorios.</value>
@@ -5755,6 +5811,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>Solo se listan los dominios que tienen definido un nombre de dominio de Active Directory - ese campo es lo que vincula un dominio de correo con un directorio. Traer un dominio cada vez es la forma sensata de hacer esto la primera vez.</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase." xml:space="preserve">
+    <value>Solo para un archivo escrito con una frase de contraseña.</value>
+  </data>
   <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
     <value>Solo para un archivo escrito con una frase de contraseña. Sin la correcta el archivo no se puede abrir en absoluto, y la restauración se rechaza antes de tocar nada en este servidor.</value>
   </data>
@@ -6051,6 +6110,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
     <value>Frase de contraseña, s_i el archivo está cifrado</value>
+  </data>
+  <data name="Passphrase, i_f the archive is encrypted" xml:space="preserve">
+    <value>Frase de contraseña, si el archivo está ci_frado</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Contraseña</value>
@@ -6375,6 +6437,9 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   <data name="Put a setting back" xml:space="preserve">
     <value>Restablecer un ajuste</value>
   </data>
+  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
+    <value>¿Devolver el mensaje {0} al buzón de {1}?</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>¿Restablecer {0} al valor que tenía antes de este cambio? El restablecimiento se registra como un cambio propio.</value>
   </data>
@@ -6464,6 +6529,9 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   </data>
   <data name="Re-read the key store from disk" xml:space="preserve">
     <value>Volver a leer el almacén de claves desde el disco</value>
+  </data>
+  <data name="Re-read the o_utcome" xml:space="preserve">
+    <value>Volver a leer el re_sultado</value>
   </data>
   <data name="Re-read the schedule from hMailServer.ini and look at the destination folder again" xml:space="preserve">
     <value>Volver a leer la programación desde hMailServer.ini y mirar de nuevo la carpeta de destino</value>
@@ -6789,6 +6857,9 @@ El buzón y sus mensajes pasan a la dirección nueva. El correo enviado a la dir
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>Renovar o instalar un certificado</value>
   </data>
+  <data name="Rep_lace: empty every folder first, so the mailbox is the one in the archive - mail that arrived since the backup is gone" xml:space="preserve">
+    <value>Reemplazar: vaciar _primero cada carpeta, para que el buzón sea el del archivo - el correo llegado desde la copia de seguridad desaparece</value>
+  </data>
   <data name="Repair" xml:space="preserve">
     <value>Reparar</value>
   </data>
@@ -6807,6 +6878,11 @@ SMTP 25 y 587, POP3 110, IMAP 143 - sin seguridad de conexión. Los puertos TLS 
   </data>
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>Sustituir la IP del cliente para los usuarios autenticados (vacío = conservar la IP real)</value>
+  </data>
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+    <value>¿Reemplazar el buzón de {0} por el del archivo?
+
+Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad desaparece.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Sustituye todos los puertos por el conjunto estándar: SMTP 25 y 587, POP3 110, IMAP 143, todos sin seguridad de conexión.</value>
@@ -6943,6 +7019,9 @@ SMTP 25 y 587, POP3 110, IMAP 143 - sin seguridad de conexión. Los puertos TLS 
   <data name="Restore" xml:space="preserve">
     <value>Restaurar</value>
   </data>
+  <data name="Restore a mailbox" xml:space="preserve">
+    <value>Restaurar un buzón</value>
+  </data>
   <data name="Restore configuration, domains and messages from a backup file." xml:space="preserve">
     <value>Restaurar la configuración, los dominios y los mensajes desde un archivo de copia de seguridad.</value>
   </data>
@@ -6955,8 +7034,14 @@ SMTP 25 y 587, POP3 110, IMAP 143 - sin seguridad de conexión. Los puertos TLS 
   <data name="Restore messa_ges" xml:space="preserve">
     <value>Restaurar mensa_jes</value>
   </data>
+  <data name="Restore one message" xml:space="preserve">
+    <value>Restaurar un mensaje</value>
+  </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Restauración iniciada - se ejecuta en segundo plano en el servidor.</value>
+  </data>
+  <data name="Restore the mailbo_x" xml:space="preserve">
+    <value>Restaurar el bu_zón</value>
   </data>
   <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
     <value>Restaurar sustituye los datos actuales de las categorías seleccionadas por el contenido de la copia de seguridad.
@@ -8580,6 +8665,9 @@ El próximo mensaje a esa dirección se enviará, y solo volverá a la lista tra
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>No se pudo leer la configuración del antivirus.</value>
   </data>
+  <data name="The archive holds no messages for this account." xml:space="preserve">
+    <value>El archivo no contiene mensajes para esta cuenta.</value>
+  </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Los adjuntos se sustituyen y el mensaje se entrega. Ninguno de los dos ajustes de notificación se aplica a esta acción — el servidor solo envía el aviso de "mensaje borrado" cuando la acción es borrar el mensaje.</value>
   </data>
@@ -8787,6 +8875,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   </data>
   <data name="The folder UID counters have been recalculated. Clients that cached the old values will resynchronise on their next connection." xml:space="preserve">
     <value>Se han recalculado los contadores UID de las carpetas. Los clientes que guardaron en caché los valores antiguos se resincronizarán en su siguiente conexión.</value>
+  </data>
+  <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>Las carpetas y mensajes de una cuenta devueltos desde un archivo del destino de copia de seguridad, sin tocar la configuración, las reglas, los contactos ni los calendarios de la cuenta, ni ninguna otra cuenta. El archivo se nombra tal como lo lista el destino (HMBackup YYYY-MM-DD HHMMSS.7z), o por su ruta dentro del destino.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Los textos de saludo, de rebote y de error que el servidor devuelve a los clientes.</value>
@@ -10559,6 +10650,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>Resta_blecer</value>
+  </data>
+  <data name="_Put the message back" xml:space="preserve">
+    <value>Devolver el mensaje (_b)</value>
   </data>
   <data name="_Query" xml:space="preserve">
     <value>_Consulta</value>

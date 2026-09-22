@@ -412,6 +412,137 @@ namespace HM
    }
 
    bool
+   BackupRestorer::OpenIndex(const String &archiveFile, const String &passphrase, unsigned int archiveOpenTimeoutMilliseconds,
+                             String &failureReason, bool *openTimedOut)
+   {
+      if (openTimedOut)
+         *openTimedOut = false;
+
+      if (!ReadIndex_(archiveFile, passphrase, archiveOpenTimeoutMilliseconds, failureReason, openTimedOut))
+         return false;
+
+      // The same refusal a whole restore makes, for the same reason: a newer
+      // archive's rows can carry what this build has no column for, and a
+      // mailbox restored from one would be a mailbox missing what nobody can
+      // enumerate.
+      if (!VersionIsRestorable(archive_version_, failureReason))
+         return false;
+
+      return true;
+   }
+
+   int
+   BackupRestorer::GetArchiveContents() const
+   {
+      return archive_contents_;
+   }
+
+   bool
+   BackupRestorer::StageAccountMessageStore(const String &archiveFile, const String &domainDirectory, const String &accountDirectory,
+                                            unsigned int archiveOpenTimeoutMilliseconds, bool *timedOut, String &failureReason)
+   {
+      if (timedOut)
+         *timedOut = false;
+
+      if (!backup_node_)
+      {
+         failureReason = "The archive has not been opened, so nothing can be staged from it.";
+         return false;
+      }
+
+      if ((archive_contents_ & Backup::BOMessages) == 0)
+      {
+         failureReason = "This backup does not contain any messages, so no mailbox can be restored from it. Nothing has been changed on this server.";
+         return false;
+      }
+
+      XNode *informationNode = backup_node_->GetChild(_T("BackupInformation"));
+      LPXAttr formatAttribute = informationNode ? informationNode->GetChildAttr(_T("DataFiles"), _T("Format")) : 0;
+
+      if (!formatAttribute)
+      {
+         failureReason = "This backup claims to contain messages but its index does not say where they are (no DataFiles element), so the message store cannot be located. Nothing has been changed on this server.";
+         return false;
+      }
+
+      // The member's path inside the archive, as the executer wrote it: the
+      // DataBackup folder, the domain's directory and the account's, in the
+      // store's own spelling. Naming the directory extracts its subtree and
+      // nothing beside it - measured with the bundled 7za 19.00, which also
+      // matches the name without regard to case on Windows, where the store's
+      // directory names are written as the address was.
+      String member = FileUtilities::Combine(FileUtilities::Combine(BACKUP_DATA_FOLDER_NAME, domainDirectory), accountDirectory);
+
+      String format = formatAttribute->value;
+
+      if (format.CompareNoCase(_T("7Z")) == 0)
+      {
+         staging_directory_ = Utilities::GetUniqueTempDirectory();
+
+         if (!FileUtilities::CreateDirectory(staging_directory_))
+         {
+            failureReason = "The temporary directory " + staging_directory_ + " could not be created, so the mailbox's messages could not be extracted. Nothing has been changed on this server.";
+            return false;
+         }
+
+         Compression compression;
+
+         if (archiveOpenTimeoutMilliseconds > 0)
+            compression.SetMaximumRunTime(archiveOpenTimeoutMilliseconds);
+
+         if (!compression.UncompressMember(archiveFile, staging_directory_, member, passphrase_))
+         {
+            if (compression.GetLastRunTimedOut())
+            {
+               if (timedOut)
+                  *timedOut = true;
+
+               failureReason = Formatter::Format("The mailbox's message files could not be extracted from {0} within the {1} seconds this way of asking allows. That is not a verdict on the archive. Nothing has been changed on this server.",
+                  archiveFile, (int) (archiveOpenTimeoutMilliseconds / 1000));
+               return false;
+            }
+
+            failureReason = "The mailbox's message files could not be extracted from " + archiveFile + ". Nothing has been changed on this server.";
+            return false;
+         }
+
+         String candidate = FileUtilities::Combine(staging_directory_, member);
+
+         // 7za reports success for a member that matched nothing, so the
+         // directory's absence is the caller's to judge, not a failure here.
+         if (FileUtilities::DirectoryExists(candidate))
+            staged_message_store_ = candidate;
+
+         return true;
+      }
+
+      if (format.CompareNoCase(_T("Raw")) == 0)
+      {
+         LPXAttr folderAttribute = informationNode->GetChildAttr(_T("DataFiles"), _T("FolderName"));
+
+         if (!folderAttribute)
+         {
+            failureReason = "This backup stores its messages uncompressed but its index does not say in which folder (no FolderName attribute). Nothing has been changed on this server.";
+            return false;
+         }
+
+         // Beside the archive and part of the backup: read from, never deleted.
+         String candidate = FileUtilities::Combine(FileUtilities::Combine(FileUtilities::Combine(
+            FileUtilities::GetFilePath(archiveFile), folderAttribute->value), domainDirectory), accountDirectory);
+
+         if (FileUtilities::DirectoryExists(candidate))
+            staged_message_store_ = candidate;
+
+         return true;
+      }
+
+      failureReason = Formatter::Format("The backup index describes its message store in a format this version does not understand (Format=\"{0}\"). Nothing has been changed on this server.",
+         format);
+
+      return false;
+   }
+
+   bool
    BackupRestorer::CheckSelection(int archiveContents, int restoreOptions, String &failureReason)
    {
       const int selectable = Backup::BOSettings | Backup::BODomains | Backup::BOMessages;

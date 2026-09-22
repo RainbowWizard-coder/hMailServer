@@ -10,6 +10,7 @@
 
 #include "Backup.h"
 #include "BackupRestorer.h"
+#include "MailboxRestore.h"
 
 #include "../Scripting/ScriptServer.h"
 #include "../Scripting/ScriptObjectContainer.h"
@@ -242,6 +243,47 @@ namespace HM
       pWorkQueue->AddTask(pBackupTask);
 
       LOG_DEBUG("BackupManager::~StartRestore() - E2");
+      return true;
+   }
+
+   bool
+   BackupManager::StartMailboxRestore(std::shared_ptr<MailboxRestore> job, String &failureReason)
+   {
+      if (!job)
+      {
+         failureReason = "No mailbox restore was supplied to start.";
+         return false;
+      }
+
+      LOG_DEBUG("BackupManager::StartMailboxRestore()");
+
+      std::shared_ptr<BackupTask> task = std::shared_ptr<BackupTask>(new BackupTask(false));
+      task->SetMailboxRestore(job);
+
+      // The same slot, claimed the same way. A mailbox restore writes into the
+      // message store a backup is copying and a whole restore is replacing, so
+      // it is one of the things that must not run beside them.
+      if (!ClaimRunSlot_(task, RunRestore))
+      {
+         failureReason = "A backup or restore is already running; a mailbox restore waits for it. Ask again when it has finished.";
+         Logger::Instance()->LogBackup(Formatter::Format("Mailbox restore {0} not started: {1}", job->GetJob(), failureReason));
+         return false;
+      }
+
+      std::shared_ptr<WorkQueue> workQueue = Application::Instance()->GetMaintenanceWorkQueue();
+      if (!workQueue)
+      {
+         ReleaseRunSlot_();
+
+         failureReason = "The maintenance work queue does not exist, so the mailbox restore could not be queued.";
+         Logger::Instance()->LogBackup(Formatter::Format("Mailbox restore {0} not started: {1}", job->GetJob(), failureReason));
+         return false;
+      }
+
+      Logger::Instance()->LogBackup(Formatter::Format("Mailbox restore {0} queued: {1}", job->GetJob(), job->Describe()));
+
+      workQueue->AddTask(task);
+
       return true;
    }
 

@@ -301,6 +301,103 @@ password among them — because a restore has to be able to put them back. An
 unencrypted archive hands those to whoever can read the destination folder.
 
 
+Restoring one mailbox, or one message
+-------------------------------------
+
+The whole restore above replaces the server. Since 22 September 2026 an archive
+in the backup destination can also give back **one account's mailbox** — every
+folder and message it held when the backup was taken — or **one message** of
+it, and touch nothing else: not the account's settings, rules, contacts or
+calendars (those are the account, and the whole restore is what brings them
+back), and not any other account. It is the same operation in every interface,
+`MailboxRestore`, and it runs the way the whole restore runs: checked on the
+caller's thread and refused with the reason before anything is done, then
+queued on the maintenance work queue under the backup manager's one run slot,
+so that a mailbox restore, a whole restore and a backup never overlap, and
+reported to the backup log.
+
+| Where | How |
+|---|---|
+| REST | `GET /api/v1/backup/archives` (the archives), `GET /api/v1/backup/{archive}/mailboxes/{address}` (the account as the archive holds it), `POST .../restore` with `mode`, or `message` and `folder`, and `GET /api/v1/backup/restore-mailbox/{job}` |
+| Control Deck | The Backup view's **Restore a mailbox** and **Restore one message** cards |
+| COM | `BackupManager.RestoreMailbox(file, address, mode, passphrase)`, `RestoreMessage(file, address, id, folder, passphrase)`, `DescribeMailbox(file, address, passphrase)` and `MailboxRestoreStatus(job)` |
+| Control Panel | The Backup page's **Restore a mailbox** and **Restore one message** cards |
+| hmctl | `hmctl backup archives`, `hmctl backup mailbox ARCHIVE ADDRESS`, `hmctl backup restore-mailbox ARCHIVE ADDRESS --merge\|--replace [--message ID [--folder F]]`, `hmctl backup restore-status JOB` |
+
+**Which archives.** Only one inside the backup destination — named as the
+listing names it (`HMBackup YYYY-MM-DD HHMMSS.7z`), or by its path there. A path
+anywhere else is refused with 400 whatever it points at: the whole restore takes
+any path from an administrator who has decided to replace the server, but this
+is reached from a mailbox picker, and a picker must not be a way to read files
+the server was never told about. The archive must hold domains and messages
+(`BackupDomains` and `BackupMessages` on when it was taken), its version is
+checked as the whole restore checks it, and an encrypted one needs its
+passphrase — in the request body, or in the `X-hMailServer-Backup-Passphrase`
+header on the listing, which has no body. One archive at a time: there is no
+picker across several archives for the version of a mailbox at a chosen moment;
+the listing says when each archive was taken, and that is the choice.
+
+**Merge and replace.** *Merge* creates each archived folder that is missing and
+adds each archived message whose file is not in the live mailbox; nothing there
+is removed. *Replace* empties every live folder of the account first and then
+fills as merge would, so that the mailbox is the archive's — mail that arrived
+since the backup is gone. The folders themselves stay, with their subscriptions
+and rights; what replace removes is kept in the recover-deleted store for
+`RecoverDeletedDays`, as an emptied folder's messages are (0, the default,
+keeps nothing). A single message is merge of one row, into the folder it was in
+or a named one, which is created if it is missing.
+
+**The identity rule.** The executer names every message file once, with a GUID,
+and the same name in the live mailbox — in whatever folder — is the same
+message. That is what "not in the live mailbox" means: a message the person has
+moved since the backup is not brought back to its old folder, a message they
+deleted is, and merging the same archive twice adds nothing the second time. A
+restored message comes back with its flags, keywords and dates as the archive
+holds them, a fresh UID in its folder (the archive's UIDs are not reused), its
+size charged to the account as a delivery's is, and a session with the folder
+selected is told the way delivery tells it. The full-text index picks the new
+rows up on its own pass, nudged by the restore so that a search finds them in
+seconds.
+
+**What is refused, and what is counted.** The account must exist on this server
+(404 if not — a mailbox is restored into the account it belongs to, and a
+deleted account is the whole restore's job or an administrator's to make first;
+restoring into a different account is not offered), the archive must hold it
+(404), the message named must be in it (404), and a second restore while a
+backup or restore runs is 409. A message whose file the archive does not hold —
+deleted from the store while the backup ran — is counted as *failed* and named
+in the backup log (the first ten), and the run goes on: one missing file is not
+a reason to leave the other thousand out. The outcome — `folders`, `added`,
+`skipped` (the same file name was still there) and `failed` — is read from the
+job's status route, from `MailboxRestoreStatus` over COM, and from the backup
+log; the last fifty jobs are kept for the life of the process. A job that
+cannot complete at all fails the way a whole restore fails: a `BACKUP ERROR`
+line, a critical error, the backup-failed alert and the `OnBackupFailed` event.
+
+**Who.** The roles that may restore the server may restore a mailbox from one
+of its archives (`manage_server`); reading an account's messages out of an
+archive — senders, dates and subjects — is reading the mailbox as it was
+(`view_mailbox`), which an auditor may do and a help desk may not. All four
+routes are server-wide and refused to a credential confined to named domains.
+The request is recorded on the audit trail as the whole restore's is — object
+type `backup`, the archive's path, action `mailbox restore started`, and a
+sentence naming the account and the mode — by whoever asked, over COM or REST;
+what the restore then does runs with no actor on its thread and is not.
+
+**What the listing costs.** The archive index carries a message's file name,
+sender, date, size and flags, and not its subject. The listing reads subjects
+from the message files, staging the account's own directory out of the archive
+to do it — and only that directory, not the whole store — for a listing of at
+most 500 messages; a larger mailbox is listed without subjects, the answer says
+so, and `?folder=` narrows the listing to one folder. On the REST route the
+archiver runs under the same two-minute bound as the whole restore's check.
+
+**Not in this.** An archive taken with `BackupMessagesDBOnly` holds rows and no
+files, and a mailbox cannot be restored from rows alone; the job says so and
+fails. A public folder is not an account's mailbox and is not restored here.
+Nothing here recreates an account, a domain, or an account's settings, rules,
+contacts or calendars: that is the whole restore.
+
 Versions
 --------
 

@@ -791,6 +791,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Account address" xml:space="preserve">
     <value>Kontoadress</value>
   </data>
+  <data name="Account address (_whose mailbox)" xml:space="preserve">
+    <value>Kontoadress (_vems brevlåda)</value>
+  </data>
   <data name="Account cache TTL (seconds)" xml:space="preserve">
     <value>TTL för kontocache (sekunder)</value>
   </data>
@@ -1376,6 +1379,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Arkivmapp (tomt = arkivering av)</value>
+  </data>
+  <data name="Archive in the backup destination (_name or path)" xml:space="preserve">
+    <value>Arkiv i säkerhetskopians mål (_namn eller sökväg)</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after. Applies after a service restart." xml:space="preserve">
     <value>ArchiveDir är en rå kopia av varje meddelande som passerar servern, och hittills har inget någonsin tagit bort något därifrån - så på en upptagen server är det en katalog som bara växer, och den administratör som får reda på det är den vars disk blev full. Detta gallrar den. 0 behåller allt, och det är standardvärdet med avsikt: ett arkiv hålls oftast av juridiska eller avtalsmässiga skäl, och en server som började ta bort ur ett vid uppgradering skulle förstöra exakt det den sagts att behålla. Svepet tar bara någonsin bort .eml-filer, så allt annat du förvarar i arkivet lämnas i fred, och det körs vid start och var tolfte timme därefter. Gäller efter en omstart av tjänsten.</value>
@@ -2352,6 +2358,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Could not list domains — " xml:space="preserve">
     <value>Kunde inte lista domäner — </value>
   </data>
+  <data name="Could not list the messages: {0}" xml:space="preserve">
+    <value>Meddelandena kunde inte listas: {0}</value>
+  </data>
   <data name="Could not load folders: " xml:space="preserve">
     <value>Kunde inte läsa in mappar: </value>
   </data>
@@ -2428,6 +2437,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
    {0}&#13;
 &#13;
 {1}</value>
+  </data>
+  <data name="Could not read the outcome: {0}" xml:space="preserve">
+    <value>Resultatet kunde inte läsas: {0}</value>
   </data>
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Fotot kunde inte läsas: {0}</value>
@@ -2506,6 +2518,12 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Kunde inte starta säkerhetskopieringen: {0}</value>
+  </data>
+  <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
+    <value>Återställningen av brevlådan kunde inte startas: {0}</value>
+  </data>
+  <data name="Could not start the message restore: {0}" xml:space="preserve">
+    <value>Återställningen av meddelandet kunde inte startas: {0}</value>
   </data>
   <data name="Could not start the restore: {0}" xml:space="preserve">
     <value>Kunde inte starta återställningen: {0}</value>
@@ -3368,6 +3386,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enter the 6-digit code from your authenticator app:" xml:space="preserve">
     <value>Ange den 6-siffriga koden från din autentiseringsapp:</value>
   </data>
+  <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
+    <value>Ange adressen till kontot vars brevlåda ska återställas.</value>
+  </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Ange sökvägen till clamscan.exe först.</value>
   </data>
@@ -3376,6 +3397,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Ange utgången som YYYY-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
+    <value>Ange meddelandets id så som listan visar det.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Ange lösenfrasen som arkivet ska krypteras med, och skriv den igen nedan.</value>
@@ -4261,6 +4285,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Interface" xml:space="preserve">
     <value>Gränssnitt</value>
   </data>
+  <data name="Into this folder (empt_y: the one it was in)" xml:space="preserve">
+    <value>Till den här mappen (_tom: den där det låg)</value>
+  </data>
   <data name="Invalid command limit" xml:space="preserve">
     <value>Gräns för ogiltiga kommandon</value>
   </data>
@@ -4311,6 +4338,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set-URL (leverantörens publicerade signeringsnycklar; tomt = bara nyckelfilen)</value>
+  </data>
+  <data name="Job {0} is {1}: {2} folders, {3} messages added, {4} skipped as still in the mailbox, {5} failed." xml:space="preserve">
+    <value>Jobb {0} är {1}: {2} mappar, {3} meddelanden tillagda, {4} överhoppade eftersom de ännu finns i brevlådan, {5} misslyckade.</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Journalföring och dubbel leverans</value>
@@ -4485,6 +4515,12 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="List the local ports where AUTH should not be advertised - typically a port 25 that only takes inbound mail." xml:space="preserve">
     <value>Lista de lokala portar där AUTH inte ska annonseras - typiskt en port 25 som bara tar emot inkommande post.</value>
+  </data>
+  <data name="List the messages _in the archive" xml:space="preserve">
+    <value>Lista meddelandena i _arkivet</value>
+  </data>
+  <data name="List the messages of an account as the archive above holds them, then put one back - into the folder it was in, or into a named one. A message whose file is still in the mailbox is not added twice. The archive, address and passphrase are the ones in the card above." xml:space="preserve">
+    <value>Listar ett kontos meddelanden så som arkivet ovan håller dem, och lägger sedan tillbaka ett - i mappen där det låg, eller i en namngiven. Ett meddelande vars fil ännu finns i brevlådan läggs inte till två gånger. Arkivet, adressen och lösenfrasen är de i kortet ovan.</value>
   </data>
   <data name="Listed" xml:space="preserve">
     <value>Listad</value>
@@ -4714,6 +4750,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Mailbox passwords are set on the account, inside its domain." xml:space="preserve">
     <value>Brevlådelösenord sätts på kontot, inuti dess domän.</value>
   </data>
+  <data name="Mailbox restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>Återställning av brevlåda {0} startad - körs i bakgrunden på servern.</value>
+  </data>
   <data name="Mailbox that receives TLS reports for {0}" xml:space="preserve">
     <value>Brevlåda som tar emot TLS-rapporter för {0}</value>
   </data>
@@ -4885,6 +4924,14 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Merge SpamAssassin score into hMailServer score" xml:space="preserve">
     <value>Slå ihop SpamAssassin-poängen med hMailServer-poängen</value>
   </data>
+  <data name="Merge the folders and messages of the archive into the mailbox of {0}?&#10;&#10;Nothing already there is removed." xml:space="preserve">
+    <value>Slå ihop arkivets mappar och meddelanden med brevlådan för {0}?
+
+Inget som redan finns där tas bort.</value>
+  </data>
+  <data name="Merge: add the folders and messages of the archive that the mailbox lacks; _nothing already there is removed" xml:space="preserve">
+    <value>Slå ihop: _lägg till de av arkivets mappar och meddelanden som saknas i brevlådan; inget som redan finns där tas bort</value>
+  </data>
   <data name="Merging is off, so the fixed score is used however sure SpamAssassin was." xml:space="preserve">
     <value>Sammanslagning är av, så den fasta poängen används oavsett hur säker SpamAssassin var.</value>
   </data>
@@ -4896,6 +4943,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Message ID" xml:space="preserve">
     <value>Meddelande-ID</value>
+  </data>
+  <data name="Message _id, from the listing" xml:space="preserve">
+    <value>Meddelandets _id, från listan</value>
   </data>
   <data name="Message archiving" xml:space="preserve">
     <value>Meddelandearkivering</value>
@@ -4920,6 +4970,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Message modifications: the spam headers, the signature, the List-* headers, or the write of the modified message back to disk." xml:space="preserve">
     <value>Meddelandeändringar: skräpposthuvudena, signaturen, List-*-huvudena, eller skrivningen av det ändrade meddelandet tillbaka till disk.</value>
+  </data>
+  <data name="Message restore {0} started - runs in the background on the server." xml:space="preserve">
+    <value>Återställning av meddelande {0} startad - körs i bakgrunden på servern.</value>
   </data>
   <data name="Message size" xml:space="preserve">
     <value>Meddelandestorlek</value>
@@ -5091,6 +5144,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>Namnservrar</value>
+  </data>
+  <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>Namnge arkivet så som säkerhetskopians mål listar det (HMBackup YYYY-MM-DD HHMMSS.7z), eller med dess sökväg inne i målet.</value>
   </data>
   <data name="Name, certificate file and private key file are required." xml:space="preserve">
     <value>Namn, certifikatfil och privat nyckelfil krävs.</value>
@@ -5755,6 +5811,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time." xml:space="preserve">
     <value>Bara domäner med ett Active Directory-domännamn satt listas - det fältet är vad som kopplar en e-postdomän till en katalog. Att ta över en domän i taget är det förnuftiga sättet att göra detta första gången.</value>
   </data>
+  <data name="Only for an archive that was written with a passphrase." xml:space="preserve">
+    <value>Bara för ett arkiv som skrevs med en lösenfras.</value>
+  </data>
   <data name="Only for an archive that was written with a passphrase. Without the right one the archive cannot be opened at all, and the restore is refused before anything on this server is touched." xml:space="preserve">
     <value>Endast för ett arkiv som skrivits med en lösenfras. Utan rätt lösenfras går arkivet inte att öppna alls, och återställningen avvisas innan något på den här servern rörs.</value>
   </data>
@@ -6051,6 +6110,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Passphrase, _if the archive is encrypted" xml:space="preserve">
     <value>Lösenfras, om arkivet är kry_pterat</value>
+  </data>
+  <data name="Passphrase, i_f the archive is encrypted" xml:space="preserve">
+    <value>Lösenfras, om arkivet är kr_ypterat</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Lösenord</value>
@@ -6375,6 +6437,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Put a setting back" xml:space="preserve">
     <value>Sätt tillbaka en inställning</value>
   </data>
+  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
+    <value>Lägga tillbaka meddelande {0} i brevlådan för {1}?</value>
+  </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Sätta tillbaka {0} till värdet den hade före den här ändringen? Tillbakasättningen registreras som en egen ändring.</value>
   </data>
@@ -6464,6 +6529,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Re-read the key store from disk" xml:space="preserve">
     <value>Läs om nyckellagret från disk</value>
+  </data>
+  <data name="Re-read the o_utcome" xml:space="preserve">
+    <value>Läs res_ultatet igen</value>
   </data>
   <data name="Re-read the schedule from hMailServer.ini and look at the destination folder again" xml:space="preserve">
     <value>Läs om schemat från hMailServer.ini och titta på målmappen igen</value>
@@ -6789,6 +6857,9 @@ Brevlådan och dess meddelanden flyttas till den nya adressen. Post skickad till
   <data name="Renew or install a certificate" xml:space="preserve">
     <value>Förnya eller installera ett certifikat</value>
   </data>
+  <data name="Rep_lace: empty every folder first, so the mailbox is the one in the archive - mail that arrived since the backup is gone" xml:space="preserve">
+    <value>Ersätt: töm varje mapp _först, så att brevlådan blir arkivets - post som kommit sedan säkerhetskopian är borta</value>
+  </data>
   <data name="Repair" xml:space="preserve">
     <value>Reparation</value>
   </data>
@@ -6807,6 +6878,11 @@ SMTP 25 och 587, POP3 110, IMAP 143 - utan anslutningssäkerhet. TLS-portar och 
   </data>
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>Ersätt klient-IP för autentiserade användare (tomt = behåll den verkliga IP:n)</value>
+  </data>
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+    <value>Ersätta brevlådan för {0} med den i arkivet?
+
+Varje mapp töms först: post som kommit sedan säkerhetskopian är borta.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Ersätter varje port med standarduppsättningen: SMTP 25 och 587, POP3 110, IMAP 143, alla utan anslutningssäkerhet.</value>
@@ -6943,6 +7019,9 @@ SMTP 25 och 587, POP3 110, IMAP 143 - utan anslutningssäkerhet. TLS-portar och 
   <data name="Restore" xml:space="preserve">
     <value>Återställning</value>
   </data>
+  <data name="Restore a mailbox" xml:space="preserve">
+    <value>Återställ en brevlåda</value>
+  </data>
   <data name="Restore configuration, domains and messages from a backup file." xml:space="preserve">
     <value>Återställ konfiguration, domäner och meddelanden från en säkerhetskopia.</value>
   </data>
@@ -6955,8 +7034,14 @@ SMTP 25 och 587, POP3 110, IMAP 143 - utan anslutningssäkerhet. TLS-portar och 
   <data name="Restore messa_ges" xml:space="preserve">
     <value>Återställ m_eddelanden</value>
   </data>
+  <data name="Restore one message" xml:space="preserve">
+    <value>Återställ ett meddelande</value>
+  </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Återställningen startade - körs i bakgrunden på servern.</value>
+  </data>
+  <data name="Restore the mailbo_x" xml:space="preserve">
+    <value>Återställ brevlådan (_x)</value>
   </data>
   <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
     <value>Återställning ersätter nuvarande data för de valda kategorierna med säkerhetskopians innehåll.
@@ -8580,6 +8665,9 @@ Nästa meddelande till adressen skickas, och den hamnar på listan igen först e
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Antiviruskonfigurationen kunde inte läsas.</value>
   </data>
+  <data name="The archive holds no messages for this account." xml:space="preserve">
+    <value>Arkivet innehåller inga meddelanden för det här kontot.</value>
+  </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Bilagorna ersätts och meddelandet levereras. Ingen av aviseringsinställningarna gäller den här åtgärden — servern skickar bara meddelandet "meddelande borttaget" när åtgärden är att ta bort meddelandet.</value>
   </data>
@@ -8787,6 +8875,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   </data>
   <data name="The folder UID counters have been recalculated. Clients that cached the old values will resynchronise on their next connection." xml:space="preserve">
     <value>Mapparnas UID-räknare har räknats om. Klienter som cachade de gamla värdena synkroniserar om vid nästa anslutning.</value>
+  </data>
+  <data name="The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
+    <value>Ett kontos mappar och meddelanden tillbakalagda från ett arkiv i säkerhetskopians mål, utan att röra kontots inställningar, regler, kontakter eller kalendrar, eller något annat konto. Arkivet namnges så som målet listar det (HMBackup YYYY-MM-DD HHMMSS.7z), eller med dess sökväg inne i målet.</value>
   </data>
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Hälsnings-, studs- och feltexterna som servern skickar tillbaka till klienter.</value>
@@ -10559,6 +10650,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>Sätt _tillbaka</value>
+  </data>
+  <data name="_Put the message back" xml:space="preserve">
+    <value>L_ägg tillbaka meddelandet</value>
   </data>
   <data name="_Query" xml:space="preserve">
     <value>_Fråga</value>
