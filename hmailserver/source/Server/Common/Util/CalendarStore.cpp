@@ -103,10 +103,13 @@ namespace HM
 
          // Through a group: the membership rows joined in, so the answer is
          // what the groups say now. A join rather than a subquery, since SQL
-         // Server Compact is happier with it.
+         // Server Compact is happier with it. The account's own calendar,
+         // reached through a group it is a member of, is not a share: it would
+         // be listed a second time, read-only, beneath itself.
          SQLCommand viaGroup(String(AnsiString("select ") + ShareColumns + ", " + CalendarColumns +
-            " from hm_calendarshares inner join hm_calendars on calendarid = sharecalendarid inner join hm_group_members on membergroupid = sharegroupid where memberaccountid = @ACCOUNTID and sharegroupid <> 0 order by calendardisplayname, calendarid"));
+            " from hm_calendarshares inner join hm_calendars on calendarid = sharecalendarid inner join hm_group_members on membergroupid = sharegroupid where memberaccountid = @ACCOUNTID and sharegroupid <> 0 and calendaraccountid <> @OWNERID order by calendardisplayname, calendarid"));
          viaGroup.AddParameter("@ACCOUNTID", accountId);
+         viaGroup.AddParameter("@OWNERID", accountId);
 
          recordset = Application::Instance()->GetDBManager()->OpenRecordset(viaGroup);
          if (!recordset)

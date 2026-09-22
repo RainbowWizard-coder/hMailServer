@@ -19,6 +19,10 @@
 #include "GUIDCreator.h"
 #include "Encoding/Base64.h"
 #include "../BO/Account.h"
+#include "../BO/Alias.h"
+#include "../BO/DomainAliases.h"
+#include "../Application/ObjectCache.h"
+#include "../Cache/CacheContainer.h"
 #include "../Mime/Mime.h"
 #include "../Mime/MimeCode.h"
 #include "../Persistence/PersistentMessage.h"
@@ -630,6 +634,55 @@ namespace HM
          return text.IsEmpty() ? 0 : atoi(text.c_str());
       }
 
+      // The address's PARTSTAT on the component, upper-cased, and the SENT-BY
+      // beside it; both "" when the address is not among its attendees.
+      void ReadPartstat(const ICalComponent &component, const AnsiString &address, AnsiString &partstat, AnsiString &sentBy)
+      {
+         partstat = "";
+         sentBy = "";
+         AnsiString wanted = Lower(address);
+         for (size_t i = 0; i < component.properties.size(); i++)
+         {
+            const ICalProperty &property = component.properties[i];
+            if (property.name != "ATTENDEE" || Imip::AddressOf(property.value) != wanted)
+               continue;
+            partstat = Trimmed(property.Parameter("PARTSTAT"));
+            partstat.ToUpper();
+            sentBy = Imip::AddressOf(property.Parameter("SENT-BY"));
+            return;
+         }
+      }
+
+      // Whether one of the invitation's attendees is the account: its own
+      // address, an alias domain's spelling of it, or an account alias
+      // (hm_aliases, one step) that points at it - what RecipientParser
+      // resolves on the way in, read from the same caches. me is the account's
+      // address, lower-cased.
+      bool NamesAccount(const ImipMessage &message, const AnsiString &me)
+      {
+         std::shared_ptr<DomainAliases> domainAliases = ObjectCache::Instance()->GetDomainAliases();
+         for (size_t i = 0; i < message.attendees.size(); i++)
+         {
+            String address;
+            Unicode::MultiByteToWide(message.attendees[i].address, address);
+            String primary = domainAliases ? domainAliases->ApplyAliasesOnAddress(address) : address;
+            primary.ToLower();
+            if (Utf8Of(primary) == me)
+               return true;
+
+            std::shared_ptr<const Alias> alias = CacheContainer::Instance()->GetAlias(primary);
+            if (alias && alias->GetIsActive())
+            {
+               String value = alias->GetValue();
+               value = domainAliases ? domainAliases->ApplyAliasesOnAddress(value) : value;
+               value.ToLower();
+               if (Utf8Of(value) == me)
+                  return true;
+            }
+         }
+         return false;
+      }
+
       void MarkCancelled(ICalComponent &tree)
       {
          for (size_t i = 0; i < tree.children.size(); i++)
@@ -693,14 +746,34 @@ namespace HM
       // invitation does not undo a newer.
       bool useInvitation = true;
       ICalComponent storedTree;
+      AnsiString keptPartstat;
+      AnsiString keptSentBy;
       if (inCalendar)
       {
          AnsiString ignored;
          if (ICalendar::Parse(Utf8Of(stored.data), storedTree, ignored))
          {
             const ICalComponent *storedMaster = MasterOf(storedTree);
+            // The stored event's organiser must be the invitation's. A UID is
+            // mailed to every guest, so anybody who saw an invitation could
+            // otherwise send a REQUEST under it, with themselves as organiser
+            // and a higher SEQUENCE, and rewrite the event in the account's own
+            // calendar on delivery. An event the account made itself has the
+            // account, or nobody, as organiser and is refused the same way.
+            if (storedMaster && AddressOf(storedMaster->Value("ORGANIZER")) != invitation.organizer)
+            {
+               problem = "the stored event has another organiser";
+               return false;
+            }
             if (storedMaster && SequenceOf(*storedMaster) > invitation.sequence)
                useInvitation = false;
+            // A resend at the same SEQUENCE carries NEEDS-ACTION for the
+            // account - the organiser never received the answer, or sent the
+            // original again - and RFC 5546 steps the sequence for neither a
+            // description nor an attendee-list change; the answer already given
+            // is carried into the replacement.
+            if (storedMaster && useInvitation && SequenceOf(*storedMaster) == invitation.sequence && !address.IsEmpty())
+               ReadPartstat(*storedMaster, address, keptPartstat, keptSentBy);
          }
          else
             storedTree = invitation.tree;
@@ -723,6 +796,8 @@ namespace HM
       }
       if (cancelled)
          MarkCancelled(tree);
+      if (partstat.IsEmpty() && !keptPartstat.IsEmpty() && keptPartstat != "NEEDS-ACTION")
+         SetPartstat(tree, address, name, keptPartstat, keptSentBy);
       if (!partstat.IsEmpty())
          SetPartstat(tree, address, name, partstat);
 
@@ -748,12 +823,17 @@ namespace HM
    }
 
    void
-   Imip::FileOnDelivery(std::shared_ptr<const Account> account, const String &fileName)
+   Imip::FileOnDelivery(std::shared_ptr<const Account> account, const String &fileName, bool spam)
    {
       try
       {
+         // A message flagged as spam files nothing, whatever it carries: a
+         // calendar part in spam is calendar spam, and a filed one would be
+         // drawn on the page and counted as busy.
+         if (!account || spam)
+            return;
          AnsiString calendarText;
-         if (!account || !FindInFile(fileName, calendarText))
+         if (!FindInFile(fileName, calendarText))
             return;
 
          ImipMessage message;
@@ -776,13 +856,25 @@ namespace HM
             // calendar row gets nothing, since a delivery is not a use.
             String me = account->GetAddress();
             me.ToLower();
-            if (!message.organizer.IsEmpty() && message.organizer == Utf8Of(me))
+            AnsiString meUtf8 = Utf8Of(me);
+            if (!message.organizer.IsEmpty() && message.organizer == meUtf8)
                return;
+            // Only an invitation that names the account is the account's to
+            // keep: a forwarded one, one to a list the account is in, and
+            // anything sent to see what sticks name somebody else, or nobody.
+            if (!NamesAccount(message, meUtf8))
+            {
+               LOG_DEBUG("iMIP: a REQUEST for " + uid + " does not name " + account->GetAddress() + " as a guest and was not filed.");
+               return;
+            }
             CalendarRecord calendar;
             if (!CalendarStore::DefaultIfAny(account->GetID(), calendar))
                return;
+            String personName = account->GetPersonFirstName();
+            if (!account->GetPersonLastName().IsEmpty())
+               personName += (personName.IsEmpty() ? _T("") : _T(" ")) + account->GetPersonLastName();
             CalendarObjectRecord record;
-            if (KeepInvitation(account->GetID(), message, false, false, "", "", "", calendar, record, problem))
+            if (KeepInvitation(account->GetID(), message, false, false, meUtf8, Trimmed(Utf8Of(personName)), "", calendar, record, problem))
             {
                LOG_DEBUG("iMIP: a REQUEST for " + uid + " was filed into the calendar of " + account->GetAddress() + ".");
             }

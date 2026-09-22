@@ -210,8 +210,11 @@ namespace HM
       text += "DTSTAMP:" + ICalendar::FormatUtc(static_cast<__int64>(time(nullptr))) + crlf;
       text += "DTSTART:" + ICalendar::FormatUtc(from) + crlf;
       text += "DTEND:" + ICalendar::FormatUtc(to) + crlf;
-      if (!address.IsEmpty())
-         text += ICalendar::Fold("ATTENDEE:mailto:" + address) + crlf;
+      // No ORGANIZER and no ATTENDEE: RFC 4791 section 7.10 answers a bare
+      // VFREEBUSY, and those two belong to the scheduling object of RFC 6638,
+      // which this is not. The address is the owner's, known to the caller
+      // through DAV:owner, and is kept in the signature for the day it is.
+      (void) address;
       for (size_t i = 0; i < periods.size(); i++)
       {
          text += "FREEBUSY;FBTYPE=" + AnsiString(periods[i].tentative ? "BUSY-TENTATIVE" : "BUSY") + ":" +

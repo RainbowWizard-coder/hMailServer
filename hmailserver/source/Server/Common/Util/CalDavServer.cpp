@@ -1290,6 +1290,10 @@ namespace HM
                   return Text(403, "this calendar is shared with a group you are a member of; the share is the group's, and only its owner takes it back");
                if (!CalendarStore::Unshare(resource.calendar.id, context.account->GetID()))
                   return Text(500, "the share could not be removed");
+               // The caller's own row is gone; a group's row may still reach it.
+               CalendarShareRecord still;
+               if (CalendarStore::ShareOf(resource.calendar.id, context.account->GetID(), still) && still.groupId != 0)
+                  return Text(403, "your own share is given back, but this calendar is still shared with a group you are a member of; the group's share is the group's, and only its owner takes it back");
                LOG_DEBUG("CalDAV: " + String(context.addressUtf8) + " left the shared calendar " + String(Int64Text(resource.calendar.id)) + ".");
                return Respond(204, "text/plain", "");
             }

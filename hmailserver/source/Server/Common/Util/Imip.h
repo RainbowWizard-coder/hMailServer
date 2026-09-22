@@ -75,24 +75,36 @@ namespace HM
       // A REPLY delivered to the organiser is filed into the stored event: the
       // attendee's PARTSTAT set to what they answered, in every calendar of the
       // account that holds the UID. A CANCEL marks the stored event cancelled.
-      // A REQUEST for an account that does not organise the event is kept in
-      // the account's default calendar as it arrived - the account's PARTSTAT
-      // what the organiser wrote, NEEDS-ACTION as a rule - replacing an older
-      // copy of the UID and never a newer one; an account with no calendar row
-      // yet gets nothing filed, since a delivery is not a use. Anything else is
-      // left for the page. Never throws; says what it did in the log.
-      static void FileOnDelivery(std::shared_ptr<const Account> account, const String &fileName);
+      // A REQUEST that names the account as an ATTENDEE - by its address, an
+      // alias domain's spelling of it, or an account alias that points at it -
+      // and does not name it as the organiser is kept in the account's default
+      // calendar as it arrived - the account's PARTSTAT what the organiser
+      // wrote, NEEDS-ACTION as a rule - replacing an older copy of the UID and
+      // never a newer one, and never one another organiser holds; an account
+      // with no calendar row yet gets nothing filed, since a delivery is not a
+      // use, and a REQUEST that does not name the account is not the account's
+      // to keep. A message flagged as spam files nothing at all, whatever it
+      // carries: a calendar part in spam is calendar spam, and a filed one
+      // would be drawn on the page and counted as busy. Anything else is left
+      // for the page. Never throws; says what it did in the log.
+      static void FileOnDelivery(std::shared_ptr<const Account> account, const String &fileName, bool spam);
 
       // The invitation's event kept in the account's calendars: the copy that
       // holds the UID replaced when the invitation is the same or a later
-      // sequence, an older invitation not undoing a newer; a new object in the
-      // default calendar when nothing holds the UID - made when createDefault,
-      // else refused when there is none. cancelled marks every component
-      // STATUS:CANCELLED; a partstat, when given, is set for the address
-      // (with the name) before the object is written. The page's answer and
-      // the delivery filer are this one path, so a REQUEST filed on delivery
-      // and then answered from the message is one event, never two. What was
-      // written comes back in calendar and record.
+      // sequence, an older invitation not undoing a newer, and a copy whose
+      // ORGANIZER is not the invitation's never replaced at all - a UID is
+      // mailed to every guest, so anybody who saw an invitation could
+      // otherwise rewrite the event under it; a new object in the default
+      // calendar when nothing holds the UID - made when createDefault, else
+      // refused when there is none. At the same sequence the answer the
+      // address already gave (a PARTSTAT that is not NEEDS-ACTION, with its
+      // SENT-BY) is carried into the replacement, since a resend does not
+      // undo an answer. cancelled marks every component STATUS:CANCELLED; a
+      // partstat, when given, is set for the address (with the name) before
+      // the object is written. The page's answer and the delivery filer are
+      // this one path, so a REQUEST filed on delivery and then answered from
+      // the message is one event, never two. What was written comes back in
+      // calendar and record.
       static bool KeepInvitation(__int64 accountId, const ImipMessage &invitation, bool createDefault, bool cancelled,
                                  const AnsiString &address, const AnsiString &name, const AnsiString &partstat,
                                  CalendarRecord &calendar, CalendarObjectRecord &record, AnsiString &problem);

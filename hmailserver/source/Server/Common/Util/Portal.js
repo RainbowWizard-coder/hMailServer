@@ -11904,7 +11904,7 @@
       row.appendChild(remove);
       box.appendChild(row);
     });
-    box.appendChild(node('p', t('Someone you share with sees this calendar in their webmail and on their phone, read-only unless they can edit.') + ' ' + t('The name of a group shares it with every member; someone who can answer invitations may accept or decline yours on your behalf.'), 'hint'));
+    box.appendChild(node('p', t('Someone you share with sees this calendar in their webmail and on their phone, read-only unless they can edit.') + ' ' + t('The name of a group shares it with every member; someone who can answer invitations may accept or decline yours on your behalf.') + ' ' + t('Shared with a group as a delegate, every member may answer for you.'), 'hint'));
     if (!c.is_default) {
       var del = button(t('Delete this calendar'), 'btn quiet sm');
       del.addEventListener('click', function () {
@@ -12263,7 +12263,10 @@
     var box = el('event-answer');
     clear(box);
     var organizer = ev && ev.organizer ? String(ev.organizer).toLowerCase() : '';
-    var may = !!(ev && organizer && organizer !== ownerAddress && (!cal || cal.mine || cal.delegate));
+    // Only a guest answers: an event copied in from a phone, or forwarded, that
+    // does not name the owner has no organiser expecting their reply.
+    var ownerIsGuest = (ev && ev.attendees || []).some(function (a) { return String(a.address || '').toLowerCase() === ownerAddress; });
+    var may = !!(ev && organizer && organizer !== ownerAddress && ownerIsGuest && (!cal || cal.mine || cal.delegate));
     box.hidden = !may;
     if (!may) { return; }
     box.appendChild(node('span', cal && !cal.mine ? tf('Answer on behalf of {0}', cal.owner) : t('Answer'), 'k'));

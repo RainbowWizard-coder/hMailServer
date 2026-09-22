@@ -33,8 +33,10 @@ namespace RegressionTests.API
    [TestFixture]
    public class RestApiCalendarSharing : TestFixtureBase
    {
-      private const int WebServicesPort = 9816;
-      private static int RestPort = 9817;
+      // 9816 is ClientDiscovery's REST port; these two are this fixture's own.
+      private const int WebServicesPort = 9818;
+      private static int RestPort = 9819;
+      private const int SmtpPort = 25;
       private const string Password = "Sharing-Passw0rd!";
       private const string AdminPassword = "testar";
 
@@ -456,6 +458,354 @@ namespace RegressionTests.API
          Assert.AreEqual(403, Me("POST", "/api/v1/me/calendar/events/" + eventId + "x/reply", "{\"partstat\":\"ACCEPTED\"}", Deputy, Password).status, "Not an event id, so not a route.");
       }
 
+      [Test]
+      [Description("A forged REQUEST cannot rewrite the organiser's event: one carrying the organiser's own UID, a foreign ORGANIZER and a higher SEQUENCE is delivered to the organiser and to a guest and leaves both copies as they were, while the real organiser's resend at a higher SEQUENCE updates the guest's copy")]
+      public void AForgedRequestCannotRewriteTheOrganisersEvent()
+      {
+         Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, Reader, Password).status);
+         (int status, string body) made = Me("POST", "/api/v1/me/calendar/events",
+            "{\"summary\":\"Steering\",\"start\":\"2026-12-01T09:00\",\"end\":\"2026-12-01T10:00\",\"tz\":\"UTC\",\"attendees\":[\"" + Reader + "\"],\"invite\":true}", Organiser, Password);
+         Assert.AreEqual(201, made.status, made.body);
+         long organiserEventId = IdOf(made.body);
+         string uid = Regex.Match(made.body, "\"uid\":\"([^\"]+)\"").Groups[1].Value;
+         string window = "/api/v1/me/calendar/events?start=20261201T000000Z&end=20261202T000000Z";
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Steering\"", Me("GET", window, null, Reader, Password).body));
+
+         // The attack: the UID every guest was mailed, under a stranger's name,
+         // with a higher SEQUENCE and a new time - delivered to the organiser.
+         SmtpRaw("attacker@evil.test", Organiser, "mail.evil.test", Invitation("attacker@evil.test", Organiser, "Invitation: Hijacked", "Hijacked", uid, "20261201T140000Z", "20261201T150000Z", 99, "attacker@evil.test", Organiser));
+         MessageIdOf(Organiser, Password, "Invitation: Hijacked");
+         (int status, string body) kept = Me("GET", "/api/v1/me/calendar/events/" + organiserEventId, null, Organiser, Password);
+         Assert.AreEqual(200, kept.status, kept.body);
+         StringAssert.Contains("\"summary\":\"Steering\"", kept.body, "The organiser's event is the organiser's.");
+         StringAssert.Contains("\"organizer\":\"" + Organiser + "\"", kept.body);
+         StringAssert.Contains("\"start\":\"20261201T090000Z\"", kept.body);
+         StringAssert.DoesNotContain("Hijacked", Me("GET", window, null, Organiser, Password).body, "Nor was a second event made.");
+
+         // The same forgery at the guest: their filed copy names the real organiser and stays.
+         SmtpRaw("attacker@evil.test", Reader, "mail.evil.test", Invitation("attacker@evil.test", Reader, "Invitation: Hijacked", "Hijacked", uid, "20261201T140000Z", "20261201T150000Z", 99, "attacker@evil.test", Reader));
+         MessageIdOf(Reader, Password, "Invitation: Hijacked");
+
+         // The control: the real organiser's resend at a higher SEQUENCE does reach the guest's copy.
+         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Updated invitation: Steering", "Steering (moved)", uid, "20261201T110000Z", "20261201T120000Z", 3, Organiser, Reader));
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Steering (moved)\"", Me("GET", window, null, Reader, Password).body));
+         (int status, string body) guestCopy = Me("GET", window, null, Reader, Password);
+         Assert.AreEqual(1, Regex.Matches(guestCopy.body, "\"uid\":\"" + Regex.Escape(uid) + "\"").Count, "One event, updated, never a second. Body: " + guestCopy.body);
+         StringAssert.Contains("\"start\":\"20261201T110000Z\"", guestCopy.body);
+         StringAssert.DoesNotContain("Hijacked", guestCopy.body, "The forgery delivered before the real resend left nothing.");
+         StringAssert.Contains("\"organizer\":\"" + Organiser + "\"", guestCopy.body);
+      }
+
+      [Test]
+      [Description("Calendar spam is not filed: a REQUEST in a message flagged as spam files nothing while the same kind of message unflagged is filed; a REQUEST that does not name the account as a guest files nothing while one naming an alias of the account is filed")]
+      public void SpamAndUninvitedRequestsAreNotFiled()
+      {
+         Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, Reader, Password).status);
+         string window = "/api/v1/me/calendar/events?start=20261203T000000Z&end=20261204T000000Z";
+
+         hMailServer.AntiSpam antiSpam = _settings.AntiSpam;
+         bool heloBefore = antiSpam.CheckHostInHelo;
+         int heloScoreBefore = antiSpam.CheckHostInHeloScore;
+         int markBefore = antiSpam.SpamMarkThreshold;
+         int deleteBefore = antiSpam.SpamDeleteThreshold;
+         bool headerBefore = antiSpam.AddHeaderSpam;
+         antiSpam.CheckHostInHelo = true;
+         antiSpam.CheckHostInHeloScore = 125;
+         antiSpam.SpamMarkThreshold = 1;
+         antiSpam.SpamDeleteThreshold = 1000;
+         antiSpam.AddHeaderSpam = true;
+         try
+         {
+            // A HELO that is not the sender's host scores past the mark threshold: flagged, delivered, not filed.
+            SmtpRaw("promo@spam.test", Reader, "example.com", Invitation("promo@spam.test", Reader, "You won", "You won", "spam-0001@spam.test", "20261203T100000Z", "20261203T110000Z", 0, "promo@spam.test", Reader));
+            MessageIdOf(Reader, Password, "You won");
+            StringAssert.Contains("X-hMailServer-Spam: YES", FirstMessageKept(Reader, Password), "The message was flagged as spam on the way in.");
+         }
+         finally
+         {
+            antiSpam.CheckHostInHelo = heloBefore;
+            antiSpam.CheckHostInHeloScore = heloScoreBefore;
+            antiSpam.SpamMarkThreshold = markBefore;
+            antiSpam.SpamDeleteThreshold = deleteBefore;
+            antiSpam.AddHeaderSpam = headerBefore;
+         }
+
+         // The control: the same kind of invitation, not flagged, is filed - and
+         // by the time it is there the spam one's delivery, which came first,
+         // had its chance.
+         SmtpRaw("friend@elsewhere.test", Reader, "mail.elsewhere.test", Invitation("friend@elsewhere.test", Reader, "Invitation: Team drinks", "Team drinks", "drinks-0001@elsewhere.test", "20261203T170000Z", "20261203T180000Z", 0, "friend@elsewhere.test", Reader));
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Team drinks\"", Me("GET", window, null, Reader, Password).body));
+         (int status, string body) filed = Me("GET", window, null, Reader, Password);
+         StringAssert.DoesNotContain("You won", filed.body, "Spam is not in the calendar. Body: " + filed.body);
+         Assert.AreEqual(0, Periods(Me("GET", "/api/v1/me/freebusy?address=" + Reader + "&from=2026-12-03T09:00:00Z&to=2026-12-03T12:00:00Z", null, Owner, Password).body).Count, "And not busy for it either.");
+
+         // A REQUEST that names somebody else: not the account's to keep.
+         SmtpRaw("friend@elsewhere.test", Reader, "mail.elsewhere.test", Invitation("friend@elsewhere.test", Reader, "Invitation: Nobody asked", "Nobody asked", "nobody-0001@elsewhere.test", "20261203T120000Z", "20261203T130000Z", 0, "friend@elsewhere.test", Writer));
+         MessageIdOf(Reader, Password, "Nobody asked");
+
+         // The control: one naming an alias of the account is the account's.
+         Alias alias = _domain.Aliases.Add();
+         alias.Name = "reader-alias@" + _domain.Name;
+         alias.Value = Reader;
+         alias.Active = true;
+         alias.Save();
+         SmtpRaw("friend@elsewhere.test", Reader, "mail.elsewhere.test", Invitation("friend@elsewhere.test", Reader, "Invitation: Via alias", "Via alias", "alias-0001@elsewhere.test", "20261203T140000Z", "20261203T150000Z", 0, "friend@elsewhere.test", "reader-alias@" + _domain.Name));
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Via alias\"", Me("GET", window, null, Reader, Password).body));
+         filed = Me("GET", window, null, Reader, Password);
+         StringAssert.DoesNotContain("Nobody asked", filed.body, "An invitation that does not name the account is not filed. Body: " + filed.body);
+         StringAssert.Contains("\"in_calendar\":false", Me("GET", "/api/v1/me/messages/" + MessageIdOf(Reader, Password, "Nobody asked") + "/invitation", null, Reader, Password).body);
+      }
+
+      [Test]
+      [Description("A REQUEST delivered again at the same SEQUENCE keeps the answer the guest already gave, and one at a higher SEQUENCE updates the copy as it arrived")]
+      public void AResentRequestKeepsTheAnswerAndANewerOneUpdates()
+      {
+         Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, Reader, Password).status);
+         (int status, string body) made = Me("POST", "/api/v1/me/calendar/events",
+            "{\"summary\":\"Budget review\",\"start\":\"2026-12-05T09:00\",\"end\":\"2026-12-05T10:00\",\"tz\":\"UTC\",\"attendees\":[\"" + Reader + "\"],\"invite\":true}", Organiser, Password);
+         Assert.AreEqual(201, made.status, made.body);
+         string uid = Regex.Match(made.body, "\"uid\":\"([^\"]+)\"").Groups[1].Value;
+         string window = "/api/v1/me/calendar/events?start=20261205T000000Z&end=20261206T000000Z";
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Budget review\"", Me("GET", window, null, Reader, Password).body));
+         long messageId = MessageIdOf(Reader, Password, "Invitation: Budget review");
+         Assert.AreEqual(200, Me("POST", "/api/v1/me/messages/" + messageId + "/invitation/reply", "{\"action\":\"accept\"}", Reader, Password).status);
+         StringAssert.Contains("\"my_partstat\":\"ACCEPTED\"", Me("GET", window, null, Reader, Password).body);
+
+         // The same REQUEST again, SEQUENCE 0 as the first: the organiser never
+         // got the answer, or sent the original again. The answer stays.
+         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Resent: Budget review", "Budget review", uid, "20261205T090000Z", "20261205T100000Z", 0, Organiser, Reader));
+         MessageIdOf(Reader, Password, "Resent: Budget review");
+         // A newer one after it, so that the resend's delivery is known to be over.
+         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Updated invitation: Budget review", "Budget review (moved)", uid, "20261205T110000Z", "20261205T120000Z", 2, Organiser, Reader));
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Budget review (moved)\"", Me("GET", window, null, Reader, Password).body));
+         (int status, string body) after = Me("GET", window, null, Reader, Password);
+         Assert.AreEqual(1, Regex.Matches(after.body, "\"uid\":\"" + Regex.Escape(uid) + "\"").Count, "One event through both. Body: " + after.body);
+         StringAssert.Contains("\"start\":\"20261205T110000Z\"", after.body, "The newer sequence's time.");
+         StringAssert.Contains("\"my_partstat\":\"NEEDS-ACTION\"", after.body, "A newer sequence is a new question, as it arrived.");
+
+         // And the same-sequence resend of THAT, after an answer, keeps the answer.
+         long moved = MessageIdOf(Reader, Password, "Updated invitation: Budget review");
+         Assert.AreEqual(200, Me("POST", "/api/v1/me/messages/" + moved + "/invitation/reply", "{\"action\":\"tentative\"}", Reader, Password).status);
+         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Resent again: Budget review", "Budget review (moved)", uid, "20261205T110000Z", "20261205T120000Z", 2, Organiser, Reader));
+         MessageIdOf(Reader, Password, "Resent again: Budget review");
+         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Marker: Budget review", "Marker", "marker-0001@" + _domain.Name, "20261205T150000Z", "20261205T153000Z", 0, Organiser, Reader));
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Marker\"", Me("GET", window, null, Reader, Password).body));
+         after = Me("GET", window, null, Reader, Password);
+         string budget = after.body.Split(new[] { "{\"id\":" }, StringSplitOptions.None).FirstOrDefault(item => item.Contains("\"uid\":\"" + uid + "\"")) ?? "";
+         StringAssert.Contains("\"my_partstat\":\"TENTATIVE\"", budget, "The answer given survives a resend at the same sequence. Body: " + after.body);
+      }
+
+      [Test]
+      [Description("Group shares in the round: the owner in a group the calendar is shared with sees it once as their own; an account reached by its own share and by groups has the widest rights of them; leaving while a group still reaches the calendar gives the own share back and says so with the group's name, over REST and CalDAV; a share taken back by name and one that was never made are one 404; a group shared as a delegate lets a member answer for the owner with SENT-BY the member; a member removed is refused on CalDAV PUT, DELETE and sync-collection")]
+      public void GroupSharesMergeReachTheOwnerOnceAndAreNotAMembersToLeave()
+      {
+         hMailServer.Group sharers = _settings.Groups.Add();
+         sharers.Name = "Calendar Sharers";
+         sharers.Save();
+         var sharersMembership = sharers.Members.Add();
+         sharersMembership.AccountID = _member.ID;
+         sharersMembership.Save();
+         hMailServer.Group editors = _settings.Groups.Add();
+         editors.Name = "Editors";
+         editors.Save();
+         var editorsMembership = editors.Members.Add();
+         editorsMembership.AccountID = _member.ID;
+         editorsMembership.Save();
+
+         Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, Owner, Password).status);
+         long defaultId = long.Parse(Regex.Match(Me("GET", "/api/v1/me/calendars", null, Owner, Password).body, "\"id\":(\\d+),\"name\":\"calendar\"").Groups[1].Value);
+         (int status, string body) rota = Me("POST", "/api/v1/me/calendars", "{\"display_name\":\"Rota\"}", Owner, Password);
+         Assert.AreEqual(201, rota.status, rota.body);
+         long rotaId = IdOf(rota.body);
+         Assert.AreEqual(200, Me("PUT", "/api/v1/me/calendars/" + rotaId + "/shares/Calendar%20Sharers", "{\"write\":false}", Owner, Password).status);
+         string memberSharedHref = HomeOf(Member) + "shared-" + rotaId + "/";
+
+         // The owner joins the group: their own calendar, once, theirs.
+         var ownerMembership = sharers.Members.Add();
+         ownerMembership.AccountID = _owner.ID;
+         ownerMembership.Save();
+         (int status, string body) ownerList = Me("GET", "/api/v1/me/calendars", null, Owner, Password);
+         Assert.AreEqual(1, Regex.Matches(ownerList.body, "\"id\":" + rotaId + ",").Count, "Once. Body: " + ownerList.body);
+         StringAssert.Contains("\"mine\":true", Regex.Match(ownerList.body, "\\{[^{}]*\"id\":" + rotaId + "[^{}]*\\}").Value);
+         List<string> ownerHome = Hrefs(Propfind(HomeOf(Owner), "1", "<D:displayname/>", Auth(Owner, Password)));
+         CollectionAssert.Contains(ownerHome, HomeOf(Owner) + "rota/");
+         CollectionAssert.DoesNotContain(ownerHome, HomeOf(Owner) + "shared-" + rotaId + "/", "Not a second time as a share.");
+         ownerMembership.Delete();
+
+         // The widest rights of every share that reaches the member: their own
+         // read-only row, the read-only group, and a second group that may write.
+         Assert.AreEqual(200, Me("PUT", "/api/v1/me/calendars/" + rotaId + "/shares/" + Member, "{\"write\":false}", Owner, Password).status);
+         Func<string> memberEntry = () => Regex.Match(Me("GET", "/api/v1/me/calendars", null, Member, Password).body, "\\{[^{}]*\"id\":" + rotaId + "[^{}]*\\}").Value;
+         StringAssert.Contains("\"writable\":false", memberEntry(), "Two read-only shares are read-only.");
+         Assert.AreEqual(200, Me("PUT", "/api/v1/me/calendars/" + rotaId + "/shares/Editors", "{\"write\":true}", Owner, Password).status);
+         StringAssert.Contains("\"writable\":true", memberEntry(), "The Editors' write reaches the member.");
+         Assert.AreEqual(1, Regex.Matches(Me("GET", "/api/v1/me/calendars", null, Member, Password).body, "\"id\":" + rotaId + ",").Count, "Three rows, one calendar.");
+         Assert.AreEqual(201, Me("POST", "/api/v1/me/calendar/events", "{\"calendar\":" + rotaId + ",\"summary\":\"Written by a member\",\"start\":\"2026-11-10T13:00\",\"end\":\"2026-11-10T14:00\",\"tz\":\"UTC\"}", Member, Password).status);
+         editorsMembership.Delete();
+         StringAssert.Contains("\"writable\":false", memberEntry(), "Out of the Editors, read-only again.");
+         Assert.AreEqual(403, Me("POST", "/api/v1/me/calendar/events", "{\"calendar\":" + rotaId + ",\"summary\":\"Not now\",\"start\":\"2026-11-10T15:00\"}", Member, Password).status);
+
+         // Leaving while a group still reaches the calendar: the own share is
+         // given back, the answer says which group keeps it, and it stays listed.
+         (int status, string body) left = Me("DELETE", "/api/v1/me/calendars/" + rotaId, null, Member, Password);
+         Assert.AreEqual(403, left.status, left.body);
+         StringAssert.Contains("\"left\":false,\"group\":\"Calendar Sharers\"", left.body);
+         StringAssert.Contains("\"id\":" + rotaId + ",", Me("GET", "/api/v1/me/calendars", null, Member, Password).body, "Still there through the group.");
+         StringAssert.DoesNotContain("{\"address\":\"" + Member + "\"", Me("GET", "/api/v1/me/calendars/" + rotaId, null, Owner, Password).body, "The own share was given back.");
+         Assert.AreEqual(403, Dav("DELETE", memberSharedHref, Auth(Member, Password)).Status);
+         Assert.AreEqual(200, Me("PUT", "/api/v1/me/calendars/" + rotaId + "/shares/" + Member, "{\"write\":false}", Owner, Password).status);
+         Assert.AreEqual(200, Me("DELETE", "/api/v1/me/calendars/" + rotaId + "/shares/Calendar%20Sharers", null, Owner, Password).status);
+         Assert.AreEqual(200, Me("DELETE", "/api/v1/me/calendars/" + rotaId + "/shares/Editors", null, Owner, Password).status);
+         (int status, string body) leftForReal = Me("DELETE", "/api/v1/me/calendars/" + rotaId, null, Member, Password);
+         Assert.AreEqual(200, leftForReal.status, leftForReal.body);
+         StringAssert.Contains("\"left\":true", leftForReal.body, "With no group reaching it, leaving leaves.");
+         StringAssert.DoesNotContain("\"id\":" + rotaId + ",", Me("GET", "/api/v1/me/calendars", null, Member, Password).body);
+
+         // One 404 for a name that is no group and for a group the calendar is
+         // not shared with: the group list is not read by a DELETE.
+         (int status, string body) noSuch = Me("DELETE", "/api/v1/me/calendars/" + rotaId + "/shares/No%20Such%20Group", null, Owner, Password);
+         (int status, string body) notShared = Me("DELETE", "/api/v1/me/calendars/" + rotaId + "/shares/Editors", null, Owner, Password);
+         Assert.AreEqual(404, noSuch.status, noSuch.body);
+         Assert.AreEqual(404, notShared.status, notShared.body);
+         Assert.AreEqual(noSuch.body, notShared.body, "The same words whether the group exists or not.");
+
+         // Shared with the group as a delegate: a member answers for the owner.
+         (int status, string body) delegated = Me("PUT", "/api/v1/me/calendars/" + defaultId + "/shares/Calendar%20Sharers", "{\"delegate\":true}", Owner, Password);
+         Assert.AreEqual(200, delegated.status, delegated.body);
+         StringAssert.Contains("{\"group\":\"Calendar Sharers\",\"members\":1,\"write\":true,\"delegate\":true}", delegated.body);
+         (int status, string body) made = Me("POST", "/api/v1/me/calendar/events",
+            "{\"summary\":\"Offsite\",\"start\":\"2026-11-25T09:00\",\"end\":\"2026-11-25T10:00\",\"tz\":\"UTC\",\"attendees\":[\"" + Owner + "\"],\"invite\":true}", Organiser, Password);
+         Assert.AreEqual(201, made.status, made.body);
+         string window = "/api/v1/me/calendar/events?start=20261125T000000Z&end=20261126T000000Z";
+         long eventId = 0;
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () =>
+         {
+            (int status, string body) events = Me("GET", window, null, Owner, Password);
+            RetryableAssert.StringContains("\"summary\":\"Offsite\"", events.body);
+            eventId = long.Parse(Regex.Match(events.body.Substring(events.body.IndexOf("\"events\":[", StringComparison.Ordinal)), "\"id\":(\\d+)").Groups[1].Value);
+         });
+         Assert.AreEqual(403, Me("POST", "/api/v1/me/calendar/events/" + eventId + "/reply", "{\"partstat\":\"ACCEPTED\"}", Reader, Password).status, "Not a member, not a delegate.");
+         (int status, string body) answered = Me("POST", "/api/v1/me/calendar/events/" + eventId + "/reply", "{\"partstat\":\"ACCEPTED\"}", Member, Password);
+         Assert.AreEqual(200, answered.status, answered.body);
+         StringAssert.Contains("\"on_behalf_of\":\"" + Owner + "\"", answered.body);
+         StringAssert.Contains("\"address\":\"" + Owner + "\",\"name\":\"Olivia Owner\",\"partstat\":\"ACCEPTED\",\"sent_by\":\"" + Member + "\"", Me("GET", "/api/v1/me/calendar/events/" + eventId, null, Owner, Password).body, "Every member may answer, and the answer says which one did.");
+         Assert.AreEqual(200, Me("DELETE", "/api/v1/me/calendars/" + defaultId + "/shares/Calendar%20Sharers", null, Owner, Password).status);
+
+         // A member removed is refused wherever CalDAV writes or reads.
+         Assert.AreEqual(200, Me("PUT", "/api/v1/me/calendars/" + rotaId + "/shares/Calendar%20Sharers", "{\"write\":false}", Owner, Password).status);
+         string sync = "<D:sync-collection xmlns:D=\"DAV:\"><D:sync-token/><D:prop><D:getetag/></D:prop></D:sync-collection>";
+         Assert.AreEqual(403, Put(memberSharedHref + "member.ics", Member, Ics("member-0001", "20261110T160000Z", "20261110T170000Z", "Over CalDAV")).Status, "Read-only while a member.");
+         Assert.AreEqual(207, Dav("REPORT", memberSharedHref, Auth(Member, Password), sync).Status, "Readable while a member.");
+         string objectHref = Hrefs(Propfind(memberSharedHref, "1", "<D:getetag/>", Auth(Member, Password))).First(h => h.EndsWith(".ics"));
+         Assert.AreEqual(403, Dav("DELETE", objectHref, Auth(Member, Password)).Status);
+         sharersMembership.Delete();
+         Assert.AreEqual(404, Put(memberSharedHref + "member.ics", Member, Ics("member-0002", "20261110T160000Z", "20261110T170000Z", "Over CalDAV")).Status, "Not there once out of the group.");
+         Assert.AreEqual(404, Dav("REPORT", memberSharedHref, Auth(Member, Password), sync).Status);
+         Assert.AreEqual(404, Dav("DELETE", objectHref, Auth(Member, Password)).Status);
+         Assert.AreEqual(404, Me("GET", "/api/v1/me/calendars/" + rotaId, null, Member, Password).status);
+
+         editors.Delete();
+         sharers.Delete();
+      }
+
+      [Test]
+      [Description("Free-busy edges: an inactive account is the same 404 and answers again when active; a shared calendar's free-busy-query carries nothing of the owner's other calendar while the route for the owner carries both; a weekly 09:00 in Europe/London is busy at 08:00Z before the October clock change and 09:00Z after; a daily rule fills a 62-day window with 62 periods and 63 days are refused")]
+      public void FreeBusyEdgesInactiveOtherCalendarsClockChangeAndADailyRule()
+      {
+         Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, Colleague, Password).status);
+         Assert.AreEqual(201, Me("POST", "/api/v1/me/calendar/events", "{\"summary\":\"Dentist\",\"start\":\"2026-11-03T10:00\",\"end\":\"2026-11-03T11:00\",\"tz\":\"UTC\"}", Colleague, Password).status);
+         string window = "&from=2026-11-03&to=2026-11-04";
+         (int status, string body) unknown = Me("GET", "/api/v1/me/freebusy?address=nobody@" + _domain.Name + window, null, Owner, Password);
+         Assert.AreEqual(404, unknown.status);
+         _colleague.Active = false;
+         _colleague.Save();
+         (int status, string body) inactive = Me("GET", "/api/v1/me/freebusy?address=" + Colleague + window, null, Owner, Password);
+         Assert.AreEqual(404, inactive.status, inactive.body);
+         Assert.AreEqual(unknown.body, inactive.body, "An inactive account is not there to this route either.");
+         _colleague.Active = true;
+         _colleague.Save();
+         Assert.AreEqual(1, Periods(Me("GET", "/api/v1/me/freebusy?address=" + Colleague + window, null, Owner, Password).body).Count, "Active again, answered again.");
+
+         // The shared calendar's report is that one calendar; the owner's own
+         // free-busy is every calendar of theirs.
+         Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, Owner, Password).status);
+         long defaultId = long.Parse(Regex.Match(Me("GET", "/api/v1/me/calendars", null, Owner, Password).body, "\"id\":(\\d+),\"name\":\"calendar\"").Groups[1].Value);
+         (int status, string body) side = Me("POST", "/api/v1/me/calendars", "{\"display_name\":\"Side\"}", Owner, Password);
+         Assert.AreEqual(201, side.status, side.body);
+         Assert.AreEqual(201, Me("POST", "/api/v1/me/calendar/events", "{\"calendar\":" + defaultId + ",\"summary\":\"Board\",\"start\":\"2026-11-05T09:00\",\"end\":\"2026-11-05T10:00\",\"tz\":\"UTC\"}", Owner, Password).status);
+         Assert.AreEqual(201, Me("POST", "/api/v1/me/calendar/events", "{\"calendar\":" + IdOf(side.body) + ",\"summary\":\"Side project\",\"start\":\"2026-11-05T15:00\",\"end\":\"2026-11-05T16:00\",\"tz\":\"UTC\"}", Owner, Password).status);
+         Assert.AreEqual(200, Me("PUT", "/api/v1/me/calendars/" + defaultId + "/shares/" + Reader, "{\"write\":false}", Owner, Password).status);
+         string report = "<C:free-busy-query xmlns:C=\"" + NsCalDav + "\"><C:time-range start=\"20261105T000000Z\" end=\"20261106T000000Z\"/></C:free-busy-query>";
+         Response shared = Dav("REPORT", HomeOf(Reader) + "shared-" + defaultId + "/", Auth(Reader, Password), report);
+         Assert.AreEqual(200, shared.Status, shared.Body);
+         StringAssert.Contains("FREEBUSY;FBTYPE=BUSY:20261105T090000Z/20261105T100000Z", shared.Body);
+         StringAssert.DoesNotContain("20261105T150000Z", shared.Body, "The owner's other calendar is not in the shared one's report.");
+         StringAssert.DoesNotContain("ATTENDEE", shared.Body, "A bare VFREEBUSY, as RFC 4791 section 7.10 answers it.");
+         StringAssert.DoesNotContain("ORGANIZER", shared.Body);
+         CollectionAssert.AreEqual(new[] { "20261105T090000Z/20261105T100000Z/busy", "20261105T150000Z/20261105T160000Z/busy" },
+            Periods(Me("GET", "/api/v1/me/freebusy?address=" + Owner + "&from=2026-11-05&to=2026-11-06", null, Owner, Password).body), "The route is every calendar of the owner's.");
+
+         // Across the clock change, and a rule that fills the window.
+         Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, Writer, Password).status);
+         Assert.AreEqual(201, Put(HomeOf(Writer) + "calendar/london.ics", Writer, IcsLines("fb-london", "DTSTART;TZID=Europe/London:20261019T090000", "DTEND;TZID=Europe/London:20261019T093000", "SUMMARY:London standup", "RRULE:FREQ=WEEKLY;COUNT=3")).Status);
+         CollectionAssert.AreEqual(new[] { "20261019T080000Z/20261019T083000Z/busy", "20261026T090000Z/20261026T093000Z/busy", "20261102T090000Z/20261102T093000Z/busy" },
+            Periods(Me("GET", "/api/v1/me/freebusy?address=" + Writer + "&from=2026-10-18&to=2026-11-04", null, Owner, Password).body), "09:00 London is 08:00Z in summer time and 09:00Z after the clocks go back.");
+         Assert.AreEqual(201, Put(HomeOf(Writer) + "calendar/daily.ics", Writer, IcsLines("fb-daily", "DTSTART:20261201T100000Z", "DTEND:20261201T103000Z", "SUMMARY:Daily", "RRULE:FREQ=DAILY;COUNT=200")).Status);
+         List<string> daily = Periods(Me("GET", "/api/v1/me/freebusy?address=" + Writer + "&from=2026-12-01&to=2027-02-01", null, Owner, Password).body);
+         Assert.AreEqual(62, daily.Count, "One period a day for 62 days.");
+         Assert.AreEqual("20261201T100000Z/20261201T103000Z/busy", daily.First());
+         Assert.AreEqual("20270131T100000Z/20270131T103000Z/busy", daily.Last());
+         Assert.AreEqual(400, Me("GET", "/api/v1/me/freebusy?address=" + Writer + "&from=2026-12-01&to=2027-02-02", null, Owner, Password).status, "63 days.");
+      }
+
+      [Test]
+      [Description("The reply route steps the calendar's sync token and the event's ETag, and refuses an event the owner is not a guest of - one a phone put in with another organiser and other guests - to the owner and to a delegate alike, sending nothing")]
+      public void AReplyStepsTheTokenAndNeedsTheOwnerAmongTheGuests()
+      {
+         Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, Owner, Password).status);
+         long defaultId = long.Parse(Regex.Match(Me("GET", "/api/v1/me/calendars", null, Owner, Password).body, "\"id\":(\\d+),\"name\":\"calendar\"").Groups[1].Value);
+         Assert.AreEqual(200, Me("PUT", "/api/v1/me/calendars/" + defaultId + "/shares/" + Deputy, "{\"delegate\":true}", Owner, Password).status);
+         (int status, string body) made = Me("POST", "/api/v1/me/calendar/events",
+            "{\"summary\":\"Sync\",\"start\":\"2026-12-08T09:00\",\"end\":\"2026-12-08T10:00\",\"tz\":\"UTC\",\"attendees\":[\"" + Owner + "\"],\"invite\":true}", Organiser, Password);
+         Assert.AreEqual(201, made.status, made.body);
+         string window = "/api/v1/me/calendar/events?start=20261208T000000Z&end=20261209T000000Z";
+         long eventId = 0;
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () =>
+         {
+            (int status, string body) events = Me("GET", window, null, Owner, Password);
+            RetryableAssert.StringContains("\"summary\":\"Sync\"", events.body);
+            eventId = long.Parse(Regex.Match(events.body.Substring(events.body.IndexOf("\"events\":[", StringComparison.Ordinal)), "\"id\":(\\d+)").Groups[1].Value);
+         });
+
+         long tokenBefore = long.Parse(Regex.Match(Me("GET", "/api/v1/me/calendars/" + defaultId, null, Owner, Password).body, "\"sync_token\":(\\d+)").Groups[1].Value);
+         Response listing = Propfind(HomeOf(Owner) + "calendar/", "1", "<D:getetag/>", Auth(Owner, Password));
+         string href = Hrefs(listing).First(h => h.EndsWith(".ics") && Dav("GET", h, Auth(Owner, Password)).Body.Contains("SUMMARY:Sync"));
+         string etagBefore = PropText(listing, href, "D:getetag");
+
+         Assert.AreEqual(200, Me("POST", "/api/v1/me/calendar/events/" + eventId + "/reply", "{\"partstat\":\"DECLINED\"}", Deputy, Password).status);
+         long tokenAfter = long.Parse(Regex.Match(Me("GET", "/api/v1/me/calendars/" + defaultId, null, Owner, Password).body, "\"sync_token\":(\\d+)").Groups[1].Value);
+         Assert.Greater(tokenAfter, tokenBefore, "The collection's token steps, so a syncing phone reads the answer.");
+         string etagAfter = PropText(Propfind(HomeOf(Owner) + "calendar/", "1", "<D:getetag/>", Auth(Owner, Password)), href, "D:getetag");
+         Assert.AreNotEqual(etagBefore, etagAfter, "The object's ETag changes with its bytes.");
+         StringAssert.Contains("SENT-BY=\"mailto:" + Deputy + "\"", Dav("GET", href, Auth(Owner, Password)).Body);
+
+         // An event in the calendar that another organiser runs and the owner is
+         // not a guest of: nobody expects the owner's answer.
+         Assert.AreEqual(201, Put(HomeOf(Owner) + "calendar/stray.ics", Owner, Ics("stray-0001", "20261208T140000Z", "20261208T150000Z", "Stray", "ORGANIZER:mailto:" + Organiser, "ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:" + Reader)).Status);
+         (int status, string body) events = Me("GET", window, null, Owner, Password);
+         string stray = events.body.Split(new[] { "{\"id\":" }, StringSplitOptions.None).FirstOrDefault(item => item.Contains("\"summary\":\"Stray\"")) ?? "";
+         long strayId = long.Parse(Regex.Match(stray, "^(\\d+)").Groups[1].Value);
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         Pop3ClientSimulator.AssertMessageCount(Organiser, Password, 1);
+         (int status, string body) refusedDelegate = Me("POST", "/api/v1/me/calendar/events/" + strayId + "/reply", "{\"partstat\":\"ACCEPTED\"}", Deputy, Password);
+         Assert.AreEqual(400, refusedDelegate.status, refusedDelegate.body);
+         StringAssert.Contains("not a guest", refusedDelegate.body);
+         Assert.AreEqual(400, Me("POST", "/api/v1/me/calendar/events/" + strayId + "/reply", "{\"partstat\":\"ACCEPTED\"}", Owner, Password).status, "To the owner as well.");
+         StringAssert.DoesNotContain("mailto:" + Owner, Dav("GET", HomeOf(Owner) + "calendar/stray.ics", Auth(Owner, Password)).Body, "The owner was not added as a guest.");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         Pop3ClientSimulator.AssertMessageCount(Organiser, Password, 1);
+      }
+
       // ------------------------------------------------------------- helpers
 
       private static long IdOf(string json)
@@ -514,6 +864,63 @@ namespace RegressionTests.API
          lines.AddRange(more);
          lines.AddRange(new[] { "END:VEVENT", "END:VCALENDAR", "" });
          return string.Join("\r\n", lines);
+      }
+
+      // One VEVENT whose lines are given whole, for a zone or a rule.
+      private static string IcsLines(string uid, params string[] lines)
+      {
+         var all = new List<string> { "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//A phone//EN", "BEGIN:VEVENT", "UID:" + uid, "DTSTAMP:20260101T000000Z", "SEQUENCE:0" };
+         all.AddRange(lines);
+         all.AddRange(new[] { "END:VEVENT", "END:VCALENDAR", "" });
+         return string.Join("\r\n", all);
+      }
+
+      // A mail carrying a METHOD:REQUEST as its whole body, as a client sends one.
+      private static string Invitation(string from, string to, string subject, string summary, string uid, string dtstart, string dtend, int sequence, string organizer, params string[] attendees)
+      {
+         var lines = new List<string>
+         {
+            "From: <" + from + ">", "To: <" + to + ">", "Subject: " + subject, "MIME-Version: 1.0", "Content-Type: text/calendar; charset=utf-8; method=REQUEST", "",
+            "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//A client//EN", "METHOD:REQUEST", "BEGIN:VEVENT", "UID:" + uid, "DTSTAMP:20260101T000000Z",
+            "DTSTART:" + dtstart, "DTEND:" + dtend, "SUMMARY:" + summary, "SEQUENCE:" + sequence, "ORGANIZER:mailto:" + organizer
+         };
+         foreach (string attendee in attendees)
+            lines.Add("ATTENDEE;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:" + attendee);
+         lines.AddRange(new[] { "END:VEVENT", "END:VCALENDAR", "" });
+         return string.Join("\r\n", lines);
+      }
+
+      // One SMTP session of the test's own, so the HELO is the test's to choose.
+      private static void SmtpRaw(string from, string to, string helo, string message)
+      {
+         using (var client = new TcpClient("127.0.0.1", SmtpPort))
+         using (NetworkStream stream = client.GetStream())
+         using (var reader = new StreamReader(stream, Encoding.ASCII))
+         using (var writer = new StreamWriter(stream, Encoding.ASCII) { AutoFlush = true, NewLine = "\r\n" })
+         {
+            ExpectSmtp(reader, "220");
+            writer.WriteLine("HELO " + helo);
+            ExpectSmtp(reader, "250");
+            writer.WriteLine("MAIL FROM:<" + from + ">");
+            ExpectSmtp(reader, "250");
+            writer.WriteLine("RCPT TO:<" + to + ">");
+            ExpectSmtp(reader, "250");
+            writer.WriteLine("DATA");
+            ExpectSmtp(reader, "354");
+            string text = message.Replace("\r\n.", "\r\n..");
+            writer.Write(text.EndsWith("\r\n") ? text : text + "\r\n");
+            writer.Write(".\r\n");
+            ExpectSmtp(reader, "250");
+            writer.WriteLine("QUIT");
+         }
+      }
+
+      private static void ExpectSmtp(StreamReader reader, string code)
+      {
+         string line = reader.ReadLine();
+         while (line != null && line.Length > 3 && line[3] == '-')
+            line = reader.ReadLine();
+         Assert.IsTrue(line != null && line.StartsWith(code), "SMTP answered " + (line ?? "nothing") + " where " + code + " was expected.");
       }
 
       private static Response Put(string href, string address, string text)

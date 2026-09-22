@@ -631,6 +631,11 @@ function eventsIn(query) {
       out.push({ id: 12, calendar: 5, uid: 'review@example.net', start: utcStamp(r), end: utcStamp(new Date(r.getTime() + 3600000)), local_start: localStamp(r), local_end: localStamp(new Date(r.getTime() + 3600000)),
          recurring: false, recurrence_id: '', overridden: false, writable: true, mine: false, delegate: true, color: '#188038', summary: 'Review', location: '', description: '', tz: 'UTC', rrule: '', alarm_minutes: -1,
          organizer: 'org@example.net', organizer_name: 'Olive Org', attendees: [{ address: 'boss@example.com', name: 'Boss', partstat: reviewAnswer || 'NEEDS-ACTION', sent_by: reviewAnswer ? 'user@example.com' : '' }], my_partstat: '', status: '', sequence: 0, all_day: false });
+      // In the same calendar, an event with another organiser that does not name the boss as a guest: nothing to answer.
+      const y = new Date(r.getTime() + 2 * 3600000);
+      out.push({ id: 13, calendar: 5, uid: 'stray@example.net', start: utcStamp(y), end: utcStamp(new Date(y.getTime() + 1800000)), local_start: localStamp(y), local_end: localStamp(new Date(y.getTime() + 1800000)),
+         recurring: false, recurrence_id: '', overridden: false, writable: true, mine: false, delegate: true, color: '#188038', summary: 'Not mine', location: '', description: '', tz: 'UTC', rrule: '', alarm_minutes: -1,
+         organizer: 'org@example.net', organizer_name: 'Olive Org', attendees: [{ address: 'someone@example.net', name: '', partstat: 'NEEDS-ACTION', sent_by: '' }], my_partstat: '', status: '', sequence: 0, all_day: false });
    }
    return out;
 }
@@ -4316,6 +4321,15 @@ async function main() {
    check('an event the reader organises offers no answer buttons', document.getElementById('event-answer').hidden === true, document.getElementById('event-answer').textContent);
    document.getElementById('event-cancel').dispatchEvent(makeEvent('click'));
    await flush();
+   const strayChip = findAll(calSection, (n) => hasClass(n, 'cal-chip') && n.textContent.indexOf('Not mine') >= 0)[0];
+   check('an event in the delegated calendar that does not name the owner as a guest has a chip', !!strayChip, findAll(calSection, (n) => hasClass(n, 'cal-chip')).map((c) => c.textContent).join(','));
+   if (strayChip) {
+   strayChip.dispatchEvent(makeEvent('click'));
+   await flush();
+   check('and offers no answer buttons, since the owner is not among its guests', document.getElementById('event-overlay').hidden === false && document.getElementById('event-answer').hidden === true, document.getElementById('event-answer').textContent);
+   document.getElementById('event-cancel').dispatchEvent(makeEvent('click'));
+   await flush();
+   }
 
    // ---- tasks
    const beforeTasks = requests.length;

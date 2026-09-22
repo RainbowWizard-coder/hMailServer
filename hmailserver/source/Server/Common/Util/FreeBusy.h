@@ -57,8 +57,10 @@ namespace HM
       static void Merge(std::vector<FreeBusyPeriod> &periods);
 
       // The VFREEBUSY object (RFC 5545 section 3.6.4) a free-busy-query
-      // answers: DTSTART and DTEND the window, one FREEBUSY line per period
-      // with FBTYPE BUSY or BUSY-TENTATIVE, and nothing that names an event.
+      // answers: UID, DTSTAMP, DTSTART and DTEND the window, one FREEBUSY line
+      // per period with FBTYPE BUSY or BUSY-TENTATIVE, and nothing that names
+      // an event - no ORGANIZER and no ATTENDEE either, which RFC 4791 section
+      // 7.10 leaves out and which belong to RFC 6638's scheduling object.
       static AnsiString VFreeBusy(const AnsiString &address, __int64 from, __int64 to, const std::vector<FreeBusyPeriod> &periods);
 
       // A window bound as a query writes it: "YYYY-MM-DD", "YYYY-MM-DDTHH:MM"

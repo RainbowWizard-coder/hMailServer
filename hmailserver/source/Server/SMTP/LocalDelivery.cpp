@@ -507,10 +507,11 @@ namespace HM
       // this thread. See Common/Util/PushNotifier.h.
       PushNotifier::Instance()->Note(account->GetID(), accountLevelMessage);
 
-      // A reply to an invitation this account organised, or a cancellation of
-      // one it holds, is filed into the stored event (Common/Util/Imip.h). A
+      // A reply to an invitation this account organised, a cancellation of
+      // one it holds, or an invitation to it, is filed into the stored event
+      // (Common/Util/Imip.h); a message flagged as spam files nothing. A
       // message without a calendar part costs the look at its header.
-      Imip::FileOnDelivery(account, PersistentMessage::GetFileName(account, accountLevelMessage));
+      Imip::FileOnDelivery(account, PersistentMessage::GetFileName(account, accountLevelMessage), accountLevelMessage->GetFlagSpam());
 
       AWStats::LogDeliverySuccess(_sendersIP, "127.0.0.1", accountLevelMessage, account->GetAddress());
    }

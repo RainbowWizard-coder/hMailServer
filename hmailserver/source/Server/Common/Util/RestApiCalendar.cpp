@@ -226,6 +226,17 @@ namespace HM
          return group != nullptr;
       }
 
+      // The name of one of the server's groups by its id, or "" when it is gone.
+      String GroupNameOf(__int64 groupId)
+      {
+         std::shared_ptr<Groups> groups = Configuration::Instance()->GetIMAPConfiguration()->GetGroups();
+         if (!groups)
+            return String();
+         groups->Refresh();
+         std::shared_ptr<Group> group = groups->GetItemByDBID(static_cast<unsigned __int64>(groupId));
+         return group ? group->GetName() : String();
+      }
+
       AnsiString ShareJson(const CalendarShareRecord &share)
       {
          AnsiString json = share.groupId != 0
@@ -1395,6 +1406,11 @@ namespace HM
             return BuildResponse_(403, "{\"error\":\"the calendar is shared with a group you are a member of; the share is the group's, and only its owner takes it back\"}");
          if (!CalendarStore::Unshare(calendarId, account->GetID()))
             return BuildResponse_(500, "{\"error\":\"the share could not be removed\"}");
+         // The account's own row is gone; a group's row may still reach it, and
+         // then the calendar has not been left - the listing shows it still.
+         CalendarShareRecord still;
+         if (CalendarStore::ShareOf(calendarId, account->GetID(), still) && still.groupId != 0)
+            return BuildResponse_(403, "{\"left\":false,\"group\":\"" + JsonEscape_(Utf8_(GroupNameOf(still.groupId))) + "\",\"error\":\"your own share is given back, but the calendar is still shared with a group you are a member of; the group's share is the group's, and only its owner takes it back\"}");
          return BuildResponse_(200, "{\"left\":true}");
       }
       if (v.calendar.name.CompareNoCase(String(CalendarStore::DefaultName)) == 0)
@@ -1454,23 +1470,28 @@ namespace HM
       if (!v.mine)
          return BuildResponse_(403, "{\"error\":\"only the calendar's owner shares it\"}");
 
+      // One 404 whether the name is unknown or merely not shared with: the
+      // groups are an administrator's list, and a DELETE by name must not read
+      // it for anybody with a calendar. (The PUT's answer, which makes the
+      // share and says the group's size, is the feature.)
+      const char *notShared = "{\"error\":\"the calendar is not shared with that name\"}";
       std::shared_ptr<const Account> other;
       std::shared_ptr<Group> group;
       if (!ResolveShareTarget(address, other, group))
-         return BuildResponse_(404, "{\"error\":\"no account on this server has that address, and no group of this server has that name\"}");
+         return BuildResponse_(404, notShared);
 
       CalendarShareRecord share;
       if (other)
       {
          if (!CalendarStore::DirectShareOf(calendarId, other->GetID(), share))
-            return BuildResponse_(404, "{\"error\":\"the calendar is not shared with that address\"}");
+            return BuildResponse_(404, notShared);
          if (!CalendarStore::Unshare(calendarId, other->GetID()))
             return BuildResponse_(500, "{\"error\":\"the share could not be removed\"}");
       }
       else
       {
          if (!CalendarStore::GroupShareOf(calendarId, group->GetID(), share))
-            return BuildResponse_(404, "{\"error\":\"the calendar is not shared with that group\"}");
+            return BuildResponse_(404, notShared);
          if (!CalendarStore::UnshareGroup(calendarId, group->GetID()))
             return BuildResponse_(500, "{\"error\":\"the share could not be removed\"}");
       }
@@ -2512,6 +2533,11 @@ namespace HM
          return BuildResponse_(400, "{\"error\":\"the event names no organiser to answer\"}");
       if (organizer == ownerAddress)
          return BuildResponse_(400, "{\"error\":\"the calendar's owner organises this event; answers are the guests'\"}");
+      // An answer is a guest's: an event a phone copied in, a forwarded
+      // invitation or one to a list the owner is not named on has no ATTENDEE
+      // for the owner, and no organiser expecting their reply.
+      if (MyPartstat(*master, ownerAddress).IsEmpty())
+         return BuildResponse_(400, "{\"error\":\"the calendar's owner is not a guest of this event\"}");
 
       // The OWNER's answer is what is set and what is sent, whoever pressed
       // the button: a delegate's own calendar is not touched, and the
@@ -2568,7 +2594,7 @@ namespace HM
          "\"put\":{\"summary\":\"Rename or recolour a calendar\",\"description\":\"Body: display_name and/or color. The owner's only.\",\"responses\":{\"200\":{\"description\":\"the calendar\"},\"403\":{\"description\":\"not the caller's calendar\"},\"404\":{\"description\":\"no such calendar\"}}},"
          "\"delete\":{\"summary\":\"Delete a calendar, or leave one shared with you\",\"description\":\"The account's own calendar goes with its events and shares; the default cannot be deleted. On a calendar another account shared, the share is given back and the calendar stays theirs.\",\"responses\":{\"200\":{\"description\":\"deleted, or left\"},\"403\":{\"description\":\"the default calendar\"},\"404\":{\"description\":\"no such calendar\"}}}},"
          "\"/api/v1/me/calendars/{id}/shares/{address}\":{\"put\":{\"summary\":\"Share a calendar with another account of this server, or with a group\",\"description\":\"The path names an account's address, or the name of one of this server's groups (a name that is both is the account). Body: write (boolean, default false), delegate (boolean, default false; implies write: the sharee may answer the owner's invitations on the owner's behalf through POST /api/v1/me/calendar/events/{id}/reply). The other account - or every member of the group, read at the time it asks - sees the calendar in its own listing and CalDAV home as shared-{id}, read-only or read-write; what it may do is what the CalDAV current-user-privilege-set says.\",\"responses\":{\"200\":{\"description\":\"the calendar with its shares\"},\"404\":{\"description\":\"no account has that address and no group that name\"}}},"
-         "\"delete\":{\"summary\":\"Take a share back, from an account or from a group\",\"responses\":{\"200\":{\"description\":\"the calendar with its shares\"},\"404\":{\"description\":\"not shared with that address or group\"}}}},"
+         "\"delete\":{\"summary\":\"Take a share back, from an account or from a group\",\"description\":\"One 404 whether the name is unknown or not shared with, so the route does not read the group list for anybody.\",\"responses\":{\"200\":{\"description\":\"the calendar with its shares\"},\"404\":{\"description\":\"not shared with that name\"}}}},"
          "\"/api/v1/me/calendar/events\":{\"get\":{\"summary\":\"The events of a window, occurrence by occurrence, across every calendar the account can see\",\"description\":\"start= and end= as UTC date-times (YYYYMMDDTHHMMSSZ), at most 400 days apart. Every recurring event is expanded by the server's recurrence module - overrides and exclusions applied - and each occurrence carries its recurrence_id, so the page can change or delete that one alone. Times are UTC; local_start and local_end are the wall clock in the event's own zone (tz) for the editor. my_partstat is the caller's answer when they are an attendee.\",\"responses\":{\"200\":{\"description\":\"events\"},\"400\":{\"description\":\"the window is missing or wrong\"}}},"
          "\"post\":{\"summary\":\"Create an event\",\"description\":\"Body: summary (required), start (required: YYYY-MM-DD for an all-day event, else YYYY-MM-DDTHH:MM wall time in tz), end (default an hour later, or the day), all_day, tz (an IANA zone this server knows; times are stored with that TZID so a weekly 09:00 stays 09:00 across a clock change), location, description, rrule (an RFC 5545 rule, e.g. FREQ=WEEKLY;BYDAY=MO;COUNT=10), alarm_minutes (a display reminder that many minutes before; -1 none), attendees (an array of addresses, Name <address> allowed), calendar (id; default the first), and invite: true to mail each attendee a METHOD:REQUEST with the event as text/calendar - what Outlook, Gmail and Apple Mail turn into an invitation card.\",\"responses\":{\"201\":{\"description\":\"id, uid, calendar, invited\"},\"400\":{\"description\":\"a field is wrong\"},\"403\":{\"description\":\"the calendar is read-only for the caller\"}}}},"
          "\"/api/v1/me/calendar/events/{id}\":{\"get\":{\"summary\":\"One event as stored, with its iCalendar text\",\"responses\":{\"200\":{\"description\":\"the event\"},\"404\":{\"description\":\"not found\"}}},"
@@ -2580,7 +2606,7 @@ namespace HM
          "\"delete\":{\"summary\":\"Delete a task\",\"responses\":{\"200\":{\"description\":\"removed\"},\"404\":{\"description\":\"not found\"}}}},"
          "\"/api/v1/me/messages/{id}/invitation\":{\"get\":{\"summary\":\"The invitation a message carries\",\"description\":\"The first text/calendar part or .ics attachment, read: method (REQUEST, REPLY, CANCEL, COUNTER, ...), the event's summary, when (UTC and local), where, organizer, attendees with their answers, my_partstat, and whether the event is already in one of the caller's calendars (in_calendar, event_id, stored_partstat, stored_status). 404 for a message without one.\",\"responses\":{\"200\":{\"description\":\"the invitation\"},\"404\":{\"description\":\"no invitation\"}}}},"
          "\"/api/v1/me/messages/{id}/invitation/reply\":{\"post\":{\"summary\":\"Answer an invitation\",\"description\":\"Body: action - accept, tentative or decline keep the event in the caller's default calendar with their PARTSTAT set (updating the copy a REQUEST delivered to the account already filed there, never adding a second) and mail the organiser a METHOD:REPLY (RFC 6047), which this server files into the organiser's own event when they are on it and which Exchange, Microsoft 365 and Google file into theirs; remove takes the event out of the calendar (what a CANCEL asks for); counter, with start and optionally end and tz, mails the organiser a METHOD:COUNTER proposing that time. comment travels in the mail.\",\"responses\":{\"200\":{\"description\":\"stored, replied, or countered\"},\"400\":{\"description\":\"the action is unknown, or the caller is the organiser\"},\"404\":{\"description\":\"no invitation\"}}}},"
-         "\"/api/v1/me/calendar/events/{id}/reply\":{\"post\":{\"summary\":\"Answer an invitation that is in a calendar - as its owner, or as a delegate on the owner's behalf\",\"description\":\"Body: partstat - ACCEPTED, TENTATIVE or DECLINED - and an optional comment. Allowed to the calendar's owner and to a sharee whose share is a delegation (not to a plain writer or a reader: 403). The OWNER's PARTSTAT on the event is set and the organiser is mailed a METHOD:REPLY whose ATTENDEE is the owner; when a delegate answered, that ATTENDEE carries SENT-BY=mailto:the delegate (RFC 5545 section 3.2.18), kept in the stored event so the owner's page shows who answered, and the mail is From: the owner with Sender: the delegate, sent from the delegate's own address - what a mail client shows as on behalf of. The delegate's own calendar is not touched. 400 when the event names no organiser or the owner organises it.\",\"responses\":{\"200\":{\"description\":\"event_id, partstat, on_behalf_of, replied, to\"},\"400\":{\"description\":\"partstat is not one of the three, or the event is not an invitation to the owner\"},\"403\":{\"description\":\"not the owner and not a delegate\"},\"404\":{\"description\":\"no such event\"}}}},"
+         "\"/api/v1/me/calendar/events/{id}/reply\":{\"post\":{\"summary\":\"Answer an invitation that is in a calendar - as its owner, or as a delegate on the owner's behalf\",\"description\":\"Body: partstat - ACCEPTED, TENTATIVE or DECLINED - and an optional comment. Allowed to the calendar's owner and to a sharee whose share is a delegation (not to a plain writer or a reader: 403). The OWNER's PARTSTAT on the event is set and the organiser is mailed a METHOD:REPLY whose ATTENDEE is the owner; when a delegate answered, that ATTENDEE carries SENT-BY=mailto:the delegate (RFC 5545 section 3.2.18), kept in the stored event so the owner's page shows who answered, and the mail is From: the owner with Sender: the delegate, sent from the delegate's own address - what a mail client shows as on behalf of. The delegate's own calendar is not touched. 400 when the event names no organiser or the owner organises it.\",\"responses\":{\"200\":{\"description\":\"event_id, partstat, on_behalf_of, replied, to\"},\"400\":{\"description\":\"partstat is not one of the three, the owner organises the event, or the owner is not among its guests\"},\"403\":{\"description\":\"not the owner and not a delegate\"},\"404\":{\"description\":\"no such event\"}}}},"
          "\"/api/v1/me/freebusy\":{\"get\":{\"summary\":\"When an account of the caller's domain is busy\",\"description\":\"address= an account of the caller's own domain (an alias domain's spelling resolved); from= and to= the window, at most 62 days apart, as YYYY-MM-DD, YYYY-MM-DDTHH:MM[:SS] with Z or an offset, or YYYYMMDDTHHMMSSZ. The answer is the busy periods of that account's own calendars over the window - every event instance expanded, recurrences included, an event that is TRANSP:TRANSPARENT or STATUS:CANCELLED or that the account declined left out - merged and sorted, each with kind busy or tentative (tentative when the account's PARTSTAT is TENTATIVE or NEEDS-ACTION), with no title, location or description. 404 for an address that is not an active account of the caller's domain, one that does not exist, and one whose freebusy preference is nobody: one answer, so nothing is enumerated. The CalDAV free-busy-query REPORT answers the same computation as a VFREEBUSY.\",\"responses\":{\"200\":{\"description\":\"address, from, to, busy: [{start, end, kind}]\"},\"400\":{\"description\":\"the address or the window is missing, or the window is over 62 days\"},\"404\":{\"description\":\"not an account of the caller's domain that shows when it is busy\"}}}}";
    }
 }
