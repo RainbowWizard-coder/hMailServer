@@ -905,6 +905,13 @@ namespace HM
       return ReadArmour_(source, "PUBLIC KEY BLOCK", out, error);
    }
 
+   bool
+   OpenPgpKey::DearmourMessage(const AnsiString &text, std::vector<unsigned char> &out, AnsiString &error)
+   {
+      const std::string source(text.c_str(), (size_t) text.GetLength());
+      return ReadArmour_(source, "MESSAGE", out, error);
+   }
+
    // The radix-64 block of RFC 9580 section 6, for whichever label the caller
    // wants. Dearmour is the public key's door and refuses a secret key before
    // it reaches here; ReadSecretKey is the other caller, and the one thing it

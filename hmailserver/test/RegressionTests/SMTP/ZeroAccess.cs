@@ -468,14 +468,18 @@ namespace RegressionTests.SMTP
 
          const string text = "This sentence must reach nobody's disk in the clear.";
          SmtpClientSimulator.StaticSend(_plain.Address, _sealed.Address, "Refused at the seal", text);
-         // The sender is local, so the delivery status notification lands in
-         // its own mailbox, where it can be read.
+         // The evidence in the order it is made: nothing stored for the sealed
+         // mailbox once the queue has drained, the log naming the refusal, and
+         // then - the sender being local - the delivery status notification in
+         // its own mailbox, where it can be read. The notification is queued
+         // for the next pass of the delivery queue, and asserting the queue
+         // empty is what makes that pass happen now rather than in a minute.
+         Pop3ClientSimulator.AssertMessageCount(_sealed.Address, Password, 0);
+         CustomAsserts.AssertReportedError("7070", "could not be encrypted for the zero-access mailbox");
          Pop3ClientSimulator.AssertMessageCount(_plain.Address, Password, 1);
          string notice = Pop3ClientSimulator.AssertGetFirstMessageText(_plain.Address, Password);
          StringAssert.Contains("zero-access mailbox", notice, "The sender is told what refused the message.");
          StringAssert.Contains("4.3.0", notice, "Class 4: the recipient's address has nothing wrong with it.");
-         Pop3ClientSimulator.AssertMessageCount(_sealed.Address, Password, 0);
-         CustomAsserts.AssertReportedError("7070", "could not be encrypted for the zero-access mailbox");
 
          // The negative control: the ordinary mailbox is delivered to as ever
          // (the notice above was deleted when it was read).

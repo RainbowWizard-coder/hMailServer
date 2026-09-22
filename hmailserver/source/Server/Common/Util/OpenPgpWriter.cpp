@@ -1326,7 +1326,9 @@ namespace HM
          Require(armoured.StartsWith("-----BEGIN PGP MESSAGE-----\r\n\r\n") && armoured.EndsWith("-----END PGP MESSAGE-----\r\n"), "The armour's frame is wrong.");
          std::vector<unsigned char> back;
          AnsiString problem;
-         Require(OpenPgpKey::Dearmour(armoured, back, problem) && back == message, "The armoured message does not dearmour to the same bytes.");
+         // Dearmour is the public key's door and reads that label only; a
+         // message block has its own.
+         Require(OpenPgpKey::DearmourMessage(armoured, back, problem) && back == message, "The armoured message does not dearmour to the same bytes.");
       }
 
       // ---- PGP/MIME: the outer headers kept, the Content-* fields gone

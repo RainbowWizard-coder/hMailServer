@@ -147,6 +147,11 @@ namespace HM
       // checksum. False with a sentence in error when the block is not one.
       static bool Dearmour(const AnsiString &text, std::vector<unsigned char> &out, AnsiString &error);
 
+      // The same radix-64 reading for a PGP MESSAGE block - what OpenPgpWriter
+      // armours - with the checksum checked when it is there. This server
+      // never decrypts one; the writer's self-test reads its own armour back.
+      static bool DearmourMessage(const AnsiString &text, std::vector<unsigned char> &out, AnsiString &error);
+
       // The CRC-24 of section 6.1 over the bytes, for whoever writes armour
       // (OpenPgpWriter); Dearmour checks the same sum on the way in.
       static unsigned int ArmourChecksum(const unsigned char *data, size_t length);
