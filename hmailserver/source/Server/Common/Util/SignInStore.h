@@ -102,7 +102,12 @@ namespace HM
          ProtocolImap = 3,
          ProtocolWeb = 4,
          ProtocolDav = 5,
-         ProtocolManageSieve = 6
+         ProtocolManageSieve = 6,
+         // Outlook's Autodiscover answer, when it was asked with the account's
+         // credentials for the mailboxes delegated to it. Its own entry, not
+         // dav, so that an Outlook user agent in the list is not read as a
+         // calendar client.
+         ProtocolAutodiscover = 7
       };
 
       enum Credential

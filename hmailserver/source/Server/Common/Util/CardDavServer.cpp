@@ -2314,7 +2314,7 @@ namespace HM
 
       Context context(request);
       bool disconnect = false;
-      if (!Authenticate(request, "CardDAV", context.account, disconnect))
+      if (!Authenticate(request, "CardDAV", SignInStore::ProtocolDav, context.account, disconnect))
       {
          HttpResponse refusal = Unauthorized();
          // The connection closes with the refusal, whatever the lockout said:

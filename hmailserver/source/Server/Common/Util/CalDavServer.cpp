@@ -1865,7 +1865,7 @@ namespace HM
 
       Context context(request);
       bool disconnect = false;
-      if (!Authenticate(request, "CalDAV", context.account, disconnect))
+      if (!Authenticate(request, "CalDAV", SignInStore::ProtocolDav, context.account, disconnect))
       {
          HttpResponse refusal = Unauthorized();
          refusal.close = true;

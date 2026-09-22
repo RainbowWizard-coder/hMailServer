@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "HttpServer.h"
+#include "SignInStore.h"
 
 namespace HM
 {
@@ -70,10 +71,19 @@ namespace HM
 
       // HTTP Basic as the account, through AccountLogon: the same password
       // schemes, directory-linked accounts, app passwords, per-name lockout,
-      // auto-ban accounting and last-logon stamp as IMAP. False with no or
-      // wrong credentials; disconnect says the auto-ban wants the connection
-      // dropped. service names the protocol in the log line.
-      bool Authenticate(const HttpRequest &request, const char *service, std::shared_ptr<const Account> &account, bool &disconnect);
+      // auto-ban accounting and last-logon stamp as IMAP - and, since the
+      // review of 22 September 2026, the compromise hold, which every other
+      // logon surface refused and this one did not. False with no or wrong
+      // credentials, an inactive account or a held one; disconnect says the
+      // auto-ban wants the connection dropped. service names the protocol in
+      // the log line; protocol (a SignInStore::Protocol) is what the sign-in
+      // is recorded as in the account's list of clients.
+      //
+      // The peer the accounting sees is the socket's: behind a TLS-terminating
+      // proxy every failure is charged to the proxy's own address, so a proxy
+      // front end belongs in WebServicesTrustedProxies with the per-IP auto-ban
+      // considered. Believing X-Forwarded-For is a change of its own.
+      bool Authenticate(const HttpRequest &request, const char *service, int protocol, std::shared_ptr<const Account> &account, bool &disconnect);
 
       // The If-Match / If-None-Match rules of RFC 7232 for a write. current is
       // the ETag of what is there, or empty when nothing is. False means 412.

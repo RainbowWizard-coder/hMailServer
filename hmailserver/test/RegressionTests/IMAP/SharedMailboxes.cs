@@ -45,12 +45,14 @@ namespace RegressionTests.IMAP
 
       /// <summary>
       ///    Grants rights on one of an account's own folders to another account by
-      ///    inserting the hm_acl row directly. Deliberate: both grant surfaces the
-      ///    server exposes today - IMAP SETACL and the COM Permissions collection -
-      ///    refuse account-level folders, so until one of them is opened up for
-      ///    folder owners, the database is the only way a delegation can exist.
-      ///    The server reads hm_acl fresh on every access decision, so the grant
-      ///    takes effect immediately, without a restart.
+      ///    inserting the hm_acl row directly. Written when neither grant surface
+      ///    accepted an account-level folder; the owner's own IMAP SETACL does now
+      ///    (OwnerCannotBeLockedOutOfTheirOwnFolder and
+      ///    RevokedGrantRemovesTheOwnerFromListAndSelect grant that way), and the
+      ///    tests that still use this helper do so to put a row where the
+      ///    server's own checks are not the thing under test. The server reads
+      ///    hm_acl fresh on every access decision, so the grant takes effect
+      ///    immediately, without a restart.
       /// </summary>
       private void GrantRightsOnFolder(IMAPFolder folder, Account delegateAccount, int rightsMask)
       {
@@ -165,6 +167,9 @@ namespace RegressionTests.IMAP
          var realFolderResponse = after.SendSingleCommand("A15 SELECT " + sharedPath);
          var missingFolderResponse = after.SendSingleCommand("A15 SELECT #Users.revokeowner@example.test.NoSuchFolder");
          Assert.AreEqual(missingFolderResponse, realFolderResponse);
+         // Alike is not enough: both must be the refusal, or the comparison
+         // would pass two successes just as well.
+         StringAssert.StartsWith("A15 NO", realFolderResponse, realFolderResponse);
 
          after.Disconnect();
       }

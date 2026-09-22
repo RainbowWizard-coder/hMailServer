@@ -262,7 +262,7 @@ namespace HM
       // auto-ban accounting and last-logon stamp as IMAP. False with no or
       // wrong credentials; disconnect says the auto-ban wants the connection
       // dropped.
-      bool Authenticate(const HttpRequest &request, const char *service, std::shared_ptr<const Account> &account, bool &disconnect)
+      bool Authenticate(const HttpRequest &request, const char *service, int protocol, std::shared_ptr<const Account> &account, bool &disconnect)
       {
          disconnect = false;
 
@@ -288,6 +288,19 @@ namespace HM
             return false;
          }
 
+         // The compromise hold, the one gate of the logon that Logon itself
+         // does not apply: IMAP, POP3, SMTP and the REST API each ask it after
+         // a successful password, and until 22 September 2026 this surface did
+         // not, so a credential the detector had put on hold could still read
+         // the address book, the calendar and who delegates to the account.
+         // RefusedByHold resets the pointer and counts nothing, as it does for
+         // the other callers: the password was right, and a hold is not a guess.
+         if (AccountLogon::RefusedByHold(account))
+         {
+            LOG_APPLICATION(String(service) + ": account " + username + " authenticated but is held for review; refused.");
+            return false;
+         }
+
          if (!account->GetActive())
          {
             LOG_APPLICATION(String(service) + ": account " + username + " authenticated but is inactive; refused.");
@@ -295,12 +308,14 @@ namespace HM
             return false;
          }
 
-         // The client, recorded. A CalDAV or CardDAV client sends a User-Agent,
-         // so this is the one mail-adjacent protocol whose entry can name the
-         // program. Nothing is registered for revocation: each request stands on
-         // its own connection and re-authenticates, so there is no session to
-         // drop - revoking such a client is revoking the app password behind it.
-         SignInStore::Record(account, SignInStore::ProtocolDav, request.peer,
+         // The client, recorded, under the protocol the caller names - dav for
+         // CalDAV and CardDAV, autodiscover for the Outlook discovery answer -
+         // so that a person reading their sign-ins sees what actually signed
+         // in. Each sends a User-Agent, so the entry can name the program.
+         // Nothing is registered for revocation: each request stands on its own
+         // connection and re-authenticates, so there is no session to drop -
+         // revoking such a client is revoking the app password behind it.
+         SignInStore::Record(account, protocol, request.peer,
             Wide(request.Header("user-agent")),
             viaAppPassword ? SignInStore::CredentialAppPassword : SignInStore::CredentialPassword,
             appPasswordName);

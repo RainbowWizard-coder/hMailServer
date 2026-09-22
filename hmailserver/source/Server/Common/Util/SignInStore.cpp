@@ -611,6 +611,8 @@ namespace HM
          return "dav";
       case ProtocolManageSieve:
          return "managesieve";
+      case ProtocolAutodiscover:
+         return "autodiscover";
       default:
          return "unknown";
       }

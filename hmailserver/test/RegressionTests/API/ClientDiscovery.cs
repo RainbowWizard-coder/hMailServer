@@ -478,6 +478,121 @@ namespace RegressionTests.API
 
       private const string AutodiscoverPath = "/autodiscover/autodiscover.xml";
 
+      // The REST listener beside the web services one, for the tests that read
+      // GET /api/v1/me/folders as the delegate or drive the compromised-account
+      // detection as the administrator. On for the test that asks, off again
+      // in its finally; the fixture's TearDown reinitialises in any case.
+      private const int PreferredRestPort = 9816;
+      private const string AdminPassword = "testar";
+      private static int _restPort = PreferredRestPort;
+
+      private void StartRestApi()
+      {
+         _settings.SetAdministratorPassword(AdminPassword);
+         _restPort = RestListener.Start(PreferredRestPort);
+         _application.Reinitialize();
+         Assert.AreEqual(200, Rest("GET", "/api/v1/status", Basic("Administrator", AdminPassword)).status, "The REST API did not answer /api/v1/status.");
+      }
+
+      private static (int status, string body) Rest(string method, string path, string authorization, string requestBody = null)
+      {
+         return RestRequest.Send("127.0.0.1", _restPort, method, path, authorization, requestBody);
+      }
+
+      // The owners GET /api/v1/me/folders lists under "shared", as the account,
+      // in the order the route writes them.
+      private static List<string> SharedOwners(Account account)
+      {
+         (int status, string body) tree = Rest("GET", "/api/v1/me/folders", Basic(account.Address, "test"));
+         Assert.AreEqual(200, tree.status, tree.body);
+
+         var owners = new List<string>();
+         foreach (Dictionary<string, object> entry in MiniJson.List(MiniJson.Object(tree.body), "shared").Cast<Dictionary<string, object>>())
+            owners.Add((string) entry["owner"]);
+
+         return owners;
+      }
+
+      // One HTTP/1.1 exchange, then a second on the same socket: the status
+      // and Connection header of the first answer, and whether the socket
+      // still answered the second. What "the connection is closed" means.
+      private static (int status, string connection, bool answeredAgain) Http11Twice(string authorization)
+      {
+         using (var client = new TcpClient())
+         {
+            client.Connect("127.0.0.1", WebServicesPort);
+            client.ReceiveTimeout = 5000;
+
+            using (NetworkStream stream = client.GetStream())
+            {
+               byte[] body = Encoding.UTF8.GetBytes(AutodiscoverRequest("keepalive@example.test"));
+               byte[] head = Encoding.ASCII.GetBytes(
+                  "POST " + AutodiscoverPath + " HTTP/1.1\r\nHost: example.test\r\nX-Forwarded-Proto: https\r\n" +
+                  "Authorization: " + authorization + "\r\n" +
+                  "Content-Type: text/xml; charset=utf-8\r\nContent-Length: " + body.Length.ToString(CultureInfo.InvariantCulture) + "\r\n\r\n");
+
+               stream.Write(head, 0, head.Length);
+               stream.Write(body, 0, body.Length);
+               (int status, string headers) first = ReadOneResponse(stream);
+               Assert.Greater(first.status, 0, "No answer to the first request.");
+
+               bool answeredAgain;
+               try
+               {
+                  stream.Write(head, 0, head.Length);
+                  stream.Write(body, 0, body.Length);
+                  answeredAgain = ReadOneResponse(stream).status > 0;
+               }
+               catch (IOException)
+               {
+                  // Reset by the server, or nothing within the timeout: not answered.
+                  answeredAgain = false;
+               }
+
+               return (first.status, HeaderValue(first.headers, "Connection"), answeredAgain);
+            }
+         }
+      }
+
+      // Reads one framed response: the head, then exactly Content-Length bytes
+      // of body, so the next read on the socket starts at the next response.
+      // Status 0 means the socket was closed before a head arrived.
+      private static (int status, string headers) ReadOneResponse(NetworkStream stream)
+      {
+         var memory = new MemoryStream();
+         byte[] buffer = new byte[4096];
+         int separator = -1;
+
+         while (separator < 0)
+         {
+            int read = stream.Read(buffer, 0, buffer.Length);
+            if (read == 0)
+               return (0, "");
+
+            memory.Write(buffer, 0, read);
+            separator = Encoding.ASCII.GetString(memory.ToArray()).IndexOf("\r\n\r\n", StringComparison.Ordinal);
+         }
+
+         string headers = Encoding.ASCII.GetString(memory.ToArray()).Substring(0, separator);
+         int contentLength = int.Parse(HeaderValue(headers, "Content-Length") ?? "0", CultureInfo.InvariantCulture);
+         int have = (int) memory.Length - separator - 4;
+
+         while (have < contentLength)
+         {
+            int read = stream.Read(buffer, 0, Math.Min(buffer.Length, contentLength - have));
+            if (read == 0)
+               break;
+            have += read;
+         }
+
+         string[] parts = headers.Split(new[] { "\r\n" }, StringSplitOptions.None)[0].Split(' ');
+         int status = 0;
+         if (parts.Length >= 2)
+            int.TryParse(parts[1], out status);
+
+         return (status, headers);
+      }
+
       // Outlook's POX request for an address.
       private static string AutodiscoverRequest(string address)
       {
@@ -611,6 +726,19 @@ namespace RegressionTests.API
       [Description("The mailboxes opened to an account are announced as AlternativeMailbox elements, XML-escaped, only to a request signed in as that account and asking about it; a bystander, an outsider and the unauthenticated get none; a folder that can only be looked up is not a mailbox; the public folders are not one; a revoked grant is gone")]
       public void AutodiscoverNamesDelegationsOnlyToTheAccountTheyWereGrantedTo()
       {
+         StartRestApi();
+         try
+         {
+            NamesDelegationsOnlyToTheAccountTheyWereGrantedTo_();
+         }
+         finally
+         {
+            RestListener.Stop();
+         }
+      }
+
+      private void NamesDelegationsOnlyToTheAccountTheyWereGrantedTo_()
+      {
          Account tom = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "tom@example.test", "test");
          tom.PersonFirstName = "<Tom";
          tom.PersonLastName = "& Jerry>";
@@ -672,6 +800,18 @@ namespace RegressionTests.API
          Assert.IsFalse(mine.body.Contains("Notices"), "The public folder is not a mailbox. Body: " + mine.body);
          Assert.IsFalse(mine.body.Contains(_settings.IMAPPublicFolderName), "The public folder is not a mailbox. Body: " + mine.body);
 
+         // The same owners from the same walk: GET /api/v1/me/folders as the
+         // delegate lists under "shared" the public tree it may read - which
+         // Autodiscover does not name, since it is not a mailbox - and then
+         // exactly the owners the answer named, in the same order. The
+         // refactor that made the route draw its owners from
+         // ACLManager::GetOwnersDelegatingTo had no test of "shared" before.
+         List<string> sharedBefore = SharedOwners(delegateAccount);
+         Assert.IsTrue(sharedBefore.Remove(_settings.IMAPPublicFolderName),
+            "The readable public folder is in the route's list. Shared: " + string.Join(", ", sharedBefore));
+         Assert.AreEqual("tom@example.test,plain@example.test", string.Join(",", sharedBefore),
+            "The route's shared owners are the Autodiscover owners.");
+
          // The elements sit inside <Account>, after the protocols, where the
          // 2006a schema places them.
          int lastProtocol = mine.body.LastIndexOf("</Protocol>", StringComparison.Ordinal);
@@ -711,6 +851,12 @@ namespace RegressionTests.API
          Assert.AreEqual(1, remaining.Count, "Body: " + afterRevocation.body);
          Assert.AreEqual("plain@example.test", Element(remaining[0], "SmtpAddress"), afterRevocation.body);
          Assert.IsFalse(afterRevocation.body.Contains("tom@example.test"), "Body: " + afterRevocation.body);
+
+         // And the route agrees after the revocation as it did before it.
+         List<string> sharedAfter = SharedOwners(delegateAccount);
+         Assert.IsTrue(sharedAfter.Remove(_settings.IMAPPublicFolderName), "Shared: " + string.Join(", ", sharedAfter));
+         Assert.AreEqual("plain@example.test", string.Join(",", sharedAfter),
+            "The route's shared owners are the Autodiscover owners after the revocation too.");
       }
 
       [Test]
@@ -799,6 +945,137 @@ namespace RegressionTests.API
          (int status, string headers, string body) honoured = Autodiscover(delegateAccount.Address, Basic(delegateAccount.Address, "test"));
          Assert.AreEqual(200, honoured.status, "Body: " + honoured.body);
          Assert.AreEqual(1, AlternativeMailboxes(honoured.body).Count, "Body: " + honoured.body);
+      }
+
+      [Test]
+      [Description("An Authorization header of a scheme this handler cannot check - Negotiate, NTLM, Bearer - is not a credential: the settings come back as they always did, with no challenge and no element, through the proxy and over plain HTTP alike; a lower-case basic is a credential")]
+      public void AutodiscoverIgnoresACredentialSchemeItCannotCheck()
+      {
+         Account owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "schemeowner@example.test", "test");
+         Account delegateAccount = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "schemedelegate@example.test", "test");
+         ShareFolder(owner, "Shared", delegateAccount, "lr");
+
+         // Outlook answers a 401 with a password prompt, so a request that
+         // carries a token this server cannot check must not be refused: it
+         // gets the settings, as it did before the element existed (the review
+         // of 22 September 2026 found the branch entered on any scheme).
+         foreach (string header in new[] { "Negotiate TlRMTVNTUAABAAAAB4IIAAAAAAAAAAAAAAAAAAAAAAA=", "NTLM TlRMTVNTUAABAAAAB4IIAAAAAAAAAAAAAAAAAAAAAAA=", "Bearer not-a-token" })
+         {
+            (int status, string headers, string body) viaProxy = Autodiscover(delegateAccount.Address, header);
+            Assert.AreEqual(200, viaProxy.status, header + ". Body: " + viaProxy.body);
+            Assert.AreEqual("settings", Element(viaProxy.body, "Action"), viaProxy.body);
+            Assert.IsNull(HeaderValue(viaProxy.headers, "WWW-Authenticate"), header + ". Headers: " + viaProxy.headers);
+            Assert.AreEqual(0, AlternativeMailboxes(viaProxy.body).Count, header + " is not a credential. Body: " + viaProxy.body);
+
+            (int status, string headers, string body) plain = Autodiscover(delegateAccount.Address, header, false);
+            Assert.AreEqual(200, plain.status, header + " over plain HTTP. Body: " + plain.body);
+            Assert.AreEqual(0, AlternativeMailboxes(plain.body).Count, plain.body);
+         }
+
+         // The scheme name is matched without regard to case, as RFC 7235 has it.
+         string lowerCase = "basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(delegateAccount.Address + ":test"));
+         (int status, string headers, string body) honoured = Autodiscover(delegateAccount.Address, lowerCase);
+         Assert.AreEqual(200, honoured.status, "Body: " + honoured.body);
+         Assert.AreEqual(1, AlternativeMailboxes(honoured.body).Count, "Body: " + honoured.body);
+      }
+
+      [Test]
+      [Description("An account the compromised-account detection has put on hold is refused by Autodiscover with the ordinary 401, as IMAP, POP3, SMTP and the REST API refuse it - and, through the DAV logon the element shares, by CardDAV; the compromise unlock alone lets it back in")]
+      public void AutodiscoverRefusesAnAccountOnHold()
+      {
+         StartRestApi();
+
+         Account owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "holdowner@example.test", "test");
+         Account delegateAccount = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "holddelegate@example.test", "test");
+         Account first = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "holdstranger1@example.test", "test");
+         Account second = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "holdstranger2@example.test", "test");
+         Account third = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "holdstranger3@example.test", "test");
+         ShareFolder(owner, "Shared", delegateAccount, "lr");
+
+         string admin = Basic("Administrator", AdminPassword);
+         string escaped = Uri.EscapeDataString(delegateAccount.Address);
+
+         try
+         {
+            // Enforce mode with the floors at three: three messages to three
+            // strangers in the hour are the takeover shape, exactly as
+            // API/RestApiCompromisedAccount drives it.
+            (int status, string body) mode = Rest("PUT", "/api/v1/settings", admin,
+               "{\"compromise_detection_mode\":\"enforce\",\"compromise_volume_floor\":3,\"compromise_recipient_floor\":3}");
+            Assert.AreEqual(200, mode.status, mode.body);
+
+            (int status, string headers, string body) before = Autodiscover(delegateAccount.Address, Basic(delegateAccount.Address, "test"));
+            Assert.AreEqual(200, before.status, "Body: " + before.body);
+            Assert.AreEqual(1, AlternativeMailboxes(before.body).Count, "Body: " + before.body);
+
+            foreach (Account stranger in new[] { first, second, third })
+            {
+               string error;
+               new SmtpClientSimulator().Send(false, delegateAccount.Address, "test", delegateAccount.Address, stranger.Address,
+                  "To " + stranger.Address, "The text of a message to a stranger.", out error);
+            }
+
+            Dictionary<string, object> state = MiniJson.Object(Rest("GET", "/api/v1/accounts/" + escaped + "/review", admin).body);
+            Assert.IsTrue(MiniJson.Flag(state, "locked"), "The takeover shape locks the account. State: " + MiniJson.Text(state, "reason"));
+
+            // The right password, refused with the ordinary answer: nothing in
+            // it says the account exists or why it was refused. Until the
+            // review of 22 September 2026 the DAV logon did not ask the hold,
+            // so this credential would have been honoured here and on /dav/.
+            (int status, string headers, string body) held = Autodiscover(delegateAccount.Address, Basic(delegateAccount.Address, "test"));
+            Assert.AreEqual(401, held.status, "Body: " + held.body);
+            StringAssert.Contains("Basic", HeaderValue(held.headers, "WWW-Authenticate") ?? "", "Headers: " + held.headers);
+            Assert.IsFalse(held.body.Contains("<Autodiscover"), "Body: " + held.body);
+            Assert.IsFalse(held.body.Contains(owner.Address), "Body: " + held.body);
+
+            (int status, string headers, string body) dav = HttpExchange("PROPFIND", "/dav/", "example.test",
+               "<D:propfind xmlns=\"DAV:\"><D:prop><D:displayname/></D:prop></D:propfind>",
+               "X-Forwarded-Proto: https\r\nAuthorization: " + Basic(delegateAccount.Address, "test") + "\r\nDepth: 0\r\n");
+            Assert.AreEqual(401, dav.status, "CardDAV shares the logon and refuses the held account too. Body: " + dav.body);
+
+            // The compromise unlock alone lets it back in.
+            Assert.AreEqual(200, Rest("POST", "/api/v1/accounts/" + escaped + "/review/unlock", admin).status);
+
+            (int status, string headers, string body) after = Autodiscover(delegateAccount.Address, Basic(delegateAccount.Address, "test"));
+            Assert.AreEqual(200, after.status, "Body: " + after.body);
+            Assert.AreEqual(1, AlternativeMailboxes(after.body).Count, "Body: " + after.body);
+         }
+         finally
+         {
+            // Whatever is still held is discarded and the account let go before
+            // the base fixture deletes the domain - the hold on a name is in
+            // memory, and the next fixture may make the same address - and the
+            // shipped values go back.
+            (int status, string body) heldMessages = Rest("GET", "/api/v1/review", admin);
+            if (heldMessages.status == 200)
+            {
+               foreach (Dictionary<string, object> entry in MiniJson.List(MiniJson.Object(heldMessages.body), "messages").Cast<Dictionary<string, object>>())
+                  Rest("DELETE", "/api/v1/review/" + Convert.ToInt64(entry["id"]), admin);
+            }
+
+            Rest("POST", "/api/v1/accounts/" + escaped + "/unlock", admin);
+            Rest("PUT", "/api/v1/settings", admin, "{\"compromise_detection_mode\":\"watch\",\"compromise_volume_floor\":30,\"compromise_recipient_floor\":20}");
+            RestListener.Stop();
+         }
+      }
+
+      [Test]
+      [Description("A refused credential closes the connection, so a guess costs a new connection: on HTTP/1.1 the 401 says Connection: close and the socket answers nothing more, while a honoured credential keeps the connection alive and is answered again on it")]
+      public void AutodiscoverClosesTheConnectionOnARefusedCredential()
+      {
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "keepalive@example.test", "test");
+
+         (int status, string connection, bool answeredAgain) refused = Http11Twice(Basic(account.Address, "not-the-password"));
+         Assert.AreEqual(401, refused.status);
+         StringAssert.AreEqualIgnoringCase("close", refused.connection ?? "", "The 401 must say the connection closes.");
+         Assert.IsFalse(refused.answeredAgain, "After a refused credential the socket must answer nothing more.");
+
+         // The control: HTTP/1.1 keep-alive works on this listener, so the
+         // close above was the refusal's and not the server's habit.
+         (int status, string connection, bool answeredAgain) honoured = Http11Twice(Basic(account.Address, "test"));
+         Assert.AreEqual(200, honoured.status);
+         StringAssert.AreEqualIgnoringCase("keep-alive", honoured.connection ?? "", "A honoured credential keeps the connection.");
+         Assert.IsTrue(honoured.answeredAgain, "The second request on a kept connection must be answered.");
       }
    }
 }

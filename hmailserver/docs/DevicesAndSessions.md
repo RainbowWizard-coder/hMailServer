@@ -51,9 +51,9 @@ they do not know using it knows exactly what to revoke.
 | Field | What it is |
 |---|---|
 | `id` | Thirty-two hex characters: the SHA-256 of the protocol, the address and the user agent, halved. What every revoke names. It reveals nothing about where its owner was. |
-| `protocol` | `imap`, `pop3`, `smtp`, `web` (a browser session), `dav` (CalDAV or CardDAV) or `managesieve`. |
+| `protocol` | `imap`, `pop3`, `smtp`, `web` (a browser session), `dav` (CalDAV or CardDAV), `autodiscover` (Outlook's Autodiscover asked with the account's credentials for the mailboxes delegated to it) or `managesieve`. |
 | `address` | The address the client came from. |
-| `agent` | The user agent, for the protocols that carry one (`web` and `dav`); empty for the rest. IMAP's `ID` command is deliberately not used: clients send it after `LOGIN`, so honouring it would describe a client that no longer exists and make a second entry at the next sign-in. |
+| `agent` | The user agent, for the protocols that carry one (`web`, `dav` and `autodiscover`); empty for the rest. IMAP's `ID` command is deliberately not used: clients send it after `LOGIN`, so honouring it would describe a client that no longer exists and make a second entry at the next sign-in. |
 | `credential` | `password` (the account's own), `app_password`, `token` (an OAuth2 bearer token), `certificate` (a client certificate) or `single_sign_on` (GSSAPI). SCRAM is always the account's own password, since an app password's hash is not one SCRAM can derive from. |
 | `credential_name` | The app password's name, where one was used. Never the password, and never anything derived from it. |
 | `first_seen`, `last_seen`, `sign_ins` | When, and how often. The write is throttled to once a minute per client, so a mail program that reconnects every thirty seconds costs one row update a minute; the first sign-in of a client is always written. |

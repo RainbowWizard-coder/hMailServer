@@ -1704,11 +1704,21 @@ namespace HM
       // with the Basic challenge, the connection closed so that a guess costs
       // a new connection - and one offered over plain HTTP is refused before
       // it is looked at, as CardDAV refuses it: a password sent in clear is at
-      // least not also checked.
+      // least not also checked. Only a Basic header is a credential here: a
+      // Negotiate, NTLM or Bearer header is one this handler cannot check, and
+      // a request carrying one gets the settings as it always did, rather than
+      // a 401 that Outlook would answer with a password prompt (found by the
+      // review of 22 September 2026).
+      //
+      // The peer the lockout and the auto-ban see is the socket's. Behind the
+      // TLS-terminating proxy that RequestArrivedOverHttps_ trusts, every
+      // failure is charged to the proxy's own address, exactly as for CardDAV
+      // and CalDAV; the README says so, and X-Forwarded-For is not believed.
       std::shared_ptr<const Account> caller;
       bool disconnect = false;
 
-      if (!request.Header("authorization").IsEmpty())
+      AnsiString authorization = request.Header("authorization");
+      if (authorization.GetLength() >= 6 && authorization.Mid(0, 6).CompareNoCase("basic ") == 0)
       {
          if (!over_https)
          {
@@ -1718,7 +1728,7 @@ namespace HM
                "of this listener that sets X-Forwarded-Proto: https.\r\n");
          }
 
-         if (!Dav::Authenticate(request, "Autodiscover", caller, disconnect))
+         if (!Dav::Authenticate(request, "Autodiscover", SignInStore::ProtocolAutodiscover, caller, disconnect))
          {
             HttpResponse refusal = BuildResponse_(401, "text/plain", "authentication required\r\n",
                "WWW-Authenticate: Basic realm=\"hMailServer\"\r\n");
@@ -1829,9 +1839,9 @@ namespace HM
       xml += "  </Response>\r\n";
       xml += "</Autodiscover>\r\n";
 
-      HttpResponse response = BuildResponse_(200, "text/xml", xml);
-      response.close = response.close || disconnect;
-      return response;
+      // disconnect is set only on the failure path, which has already answered
+      // with the connection closed; nothing is left to fold in here.
+      return BuildResponse_(200, "text/xml", xml);
    }
 
    AnsiString
