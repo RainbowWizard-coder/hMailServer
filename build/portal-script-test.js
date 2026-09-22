@@ -590,9 +590,13 @@ function pushRow(device) {
 // expect to see written back.
 let calendarsState = [
    { id: 1, name: 'calendar', display_name: 'Calendar', color: '', owner: 'user@example.com', mine: true, writable: true, is_default: true, sync_token: 1, shares: [] },
-   { id: 2, name: 'work', display_name: 'Work', color: '#1a73e8', owner: 'user@example.com', mine: true, writable: true, is_default: false, sync_token: 1, shares: [{ address: 'b@example.net', write: false }] },
-   { id: 3, name: 'team', display_name: 'Team', color: '#d93025', owner: 'b@example.net', mine: false, writable: false, is_default: false, sync_token: 1, shares: [] }
+   { id: 2, name: 'work', display_name: 'Work', color: '#1a73e8', owner: 'user@example.com', mine: true, writable: true, is_default: false, sync_token: 1, shares: [{ address: 'b@example.net', write: false, delegate: false }, { group: 'Sales', members: 3, write: false, delegate: false }] },
+   { id: 3, name: 'team', display_name: 'Team', color: '#d93025', owner: 'b@example.net', mine: false, writable: false, delegate: false, is_default: false, sync_token: 1, shares: [] },
+   // Shared as a delegate: the reader may answer the owner's invitations in it.
+   { id: 5, name: 'shared-5', display_name: 'Boss', color: '#188038', owner: 'boss@example.com', mine: false, writable: true, delegate: true, is_default: false, sync_token: 1, shares: [] }
 ];
+// The owner's answer to the invitation in the delegated calendar, once given on their behalf.
+let reviewAnswer = '';
 const calWall = { start: null, end: null };
 function utcStamp(d) { const p = (n) => (n < 10 ? '0' : '') + n; return d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate()) + 'T' + p(d.getUTCHours()) + p(d.getUTCMinutes()) + p(d.getUTCSeconds()) + 'Z'; }
 function localStamp(d) { const p = (n) => (n < 10 ? '0' : '') + n; return d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) + 'T' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()); }
@@ -620,7 +624,27 @@ function eventsIn(query) {
          recurring: false, recurrence_id: '', overridden: false, writable: true, mine: true, color: '', summary: 'Away', location: '', description: '', tz: '', rrule: '', alarm_minutes: -1,
          organizer: '', organizer_name: '', attendees: [], my_partstat: '', status: '', sequence: 0, all_day: true });
    }
+   // An invitation to the boss from somebody elsewhere, in the calendar shared as a delegate: 14:00-15:00 UTC on the eleventh day.
+   const reviewDay = new Date(from.getTime() + (to - from > 20 * 86400000 ? 11 : 0) * 86400000);
+   const r = new Date(Date.UTC(reviewDay.getUTCFullYear(), reviewDay.getUTCMonth(), reviewDay.getUTCDate(), 14, 0, 0));
+   if (r >= from && r < to) {
+      out.push({ id: 12, calendar: 5, uid: 'review@example.net', start: utcStamp(r), end: utcStamp(new Date(r.getTime() + 3600000)), local_start: localStamp(r), local_end: localStamp(new Date(r.getTime() + 3600000)),
+         recurring: false, recurrence_id: '', overridden: false, writable: true, mine: false, delegate: true, color: '#188038', summary: 'Review', location: '', description: '', tz: 'UTC', rrule: '', alarm_minutes: -1,
+         organizer: 'org@example.net', organizer_name: 'Olive Org', attendees: [{ address: 'boss@example.com', name: 'Boss', partstat: reviewAnswer || 'NEEDS-ACTION', sent_by: reviewAnswer ? 'user@example.com' : '' }], my_partstat: '', status: '', sequence: 0, all_day: false });
+   }
    return out;
+}
+// When somebody of the domain is busy, for the availability strip: a colleague
+// with a busy hour and a tentative half hour on the day asked about, the reader
+// with one, one who chose not to be shown (404), and no one else.
+function freeBusyJson(query) {
+   const m = /address=([^&]+)&from=(\d{8}T\d{6}Z)&to=(\d{8}T\d{6}Z)/.exec(query || '');
+   if (!m) { return json(400, { error: 'address, from and to are required' }); }
+   const address = decodeURIComponent(m[1]);
+   const day = m[2].slice(0, 8);
+   if (address === 'guest@example.com') { return json(200, { address, from: m[2], to: m[3], busy: [{ start: day + 'T100000Z', end: day + 'T110000Z', kind: 'busy' }, { start: day + 'T130000Z', end: day + 'T133000Z', kind: 'tentative' }] }); }
+   if (address === 'user@example.com') { return json(200, { address, from: m[2], to: m[3], busy: [{ start: day + 'T160000Z', end: day + 'T170000Z', kind: 'busy' }] }); }
+   return json(404, { error: 'no account of your domain has that address, or it does not show when it is busy' });
 }
 let tasksState = [
    { id: 21, calendar: 1, uid: 'milk@example.com', summary: 'Buy milk', description: 'Two litres.', due: '20260920T000000Z', local_due: '2026-09-20', all_day: true, tz: '', completed: false, completed_at: '', priority: 0, status: 'NEEDS-ACTION', writable: true, mine: true, color: '', sequence: 0 },
@@ -656,6 +680,9 @@ function answerCalendar(method, path, body) {
    if (m && method === 'DELETE') { calendarsState = calendarsState.filter((x) => x.id !== Number(m[1])); return json(200, { deleted: true }); }
    if (path.startsWith('/api/v1/me/calendar/events?') && method === 'GET') { return json(200, { events: eventsIn(path.split('?')[1]) }); }
    if (path === '/api/v1/me/calendar/events' && method === 'POST') { return json(201, { id: 40, uid: 'new@example.com', calendar: 1, invited: 2 }); }
+   if (path.startsWith('/api/v1/me/freebusy?') && method === 'GET') { return freeBusyJson(path.split('?')[1]); }
+   m = /^\/api\/v1\/me\/calendar\/events\/(\d+)\/reply$/.exec(path);
+   if (m && method === 'POST') { const wanted = JSON.parse(body || '{}'); if (Number(m[1]) !== 12) { return json(403, { error: 'only the calendar\'s owner, or a delegate the owner named, answers an invitation in it' }); } reviewAnswer = wanted.partstat; return json(200, { event_id: 12, calendar: 5, partstat: wanted.partstat, on_behalf_of: 'boss@example.com', replied: true, to: 'org@example.net' }); }
    m = /^\/api\/v1\/me\/calendar\/events\/(\d+)(\?.*)?$/.exec(path);
    if (m && method === 'PUT') { return json(200, { id: Number(m[1]), uid: 'x', calendar: 2 }); }
    if (m && method === 'DELETE') { return json(200, { removed: 'event', id: Number(m[1]) }); }
@@ -4093,8 +4120,8 @@ async function main() {
    const chips = findAll(calSection, (n) => hasClass(n, 'cal-chip'));
    check('an occurrence is a chip on its day, in its calendar\'s colour, with its time', chips.length >= 2 && chips.some((c) => c.textContent.indexOf('Standup') >= 0 && c.style.background === '#1a73e8'),
       chips.map((c) => c.textContent + '|' + c.style.background).join(' ; '));
-   check('the calendars are listed with a box each and the shared one named by its owner', findAll(document.getElementById('cal-list'), (n) => hasClass(n, 'cal-row')).length === 3 &&
-      document.getElementById('cal-list').textContent.indexOf('Team (b@example.net)') >= 0, document.getElementById('cal-list').textContent);
+   check('the calendars are listed with a box each and the shared ones named by their owners', findAll(document.getElementById('cal-list'), (n) => hasClass(n, 'cal-row')).length === 4 &&
+      document.getElementById('cal-list').textContent.indexOf('Team (b@example.net)') >= 0 && document.getElementById('cal-list').textContent.indexOf('Boss (boss@example.com)') >= 0, document.getElementById('cal-list').textContent);
 
    // ---- the week and the day
    const viewButton = (v) => findAll(document.getElementById('cal-views'), (n) => n.getAttribute('data-cal-view') === v)[0];
@@ -4138,7 +4165,35 @@ async function main() {
    document.getElementById('event-ends').dispatchEvent(makeEvent('change'));
    document.getElementById('event-count').value = '3';
    document.getElementById('event-alarm').value = '10';
+   // ---- the availability strip: guests named with a start set
+   document.getElementById('event-attendees').value = 'Guest <guest@example.com>, b@example.net, quiet@example.com';
+   const beforeAvail = requests.length;
+   document.getElementById('event-attendees').dispatchEvent(makeEvent('input'));
+   await flush();
+   const availBox = document.getElementById('event-availability');
+   const availRows = findAll(availBox, (n) => hasClass(n, 'fb-row'));
+   check('naming guests with a start set draws an availability row per person, the organiser first, and asks the free-busy route once for each guest of the domain and never for one elsewhere',
+      availBox.hidden === false && availRows.length === 4 && availRows[0].getAttribute('data-address') === 'user@example.com' &&
+      since(beforeAvail).filter((r) => r.method === 'GET' && /^\/api\/v1\/me\/freebusy\?address=guest%40example\.com&from=\d{8}T\d{6}Z&to=\d{8}T\d{6}Z$/.test(r.path)).length === 1 &&
+      !since(beforeAvail).some((r) => /freebusy\?address=b%40example\.net/.test(r.path)),
+      JSON.stringify(since(beforeAvail).map((r) => r.path)) + ' | rows ' + availRows.length);
+   const guestRow = availRows.filter((r) => r.getAttribute('data-address') === 'guest@example.com')[0];
+   check('a colleague\'s busy periods are drawn as blocks, the tentative one marked, with the event\'s own span outlined',
+      !!guestRow && findAll(guestRow, (n) => hasClass(n, 'fb-block')).length === 2 && findAll(guestRow, (n) => hasClass(n, 'fb-tentative')).length === 1 && findAll(guestRow, (n) => hasClass(n, 'fb-event')).length === 1,
+      guestRow ? findAll(guestRow, (n) => true).map((n) => n.className).join(',') : 'no row');
+   check('a guest elsewhere is not on this server, and one who chose nobody is not shown',
+      availRows.some((r) => r.getAttribute('data-address') === 'b@example.net' && r.textContent.indexOf(words('not on this server')) >= 0) &&
+      availRows.some((r) => r.getAttribute('data-address') === 'quiet@example.com' && r.textContent.indexOf(words('not shown')) >= 0),
+      availRows.map((r) => r.textContent).join(' ; '));
+   const beforeRedraw = requests.length;
+   document.getElementById('event-start').value = '2026-10-19T11:00';
+   document.getElementById('event-start').dispatchEvent(makeEvent('input'));
+   await flush();
+   check('a new time on the same day redraws the strip from what was already answered, without asking again', since(beforeRedraw).length === 0 && findAll(document.getElementById('event-availability'), (n) => hasClass(n, 'fb-row')).length === 4, since(beforeRedraw).length + ' requests');
+   document.getElementById('event-start').value = '2026-10-19T09:00';
    document.getElementById('event-attendees').value = 'Guest <guest@example.com>, b@example.net';
+   document.getElementById('event-attendees').dispatchEvent(makeEvent('input'));
+   await flush();
    const beforeSave = requests.length;
    document.getElementById('event-form').dispatchEvent(makeEvent('submit'));
    await flush();
@@ -4210,6 +4265,9 @@ async function main() {
    await flush();
    check('the calendar\'s details open with its name, its shares and the share form', document.getElementById('cal-detail').hidden === false && document.getElementById('cal-detail-name').value === 'Work' &&
       document.getElementById('cal-detail').textContent.indexOf('b@example.net') >= 0, document.getElementById('cal-detail').textContent.slice(0, 200));
+   check('a share with a group is listed by the group\'s name with how many members it has, and the form offers the delegate choice',
+      document.getElementById('cal-detail').textContent.indexOf('Sales') >= 0 && document.getElementById('cal-detail').textContent.indexOf(words('{0} members').replace('{0}', '3')) >= 0 && !!document.getElementById('cal-share-delegate'),
+      document.getElementById('cal-detail').textContent.slice(0, 300));
    document.getElementById('cal-share-address').value = 'carol@example.org';
    document.getElementById('cal-share-write').checked = true;
    const beforeShare = requests.length;
@@ -4227,6 +4285,36 @@ async function main() {
       String(store.get('hmPortalCalendarsHidden')) + ' | ' + since(beforeHide).length + ' requests');
    boxes[1].checked = true;
    boxes[1].dispatchEvent(makeEvent('change'));
+   await flush();
+
+   // ---- an invitation in a calendar shared as a delegate, answered on the owner's behalf
+   const reviewChip = findAll(calSection, (n) => hasClass(n, 'cal-chip') && n.textContent.indexOf('Review') >= 0)[0];
+   check('an invitation to the owner in a calendar shared as a delegate has a chip', !!reviewChip, findAll(calSection, (n) => hasClass(n, 'cal-chip')).map((c) => c.textContent).join(','));
+   if (reviewChip) {
+   reviewChip.dispatchEvent(makeEvent('click'));
+   await flush();
+   const answerBox = document.getElementById('event-answer');
+   check('opening it offers Accept, Maybe and Decline on behalf of the owner', answerBox.hidden === false && findAll(answerBox, (n) => n.getAttribute('data-answer') === 'ACCEPTED').length === 1 &&
+      findAll(answerBox, (n) => n.getAttribute('data-answer') === 'TENTATIVE').length === 1 && findAll(answerBox, (n) => n.getAttribute('data-answer') === 'DECLINED').length === 1 &&
+      answerBox.textContent.indexOf(words('Answer on behalf of {0}').replace('{0}', 'boss@example.com')) >= 0, answerBox.textContent);
+   const beforeBehalf = requests.length;
+   findAll(answerBox, (n) => n.getAttribute('data-answer') === 'ACCEPTED')[0].dispatchEvent(makeEvent('click'));
+   await flush();
+   const behalf = bodyOf(beforeBehalf, 'POST', '/api/v1/me/calendar/events/12/reply');
+   check('Accept posts one reply with the partstat, closes the editor and reads the events again', !!behalf && behalf.partstat === 'ACCEPTED' && document.getElementById('event-overlay').hidden === true && !!windowOf(beforeBehalf), JSON.stringify(behalf) + ' | ' + JSON.stringify(since(beforeBehalf).map((r) => r.method + ' ' + r.path)));
+   const reviewAgain = findAll(calSection, (n) => hasClass(n, 'cal-chip') && n.textContent.indexOf('Review') >= 0)[0];
+   reviewAgain.dispatchEvent(makeEvent('click'));
+   await flush();
+   check('opened again, the editor shows the owner\'s answer and who gave it', document.getElementById('event-partstat').textContent.indexOf(words('accepted')) >= 0 &&
+      document.getElementById('event-partstat').textContent.indexOf(words('answered by {0}').replace('{0}', 'user@example.com')) >= 0, document.getElementById('event-partstat').textContent);
+   document.getElementById('event-cancel').dispatchEvent(makeEvent('click'));
+   await flush();
+   }
+   const standupAgain = findAll(calSection, (n) => hasClass(n, 'cal-chip') && n.textContent.indexOf('Standup') >= 0)[0];
+   standupAgain.dispatchEvent(makeEvent('click'));
+   await flush();
+   check('an event the reader organises offers no answer buttons', document.getElementById('event-answer').hidden === true, document.getElementById('event-answer').textContent);
+   document.getElementById('event-cancel').dispatchEvent(makeEvent('click'));
    await flush();
 
    // ---- tasks

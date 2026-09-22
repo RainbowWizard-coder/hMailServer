@@ -3,15 +3,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 // The signed-in account's calendars over REST: what the webmail's calendar
-// and tasks pages read and write. Several calendars with colours and shares
-// (/api/v1/me/calendars), the events of a window expanded instance by
-// instance across every calendar the account can see
-// (/api/v1/me/calendar/events), one occurrence or the series moved, changed
-// and deleted, the tasks (/api/v1/me/tasks), and the invitation a message
-// carries with the answer to it (/api/v1/me/messages/{id}/invitation). The
-// objects stored are the iCalendar objects CalDAV serves, so a phone that
-// syncs sees what the page made and the page sees what the phone made.
-// Imip.h carries the mail half.
+// and tasks pages read and write. Several calendars with colours and shares -
+// with a named account or with one of the server's groups, read-only,
+// read-write or as a delegate - (/api/v1/me/calendars), the events of a
+// window expanded instance by instance across every calendar the account can
+// see (/api/v1/me/calendar/events), one occurrence or the series moved,
+// changed and deleted, an invitation in a calendar answered by its owner or
+// by a delegate on the owner's behalf (/api/v1/me/calendar/events/{id}/reply),
+// the free-busy of an account of the same domain (/api/v1/me/freebusy), the
+// tasks (/api/v1/me/tasks), and the invitation a message carries with the
+// answer to it (/api/v1/me/messages/{id}/invitation). The objects stored are
+// the iCalendar objects CalDAV serves, so a phone that syncs sees what the
+// page made and the page sees what the phone made. Imip.h carries the mail
+// half and FreeBusy.h the free-busy computation CalDAV shares.
 
 #include "StdAfx.h"
 
@@ -23,17 +27,24 @@
 #include "CalendarStore.h"
 #include "ICalendar.h"
 #include "Imip.h"
+#include "FreeBusy.h"
 #include "DavSupport.h"
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "GUIDCreator.h"
 #include "FileUtilities.h"
 #include "../BO/Account.h"
+#include "../BO/DomainAliases.h"
+#include "../BO/Group.h"
+#include "../BO/Groups.h"
 #include "../BO/Message.h"
 #include "../BO/IMAPFolder.h"
 #include "../Cache/CacheContainer.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Application/Configuration.h"
+#include "../Application/ObjectCache.h"
 #include "../Application/Logger.h"
+#include "../../IMAP/IMAPConfiguration.h"
 #include "Parsing/StringParser.h"
 
 namespace HM
@@ -111,14 +122,17 @@ namespace HM
          return static_cast<__int64>(time(nullptr));
       }
 
-      // A calendar the account can see: its own, or one shared with it.
+      // A calendar the account can see: its own, or one shared with it - by
+      // name or through a group - read-only, read-write, or as a delegate who
+      // may answer the owner's invitations in it.
       struct Visible
       {
-         Visible() : mine(true), writable(true) { }
+         Visible() : mine(true), writable(true), delegate(false) { }
 
          CalendarRecord calendar;
          bool mine;
          bool writable;
+         bool delegate;
       };
 
       bool VisibleCalendars(std::shared_ptr<const Account> account, std::vector<Visible> &visible)
@@ -145,6 +159,7 @@ namespace HM
                v.calendar = shared[i];
                v.mine = false;
                v.writable = shares[i].write;
+               v.delegate = shares[i].delegate;
                visible.push_back(v);
             }
          }
@@ -179,6 +194,47 @@ namespace HM
          return true;
       }
 
+      // What a share names: an account of this server by its address first,
+      // else one of the server's groups by its name - so a name that is both
+      // is the account. False when it is neither.
+      bool ResolveShareTarget(const AnsiString &name, std::shared_ptr<const Account> &other, std::shared_ptr<Group> &group)
+      {
+         other.reset();
+         group.reset();
+
+         String wanted;
+         Unicode::MultiByteToWide(Trimmed(name), wanted);
+         if (wanted.IsEmpty() || wanted.GetLength() > 255)
+            return false;
+
+         String lower = wanted;
+         lower.ToLower();
+         if (StringParser::IsValidEmailAddress(lower))
+         {
+            other = CacheContainer::Instance()->GetAccount(lower);
+            if (other)
+               return true;
+         }
+
+         // The live collection, read again first, as the groups route reads
+         // it: the Control Panel writes the same table over COM.
+         std::shared_ptr<Groups> groups = Configuration::Instance()->GetIMAPConfiguration()->GetGroups();
+         if (!groups)
+            return false;
+         groups->Refresh();
+         group = groups->GetItemByName(wanted);
+         return group != nullptr;
+      }
+
+      AnsiString ShareJson(const CalendarShareRecord &share)
+      {
+         AnsiString json = share.groupId != 0
+            ? "{\"group\":\"" + Esc(U8(share.groupName)) + "\",\"members\":" + IntText(share.members)
+            : "{\"address\":\"" + Esc(Lower(U8(share.address))) + "\"";
+         return json + ",\"write\":" + AnsiString(share.write ? "true" : "false") +
+            ",\"delegate\":" + AnsiString(share.delegate ? "true" : "false") + "}";
+      }
+
       AnsiString CalendarJson(std::shared_ptr<const Account> account, const Visible &v, bool withShares)
       {
          AnsiString owner;
@@ -198,6 +254,7 @@ namespace HM
             "\",\"owner\":\"" + Esc(Lower(owner)) +
             "\",\"mine\":" + AnsiString(v.mine ? "true" : "false") +
             ",\"writable\":" + AnsiString(v.writable ? "true" : "false") +
+            ",\"delegate\":" + AnsiString(!v.mine && v.delegate ? "true" : "false") +
             ",\"is_default\":" + AnsiString(isDefault && v.mine ? "true" : "false") +
             ",\"sync_token\":" + Int64Text(v.calendar.syncToken);
 
@@ -210,8 +267,7 @@ namespace HM
             {
                if (i > 0)
                   json += ",";
-               json += "{\"address\":\"" + Esc(Lower(U8(shares[i].address))) +
-                  "\",\"write\":" + AnsiString(shares[i].write ? "true" : "false") + "}";
+               json += ShareJson(shares[i]);
             }
             json += "]";
          }
@@ -921,7 +977,8 @@ namespace HM
             first = false;
             json += "{\"address\":\"" + Esc(Imip::AddressOf(property.value)) +
                "\",\"name\":\"" + Esc(property.Parameter("CN")) +
-               "\",\"partstat\":\"" + Esc(partstat.IsEmpty() ? AnsiString("NEEDS-ACTION") : partstat) + "\"}";
+               "\",\"partstat\":\"" + Esc(partstat.IsEmpty() ? AnsiString("NEEDS-ACTION") : partstat) +
+               "\",\"sent_by\":\"" + Esc(Imip::AddressOf(property.Parameter("SENT-BY"))) + "\"}";
          }
          return json + "]";
       }
@@ -983,6 +1040,7 @@ namespace HM
             "\",\"overridden\":" + AnsiString(instance.overridden ? "true" : "false") +
             ",\"writable\":" + AnsiString(visible.writable ? "true" : "false") +
             ",\"mine\":" + AnsiString(visible.mine ? "true" : "false") +
+            ",\"delegate\":" + AnsiString(!visible.mine && visible.delegate ? "true" : "false") +
             ",\"color\":\"" + Esc(U8(visible.calendar.color)) + "\"," +
             ComponentFieldsJson(*component, tree, me) + "}";
       }
@@ -1329,7 +1387,12 @@ namespace HM
 
       if (!v.mine)
       {
-         // Leaving a calendar someone shared: the share goes, the calendar stays theirs.
+         // Leaving a calendar someone shared: the share goes, the calendar stays
+         // theirs. A share through a group is the group's, not any member's:
+         // the member leaves the group, or the owner takes the share back.
+         CalendarShareRecord direct;
+         if (!CalendarStore::DirectShareOf(calendarId, account->GetID(), direct))
+            return BuildResponse_(403, "{\"error\":\"the calendar is shared with a group you are a member of; the share is the group's, and only its owner takes it back\"}");
          if (!CalendarStore::Unshare(calendarId, account->GetID()))
             return BuildResponse_(500, "{\"error\":\"the share could not be removed\"}");
          return BuildResponse_(200, "{\"left\":true}");
@@ -1354,21 +1417,25 @@ namespace HM
       if (!v.mine)
          return BuildResponse_(403, "{\"error\":\"only the calendar's owner shares it\"}");
 
-      String wanted;
-      Unicode::MultiByteToWide(Lower(Trimmed(address)), wanted);
-      if (!StringParser::IsValidEmailAddress(wanted))
-         return BuildResponse_(400, "{\"error\":\"the share names an e-mail address of an account on this server\"}");
-      std::shared_ptr<const Account> other = CacheContainer::Instance()->GetAccount(wanted);
-      if (!other)
-         return BuildResponse_(404, "{\"error\":\"no account on this server has that address\"}");
-      if (other->GetID() == account->GetID())
+      std::shared_ptr<const Account> other;
+      std::shared_ptr<Group> group;
+      if (!ResolveShareTarget(address, other, group))
+         return BuildResponse_(404, "{\"error\":\"no account on this server has that address, and no group of this server has that name\"}");
+      if (other && other->GetID() == account->GetID())
          return BuildResponse_(400, "{\"error\":\"a calendar is already its owner's\"}");
 
       bool write = GetJsonBoolValue_(requestBody, "write", false);
-      if (!CalendarStore::Share(calendarId, other->GetID(), write))
+      bool delegate = GetJsonBoolValue_(requestBody, "delegate", false);
+      if (delegate)
+         write = true;
+      bool saved = other
+         ? CalendarStore::Share(calendarId, other->GetID(), 0, write, delegate)
+         : CalendarStore::Share(calendarId, 0, group->GetID(), write, delegate);
+      if (!saved)
          return BuildResponse_(500, "{\"error\":\"the share could not be saved\"}");
 
-      LOG_DEBUG("Calendar: " + account->GetAddress() + " shared " + v.calendar.name + " with " + wanted + (write ? _T(" (read and write).") : _T(" (read-only).")));
+      String with = other ? other->GetAddress() : _T("the group ") + group->GetName();
+      LOG_DEBUG("Calendar: " + account->GetAddress() + " shared " + v.calendar.name + " with " + with + (delegate ? _T(" (as a delegate).") : (write ? _T(" (read and write).") : _T(" (read-only)."))));
       Visible after;
       FindVisible(account, calendarId, after);
       return BuildResponse_(200, CalendarJson(account, after, true));
@@ -1387,17 +1454,26 @@ namespace HM
       if (!v.mine)
          return BuildResponse_(403, "{\"error\":\"only the calendar's owner shares it\"}");
 
-      String wanted;
-      Unicode::MultiByteToWide(Lower(Trimmed(address)), wanted);
-      std::shared_ptr<const Account> other = CacheContainer::Instance()->GetAccount(wanted);
-      if (!other)
-         return BuildResponse_(404, "{\"error\":\"no account on this server has that address\"}");
+      std::shared_ptr<const Account> other;
+      std::shared_ptr<Group> group;
+      if (!ResolveShareTarget(address, other, group))
+         return BuildResponse_(404, "{\"error\":\"no account on this server has that address, and no group of this server has that name\"}");
 
       CalendarShareRecord share;
-      if (!CalendarStore::ShareOf(calendarId, other->GetID(), share))
-         return BuildResponse_(404, "{\"error\":\"the calendar is not shared with that address\"}");
-      if (!CalendarStore::Unshare(calendarId, other->GetID()))
-         return BuildResponse_(500, "{\"error\":\"the share could not be removed\"}");
+      if (other)
+      {
+         if (!CalendarStore::DirectShareOf(calendarId, other->GetID(), share))
+            return BuildResponse_(404, "{\"error\":\"the calendar is not shared with that address\"}");
+         if (!CalendarStore::Unshare(calendarId, other->GetID()))
+            return BuildResponse_(500, "{\"error\":\"the share could not be removed\"}");
+      }
+      else
+      {
+         if (!CalendarStore::GroupShareOf(calendarId, group->GetID(), share))
+            return BuildResponse_(404, "{\"error\":\"the calendar is not shared with that group\"}");
+         if (!CalendarStore::UnshareGroup(calendarId, group->GetID()))
+            return BuildResponse_(500, "{\"error\":\"the share could not be removed\"}");
+      }
 
       Visible after;
       FindVisible(account, calendarId, after);
@@ -1509,6 +1585,7 @@ namespace HM
          "\",\"recurring\":" + AnsiString(master->Property("RRULE") ? "true" : "false") +
          ",\"writable\":" + AnsiString(visible.writable ? "true" : "false") +
          ",\"mine\":" + AnsiString(visible.mine ? "true" : "false") +
+         ",\"delegate\":" + AnsiString(!visible.mine && visible.delegate ? "true" : "false") +
          ",\"color\":\"" + JsonEscape_(Utf8_(visible.calendar.color)) + "\"," +
          ComponentFieldsJson(*master, tree, me) +
          ",\"ics\":\"" + JsonEscape_(Utf8_(record.data)) + "\"}";
@@ -2275,56 +2352,13 @@ namespace HM
          return BuildResponse_(200, "{\"countered\":true,\"to\":\"" + JsonEscape_(invitation.organizer) + "\"}");
       }
 
-      // The event kept, with the answer on it: the invitation's copy replaces
-      // what was stored when it is the same or a later sequence, so a changed
-      // time reaches the calendar; an older invitation does not undo a newer.
-      ICalComponent tree;
-      bool useInvitation = true;
-      ICalComponent storedTree;
-      if (inCalendar)
-      {
-         AnsiString ignored;
-         if (ICalendar::Parse(Utf8_(stored.data), storedTree, ignored))
-         {
-            const ICalComponent *storedMaster = MasterOf(storedTree);
-            if (storedMaster && SequenceOf(*storedMaster) > invitation.sequence)
-               useInvitation = false;
-         }
-      }
-      tree = useInvitation ? invitation.tree : storedTree;
-      // The stored copy is a plain object: the METHOD is the mail's.
-      for (size_t i = 0; i < tree.properties.size();)
-      {
-         if (tree.properties[i].name == "METHOD")
-            tree.properties.erase(tree.properties.begin() + i);
-         else
-            i++;
-      }
-      if (invitation.method == "CANCEL")
-      {
-         for (size_t i = 0; i < tree.children.size(); i++)
-         {
-            if (tree.children[i].name == "VEVENT" || tree.children[i].name == "VTODO")
-               SetPlain(tree.children[i], "STATUS", "CANCELLED");
-         }
-      }
-      Imip::SetPartstat(tree, me, myName, partstat);
-
+      // The event kept, with the answer on it, by the one path the delivery
+      // filer takes (Imip::KeepInvitation): the invitation's copy replaces what
+      // was stored when it is the same or a later sequence, an older one does
+      // not undo a newer, and a REQUEST already filed on delivery is this same
+      // object updated, never a second one.
       Visible target;
-      if (inCalendar)
-      {
-         target.calendar = calendar;
-         stored.calendarId = calendar.id;
-      }
-      else
-      {
-         std::vector<Visible> all;
-         if (!VisibleCalendars(account, all) || all.empty())
-            return BuildResponse_(500, "{\"error\":\"the calendars could not be read\"}");
-         target = all[0];
-         stored = CalendarObjectRecord();
-      }
-      if (!Store(target, tree, stored, !inCalendar, problem))
+      if (!Imip::KeepInvitation(account->GetID(), invitation, true, invitation.method == "CANCEL", me, myName, partstat, target.calendar, stored, problem))
          return BuildResponse_(422, "{\"error\":\"the event could not be stored: " + JsonEscape_(problem) + "\"}");
 
       bool replied = false;
@@ -2357,16 +2391,184 @@ namespace HM
          ",\"partstat\":\"" + partstat + "\",\"replied\":" + AnsiString(replied ? "true" : "false") + ",\"to\":\"" + JsonEscape_(repliedTo) + "\"}");
    }
 
+   HttpResponse
+   RestApiServer::HandleMeCalendarGet_(const Caller &caller, __int64 calendarId)
+   {
+      std::shared_ptr<const Account> account = caller.account;
+      if (!account)
+         return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      Visible v;
+      if (!FindVisible(account, calendarId, v))
+         return BuildResponse_(404, "{\"error\":\"calendar not found\"}");
+      return BuildResponse_(200, CalendarJson(account, v, true));
+   }
+
+   //------------------------------------------------------------------------
+   // Free-busy: when an account of the caller's domain is busy
+   //------------------------------------------------------------------------
+
+   HttpResponse
+   RestApiServer::HandleMeFreeBusy_(const Caller &caller, const AnsiString &query)
+   {
+      std::shared_ptr<const Account> account = caller.account;
+      if (!account)
+         return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      AnsiString addressText = Lower(Trimmed(QueryValue(query, "address")));
+      if (addressText.IsEmpty())
+         return BuildResponse_(400, "{\"error\":\"address is required: an account of your domain\"}");
+
+      __int64 from = 0;
+      __int64 to = 0;
+      if (!FreeBusy::ParseInstant(QueryValue(query, "from"), from) || !FreeBusy::ParseInstant(QueryValue(query, "to"), to))
+         return BuildResponse_(400, "{\"error\":\"from and to are required: YYYY-MM-DD, YYYY-MM-DDTHH:MM[:SS] with Z or an offset, or YYYYMMDDTHHMMSSZ\"}");
+      if (to <= from)
+         return BuildResponse_(400, "{\"error\":\"to must be after from\"}");
+      if (to - from > static_cast<__int64>(FreeBusy::MaximumWindowDays) * 86400)
+         return BuildResponse_(400, "{\"error\":\"the window is at most 62 days\"}");
+
+      // One answer for an address that is not an active account of the
+      // caller's domain, for one that does not exist, and for one that chose
+      // not to be shown, so the route enumerates nothing. An alias domain's
+      // spelling of an address is resolved first.
+      const char *notShown = "{\"error\":\"no account of your domain has that address, or it does not show when it is busy\"}";
+      String wanted;
+      Unicode::MultiByteToWide(addressText, wanted);
+      if (!StringParser::IsValidEmailAddress(wanted))
+         return BuildResponse_(404, notShown);
+      std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
+      String resolved = aliases ? aliases->ApplyAliasesOnAddress(wanted) : wanted;
+      resolved.ToLower();
+      std::shared_ptr<const Account> other = CacheContainer::Instance()->GetAccount(resolved);
+      if (!other || !other->GetActive() || other->GetDomainID() != account->GetDomainID())
+         return BuildResponse_(404, notShown);
+
+      String choice;
+      if (!ReadPreference_(other->GetID(), _T("freebusy"), choice))
+         return BuildResponse_(500, "{\"error\":\"the preferences could not be read\"}");
+      choice.TrimLeft();
+      choice.TrimRight();
+      choice.ToLower();
+      if (choice == _T("nobody"))
+         return BuildResponse_(404, notShown);
+
+      AnsiString otherAddress = Lower(Utf8_(other->GetAddress()));
+      std::vector<FreeBusyPeriod> periods;
+      if (!FreeBusy::OfAccount(other->GetID(), otherAddress, from, to, periods))
+         return BuildResponse_(500, "{\"error\":\"the calendars could not be read\"}");
+
+      AnsiString json = "{\"address\":\"" + JsonEscape_(otherAddress) + "\",\"from\":\"" + ICalendar::FormatUtc(from) + "\",\"to\":\"" + ICalendar::FormatUtc(to) + "\",\"busy\":[";
+      for (size_t i = 0; i < periods.size(); i++)
+      {
+         if (i > 0)
+            json += ",";
+         json += "{\"start\":\"" + ICalendar::FormatUtc(periods[i].start) + "\",\"end\":\"" + ICalendar::FormatUtc(periods[i].end) +
+            "\",\"kind\":\"" + AnsiString(periods[i].tentative ? "tentative" : "busy") + "\"}";
+      }
+      json += "]}";
+      return BuildResponse_(200, json);
+   }
+
+   //------------------------------------------------------------------------
+   // An invitation in a calendar answered: by its owner, or by a delegate
+   //------------------------------------------------------------------------
+
+   HttpResponse
+   RestApiServer::HandleMeEventReply_(const Caller &caller, __int64 objectId, const AnsiString &requestBody)
+   {
+      std::shared_ptr<const Account> account = caller.account;
+      if (!account)
+         return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      Visible visible;
+      CalendarObjectRecord record;
+      if (!FindObject(account, objectId, visible, record))
+         return BuildResponse_(404, "{\"error\":\"event not found\"}");
+      if (!visible.mine && !visible.delegate)
+         return BuildResponse_(403, "{\"error\":\"only the calendar's owner, or a delegate the owner named, answers an invitation in it\"}");
+
+      AnsiString partstat = Trimmed(Utf8_(JsonUtf8Value_(requestBody, "partstat")));
+      partstat.ToUpper();
+      if (partstat != "ACCEPTED" && partstat != "TENTATIVE" && partstat != "DECLINED")
+         return BuildResponse_(400, "{\"error\":\"partstat is ACCEPTED, TENTATIVE or DECLINED\"}");
+
+      std::shared_ptr<const Account> owner = visible.mine ? account : CacheContainer::Instance()->GetAccount(visible.calendar.accountId);
+      if (!owner)
+         return BuildResponse_(500, "{\"error\":\"the calendar's owner could not be read\"}");
+
+      AnsiString problem;
+      ICalComponent tree;
+      if (!ICalendar::Parse(Utf8_(record.data), tree, problem))
+         return BuildResponse_(500, "{\"error\":\"the stored object cannot be read\"}");
+      const ICalComponent *master = MasterOf(tree);
+      if (!master)
+         return BuildResponse_(500, "{\"error\":\"the stored object has no component\"}");
+
+      AnsiString ownerAddress = Lower(Utf8_(owner->GetAddress()));
+      AnsiString ownerName = OrganizerName(owner);
+      AnsiString organizer = Imip::AddressOf(master->Value("ORGANIZER"));
+      if (organizer.IsEmpty())
+         return BuildResponse_(400, "{\"error\":\"the event names no organiser to answer\"}");
+      if (organizer == ownerAddress)
+         return BuildResponse_(400, "{\"error\":\"the calendar's owner organises this event; answers are the guests'\"}");
+
+      // The OWNER's answer is what is set and what is sent, whoever pressed
+      // the button: a delegate's own calendar is not touched, and the
+      // organiser is told who answered through SENT-BY on the ATTENDEE and
+      // Sender: on the mail.
+      bool onBehalf = !visible.mine;
+      AnsiString delegateAddress = onBehalf ? Lower(Utf8_(account->GetAddress())) : AnsiString("");
+      Imip::SetPartstat(tree, ownerAddress, ownerName, partstat, delegateAddress);
+      if (!Store(visible, tree, record, false, problem))
+         return BuildResponse_(422, "{\"error\":\"the event could not be stored: " + JsonEscape_(problem) + "\"}");
+
+      ImipMessage described;
+      AnsiString ignored;
+      Imip::Read(ICalendar::Serialize(tree), described, ignored);
+      AnsiString replyText = Imip::ReplyObject(described, ownerAddress, ownerName, partstat, delegateAddress);
+      AnsiString word = partstat == "ACCEPTED" ? "Accepted" : (partstat == "TENTATIVE" ? "Tentative" : "Declined");
+      AnsiString subject = word + ": " + ICalendar::Unescape(described.summary) + " @ " + Imip::WhenText(described.start, described.end, described.allDay);
+      AnsiString body = (ownerName.IsEmpty() ? ownerAddress : ownerName + " <" + ownerAddress + ">") + " has " + Lower(word) + (partstat == "TENTATIVE" ? "ly accepted" : "") + " this invitation";
+      if (onBehalf)
+      {
+         AnsiString delegateName = OrganizerName(account);
+         body += ", answered by " + (delegateName.IsEmpty() ? delegateAddress : delegateName + " <" + delegateAddress + ">") + " on their behalf";
+      }
+      body += ".\r\n\r\n" + Imip::Describe(described);
+      AnsiString comment = Utf8_(JsonUtf8Value_(requestBody, "comment"));
+      if (!comment.IsEmpty())
+         body += "\r\n" + comment + "\r\n";
+
+      // From the owner, Sender the delegate, and the delegate's own envelope:
+      // what a mail client shows as "on behalf of".
+      AnsiString senderHeader = onBehalf ? Utf8_(FromHeader_(account)) : AnsiString("");
+      AnsiString mail = Imip::BuildMail(Utf8_(FromHeader_(owner)), organizer, subject, body, "REPLY", replyText, ownerAddress, senderHeader);
+      String to;
+      Unicode::MultiByteToWide(organizer, to);
+      AnsiString refusal;
+      int status = QueueRawMessage_(account, to, mail, refusal);
+      bool replied = status == 0;
+      if (!replied)
+         LOG_DEBUG("Calendar: the reply to " + String(organizer) + " could not be queued: " + String(refusal));
+
+      LOG_DEBUG("Calendar: " + account->GetAddress() + " answered " + String(partstat) + " to " + record.uid + (onBehalf ? _T(" on behalf of ") + owner->GetAddress() : String()) + ".");
+      return BuildResponse_(200, "{\"event_id\":" + Int64Text(record.id) + ",\"calendar\":" + Int64Text(visible.calendar.id) +
+         ",\"partstat\":\"" + partstat + "\",\"on_behalf_of\":\"" + JsonEscape_(onBehalf ? ownerAddress : AnsiString("")) +
+         "\",\"replied\":" + AnsiString(replied ? "true" : "false") + ",\"to\":\"" + JsonEscape_(organizer) + "\"}");
+   }
+
    AnsiString
    RestApiServer::OpenApiCalendarPaths_()
    {
       return
          ",\"/api/v1/me/calendars\":{\"get\":{\"summary\":\"The signed-in account's calendars, and the ones shared with it\",\"description\":\"Each with id, name (the CalDAV segment), display_name, color (#RRGGBB or empty), owner, mine, writable, is_default and, for the account's own, shares: the addresses it is shared with and whether they may write. The default calendar is made on first use.\",\"responses\":{\"200\":{\"description\":\"calendars\"}}},"
          "\"post\":{\"summary\":\"Make a calendar\",\"description\":\"Body: display_name (required), color (#RRGGBB), name (the URI segment; made from the display name when absent). A second calendar is a task list, a project, a shared diary: it is served over CalDAV under the home as /dav/calendars/{address}/{name}/.\",\"responses\":{\"201\":{\"description\":\"the calendar\"},\"400\":{\"description\":\"a field is wrong\"},\"409\":{\"description\":\"the name is taken\"}}}},"
-         "\"/api/v1/me/calendars/{id}\":{\"put\":{\"summary\":\"Rename or recolour a calendar\",\"description\":\"Body: display_name and/or color. The owner's only.\",\"responses\":{\"200\":{\"description\":\"the calendar\"},\"403\":{\"description\":\"not the caller's calendar\"},\"404\":{\"description\":\"no such calendar\"}}},"
+         "\"/api/v1/me/calendars/{id}\":{\"get\":{\"summary\":\"One calendar the account can see, with its shares when it is the account's own\",\"description\":\"The same object as the listing gives; shares is a list of {address, write, delegate} for an account and {group, members, write, delegate} for a group of this server.\",\"responses\":{\"200\":{\"description\":\"the calendar\"},\"404\":{\"description\":\"no such calendar\"}}},"
+         "\"put\":{\"summary\":\"Rename or recolour a calendar\",\"description\":\"Body: display_name and/or color. The owner's only.\",\"responses\":{\"200\":{\"description\":\"the calendar\"},\"403\":{\"description\":\"not the caller's calendar\"},\"404\":{\"description\":\"no such calendar\"}}},"
          "\"delete\":{\"summary\":\"Delete a calendar, or leave one shared with you\",\"description\":\"The account's own calendar goes with its events and shares; the default cannot be deleted. On a calendar another account shared, the share is given back and the calendar stays theirs.\",\"responses\":{\"200\":{\"description\":\"deleted, or left\"},\"403\":{\"description\":\"the default calendar\"},\"404\":{\"description\":\"no such calendar\"}}}},"
-         "\"/api/v1/me/calendars/{id}/shares/{address}\":{\"put\":{\"summary\":\"Share a calendar with another account of this server\",\"description\":\"Body: write (boolean, default false). The other account sees the calendar in its own listing and CalDAV home as shared-{id}, read-only or read-write; what it may do is what the CalDAV current-user-privilege-set says.\",\"responses\":{\"200\":{\"description\":\"the calendar with its shares\"},\"404\":{\"description\":\"no account has that address\"}}},"
-         "\"delete\":{\"summary\":\"Take a share back\",\"responses\":{\"200\":{\"description\":\"the calendar with its shares\"},\"404\":{\"description\":\"not shared with that address\"}}}},"
+         "\"/api/v1/me/calendars/{id}/shares/{address}\":{\"put\":{\"summary\":\"Share a calendar with another account of this server, or with a group\",\"description\":\"The path names an account's address, or the name of one of this server's groups (a name that is both is the account). Body: write (boolean, default false), delegate (boolean, default false; implies write: the sharee may answer the owner's invitations on the owner's behalf through POST /api/v1/me/calendar/events/{id}/reply). The other account - or every member of the group, read at the time it asks - sees the calendar in its own listing and CalDAV home as shared-{id}, read-only or read-write; what it may do is what the CalDAV current-user-privilege-set says.\",\"responses\":{\"200\":{\"description\":\"the calendar with its shares\"},\"404\":{\"description\":\"no account has that address and no group that name\"}}},"
+         "\"delete\":{\"summary\":\"Take a share back, from an account or from a group\",\"responses\":{\"200\":{\"description\":\"the calendar with its shares\"},\"404\":{\"description\":\"not shared with that address or group\"}}}},"
          "\"/api/v1/me/calendar/events\":{\"get\":{\"summary\":\"The events of a window, occurrence by occurrence, across every calendar the account can see\",\"description\":\"start= and end= as UTC date-times (YYYYMMDDTHHMMSSZ), at most 400 days apart. Every recurring event is expanded by the server's recurrence module - overrides and exclusions applied - and each occurrence carries its recurrence_id, so the page can change or delete that one alone. Times are UTC; local_start and local_end are the wall clock in the event's own zone (tz) for the editor. my_partstat is the caller's answer when they are an attendee.\",\"responses\":{\"200\":{\"description\":\"events\"},\"400\":{\"description\":\"the window is missing or wrong\"}}},"
          "\"post\":{\"summary\":\"Create an event\",\"description\":\"Body: summary (required), start (required: YYYY-MM-DD for an all-day event, else YYYY-MM-DDTHH:MM wall time in tz), end (default an hour later, or the day), all_day, tz (an IANA zone this server knows; times are stored with that TZID so a weekly 09:00 stays 09:00 across a clock change), location, description, rrule (an RFC 5545 rule, e.g. FREQ=WEEKLY;BYDAY=MO;COUNT=10), alarm_minutes (a display reminder that many minutes before; -1 none), attendees (an array of addresses, Name <address> allowed), calendar (id; default the first), and invite: true to mail each attendee a METHOD:REQUEST with the event as text/calendar - what Outlook, Gmail and Apple Mail turn into an invitation card.\",\"responses\":{\"201\":{\"description\":\"id, uid, calendar, invited\"},\"400\":{\"description\":\"a field is wrong\"},\"403\":{\"description\":\"the calendar is read-only for the caller\"}}}},"
          "\"/api/v1/me/calendar/events/{id}\":{\"get\":{\"summary\":\"One event as stored, with its iCalendar text\",\"responses\":{\"200\":{\"description\":\"the event\"},\"404\":{\"description\":\"not found\"}}},"
@@ -2377,6 +2579,8 @@ namespace HM
          "\"/api/v1/me/tasks/{id}\":{\"put\":{\"summary\":\"Change a task, or tick it off\",\"description\":\"Any of summary, description, due (empty to clear), tz, priority, calendar, and completed: true writes STATUS:COMPLETED, COMPLETED and PERCENT-COMPLETE:100 as a client does; false clears them.\",\"responses\":{\"200\":{\"description\":\"the task\"},\"404\":{\"description\":\"not found\"}}},"
          "\"delete\":{\"summary\":\"Delete a task\",\"responses\":{\"200\":{\"description\":\"removed\"},\"404\":{\"description\":\"not found\"}}}},"
          "\"/api/v1/me/messages/{id}/invitation\":{\"get\":{\"summary\":\"The invitation a message carries\",\"description\":\"The first text/calendar part or .ics attachment, read: method (REQUEST, REPLY, CANCEL, COUNTER, ...), the event's summary, when (UTC and local), where, organizer, attendees with their answers, my_partstat, and whether the event is already in one of the caller's calendars (in_calendar, event_id, stored_partstat, stored_status). 404 for a message without one.\",\"responses\":{\"200\":{\"description\":\"the invitation\"},\"404\":{\"description\":\"no invitation\"}}}},"
-         "\"/api/v1/me/messages/{id}/invitation/reply\":{\"post\":{\"summary\":\"Answer an invitation\",\"description\":\"Body: action - accept, tentative or decline keep the event in the caller's default calendar with their PARTSTAT set and mail the organiser a METHOD:REPLY (RFC 6047), which this server files into the organiser's own event when they are on it and which Exchange, Microsoft 365 and Google file into theirs; remove takes the event out of the calendar (what a CANCEL asks for); counter, with start and optionally end and tz, mails the organiser a METHOD:COUNTER proposing that time. comment travels in the mail.\",\"responses\":{\"200\":{\"description\":\"stored, replied, or countered\"},\"400\":{\"description\":\"the action is unknown, or the caller is the organiser\"},\"404\":{\"description\":\"no invitation\"}}}}";
+         "\"/api/v1/me/messages/{id}/invitation/reply\":{\"post\":{\"summary\":\"Answer an invitation\",\"description\":\"Body: action - accept, tentative or decline keep the event in the caller's default calendar with their PARTSTAT set (updating the copy a REQUEST delivered to the account already filed there, never adding a second) and mail the organiser a METHOD:REPLY (RFC 6047), which this server files into the organiser's own event when they are on it and which Exchange, Microsoft 365 and Google file into theirs; remove takes the event out of the calendar (what a CANCEL asks for); counter, with start and optionally end and tz, mails the organiser a METHOD:COUNTER proposing that time. comment travels in the mail.\",\"responses\":{\"200\":{\"description\":\"stored, replied, or countered\"},\"400\":{\"description\":\"the action is unknown, or the caller is the organiser\"},\"404\":{\"description\":\"no invitation\"}}}},"
+         "\"/api/v1/me/calendar/events/{id}/reply\":{\"post\":{\"summary\":\"Answer an invitation that is in a calendar - as its owner, or as a delegate on the owner's behalf\",\"description\":\"Body: partstat - ACCEPTED, TENTATIVE or DECLINED - and an optional comment. Allowed to the calendar's owner and to a sharee whose share is a delegation (not to a plain writer or a reader: 403). The OWNER's PARTSTAT on the event is set and the organiser is mailed a METHOD:REPLY whose ATTENDEE is the owner; when a delegate answered, that ATTENDEE carries SENT-BY=mailto:the delegate (RFC 5545 section 3.2.18), kept in the stored event so the owner's page shows who answered, and the mail is From: the owner with Sender: the delegate, sent from the delegate's own address - what a mail client shows as on behalf of. The delegate's own calendar is not touched. 400 when the event names no organiser or the owner organises it.\",\"responses\":{\"200\":{\"description\":\"event_id, partstat, on_behalf_of, replied, to\"},\"400\":{\"description\":\"partstat is not one of the three, or the event is not an invitation to the owner\"},\"403\":{\"description\":\"not the owner and not a delegate\"},\"404\":{\"description\":\"no such event\"}}}},"
+         "\"/api/v1/me/freebusy\":{\"get\":{\"summary\":\"When an account of the caller's domain is busy\",\"description\":\"address= an account of the caller's own domain (an alias domain's spelling resolved); from= and to= the window, at most 62 days apart, as YYYY-MM-DD, YYYY-MM-DDTHH:MM[:SS] with Z or an offset, or YYYYMMDDTHHMMSSZ. The answer is the busy periods of that account's own calendars over the window - every event instance expanded, recurrences included, an event that is TRANSP:TRANSPARENT or STATUS:CANCELLED or that the account declined left out - merged and sorted, each with kind busy or tentative (tentative when the account's PARTSTAT is TENTATIVE or NEEDS-ACTION), with no title, location or description. 404 for an address that is not an active account of the caller's domain, one that does not exist, and one whose freebusy preference is nobody: one answer, so nothing is enumerated. The CalDAV free-busy-query REPORT answers the same computation as a VFREEBUSY.\",\"responses\":{\"200\":{\"description\":\"address, from, to, busy: [{start, end, kind}]\"},\"400\":{\"description\":\"the address or the window is missing, or the window is over 62 days\"},\"404\":{\"description\":\"not an account of the caller's domain that shows when it is busy\"}}}}";
    }
 }

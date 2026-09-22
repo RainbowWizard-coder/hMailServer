@@ -60,12 +60,110 @@ namespace HM
          calendar.color = recordset->GetStringValue("calendarcolor");
       }
 
+      const char *ShareColumns =
+         "shareid, sharecalendarid, shareaccountid, sharegroupid, sharewrite, sharedelegate";
+
       void ReadShare(std::shared_ptr<DALRecordset> recordset, CalendarShareRecord &share)
       {
          share.id = recordset->GetInt64Value("shareid");
          share.calendarId = recordset->GetInt64Value("sharecalendarid");
          share.accountId = recordset->GetInt64Value("shareaccountid");
-         share.write = recordset->GetInt64Value("sharewrite") != 0;
+         share.groupId = recordset->GetInt64Value("sharegroupid");
+         share.delegate = recordset->GetInt64Value("sharedelegate") != 0;
+         // A delegate may write, whatever the write column says: the two are
+         // written together, and a row an older build wrote has neither.
+         share.write = recordset->GetInt64Value("sharewrite") != 0 || share.delegate;
+      }
+
+      // The rows that reach an account: its own, and those of every group it
+      // is a member of, each joined to its calendar. A calendar may come back
+      // more than once; the callers merge.
+      bool ReadReaching(__int64 accountId, std::vector<CalendarRecord> &calendars, std::vector<CalendarShareRecord> &shares)
+      {
+         calendars.clear();
+         shares.clear();
+
+         SQLCommand direct(String(AnsiString("select ") + ShareColumns + ", " + CalendarColumns +
+            " from hm_calendarshares inner join hm_calendars on calendarid = sharecalendarid where shareaccountid = @ACCOUNTID and sharegroupid = 0 order by calendardisplayname, calendarid"));
+         direct.AddParameter("@ACCOUNTID", accountId);
+
+         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(direct);
+         if (!recordset)
+            return false;
+         while (!recordset->IsEOF())
+         {
+            CalendarRecord calendar;
+            ReadCalendar(recordset, calendar);
+            CalendarShareRecord share;
+            ReadShare(recordset, share);
+            calendars.push_back(calendar);
+            shares.push_back(share);
+            recordset->MoveNext();
+         }
+
+         // Through a group: the membership rows joined in, so the answer is
+         // what the groups say now. A join rather than a subquery, since SQL
+         // Server Compact is happier with it.
+         SQLCommand viaGroup(String(AnsiString("select ") + ShareColumns + ", " + CalendarColumns +
+            " from hm_calendarshares inner join hm_calendars on calendarid = sharecalendarid inner join hm_group_members on membergroupid = sharegroupid where memberaccountid = @ACCOUNTID and sharegroupid <> 0 order by calendardisplayname, calendarid"));
+         viaGroup.AddParameter("@ACCOUNTID", accountId);
+
+         recordset = Application::Instance()->GetDBManager()->OpenRecordset(viaGroup);
+         if (!recordset)
+            return false;
+         while (!recordset->IsEOF())
+         {
+            CalendarRecord calendar;
+            ReadCalendar(recordset, calendar);
+            CalendarShareRecord share;
+            ReadShare(recordset, share);
+            calendars.push_back(calendar);
+            shares.push_back(share);
+            recordset->MoveNext();
+         }
+         return true;
+      }
+
+      // One entry per calendar: the account's own row when there is one, else
+      // the first group's, carrying the widest rights of every row that reaches
+      // the calendar.
+      void MergeReaching(const std::vector<CalendarRecord> &calendars, const std::vector<CalendarShareRecord> &shares,
+                         std::vector<CalendarRecord> &mergedCalendars, std::vector<CalendarShareRecord> &mergedShares)
+      {
+         mergedCalendars.clear();
+         mergedShares.clear();
+         for (size_t i = 0; i < calendars.size(); i++)
+         {
+            size_t at = mergedCalendars.size();
+            for (size_t j = 0; j < mergedCalendars.size(); j++)
+            {
+               if (mergedCalendars[j].id == calendars[i].id)
+               {
+                  at = j;
+                  break;
+               }
+            }
+            if (at == mergedCalendars.size())
+            {
+               mergedCalendars.push_back(calendars[i]);
+               mergedShares.push_back(shares[i]);
+               continue;
+            }
+            CalendarShareRecord &kept = mergedShares[at];
+            if (kept.accountId == 0 && shares[i].accountId != 0)
+            {
+               bool write = kept.write;
+               bool delegate = kept.delegate;
+               kept = shares[i];
+               kept.write = kept.write || write;
+               kept.delegate = kept.delegate || delegate;
+            }
+            else
+            {
+               kept.write = kept.write || shares[i].write;
+               kept.delegate = kept.delegate || shares[i].delegate;
+            }
+         }
       }
 
       void ReadObject(std::shared_ptr<DALRecordset> recordset, CalendarObjectRecord &object)
@@ -281,6 +379,28 @@ namespace HM
    }
 
    bool
+   CalendarStore::ListCalendarsIfAny(__int64 accountId, std::vector<CalendarRecord> &calendars)
+   {
+      calendars.clear();
+
+      SQLCommand command(String(AnsiString("select ") + CalendarColumns + " from hm_calendars where calendaraccountid = @ACCOUNTID order by calendarname"));
+      command.AddParameter("@ACCOUNTID", accountId);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return false;
+
+      while (!recordset->IsEOF())
+      {
+         CalendarRecord calendar;
+         ReadCalendar(recordset, calendar);
+         calendars.push_back(calendar);
+         recordset->MoveNext();
+      }
+      return true;
+   }
+
+   bool
    CalendarStore::FindByName(__int64 accountId, const String &name, CalendarRecord &calendar)
    {
       if (name.IsEmpty() || name.GetLength() > 255)
@@ -406,14 +526,29 @@ namespace HM
    }
 
    bool
+   CalendarStore::DefaultIfAny(__int64 accountId, CalendarRecord &calendar)
+   {
+      SQLCommand select(String(AnsiString("select ") + CalendarColumns + " from hm_calendars where calendaraccountid = @ACCOUNTID and calendarname = @NAME"));
+      select.AddParameter("@ACCOUNTID", accountId);
+      select.AddParameter("@NAME", String(DefaultName));
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(select);
+      if (!recordset || recordset->IsEOF())
+         return false;
+
+      ReadCalendar(recordset, calendar);
+      return true;
+   }
+
+   bool
    CalendarStore::ListShares(__int64 calendarId, std::vector<CalendarShareRecord> &shares)
    {
       shares.clear();
 
-      SQLCommand command("select shareid, sharecalendarid, shareaccountid, sharewrite, accountaddress from hm_calendarshares inner join hm_accounts on accountid = shareaccountid where sharecalendarid = @ID order by accountaddress");
-      command.AddParameter("@ID", calendarId);
+      SQLCommand accounts(String(AnsiString("select ") + ShareColumns + ", accountaddress from hm_calendarshares inner join hm_accounts on accountid = shareaccountid where sharecalendarid = @ID and sharegroupid = 0 order by accountaddress"));
+      accounts.AddParameter("@ID", calendarId);
 
-      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(accounts);
       if (!recordset)
          return false;
 
@@ -425,40 +560,88 @@ namespace HM
          shares.push_back(share);
          recordset->MoveNext();
       }
+
+      // The groups, each with its name and its size. The join is a left one so
+      // that a row whose group has gone is seen - and dropped here, since no
+      // key drops it.
+      SQLCommand groups(String(AnsiString("select ") + ShareColumns + ", groupname from hm_calendarshares left outer join hm_groups on groupid = sharegroupid where sharecalendarid = @ID and sharegroupid <> 0 order by groupname"));
+      groups.AddParameter("@ID", calendarId);
+
+      recordset = Application::Instance()->GetDBManager()->OpenRecordset(groups);
+      if (!recordset)
+         return false;
+
+      std::vector<__int64> orphans;
+      while (!recordset->IsEOF())
+      {
+         CalendarShareRecord share;
+         ReadShare(recordset, share);
+         share.groupName = recordset->GetStringValue("groupname");
+         if (share.groupName.IsEmpty())
+            orphans.push_back(share.id);
+         else
+            shares.push_back(share);
+         recordset->MoveNext();
+      }
+
+      for (size_t i = 0; i < orphans.size(); i++)
+      {
+         SQLCommand drop("delete from hm_calendarshares where shareid = @ID");
+         drop.AddParameter("@ID", orphans[i]);
+         Application::Instance()->GetDBManager()->Execute(drop);
+      }
+
+      for (size_t i = 0; i < shares.size(); i++)
+      {
+         if (shares[i].groupId == 0)
+            continue;
+         SQLCommand count("select count(*) as membercount from hm_group_members where membergroupid = @GROUPID");
+         count.AddParameter("@GROUPID", shares[i].groupId);
+         std::shared_ptr<DALRecordset> counted = Application::Instance()->GetDBManager()->OpenRecordset(count);
+         if (counted && !counted->IsEOF())
+            shares[i].members = static_cast<int>(counted->GetLongValue("membercount"));
+      }
       return true;
    }
 
    bool
    CalendarStore::ListSharedWith(__int64 accountId, std::vector<CalendarRecord> &calendars, std::vector<CalendarShareRecord> &shares)
    {
-      calendars.clear();
-      shares.clear();
-
-      SQLCommand command(String(AnsiString("select shareid, sharecalendarid, shareaccountid, sharewrite, ") + CalendarColumns +
-         " from hm_calendarshares inner join hm_calendars on calendarid = sharecalendarid where shareaccountid = @ACCOUNTID order by calendardisplayname, calendarid"));
-      command.AddParameter("@ACCOUNTID", accountId);
-
-      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
-      if (!recordset)
+      std::vector<CalendarRecord> reachingCalendars;
+      std::vector<CalendarShareRecord> reachingShares;
+      if (!ReadReaching(accountId, reachingCalendars, reachingShares))
          return false;
 
-      while (!recordset->IsEOF())
-      {
-         CalendarRecord calendar;
-         ReadCalendar(recordset, calendar);
-         CalendarShareRecord share;
-         ReadShare(recordset, share);
-         calendars.push_back(calendar);
-         shares.push_back(share);
-         recordset->MoveNext();
-      }
+      MergeReaching(reachingCalendars, reachingShares, calendars, shares);
       return true;
    }
 
    bool
    CalendarStore::ShareOf(__int64 calendarId, __int64 accountId, CalendarShareRecord &share)
    {
-      SQLCommand command("select shareid, sharecalendarid, shareaccountid, sharewrite from hm_calendarshares where sharecalendarid = @ID and shareaccountid = @ACCOUNTID");
+      // The rows that reach the account, narrowed to the one calendar: a
+      // calendar is shared with a handful of accounts and an account is
+      // shared a handful of calendars, so the walk is short either way.
+      std::vector<CalendarRecord> calendars;
+      std::vector<CalendarShareRecord> shares;
+      if (!ListSharedWith(accountId, calendars, shares))
+         return false;
+
+      for (size_t i = 0; i < calendars.size(); i++)
+      {
+         if (calendars[i].id == calendarId)
+         {
+            share = shares[i];
+            return true;
+         }
+      }
+      return false;
+   }
+
+   bool
+   CalendarStore::DirectShareOf(__int64 calendarId, __int64 accountId, CalendarShareRecord &share)
+   {
+      SQLCommand command(String(AnsiString("select ") + ShareColumns + " from hm_calendarshares where sharecalendarid = @ID and shareaccountid = @ACCOUNTID and sharegroupid = 0"));
       command.AddParameter("@ID", calendarId);
       command.AddParameter("@ACCOUNTID", accountId);
 
@@ -471,17 +654,39 @@ namespace HM
    }
 
    bool
-   CalendarStore::Share(__int64 calendarId, __int64 accountId, bool write)
+   CalendarStore::GroupShareOf(__int64 calendarId, __int64 groupId, CalendarShareRecord &share)
    {
+      SQLCommand command(String(AnsiString("select ") + ShareColumns + " from hm_calendarshares where sharecalendarid = @ID and sharegroupid = @GROUPID"));
+      command.AddParameter("@ID", calendarId);
+      command.AddParameter("@GROUPID", groupId);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset || recordset->IsEOF())
+         return false;
+
+      ReadShare(recordset, share);
+      return true;
+   }
+
+   bool
+   CalendarStore::Share(__int64 calendarId, __int64 accountId, __int64 groupId, bool write, bool delegate)
+   {
+      if ((accountId == 0) == (groupId == 0))
+         return false;
+      if (delegate)
+         write = true;
+
       boost::lock_guard<boost::recursive_mutex> guard(write_mutex);
 
       CalendarShareRecord existing;
-      if (ShareOf(calendarId, accountId, existing))
+      bool found = groupId != 0 ? GroupShareOf(calendarId, groupId, existing) : DirectShareOf(calendarId, accountId, existing);
+      if (found)
       {
          SQLStatement statement;
          statement.SetTable("hm_calendarshares");
          statement.SetStatementType(SQLStatement::STUpdate);
          statement.AddColumnInt64("sharewrite", write ? 1 : 0);
+         statement.AddColumnInt64("sharedelegate", delegate ? 1 : 0);
          statement.SetWhereClause("shareid = " + Int64Text(existing.id));
          return Application::Instance()->GetDBManager()->Execute(statement);
       }
@@ -492,7 +697,9 @@ namespace HM
       statement.SetIdentityColumn("shareid");
       statement.AddColumnInt64("sharecalendarid", calendarId);
       statement.AddColumnInt64("shareaccountid", accountId);
+      statement.AddColumnInt64("sharegroupid", groupId);
       statement.AddColumnInt64("sharewrite", write ? 1 : 0);
+      statement.AddColumnInt64("sharedelegate", delegate ? 1 : 0);
 
       __int64 id = 0;
       return Application::Instance()->GetDBManager()->Execute(statement, &id) && id > 0;
@@ -503,17 +710,38 @@ namespace HM
    {
       boost::lock_guard<boost::recursive_mutex> guard(write_mutex);
 
-      SQLCommand command("delete from hm_calendarshares where sharecalendarid = @ID and shareaccountid = @ACCOUNTID");
+      SQLCommand command("delete from hm_calendarshares where sharecalendarid = @ID and shareaccountid = @ACCOUNTID and sharegroupid = 0");
       command.AddParameter("@ID", calendarId);
       command.AddParameter("@ACCOUNTID", accountId);
       return Application::Instance()->GetDBManager()->Execute(command);
    }
 
    bool
+   CalendarStore::UnshareGroup(__int64 calendarId, __int64 groupId)
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(write_mutex);
+
+      SQLCommand command("delete from hm_calendarshares where sharecalendarid = @ID and sharegroupid = @GROUPID");
+      command.AddParameter("@ID", calendarId);
+      command.AddParameter("@GROUPID", groupId);
+      return Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   bool
    CalendarStore::UnshareAll(__int64 accountId)
    {
-      SQLCommand command("delete from hm_calendarshares where shareaccountid = @ACCOUNTID");
+      SQLCommand command("delete from hm_calendarshares where shareaccountid = @ACCOUNTID and sharegroupid = 0");
       command.AddParameter("@ACCOUNTID", accountId);
+      return Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   bool
+   CalendarStore::UnshareAllForGroup(__int64 groupId)
+   {
+      if (groupId == 0)
+         return true;
+      SQLCommand command("delete from hm_calendarshares where sharegroupid = @GROUPID");
+      command.AddParameter("@GROUPID", groupId);
       return Application::Instance()->GetDBManager()->Execute(command);
    }
 

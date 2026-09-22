@@ -7747,7 +7747,7 @@
   // Kept with the account (GET/PUT /api/v1/me/preferences); the browser's
   // storage holds only the theme, for the sign-in page before there is one.
   var prefs = {};
-  var basePrefs = { theme: 'system', density: 'comfortable', undo_seconds: '5', notify: '0', notify_folders: '', view: 'threads', pane: 'right', inbox: 'tabs', tabs_by_sender: '', important_marker: 'auto', inbox_sections: '0', nudges: '1', timezone: '', swipe_right: 'archive', swipe_left: 'delete', snooze_hours: '3', snooze_hour: '9', reply_place: 'below', retention_trash_days: '0', retention_junk_days: '0', retention_archive_days: '0' };
+  var basePrefs = { theme: 'system', density: 'comfortable', undo_seconds: '5', notify: '0', notify_folders: '', view: 'threads', pane: 'right', inbox: 'tabs', tabs_by_sender: '', important_marker: 'auto', inbox_sections: '0', nudges: '1', timezone: '', freebusy: 'domain', swipe_right: 'archive', swipe_left: 'delete', snooze_hours: '3', snooze_hour: '9', reply_place: 'below', retention_trash_days: '0', retention_junk_days: '0', retention_archive_days: '0' };
   // The server's recovery window, learned the first time the list tools are
   // drawn: 0 means it keeps nothing, and the way in stays hidden.
   var recoverDays = 0;
@@ -8101,6 +8101,7 @@
     el('pref-language').value = knownLanguage(pref('language') || '') || languageActive;
     fillZones();
     el('pref-timezone').value = pref('timezone') || '';
+    el('pref-freebusy').value = pref('freebusy') === 'nobody' ? 'nobody' : 'domain';
     el('pref-swipe-right').value = pref('swipe_right');
     el('pref-swipe-left').value = pref('swipe_left');
     el('pref-snooze-hours').value = String(snoozeHours());
@@ -8377,7 +8378,7 @@
     var labels = el('notify-folders').children;
     for (var i = 0; i < labels.length; i++) { var tick = labels[i].children[0]; if (tick && tick.checked) { ticked.push(tick.value); } }
     var markerBefore = markerMode();
-    savePrefs({ language: el('pref-language').value, timezone: el('pref-timezone').value, swipe_right: el('pref-swipe-right').value, swipe_left: el('pref-swipe-left').value, reply_place: el('pref-reply-place').value, retention_trash_days: el('pref-retention-trash').value, retention_junk_days: el('pref-retention-junk').value, retention_archive_days: el('pref-retention-archive').value, snooze_hours: el('pref-snooze-hours').value, snooze_hour: el('pref-snooze-hour').value, theme: el('pref-theme').value, density: el('pref-density').value, pane: el('pref-pane').value, undo_seconds: el('pref-undo').value,
+    savePrefs({ language: el('pref-language').value, timezone: el('pref-timezone').value, freebusy: el('pref-freebusy').value, swipe_right: el('pref-swipe-right').value, swipe_left: el('pref-swipe-left').value, reply_place: el('pref-reply-place').value, retention_trash_days: el('pref-retention-trash').value, retention_junk_days: el('pref-retention-junk').value, retention_archive_days: el('pref-retention-archive').value, snooze_hours: el('pref-snooze-hours').value, snooze_hour: el('pref-snooze-hour').value, theme: el('pref-theme').value, density: el('pref-density').value, pane: el('pref-pane').value, undo_seconds: el('pref-undo').value,
                 notify: el('pref-notify').checked ? '1' : '0', notify_folders: ticked.join(','), inbox: el('pref-inbox').value, important_marker: el('pref-important').value, inbox_sections: el('pref-sections').value, nudges: el('pref-nudges').checked ? '1' : '0' }).then(function (ok) {
       if (ok) {
         say('prefs-status', t('Saved.'), true);
@@ -11873,13 +11874,16 @@
     var shareForm = node('form', undefined, 'row');
     var address = document.createElement('input'); address.type = 'text'; address.setAttribute('placeholder', 'someone@' + (me.split('@')[1] || 'example.com')); address.setAttribute('aria-label', t('Share with')); address.id = 'cal-share-address';
     var writeLabel = node('label'); var write = document.createElement('input'); write.type = 'checkbox'; write.id = 'cal-share-write'; writeLabel.appendChild(write); writeLabel.appendChild(node('span', ' ' + t('Can edit')));
+    var delegateLabel = node('label'); var delegate = document.createElement('input'); delegate.type = 'checkbox'; delegate.id = 'cal-share-delegate'; delegateLabel.appendChild(delegate); delegateLabel.appendChild(node('span', ' ' + t('Can answer invitations for you')));
     var share = button(t('Share'), 'btn sm'); share.type = 'submit';
-    shareForm.appendChild(address); shareForm.appendChild(writeLabel); shareForm.appendChild(share);
+    shareForm.appendChild(address); shareForm.appendChild(writeLabel); shareForm.appendChild(delegateLabel); shareForm.appendChild(share);
     shareForm.addEventListener('submit', function (event) {
       event.preventDefault();
-      var who = address.value.trim().toLowerCase();
+      // An address, or the name of a group of this server; the server says which.
+      var who = address.value.trim();
+      if (who.indexOf('@') > 0) { who = who.toLowerCase(); }
       if (!who) { return; }
-      call('PUT', '/api/v1/me/calendars/' + c.id + '/shares/' + encodeURIComponent(who), { write: write.checked }).then(function (result) {
+      call('PUT', '/api/v1/me/calendars/' + c.id + '/shares/' + encodeURIComponent(who), { write: write.checked || delegate.checked, delegate: delegate.checked }).then(function (result) {
         if (result.status !== 200) { say('cal-status', describe(result, t('Could not share the calendar')), false); return; }
         say('cal-status', tf('Shared with {0}.', who), true);
         loadCalendars(true);
@@ -11888,10 +11892,11 @@
     box.appendChild(shareForm);
     (c.shares || []).forEach(function (s) {
       var row = node('div', undefined, 'row cal-share');
-      row.appendChild(node('span', s.address + ' · ' + (s.write ? t('can edit') : t('read-only'))));
+      var who = s.group ? s.group + ' · ' + tf('{0} members', s.members || 0) : s.address;
+      row.appendChild(node('span', who + ' · ' + (s.delegate ? t('can answer invitations') : s.write ? t('can edit') : t('read-only'))));
       var remove = button(t('Remove'), 'btn quiet sm');
       remove.addEventListener('click', function () {
-        call('DELETE', '/api/v1/me/calendars/' + c.id + '/shares/' + encodeURIComponent(s.address)).then(function (result) {
+        call('DELETE', '/api/v1/me/calendars/' + c.id + '/shares/' + encodeURIComponent(s.group || s.address)).then(function (result) {
           if (result.status !== 200) { say('cal-status', describe(result, t('Could not remove the share')), false); return; }
           loadCalendars(true);
         });
@@ -11899,7 +11904,7 @@
       row.appendChild(remove);
       box.appendChild(row);
     });
-    box.appendChild(node('p', t('Someone you share with sees this calendar in their webmail and on their phone, read-only unless they can edit.'), 'hint'));
+    box.appendChild(node('p', t('Someone you share with sees this calendar in their webmail and on their phone, read-only unless they can edit.') + ' ' + t('The name of a group shares it with every member; someone who can answer invitations may accept or decline yours on your behalf.'), 'hint'));
     if (!c.is_default) {
       var del = button(t('Delete this calendar'), 'btn quiet sm');
       del.addEventListener('click', function () {
@@ -12232,17 +12237,123 @@
     el('event-save').hidden = readOnly;
     el('event-delete').hidden = !ev || readOnly;
     el('event-readonly').hidden = !readOnly;
-    var answered = ev && ev.my_partstat ? ev.my_partstat : '';
+    // Whose answer the editor shows: the reader's own on their own calendar,
+    // the owner's on a calendar shared with them.
+    var cal = ev ? calendarById(ev.calendar) : null;
+    var ownerAddress = (cal && !cal.mine ? cal.owner || '' : me).toLowerCase();
+    var ownerEntry = (ev && ev.attendees || []).filter(function (a) { return String(a.address || '').toLowerCase() === ownerAddress; })[0];
+    var answered = ev ? (cal && !cal.mine ? (ownerEntry ? ownerEntry.partstat : '') : ev.my_partstat || '') : '';
     el('event-partstat').hidden = !answered;
-    el('event-partstat').textContent = answered ? partstatWords(answered) : '';
+    el('event-partstat').textContent = answered ? partstatWords(answered) + (ownerEntry && ownerEntry.sent_by ? ' (' + tf('answered by {0}', ownerEntry.sent_by) + ')' : '') : '';
     el('event-attendee-list').hidden = !(ev && ev.attendees && ev.attendees.length);
     clear(el('event-attendee-list'));
-    (ev && ev.attendees || []).forEach(function (a) { el('event-attendee-list').appendChild(node('span', (a.name || a.address) + ' · ' + partstatWords(a.partstat), 'badge ' + (a.partstat === 'ACCEPTED' ? 'good' : a.partstat === 'DECLINED' ? 'bad' : ''))); });
+    (ev && ev.attendees || []).forEach(function (a) { el('event-attendee-list').appendChild(node('span', (a.name || a.address) + ' · ' + partstatWords(a.partstat) + (a.sent_by ? ' (' + tf('answered by {0}', a.sent_by) + ')' : ''), 'badge ' + (a.partstat === 'ACCEPTED' ? 'good' : a.partstat === 'DECLINED' ? 'bad' : ''))); });
+    renderEventAnswer(ev, cal, ownerAddress);
     say('event-status', '', true);
     updateEventForm();
+    renderAvailability();
     el('event-overlay').hidden = false;
     el('event-summary').focus();
   };
+  // An invitation in the calendar answered from the editor: by the owner on
+  // their own calendar, or by a delegate on the owner's behalf on a calendar
+  // shared with them as one. One POST; the server sets the owner's answer and
+  // mails the organiser.
+  var renderEventAnswer = function (ev, cal, ownerAddress) {
+    var box = el('event-answer');
+    clear(box);
+    var organizer = ev && ev.organizer ? String(ev.organizer).toLowerCase() : '';
+    var may = !!(ev && organizer && organizer !== ownerAddress && (!cal || cal.mine || cal.delegate));
+    box.hidden = !may;
+    if (!may) { return; }
+    box.appendChild(node('span', cal && !cal.mine ? tf('Answer on behalf of {0}', cal.owner) : t('Answer'), 'k'));
+    [['ACCEPTED', t('Accept'), 'btn sm'], ['TENTATIVE', t('Maybe'), 'btn ghost sm'], ['DECLINED', t('Decline'), 'btn ghost sm']].forEach(function (pair) {
+      var b = button(pair[1], pair[2]);
+      b.setAttribute('data-answer', pair[0]);
+      b.addEventListener('click', function () {
+        call('POST', '/api/v1/me/calendar/events/' + ev.id + '/reply', { partstat: pair[0] }).then(function (result) {
+          if (result.status !== 200) { say('event-status', describe(result, t('Could not send the answer')), false); return; }
+          closeEvent();
+          toast(tf('The answer was sent to {0}.', (result.data && result.data.to) || organizer));
+          loadEvents();
+        });
+      });
+      box.appendChild(b);
+    });
+  };
+  // The availability strip: once guests are named and a start is set, one row
+  // per person for the event's day - the organiser first - with the busy
+  // periods the free-busy route answers and the event's own span outlined.
+  // A guest elsewhere is not on this server; one who chose not to be shown,
+  // or who is not an account of the domain, is not shown. Answers are kept
+  // per person and day while the page is open.
+  var availabilityCache = {};
+  var availabilityRun = 0;
+  var addressOfGuest = function (text) { var m = /<([^>]+)>/.exec(text); return (m ? m[1] : text).trim().toLowerCase(); };
+  var renderAvailability = function () {
+    var box = el('event-availability');
+    var allDay = el('event-allday').checked;
+    var startText = allDay ? el('event-start-date').value : el('event-start').value;
+    var endText = allDay ? '' : el('event-end').value;
+    var guests = el('event-attendees').value.split(/[,;]/).map(function (s) { return s.trim(); }).filter(function (s) { return s; });
+    var run = ++availabilityRun;
+    clear(box);
+    if (!startText || startText.length < 10 || !guests.length) { box.hidden = true; return; }
+    var zone = el('event-tz').value || calZone();
+    var day = startText.slice(0, 10);
+    var p = day.split('-');
+    var dayStart = instantOf(+p[0], +p[1], +p[2], 0, 0, zone);
+    var next = dayOffset(+p[0], +p[1], +p[2], 1);
+    var dayEnd = instantOf(next.y, next.m, next.d, 0, 0, zone);
+    var span = Math.max(1, dayEnd.getTime() - dayStart.getTime());
+    var evStart = dayStart, evEnd = dayEnd;
+    if (!allDay) {
+      var s = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(startText);
+      if (s) { evStart = instantOf(+s[1], +s[2], +s[3], +s[4], +s[5], zone); }
+      var e = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(endText || '');
+      evEnd = e ? instantOf(+e[1], +e[2], +e[3], +e[4], +e[5], zone) : new Date(evStart.getTime() + 3600000);
+    }
+    var pct = function (date) { return Math.max(0, Math.min(100, (date.getTime() - dayStart.getTime()) / span * 100)); };
+    box.hidden = false;
+    box.appendChild(node('div', t('Availability') + ' · ' + dayName(day, 'long'), 'fb-head'));
+    var myDomain = (me.split('@')[1] || '').toLowerCase();
+    var people = [me.toLowerCase()];
+    guests.forEach(function (g) { var a = addressOfGuest(g); if (a.indexOf('@') > 0 && people.indexOf(a) < 0) { people.push(a); } });
+    var windowKey = utcText(dayStart) + utcText(dayEnd);
+    people.forEach(function (address) {
+      var row = node('div', undefined, 'fb-row');
+      row.setAttribute('data-address', address);
+      row.appendChild(node('span', address, 'fb-name'));
+      var bar = node('div', undefined, 'fb-bar');
+      row.appendChild(bar);
+      box.appendChild(row);
+      if (address.split('@')[1] !== myDomain) { row.appendChild(node('span', t('not on this server'), 'fb-note')); return; }
+      var outline = node('span', undefined, 'fb-event');
+      outline.style.left = pct(evStart) + '%';
+      outline.style.width = Math.max(1, pct(evEnd) - pct(evStart)) + '%';
+      var cacheKey = address + '|' + windowKey;
+      if (!availabilityCache[cacheKey]) {
+        availabilityCache[cacheKey] = call('GET', '/api/v1/me/freebusy?address=' + encodeURIComponent(address) + '&from=' + utcText(dayStart) + '&to=' + utcText(dayEnd)).then(function (result) {
+          if (result.status !== 200 && result.status !== 404) { delete availabilityCache[cacheKey]; }
+          return result;
+        });
+      }
+      availabilityCache[cacheKey].then(function (result) {
+        if (run !== availabilityRun) { return; }
+        if (result.status !== 200 || !result.data) { row.appendChild(node('span', t('not shown'), 'fb-note')); bar.appendChild(outline); return; }
+        (result.data.busy || []).forEach(function (b) {
+          var bs = parseUtc(b.start), be = parseUtc(b.end);
+          if (!bs || !be) { return; }
+          var block = node('span', undefined, 'fb-block' + (b.kind === 'tentative' ? ' fb-tentative' : ''));
+          block.style.left = pct(bs) + '%';
+          block.style.width = Math.max(0.5, pct(be) - pct(bs)) + '%';
+          bar.appendChild(block);
+        });
+        bar.appendChild(outline);
+      });
+    });
+  };
+  ['event-start', 'event-end', 'event-start-date', 'event-attendees', 'event-tz', 'event-allday'].forEach(function (id) { el(id).addEventListener('change', renderAvailability); el(id).addEventListener('input', renderAvailability); });
   var partstatWords = function (partstat) {
     if (partstat === 'ACCEPTED') { return t('accepted'); }
     if (partstat === 'DECLINED') { return t('declined'); }

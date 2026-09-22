@@ -1304,6 +1304,13 @@ namespace DBUpdater
          // (the queue row the message was accepted as).
          new SchemaProbe(6085, "hm_recall.recallqueueid",
                          "update hm_recall set recallqueueid = recallqueueid where 1 = 0"),
+         // Upgrade6085to6086* - a calendar shared with a group, and a share that
+         // may answer the owner's invitations: the group's id (0 for a share with
+         // an account) and the delegate flag, the unique index widened to hold both.
+         new SchemaProbe(6086, "hm_calendarshares.sharegroupid",
+                         "update hm_calendarshares set sharegroupid = sharegroupid where 1 = 0"),
+         new SchemaProbe(6086, "hm_calendarshares.sharedelegate",
+                         "update hm_calendarshares set sharedelegate = sharedelegate where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

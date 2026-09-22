@@ -353,7 +353,7 @@ namespace HM
    }
 
    void
-   Imip::SetPartstat(ICalComponent &calendar, const AnsiString &address, const AnsiString &name, const AnsiString &partstat)
+   Imip::SetPartstat(ICalComponent &calendar, const AnsiString &address, const AnsiString &name, const AnsiString &partstat, const AnsiString &sentBy)
    {
       AnsiString wanted = Lower(address);
       for (size_t c = 0; c < calendar.children.size(); c++)
@@ -370,7 +370,7 @@ namespace HM
                continue;
             found = true;
             bool had = false;
-            for (size_t p = 0; p < property.parameters.size(); p++)
+            for (size_t p = 0; p < property.parameters.size();)
             {
                if (property.parameters[p].first == "PARTSTAT")
                {
@@ -379,9 +379,18 @@ namespace HM
                }
                else if (property.parameters[p].first == "RSVP")
                   property.parameters[p].second = "FALSE";
+               else if (property.parameters[p].first == "SENT-BY")
+               {
+                  // Whoever answered last is who answered.
+                  property.parameters.erase(property.parameters.begin() + p);
+                  continue;
+               }
+               p++;
             }
             if (!had)
                property.parameters.push_back(std::make_pair(AnsiString("PARTSTAT"), partstat));
+            if (!sentBy.IsEmpty())
+               property.parameters.push_back(std::make_pair(AnsiString("SENT-BY"), "mailto:" + Lower(sentBy)));
          }
 
          if (!found)
@@ -391,6 +400,8 @@ namespace HM
             if (!name.IsEmpty())
                property.parameters.push_back(std::make_pair(AnsiString("CN"), name));
             property.parameters.push_back(std::make_pair(AnsiString("PARTSTAT"), partstat));
+            if (!sentBy.IsEmpty())
+               property.parameters.push_back(std::make_pair(AnsiString("SENT-BY"), "mailto:" + Lower(sentBy)));
             property.value = "mailto:" + address;
             component.properties.push_back(property);
          }
@@ -398,7 +409,7 @@ namespace HM
    }
 
    AnsiString
-   Imip::ReplyObject(const ImipMessage &invitation, const AnsiString &address, const AnsiString &name, const AnsiString &partstat)
+   Imip::ReplyObject(const ImipMessage &invitation, const AnsiString &address, const AnsiString &name, const AnsiString &partstat, const AnsiString &sentBy)
    {
       ICalComponent reply;
       reply.name = "VCALENDAR";
@@ -449,6 +460,8 @@ namespace HM
       if (!name.IsEmpty())
          attendee.parameters.push_back(std::make_pair(AnsiString("CN"), name));
       attendee.parameters.push_back(std::make_pair(AnsiString("PARTSTAT"), partstat));
+      if (!sentBy.IsEmpty())
+         attendee.parameters.push_back(std::make_pair(AnsiString("SENT-BY"), "mailto:" + Lower(sentBy)));
       attendee.value = "mailto:" + address;
       component.properties.push_back(attendee);
 
@@ -510,7 +523,8 @@ namespace HM
 
    AnsiString
    Imip::BuildMail(const AnsiString &fromHeader, const AnsiString &to, const AnsiString &subject,
-                   const AnsiString &bodyText, const AnsiString &method, const AnsiString &calendarText, const AnsiString &fromAddress)
+                   const AnsiString &bodyText, const AnsiString &method, const AnsiString &calendarText, const AnsiString &fromAddress,
+                   const AnsiString &senderHeader)
    {
       AnsiString domain = fromAddress.Find("@") >= 0 ? fromAddress.Mid(fromAddress.Find("@") + 1) : fromAddress;
       AnsiString id = "<" + Utf8Of(GUIDCreator::GetGUID()) + "@" + domain + ">";
@@ -519,6 +533,8 @@ namespace HM
 
       AnsiString text;
       text += "From: " + HeaderSafe(fromHeader) + crlf;
+      if (!senderHeader.IsEmpty())
+         text += "Sender: " + HeaderSafe(senderHeader) + crlf;
       text += "To: <" + HeaderSafe(to) + ">" + crlf;
       text += "Subject: " + EncodedWord(HeaderSafe(subject)) + crlf;
       text += "Date: " + Utf8Of(Time::GetCurrentMimeDate()) + crlf;
@@ -556,6 +572,181 @@ namespace HM
       return uri;
    }
 
+   namespace
+   {
+      // The object written to the store as the page's routes write one: parsed
+      // again, summarised, stamped. record carries the row on the way in (its
+      // id and uri, for an update) and the row as written on the way out.
+      bool WriteObject(__int64 accountId, __int64 calendarId, const ICalComponent &tree, CalendarObjectRecord &record, bool insert, AnsiString &problem)
+      {
+         AnsiString serialized = ICalendar::Serialize(tree);
+         ICalComponent parsed;
+         if (!ICalendar::Parse(serialized, parsed, problem))
+            return false;
+         ICalendar::Summary summary;
+         if (!ICalendar::Summarize(parsed, summary, problem))
+            return false;
+
+         String data;
+         Unicode::MultiByteToWide(serialized, data);
+         record.data = data;
+         record.etag = Dav::Wide(Dav::EtagOf(serialized));
+         String uid;
+         Unicode::MultiByteToWide(summary.uid, uid);
+         record.uid = uid;
+         String component;
+         Unicode::MultiByteToWide(summary.component, component);
+         record.component = component;
+         record.start = summary.start;
+         record.end = summary.end;
+         record.first = summary.first;
+         record.last = summary.last;
+
+         __int64 token = 0;
+         if (insert)
+         {
+            if (record.uri.IsEmpty())
+               record.uri = Imip::UriFor(summary.uid);
+            CalendarObjectRecord inserted;
+            if (!CalendarStore::Insert(accountId, calendarId, record, inserted, token))
+            {
+               problem = "the object could not be stored";
+               return false;
+            }
+            record = inserted;
+            return true;
+         }
+         if (!CalendarStore::Update(accountId, calendarId, record.id, record, token))
+         {
+            problem = "the object could not be saved";
+            return false;
+         }
+         return true;
+      }
+
+      int SequenceOf(const ICalComponent &component)
+      {
+         AnsiString text = Trimmed(component.Value("SEQUENCE"));
+         return text.IsEmpty() ? 0 : atoi(text.c_str());
+      }
+
+      void MarkCancelled(ICalComponent &tree)
+      {
+         for (size_t i = 0; i < tree.children.size(); i++)
+         {
+            ICalComponent &component = tree.children[i];
+            if (component.name != "VEVENT" && component.name != "VTODO")
+               continue;
+            bool had = false;
+            for (size_t p = 0; p < component.properties.size(); p++)
+            {
+               if (component.properties[p].name == "STATUS")
+               {
+                  component.properties[p].value = "CANCELLED";
+                  had = true;
+               }
+            }
+            if (!had)
+            {
+               ICalProperty status;
+               status.name = "STATUS";
+               status.value = "CANCELLED";
+               component.properties.push_back(status);
+            }
+         }
+      }
+   }
+
+   bool
+   Imip::KeepInvitation(__int64 accountId, const ImipMessage &invitation, bool createDefault, bool cancelled,
+                        const AnsiString &address, const AnsiString &name, const AnsiString &partstat,
+                        CalendarRecord &calendar, CalendarObjectRecord &record, AnsiString &problem)
+   {
+      if (invitation.uid.IsEmpty())
+      {
+         problem = "the invitation has no UID";
+         return false;
+      }
+      String uid;
+      Unicode::MultiByteToWide(invitation.uid, uid);
+
+      // Where the UID already is, across the account's calendars.
+      std::vector<CalendarRecord> calendars;
+      if (!CalendarStore::ListCalendarsIfAny(accountId, calendars))
+      {
+         problem = "the calendars could not be read";
+         return false;
+      }
+      bool inCalendar = false;
+      CalendarObjectRecord stored;
+      for (size_t c = 0; c < calendars.size() && !inCalendar; c++)
+      {
+         if (CalendarStore::FindByUid(accountId, calendars[c].id, uid, stored))
+         {
+            calendar = calendars[c];
+            inCalendar = true;
+         }
+      }
+
+      // The invitation's copy replaces what was stored when it is the same or
+      // a later sequence, so a changed time reaches the calendar; an older
+      // invitation does not undo a newer.
+      bool useInvitation = true;
+      ICalComponent storedTree;
+      if (inCalendar)
+      {
+         AnsiString ignored;
+         if (ICalendar::Parse(Utf8Of(stored.data), storedTree, ignored))
+         {
+            const ICalComponent *storedMaster = MasterOf(storedTree);
+            if (storedMaster && SequenceOf(*storedMaster) > invitation.sequence)
+               useInvitation = false;
+         }
+         else
+            storedTree = invitation.tree;
+      }
+      if (!useInvitation && !cancelled && partstat.IsEmpty())
+      {
+         // Nothing to change: the newer copy stays as it is.
+         record = stored;
+         return true;
+      }
+
+      ICalComponent tree = useInvitation ? invitation.tree : storedTree;
+      // The stored copy is a plain object: the METHOD is the mail's.
+      for (size_t i = 0; i < tree.properties.size();)
+      {
+         if (tree.properties[i].name == "METHOD")
+            tree.properties.erase(tree.properties.begin() + i);
+         else
+            i++;
+      }
+      if (cancelled)
+         MarkCancelled(tree);
+      if (!partstat.IsEmpty())
+         SetPartstat(tree, address, name, partstat);
+
+      if (!inCalendar)
+      {
+         if (createDefault)
+         {
+            if (!CalendarStore::EnsureDefault(accountId, calendar))
+            {
+               problem = "the calendar could not be read";
+               return false;
+            }
+         }
+         else if (!CalendarStore::DefaultIfAny(accountId, calendar))
+         {
+            problem = "the account has no calendar yet";
+            return false;
+         }
+         stored = CalendarObjectRecord();
+      }
+      record = stored;
+      return WriteObject(accountId, calendar.id, tree, record, !inCalendar, problem);
+   }
+
    void
    Imip::FileOnDelivery(std::shared_ptr<const Account> account, const String &fileName)
    {
@@ -569,13 +760,38 @@ namespace HM
          AnsiString problem;
          if (!Read(calendarText, message, problem))
             return;
-         if (message.method != "REPLY" && message.method != "CANCEL")
+         if (message.method != "REPLY" && message.method != "CANCEL" && message.method != "REQUEST")
             return;
          if (message.uid.IsEmpty())
             return;
 
          String uid;
          Unicode::MultiByteToWide(message.uid, uid);
+
+         if (message.method == "REQUEST")
+         {
+            // An invitation, kept as it arrived in the default calendar of an
+            // account that does not organise the event, so that the page shows
+            // it as tentative and a delegate can answer it; an account with no
+            // calendar row gets nothing, since a delivery is not a use.
+            String me = account->GetAddress();
+            me.ToLower();
+            if (!message.organizer.IsEmpty() && message.organizer == Utf8Of(me))
+               return;
+            CalendarRecord calendar;
+            if (!CalendarStore::DefaultIfAny(account->GetID(), calendar))
+               return;
+            CalendarObjectRecord record;
+            if (KeepInvitation(account->GetID(), message, false, false, "", "", "", calendar, record, problem))
+            {
+               LOG_DEBUG("iMIP: a REQUEST for " + uid + " was filed into the calendar of " + account->GetAddress() + ".");
+            }
+            else
+            {
+               LOG_DEBUG("iMIP: a REQUEST for " + uid + " was not filed into the calendar of " + account->GetAddress() + ": " + String(problem));
+            }
+            return;
+         }
 
          std::vector<CalendarRecord> calendars;
          if (!CalendarStore::ListCalendars(account->GetID(), calendars))

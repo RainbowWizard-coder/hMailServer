@@ -18,7 +18,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
 | desktop pages read | 65 |
-| REST routes (path and method) | 490, 218 of them writes |
+| REST routes (path and method) | 493, 219 of them writes |
 | Deck views | 37 |
 
 ## Missing over REST, by interface
@@ -878,9 +878,10 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/me/app-passwords` | AppPassword | `account`, `address`, `code`, `name`, `password`, `text`, `to` | - |
 | `POST /api/v1/me/calendar/events` | ? | `address`, `addresses`, `alarm_minutes`, `all_day`, `attendees`, `calendar`, `card`, `description`, `end`, `event`, `first`, `invite`, `location`, `rrule`, `start`, `summary`, `text`, `to`, `tz` | - |
 | `PUT /api/v1/me/calendar/events/{id}` | ? | `address`, `addresses`, `alarm_minutes`, `all_day`, `attendees`, `calendar`, `card`, `description`, `end`, `event`, `first`, `invite`, `location`, `recurrence_id`, `rrule`, `start`, `summary`, `text`, `to`, `tz` | - |
+| `POST /api/v1/me/calendar/events/{id}/reply` | ? | `address`, `answered`, `calendar`, `comment`, `delegate`, `event`, `from`, `partstat`, `to` | - |
 | `POST /api/v1/me/calendars` | ? | `address`, `calendar`, `color`, `display_name`, `from`, `name` | - |
 | `PUT /api/v1/me/calendars/{id}` | ? | `address`, `calendar`, `color`, `display_name`, `from`, `name` | - |
-| `PUT /api/v1/me/calendars/{id}/shares/{address}` | ? | `account`, `calendar`, `current`, `read`, `write` | - |
+| `PUT /api/v1/me/calendars/{id}/shares/{address}` | ? | `account`, `calendar`, `current`, `delegate`, `events`, `group`, `read`, `write` | - |
 | `POST /api/v1/me/confidential/{id}/revoke` | ? | - | - |
 | `POST /api/v1/me/contacts` | ? | `account`, `address`, `name` | - |
 | `POST /api/v1/me/contacts/groups` | Group | `account`, `address`, `book`, `group`, `members`, `name`, `read`, `to` | - |
@@ -906,7 +907,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/me/masked-addresses/{id}` | ? | `account`, `active`, `address`, `domain`, `label`, `mailbox`, `to`, `write` | - |
 | `POST /api/v1/me/messages` | ServerMessage | `account`, `address`, `answered_id`, `attachments`, `bcc`, `cc`, `code`, `confidential_base_url`, `confidential_ceiling`, `confidential_id`, `confidential_unavailable`, `data`, `directory`, `expires`, `expires_in`, `folder`, `from`, `html`, `in_reply_to`, `mailbox`, `message`, `mime`, `mode`, `name`, `passcode`, `post`, `quota_exceeded`, `read`, `recipient`, `references`, `sender`, `subject`, `text`, `to`, `token`, `type`, `value` | - |
 | `PUT /api/v1/me/messages/{id}/flags` | ? | `answered`, `deleted`, `draft`, `flagged`, `folder`, `permissions`, `rights`, `seen` | - |
-| `POST /api/v1/me/messages/{id}/invitation/reply` | ? | `action`, `calendar`, `comment`, `end`, `event`, `file`, `start`, `tz` | - |
+| `POST /api/v1/me/messages/{id}/invitation/reply` | ? | `account`, `action`, `calendar`, `comment`, `end`, `event`, `file`, `start`, `to`, `tz` | - |
 | `POST /api/v1/me/messages/{id}/move` | ? | `account`, `archive`, `destination`, `folder`, `folder_id`, `name`, `new`, `to` | - |
 | `POST /api/v1/me/messages/{id}/receipt` | ? | - | - |
 | `POST /api/v1/me/messages/{id}/snooze` | ? | `account`, `folder`, `message`, `to`, `until` | - |

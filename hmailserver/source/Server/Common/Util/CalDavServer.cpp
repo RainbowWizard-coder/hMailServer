@@ -5,8 +5,8 @@
 // See CalDavServer.h for the shape of the tree. This file is the request
 // side of it, on the reader, the authentication and the response builders
 // DavSupport shares with CardDAV: the DAV: and CALDAV: property set of each
-// resource kind, the three reports, and PUT/GET/DELETE of one object, on top
-// of CalendarStore and ICalendar.
+// resource kind, the four reports, and PUT/GET/DELETE of one object, on top
+// of CalendarStore, ICalendar and FreeBusy.
 //
 // The bits of RFC 4791 and 6578 that shape the answers:
 //
@@ -30,6 +30,11 @@
 //     reached answers the rows stamped after it, a tombstone as a 404
 //     response; a token ahead of the collection is refused with
 //     DAV:valid-sync-token. Tombstones are kept, so no token expires.
+//   - free-busy-query (4791 section 7.10): on a calendar the caller may read
+//     - its own, or one shared with it - one VFREEBUSY as text/calendar over
+//     the time-range asked for (both bounds required, at most 62 days), the
+//     same computation as GET /api/v1/me/freebusy (FreeBusy.h). Not RFC 6638
+//     scheduling: no schedule-outbox, no inbox, no other server's calendar.
 //   - ETags are strong: the SHA-256 of the bytes served. getctag and the
 //     sync-token are the counter, which every write steps.
 //   - PUT (section 5.3.2): the object must be one VCALENDAR of VEVENT or
@@ -50,6 +55,7 @@
 #include "DavSupport.h"
 #include "CalendarStore.h"
 #include "ICalendar.h"
+#include "FreeBusy.h"
 #include "../BO/Account.h"
 #include "../Cache/CacheContainer.h"
 
@@ -557,7 +563,8 @@ namespace HM
             {
                innerXml = "<D:supported-report><D:report><C:calendar-multiget/></D:report></D:supported-report>"
                           "<D:supported-report><D:report><C:calendar-query/></D:report></D:supported-report>"
-                          "<D:supported-report><D:report><D:sync-collection/></D:report></D:supported-report>";
+                          "<D:supported-report><D:report><D:sync-collection/></D:report></D:supported-report>"
+                          "<D:supported-report><D:report><C:free-busy-query/></D:report></D:supported-report>";
                return true;
             }
 
@@ -1277,6 +1284,10 @@ namespace HM
             // objects, except the default, which every client expects to find.
             if (resource.shared)
             {
+               // A share through a group is the group's, not any member's.
+               CalendarShareRecord direct;
+               if (!CalendarStore::DirectShareOf(resource.calendar.id, context.account->GetID(), direct))
+                  return Text(403, "this calendar is shared with a group you are a member of; the share is the group's, and only its owner takes it back");
                if (!CalendarStore::Unshare(resource.calendar.id, context.account->GetID()))
                   return Text(500, "the share could not be removed");
                LOG_DEBUG("CalDAV: " + String(context.addressUtf8) + " left the shared calendar " + String(Int64Text(resource.calendar.id)) + ".");
@@ -1794,6 +1805,43 @@ namespace HM
          return Xml(207, xml);
       }
 
+      // free-busy-query (RFC 4791 section 7.10): the answer is not a
+      // multistatus but one VFREEBUSY as text/calendar - the busy periods of
+      // this one calendar as they concern its owner, over the time-range asked
+      // for, which needs both bounds and spans at most 62 days. The reader is
+      // whoever may read the calendar; the periods carry no title. The same
+      // computation answers GET /api/v1/me/freebusy, so the two agree.
+      HttpResponse HandleFreeBusyQuery(Context &context, const XmlElement &report)
+      {
+         const XmlElement *range = report.Child(NsCalDav, "time-range");
+         if (!range)
+            return DavError(400, "<C:valid-filter/>", "A free-busy-query carries one time-range with a start and an end.");
+
+         __int64 start = 0;
+         __int64 end = ICalendar::Forever;
+         AnsiString problem;
+         if (!ReadTimeRange(*range, start, end, problem))
+            return DavError(400, "<C:valid-filter/>", problem + ".");
+         if (Trimmed(range->Attribute("start")).IsEmpty() || Trimmed(range->Attribute("end")).IsEmpty())
+            return DavError(400, "<C:valid-filter/>", "The time-range of a free-busy-query needs both a start and an end.");
+         if (end - start > static_cast<__int64>(FreeBusy::MaximumWindowDays) * 86400)
+            return DavError(400, "<C:valid-filter/>", "The time-range of a free-busy-query is at most 62 days.");
+
+         if (!EnsureCalendar(context))
+            return Text(500, "the calendar could not be read");
+
+         std::shared_ptr<const Account> owner = context.storeAccountId == context.account->GetID()
+            ? context.account : CacheContainer::Instance()->GetAccount(context.storeAccountId);
+         AnsiString address = owner ? Lower(Utf8(owner->GetAddress())) : context.addressUtf8;
+
+         std::vector<FreeBusyPeriod> periods;
+         if (!FreeBusy::OfCalendar(context.storeAccountId, context.calendar.id, address, start, end, periods))
+            return Text(500, "the calendar could not be read");
+         FreeBusy::Merge(periods);
+
+         return Respond(200, "text/calendar; charset=utf-8", FreeBusy::VFreeBusy(address, start, end, periods));
+      }
+
       HttpResponse HandleReport(Context &context, const Resource &resource)
       {
          if (resource.kind == KindObjectSlot || resource.kind == KindCalendarSlot)
@@ -1807,9 +1855,10 @@ namespace HM
          bool multiget = root.Is(NsCalDav, "calendar-multiget");
          bool query = root.Is(NsCalDav, "calendar-query");
          bool sync = root.Is(NsDav, "sync-collection");
+         bool freeBusy = root.Is(NsCalDav, "free-busy-query");
 
-         if (!multiget && !query && !sync)
-            return DavError(403, "<D:supported-report/>", "The reports here are calendar-multiget, calendar-query and sync-collection.");
+         if (!multiget && !query && !sync && !freeBusy)
+            return DavError(403, "<D:supported-report/>", "The reports here are calendar-multiget, calendar-query, sync-collection and free-busy-query.");
 
          bool onCalendar = resource.kind == KindCalendar;
          bool onObject = resource.kind == KindObject;
@@ -1820,6 +1869,8 @@ namespace HM
             return HandleMultiget(context, root);
          if (query)
             return HandleQuery(context, root);
+         if (freeBusy)
+            return HandleFreeBusyQuery(context, root);
          return HandleSyncCollection(context, root);
       }
    }

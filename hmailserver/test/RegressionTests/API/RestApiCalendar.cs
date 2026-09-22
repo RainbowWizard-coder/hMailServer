@@ -122,7 +122,7 @@ namespace RegressionTests.API
          // Shared read-only: the guest lists it, cannot write into it, and CalDAV says so.
          (int status, string body) shared = Me("PUT", "/api/v1/me/calendars/" + workId + "/shares/" + GuestAddress, "{\"write\":false}", Address, UserPassword);
          Assert.AreEqual(200, shared.status, shared.body);
-         StringAssert.Contains("\"shares\":[{\"address\":\"" + GuestAddress + "\",\"write\":false}]", shared.body);
+         StringAssert.Contains("\"shares\":[{\"address\":\"" + GuestAddress + "\",\"write\":false,\"delegate\":false}]", shared.body);
          Assert.AreEqual(404, Me("PUT", "/api/v1/me/calendars/" + workId + "/shares/nobody@" + _domain.Name, "{}", Address, UserPassword).status, "A share names an account of this server.");
 
          (int status, string body) guestList = Me("GET", "/api/v1/me/calendars", null, GuestAddress, GuestPassword);

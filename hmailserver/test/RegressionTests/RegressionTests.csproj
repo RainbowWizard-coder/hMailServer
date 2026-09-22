@@ -707,6 +707,7 @@
     <Compile Include="API\RestApiContactGroups.cs" />
     <Compile Include="API\CalDav.cs" />
     <Compile Include="API\RestApiCalendar.cs" />
+    <Compile Include="API\RestApiCalendarSharing.cs" />
     <Compile Include="API\RestApiApiKeys.cs" />
     <Compile Include="API\UpdateCheck.cs" />
     <Compile Include="API\UpdateVerify.cs" />

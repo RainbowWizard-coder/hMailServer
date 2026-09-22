@@ -35,7 +35,13 @@
 // the whole answer bounded; sync-collection with a real change log - the
 // collection's counter and the rows stamped after the token the client
 // presents, deletions as 404 responses - so a poll is answered with only
-// what changed.
+// what changed; and free-busy-query, one VFREEBUSY over a bounded
+// time-range for a calendar the caller may read (FreeBusy.h).
+//
+// A calendar shared with the caller - by name, or through a group the
+// caller is a member of - is under its home as shared-<id>/, with owner
+// pointing at the sharer's principal and a current-user-privilege-set of
+// what the share grants (CalendarStore.h).
 
 #pragma once
 

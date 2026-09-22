@@ -684,4 +684,16 @@
 //      from outside or for an unauthenticated submission, and nothing is
 //      there until an account sends, so an upgraded server behaves exactly
 //      as it did.
-#define REQUIRED_DB_VERSION            6085
+// 6086 adds hm_calendarshares.sharegroupid and hm_calendarshares.sharedelegate
+//      (Util/CalendarStore.h): a calendar shared with one of the server's
+//      groups rather than with a named account - the row names the group and
+//      shareaccountid is 0; a member of the group sees the calendar as a named
+//      sharee does, resolved at read time from hm_group_members - and a share
+//      that is a delegation, whose sharee may answer the owner's invitations
+//      on the owner's behalf (POST /api/v1/me/calendar/events/{id}/reply). The
+//      unique index is widened to (calendar, account, group). There is no
+//      foreign key to hm_groups, because 0 is not a group: the group's own
+//      removal deletes its share rows and the owner's listing drops a row
+//      whose group is gone. Every row an upgrade finds names no group and is
+//      no delegation, so an upgraded server shares exactly as it did.
+#define REQUIRED_DB_VERSION            6086

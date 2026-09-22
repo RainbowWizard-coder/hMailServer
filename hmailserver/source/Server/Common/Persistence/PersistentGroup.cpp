@@ -12,6 +12,7 @@
 #include "../BO/Group.h"
 #include "../SQL/SQLStatement.h"
 #include "../Cache/Cache.h"
+#include "../Util/CalendarStore.h"
 
 #include "PersistenceMode.h"
 
@@ -67,6 +68,14 @@ namespace HM
       }
 
       PersistentACLPermission::DeleteOwnedByGroup(pObject->GetID());
+
+      // The calendars shared with the group (CalendarStore.h): no foreign key
+      // can take them, since a share with an account carries group id 0.
+      if (!CalendarStore::UnshareAllForGroup(pObject->GetID()))
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7100, "PersistentGroup::DeleteObject",
+            Formatter::Format("Group {0} was deleted but the calendar shares granted to it could not be removed; the owner's listing drops them as it meets them.", pObject->GetName()));
+      }
 
       return true;
    }

@@ -679,6 +679,17 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 .invite h3{font-size:12px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin:0 0 4px}
 .invite .inv-title{font-size:17px;font-weight:500;margin-bottom:8px}
 .invite .inv-line{display:flex;gap:10px;font-size:13.5px;margin:3px 0}
+.availability{margin:6px 0 10px;font-size:12.5px}
+.availability .fb-head{color:var(--muted);margin-bottom:4px}
+.availability .fb-row{display:flex;align-items:center;gap:8px;margin:3px 0}
+.availability .fb-name{width:11rem;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.availability .fb-bar{position:relative;flex:1;height:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.availability .fb-block{position:absolute;top:0;bottom:0;background:var(--accent)}
+.availability .fb-block.fb-tentative{opacity:.45}
+.availability .fb-event{position:absolute;top:0;bottom:0;box-sizing:border-box;border:2px solid var(--text);border-radius:2px}
+.availability .fb-note{color:var(--muted);flex:none}
+.event-answer{align-items:center;gap:8px}
+.event-answer .k{color:var(--muted);font-size:13px}
 .invite .inv-line .k{width:76px;color:var(--muted);flex:none}
 .invite .inv-status{margin:10px 0 6px;font-size:13.5px}
 .invite .inv-status.error{color:var(--danger)}
@@ -1257,6 +1268,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div style="flex:1;min-width:12rem"><label for="pref-undo">Undo send</label><select id="pref-undo"><option value="0">Send at once</option><option value="5">5 seconds to undo</option><option value="10">10 seconds to undo</option><option value="20">20 seconds to undo</option><option value="30">30 seconds to undo</option></select></div>
 <div style="flex:1;min-width:12rem"><label for="pref-language">Language</label><select id="pref-language"></select></div>
 <div style="flex:1;min-width:12rem"><label for="pref-timezone">Time zone</label><select id="pref-timezone"><option value="">Where this browser is</option></select></div>
+<div style="flex:1;min-width:12rem"><label for="pref-freebusy">Who may see when you are busy</label><select id="pref-freebusy"><option value="domain">People in your domain</option><option value="nobody">Nobody</option></select></div>
 </div>
 <div class="row">
 <div style="flex:1;min-width:12rem"><label for="pref-swipe-right">Swipe right</label><select id="pref-swipe-right"><option value="archive">Archive</option><option value="delete">Delete</option><option value="junk">Junk</option><option value="read">Mark as read</option><option value="none">Nothing</option></select></div>
@@ -1790,6 +1802,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div id="event-readonly" class="hint" hidden>This calendar is shared with you read-only.</div>
 <div id="event-partstat" class="hint" hidden></div>
 <div id="event-attendee-list" hidden></div>
+<div id="event-answer" class="row event-answer" hidden></div>
 <div class="row"><label><input id="event-allday" type="checkbox"> All day</label><select id="event-calendar" aria-label="Calendar"></select></div>
 <div id="event-timed" class="row"><label>From <input id="event-start" type="datetime-local" aria-label="Start"></label><label>to <input id="event-end" type="datetime-local" aria-label="End"></label></div>
 <div id="event-dated" class="row" hidden><label>From <input id="event-start-date" type="date" aria-label="Start day"></label><label>to <input id="event-end-date" type="date" aria-label="End day"></label></div>
@@ -1805,6 +1818,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div class="row"><input id="event-location" type="text" maxlength="1000" placeholder="Location" aria-label="Location"></div>
 <div class="row"><textarea id="event-description" placeholder="Notes" aria-label="Notes"></textarea></div>
 <div class="row"><input id="event-attendees" type="text" placeholder="Guests: addresses, separated by commas" aria-label="Guests"></div>
+<div id="event-availability" class="availability" hidden></div>
 <div class="row"><label><input id="event-invite" type="checkbox" checked> Send invitations by e-mail</label></div>
 <div id="event-status" class="status" aria-live="polite"></div>
 <div class="row"><button class="btn" id="event-save" type="submit">Save</button><button class="btn ghost" id="event-delete" type="button" hidden>Delete</button><button class="btn quiet" id="event-cancel" type="button">Cancel</button></div>

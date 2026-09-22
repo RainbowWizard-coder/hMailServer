@@ -667,10 +667,12 @@ create table hm_calendarshares
 	shareid serial not null primary key,
 	sharecalendarid int not null,
 	shareaccountid int not null,
-	sharewrite int not null
+	sharewrite int not null,
+	sharegroupid int not null default 0,
+	sharedelegate int not null default 0
 );
 
-CREATE UNIQUE INDEX idx_hm_calendarshares_pair ON hm_calendarshares (sharecalendarid, shareaccountid);
+CREATE UNIQUE INDEX idx_hm_calendarshares_pair ON hm_calendarshares (sharecalendarid, shareaccountid, sharegroupid);
 
 create table hm_senderaddresses
 (
@@ -2375,4 +2377,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0);
 
-insert into hm_dbversion values (6085);
+insert into hm_dbversion values (6086);

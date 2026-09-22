@@ -2546,6 +2546,12 @@ namespace HM
             return HandleMeMessageInvitation_(caller, route.message_id);
          case RouteMeMessageInvitationReply:
             return HandleMeMessageInvitationReply_(caller, route.message_id, GetRequestBody_(request));
+         case RouteMeCalendarGet:
+            return HandleMeCalendarGet_(caller, route.message_id);
+         case RouteMeFreeBusy:
+            return HandleMeFreeBusy_(caller, route.query);
+         case RouteMeEventReply:
+            return HandleMeEventReply_(caller, route.message_id, GetRequestBody_(request));
          case RouteMeContactDelete:
             return HandleMeContactDelete_(caller, route.message_id);
 
@@ -3105,6 +3111,14 @@ namespace HM
          return;
       }
 
+      // When an account of the caller's domain is busy (RestApiCalendar.cpp).
+      if (path == "/api/v1/me/freebusy")
+      {
+         if (method == "GET")
+            route.kind = RouteMeFreeBusy;
+         return;
+      }
+
       // The account's calendars and their shares, its events, its tasks.
       const AnsiString meCalendarsPath = "/api/v1/me/calendars";
       if (path == meCalendarsPath)
@@ -3135,7 +3149,9 @@ namespace HM
          }
          if (ParseQueueId(rest, route.message_id))
          {
-            if (method == "PUT")
+            if (method == "GET")
+               route.kind = RouteMeCalendarGet;
+            else if (method == "PUT")
                route.kind = RouteMeCalendarUpdate;
             else if (method == "DELETE")
                route.kind = RouteMeCalendarDelete;
@@ -3155,6 +3171,14 @@ namespace HM
       if (path.StartsWith(meEventsPath + "/"))
       {
          AnsiString rest = path.Mid(meEventsPath.GetLength() + 1);
+         // .../{id}/reply: an invitation in the calendar answered, by its owner
+         // or by a delegate on the owner's behalf.
+         if (rest.EndsWith("/reply"))
+         {
+            if (ParseQueueId(rest.Mid(0, rest.GetLength() - 6), route.message_id) && method == "POST")
+               route.kind = RouteMeEventReply;
+            return;
+         }
          if (ParseQueueId(rest, route.message_id))
          {
             if (method == "GET")
@@ -6119,6 +6143,7 @@ namespace HM
       case RouteMeTaskUpdate:
       case RouteMeTaskDelete:
       case RouteMeMessageInvitationReply:
+      case RouteMeEventReply:
       case RouteMeContactCreate:
       case RouteMeContactUpdate:
       case RouteMeContactDelete:
@@ -10390,6 +10415,9 @@ namespace HM
       case RouteMeTaskDelete:
       case RouteMeMessageInvitation:
       case RouteMeMessageInvitationReply:
+      case RouteMeCalendarGet:
+      case RouteMeFreeBusy:
+      case RouteMeEventReply:
       case RouteMeContacts:
       case RouteMeContactCreate:
       case RouteMeContactUpdate:

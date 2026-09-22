@@ -692,6 +692,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\ICalendar.cpp" />
     <ClCompile Include="..\Common\Util\CalendarStore.cpp" />
     <ClCompile Include="..\Common\Util\CalDavServer.cpp" />
+    <ClCompile Include="..\Common\Util\FreeBusy.cpp" />
     <ClCompile Include="..\Common\Util\Reports.cpp" />
     <ClCompile Include="..\Common\Util\RestApiReports.cpp" />
     <ClCompile Include="..\Common\Util\SessionFollow.cpp" />
@@ -1526,6 +1527,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\DavSupport.h" />
     <ClInclude Include="..\Common\Util\ICalendar.h" />
     <ClInclude Include="..\Common\Util\CalendarStore.h" />
+    <ClInclude Include="..\Common\Util\FreeBusy.h" />
     <ClInclude Include="..\Common\Util\Imip.h" />
     <ClInclude Include="..\Common\Util\BrandLogo.h" />
     <ClInclude Include="..\Common\Util\ReaderOAuth.h" />

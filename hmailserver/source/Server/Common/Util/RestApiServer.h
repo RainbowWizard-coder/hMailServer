@@ -381,6 +381,9 @@ namespace HM
          RouteMeTaskDelete,
          RouteMeMessageInvitation,
          RouteMeMessageInvitationReply,
+         RouteMeCalendarGet,
+         RouteMeFreeBusy,
+         RouteMeEventReply,
          RouteMeIdentities,
          RouteMePreferences,
          RouteMePreferencesPut,
@@ -1251,6 +1254,9 @@ namespace HM
       static HttpResponse HandleMeTaskDelete_(const Caller &caller, __int64 objectId);
       static HttpResponse HandleMeMessageInvitation_(const Caller &caller, __int64 messageId);
       static HttpResponse HandleMeMessageInvitationReply_(const Caller &caller, __int64 messageId, const AnsiString &requestBody);
+      static HttpResponse HandleMeCalendarGet_(const Caller &caller, __int64 calendarId);
+      static HttpResponse HandleMeFreeBusy_(const Caller &caller, const AnsiString &query);
+      static HttpResponse HandleMeEventReply_(const Caller &caller, __int64 objectId, const AnsiString &requestBody);
       static int SendEventMail_(std::shared_ptr<const Account> account, const ICalComponent &tree, const AnsiString &method, AnsiString &problem);
       static bool FindStoredEvent_(std::shared_ptr<const Account> account, const AnsiString &uid, CalendarRecord &calendar, CalendarObjectRecord &record);
       static AnsiString OpenApiCalendarPaths_();
