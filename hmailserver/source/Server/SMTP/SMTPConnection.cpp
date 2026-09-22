@@ -43,6 +43,7 @@
 #include "../Common/BO/Routes.h"
 #include "../Common/BO/RouteAddresses.h"
 #include "../Common/BO/RemoteDomainPolicies.h"
+#include "../Common/Util/RestrictedDelivery.h"
 #include "../Common/BO/RemoteDomainPolicy.h"
 #include "../Common/BO/MessageRecipient.h"
 #include "../Common/BO/MessageRecipients.h"
@@ -1569,6 +1570,14 @@ namespace HM
       if (isAuthenticated_ || (localSender && !authenticationRequired))
          message_submission_ = true;
 
+      // Restricted delivery (Common/Util/RestrictedDelivery.h), in both
+      // directions, now that the recipient is known to be deliverable and the
+      // relay and authentication decisions are made, and before greylisting
+      // and the callout: a refusal here costs nothing and tells the sender at
+      // once. Per recipient, so the transaction goes on for the others.
+      if (!CheckRestrictedDelivery_(sRecipientAddress, localDelivery))
+         return;
+
       // The suppression list, for a submission to an address outside: refused here,
       // while the person sending can still be told why, rather than accepted and
       // returned to them later. Everything else meets the same list at delivery.
@@ -1916,6 +1925,82 @@ namespace HM
       LOG_APPLICATION(logLine);
 
       AWStats::LogDeliveryFailure(GetIPAddressString(), sFromAddress, _T(""), 550, 0);
+
+      return true;
+   }
+
+   bool
+   SMTPConnection::CheckRestrictedDelivery_(const String &recipientAddress, bool localDelivery)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Restricted delivery (Common/Util/RestrictedDelivery.h, docs/
+   // RestrictedDelivery.md) at RCPT TO, both directions, one decision each:
+   //
+   //   Outbound. This server is the submission server for the message - the
+   //   session authenticated, or a local sender a range admits without
+   //   authentication, which is what message_submission_ says - and the
+   //   submitting account is restricted: a recipient whose domain is not on
+   //   the account's list, not its own domain and not the postmaster is
+   //   answered 550 5.7.1 "<address>: this account may send to named domains
+   //   only." The account is the one that authenticated, else the MAIL FROM's.
+   //
+   //   Inbound. The recipient is a local account (the address after the
+   //   domain aliases; an alias, a list or a catch-all is not an account here
+   //   and meets the same decision at delivery) and it is restricted: an
+   //   envelope sender whose domain is not allowed is answered 550 5.7.1
+   //   "<address>: this mailbox accepts mail from named domains only." The
+   //   envelope is the contract, as it is for every RCPT-time rule; the From
+   //   header is not known here and is not consulted. Every session is judged,
+   //   authenticated or not, because an authenticated colleague in another
+   //   hosted domain is a sender too, and a 550 now is kinder than the
+   //   non-delivery report the delivery-time decision would send them.
+   //
+   // False when a 550 was sent, so the caller returns; the transaction goes
+   // on for the recipients that were accepted. Every refusal is logged by
+   // RestrictedDelivery::Check at DEBUG and here to the SMTP log; none is an
+   // error.
+   //---------------------------------------------------------------------------()
+   {
+      const String senderAddress = current_message_->GetFromAddress();
+
+      if (message_submission_)
+      {
+         std::shared_ptr<const Account> submitter;
+
+         if (isAuthenticated_ && !username_.IsEmpty())
+            submitter = CacheContainer::Instance()->GetAccount(DefaultDomain::ApplyDefaultDomain(username_));
+         else
+            submitter = sender_account_;
+
+         if (submitter && RestrictedDelivery::Check(submitter, recipientAddress, RestrictedDelivery::Outbound) == RestrictedDelivery::Refused)
+         {
+            SendResponse_(550, _T("5.7.1"), RestrictedDelivery::OutboundRefusal(recipientAddress));
+
+            LOG_SMTP(GetSessionID(), GetIPAddressString(), "Restricted delivery: RCPT TO " + recipientAddress +
+               " refused for " + submitter->GetAddress() + ", which may send to named domains only.");
+
+            AWStats::LogDeliveryFailure(GetIPAddressString(), senderAddress, recipientAddress, 550, current_message_->GetID());
+            return false;
+         }
+      }
+
+      if (localDelivery)
+      {
+         std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
+         const String accountAddress = aliases ? aliases->ApplyAliasesOnAddress(recipientAddress) : recipientAddress;
+         std::shared_ptr<const Account> recipient = CacheContainer::Instance()->GetAccount(accountAddress);
+
+         if (recipient && RestrictedDelivery::Check(recipient, senderAddress, RestrictedDelivery::Inbound) == RestrictedDelivery::Refused)
+         {
+            SendResponse_(550, _T("5.7.1"), RestrictedDelivery::InboundRefusal(recipientAddress));
+
+            LOG_SMTP(GetSessionID(), GetIPAddressString(), "Restricted delivery: RCPT TO " + recipientAddress +
+               " refused for sender " + senderAddress + ", which is not in a domain the mailbox accepts mail from.");
+
+            AWStats::LogDeliveryFailure(GetIPAddressString(), senderAddress, recipientAddress, 550, current_message_->GetID());
+            return false;
+         }
+      }
 
       return true;
    }

@@ -827,6 +827,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Konti, der er markeret som katalogtilknyttede. Den halvdel findes allerede i denne grafiske brugerflade: åbn Domæner, redigér kontoen, sæt på dens fane Katalog hak ved Active Directory-indstillingen, og udfyld AD-brugernavnet – sAMAccountName, som er det, %u indeholder. Konti uden den markering beholder deres almindelige hMailServer-adgangskode og rører aldrig kataloget.</value>
   </data>
+  <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted." xml:space="preserve">
+    <value>Konti i dette domæne må udveksle post med de domæner, der er navngivet her, og ingen andre: en ekstern afsender uden for et navngivet domæne afvises ved RCPT TO, og en konto her må kun sende til de navngivne domæner, sit eget domæne og postmasteren. Andre domæner, som denne server hoster, regnes som eksterne, medmindre de er navngivet. Returposter kommer altid igennem. Hver konto følger dette, medmindre dens egen dialog siger begrænset eller undtaget; tomt betyder, at domænet ikke er begrænset.</value>
+  </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Konti: {0}.</value>
   </data>
@@ -3512,6 +3515,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Executable not found: {0}" xml:space="preserve">
     <value>Eksekverbar fil ikke fundet: {0}</value>
   </data>
+  <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
+    <value>Undtaget: må udveksle post med alle</value>
+  </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>Vis navigationen</value>
   </data>
@@ -3703,6 +3709,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Mapper</value>
+  </data>
+  <data name="Follows the domain" xml:space="preserve">
+    <value>Følger domænet</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>Til LDAPS eller StartTLS: et certifikat på katalogserveren, som DENNE maskine stoler på – udstedt af en CA i Windows' maskincertifikatlager, med værtsnavnet ovenfor i sig. En domænecontroller har ikke et sådant fra starten. Bindingsmetoden Negotiate kræver slet intet certifikat, fordi adgangskoden aldrig krydser netværket.</value>
@@ -5064,6 +5073,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Navn, nedre IP og øvre IP skal angives.</value>
+  </data>
+  <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
+    <value>Navngivne _domæner (partner.example, eller .example for domænet og alt under det; adskilt af kommaer eller mellemrum; tomt begrænser intet)</value>
   </data>
   <data name="Names" xml:space="preserve">
     <value>Navne</value>
@@ -6914,6 +6926,12 @@ SMTP 25 og 587, POP3 110, IMAP 143 - uden forbindelsessikkerhed. TLS-porte og br
     <value>Gendannelse erstatter de nuværende data for de valgte kategorier med sikkerhedskopiens indhold.
 
 Vil du fortsætte?</value>
+  </data>
+  <data name="Restricted delivery" xml:space="preserve">
+    <value>Begrænset levering</value>
+  </data>
+  <data name="Restricted: named domains only" xml:space="preserve">
+    <value>Begrænset: kun navngivne domæner</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Genoptagelseslevetid for cachede sessioner og tickets, sekunder (0 = OpenSSLs standard på 300)</value>
@@ -10529,6 +10547,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>_Gendan standarder</value>
+  </data>
+  <data name="_Restricted delivery (the named domains are on the domain's dialog)" xml:space="preserve">
+    <value>_Begrænset levering (de navngivne domæner står i domænets dialog)</value>
   </data>
   <data name="_Resume" xml:space="preserve">
     <value>_Genoptag</value>

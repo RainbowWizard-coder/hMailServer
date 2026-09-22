@@ -827,6 +827,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Účty označené jako propojené s adresářem. Tato polovina už v tomto GUI je: otevřete Domény, upravte účet a na jeho kartě Adresář zaškrtněte volbu Active Directory a vyplňte uživatelské jméno v AD – sAMAccountName, což je to, co nese %u. Účty bez tohoto označení si ponechají své běžné heslo hMailServeru a adresáře se nikdy nedotknou.</value>
   </data>
+  <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted." xml:space="preserve">
+    <value>Účty této domény si mohou vyměňovat poštu se zde vyjmenovanými doménami a s nikým jiným: vnější odesílatel mimo vyjmenovanou doménu je odmítnut při RCPT TO a účet zde smí posílat jen do vyjmenovaných domén, do vlastní domény a postmasterovi. Ostatní domény hostované tímto serverem se počítají jako vnější, pokud nejsou vyjmenovány. Nedoručenky vždy projdou. Každý účet se tím řídí, pokud jeho vlastní dialog neříká omezeno nebo výjimka; prázdné znamená, že doména není omezena.</value>
+  </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Účty: {0}.</value>
   </data>
@@ -3512,6 +3515,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Executable not found: {0}" xml:space="preserve">
     <value>Spustitelný soubor nenalezen: {0}</value>
   </data>
+  <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
+    <value>Výjimka: může si psát s kýmkoli</value>
+  </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>Rozbalit navigaci</value>
   </data>
@@ -3703,6 +3709,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Složky</value>
+  </data>
+  <data name="Follows the domain" xml:space="preserve">
+    <value>Řídí se doménou</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>Pro LDAPS nebo StartTLS: certifikát na adresářovém serveru, kterému TENTO počítač důvěřuje - vydaný CA v úložišti certifikátů počítače Windows, s názvem hostitele výše. Řadič domény ho z výroby nemá. Metoda bind Negotiate žádný certifikát nepotřebuje, protože heslo nikdy neprojde sítí.</value>
@@ -5064,6 +5073,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Název, dolní IP a horní IP jsou povinné.</value>
+  </data>
+  <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
+    <value>Vyjmenované _domény (partner.example, nebo .example pro doménu a vše pod ní; oddělené čárkami nebo mezerami; prázdné nic neomezuje)</value>
   </data>
   <data name="Names" xml:space="preserve">
     <value>Názvy</value>
@@ -6914,6 +6926,12 @@ SMTP 25 a 587, POP3 110, IMAP 143 – bez zabezpečení připojení. TLS porty a
     <value>Obnovení nahradí současná data vybraných kategorií obsahem zálohy.
 
 Pokračovat?</value>
+  </data>
+  <data name="Restricted delivery" xml:space="preserve">
+    <value>Omezené doručování</value>
+  </data>
+  <data name="Restricted: named domains only" xml:space="preserve">
+    <value>Omezeno: pouze vyjmenované domény</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Životnost obnovení relace pro relace a tickety v cache, sekundy (0 = výchozí hodnota OpenSSL 300)</value>
@@ -10529,6 +10547,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>O_bnovit výchozí</value>
+  </data>
+  <data name="_Restricted delivery (the named domains are on the domain's dialog)" xml:space="preserve">
+    <value>Omezené doručování (vyjmenované domény jsou v dialogu domén_y)</value>
   </data>
   <data name="_Resume" xml:space="preserve">
     <value>Po_kračovat</value>

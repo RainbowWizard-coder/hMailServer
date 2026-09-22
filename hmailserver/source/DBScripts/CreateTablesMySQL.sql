@@ -189,7 +189,8 @@ create table hm_accounts
 	accountspammarkthreshold int not null default -1,
 	accountspamdeletethreshold int not null default -1,
 	accountopenpgppublish int not null default 0,
-	accountzeroaccess int not null default 0
+	accountzeroaccess int not null default 0,
+	accountrestricteddelivery int not null default 0
 ) DEFAULT CHARSET=utf8;
 
 CREATE INDEX idx_hm_accounts ON hm_accounts (accountaddress);
@@ -274,7 +275,8 @@ create table hm_domains
 	domainsessionlifetimeseconds int not null default 0,
 	domainsessiononeperdevice int not null default 0,
 	domainsessionbindaddress int not null default 0,
-	domainreportmailbox varchar(255) not null default ''
+	domainreportmailbox varchar(255) not null default '',
+	domainrestricteddomains varchar(2000) not null default ''
 )  DEFAULT CHARSET=utf8;
 
 CREATE INDEX idx_hm_domains ON hm_domains (domainname);
@@ -2490,4 +2492,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0);
 
-insert into hm_dbversion values (6083);
+insert into hm_dbversion values (6084);

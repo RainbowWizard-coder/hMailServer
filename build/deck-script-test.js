@@ -525,7 +525,7 @@ const DOMAIN_KEYS = ['name', 'active', 'postmaster', 'max_message_size_kb', 'max
    'disclaimer_enabled', 'disclaimer_plain_text', 'disclaimer_html',
    'quarantine_digest', 'quarantine_digest_hour',
    'openpgp_publish', 'openpgp_publish_new_accounts', 'country_policy', 'session_idle_seconds', 'session_lifetime_seconds', 'session_one_per_device', 'session_bind_to_address',
-   'report_mailbox'];
+   'report_mailbox', 'restricted_domains'];
 const DOMAIN_PUT = 'Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_sign_aliases, dkim_rotation_enabled, dkim_rotation_interval_days, dkim_rotation_propagation_hours, dkim_rotation_retention_days and dkim_rotation_key_bits (the key rotation policy), message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, external_tag_subject, external_tag_header, external_tag_text, first_contact_tip, disclaimer_enabled, disclaimer_plain_text, disclaimer_html, quarantine_digest, quarantine_digest_hour, openpgp_publish (publish this domain\'s accounts\' OpenPGP public keys in the Web Key Directory) and openpgp_publish_new_accounts (what an account created in this domain from now on starts with), country_policy (which countries may sign in to the accounts of the domain: empty judges nothing, allow:GB,IE admits only those countries, block:CN,RU refuses those), session_idle_seconds, session_lifetime_seconds, session_one_per_device and session_bind_to_address (the session policy for the accounts of this domain), and report_mailbox (the address this domain\'s DMARC aggregate and TLS-RPT reports are posted to and read from; one address in a domain this server hosts, or empty). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.';
 const DOMAINS_POST = 'Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.';
 
@@ -543,7 +543,7 @@ const ACCOUNT_PROPS = {
    vacation_expires: { type: 'boolean' }, vacation_expires_date: { type: 'string' }, vacation_begin_date: { type: 'string' }, vacation_abort_spam_flagged: { type: 'boolean' },
    vacation_days: { type: 'integer' }, vacation_internal_subject: { type: 'string' }, vacation_internal_message: { type: 'string' }, vacation_internal_only: { type: 'boolean' },
    ad_enabled: { type: 'boolean' }, ad_domain: { type: 'string' }, ad_username: { type: 'string' }, sieve_script: { type: 'string' },
-   openpgp_publish: { type: 'boolean' }
+   openpgp_publish: { type: 'boolean' }, restricted_delivery: { type: 'integer' }
 };
 const ACCOUNT_PUT = 'Any subset of active, password, max_size_mb, first_name, last_name, forward_enabled, forward_address, forward_keep_original, signature_enabled, signature_plain_text, signature_html, admin_level (user, domain or server), antispam_enabled, spam_mark_threshold and spam_delete_threshold (-1 is the server\'s own value), forward_abort_spam_flagged, message_retention_days (-1 keeps forever, 0 follows the domain), vacation_enabled, vacation_subject, vacation_message, vacation_expires, vacation_expires_date and vacation_begin_date (YYYY-MM-DD; empty means today, as the Control Panel takes them), vacation_abort_spam_flagged, ad_enabled, ad_domain, ad_username, sieve_script and openpgp_publish (publish this account\'s OpenPGP public keys in the Web Key Directory); a field the body does not name is left as it is, and an unknown field is refused by name. Scoped to the address\'s domain.';
 // An account as AccountEntryJson answers it: every field, never the password.
@@ -553,7 +553,7 @@ function accountRecord(address, active) {
       vacation_expires: false, vacation_expires_date: '', message_retention_days: 0, admin_level: 'user', antispam_enabled: true,
       spam_mark_threshold: -1, spam_delete_threshold: -1, forward_abort_spam_flagged: false, vacation_begin_date: '', vacation_abort_spam_flagged: false,
       vacation_days: 0, vacation_internal_subject: '', vacation_internal_message: '', vacation_internal_only: false,
-      ad_enabled: false, ad_domain: '', ad_username: '', sieve_script: '', openpgp_publish: false,
+      ad_enabled: false, ad_domain: '', ad_username: '', sieve_script: '', openpgp_publish: false, restricted_delivery: 0,
       // Read-only, and the address masked as every surface masks it: the four the
       // account GET carries since AccountRecovery.h arrived.
       recovery_address_set: true, recovery_address_verified: true, recovery_address: 'o....@e.........example',
@@ -716,7 +716,7 @@ function domainRecord(name, active, postmaster) {
       external_tag_subject: false, external_tag_header: false, external_tag_text: '', first_contact_tip: false,
       disclaimer_enabled: false, disclaimer_plain_text: '', disclaimer_html: '',
       quarantine_digest: false, quarantine_digest_hour: 7,
-      openpgp_publish: false, openpgp_publish_new_accounts: false, country_policy: '', report_mailbox: '' };
+      openpgp_publish: false, openpgp_publish_new_accounts: false, country_policy: '', report_mailbox: '', restricted_domains: '' };
 }
 
 const SUPPRESSIONS_POST = 'Body: address (required), note (kept as the entry\'s diagnostic) and expires_days (0, the default, for an entry that stays until it is removed; at most 3650). An address this server hosts is refused.';
@@ -3357,6 +3357,13 @@ async function main() {
       document.getElementById('acct_password').type === 'password' && document.getElementById('acct_password').value === '' && document.getElementById('acct_spam_mark_threshold').value === '-1' &&
       document.getElementById('acct_forward_abort_spam_flagged').closest('.fr').textContent.indexOf('Do not forward messages flagged as spam') >= 0);
    check('the route\'s own description is the note', content().textContent.indexOf('a field the body does not name is left as it is') >= 0);
+   check('Restricted delivery: a select of the three words with their numbers, following the domain, under its own heading',
+      accountHeadings.indexOf('Restricted delivery') >= 0 && document.getElementById('acct_restricted_delivery').tagName === 'SELECT' &&
+      document.getElementById('acct_restricted_delivery').querySelectorAll('option').map((o) => o.attributes.value).join(',') === '0,1,2' &&
+      document.getElementById('acct_restricted_delivery').querySelectorAll('option').map((o) => o.textContent).join('|') === 'Follows the domain|Restricted: named domains only|Exempt: may exchange mail with anyone' &&
+      document.getElementById('acct_restricted_delivery').value === '0' &&
+      document.getElementById('acct_restricted_delivery').closest('.fr').textContent.indexOf('Exempt lets an account in a restricted domain exchange mail with anyone') >= 0,
+      document.getElementById('acct_restricted_delivery') ? document.getElementById('acct_restricted_delivery').outerHTML : 'no control');
    before = requests.length;
    click(act('accountsave'));
    await flush();
@@ -3952,6 +3959,10 @@ async function main() {
       document.getElementById('dom_vacation_days').type === 'number' && document.getElementById('dom_vacation_days').value === '0');
    check('Out of office and DKIM', document.getElementById('dom_vacation_message').tagName === 'TEXTAREA' &&
       document.getElementById('dom_dkim_signing_algorithm').querySelectorAll('option').map((o) => o.attributes.value).join(',') === 'sha1,sha256' && document.getElementById('dom_dkim_signing_algorithm').value === 'sha256');
+   check('Restricted delivery: the named domains as a text area under its own heading, empty for a domain that restricts nothing, with the sentence that says what a list does',
+      headings.indexOf('Restricted delivery') >= 0 && document.getElementById('dom_restricted_domains').tagName === 'TEXTAREA' && document.getElementById('dom_restricted_domains').value === '' &&
+      document.getElementById('dom_restricted_domains').closest('.fr').textContent.indexOf('an outside sender not in a named domain is refused at RCPT TO') >= 0,
+      document.getElementById('dom_restricted_domains') ? document.getElementById('dom_restricted_domains').outerHTML : 'no control');
    const drawn = content().querySelectorAll('input, select, textarea').map((el) => el.id).filter((id) => id.indexOf('dom_') === 0).map((id) => id.slice(4)).sort();
    check('every key the route takes has a control, and no key it does not', JSON.stringify(drawn) === JSON.stringify(DOMAIN_KEYS.slice().sort()), JSON.stringify(drawn));
    check('the other names are listed with a Remove each', content().textContent.indexOf('example.net') >= 0 && act('daliasdel', { name: 'example.net' }) !== null);

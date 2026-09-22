@@ -42,6 +42,7 @@
 #include "RestApiServer.h"
 #include "SessionPolicies.h"
 #include "CountryBlocking.h"
+#include "RestrictedDelivery.h"
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "../BO/Domains.h"
@@ -285,7 +286,7 @@ namespace HM
          "webhooks_enabled", "webhook_subjects",
          "country_policy",
          "session_idle_seconds", "session_lifetime_seconds", "session_one_per_device", "session_bind_to_address",
-         "report_mailbox"
+         "report_mailbox", "restricted_domains"
       };
 
       // Applies the body to the domain. Everything is read and checked first;
@@ -322,6 +323,7 @@ namespace HM
          String disclaimerPlainText = domain->GetDisclaimerPlainText(), disclaimerHtml = domain->GetDisclaimerHTML();
          String countryPolicy = domain->GetCountryPolicy();
          String reportMailbox = domain->GetReportMailbox();
+         String restrictedDomains = domain->GetRestrictedDomains();
 
          if (!ReadString(body, "name", name, error) ||
              !ReadString(body, "postmaster", postmaster, error) ||
@@ -351,8 +353,29 @@ namespace HM
              !ReadString(body, "disclaimer_plain_text", disclaimerPlainText, error) ||
              !ReadString(body, "disclaimer_html", disclaimerHtml, error) ||
              !ReadString(body, "country_policy", countryPolicy, error) ||
-             !ReadString(body, "report_mailbox", reportMailbox, error))
+             !ReadString(body, "report_mailbox", reportMailbox, error) ||
+             !ReadString(body, "restricted_domains", restrictedDomains, error))
             return false;
+
+         // Restricted delivery: the list is canonicalised - trimmed,
+         // lower-cased, the names separated by ", " - and refused in the
+         // unit's own sentence when a name is not a domain, the text is not
+         // ASCII or it is longer than 2,000 characters. Judged only when the
+         // body names it, as the report mailbox is, so a PUT of another field
+         // never fails on a value the caller did not write.
+         if (body.Get("restricted_domains"))
+         {
+            String canonical;
+            String refusal;
+
+            if (!RestrictedDelivery::CanonicaliseList(restrictedDomains, canonical, refusal))
+            {
+               error = AnsiString(refusal);
+               return false;
+            }
+
+            restrictedDomains = canonical;
+         }
 
          // The report mailbox: empty, or one address in a domain this server
          // hosts - this one, under the name it is being saved with, or another.
@@ -667,6 +690,7 @@ namespace HM
          domain->SetQuarantineDigestHour((int) digestHour);
          domain->SetCountryPolicy(canonicalCountryPolicy);
          domain->SetReportMailbox(reportMailbox);
+         domain->SetRestrictedDomains(restrictedDomains);
          domain->SetADDomainName(adDomainName);
          domain->SetExternalTagSubject(externalTagSubject);
          domain->SetExternalTagHeader(externalTagHeader);
@@ -806,6 +830,7 @@ namespace HM
       text("disclaimer_html", domain->GetDisclaimerHTML());
       text("country_policy", domain->GetCountryPolicy());
       text("report_mailbox", domain->GetReportMailbox());
+      text("restricted_domains", domain->GetRestrictedDomains());
       entry += "}";
       return entry;
    }

@@ -827,6 +827,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Konta oznaczone jako powiązane z katalogiem. Ta połowa jest już w tym interfejsie: otwórz Domeny, edytuj konto i na jego karcie Katalog zaznacz opcję Active Directory oraz wpisz nazwę użytkownika AD - sAMAccountName, czyli to, co niesie %u. Konta bez tego oznaczenia zachowują zwykłe hasło hMailServer i nigdy nie sięgają do katalogu.</value>
   </data>
+  <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted." xml:space="preserve">
+    <value>Konta tej domeny mogą wymieniać pocztę z wymienionymi tu domenami i z nikim innym: nadawca z zewnątrz spoza wskazanej domeny jest odrzucany przy RCPT TO, a konto stąd może wysyłać tylko do wskazanych domen, do własnej domeny i do postmastera. Inne domeny obsługiwane przez ten serwer liczą się jako zewnętrzne, chyba że są wskazane. Zwroty zawsze przechodzą. Każde konto stosuje się do tego, chyba że jego własne okno mówi ograniczone lub wyjątek; puste oznacza, że domena nie jest ograniczona.</value>
+  </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Konta: {0}.</value>
   </data>
@@ -3512,6 +3515,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Executable not found: {0}" xml:space="preserve">
     <value>Nie znaleziono pliku wykonywalnego: {0}</value>
   </data>
+  <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
+    <value>Wyjątek: może wymieniać pocztę z każdym</value>
+  </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>Rozwiń nawigację</value>
   </data>
@@ -3703,6 +3709,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Foldery</value>
+  </data>
+  <data name="Follows the domain" xml:space="preserve">
+    <value>Zgodnie z domeną</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>Dla LDAPS lub StartTLS: certyfikat na serwerze katalogowym, któremu TEN komputer ufa - wystawiony przez urząd certyfikacji z magazynu certyfikatów komputera w systemie Windows i zawierający powyższą nazwę hosta. Kontroler domeny nie ma takiego certyfikatu od razu po instalacji. Metoda bind Negotiate nie wymaga żadnego certyfikatu, ponieważ hasło nigdy nie przechodzi przez sieć.</value>
@@ -5064,6 +5073,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Nazwa, dolny adres IP i górny adres IP są wymagane.</value>
+  </data>
+  <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
+    <value>Wskazane _domeny (partner.example lub .example dla domeny i wszystkiego poniżej; rozdzielone przecinkami lub spacjami; puste niczego nie ogranicza)</value>
   </data>
   <data name="Names" xml:space="preserve">
     <value>Nazwy</value>
@@ -6914,6 +6926,12 @@ SMTP 25 i 587, POP3 110, IMAP 143 - bez zabezpieczenia połączenia. Porty TLS i
     <value>Przywracanie zastępuje bieżące dane w wybranych kategoriach zawartością kopii zapasowej.
 
 Kontynuować?</value>
+  </data>
+  <data name="Restricted delivery" xml:space="preserve">
+    <value>Dostarczanie ograniczone</value>
+  </data>
+  <data name="Restricted: named domains only" xml:space="preserve">
+    <value>Ograniczone: tylko wskazane domeny</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Czas życia wznawiania dla sesji i biletów w pamięci podręcznej, w sekundach (0 = domyślne 300 z OpenSSL)</value>
@@ -10529,6 +10547,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>_Przywróć domyślne</value>
+  </data>
+  <data name="_Restricted delivery (the named domains are on the domain's dialog)" xml:space="preserve">
+    <value>Dostarczanie ogranic_zone (wskazane domeny są w oknie domeny)</value>
   </data>
   <data name="_Resume" xml:space="preserve">
     <value>W_znów</value>

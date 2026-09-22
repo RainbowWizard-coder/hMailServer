@@ -1613,6 +1613,8 @@ const DOMAIN_GROUPS=[
     quarantine_digest_hour:{type:"integer",description:K("The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.")}}},
   {title:K("Reports the domain receives"),props:{
     report_mailbox:{type:"string",description:K("The address this domain's DMARC aggregate and TLS-RPT reports are posted to, and the one address they are read from into the DMARC page: what the domain's rua= tags name. One address in a domain this server hosts, or empty, which is the default and reads nothing. Make the account or alias at it yourself; the server does not.")}}},
+  {title:K("Restricted delivery"),props:{
+    restricted_domains:{type:"string",format:"multiline",description:K("The domains this domain's accounts may exchange mail with: partner.example, or .example for the domain and everything beneath it, separated by commas or spaces, ASCII only. Empty, the default, restricts nothing. With a list, an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster; other domains this server hosts count as outside unless named. Each account follows this unless its own editor says restricted or exempt.")}}},
   {title:K("Web Key Directory"),props:{
     openpgp_publish:{type:"boolean",description:K("Publish this domain's accounts' OpenPGP public keys, so that anybody on the internet can find a key from the address alone. Off by default; the server setting and each account's own switch have to be on as well, and only public keys are ever held.")},
     openpgp_publish_new_accounts:{type:"boolean",description:K("What an account CREATED in this domain from now on starts with. It never changes an account that already exists, so switching it on publishes nobody who is already here.")}}},
@@ -2149,7 +2151,8 @@ const ACCOUNT_GROUPS=[
   {title:K("Signature"),keys:["signature_enabled","signature_plain_text","signature_html"]},
   {title:K("Sieve"),keys:["sieve_script"]},
   {title:K("Windows directory"),keys:["ad_enabled","ad_domain","ad_username"]},
-  {title:K("OpenPGP"),keys:["openpgp_publish"]}
+  {title:K("OpenPGP"),keys:["openpgp_publish"]},
+  {title:K("Restricted delivery"),keys:["restricted_delivery"]}
 ];
 const ACCOUNT_HINTS={
   active:K("Account enabled: it receives mail and can sign in."),first_name:K("The person's first name."),last_name:K("The person's last name."),
@@ -2171,8 +2174,10 @@ const ACCOUNT_HINTS={
   signature_enabled:K("Add a signature to outgoing messages."),signature_plain_text:K("The plain-text signature."),signature_html:K("The HTML signature."),
   sieve_script:K("The account's active Sieve filter, parsed before it is stored as the portal and ManageSieve parse one; empty removes it."),
   ad_enabled:K("Check this password against Windows (Active Directory, or a local Windows account)."),ad_domain:K("The Windows domain."),ad_username:K("The Windows user name."),
-  openpgp_publish:K("Publish this account's OpenPGP public keys in the Web Key Directory, so that anybody who has the address can find the key. The keys themselves are on the domain's OpenPGP page.")
+  openpgp_publish:K("Publish this account's OpenPGP public keys in the Web Key Directory, so that anybody who has the address can find the key. The keys themselves are on the domain's OpenPGP page."),
+  restricted_delivery:K("Follows the domain takes the domain's list of named domains. Restricted confines the account to the named domains, its own domain and the postmaster - and, when the domain names nothing, to its own domain alone. Exempt lets an account in a restricted domain exchange mail with anyone.")
 };
+const ACCOUNT_CHOICES=()=>({restricted_delivery:[{value:0,label:t("Follows the domain")},{value:1,label:t("Restricted: named domains only")},{value:2,label:t("Exempt: may exchange mail with anyone")}]});
 const ACCOUNT_LONG=["signature_plain_text","signature_html","vacation_message","vacation_internal_message","sieve_script"];
 function accountProps(){
   const props=properties("/api/v1/accounts/{address}","put"), out={};
@@ -2203,7 +2208,7 @@ function renderAccountEditor(){
   const props=accountProps();
   const cards=groupedKeys(ACCOUNT_GROUPS,props).map(g=>`
     <div class="sect"><h2>${escHtml(t(g.title))}</h2>
-      <div class="card flat"><div class="form">${formHtml("acct",pick(props,g.keys),editing.values,{passwordHint:t("left unchanged unless filled")})}</div></div></div>`).join("");
+      <div class="card flat"><div class="form">${formHtml("acct",pick(props,g.keys),editing.values,{passwordHint:t("left unchanged unless filled"),choices:ACCOUNT_CHOICES()})}</div></div></div>`).join("");
   $("#content").innerHTML=`<div class="view">
     <button class="btn ghost sm" data-act="accounts" data-domain="${escHtml(editing.domain)}">${tf("‹ Accounts of {0}",escHtml(editing.domain))}</button>
     <div class="sect"><h2>${tf("Account {0}",escHtml(editing.address))}</h2>

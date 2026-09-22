@@ -827,6 +827,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Dizine bağlı olarak işaretlenen hesaplar. Bu tarafı zaten bu arayüzde mevcut: Etki alanları'nı açın, hesabı düzenleyin ve Dizin sekmesinde Active Directory seçeneğini işaretleyip AD kullanıcı adını girin - yani %u ile taşınan sAMAccountName. Bu işareti taşımayan hesaplar olağan hMailServer parolalarını korur ve dizine hiç dokunmaz.</value>
   </data>
+  <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted." xml:space="preserve">
+    <value>Bu etki alanındaki hesaplar yalnızca burada belirtilen etki alanlarıyla posta alışverişi yapabilir: belirtilen bir etki alanında olmayan dış gönderici RCPT TO aşamasında reddedilir ve buradaki bir hesap yalnızca belirtilen etki alanlarına, kendi etki alanına ve postmaster'a gönderebilir. Bu sunucunun barındırdığı diğer etki alanları, belirtilmedikçe dış sayılır. Geri dönen iletiler her zaman geçer. Her hesap, kendi iletişim kutusunda kısıtlı veya muaf denmedikçe buna uyar; boş bırakılırsa etki alanı kısıtlı değildir.</value>
+  </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Hesaplar: {0}.</value>
   </data>
@@ -3512,6 +3515,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Executable not found: {0}" xml:space="preserve">
     <value>Yürütülebilir dosya bulunamadı: {0}</value>
   </data>
+  <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
+    <value>Muaf: herkesle posta alışverişi yapabilir</value>
+  </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>Gezintiyi genişlet</value>
   </data>
@@ -3703,6 +3709,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Klasörler</value>
+  </data>
+  <data name="Follows the domain" xml:space="preserve">
+    <value>Etki alanını izler</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>LDAPS ya da StartTLS için: dizin sunucusunda BU makinenin güvendiği bir sertifika - Windows makine sertifika deposundaki bir CA tarafından verilmiş ve içinde yukarıdaki ana bilgisayar adı bulunan. Bir etki alanı denetleyicisinde böyle bir sertifika hazır gelmez. Negotiate bind yöntemi hiçbir sertifika gerektirmez, çünkü parola ağı hiç geçmez.</value>
@@ -5064,6 +5073,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Ad, alt IP ve üst IP gereklidir.</value>
+  </data>
+  <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
+    <value>Belirtilen _etki alanları (partner.example veya etki alanı ve altındaki her şey için .example; virgül veya boşlukla ayrılır; boş bırakılırsa hiçbir şey kısıtlanmaz)</value>
   </data>
   <data name="Names" xml:space="preserve">
     <value>Adlar</value>
@@ -6914,6 +6926,12 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan. TLS portlar
     <value>Geri yüklemek, seçili kategorilerdeki geçerli verileri yedeğin içeriğiyle değiştirir.
 
 Devam edilsin mi?</value>
+  </data>
+  <data name="Restricted delivery" xml:space="preserve">
+    <value>Kısıtlı teslimat</value>
+  </data>
+  <data name="Restricted: named domains only" xml:space="preserve">
+    <value>Kısıtlı: yalnızca belirtilen etki alanları</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Önbelleğe alınan oturumlar ve biletler için sürdürme ömrü, saniye (0 = OpenSSL'in varsayılanı olan 300)</value>
@@ -10529,6 +10547,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>_Varsayılanları geri yükle</value>
+  </data>
+  <data name="_Restricted delivery (the named domains are on the domain's dialog)" xml:space="preserve">
+    <value>Kısıtlı _teslimat (belirtilen etki alanları etki alanının iletişim kutusundadır)</value>
   </data>
   <data name="_Resume" xml:space="preserve">
     <value>_Sürdür</value>

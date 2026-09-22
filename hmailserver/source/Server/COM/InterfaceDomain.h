@@ -265,6 +265,8 @@ END_COM_MAP()
    // Common/Util/DomainReports.h.
    STDMETHOD(get_ReportMailbox)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(put_ReportMailbox)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_RestrictedDomains)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_RestrictedDomains)(/*[in]*/ BSTR newVal);
 
    // dkim end.
 

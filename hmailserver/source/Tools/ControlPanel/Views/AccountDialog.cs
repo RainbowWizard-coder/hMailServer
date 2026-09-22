@@ -60,6 +60,9 @@ namespace hMailServer.ControlPanel.Views
       // thrown from the webmail once the server allows it; an administrator
       // sees the state and cannot change it.
       private readonly TextBlock zeroAccess_ = new() { TextWrapping = TextWrapping.Wrap };
+      // Restricted delivery (Account.RestrictedDelivery, docs/RestrictedDelivery.md):
+      // follows the domain, restricted, or exempt.
+      private readonly ComboBox restrictedDelivery_ = new();
 
       // Forwarding
       private readonly CheckBox forwardOn_ = new() { Content = L("_Forward incoming mail") };
@@ -247,6 +250,11 @@ namespace hMailServer.ControlPanel.Views
 
          retentionRow_ = Label(L("_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)"), retentionDays_);
          panel.Children.Add(retentionRow_);
+
+         restrictedDelivery_.Items.Add(DialogFields.Combo(L("Follows the domain"), 0));
+         restrictedDelivery_.Items.Add(DialogFields.Combo(L("Restricted: named domains only"), 1));
+         restrictedDelivery_.Items.Add(DialogFields.Combo(L("Exempt: may exchange mail with anyone"), 2));
+         panel.Children.Add(Label(L("_Restricted delivery (the named domains are on the domain's dialog)"), restrictedDelivery_));
 
          panel.Children.Add(Label(L("_First name"), firstName_));
          panel.Children.Add(Label(L("_Last name"), lastName_));
@@ -934,6 +942,14 @@ namespace hMailServer.ControlPanel.Views
             }
             catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { zeroAccess_.Text = L("Off"); }
 
+            // Account.RestrictedDelivery arrived with schema 6084; a server
+            // without it leaves the choice disabled rather than saved back.
+            try
+            {
+               DialogFields.SelectCombo(restrictedDelivery_, (int)a.RestrictedDelivery);
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { restrictedDelivery_.IsEnabled = false; }
+
             forwardOn_.IsChecked = (bool)a.ForwardEnabled;
             forwardTo_.Text = (string)a.ForwardAddress ?? "";
             forwardKeep_.IsChecked = (bool)a.ForwardKeepOriginal;
@@ -1118,6 +1134,11 @@ namespace hMailServer.ControlPanel.Views
             a.Active = active_.IsChecked is true;
             int lvl = DialogFields.ComboValue(adminLevel_, -1);
             if (lvl >= 0) a.AdminLevel = lvl;
+            if (restrictedDelivery_.IsEnabled)
+            {
+               int restricted = DialogFields.ComboValue(restrictedDelivery_, -1);
+               if (restricted >= 0) a.RestrictedDelivery = restricted;
+            }
             if (hasQuota)
                a.MaxSize = quotaV;
             if (hasRetention)

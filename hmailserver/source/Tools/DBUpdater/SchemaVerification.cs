@@ -1291,6 +1291,14 @@ namespace DBUpdater
                          "update hm_accounts set accountzeroaccess = accountzeroaccess where 1 = 0"),
          new SchemaProbe(6083, "hm_zeroaccess.zafingerprint",
                          "update hm_zeroaccess set zafingerprint = zafingerprint where 1 = 0"),
+         // Upgrade6083to6084* - restricted delivery: the domain's list of named
+         // domains and the account's follow/restricted/exempt switch, both
+         // ALTERs on tables every installation has rows in, which is the
+         // statement that can fail while the step still stamps the version.
+         new SchemaProbe(6084, "hm_domains.domainrestricteddomains",
+                         "update hm_domains set domainrestricteddomains = domainrestricteddomains where 1 = 0"),
+         new SchemaProbe(6084, "hm_accounts.accountrestricteddelivery",
+                         "update hm_accounts set accountrestricteddelivery = accountrestricteddelivery where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

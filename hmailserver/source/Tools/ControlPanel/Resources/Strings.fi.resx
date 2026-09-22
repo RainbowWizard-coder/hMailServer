@@ -827,6 +827,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Hakemistoon liitetyiksi merkityt tilit. Tuo puoli on jo tässä käyttöliittymässä: avaa Verkkotunnukset, muokkaa tiliä ja rastita sen Hakemisto-välilehdellä Active Directory -vaihtoehto sekä täytä AD-käyttäjänimi – sAMAccountName, jota %u kuljettaa. Tilit joilla ei ole tuota merkintää säilyttävät tavallisen hMailServer-salasanansa eivätkä koskaan koske hakemistoon.</value>
   </data>
+  <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted." xml:space="preserve">
+    <value>Tämän verkkotunnuksen tilit saavat vaihtaa postia vain tässä nimettyjen verkkotunnusten kanssa: ulkopuolinen lähettäjä, joka ei ole nimetyssä verkkotunnuksessa, hylätään RCPT TO -vaiheessa, ja täkäläinen tili saa lähettää vain nimettyihin verkkotunnuksiin, omaan verkkotunnukseensa ja postmasterille. Muut tämän palvelimen verkkotunnukset lasketaan ulkopuolisiksi, ellei niitä ole nimetty. Palautusilmoitukset pääsevät aina läpi. Jokainen tili noudattaa tätä, ellei sen oma ikkuna sano rajoitettu tai vapautettu; tyhjä tarkoittaa, ettei verkkotunnusta ole rajoitettu.</value>
+  </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Tilejä: {0}.</value>
   </data>
@@ -3512,6 +3515,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Executable not found: {0}" xml:space="preserve">
     <value>Suoritettavaa tiedostoa ei löytynyt: {0}</value>
   </data>
+  <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
+    <value>Vapautettu: saa vaihtaa postia kenen kanssa tahansa</value>
+  </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>Laajenna navigointi</value>
   </data>
@@ -3703,6 +3709,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Kansiot</value>
+  </data>
+  <data name="Follows the domain" xml:space="preserve">
+    <value>Noudattaa verkkotunnusta</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>LDAPS:lle tai StartTLS:lle: varmenne hakemistopalvelimella, johon TÄMÄ kone luottaa - Windowsin konevarmennesäilön CA:n myöntämä, ja siinä yllä oleva konenimi. Toimialueen ohjauskoneella ei ole sellaista valmiiksi. Negotiate-sidontatapa ei tarvitse varmennetta lainkaan, koska salasana ei koskaan kulje verkon yli.</value>
@@ -5064,6 +5073,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Nimi, alempi IP ja ylempi IP ovat pakollisia.</value>
+  </data>
+  <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
+    <value>Nimetyt _verkkotunnukset (partner.example, tai .example verkkotunnukselle ja kaikelle sen alla; pilkuin tai välilyönnein eroteltuina; tyhjä ei rajoita mitään)</value>
   </data>
   <data name="Names" xml:space="preserve">
     <value>Nimet</value>
@@ -6914,6 +6926,12 @@ SMTP 25 ja 587, POP3 110, IMAP 143 - ilman yhteyden suojausta. TLS-portit ja muk
     <value>Palautus korvaa valittujen luokkien nykyiset tiedot varmuuskopion sisällöllä.
 
 Jatketaanko?</value>
+  </data>
+  <data name="Restricted delivery" xml:space="preserve">
+    <value>Rajoitettu toimitus</value>
+  </data>
+  <data name="Restricted: named domains only" xml:space="preserve">
+    <value>Rajoitettu: vain nimetyt verkkotunnukset</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Välimuistiin tallennettujen istuntojen ja lippujen jatkamisen elinikä sekunteina (0 = OpenSSL:n oletus 300)</value>
@@ -10529,6 +10547,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>_Palauta oletukset</value>
+  </data>
+  <data name="_Restricted delivery (the named domains are on the domain's dialog)" xml:space="preserve">
+    <value>_Rajoitettu toimitus (nimetyt verkkotunnukset ovat verkkotunnuksen ikkunassa)</value>
   </data>
   <data name="_Resume" xml:space="preserve">
     <value>_Jatka</value>

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 #include "StdAfx.h"
+#include "../Util/RestrictedDelivery.h"
 
 #include "SieveVacationResponder.h"
 
@@ -485,6 +486,17 @@ namespace HM
          if (recipient.CompareNoCase(account->GetAddress()) == 0)
          {
             LOG_DEBUG("Sieve vacation: no auto-reply, the envelope sender is the account's own address.");
+            return;
+         }
+
+         // Restricted delivery (Util/RestrictedDelivery.h): a restricted
+         // account does not write to a stranger, and a Sieve vacation is the
+         // account writing; the stored out-of-office meets the same decision
+         // in SMTPVacationMessageCreator.
+         if (RestrictedDelivery::Check(account, recipient, RestrictedDelivery::Outbound) == RestrictedDelivery::Refused)
+         {
+            LOG_DEBUG("Sieve vacation: no auto-reply, restricted delivery - " + account->GetAddress() +
+               " may send to named domains only, and " + recipient + " is not in one.");
             return;
          }
 

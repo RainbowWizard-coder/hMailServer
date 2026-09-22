@@ -180,6 +180,10 @@ namespace hMailServer.ControlPanel.Views
       // and TLS-RPT reports are posted to and read from (Domain.ReportMailbox).
       private readonly TextBox reportMailbox_ = NewInput();
 
+      // Restricted delivery: the domains this domain's accounts may exchange
+      // mail with (Domain.RestrictedDomains, docs/RestrictedDelivery.md).
+      private readonly TextBox restrictedDomains_ = NewMemo();
+
       public DomainDialog(Window owner, string domainName)
       {
          domainName_ = domainName;
@@ -199,6 +203,7 @@ namespace hMailServer.ControlPanel.Views
          tabs.Items.Add(new TabItem { Header = L("Allow and block list"), Content = BuildSenderList() });
          tabs.Items.Add(new TabItem { Header = L("Quarantine digest"), Content = BuildQuarantineDigest() });
          tabs.Items.Add(new TabItem { Header = L("Reports received"), Content = BuildReportsReceived() });
+         tabs.Items.Add(new TabItem { Header = L("Restricted delivery"), Content = BuildRestrictedDelivery() });
          DialogFields.FillTabs(tabs);
 
          var body = new StackPanel();
@@ -340,6 +345,14 @@ namespace hMailServer.ControlPanel.Views
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Note(L("The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read.")));
          panel.Children.Add(Label(L("Report _mailbox (one address in a domain this server hosts; empty reads nothing)"), reportMailbox_));
+         return DialogFields.Scroll(panel);
+      }
+
+      private ScrollViewer BuildRestrictedDelivery()
+      {
+         var panel = DialogFields.TabPanel();
+         panel.Children.Add(DialogFields.Note(L("Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted.")));
+         panel.Children.Add(Label(L("Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)"), restrictedDomains_));
          return DialogFields.Scroll(panel);
       }
 
@@ -950,6 +963,18 @@ namespace hMailServer.ControlPanel.Views
                reportMailbox_.IsEnabled = false;
             }
 
+            // The restricted domains, the same way: Domain.RestrictedDomains
+            // arrived with schema 6084, and a server without it leaves the box
+            // disabled rather than saved back as empty.
+            try
+            {
+               restrictedDomains_.Text = (string)d.RestrictedDomains ?? "";
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               restrictedDomains_.IsEnabled = false;
+            }
+
             ServerSession.Release(d);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -1127,6 +1152,11 @@ namespace hMailServer.ControlPanel.Views
             // and its refusal reaches the dialog as the save's error.
             if (reportMailbox_.IsEnabled)
                d.ReportMailbox = reportMailbox_.Text.Trim();
+
+            // The server canonicalises the list and refuses a name that is not
+            // a domain; its sentence reaches the dialog as the save's error.
+            if (restrictedDomains_.IsEnabled)
+               d.RestrictedDomains = restrictedDomains_.Text.Trim();
 
             d.DKIMSignEnabled = dkimOn_.IsChecked is true;
             d.DKIMSignAliasesEnabled = dkimAliases_.IsChecked is true;

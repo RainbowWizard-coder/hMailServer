@@ -827,6 +827,9 @@
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>ディレクトリ連携としてマークされたアカウントが必要です。その部分はすでにこの GUI にあります。「ドメイン」を開いてアカウントを編集し、その「ディレクトリ」タブで Active Directory のオプションをオンにして、AD のユーザー名 (sAMAccountName、%u が運ぶ値です) を入力してください。このマークが付いていないアカウントは、通常の hMailServer のパスワードを使い続け、ディレクトリには一切触れません。</value>
   </data>
+  <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted." xml:space="preserve">
+    <value>このドメインのアカウントは、ここに指定したドメインとのみメールをやり取りできます。指定ドメイン外の外部送信者は RCPT TO で拒否され、ここのアカウントは指定ドメイン、自分のドメイン、postmaster にのみ送信できます。このサーバーがホストする他のドメインも、指定しない限り外部として扱われます。バウンスは常に通ります。各アカウントは、自身のダイアログで制限または除外を指定しない限りこれに従います。空欄ならドメインは制限されません。</value>
+  </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>アカウント: {0} 件。</value>
   </data>
@@ -3512,6 +3515,9 @@
   <data name="Executable not found: {0}" xml:space="preserve">
     <value>実行ファイルが見つかりません: {0}</value>
   </data>
+  <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
+    <value>除外: 誰とでもメールをやり取りできる</value>
+  </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>ナビゲーションを展開する</value>
   </data>
@@ -3703,6 +3709,9 @@
   </data>
   <data name="Folders" xml:space="preserve">
     <value>フォルダー</value>
+  </data>
+  <data name="Follows the domain" xml:space="preserve">
+    <value>ドメインに従う</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>LDAPS または StartTLS の場合: ディレクトリ サーバー上に、「この」コンピューターが信頼する証明書が必要です。Windows のコンピューター証明書ストアにある CA が発行し、上のホスト名を含むものです。ドメイン コントローラーには初期状態ではありません。Negotiate バインド方式は証明書をまったく必要としません。パスワードがネットワークを流れることがないからです。</value>
@@ -5064,6 +5073,9 @@
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>名前、下限 IP、上限 IP は必須です。</value>
+  </data>
+  <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
+    <value>指定ドメイン (partner.example、または .example でそのドメインと配下すべて。コンマまたは空白で区切る。空欄なら何も制限しません) (_D)</value>
   </data>
   <data name="Names" xml:space="preserve">
     <value>名前</value>
@@ -6914,6 +6926,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
     <value>復元すると、選択したカテゴリの現在のデータがバックアップの内容に置き換えられます。
 
 続行しますか?</value>
+  </data>
+  <data name="Restricted delivery" xml:space="preserve">
+    <value>配信制限</value>
+  </data>
+  <data name="Restricted: named domains only" xml:space="preserve">
+    <value>制限: 指定ドメインのみ</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>キャッシュされたセッションとチケットの再開有効期間 (秒、0 = OpenSSL の既定値 300)</value>
@@ -10529,6 +10547,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>既定値に戻す(_R)</value>
+  </data>
+  <data name="_Restricted delivery (the named domains are on the domain's dialog)" xml:space="preserve">
+    <value>配信制限 (指定ドメインはドメインのダイアログにあります) (_R)</value>
   </data>
   <data name="_Resume" xml:space="preserve">
     <value>再開(_R)</value>

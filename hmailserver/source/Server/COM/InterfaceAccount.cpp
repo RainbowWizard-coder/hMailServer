@@ -51,6 +51,7 @@
 #include "COMError.h"
 #include "../Common/Util/PushSubscriptions.h"
 #include "../Common/Util/AuditTrail.h"
+#include "../Common/Util/RestrictedDelivery.h"
 #include "../Common/Application/Logger.h"
 
 #ifdef _DEBUG
@@ -2197,6 +2198,44 @@ STDMETHODIMP InterfaceAccount::get_ZeroAccess(VARIANT_BOOL *pVal)
 
       // Read-only by design (docs/ZeroAccess.md): the person's own switch.
       *pVal = object_->GetZeroAccess() ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_RestrictedDelivery(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = object_->GetRestrictedDelivery();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::put_RestrictedDelivery(long newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      // The same three values, in the same sentence, as restricted_delivery
+      // on PUT /api/v1/accounts/{address}: 0 follows the domain, 1 restricted,
+      // 2 exempt (Common/Util/RestrictedDelivery.h).
+      if (newVal < HM::RestrictedDelivery::FollowsDomain || newVal > HM::RestrictedDelivery::Exempt)
+         return COMError::GenerateError("RestrictedDelivery must be 0 (follows the domain), 1 (restricted) or 2 (exempt).");
+
+      object_->SetRestrictedDelivery((int) newVal);
       return S_OK;
    }
    catch (...)

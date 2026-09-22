@@ -236,6 +236,7 @@ namespace HM
 
       pNode->AppendAttr(_T("CountryPolicy"), country_policy_);
       pNode->AppendAttr(_T("ReportMailbox"), report_mailbox_);
+      pNode->AppendAttr(_T("RestrictedDomains"), restricted_domains_);
 
       pNode->AppendAttr(_T("SessionIdleSeconds"), StringParser::IntToString(session_idle_seconds_));
       pNode->AppendAttr(_T("SessionLifetimeSeconds"), StringParser::IntToString(session_lifetime_seconds_));
@@ -425,6 +426,10 @@ namespace HM
       // And again: a backup taken before schema 6070 names no report mailbox, and
       // the domain restores taking no reports in until an administrator names one.
       report_mailbox_ = pNode->GetAttrValue(_T("ReportMailbox"));
+
+      // A backup taken before schema 6084 names no restricted domains, and the
+      // domain restores unrestricted, which is what it was.
+      restricted_domains_ = pNode->GetAttrValue(_T("RestrictedDomains"));
 
       // The session policies, under the same rule: an archive written before
       // schema 6050 carries none of these attributes and restores with all four at

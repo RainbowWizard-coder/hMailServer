@@ -310,6 +310,7 @@ namespace HM
       pAccount->SetSpamDeleteThreshold(pRS->GetLongValue("accountspamdeletethreshold"));
       pAccount->SetOpenPGPPublish(pRS->GetLongValue("accountopenpgppublish") == 1);
       pAccount->SetZeroAccess(pRS->GetLongValue("accountzeroaccess") == 1);
+      pAccount->SetRestrictedDelivery((int) pRS->GetLongValue("accountrestricteddelivery"));
 
       pAccount->SetPasswordEncryption(pRS->GetLongValue("accountpwencryption"));
 
@@ -573,6 +574,7 @@ namespace HM
       oStatement.AddColumn("accountspamdeletethreshold", pAccount->GetSpamDeleteThreshold());
       oStatement.AddColumn("accountopenpgppublish", pAccount->GetOpenPGPPublish() ? 1 : 0);
       oStatement.AddColumn("accountzeroaccess", pAccount->GetZeroAccess() ? 1 : 0);
+      oStatement.AddColumn("accountrestricteddelivery", (long) pAccount->GetRestrictedDelivery());
 
       oStatement.AddColumn("accountenablesignature", pAccount->GetEnableSignature());
       oStatement.AddColumn("accountsignatureplaintext", pAccount->GetSignaturePlainText());

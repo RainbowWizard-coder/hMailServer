@@ -130,6 +130,16 @@ namespace HM
       String GetReportMailbox() const { return report_mailbox_; }
       void SetReportMailbox(const String &newVal) { report_mailbox_ = newVal; }
 
+      // Restricted delivery (schema 6084, Util/RestrictedDelivery.h): the
+      // domains this domain's accounts may exchange mail with, as the
+      // canonical stored text - lower-cased names separated by ", ", each a
+      // domain (partner.example) or a suffix (.example, the domain and
+      // everything beneath it), ASCII, at most 2,000 characters. Empty, the
+      // default, means the domain is not restricted. An account follows this
+      // unless its own RestrictedDelivery says restricted or exempt.
+      String GetRestrictedDomains() const { return restricted_domains_; }
+      void SetRestrictedDomains(const String &newVal) { restricted_domains_ = newVal; }
+
       // The session policies for the accounts of this domain (schema 6050). The
       // two numbers are seconds, and 0 means "take the server's answer"; the two
       // switches are 0 to take the server's answer, 1 for on and 2 for off, because
@@ -447,6 +457,7 @@ namespace HM
       int session_bind_to_address_;
       String country_policy_;
       String report_mailbox_;
+      String restricted_domains_;
 
       bool enable_signature_;
       DomainSignatureMethod signature_method_;

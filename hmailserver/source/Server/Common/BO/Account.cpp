@@ -48,7 +48,8 @@ namespace HM
       spam_mark_threshold_(-1),
       spam_delete_threshold_(-1),
       openpgp_publish_(false),
-      zero_access_(false)
+      zero_access_(false),
+      restricted_delivery_(0)
    {
       Initialize();
    }
@@ -75,7 +76,8 @@ namespace HM
       spam_mark_threshold_(-1),
       spam_delete_threshold_(-1),
       openpgp_publish_(false),
-      zero_access_(false)
+      zero_access_(false),
+      restricted_delivery_(0)
    {
       Initialize();
    }
@@ -127,6 +129,7 @@ namespace HM
       spam_delete_threshold_ = oldAccount.spam_delete_threshold_;
       openpgp_publish_ = oldAccount.openpgp_publish_;
       zero_access_ = oldAccount.zero_access_;
+      restricted_delivery_ = oldAccount.restricted_delivery_;
       active_ = oldAccount.active_;
       is_ad_ = oldAccount.is_ad_;
       vacation_message_is_on_ = oldAccount.vacation_message_is_on_;
@@ -364,6 +367,7 @@ namespace HM
       pNode->AppendAttr(_T("SpamDeleteThreshold"), StringParser::IntToString(spam_delete_threshold_));
       pNode->AppendAttr(_T("OpenPGPPublish"), openpgp_publish_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("ZeroAccess"), zero_access_ ? _T("1") : _T("0"));
+      pNode->AppendAttr(_T("RestrictedDelivery"), StringParser::IntToString(restricted_delivery_));
 
       pNode->AppendAttr(_T("EnableSignature"), enable_signature_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("SignaturePlainText"), signature_plain_text_);
@@ -506,6 +510,16 @@ namespace HM
       // here, and the account restores as not published - which is what it was.
       openpgp_publish_ = pAccountNode->GetAttrValue(_T("OpenPGPPublish")) == _T("1");
       zero_access_ = pAccountNode->GetAttrValue(_T("ZeroAccess")) == _T("1");
+
+      // A backup from before schema 6084 says nothing here, and the account
+      // restores following its domain, which is what it was. A value outside
+      // 0 to 2 - a hand-edited archive - restores as following the domain too,
+      // since the other two words mean something.
+      {
+         const String restricted = pAccountNode->GetAttrValue(_T("RestrictedDelivery"));
+         const int mode = restricted.IsEmpty() ? 0 : _ttoi(restricted);
+         restricted_delivery_ = (mode >= 0 && mode <= 2) ? mode : 0;
+      }
 
       signature_plain_text_ = pAccountNode->GetAttrValue(_T("SignaturePlainText"));
       signature_html_ = pAccountNode->GetAttrValue(_T("SignatureHTML"));

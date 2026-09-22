@@ -827,6 +827,9 @@
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Облікові записи, позначені як пов’язані з каталогом. Ця половина вже є в цьому графічному інтерфейсі: відкрийте «Домени», відредагуйте обліковий запис і на його вкладці «Каталог» установіть параметр Active Directory та заповніть ім’я користувача AD — sAMAccountName, саме його несе %u. Облікові записи без цієї позначки зберігають свій звичайний пароль hMailServer і ніколи не звертаються до каталогу.</value>
   </data>
+  <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted." xml:space="preserve">
+    <value>Облікові записи цього домену можуть листуватися лише з переліченими тут доменами: зовнішній відправник не з указаного домену відхиляється на RCPT TO, а обліковий запис звідси може писати лише в указані домени, у свій домен і постмастеру. Інші домени, розміщені на цьому сервері, вважаються зовнішніми, якщо їх не вказано. Звіти про недоставлення проходять завжди. Кожен обліковий запис дотримується цього, якщо у його власному діалозі не вибрано обмежено або виняток; порожньо означає, що домен не обмежений.</value>
+  </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Облікових записів: {0}.</value>
   </data>
@@ -3512,6 +3515,9 @@
   <data name="Executable not found: {0}" xml:space="preserve">
     <value>Виконуваний файл не знайдено: {0}</value>
   </data>
+  <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
+    <value>Виняток: може листуватися з будь-ким</value>
+  </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>Розгорнути навігацію</value>
   </data>
@@ -3703,6 +3709,9 @@
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Папки</value>
+  </data>
+  <data name="Follows the domain" xml:space="preserve">
+    <value>Як у домену</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>Для LDAPS або StartTLS: сертифікат на сервері каталогу, якому довіряє ЦЕЙ комп'ютер - виданий ЦС зі сховища сертифікатів комп'ютера Windows, з іменем вузла вище в ньому. Контролер домену не має такого одразу після встановлення. Метод прив'язки Negotiate взагалі не потребує сертифіката, бо пароль ніколи не перетинає мережу.</value>
@@ -5064,6 +5073,9 @@
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Ім’я, нижня та верхня IP-адреси обов’язкові.</value>
+  </data>
+  <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
+    <value>Указані домени (partner.example або .example для домену й усього під ним; через кому або пробіл; порожньо нічого не обмежує) (_D)</value>
   </data>
   <data name="Names" xml:space="preserve">
     <value>Імена</value>
@@ -6914,6 +6926,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Відновлення замінює поточні дані вибраних категорій вмістом резервної копії.
 
 Продовжити?</value>
+  </data>
+  <data name="Restricted delivery" xml:space="preserve">
+    <value>Обмежена доставка</value>
+  </data>
+  <data name="Restricted: named domains only" xml:space="preserve">
+    <value>Обмежено: лише вказані домени</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Час життя відновлення для кешованих сеансів і квитків, секунд (0 = типові 300 в OpenSSL)</value>
@@ -10529,6 +10547,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>Відновити _типові значення</value>
+  </data>
+  <data name="_Restricted delivery (the named domains are on the domain's dialog)" xml:space="preserve">
+    <value>Обмежена доставка (указані домени задаються в діалозі домену) (_R)</value>
   </data>
   <data name="_Resume" xml:space="preserve">
     <value>_Продовжити</value>

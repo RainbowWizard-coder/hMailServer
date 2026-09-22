@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 #include "stdafx.h"
+#include "../Common/Util/RestrictedDelivery.h"
 #include "SMTPVacationMessageCreator.h"
 
 #include "../Common/BO/Account.h"
@@ -68,6 +69,18 @@ namespace HM
       if (!RemoteDomainPolicies::AutomaticRepliesPermitted(sToAddress))
       {
          LOG_DEBUG(_T("No out-of-office message was sent: the remote domain policy for ") + StringParser::ExtractDomain(sToAddress) + _T(" does not permit automatic replies."));
+         return;
+      }
+
+      // Restricted delivery (Common/Util/RestrictedDelivery.h): the reply's
+      // recipient is the sender being answered, and a restricted account does
+      // not write to a stranger, not even to say it is away. Silent, with a
+      // log line; the message itself was delivered or refused on its own
+      // terms above this.
+      if (RestrictedDelivery::Check(recipientAccount, sToAddress, RestrictedDelivery::Outbound) == RestrictedDelivery::Refused)
+      {
+         LOG_DEBUG(_T("No out-of-office message was sent: restricted delivery - ") + recipientAccount->GetAddress() +
+                   _T(" may send to named domains only, and ") + sToAddress + _T(" is not in one."));
          return;
       }
 

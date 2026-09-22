@@ -2951,6 +2951,7 @@ namespace hMailServer
       private string _dkimSecondaryKeyFile = string.Empty; public string DKIMSecondaryPrivateKeyFile { get { return _dkimSecondaryKeyFile; } set { _dkimSecondaryKeyFile = value; Pend("dkim_secondary_private_key_file", Q(value)); } }
       private string _adDomainName = string.Empty; public string ADDomainName { get { return _adDomainName; } set { _adDomainName = value; Pend("ad_domain_name", Q(value)); } }
       private string _reportMailbox = string.Empty; public string ReportMailbox { get { return _reportMailbox; } set { _reportMailbox = value; Pend("report_mailbox", Q(value)); } }
+      private string _restrictedDomains = string.Empty; public string RestrictedDomains { get { return _restrictedDomains; } set { _restrictedDomains = value; Pend("restricted_domains", Q(value)); } }
       public bool MaxMessageSizeEnabled { get { Unsupported("MaxMessageSizeEnabled"); return false; } set { Unsupported("MaxMessageSizeEnabled", value); } }
       public bool MaxAccountSizeEnabled { get { Unsupported("MaxAccountSizeEnabled"); return false; } set { Unsupported("MaxAccountSizeEnabled", value); } }
       public bool EnableLimitations { get { Unsupported("EnableLimitations"); return false; } set { Unsupported("EnableLimitations", value); } }
@@ -3540,6 +3541,7 @@ namespace hMailServer
          Take("signature_html", () => _signatureHtml = ServerApi.StringOf(e, "signature_html") ?? string.Empty);
          Take("admin_level", () => _adminLevel = AdminLevelOf(ServerApi.StringOf(e, "admin_level")));
          Take("message_retention_days", () => _retentionDays = (int) ServerApi.LongOf(e, "message_retention_days"));
+         Take("restricted_delivery", () => _restrictedDelivery = (int) ServerApi.LongOf(e, "restricted_delivery"));
          Take("ad_enabled", () => _isAd = ServerApi.FlagOf(e, "ad_enabled"));
          Take("ad_username", () => _adUsername = ServerApi.StringOf(e, "ad_username") ?? string.Empty);
          Take("ad_domain", () => _adDomain = ServerApi.StringOf(e, "ad_domain") ?? string.Empty);
@@ -3576,6 +3578,7 @@ namespace hMailServer
       // Written through PUT /api/v1/accounts/{address}, read back through the
       // account whole.
       private int _retentionDays;
+      private int _restrictedDelivery;
 
       /// <summary>
       ///    Fills in what the account already is, without counting any of it as a
@@ -3925,6 +3928,11 @@ namespace hMailServer
       {
          get { Require("message_retention_days", "MessageRetentionDays"); return _retentionDays; }
          set { _retentionDays = value; Set("message_retention_days", value.ToString(System.Globalization.CultureInfo.InvariantCulture)); }
+      }
+      public int RestrictedDelivery
+      {
+         get { Require("restricted_delivery", "RestrictedDelivery"); return _restrictedDelivery; }
+         set { _restrictedDelivery = value; Set("restricted_delivery", value.ToString(System.Globalization.CultureInfo.InvariantCulture)); }
       }
       public int SpamMarkThreshold { get { Unsupported("SpamMarkThreshold"); return 0; } set { Unsupported("SpamMarkThreshold", value); } }
       public int SpamDeleteThreshold { get { Unsupported("SpamDeleteThreshold"); return 0; } set { Unsupported("SpamDeleteThreshold", value); } }

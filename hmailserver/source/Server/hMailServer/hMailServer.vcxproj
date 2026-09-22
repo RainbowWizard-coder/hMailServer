@@ -729,6 +729,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\ZeroAccess.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOpenPgpKeys.cpp" />
     <ClCompile Include="..\Common\Util\RestApiZeroAccess.cpp" />
+    <ClCompile Include="..\Common\Util\RestrictedDelivery.cpp" />
     <ClCompile Include="..\Common\Util\PortalOpenPgpData.cpp" />
     <ClCompile Include="..\Common\AntiSpam\QuarantineStore.cpp" />
     <ClCompile Include="..\Common\AntiSpam\QuarantineDigest.cpp" />
@@ -1545,6 +1546,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\ProtectedMessages.h" />
     <ClInclude Include="..\Common\Util\OpenPgpWriter.h" />
     <ClInclude Include="..\Common\Util\ZeroAccess.h" />
+    <ClInclude Include="..\Common\Util\RestrictedDelivery.h" />
     <ClInclude Include="..\Common\Util\OpenPgpKey.h" />
     <ClInclude Include="..\Common\AntiSpam\QuarantineStore.h" />
     <ClInclude Include="..\Common\AntiSpam\QuarantineDigest.h" />

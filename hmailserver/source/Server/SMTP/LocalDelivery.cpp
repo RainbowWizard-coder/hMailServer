@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 #include "StdAfx.h"
+#include "../Common/Util/RestrictedDelivery.h"
+#include "../Common/BO/DomainAliases.h"
 
 #include "./LocalDelivery.h"
 #include "QuotaWarner.h"
@@ -250,6 +252,42 @@ namespace HM
    void
    LocalDelivery::DeliverToLocalAccount_(std::shared_ptr<const Account> account, size_t iNoOfRecipients, std::vector<DeliveryFailure> &saErrorMessages, const String &sOriginalAddress, bool &messageReused, bool suppressFailureDsn)
    {
+      // Restricted delivery (Common/Util/RestrictedDelivery.h, docs/
+      // RestrictedDelivery.md), for a recipient reached by expansion rather
+      // than by RCPT TO - a distribution list member, an alias target, a
+      // catch-all - since a direct address met the same decision at RCPT and
+      // was answered 550 there. A restricted account whose envelope sender is
+      // not allowed is not delivered to: the recipient is dropped here, before
+      // the quota, the auto-reply and the account-level copy, and the log says
+      // which rule. A non-delivery report goes to the sender only when the
+      // sender is local - an outside sender was told at RCPT for a direct
+      // address, and for a list, silence is the list's ordinary behaviour for a
+      // member that refused; a report to a stranger's return path would be
+      // backscatter. The RFC 3461 NOTIFY opt-out is honoured as the quota
+      // path honours it.
+      if (RestrictedDelivery::Check(account, original_message_->GetFromAddress(), RestrictedDelivery::Inbound) == RestrictedDelivery::Refused)
+      {
+         const String sender = original_message_->GetFromAddress();
+
+         LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: not delivered to {1}: restricted delivery - the sender {2} is not in a domain the mailbox accepts mail from.",
+            original_message_->GetID(), account->GetAddress(), sender));
+
+         std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
+         const String senderDomain = StringParser::ExtractDomain(aliases ? aliases->ApplyAliasesOnAddress(sender) : sender);
+         const bool senderIsLocal = !senderDomain.IsEmpty() && CacheContainer::Instance()->GetDomain(senderDomain);
+
+         if (senderIsLocal && !suppressFailureDsn)
+         {
+            // RFC 3463 5.7.1, "delivery not authorized, message refused": the
+            // same code the 550 at RCPT carries, arriving one step later.
+            saErrorMessages.push_back(DeliveryFailure(account->GetAddress(), _T("5.7.1"),
+               Formatter::Format("{0}\r\n   Error Type: SMTP\r\n   Error Description: Delivery not authorized\r\n   Additional information: {1}\r\n\r\n",
+                  account->GetAddress(), RestrictedDelivery::InboundRefusal(account->GetAddress()))));
+         }
+
+         return;
+      }
+
       // First check that we're actually able to deliver a message to this account. If the account
       // has reached it's quota, we should cancel delivery immediately. If we create the account-level
       // message below, there's no turning back.

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 #include "stdafx.h"
+#include "../Common/Util/RestrictedDelivery.h"
 
 #include "SMTPForwarding.h"
 #include "RuleApplier.h"
@@ -70,6 +71,17 @@ namespace HM
       {
          LOG_DEBUG("SMTPForwarding::PerformForwarding aborted: the remote domain policy for " +
             StringParser::ExtractDomain(pRecipientAccount->GetForwardAddress()) + " does not permit forwarding.");
+         return true;
+      }
+
+      // Restricted delivery (Common/Util/RestrictedDelivery.h): a restricted
+      // account's forward to a domain it may not write to is not made, and the
+      // message is still delivered to the mailbox - true, as every refusal
+      // above answers. A forward is the account sending, one step removed.
+      if (RestrictedDelivery::Check(pRecipientAccount, pRecipientAccount->GetForwardAddress(), RestrictedDelivery::Outbound) == RestrictedDelivery::Refused)
+      {
+         LOG_DEBUG("SMTPForwarding::PerformForwarding aborted: restricted delivery - " + pRecipientAccount->GetAddress() +
+            " may send to named domains only, and " + pRecipientAccount->GetForwardAddress() + " is not in one. The message is delivered to the mailbox.");
          return true;
       }
 
@@ -221,6 +233,16 @@ namespace HM
       {
          LOG_DEBUG("SMTPForwarding::RedirectToAddress aborted: the remote domain policy for " +
             StringParser::ExtractDomain(targetAddress) + " does not permit forwarding.");
+         return false;
+      }
+
+      // And restricted delivery, for the same reason: a redirect is the
+      // account sending, and a three-line script must not walk around what
+      // the account's forward box cannot.
+      if (RestrictedDelivery::Check(pRecipientAccount, targetAddress, RestrictedDelivery::Outbound) == RestrictedDelivery::Refused)
+      {
+         LOG_DEBUG("SMTPForwarding::RedirectToAddress aborted: restricted delivery - " + pRecipientAccount->GetAddress() +
+            " may send to named domains only, and " + targetAddress + " is not in one.");
          return false;
       }
 

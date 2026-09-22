@@ -654,4 +654,16 @@
 //      server-wide ZeroAccessAllowed setting the step seeds is off, so an
 //      upgraded server delivers exactly as it did until an administrator allows
 //      the opt-in and a person makes it.
-#define REQUIRED_DB_VERSION            6083
+// 6084 adds hm_domains.domainrestricteddomains and
+//      hm_accounts.accountrestricteddelivery (Util/RestrictedDelivery.h):
+//      restricted delivery, Google Workspace's "restrict delivery". The
+//      domain's column is the list of domains its accounts may exchange mail
+//      with - at most 2,000 characters of ASCII names separated by ", ", each
+//      partner.example or .example for the domain and everything beneath it -
+//      and the account's is 0 to follow the domain, 1 to be restricted even
+//      when the domain names nothing (its own domain alone), 2 to be exempt.
+//      Both are enforced at RCPT TO in both directions and at local delivery
+//      for a recipient reached by expansion, a forward or an auto-reply. Every
+//      domain an upgrade finds names nothing and every account follows it, so
+//      an upgraded server delivers exactly as it did.
+#define REQUIRED_DB_VERSION            6084

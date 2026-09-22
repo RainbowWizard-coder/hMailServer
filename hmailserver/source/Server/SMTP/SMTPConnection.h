@@ -140,6 +140,13 @@ namespace HM
       // connecting address has been banned where BanMultiRcptNullSender asks.
       bool CheckMultiRecipientNullSender_(const String &recipientAddress);
 
+      // Restricted delivery (Common/Util/RestrictedDelivery.h), at RCPT TO in
+      // both directions: false with 550 5.7.1 sent when the recipient is a
+      // restricted local account the envelope sender may not write to, or when
+      // the submitting account is restricted and may not write to the
+      // recipient. Per recipient; the transaction goes on.
+      bool CheckRestrictedDelivery_(const String &recipientAddress, bool localDelivery);
+
       // Whether a session marked white by the domain policy list may skip the
       // refusal the spam score would otherwise make. The tests have still run.
       bool DomainPolicyWhite_() const;

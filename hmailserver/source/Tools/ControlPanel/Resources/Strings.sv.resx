@@ -827,6 +827,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Konton markerade som katalogkopplade. Den halvan finns redan i det här gränssnittet: öppna Domäner, redigera kontot, och kryssa på dess Katalog-flik i alternativet Active Directory och fyll i AD-användarnamnet - sAMAccountName, vilket är vad %u bär. Konton utan den markeringen behåller sitt vanliga hMailServer-lösenord och rör aldrig katalogen.</value>
   </data>
+  <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted." xml:space="preserve">
+    <value>Konton i den här domänen får utbyta post med de domäner som namnges här och inga andra: en extern avsändare utanför en namngiven domän avvisas vid RCPT TO, och ett konto här får bara skicka till de namngivna domänerna, sin egen domän och postmastern. Andra domäner som den här servern hyser räknas som externa om de inte namnges. Studsar kommer alltid igenom. Varje konto följer detta om inte dess egen dialogruta säger begränsad eller undantagen; tomt betyder att domänen inte är begränsad.</value>
+  </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>Konton: {0}.</value>
   </data>
@@ -3512,6 +3515,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Executable not found: {0}" xml:space="preserve">
     <value>Körbar fil hittades inte: {0}</value>
   </data>
+  <data name="Exempt: may exchange mail with anyone" xml:space="preserve">
+    <value>Undantagen: får utbyta post med vem som helst</value>
+  </data>
   <data name="Expand the navigation" xml:space="preserve">
     <value>Fäll ut navigeringen</value>
   </data>
@@ -3703,6 +3709,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Folders" xml:space="preserve">
     <value>Mappar</value>
+  </data>
+  <data name="Follows the domain" xml:space="preserve">
+    <value>Följer domänen</value>
   </data>
   <data name="For LDAPS or StartTLS: a certificate on the directory server that THIS machine trusts - issued by a CA in the Windows machine certificate store, with the host name above in it. A domain controller does not have one out of the box. The Negotiate bind method needs no certificate at all, because the password never crosses the network." xml:space="preserve">
     <value>För LDAPS eller StartTLS: ett certifikat på katalogservern som DEN HÄR datorn litar på - utfärdat av en CA i Windows datorcertifikatlager, med värdnamnet ovan i sig. En domänkontrollant har inget sådant från början. Bindningsmetoden Negotiate behöver inget certifikat alls, eftersom lösenordet aldrig går över nätverket.</value>
@@ -5064,6 +5073,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Namn, nedre IP och övre IP krävs.</value>
+  </data>
+  <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
+    <value>Namngivna _domäner (partner.example, eller .example för domänen och allt under den; åtskilda med kommatecken eller mellanslag; tomt begränsar inget)</value>
   </data>
   <data name="Names" xml:space="preserve">
     <value>Namn</value>
@@ -6914,6 +6926,12 @@ SMTP 25 och 587, POP3 110, IMAP 143 - utan anslutningssäkerhet. TLS-portar och 
     <value>Återställning ersätter nuvarande data för de valda kategorierna med säkerhetskopians innehåll.
 
 Fortsätt?</value>
+  </data>
+  <data name="Restricted delivery" xml:space="preserve">
+    <value>Begränsad leverans</value>
+  </data>
+  <data name="Restricted: named domains only" xml:space="preserve">
+    <value>Begränsad: endast namngivna domäner</value>
   </data>
   <data name="Resumption lifetime for cached sessions and tickets, seconds (0 = OpenSSL's default of 300)" xml:space="preserve">
     <value>Återupptagningens livstid för cachade sessioner och biljetter, sekunder (0 = OpenSSL:s standard på 300)</value>
@@ -10529,6 +10547,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>Återställ standa_rd</value>
+  </data>
+  <data name="_Restricted delivery (the named domains are on the domain's dialog)" xml:space="preserve">
+    <value>Begränsad leverans (de namngivna domänerna finns i domänens dialogr_uta)</value>
   </data>
   <data name="_Resume" xml:space="preserve">
     <value>_Återuppta</value>

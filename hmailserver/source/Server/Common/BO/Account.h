@@ -218,6 +218,14 @@ namespace HM
       bool GetZeroAccess() const { return zero_access_; }
       void SetZeroAccess(bool newVal) { zero_access_ = newVal; }
 
+      // Restricted delivery (schema 6084, Util/RestrictedDelivery.h): 0 follows
+      // the domain's list of named domains, 1 is restricted even when the
+      // domain names nothing (the account is then confined to its own
+      // domain), 2 is exempt in a restricted domain. COM Account.
+      // RestrictedDelivery, REST restricted_delivery.
+      int GetRestrictedDelivery() const { return restricted_delivery_; }
+      void SetRestrictedDelivery(int newVal) { restricted_delivery_ = newVal; }
+
       bool GetEnableSignature() const;
       void SetEnableSignature(bool bEnabled);
 
@@ -280,6 +288,7 @@ namespace HM
       int spam_delete_threshold_;
       bool openpgp_publish_;
       bool zero_access_;
+      int restricted_delivery_;
       bool active_;
       bool is_ad_;
       bool vacation_message_is_on_;

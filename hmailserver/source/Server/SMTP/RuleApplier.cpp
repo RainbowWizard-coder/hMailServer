@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 #include "StdAfx.h"
+#include "../Common/Util/RestrictedDelivery.h"
 
 #include "./RuleApplier.h"
 #include "../Common/Util/DisclaimerAdder.h"
@@ -647,6 +648,24 @@ namespace HM
       {
          LOG_DEBUG("RuleApplier::ApplyAction_Forward aborted, message marked as spam");
          return; // skip message flagged as spam
+      }
+
+      // Restricted delivery (Common/Util/RestrictedDelivery.h): an account
+      // rule's forward is the account sending, one step removed, and a
+      // restricted account may not forward to a domain it may not write to.
+      // The message stays in the mailbox; the log says why the copy was not
+      // made. A global rule has no account and is the administrator's.
+      {
+         std::shared_ptr<const Account> ruleAccount = account;
+         if (!ruleAccount && rule_account_id_ > 0)
+            ruleAccount = CacheContainer::Instance()->GetAccount(rule_account_id_);
+
+         if (ruleAccount && RestrictedDelivery::Check(ruleAccount, pAction->GetTo(), RestrictedDelivery::Outbound) == RestrictedDelivery::Refused)
+         {
+            LOG_DEBUG("RuleApplier::ApplyAction_Forward aborted: restricted delivery - " + ruleAccount->GetAddress() +
+               " may send to named domains only, and " + pAction->GetTo() + " is not in one. The message stays in the mailbox.");
+            return;
+         }
       }
 
       std::shared_ptr<Message> pMsg = PersistentMessage::CopyToQueue(account, pMsgData->GetMessage());

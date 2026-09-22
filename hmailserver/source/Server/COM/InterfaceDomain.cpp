@@ -35,6 +35,7 @@
 #include "../Common/AntiSpam/SpamTrapMonitor.h"
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Util/Unicode.h"
+#include "../Common/Util/RestrictedDelivery.h"
 
 #include <ctime>
 
@@ -3180,6 +3181,56 @@ STDMETHODIMP InterfaceDomain::put_ReportMailbox(BSTR newVal)
       }
 
       object_->SetReportMailbox(mailbox);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_RestrictedDomains(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetRestrictedDomains().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_RestrictedDomains(BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      // The same rule, in the same sentence, as PUT /api/v1/domains/{domain}
+      // applies: the list is canonicalised - trimmed, lower-cased, the names
+      // separated by ", " - and refused with the reason when a name is not a
+      // domain, the text is not ASCII or it is longer than 2,000 characters.
+      HM::String canonical;
+      HM::String refusal;
+
+      if (!HM::RestrictedDelivery::CanonicaliseList(HM::String(newVal), canonical, refusal))
+         return COMError::GenerateError(refusal);
+
+      object_->SetRestrictedDomains(canonical);
 
       return S_OK;
    }
