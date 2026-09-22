@@ -3701,6 +3701,9 @@
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Фіксований токен (додатково; використовується як є замість отримання)</value>
   </data>
+  <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
+    <value>Позначити: додати заголовок, який читач бачить як попередження</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Скидати кожне отримане повідомлення на диск перед підтвердженням (надійно, повільніше)</value>
   </data>
@@ -4180,6 +4183,9 @@
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Зображення (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
+  <data name="Impersonation protection" xml:space="preserve">
+    <value>Захист від підміни відправника</value>
   </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>У зоні, підписаній DNSSEC, опублікуйте запис TLSA (зазвичай usage 3, selector 1, matching type 1 - '3 1 1' із SHA-256 відкритого ключа вашого сертифіката) на _25._tcp.&lt;mx-host&gt; для кожного вузла MX. Перевірте командою: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer не може публікувати записи DNS чи підписувати вашу зону, і в цій панелі немає пошуку TLSA, щоб їх перевірити.</value>
@@ -6285,6 +6291,12 @@
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Захистити облікові дані адміністратора</value>
   </data>
+  <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
+    <value>Захищені _особи (особи поза обліковими записами цього домену, чиє ім'я не можна запозичувати; по одній на рядок, кожна як Ім'я &lt;address&gt;, Ім'я або адреса)</value>
+  </data>
+  <data name="Protected pa_rtners (domains whose look-alikes are judged as this server's own are; separated by commas or spaces; ASCII, xn-- for an internationalised name)" xml:space="preserve">
+    <value>Захищені па_ртнери (домени, чиї двійники оцінюються як власні домени цього сервера; через кому або пробіл; ASCII, xn-- для інтернаціоналізованого імені)</value>
+  </data>
   <data name="Protection" xml:space="preserve">
     <value>Захист</value>
   </data>
@@ -6380,6 +6392,9 @@
   </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>Карантин замість відхилення</value>
+  </data>
+  <data name="Quarantine: hold the copy until it is released" xml:space="preserve">
+    <value>Карантин: утримувати копію до звільнення</value>
   </data>
   <data name="Query failed: {0}" xml:space="preserve">
     <value>Запит не вдався: {0}</value>
@@ -9551,6 +9566,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Два методи прив'язки, і різниця важливіша, ніж здається: один надсилає пароль у каталог, інший узагалі ніколи не випускає його в мережу.</value>
+  </data>
+  <data name="Two checks on mail from outside, judged as the tagging tab judges outside: a sender whose display name is the name of an active account here or of a protected person, while the address is not theirs; and a sender domain one edit or one look-alike character from a domain this server hosts or a protected partner. Flag adds a header the webmail shows as a warning; quarantine holds the copy as a spam verdict would, and an administrator's release delivers it without checking again. A sender the reader marked safe is exempt, and so is a sender domain that is itself hosted here or a partner." xml:space="preserve">
+    <value>Дві перевірки пошти ззовні, причому ззовні оцінюється так само, як на вкладці Позначення: відправник, чиє відображуване ім'я збігається з іменем активного облікового запису тут або захищеної особи, тоді як адреса не його; і домен відправника, що відрізняється однією правкою або одним схожим символом від домену, який обслуговує цей сервер, або від захищеного партнера. Позначити додає заголовок, який веб-пошта показує як попередження; карантин утримує копію, як це зробив би вердикт про спам, а звільнення адміністратором доставляє її без повторної перевірки. Відправник, якого читач позначив як безпечного, виключається, як і домен відправника, який сам обслуговується тут або є партнером.</value>
   </data>
   <data name="Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when MtaStsHostingEnabled is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name." xml:space="preserve">
     <value>Дві половини: запис TXT, що повідомляє відправникам про існування політики, і сама політика, яку отримують з https://mta-sts.{0}/.well-known/mta-sts.txt. Цей сервер віддає цю політику сам - завантажувати файл не потрібно, - коли увімкнено MtaStsHostingEnabled і працює HTTPS-слухач вебслужб (RFC 8461, розділ 3.3, допускає лише HTTPS). Імені mta-sts.{0} також потрібен запис A або CNAME, що вказує на цей сервер, а сертифікат слухача має покривати це ім'я.</value>

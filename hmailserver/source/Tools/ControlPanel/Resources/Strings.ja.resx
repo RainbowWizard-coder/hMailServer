@@ -3701,6 +3701,9 @@
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>固定トークン (上級者向け。取得せずにそのまま使われます)</value>
   </data>
+  <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
+    <value>フラグ: 読者が警告として見るヘッダーを追加する</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>受信した各メッセージを、応答を返す前にディスクにフラッシュする (耐久性が高く、低速)</value>
   </data>
@@ -4180,6 +4183,9 @@
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>画像 (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
+  <data name="Impersonation protection" xml:space="preserve">
+    <value>なりすまし保護</value>
   </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>DNSSEC で署名されたゾーンで、各 MX ホストについて _25._tcp.&lt;mx-host&gt; に TLSA レコード (通常は usage 3、selector 1、matching type 1 - 証明書の公開鍵の SHA-256 を使った '3 1 1') を公開してください。確認するには: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;。hMailServer は DNS レコードを公開することもゾーンに署名することもできず、このパネルにはそれらを確認する TLSA 参照機能もありません。</value>
@@ -6285,6 +6291,12 @@
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>管理者の資格情報を保護する</value>
   </data>
+  <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
+    <value>保護対象者(_P) (名前を借用されてはならない、このドメインのアカウント以外の人。一行に一人、各行は 名前 &lt;address&gt;、名前、またはアドレス)</value>
+  </data>
+  <data name="Protected pa_rtners (domains whose look-alikes are judged as this server's own are; separated by commas or spaces; ASCII, xn-- for an internationalised name)" xml:space="preserve">
+    <value>保護対象パートナー(_R) (そっくりなドメインをこのサーバー自身のものと同様に判定するドメイン。カンマまたは空白で区切る。ASCII、国際化名は xn-- 形式)</value>
+  </data>
   <data name="Protection" xml:space="preserve">
     <value>保護</value>
   </data>
@@ -6380,6 +6392,9 @@
   </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>拒否する代わりに検疫する</value>
+  </data>
+  <data name="Quarantine: hold the copy until it is released" xml:space="preserve">
+    <value>隔離: 解放されるまで複製を保留する</value>
   </data>
   <data name="Query failed: {0}" xml:space="preserve">
     <value>クエリに失敗しました: {0}</value>
@@ -9551,6 +9566,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>2 つのバインド方式があり、その違いは見た目以上に重要です。一方はパスワードをディレクトリに送信し、もう一方はパスワードをネットワークにまったく流しません。</value>
+  </data>
+  <data name="Two checks on mail from outside, judged as the tagging tab judges outside: a sender whose display name is the name of an active account here or of a protected person, while the address is not theirs; and a sender domain one edit or one look-alike character from a domain this server hosts or a protected partner. Flag adds a header the webmail shows as a warning; quarantine holds the copy as a spam verdict would, and an administrator's release delivers it without checking again. A sender the reader marked safe is exempt, and so is a sender domain that is itself hosted here or a partner." xml:space="preserve">
+    <value>外部からのメールに対する二つの検査で、外部の判定はタグ付けタブと同じです。表示名がここの有効なアカウントまたは保護対象者の名前と一致しながら、アドレスがその人のものでない送信者。そして、このサーバーが受け持つドメインまたは保護対象パートナーから一文字の編集または一つの紛らわしい文字だけ離れた送信者ドメイン。フラグはウェブメールが警告として表示するヘッダーを追加し、隔離はスパム判定と同様に複製を保留し、管理者による解放は再検査なしで配信します。読者が安全と印を付けた送信者は対象外で、ここで受け持つドメインまたはパートナーである送信者ドメインも同様です。</value>
   </data>
   <data name="Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when MtaStsHostingEnabled is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name." xml:space="preserve">
     <value>2 つの半分から成ります。ポリシーが存在することを送信者に伝える TXT レコードと、https://mta-sts.{0}/.well-known/mta-sts.txt から取得されるポリシー自体です。MtaStsHostingEnabled がオンで HTTPS の Web サービス リスナーが動作していれば、このサーバーがそのポリシーを自ら提供します (アップロードするファイルはありません。RFC 8461 セクション 3.3 は HTTPS のみを許可します)。名前 mta-sts.{0} にはこのサーバーを指す A または CNAME レコードも必要で、リスナーの証明書はその名前をカバーしていなければなりません。</value>

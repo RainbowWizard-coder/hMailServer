@@ -36,6 +36,7 @@
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Util/Unicode.h"
 #include "../Common/Util/RestrictedDelivery.h"
+#include "../Common/Util/ImpersonationCheck.h"
 
 #include <ctime>
 
@@ -3231,6 +3232,149 @@ STDMETHODIMP InterfaceDomain::put_RestrictedDomains(BSTR newVal)
          return COMError::GenerateError(refusal);
 
       object_->SetRestrictedDomains(canonical);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_ImpersonationAction(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetImpersonationAction();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_ImpersonationAction(long newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      // The same three values PUT /api/v1/domains/{domain} takes, refused in
+      // the same sentence.
+      if (newVal < HM::ImpersonationCheck::Off || newVal > HM::ImpersonationCheck::Quarantine)
+         return COMError::GenerateError("ImpersonationAction must be 0 (off), 1 (flag) or 2 (quarantine).");
+
+      object_->SetImpersonationAction((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_ProtectedPersons(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetProtectedPersons().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_ProtectedPersons(BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      // Canonicalised - one entry per line, addresses lower-cased - and refused
+      // with the reason when an entry's address is not an address or the text
+      // is longer than 2,000 characters, as PUT /api/v1/domains/{domain} does.
+      HM::String canonical;
+      HM::String refusal;
+
+      if (!HM::ImpersonationCheck::CanonicalisePersons(HM::String(newVal), canonical, refusal))
+         return COMError::GenerateError(refusal);
+
+      object_->SetProtectedPersons(canonical);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_ProtectedPartners(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      *pVal = object_->GetProtectedPartners().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_ProtectedPartners(BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      // The restricted-delivery list's shape: trimmed, lower-cased, the names
+      // separated by ", ", and refused with the reason when a name is an
+      // address, not a domain name, not ASCII, or the text is too long.
+      HM::String canonical;
+      HM::String refusal;
+
+      if (!HM::ImpersonationCheck::CanonicalisePartners(HM::String(newVal), canonical, refusal))
+         return COMError::GenerateError(refusal);
+
+      object_->SetProtectedPartners(canonical);
 
       return S_OK;
    }

@@ -3701,6 +3701,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Pevný token (pokročilé; použije se doslovně místo stahování)</value>
   </data>
+  <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
+    <value>Označit: přidat hlavičku, kterou čtenář vidí jako varování</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Zapsat každou přijatou zprávu na disk před potvrzením (trvanlivé, pomalejší)</value>
   </data>
@@ -4180,6 +4183,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Obrázky (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
+  <data name="Impersonation protection" xml:space="preserve">
+    <value>Ochrana před zneužitím identity</value>
   </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>V zóně podepsané DNSSEC publikujte záznam TLSA (obvykle usage 3, selector 1, matching type 1 - '3 1 1' se SHA-256 veřejného klíče vašeho certifikátu) na _25._tcp.&lt;mx-host&gt; pro každého hostitele MX. Ověřte: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer nemůže publikovat záznamy DNS ani podepisovat vaši zónu a tento panel nemá vyhledávání TLSA, kterým by je zkontroloval.</value>
@@ -6285,6 +6291,12 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Chránit přihlašovací údaje správce</value>
   </data>
+  <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
+    <value>Chráněné _osoby (osoby mimo účty této domény, jejichž jméno nesmí být vypůjčeno; jedna na řádek, každá Jméno &lt;address&gt;, Jméno nebo adresa)</value>
+  </data>
+  <data name="Protected pa_rtners (domains whose look-alikes are judged as this server's own are; separated by commas or spaces; ASCII, xn-- for an internationalised name)" xml:space="preserve">
+    <value>Chránění pa_rtneři (domény, jejichž dvojníci se posuzují jako vlastní domény tohoto serveru; oddělené čárkami nebo mezerami; ASCII, xn-- pro internacionalizovaný název)</value>
+  </data>
   <data name="Protection" xml:space="preserve">
     <value>Ochrana</value>
   </data>
@@ -6380,6 +6392,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>Dát do karantény místo odmítnutí</value>
+  </data>
+  <data name="Quarantine: hold the copy until it is released" xml:space="preserve">
+    <value>Karanténa: zadržet kopii, dokud nebude uvolněna</value>
   </data>
   <data name="Query failed: {0}" xml:space="preserve">
     <value>Dotaz selhal: {0}</value>
@@ -9551,6 +9566,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Dvě metody bind a rozdíl je důležitější, než vypadá: jedna posílá heslo do adresáře, druhá ho na drát vůbec nedává.</value>
+  </data>
+  <data name="Two checks on mail from outside, judged as the tagging tab judges outside: a sender whose display name is the name of an active account here or of a protected person, while the address is not theirs; and a sender domain one edit or one look-alike character from a domain this server hosts or a protected partner. Flag adds a header the webmail shows as a warning; quarantine holds the copy as a spam verdict would, and an administrator's release delivers it without checking again. A sender the reader marked safe is exempt, and so is a sender domain that is itself hosted here or a partner." xml:space="preserve">
+    <value>Dvě kontroly pošty zvenčí, přičemž zvenčí se posuzuje tak, jak to posuzuje karta Označování: odesílatel, jehož zobrazované jméno je jménem aktivního účtu zde nebo chráněné osoby, zatímco adresa není jeho; a doména odesílatele vzdálená jednu úpravu nebo jeden zaměnitelný znak od domény, kterou tento server hostuje, nebo od chráněného partnera. Označit přidá hlavičku, kterou webmail zobrazí jako varování; karanténa zadrží kopii, jako by to udělal verdikt o spamu, a uvolnění správcem ji doručí bez další kontroly. Odesílatel, kterého čtenář označil jako bezpečného, je vyňat, stejně jako doména odesílatele, která je sama hostována zde nebo je partnerem.</value>
   </data>
   <data name="Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when MtaStsHostingEnabled is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name." xml:space="preserve">
     <value>Dvě poloviny: záznam TXT, který odesílatelům říká, že politika existuje, a politika sama, stahovaná z https://mta-sts.{0}/.well-known/mta-sts.txt. Tento server tuto politiku podává sám - není žádný soubor k nahrání - když je zapnuté MtaStsHostingEnabled a běží listener webových služeb HTTPS (RFC 8461 oddíl 3.3 dovoluje jen HTTPS). Název mta-sts.{0} potřebuje také záznam A nebo CNAME ukazující na tento server a certifikát listeneru musí ten název pokrývat.</value>

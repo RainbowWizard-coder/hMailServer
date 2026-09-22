@@ -43,6 +43,7 @@
 #include "SessionPolicies.h"
 #include "CountryBlocking.h"
 #include "RestrictedDelivery.h"
+#include "ImpersonationCheck.h"
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "../BO/Domains.h"
@@ -286,7 +287,8 @@ namespace HM
          "webhooks_enabled", "webhook_subjects",
          "country_policy",
          "session_idle_seconds", "session_lifetime_seconds", "session_one_per_device", "session_bind_to_address",
-         "report_mailbox", "restricted_domains"
+         "report_mailbox", "restricted_domains",
+         "impersonation_action", "protected_persons", "protected_partners"
       };
 
       // Applies the body to the domain. Everything is read and checked first;
@@ -324,6 +326,8 @@ namespace HM
          String countryPolicy = domain->GetCountryPolicy();
          String reportMailbox = domain->GetReportMailbox();
          String restrictedDomains = domain->GetRestrictedDomains();
+         String protectedPersons = domain->GetProtectedPersons(), protectedPartners = domain->GetProtectedPartners();
+         int impersonationAction = domain->GetImpersonationAction();
 
          if (!ReadString(body, "name", name, error) ||
              !ReadString(body, "postmaster", postmaster, error) ||
@@ -354,8 +358,69 @@ namespace HM
              !ReadString(body, "disclaimer_html", disclaimerHtml, error) ||
              !ReadString(body, "country_policy", countryPolicy, error) ||
              !ReadString(body, "report_mailbox", reportMailbox, error) ||
-             !ReadString(body, "restricted_domains", restrictedDomains, error))
+             !ReadString(body, "restricted_domains", restrictedDomains, error) ||
+             !ReadString(body, "protected_persons", protectedPersons, error) ||
+             !ReadString(body, "protected_partners", protectedPartners, error))
             return false;
+
+         // Impersonation protection (ImpersonationCheck.h): the action is 0, 1
+         // or 2, or the words off, flag or quarantine; the two lists are
+         // canonicalised and refused in the unit's own sentences. Each is
+         // judged only when the body names it, so a PUT of another field never
+         // fails on a value the caller did not write.
+         const JsonValue *actionMember = body.Get("impersonation_action");
+
+         if (actionMember && !actionMember->IsNull())
+         {
+            String word;
+            bool wellFormed = false;
+
+            if (actionMember->IsNumber())
+            {
+               const double number = actionMember->AsNumber();
+               wellFormed = std::floor(number) == number;
+               word = StringParser::IntToString((int) number);
+            }
+            else if (actionMember->IsString())
+            {
+               wellFormed = true;
+               word = Utf8ToString(actionMember->AsString());
+            }
+
+            if (!wellFormed || !ImpersonationCheck::ReadAction(word, impersonationAction))
+            {
+               error = "impersonation_action must be 0 (off), 1 (flag) or 2 (quarantine), or the words off, flag or quarantine";
+               return false;
+            }
+         }
+
+         if (body.Get("protected_persons"))
+         {
+            String canonical;
+            String refusal;
+
+            if (!ImpersonationCheck::CanonicalisePersons(protectedPersons, canonical, refusal))
+            {
+               error = AnsiString(refusal);
+               return false;
+            }
+
+            protectedPersons = canonical;
+         }
+
+         if (body.Get("protected_partners"))
+         {
+            String canonical;
+            String refusal;
+
+            if (!ImpersonationCheck::CanonicalisePartners(protectedPartners, canonical, refusal))
+            {
+               error = AnsiString(refusal);
+               return false;
+            }
+
+            protectedPartners = canonical;
+         }
 
          // Restricted delivery: the list is canonicalised - trimmed,
          // lower-cased, the names separated by ", " - and refused in the
@@ -691,6 +756,9 @@ namespace HM
          domain->SetCountryPolicy(canonicalCountryPolicy);
          domain->SetReportMailbox(reportMailbox);
          domain->SetRestrictedDomains(restrictedDomains);
+         domain->SetImpersonationAction(impersonationAction);
+         domain->SetProtectedPersons(protectedPersons);
+         domain->SetProtectedPartners(protectedPartners);
          domain->SetADDomainName(adDomainName);
          domain->SetExternalTagSubject(externalTagSubject);
          domain->SetExternalTagHeader(externalTagHeader);
@@ -831,6 +899,11 @@ namespace HM
       text("country_policy", domain->GetCountryPolicy());
       text("report_mailbox", domain->GetReportMailbox());
       text("restricted_domains", domain->GetRestrictedDomains());
+      AnsiString impersonation;
+      impersonation.Format(",\"impersonation_action\":%d", domain->GetImpersonationAction());
+      entry += impersonation;
+      text("protected_persons", domain->GetProtectedPersons());
+      text("protected_partners", domain->GetProtectedPartners());
       entry += "}";
       return entry;
    }

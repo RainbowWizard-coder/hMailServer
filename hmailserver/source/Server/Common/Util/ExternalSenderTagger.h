@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "MessageOrigin.h"
+
 namespace HM
 {
    class Account;
@@ -32,11 +34,14 @@ namespace HM
       // of the message, and returns true when the file was rewritten.
       //
       // Costs nothing at all when the domain asks for nothing, which is the
-      // shipped state: the header block is not even read.
+      // shipped state: the header block is not even read. origin is the
+      // external-sender decision for this copy, judged here on first need and
+      // shared with ImpersonationCheck, which runs on the same copy after this.
       static bool Apply(std::shared_ptr<const Account> account,
                         std::shared_ptr<const Domain> domain,
                         std::shared_ptr<Message> message,
-                        const String &sendersIP);
+                        const String &sendersIP,
+                        MessageOrigin::Verdict &origin);
 
       // Stamped on a message from outside. Prepending a field is
       // signature-safe: DKIM selects duplicate fields from the bottom up, so a

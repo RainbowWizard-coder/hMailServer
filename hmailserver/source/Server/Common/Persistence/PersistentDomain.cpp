@@ -696,6 +696,12 @@ namespace HM
       pDomain->SetDisclaimerPlainText(pRS->GetStringValue("domaindisclaimerplaintext"));
       pDomain->SetDisclaimerHTML(pRS->GetStringValue("domaindisclaimerhtml"));
 
+      // Impersonation protection (schema 6087): off with empty lists on every
+      // domain an upgrade finds.
+      pDomain->SetImpersonationAction((int) pRS->GetLongValue("domainimpersonationaction"));
+      pDomain->SetProtectedPersons(pRS->GetStringValue("domainprotectedpersons"));
+      pDomain->SetProtectedPartners(pRS->GetStringValue("domainprotectedpartners"));
+
       return true;
    }
 
@@ -842,6 +848,9 @@ namespace HM
       oStatement.AddColumn("domaindisclaimerenabled", pDomain->GetDisclaimerEnabled() ? 1 : 0);
       oStatement.AddColumn("domaindisclaimerplaintext", pDomain->GetDisclaimerPlainText());
       oStatement.AddColumn("domaindisclaimerhtml", pDomain->GetDisclaimerHTML());
+      oStatement.AddColumn("domainimpersonationaction", pDomain->GetImpersonationAction());
+      oStatement.AddColumn("domainprotectedpersons", pDomain->GetProtectedPersons());
+      oStatement.AddColumn("domainprotectedpartners", pDomain->GetProtectedPartners());
 
       oStatement.SetTable("hm_domains");
       

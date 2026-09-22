@@ -10,9 +10,9 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 
 | Measure | Count |
 |---|---|
-| COM properties the desktop program writes | 431 |
-| of them writable over REST | 423 |
-| of them reachable from a Deck view | 423 |
+| COM properties the desktop program writes | 434 |
+| of them writable over REST | 426 |
+| of them reachable from a Deck view | 426 |
 | missing over REST | 8 |
 | over REST but not reached by any Deck view | 0 |
 | assignments left out of the count | 5 |
@@ -171,6 +171,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `ExternalTagSubject` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `ExternalTagText` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `FirstContactTip` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
+| `ImpersonationAction` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `MaxAccountSize` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `MaxMessageSize` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `MaxNumberOfAccounts` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
@@ -185,6 +186,8 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `PlusAddressingCharacter` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `PlusAddressingEnabled` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `Postmaster` | DomainDialog | `POST /api/v1/protected/{token}/reply` (name, scope unknown)<br>`POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
+| `ProtectedPartners` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
+| `ProtectedPersons` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `QuarantineDigest` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `QuarantineDigestHour` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `QuotaGracePercent` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
@@ -844,7 +847,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/domain-policy-list/{id}` | AntiSpam | `action`, `body`, `domain`, `field`, `force`, `keys`, `match_on`, `note`, `pattern`, `read`, `value` | - |
 | `POST /api/v1/domain-reports/expire` | ? | `domain_report_retention_days`, `kept_for_ever`, `older_than_days` | - |
 | `POST /api/v1/domains` | Domain | `active`, `domain`, `keys`, `name`, `new`, `postmaster` | yes |
-| `PUT /api/v1/domains/{domain}` | Domain | `account`, `active`, `ad_domain_name`, `address`, `body`, `country_policy`, `disclaimer_enabled`, `disclaimer_html`, `disclaimer_plain_text`, `dkim_body_canonicalization`, `dkim_enabled`, `dkim_header_canonicalization`, `dkim_private_key_file`, `dkim_rotation_enabled`, `dkim_rotation_interval_days`, `dkim_rotation_key_bits`, `dkim_rotation_propagation_hours`, `dkim_rotation_retention_days`, `dkim_secondary_private_key_file`, `dkim_secondary_selector`, `dkim_selector`, `dkim_sign_aliases`, `dkim_signing_algorithm`, `domain`, `event`, `external_tag_header`, `external_tag_subject`, `external_tag_text`, `field`, `file`, `first_contact_tip`, `from`, `header`, `include_subject`, `key`, `keys`, `log`, `max_account_size_mb`, `max_accounts`, `max_accounts_enabled`, `max_aliases`, `max_aliases_enabled`, `max_lists`, `max_lists_enabled`, `max_message_size_kb`, `max_size_mb`, `message`, `message_retention_days`, `name`, `new`, `openpgp_publish`, `openpgp_publish_new_accounts`, `plus_addressing_character`, `plus_addressing_enabled`, `postmaster`, `protocol`, `publish`, `quarantine_digest`, `quarantine_digest_hour`, `read`, `relay_connection_security`, `relay_host`, `relay_password`, `relay_port`, `relay_requires_auth`, `relay_username`, `report_mailbox`, `restricted_domains`, `selector`, `sender`, `session_bind_to_address`, `session_idle_seconds`, `session_lifetime_seconds`, `session_one_per_device`, `set_if_not_specified`, `signature_add_to_local_mail`, `signature_add_to_replies`, `signature_enabled`, `signature_html`, `signature_method`, `signature_plain_text`, `subject`, `to`, `type`, `until`, `use_greylisting`, `vacation_enabled`, `vacation_external_override`, `vacation_internal_message`, `vacation_internal_subject`, `vacation_message`, `vacation_subject`, `value`, `webhook`, `webhook_subjects`, `webhooks_enabled`, `write` | yes |
+| `PUT /api/v1/domains/{domain}` | Domain | `account`, `active`, `ad_domain_name`, `address`, `addresses`, `body`, `country_policy`, `disclaimer_enabled`, `disclaimer_html`, `disclaimer_plain_text`, `dkim_body_canonicalization`, `dkim_enabled`, `dkim_header_canonicalization`, `dkim_private_key_file`, `dkim_rotation_enabled`, `dkim_rotation_interval_days`, `dkim_rotation_key_bits`, `dkim_rotation_propagation_hours`, `dkim_rotation_retention_days`, `dkim_secondary_private_key_file`, `dkim_secondary_selector`, `dkim_selector`, `dkim_sign_aliases`, `dkim_signing_algorithm`, `domain`, `event`, `exempt`, `external_tag_header`, `external_tag_subject`, `external_tag_text`, `field`, `file`, `first_contact_tip`, `from`, `header`, `impersonation_action`, `include_subject`, `key`, `keys`, `log`, `lower`, `max_account_size_mb`, `max_accounts`, `max_accounts_enabled`, `max_aliases`, `max_aliases_enabled`, `max_lists`, `max_lists_enabled`, `max_message_size_kb`, `max_size_mb`, `message`, `message_retention_days`, `name`, `new`, `openpgp_publish`, `openpgp_publish_new_accounts`, `plus_addressing_character`, `plus_addressing_enabled`, `postmaster`, `protected_partners`, `protected_persons`, `protocol`, `publish`, `quarantine_digest`, `quarantine_digest_hour`, `read`, `recipient`, `relay_connection_security`, `relay_host`, `relay_password`, `relay_port`, `relay_requires_auth`, `relay_username`, `report_mailbox`, `restricted_domains`, `selector`, `sender`, `session_bind_to_address`, `session_idle_seconds`, `session_lifetime_seconds`, `session_one_per_device`, `set_if_not_specified`, `signature_add_to_local_mail`, `signature_add_to_replies`, `signature_enabled`, `signature_html`, `signature_method`, `signature_plain_text`, `subject`, `to`, `type`, `until`, `use_greylisting`, `vacation_enabled`, `vacation_external_override`, `vacation_internal_message`, `vacation_internal_subject`, `vacation_message`, `vacation_subject`, `value`, `webhook`, `webhook_subjects`, `webhooks_enabled`, `write` | yes |
 | `POST /api/v1/domains/{domain}/accounts` | Account | `active`, `address`, `admin_level`, `breach_check_enabled`, `first_name`, `last_name`, `maxSizeMB`, `max_size_mb`, `password` | yes |
 | `POST /api/v1/domains/{domain}/aliases` | Alias | `account`, `active`, `address`, `limit`, `message`, `name`, `to`, `value` | yes |
 | `POST /api/v1/domains/{domain}/dkim/rotation/check` | Domain | - | - |

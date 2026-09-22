@@ -401,6 +401,7 @@
     <Compile Include="SMTP\Journaling.cs" />
     <Compile Include="SMTP\ZeroAccess.cs" />
     <Compile Include="SMTP\RestrictedDelivery.cs" />
+    <Compile Include="SMTP\ImpersonationProtection.cs" />
     <Compile Include="SMTP\OverQuotaRecipientRefusal.cs" />
     <Compile Include="SMTP\PerDomainRelay.cs" />
     <Compile Include="SMTP\QuotaWarning.cs" />

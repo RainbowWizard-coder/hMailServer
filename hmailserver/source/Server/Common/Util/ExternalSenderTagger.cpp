@@ -50,7 +50,8 @@ namespace HM
    ExternalSenderTagger::Apply(std::shared_ptr<const Account> account,
                                std::shared_ptr<const Domain> domain,
                                std::shared_ptr<Message> message,
-                               const String &sendersIP)
+                               const String &sendersIP,
+                               MessageOrigin::Verdict &origin)
    {
       if (!account || !domain || !message)
          return false;
@@ -64,7 +65,11 @@ namespace HM
 
       const String fileName = PersistentMessage::GetFileName(account, message);
 
-      const AnsiString header = PersistentMessage::LoadHeader(fileName, false);
+      // The header block and the outside/inside decision, made once for this
+      // copy and shared with the impersonation check that runs after this.
+      MessageOrigin::Judge(message, fileName, sendersIP, origin);
+
+      const AnsiString &header = origin.header;
 
       // Nothing stops a sender writing these two fields themselves. A forged one
       // can only make their own message look more suspicious than it is, never
@@ -75,16 +80,14 @@ namespace HM
       const bool carriesForgedExternal = !MessageOrigin::FirstFieldValue(header, ExternalHeader()).IsEmpty();
       const bool carriesForgedFirstContact = !MessageOrigin::FirstFieldValue(header, FirstContactHeader()).IsEmpty();
 
-      MessageOrigin::Facts facts = MessageOrigin::ReadFacts(message, header, sendersIP);
-
-      String reason;
-      const bool external = MessageOrigin::IsExternalSender(facts, reason);
+      const MessageOrigin::Facts &facts = origin.facts;
+      const bool external = origin.external;
 
       if (!external)
       {
          String logText;
          logText.Format(_T("ExternalSenderTagger - Message %I64d for %s was not tagged: %s."),
-            message->GetID(), account->GetAddress().c_str(), reason.c_str());
+            message->GetID(), account->GetAddress().c_str(), origin.reason.c_str());
          LOG_DEBUG(logText);
 
          if (!carriesForgedExternal && !carriesForgedFirstContact)

@@ -18,6 +18,7 @@
 #include "../Util/PushSubscriptions.h"
 #include "../Util/PushNotifier.h"
 #include "../Util/ExternalSenderTagger.h"
+#include "../Util/ImpersonationCheck.h"
 #include "../Util/ReputationWatch.h"
 #include "../Util/DisclaimerAdder.h"
 #include "../Util/Journaling.h"
@@ -170,6 +171,12 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing ExternalSenderTagger\n"));
       ExternalSenderTaggerTester externalSenderTaggerTester;
       externalSenderTaggerTester.Test();
+
+      // Impersonation protection: the folding table, the two judgements and
+      // the two lists' canonical forms, all decisions made from values.
+      OutputDebugString(_T("hMailServer: Testing ImpersonationCheck\n"));
+      ImpersonationCheckTester impersonationCheckTester;
+      impersonationCheckTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing DisclaimerAdder\n"));
       DisclaimerAdderTester disclaimerAdderTester;

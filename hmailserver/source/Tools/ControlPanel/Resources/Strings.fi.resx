@@ -3701,6 +3701,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Kiinteä token (edistynyt; käytetään sellaisenaan noutamisen sijaan)</value>
   </data>
+  <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
+    <value>Merkitse: lisää otsake, jonka lukija näkee varoituksena</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Kirjoita jokainen vastaanotettu viesti levylle ennen kuittausta (kestävä, hitaampi)</value>
   </data>
@@ -4180,6 +4183,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Kuvat (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
+  <data name="Impersonation protection" xml:space="preserve">
+    <value>Suojaus henkilöllisyyden väärinkäytöltä</value>
   </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>Julkaise DNSSEC-allekirjoitetussa vyöhykkeessä TLSA-tietue (yleensä usage 3, selector 1, matching type 1 - '3 1 1' varmenteesi julkisen avaimen SHA-256-tiivisteellä) osoitteessa _25._tcp.&lt;mx-host&gt; jokaiselle MX-koneelle. Tarkista komennolla: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer ei voi julkaista DNS-tietueita eikä allekirjoittaa vyöhykettäsi, eikä tässä paneelissa ole TLSA-hakua, jolla ne voisi tarkistaa.</value>
@@ -6285,6 +6291,12 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Suojaa järjestelmänvalvojan tunnistetieto</value>
   </data>
+  <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
+    <value>Suojatut _henkilöt (tämän verkkotunnuksen tilien ulkopuoliset henkilöt, joiden nimeä ei saa lainata; yksi riviä kohden, kukin Nimi &lt;address&gt;, Nimi tai osoite)</value>
+  </data>
+  <data name="Protected pa_rtners (domains whose look-alikes are judged as this server's own are; separated by commas or spaces; ASCII, xn-- for an internationalised name)" xml:space="preserve">
+    <value>Suojatut _kumppanit (verkkotunnukset, joiden kaksoisolennot arvioidaan kuten tämän palvelimen omat; erotettuina pilkuin tai välilyönnein; ASCII, xn-- kansainväliselle nimelle)</value>
+  </data>
   <data name="Protection" xml:space="preserve">
     <value>Suojaus</value>
   </data>
@@ -6380,6 +6392,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>Karanteenoi hylkäämisen sijaan</value>
+  </data>
+  <data name="Quarantine: hold the copy until it is released" xml:space="preserve">
+    <value>Karanteeni: pidätä kopio, kunnes se vapautetaan</value>
   </data>
   <data name="Query failed: {0}" xml:space="preserve">
     <value>Kysely epäonnistui: {0}</value>
@@ -9551,6 +9566,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Kaksi sidontatapaa, ja ero merkitsee enemmän kuin miltä se näyttää: toinen lähettää salasanan hakemistoon, toinen ei koskaan laita sitä verkkoon lainkaan.</value>
+  </data>
+  <data name="Two checks on mail from outside, judged as the tagging tab judges outside: a sender whose display name is the name of an active account here or of a protected person, while the address is not theirs; and a sender domain one edit or one look-alike character from a domain this server hosts or a protected partner. Flag adds a header the webmail shows as a warning; quarantine holds the copy as a spam verdict would, and an administrator's release delivers it without checking again. A sender the reader marked safe is exempt, and so is a sender domain that is itself hosted here or a partner." xml:space="preserve">
+    <value>Kaksi tarkistusta ulkopuolelta tulevalle postille, ulkopuoli arvioituna kuten Merkintä-välilehti sen arvioi: lähettäjä, jonka näyttönimi on täällä olevan aktiivisen tilin tai suojatun henkilön nimi, vaikka osoite ei ole hänen; ja lähettäjän verkkotunnus, joka on yhden muokkauksen tai yhden samannäköisen merkin päässä tämän palvelimen isännöimästä verkkotunnuksesta tai suojatusta kumppanista. Merkitse lisää otsakkeen, jonka webmail näyttää varoituksena; karanteeni pidättää kopion kuten roskapostituomio tekisi, ja ylläpitäjän vapautus toimittaa sen tarkistamatta uudelleen. Lähettäjä, jonka lukija on merkinnyt turvalliseksi, on vapautettu, samoin lähettäjän verkkotunnus, jota itse isännöidään täällä tai joka on kumppani.</value>
   </data>
   <data name="Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when MtaStsHostingEnabled is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name." xml:space="preserve">
     <value>Kaksi puoliskoa: TXT-tietue, joka kertoo lähettäjille käytännön olemassaolosta, ja itse käytäntö, joka noudetaan osoitteesta https://mta-sts.{0}/.well-known/mta-sts.txt. Tämä palvelin tarjoaa käytännön itse - ladattavaa tiedostoa ei ole - kun MtaStsHostingEnabled on käytössä ja HTTPS-verkkopalvelukuuntelija on käynnissä (RFC 8461:n kohta 3.3 sallii vain HTTPS:n). Nimi mta-sts.{0} tarvitsee myös tähän palvelimeen osoittavan A- tai CNAME-tietueen, ja kuuntelijan varmenteen on katettava tämä nimi.</value>

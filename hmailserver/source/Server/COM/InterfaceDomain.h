@@ -268,6 +268,14 @@ END_COM_MAP()
    STDMETHOD(get_RestrictedDomains)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(put_RestrictedDomains)(/*[in]*/ BSTR newVal);
 
+   // Impersonation protection. See Common/Util/ImpersonationCheck.h.
+   STDMETHOD(get_ImpersonationAction)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_ImpersonationAction)(/*[in]*/ long newVal);
+   STDMETHOD(get_ProtectedPersons)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_ProtectedPersons)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_ProtectedPartners)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_ProtectedPartners)(/*[in]*/ BSTR newVal);
+
    // dkim end.
 
    // Spam traps. See Common/AntiSpam/SpamTrapMonitor.h.

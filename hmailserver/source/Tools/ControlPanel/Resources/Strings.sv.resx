@@ -3701,6 +3701,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Fast token (avancerat; används ordagrant i stället för att hämtas)</value>
   </data>
+  <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
+    <value>Märk: lägg till en rubrikrad som läsaren ser som en varning</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Skriv varje mottaget meddelande till disk innan det bekräftas (hållbart, långsammare)</value>
   </data>
@@ -4180,6 +4183,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Bilder (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
+  <data name="Impersonation protection" xml:space="preserve">
+    <value>Skydd mot identitetsimitation</value>
   </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>Publicera i en DNSSEC-signerad zon en TLSA-post (vanligen usage 3, selector 1, matching type 1 - '3 1 1' med SHA-256 av ditt certifikats publika nyckel) på _25._tcp.&lt;mx-host&gt; för varje MX-värd. Verifiera med: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer kan inte publicera DNS-poster eller signera din zon, och den här panelen har ingen TLSA-uppslagning att kontrollera dem med.</value>
@@ -6285,6 +6291,12 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Skydda administratörens inloggningsuppgift</value>
   </data>
+  <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
+    <value>Skyddade _personer (personer utanför domänens konton vars namn inte får lånas; en per rad, var och en Namn &lt;address&gt;, Namn eller adress)</value>
+  </data>
+  <data name="Protected pa_rtners (domains whose look-alikes are judged as this server's own are; separated by commas or spaces; ASCII, xn-- for an internationalised name)" xml:space="preserve">
+    <value>Skyddade pa_rtner (domäner vars dubbelgångare bedöms som serverns egna; åtskilda med kommatecken eller mellanslag; ASCII, xn-- för ett internationaliserat namn)</value>
+  </data>
   <data name="Protection" xml:space="preserve">
     <value>Skydd</value>
   </data>
@@ -6380,6 +6392,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>Karantän i stället för avvisning</value>
+  </data>
+  <data name="Quarantine: hold the copy until it is released" xml:space="preserve">
+    <value>Karantän: håll kvar kopian tills den släpps</value>
   </data>
   <data name="Query failed: {0}" xml:space="preserve">
     <value>Frågan misslyckades: {0}</value>
@@ -9551,6 +9566,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Två bindningsmetoder, och skillnaden spelar större roll än den ser ut: den ena skickar lösenordet till katalogen, den andra lägger det aldrig på kabeln över huvud taget.</value>
+  </data>
+  <data name="Two checks on mail from outside, judged as the tagging tab judges outside: a sender whose display name is the name of an active account here or of a protected person, while the address is not theirs; and a sender domain one edit or one look-alike character from a domain this server hosts or a protected partner. Flag adds a header the webmail shows as a warning; quarantine holds the copy as a spam verdict would, and an administrator's release delivers it without checking again. A sender the reader marked safe is exempt, and so is a sender domain that is itself hosted here or a partner." xml:space="preserve">
+    <value>Två kontroller av post utifrån, där utifrån bedöms som fliken Märkning bedömer det: en avsändare vars visningsnamn är namnet på ett aktivt konto här eller på en skyddad person, medan adressen inte är dennes; och en avsändardomän som är en ändring eller ett förväxlingsbart tecken från en domän som den här servern hanterar eller från en skyddad partner. Märk lägger till en rubrikrad som webbposten visar som en varning; karantän håller kvar kopian som en skräppostdom skulle göra, och en administratörs frisläppning levererar den utan ny kontroll. En avsändare som läsaren markerat som säker är undantagen, liksom en avsändardomän som själv hanteras här eller är en partner.</value>
   </data>
   <data name="Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when MtaStsHostingEnabled is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name." xml:space="preserve">
     <value>Två halvor: en TXT-post som talar om för avsändare att en policy finns, och själva policyn, hämtad från https://mta-sts.{0}/.well-known/mta-sts.txt. Den här servern serverar den policyn själv - det finns ingen fil att ladda upp - när MtaStsHostingEnabled är på och en HTTPS-webbtjänstlyssnare körs (RFC 8461 avsnitt 3.3 tillåter bara HTTPS). Namnet mta-sts.{0} behöver också en A- eller CNAME-post som pekar på den här servern, och lyssnarens certifikat måste täcka det namnet.</value>

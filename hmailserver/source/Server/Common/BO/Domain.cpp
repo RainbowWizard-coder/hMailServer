@@ -19,6 +19,7 @@
 
 #include "../../SMTP/SMTPVacationMessageCreator.h"
 #include "../Util/RestrictedDelivery.h"
+#include "../Util/ImpersonationCheck.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -89,7 +90,8 @@ namespace HM
       external_tag_subject_(false),
       external_tag_header_(false),
       first_contact_tip_(false),
-      disclaimer_enabled_(false)
+      disclaimer_enabled_(false),
+      impersonation_action_(0)
    {
 
    }
@@ -228,6 +230,9 @@ namespace HM
       pNode->AppendAttr(_T("DisclaimerEnabled"), disclaimer_enabled_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("DisclaimerPlainText"), disclaimer_plain_text_);
       pNode->AppendAttr(_T("DisclaimerHTML"), disclaimer_html_);
+      pNode->AppendAttr(_T("ImpersonationAction"), StringParser::IntToString(impersonation_action_));
+      pNode->AppendAttr(_T("ProtectedPersons"), protected_persons_);
+      pNode->AppendAttr(_T("ProtectedPartners"), protected_partners_);
 
       pNode->AppendAttr(_T("QuarantineDigest"), quarantine_digest_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("QuarantineDigestHour"), StringParser::IntToString(quarantine_digest_hour_));
@@ -394,6 +399,43 @@ namespace HM
       disclaimer_enabled_ = pNode->GetAttrValue(_T("DisclaimerEnabled")) == _T("1");
       disclaimer_plain_text_ = pNode->GetAttrValue(_T("DisclaimerPlainText"));
       disclaimer_html_ = pNode->GetAttrValue(_T("DisclaimerHTML"));
+
+      // Impersonation protection, under the same rule: a backup taken before
+      // schema 6087 carries none of it and restores with the action off and
+      // both lists empty. An action outside 0..2 in the file restores as off,
+      // and each list is put through the canonicaliser every other writer goes
+      // through; a list that does not pass restores empty, with a log line,
+      // as the restricted-delivery list does.
+      {
+         const String storedAction = pNode->GetAttrValue(_T("ImpersonationAction"));
+         int action = 0;
+         impersonation_action_ = ImpersonationCheck::ReadAction(storedAction, action) ? action : 0;
+
+         String canonical;
+         String refusal;
+
+         const String storedPersons = pNode->GetAttrValue(_T("ProtectedPersons"));
+         if (storedPersons.IsEmpty())
+            protected_persons_ = _T("");
+         else if (ImpersonationCheck::CanonicalisePersons(storedPersons, canonical, refusal))
+            protected_persons_ = canonical;
+         else
+         {
+            protected_persons_ = _T("");
+            LOG_APPLICATION(_T("Domain ") + name_ + _T(": the ProtectedPersons value in the backup was not restored and the list is empty: ") + refusal);
+         }
+
+         const String storedPartners = pNode->GetAttrValue(_T("ProtectedPartners"));
+         if (storedPartners.IsEmpty())
+            protected_partners_ = _T("");
+         else if (ImpersonationCheck::CanonicalisePartners(storedPartners, canonical, refusal))
+            protected_partners_ = canonical;
+         else
+         {
+            protected_partners_ = _T("");
+            LOG_APPLICATION(_T("Domain ") + name_ + _T(": the ProtectedPartners value in the backup was not restored and the list is empty: ") + refusal);
+         }
+      }
 
       // The digest, under the same rule: a backup taken before it existed has no
       // attribute and restores with the digest off at the default hour, which is

@@ -184,6 +184,14 @@ namespace hMailServer.ControlPanel.Views
       // mail with (Domain.RestrictedDomains, docs/RestrictedDelivery.md).
       private readonly TextBox restrictedDomains_ = NewMemo();
 
+      // Impersonation protection: what to do with a borrowed name or a
+      // look-alike domain on mail from outside, and the two lists it judges
+      // against (Domain.ImpersonationAction, ProtectedPersons,
+      // ProtectedPartners; docs/ImpersonationProtection.md).
+      private readonly ComboBox impersonationAction_ = new();
+      private readonly TextBox protectedPersons_ = NewMemo();
+      private readonly TextBox protectedPartners_ = NewMemo();
+
       public DomainDialog(Window owner, string domainName)
       {
          domainName_ = domainName;
@@ -199,6 +207,7 @@ namespace hMailServer.ControlPanel.Views
          tabs.Items.Add(new TabItem { Header = L("Relay"), Content = BuildRelay() });
          tabs.Items.Add(new TabItem { Header = L("Out of office"), Content = BuildOutOfOffice() });
          tabs.Items.Add(new TabItem { Header = L("Tagging and disclaimer"), Content = BuildTransforms() });
+         tabs.Items.Add(new TabItem { Header = L("Impersonation protection"), Content = BuildImpersonation() });
          tabs.Items.Add(new TabItem { Header = L("DKIM"), Content = BuildDkim() });
          tabs.Items.Add(new TabItem { Header = L("Allow and block list"), Content = BuildSenderList() });
          tabs.Items.Add(new TabItem { Header = L("Quarantine digest"), Content = BuildQuarantineDigest() });
@@ -353,6 +362,19 @@ namespace hMailServer.ControlPanel.Views
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Note(L("Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it.")));
          panel.Children.Add(Label(L("Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)"), restrictedDomains_));
+         return DialogFields.Scroll(panel);
+      }
+
+      private ScrollViewer BuildImpersonation()
+      {
+         var panel = DialogFields.TabPanel();
+         panel.Children.Add(DialogFields.Note(L("Two checks on mail from outside, judged as the tagging tab judges outside: a sender whose display name is the name of an active account here or of a protected person, while the address is not theirs; and a sender domain one edit or one look-alike character from a domain this server hosts or a protected partner. Flag adds a header the webmail shows as a warning; quarantine holds the copy as a spam verdict would, and an administrator's release delivers it without checking again. A sender the reader marked safe is exempt, and so is a sender domain that is itself hosted here or a partner.")));
+         impersonationAction_.Items.Add(DialogFields.Combo(L("Off"), 0));
+         impersonationAction_.Items.Add(DialogFields.Combo(L("Flag: add a header the reader sees as a warning"), 1));
+         impersonationAction_.Items.Add(DialogFields.Combo(L("Quarantine: hold the copy until it is released"), 2));
+         panel.Children.Add(Label(L("_Action"), impersonationAction_));
+         panel.Children.Add(Label(L("Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name <address>, Name, or address)"), protectedPersons_));
+         panel.Children.Add(Label(L("Protected pa_rtners (domains whose look-alikes are judged as this server's own are; separated by commas or spaces; ASCII, xn-- for an internationalised name)"), protectedPartners_));
          return DialogFields.Scroll(panel);
       }
 
@@ -975,6 +997,22 @@ namespace hMailServer.ControlPanel.Views
                restrictedDomains_.IsEnabled = false;
             }
 
+            // Impersonation protection, the same way: the three properties
+            // arrived with schema 6087, and a server without them leaves the
+            // controls disabled rather than saved back as off and empty.
+            try
+            {
+               DialogFields.SelectCombo(impersonationAction_, (int)d.ImpersonationAction);
+               protectedPersons_.Text = (string)d.ProtectedPersons ?? "";
+               protectedPartners_.Text = (string)d.ProtectedPartners ?? "";
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               impersonationAction_.IsEnabled = false;
+               protectedPersons_.IsEnabled = false;
+               protectedPartners_.IsEnabled = false;
+            }
+
             ServerSession.Release(d);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -1157,6 +1195,17 @@ namespace hMailServer.ControlPanel.Views
             // a domain; its sentence reaches the dialog as the save's error.
             if (restrictedDomains_.IsEnabled)
                d.RestrictedDomains = restrictedDomains_.Text.Trim();
+
+            // The server canonicalises both lists and refuses an entry that is
+            // not what the list holds; its sentence reaches the dialog as the
+            // save's error.
+            if (impersonationAction_.IsEnabled)
+            {
+               int impersonation = DialogFields.ComboValue(impersonationAction_, -1);
+               if (impersonation >= 0) d.ImpersonationAction = impersonation;
+               d.ProtectedPersons = protectedPersons_.Text.Trim();
+               d.ProtectedPartners = protectedPartners_.Text.Trim();
+            }
 
             d.DKIMSignEnabled = dkimOn_.IsChecked is true;
             d.DKIMSignAliasesEnabled = dkimAliases_.IsChecked is true;

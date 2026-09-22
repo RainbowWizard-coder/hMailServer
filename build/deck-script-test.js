@@ -545,7 +545,7 @@ const DOMAIN_KEYS = ['name', 'active', 'postmaster', 'max_message_size_kb', 'max
    'disclaimer_enabled', 'disclaimer_plain_text', 'disclaimer_html',
    'quarantine_digest', 'quarantine_digest_hour',
    'openpgp_publish', 'openpgp_publish_new_accounts', 'country_policy', 'session_idle_seconds', 'session_lifetime_seconds', 'session_one_per_device', 'session_bind_to_address',
-   'report_mailbox', 'restricted_domains'];
+   'report_mailbox', 'restricted_domains', 'impersonation_action', 'protected_persons', 'protected_partners'];
 const DOMAIN_PUT = 'Body: active (required) and any subset of postmaster, name (a new name renames the domain and every address in it, as the Control Panel does), max_message_size_kb, max_size_mb, max_account_size_mb, max_accounts, max_aliases, max_lists and their switches max_accounts_enabled, max_aliases_enabled, max_lists_enabled, plus_addressing_enabled, plus_addressing_character, use_greylisting, signature_enabled, signature_method (set_if_not_specified, overwrite or append), signature_plain_text, signature_html, signature_add_to_replies, signature_add_to_local_mail, dkim_enabled, dkim_selector, dkim_private_key_file, dkim_signing_algorithm (sha1 or sha256), dkim_sign_aliases, dkim_rotation_enabled, dkim_rotation_interval_days, dkim_rotation_propagation_hours, dkim_rotation_retention_days and dkim_rotation_key_bits (the key rotation policy), message_retention_days, relay_host, relay_port, relay_requires_auth, relay_username, relay_password (write-only), relay_connection_security, vacation_enabled, vacation_subject, vacation_message, external_tag_subject, external_tag_header, external_tag_text, first_contact_tip, disclaimer_enabled, disclaimer_plain_text, disclaimer_html, quarantine_digest, quarantine_digest_hour, openpgp_publish (publish this domain\'s accounts\' OpenPGP public keys in the Web Key Directory) and openpgp_publish_new_accounts (what an account created in this domain from now on starts with), country_policy (which countries may sign in to the accounts of the domain: empty judges nothing, allow:GB,IE admits only those countries, block:CN,RU refuses those), session_idle_seconds, session_lifetime_seconds, session_one_per_device and session_bind_to_address (the session policy for the accounts of this domain), and report_mailbox (the address this domain\'s DMARC aggregate and TLS-RPT reports are posted to and read from; one address in a domain this server hosts, or empty). A field left out keeps its value; everything is checked before anything is applied, and an unknown field or a wrong type is a 400 naming it.';
 const DOMAINS_POST = 'Body: name (required), active (default true) and postmaster. The name is judged as the Control Panel judges it - a valid domain name, not one a domain alias already has - and every other setting takes the default a new domain gets there. Server-wide; refused for domain-restricted keys.';
 
@@ -736,7 +736,8 @@ function domainRecord(name, active, postmaster) {
       external_tag_subject: false, external_tag_header: false, external_tag_text: '', first_contact_tip: false,
       disclaimer_enabled: false, disclaimer_plain_text: '', disclaimer_html: '',
       quarantine_digest: false, quarantine_digest_hour: 7,
-      openpgp_publish: false, openpgp_publish_new_accounts: false, country_policy: '', report_mailbox: '', restricted_domains: '' };
+      openpgp_publish: false, openpgp_publish_new_accounts: false, country_policy: '', report_mailbox: '', restricted_domains: '',
+      impersonation_action: 0, protected_persons: '', protected_partners: '' };
 }
 
 const SUPPRESSIONS_POST = 'Body: address (required), note (kept as the entry\'s diagnostic) and expires_days (0, the default, for an entry that stays until it is removed; at most 3650). An address this server hosts is refused.';
@@ -3991,6 +3992,12 @@ async function main() {
       headings.indexOf('Restricted delivery') >= 0 && document.getElementById('dom_restricted_domains').tagName === 'TEXTAREA' && document.getElementById('dom_restricted_domains').value === '' &&
       document.getElementById('dom_restricted_domains').closest('.fr').textContent.indexOf('an outside sender not in a named domain is refused at RCPT TO') >= 0,
       document.getElementById('dom_restricted_domains') ? document.getElementById('dom_restricted_domains').outerHTML : 'no control');
+   check('Impersonation protection: the action as a number that is 0 for a domain that checks nothing, the two lists as text areas, under its own heading, with the sentence that says what the two checks are',
+      headings.indexOf('Impersonation protection') >= 0 && document.getElementById('dom_impersonation_action').type === 'number' && document.getElementById('dom_impersonation_action').value === '0' &&
+      document.getElementById('dom_protected_persons').tagName === 'TEXTAREA' && document.getElementById('dom_protected_persons').value === '' &&
+      document.getElementById('dom_protected_partners').tagName === 'TEXTAREA' && document.getElementById('dom_protected_partners').value === '' &&
+      document.getElementById('dom_impersonation_action').closest('.fr').textContent.indexOf('one edit or one look-alike character') >= 0,
+      document.getElementById('dom_impersonation_action') ? document.getElementById('dom_impersonation_action').outerHTML : 'no control');
    const drawn = content().querySelectorAll('input, select, textarea').map((el) => el.id).filter((id) => id.indexOf('dom_') === 0).map((id) => id.slice(4)).sort();
    check('every key the route takes has a control, and no key it does not', JSON.stringify(drawn) === JSON.stringify(DOMAIN_KEYS.slice().sort()), JSON.stringify(drawn));
    check('the other names are listed with a Remove each', content().textContent.indexOf('example.net') >= 0 && act('daliasdel', { name: 'example.net' }) !== null);

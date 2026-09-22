@@ -701,4 +701,18 @@
 //      removal deletes its share rows and the owner's listing drops a row
 //      whose group is gone. Every row an upgrade finds names no group and is
 //      no delegation, so an upgraded server shares exactly as it did.
-#define REQUIRED_DB_VERSION            6086
+// 6087 adds hm_domains.domainimpersonationaction, domainprotectedpersons and
+//      domainprotectedpartners (Util/ImpersonationCheck.h): impersonation
+//      protection, Microsoft 365's anti-phishing policies, per domain. The
+//      action is 0 off, 1 flag (X-hMailServer-Impersonation on the recipient's
+//      copy, which the webmail shows as a warning) or 2 quarantine (the copy
+//      held through the spam quarantine, released as spam is, without a second
+//      check); the persons are names and addresses outside the domain's
+//      accounts whose name must not be borrowed, one per line, at most 2,000
+//      characters; the partners are lower-cased ASCII domain names whose
+//      lookalikes are judged as the hosted domains' are, at most 2,000
+//      characters. Both checks run at local delivery on a copy from outside
+//      only - the tagger's own decision, shared. Every domain an upgrade finds
+//      has the action off and both lists empty, so an upgraded server delivers
+//      exactly as it did.
+#define REQUIRED_DB_VERSION            6087

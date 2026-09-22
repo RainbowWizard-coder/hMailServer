@@ -476,9 +476,24 @@ const LISTING = {
       // Received five days ago, asks a question, never answered: the shape a nudge is for.
       { id: 103, uid: 13, subject: 'Third', from: 'c@example.net', to: 'user@example.com', date: stampDaysAgo(5), size: 900, snippet: 'Can you send the figures?', flags: { seen: false, flagged: false, draft: false } },
       { id: 102, uid: 12, subject: 'Second', from: 'b@example.net', to: 'user@example.com', date: '2026-09-08 09:00', size: 800, flags: { seen: false, flagged: false, draft: false }, in_reply_to: '<one@example.net>', brand: 'example.net' },
-      { id: 101, uid: 11, subject: 'First', from: 'a@example.net', to: 'user@example.com', date: '2026-09-07 09:00', size: 700, flags: { seen: true, flagged: false, draft: false } }
+      // Stamped at delivery by the impersonation check: the row wears the mark.
+      { id: 101, uid: 11, subject: 'First', from: 'a@example.net', to: 'user@example.com', date: '2026-09-07 09:00', size: 700, flags: { seen: true, flagged: false, draft: false }, impersonation: true }
    ]
 };
+
+// Three messages for the impersonation warning (ImpersonationCheck.h): the
+// borrowed-name shape, the look-alike-domain shape, and one the check found
+// nothing to say about, which carries no header and gets no warning.
+const impersonated = (id, subject, from, impersonation) => ({
+   id: id, folder_id: 1, uid: id - 580, subject: subject, from: from, to: 'user@example.com', cc: '',
+   date: '2026-09-22 10:00', size: 600, message_id: '<' + id + '@example.net>', references: '', in_reply_to: '',
+   headers: 'From: ' + from + '\r\nSubject: ' + subject + '\r\n' + (impersonation ? 'X-hMailServer-Impersonation: ' + impersonation + '\r\n' : ''),
+   text: 'Please pay the attached invoice today.', html: '', html_remote: false, flags: { seen: true, flagged: false, draft: false }, attachments: [],
+   impersonation: impersonation || ''
+});
+const BORROWED_NAME = impersonated(604, 'Urgent', '"Ada Lovelace" <ada@evil.example>', 'name "Ada Lovelace" is ada@example.com\'s; from ada@evil.example');
+const LOOKALIKE_DOMAIN = impersonated(605, 'Invoice', 'accounts@examp1e.com', 'domain examp1e.com looks like example.com; from accounts@examp1e.com');
+const NOT_IMPERSONATED = impersonated(606, 'Lunch', 'colleague@example.com', '');
 
 // The Sent folder: one message the inbox's 'Second' answers, one nothing
 // answered, sent long enough ago to be nudged, and one sent yesterday.
@@ -1615,6 +1630,9 @@ function answer(method, path, body) {
       return { status: 200, headers: { 'Content-Type': 'message/rfc822' }, body: WITH_AUTOCRYPT.headers + '\r\nHello.\r\n' };
    }
    if (path === '/api/v1/me/messages/603' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(SEALED_ON_DELIVERY)))); }
+   if (path === '/api/v1/me/messages/604' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(BORROWED_NAME)))); }
+   if (path === '/api/v1/me/messages/605' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(LOOKALIKE_DOMAIN)))); }
+   if (path === '/api/v1/me/messages/606' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(NOT_IMPERSONATED)))); }
    if (path === '/api/v1/me/messages/603/source' && method === 'GET') {
       return { status: 200, headers: { 'Content-Type': 'message/rfc822' }, body: SEALED_ON_DELIVERY.headers + '\r\n--za\r\nContent-Type: application/pgp-encrypted\r\n\r\nVersion: 1\r\n\r\n--za\r\nContent-Type: application/octet-stream\r\n\r\nsealed\r\n--za--\r\n' };
    }
@@ -8716,6 +8734,48 @@ async function zeroAccessChecks() {
       document.getElementById('message-text').textContent === 'What only the mailbox key opens.' &&
       document.getElementById('message-pgp').getAttribute('data-za') === 'opened' && document.getElementById('message-pgp-text').textContent.length > 0,
       document.getElementById('message-pgp').getAttribute('data-za') + ' | ' + document.getElementById('message-text').textContent);
+
+   // ---- the impersonation warning (ImpersonationCheck.h): a bar above the
+   // message for each of the two header shapes, nothing for a message without
+   // the header, and the mark on the listing's row
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const fill = (text, ...values) => values.reduce((s, v, i) => s.split('{' + i + '}').join(String(v)), words(text));
+      const warningTexts = () => Array.prototype.slice.call(document.getElementById('message-warnings').children).map((n) => n.textContent);
+      const badgesOn = (row) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1 && String(c.className).indexOf('badge') >= 0) { out.push(c.textContent); } if (c.childNodes) { walk(c); } } })(row); return out; };
+      const rowBySubject = (subject) => Array.prototype.slice.call(document.getElementById('message-list').children).filter((r) => r.textContent.indexOf(subject) >= 0)[0];
+
+      location.hash = '#/m/604';
+      await flush();
+      await flush();
+      check('Impersonation: a borrowed name is a warning bar naming the name and the address the message really came from',
+         !document.getElementById('message-warnings').hidden &&
+         warningTexts().indexOf(fill("This sender's name matches {0} here, but the message is from {1}.", 'Ada Lovelace', 'ada@evil.example')) >= 0,
+         JSON.stringify(warningTexts()));
+
+      location.hash = '#/m/605';
+      await flush();
+      await flush();
+      check('Impersonation: a look-alike domain is a warning bar naming the two domains',
+         !document.getElementById('message-warnings').hidden &&
+         warningTexts().indexOf(fill("This message's domain {0} looks like {1}.", 'examp1e.com', 'example.com')) >= 0,
+         JSON.stringify(warningTexts()));
+
+      location.hash = '#/m/606';
+      await flush();
+      await flush();
+      check('Impersonation: a message without the header gets neither sentence',
+         warningTexts().every((w) => w.indexOf(words("This sender's name matches {0} here, but the message is from {1}.").split('{0}')[0]) < 0 &&
+                                     w.indexOf(words("This message's domain {0} looks like {1}.").split('{0}')[0]) < 0),
+         JSON.stringify(warningTexts()));
+
+      location.hash = '#/f/1';
+      await flush();
+      await flush();
+      check('Impersonation: the listing row of a stamped message wears the mark, and an unstamped row does not',
+         badgesOn(rowBySubject('First')).indexOf(words('Suspicious sender')) >= 0 && badgesOn(rowBySubject('Second')).indexOf(words('Suspicious sender')) < 0,
+         JSON.stringify([badgesOn(rowBySubject('First')), badgesOn(rowBySubject('Second'))]));
+   }
 
    // ---- a password change through the page carries the key sealed again
    location.hash = '#/password';

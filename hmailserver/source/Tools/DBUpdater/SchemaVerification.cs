@@ -1311,6 +1311,16 @@ namespace DBUpdater
                          "update hm_calendarshares set sharegroupid = sharegroupid where 1 = 0"),
          new SchemaProbe(6086, "hm_calendarshares.sharedelegate",
                          "update hm_calendarshares set sharedelegate = sharedelegate where 1 = 0"),
+         // Upgrade6086to6087* - impersonation protection: the domain's action
+         // and its two lists, three ALTERs on a table every installation has
+         // rows in, which is the statement that can fail while the step still
+         // stamps the version.
+         new SchemaProbe(6087, "hm_domains.domainimpersonationaction",
+                         "update hm_domains set domainimpersonationaction = domainimpersonationaction where 1 = 0"),
+         new SchemaProbe(6087, "hm_domains.domainprotectedpersons",
+                         "update hm_domains set domainprotectedpersons = domainprotectedpersons where 1 = 0"),
+         new SchemaProbe(6087, "hm_domains.domainprotectedpartners",
+                         "update hm_domains set domainprotectedpartners = domainprotectedpartners where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

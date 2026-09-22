@@ -764,6 +764,7 @@
     what.appendChild(node('span', m.subject || t('(no subject)'), 'subject'));
     if (m.flags && m.flags.keywords && m.flags.keywords.length) { what.appendChild(chipsFor(m.flags.keywords)); }
     if (isRecalled(m)) { what.appendChild(node('span', t('Recalled'), 'badge warn')); }
+    if (m.impersonation) { what.appendChild(node('span', t('Suspicious sender'), 'badge warn')); }
     if (m.folder && state.everywhere) { what.appendChild(node('span', m.folder, 'badge')); }
     var nudge = nudgeFor(m, folderId);
     if (nudge) { entry.nudge = node('span', nudge, 'nudge'); what.appendChild(entry.nudge); }
@@ -2681,6 +2682,19 @@
     list.forEach(function (w) { box.appendChild(node('div', w)); });
     box.hidden = !list.length;
   };
+  // X-hMailServer-Impersonation as the server writes it - name "<display
+  // name>" is <owner>'s; from <address>, or domain <x> looks like <y>; ... -
+  // turned into the sentence the reader sees, or nothing for no header or a
+  // shape this does not know.
+  var impersonationWarning = function (value) {
+    var text = String(value || '').trim();
+    if (!text) { return ''; }
+    var name = /^name "(.*)" is (.*?); from ([^\s;]+)/.exec(text);
+    if (name) { return tf('This sender\'s name matches {0} here, but the message is from {1}.', name[1], name[3]); }
+    var domain = /^domain ([^\s;]+) looks like ([^\s;]+)/.exec(text);
+    if (domain) { return tf('This message\'s domain {0} looks like {1}.', domain[1], domain[2]); }
+    return '';
+  };
   var ensureContacts = function () {
     if (contactsCache) { return Promise.resolve(contactsCache); }
     return loadContacts();
@@ -2693,6 +2707,10 @@
     var warnings = [];
     if (m.external_stamped) { warnings.push(t('This message came from outside your organisation.')); }
     if (m.first_contact) { warnings.push(t('You do not usually get mail from this sender.')); }
+    // The impersonation warning the recipient's domain asked for, in the two
+    // shapes the server writes it: a borrowed name, or a look-alike domain.
+    var impersonation = impersonationWarning(m.impersonation);
+    if (impersonation) { warnings.push(impersonation); }
     warnings = warnings.concat(linkWarnings(m.html || ''));
     showWarnings(warnings);
     ensureContacts().then(function (list) {

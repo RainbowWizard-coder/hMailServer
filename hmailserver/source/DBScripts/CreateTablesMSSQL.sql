@@ -363,8 +363,11 @@ create table hm_domains (
 	domainsessiononeperdevice int not null default 0,
 	domainsessionbindaddress int not null default 0,
 	domainreportmailbox nvarchar(255) not null default '',
-	domainrestricteddomains nvarchar(2000) not null default ''
-) 
+	domainrestricteddomains nvarchar(2000) not null default '',
+	domainimpersonationaction int not null default 0,
+	domainprotectedpersons nvarchar(2000) not null default '',
+	domainprotectedpartners nvarchar(2000) not null default ''
+)
 
 ALTER TABLE hm_domains ADD CONSTRAINT hm_domains_pk PRIMARY KEY NONCLUSTERED (domainid) 
 
@@ -2668,4 +2671,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0)
 
-insert into hm_dbversion values (6086)
+insert into hm_dbversion values (6087)

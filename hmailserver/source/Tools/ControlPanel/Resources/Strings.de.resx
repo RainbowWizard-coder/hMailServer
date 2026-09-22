@@ -3701,6 +3701,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Festes Token (fortgeschritten; wird wörtlich verwendet statt geholt)</value>
   </data>
+  <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
+    <value>Kennzeichnen: eine Kopfzeile hinzufügen, die der Leser als Warnung sieht</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Jede empfangene Nachricht auf die Festplatte schreiben, bevor sie bestätigt wird (dauerhaft, langsamer)</value>
   </data>
@@ -4180,6 +4183,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Bilder (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
+  <data name="Impersonation protection" xml:space="preserve">
+    <value>Schutz vor Identitätsmissbrauch</value>
   </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>Veröffentlichen Sie in einer DNSSEC-signierten Zone einen TLSA-Eintrag (üblicherweise Usage 3, Selector 1, Matching Type 1 - „3 1 1" mit dem SHA-256 des öffentlichen Schlüssels Ihres Zertifikats) unter _25._tcp.&lt;mx-host&gt; für jeden MX-Host. Prüfen mit: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer kann keine DNS-Einträge veröffentlichen oder Ihre Zone signieren, und dieses Panel hat keine TLSA-Abfrage, um sie zu prüfen.</value>
@@ -6285,6 +6291,12 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Das Administratorzugangsdatum schützen</value>
   </data>
+  <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
+    <value>Geschützte _Personen (Personen außerhalb der Konten dieser Domäne, deren Name nicht entliehen werden darf; eine pro Zeile, jeweils Name &lt;address&gt;, Name oder Adresse)</value>
+  </data>
+  <data name="Protected pa_rtners (domains whose look-alikes are judged as this server's own are; separated by commas or spaces; ASCII, xn-- for an internationalised name)" xml:space="preserve">
+    <value>Geschützte Pa_rtner (Domänen, deren Doppelgänger wie die eigenen dieses Servers beurteilt werden; durch Kommas oder Leerzeichen getrennt; ASCII, xn-- für einen internationalisierten Namen)</value>
+  </data>
   <data name="Protection" xml:space="preserve">
     <value>Schutz</value>
   </data>
@@ -6380,6 +6392,9 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
   </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>In Quarantäne stellen statt abzulehnen</value>
+  </data>
+  <data name="Quarantine: hold the copy until it is released" xml:space="preserve">
+    <value>Quarantäne: die Kopie zurückhalten, bis sie freigegeben wird</value>
   </data>
   <data name="Query failed: {0}" xml:space="preserve">
     <value>Die Abfrage ist fehlgeschlagen: {0}</value>
@@ -9551,6 +9566,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Zwei Bind-Methoden, und der Unterschied wiegt schwerer, als er aussieht: die eine sendet das Passwort an das Verzeichnis, die andere legt es überhaupt nie auf die Leitung.</value>
+  </data>
+  <data name="Two checks on mail from outside, judged as the tagging tab judges outside: a sender whose display name is the name of an active account here or of a protected person, while the address is not theirs; and a sender domain one edit or one look-alike character from a domain this server hosts or a protected partner. Flag adds a header the webmail shows as a warning; quarantine holds the copy as a spam verdict would, and an administrator's release delivers it without checking again. A sender the reader marked safe is exempt, and so is a sender domain that is itself hosted here or a partner." xml:space="preserve">
+    <value>Zwei Prüfungen für Mail von außen, wobei außen so beurteilt wird wie auf der Registerkarte Kennzeichnung: ein Absender, dessen Anzeigename der Name eines aktiven Kontos hier oder einer geschützten Person ist, während die Adresse nicht die seine ist; und eine Absenderdomäne, die eine Änderung oder ein verwechselbares Zeichen von einer auf diesem Server gehosteten Domäne oder einem geschützten Partner entfernt ist. Kennzeichnen fügt eine Kopfzeile hinzu, die das Webmail als Warnung zeigt; Quarantäne hält die Kopie zurück wie ein Spam-Urteil, und die Freigabe durch einen Administrator stellt sie ohne erneute Prüfung zu. Ein Absender, den der Leser als sicher markiert hat, ist ausgenommen, ebenso eine Absenderdomäne, die selbst hier gehostet wird oder ein Partner ist.</value>
   </data>
   <data name="Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when MtaStsHostingEnabled is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name." xml:space="preserve">
     <value>Zwei Hälften: ein TXT-Eintrag, der Absendern sagt, dass eine Richtlinie existiert, und die Richtlinie selbst, abgerufen von https://mta-sts.{0}/.well-known/mta-sts.txt. Dieser Server liefert diese Richtlinie selbst aus - es gibt keine Datei zum Hochladen -, wenn MtaStsHostingEnabled eingeschaltet ist und ein HTTPS-Listener der Webdienste läuft (RFC 8461 Abschnitt 3.3 erlaubt nur HTTPS). Der Name mta-sts.{0} braucht außerdem einen A- oder CNAME-Eintrag, der auf diesen Server zeigt, und das Zertifikat des Listeners muss diesen Namen abdecken.</value>

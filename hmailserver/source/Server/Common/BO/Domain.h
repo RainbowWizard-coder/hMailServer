@@ -400,6 +400,28 @@ namespace HM
       bool GetFirstContactTip() const { return first_contact_tip_; }
       void SetFirstContactTip(bool bNewVal) { first_contact_tip_ = bNewVal; }
 
+      // Impersonation protection (schema 6087, Util/ImpersonationCheck.h): what
+      // to do with a message from outside whose From display name is an
+      // active account's person name or a protected person's, or whose sender
+      // domain is one edit or one confusable from a hosted domain or a
+      // protected partner. 0 is off, the default, and while it is off nothing
+      // is read; 1 flags the copy with X-hMailServer-Impersonation; 2 holds it
+      // in the quarantine as a spam verdict would.
+      int GetImpersonationAction() const { return impersonation_action_; }
+      void SetImpersonationAction(int iNewVal) { impersonation_action_ = iNewVal; }
+
+      // The protected persons, as stored: one per line, each "Name <address>",
+      // "Name" or "address" - people outside the domain's accounts whose name
+      // must not be borrowed. At most 2,000 characters.
+      String GetProtectedPersons() const { return protected_persons_; }
+      void SetProtectedPersons(const String &sNewVal) { protected_persons_ = sNewVal; }
+
+      // The protected partners, as stored: lower-cased ASCII domain names
+      // separated by ", ", whose lookalikes are judged as this domain's own
+      // are. At most 2,000 characters.
+      String GetProtectedPartners() const { return protected_partners_; }
+      void SetProtectedPartners(const String &sNewVal) { protected_partners_ = sNewVal; }
+
       // Append the legal footer below to mail this domain sends outside the
       // organisation. Never to a signed or encrypted message: see
       // DisclaimerAdder.
@@ -523,6 +545,9 @@ namespace HM
       bool disclaimer_enabled_;
       String disclaimer_plain_text_;
       String disclaimer_html_;
+      int impersonation_action_;
+      String protected_persons_;
+      String protected_partners_;
 
       // Guards the lazy creation of the collections below. A Domain is shared by
       // every session of every account in it, and two sessions asking for a

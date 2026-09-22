@@ -66,6 +66,26 @@ namespace HM
       // The same rule against this server's own domains, accounts and aliases.
       static bool IsExternalSender(const Facts &facts, String &reason);
 
+      // The decision for one delivered copy, made once and shared between the
+      // callers that act on it - ExternalSenderTagger and ImpersonationCheck -
+      // so that the two never disagree about what is outside: the copy's
+      // header block as stored, the facts read from it, and the rule's answer
+      // with its reason.
+      struct Verdict
+      {
+         Verdict() : judged(false), external(false) {}
+
+         bool judged;
+         AnsiString header;
+         Facts facts;
+         bool external;
+         String reason;
+      };
+
+      // Judges the copy at fileName once; a second call answers the first
+      // judgement without reading anything.
+      static const Verdict &Judge(std::shared_ptr<Message> message, const String &fileName, const String &sendersIP, Verdict &verdict);
+
       // Gathers the facts from a message that has arrived. header is the
       // message's header block as stored; sendersIP is the address the delivery
       // path already determined (MessageUtilities::GetSendersIP), which is the

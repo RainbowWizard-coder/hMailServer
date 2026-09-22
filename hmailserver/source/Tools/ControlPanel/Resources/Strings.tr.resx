@@ -3701,6 +3701,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Sabit belirteç (gelişmiş; getirmek yerine olduğu gibi kullanılır)</value>
   </data>
+  <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
+    <value>İşaretle: okuyucunun uyarı olarak gördüğü bir başlık ekle</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Alınan her iletiyi onaylanmadan önce diske yaz (kalıcı, daha yavaş)</value>
   </data>
@@ -4180,6 +4183,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Görüntüler (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
+  <data name="Impersonation protection" xml:space="preserve">
+    <value>Kimlik taklidine karşı koruma</value>
   </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>DNSSEC imzalı bir bölgede, her MX ana bilgisayarı için _25._tcp.&lt;mx-host&gt; konumunda bir TLSA kaydı (genellikle kullanım 3, seçici 1, eşleştirme türü 1 - sertifikanızın ortak anahtarının SHA-256'sıyla '3 1 1') yayımlayın. Şununla doğrulayın: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer DNS kaydı yayımlayamaz ya da bölgenizi imzalayamaz ve bu panelde onları denetleyecek bir TLSA araması yoktur.</value>
@@ -6285,6 +6291,12 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Yönetici kimlik bilgisini koru</value>
   </data>
+  <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
+    <value>Korunan _kişiler (adı ödünç alınmaması gereken, bu alan adının hesapları dışındaki kişiler; her satıra bir tane, her biri Ad &lt;address&gt;, Ad ya da adres)</value>
+  </data>
+  <data name="Protected pa_rtners (domains whose look-alikes are judged as this server's own are; separated by commas or spaces; ASCII, xn-- for an internationalised name)" xml:space="preserve">
+    <value>Korunan o_rtaklar (benzerleri bu sunucunun kendi alan adları gibi değerlendirilen alan adları; virgül ya da boşlukla ayrılmış; ASCII, uluslararası bir ad için xn--)</value>
+  </data>
   <data name="Protection" xml:space="preserve">
     <value>Koruma</value>
   </data>
@@ -6380,6 +6392,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>Reddetmek yerine karantinaya al</value>
+  </data>
+  <data name="Quarantine: hold the copy until it is released" xml:space="preserve">
+    <value>Karantina: serbest bırakılana kadar kopyayı tut</value>
   </data>
   <data name="Query failed: {0}" xml:space="preserve">
     <value>Sorgu başarısız oldu: {0}</value>
@@ -9551,6 +9566,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>İki bağlama yöntemi ve fark göründüğünden önemli: biri parolayı dizine gönderir, diğeri onu hiç hatta koymaz.</value>
+  </data>
+  <data name="Two checks on mail from outside, judged as the tagging tab judges outside: a sender whose display name is the name of an active account here or of a protected person, while the address is not theirs; and a sender domain one edit or one look-alike character from a domain this server hosts or a protected partner. Flag adds a header the webmail shows as a warning; quarantine holds the copy as a spam verdict would, and an administrator's release delivers it without checking again. A sender the reader marked safe is exempt, and so is a sender domain that is itself hosted here or a partner." xml:space="preserve">
+    <value>Dışarıdan gelen postada iki denetim; dışarısı, Etiketleme sekmesinin değerlendirdiği gibi değerlendirilir: görünen adı buradaki etkin bir hesabın ya da korunan bir kişinin adı olan, adresi ise onun olmayan bir gönderen; ve bu sunucunun barındırdığı bir alan adından ya da korunan bir ortaktan bir düzenleme veya bir benzer karakter uzaklıktaki bir gönderen alan adı. İşaretle, web postasının uyarı olarak gösterdiği bir başlık ekler; karantina, kopyayı bir spam kararının yapacağı gibi tutar ve bir yöneticinin serbest bırakması onu yeniden denetlemeden teslim eder. Okuyucunun güvenli olarak işaretlediği bir gönderen muaftır; burada barındırılan ya da ortak olan bir gönderen alan adı da öyle.</value>
   </data>
   <data name="Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when MtaStsHostingEnabled is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name." xml:space="preserve">
     <value>İki yarı: göndericilere bir ilkenin var olduğunu söyleyen bir TXT kaydı ve https://mta-sts.{0}/.well-known/mta-sts.txt adresinden getirilen ilkenin kendisi. MtaStsHostingEnabled açıkken ve bir HTTPS web hizmetleri dinleyicisi çalışırken bu sunucu o ilkeyi kendisi sunar - yüklenecek bir dosya yoktur (RFC 8461 bölüm 3.3 yalnızca HTTPS'e izin verir). mta-sts.{0} adının ayrıca bu sunucuya işaret eden bir A veya CNAME kaydına ihtiyacı vardır ve dinleyicinin sertifikası o adı kapsamalıdır.</value>

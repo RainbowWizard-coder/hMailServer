@@ -14,6 +14,7 @@
 #include "../BO/IncomingRelays.h"
 #include "../BO/Message.h"
 #include "../Cache/CacheContainer.h"
+#include "../Persistence/PersistentMessage.h"
 #include "../TCPIP/IPAddress.h"
 #include "../Util/Utilities.h"
 #include "../AntiSpam/DMARC/DMARC.h"
@@ -331,6 +332,20 @@ namespace HM
    MessageOrigin::IsExternalSender(const Facts &facts, String &reason)
    {
       return IsExternalSender(facts, [](const String &address) { return IsHostedAddress(address); }, reason);
+   }
+
+   const MessageOrigin::Verdict &
+   MessageOrigin::Judge(std::shared_ptr<Message> message, const String &fileName, const String &sendersIP, Verdict &verdict)
+   {
+      if (verdict.judged)
+         return verdict;
+
+      verdict.judged = true;
+      verdict.header = PersistentMessage::LoadHeader(fileName, false);
+      verdict.facts = ReadFacts(message, verdict.header, sendersIP);
+      verdict.external = IsExternalSender(verdict.facts, verdict.reason);
+
+      return verdict;
    }
 
    void

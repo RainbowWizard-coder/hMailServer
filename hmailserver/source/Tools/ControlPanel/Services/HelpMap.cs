@@ -151,6 +151,7 @@ namespace hMailServer.ControlPanel.Services
          "Fuzzing.md",
          "Help.md",
          "HighAvailabilityRunbook.md",
+         "ImpersonationProtection.md",
          "MailboxMove.md",
          "MessageRecall.md",
          "MigratingDatabaseBackend.md",

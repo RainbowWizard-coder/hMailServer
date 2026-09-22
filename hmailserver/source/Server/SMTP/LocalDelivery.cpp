@@ -36,6 +36,7 @@
 #include "../Common/Tracking/NotificationServer.h"
 
 #include "../Common/Util/ExternalSenderTagger.h"
+#include "../Common/Util/ImpersonationCheck.h"
 #include "../Common/Util/AWStats.h"
 #include "../Common/Util/TraceHeaderWriter.h"
 #include "../Common/Util/MessageUtilities.h"
@@ -551,10 +552,30 @@ namespace HM
       // Above the rules and the Sieve script, so both can match on the header,
       // and below the per-account spam settings, so the subject this reads is
       // the one the reader will see.
-      ExternalSenderTagger::Apply(account,
-                                  CacheContainer::Instance()->GetDomain(account->GetDomainID()),
-                                  accountLevelMessage,
-                                  _sendersIP);
+      //
+      // The outside/inside decision is made once for this copy and shared with
+      // the impersonation check below, which must never disagree with the tag
+      // about who is outside.
+      std::shared_ptr<const Domain> recipientDomain = CacheContainer::Instance()->GetDomain(account->GetDomainID());
+      MessageOrigin::Verdict origin;
+
+      ExternalSenderTagger::Apply(account, recipientDomain, accountLevelMessage, _sendersIP, origin);
+
+      // Impersonation protection (Common/Util/ImpersonationCheck.h): a borrowed
+      // name or a lookalike domain on a message from outside, for a domain that
+      // asked. Flag writes one header on this copy; quarantine holds the copy,
+      // through the same store and the same release a spam verdict uses, and
+      // this copy is then not delivered - deliberately nothing is pushed onto
+      // saErrorMessages, for the reason the delete threshold above gives: the
+      // sender was answered 250, and a report now would be backscatter.
+      //
+      // Never on a message the quarantine released: a release is a person
+      // overruling this check, and judging the copy again would hold it again
+      // - the same rule the sender lists apply above, read from the original,
+      // which keeps the mark this copy has had cleared.
+      if (!original_message_->GetReleasedFromQuarantine() &&
+          ImpersonationCheck::Apply(account, recipientDomain, accountLevelMessage, _sendersIP, origin) == ImpersonationCheck::Quarantined)
+         return false;
 
       // The flag on the ACCOUNT'S copy, after the overrides above. The two
       // auto-reply decisions below take this rather than reading the shared

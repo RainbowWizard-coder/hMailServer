@@ -3701,6 +3701,9 @@
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>固定令牌（高级；按原样使用而不是获取）</value>
   </data>
+  <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
+    <value>标记：添加一个读者会看到的警告邮件头</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>在确认之前把每封收到的邮件刷新到磁盘（持久，但较慢）</value>
   </data>
@@ -4180,6 +4183,9 @@
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>图像 (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
+  <data name="Impersonation protection" xml:space="preserve">
+    <value>冒充防护</value>
   </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>在经 DNSSEC 签名的区域中，为每个 MX 主机在 _25._tcp.&lt;mx-host&gt; 发布一条 TLSA 记录（通常是用法 3、选择器 1、匹配类型 1 - 即 '3 1 1'，配合您证书公钥的 SHA-256）。用以下命令验证：nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;。hMailServer 无法发布 DNS 记录或签署您的区域，此面板也没有 TLSA 查询功能来检查它们。</value>
@@ -6285,6 +6291,12 @@
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>保护管理员凭据</value>
   </data>
+  <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
+    <value>受保护人员(_P)（不属于此域账户、姓名不得被冒用的人；每行一个，每项为 姓名 &lt;address&gt;、姓名或地址）</value>
+  </data>
+  <data name="Protected pa_rtners (domains whose look-alikes are judged as this server's own are; separated by commas or spaces; ASCII, xn-- for an internationalised name)" xml:space="preserve">
+    <value>受保护合作方(_R)（其形似域按本服务器自有域的方式判定的域；用逗号或空格分隔；ASCII，国际化名称用 xn-- 形式）</value>
+  </data>
   <data name="Protection" xml:space="preserve">
     <value>防护</value>
   </data>
@@ -6380,6 +6392,9 @@
   </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>隔离而不是拒绝</value>
+  </data>
+  <data name="Quarantine: hold the copy until it is released" xml:space="preserve">
+    <value>隔离：扣留副本直到放行</value>
   </data>
   <data name="Query failed: {0}" xml:space="preserve">
     <value>查询失败：{0}</value>
@@ -9551,6 +9566,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>两种绑定方法，差别比看起来更重要: 一种把密码发送给目录，另一种根本不把密码放到线路上。</value>
+  </data>
+  <data name="Two checks on mail from outside, judged as the tagging tab judges outside: a sender whose display name is the name of an active account here or of a protected person, while the address is not theirs; and a sender domain one edit or one look-alike character from a domain this server hosts or a protected partner. Flag adds a header the webmail shows as a warning; quarantine holds the copy as a spam verdict would, and an administrator's release delivers it without checking again. A sender the reader marked safe is exempt, and so is a sender domain that is itself hosted here or a partner." xml:space="preserve">
+    <value>对来自外部的邮件做两项检查，外部的判定与标记选项卡一致：发件人的显示名称是此处某个有效账户或受保护人员的姓名，而地址却不是其本人的；以及发件人域与本服务器承载的域或受保护合作方之间仅相差一次编辑或一个形似字符。标记会添加一个网页邮箱显示为警告的邮件头；隔离会像垃圾邮件判定那样扣留副本，管理员放行后将其投递且不再检查。读者标记为安全的发件人不受影响，本服务器承载的域或合作方作为发件人域时也不受影响。</value>
   </data>
   <data name="Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when MtaStsHostingEnabled is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name." xml:space="preserve">
     <value>两个部分: 一条告诉发件方存在策略的 TXT 记录，以及从 https://mta-sts.{0}/.well-known/mta-sts.txt 获取的策略本身。当 MtaStsHostingEnabled 开启且 HTTPS Web 服务监听器在运行时，本服务器会自己提供该策略 - 没有需要上传的文件 (RFC 8461 第 3.3 节只允许 HTTPS)。名称 mta-sts.{0} 还需要一条指向本服务器的 A 或 CNAME 记录，且监听器的证书必须覆盖该名称。</value>

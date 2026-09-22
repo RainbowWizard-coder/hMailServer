@@ -3701,6 +3701,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Stały token (zaawansowane; używany dosłownie zamiast pobierania)</value>
   </data>
+  <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
+    <value>Oznacz: dodaj nagłówek, który czytelnik widzi jako ostrzeżenie</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Zrzucaj każdą odebraną wiadomość na dysk przed jej potwierdzeniem (trwałe, wolniejsze)</value>
   </data>
@@ -4180,6 +4183,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Obrazy (*.jpg;*.jpeg;*.png;*.gif)</value>
+  </data>
+  <data name="Impersonation protection" xml:space="preserve">
+    <value>Ochrona przed podszywaniem się</value>
   </data>
   <data name="In a DNSSEC-signed zone, publish a TLSA record (usually usage 3, selector 1, matching type 1 - '3 1 1' with the SHA-256 of your certificate's public key) at _25._tcp.&lt;mx-host&gt; for each MX host. Verify with: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer cannot publish DNS records or sign your zone, and this panel has no TLSA lookup to check them with." xml:space="preserve">
     <value>W strefie podpisanej DNSSEC należy opublikować rekord TLSA (zwykle użycie 3, selektor 1, typ dopasowania 1 - „3 1 1” z SHA-256 klucza publicznego certyfikatu) pod _25._tcp.&lt;mx-host&gt; dla każdego hosta MX. Weryfikacja: nslookup -type=TLSA _25._tcp.&lt;mx-host&gt;. hMailServer nie potrafi publikować rekordów DNS ani podpisywać strefy, a ten panel nie ma wyszukiwania TLSA, którym można by je sprawdzić.</value>
@@ -6285,6 +6291,12 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Chroń poświadczenie administratora</value>
   </data>
+  <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
+    <value>Chronione _osoby (osoby spoza kont tej domeny, których nazwy nie wolno pożyczać; jedna w wierszu, każda Nazwa &lt;address&gt;, Nazwa lub adres)</value>
+  </data>
+  <data name="Protected pa_rtners (domains whose look-alikes are judged as this server's own are; separated by commas or spaces; ASCII, xn-- for an internationalised name)" xml:space="preserve">
+    <value>Chronieni pa_rtnerzy (domeny, których sobowtóry ocenia się jak własne tego serwera; rozdzielone przecinkami lub spacjami; ASCII, xn-- dla nazwy umiędzynarodowionej)</value>
+  </data>
   <data name="Protection" xml:space="preserve">
     <value>Ochrona</value>
   </data>
@@ -6380,6 +6392,9 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   </data>
   <data name="Quarantine instead of refusing" xml:space="preserve">
     <value>Kieruj do kwarantanny zamiast odrzucać</value>
+  </data>
+  <data name="Quarantine: hold the copy until it is released" xml:space="preserve">
+    <value>Kwarantanna: wstrzymaj kopię do czasu zwolnienia</value>
   </data>
   <data name="Query failed: {0}" xml:space="preserve">
     <value>Zapytanie nie powiodło się: {0}</value>
@@ -9551,6 +9566,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Dwie metody wiązania, a różnica ma większe znaczenie, niż wygląda: jedna wysyła hasło do katalogu, druga w ogóle nie wypuszcza go do sieci.</value>
+  </data>
+  <data name="Two checks on mail from outside, judged as the tagging tab judges outside: a sender whose display name is the name of an active account here or of a protected person, while the address is not theirs; and a sender domain one edit or one look-alike character from a domain this server hosts or a protected partner. Flag adds a header the webmail shows as a warning; quarantine holds the copy as a spam verdict would, and an administrator's release delivers it without checking again. A sender the reader marked safe is exempt, and so is a sender domain that is itself hosted here or a partner." xml:space="preserve">
+    <value>Dwie kontrole poczty z zewnątrz, gdzie zewnątrz ocenia się tak, jak ocenia je karta Oznaczanie: nadawca, którego wyświetlana nazwa jest nazwą aktywnego konta tutaj lub chronionej osoby, podczas gdy adres nie jest jego; oraz domena nadawcy odległa o jedną zmianę lub jeden podobny znak od domeny obsługiwanej przez ten serwer lub od chronionego partnera. Oznacz dodaje nagłówek, który webmail pokazuje jako ostrzeżenie; kwarantanna wstrzymuje kopię tak, jak zrobiłby to werdykt spamu, a zwolnienie przez administratora dostarcza ją bez ponownej kontroli. Nadawca, którego czytelnik oznaczył jako bezpiecznego, jest wyłączony, podobnie jak domena nadawcy, która sama jest tu obsługiwana lub jest partnerem.</value>
   </data>
   <data name="Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when MtaStsHostingEnabled is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name." xml:space="preserve">
     <value>Dwie połowy: rekord TXT, który mówi nadawcom, że polityka istnieje, oraz sama polityka, pobierana z https://mta-sts.{0}/.well-known/mta-sts.txt. Ten serwer sam serwuje tę politykę - nie ma pliku do wgrania - gdy MtaStsHostingEnabled jest włączone i działa nasłuch HTTPS usług webowych (RFC 8461 sekcja 3.3 dopuszcza wyłącznie HTTPS). Nazwa mta-sts.{0} potrzebuje też rekordu A lub CNAME wskazującego na ten serwer, a certyfikat nasłuchu musi obejmować tę nazwę.</value>
