@@ -534,6 +534,15 @@ namespace HM
       // delivered, and deliberately nothing is pushed onto saErrorMessages - the
       // sender was answered 250 during the conversation, and a failure report now
       // would be backscatter to a return path spam rarely uses honestly.
+
+      // Read before the overrides below: with a single recipient the account's
+      // copy IS the original (CreateAccountLevelMessage_ reuses it), and the
+      // sender lists clear the release mark on that copy so it does not travel
+      // into the mailbox - which cleared it on the original too, and the
+      // impersonation guard further down then judged a released message again
+      // and held it for ever. The answer is taken once, here, while it is true.
+      const bool releasedFromQuarantine = original_message_->GetReleasedFromQuarantine();
+
       if (!ApplyAccountSpamOverrides_(account, accountLevelMessage))
          return false;
 
@@ -571,9 +580,9 @@ namespace HM
       //
       // Never on a message the quarantine released: a release is a person
       // overruling this check, and judging the copy again would hold it again
-      // - the same rule the sender lists apply above, read from the original,
-      // which keeps the mark this copy has had cleared.
-      if (!original_message_->GetReleasedFromQuarantine() &&
+      // - the same rule the sender lists apply above. Read from the original
+      // BEFORE those lists ran: see releasedFromQuarantine above.
+      if (!releasedFromQuarantine &&
           ImpersonationCheck::Apply(account, recipientDomain, accountLevelMessage, _sendersIP, origin) == ImpersonationCheck::Quarantined)
          return false;
 
