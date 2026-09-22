@@ -13,7 +13,11 @@
 //     (/autodiscover/autodiscover.xml) and an Apple configuration profile
 //     (/email.mobileconfig), all generated from the actual TCP/IP port
 //     configuration by GetClientAccessSettings_ - one source of truth for
-//     three wire formats.
+//     three wire formats. The autodiscover answer also names, as Exchange's
+//     <AlternativeMailbox> elements, the mailboxes other accounts have
+//     opened to the account asked about - but only to a request that
+//     authenticated over HTTPS as that account, since who delegates to whom
+//     is not public; see HandleAutodiscover_.
 //   - CardDAV (RFC 6352): the account's address book under /dav/, served
 //     by CardDavServer over HTTPS and authenticated as the account. See
 //     CardDavServer.h for the tree a client walks.
@@ -136,7 +140,12 @@ namespace HM
       static HttpResponse HandleAcmeChallenge_(const AnsiString &path);
       static HttpResponse HandleMtaStsPolicy_(const AnsiString &host);
       static HttpResponse HandleAutoconfig_(const AnsiString &host, const AnsiString &query);
-      static HttpResponse HandleAutodiscover_(const AnsiString &body);
+      // Outlook's POX Autodiscover. The settings are answered to everybody;
+      // the <AlternativeMailbox> elements (the mailboxes other accounts have
+      // opened to the one asked about) only to a request that authenticated,
+      // over HTTPS, as that address. over_https is the answer
+      // RequestArrivedOverHttps_ gave for this request.
+      static HttpResponse HandleAutodiscover_(const HttpRequest &request, bool over_https);
       static HttpResponse HandleSecurityTxt_(const AnsiString &host);
 
       // The OpenPGP Web Key Directory. path is what followed

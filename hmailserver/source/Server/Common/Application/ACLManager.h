@@ -84,6 +84,21 @@ namespace HM
       // none of whose folders grant the caller lookup produces no output.
       std::vector<__int64> GetAccountsWithFolderShares();
 
+      // The owners who have granted the account a folder it may look up AND
+      // read, in id order - the mailboxes the account can actually open under
+      // "#Users", as opposed to the candidates above. This is the one walk
+      // behind two answers: the "shared" list of GET /api/v1/me/folders and
+      // the <AlternativeMailbox> elements of the Outlook Autodiscover answer,
+      // so that the two can never name different owners. Empty when the Other
+      // Users namespace is off, and the account itself is never among them.
+      // Not a new decision: every folder is asked through CheckDelegatedRight
+      // and GetReadWriteAccess, the two questions the REST tree walk asks
+      // before it writes a folder, and a folder beneath one that fails them is
+      // not reached, exactly as that walk does not reach it. An owner who
+      // granted only the lookup right is not here: a folder that can be seen
+      // but not opened is not a mailbox anybody can use.
+      static std::vector<__int64> GetOwnersDelegatingTo(__int64 accountId);
+
       /*
          Design record - the \Seen flag in a shared mailbox is SHARED, not
          per-user.
@@ -168,5 +183,10 @@ namespace HM
    private:
 
       std::shared_ptr<ACLPermission> GetPermissionForAccount_(std::shared_ptr<ACLPermissions> pPermissions, __int64 iAccountID);
+
+      // Whether a top-level folder of the tree is one the account may look up
+      // and read - which is whether the REST tree walk would write anything of
+      // the tree at all. The test GetOwnersDelegatingTo applies to each owner.
+      static bool HasReadableFolder_(__int64 accountId, std::shared_ptr<IMAPFolders> folders);
    };
 }

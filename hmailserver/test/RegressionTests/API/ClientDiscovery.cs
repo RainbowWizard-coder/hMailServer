@@ -3,12 +3,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Linq;
+using hMailServer;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using RegressionTests.Infrastructure;
@@ -51,6 +53,20 @@ namespace RegressionTests.API
    ///
    ///    Against a build without these handlers every test here fails with 404
    ///    "not found", because neither path is routed.
+   ///
+   ///    (c) /autodiscover/autodiscover.xml - Outlook's POX Autodiscover, which
+   ///    had no test before the delegated-mailbox row of September 2026. The
+   ///    settings are answered to everybody, because Outlook's first request
+   ///    carries no credentials; the mailboxes other accounts have opened to
+   ///    the account asked about are answered as Exchange's AlternativeMailbox
+   ///    elements, and only to a request that signed in, over HTTPS, as that
+   ///    address - who delegates to whom is not public. Outlook reads the
+   ///    element for an Exchange account and ignores it for an IMAP one, and
+   ///    it asks again with credentials only after a 401, which this server
+   ///    never sends for an unauthenticated Autodiscover request; so what makes
+   ///    a delegated mailbox appear in an IMAP client is the "#Users" namespace
+   ///    (RegressionTests/IMAP/SharedMailboxes.cs), and the tests here pin the
+   ///    element for what it is: the announcement, private to its owner.
    /// </summary>
    [TestFixture]
    public class ClientDiscovery : TestFixtureBase
@@ -70,6 +86,17 @@ namespace RegressionTests.API
       // The headers are needed as well as the body here: the whole point of the
       // RFC 6764 endpoints is the Location header.
       private static (int status, string headers, string body) HttpGet(string path, string host, string extraHeaders = "")
+      {
+         return HttpExchange("GET", path, host, null, extraHeaders);
+      }
+
+      // The same, as a POST with a body - the way Outlook asks Autodiscover.
+      private static (int status, string headers, string body) HttpPost(string path, string host, string body, string extraHeaders = "")
+      {
+         return HttpExchange("POST", path, host, body, extraHeaders);
+      }
+
+      private static (int status, string headers, string body) HttpExchange(string method, string path, string host, string requestBody, string extraHeaders)
       {
          using (var client = new TcpClient())
          {
@@ -94,10 +121,21 @@ namespace RegressionTests.API
             using (NetworkStream stream = client.GetStream())
             using (var memory = new MemoryStream())
             {
-               byte[] request = Encoding.ASCII.GetBytes(
-                  "GET " + path + " HTTP/1.0\r\nHost: " + host + "\r\nConnection: close\r\n" + extraHeaders + "\r\n");
+               byte[] bodyBytes = requestBody == null ? new byte[0] : Encoding.UTF8.GetBytes(requestBody);
 
+               var head = new StringBuilder();
+               head.Append(method + " " + path + " HTTP/1.0\r\nHost: " + host + "\r\nConnection: close\r\n" + extraHeaders);
+               if (requestBody != null)
+               {
+                  head.Append("Content-Type: text/xml; charset=utf-8\r\n");
+                  head.Append("Content-Length: " + bodyBytes.Length.ToString(CultureInfo.InvariantCulture) + "\r\n");
+               }
+               head.Append("\r\n");
+
+               byte[] request = Encoding.ASCII.GetBytes(head.ToString());
                stream.Write(request, 0, request.Length);
+               if (bodyBytes.Length > 0)
+                  stream.Write(bodyBytes, 0, bodyBytes.Length);
 
                byte[] buffer = new byte[4096];
                int read;
@@ -434,6 +472,333 @@ namespace RegressionTests.API
             WriteSetting("CalDavRedirectUrl", "");
             LogHandler.DeleteErrorLog();
          }
+      }
+
+      // ------------------------------------------------------------ Autodiscover
+
+      private const string AutodiscoverPath = "/autodiscover/autodiscover.xml";
+
+      // Outlook's POX request for an address.
+      private static string AutodiscoverRequest(string address)
+      {
+         return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
+            "<Autodiscover xmlns=\"http://schemas.microsoft.com/exchange/autodiscover/outlook/requestschema/2006\">" +
+            "<Request><EMailAddress>" + address + "</EMailAddress>" +
+            "<AcceptableResponseSchema>http://schemas.microsoft.com/exchange/autodiscover/outlook/responseschema/2006a</AcceptableResponseSchema>" +
+            "</Request></Autodiscover>";
+      }
+
+      // Outlook's request as it arrives through a TLS-terminating proxy, with
+      // or without credentials; overHttps false is the bare listener.
+      private static (int status, string headers, string body) Autodiscover(string address, string authorization = null, bool overHttps = true)
+      {
+         string extra = (overHttps ? "X-Forwarded-Proto: https\r\n" : "") +
+                        (authorization == null ? "" : "Authorization: " + authorization + "\r\n");
+
+         return HttpPost(AutodiscoverPath, "example.test", AutodiscoverRequest(address), extra);
+      }
+
+      private static string Basic(string user, string password)
+      {
+         return "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(user + ":" + password));
+      }
+
+      // The <AlternativeMailbox> blocks of an answer, each as its text.
+      private static List<string> AlternativeMailboxes(string xml)
+      {
+         var blocks = new List<string>();
+         int position = 0;
+         while (true)
+         {
+            int start = xml.IndexOf("<AlternativeMailbox>", position, StringComparison.Ordinal);
+            if (start < 0)
+               return blocks;
+
+            int end = xml.IndexOf("</AlternativeMailbox>", start, StringComparison.Ordinal);
+            Assert.Greater(end, start, "An unterminated AlternativeMailbox. XML: " + xml);
+
+            blocks.Add(xml.Substring(start, end - start));
+            position = end;
+         }
+      }
+
+      // The text of the first <element> in the XML given.
+      private static string Element(string xml, string element)
+      {
+         int start = xml.IndexOf("<" + element + ">", StringComparison.Ordinal);
+         if (start < 0)
+            return null;
+
+         start += element.Length + 2;
+         int end = xml.IndexOf("</" + element + ">", start, StringComparison.Ordinal);
+         return end < start ? null : xml.Substring(start, end - start);
+      }
+
+      // The <Port> of the <Protocol> of the given type in the Autodiscover answer.
+      private static int AutodiscoverPort(string xml, string type)
+      {
+         int typePosition = xml.IndexOf("<Type>" + type + "</Type>", StringComparison.Ordinal);
+         Assert.Greater(typePosition, 0, "The Autodiscover answer has no " + type + " protocol. XML: " + xml);
+
+         int portStart = xml.IndexOf("<Port>", typePosition, StringComparison.Ordinal) + 6;
+         int portEnd = xml.IndexOf("</Port>", portStart, StringComparison.Ordinal);
+
+         return int.Parse(xml.Substring(portStart, portEnd - portStart), CultureInfo.InvariantCulture);
+      }
+
+      // The owner opens one of its own folders to the delegate with the
+      // rights named, through its own IMAP session: SETACL on a folder the
+      // owner holds is the grant surface a person has.
+      private static void ShareFolder(Account owner, string folder, Account delegateAccount, string rights)
+      {
+         var simulator = new ImapClientSimulator();
+         Assert.IsTrue(simulator.ConnectAndLogon(owner.Address, "test"));
+         // A folder shared twice already exists the second time; the grant
+         // below fails if it does not exist for any other reason.
+         simulator.CreateFolder(folder);
+         Assert.IsTrue(simulator.SetACL(folder, delegateAccount.Address, rights), "granting " + rights + " on " + folder);
+         simulator.Disconnect();
+      }
+
+      private static void Unshare(Account owner, string folder, Account delegateAccount)
+      {
+         var simulator = new ImapClientSimulator();
+         Assert.IsTrue(simulator.ConnectAndLogon(owner.Address, "test"));
+         Assert.IsTrue(simulator.DeleteACL(folder, delegateAccount.Address), "revoking on " + folder);
+         simulator.Disconnect();
+      }
+
+      [Test]
+      [Description("Outlook's POX Autodiscover answers the server's settings to anybody, in the 2006a shape, with the ports the other formats advertise and no delegation in it")]
+      public void AutodiscoverAnswersTheSettingsToAnybody()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "someone@example.test", "test");
+
+         // Over the bare listener, with no credentials: Outlook's first
+         // request is exactly this, and the settings must come back to it.
+         (int status, string headers, string body) response = Autodiscover("someone@example.test", null, false);
+
+         Assert.AreEqual(200, response.status, "Body: " + response.body);
+         StringAssert.StartsWith("text/xml", HeaderValue(response.headers, "Content-Type") ?? "", "Headers: " + response.headers);
+
+         StringAssert.Contains("<Autodiscover xmlns=\"http://schemas.microsoft.com/exchange/autodiscover/responseschema/2006\">", response.body);
+         StringAssert.Contains("<Response xmlns=\"http://schemas.microsoft.com/exchange/autodiscover/outlook/responseschema/2006a\">", response.body);
+         Assert.AreEqual("email", Element(response.body, "AccountType"), response.body);
+         Assert.AreEqual("settings", Element(response.body, "Action"), response.body);
+         StringAssert.Contains("<LoginName>someone@example.test</LoginName>", response.body);
+         StringAssert.Contains("<AuthRequired>on</AuthRequired>", response.body);
+
+         // One source of truth, three formats: the ports Outlook is told are
+         // the ports Thunderbird is told.
+         (int status, string headers, string body) autoconfig = HttpGet("/mail/config-v1.1.xml", "example.test");
+         Assert.AreEqual(200, autoconfig.status, "Body: " + autoconfig.body);
+         Assert.AreEqual(AutoconfigPort(autoconfig.body, "imap"), AutodiscoverPort(response.body, "IMAP"), response.body);
+         Assert.AreEqual(AutoconfigPort(autoconfig.body, "smtp"), AutodiscoverPort(response.body, "SMTP"), response.body);
+
+         Assert.AreEqual(0, AlternativeMailboxes(response.body).Count,
+            "Nobody has delegated anything to this address, and nobody asked as it. Body: " + response.body);
+
+         // Not cacheable: the answer can differ by who asks.
+         StringAssert.Contains("no-store", HeaderValue(response.headers, "Cache-Control") ?? "", "Headers: " + response.headers);
+
+         // GET is accepted beside POST, as it always was.
+         (int status, string headers, string body) get = HttpGet(AutodiscoverPath, "example.test");
+         Assert.AreEqual(200, get.status, "Body: " + get.body);
+         Assert.AreEqual("settings", Element(get.body, "Action"), get.body);
+      }
+
+      [Test]
+      [Description("The mailboxes opened to an account are announced as AlternativeMailbox elements, XML-escaped, only to a request signed in as that account and asking about it; a bystander, an outsider and the unauthenticated get none; a folder that can only be looked up is not a mailbox; the public folders are not one; a revoked grant is gone")]
+      public void AutodiscoverNamesDelegationsOnlyToTheAccountTheyWereGrantedTo()
+      {
+         Account tom = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "tom@example.test", "test");
+         tom.PersonFirstName = "<Tom";
+         tom.PersonLastName = "& Jerry>";
+         tom.Save();
+
+         Account plain = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "plain@example.test", "test");
+         Account delegateAccount = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "delegate@example.test", "test");
+         Account bystander = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "bystander@example.test", "test");
+
+         ShareFolder(tom, "Projects", delegateAccount, "lr");
+         ShareFolder(plain, "Cases", delegateAccount, "lrs");
+
+         // Lookup alone: the bystander can see that Cases exists and cannot
+         // open it, which is not a mailbox anybody can use.
+         var lookupOnly = new ImapClientSimulator();
+         Assert.IsTrue(lookupOnly.ConnectAndLogon(plain.Address, "test"));
+         Assert.IsTrue(lookupOnly.SetACL("Cases", bystander.Address, "l"));
+         lookupOnly.Disconnect();
+
+         // A public folder opened to the delegate: real, readable, and not a
+         // mailbox - Outlook has no element for it and none is invented.
+         var publicFolder = _settings.PublicFolders.Add("Notices");
+         publicFolder.Save();
+         var permission = publicFolder.Permissions.Add();
+         permission.PermissionAccountID = delegateAccount.ID;
+         permission.PermissionType = eACLPermissionType.ePermissionTypeUser;
+         permission.set_Permission(eACLPermission.ePermissionLookup, true);
+         permission.set_Permission(eACLPermission.ePermissionRead, true);
+         permission.Save();
+
+         // Unauthenticated, asking about the delegate: the settings and no more.
+         (int status, string headers, string body) anonymous = Autodiscover(delegateAccount.Address);
+         Assert.AreEqual(200, anonymous.status, "Body: " + anonymous.body);
+         StringAssert.Contains("<LoginName>delegate@example.test</LoginName>", anonymous.body);
+         Assert.AreEqual(0, AlternativeMailboxes(anonymous.body).Count,
+            "Who delegates to whom is not public. Body: " + anonymous.body);
+
+         // Signed in as the delegate, asking about the delegate: both owners,
+         // in id order, each with the four elements Outlook reads.
+         (int status, string headers, string body) mine = Autodiscover(delegateAccount.Address, Basic(delegateAccount.Address, "test"));
+         Assert.AreEqual(200, mine.status, "Body: " + mine.body);
+         StringAssert.Contains("<Action>settings</Action>", mine.body);
+
+         List<string> mailboxes = AlternativeMailboxes(mine.body);
+         Assert.AreEqual(2, mailboxes.Count, "Body: " + mine.body);
+
+         Assert.AreEqual("Delegate", Element(mailboxes[0], "Type"), mine.body);
+         Assert.AreEqual("&lt;Tom &amp; Jerry&gt;", Element(mailboxes[0], "DisplayName"),
+            "The person name, XML-escaped. Body: " + mine.body);
+         Assert.AreEqual("tom@example.test", Element(mailboxes[0], "SmtpAddress"), mine.body);
+         Assert.AreEqual("tom@example.test", Element(mailboxes[0], "OwnerSmtpAddress"), mine.body);
+
+         Assert.AreEqual("Delegate", Element(mailboxes[1], "Type"), mine.body);
+         Assert.AreEqual("plain@example.test", Element(mailboxes[1], "DisplayName"),
+            "An owner with no person name is named by the address. Body: " + mine.body);
+         Assert.AreEqual("plain@example.test", Element(mailboxes[1], "SmtpAddress"), mine.body);
+         Assert.AreEqual("plain@example.test", Element(mailboxes[1], "OwnerSmtpAddress"), mine.body);
+
+         Assert.IsFalse(mine.body.Contains("Notices"), "The public folder is not a mailbox. Body: " + mine.body);
+         Assert.IsFalse(mine.body.Contains(_settings.IMAPPublicFolderName), "The public folder is not a mailbox. Body: " + mine.body);
+
+         // The elements sit inside <Account>, after the protocols, where the
+         // 2006a schema places them.
+         int lastProtocol = mine.body.LastIndexOf("</Protocol>", StringComparison.Ordinal);
+         int firstMailbox = mine.body.IndexOf("<AlternativeMailbox>", StringComparison.Ordinal);
+         int accountEnd = mine.body.IndexOf("</Account>", StringComparison.Ordinal);
+         Assert.IsTrue(lastProtocol > 0 && firstMailbox > lastProtocol && accountEnd > firstMailbox, "Body: " + mine.body);
+
+         // The delegate's own address is what it signed in as; asking about
+         // the owner's address while signed in as the delegate is asking about
+         // somebody else, and gets today's answer.
+         (int status, string headers, string body) somebodyElse = Autodiscover(tom.Address, Basic(delegateAccount.Address, "test"));
+         Assert.AreEqual(200, somebodyElse.status, "Body: " + somebodyElse.body);
+         Assert.AreEqual(0, AlternativeMailboxes(somebodyElse.body).Count, "Body: " + somebodyElse.body);
+
+         // The bystander, signed in as itself and asking about the delegate.
+         (int status, string headers, string body) nosy = Autodiscover(delegateAccount.Address, Basic(bystander.Address, "test"));
+         Assert.AreEqual(200, nosy.status, "Body: " + nosy.body);
+         Assert.AreEqual(0, AlternativeMailboxes(nosy.body).Count, "Body: " + nosy.body);
+
+         // The bystander asking about itself: a lookup-only grant is no mailbox.
+         (int status, string headers, string body) lookupOnlyAnswer = Autodiscover(bystander.Address, Basic(bystander.Address, "test"));
+         Assert.AreEqual(200, lookupOnlyAnswer.status, "Body: " + lookupOnlyAnswer.body);
+         Assert.AreEqual(0, AlternativeMailboxes(lookupOnlyAnswer.body).Count,
+            "A folder that can be seen but not opened is not a mailbox. Body: " + lookupOnlyAnswer.body);
+
+         // The address is matched without regard to case, as addresses are.
+         (int status, string headers, string body) upper = Autodiscover("Delegate@Example.Test", Basic(delegateAccount.Address, "test"));
+         Assert.AreEqual(200, upper.status, "Body: " + upper.body);
+         Assert.AreEqual(2, AlternativeMailboxes(upper.body).Count, "Body: " + upper.body);
+
+         // Revoked: gone from the answer at once, with nothing cached.
+         Unshare(tom, "Projects", delegateAccount);
+
+         (int status, string headers, string body) afterRevocation = Autodiscover(delegateAccount.Address, Basic(delegateAccount.Address, "test"));
+         Assert.AreEqual(200, afterRevocation.status, "Body: " + afterRevocation.body);
+         List<string> remaining = AlternativeMailboxes(afterRevocation.body);
+         Assert.AreEqual(1, remaining.Count, "Body: " + afterRevocation.body);
+         Assert.AreEqual("plain@example.test", Element(remaining[0], "SmtpAddress"), afterRevocation.body);
+         Assert.IsFalse(afterRevocation.body.Contains("tom@example.test"), "Body: " + afterRevocation.body);
+      }
+
+      [Test]
+      [Description("A wrong password is refused as the DAV logon refuses it - 401 with the Basic challenge - and counts against the per-name lockout the same way, so the correct password is then refused with the same answer while another account is untouched")]
+      public void AutodiscoverRefusesAWrongPasswordAsTheDavLogonDoesAndTheNameLocks()
+      {
+         Account owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "lockowner@example.test", "test");
+         Account victim = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "lockvictim@example.test", "test");
+         Account neighbour = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "lockneighbour@example.test", "test");
+
+         ShareFolder(owner, "Shared", victim, "lr");
+         ShareFolder(owner, "Shared", neighbour, "lr");
+
+         // The ordinary refusal, measured before any lock: the same status,
+         // the same challenge, no settings and no delegation in the body. The
+         // CalDav fixture pins the 401 and the challenge for the DAV logon;
+         // this is the same refusal from the same function.
+         (int status, string headers, string body) wrong = Autodiscover(victim.Address, Basic(victim.Address, "not-the-password"));
+         Assert.AreEqual(401, wrong.status, "Body: " + wrong.body);
+         StringAssert.Contains("Basic", HeaderValue(wrong.headers, "WWW-Authenticate") ?? "", "Headers: " + wrong.headers);
+         Assert.IsFalse(wrong.body.Contains("<Autodiscover"), "No settings with a refused credential. Body: " + wrong.body);
+         Assert.AreEqual(0, AlternativeMailboxes(wrong.body).Count, wrong.body);
+
+         try
+         {
+            // Three failures lock the name, exactly as they do over POP3 in
+            // Security/AccountLockoutTests: the guesses reach the same
+            // AccountLogon. The CalDav fixture does not prove this half, so it
+            // is proved the way the lockout fixture proves it.
+            IniFileSetting.Write("AccountLockoutThreshold", "3");
+            _application.Reinitialize();
+
+            for (int i = 0; i < 3; i++)
+            {
+               (int status, string headers, string body) guess = Autodiscover(victim.Address, Basic(victim.Address, "wrong" + i));
+               Assert.AreEqual(401, guess.status, "Guess " + i + ". Body: " + guess.body);
+            }
+
+            // The correct password, refused with the ordinary answer: nothing
+            // in it says the account exists and has just been locked.
+            (int status, string headers, string body) locked = Autodiscover(victim.Address, Basic(victim.Address, "test"));
+            Assert.AreEqual(wrong.status, locked.status, "Body: " + locked.body);
+            Assert.AreEqual(HeaderValue(wrong.headers, "WWW-Authenticate"), HeaderValue(locked.headers, "WWW-Authenticate"), "Headers: " + locked.headers);
+            Assert.AreEqual(wrong.body, locked.body, "The refusal for a locked name must be the ordinary refusal.");
+
+            // Per name: the neighbour, delegated to by the same owner, is untouched.
+            (int status, string headers, string body) neighbourAnswer = Autodiscover(neighbour.Address, Basic(neighbour.Address, "test"));
+            Assert.AreEqual(200, neighbourAnswer.status, "Body: " + neighbourAnswer.body);
+            Assert.AreEqual(1, AlternativeMailboxes(neighbourAnswer.body).Count, "Body: " + neighbourAnswer.body);
+         }
+         finally
+         {
+            IniFileSetting.Delete("AccountLockoutThreshold");
+            _application.Reinitialize();
+
+            // The lockout store lives in the service process, which did not
+            // restart: with the threshold back at its default a successful
+            // logon erases the entry, and this one proves the name is free.
+            (int status, string headers, string body) freed = Autodiscover(victim.Address, Basic(victim.Address, "test"));
+            Assert.AreEqual(200, freed.status, "Body: " + freed.body);
+            Assert.AreEqual(1, AlternativeMailboxes(freed.body).Count, "Body: " + freed.body);
+         }
+      }
+
+      [Test]
+      [Description("A credential offered over plain HTTP is refused before it is looked at, with the reason, as CardDAV refuses it; the settings without a credential are still served over plain HTTP")]
+      public void AutodiscoverRefusesACredentialOverPlainHttp()
+      {
+         Account owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "plainowner@example.test", "test");
+         Account delegateAccount = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "plaindelegate@example.test", "test");
+         ShareFolder(owner, "Shared", delegateAccount, "lr");
+
+         (int status, string headers, string body) refused = Autodiscover(delegateAccount.Address, Basic(delegateAccount.Address, "test"), false);
+         Assert.AreEqual(403, refused.status, "Body: " + refused.body);
+         StringAssert.Contains("HTTPS", refused.body);
+         StringAssert.Contains("X-Forwarded-Proto", refused.body);
+         Assert.IsFalse(refused.body.Contains("<Autodiscover"), "Body: " + refused.body);
+         Assert.IsFalse(refused.body.Contains(owner.Address), "Body: " + refused.body);
+
+         // A wrong password over plain HTTP gets the same 403, not a 401: it
+         // was never checked, so it is neither confirmed nor counted.
+         (int status, string headers, string body) unverified = Autodiscover(delegateAccount.Address, Basic(delegateAccount.Address, "not-the-password"), false);
+         Assert.AreEqual(403, unverified.status, "Body: " + unverified.body);
+
+         // And through the proxy, the same credential is honoured.
+         (int status, string headers, string body) honoured = Autodiscover(delegateAccount.Address, Basic(delegateAccount.Address, "test"));
+         Assert.AreEqual(200, honoured.status, "Body: " + honoured.body);
+         Assert.AreEqual(1, AlternativeMailboxes(honoured.body).Count, "Body: " + honoured.body);
       }
    }
 }

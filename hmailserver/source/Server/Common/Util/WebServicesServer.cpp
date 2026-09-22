@@ -18,6 +18,10 @@
 #include "OtelTraceContext.h"
 #include "CardDavServer.h"
 #include "CalDavServer.h"
+#include "DavSupport.h"
+
+#include "../Application/ACLManager.h"
+#include "../BO/Account.h"
 
 #include "../BO/Domains.h"
 #include "../BO/Domain.h"
@@ -750,11 +754,14 @@ namespace HM
                return HandleAppleProfile_(host, query);
             }
 
-            // Outlook autodiscover (POX). Outlook POSTs; accept GET too.
+            // Outlook autodiscover (POX). Outlook POSTs; accept GET too. The
+            // handler reads the Authorization header, so it takes the split
+            // request, and whether the request came over HTTPS decides
+            // whether a credential in it is looked at.
             AnsiString lowerPath = path;
             lowerPath.MakeLower();
             if (lowerPath == "/autodiscover/autodiscover.xml")
-               return HandleAutodiscover_(GetRequestBody_(request));
+               return HandleAutodiscover_(httpRequest, RequestArrivedOverHttps_(request, over_tls, httpRequest.peer));
          }
 
          return BuildResponse_(404, "text/plain", "not found");
@@ -1651,13 +1658,15 @@ namespace HM
    }
 
    HttpResponse
-   WebServicesServer::HandleAutodiscover_(const AnsiString &body)
+   WebServicesServer::HandleAutodiscover_(const HttpRequest &request, bool over_https)
    {
       AnsiString clientHost;
       ProtocolEndpoint imap, pop3, smtp;
 
       if (!GetClientAccessSettings_(clientHost, imap, pop3, smtp))
          return BuildResponse_(404, "text/plain", "not found");
+
+      const AnsiString body = GetRequestBody_(request.raw);
 
       // Extract the email address from the POX request body.
       AnsiString email;
@@ -1675,6 +1684,63 @@ namespace HM
          {
             email = body.Mid(valueStart, tagEnd - valueStart);
             email.Trim();
+         }
+      }
+
+      // The delegations - the mailboxes other accounts have opened to this
+      // one - are private to the account they were granted to, so they are
+      // answered only to a request that has proved it is that account: HTTP
+      // Basic through the same logon CalDAV and CardDAV use (Dav::Authenticate
+      // - the same password schemes, app passwords, per-name lockout and
+      // auto-ban accounting as an IMAP LOGON), and only when the address the
+      // request asks about is the address it signed in as. The settings stay
+      // unauthenticated, because Outlook's first Autodiscover request carries
+      // no credentials at all; so a request with no Authorization header, or
+      // one signed in as somebody else, gets the answer this handler has
+      // always given, and nothing in it says whether anybody delegates to
+      // anybody.
+      //
+      // A credential that fails is refused as the DAV logon refuses it - 401
+      // with the Basic challenge, the connection closed so that a guess costs
+      // a new connection - and one offered over plain HTTP is refused before
+      // it is looked at, as CardDAV refuses it: a password sent in clear is at
+      // least not also checked.
+      std::shared_ptr<const Account> caller;
+      bool disconnect = false;
+
+      if (!request.Header("authorization").IsEmpty())
+      {
+         if (!over_https)
+         {
+            return BuildResponse_(403, "text/plain",
+               "Autodiscover accepts credentials over HTTPS only: HTTP Basic authentication would send the account's password in clear. "
+               "Use the https:// address of this server (WebServicesHttpsPort), or put a TLS-terminating proxy in front "
+               "of this listener that sets X-Forwarded-Proto: https.\r\n");
+         }
+
+         if (!Dav::Authenticate(request, "Autodiscover", caller, disconnect))
+         {
+            HttpResponse refusal = BuildResponse_(401, "text/plain", "authentication required\r\n",
+               "WWW-Authenticate: Basic realm=\"hMailServer\"\r\n");
+            refusal.close = true;
+            return refusal;
+         }
+      }
+
+      // The owners who have opened a folder to the caller, when the caller is
+      // the address asked about. One walk, shared with GET /api/v1/me/folders,
+      // so the two answers name the same owners. The public folders are not
+      // among them: they are not a mailbox, and Outlook has no element for
+      // them.
+      std::vector<std::shared_ptr<const Account>> delegatedOwners;
+      if (caller && !email.IsEmpty() && caller->GetAddress().CompareNoCase(Dav::Wide(email)) == 0)
+      {
+         std::vector<__int64> owners = ACLManager::GetOwnersDelegatingTo(caller->GetID());
+         for (size_t i = 0; i < owners.size(); i++)
+         {
+            std::shared_ptr<const Account> owner = CacheContainer::Instance()->GetAccount(owners[i]);
+            if (owner)
+               delegatedOwners.push_back(owner);
          }
       }
 
@@ -1722,11 +1788,50 @@ namespace HM
       appendProtocol(xml, "POP3", pop3);
       appendProtocol(xml, "SMTP", smtp);
 
+      // Exchange's automapping, in Exchange's element: one <AlternativeMailbox>
+      // of type Delegate per owner, after the protocols, as the 2006a response
+      // schema places it. The display name is the owner's person name, else
+      // the address; SmtpAddress and OwnerSmtpAddress are both the owner's,
+      // because the mailbox and its owner are the same thing here. Outlook
+      // reads this element for an Exchange account and ignores it for an IMAP
+      // one, and this server speaks IMAP - what makes the same mailboxes
+      // appear in an IMAP client is the "#Users" namespace of NAMESPACE and
+      // LIST. The element is here so that the delegations are announced where
+      // Exchange announces them, and so that a client that reads it has them.
+      for (size_t i = 0; i < delegatedOwners.size(); i++)
+      {
+         const std::shared_ptr<const Account> &owner = delegatedOwners[i];
+
+         String displayName = owner->GetPersonFirstName();
+         displayName.TrimLeft();
+         displayName.TrimRight();
+         String lastName = owner->GetPersonLastName();
+         lastName.TrimLeft();
+         lastName.TrimRight();
+         if (!lastName.IsEmpty())
+         {
+            if (!displayName.IsEmpty())
+               displayName += _T(" ");
+            displayName += lastName;
+         }
+         if (displayName.IsEmpty())
+            displayName = owner->GetAddress();
+
+         xml += "      <AlternativeMailbox>\r\n";
+         xml += "        <Type>Delegate</Type>\r\n";
+         xml += "        <DisplayName>" + XmlEscape_(Dav::Utf8(displayName)) + "</DisplayName>\r\n";
+         xml += "        <SmtpAddress>" + XmlEscape_(Dav::Utf8(owner->GetAddress())) + "</SmtpAddress>\r\n";
+         xml += "        <OwnerSmtpAddress>" + XmlEscape_(Dav::Utf8(owner->GetAddress())) + "</OwnerSmtpAddress>\r\n";
+         xml += "      </AlternativeMailbox>\r\n";
+      }
+
       xml += "    </Account>\r\n";
       xml += "  </Response>\r\n";
       xml += "</Autodiscover>\r\n";
 
-      return BuildResponse_(200, "text/xml", xml);
+      HttpResponse response = BuildResponse_(200, "text/xml", xml);
+      response.close = response.close || disconnect;
+      return response;
    }
 
    AnsiString

@@ -101,6 +101,74 @@ namespace RegressionTests.IMAP
          simulator.Disconnect();
       }
 
+      /// <summary>
+      ///    The whole life of a delegation as an IMAP client sees it, which is
+      ///    the mechanism that puts a delegated mailbox into Thunderbird's and
+      ///    Outlook's folder tree by itself (the Autodiscover element of the
+      ///    same row, tested in API/ClientDiscovery.cs, is the announcement;
+      ///    this is what shows the folders): the owner grants through its own
+      ///    SETACL, LIST "" "*" for the delegate shows the namespace root, the
+      ///    owner node and the folder, SELECT opens it - and once the owner
+      ///    revokes, the next LIST shows none of the three and SELECT answers
+      ///    as it does for a folder that never existed. No restart, no cache:
+      ///    the grant is read on every decision.
+      /// </summary>
+      [Test]
+      public void RevokedGrantRemovesTheOwnerFromListAndSelect()
+      {
+         var owner = CreateOwnerWithMessage("revokeowner@example.test", "RevokeSubject", "Revoke body");
+         var delegateAccount = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "revokedelegate@example.test", "test");
+
+         var ownerSimulator = new ImapClientSimulator();
+         Assert.IsTrue(ownerSimulator.ConnectAndLogon(owner.Address, "test"));
+         Assert.IsTrue(ownerSimulator.CreateFolder("Projects"));
+         Assert.IsTrue(ownerSimulator.SetACL("Projects", delegateAccount.Address, "lr"));
+         ownerSimulator.Disconnect();
+
+         var sharedPath = "#Users.revokeowner@example.test.Projects";
+
+         var simulator = new ImapClientSimulator();
+         Assert.IsTrue(simulator.ConnectAndLogon(delegateAccount.Address, "test"));
+
+         var namespaceResult = simulator.Send("A01 NAMESPACE");
+         Assert.IsTrue(namespaceResult.Contains("((\"#Users\" \".\"))"), namespaceResult);
+
+         var listResult = simulator.List("", "*", false);
+         Assert.IsTrue(listResult.Contains("\"#Users\"\r\n"), listResult);
+         Assert.IsTrue(listResult.Contains("\"#Users.revokeowner@example.test\"\r\n"), listResult);
+         Assert.IsTrue(listResult.Contains("\"" + sharedPath + "\""), listResult);
+
+         // The INBOX was not granted, and does not appear beside the folder that was.
+         Assert.IsFalse(listResult.Contains("#Users.revokeowner@example.test.INBOX"), listResult);
+
+         Assert.IsTrue(simulator.SelectFolder(sharedPath));
+         simulator.Disconnect();
+
+         // The owner takes the grant back.
+         var revoking = new ImapClientSimulator();
+         Assert.IsTrue(revoking.ConnectAndLogon(owner.Address, "test"));
+         Assert.IsTrue(revoking.DeleteACL("Projects", delegateAccount.Address));
+         revoking.Disconnect();
+
+         var after = new ImapClientSimulator();
+         Assert.IsTrue(after.ConnectAndLogon(delegateAccount.Address, "test"));
+
+         // The namespace is still advertised - it is the server's, not this
+         // grant's - but nothing of the owner is in it.
+         var namespaceAfter = after.Send("A01 NAMESPACE");
+         Assert.IsTrue(namespaceAfter.Contains("((\"#Users\" \".\"))"), namespaceAfter);
+
+         var listAfter = after.List("", "*", false);
+         Assert.IsFalse(listAfter.Contains("revokeowner@example.test"), listAfter);
+         Assert.IsFalse(listAfter.Contains("#Users"), listAfter);
+
+         var realFolderResponse = after.SendSingleCommand("A15 SELECT " + sharedPath);
+         var missingFolderResponse = after.SendSingleCommand("A15 SELECT #Users.revokeowner@example.test.NoSuchFolder");
+         Assert.AreEqual(missingFolderResponse, realFolderResponse);
+
+         after.Disconnect();
+      }
+
       [Test]
       public void DelegateWithLookupAndReadRightsCanListSelectAndReadMessage()
       {

@@ -218,6 +218,76 @@ namespace HM
       return result;
    }
 
+   bool
+   ACLManager::HasReadableFolder_(__int64 accountId, std::shared_ptr<IMAPFolders> folders)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Asks of each top-level folder exactly what the REST tree walk
+   // (RestApiServer::AppendFolderJson_) asks before it writes one: the lookup
+   // right, then read access. The top level is enough, and deliberately so:
+   // that walk descends only through a folder it has written, so every folder
+   // it reaches at any depth sits under a top-level folder that passed the
+   // same two questions. The owners named by this are therefore precisely the
+   // owners whose "shared" tree there is not empty - a readable folder hidden
+   // under an unreadable parent is one no client's LIST shows either.
+   //---------------------------------------------------------------------------()
+   {
+      if (!folders)
+         return false;
+
+      for (std::shared_ptr<IMAPFolder> folder : folders->GetSnapshot())
+      {
+         if (!folder)
+            continue;
+
+         if (!CheckDelegatedRight(accountId, folder, ACLPermission::PermissionLookup))
+            continue;
+
+         bool readAccess = false;
+         bool writeAccess = false;
+         GetReadWriteAccess(accountId, folder, readAccess, writeAccess);
+         if (!readAccess)
+            continue;
+
+         return true;
+      }
+
+      return false;
+   }
+
+   std::vector<__int64>
+   ACLManager::GetOwnersDelegatingTo(__int64 accountId)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The owners whose tree holds a folder this account may look up and read.
+   // See the header: one walk behind the REST "shared" list and the Autodiscover
+   // <AlternativeMailbox> elements.
+   //---------------------------------------------------------------------------()
+   {
+      std::vector<__int64> result;
+
+      if (!GetOtherUsersNamespaceEnabled())
+         return result;
+
+      ACLManager aclManager;
+      std::vector<__int64> owners = aclManager.GetAccountsWithFolderShares();
+
+      for (size_t i = 0; i < owners.size(); i++)
+      {
+         if (owners[i] == accountId)
+            continue;
+
+         std::shared_ptr<IMAPFolders> ownerFolders = IMAPFolderContainer::Instance()->GetFoldersForAccount(owners[i]);
+         if (!ownerFolders)
+            continue;
+
+         if (HasReadableFolder_(accountId, ownerFolders))
+            result.push_back(owners[i]);
+      }
+
+      return result;
+   }
+
    std::shared_ptr<ACLPermissions>
    ACLManager::GetPermissionsSetOnFolder(std::shared_ptr<IMAPFolder> pFolder)
    //---------------------------------------------------------------------------()

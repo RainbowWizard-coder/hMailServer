@@ -12315,14 +12315,14 @@ namespace HM
       {
          String otherUsersName = ACLManager::GetOtherUsersFolderName();
 
-         ACLManager aclManager;
-         std::vector<__int64> owners = aclManager.GetAccountsWithFolderShares();
+         // The owners are the ones ACLManager::GetOwnersDelegatingTo names -
+         // the same set the Autodiscover answer lists as alternative mailboxes,
+         // decided once for both - and the tree written for each is the walk
+         // below, which reaches exactly the folders that made the owner count.
+         std::vector<__int64> owners = ACLManager::GetOwnersDelegatingTo(account->GetID());
 
          for (size_t i = 0; i < owners.size(); i++)
          {
-            if (owners[i] == account->GetID())
-               continue;
-
             std::shared_ptr<const Account> owner = CacheContainer::Instance()->GetAccount(owners[i]);
             if (!owner)
                continue;
