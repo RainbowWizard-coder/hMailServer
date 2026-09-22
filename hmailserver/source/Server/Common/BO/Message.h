@@ -98,6 +98,14 @@ namespace HM
       // beside messageflags, written by the same statement.
       String GetKeywords() const { return keywords_; }
       void SetKeywords(const String &keywords) { keywords_ = keywords; }
+
+      // In memory only, never persisted: the id of the stored message this one
+      // was copied from within the same account (PersistentMessage::
+      // CopyToIMAPFolder), so that the save which assigns the copy its own id
+      // can carry the message-recall rows across (Util/MessageRecall.h).
+      // Cleared once the rows have been written. 0 for anything else.
+      __int64 GetCopiedFromID() const { return copied_from_id_; }
+      void SetCopiedFromID(__int64 id) { copied_from_id_ = id; }
       std::vector<String> GetKeywordList() const;
       void SetKeywordList(const std::vector<String> &keywords);
       bool HasKeyword(const String &keyword) const;
@@ -201,7 +209,9 @@ namespace HM
       unsigned int uid_;
 
       __int64 message_modseq_;
-      
+
+      __int64 copied_from_id_ = 0;
+
    private:
 
       bool GetFlag_(int iFlag) const;

@@ -70,6 +70,7 @@
 #include "../Application/RoleManager.h"
 #include "AuditTrail.h"
 #include "PushSubscriptions.h"
+#include "../Tracking/ChangeNotification.h"
 
 namespace HM
 {
@@ -126,6 +127,12 @@ namespace HM
       // whose record is gone: removed. Run by the scheduled task every minute
       // (RestApiFiles.cpp). Returns how many went.
       static int SweepExpiredFiles();
+
+      // Every IMAP session on the folder is told, the way STORE, MOVE and
+      // EXPUNGE tell them: by message id, which each turns into its own
+      // sequence numbers. The one notifier the self-service routes use, in
+      // this file and in the route files beside it.
+      static void NotifyFolder(std::shared_ptr<IMAPFolder> folder, ChangeNotification::NotificationType type, const std::vector<__int64> &messageIds);
 
       // Every browser session one client of an account holds, ended; the number
       // that went. Public because the sessions are this listener's and the

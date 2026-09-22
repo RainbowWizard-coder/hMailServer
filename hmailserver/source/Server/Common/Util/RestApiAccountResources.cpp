@@ -911,17 +911,6 @@ namespace
    const __int64 MaxMessageBytes = 16 * 1024 * 1024;
    const int MaxHeaderBytes = 64 * 1024;
 
-   // Every IMAP session on the folder is told, the way APPEND, STORE and
-   // EXPUNGE tell them: by message id, which each turns into its own
-   // sequence numbers.
-   void NotifyFolder(std::shared_ptr<IMAPFolder> folder, ChangeNotification::NotificationType type, const std::vector<__int64> &messageIds)
-   {
-      std::shared_ptr<ChangeNotification> notification =
-         std::shared_ptr<ChangeNotification>(new ChangeNotification(folder->GetAccountID(), folder->GetID(), type, messageIds));
-
-      Application::Instance()->GetNotificationServer()->SendNotification(notification);
-   }
-
    // The value of one query parameter, or nothing: the flags and the
    // envelope sender of a message added, as APPEND carries its flags.
    AnsiString ParameterOf(const AnsiString &query, const AnsiString &name)
@@ -1210,7 +1199,7 @@ namespace
       MessagesContainer::Instance()->SetFolderNeedsRefresh(folder->GetID());
       std::vector<__int64> added;
       added.push_back(message->GetID());
-      NotifyFolder(folder, ChangeNotification::NotificationMessageAdded, added);
+      RestApiServer::NotifyFolder(folder, ChangeNotification::NotificationMessageAdded, added);
 
       return bridge.respond(201, RowJson(bridge, message), "");
    }
@@ -1333,7 +1322,7 @@ namespace
 
       std::vector<__int64> changed;
       changed.push_back(message->GetID());
-      NotifyFolder(folder, ChangeNotification::NotificationMessageFlagsChanged, changed);
+      RestApiServer::NotifyFolder(folder, ChangeNotification::NotificationMessageFlagsChanged, changed);
 
       return bridge.respond(200, RowJson(bridge, message), "");
    }
@@ -1359,7 +1348,7 @@ namespace
       if (deleted.empty())
          return Refusal(bridge, 500, "the message could not be deleted; see the error log");
 
-      NotifyFolder(folder, ChangeNotification::NotificationMessageDeleted, deleted);
+      RestApiServer::NotifyFolder(folder, ChangeNotification::NotificationMessageDeleted, deleted);
 
       return bridge.respond(200, "{\"deleted\":true}", "");
    }

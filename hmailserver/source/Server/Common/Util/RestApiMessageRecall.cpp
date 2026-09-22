@@ -8,18 +8,23 @@
 //   POST /api/v1/me/recall   {"message_id": "<the Message-ID>", "sent_id": n}
 //
 // The rows for (the signed-in account, that Message-ID) not older than
-// RecallDays are read; for each recipient copy on this server the outcome is
-// gone (the row is no longer there), read (it carries \Seen; nothing is
-// done) or recalled (the unread copy is deleted the way the page deletes a
-// message, so IMAP sessions see the expunge, the recover-deleted store gets
-// its copy where that is on, and the notifications fire). 404 when the
-// account has no rows for that id - which is also the answer for somebody
-// else's message, since the rows are keyed by the sender and a Message-ID
-// is not a secret. Idempotent: rows recalled stay, marked, and a second
-// call answers the same outcomes. Nothing is sent to anybody. The Sent
-// copy, when sent_id names it and it is the caller's, gets the $Recalled
-// keyword when at least one copy was recalled, and its To and Cc are read
-// for the addresses that are not on this server, answered as elsewhere.
+// RecallDays are read and judged PER RECIPIENT, since a recipient who filed
+// or copied the message holds several rows: read when any live copy of
+// theirs carries \Seen (nothing is done; the reader keeps every copy),
+// else recalled when at least one unread live copy was deleted the way the
+// page deletes a message - every unread copy goes, IMAP sessions see the
+// expunge, the recover-deleted store gets its copy while the server-wide
+// window is on - else gone (no copy of theirs is there any more), and
+// failed only when the database did not answer or a delete could not be
+// made, in which case the rows are left unmarked and a later call decides
+// them again. 404 when the account has no rows for that id - which is also
+// the answer for somebody else's message, since the rows are keyed by the
+// sender and a Message-ID is not a secret. Idempotent: rows recalled stay,
+// marked, and a second call answers the same outcomes. Nothing is sent to
+// anybody. The Sent copy, when sent_id names it and it is the caller's,
+// gets the $Recalled keyword when at least one copy was recalled, and its
+// To and Cc are read for the addresses that are not on this server,
+// answered as elsewhere.
 //
 // Refused to a request that came in on an app password: a program's
 // credential reads and sends mail; withdrawing what was sent is the
@@ -30,7 +35,6 @@
 #include "HttpServer.h"
 #include "JsonDocument.h"
 #include "MessageRecall.h"
-#include "RecoverableStore.h"
 #include "Unicode.h"
 #include "Parsing/StringParser.h"
 #include "Strings/Formatter.h"
@@ -49,12 +53,14 @@
 #include "../BO/Messages.h"
 #include "../Cache/CacheContainer.h"
 #include "../Persistence/PersistentMessage.h"
-#include "../Tracking/ChangeNotification.h"
-#include "../Tracking/NotificationServer.h"
+#include "../SQL/DALRecordset.h"
+#include "../SQL/DatabaseUnavailableMarker.h"
+#include "../SQL/SQLCommand.h"
 #include "../../IMAP/IMAPFolderContainer.h"
 #include "../../IMAP/MessagesContainer.h"
 
 #include <ctime>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -69,16 +75,6 @@ namespace HM
    namespace
    {
       const char *RecalledKeyword = "$Recalled";
-
-      // Every IMAP session on the folder is told, the way EXPUNGE and STORE
-      // tell them: by message id, which each turns into its own sequence
-      // numbers.
-      void Notify(std::shared_ptr<IMAPFolder> folder, ChangeNotification::NotificationType type, const std::vector<__int64> &messageIds)
-      {
-         std::shared_ptr<ChangeNotification> notification =
-            std::shared_ptr<ChangeNotification>(new ChangeNotification(folder->GetAccountID(), folder->GetID(), type, messageIds));
-         Application::Instance()->GetNotificationServer()->SendNotification(notification);
-      }
 
       // The addresses of a To or Cc header, one per entry: the part inside
       // the angle brackets where there are any, else the entry itself. A
@@ -146,58 +142,77 @@ namespace HM
          return elsewhere;
       }
 
-      // What became of one recipient's copy, decided now: gone when there is
-      // no row, no folder or no message any more; read when the copy carries
-      // \Seen, in which case nothing is touched; otherwise the copy is
-      // deleted through the same collection the IMAP sessions hold, inside
-      // the recover-deleted scope, and every session on the folder is told.
-      // Pending is answered only when the delete itself failed, so the row
-      // is not marked and a later call tries again.
-      MessageRecall::Outcome Decide(const MessageRecall::Row &row)
+      // What one row's copy is, looked at now.
+      enum CopyState
       {
-         if (row.stored_id == 0)
-            return MessageRecall::Gone;
+         CopyUnavailable,   // the database did not answer; nothing may be decided
+         CopyAbsent,        // no such row, another account's, another message's, or no folder
+         CopySeen,          // there, and read
+         CopyUnread         // there, unread: live and folder are set
+      };
+
+      // Opened here rather than through PersistentMessage::ReadObject, whose
+      // false means either "no row" or "no answer" - and only one of those is
+      // gone. A folder or a collection that could not be had is the database
+      // away when the marker says so, and absent otherwise.
+      CopyState Probe(const MessageRecall::Row &row, std::shared_ptr<const Account> recipient,
+                      std::shared_ptr<Message> &live, std::shared_ptr<IMAPFolder> &folder)
+      {
+         live.reset();
+         folder.reset();
+
+         SQLCommand command("select * from hm_messages where messageid = @MESSAGEID");
+         command.AddParameter("@MESSAGEID", row.stored_id);
+         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+         if (!recordset)
+            return CopyUnavailable;
+         if (recordset->IsEOF())
+            return CopyAbsent;
 
          std::shared_ptr<Message> stored = std::shared_ptr<Message>(new Message());
-         if (!PersistentMessage::ReadObject(stored, row.stored_id) || stored->GetID() == 0)
-            return MessageRecall::Gone;
+         if (!PersistentMessage::ReadObject(recordset, stored, false) || stored->GetID() == 0)
+            return DatabaseUnavailableMarker::IsMarked() ? CopyUnavailable : CopyAbsent;
 
-         // The row must still be the recipient's: an id is never reused, but
-         // the copy may have been moved into a shared folder another account
-         // owns, and that account's mailbox is not the sender's to touch.
+         // The row must still be the recipient's: an id is never reused by
+         // the databases that keep their identity counters, and where one is
+         // reissued the Message-ID below tells the two messages apart.
          if (stored->GetAccountID() != row.recipient_id)
-            return MessageRecall::Gone;
+            return CopyAbsent;
+
+         const String messageId = MessageRecall::MessageIdOf(PersistentMessage::GetFileName(recipient, stored));
+         if (messageId != row.message_id)
+         {
+            if (DatabaseUnavailableMarker::IsMarked())
+               return CopyUnavailable;
+            LOG_DEBUG(Formatter::Format("Message recall: message {0} of {1} carries Message-ID <{2}>, not the recorded <{3}>; it is not the recorded copy.",
+               row.stored_id, recipient->GetAddress(), messageId, row.message_id));
+            return CopyAbsent;
+         }
 
          std::shared_ptr<IMAPFolders> folders = IMAPFolderContainer::Instance()->GetFoldersForAccount(row.recipient_id);
-         std::shared_ptr<IMAPFolder> folder = folders ? folders->GetItemByDBIDRecursive(stored->GetFolderID()) : std::shared_ptr<IMAPFolder>();
+         folder = folders ? folders->GetItemByDBIDRecursive(stored->GetFolderID()) : std::shared_ptr<IMAPFolder>();
          if (!folder)
-            return MessageRecall::Gone;
+            return DatabaseUnavailableMarker::IsMarked() ? CopyUnavailable : CopyAbsent;
 
          std::shared_ptr<Messages> messages = MessagesContainer::Instance()->GetMessages(row.recipient_id, folder->GetID());
          if (!messages)
-            return MessageRecall::Gone;
+            return DatabaseUnavailableMarker::IsMarked() ? CopyUnavailable : CopyAbsent;
 
-         std::shared_ptr<Message> live = messages->GetItemByDBID(row.stored_id);
+         live = messages->GetItemByDBID(row.stored_id);
          if (!live)
-            return MessageRecall::Gone;
+            return DatabaseUnavailableMarker::IsMarked() ? CopyUnavailable : CopyAbsent;
 
-         if (live->GetFlagSeen())
-            return MessageRecall::Read;
-
-         std::set<__int64> ids;
-         ids.insert(row.stored_id);
-
-         std::vector<__int64> deleted;
-         {
-            RecoverableStore::Scope recoverable;   // the reader's window applies, as it does to their own delete
-            deleted = messages->DeleteMessagesById(ids);
-         }
-         if (deleted.empty())
-            return MessageRecall::Pending;
-
-         Notify(folder, ChangeNotification::NotificationMessageDeleted, deleted);
-         return MessageRecall::Recalled;
+         return live->GetFlagSeen() ? CopySeen : CopyUnread;
       }
+
+      struct Probed
+      {
+         Probed() : row(nullptr), state(CopyAbsent) {}
+         const MessageRecall::Row *row;
+         CopyState state;
+         std::shared_ptr<Message> live;
+         std::shared_ptr<IMAPFolder> folder;
+      };
    }
 
    HttpResponse
@@ -239,6 +254,10 @@ namespace HM
          sentId = (__int64) sentValue->AsNumber();
       }
 
+      // A stale "database away" from earlier work on this pool thread must
+      // not decide anything here; the marker is read fresh below.
+      DatabaseUnavailableMarker::Scope databaseScope;
+
       std::vector<MessageRecall::Row> rows;
       if (!MessageRecall::List(account->GetID(), messageId, rows))
          return BuildResponse_(500, "{\"error\":\"the recall rows could not be read\"}");
@@ -252,36 +271,116 @@ namespace HM
 
       const __int64 now = (__int64) time(nullptr);
 
+      // The rows by recipient, in the order the recipients were first seen.
+      std::vector<__int64> recipients;
+      std::map<__int64, std::vector<const MessageRecall::Row *> > byRecipient;
+      for (size_t i = 0; i < rows.size(); i++)
+      {
+         if (byRecipient.find(rows[i].recipient_id) == byRecipient.end())
+            recipients.push_back(rows[i].recipient_id);
+         byRecipient[rows[i].recipient_id].push_back(&rows[i]);
+      }
+
       int recalled = 0;
       int read = 0;
       int gone = 0;
       int failed = 0;
       AnsiString recipientsJson = "[";
 
-      for (size_t i = 0; i < rows.size(); i++)
+      for (size_t r = 0; r < recipients.size(); r++)
       {
-         const MessageRecall::Row &row = rows[i];
+         const std::vector<const MessageRecall::Row *> &theirs = byRecipient[recipients[r]];
+         std::shared_ptr<const Account> recipient = CacheContainer::Instance()->GetAccount(recipients[r]);
 
-         MessageRecall::Outcome outcome = (MessageRecall::Outcome) row.outcome;
-         if (outcome == MessageRecall::Pending)
+         bool anyRead = false;
+         bool anyRecalled = false;
+         bool anyFailed = false;
+
+         // What the marked rows already say, and what the pending rows' copies
+         // are now. A copy that could not be looked at leaves the recipient
+         // undecided: nothing of theirs is marked or deleted this time.
+         std::vector<Probed> pending;
+         for (size_t i = 0; i < theirs.size(); i++)
          {
-            outcome = Decide(row);
-            if (outcome != MessageRecall::Pending)
-               MessageRecall::Mark(row.id, outcome, now);
+            const MessageRecall::Row *row = theirs[i];
+            if (row->outcome == MessageRecall::Read)
+               anyRead = true;
+            else if (row->outcome == MessageRecall::Recalled)
+               anyRecalled = true;
+            else if (row->outcome == MessageRecall::Pending)
+            {
+               Probed probed;
+               probed.row = row;
+               if (row->stored_id == 0 || !recipient)
+                  probed.state = CopyAbsent;
+               else
+                  probed.state = Probe(*row, recipient, probed.live, probed.folder);
+               if (probed.state == CopyUnavailable)
+                  anyFailed = true;
+               if (probed.state == CopySeen)
+                  anyRead = true;
+               pending.push_back(probed);
+            }
          }
 
-         if (outcome == MessageRecall::Recalled) recalled++;
-         else if (outcome == MessageRecall::Read) read++;
-         else if (outcome == MessageRecall::Gone) gone++;
-         else failed++;
+         if (!anyFailed)
+         {
+            for (size_t i = 0; i < pending.size(); i++)
+            {
+               const Probed &probed = pending[i];
 
-         std::shared_ptr<const Account> recipient = CacheContainer::Instance()->GetAccount(row.recipient_id);
-         const String address = recipient ? recipient->GetAddress() : String();
+               // A copy not yet delivered when the recall runs is answered
+               // gone and left unmarked: the delivery fills the row in a
+               // moment, and the next call decides it.
+               if (probed.row->stored_id == 0)
+                  continue;
+
+               if (anyRead)
+               {
+                  // The recipient has read it: every copy of theirs stays.
+                  MessageRecall::Mark(probed.row->id, MessageRecall::Read, now);
+                  continue;
+               }
+
+               if (probed.state == CopyAbsent)
+               {
+                  MessageRecall::Mark(probed.row->id, MessageRecall::Gone, now);
+                  continue;
+               }
+
+               // Unread and there: deleted the way the page's own delete
+               // route deletes a message, through the same call.
+               if (DeleteOwnMessage_(recipient, probed.live, probed.folder))
+               {
+                  MessageRecall::Mark(probed.row->id, MessageRecall::Recalled, now);
+                  anyRecalled = true;
+                  continue;
+               }
+
+               // The delete answered nothing. Another recall of the same
+               // message may have taken the copy a moment ago and marked the
+               // row; that mark is the answer. Otherwise the row stays as it
+               // is and a later call tries again.
+               MessageRecall::Row fresh;
+               if (MessageRecall::Get(probed.row->id, fresh) && fresh.outcome != MessageRecall::Pending)
+               {
+                  if (fresh.outcome == MessageRecall::Read) anyRead = true;
+                  else if (fresh.outcome == MessageRecall::Recalled) anyRecalled = true;
+                  continue;
+               }
+               anyFailed = true;
+            }
+         }
+
+         const char *outcome = anyFailed ? "failed" : anyRead ? "read" : anyRecalled ? "recalled" : "gone";
+         if (anyFailed) failed++;
+         else if (anyRead) read++;
+         else if (anyRecalled) recalled++;
+         else gone++;
 
          AnsiString entry;
-         entry.Format("%hs{\"address\":\"%hs\",\"outcome\":\"%hs\"}", i > 0 ? "," : "",
-            JsonEscape_(Utf8_(address)).c_str(),
-            outcome == MessageRecall::Pending ? "failed" : MessageRecall::OutcomeWord(outcome));
+         entry.Format("%hs{\"address\":\"%hs\",\"outcome\":\"%hs\"}", r > 0 ? "," : "",
+            JsonEscape_(Utf8_(recipient ? recipient->GetAddress() : String())).c_str(), outcome);
          recipientsJson += entry;
       }
       recipientsJson += "]";
@@ -300,25 +399,25 @@ namespace HM
          {
             elsewhere = CountElsewhere(account, copy);
 
-            if (recalled > 0 && !copy->HasKeyword(String(RecalledKeyword)) && RightOn_(account, folder, ACLPermission::PermissionWriteOthers))
+            if (copy->HasKeyword(String(RecalledKeyword)))
+               marked = true;
+            else if (recalled > 0 && RightOn_(account, folder, ACLPermission::PermissionWriteOthers))
             {
                if (copy->AddKeyword(String(RecalledKeyword)) &&
                    Application::Instance()->GetFolderManager()->UpdateMessageFlags((int) folder->GetAccountID(), (int) folder->GetID(), copy->GetID(), copy->GetFlags(), copy->GetKeywords()))
                {
                   std::vector<__int64> changed;
                   changed.push_back(copy->GetID());
-                  Notify(folder, ChangeNotification::NotificationMessageFlagsChanged, changed);
+                  NotifyFolder(folder, ChangeNotification::NotificationMessageFlagsChanged, changed);
                   marked = true;
                }
             }
-            else if (copy->HasKeyword(String(RecalledKeyword)))
-               marked = true;
          }
       }
 
       LOG_APPLICATION(Formatter::Format("REST API: {0} recalled <{1}>: recalled {2}, read {3}, gone {4}.",
          account->GetAddress(), messageId, recalled, read, gone) +
-         (failed > 0 ? Formatter::Format(" {0} could not be deleted and will be tried again.", failed) : String()) +
+         (failed > 0 ? Formatter::Format(" {0} could not be decided and will be tried again.", failed) : String()) +
          Formatter::Format(" Not on this server: {0}. From {1}.", elsewhere, String(caller.peer.ToString())));
 
       AnsiString json;
@@ -331,6 +430,6 @@ namespace HM
    RestApiServer::OpenApiMessageRecallPaths_()
    {
       return
-         ",\"/api/v1/me/recall\":{\"post\":{\"summary\":\"Recall a message from the accounts on this server that have not read it\",\"description\":\"Body: message_id (the Message-ID of the message, with or without its angle brackets) and sent_id (optional: the id of the copy in the Sent folder). The rows this server recorded when the message was accepted from this account - one per recipient that resolved to a local account, kept for recall_days - are read, and for each copy: gone when the recipient's message is no longer there (deleted, or never delivered), read when it carries \\\\Seen (nothing is done; whoever has read it keeps it), recalled when the unread copy was deleted the way the webmail deletes a message - IMAP sessions see the expunge, the recover-deleted store gets its copy where that is on. Read is \\\\Seen and nothing more: a client that fetched the message without marking it seen has it, and the recall cannot know. Nobody outside this server is reached and no notice is sent to anybody; elsewhere counts the addresses the Sent copy names in To and Cc whose domain this server does not host, when sent_id is given (Bcc is not in the copy and is not counted). The Sent copy gets the keyword $Recalled when at least one copy was recalled. Idempotent: rows recalled stay, marked, and a second call answers the same outcomes. 404 when this account has no rows for that Message-ID within recall_days - which is also the answer for somebody else's message, since the rows are keyed by the sender. Only a message submitted over authenticated SMTP or from the webmail is recorded; one without a Message-ID, or with one longer than 255 characters, is not recallable, and at most 200 recipient rows per sender per day are recorded. Refused (403) to a request authenticated with an app password.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"message_id\"],\"properties\":{\"message_id\":{\"type\":\"string\"},\"sent_id\":{\"type\":\"integer\"}}}}}},\"responses\":{\"200\":{\"description\":\"message_id, recalled, read, gone, failed (a copy whose delete failed; the row is not marked and a later call tries again), elsewhere, sent_marked, and recipients: [{address, outcome}] with outcome recalled, read, gone or failed\"},\"400\":{\"description\":\"No message_id, one longer than 255 characters, or a sent_id that is not a whole number\"},\"403\":{\"description\":\"The request came in on an app password\"},\"404\":{\"description\":\"No recorded recipients on this server for that Message-ID from this account within recall_days\"}}}}";
+         ",\"/api/v1/me/recall\":{\"post\":{\"summary\":\"Recall a message from the accounts on this server that have not read it\",\"description\":\"Body: message_id (the Message-ID of the message, with or without its angle brackets) and sent_id (optional: the id of the copy in the Sent folder). The rows this server recorded when the message was accepted from this account - one per recipient that resolved to a local account, kept for recall_days, with a row added for every copy the recipient makes within their own mailbox (IMAP COPY and MOVE, the webmail's move, archive, junk and trash), so the recall follows the message wherever they filed it - are read and judged per recipient: read when any live copy of theirs carries \\\\Seen (nothing is done; whoever has read it keeps every copy), recalled when at least one unread copy was deleted the way the webmail deletes a message - every unread copy goes, IMAP sessions see the expunge, the recover-deleted store gets its copy while the server-wide recover_deleted_days is on - gone when no copy of theirs is there any more (deleted, never delivered, or a copy that is still in the queue at this moment: that one is answered gone and decided again on the next call), and failed when the database did not answer or a delete could not be made, in which case nothing of theirs is marked and a later call decides again. Read is \\\\Seen and nothing more: a client that fetched the message without marking it seen has it, and the recall cannot know. Nobody outside this server is reached and no notice is sent to anybody; elsewhere counts the addresses the Sent copy names in To and Cc whose domain this server does not host, when sent_id is given (Bcc is not in the copy and is not counted). The Sent copy gets the keyword $Recalled when at least one copy was recalled. Idempotent: rows decided stay, marked, and a second call answers the same outcomes. 404 when this account has no rows for that Message-ID within recall_days - which is also the answer for somebody else's message, since the rows are keyed by the sender. Only a message submitted over authenticated SMTP or from the webmail is recorded; one with a Message-ID longer than 255 characters is not recallable (a submission without one is given one at acceptance, and the webmail always writes one), and at most 200 recipient rows per sender per day are recorded. Counted against the credential's request rate as every request is. Refused (403) to a request authenticated with an app password.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"message_id\"],\"properties\":{\"message_id\":{\"type\":\"string\"},\"sent_id\":{\"type\":\"integer\"}}}}}},\"responses\":{\"200\":{\"description\":\"message_id, recalled, read, gone, failed, elsewhere, sent_marked, and recipients: [{address, outcome}] with outcome recalled, read, gone or failed; address is empty for a recipient account since deleted\"},\"400\":{\"description\":\"No message_id, one longer than 255 characters, or a sent_id that is not a whole number\"},\"403\":{\"description\":\"The request came in on an app password\"},\"404\":{\"description\":\"No recorded recipients on this server for that Message-ID from this account within recall_days\"}}}}";
    }
 }

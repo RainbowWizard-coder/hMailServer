@@ -35,6 +35,8 @@ namespace HM
 {
    namespace
    {
+      const char *Columns = "recallid, recallsenderid, recallmsgid, recallrecipientid, recallqueueid, recallmessageid, recallcreated, recallrecalledat, recalloutcome";
+
       // The senders told, this rolling day, that their ceiling was reached:
       // sender id to the day the line was written. Said once per sender per
       // day, so a bulk sender does not fill the application log with the
@@ -72,7 +74,7 @@ namespace HM
          return recordset->IsEOF() ? 0 : (int) recordset->GetInt64Value("recallcount");
       }
 
-      bool Insert(__int64 senderId, const String &messageId, __int64 recipientId, __int64 queueId, __int64 storedId, __int64 now)
+      bool Insert(__int64 senderId, const String &messageId, __int64 recipientId, __int64 queueId, __int64 storedId, __int64 created)
       {
          SQLStatement statement(SQLStatement::STInsert, "hm_recall");
          statement.AddColumnInt64("recallsenderid", senderId);
@@ -80,7 +82,7 @@ namespace HM
          statement.AddColumnInt64("recallrecipientid", recipientId);
          statement.AddColumnInt64("recallqueueid", queueId);
          statement.AddColumnInt64("recallmessageid", storedId);
-         statement.AddColumnInt64("recallcreated", now);
+         statement.AddColumnInt64("recallcreated", created);
          statement.AddColumnInt64("recallrecalledat", 0);
          statement.AddColumn("recalloutcome", (long) MessageRecall::Pending);
          statement.SetIdentityColumn("recallid");
@@ -108,6 +110,22 @@ namespace HM
          row.recalled_at = recordset->GetInt64Value("recallrecalledat");
          row.outcome = (int) recordset->GetLongValue("recalloutcome");
          return row;
+      }
+
+      // The rows a command selects, oldest first; false when the database
+      // did not answer.
+      bool Select(SQLCommand &command, std::vector<MessageRecall::Row> &rows)
+      {
+         rows.clear();
+         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+         if (!recordset)
+            return false;
+         while (!recordset->IsEOF())
+         {
+            rows.push_back(ReadRow(recordset));
+            recordset->MoveNext();
+         }
+         return true;
       }
    }
 
@@ -209,28 +227,37 @@ namespace HM
    }
 
    void
-   MessageRecall::Delivered(__int64 queueId, std::shared_ptr<const Account> recipient, __int64 storedId)
+   MessageRecall::Delivered(__int64 queueId, std::shared_ptr<const Account> recipient, __int64 storedId, const String &fileName)
    {
       if (queueId <= 0 || !recipient || storedId <= 0)
          return;
 
-      SQLCommand command("select recallid, recallsenderid, recallmsgid, recallrecipientid, recallqueueid, recallmessageid, recallcreated, recallrecalledat, recalloutcome from hm_recall where recallqueueid = @QUEUEID order by recallid");
+      SQLCommand command(AnsiString("select ") + Columns + " from hm_recall where recallqueueid = @QUEUEID order by recallid");
       command.AddParameter("@QUEUEID", queueId);
-      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
-      if (!recordset)
-         return;
 
       std::vector<Row> rows;
-      while (!recordset->IsEOF())
-      {
-         rows.push_back(ReadRow(recordset));
-         recordset->MoveNext();
-      }
+      if (!Select(command, rows))
+         return;
 
       // The common case - a message from outside, or one this server wrote -
       // costs the one select above and nothing more.
       if (rows.empty())
          return;
+
+      // The rows' message and the delivered file have to carry one
+      // Message-ID. A database that hands out an hm_messages id again after
+      // a restart - MySQL 5 recomputes AUTO_INCREMENT from what is left - can
+      // accept an outsider's message under a queue id whose rows are still
+      // within RecallDays; the header is what tells the two apart, and it is
+      // read only here, when rows exist.
+      const Row &first = rows.front();
+      const String delivered = MessageIdOf(fileName);
+      if (delivered.IsEmpty() || delivered != first.message_id)
+      {
+         LOG_DEBUG(Formatter::Format("Message recall: queue message {0} delivered to {1} carries Message-ID <{2}>, not the recorded <{3}>; the copy is not tied to the rows.",
+            queueId, recipient->GetAddress(), delivered, first.message_id));
+         return;
+      }
 
       bool found = false;
       for (const Row &row : rows)
@@ -253,9 +280,9 @@ namespace HM
 
       // A recipient the acceptance did not know - reached by an expansion
       // made after RCPT TO - whose message is provably the one the rows
-      // record: the same queue row. The sender is the rows' sender, and the
-      // day's ceiling holds here as it does at acceptance.
-      const Row &first = rows.front();
+      // record: the same queue row, the same Message-ID. The sender is the
+      // rows' sender, and the day's ceiling holds here as it does at
+      // acceptance.
       const __int64 now = (__int64) time(nullptr);
       const int today = CountToday(first.sender_id, now);
       if (today < 0)
@@ -275,26 +302,61 @@ namespace HM
       }
    }
 
+   void
+   MessageRecall::Copied(__int64 sourceId, __int64 copyId, __int64 accountId)
+   {
+      if (sourceId <= 0 || copyId <= 0 || accountId <= 0)
+         return;
+
+      SQLCommand command(AnsiString("select ") + Columns + " from hm_recall where recallmessageid = @SOURCEID order by recallid");
+      command.AddParameter("@SOURCEID", sourceId);
+
+      std::vector<Row> rows;
+      if (!Select(command, rows) || rows.empty())
+         return;
+
+      int written = 0;
+      for (const Row &row : rows)
+      {
+         // The copy is the recipient's own, or it is nobody's business here.
+         if (row.recipient_id != accountId)
+            continue;
+
+         // The sibling keeps the original's clock, so the copy leaves the
+         // window when the message does and not later.
+         if (Insert(row.sender_id, row.message_id, row.recipient_id, row.queue_id, copyId, row.created))
+            written++;
+      }
+
+      if (written > 0)
+      {
+         LOG_DEBUG(Formatter::Format("Message recall: message {0} was copied to {1} within its mailbox; {2} recall row(s) follow it.",
+            sourceId, copyId, written));
+      }
+   }
+
    bool
    MessageRecall::List(__int64 senderId, const String &messageId, std::vector<Row> &rows)
    {
-      rows.clear();
-
       const __int64 now = (__int64) time(nullptr);
 
-      SQLCommand command("select recallid, recallsenderid, recallmsgid, recallrecipientid, recallqueueid, recallmessageid, recallcreated, recallrecalledat, recalloutcome from hm_recall where recallsenderid = @SENDERID and recallmsgid = @MSGID and recallcreated >= @SINCE order by recallid");
+      SQLCommand command(AnsiString("select ") + Columns + " from hm_recall where recallsenderid = @SENDERID and recallmsgid = @MSGID and recallcreated >= @SINCE order by recallid");
       command.AddParameter("@SENDERID", senderId);
       command.AddParameter("@MSGID", messageId);
       command.AddParameter("@SINCE", now - (__int64) Days() * DaySeconds);
-      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
-      if (!recordset)
-         return false;
+      return Select(command, rows);
+   }
 
-      while (!recordset->IsEOF())
-      {
-         rows.push_back(ReadRow(recordset));
-         recordset->MoveNext();
-      }
+   bool
+   MessageRecall::Get(__int64 rowId, Row &row)
+   {
+      SQLCommand command(AnsiString("select ") + Columns + " from hm_recall where recallid = @ID");
+      command.AddParameter("@ID", rowId);
+
+      std::vector<Row> rows;
+      if (!Select(command, rows) || rows.empty())
+         return false;
+      row = rows.front();
       return true;
    }
 

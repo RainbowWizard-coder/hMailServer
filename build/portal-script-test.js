@@ -468,7 +468,11 @@ const LISTING = {
 const SENT_LISTING = [
    { id: 401, uid: 1, subject: 'Figures for the board', from: 'user@example.com', to: 'alice@example.net', date: stampDaysAgo(6), size: 500, message_id: '<one@example.net>', flags: { seen: true, flagged: false, draft: false } },
    { id: 402, uid: 2, subject: 'Draft agenda', from: 'user@example.com', to: 'bob@example.net', date: stampDaysAgo(5), size: 500, message_id: '<agenda@example.com>', flags: { seen: true, flagged: false, draft: false } },
-   { id: 403, uid: 3, subject: 'Thanks', from: 'user@example.com', to: 'carol@example.net', date: stampDaysAgo(1), size: 300, message_id: '<thanks@example.com>', flags: { seen: true, flagged: false, draft: false } }
+   { id: 403, uid: 3, subject: 'Thanks', from: 'user@example.com', to: 'carol@example.net', date: stampDaysAgo(1), size: 300, message_id: '<thanks@example.com>', flags: { seen: true, flagged: false, draft: false } },
+   // For the recall checks: one too old to recall (and too old to nudge),
+   // and one filed into Sent by hand whose From is somebody else's.
+   { id: 404, uid: 4, subject: 'Old news', from: 'user@example.com', to: 'dan@example.net', date: stampDaysAgo(40), size: 300, message_id: '<old@example.com>', flags: { seen: true, flagged: false, draft: false } },
+   { id: 405, uid: 5, subject: 'Filed here by hand', from: 'other@example.org', to: 'user@example.com', date: stampDaysAgo(1), size: 300, message_id: '<theirs@example.org>', flags: { seen: true, flagged: false, draft: false } }
 ];
 
 // The Work folder: one conversation of three. The first is quoted whole in
@@ -1074,6 +1078,25 @@ function answerConfidential(method, path) {
    if (method === 'POST') { confidential[at].revoked = true; return json(200, { revoked: true }); }
    return json(404, { error: 'not found' });
 }
+// Message recall within the server (MessageRecall.h): what the server
+// answers a recall with, and whether this session came in on an app
+// password, which the page reads from /api/v1/me.
+let viaAppPassword = false;
+let recallAnswer = { status: 200, body: { recalled: 2, read: 1, gone: 0, failed: 0, elsewhere: 1, sent_marked: true, recipients: [{ address: 'x@example.com', outcome: 'recalled' }, { address: 'y@example.com', outcome: 'recalled' }, { address: 'z@example.com', outcome: 'read' }] } };
+function answerRecall(method, path, body) {
+   // The Sent messages the recall checks open, served as the page reads a
+   // message: with the folder they are in.
+   const sent = /^\/api\/v1\/me\/messages\/(40\d)$/.exec(path);
+   if (sent && method === 'GET') {
+      const found = SENT_LISTING.filter((m) => m.id === Number(sent[1]))[0];
+      return found ? json(200, withState(Object.assign({ folder_id: 2, cc: '', text: 'Sent from here.' }, found))) : json(404, { error: 'message not found' });
+   }
+   if (path !== '/api/v1/me/recall') { return null; }
+   if (method !== 'POST') { return json(404, { error: 'not found' }); }
+   const wanted = JSON.parse(body || '{}');
+   if (recallAnswer.status !== 200) { return json(recallAnswer.status, recallAnswer.body); }
+   return json(200, Object.assign({ message_id: String(wanted.message_id || '').replace(/[<>]/g, '') }, recallAnswer.body));
+}
 // Offline in the browser: a ceiling of 30 days and a reader who has chosen
 // nothing yet, so nothing is fetched in the background until a check says so.
 // The window's listing carries the three inbox messages, by id from the oldest
@@ -1297,13 +1320,15 @@ function answer(method, path, body) {
    { const keys = answerPasskeys(method, path, body); if (keys) { return keys; } }
    { const listed = answerDirectory(method, path, body); if (listed) { return listed; } }
    { const expiring = answerConfidential(method, path); if (expiring) { return expiring; } }
+   { const recall = answerRecall(method, path, body); if (recall) { return recall; } }
    { const groups = answerContactGroups(method, path, body); if (groups) { return groups; } }
    { const window = answerOffline(method, path, body); if (window) { return window; } }
    if (path === '/api/v1/me') {
       return json(200, {
          address: account, quota: { used_bytes: 5242880, limit_mb: 100 },
          vacation: { enabled: false, subject: '', message: '', expires: false, expires_date: '' },
-         second_factor: false, directory_linked: false, password_changed: '2026-09-01'
+         second_factor: false, directory_linked: false, password_changed: '2026-09-01',
+         recall_days: 14, via_app_password: viaAppPassword
       });
    }
    if (path === '/api/v1/me/folders' && method === 'GET') { return json(200, folderTree()); }
@@ -4780,6 +4805,138 @@ async function main() {
          String(document.getElementById('confidential-status').className).indexOf('ok') >= 0,
          rowFor('The board pack') ? rowFor('The board pack').textContent : 'no row');
       confidential[0].revoked = false;
+   }
+
+   // ---- Message recall within the server: Recall on a Sent message of the
+   // account's own, young enough, with a Message-ID, and not on an app
+   // password; the confirm sentence, the POST, the toast per outcome and
+   // the Recalled badge
+   {
+      const words = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+      const fill = (text, ...values) => values.reduce((s, v, i) => s.split('{' + i + '}').join(String(v)), words(text));
+      const recallItem = () => menuItem('recall');
+      const rightClick = (subject) => { rowBySubject(subject).dispatchEvent(makeEvent('contextmenu', { clientX: 300, clientY: 200 })); };
+      const badgeOn = (row) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1 && String(c.className).indexOf('badge') >= 0) { out.push(c.textContent); } if (c.childNodes) { walk(c); } } })(row); return out; };
+      const signInAgain = async () => {
+         document.getElementById('signout').dispatchEvent(makeEvent('click'));
+         await flush();
+         document.getElementById('address').value = 'user@example.com';
+         document.getElementById('password').value = 'a-real-password';
+         document.getElementById('signin-form').dispatchEvent(makeEvent('submit'));
+         await flush(); await flush();
+         dismissAllToasts();
+      };
+
+      location.hash = '#/f/1';
+      await flush();
+      rightClick('Second');
+      check('Recall is not offered on a message in the inbox', recallItem().hidden === true, 'hidden=' + recallItem().hidden);
+      document.dispatchEvent(makeEvent('keydown', { key: 'Escape' }));
+
+      location.hash = '#/f/2';
+      await flush();
+      rightClick('Thanks');
+      check('in the Sent folder, a message of the account\'s own sent yesterday offers Recall in the row menu',
+         recallItem().hidden === false && recallItem().textContent === words('Recall'), 'hidden=' + recallItem().hidden + ' text=' + recallItem().textContent);
+      document.dispatchEvent(makeEvent('keydown', { key: 'Escape' }));
+      rightClick('Old news');
+      check('one older than recall_days does not', recallItem().hidden === true, 'hidden=' + recallItem().hidden);
+      document.dispatchEvent(makeEvent('keydown', { key: 'Escape' }));
+      rightClick('Filed here by hand');
+      check('nor one whose From is not the account or one of its identities', recallItem().hidden === true, 'hidden=' + recallItem().hidden);
+      document.dispatchEvent(makeEvent('keydown', { key: 'Escape' }));
+
+      const keptId = SENT_LISTING[2].message_id;
+      SENT_LISTING[2].message_id = '';
+      location.hash = '#/f/1';
+      await flush();
+      location.hash = '#/f/2';
+      await flush();
+      rightClick('Thanks');
+      check('nor one without a Message-ID, which nothing could be recalled by', recallItem().hidden === true, 'hidden=' + recallItem().hidden);
+      document.dispatchEvent(makeEvent('keydown', { key: 'Escape' }));
+      SENT_LISTING[2].message_id = keptId;
+      location.hash = '#/f/1';
+      await flush();
+      location.hash = '#/f/2';
+      await flush();
+
+      // Declined: nothing is asked of the server.
+      confirmAnswer = false;
+      const beforeDecline = requests.length;
+      rightClick('Thanks');
+      recallItem().dispatchEvent(makeEvent('click', { target: recallItem() }));
+      await flush();
+      check('Recall asks first, in the sentence that says who keeps it and who is not reached, and a No sends nothing',
+         confirms[confirms.length - 1] === words('Recall this message from the people on this server who have not read it? Whoever has read it keeps it, and nobody outside this server is reached.') &&
+         !called(beforeDecline, 'POST', '/api/v1/me/recall'),
+         confirms[confirms.length - 1]);
+
+      // Accepted: the POST carries the Message-ID and the Sent copy's id, the
+      // toast says the numbers, and the row wears the badge.
+      confirmAnswer = true;
+      dismissAllToasts();
+      const beforeRecall = requests.length;
+      rightClick('Thanks');
+      recallItem().dispatchEvent(makeEvent('click', { target: recallItem() }));
+      await flush(); await flush();
+      const recallPost = since(beforeRecall).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/recall').map((r) => JSON.parse(r.body))[0];
+      check('a Yes posts the Message-ID and the Sent copy\'s id to /api/v1/me/recall',
+         !!recallPost && recallPost.message_id === '<thanks@example.com>' && recallPost.sent_id === 403, recallPost ? JSON.stringify(recallPost) : 'no POST');
+      check('the toast says how many were recalled, how many had read it and how many are not on this server',
+         toasts.textContent.indexOf(fill('Recalled from {0}, already read by {1}, not on this server: {2}', 2, 1, 1)) >= 0, toasts.textContent);
+      check('and the Sent row wears the Recalled badge', badgeOn(rowBySubject('Thanks')).indexOf(words('Recalled')) >= 0, badgeOn(rowBySubject('Thanks')).join(','));
+      dismissAllToasts();
+
+      // Already gone: said in a clause of its own.
+      recallAnswer = { status: 200, body: { recalled: 0, read: 0, gone: 2, failed: 0, elsewhere: 0, sent_marked: false, recipients: [] } };
+      rightClick('Draft agenda');
+      recallItem().dispatchEvent(makeEvent('click', { target: recallItem() }));
+      await flush(); await flush();
+      check('a recall that found nothing left says so in the toast, and marks nothing',
+         toasts.textContent.indexOf(fill('Recalled from {0}, already read by {1}, not on this server: {2}', 0, 0, 0)) >= 0 &&
+         toasts.textContent.indexOf(fill('({0} already gone.)', 2)) >= 0 && badgeOn(rowBySubject('Draft agenda')).indexOf(words('Recalled')) < 0,
+         toasts.textContent);
+      dismissAllToasts();
+
+      // Refused: the server's sentence, or the page's own when there is none.
+      recallAnswer = { status: 404, body: { error: 'no message with that Message-ID was sent from this account to an account on this server within the last 14 days' } };
+      rightClick('Figures for the board');
+      recallItem().dispatchEvent(makeEvent('click', { target: recallItem() }));
+      await flush(); await flush();
+      check('a 404 is a toast and nothing more', toasts.children.length === 1 && badgeOn(rowBySubject('Figures for the board')).indexOf(words('Recalled')) < 0, toasts.textContent);
+      dismissAllToasts();
+      recallAnswer = { status: 200, body: { recalled: 2, read: 1, gone: 0, failed: 0, elsewhere: 1, sent_marked: true, recipients: [] } };
+
+      // The open message's More menu offers the same, under the same rules.
+      location.hash = '#/m/402';
+      await flush();
+      check('the open message offers Recall in its More menu', document.getElementById('message-recall').hidden === false, 'hidden=' + document.getElementById('message-recall').hidden);
+      location.hash = '#/m/404';
+      await flush();
+      check('and not for one older than recall_days', document.getElementById('message-recall').hidden === true, 'hidden=' + document.getElementById('message-recall').hidden);
+      document.getElementById('message-back').dispatchEvent(makeEvent('click'));
+      await flush();
+
+      // A session that came in on an app password is not offered it at all:
+      // the server would refuse, and the page does not offer what it knows
+      // will be refused.
+      viaAppPassword = true;
+      await signInAgain();
+      location.hash = '#/f/2';
+      await flush();
+      rightClick('Thanks');
+      check('a session signed in with an app password is not offered Recall', recallItem().hidden === true, 'hidden=' + recallItem().hidden);
+      document.dispatchEvent(makeEvent('keydown', { key: 'Escape' }));
+      location.hash = '#/m/402';
+      await flush();
+      check('nor on the open message', document.getElementById('message-recall').hidden === true, 'hidden=' + document.getElementById('message-recall').hidden);
+      document.getElementById('message-back').dispatchEvent(makeEvent('click'));
+      await flush();
+      viaAppPassword = false;
+      await signInAgain();
+      location.hash = '#/f/1';
+      await flush();
    }
 
    // ---- Offline for the last N days: the choice under the ceiling, the store

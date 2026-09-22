@@ -2272,6 +2272,10 @@ CREATE INDEX idx_hm_recall_sender ON hm_recall (recallsenderid);
 
 CREATE INDEX idx_hm_recall_queue ON hm_recall (recallqueueid);
 
+CREATE INDEX idx_hm_recall_message ON hm_recall (recallmessageid);
+
+CREATE INDEX idx_hm_recall_created ON hm_recall (recallcreated);
+
 ALTER TABLE hm_recall ENGINE=InnoDB;
 
 ALTER TABLE hm_recall ADD CONSTRAINT fk_hm_recall_sender FOREIGN KEY (recallsenderid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;

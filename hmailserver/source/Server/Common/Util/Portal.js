@@ -283,8 +283,11 @@
   var state = { folderId: 0, query: '', everywhere: false, before: 0 };
   var me = '';
   // How many days after sending the server still offers Recall on a Sent
-  // message (recall_days on /api/v1/me); 0 until the account is loaded.
+  // message (recall_days on /api/v1/me); 0 until the account is loaded. And
+  // whether this session came in on an app password, which the server
+  // refuses a recall to: the item is not offered rather than refused.
   var recallDays = 0;
+  var viaAppPassword = false;
   var directoryLinked = false;
   var quarantineOn = true;
 
@@ -2195,6 +2198,7 @@
         recallDays = Number(result.data.recall_days) || 0;
         if (asSecond) { accounts.second.address = me; } else { accounts.first.address = me; }
         smimeViaAppPassword = result.data.via_app_password === true;
+        viaAppPassword = smimeViaAppPassword;
         offline.only = false;
         offlineRetryStop();
         offlineNote(false);
@@ -8469,6 +8473,7 @@
     return identities.some(function (i) { return String(i.address || '').toLowerCase() === address; });
   };
   var recallable = function (m, folderId) {
+    if (viaAppPassword) { return false; }
     if (!m || !recallDays || !m.message_id || !folderIs(folderId, 'Sent') || (m.flags && m.flags.draft)) { return false; }
     if (!ownAddress(addressOf(m.from || ''))) { return false; }
     var days = daysOld(m);

@@ -33,6 +33,7 @@
 #include "../Cache/CacheContainer.h"
 #include "../Cache/AccountSizeCache.h"
 #include "../Util/FolderManipulationLock.h"
+#include "../Util/MessageRecall.h"
 
 #ifdef HM_PLATFORM_POSIX
 // LoadHeader and LoadBody below read a message file through CreateFile,
@@ -553,6 +554,16 @@ namespace HM
       messageCopy->SetState(Message::Delivered);
       messageCopy->SetFolderID(destinationFolder->GetID());
 
+      // Message recall (Util/MessageRecall.h): a copy the reader makes within
+      // their own mailbox - IMAP COPY and MOVE, the webmail's move, archive,
+      // junk and trash all come through here - is the same message under a
+      // new id, and the recall rows follow it when the row is saved and the
+      // id is known (AddObject). A copy into another account's folder is that
+      // account's, and gets no row.
+      if (sourceMessage->GetID() > 0 && sourceMessage->GetAccountID() > 0 &&
+          sourceMessage->GetAccountID() == destinationFolder->GetAccountID())
+         messageCopy->SetCopiedFromID(sourceMessage->GetID());
+
       // The source bytes live under the account that owns the SOURCE message. An
       // account id of zero is a public-folder message, where the address is not
       // part of the path and an empty one is correct.
@@ -919,6 +930,15 @@ namespace HM
       if (bRetVal && bNewObject)
       {
          pMessage->SetID(iDBID);
+
+         // A copy made within the reader's own mailbox (CopyToIMAPFolder) now
+         // has its id: the message-recall rows of the message it came from
+         // follow it (Util/MessageRecall.h), once.
+         if (pMessage->GetCopiedFromID() > 0)
+         {
+            MessageRecall::Copied(pMessage->GetCopiedFromID(), iDBID, pMessage->GetAccountID());
+            pMessage->SetCopiedFromID(0);
+         }
       }
 
       return bRetVal;

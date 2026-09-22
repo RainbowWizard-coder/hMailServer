@@ -41,8 +41,11 @@ Nothing is recorded for:
   name: the envelope sender there is a claim, and a recall keyed on a claim
   would let anybody delete mail from other people's mailboxes by writing an
   address into `MAIL FROM`;
-* a message with **no `Message-ID`**, or one longer than 255 characters: it is
-  not recallable, and the debug log says so at acceptance;
+* a message with a **`Message-ID` longer than 255 characters**: it is not
+  recallable, and the debug log says so at acceptance. A message with no
+  `Message-ID` would not be either, but there is none in practice: a
+  submission without one is given one at acceptance (`SMTPMessageHeaderCreator`,
+  as RFC 6409 lets a submission server), and the webmail always writes one;
 * a message that expires (a confidential message): it has *Withdraw* of its
   own, and what sits in the queue for it is the notice, not the message;
 * the 201st and later recipient rows of one sender in a rolling day: **at most
@@ -52,12 +55,26 @@ Nothing is recorded for:
 
 A recipient reached by expansion after `RCPT TO` - a distribution list
 member, an alias target - gets its row at delivery, when rows for **the same
-queue message** already exist: that is how a member's copy is tied to its
-sender without trusting the `From` header, and without trusting the
-`Message-ID` either, since a `Message-ID` is not a secret and anybody may write
-one. (The recipient parser resolves lists and aliases at `RCPT TO`, so in
-practice the rows are written at acceptance and delivery only fills in the
-recipient's message row.)
+queue message** already exist and the delivered file carries the rows'
+`Message-ID`: that is how a member's copy is tied to its sender without
+trusting the `From` header, and without trusting the `Message-ID` alone,
+since a `Message-ID` is not a secret and anybody may write one. The
+`Message-ID` check is what guards a database that hands out an `hm_messages`
+id again after a restart (MySQL 5 recomputes `AUTO_INCREMENT` from what is
+left): an outsider's message accepted under a queue id whose rows are still
+within `RecallDays` is not tied to them. (The recipient parser resolves lists
+and aliases at `RCPT TO`, so in practice the rows are written at acceptance
+and delivery only fills in the recipient's message row.)
+
+**A copy the reader makes within their own mailbox is followed.** Every move
+a reader can make is copy-and-delete - IMAP `MOVE` and `COPY`, the webmail's
+move, Archive, Junk and Trash - and gives the copy a new `hm_messages` id.
+`PersistentMessage::CopyToIMAPFolder` marks the copy with the id it came
+from, and the save that assigns the new id writes a row beside the old one
+(same sender, `Message-ID`, recipient and queue row), so a recipient may hold
+several rows and the recall finds the message wherever they filed it. A copy
+into another account's folder - a shared folder, a delegated mailbox - is
+that account's and gets no row.
 
 The recall
 ----------
@@ -65,18 +82,20 @@ The recall
 `POST /api/v1/me/recall` with `{"message_id": "<the Message-ID>", "sent_id":
 n}` - `sent_id` optional, the id of the copy in the Sent folder. Self-service:
 the signed-in account's own rows only. Refused with 403 to a request that came
-in on an app password, and rate-limited like every other write of the
-self-service API.
+in on an app password (the webmail does not offer Recall to such a session),
+and counted against the credential's request rate as every request to the
+API is, reads included.
 
 The rows for (this account, that `Message-ID`) not older than `RecallDays` are
-read. For each recipient copy on this server:
+read and judged **per recipient**, since a recipient who filed or copied the
+message holds several rows:
 
-| Outcome    | What it means, and what was done                                                                                                                                                                                                                                                                                                       |
-|------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `gone`     | The recipient's message row is no longer there - deleted by the reader, never delivered (a rule dropped it, or it was still in the queue when the recall ran), moved into a folder another account owns, or the recipient account itself is gone. Nothing was done.                                                                       |
-| `read`     | The copy carries `\Seen`. Nothing was done: whoever has read it keeps it.                                                                                                                                                                                                                                                              |
-| `recalled` | The copy was unread and has been deleted **the way the webmail deletes a message** - through the folder's own collection, so an IMAP session with the folder selected sees the `EXPUNGE`, the recover-deleted store gets its copy where that account has the window on, and the change notifications fire. The copy is found wherever the reader filed it. |
-| `failed`   | The delete itself failed (the database did not answer). The row is not marked, and a later call tries again.                                                                                                                                                                                                                             |
+| Outcome    | What it means, and what was done                                                                                                                                                                                                                                                                                                                                                                       |
+|------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `read`     | Some live copy of theirs carries `\Seen`. Nothing was done: whoever has read it keeps it, every copy.                                                                                                                                                                                                                                                                                                  |
+| `recalled` | No copy of theirs was read and at least one unread copy was there; every unread copy has been deleted **the way the webmail deletes a message** - through the same `DeleteOwnMessage_` the page's delete route calls, so an IMAP session with the folder selected sees the `EXPUNGE`, the recover-deleted store gets its copy while the server-wide `recover_deleted_days` is on, and the change notifications fire. |
+| `gone`     | No copy of theirs is there any more - deleted by the reader, never delivered (a rule dropped it, or it was still in the queue when the recall ran), a copy whose file carries another `Message-ID`, or the recipient account itself is gone (its `address` is then empty in the answer). Nothing was done.                                                                                              |
+| `failed`   | The database did not answer while a copy was being looked at, or a delete could not be made. Nothing of that recipient's is marked, and a later call decides them again.                                                                                                                                                                                                                                 |
 
 The answer is `{"message_id", "recalled", "read", "gone", "failed",
 "elsewhere", "sent_marked", "recipients": [{"address", "outcome"}]}`.
@@ -84,10 +103,15 @@ The answer is `{"message_id", "recalled", "read", "gone", "failed",
 is also the answer for somebody else's message, since the rows are keyed by
 the sender.
 
-A recall is **idempotent**: rows recalled stay, marked with their outcome, and
+A recall is **idempotent**: rows decided stay, marked with their outcome, and
 a second call answers the same outcomes. A row answered `read` stays `read`
 even if the reader later marks the message unread; the recall was asked and
-answered once.
+answered once. Two exceptions, both in the recipient's favour: a copy still
+in the queue when the recall runs is answered `gone` but its row is left
+unmarked, so once the delivery has filled it in the next call decides it; and
+a recipient answered `failed` is left entirely unmarked, so the next call
+tries again. Two recalls of one message at once agree: when the second finds
+the copy already taken it reads the mark the first left and answers that.
 
 `elsewhere` is how many distinct addresses the Sent copy names in `To` and
 `Cc` whose domain this server does not host (after the domain aliases), when
@@ -100,10 +124,9 @@ carries it.
 **Read is `\Seen` and nothing more.** A client that fetched the message
 without marking it seen - a POP3 client, an IMAP client that peeks, a client
 whose preview pane does not set the flag - has the message, and the recall
-cannot know. A copy the reader made with IMAP `COPY` is a second row the
-table never saw, and stays. This is exactly the honesty Exchange's recall
-lacks, and the page's confirm sentence says it: *whoever has read it keeps it,
-and nobody outside this server is reached.*
+cannot know. This is exactly the honesty Exchange's recall lacks, and the
+page's confirm sentence says it: *whoever has read it keeps it, and nobody
+outside this server is reached.*
 
 How long
 --------
@@ -121,7 +144,9 @@ The page
 In the webmail, a message in the folder designated `\Sent` whose `From` is
 the account or one of its identities and which is younger than `RecallDays`
 (the page learns the number from `GET /api/v1/me` as `recall_days`) offers
-**Recall** in its row menu and in the open message's *More* menu. The confirm
+**Recall** in its row menu and in the open message's *More* menu - unless the
+session came in on an app password, which `GET /api/v1/me` also says, in
+which case the item is not offered rather than refused. The confirm
 sentence: *Recall this message from the people on this server who have not
 read it? Whoever has read it keeps it, and nobody outside this server is
 reached.* The toast afterwards: *Recalled from 2, already read by 1, not on
@@ -138,15 +163,16 @@ What it is not
 * It does not know who has read what beyond `\Seen`.
 * It does not send a notice. The recipients whose copies went learn nothing
   from this server; the sender's Sent copy carries the mark.
-* It does not recall a message the reader already deleted, copied, forwarded,
-  printed or photographed.
+* It does not recall a message the reader already deleted, printed or
+  photographed. A reader who forwarded it unread loses their own copy and
+  keeps nothing; the forwarded copy is out of reach.
 * It does not recall a message submitted without authentication, or by a
   program using an app password (the sending is allowed; the recalling is the
   person's own act).
 * It does not touch the queue: a copy not yet delivered when the recall runs
-  is answered `gone` and is delivered afterwards. The queue is seconds long
-  on a healthy server; a message held for review is the one case where it is
-  not, and a recall before its release does not reach it.
+  is answered `gone` and is delivered afterwards, its row left unmarked so
+  that the next call reaches it. The queue is seconds long on a healthy
+  server; a message held for review is the one case where it is not.
 
 The rows and the settings
 -------------------------
@@ -155,9 +181,10 @@ The rows and the settings
 row goes with the sender), `recallmsgid` (the `Message-ID`, at most 255
 characters), `recallrecipientid`, `recallqueueid`, `recallmessageid` (0 until
 delivered), `recallcreated`, `recallrecalledat` (0 until recalled) and
-`recalloutcome` (0 pending, 1 recalled, 2 read, 3 gone). Indexed by sender and
-by queue id; a local delivery costs one select on the queue id and nothing
-more for a message nobody recorded.
+`recalloutcome` (0 pending, 1 recalled, 2 read, 3 gone). Indexed by sender,
+by queue id (a local delivery costs one select and nothing more for a message
+nobody recorded), by message id (a copy within a mailbox costs one select)
+and by creation time (the minute sweep).
 
 `RecallDays`: `hm_settings`, 14, 1 to 365; `recall_days` over REST. There is
 no COM property and no Control Panel page: the feature is the person's own,
@@ -167,14 +194,34 @@ other webmail settings.
 Tests
 -----
 
-`RegressionTests/API/RestApiMessageRecall.cs`, REST port 9806: a webmail send
-to two local accounts and one outside address recalled from both unread
-copies (POP3 counts, the `EXPUNGE` an IMAP session with the folder selected
-sees, `elsewhere` 1, the `$Recalled` keyword, a second call answering the
-same), a copy marked `\Seen` over IMAP staying and answered `read` while the
-other goes, an authenticated SMTP submission recalled by the `Message-ID` the
-client wrote, another account's recall of that id answered 404 with nothing
-deleted, an unauthenticated local-range submission in a local account's name
-not recorded, a distribution list's two members both recalled, rows older than
-`RecallDays` swept by the retention task and answered 404 while the same rows
-without the sweep answer 200, and an app password refused with 403.
+`RegressionTests/API/RestApiMessageRecall.cs`, REST port 9806, fifteen tests,
+each with its negative control: a webmail send to two local accounts and one
+outside address recalled from both unread copies (POP3 counts, the `EXPUNGE`
+an IMAP session with the folder selected sees, `elsewhere` 1, the `$Recalled`
+keyword, a second call answering the same with `sent_marked` still true), a
+copy marked `\Seen` over IMAP staying and answered `read` while the other
+goes, a copy deleted before the recall answered `gone`, a copy moved with
+IMAP `MOVE` recalled from where it was filed and a copy made with `COPY`
+recalled twice over while a read recipient's two copies both stay, an
+authenticated SMTP submission recalled by the `Message-ID` the client wrote,
+another account's recall of that id answered 404 with nothing deleted, an
+unauthenticated local-range submission in a local account's name not
+recorded, an authenticated session whose `MAIL FROM` names another local
+account credited to the login, a submission without a `Message-ID` given one
+at acceptance and recalled by it while one over 255 characters is not
+recorded (the log line, the 400), the 200-per-day ceiling (the
+send that crosses it recorded up to the line, the next not at all, the log
+saying so once), a distribution list's two members both recalled, a recalled
+copy in the recipient's recover-deleted list and put back, an address at a
+domain alias counted as here, rows older than `RecallDays` swept by the
+retention task and answered 404 while the same rows without the sweep answer
+200, and an app password refused with 403. The page's part is in
+`build/portal-script-test.js`: Recall offered only in the folder designated
+`\Sent`, only for an own `From` within `recall_days`, hidden without a
+`Message-ID` and on a session that came in on an app password, the confirm
+sentence, the POST's path and body, the toast per outcome and the badge.
+
+Not proved by a test, and said here so nobody believes otherwise: that a
+message that expires is not recorded (the code skips it before `Record`);
+and the `failed` outcome, which needs a database that stops answering
+between two statements.

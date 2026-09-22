@@ -927,7 +927,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/me/push/test` | ? | `device`, `sender` | - |
 | `PUT /api/v1/me/quarantine-digest` | ? | `account`, `digest`, `domain`, `enabled` | - |
 | `POST /api/v1/me/quarantine/{id}/release` | - | - | - |
-| `POST /api/v1/me/recall` | ? | `accepted`, `account`, `addresses`, `deleted`, `domain`, `expunge`, `folder`, `from`, `message`, `message_id`, `password`, `read`, `recall_days`, `recipient`, `seen`, `sender`, `sent_id`, `to` | - |
+| `POST /api/v1/me/recall` | ? | `accepted`, `account`, `addresses`, `answered`, `archive`, `credential`, `database`, `deleted`, `domain`, `expunge`, `folder`, `from`, `mailbox`, `message`, `message_id`, `password`, `read`, `recall_days`, `recipient`, `recover_deleted_days`, `seen`, `sender`, `sent_id`, `to` | - |
 | `POST /api/v1/me/recoverable/{id}/restore` | ? | - | - |
 | `PUT /api/v1/me/recovery` | ? | `account`, `address`, `code`, `password`, `retry_after`, `to`, `until` | - |
 | `POST /api/v1/me/recovery/codes` | ? | `account`, `code`, `password` | - |

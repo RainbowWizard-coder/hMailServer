@@ -19,27 +19,37 @@
 // completes it at the point where the copy has been saved, and for a
 // recipient reached by expansion whose row does not exist yet - a list
 // member, an alias target - inserts one, provided rows for THE SAME QUEUE
-// MESSAGE already exist: that is how a member's copy is tied to its sender
-// without trusting the From header, and without trusting the Message-ID
-// either, since a Message-ID is not a secret and anybody may write one.
+// MESSAGE already exist and the delivered file carries the rows' Message-ID:
+// that is how a member's copy is tied to its sender without trusting the
+// From header, and without trusting the Message-ID alone, since a
+// Message-ID is not a secret and anybody may write one.
+//
+// A COPY THE READER MAKES within their own mailbox - IMAP COPY and MOVE, the
+// webmail's move, archive, junk and trash, which are all copy-and-delete -
+// is the same message under a new hm_messages id. PersistentMessage marks
+// the copy with the id it came from, and the save that assigns the new id
+// writes a row beside the old one (Copied), so a recipient may hold several
+// rows and the recall follows the message wherever they filed it. A copy
+// into another account's folder is that account's and gets no row.
 //
 // Nothing is recorded for mail from outside, for mail this server writes,
 // or for an unauthenticated submission from a local range in a local
 // account's name: the sender's identity is the session's, not the
-// envelope's. A message without a Message-ID, or with one longer than 255
-// characters, is not recallable, and the log says so.
+// envelope's. A message with a Message-ID longer than 255 characters is not
+// recallable, and the log says so; one without a Message-ID would not be
+// either, but a submission without one is given one at acceptance
+// (SMTPMessageHeaderCreator) and the webmail always writes one.
 //
 // THE RECALL is POST /api/v1/me/recall (RestApiMessageRecall.cpp): the
-// rows for (this account, that Message-ID) not older than RecallDays; for
-// each recipient copy, gone when the hm_messages row is no longer there,
-// read when it carries \Seen - nothing is done, the reader keeps it - and
-// otherwise the copy is deleted the way the webmail deletes a message, so
-// IMAP sessions see the expunge, the recover-deleted store gets its copy
-// where the window is on, and the notifications fire. Rows recalled stay,
-// marked with their outcome, and a second call answers the same outcomes.
-// Nothing is sent to anybody: the Sent copy's own $Recalled keyword is the
-// record. A recipient elsewhere is not in the table at all; the answer counts
-// the addresses the Sent copy names that are not on this server.
+// rows for (this account, that Message-ID) not older than RecallDays,
+// judged PER RECIPIENT - read when any live copy of theirs carries \Seen
+// (nothing is done, the reader keeps every copy), else recalled when at
+// least one unread live copy was deleted the way the webmail deletes a
+// message (every unread copy goes), else gone. Rows stay, marked with their
+// outcome, and a second call answers the same. Nothing is sent to anybody:
+// the Sent copy's own $Recalled keyword is the record. A recipient elsewhere
+// is not in the table at all; the answer counts the addresses the Sent copy
+// names that are not on this server.
 //
 // THE BOUNDS. RecallDays (14; 1 to 365): rows older than that are swept by
 // the minute task and by the retention task, and a recall of an older
@@ -76,7 +86,7 @@ namespace HM
       {
          Pending = 0,     // recorded, not recalled
          Recalled = 1,    // the unread copy was deleted
-         Read = 2,        // the copy carried \Seen and was left
+         Read = 2,        // the recipient had read it; the copy was left
          Gone = 3         // the copy was not there to recall
       };
 
@@ -116,13 +126,26 @@ namespace HM
       // At local delivery, once the recipient's copy is saved: the row for
       // (this queue message, this recipient) gets the stored id; a recipient
       // with no row, reached by expansion, gets one when rows for the queue
-      // message exist. Costs one indexed select per local delivery and
-      // nothing more for a message nobody recorded.
-      static void Delivered(__int64 queueId, std::shared_ptr<const Account> recipient, __int64 storedId);
+      // message exist. The delivered file's Message-ID has to be the rows'
+      // - a queue id a database reissued after a restart must not tie an
+      // outsider's message to a sender's rows. Costs one indexed select per
+      // local delivery and nothing more for a message nobody recorded; the
+      // header is read only when rows exist.
+      static void Delivered(__int64 queueId, std::shared_ptr<const Account> recipient, __int64 storedId, const String &fileName);
+
+      // At the save of a copy made within the recipient's own mailbox: every
+      // row for the source id gets a sibling for the copy's id, so the
+      // recall follows the message wherever the reader filed it. Costs one
+      // indexed select per copy.
+      static void Copied(__int64 sourceId, __int64 copyId, __int64 accountId);
 
       // The rows for (sender, Message-ID) not older than RecallDays, oldest
       // first. False when the database did not answer.
       static bool List(__int64 senderId, const String &messageId, std::vector<Row> &rows);
+
+      // One row as it is now. False when there is no such row, or the
+      // database did not answer.
+      static bool Get(__int64 rowId, Row &row);
 
       // The outcome, written once.
       static bool Mark(__int64 rowId, Outcome outcome, __int64 when);

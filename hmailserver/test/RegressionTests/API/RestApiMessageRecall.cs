@@ -79,7 +79,7 @@ namespace RegressionTests.API
       {
          try
          {
-            Admin("PUT", "/api/v1/settings", "{\"recall_days\":14}");
+            Admin("PUT", "/api/v1/settings", "{\"recall_days\":14,\"recover_deleted_days\":0}");
          }
          finally
          {
@@ -137,13 +137,273 @@ namespace RegressionTests.API
          CustomAsserts.AssertRecipientsInDeliveryQueue(0);
          Pop3ClientSimulator.AssertMessageCount(_sender.Address, Password, 0);
 
-         // Idempotent: the rows stay, marked, and the second call says the same.
+         // Idempotent: the rows stay, marked, and the second call says the same,
+         // the Sent copy still marked.
          (int status, string body) again = Send("POST", "/api/v1/me/recall", _me,
             "{\"message_id\":\"" + messageId + "\",\"sent_id\":" + sentId + "}");
          Assert.AreEqual(200, again.status, again.body);
          StringAssert.Contains("\"recalled\":2", again.body);
          StringAssert.Contains("\"gone\":0", again.body);
+         StringAssert.Contains("\"sent_marked\":true", again.body);
          Pop3ClientSimulator.AssertMessageCount(_bob.Address, Password, 1);
+      }
+
+      [Test]
+      [Description("A copy the recipient deleted before the recall is answered gone, and the other recipient's unread copy still goes; the rows stay marked and a second call answers the same.")]
+      public void ACopyDeletedBeforeTheRecallIsGone()
+      {
+         long sentId;
+         string messageId = SendFromWebmail("Gone before", _alice.Address + ", " + _bob.Address, out sentId);
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 1);
+         Pop3ClientSimulator.AssertMessageCount(_bob.Address, Password, 1);
+
+         var imap = new ImapClientSimulator();
+         Assert.IsTrue(imap.ConnectAndLogon(_alice.Address, Password));
+         Assert.IsTrue(imap.SelectFolder("INBOX"));
+         Assert.IsTrue(imap.SetDeletedFlag(1));
+         Assert.IsTrue(imap.Expunge());
+         imap.Disconnect();
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 0);
+
+         (int status, string body) recall = Send("POST", "/api/v1/me/recall", _me, "{\"message_id\":\"" + messageId + "\",\"sent_id\":" + sentId + "}");
+         Assert.AreEqual(200, recall.status, recall.body);
+         StringAssert.Contains("\"recalled\":1", recall.body);
+         StringAssert.Contains("\"gone\":1", recall.body);
+         StringAssert.Contains("\"read\":0", recall.body);
+         StringAssert.Contains("{\"address\":\"" + _alice.Address + "\",\"outcome\":\"gone\"}", recall.body);
+         StringAssert.Contains("{\"address\":\"" + _bob.Address + "\",\"outcome\":\"recalled\"}", recall.body);
+         Pop3ClientSimulator.AssertMessageCount(_bob.Address, Password, 0);
+
+         (int status, string body) again = Send("POST", "/api/v1/me/recall", _me, "{\"message_id\":\"" + messageId + "\"}");
+         Assert.AreEqual(200, again.status, again.body);
+         StringAssert.Contains("\"gone\":1", again.body);
+         StringAssert.Contains("\"recalled\":1", again.body);
+      }
+
+      [Test]
+      [Description("A copy the recipient moved or copied within their own mailbox is followed: Alice's MOVE to Archive is recalled from Archive, Bob's COPY leaves two unread copies and both go, and Carol's copy of a message she had read stays with both copies, answered read.")]
+      public void AMovedOrCopiedCopyIsFollowed()
+      {
+         Account carol = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "recall-carol@" + _domain.Name, Password);
+
+         long sentId;
+         string messageId = SendFromWebmail("Filed elsewhere", _alice.Address + ", " + _bob.Address + ", " + carol.Address, out sentId);
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 1);
+         Pop3ClientSimulator.AssertMessageCount(_bob.Address, Password, 1);
+         Pop3ClientSimulator.AssertMessageCount(carol.Address, Password, 1);
+
+         var alice = new ImapClientSimulator();
+         Assert.IsTrue(alice.ConnectAndLogon(_alice.Address, Password));
+         Assert.IsTrue(alice.CreateFolder("Archive"));
+         Assert.IsTrue(alice.SelectFolder("INBOX"));
+         StringAssert.Contains("A1 OK", alice.SendSingleCommand("A1 MOVE 1 Archive"));
+         Assert.AreEqual(0, alice.GetMessageCount("INBOX"));
+         Assert.AreEqual(1, alice.GetMessageCount("Archive"));
+         alice.Disconnect();
+
+         var bob = new ImapClientSimulator();
+         Assert.IsTrue(bob.ConnectAndLogon(_bob.Address, Password));
+         Assert.IsTrue(bob.CreateFolder("Keep"));
+         Assert.IsTrue(bob.SelectFolder("INBOX"));
+         Assert.IsTrue(bob.Copy(1, "Keep"));
+         Assert.AreEqual(1, bob.GetMessageCount("INBOX"));
+         Assert.AreEqual(1, bob.GetMessageCount("Keep"));
+         bob.Disconnect();
+
+         var carolSession = new ImapClientSimulator();
+         Assert.IsTrue(carolSession.ConnectAndLogon(carol.Address, Password));
+         Assert.IsTrue(carolSession.CreateFolder("Keep"));
+         Assert.IsTrue(carolSession.SelectFolder("INBOX"));
+         Assert.IsTrue(carolSession.SetSeenFlag(1));
+         Assert.IsTrue(carolSession.Copy(1, "Keep"));
+         carolSession.Disconnect();
+
+         (int status, string body) recall = Send("POST", "/api/v1/me/recall", _me, "{\"message_id\":\"" + messageId + "\",\"sent_id\":" + sentId + "}");
+         Assert.AreEqual(200, recall.status, recall.body);
+         StringAssert.Contains("\"recalled\":2", recall.body, "Per recipient: Alice and Bob.");
+         StringAssert.Contains("\"read\":1", recall.body, "Carol had read it.");
+         StringAssert.Contains("\"gone\":0", recall.body);
+         StringAssert.Contains("{\"address\":\"" + _alice.Address + "\",\"outcome\":\"recalled\"}", recall.body);
+         StringAssert.Contains("{\"address\":\"" + _bob.Address + "\",\"outcome\":\"recalled\"}", recall.body);
+         StringAssert.Contains("{\"address\":\"" + carol.Address + "\",\"outcome\":\"read\"}", recall.body);
+
+         alice = new ImapClientSimulator();
+         Assert.IsTrue(alice.ConnectAndLogon(_alice.Address, Password));
+         Assert.AreEqual(0, alice.GetMessageCount("Archive"), "The moved copy was recalled from where Alice filed it.");
+         alice.Disconnect();
+
+         bob = new ImapClientSimulator();
+         Assert.IsTrue(bob.ConnectAndLogon(_bob.Address, Password));
+         Assert.AreEqual(0, bob.GetMessageCount("INBOX"), "Both of Bob's unread copies went.");
+         Assert.AreEqual(0, bob.GetMessageCount("Keep"));
+         bob.Disconnect();
+
+         carolSession = new ImapClientSimulator();
+         Assert.IsTrue(carolSession.ConnectAndLogon(carol.Address, Password));
+         Assert.AreEqual(1, carolSession.GetMessageCount("INBOX"), "Whoever has read it keeps it - every copy.");
+         Assert.AreEqual(1, carolSession.GetMessageCount("Keep"));
+         carolSession.Disconnect();
+      }
+
+      [Test]
+      [Description("At most 200 recipient rows per sender per day are recorded: the send that crosses the line records what fits, the next records nothing, the application log says so once, and the recall of each says what was recorded.")]
+      public void TheDaysCeilingRecordsTwoHundredAndSaysSoOnce()
+      {
+         const int accounts = 30;
+         var members = new List<string>();
+         for (int i = 0; i < accounts; i++)
+            members.Add(SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "recall-many" + i + "@" + _domain.Name, Password).Address);
+         string to = string.Join(", ", members);
+
+         // Six sends fill 180 rows; the seventh has room for 20 of its 30; the
+         // eighth has room for none.
+         var messageIds = new List<string>();
+         var sentIds = new List<long>();
+         for (int send = 0; send < 8; send++)
+         {
+            long sentId;
+            messageIds.Add(SendFromWebmail("Bulk " + send, to, out sentId));
+            sentIds.Add(sentId);
+         }
+         Pop3ClientSimulator.AssertMessageCount(members[0], Password, 8);
+         Pop3ClientSimulator.AssertMessageCount(members[accounts - 1], Password, 8);
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         const string ceilingLine = "which is the most that is recorded";
+         string log = LogHandler.ReadCurrentDefaultLog();
+         Assert.AreEqual(1, Regex.Matches(log, Regex.Escape(ceilingLine)).Count, "The ceiling is said once per sender per day, not once per message: " + log);
+
+         (int status, string body) sixth = Send("POST", "/api/v1/me/recall", _me, "{\"message_id\":\"" + messageIds[5] + "\"}");
+         Assert.AreEqual(200, sixth.status, sixth.body);
+         StringAssert.Contains("\"recalled\":" + accounts + ",", sixth.body, "The sixth send was recorded in full.");
+
+         (int status, string body) seventh = Send("POST", "/api/v1/me/recall", _me, "{\"message_id\":\"" + messageIds[6] + "\"}");
+         Assert.AreEqual(200, seventh.status, seventh.body);
+         StringAssert.Contains("\"recalled\":20,", seventh.body, "The seventh send was recorded up to the ceiling and no further.");
+
+         (int status, string body) eighth = Send("POST", "/api/v1/me/recall", _me, "{\"message_id\":\"" + messageIds[7] + "\"}");
+         Assert.AreEqual(404, eighth.status, "Past the ceiling nothing is recorded: " + eighth.body);
+
+         Pop3ClientSimulator.AssertMessageCount(members[accounts - 1], Password, 7, TimeSpan.FromSeconds(5));
+      }
+
+      [Test]
+      [Description("A submission without a Message-ID is given one at acceptance and is recallable by it; one with a Message-ID over 255 characters is delivered but not recorded, the debug log says so, and a recall by the long id is refused with a sentence.")]
+      public void AMessageWithoutAUsableMessageIdIsNotRecorded()
+      {
+         // No Message-ID: the submission server writes one (RFC 6409), and the
+         // rows are keyed by it. It is read back from the delivered copy.
+         new SmtpClientSimulator().SendRaw(_sender.Address, Password, _sender.Address, _alice.Address,
+            "From: " + _sender.Address + "\r\nTo: " + _alice.Address + "\r\nSubject: No id of its own\r\n\r\nThe server gives it one.\r\n");
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 1);
+
+         string prefix = "/api/v1/accounts/" + Uri.EscapeDataString(_alice.Address);
+         (int status, string body) listed = Admin("GET", prefix + "/messages", null);
+         Assert.AreEqual(200, listed.status, listed.body);
+         long deliveredId = long.Parse(Regex.Match(listed.body, "\"id\":(\\d+)").Groups[1].Value);
+         (int status, string body) source = Admin("GET", prefix + "/messages/" + deliveredId + "/source", null);
+         Assert.AreEqual(200, source.status, source.body);
+         string given = Regex.Match(source.body, "Message-ID:\\s*<([^>]+)>").Groups[1].Value;
+         Assert.IsFalse(string.IsNullOrEmpty(given), "The submission was given a Message-ID: " + source.body);
+
+         (int status, string body) byGiven = Send("POST", "/api/v1/me/recall", _me, "{\"message_id\":\"<" + given + ">\"}");
+         Assert.AreEqual(200, byGiven.status, byGiven.body);
+         StringAssert.Contains("\"recalled\":1", byGiven.body);
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 0);
+
+         // Over 255 characters: delivered, not recorded, the log saying why,
+         // and the route refusing the id with a sentence.
+         string longId = new string('x', 300) + "@recall.test";
+         new SmtpClientSimulator().SendRaw(_sender.Address, Password, _sender.Address, _alice.Address,
+            "From: " + _sender.Address + "\r\nTo: " + _alice.Address + "\r\nSubject: Too long an id\r\nMessage-ID: <" + longId + ">\r\n\r\nNothing to recall this by.\r\n");
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 1);
+         Assert.IsTrue(LogHandler.DefaultLogContains("has no Message-ID, or one longer than 255 characters, and is not recallable"), "The log says why: " + LogHandler.ReadCurrentDefaultLog());
+         Assert.AreEqual(1, Regex.Matches(LogHandler.ReadCurrentDefaultLog(), "is not recallable").Count, "Said for the long id and for nothing else.");
+
+         (int status, string body) tooLong = Send("POST", "/api/v1/me/recall", _me, "{\"message_id\":\"<" + longId + ">\"}");
+         Assert.AreEqual(400, tooLong.status, tooLong.body);
+         StringAssert.Contains("255", tooLong.body);
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 1);
+
+         // The control: an ordinary id, recorded and recalled.
+         SendAuthenticated(_sender, _alice.Address, "ordinary-id@recall.test", "An ordinary id");
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 2);
+         (int status, string body) ordinary = Send("POST", "/api/v1/me/recall", _me, "{\"message_id\":\"<ordinary-id@recall.test>\"}");
+         Assert.AreEqual(200, ordinary.status, ordinary.body);
+         StringAssert.Contains("\"recalled\":1", ordinary.body);
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 1);
+      }
+
+      [Test]
+      [Description("The identity rule's other half: a session signed in as the sender whose MAIL FROM is another local account's address is credited to the login - the sender recalls it, the address named in the envelope cannot.")]
+      public void AnAuthenticatedSessionIsCreditedWhateverTheEnvelopeSays()
+      {
+         const string messageId = "envelope-someone-else@recall.test";
+         new SmtpClientSimulator().SendRaw(_sender.Address, Password, _bob.Address, _alice.Address,
+            "From: " + _bob.Address + "\r\nTo: " + _alice.Address + "\r\nSubject: In Bob's name\r\nMessage-ID: <" + messageId + ">\r\n\r\nSigned in as the sender, sent as Bob.\r\n");
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 1);
+
+         string asBob = Basic(_bob.Address, Password);
+         (int status, string body) bobs = Send("POST", "/api/v1/me/recall", asBob, "{\"message_id\":\"<" + messageId + ">\"}");
+         Assert.AreEqual(404, bobs.status, "The envelope named Bob; the session was the sender's: " + bobs.body);
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 1);
+
+         (int status, string body) senders = Send("POST", "/api/v1/me/recall", _me, "{\"message_id\":\"<" + messageId + ">\"}");
+         Assert.AreEqual(200, senders.status, senders.body);
+         StringAssert.Contains("\"recalled\":1", senders.body);
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 0);
+      }
+
+      [Test]
+      [Description("With the recover-deleted window on, a recalled copy is kept aside for its recipient, who can put it back; with the window off nothing is kept.")]
+      public void ARecalledCopyReachesTheRecoverDeletedStore()
+      {
+         string asAlice = Basic(_alice.Address, Password);
+
+         // The window off: nothing is kept.
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"recover_deleted_days\":0}").status);
+         SendAuthenticated(_sender, _alice.Address, "not-kept@recall.test", "Not kept");
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 1);
+         Assert.AreEqual(200, Send("POST", "/api/v1/me/recall", _me, "{\"message_id\":\"<not-kept@recall.test>\"}").status);
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 0);
+         (int status, string body) nothing = Send("GET", "/api/v1/me/recoverable", asAlice, null);
+         Assert.AreEqual(200, nothing.status, nothing.body);
+         StringAssert.DoesNotContain("Not kept", nothing.body);
+
+         // The window on: the recalled copy is Alice's to put back.
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"recover_deleted_days\":14}").status);
+         SendAuthenticated(_sender, _alice.Address, "kept-aside@recall.test", "Kept aside");
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 1);
+         (int status, string body) recall = Send("POST", "/api/v1/me/recall", _me, "{\"message_id\":\"<kept-aside@recall.test>\"}");
+         Assert.AreEqual(200, recall.status, recall.body);
+         StringAssert.Contains("\"recalled\":1", recall.body);
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 0);
+
+         (int status, string body) kept = Send("GET", "/api/v1/me/recoverable", asAlice, null);
+         Assert.AreEqual(200, kept.status, kept.body);
+         StringAssert.Contains("\"subject\":\"Kept aside\"", kept.body, "The recalled copy is in Alice's recover-deleted list.");
+         string id = Regex.Match(kept.body, "\"id\":(\\d+)").Groups[1].Value;
+         Assert.AreEqual(200, Send("POST", "/api/v1/me/recoverable/" + id + "/restore", asAlice, null).status);
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 1);
+      }
+
+      [Test]
+      [Description("An address at one of this server's domain aliases is on this server: it resolves to the account, is recalled, and is not counted as elsewhere.")]
+      public void AnAddressAtADomainAliasIsHere()
+      {
+         DomainAlias alias = _domain.DomainAliases.Add();
+         alias.AliasName = "recall-alias.test";
+         alias.Save();
+
+         long sentId;
+         string messageId = SendFromWebmail("Via the alias name", "recall-alice@recall-alias.test", out sentId);
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 1);
+
+         (int status, string body) recall = Send("POST", "/api/v1/me/recall", _me, "{\"message_id\":\"" + messageId + "\",\"sent_id\":" + sentId + "}");
+         Assert.AreEqual(200, recall.status, recall.body);
+         StringAssert.Contains("\"recalled\":1", recall.body);
+         StringAssert.Contains("\"elsewhere\":0", recall.body, "The alias name is this server's.");
+         Pop3ClientSimulator.AssertMessageCount(_alice.Address, Password, 0);
       }
 
       [Test]

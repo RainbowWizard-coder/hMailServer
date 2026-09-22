@@ -488,7 +488,7 @@ namespace HM
       // mailbox: a message a rule filed into a public folder is nobody's to
       // recall. A message nobody recorded costs one indexed select.
       if (accountLevelMessage->GetAccountID() == account->GetID())
-         MessageRecall::Delivered(original_message_->GetID(), account, accountLevelMessage->GetID());
+         MessageRecall::Delivered(original_message_->GetID(), account, accountLevelMessage->GetID(), PersistentMessage::GetFileName(account, accountLevelMessage));
 
       // Tell the folder container that the users inbox is updated this will
       // cause a refresh in the imap server whenever a new imap command is sent.

@@ -12804,16 +12804,19 @@ namespace HM
          return true;
       }
 
-      // Every IMAP session on the folder is told, the way STORE, MOVE and
-      // EXPUNGE tell them: by message id, which each turns into its own
-      // sequence numbers.
-      void NotifyFolder(std::shared_ptr<IMAPFolder> folder, ChangeNotification::NotificationType type, const std::vector<__int64> &messageIds)
-      {
-         std::shared_ptr<ChangeNotification> notification =
-            std::shared_ptr<ChangeNotification>(new ChangeNotification(folder->GetAccountID(), folder->GetID(), type, messageIds));
+   }
 
-         Application::Instance()->GetNotificationServer()->SendNotification(notification);
-      }
+   // Every IMAP session on the folder is told, the way STORE, MOVE and
+   // EXPUNGE tell them: by message id, which each turns into its own
+   // sequence numbers. A member, so the route files beside this one
+   // (RestApiMessageRecall.cpp) tell the sessions through the same call.
+   void
+   RestApiServer::NotifyFolder(std::shared_ptr<IMAPFolder> folder, ChangeNotification::NotificationType type, const std::vector<__int64> &messageIds)
+   {
+      std::shared_ptr<ChangeNotification> notification =
+         std::shared_ptr<ChangeNotification>(new ChangeNotification(folder->GetAccountID(), folder->GetID(), type, messageIds));
+
+      Application::Instance()->GetNotificationServer()->SendNotification(notification);
    }
 
    // The message the id names, if it is the signed-in account's and sits in
