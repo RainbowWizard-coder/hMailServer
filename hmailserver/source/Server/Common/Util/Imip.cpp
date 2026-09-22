@@ -64,6 +64,21 @@ namespace HM
          return out;
       }
 
+      // The media type of a Content-Type value, lower-cased: "text/calendar"
+      // from "text/calendar; charset=utf-8; method=REQUEST". The MIME reader
+      // hands back the raw field value, parameters and all, so a message whose
+      // whole body is the calendar - what a client sends when it does not add
+      // a text part - was never matched by the bare type; the multipart case
+      // matched by the part's .ics name, which hid it.
+      AnsiString MediaTypeOf(const char *contentType)
+      {
+         AnsiString type = Lower(Trimmed(AnsiString(contentType ? contentType : "")));
+         int semicolon = type.Find(";");
+         if (semicolon >= 0)
+            type = Trimmed(type.Mid(0, semicolon));
+         return type;
+      }
+
       // The first text/calendar part below this one, or an attachment named
       // *.ics, decoded from its transfer encoding.
       bool FindCalendarPart(std::shared_ptr<MimeBody> body, int depth, AnsiString &calendarText)
@@ -71,7 +86,7 @@ namespace HM
          if (!body || depth > 8)
             return false;
 
-         AnsiString type = Lower(Trimmed(AnsiString(body->GetContentType() ? body->GetContentType() : "")));
+         AnsiString type = MediaTypeOf(body->GetContentType());
          AnsiString name = Lower(AnsiString(body->GetName().c_str()));
          bool calendar = type == "text/calendar" || (name.GetLength() > 4 && name.EndsWith(".ics"));
          if (calendar && !body->IsMultiPart())
@@ -217,7 +232,7 @@ namespace HM
       AnsiString header = PersistentMessage::LoadHeader(fileName, false);
       MimeHeader mimeHeader;
       mimeHeader.Load(header.c_str(), header.GetLength(), true);
-      AnsiString type = Lower(AnsiString(mimeHeader.GetContentType() ? mimeHeader.GetContentType() : ""));
+      AnsiString type = MediaTypeOf(mimeHeader.GetContentType());
       bool multipart = type.StartsWith("multipart/");
       if (!multipart && type != "text/calendar")
          return false;

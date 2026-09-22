@@ -258,7 +258,7 @@ namespace RegressionTests.API
 
          string sharedHref = HomeOf(Member) + "shared-" + rotaId + "/";
          (int status, string body) memberList = Me("GET", "/api/v1/me/calendars", null, Member, Password);
-         string entry = Regex.Match(memberList.body, "\\{[^{}]*\"id\":" + rotaId + "[^{}]*\\}").Value;
+         string entry = CalendarEntry(memberList.body, rotaId);
          StringAssert.Contains("\"display_name\":\"Rota\"", entry, memberList.body);
          StringAssert.Contains("\"mine\":false", entry);
          StringAssert.Contains("\"writable\":false", entry);
@@ -381,9 +381,9 @@ namespace RegressionTests.API
          StringAssert.Contains("{\"address\":\"" + Deputy + "\",\"write\":true,\"delegate\":true}", delegated.body, "A delegate may write.");
          Assert.AreEqual(200, Me("PUT", "/api/v1/me/calendars/" + defaultId + "/shares/" + Writer, "{\"write\":true}", Owner, Password).status);
          Assert.AreEqual(200, Me("PUT", "/api/v1/me/calendars/" + defaultId + "/shares/" + Reader, "{\"write\":false}", Owner, Password).status);
-         string delegateEntry = Regex.Match(Me("GET", "/api/v1/me/calendars", null, Deputy, Password).body, "\\{[^{}]*\"id\":" + defaultId + "[^{}]*\\}").Value;
+         string delegateEntry = CalendarEntry(Me("GET", "/api/v1/me/calendars", null, Deputy, Password).body, defaultId);
          StringAssert.Contains("\"writable\":true,\"delegate\":true", delegateEntry, "The delegate's listing says so.");
-         StringAssert.Contains("\"writable\":true,\"delegate\":false", Regex.Match(Me("GET", "/api/v1/me/calendars", null, Writer, Password).body, "\\{[^{}]*\"id\":" + defaultId + "[^{}]*\\}").Value);
+         StringAssert.Contains("\"writable\":true,\"delegate\":false", CalendarEntry(Me("GET", "/api/v1/me/calendars", null, Writer, Password).body, defaultId));
 
          (int status, string body) made = Me("POST", "/api/v1/me/calendar/events",
             "{\"summary\":\"Budget\",\"start\":\"2026-11-20T14:00\",\"end\":\"2026-11-20T15:00\",\"tz\":\"UTC\",\"attendees\":[\"Olivia Owner <" + Owner + ">\"],\"invite\":true}", Organiser, Password);
@@ -400,7 +400,7 @@ namespace RegressionTests.API
          });
          (int status, string body) seenByDelegate = Me("GET", window, null, Deputy, Password);
          StringAssert.Contains("\"summary\":\"Budget\"", seenByDelegate.body, "The delegate sees the invitation in the shared calendar.");
-         StringAssert.Contains("\"delegate\":true", Regex.Match(seenByDelegate.body, "\\{\"id\":" + eventId + "[^}]*").Value);
+         StringAssert.Contains("\"delegate\":true", EventEntry(seenByDelegate.body, eventId), seenByDelegate.body);
 
          // Who may answer.
          Assert.AreEqual(403, Me("POST", "/api/v1/me/calendar/events/" + eventId + "/reply", "{\"partstat\":\"ACCEPTED\"}", Reader, Password).status, "A reader may not.");
@@ -417,7 +417,9 @@ namespace RegressionTests.API
          (int status, string body) ownerEvent = Me("GET", "/api/v1/me/calendar/events/" + eventId, null, Owner, Password);
          StringAssert.Contains("\"address\":\"" + Owner + "\",\"name\":\"Olivia Owner\",\"partstat\":\"ACCEPTED\",\"sent_by\":\"" + Deputy + "\"", ownerEvent.body, "The owner's answer, and who gave it, in the stored event.");
          StringAssert.Contains("\"my_partstat\":\"ACCEPTED\"", ownerEvent.body);
-         StringAssert.Contains("SENT-BY=\\\"mailto:" + Deputy + "\\\"", ownerEvent.body, "As RFC 5545 writes it, quoted, in the object CalDAV serves.");
+         // The object's text is folded at 75 octets (RFC 5545 section 3.1), and
+         // the fold may fall inside the parameter; unfolded, the line is whole.
+         StringAssert.Contains("SENT-BY=\\\"mailto:" + Deputy + "\\\"", ownerEvent.body.Replace("\\r\\n ", ""), "As RFC 5545 writes it, quoted, in the object CalDAV serves.");
          (int status, string body) delegatesOwn = Me("GET", "/api/v1/me/calendars", null, Deputy, Password);
          long delegateDefault = long.Parse(Regex.Match(delegatesOwn.body, "\"id\":(\\d+),\"name\":\"calendar\"").Groups[1].Value);
          Assert.AreEqual(0, Regex.Matches(Me("GET", window, null, Deputy, Password).body, "\"calendar\":" + delegateDefault + ",").Count, "The delegate's own calendar is not touched.");
@@ -503,28 +505,31 @@ namespace RegressionTests.API
          Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, Reader, Password).status);
          string window = "/api/v1/me/calendar/events?start=20261203T000000Z&end=20261204T000000Z";
 
+         // The verdict is forced the way the sender-blacklist fixture forces it:
+         // a blocked sender whose score reaches the mark threshold and not the
+         // delete threshold, which needs no DNS and no host name that resolves.
          hMailServer.AntiSpam antiSpam = _settings.AntiSpam;
-         bool heloBefore = antiSpam.CheckHostInHelo;
-         int heloScoreBefore = antiSpam.CheckHostInHeloScore;
          int markBefore = antiSpam.SpamMarkThreshold;
          int deleteBefore = antiSpam.SpamDeleteThreshold;
          bool headerBefore = antiSpam.AddHeaderSpam;
-         antiSpam.CheckHostInHelo = true;
-         antiSpam.CheckHostInHeloScore = 125;
-         antiSpam.SpamMarkThreshold = 1;
+         antiSpam.SpamMarkThreshold = 2;
          antiSpam.SpamDeleteThreshold = 1000;
          antiSpam.AddHeaderSpam = true;
+         hMailServer.BlockedSender blocked = antiSpam.BlockedSenders.Add();
+         blocked.Address = "promo@spam.test";
+         blocked.Score = 2;
+         blocked.Description = "RestApiCalendarSharing fixture";
+         blocked.Save();
          try
          {
-            // A HELO that is not the sender's host scores past the mark threshold: flagged, delivered, not filed.
-            SmtpRaw("promo@spam.test", Reader, "example.com", Invitation("promo@spam.test", Reader, "You won", "You won", "spam-0001@spam.test", "20261203T100000Z", "20261203T110000Z", 0, "promo@spam.test", Reader));
+            // Flagged, delivered, not filed.
+            SmtpRaw("promo@spam.test", Reader, "mail.spam.test", Invitation("promo@spam.test", Reader, "You won", "You won", "spam-0001@spam.test", "20261203T100000Z", "20261203T110000Z", 0, "promo@spam.test", Reader));
             MessageIdOf(Reader, Password, "You won");
             StringAssert.Contains("X-hMailServer-Spam: YES", FirstMessageKept(Reader, Password), "The message was flagged as spam on the way in.");
          }
          finally
          {
-            antiSpam.CheckHostInHelo = heloBefore;
-            antiSpam.CheckHostInHeloScore = heloScoreBefore;
+            antiSpam.BlockedSenders.Clear();
             antiSpam.SpamMarkThreshold = markBefore;
             antiSpam.SpamDeleteThreshold = deleteBefore;
             antiSpam.AddHeaderSpam = headerBefore;
@@ -626,7 +631,7 @@ namespace RegressionTests.API
          ownerMembership.Save();
          (int status, string body) ownerList = Me("GET", "/api/v1/me/calendars", null, Owner, Password);
          Assert.AreEqual(1, Regex.Matches(ownerList.body, "\"id\":" + rotaId + ",").Count, "Once. Body: " + ownerList.body);
-         StringAssert.Contains("\"mine\":true", Regex.Match(ownerList.body, "\\{[^{}]*\"id\":" + rotaId + "[^{}]*\\}").Value);
+         StringAssert.Contains("\"mine\":true", CalendarEntry(ownerList.body, rotaId), ownerList.body);
          List<string> ownerHome = Hrefs(Propfind(HomeOf(Owner), "1", "<D:displayname/>", Auth(Owner, Password)));
          CollectionAssert.Contains(ownerHome, HomeOf(Owner) + "rota/");
          CollectionAssert.DoesNotContain(ownerHome, HomeOf(Owner) + "shared-" + rotaId + "/", "Not a second time as a share.");
@@ -635,7 +640,7 @@ namespace RegressionTests.API
          // The widest rights of every share that reaches the member: their own
          // read-only row, the read-only group, and a second group that may write.
          Assert.AreEqual(200, Me("PUT", "/api/v1/me/calendars/" + rotaId + "/shares/" + Member, "{\"write\":false}", Owner, Password).status);
-         Func<string> memberEntry = () => Regex.Match(Me("GET", "/api/v1/me/calendars", null, Member, Password).body, "\\{[^{}]*\"id\":" + rotaId + "[^{}]*\\}").Value;
+         Func<string> memberEntry = () => CalendarEntry(Me("GET", "/api/v1/me/calendars", null, Member, Password).body, rotaId);
          StringAssert.Contains("\"writable\":false", memberEntry(), "Two read-only shares are read-only.");
          Assert.AreEqual(200, Me("PUT", "/api/v1/me/calendars/" + rotaId + "/shares/Editors", "{\"write\":true}", Owner, Password).status);
          StringAssert.Contains("\"writable\":true", memberEntry(), "The Editors' write reaches the member.");
@@ -673,6 +678,10 @@ namespace RegressionTests.API
          (int status, string body) delegated = Me("PUT", "/api/v1/me/calendars/" + defaultId + "/shares/Calendar%20Sharers", "{\"delegate\":true}", Owner, Password);
          Assert.AreEqual(200, delegated.status, delegated.body);
          StringAssert.Contains("{\"group\":\"Calendar Sharers\",\"members\":1,\"write\":true,\"delegate\":true}", delegated.body);
+         // And a plain writer beside the group, for the refusal that is a refusal
+         // and not an absence: the reader, with no share at all, cannot see the
+         // event and is answered 404 as for any event that is not theirs.
+         Assert.AreEqual(200, Me("PUT", "/api/v1/me/calendars/" + defaultId + "/shares/" + Writer, "{\"write\":true}", Owner, Password).status);
          (int status, string body) made = Me("POST", "/api/v1/me/calendar/events",
             "{\"summary\":\"Offsite\",\"start\":\"2026-11-25T09:00\",\"end\":\"2026-11-25T10:00\",\"tz\":\"UTC\",\"attendees\":[\"" + Owner + "\"],\"invite\":true}", Organiser, Password);
          Assert.AreEqual(201, made.status, made.body);
@@ -684,12 +693,15 @@ namespace RegressionTests.API
             RetryableAssert.StringContains("\"summary\":\"Offsite\"", events.body);
             eventId = long.Parse(Regex.Match(events.body.Substring(events.body.IndexOf("\"events\":[", StringComparison.Ordinal)), "\"id\":(\\d+)").Groups[1].Value);
          });
-         Assert.AreEqual(403, Me("POST", "/api/v1/me/calendar/events/" + eventId + "/reply", "{\"partstat\":\"ACCEPTED\"}", Reader, Password).status, "Not a member, not a delegate.");
+         Assert.AreEqual(403, Me("POST", "/api/v1/me/calendar/events/" + eventId + "/reply", "{\"partstat\":\"ACCEPTED\"}", Writer, Password).status, "A writer, not a member of the delegated group: not a delegate.");
+         Assert.AreEqual(404, Me("POST", "/api/v1/me/calendar/events/" + eventId + "/reply", "{\"partstat\":\"ACCEPTED\"}", Reader, Password).status, "No share at all: the event is not visible to the reader.");
          (int status, string body) answered = Me("POST", "/api/v1/me/calendar/events/" + eventId + "/reply", "{\"partstat\":\"ACCEPTED\"}", Member, Password);
          Assert.AreEqual(200, answered.status, answered.body);
          StringAssert.Contains("\"on_behalf_of\":\"" + Owner + "\"", answered.body);
-         StringAssert.Contains("\"address\":\"" + Owner + "\",\"name\":\"Olivia Owner\",\"partstat\":\"ACCEPTED\",\"sent_by\":\"" + Member + "\"", Me("GET", "/api/v1/me/calendar/events/" + eventId, null, Owner, Password).body, "Every member may answer, and the answer says which one did.");
+         // Invited by the bare address, the owner's ATTENDEE carries no CN.
+         StringAssert.Contains("\"address\":\"" + Owner + "\",\"name\":\"\",\"partstat\":\"ACCEPTED\",\"sent_by\":\"" + Member + "\"", Me("GET", "/api/v1/me/calendar/events/" + eventId, null, Owner, Password).body, "Every member may answer, and the answer says which one did.");
          Assert.AreEqual(200, Me("DELETE", "/api/v1/me/calendars/" + defaultId + "/shares/Calendar%20Sharers", null, Owner, Password).status);
+         Assert.AreEqual(200, Me("DELETE", "/api/v1/me/calendars/" + defaultId + "/shares/" + Writer, null, Owner, Password).status);
 
          // A member removed is refused wherever CalDAV writes or reads.
          Assert.AreEqual(200, Me("PUT", "/api/v1/me/calendars/" + rotaId + "/shares/Calendar%20Sharers", "{\"write\":false}", Owner, Password).status);
@@ -787,7 +799,7 @@ namespace RegressionTests.API
          Assert.Greater(tokenAfter, tokenBefore, "The collection's token steps, so a syncing phone reads the answer.");
          string etagAfter = PropText(Propfind(HomeOf(Owner) + "calendar/", "1", "<D:getetag/>", Auth(Owner, Password)), href, "D:getetag");
          Assert.AreNotEqual(etagBefore, etagAfter, "The object's ETag changes with its bytes.");
-         StringAssert.Contains("SENT-BY=\"mailto:" + Deputy + "\"", Dav("GET", href, Auth(Owner, Password)).Body);
+         StringAssert.Contains("SENT-BY=\"mailto:" + Deputy + "\"", Dav("GET", href, Auth(Owner, Password)).Body.Replace("\r\n ", ""), "Unfolded: the line is folded at 75 octets on the wire.");
 
          // An event in the calendar that another organiser runs and the owner is
          // not a guest of: nobody expects the owner's answer.
@@ -813,6 +825,21 @@ namespace RegressionTests.API
          Match match = Regex.Match(json, "\"id\":(\\d+)");
          Assert.IsTrue(match.Success, "No id in: " + json);
          return long.Parse(match.Groups[1].Value);
+      }
+
+      // One calendar's entry in a listing, from its opening to its sync token -
+      // the last scalar before the shares, whose objects a [^{}] pattern stops
+      // at. "" when the calendar is not listed.
+      private static string CalendarEntry(string listing, long id)
+      {
+         return Regex.Match(listing, "\\{\"id\":" + id + ",.*?\"sync_token\":\\d+").Value;
+      }
+
+      // One occurrence's entry in a window, from its opening to its all_day flag,
+      // the last field; a UID carries braces of its own, so no brace pattern.
+      private static string EventEntry(string listing, long id)
+      {
+         return Regex.Match(listing, "\\{\"id\":" + id + ",.*?\"all_day\":(true|false)").Value;
       }
 
       // "start/end/kind" per period, in the order answered.

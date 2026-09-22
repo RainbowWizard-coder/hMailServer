@@ -363,8 +363,10 @@ namespace RegressionTests.API
          StringAssert.Contains("UID:multi-b", PropText(multiget, b, "C:calendar-data"));
          StringAssert.Contains("404 Not Found", ResponseStatus(multiget, bogus));
 
-         // A report this server does not have is refused as such.
-         Response unsupported = Report(Calendar, "<C:free-busy-query xmlns:C=\"urn:ietf:params:xml:ns:caldav\"/>");
+         // A report this server does not have is refused as such. (free-busy-query
+         // was the example until 22 September 2026, when it became the fourth
+         // report this server answers; expand-property, RFC 3253's, it does not.)
+         Response unsupported = Report(Calendar, "<D:expand-property xmlns:D=\"DAV:\"/>");
          Assert.AreEqual(403, unsupported.Status, "Body: " + unsupported.Body);
          StringAssert.Contains("supported-report", unsupported.Body);
       }
