@@ -168,8 +168,10 @@ namespace RegressionTests.IMAP
          var missingFolderResponse = after.SendSingleCommand("A15 SELECT #Users.revokeowner@example.test.NoSuchFolder");
          Assert.AreEqual(missingFolderResponse, realFolderResponse);
          // Alike is not enough: both must be the refusal, or the comparison
-         // would pass two successes just as well.
-         StringAssert.StartsWith("A15 NO", realFolderResponse, realFolderResponse);
+         // would pass two successes just as well. The server answers a
+         // folder it cannot find with BAD, as it always has; NO would be a
+         // refusal too, and OK is the one answer that must not appear.
+         Assert.IsTrue(realFolderResponse.StartsWith("A15 NO") || realFolderResponse.StartsWith("A15 BAD"), realFolderResponse);
 
          after.Disconnect();
       }
