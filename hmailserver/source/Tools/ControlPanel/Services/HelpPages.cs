@@ -18,7 +18,10 @@ namespace hMailServer.ControlPanel.Services
    /// copy leaves them out), so the Control Panel - which talks COM only and
    /// must work with no REST listener - has the same text the server serves
    /// at /api/v1/help, and cannot be behind it: nothing is copied into this
-   /// tree to go stale.
+   /// tree to go stale. The resources are read from the assembly this type
+   /// was compiled into: the program's own, and ControlPanel.Core's, which
+   /// carries the same resource group so that HelpMapTests can hold the
+   /// copy to the directory - the names, the two exclusions, the bytes.
    /// </summary>
    public static class HelpPages
    {
@@ -26,13 +29,13 @@ namespace hMailServer.ControlPanel.Services
       private const string Suffix = ".md";
 
       private static readonly Lazy<IReadOnlyList<string>> names_ = new Lazy<IReadOnlyList<string>>(() =>
-         Assembly.GetExecutingAssembly().GetManifestResourceNames()
+         typeof(HelpPages).Assembly.GetManifestResourceNames()
             .Where(n => n.StartsWith(Prefix, StringComparison.Ordinal) && n.EndsWith(Suffix, StringComparison.Ordinal))
             .Select(n => n.Substring(Prefix.Length, n.Length - Prefix.Length - Suffix.Length))
-            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(n => n, StringComparer.Ordinal)
             .ToList());
 
-      /// <summary>Every document's name without the extension, in file-name order.</summary>
+      /// <summary>Every document's name without the extension, in ordinal file-name order, as the server lists them.</summary>
       public static IReadOnlyList<string> Names => names_.Value;
 
       /// <summary>Whether a document of this name is carried; without regard to case.</summary>
@@ -50,12 +53,28 @@ namespace hMailServer.ControlPanel.Services
          if (spelled == null)
             return null;
 
-         using Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(Prefix + spelled + Suffix);
+         using Stream stream = typeof(HelpPages).Assembly.GetManifestResourceStream(Prefix + spelled + Suffix);
          if (stream == null)
             return null;
 
          using var reader = new StreamReader(stream, Encoding.UTF8, true);
          return reader.ReadToEnd().Replace("\r\n", "\n");
+      }
+
+      /// <summary>
+      /// The wiki base URL as the pane may use it: the value when it is an
+      /// absolute http or https URL, trimmed, and empty otherwise. The same rule
+      /// the server's two setters apply; applied again here because the value
+      /// reaches ShellExecute and the server is not the only way a row is
+      /// written. Empty hides the link.
+      /// </summary>
+      public static string WikiBaseUrlOrEmpty(string value)
+      {
+         string trimmed = (value ?? "").Trim();
+         if (trimmed.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+             trimmed.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            return trimmed;
+         return "";
       }
 
       /// <summary>The document's title: its first level-one heading, or its name.</summary>

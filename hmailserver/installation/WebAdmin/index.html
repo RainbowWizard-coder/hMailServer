@@ -1649,6 +1649,17 @@ const hmMarkdown=(function () {
     return null;
   };
 
+  // The text of a line with its inline markup taken off - `What it does
+  // *not* do` as What it does not do - for a label that is a string rather
+  // than rendered nodes: the headings list's buttons.
+  var plain = function (text) {
+    var out = [];
+    var node = function () { return { appendChild: function (n) { out.push(n); }, setAttribute: function () {} }; };
+    var collector = { createElement: node, createTextNode: function (t) { return { text: String(t) }; } };
+    inlinesInto(collector, node(), text, function () { return null; });
+    return out.filter(function (n) { return n.text !== undefined; }).map(function (n) { return n.text; }).join('');
+  };
+
   var slug = function (text) {
     return String(text || '').toLowerCase().replace(/`/g, '').replace(/[^\wÀ-￿]+/g, '-').replace(/^-+|-+$/g, '');
   };
@@ -1716,7 +1727,7 @@ const hmMarkdown=(function () {
     return fragment;
   };
 
-  return { parse: parse, headings: headings, render: render, slug: slug, link: defaultLink, splitRow: splitRow };
+  return { parse: parse, headings: headings, render: render, plain: plain, slug: slug, link: defaultLink, splitRow: splitRow };
 }());
 const HELP_MAP={
   dash:["SetupChecklist.md","Where it is"],
@@ -1757,7 +1768,7 @@ const HELP_MAP={
   apikeys:["CommandLine.md","Credentials"],
   passkeys:["PasskeysAndSingleSignOn.md","Passkeys"]
 };
-let helpShown="",helpWiki="",helpPages=null,helpMarks=[],helpMarkAt=-1;
+let helpShown="",helpWiki="",helpPages=null,helpMarks=[],helpMarkAt=-1,helpHeadings=[],helpAt="";
 function helpOpen(){return $("#helpPane").hidden===false;}
 function helpRemembered(){try{return localStorage.getItem("hmsHelp")==="1";}catch(_){return false;}}
 function helpRemember(open){try{if(open)localStorage.setItem("hmsHelp","1");else localStorage.removeItem("hmsHelp");}catch(_){}}
@@ -1773,12 +1784,23 @@ async function helpIndex(){
 /* A link in a document: the web opens in a new tab, another document of
    the set opens in this pane. */
 function helpLinkOf(href){return hmMarkdown.link(href);}
-function helpScrollTo(heading){
+/* Scrolls to the heading that starts on a line of the document - the
+   renderer marks every heading with its line - or to the top for none. By
+   line rather than by text, because a heading's rendered text is not its
+   markdown: `What it does *not* do` renders without the asterisks. */
+function helpScrollTo(line){
   const body=$("#helpBody");
-  let target=null;
-  if(heading){Array.from(body.querySelectorAll("[data-level]")).forEach(h=>{if(!target&&h.textContent===heading)target=h;});}
+  const target=line===null||line===undefined||line<0?null:body.querySelector('[data-level][data-line="'+line+'"]');
   if(target&&target.scrollIntoView)target.scrollIntoView();
   else body.scrollTop=0;
+}
+/* The line the heading the map names starts on, in the document showing,
+   or -1 for none: the map names headings by their markdown text, as the
+   generator lists them. */
+function helpLineOf(heading){
+  if(!heading)return -1;
+  for(const h of helpHeadings){if(h.text===heading)return h.line;}
+  return -1;
 }
 /* One document into the pane, opened on a heading; the same document
    again only scrolls. */
@@ -1793,24 +1815,25 @@ async function helpShow(name,heading){
     catch(_){body.textContent=t("The documentation could not be loaded.");helpShown="";return;}
     helpShown=name;
     const list=hmMarkdown.headings(text);
-    if(list.length&&list[0].level===1)$("#helpTitle").textContent=list[0].text;
+    helpHeadings=list;
+    if(list.length&&list[0].level===1)$("#helpTitle").textContent=hmMarkdown.plain(list[0].text);
     list.forEach((h,i)=>{
       if(i===0&&h.level===1)return;
-      const b=document.createElement("button");b.type="button";b.className=h.level===2?"head sub":"head";b.textContent=h.text;b.dataset.line=String(h.line);
-      b.onclick=()=>helpScrollTo(h.text);heads.appendChild(b);
+      const b=document.createElement("button");b.type="button";b.className=h.level===2?"head sub":"head";b.textContent=hmMarkdown.plain(h.text);b.dataset.line=String(h.line);
+      b.onclick=()=>helpScrollTo(h.line);heads.appendChild(b);
     });
     body.appendChild(hmMarkdown.render(text,document,helpLinkOf));
     await helpIndex();
     const wiki=$("#helpWiki");
     if(helpWiki){wiki.setAttribute("href",helpWiki+name);wiki.hidden=false;}else{wiki.removeAttribute("href");wiki.hidden=true;}
   }
-  helpScrollTo(heading);
+  helpScrollTo(helpLineOf(heading));
 }
 /* Every document, by its title, for opening in the pane. */
 async function helpList(){
   const pane=$("#helpPane");pane.hidden=false;
   const body=$("#helpBody"),heads=$("#helpHeads");
-  body.textContent="";heads.textContent="";helpShown="";helpMarks=[];helpMarkAt=-1;$("#helpSearch").value="";
+  body.textContent="";heads.textContent="";helpShown="";helpHeadings=[];helpAt="";helpMarks=[];helpMarkAt=-1;$("#helpSearch").value="";
   $("#helpTitle").textContent=t("All documentation");
   $("#helpWiki").hidden=true;
   const pages=await helpIndex();
@@ -1825,20 +1848,26 @@ async function helpList(){
   body.appendChild(ul);
 }
 /* The pane follows the view: the view's document, or nothing changes when
-   the pane is closed. Called by render(), so a view drawn again for a
-   poll costs a comparison. */
+   the pane is closed. Called by render(), which the dashboard's poll and
+   every save call too, so what the pane last followed is remembered and a
+   view drawn again costs a comparison and moves nothing - the reader's
+   place in the text is theirs until the view changes. */
 function helpFollow(){
   if(!helpOpen())return;
   const target=helpTarget();
-  if(target)helpShow(target.name,target.heading);
+  if(!target)return;
+  const at=target.name+"#"+target.heading;
+  if(at===helpAt)return;
+  helpAt=at;
+  helpShow(target.name,target.heading);
 }
 function helpToggle(){
   if(helpOpen()){helpClose();return;}
   helpRemember(true);
-  const target=helpTarget();
-  if(target)helpShow(target.name,target.heading);else helpList();
+  helpAt="";
+  if(helpTarget()){$("#helpPane").hidden=false;helpFollow();}else helpList();
 }
-function helpClose(){$("#helpPane").hidden=true;helpRemember(false);$("#helpBtn").focus();}
+function helpClose(){$("#helpPane").hidden=true;helpRemember(false);helpAt="";$("#helpBtn").focus();}
 /* The search box over the open document: every match marked, the first
    scrolled to, Enter moving to the next. The marks are nodes wrapped round
    the text and taken off again before the next search. */
@@ -1917,11 +1946,14 @@ document.addEventListener("keydown",e=>{
   if(e.key==="F1"&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();helpToggle();return;}
   if(e.key==="Escape"){
     if(keysOpen()){e.preventDefault();closeKeys();return;}
-    if(helpOpen()&&!(e.target&&e.target.closest&&e.target.closest("#helpPane")&&e.target.id==="helpSearch"&&e.target.value)){e.preventDefault();helpClose();return;}
+    // The search box's Escape is the list's promise - leave the box - and
+    // comes before the pane's, so a search is left with the pane where it was.
     if(e.target===$("#deckSearch")){
       e.preventDefault();
       $("#deckSearch").value="";filterRows();$("#deckSearch").blur();$("#content").focus();
+      return;
     }
+    if(helpOpen()&&!(e.target&&e.target.id==="helpSearch"&&e.target.value)){e.preventDefault();helpClose();return;}
     return;
   }
   if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT"||e.ctrlKey||e.metaKey||e.altKey)return;

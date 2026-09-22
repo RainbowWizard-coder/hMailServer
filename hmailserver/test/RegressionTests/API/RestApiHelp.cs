@@ -195,6 +195,37 @@ namespace RegressionTests.API
          Assert.AreEqual("https://wiki.example.test/", _settings.HelpWikiBaseUrl, "A refused value changes nothing over COM either.");
       }
 
+      [Test]
+      [Description("The list carries the wiki value, so it is answered Cache-Control: no-cache with an ETag of the build tag and a digest of that value: a request carrying the current tag is answered 304 with no body, a change to the setting changes the tag and a request carrying the old one is answered 200 with the new value rather than 304, and no max-age is on it; the pages keep their day.")]
+      public void TheListIsNotCachedWithTheWikiInside()
+      {
+         _settings.HelpWikiBaseUrl = "https://wiki.example.test/";
+         Response first = Raw("GET", "/api/v1/help", null, null);
+         Assert.AreEqual(200, first.Status, first.Body);
+         Assert.AreEqual("no-cache", first.Header("Cache-Control"));
+         StringAssert.DoesNotContain("max-age", first.Header("Cache-Control"));
+         string tag = (string) MiniJson.Object(first.Body)["tag"];
+         StringAssert.IsMatch("^\"" + tag + "-[0-9a-f]{16}\"$", first.Header("ETag"), "The build tag and sixteen hex digits of the wiki value.");
+
+         Response same = Raw("GET", "/api/v1/help", null, null, "If-None-Match: " + first.Header("ETag") + "\r\n");
+         Assert.AreEqual(304, same.Status, same.Body);
+         Assert.AreEqual(0, same.BodyBytes.Length, "A 304 carries no body.");
+         Assert.AreEqual(first.Header("ETag"), same.Header("ETag"));
+
+         _settings.HelpWikiBaseUrl = "";
+         Response changed = Raw("GET", "/api/v1/help", null, null, "If-None-Match: " + first.Header("ETag") + "\r\n");
+         Assert.AreEqual(200, changed.Status, "The old tag names a list with the old wiki value, which this is not.");
+         Assert.AreNotEqual(first.Header("ETag"), changed.Header("ETag"));
+         StringAssert.IsMatch("^\"" + tag + "-[0-9a-f]{16}\"$", changed.Header("ETag"));
+         Assert.AreEqual("", (string) MiniJson.Object(changed.Body)["wiki"]);
+
+         _settings.HelpWikiBaseUrl = "https://wiki.example.test/";
+         Response back = Raw("GET", "/api/v1/help", null, null, "If-None-Match: " + first.Header("ETag") + "\r\n");
+         Assert.AreEqual(304, back.Status, "The same value again is the same tag again.");
+
+         Assert.AreEqual("public, max-age=86400", Raw("GET", "/api/v1/help/Backup", null, null).Header("Cache-Control"), "A page is build-constant and keeps its day.");
+      }
+
       // ---- the documents in the tree ----------------------------------------
 
       private static string RepositoryRoot

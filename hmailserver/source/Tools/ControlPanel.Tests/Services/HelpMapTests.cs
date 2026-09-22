@@ -82,6 +82,58 @@ namespace hMailServer.ControlPanel.Tests.Services
          }
       }
 
+      /// <summary>
+      /// The program's embedded copy of the documentation is the directory: the
+      /// same files but README.md and DeckParity.md, in ordinal order as the
+      /// server lists them, each the file's bytes with CRLF made LF. A broken
+      /// Exclude or LogicalName in the project file shows here and nowhere else.
+      /// </summary>
+      [Fact]
+      public void TheEmbeddedCopyIsTheDocumentsDirectory()
+      {
+         string docs = FindDocs();
+         string[] expected = Directory.GetFiles(docs, "*.md")
+            .Select(Path.GetFileName)
+            .Where(f => f != "README.md" && f != "DeckParity.md")
+            .Select(f => f.Substring(0, f.Length - 3))
+            .OrderBy(n => n, StringComparer.Ordinal)
+            .ToArray();
+
+         Assert.NotEmpty(expected);
+         Assert.Equal(expected, HelpPages.Names.ToArray());
+         Assert.False(HelpPages.Has("README"));
+         Assert.False(HelpPages.Has("DeckParity"));
+
+         foreach (string name in expected)
+         {
+            string file = File.ReadAllText(Path.Combine(docs, name + ".md")).Replace("\r\n", "\n");
+            Assert.Equal(file, HelpPages.Read(name));
+         }
+
+         Assert.Equal("Backup", HelpPages.Find("backup"));
+         Assert.Null(HelpPages.Read("NoSuchDocument"));
+      }
+
+      /// <summary>
+      /// The wiki base URL the pane hands to the shell is kept only when it is
+      /// a web address: the rule HelpPane's setter applies, held here because the
+      /// setter itself is WPF and the test project has no window.
+      /// </summary>
+      [Theory]
+      [InlineData("https://gitlab.com/Progressiverobot/hmailserver/-/wikis/", "https://gitlab.com/Progressiverobot/hmailserver/-/wikis/")]
+      [InlineData("  HTTP://wiki.example.test/  ", "HTTP://wiki.example.test/")]
+      [InlineData("", "")]
+      [InlineData(null, "")]
+      [InlineData("C:\\Windows\\System32\\calc.exe", "")]
+      [InlineData("file:///C:/x", "")]
+      [InlineData("ftp://wiki.example.test/", "")]
+      [InlineData("wiki.example.test", "")]
+      [InlineData("javascript:alert(1)", "")]
+      public void TheWikiBaseUrlIsKeptOnlyWhenItIsAWebAddress(string value, string expected)
+      {
+         Assert.Equal(expected, HelpPages.WikiBaseUrlOrEmpty(value));
+      }
+
       private static string FindDocs()
       {
          for (var at = new DirectoryInfo(AppContext.BaseDirectory); at != null; at = at.Parent)

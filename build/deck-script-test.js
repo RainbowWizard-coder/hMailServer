@@ -78,6 +78,10 @@ function encodeText(text) {
    return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// Every scrollIntoView the page asks for, counted: the help pane's scroll is
+// what the checks of the pane hold still, and what they expect once.
+let scrollsIntoView = 0;
+
 class TextNode {
    constructor(data) { this.data = data; this.parentNode = null; this.childNodes = []; this.nodeType = 3; }
    get textContent() { return this.data; }
@@ -305,7 +309,7 @@ class Element {
    click() { this.dispatchEvent(makeEvent('click')); }
    blur() { }
    select() { }
-   scrollIntoView() { }
+   scrollIntoView() { scrollsIntoView += 1; }
 }
 
 function makeEvent(type, extra) {
@@ -7067,7 +7071,45 @@ async function main() {
    click($('#helpBody').querySelectorAll('.doclist button')[0]);
    await flush();
    check('and one of them opens', called(before, 'GET', /^\/api\/v1\/help\/[A-Za-z]+$/).length === 1 && $('#helpBody').querySelector('h3') !== null, paths(before));
+   // The pane holds still. render() runs for the dashboard's poll and for
+   // every save, and the pane follows it; what it followed last is
+   // remembered, so the same view again moves nothing and a different view
+   // opens its document on its heading, once.
+   await goTo('backup');
+   const helpBody = $('#helpBody');
+   helpBody.scrollTop = 480;
+   let scrolledBefore = scrollsIntoView;
+   await goTo('backup');
+   check('the same view drawn again leaves the pane where the reader left it', helpBody.scrollTop === 480 && scrollsIntoView === scrolledBefore,
+      'scrollTop=' + helpBody.scrollTop + ' scrolls=' + (scrollsIntoView - scrolledBefore));
+   scrolledBefore = scrollsIntoView;
+   await goTo('dash');
+   check('a different view opens its document on its heading, once', scrollsIntoView === scrolledBefore + 1 && $('#helpTitle').textContent === 'The first-hour checklist',
+      'scrolls=' + (scrollsIntoView - scrolledBefore) + ' ' + $('#helpTitle').textContent);
+   helpBody.scrollTop = 320;
+   scrolledBefore = scrollsIntoView;
+   fireIntervals();
+   await flush();
+   check('the dashboard\'s poll redraws the view and leaves the pane where the reader left it', helpBody.scrollTop === 320 && scrollsIntoView === scrolledBefore,
+      'scrollTop=' + helpBody.scrollTop + ' scrolls=' + (scrollsIntoView - scrolledBefore));
+   // A heading written with inline markup is listed without it and is reachable:
+   // the pane scrolls by the line the heading starts on, not by its text.
+   await goTo('lists');
+   check('Lists opens the distribution lists document', $('#helpTitle').textContent === 'Distribution lists that define themselves', $('#helpTitle').textContent);
+   const marked = Array.from($('#helpHeads').querySelectorAll('button')).filter((b) => b.textContent === 'What it does not do')[0];
+   check('a heading written with inline markup is listed by its text, without the markup', !!marked, $('#helpHeads').textContent);
+   helpBody.scrollTop = 200;
+   scrolledBefore = scrollsIntoView;
+   if (marked) { click(marked); }
+   check('and choosing it scrolls to it rather than to the top', scrollsIntoView === scrolledBefore + 1 && helpBody.scrollTop === 200,
+      'scrolls=' + (scrollsIntoView - scrolledBefore) + ' scrollTop=' + helpBody.scrollTop);
+   // Escape in the search box is the search box's, as the shortcut list says.
+   $('#deckSearch').value = 'lists';
+   press('Escape', $('#deckSearch'));
+   check('Escape in the search box leaves the search box and leaves the pane open', $('#helpPane').hidden === false && $('#deckSearch').value === '',
+      'hidden=' + $('#helpPane').hidden + ' search=' + JSON.stringify($('#deckSearch').value));
    press('Escape');
+   check('and Escape on the page closes the pane', $('#helpPane').hidden === true);
 
    if (failures.length) {
       out.error('\ndeck script: ' + failures.length + ' of ' + checks + ' checks failed\n');

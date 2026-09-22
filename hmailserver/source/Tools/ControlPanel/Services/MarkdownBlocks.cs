@@ -182,6 +182,28 @@ namespace hMailServer.ControlPanel.Services
          return null;
       }
 
+      /// <summary>
+      /// The text of a line with its inline markup taken off - `What it does
+      /// *not* do` as What it does not do - for a label that is a string rather
+      /// than rendered runs: the headings list's buttons, the pane's title.
+      /// </summary>
+      public static string PlainText(string text)
+      {
+         var plain = new System.Text.StringBuilder();
+         void Append(IReadOnlyList<MdInline> inlines)
+         {
+            foreach (MdInline inline in inlines)
+            {
+               if (inline.Kind == MdInlineKind.Text || inline.Kind == MdInlineKind.Code)
+                  plain.Append(inline.Text);
+               else
+                  Append(inline.Children);
+            }
+         }
+         Append(Inlines(text));
+         return plain.ToString();
+      }
+
       /// <summary>The runs of one line of text.</summary>
       public static IReadOnlyList<MdInline> Inlines(string text)
       {

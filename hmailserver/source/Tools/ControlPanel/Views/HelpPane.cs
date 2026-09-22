@@ -49,13 +49,19 @@ namespace hMailServer.ControlPanel.Views
       private string shown_;
       private IReadOnlyDictionary<string, Block> headingBlocks_ = new Dictionary<string, Block>();
 
-      /// <summary>The wiki base URL "Open on the wiki" is made against; empty hides the link.</summary>
+      /// <summary>
+      /// The wiki base URL "Open on the wiki" is made against; empty hides the
+      /// link. Kept only when it is a web address (<see cref="HelpPages.WikiBaseUrlOrEmpty"/>):
+      /// the value reaches ShellExecute, and the server's setters are the
+      /// only other guard - a row written by SQL, or by a server of another
+      /// build, is not theirs to have checked.
+      /// </summary>
       public string WikiBaseUrl
       {
          get => wikiBaseUrl_;
          set
          {
-            wikiBaseUrl_ = value ?? "";
+            wikiBaseUrl_ = HelpPages.WikiBaseUrlOrEmpty(value);
             UpdateWikiLink_();
          }
       }
@@ -196,7 +202,7 @@ namespace hMailServer.ControlPanel.Views
             search_.Text = "";
 
             IReadOnlyList<MdHeading> list = MarkdownBlocks.Headings(text);
-            title_.Text = list.Count > 0 && list[0].Level == 1 ? list[0].Text : spelled;
+            title_.Text = list.Count > 0 && list[0].Level == 1 ? MarkdownBlocks.PlainText(list[0].Text) : spelled;
             headings_.Children.Clear();
             for (int i = 0; i < list.Count; i++)
             {
@@ -238,11 +244,18 @@ namespace hMailServer.ControlPanel.Views
          viewer_.Document = document;
       }
 
+      /// <summary>
+      /// A heading of the list at the top. The label is the heading's text with
+      /// its inline markup taken off - `What it does *not* do` as What it does
+      /// not do - while the scroll target stays keyed by the raw text, which is
+      /// how the map names a heading and how MarkdownFlow keeps its block.
+      /// </summary>
       private FrameworkElement HeadingLink_(MdHeading heading)
       {
+         string label = MarkdownBlocks.PlainText(heading.Text);
          var button = new Button
          {
-            Content = heading.Text,
+            Content = label,
             Appearance = ControlAppearance.Transparent,
             FontSize = Typography.Caption,
             Padding = new Thickness(heading.Level == 2 ? 14 : 4, 2, 4, 2),
@@ -250,7 +263,7 @@ namespace hMailServer.ControlPanel.Views
             HorizontalContentAlignment = HorizontalAlignment.Left,
             Cursor = Cursors.Hand
          };
-         AutomationProperties.SetName(button, heading.Text);
+         AutomationProperties.SetName(button, label);
          string text = heading.Text;
          button.Click += (s, e) => ScrollToHeading_(text);
          return button;

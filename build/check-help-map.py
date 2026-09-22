@@ -32,6 +32,15 @@ Checked:
             in neither is one the help cannot reach, a document in both is
             not reference-only.
 
+What it reads the pages from, and so what it would not notice: a Control
+Panel page is a Page("key" call in NavigationMap.cs (HelpMapTests holds the
+same table from inside, against NavigationMap.Pages); a Deck view is a
+data-view="..." attribute in index.html, so a section drawn by the script
+rather than written in the markup would be missed; a webmail page is an
+if (head === '...') test in Portal.js's route(), so a route written as a
+case label or looked up in a table would be missed. Keep the three spelled
+as they are, or teach this file the new spelling in the same change.
+
 Usage:  python build/check-help-map.py [--self-test]
   --self-test runs the same check over a copy of the maps with an entry
   naming a heading that is not there and one naming a document that is not,

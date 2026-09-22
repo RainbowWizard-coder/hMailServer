@@ -2072,6 +2072,11 @@
   var helpPages = null;
   var helpMarks = [];
   var helpMarkAt = -1;
+  // The headings of the document showing, as the renderer read them, and
+  // what the pane last followed (name#heading), so a route drawn again -
+  // every message opened from the list is a route - moves nothing.
+  var helpHeadings = [];
+  var helpAt = '';
   var helpWanted = (function () { try { return localStorage.getItem('hmPortalHelp') === '1'; } catch (e) { return false; } }());
   var helpOpen = function () { return el('help-pane').hidden === false; };
   var helpRemember = function (open) { helpWanted = open; try { if (open) { localStorage.setItem('hmPortalHelp', '1'); } else { localStorage.removeItem('hmPortalHelp'); } } catch (e) { /* a browser that keeps nothing is still a browser */ } };
@@ -2095,24 +2100,35 @@
     }
     return null;
   };
-  var helpScrollTo = function (heading) {
+  // Scrolls to the heading that starts on a line of the document - the
+  // renderer marks every heading with its line - or to the top for none.
+  // By line rather than by text, because a heading's rendered text is not
+  // its markdown: `What it does *not* do` renders without the asterisks.
+  var helpScrollTo = function (line) {
     var body = el('help-body');
-    var target = heading ? helpFind(body, function (n) { return n.getAttribute && n.getAttribute('data-level') !== null && n.textContent === heading; }) : null;
+    var target = line === null || line === undefined || line < 0 ? null : helpFind(body, function (n) { return n.getAttribute && n.getAttribute('data-level') !== null && n.getAttribute('data-line') === String(line); });
     if (target && target.scrollIntoView) { target.scrollIntoView(); } else { body.scrollTop = 0; }
+  };
+  // The line the heading the map names starts on, in the document showing,
+  // or -1 for none: the map names headings by their markdown text.
+  var helpLineOf = function (heading) {
+    if (!heading) { return -1; }
+    for (var i = 0; i < helpHeadings.length; i++) { if (helpHeadings[i].text === heading) { return helpHeadings[i].line; } }
+    return -1;
   };
   var helpUnmark = function () {
     helpMarks.forEach(function (m) { var p = m.parentNode; if (!p) { return; } p.replaceChild(document.createTextNode(m.textContent), m); if (p.normalize) { p.normalize(); } });
     helpMarks = []; helpMarkAt = -1;
   };
   var helpReset = function (title) {
-    clear(el('help-body')); clear(el('help-heads')); helpMarks = []; helpMarkAt = -1; el('help-search').value = '';
+    clear(el('help-body')); clear(el('help-heads')); helpHeadings = []; helpMarks = []; helpMarkAt = -1; el('help-search').value = '';
     el('help-title').textContent = title;
   };
   // One document into the pane, opened on a heading; the same document
   // again only scrolls.
   var helpShow = function (name, heading) {
     el('help-pane').hidden = false;
-    if (helpShown === name) { helpScrollTo(heading); return Promise.resolve(); }
+    if (helpShown === name) { helpScrollTo(helpLineOf(heading)); return Promise.resolve(); }
     helpReset(name);
     var body = el('help-body');
     return fetch('/api/v1/help/' + encodeURIComponent(name), { credentials: 'same-origin' })
@@ -2122,12 +2138,13 @@
         if (!md) { throw new Error('no renderer'); }
         helpShown = name;
         var list = md.headings(text);
-        if (list.length && list[0].level === 1) { el('help-title').textContent = list[0].text; }
+        helpHeadings = list;
+        if (list.length && list[0].level === 1) { el('help-title').textContent = md.plain(list[0].text); }
         list.forEach(function (h, i) {
           if (i === 0 && h.level === 1) { return; }
           var b = document.createElement('button'); b.type = 'button'; b.className = h.level === 2 ? 'head sub' : 'head';
-          b.appendChild(document.createTextNode(h.text)); b.setAttribute('data-line', String(h.line));
-          b.addEventListener('click', function () { helpScrollTo(h.text); });
+          b.appendChild(document.createTextNode(md.plain(h.text))); b.setAttribute('data-line', String(h.line));
+          b.addEventListener('click', function () { helpScrollTo(h.line); });
           el('help-heads').appendChild(b);
         });
         body.appendChild(md.render(text, document, md.link));
@@ -2136,7 +2153,7 @@
       .then(function () {
         var wiki = el('help-wiki');
         if (helpWiki) { wiki.setAttribute('href', helpWiki + name); wiki.hidden = false; } else { wiki.removeAttribute('href'); wiki.hidden = true; }
-        helpScrollTo(heading);
+        helpScrollTo(helpLineOf(heading));
       })
       .catch(function () { helpShown = ''; clear(body); body.appendChild(document.createTextNode(t('The documentation could not be loaded.'))); });
   };
@@ -2144,6 +2161,7 @@
   var helpList = function () {
     el('help-pane').hidden = false;
     helpShown = '';
+    helpAt = '';
     helpReset(t('All documentation'));
     el('help-wiki').hidden = true;
     return helpIndex().then(function (pages) {
@@ -2162,19 +2180,26 @@
     });
   };
   // The pane follows the page: opened when this browser keeps it open,
-  // and the page's document once it is. Called by route(), so a page drawn
-  // again costs a comparison.
+  // and the page's document once it is. Called by route(), which every
+  // message opened from the list goes through, so what the pane last
+  // followed is remembered and a route to the same document and heading
+  // costs a comparison and moves nothing - the reader's place in the text
+  // is theirs until the page changes.
   var helpFollow = function () {
     if (el('help-pane').hidden) { if (!helpWanted) { return; } el('help-pane').hidden = false; }
     var target = helpTarget();
-    if (target) { helpShow(target.name, target.heading); }
+    if (!target) { return; }
+    var at = target.name + '#' + target.heading;
+    if (at === helpAt) { return; }
+    helpAt = at;
+    helpShow(target.name, target.heading);
   };
-  var helpClose = function () { el('help-pane').hidden = true; helpRemember(false); el('help-btn').focus(); };
+  var helpClose = function () { el('help-pane').hidden = true; helpRemember(false); helpAt = ''; el('help-btn').focus(); };
   var helpToggle = function () {
     if (helpOpen()) { helpClose(); return; }
     helpRemember(true);
-    var target = helpTarget();
-    if (target) { helpShow(target.name, target.heading); } else { helpList(); }
+    helpAt = '';
+    if (helpTarget()) { helpFollow(); } else { helpList(); }
   };
   // The search box over the open document: every match marked, the first
   // scrolled to, Enter moving to the next.
@@ -2240,6 +2265,7 @@
     cancelUndo();
     el('help-pane').hidden = true;
     helpShown = '';
+    helpAt = '';
     clear(el('help-body'));
     clear(el('help-heads'));
     me = '';
@@ -8837,8 +8863,17 @@
     if ((event.ctrlKey || event.metaKey) && !event.altKey && (event.key === 'k' || event.key === 'K')) { event.preventDefault(); openPalette(); return; }
     if (event.key === 'Escape' && (!el('keys-overlay').hidden || !el('palette').hidden)) { closeOverlays(); return; }
     if (event.key === 'F1' && !event.ctrlKey && !event.metaKey && !event.altKey) { event.preventDefault(); helpToggle(); return; }
-    if (event.key === 'Escape' && helpOpen() && !(event.target && event.target.id === 'help-search' && event.target.value)) { helpClose(); return; }
     var tag = (event.target && event.target.tagName) || '';
+    // Escape closes the pane from the page and from inside the pane; a
+    // field of the page keeps its own Escape - the search box's, a
+    // completion's, the compose window's - and the pane's search box keeps
+    // the browser's, which empties it, while it has text.
+    if (event.key === 'Escape' && helpOpen()) {
+      var inPane = false;
+      for (var above = event.target; above; above = above.parentNode) { if (above === el('help-pane')) { inPane = true; break; } }
+      var inField = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+      if ((!inField || inPane) && !(inPane && event.target.id === 'help-search' && event.target.value)) { helpClose(); return; }
+    }
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || event.ctrlKey || event.metaKey || event.altKey) { return; }
     if (event.key === '?') { event.preventDefault(); if (el('keys-overlay').hidden) { openKeys(); } else { closeOverlays(); } }
   });

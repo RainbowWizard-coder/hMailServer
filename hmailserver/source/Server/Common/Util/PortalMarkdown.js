@@ -301,6 +301,17 @@
     return null;
   };
 
+  // The text of a line with its inline markup taken off - `What it does
+  // *not* do` as What it does not do - for a label that is a string rather
+  // than rendered nodes: the headings list's buttons.
+  var plain = function (text) {
+    var out = [];
+    var node = function () { return { appendChild: function (n) { out.push(n); }, setAttribute: function () {} }; };
+    var collector = { createElement: node, createTextNode: function (t) { return { text: String(t) }; } };
+    inlinesInto(collector, node(), text, function () { return null; });
+    return out.filter(function (n) { return n.text !== undefined; }).map(function (n) { return n.text; }).join('');
+  };
+
   var slug = function (text) {
     return String(text || '').toLowerCase().replace(/`/g, '').replace(/[^\wÀ-￿]+/g, '-').replace(/^-+|-+$/g, '');
   };
@@ -368,5 +379,5 @@
     return fragment;
   };
 
-  return { parse: parse, headings: headings, render: render, slug: slug, link: defaultLink, splitRow: splitRow };
+  return { parse: parse, headings: headings, render: render, plain: plain, slug: slug, link: defaultLink, splitRow: splitRow };
 }));

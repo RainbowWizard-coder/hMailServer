@@ -24,14 +24,20 @@
 // as good as one the pane made. Anything carrying a separator, a dot or a
 // character outside letters and digits is not a page and is refused with the
 // same 404 as a page that is not there, so a request that tries the path for
-// a file learns nothing. The answer carries Cache-Control for a day and an
-// ETag from the build tag, and a request whose If-None-Match names that tag is
-// answered 304, so a browser that holds the page asks a few bytes' worth on
-// each open until the documentation changes in a build.
+// a file learns nothing. A page's answer
+// carries Cache-Control for a day and an ETag from the build tag, and a
+// request whose If-None-Match names that tag is answered 304, so a browser
+// that holds the page asks a few bytes' worth on each open until the
+// documentation changes in a build. The list is the one answer that is not
+// build-constant - the wiki setting rides in it - so it is answered no-cache
+// with an ETag of the build tag and a digest of the wiki value, and 304 to an
+// If-None-Match naming that: a change to the setting reaches a browser on its
+// next load rather than a day later, and a shared cache holds nothing stale.
 #include "StdAfx.h"
 #include "RestApiServer.h"
 #include "HelpPages.h"
 #include "HttpCompression.h"
+#include "DavSupport.h"
 #include "../Application/Configuration.h"
 
 #ifdef _DEBUG
@@ -140,14 +146,33 @@ namespace HM
          return text;
       }
 
-      const char *HelpHeaders_ = "X-Content-Type-Options: nosniff\r\n"
-                                 "Cache-Control: public, max-age=86400\r\n";
+      // A page is the same bytes until the next build: a day's cache. The list
+      // carries the wiki setting: revalidated on every use.
+      const char *HelpPageHeaders_ = "X-Content-Type-Options: nosniff\r\n"
+                                     "Cache-Control: public, max-age=86400\r\n";
+      const char *HelpListHeaders_ = "X-Content-Type-Options: nosniff\r\n"
+                                     "Cache-Control: no-cache\r\n";
    }
 
    HttpResponse
-   RestApiServer::HandleHelpList_()
+   RestApiServer::HandleHelpList_(const AnsiString &request)
    {
-      AnsiString body = "{\"wiki\":\"" + JsonEscapeUtf8(Configuration::Instance()->GetHelpWikiBaseUrl()) +
+      // The ETag names the build and the wiki value both, since the body is
+      // a function of both: two settings are two tags, and the tag of a list
+      // a browser holds stops matching the moment the setting changes.
+      const AnsiString wiki = Utf8_(Configuration::Instance()->GetHelpWikiBaseUrl());
+      const AnsiString etag = AnsiString("\"") + HelpPagesTag + "-" + Dav::Sha256Hex(wiki).Left(16) + "\"";
+
+      if (MatchesETag_(GetHeader_(request, "if-none-match"), etag))
+      {
+         HttpResponse unchanged;
+         unchanged.status = 304;
+         unchanged.content_type = "application/json; charset=utf-8";
+         unchanged.extra_headers = AnsiString(HelpListHeaders_) + "ETag: " + etag + "\r\n";
+         return unchanged;
+      }
+
+      AnsiString body = "{\"wiki\":\"" + JsonEscape_(wiki) +
                         "\",\"tag\":\"" + AnsiString(HelpPagesTag) + "\",\"pages\":[";
 
       bool firstPage = true;
@@ -178,7 +203,7 @@ namespace HM
 
       HttpResponse response = BuildResponse_(200, body);
       helpCache_.Fill(response);
-      response.extra_headers = AnsiString(HelpHeaders_) + "ETag: \"" + HelpPagesTag + "\"\r\n";
+      response.extra_headers = AnsiString(HelpListHeaders_) + "ETag: " + etag + "\r\n";
       return response;
    }
 
@@ -193,7 +218,7 @@ namespace HM
 
       HttpResponse response;
       response.content_type = "text/markdown; charset=utf-8";
-      response.extra_headers = AnsiString(HelpHeaders_) + "ETag: " + etag + "\r\n";
+      response.extra_headers = AnsiString(HelpPageHeaders_) + "ETag: " + etag + "\r\n";
 
       if (MatchesETag_(GetHeader_(request, "if-none-match"), etag))
       {
@@ -228,8 +253,8 @@ namespace HM
    {
       return
          ",\"/api/v1/help\":{\"get\":{\"summary\":\"The documentation carried in the binary, listed\","
-         "\"description\":\"Unauthenticated, as /deck-lang/ is: the text is the repository's own operator documentation (hmailserver/docs/*.md), public in the repository and on the wiki, and nothing of this server's own but the wiki base URL. {wiki, tag, pages:[{name, title, bytes, headings:[{text, level, line}]}]}. wiki is the HelpWikiBaseUrl setting, empty when the administrator hid the link; tag is the build tag the pages' ETags are made from; each page's name is what /api/v1/help/{page} takes, its title its first heading, its headings the level-one and level-two ones with the line each starts on, counted from 0.\","
-         "\"responses\":{\"200\":{\"description\":\"The list\"}}}},"
+         "\"description\":\"Unauthenticated, as /deck-lang/ is: the text is the repository's own operator documentation (hmailserver/docs/*.md), public in the repository and on the wiki, and nothing of this server's own but the wiki base URL. {wiki, tag, pages:[{name, title, bytes, headings:[{text, level, line}]}]}. wiki is the HelpWikiBaseUrl setting, empty when the administrator hid the link; tag is the build tag the pages' ETags are made from; each page's name is what /api/v1/help/{page} takes, its title its first heading, its headings the level-one and level-two ones with the line each starts on, counted from 0. Answered Cache-Control: no-cache, since the wiki value rides in it, with an ETag of the build tag and a digest of that value, and 304 to an If-None-Match naming it.\","
+         "\"responses\":{\"200\":{\"description\":\"The list\"},\"304\":{\"description\":\"The browser's copy is current\"}}}},"
          "\"/api/v1/help/{page}\":{\"get\":{\"summary\":\"One page of the documentation, as markdown\","
          "\"description\":\"Unauthenticated. page is a file name without its extension and without a path - Backup for Backup.md - matched without regard to case. text/markdown; charset=utf-8, with Cache-Control for a day and an ETag from the build tag; a request whose If-None-Match names the tag is answered 304. A name carrying a dot, a separator or anything outside letters and digits, and a name that is not a page, are one and the same 404.\","
          "\"parameters\":[{\"name\":\"page\",\"in\":\"path\",\"required\":true,\"schema\":{\"type\":\"string\"}}],"

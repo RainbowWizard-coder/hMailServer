@@ -49,7 +49,7 @@ from offering help.
 
 | Route | Answers |
 |---|---|
-| `GET /api/v1/help` | `{wiki, tag, pages:[{name, title, bytes, headings:[{text, level, line}]}]}`. `wiki` is the `HelpWikiBaseUrl` setting, empty when the administrator hid the link; `tag` is the build tag; each page's `name` is what the page route takes, its `title` its first heading, its `headings` the level-one and level-two ones with the line each starts on, counted from 0. |
+| `GET /api/v1/help` | `{wiki, tag, pages:[{name, title, bytes, headings:[{text, level, line}]}]}`. `wiki` is the `HelpWikiBaseUrl` setting, empty when the administrator hid the link; `tag` is the build tag; each page's `name` is what the page route takes, its `title` its first heading, its `headings` the level-one and level-two ones with the line each starts on, counted from 0. The wiki value rides in it, so it is answered `Cache-Control: no-cache` with an `ETag` of the build tag and a digest of that value, and `304` to an `If-None-Match` naming it: a change to the setting reaches a browser on its next page load, not a day later. |
 | `GET /api/v1/help/{page}` | The page's markdown, `text/markdown; charset=utf-8`, with `Cache-Control: public, max-age=86400` and an `ETag` of the build tag and the page name; a request whose `If-None-Match` names that tag is answered `304`. `{page}` is a file name without its extension and without a path - `Backup` for `Backup.md` - matched without regard to case. A name carrying a dot, a separator or anything outside letters and digits, and a name that is not a page, are one and the same `404`, so a request that tries the path for a file learns nothing. |
 
 The answers are the same bytes for every reader, so they are on the list of
@@ -97,7 +97,9 @@ The same shape in all three, in the register of the tours
 ([ControlPanelDesign.md](ControlPanelDesign.md)): a right-hand pane, never a
 window and never a dialog, that follows the page as the navigation changes,
 with the document's headings as a list at the top, a search box over the
-open document, the text, and two links at the foot - *Open on the wiki* and
+open document (the two browser pages mark every match and Enter moves to
+the next; the Control Panel finds the next match), the text, and two links
+at the foot - *Open on the wiki* and
 *All documentation*, the second listing every document for opening in the
 same pane. A link in a document to another document of the set opens that
 document in the pane; a link to the web opens in a new tab. Its rendering is
@@ -106,6 +108,10 @@ inline code, code blocks, bulleted and numbered lists, links, block quotes,
 rules and tables as a grid; nothing else, and anything else as its text -
 so the text can carry nothing the page runs: the two browser pages build DOM
 nodes and never assign markup, the Control Panel builds a `FlowDocument`.
+The pane scrolls to a heading by the line it starts on (the map names it by
+its markdown text, and a heading with inline markup renders without it), and
+remembers what it last followed, so a page drawn again - the Deck's
+dashboard poll, a save, a message opened from the list - moves nothing.
 
 * **The Control Panel:** the `?` button in the window's command bar, and
   `F1`. The text comes from its own embedded copy over no route at all. The
@@ -116,16 +122,19 @@ nodes and never assign markup, the Control Panel builds a `FlowDocument`.
   `ControlPanel.Core` and tested without WPF), `Services/MarkdownFlow.cs`
   the rendering into a `FlowDocument`, `Services/HelpPages.cs` the embedded
   copy, `Views/HelpPane.cs` the pane.
-* **The Deck:** the `?` button in the command bar, and `F1` when the
-  keyboard is not in a field; `Escape` closes it. The keyboard shortcuts
+* **The Deck:** the `?` button in the command bar, and `F1` from anywhere;
+  `Escape` closes it, except in the search box, whose own `Escape` comes
+  first. The keyboard shortcuts
   list, which had the `?` button, keeps the `?` *key* and has a keyboard
   glyph for its button. The document is fetched from `/api/v1/help/{page}`
   and rendered by a copy of the webmail's renderer inline in the page (its
   policy allows no script but its own). Whether the pane is open is kept in
   `localStorage` under `hmsHelp`, beside the theme and the language.
 * **The webmail:** the `?` button in the toolbar, `F1`, and *Help for this
-  page* in the Ctrl+K palette; the keyboard shortcuts button has a keyboard
-  glyph for the same reason. The renderer is `/portal-markdown.js`
+  page* in the Ctrl+K palette; `Escape` closes it from the page or from
+  inside the pane, and a field of the page keeps its own. The keyboard
+  shortcuts button has a keyboard glyph for the same reason. The renderer
+  is `/portal-markdown.js`
   (`Common/Util/PortalMarkdown.js`, served beside the S/MIME module and
   carried by the service worker as part of the shell). Whether the pane is
   open is kept in `localStorage` under `hmPortalHelp`.
@@ -141,8 +150,11 @@ document's name as the page. It is `help_wiki_base_url` on `GET` and `PUT
 Panel's Advanced page under General; and `Settings.HelpWikiBaseUrl` over COM.
 A value that is not empty and not an absolute `http://` or `https://` URL is
 refused in the same words on every door; empty hides the link everywhere.
-The two browser pages read it from `GET /api/v1/help`, the Control Panel
-over COM.
+The two browser pages read it from `GET /api/v1/help` once per page load,
+the Control Panel over COM at sign-in, and the Control Panel keeps only a
+value that is an absolute `http://` or `https://` URL before it hands one
+to the shell - a row written any other way is not the server's to have
+checked.
 
 What is thinner than the row asks
 ---------------------------------
@@ -172,8 +184,9 @@ What is tested
   nothing changed.
 * `ControlPanel.Tests`: the markdown parser over a fixed document (headings
   of both kinds, a list, a code block, a table, a link), the map's lookup for
-  three pages and its coverage of every navigation page, and the pane's
-  heading scroll target.
+  three pages and its coverage of every navigation page, the pane's
+  heading scroll target, the embedded copy against the directory (the
+  names, the two exclusions, the bytes) and the wiki URL rule.
 * `build/deck-script-test.js` and `build/portal-script-test.js`: the button,
   the fetch path, the rendering of a heading and a list, and the map lookup
   for three views.

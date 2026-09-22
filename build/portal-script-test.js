@@ -36,6 +36,10 @@ const cataloguesDir = pagePath.slice(0, Math.max(pagePath.lastIndexOf('/'), page
 const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
 const RAW = new Set(['script', 'style']);
 
+// Every scrollIntoView the page asks for, counted across elements: the help
+// pane's scroll is what its checks hold still, and what they expect once.
+let scrollsIntoView = 0;
+
 class TextNode {
    constructor(data) { this.data = data; this.parentNode = null; this.childNodes = []; this.nodeType = 3; }
    get textContent() { return this.data; }
@@ -153,7 +157,7 @@ class Element {
    // this reports it as "click is not a function" from inside a handler,
    // which names neither the button nor the reason.
    click() { this.dispatchEvent(makeEvent('click')); }
-   scrollIntoView() { this.scrolledIntoView += 1; }
+   scrollIntoView() { this.scrolledIntoView += 1; scrollsIntoView += 1; }
    /* There is no layout in this DOM, so an element has the rectangle a test
       gives it (el.rect = {left, top, width, height}) and otherwise none at all.
       That is enough for the tour, which asks only where the thing it points at
@@ -7525,6 +7529,58 @@ async function main() {
       document.getElementById('help-title').textContent === helpSaid('All documentation') &&
       helpTags('help-body', 'BUTTON').length === helpPages().length,
       document.getElementById('help-title').textContent + ' ' + helpTags('help-body', 'BUTTON').length + ' of ' + helpPages().length);
+   // The pane holds still. route() runs for every message opened from the
+   // list, and the pane follows it; what it followed last is remembered, so
+   // a route to the same document and heading moves nothing, another
+   // heading of the same document moves it there once, and another page's
+   // document is fetched.
+   location.hash = '#/f/1';
+   await flush();
+   check('the folder view opens the shortcuts document', document.getElementById('help-title').textContent === 'Webmail: keyboard shortcuts and search operators',
+      document.getElementById('help-title').textContent);
+   const helpBody = document.getElementById('help-body');
+   helpBody.scrollTop = 480;
+   let scrolledBefore = scrollsIntoView;
+   beforeHelp = requests.length;
+   location.hash = '#/m/102';
+   await flush();
+   check('a message, mapped to the same document and heading, leaves the pane where the reader left it',
+      helpBody.scrollTop === 480 && scrollsIntoView === scrolledBefore && !called(beforeHelp, 'GET', /^\/api\/v1\/help/),
+      'scrollTop=' + helpBody.scrollTop + ' scrolls=' + (scrollsIntoView - scrolledBefore));
+   scrolledBefore = scrollsIntoView;
+   location.hash = '#/scheduled';
+   await flush();
+   check('a page mapped to another heading of the same document moves the pane there, once',
+      scrollsIntoView === scrolledBefore + 1 && document.getElementById('help-title').textContent === 'Webmail: keyboard shortcuts and search operators',
+      'scrolls=' + (scrollsIntoView - scrolledBefore));
+   beforeHelp = requests.length;
+   location.hash = '#/contacts';
+   await flush();
+   check('and a page mapped to another document fetches it', called(beforeHelp, 'GET', '/api/v1/help/Contacts'),
+      JSON.stringify(since(beforeHelp).map((r) => r.path)));
+   // A heading written with inline markup is listed without it and is reachable:
+   // the pane scrolls by the line the heading starts on, not by its text.
+   document.getElementById('help-all').dispatchEvent(makeEvent('click'));
+   await flush();
+   const listsButton = helpAll(helpBody, (n) => n.tagName === 'BUTTON' && n.textContent.indexOf('DistributionLists.md') >= 0)[0];
+   if (listsButton) { listsButton.dispatchEvent(makeEvent('click')); }
+   await flush();
+   check('the distribution lists document opens from the list', document.getElementById('help-title').textContent === 'Distribution lists that define themselves',
+      document.getElementById('help-title').textContent);
+   const marked = helpTags('help-heads', 'BUTTON').filter((b) => b.textContent === 'What it does not do')[0];
+   check('a heading written with inline markup is listed by its text, without the markup', !!marked, document.getElementById('help-heads').textContent);
+   helpBody.scrollTop = 200;
+   scrolledBefore = scrollsIntoView;
+   if (marked) { marked.dispatchEvent(makeEvent('click')); }
+   check('and choosing it scrolls to it rather than to the top', scrollsIntoView === scrolledBefore + 1 && helpBody.scrollTop === 200,
+      'scrolls=' + (scrollsIntoView - scrolledBefore) + ' scrollTop=' + helpBody.scrollTop);
+   // Escape in a field of the page is the field's; on the page it is the pane's.
+   document.dispatchEvent(makeEvent('keydown', { key: 'Escape', target: document.getElementById('mail-search') }));
+   check('Escape in the search box leaves the pane open', helpPane.hidden === false);
+   document.dispatchEvent(makeEvent('keydown', { key: 'Escape', target: document.body }));
+   check('and Escape on the page closes it', helpPane.hidden === true);
+   document.dispatchEvent(makeEvent('keydown', { key: 'F1', target: document.body }));
+   await flush();
    document.getElementById('help-close').dispatchEvent(makeEvent('click'));
    check('the close button closes it', helpPane.hidden === true);
 

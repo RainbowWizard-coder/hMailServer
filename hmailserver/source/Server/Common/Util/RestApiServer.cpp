@@ -1664,7 +1664,7 @@ namespace HM
       // and nothing of this server's but the wiki base URL. RestApiHelp.cpp
       // refuses anything after /help/ that is not a bare page name.
       if (method == "GET" && path == "/api/v1/help")
-         return HandleHelpList_();
+         return HandleHelpList_(request);
 
       if (method == "GET" && path.StartsWith("/api/v1/help/"))
          return HandleHelpPage_(path.Mid(13), request);

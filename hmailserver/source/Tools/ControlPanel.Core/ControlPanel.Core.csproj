@@ -44,6 +44,11 @@
          a test can hold the map to the navigation and the parser to a document. -->
     <Compile Include="..\ControlPanel\Services\HelpMap.cs" />
     <Compile Include="..\ControlPanel\Services\MarkdownBlocks.cs" />
+    <!-- The program's embedded copy of the documentation, read from the assembly
+         HelpPages was compiled into; with the resource group below, this assembly
+         carries the same copy the program does, so HelpMapTests can hold it to the
+         directory - the names, the two exclusions, the bytes. -->
+    <Compile Include="..\ControlPanel\Services\HelpPages.cs" />
     <Compile Include="..\ControlPanel\Services\WelcomeIntents.cs" />
     <Compile Include="..\ControlPanel\Services\IntentIndex.cs" />
     <Compile Include="..\ControlPanel\Services\PaletteUsage.cs" />
@@ -60,6 +65,15 @@
     <Compile Include="..\ControlPanel\Services\Tour.cs" />
     <Compile Include="..\ControlPanel\Services\TourSession.cs" />
     <Compile Include="..\ControlPanel\Services\TourProgress.cs" />
+  </ItemGroup>
+
+  <!-- The operator documentation, embedded straight from the repository as
+       Help.<Name>.md, exactly as ControlPanel.csproj embeds it for the program:
+       the same glob, the same two exclusions, the same names. The program does
+       not reference this assembly (it compiles Services/*.cs itself), so the
+       group is in both; this one is what the tests read through HelpPages. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\docs\*.md" Exclude="..\..\..\docs\README.md;..\..\..\docs\DeckParity.md" LogicalName="Help.%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>
