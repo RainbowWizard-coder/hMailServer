@@ -44,6 +44,7 @@
 #include "../Common/BO/RouteAddresses.h"
 #include "../Common/BO/RemoteDomainPolicies.h"
 #include "../Common/Util/RestrictedDelivery.h"
+#include "PlusAddressing.h"
 #include "../Common/BO/RemoteDomainPolicy.h"
 #include "../Common/BO/MessageRecipient.h"
 #include "../Common/BO/MessageRecipients.h"
@@ -1986,8 +1987,17 @@ namespace HM
 
       if (localDelivery)
       {
+         // The account behind the address, resolved as RecipientParser will
+         // resolve it: the domain aliases applied, then the plus part taken off
+         // (pupil+anything@school is the pupil), so that a plus-addressed
+         // direct recipient meets the 550 here rather than 250 and silence.
          std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
-         const String accountAddress = aliases ? aliases->ApplyAliasesOnAddress(recipientAddress) : recipientAddress;
+         String accountAddress = aliases ? aliases->ApplyAliasesOnAddress(recipientAddress) : recipientAddress;
+
+         std::shared_ptr<const Domain> recipientDomain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(accountAddress));
+         if (recipientDomain)
+            accountAddress = PlusAddressing::ExtractAccountAddress(accountAddress, recipientDomain);
+
          std::shared_ptr<const Account> recipient = CacheContainer::Instance()->GetAccount(accountAddress);
 
          if (recipient && RestrictedDelivery::Check(recipient, senderAddress, RestrictedDelivery::Inbound) == RestrictedDelivery::Refused)

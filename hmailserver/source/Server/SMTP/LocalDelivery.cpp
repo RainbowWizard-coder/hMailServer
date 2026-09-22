@@ -861,10 +861,18 @@ namespace HM
       if (!sieveResult.headerEdits.empty())
          ApplySieveHeaderEdits_(account, message, sieveResult.headerEdits);
 
+      // Each redirect answers whether a copy was queued. A redirect the remote
+      // domain policy or restricted delivery refused queues nothing, and a
+      // script whose only delivery was such a redirect - redirect without
+      // keep cancels the implicit keep (RFC 5228 4.2) - would otherwise drop
+      // the local copy as well and lose the message; see below.
+      bool anyRedirected = false;
+
       for (const String &target : sieveResult.redirects)
       {
          SMTPForwarding forwarder;
-         forwarder.RedirectToAddress(account, message, target);
+         if (forwarder.RedirectToAddress(account, message, target))
+            anyRedirected = true;
       }
 
       // notify (RFC 5435): each notification is its own generated message with a
@@ -897,8 +905,16 @@ namespace HM
       sieveFlags = sieveResult.flags;
 
       // When the script kept neither an explicit nor implicit local copy (a discard,
-      // or a redirect that cancels the implicit keep), drop it locally.
-      if (!sieveResult.keepLocal)
+      // or a redirect that cancels the implicit keep), drop it locally - unless
+      // the only thing the script did with the message was redirect it and
+      // every redirect was refused: the message then has nowhere else to go,
+      // and a copy nobody asked for is better than a message nobody has.
+      if (!sieveResult.keepLocal && !sieveResult.redirects.empty() && !anyRedirected && !sieveResult.rejectGiven)
+      {
+         LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: kept in the mailbox of {1} although the Sieve script asked for no local copy, because every redirect it asked for was refused.",
+            original_message_->GetID(), account->GetAddress()));
+      }
+      else if (!sieveResult.keepLocal)
          sieveDrop = true;
 
       // reject / ereject: the caller drops the copy AND reports back to the

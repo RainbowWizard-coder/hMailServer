@@ -351,7 +351,7 @@ namespace hMailServer.ControlPanel.Views
       private ScrollViewer BuildRestrictedDelivery()
       {
          var panel = DialogFields.TabPanel();
-         panel.Children.Add(DialogFields.Note(L("Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted.")));
+         panel.Children.Add(DialogFields.Note(L("Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it.")));
          panel.Children.Add(Label(L("Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)"), restrictedDomains_));
          return DialogFields.Scroll(panel);
       }

@@ -18,6 +18,7 @@
 #include "JournalRules.h"
 
 #include "../../SMTP/SMTPVacationMessageCreator.h"
+#include "../Util/RestrictedDelivery.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -428,8 +429,28 @@ namespace HM
       report_mailbox_ = pNode->GetAttrValue(_T("ReportMailbox"));
 
       // A backup taken before schema 6084 names no restricted domains, and the
-      // domain restores unrestricted, which is what it was.
-      restricted_domains_ = pNode->GetAttrValue(_T("RestrictedDomains"));
+      // domain restores unrestricted, which is what it was. A value that is
+      // there is put through the same canonicaliser every other writer goes
+      // through - a hand-edited archive with an address in it, or one longer
+      // than the column, would otherwise refuse the whole restore on MSSQL and
+      // be cut mid-name on MySQL, where the half-name covers another domain -
+      // and one that does not pass restores as unrestricted, with a log line,
+      // as the account's switch clamps its own value.
+      {
+         const String stored = pNode->GetAttrValue(_T("RestrictedDomains"));
+         String canonical;
+         String refusal;
+
+         if (stored.IsEmpty())
+            restricted_domains_ = _T("");
+         else if (RestrictedDelivery::CanonicaliseList(stored, canonical, refusal))
+            restricted_domains_ = canonical;
+         else
+         {
+            restricted_domains_ = _T("");
+            LOG_APPLICATION(_T("Domain ") + name_ + _T(": the RestrictedDomains value in the backup was not restored and the domain is unrestricted: ") + refusal);
+         }
+      }
 
       // The session policies, under the same rule: an archive written before
       // schema 6050 carries none of these attributes and restores with all four at

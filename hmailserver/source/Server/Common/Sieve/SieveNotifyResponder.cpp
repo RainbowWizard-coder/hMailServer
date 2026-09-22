@@ -5,6 +5,7 @@
 #include "StdAfx.h"
 
 #include "SieveNotifyResponder.h"
+#include "../Util/RestrictedDelivery.h"
 
 #include "../BO/Account.h"
 #include "../BO/Message.h"
@@ -28,6 +29,18 @@ namespace HM
    {
       if (!account || decision.to.IsEmpty())
          return false;
+
+      // Restricted delivery (Util/RestrictedDelivery.h): a notification is
+      // the account writing - its body carries the original's From and
+      // Subject and the script's own text - and a three-line script must not
+      // walk around what the account's forward box cannot, as the redirect
+      // action is held to in SMTPForwarding.
+      if (RestrictedDelivery::Check(account, decision.to, RestrictedDelivery::Outbound) == RestrictedDelivery::Refused)
+      {
+         LOG_DEBUG("Sieve notify: no notification was sent, restricted delivery - " + account->GetAddress() +
+            " may send to named domains only, and " + decision.to + " is not in one.");
+         return false;
+      }
 
       try
       {

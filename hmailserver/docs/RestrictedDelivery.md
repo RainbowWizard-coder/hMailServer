@@ -27,10 +27,21 @@ The suffix form is the spelling the domain policy list already uses, and the
 matcher is the policy list's own (`DomainPolicyEntry::Covers`): `.example`
 covers `example` itself as well as `mail.example`, and does not cover
 `notexample` or `example.evil.test`. The list is ASCII, as the policy list
-is: an internationalised domain name is written in its IDNA form (`xn--...`).
-A name that is not a domain - an address, a path, an address literal - is
-refused with a sentence over REST (400) and over COM, and so is a list longer
-than 2,000 characters or one with a character outside ASCII.
+is: an internationalised domain name is written in its IDNA form (`xn--...`),
+and the envelope must arrive in that form - a sender whose SMTPUTF8 envelope
+carries the Unicode spelling is compared as written and is not covered; this
+server does no IDNA conversion. A name that is not a domain - an address, a
+path, an address literal - is refused with a sentence over REST (400) and
+over COM, and so is a list longer than 2,000 characters or one with a
+character outside ASCII. A list restored from a backup goes through the same
+check; one that does not pass restores as empty, with a line in the
+application log.
+
+The other side's domain is judged in both spellings: as written, and after
+this server's domain aliases (`hm_domain_aliases`). A list may therefore name
+a hosted domain by its alias name - the name the administrator knows the
+other side by - or by its primary name, and the debug log says which one
+matched.
 
 Empty, the default, means the domain is not restricted and nothing below
 runs. An upgraded server has every domain empty and every account following
@@ -77,11 +88,13 @@ allowed, the recipient is answered
 
 per recipient, so one refused `RCPT` does not end the transaction; the other
 recipients of the same message are accepted or refused on their own terms.
-The envelope is the contract, as it is for every other `RCPT`-time rule; the
-`From` header is not known at `RCPT` and is not consulted. Every session is
-judged, authenticated or not: an authenticated colleague in another hosted
-domain is a sender too, and a `550` now is kinder than the non-delivery
-report the delivery-time decision below would send them.
+The account is found as delivery will find it: the domain aliases applied
+and the plus part removed, so `pupil+anything@school` meets the `550` here
+too. The envelope is the contract, as it is for every other `RCPT`-time
+rule; the `From` header is not known at `RCPT` and is not consulted. Every
+session is judged, authenticated or not: an authenticated colleague in
+another hosted domain is a sender too, and a `550` now is kinder than the
+non-delivery report the delivery-time decision below would send them.
 
 **2. Outbound, at `RCPT TO`.** When this server is the submission server for
 the message - the session authenticated, or a local sender that a range
@@ -94,6 +107,16 @@ The account is the one that authenticated, else the `MAIL FROM` address's.
 An account restricted with an empty domain list is refused everything outside
 its own domain; an exempt account is refused nothing.
 
+The same decision meets every other way the account sends through this
+server, judged on the caller's own account whatever identity the message
+goes out under: the webmail's `POST /api/v1/me/messages` answers `400` with
+the sentence for a recipient outside (and queues nothing), and so do a read
+receipt, an unsubscribe by mail, an invitation's answer or counter-proposal,
+and the notice of a password-protected message - refused before the first
+chunk is uploaded, and again when the notice goes, discarding the ciphertext
+if a list was set in between. A Sieve `notify` to an address outside is not
+sent, with a log line, as a Sieve `redirect` is not made.
+
 **3. At local delivery**, for a recipient reached by expansion rather than by
 `RCPT TO` - a distribution list member, an alias target, a catch-all. A
 restricted recipient whose message's envelope sender is not allowed is not
@@ -102,17 +125,25 @@ the account-level copy are touched, and the application log names the rule.
 A non-delivery report goes to the sender only when the sender is local; an
 outside sender was told `550` at `RCPT` for a direct address, and for a
 list, silence is the list's ordinary behaviour for a member that refused.
-The sender of a message to a list got `250` at `RCPT`, because the list's
-address is not an account and is not restricted; the exempt members receive
-it and the restricted ones do not.
+"Local" here is the envelope sender's address being one of a hosted domain,
+spoofed or not: a connection that forges `MAIL FROM` as a hosted address to
+a list puts the report into that mailbox, and the report's final recipient
+is the account behind the alias or the list. The sender of a message to a
+list got `250` at `RCPT`, because the list's address is not an account and
+is not restricted; the exempt members receive it and the restricted ones do
+not.
 
 A restricted account's **forward** - the account forward, an account rule's
 forward, a Sieve `redirect` - to a domain that is not allowed is not made;
-the log says why, and the message is still delivered to the mailbox. Its
-**out-of-office reply** - the stored one, the domain-wide one, a Sieve
-`vacation` - is not sent to a sender who is not allowed, silently, with a
-log line, because the reply's recipient is the sender being answered and a
-restricted account does not write to a stranger, not even to say it is away.
+the log says why, and the message is still delivered to the mailbox. A
+Sieve script whose only delivery was a `redirect` (no `keep`, which cancels
+the implicit keep) and every one of whose redirects was refused keeps the
+message in the mailbox, with a line in the application log, rather than
+losing it. Its **out-of-office reply** - the stored one, the domain-wide
+one, a Sieve `vacation` - is not sent to a sender who is not allowed,
+silently, with a log line, because the reply's recipient is the sender
+being answered and a restricted account does not write to a stranger, not
+even to say it is away.
 
 Every refusal is a `DEBUG` log line naming the two addresses and the list;
 the SMTP log records the `550`s; nothing is written to the error log, since a
@@ -135,6 +166,11 @@ refusal is the feature working.
 - Not a gate on the administrator's copies: a journal rule's copy of a
   restricted account's mail goes where the rule says, because the copy is
   the administrator's and not the account's forward.
+- Not a gate on an alias or a distribution list in the domain that reaches
+  outside: those are the administrator's, and a restricted account may write
+  to them. `everyone@school` with an outside member, or `friend@school`
+  pointing at an outside address, is own-domain at `RCPT` and is expanded
+  afterwards to wherever the administrator pointed it.
 
 ## Tests
 
@@ -147,7 +183,13 @@ and its own; an account restricted with an empty list confined to its own
 domain and an exempt account refused nothing; a distribution list with a
 restricted and an exempt member reaching the exempt one alone, and both once
 the sender is named; a forward from a restricted account withheld while the
-mailbox gets the message, and made once the target is named; the REST
-refusals (2,001 characters, an address in the list, a fourth account value)
-and round-trips lower-cased; and the two COM properties round-tripped
-through `Save`.
+mailbox gets the message, and made once the target is named; the webmail's
+send refused with the sentence for a stranger and accepted for a named
+domain; an out-of-office withheld from a stranger who reached the account
+through a list, and sent to a named sender; an alias target dropped at
+delivery with the `5.7.1` report reaching a local colleague and nothing
+reaching an outside sender; an account rule's forward withheld and then
+made; a `redirect`-only script keeping the message while the redirect is
+refused, and dropping the local copy once it goes; the REST refusals (2,001
+characters, an address in the list, a fourth account value) and round-trips
+lower-cased; and the two COM properties round-tripped through `Save`.

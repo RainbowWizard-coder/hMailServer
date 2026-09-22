@@ -90,17 +90,23 @@ namespace HM
    String
    RestrictedDelivery::DomainOf_(const String &address)
    {
-      // An address at one of the domain's alias names is an address in the
-      // domain, so the aliases are applied before the domain is read; the
-      // name is then compared as the policy list compares one - lower-cased,
-      // no trailing dot, and empty for an address literal.
-      String resolved = address;
+      // The domain as written, compared as the policy list compares a name -
+      // lower-cased, no trailing dot, and empty for an address literal.
+      return DomainPolicyList::NormaliseName(StringParser::ExtractDomain(address));
+   }
 
+   String
+   RestrictedDelivery::ResolvedDomainOf_(const String &address)
+   {
+      // The same, after the domain aliases: an address at one of a hosted
+      // domain's alias names is an address in that domain. Both spellings are
+      // judged, because a list may name the alias name - the name the
+      // administrator knows the other side by - or the primary.
       std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
-      if (aliases)
-         resolved = aliases->ApplyAliasesOnAddress(address);
+      if (!aliases)
+         return DomainOf_(address);
 
-      return DomainPolicyList::NormaliseName(StringParser::ExtractDomain(resolved));
+      return DomainPolicyList::NormaliseName(StringParser::ExtractDomain(aliases->ApplyAliasesOnAddress(address)));
    }
 
    RestrictedDelivery::Verdict
@@ -119,14 +125,18 @@ namespace HM
       if (other.IsEmpty())
          return Allowed;
 
-      // The account's own domain, under its own name or an alias name.
-      const String otherDomain = DomainOf_(other);
+      // The other side's domain in both spellings: as written, and after the
+      // domain aliases (an address at an alias name of a hosted domain is an
+      // address in that domain). Either may be the account's own domain, and
+      // either may be the name the list holds.
+      const String writtenDomain = DomainOf_(other);
+      const String resolvedDomain = ResolvedDomainOf_(other);
 
       String ownName = domain.GetName();
       ownName.Trim();
       ownName.ToLower();
 
-      if (!otherDomain.IsEmpty() && otherDomain == ownName)
+      if ((!writtenDomain.IsEmpty() && writtenDomain == ownName) || (!resolvedDomain.IsEmpty() && resolvedDomain == ownName))
          return Allowed;
 
       // The domain's postmaster, wherever the administrator put that address.
@@ -139,8 +149,9 @@ namespace HM
 
       // The named domains, matched as the domain policy list matches a name:
       // a whole domain is that name; .example is example and everything
-      // beneath it, anchored at a label boundary.
-      if (!otherDomain.IsEmpty())
+      // beneath it, anchored at a label boundary. The written spelling first,
+      // then the resolved one when it differs, and the log says which.
+      if (!writtenDomain.IsEmpty())
       {
          const std::vector<String> patterns = EffectiveList(account, domain);
 
@@ -149,15 +160,28 @@ namespace HM
             DomainPolicyEntry entry;
             entry.SetPattern(pattern);
 
-            if (entry.Covers(otherDomain))
+            if (entry.Covers(writtenDomain))
+            {
+               LOG_DEBUG(_T("RestrictedDelivery: allowed ") + String(direction == Inbound ? _T("inbound") : _T("outbound")) +
+                         _T(" for ") + account.GetAddress() + _T(": ") + other + _T(" is covered by ") + pattern + _T(" as written."));
                return Allowed;
+            }
+
+            if (resolvedDomain != writtenDomain && !resolvedDomain.IsEmpty() && entry.Covers(resolvedDomain))
+            {
+               LOG_DEBUG(_T("RestrictedDelivery: allowed ") + String(direction == Inbound ? _T("inbound") : _T("outbound")) +
+                         _T(" for ") + account.GetAddress() + _T(": ") + other + _T(" is covered by ") + pattern +
+                         _T(" through the domain alias, as ") + resolvedDomain + _T("."));
+               return Allowed;
+            }
          }
       }
 
       LOG_DEBUG(_T("RestrictedDelivery: refused ") + String(direction == Inbound ? _T("inbound") : _T("outbound")) +
                 _T(" for ") + account.GetAddress() + _T(": ") + other +
-                (direction == Inbound ? _T(" is not a named domain's sender.") : _T(" is not in a named domain.")) +
-                _T(" The list is \"") + domain.GetRestrictedDomains() + _T("\" and the account's setting is ") + ModeWord(account.GetRestrictedDelivery()) + _T("."));
+                (direction == Inbound ? _T(" is not a named domain's sender") : _T(" is not in a named domain")) +
+                (resolvedDomain != writtenDomain && !resolvedDomain.IsEmpty() ? _T(" (nor is ") + resolvedDomain + _T(", which the domain alias resolves it to)") : String()) +
+                _T(". The list is \"") + domain.GetRestrictedDomains() + _T("\" and the account's setting is ") + ModeWord(account.GetRestrictedDelivery()) + _T("."));
 
       return Refused;
    }

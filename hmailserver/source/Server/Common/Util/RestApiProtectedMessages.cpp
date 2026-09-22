@@ -54,6 +54,7 @@
 #include "../Persistence/PersistentMessage.h"
 #include "../Util/Parsing/StringParser.h"
 #include "../../SMTP/RecipientParser.h"
+#include "RestrictedDelivery.h"
 
 #include <ctime>
 
@@ -202,6 +203,13 @@ namespace HM
             return BuildResponse_(400, "{\"error\":\"recipient: not an e-mail address\"}");
       }
 
+      // Restricted delivery (RestrictedDelivery.h): the notice that carries
+      // the link is the account sending, and a restricted account sends to
+      // named domains only. Refused here, before the first chunk is uploaded,
+      // in the sentence RCPT TO uses; the notice checks again when it goes.
+      if (RestrictedDelivery::Check(account, recipient, RestrictedDelivery::Outbound) == RestrictedDelivery::Refused)
+         return BuildResponse_(400, "{\"error\":\"" + Escape(AnsiString(RestrictedDelivery::OutboundRefusal(recipient))) + "\"}");
+
       String hint = Wide(AnsiString(document.GetString("hint").c_str()));
       hint.Trim();
       if (hint.GetLength() > ProtectedMessages::HintMaximum)
@@ -336,6 +344,16 @@ namespace HM
       {
          ProtectedMessages::Discard(completed);
          return BuildResponse_(500, "{\"error\":\"the sender's address could not be resolved\"}");
+      }
+
+      // Restricted delivery, again: the row was refused at its start when the
+      // recipient was outside, but a list set since then is judged when the
+      // notice actually goes, and a refused notice discards the ciphertext
+      // rather than leaving a link nobody may be sent.
+      if (RestrictedDelivery::Check(account, completed.recipient, RestrictedDelivery::Outbound) == RestrictedDelivery::Refused)
+      {
+         ProtectedMessages::Discard(completed);
+         return BuildResponse_(400, "{\"error\":\"" + Escape(AnsiString(RestrictedDelivery::OutboundRefusal(completed.recipient))) + "\",\"discarded\":true}");
       }
 
       std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message());

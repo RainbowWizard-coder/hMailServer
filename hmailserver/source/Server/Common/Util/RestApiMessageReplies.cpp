@@ -41,6 +41,7 @@
 #include "../Persistence/PersistentMessage.h"
 #include "../Application/Application.h"
 #include "../../SMTP/RecipientParser.h"
+#include "RestrictedDelivery.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -187,6 +188,16 @@ namespace HM
          if (reason.IsEmpty())
             reason = possibility == RecipientParser::DP_RecipientUnknown ? _T("unknown recipient") : _T("delivery is not permitted");
          problem = "{\"error\":\"" + JsonEscape_(Utf8_(toAddress)) + ": " + JsonEscape_(Utf8_(reason)) + "\"}";
+         return 400;
+      }
+
+      // Restricted delivery (RestrictedDelivery.h): a read receipt, an
+      // unsubscribe by mail and an invitation's answer are the account
+      // sending, and a restricted account sends to named domains only - in
+      // the sentence RCPT TO uses.
+      if (RestrictedDelivery::Check(account, toAddress, RestrictedDelivery::Outbound) == RestrictedDelivery::Refused)
+      {
+         problem = "{\"error\":\"" + JsonEscape_(Utf8_(RestrictedDelivery::OutboundRefusal(toAddress))) + "\"}";
          return 400;
       }
 

@@ -199,7 +199,7 @@ namespace RegressionTests.SMTP
          Pop3ClientSimulator.AssertMessageCount(pupil.Address, Password, 0);
 
          SmtpClientSimulator.StaticSend(Partner, listAddress, "From a partner", "The body.");
-         Pop3ClientSimulator.AssertMessageCount(head.Address, Password, 2);
+         Pop3ClientSimulator.AssertMessageCount(head.Address, Password, 1);
          StringAssert.Contains("Subject: From a partner", Pop3ClientSimulator.AssertGetFirstMessageText(pupil.Address, Password), "With the sender named, the restricted member gets it too.");
       }
 
@@ -223,7 +223,7 @@ namespace RegressionTests.SMTP
 
          SetList(_domain.Name, "partner.example, " + _other.Name);
          SmtpClientSimulator.StaticSend(Partner, pupil.Address, "Forwarded now", "The body.");
-         Pop3ClientSimulator.AssertMessageCount(pupil.Address, Password, 2);
+         Pop3ClientSimulator.AssertMessageCount(pupil.Address, Password, 1);
          StringAssert.Contains("Subject: Forwarded now", Pop3ClientSimulator.AssertGetFirstMessageText(outside.Address, Password), "Named, the forward is made.");
       }
 
@@ -315,6 +315,159 @@ namespace RegressionTests.SMTP
          // What COM wrote is what the decision reads: the exempt pupil hears
          // from a stranger while the domain is restricted.
          StringAssert.StartsWith("250", Rcpt(Stranger, pupil.Address));
+      }
+
+      [Test]
+      [Description("The webmail's send is the account sending: a restricted account's POST /api/v1/me/messages to a stranger is 400 with the sentence and queues nothing, to a named domain 201 and delivered; an exempt account in the same domain sends to the stranger.")]
+      public void TheWebmailSendIsJudgedOnTheCallersAccount()
+      {
+         Account pupil = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "pupil@" + _domain.Name, Password);
+         Account head = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "head@" + _domain.Name, Password);
+         Account outsider = SingletonProvider<TestSetup>.Instance.AddAccount(_other, "outsider@" + _other.Name, Password);
+         SetList(_domain.Name, "partner.example");
+         SetMode(head.Address, "exempt");
+
+         string asPupil = Basic(pupil.Address, Password);
+         string asHead = Basic(head.Address, Password);
+
+         var refused = Send("POST", "/api/v1/me/messages", asPupil, "{\"to\":\"" + outsider.Address + "\",\"subject\":\"Out\",\"text\":\"Body.\"}");
+         Assert.AreEqual(400, refused.status, refused.body);
+         StringAssert.Contains(outsider.Address + ": this account may send to named domains only.", refused.body);
+         Pop3ClientSimulator.AssertMessageCount(outsider.Address, Password, 0);
+
+         var accepted = Send("POST", "/api/v1/me/messages", asHead, "{\"to\":\"" + outsider.Address + "\",\"subject\":\"From the head\",\"text\":\"Body.\"}");
+         Assert.AreEqual(201, accepted.status, accepted.body);
+         StringAssert.Contains("Subject: From the head", Pop3ClientSimulator.AssertGetFirstMessageText(outsider.Address, Password), "The exempt account sends to anyone.");
+
+         SetList(_domain.Name, "partner.example, " + _other.Name);
+         var named = Send("POST", "/api/v1/me/messages", asPupil, "{\"to\":\"" + outsider.Address + "\",\"subject\":\"Named now\",\"text\":\"Body.\"}");
+         Assert.AreEqual(201, named.status, named.body);
+         StringAssert.Contains("Subject: Named now", Pop3ClientSimulator.AssertGetFirstMessageText(outsider.Address, Password), "Named, the pupil's send goes.");
+      }
+
+      [Test]
+      [Description("A restricted account's out-of-office is not sent to a stranger who reached it through a distribution list - nothing arrives at the stranger's mailbox once the queue has drained - and is sent to a sender in a named domain.")]
+      public void TheOutOfOfficeIsWithheldFromAStranger()
+      {
+         Account pupil = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "pupil@" + _domain.Name, Password);
+         Account outsider = SingletonProvider<TestSetup>.Instance.AddAccount(_other, "outsider@" + _other.Name, Password);
+         SetList(_domain.Name, "partner.example");
+
+         pupil.VacationMessageIsOn = true;
+         pupil.VacationSubject = "Away";
+         pupil.VacationMessage = "Back next week.";
+         pupil.Save();
+
+         string listAddress = "everyone@" + _domain.Name;
+         SingletonProvider<TestSetup>.Instance.AddDistributionList(_domain, listAddress, new List<string> { pupil.Address });
+
+         // The stranger reaches the pupil only through the list: 250 at RCPT,
+         // no delivery, and no reply - the zero waits for the queue to drain.
+         StringAssert.StartsWith("250", Rcpt(outsider.Address, listAddress));
+         SmtpClientSimulator.StaticSend(outsider.Address, listAddress, "To the list", "The body.");
+         Pop3ClientSimulator.AssertMessageCount(pupil.Address, Password, 0);
+         Pop3ClientSimulator.AssertMessageCount(outsider.Address, Password, 0);
+
+         // Named, and written to directly (a list posting carries List-* headers,
+         // which suppress auto-replies on their own): the reply arrives.
+         SetList(_domain.Name, "partner.example, " + _other.Name);
+         SmtpClientSimulator.StaticSend(outsider.Address, pupil.Address, "Direct", "The body.");
+         StringAssert.Contains("Subject: Direct", Pop3ClientSimulator.AssertGetFirstMessageText(pupil.Address, Password));
+         StringAssert.Contains("Away", Pop3ClientSimulator.AssertGetFirstMessageText(outsider.Address, Password), "The out-of-office reaches a named sender.");
+      }
+
+      [Test]
+      [Description("An alias to a restricted account, mailed from a local colleague in another hosted domain that is not named: 250 at RCPT (the alias is not an account), the mailbox stays empty, and the colleague gets the 5.7.1 report; from an outside sender the mailbox stays empty and nothing is reported anywhere; with the colleague's domain named the alias delivers.")]
+      public void AnAliasTargetIsDroppedAtDeliveryAndOnlyALocalSenderIsTold()
+      {
+         Account pupil = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "pupil@" + _domain.Name, Password);
+         Account colleague = SingletonProvider<TestSetup>.Instance.AddAccount(_other, "colleague@" + _other.Name, Password);
+         SetList(_domain.Name, "partner.example");
+
+         string aliasAddress = "tutor@" + _domain.Name;
+         SingletonProvider<TestSetup>.Instance.AddAlias(_domain, aliasAddress, pupil.Address);
+
+         StringAssert.StartsWith("250", Rcpt(colleague.Address, aliasAddress), "The alias is not an account and is not judged at RCPT.");
+         SmtpClientSimulator.StaticSend(colleague.Address, aliasAddress, "Through the alias", "The body.");
+         Pop3ClientSimulator.AssertMessageCount(pupil.Address, Password, 0);
+
+         string report = Pop3ClientSimulator.AssertGetFirstMessageText(colleague.Address, Password);
+         StringAssert.Contains("5.7.1", report, "The local sender gets the non-delivery report.");
+         StringAssert.Contains("this mailbox accepts mail from named domains only", report);
+
+         // An outside sender: dropped in silence, and no report to anyone here.
+         SmtpClientSimulator.StaticSend(Stranger, aliasAddress, "Stranger through the alias", "The body.");
+         Pop3ClientSimulator.AssertMessageCount(pupil.Address, Password, 0);
+         Pop3ClientSimulator.AssertMessageCount(colleague.Address, Password, 0);
+
+         SetList(_domain.Name, "partner.example, " + _other.Name);
+         SmtpClientSimulator.StaticSend(colleague.Address, aliasAddress, "Named through the alias", "The body.");
+         StringAssert.Contains("Subject: Named through the alias", Pop3ClientSimulator.AssertGetFirstMessageText(pupil.Address, Password), "Named, the alias delivers.");
+         Pop3ClientSimulator.AssertMessageCount(colleague.Address, Password, 0);
+      }
+
+      [Test]
+      [Description("An account rule's forward from a restricted account to a domain off the list is not made while the mailbox gets the message, and is made once the domain is named.")]
+      public void ARuleForwardToAnUnnamedDomainIsNotMade()
+      {
+         Account pupil = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "pupil@" + _domain.Name, Password);
+         Account outside = SingletonProvider<TestSetup>.Instance.AddAccount(_other, "outside@" + _other.Name, Password);
+         SetList(_domain.Name, "partner.example");
+
+         Rule rule = pupil.Rules.Add();
+         rule.Name = "Forward everything";
+         rule.Active = true;
+         RuleCriteria criteria = rule.Criterias.Add();
+         criteria.UsePredefined = true;
+         criteria.PredefinedField = eRulePredefinedField.eFTMessageSize;
+         criteria.MatchType = eRuleMatchType.eMTGreaterThan;
+         criteria.MatchValue = "0";
+         criteria.Save();
+         RuleAction action = rule.Actions.Add();
+         action.Type = eRuleActionType.eRAForwardEmail;
+         action.To = outside.Address;
+         action.Save();
+         rule.Save();
+
+         SmtpClientSimulator.StaticSend(Partner, pupil.Address, "Rule forward?", "The body.");
+         StringAssert.Contains("Subject: Rule forward?", Pop3ClientSimulator.AssertGetFirstMessageText(pupil.Address, Password), "The mailbox gets the message.");
+         Pop3ClientSimulator.AssertMessageCount(outside.Address, Password, 0);
+
+         SetList(_domain.Name, "partner.example, " + _other.Name);
+         SmtpClientSimulator.StaticSend(Partner, pupil.Address, "Rule forward now", "The body.");
+         Pop3ClientSimulator.AssertMessageCount(pupil.Address, Password, 1);
+         StringAssert.Contains("Subject: Rule forward now", Pop3ClientSimulator.AssertGetFirstMessageText(outside.Address, Password), "Named, the rule's forward is made.");
+      }
+
+      [Test]
+      [Description("A Sieve script whose only action is a redirect to a domain off the list keeps the message in the mailbox while the redirect is refused - the message is not lost - and, once the domain is named, redirects it and drops the local copy as the script asks.")]
+      public void ARedirectOnlyScriptKeepsTheMessageWhileTheRedirectIsRefused()
+      {
+         Account pupil = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "pupil@" + _domain.Name, Password);
+         Account outside = SingletonProvider<TestSetup>.Instance.AddAccount(_other, "outside@" + _other.Name, Password);
+         SetList(_domain.Name, "partner.example");
+
+         var script = Admin("PUT", "/api/v1/accounts/" + Uri.EscapeDataString(pupil.Address), "{\"sieve_script\":\"redirect \\\"" + outside.Address + "\\\";\"}");
+         Assert.AreEqual(200, script.status, script.body);
+
+         SmtpClientSimulator.StaticSend(Partner, pupil.Address, "Redirect refused", "The body.");
+         StringAssert.Contains("Subject: Redirect refused", Pop3ClientSimulator.AssertGetFirstMessageText(pupil.Address, Password), "Every redirect refused: the message is kept, not lost.");
+         Pop3ClientSimulator.AssertMessageCount(outside.Address, Password, 0);
+
+         SetList(_domain.Name, "partner.example, " + _other.Name);
+         SmtpClientSimulator.StaticSend(Partner, pupil.Address, "Redirect made", "The body.");
+         StringAssert.Contains("Subject: Redirect made", Pop3ClientSimulator.AssertGetFirstMessageText(outside.Address, Password), "Named, the redirect is made.");
+         Pop3ClientSimulator.AssertMessageCount(pupil.Address, Password, 0);
+      }
+
+      private static string Basic(string user, string password)
+      {
+         return "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(user + ":" + password));
+      }
+
+      private static (int status, string body) Send(string method, string path, string authorization, string requestBody)
+      {
+         return RestRequest.Send("127.0.0.1", RestPort, method, path, authorization, requestBody);
       }
 
       /// <summary>

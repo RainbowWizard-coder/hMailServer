@@ -139,6 +139,9 @@ namespace HM
 
    private:
 
+      // The other side's domain as written, and after the domain aliases; both
+      // are judged, since a list may name an alias name or the primary.
       static String DomainOf_(const String &address);
+      static String ResolvedDomainOf_(const String &address);
    };
 }

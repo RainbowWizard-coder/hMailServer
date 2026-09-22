@@ -827,8 +827,8 @@
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>标记为目录关联的账户。这一半功能已经存在于本界面中：打开“域”，编辑该账户，在其“目录”选项卡上勾选 Active Directory 选项并填写 AD 用户名 - 也就是 sAMAccountName，%u 携带的正是它。没有该标记的账户继续使用普通的 hMailServer 密码，永远不会访问目录。</value>
   </data>
-  <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted." xml:space="preserve">
-    <value>此域的账户只能与此处指定的域收发邮件：不在指定域中的外部发件人会在 RCPT TO 时被拒绝，此处的账户只能发送到指定的域、自己的域和 postmaster。此服务器托管的其他域除非指定，否则视为外部。退信始终可以送达。每个账户都遵循此设置，除非其自身的对话框设为受限或豁免；留空表示此域不受限制。</value>
+  <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
+    <value>此域的账户只能与此处指定的域收发邮件：不在指定域中的外部发件人会在 RCPT TO 时被拒绝，此处的账户只能发送到指定的域、自己的域和 postmaster。此服务器托管的其他域除非指定，否则视为外部。退信始终可以送达。每个账户都遵循此设置，除非其自身的对话框设为受限或豁免；留空表示此域不受限制。 此域中通向外部的别名或分发列表由您掌管，受限账户可以向其发送。</value>
   </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>账户：{0} 个。</value>
