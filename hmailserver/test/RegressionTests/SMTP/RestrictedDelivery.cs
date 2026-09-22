@@ -346,7 +346,7 @@ namespace RegressionTests.SMTP
       }
 
       [Test]
-      [Description("A restricted account's out-of-office is not sent to a stranger who reached it through a distribution list - nothing arrives at the stranger's mailbox once the queue has drained - and is sent to a sender in a named domain.")]
+      [Description("A restricted account's out-of-office is not sent to a stranger who reached it through a distribution list - the one message the stranger, a local account here, gets back is the non-delivery report, and once the queue has drained nothing else - and is sent to a sender in a named domain.")]
       public void TheOutOfOfficeIsWithheldFromAStranger()
       {
          Account pupil = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "pupil@" + _domain.Name, Password);
@@ -361,11 +361,17 @@ namespace RegressionTests.SMTP
          string listAddress = "everyone@" + _domain.Name;
          SingletonProvider<TestSetup>.Instance.AddDistributionList(_domain, listAddress, new List<string> { pupil.Address });
 
-         // The stranger reaches the pupil only through the list: 250 at RCPT,
-         // no delivery, and no reply - the zero waits for the queue to drain.
+         // The stranger reaches the pupil only through the list: 250 at RCPT
+         // and no delivery. The stranger is a local account, so it is told by
+         // a non-delivery report - the one message it gets - and no
+         // out-of-office follows it; the zero waits for the queue to drain.
          StringAssert.StartsWith("250", Rcpt(outsider.Address, listAddress));
          SmtpClientSimulator.StaticSend(outsider.Address, listAddress, "To the list", "The body.");
          Pop3ClientSimulator.AssertMessageCount(pupil.Address, Password, 0);
+         Pop3ClientSimulator.AssertMessageCount(outsider.Address, Password, 1);
+         string told = Pop3ClientSimulator.AssertGetFirstMessageText(outsider.Address, Password);
+         StringAssert.Contains("5.7.1", told, "The local sender is told by a non-delivery report.");
+         StringAssert.DoesNotContain("Subject: Away", told, "The out-of-office did not reach the stranger.");
          Pop3ClientSimulator.AssertMessageCount(outsider.Address, Password, 0);
 
          // Named, and written to directly (a list posting carries List-* headers,
@@ -393,7 +399,7 @@ namespace RegressionTests.SMTP
 
          string report = Pop3ClientSimulator.AssertGetFirstMessageText(colleague.Address, Password);
          StringAssert.Contains("5.7.1", report, "The local sender gets the non-delivery report.");
-         StringAssert.Contains("this mailbox accepts mail from named domains only", report);
+         StringAssert.Contains("this mailbox accepts mail from named domains only", Unfolded(report), "The report carries the sentence.");
 
          // An outside sender: dropped in silence, and no report to anyone here.
          SmtpClientSimulator.StaticSend(Stranger, aliasAddress, "Stranger through the alias", "The body.");
@@ -475,6 +481,12 @@ namespace RegressionTests.SMTP
       ///    a username is given, and the RCPT reply line back; nothing is sent
       ///    after it, so an accepted recipient queues nothing.
       /// </summary>
+      /// <summary>A quoted-printable text with its soft line breaks removed and =20 read as the space it is, so a sentence can be looked for whole.</summary>
+      private static string Unfolded(string quotedPrintable)
+      {
+         return quotedPrintable.Replace("=\r\n", "").Replace("=20", " ");
+      }
+
       private static string Rcpt(string from, string to, string username = null, string password = null)
       {
          var client = new SmtpClientSimulator();
