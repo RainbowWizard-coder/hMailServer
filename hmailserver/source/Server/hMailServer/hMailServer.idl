@@ -1438,6 +1438,7 @@ interface IInterfaceAccount : IDispatch
    [propget, id(80), helpstring("The account's directory photo as base64, or an empty string when it has none. Saved by Save().")] HRESULT DirectoryPhoto([out, retval] BSTR *pVal);
    [propput, id(80), helpstring("The account's directory photo as base64 - a JPEG, a PNG or a GIF of at most 100 KB decoded, judged by the bytes themselves - or an empty string to remove it. Saved by Save().")] HRESULT DirectoryPhoto([in] BSTR newVal);
    [propget, id(81), helpstring("The media type of the directory photo this account holds - image/jpeg, image/png or image/gif - or an empty string when it has none. Read-only: it is read from the bytes, never from what a caller said they were.")] HRESULT DirectoryPhotoType([out, retval] BSTR *pVal);
+   [propget, id(82), helpstring("Whether this is a zero-access mailbox: every message delivered to it is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. Read-only: the person switches it on and off from the webmail's Security page, once the ZeroAccessAllowed setting permits it, and an administrator cannot - a switch an administrator could throw would not be a promise about what an administrator cannot read.")] HRESULT ZeroAccess([out, retval] VARIANT_BOOL *pVal);
 };
 
 

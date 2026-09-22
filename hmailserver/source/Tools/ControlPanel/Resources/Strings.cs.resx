@@ -5638,6 +5638,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Vypnuto. Žádná zpráva se při prvním pokusu neodkládá.</value>
   </data>
+  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Vypnuto: pošta se ukládá tak, jak přichází. Osoba to zapíná na stránce Zabezpečení webmailu, jakmile server schránky s nulovým přístupem povolí.</value>
+  </data>
   <data name="Offi_ce" xml:space="preserve">
     <value>_Kancelář</value>
   </data>
@@ -5670,6 +5673,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Zapnuto. Trojice odesílatel/příjemce/adresa, která ještě nebyla viděna, dostane při RCPT TO odpověď 451 „Please try again later.“ a je přijata, až když se pokus zopakuje. Běží až po kontrolách připojení výše a nepřidává žádné skóre.</value>
+  </data>
+  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Zapnuto: každá zpráva doručená na tento účet je po filtrech zašifrována vlastním klíčem OpenPGP účtu a tento server nemůže její poštu číst, prohledávat, exportovat ani obnovit. Vypnout to může jen daná osoba z webmailu; zde to nejde.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → externí AV / DLP skener</value>
@@ -10610,6 +10616,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>_Telefon do práce</value>
+  </data>
+  <data name="_Zero-access mailbox" xml:space="preserve">
+    <value>Schránka s n_ulovým přístupem</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>číslice</value>

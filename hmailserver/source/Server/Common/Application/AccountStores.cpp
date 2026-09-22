@@ -101,6 +101,14 @@ namespace HM
       // inconvenient to lose.
       { _T("hm_pgpring"), 0 },
 
+      // The zero-access mailbox's two wrapped copies of its key (schema 6083,
+      // Util/ZeroAccess.h). Both are OpenPGP secret keys this server cannot
+      // open - one under the password-derived key, one under the recovery key
+      // - and the row is what turns an account whose switch is on into one a
+      // delivery can be encrypted for. A restore that dropped it would leave
+      // the switch on and no key beside it, and every delivery refused.
+      { _T("hm_zeroaccess"), 0 },
+
       // The password reuse history (schema 6019). Hashes, like the account
       // password beside them. A restore that dropped these would silently let
       // every account go back to a password it had been made to change.
@@ -285,6 +293,17 @@ namespace HM
       { _T("hm_pgpring"), _T("pgrchangedfrom"),      AccountStores::RoleText },
       { _T("hm_pgpring"), _T("pgrchangedat"),        AccountStores::RoleNumber },
       { _T("hm_pgpring"), _T("pgraccepted"),         AccountStores::RoleNumber },
+
+      { _T("hm_zeroaccess"), _T("zaid"),             AccountStores::RoleIdentity },
+      { _T("hm_zeroaccess"), _T("zaaccountid"),      AccountStores::RoleAccount },
+      { _T("hm_zeroaccess"), _T("zafingerprint"),    AccountStores::RoleText },
+      { _T("hm_zeroaccess"), _T("zasalt"),           AccountStores::RoleText },
+      { _T("hm_zeroaccess"), _T("zapasses"),         AccountStores::RoleNumber },
+      { _T("hm_zeroaccess"), _T("zamemory"),         AccountStores::RoleNumber },
+      { _T("hm_zeroaccess"), _T("zalanes"),          AccountStores::RoleNumber },
+      { _T("hm_zeroaccess"), _T("zasecret"),         AccountStores::RoleText },
+      { _T("hm_zeroaccess"), _T("zarecovery"),       AccountStores::RoleText },
+      { _T("hm_zeroaccess"), _T("zaenabledat"),      AccountStores::RoleNumber },
 
       { _T("hm_maskedaddresses"), _T("maid"),        AccountStores::RoleIdentity },
       { _T("hm_maskedaddresses"), _T("maaccountid"), AccountStores::RoleAccount },

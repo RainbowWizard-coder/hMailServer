@@ -703,6 +703,12 @@ namespace HM
       is_self_certification = certifies && issued_by_this_key;
    }
 
+   unsigned int
+   OpenPgpKey::ArmourChecksum(const unsigned char *data, size_t length)
+   {
+      return Crc24(data, length);
+   }
+
    OpenPgpKey::Parsed
    OpenPgpKey::Parse(const unsigned char *data, size_t length, size_t maximum)
    {

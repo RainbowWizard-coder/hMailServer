@@ -733,7 +733,11 @@ The key ring
 ------------
 
 `hm_pgpring` (schema 6080; the trust columns are 6081), one row per key, per
-account:
+account. A zero-access mailbox ([ZeroAccess.md](ZeroAccess.md)) stands on one of
+the account's own keys here: every delivery is encrypted to it by the server, and
+two more copies of its secret half - one sealed under a passphrase derived from the
+account password, one under a recovery key - live in `hm_zeroaccess` (schema 6083),
+which is why that key cannot be removed from the ring while the switch is on.
 
 | Kind | What is in it |
 |---|---|

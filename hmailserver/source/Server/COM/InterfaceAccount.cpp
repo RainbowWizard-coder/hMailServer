@@ -2188,6 +2188,23 @@ STDMETHODIMP InterfaceAccount::get_OpenPGPPublish(VARIANT_BOOL *pVal)
    }
 }
 
+STDMETHODIMP InterfaceAccount::get_ZeroAccess(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      // Read-only by design (docs/ZeroAccess.md): the person's own switch.
+      *pVal = object_->GetZeroAccess() ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 STDMETHODIMP InterfaceAccount::put_OpenPGPPublish(VARIANT_BOOL newVal)
 {
    try

@@ -518,6 +518,11 @@ namespace HM
       // the deadline on the fetch the server makes for it.
       bool GetOpenPGPPortalEnabled();
       void SetOpenPGPPortalEnabled(bool enabled);
+
+      // Whether an account may opt into being a zero-access mailbox
+      // (docs/ZeroAccess.md). Off by default; allowing it switches nobody on.
+      bool GetZeroAccessAllowed();
+      void SetZeroAccessAllowed(bool allowed);
       bool GetOpenPGPLookupWkd();
       void SetOpenPGPLookupWkd(bool enabled);
       bool GetOpenPGPLookupKeyserver();

@@ -5638,6 +5638,9 @@
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>オフ。初回の試行で延期されるメッセージはありません。</value>
   </data>
+  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>オフ: メールは届いたまま保存されます。サーバーがゼロアクセスのメールボックスを許可すると、本人がウェブメールのセキュリティページからオンにします。</value>
+  </data>
   <data name="Offi_ce" xml:space="preserve">
     <value>オフィス (_E)</value>
   </data>
@@ -5670,6 +5673,9 @@
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>オン。初めて見る送信者/受信者/アドレスのトリプレットには RCPT TO で 451 "Please try again later." が返され、再試行時に受け入れられます。上の接続チェックの後に実行され、スコアは加えません。</value>
+  </data>
+  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>オン: このアカウントに配信されるすべてのメッセージは、フィルターの後にアカウント自身の OpenPGP 鍵で暗号化され、このサーバーはそのメールを読むことも、検索も、エクスポートも、復旧もできません。オフにできるのは本人だけで、ウェブメールから行います。ここからはできません。</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → 外部 AV / DLP スキャナー</value>
@@ -10610,6 +10616,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>勤務先電話番号 (_C)</value>
+  </data>
+  <data name="_Zero-access mailbox" xml:space="preserve">
+    <value>ゼロアクセスのメールボックス(_Z)</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>数字</value>

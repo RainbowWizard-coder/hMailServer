@@ -341,6 +341,13 @@
 // kept for its reading page before the ciphertext goes: the default a sender
 // gets, and the most a sender may ask for. 1 to 365, 30 by default.
 #define PROPERTY_PROTECTED_MESSAGE_DAYS         _T("ProtectedMessageDays")
+// Zero-access mailboxes (docs/ZeroAccess.md). OFF: an administrator has to
+// allow the opt-in before any account can make it, because a mailbox with this
+// on is one the administrator cannot read, search, export or recover, and a
+// person who loses the password and the recovery key has lost the mail - a
+// consequence an installation should choose with its eyes open. Allowing it
+// switches nobody on; each person does that from the Security page.
+#define PROPERTY_ZERO_ACCESS_ALLOWED            _T("ZeroAccessAllowed")
 // WebhookMaxPerMinute is the ceiling a subscription that names no ceiling of
 // its own is held to. Past it events are DROPPED rather than queued, and the
 // count of what was dropped is reported: a queue that grows without bound is
@@ -636,4 +643,15 @@
 //      so an upgraded database behaves exactly as it did. The step is written
 //      6080 to 6082 in this tree, whose terminus is 6080; the integrator
 //      renumbers it 6081 to 6082 when the row holding 6081 lands first.
-#define REQUIRED_DB_VERSION            6082
+// 6083 adds accountzeroaccess to hm_accounts and the table hm_zeroaccess
+//      (Util/ZeroAccess.h): a zero-access mailbox has every delivered message
+//      encrypted, after the filters have run, to the account's own OpenPGP key,
+//      and the table holds the two copies of that key's secret half this server
+//      cannot open - one under a key the browser derives from the password with
+//      Argon2id (the salt and the three parameters beside it), one under the
+//      recovery key the person wrote down - and which key of the ring it is.
+//      Every account an upgrade finds has the switch off and no row, and the
+//      server-wide ZeroAccessAllowed setting the step seeds is off, so an
+//      upgraded server delivers exactly as it did until an administrator allows
+//      the opt-in and a person makes it.
+#define REQUIRED_DB_VERSION            6083

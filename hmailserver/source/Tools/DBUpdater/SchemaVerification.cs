@@ -1282,6 +1282,15 @@ namespace DBUpdater
          // token on a reply.
          new SchemaProbe(6082, "hm_protectedmessages.pmreplyto",
                          "update hm_protectedmessages set pmreplyto = pmreplyto where 1 = 0"),
+         // Upgrade6082to6083* - zero-access mailboxes: the switch on the account,
+         // which an ALTER adds to a table every installation has rows in, and
+         // the table that holds the two wrapped copies of the account's key.
+         // The ALTER is the statement that can fail while the step still stamps
+         // the version; the table is probed through the column a delivery reads.
+         new SchemaProbe(6083, "hm_accounts.accountzeroaccess",
+                         "update hm_accounts set accountzeroaccess = accountzeroaccess where 1 = 0"),
+         new SchemaProbe(6083, "hm_zeroaccess.zafingerprint",
+                         "update hm_zeroaccess set zafingerprint = zafingerprint where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

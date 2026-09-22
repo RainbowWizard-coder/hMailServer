@@ -18,7 +18,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
 | desktop pages read | 65 |
-| REST routes (path and method) | 485, 215 of them writes |
+| REST routes (path and method) | 489, 217 of them writes |
 | Deck views | 37 |
 
 ## Missing over REST, by interface
@@ -865,8 +865,8 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/groups/{id}/members` | DistributionListRecipient, GroupMember | `account`, `account_id`, `address`, `domain`, `force`, `keys`, `name`, `read` | yes |
 | `POST /api/v1/incoming-relays` | IncomingRelay | `domain`, `force`, `keys`, `lower_ip`, `name`, `read`, `upper_ip` | yes |
 | `PUT /api/v1/incoming-relays/{id}` | IncomingRelay | `body`, `domain`, `field`, `force`, `keys`, `lower_ip`, `name`, `read`, `upper_ip`, `value` | - |
-| `POST /api/v1/ipranges` | SecurityRange | `allow_imap`, `allow_pop3`, `allow_smtp`, `deliver_local_to_local`, `deliver_local_to_remote`, `deliver_remote_to_local`, `deliver_remote_to_remote`, `domain`, `expires`, `expires_time`, `keys`, `lower`, `name`, `priority`, `read`, `require_auth_local_to_local`, `require_auth_local_to_remote`, `require_auth_remote_to_local`, `require_auth_remote_to_remote`, `require_tls_for_auth`, `spam_protection`, `upper`, `virus_protection` | yes |
-| `PUT /api/v1/ipranges/{id}` | SecurityRange | `allow_imap`, `allow_pop3`, `allow_smtp`, `body`, `deliver_local_to_local`, `deliver_local_to_remote`, `deliver_remote_to_local`, `deliver_remote_to_remote`, `domain`, `expires`, `expires_time`, `field`, `keys`, `lower`, `name`, `priority`, `read`, `require_auth_local_to_local`, `require_auth_local_to_remote`, `require_auth_remote_to_local`, `require_auth_remote_to_remote`, `require_tls_for_auth`, `spam_protection`, `upper`, `value`, `virus_protection` | yes |
+| `POST /api/v1/ipranges` | SecurityRange | `allow_imap`, `allow_pop3`, `allow_smtp`, `deliver_local_to_local`, `deliver_local_to_remote`, `deliver_remote_to_local`, `deliver_remote_to_remote`, `domain`, `expires`, `expires_time`, `keys`, `lower`, `name`, `passes`, `priority`, `read`, `require_auth_local_to_local`, `require_auth_local_to_remote`, `require_auth_remote_to_local`, `require_auth_remote_to_remote`, `require_tls_for_auth`, `spam_protection`, `upper`, `virus_protection` | yes |
+| `PUT /api/v1/ipranges/{id}` | SecurityRange | `allow_imap`, `allow_pop3`, `allow_smtp`, `body`, `deliver_local_to_local`, `deliver_local_to_remote`, `deliver_remote_to_local`, `deliver_remote_to_remote`, `domain`, `expires`, `expires_time`, `field`, `keys`, `lower`, `name`, `passes`, `priority`, `read`, `require_auth_local_to_local`, `require_auth_local_to_remote`, `require_auth_remote_to_local`, `require_auth_remote_to_remote`, `require_tls_for_auth`, `spam_protection`, `upper`, `value`, `virus_protection` | yes |
 | `POST /api/v1/journal-rules` | - | `accepted`, `account`, `address`, `direction`, `domain`, `enabled`, `force`, `from`, `header`, `journal_address`, `keys`, `message`, `mode`, `note`, `read`, `recipient`, `scope`, `sender`, `target` | yes |
 | `PUT /api/v1/journal-rules/{id}` | - | `accepted`, `account`, `address`, `body`, `direction`, `domain`, `enabled`, `field`, `force`, `from`, `header`, `journal_address`, `keys`, `message`, `mode`, `note`, `read`, `recipient`, `scope`, `sender`, `target`, `value` | yes |
 | `PUT /api/v1/lists/{address}` | DistributionList | `active`, `bounce_address`, `create`, `domain`, `domain_members`, `field`, `members`, `membership`, `mode`, `moderator_address`, `require_auth`, `require_sender_address`, `to`, `value` | yes |
@@ -936,11 +936,13 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/me/sender-list/{id}` | SenderListEntry, SenderListEntries | `address`, `blocked`, `expires`, `expires_time`, `from`, `reason`, `to`, `value` | - |
 | `PUT /api/v1/me/settings` | Settings | `forwarding`, `name`, `signature` | - |
 | `POST /api/v1/me/smime/chain` | ? | `certificates`, `chain`, `first`, `not_after`, `purpose`, `reason`, `subject` | - |
-| `PUT /api/v1/me/smime/own` | ? | `address`, `certificate`, `chain`, `data`, `fingerprint`, `key`, `name`, `not_after` | - |
+| `PUT /api/v1/me/smime/own` | ? | `address`, `certificate`, `chain`, `data`, `fingerprint`, `key`, `name`, `not_after`, `salt` | - |
 | `PUT /api/v1/me/smime/recipients` | DistributionListRecipient | `address`, `certificate`, `fingerprint`, `name`, `not_after` | - |
 | `POST /api/v1/me/tasks` | ? | `calendar`, `description`, `due`, `first`, `priority`, `summary`, `tz` | - |
 | `PUT /api/v1/me/tasks/{id}` | ? | `calendar`, `description`, `due`, `first`, `priority`, `summary`, `tz` | - |
 | `PUT /api/v1/me/vacation` | ? | `enabled`, `expires`, `expires_date`, `message`, `subject` | - |
+| `PUT /api/v1/me/zero-access` | ? | `account`, `code`, `expires`, `fingerprint`, `from`, `key`, `keys`, `lanes`, `mailbox`, `memory_kib`, `message`, `passes`, `passphrase`, `password`, `password_wrapped`, `read`, `recovery_wrapped`, `revoked`, `salt`, `secret`, `to`, `zero_access_not_allowed` | - |
+| `PUT /api/v1/me/zero-access/rewrap` | ? | `from`, `key`, `lanes`, `mailbox`, `memory_kib`, `passes`, `password`, `password_wrapped`, `salt` | - |
 | `POST /api/v1/passkeys` | ? | `answered`, `code`, `credential`, `data`, `device`, `key`, `name`, `password`, `to`, `type`, `verified` | yes |
 | `POST /api/v1/passkeys/challenge` | ? | `rp_id` | - |
 | `POST /api/v1/passkeys/options` | ? | - | yes |
@@ -988,7 +990,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/settings/logging` | Logging | `device`, `enabled`, `keep_files_open`, `log_application`, `log_awstats`, `log_debug`, `log_format`, `log_imap`, `log_pop3`, `log_smtp`, `log_tcpip`, `syslog_enabled`, `syslog_facility`, `syslog_host`, `syslog_log_application`, `syslog_log_debug`, `syslog_log_imap`, `syslog_log_pop3`, `syslog_log_smtp`, `syslog_log_tcpip`, `syslog_minimum_severity`, `syslog_port`, `syslog_transport` | yes |
 | `POST /api/v1/settings/logon-failures/clear` | - | - | - |
 | `PUT /api/v1/settings/messages/{name}` | ServerMessage | `domain`, `keys`, `read`, `text` | yes |
-| `PUT /api/v1/settings/openpgp` | Settings | `key_maximum_bytes`, `keys_per_account`, `keyserver_url`, `lookup_keyserver`, `lookup_timeout`, `lookup_wkd`, `portal_enabled`, `protected_message_days`, `require_address_in_user_id`, `web_key_directory_enabled` | yes |
+| `PUT /api/v1/settings/openpgp` | Settings | `key_maximum_bytes`, `keys_per_account`, `keyserver_url`, `lookup_keyserver`, `lookup_timeout`, `lookup_wkd`, `portal_enabled`, `protected_message_days`, `require_address_in_user_id`, `web_key_directory_enabled`, `zero_access_allowed` | yes |
 | `PUT /api/v1/settings/push` | ? | `enabled`, `max_attempts`, `max_devices_per_account`, `subject`, `time_to_live_seconds`, `vapid_private_key` | yes |
 | `POST /api/v1/settings/push/vapid` | ? | `vapid_public_key` | yes |
 | `PUT /api/v1/settings/scripting` | Scripting | `enabled`, `language` | yes |

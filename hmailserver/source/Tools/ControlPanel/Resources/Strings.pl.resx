@@ -5638,6 +5638,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Wyłączone. Żadna wiadomość nie jest odraczana przy pierwszej próbie.</value>
   </data>
+  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Wyłączone: poczta jest zapisywana tak, jak przychodzi. Osoba włącza to na stronie Zabezpieczenia poczty webowej, gdy serwer zezwoli na skrzynki z zerowym dostępem.</value>
+  </data>
   <data name="Offi_ce" xml:space="preserve">
     <value>_Biuro</value>
   </data>
@@ -5670,6 +5673,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Włączone. Trójce nadawca/odbiorca/adres, której wcześniej nie widziano, odpowiada się przy RCPT TO kodem 451 „Please try again later.”, a przy ponowieniu próby jest ona przyjmowana. Działa po kontrolach połączenia powyżej i nie dodaje punktacji.</value>
+  </data>
+  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Włączone: każda wiadomość doręczona na to konto jest po filtrach szyfrowana własnym kluczem OpenPGP konta, a ten serwer nie może czytać, przeszukiwać, eksportować ani odzyskać tej poczty. Tylko ta osoba może to wyłączyć, z poczty webowej; tutaj nic tego nie zrobi.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → zewnętrzny skaner AV / DLP</value>
@@ -10610,6 +10616,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>_Telefon służbowy</value>
+  </data>
+  <data name="_Zero-access mailbox" xml:space="preserve">
+    <value>_Skrzynka z zerowym dostępem</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>cyfrę</value>

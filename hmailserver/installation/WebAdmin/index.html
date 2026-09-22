@@ -2210,6 +2210,7 @@ function renderAccountEditor(){
       <div class="card flat"><p class="note">${escHtml(operation("/api/v1/accounts/{address}","put").description||"")}</p></div></div>
     ${cards}
     ${may("manage_accounts")?recoveryCardHtml():""}
+    ${zeroAccessCardHtml()}
     ${directoryCardHtml()}
     ${may("manage_accounts")?moveCardHtml():""}
     <div class="sect"><div class="row">
@@ -2219,6 +2220,21 @@ function renderAccountEditor(){
       <div class="err" id="err_accountedit"></div>
     </div></div>
   </div>`;
+}
+/* A zero-access mailbox (docs/ZeroAccess.md), read-only here and deliberately
+   so: the person switches it on and off from the webmail's Security page,
+   once the ZeroAccessAllowed setting under OpenPGP permits it, and an
+   administrator sees the state - because a switch an administrator could
+   throw would not be a promise about what an administrator cannot read. */
+function zeroAccessCardHtml(){
+  const v=editing.values||{};
+  if(v.zero_access===undefined)return "";
+  return `<div class="sect"><h2>${t("Zero-access mailbox")}</h2>
+    <div class="card">
+      <p class="note">${v.zero_access
+        ?t("On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key. This server cannot read, search, export or recover its mail, and neither can you: the message source and the export answer 403, search sees the headers only, IMAP and POP hand out the ciphertext. Only the person can switch it off, from the webmail, and switching it off decrypts nothing already stored.")
+        :t("Off: mail is stored as it arrives. The person switches it on from the webmail's Security page, once zero-access mailboxes are allowed under Settings, OpenPGP; nothing here can switch it on for them.")}</p>
+    </div></div>`;
 }
 /* What an administrator may know about an account's recovery address, which is
    less than the account knows and deliberately so: whether one is set, whether

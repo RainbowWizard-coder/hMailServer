@@ -26,6 +26,7 @@
 #include "../Util/CountryBlocking.h"
 #include "../Util/SealedMessage.h"
 #include "../Util/OpenPgpKey.h"
+#include "../Util/OpenPgpWriter.h"
 #include "../AntiSpam/DKIM/DkimRotationPlan.h"
 #include "../../SMTP/BounceClassifier.h"
 #include "BrandLogo.h"
@@ -263,6 +264,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing OpenPgpKey\n"));
       OpenPgpKeyTester openPgpKeyTester;
       openPgpKeyTester.Test();
+
+      // The one OpenPGP message this server writes - a zero-access mailbox's
+      // delivery, encrypted to the account's own key: the X25519 arithmetic
+      // against RFC 7748, the packets' shape against RFC 9580, and the
+      // message opened again with the session key the test fixed.
+      OutputDebugString(_T("hMailServer: Testing OpenPgpWriter\n"));
+      OpenPgpWriterTester openPgpWriterTester;
+      openPgpWriterTester.Test();
 
       // Complaints read, the feedback loops: the RFC 5965 parser that is handed
       // hostile input by construction, and the decisions taken on what it read -

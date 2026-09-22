@@ -148,6 +148,7 @@ public:
 
    STDMETHOD(get_OpenPGPPublish)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_OpenPGPPublish)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_ZeroAccess)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(get_OpenPGPKeys)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(get_VacationMessageAbortSpamFlagged)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_VacationMessageAbortSpamFlagged)(/*[in]*/ VARIANT_BOOL newVal);

@@ -5638,6 +5638,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Fra. Ingen meddelelse udsættes ved et første forsøg.</value>
   </data>
+  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Fra: post gemmes, som den kommer. Personen slår det til fra webmailens sikkerhedsside, når serveren tillader postkasser med nuladgang.</value>
+  </data>
   <data name="Offi_ce" xml:space="preserve">
     <value>_Kontor</value>
   </data>
@@ -5670,6 +5673,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Til. En afsender/modtager/adresse-tripel, der ikke er set før, besvares med 451 "Please try again later." ved RCPT TO og accepteres, når den prøver igen. Den kører efter forbindelseskontrollerne ovenfor og lægger ingen score til.</value>
+  </data>
+  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Til: hver besked, der leveres til kontoen, krypteres efter filtrene med kontoens egen OpenPGP-nøgle, og denne server kan hverken læse, søge i, eksportere eller gendanne dens post. Kun personen kan slå det fra, fra webmailen; det kan intet her.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → ekstern AV-/DLP-scanner</value>
@@ -10610,6 +10616,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>A_rbejdstelefon</value>
+  </data>
+  <data name="_Zero-access mailbox" xml:space="preserve">
+    <value>_Postkasse med nuladgang</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>et ciffer</value>

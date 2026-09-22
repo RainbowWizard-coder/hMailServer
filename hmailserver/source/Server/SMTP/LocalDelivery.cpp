@@ -60,6 +60,7 @@
 #include "RuleApplier.h"
 #include "RuleResult.h"
 #include "../Common/Util/Imip.h"
+#include "../Common/Util/ZeroAccess.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -173,6 +174,12 @@ namespace HM
       }
 
       if (account->GetForwardEnabled() && !account->GetForwardAddress().IsEmpty())
+         return false;
+
+      // A zero-access mailbox's copy is rewritten - encrypted to the account's
+      // key - after the filters, and a file shared with other recipients
+      // cannot be rewritten for one of them.
+      if (account->GetZeroAccess())
          return false;
 
       return true;
@@ -313,6 +320,53 @@ namespace HM
          }
 
          return;
+      }
+
+      // A zero-access mailbox (Common/Util/ZeroAccess.h, docs/ZeroAccess.md):
+      // here, and exactly here, the message is encrypted to the account's own
+      // OpenPGP key. Everything that needs the text has had it - the spam and
+      // virus verdicts were reached at acceptance, the account's spam overrides,
+      // the rules, the forward and the Sieve script ran in the pre-process
+      // above - and the file is the account's own (SharingPossible_ says no
+      // for such an account) and about to be saved. A message a rule filed
+      // into a public folder is not in the mailbox and is left as it is.
+      //
+      // A failure REFUSES the delivery rather than storing the message in the
+      // clear: a mailbox that promised never to hold a message readable by
+      // this server must not start doing so because a key row went missing.
+      // The sender is told, class 4, the same way a save failure is told,
+      // and the log names the reason.
+      if (account->GetZeroAccess() && accountLevelMessage->GetAccountID() == account->GetID())
+      {
+         AnsiString problem;
+         if (!ZeroAccess::SealFile(account, PersistentMessage::GetFileName(account, accountLevelMessage), problem))
+         {
+            // SealFile leaves the original whole on failure, so what is deleted
+            // here is the plaintext: overwritten first, as a sealed one is.
+            ZeroAccess::Scrub(PersistentMessage::GetFileName(account, accountLevelMessage));
+            FileUtilities::DeleteFile(PersistentMessage::GetFileName(account, accountLevelMessage));
+
+            if (messageReused)
+            {
+               accountLevelMessage->SetAccountID(0);
+               messageReused = false;
+            }
+
+            String errorMessage;
+            errorMessage.Format(_T("Message %I64d could not be encrypted for the zero-access mailbox %s, so it has not been delivered: %s. The message file has been removed rather than stored in the clear."),
+               original_message_->GetID(), String(account->GetAddress()).c_str(), String(problem).c_str());
+
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 7070, "LocalDelivery::DeliverToLocalAccount_", errorMessage);
+
+            if (!suppressFailureDsn)
+            {
+               saErrorMessages.push_back(DeliveryFailure(account->GetAddress(), _T("4.3.0"),
+                  Formatter::Format("{0}\r\n   Error Type: SMTP\r\n   Error Description: Delivery failed\r\n   Additional information: The recipient's mailbox is a zero-access mailbox and the message could not be encrypted to its key, so it was not delivered. The server administrator should check the hMailServer error log.\r\n\r\n",
+                     account->GetAddress())));
+            }
+
+            return;
+         }
       }
 
       // We don't want to set the message state to Delivered until just before we save it. If we set

@@ -147,6 +147,10 @@ namespace HM
       // checksum. False with a sentence in error when the block is not one.
       static bool Dearmour(const AnsiString &text, std::vector<unsigned char> &out, AnsiString &error);
 
+      // The CRC-24 of section 6.1 over the bytes, for whoever writes armour
+      // (OpenPgpWriter); Dearmour checks the same sum on the way in.
+      static unsigned int ArmourChecksum(const unsigned char *data, size_t length);
+
       // What ReadSecretKey made of an armoured PRIVATE KEY BLOCK. ok is the
       // only thing a caller may act on; when it is false, error is a whole
       // sentence and everything else is undefined.

@@ -66,6 +66,7 @@
 #include <atomic>
 
 #include "HttpServer.h"
+#include "ZeroAccess.h"
 #include "../Application/RoleManager.h"
 #include "AuditTrail.h"
 #include "PushSubscriptions.h"
@@ -415,6 +416,13 @@ namespace HM
          // of key accepted. Self-service, and refused on an app password.
          RouteMeOpenPgpKeyVerified,
          RouteMeOpenPgpKeyAccepted,
+         // Zero-access mailboxes (RestApiZeroAccess.cpp): the account's own
+         // switch and the wrapped copies of its key. Self-service; the three
+         // writes are refused on an app password.
+         RouteMeZeroAccess,
+         RouteMeZeroAccessPut,
+         RouteMeZeroAccessRewrap,
+         RouteMeZeroAccessDelete,
          RouteMeMessageReceipt,
          RouteMeMessageUnsubscribe,
          RouteMeSubscriptions,
@@ -1359,6 +1367,21 @@ namespace HM
       static HttpResponse HandleMeOpenPgpKeyTrust_(const Caller &caller, bool verifiedRoute, __int64 id, const AnsiString &requestBody);
       static HttpResponse HandlePortalOpenPgpScript_();
       static AnsiString OpenApiOpenPgpKeysPaths_();
+
+      // Zero-access mailboxes (RestApiZeroAccess.cpp, Common/Util/ZeroAccess.h).
+      static HttpResponse HandleMeZeroAccess_(const Caller &caller);
+      static HttpResponse HandleMeZeroAccessPut_(const Caller &caller, const AnsiString &requestBody);
+      static HttpResponse HandleMeZeroAccessRewrap_(const Caller &caller, const AnsiString &requestBody);
+      static HttpResponse HandleMeZeroAccessDelete_(const Caller &caller);
+      static AnsiString ZeroAccessJson_(std::shared_ptr<const Account> account);
+      // A password change for a zero-access mailbox carries the key sealed
+      // again under the new password, or is refused: 0 to go ahead, else the
+      // status and a sentence. rewrapped is written after the password is.
+      static int ZeroAccessPasswordCheck_(std::shared_ptr<const Account> account, const AnsiString &requestBody, ZeroAccess::Row &rewrapped, AnsiString &problem);
+      // True, with the 403 in refusal, when the account is a zero-access
+      // mailbox whose mail an administrator asked to read or export.
+      static bool RefuseZeroAccessRead_(std::shared_ptr<const Account> account, HttpResponse &refusal);
+      static AnsiString OpenApiZeroAccessPaths_();
       // The Autocrypt header value a send may carry, checked before it goes
       // into a message: 1 good, 0 absent, -1 refused with the reason.
       static int AutocryptHeaderValue_(const AnsiString &requestBody, String &value, AnsiString &problem);

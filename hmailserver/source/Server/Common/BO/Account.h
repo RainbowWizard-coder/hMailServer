@@ -205,6 +205,19 @@ namespace HM
       bool GetOpenPGPPublish() const { return openpgp_publish_; }
       void SetOpenPGPPublish(bool newVal) { openpgp_publish_ = newVal; }
 
+      // Whether this is a zero-access mailbox (docs/ZeroAccess.md, schema
+      // 6083): every message delivered to it is encrypted, after the filters
+      // have run, to the account's own OpenPGP key, and the key is held in a
+      // form only the person's password or their recovery key opens. The
+      // person switches it on from the webmail's Security page, once the
+      // server-wide ZeroAccessAllowed setting permits it; an administrator
+      // reads it (COM Account.ZeroAccess, REST zero_access) and cannot set it,
+      // because a switch an administrator could throw is not a promise about
+      // what an administrator cannot read. Only ZeroAccess::Enable and
+      // ZeroAccess::Disable write it.
+      bool GetZeroAccess() const { return zero_access_; }
+      void SetZeroAccess(bool newVal) { zero_access_ = newVal; }
+
       bool GetEnableSignature() const;
       void SetEnableSignature(bool bEnabled);
 
@@ -266,6 +279,7 @@ namespace HM
       int spam_mark_threshold_;
       int spam_delete_threshold_;
       bool openpgp_publish_;
+      bool zero_access_;
       bool active_;
       bool is_ad_;
       bool vacation_message_is_on_;

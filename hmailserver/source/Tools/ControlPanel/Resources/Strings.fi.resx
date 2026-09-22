@@ -5638,6 +5638,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Pois. Yhtään viestiä ei lykätä ensimmäisellä yrityksellä.</value>
   </data>
+  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Pois käytöstä: posti tallennetaan sellaisenaan. Henkilö ottaa sen käyttöön webmailin Suojaus-sivulta, kun palvelin sallii nollapääsyn postilaatikot.</value>
+  </data>
   <data name="Offi_ce" xml:space="preserve">
     <value>To_imipiste</value>
   </data>
@@ -5670,6 +5673,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Päällä. Lähettäjä/vastaanottaja/osoite-kolmikkoon, jota ei ole nähty aiemmin, vastataan 451 "Please try again later." RCPT TO -vaiheessa, ja se hyväksytään, kun se yrittää uudelleen. Se ajetaan yllä olevien yhteystarkistusten jälkeen eikä lisää pistemäärää.</value>
+  </data>
+  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Käytössä: jokainen tälle tilille toimitettu viesti salataan suodattimien jälkeen tilin omalla OpenPGP-avaimella, eikä tämä palvelin voi lukea, hakea, viedä tai palauttaa sen postia. Vain henkilö voi poistaa sen käytöstä webmailista; täältä se ei onnistu.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → ulkoinen AV-/DLP-tarkistin</value>
@@ -10610,6 +10616,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>T_yöpuhelin</value>
+  </data>
+  <data name="_Zero-access mailbox" xml:space="preserve">
+    <value>_Nollapääsyn postilaatikko</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>numero</value>

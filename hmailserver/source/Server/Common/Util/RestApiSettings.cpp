@@ -1850,6 +1850,9 @@ namespace
         "How many days a password-protected message - one the webmail encrypted to a password for a correspondent with no key - is kept for its reading page before the ciphertext goes. The default a sender gets and the most a sender may ask for. 1 to 365; 30 by default.",
         ROW_NUMBER(Config()->GetProtectedMessageDays()), ROW_SET(Config()->SetProtectedMessageDays((int) v.number)),
         [] (const Value &v) { return (v.number < 1 || v.number > 365) ? String(_T("protected_message_days must be between 1 and 365.")) : String(); } },
+      { "zero_access_allowed", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Allow an account to become a zero-access mailbox from the webmail's Security page: every message delivered to it is then encrypted to the account's own OpenPGP key after the filters have run, and this server cannot read, search, export or recover its mail; a forgotten password without the recovery key is the mail lost. OFF by default, and allowing it switches nobody on - each person makes that choice, and is told the consequences before they do (docs/ZeroAccess.md). Turning it off again stops new opt-ins and changes nothing for a mailbox already switched.",
+        ROW_FLAG(Config()->GetZeroAccessAllowed()), ROW_SET(Config()->SetZeroAccessAllowed(v.flag)), ROW_NO_CHECK },
    };
 
    // Web Push (Common/Util/WebPush.h). Seven rows in hm_settings, read at the

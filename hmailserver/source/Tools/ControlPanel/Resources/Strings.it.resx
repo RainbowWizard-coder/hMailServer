@@ -5638,6 +5638,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Disattivato. Nessun messaggio viene rinviato al primo tentativo.</value>
   </data>
+  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Non attivo: la posta viene archiviata così come arriva. La persona lo attiva dalla pagina Sicurezza della webmail quando il server consente le caselle ad accesso zero.</value>
+  </data>
   <data name="Offi_ce" xml:space="preserve">
     <value>_Ufficio</value>
   </data>
@@ -5670,6 +5673,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Attivato. A una tripletta mittente/destinatario/indirizzo mai vista prima viene risposto 451 "Please try again later." a RCPT TO, e viene accettata al nuovo tentativo. Viene eseguito dopo i controlli sulla connessione qui sopra e non aggiunge punteggio.</value>
+  </data>
+  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Attivo: ogni messaggio consegnato a questo account viene cifrato, dopo i filtri, con la chiave OpenPGP dell'account, e questo server non può leggere, cercare, esportare né recuperare la sua posta. Solo la persona può disattivarlo, dalla webmail; niente qui può farlo.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → scanner AV / DLP esterno</value>
@@ -10610,6 +10616,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>_Telefono di lavoro</value>
+  </data>
+  <data name="_Zero-access mailbox" xml:space="preserve">
+    <value>_Casella ad accesso zero</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>una cifra</value>

@@ -206,3 +206,4 @@ READ
 
 ls -la "$OUT"
 echo "fixtures written to $OUT"
+echo "server-sealed-to-alice.eml is not made here: it is the server's writer's, see README.md"

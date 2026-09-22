@@ -334,6 +334,19 @@ add_executable(spf-tests ${SERVER_DIR}/platform/spf_tests_main.cpp)
 target_link_libraries(spf-tests PRIVATE hmailserver_core)
 set_target_properties(spf-tests PROPERTIES OUTPUT_NAME spf-tests)
 
+# ---------------------------------------------------------------- the OpenPGP writer
+#
+# The one OpenPGP message this server writes - a delivery to a zero-access
+# mailbox, encrypted to the account's own key (Common/Util/OpenPgpWriter.h) -
+# as a command that takes a public key and a file and prints the message. It
+# exists so that the writer can be proved against an implementation that is
+# not this one: linux-build.yml runs it against the fixture keys GnuPG made and
+# hands the output to gpg --decrypt on the runner, which is the only honest
+# proof that a message written here opens elsewhere. Not installed; a bench tool.
+add_executable(openpgp-writer ${SERVER_DIR}/platform/openpgp_writer_main.cpp)
+target_link_libraries(openpgp-writer PRIVATE hmailserver_core)
+set_target_properties(openpgp-writer PROPERTIES OUTPUT_NAME openpgp-writer)
+
 include(GNUInstallDirs)
 install(TARGETS hmailserver RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY ${SERVER_DIR}/../DBScripts/

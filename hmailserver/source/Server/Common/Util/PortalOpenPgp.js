@@ -75,6 +75,11 @@
 //   "BEGIN PGP MESSAGE" or a cleartext-signed block in a text part is opened,
 //   but nothing is ever written inline.
 //
+//   BLAKE2b (RFC 7693) and Argon2d, Argon2i and Argon2id (RFC 9106), for the
+//   one thing that needs a memory-hard derivation and that Web Crypto has
+//   none for: the passphrase a zero-access mailbox's key is sealed under,
+//   derived from the account password (docs/ZeroAccess.md).
+//
 // WHAT IS NOT
 //
 //   Version 5 and version 6 keys and signatures, AEAD (the OCB and EAX modes
@@ -2328,6 +2333,410 @@
     };
   }
 
+  // ---- BLAKE2b (RFC 7693) and Argon2 (RFC 9106) -----------------------------
+  //
+  // A zero-access mailbox (docs/ZeroAccess.md) seals its key under a
+  // passphrase derived from the account password with Argon2id, and the Web
+  // Crypto API has no Argon2 - PBKDF2 and HKDF are all it offers - so it is
+  // here: BLAKE2b, which Argon2 is built on, and the three Argon2 variants,
+  // in some three hundred lines on Uint32Array pairs, because BigInt is
+  // fifty times too slow for a function whose whole point is to be slow in
+  // memory rather than in arithmetic. Every 64-bit word is two 32-bit halves,
+  // low first, as the RFC's little-endian layout has them anyway.
+  //
+  // Proved against the RFCs' own vectors in build/check-portal-openpgp.js:
+  // BLAKE2b-512 of "abc" from RFC 7693 appendix A, and the Argon2d, Argon2i
+  // and Argon2id vectors of RFC 9106 sections 5.1 to 5.3, secret and
+  // associated data included, so that the indexing of all three variants is
+  // held to the RFC and not to this file agreeing with itself.
+  //
+  // NOT constant time, and said so: it runs in the person's own browser on
+  // the person's own password, where an attacker who could measure it is
+  // already running code in that browser.
+
+  const BLAKE2B_IV = new Uint32Array([
+    0xf3bcc908, 0x6a09e667, 0x84caa73b, 0xbb67ae85, 0xfe94f82b, 0x3c6ef372, 0x5f1d36f1, 0xa54ff53a,
+    0xade682d1, 0x510e527f, 0x2b3e6c1f, 0x9b05688c, 0xfb41bd6b, 0x1f83d9ab, 0x137e2179, 0x5be0cd19
+  ]);
+  const BLAKE2B_SIGMA = [
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3],
+    [11, 8, 12, 0, 5, 2, 15, 13, 10, 14, 3, 6, 7, 1, 9, 4],
+    [7, 9, 3, 1, 13, 12, 11, 14, 2, 6, 5, 10, 4, 0, 15, 8],
+    [9, 0, 5, 7, 2, 4, 10, 15, 14, 1, 11, 12, 6, 8, 3, 13],
+    [2, 12, 6, 10, 0, 11, 8, 3, 4, 13, 7, 5, 15, 14, 1, 9],
+    [12, 5, 1, 15, 14, 13, 4, 10, 0, 7, 6, 3, 9, 2, 8, 11],
+    [13, 11, 7, 14, 12, 1, 3, 9, 5, 0, 15, 4, 8, 6, 2, 10],
+    [6, 15, 14, 9, 11, 3, 0, 8, 12, 2, 13, 7, 1, 4, 10, 5],
+    [10, 2, 8, 4, 7, 6, 1, 5, 15, 11, 9, 14, 3, 12, 13, 0],
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    [14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3]
+  ];
+
+  // The BLAKE2b compression function F over the working vector v (32 words:
+  // 16 pairs), the message m (32 words) and the counter, as the RFC lays it
+  // out. h, v and m are Uint32Arrays of pairs; the mixing function G is
+  // written out in place, with the 64-bit adds and rotations on the halves.
+  function blake2bCompress(h, m, v, t0, t1, last) {
+    for (let i = 0; i < 16; i++) { v[i] = h[i]; v[i + 16] = BLAKE2B_IV[i]; }
+    v[24] ^= t0; v[25] ^= t1;
+    if (last) { v[28] = ~v[28]; v[29] = ~v[29]; }
+    for (let r = 0; r < 12; r++) {
+      const s = BLAKE2B_SIGMA[r];
+      blake2bG(v, m, 0, 8, 16, 24, s[0], s[1]);
+      blake2bG(v, m, 2, 10, 18, 26, s[2], s[3]);
+      blake2bG(v, m, 4, 12, 20, 28, s[4], s[5]);
+      blake2bG(v, m, 6, 14, 22, 30, s[6], s[7]);
+      blake2bG(v, m, 0, 10, 20, 30, s[8], s[9]);
+      blake2bG(v, m, 2, 12, 22, 24, s[10], s[11]);
+      blake2bG(v, m, 4, 14, 16, 26, s[12], s[13]);
+      blake2bG(v, m, 6, 8, 18, 28, s[14], s[15]);
+    }
+    for (let i = 0; i < 16; i++) { h[i] ^= v[i] ^ v[i + 16]; }
+  }
+
+  // a += b + m[x]; d = rotr(d ^ a, 32); c += d; b = rotr(b ^ c, 24);
+  // a += b + m[y]; d = rotr(d ^ a, 16); c += d; b = rotr(b ^ c, 63).
+  // Each of a, b, c, d and the message words is a pair at an even index.
+  function blake2bG(v, m, a, b, c, d, x, y) {
+    let lo, hi, carry;
+    // a = a + b + m[x]
+    lo = v[a] + v[b]; carry = lo > 0xffffffff ? 1 : 0; hi = v[a + 1] + v[b + 1] + carry;
+    lo = (lo >>> 0) + m[2 * x]; carry = lo > 0xffffffff ? 1 : 0; hi = hi + m[2 * x + 1] + carry;
+    v[a] = lo >>> 0; v[a + 1] = hi >>> 0;
+    // d = rotr(d ^ a, 32): the halves swap
+    lo = v[d] ^ v[a]; hi = v[d + 1] ^ v[a + 1];
+    v[d] = hi; v[d + 1] = lo;
+    // c = c + d
+    lo = v[c] + v[d]; carry = lo > 0xffffffff ? 1 : 0; hi = v[c + 1] + v[d + 1] + carry;
+    v[c] = lo >>> 0; v[c + 1] = hi >>> 0;
+    // b = rotr(b ^ c, 24)
+    lo = v[b] ^ v[c]; hi = v[b + 1] ^ v[c + 1];
+    v[b] = ((lo >>> 24) | (hi << 8)) >>> 0; v[b + 1] = ((hi >>> 24) | (lo << 8)) >>> 0;
+    // a = a + b + m[y]
+    lo = v[a] + v[b]; carry = lo > 0xffffffff ? 1 : 0; hi = v[a + 1] + v[b + 1] + carry;
+    lo = (lo >>> 0) + m[2 * y]; carry = lo > 0xffffffff ? 1 : 0; hi = hi + m[2 * y + 1] + carry;
+    v[a] = lo >>> 0; v[a + 1] = hi >>> 0;
+    // d = rotr(d ^ a, 16)
+    lo = v[d] ^ v[a]; hi = v[d + 1] ^ v[a + 1];
+    v[d] = ((lo >>> 16) | (hi << 16)) >>> 0; v[d + 1] = ((hi >>> 16) | (lo << 16)) >>> 0;
+    // c = c + d
+    lo = v[c] + v[d]; carry = lo > 0xffffffff ? 1 : 0; hi = v[c + 1] + v[d + 1] + carry;
+    v[c] = lo >>> 0; v[c + 1] = hi >>> 0;
+    // b = rotr(b ^ c, 63) = rotl 1
+    lo = v[b] ^ v[c]; hi = v[b + 1] ^ v[c + 1];
+    v[b] = ((lo << 1) | (hi >>> 31)) >>> 0; v[b + 1] = ((hi << 1) | (lo >>> 31)) >>> 0;
+  }
+
+  // BLAKE2b of the bytes, outLength octets (1 to 64), unkeyed. Argon2 needs
+  // digests of every length up to 64 and a fast path for 1024-byte inputs.
+  function blake2b(input, outLength) {
+    const h = new Uint32Array(BLAKE2B_IV);
+    h[0] ^= 0x01010000 ^ outLength;
+    const v = new Uint32Array(32);
+    const m = new Uint32Array(32);
+    const length = input.length;
+    let t0 = 0, t1 = 0;
+    let at = 0;
+    // Every full block but the last; the last block, full or not, is
+    // compressed with the final flag and the padding of zeros.
+    while (length - at > 128) {
+      for (let i = 0; i < 32; i++) { m[i] = input[at + 4 * i] | (input[at + 4 * i + 1] << 8) | (input[at + 4 * i + 2] << 16) | (input[at + 4 * i + 3] << 24); }
+      at += 128;
+      t0 = (t0 + 128) >>> 0; if (t0 < 128) { t1++; }
+      blake2bCompress(h, m, v, t0, t1, false);
+    }
+    const rest = length - at;
+    m.fill(0);
+    for (let i = 0; i < rest; i++) { m[i >> 2] |= input[at + i] << (8 * (i & 3)); }
+    t0 = (t0 + rest) >>> 0; if (t0 < rest) { t1++; }
+    blake2bCompress(h, m, v, t0, t1, true);
+    const out = new Uint8Array(outLength);
+    for (let i = 0; i < outLength; i++) { out[i] = (h[i >> 2] >>> (8 * (i & 3))) & 0xff; }
+    return out;
+  }
+
+  function le32(value) { return new Uint8Array([value & 0xff, (value >>> 8) & 0xff, (value >>> 16) & 0xff, (value >>> 24) & 0xff]); }
+
+  // H' of RFC 9106 section 3.3: BLAKE2b with the length prefixed for up to
+  // 64 octets, and the chained construction beyond.
+  function argon2Hash(outLength, input) {
+    const prefixed = concat([le32(outLength), input]);
+    if (outLength <= 64) { return blake2b(prefixed, outLength); }
+    const r = Math.ceil(outLength / 32) - 2;
+    const out = new Uint8Array(outLength);
+    let v = blake2b(prefixed, 64);
+    out.set(v.subarray(0, 32), 0);
+    for (let i = 1; i < r; i++) {
+      v = blake2b(v, 64);
+      out.set(v.subarray(0, 32), 32 * i);
+    }
+    const lastLength = outLength - 32 * r;
+    out.set(blake2b(v, lastLength), 32 * r);
+    return out;
+  }
+
+  // The Argon2 mixing function GB on four words of a block (pairs at even
+  // indices of the Uint32Array b): BLAKE2b's G with the multiplication
+  // 2 * lo(a) * lo(b) added at each step, as section 3.6 defines it.
+  function argon2GB(b, a, bb, c, d) {
+    let lo, hi, carry, al, ah, bl, bh, ll, lh, hl, hh, plo, phi;
+    // a = a + b + 2 * lo(a) * lo(b)
+    al = b[a] & 0xffff; ah = b[a] >>> 16; bl = b[bb] & 0xffff; bh = b[bb] >>> 16;
+    ll = al * bl; lh = al * bh; hl = ah * bl; hh = ah * bh;
+    plo = ll + ((lh & 0xffff) * 65536) + ((hl & 0xffff) * 65536);
+    phi = hh + (lh >>> 16) + (hl >>> 16) + Math.floor(plo / 4294967296);
+    plo = plo >>> 0;
+    // times two
+    phi = ((phi << 1) | (plo >>> 31)) >>> 0; plo = (plo << 1) >>> 0;
+    lo = b[a] + b[bb]; carry = lo > 0xffffffff ? 1 : 0; hi = b[a + 1] + b[bb + 1] + carry;
+    lo = (lo >>> 0) + plo; carry = lo > 0xffffffff ? 1 : 0; hi = hi + phi + carry;
+    b[a] = lo >>> 0; b[a + 1] = hi >>> 0;
+    // d = rotr(d ^ a, 32)
+    lo = b[d] ^ b[a]; hi = b[d + 1] ^ b[a + 1];
+    b[d] = hi; b[d + 1] = lo;
+    // c = c + d + 2 * lo(c) * lo(d)
+    al = b[c] & 0xffff; ah = b[c] >>> 16; bl = b[d] & 0xffff; bh = b[d] >>> 16;
+    ll = al * bl; lh = al * bh; hl = ah * bl; hh = ah * bh;
+    plo = ll + ((lh & 0xffff) * 65536) + ((hl & 0xffff) * 65536);
+    phi = hh + (lh >>> 16) + (hl >>> 16) + Math.floor(plo / 4294967296);
+    plo = plo >>> 0;
+    phi = ((phi << 1) | (plo >>> 31)) >>> 0; plo = (plo << 1) >>> 0;
+    lo = b[c] + b[d]; carry = lo > 0xffffffff ? 1 : 0; hi = b[c + 1] + b[d + 1] + carry;
+    lo = (lo >>> 0) + plo; carry = lo > 0xffffffff ? 1 : 0; hi = hi + phi + carry;
+    b[c] = lo >>> 0; b[c + 1] = hi >>> 0;
+    // b = rotr(b ^ c, 24)
+    lo = b[bb] ^ b[c]; hi = b[bb + 1] ^ b[c + 1];
+    b[bb] = ((lo >>> 24) | (hi << 8)) >>> 0; b[bb + 1] = ((hi >>> 24) | (lo << 8)) >>> 0;
+    // a = a + b + 2 * lo(a) * lo(b)
+    al = b[a] & 0xffff; ah = b[a] >>> 16; bl = b[bb] & 0xffff; bh = b[bb] >>> 16;
+    ll = al * bl; lh = al * bh; hl = ah * bl; hh = ah * bh;
+    plo = ll + ((lh & 0xffff) * 65536) + ((hl & 0xffff) * 65536);
+    phi = hh + (lh >>> 16) + (hl >>> 16) + Math.floor(plo / 4294967296);
+    plo = plo >>> 0;
+    phi = ((phi << 1) | (plo >>> 31)) >>> 0; plo = (plo << 1) >>> 0;
+    lo = b[a] + b[bb]; carry = lo > 0xffffffff ? 1 : 0; hi = b[a + 1] + b[bb + 1] + carry;
+    lo = (lo >>> 0) + plo; carry = lo > 0xffffffff ? 1 : 0; hi = hi + phi + carry;
+    b[a] = lo >>> 0; b[a + 1] = hi >>> 0;
+    // d = rotr(d ^ a, 16)
+    lo = b[d] ^ b[a]; hi = b[d + 1] ^ b[a + 1];
+    b[d] = ((lo >>> 16) | (hi << 16)) >>> 0; b[d + 1] = ((hi >>> 16) | (lo << 16)) >>> 0;
+    // c = c + d + 2 * lo(c) * lo(d)
+    al = b[c] & 0xffff; ah = b[c] >>> 16; bl = b[d] & 0xffff; bh = b[d] >>> 16;
+    ll = al * bl; lh = al * bh; hl = ah * bl; hh = ah * bh;
+    plo = ll + ((lh & 0xffff) * 65536) + ((hl & 0xffff) * 65536);
+    phi = hh + (lh >>> 16) + (hl >>> 16) + Math.floor(plo / 4294967296);
+    plo = plo >>> 0;
+    phi = ((phi << 1) | (plo >>> 31)) >>> 0; plo = (plo << 1) >>> 0;
+    lo = b[c] + b[d]; carry = lo > 0xffffffff ? 1 : 0; hi = b[c + 1] + b[d + 1] + carry;
+    lo = (lo >>> 0) + plo; carry = lo > 0xffffffff ? 1 : 0; hi = hi + phi + carry;
+    b[c] = lo >>> 0; b[c + 1] = hi >>> 0;
+    // b = rotr(b ^ c, 63)
+    lo = b[bb] ^ b[c]; hi = b[bb + 1] ^ b[c + 1];
+    b[bb] = ((lo << 1) | (hi >>> 31)) >>> 0; b[bb + 1] = ((hi << 1) | (lo >>> 31)) >>> 0;
+  }
+
+  // The permutation P of section 3.6 over sixteen words of a block, at the
+  // pair indices given (the rows are contiguous, the columns strided).
+  function argon2P(b, i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15) {
+    argon2GB(b, i0, i4, i8, i12);
+    argon2GB(b, i1, i5, i9, i13);
+    argon2GB(b, i2, i6, i10, i14);
+    argon2GB(b, i3, i7, i11, i15);
+    argon2GB(b, i0, i5, i10, i15);
+    argon2GB(b, i1, i6, i11, i12);
+    argon2GB(b, i2, i7, i8, i13);
+    argon2GB(b, i3, i4, i9, i14);
+  }
+
+  // The compression function G of section 3.5: memory is one Uint32Array of
+  // every block (256 words each); prev, ref and next are block offsets in
+  // words; withXor is the second and later passes' XOR into the block that
+  // is there. r and tmp are two scratch blocks the caller owns.
+  function argon2FillBlock(memory, prev, ref, next, withXor, r, tmp) {
+    for (let i = 0; i < 256; i++) { r[i] = memory[prev + i] ^ memory[ref + i]; }
+    if (withXor) { for (let i = 0; i < 256; i++) { tmp[i] = r[i] ^ memory[next + i]; } }
+    else { tmp.set(r); }
+    // Rows: eight rows of sixteen words (pair index 32 apart).
+    for (let row = 0; row < 8; row++) {
+      const o = row * 32;
+      argon2P(r, o, o + 2, o + 4, o + 6, o + 8, o + 10, o + 12, o + 14, o + 16, o + 18, o + 20, o + 22, o + 24, o + 26, o + 28, o + 30);
+    }
+    // Columns: eight columns, the words two apart in each row.
+    for (let col = 0; col < 8; col++) {
+      const o = col * 4;
+      argon2P(r, o, o + 2, o + 32, o + 34, o + 64, o + 66, o + 96, o + 98, o + 128, o + 130, o + 160, o + 162, o + 192, o + 194, o + 224, o + 226);
+    }
+    for (let i = 0; i < 256; i++) { memory[next + i] = tmp[i] ^ r[i]; }
+  }
+
+  const ARGON2_D = 0, ARGON2_I = 1, ARGON2_ID = 2;
+
+  // Argon2 of RFC 9106: the three variants, version 0x13. spec: password and
+  // salt as bytes, passes (t), memory (m, in KiB), lanes (p), length (T),
+  // type (ARGON2_ID unless given), secret and ad (optional bytes). Answers a
+  // promise so that a long derivation can yield to the page between slices
+  // - a progress callback, when given, is told the pass and slice - and so
+  // that a browser does not paint a frozen page for the seconds it takes.
+  async function argon2(spec) {
+    const password = anyToBytes(spec.password);
+    const salt = anyToBytes(spec.salt);
+    const passes = spec.passes;
+    const memoryKiB = spec.memory;
+    const lanes = spec.lanes;
+    const outLength = spec.length || 32;
+    const type = spec.type === undefined ? ARGON2_ID : spec.type;
+    const secret = spec.secret ? anyToBytes(spec.secret) : new Uint8Array(0);
+    const ad = spec.ad ? anyToBytes(spec.ad) : new Uint8Array(0);
+    if (!(passes >= 1) || !(lanes >= 1 && lanes <= 0xffffff) || !(memoryKiB >= 8 * lanes) || !(outLength >= 4)) { throw new Error('Argon2 parameters out of range'); }
+
+    // H0, and from it the first two blocks of every lane.
+    const h0 = blake2b(concat([le32(lanes), le32(outLength), le32(memoryKiB), le32(passes), le32(0x13), le32(type),
+      le32(password.length), password, le32(salt.length), salt, le32(secret.length), secret, le32(ad.length), ad]), 64);
+    const blocks = 4 * lanes * Math.floor(memoryKiB / (4 * lanes));
+    const laneLength = blocks / lanes;
+    const segmentLength = laneLength / 4;
+    const memory = new Uint32Array(blocks * 256);
+    const putBlock = function (index, bytes) {
+      const o = index * 256;
+      for (let i = 0; i < 256; i++) { memory[o + i] = bytes[4 * i] | (bytes[4 * i + 1] << 8) | (bytes[4 * i + 2] << 16) | (bytes[4 * i + 3] << 24); }
+    };
+    for (let lane = 0; lane < lanes; lane++) {
+      putBlock(lane * laneLength, argon2Hash(1024, concat([h0, le32(0), le32(lane)])));
+      putBlock(lane * laneLength + 1, argon2Hash(1024, concat([h0, le32(1), le32(lane)])));
+    }
+
+    const r = new Uint32Array(256);
+    const tmp = new Uint32Array(256);
+    // For data-independent addressing: the input block, the address block,
+    // and a zero block, as section 3.4.1.1 has them; kept in the memory
+    // array's layout so that argon2FillBlock can be reused on them.
+    const scratch = new Uint32Array(3 * 256);
+    const inputAt = 0, addressAt = 256, zeroAt = 512;
+    const nextAddresses = function () {
+      // input[6]++, a 64-bit counter at pair 12
+      scratch[inputAt + 12] = (scratch[inputAt + 12] + 1) >>> 0;
+      if (scratch[inputAt + 12] === 0) { scratch[inputAt + 13] = (scratch[inputAt + 13] + 1) >>> 0; }
+      argon2FillBlock(scratch, zeroAt, inputAt, addressAt, false, r, tmp);
+      argon2FillBlock(scratch, zeroAt, addressAt, addressAt, false, r, tmp);
+    };
+
+    for (let pass = 0; pass < passes; pass++) {
+      for (let slice = 0; slice < 4; slice++) {
+        for (let lane = 0; lane < lanes; lane++) {
+          const independent = type === ARGON2_I || (type === ARGON2_ID && pass === 0 && slice < 2);
+          if (independent) {
+            scratch.fill(0);
+            scratch[inputAt + 0] = pass; scratch[inputAt + 2] = lane; scratch[inputAt + 4] = slice;
+            scratch[inputAt + 6] = blocks; scratch[inputAt + 8] = passes; scratch[inputAt + 10] = type;
+          }
+          let start = 0;
+          if (pass === 0 && slice === 0) {
+            start = 2;
+            if (independent) { nextAddresses(); }
+          }
+          let current = lane * laneLength + slice * segmentLength + start;
+          let previous = current % laneLength === 0 ? current + laneLength - 1 : current - 1;
+          for (let i = start; i < segmentLength; i++, current++, previous++) {
+            if (current % laneLength === 1) { previous = current - 1; }
+            let j1, j2;
+            if (independent) {
+              if (i % 128 === 0) { nextAddresses(); }
+              j1 = scratch[addressAt + 2 * (i % 128)];
+              j2 = scratch[addressAt + 2 * (i % 128) + 1];
+            }
+            else {
+              j1 = memory[previous * 256];
+              j2 = memory[previous * 256 + 1];
+            }
+            let refLane = j2 % lanes;
+            if (pass === 0 && slice === 0) { refLane = lane; }
+            const sameLane = refLane === lane;
+            // The reference area of section 3.4.1.3, and the position in it.
+            let areaSize;
+            if (pass === 0) {
+              if (slice === 0) { areaSize = i - 1; }
+              else if (sameLane) { areaSize = slice * segmentLength + i - 1; }
+              else { areaSize = slice * segmentLength + (i === 0 ? -1 : 0); }
+            }
+            else if (sameLane) { areaSize = laneLength - segmentLength + i - 1; }
+            else { areaSize = laneLength - segmentLength + (i === 0 ? -1 : 0); }
+            // relative = areaSize - 1 - floor(areaSize * floor(j1^2 / 2^32) / 2^32).
+            // The high word of j1^2 EXACTLY: the square of a 32-bit word needs
+            // 64 bits and a double carries 53, so (j1 * j1) / 2^32 in floating
+            // point is one too large whenever the exact square's low word lies
+            // within 2^10 of 2^32 - about once in four million fills, which at
+            // 64 MiB and three passes is one derivation in fifty not being
+            // Argon2id, and a mailbox key that opens on one machine and not,
+            // some day, on another. The 16-bit split argon2GB uses keeps every
+            // partial product exact; areaSize * x is under 2^50 and exact too.
+            const j1lo = j1 & 0xffff, j1hi = j1 >>> 16;
+            const x = j1hi * j1hi + Math.floor((2 * j1hi * j1lo * 65536 + j1lo * j1lo) / 4294967296);
+            const y = Math.floor((areaSize * x) / 4294967296);
+            const relative = areaSize - 1 - y;
+            const startPosition = pass === 0 ? 0 : (slice === 3 ? 0 : (slice + 1) * segmentLength);
+            const refIndex = (startPosition + relative) % laneLength;
+            argon2FillBlock(memory, previous * 256, (refLane * laneLength + refIndex) * 256, current * 256, pass > 0, r, tmp);
+          }
+        }
+        if (spec.progress) { spec.progress(pass, slice, passes); }
+        if (spec.yield !== false) { await new Promise(function (resolve) { setTimeout(resolve, 0); }); }
+      }
+    }
+
+    // The last column XORed across the lanes, then H' of it.
+    const final = new Uint32Array(256);
+    for (let lane = 0; lane < lanes; lane++) {
+      const o = (lane * laneLength + laneLength - 1) * 256;
+      for (let i = 0; i < 256; i++) { final[i] ^= memory[o + i]; }
+    }
+    const finalBytes = new Uint8Array(1024);
+    for (let i = 0; i < 256; i++) { finalBytes[4 * i] = final[i] & 0xff; finalBytes[4 * i + 1] = (final[i] >>> 8) & 0xff; finalBytes[4 * i + 2] = (final[i] >>> 16) & 0xff; finalBytes[4 * i + 3] = (final[i] >>> 24) & 0xff; }
+    memory.fill(0);
+    return argon2Hash(outLength, finalBytes);
+  }
+
+  // The parameters a zero-access mailbox derives with: RFC 9106 section 4's
+  // second recommendation, three passes over 64 MiB in four lanes. The page
+  // may store lower memory for a device that cannot afford it; whatever the
+  // row holds is what is derived with from then on.
+  const ARGON2_DEFAULT = { passes: 3, memory: 65536, lanes: 4 };
+
+  // The passphrase the mailbox key is sealed under, from the account
+  // password: Argon2id over the password with the row's salt and
+  // parameters, 32 octets, as 64 hex characters - a passphrase GnuPG would
+  // accept as any other, which is what keeps the sealed copy an ordinary
+  // OpenPGP secret key.
+  async function zeroAccessPassphrase(password, saltBase64, params, progress) {
+    const derived = await argon2({ password: utf8(String(password)), salt: b64decode(saltBase64), passes: params.passes, memory: params.memory, lanes: params.lanes, length: 32, type: ARGON2_ID, progress: progress });
+    return hex(derived);
+  }
+
+  // The recovery key: 30 random octets, shown as eight groups of six base32
+  // characters (RFC 4648's alphabet, 240 bits), which is what the person
+  // writes down; and its canonical form - upper case, no separators - which
+  // is the passphrase the recovery copy is sealed under, so a key typed with
+  // or without the dashes, in either case, opens it.
+  const BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  function base32Encode(bytes) {
+    let bits = 0, value = 0, out = '';
+    for (let i = 0; i < bytes.length; i++) {
+      value = ((value << 8) | bytes[i]) & 0x1fff;
+      bits += 8;
+      while (bits >= 5) { out += BASE32_ALPHABET[(value >>> (bits - 5)) & 31]; bits -= 5; }
+    }
+    if (bits > 0) { out += BASE32_ALPHABET[(value << (5 - bits)) & 31]; }
+    return out;
+  }
+  function makeRecoveryKey() {
+    const text = base32Encode(randomBytes(30));
+    return text.match(/.{6}/g).join('-');
+  }
+  function canonicalRecoveryKey(typed) {
+    const clean = String(typed || '').toUpperCase().replace(/[^A-Z2-7]/g, '');
+    return clean.length === 48 ? clean : '';
+  }
+
   // ---- what the page uses --------------------------------------------------
 
   return {
@@ -2362,7 +2771,12 @@
     readMessage: readMessage, composeMessage: composeMessage, looksLikeOpenPgp: looksLikeOpenPgp,
 
     // Autocrypt
-    autocryptHeader: autocryptHeader, parseAutocrypt: parseAutocrypt
+    autocryptHeader: autocryptHeader, parseAutocrypt: parseAutocrypt,
+
+    // BLAKE2b and Argon2 (RFC 7693, RFC 9106), and the two derivations a
+    // zero-access mailbox stands on (docs/ZeroAccess.md)
+    blake2b: blake2b, argon2: argon2, ARGON2: { D: ARGON2_D, I: ARGON2_I, ID: ARGON2_ID }, ARGON2_DEFAULT: ARGON2_DEFAULT,
+    zeroAccessPassphrase: zeroAccessPassphrase, makeRecoveryKey: makeRecoveryKey, canonicalRecoveryKey: canonicalRecoveryKey, base32Encode: base32Encode
   };
 }));
 

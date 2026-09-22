@@ -956,7 +956,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </div>
 <div id="message-receipt" class="infobar" hidden>The sender asked to be told when this is read. <button id="receipt-send" class="btn ghost sm" type="button">Send a receipt</button> <button id="receipt-never" class="btn quiet sm" type="button">Never ask</button></div>
 <div id="message-smime" class="infobar" hidden><span id="message-smime-text"></span> <button id="message-smime-unlock" class="btn ghost sm" type="button" hidden>Unlock keys to read</button></div>
-<div id="message-pgp" class="infobar" hidden><span id="message-pgp-text"></span> <button id="message-pgp-unlock" class="btn ghost sm" type="button" hidden>Unlock your OpenPGP key</button> <button id="message-pgp-keep" class="btn ghost sm" type="button" hidden>Keep this key</button> <button id="message-pgp-accept" class="btn ghost sm" type="button" hidden>Accept the new key</button></div>
+<div id="message-pgp" class="infobar" hidden><span id="message-pgp-text"></span> <button id="message-pgp-unlock" class="btn ghost sm" type="button" hidden>Unlock your OpenPGP key</button> <button id="message-pgp-keep" class="btn ghost sm" type="button" hidden>Keep this key</button> <button id="message-pgp-accept" class="btn ghost sm" type="button" hidden>Accept the new key</button> <button id="message-za-unlock" class="btn ghost sm" type="button" hidden>Unlock your mailbox</button></div>
 <div id="message-protected" class="infobar" hidden><span id="message-protected-text"></span> <button id="message-protected-open" class="btn ghost sm" type="button" hidden>Open it</button> <button id="message-protected-revoke" class="btn ghost sm" type="button" hidden>Withdraw</button></div>
 <div id="snooze-menu" class="row" hidden><span class="muted">Bring it back</span><button class="btn ghost sm" id="snooze-3h" type="button">in 3 hours</button><button class="btn ghost sm" id="snooze-tomorrow" type="button">tomorrow at 9</button><button class="btn ghost sm" id="snooze-week" type="button">next week</button><input id="snooze-at" type="datetime-local" aria-label="Until" style="width:auto"><button class="btn sm" id="snooze-go" type="button">Snooze</button></div>
 <div id="followup-menu" class="row" hidden><span class="muted">Follow up by</span><button class="btn ghost sm" id="followup-today" type="button">today</button><button class="btn ghost sm" id="followup-tomorrow" type="button">tomorrow</button><button class="btn ghost sm" id="followup-week" type="button">next week</button><input id="followup-at" type="date" aria-label="A day" style="width:auto"><button class="btn sm" id="followup-go" type="button">Set</button><button class="btn quiet sm" id="followup-clear" type="button" hidden>Clear the flag</button></div>
@@ -1652,6 +1652,27 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div id="pgp-peer-empty" class="hint">None yet.</div>
 </div>
 </div>
+<div class="card" id="za-card">
+<h2>Zero-access mailbox</h2>
+<p id="za-not-allowed" class="note" hidden>This server does not offer zero-access mailboxes.</p>
+<div id="za-body" hidden>
+<p class="note" id="za-consequences">Every message that arrives is encrypted to your own OpenPGP key once the spam and virus filters and your rules have seen it, and this server keeps only what it cannot read. Know what that costs before you switch it on: the administrator cannot read, search, export or recover your mail; search finds the sender, the subject and the date, never the text; IMAP and POP clients receive the encrypted messages, so until one of them holds your key this is a webmail mailbox; and if you forget your password and have lost the recovery key, the mail is gone. Nobody can help.</p>
+<p class="hint" id="za-scope">Only what is delivered to you is sealed, and the copy of what you send from here; your drafts and anything a mail client uploads are stored as they are.</p>
+<div id="za-state-off" hidden>
+<p class="hint" id="za-no-key" hidden>Make or import an OpenPGP key that does not expire first.</p>
+<form id="za-on-form" hidden>
+<div class="row"><label for="za-key" class="inline">Key</label><select id="za-key" style="width:auto"></select></div>
+<p class="row"><button class="btn sm" type="submit">Switch on zero access</button></p>
+</form>
+</div>
+<div id="za-state-on" hidden>
+<p class="note" id="za-on-text"></p>
+<p class="hint">Switching it off changes nothing already stored: mail that arrived encrypted stays encrypted and opens with your key. New mail is stored as it arrives.</p>
+<p class="row"><button class="btn ghost sm danger" id="za-off" type="button">Switch off zero access</button></p>
+</div>
+<div id="za-status" class="status" aria-live="polite"></div>
+</div>
+</div>
 <div class="card">
 <h2>Sessions</h2>
 <p class="note">Every browser signed in as you. End one you do not recognise, or all the others at once.</p>
@@ -1845,6 +1866,31 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <label for="pgp-unlock-passphrase">Passphrase</label><input id="pgp-unlock-passphrase" type="password" autocomplete="current-password">
 <div id="pgp-unlock-status" class="status" aria-live="polite"></div>
 <p class="row"><button class="btn" type="submit">Unlock</button> <button id="pgp-unlock-cancel" class="btn ghost sm" type="button">Cancel</button></p>
+</form>
+</div>
+</div>
+<div id="za-confirm" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="za-confirm-title">
+<div class="sheet">
+<h2 id="za-confirm-title">Write down your recovery key</h2>
+<p class="note">If you forget your password, this key is the only way back into your mail. Nobody here can recover it. Write it down and keep it somewhere safe.</p>
+<p id="za-recovery-key" class="secret" aria-live="polite"></p>
+<form id="za-confirm-form">
+<label for="za-recovery-typed">Type the recovery key back</label><input id="za-recovery-typed" type="text" autocomplete="off" spellcheck="false" autocapitalize="characters">
+<label for="za-password">Your password</label><input id="za-password" type="password" autocomplete="current-password">
+<label class="inline"><input id="za-accept" type="checkbox"> I understand that a forgotten password without this key is the mail lost.</label>
+<div id="za-confirm-status" class="status" aria-live="polite"></div>
+<p class="row"><button class="btn" type="submit" id="za-confirm-go">Switch on zero access</button> <button id="za-confirm-cancel" class="btn ghost sm" type="button">Cancel</button></p>
+</form>
+</div>
+</div>
+<div id="za-unlock" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="za-unlock-title">
+<div class="sheet">
+<h2 id="za-unlock-title">Unlock your mailbox</h2>
+<p class="note" id="za-unlock-note">Your password opens the mailbox key in this browser. If an administrator changed your password, enter the one you had before, or your recovery key.</p>
+<form id="za-unlock-form">
+<label for="za-unlock-secret">Password or recovery key</label><input id="za-unlock-secret" type="password" autocomplete="off">
+<div id="za-unlock-status" class="status" aria-live="polite"></div>
+<p class="row"><button class="btn" type="submit">Unlock</button> <button id="za-unlock-cancel" class="btn ghost sm" type="button">Cancel</button></p>
 </form>
 </div>
 </div>

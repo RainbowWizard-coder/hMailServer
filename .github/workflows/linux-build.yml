@@ -178,6 +178,35 @@ jobs:
       - name: The SPF tests, and the RFC 7208 conformance suite
         run: ./build/linux/spf-tests
 
+      # The one OpenPGP message this server writes - a zero-access mailbox's
+      # delivery, encrypted to the mailbox's own key (Common/Util/OpenPgpWriter,
+      # docs/ZeroAccess.md) - handed to an implementation that is not this one.
+      # The fixture keys are GnuPG's (build/fixtures/openpgp); the runner's gpg
+      # decrypts what the writer made, once to the Curve25519 key and once to
+      # the RSA one, and the bytes it prints have to be the bytes the writer
+      # was given. The writer's own tester runs inside the server and proves
+      # the packets against the RFCs; this is the proof that GnuPG agrees.
+      - name: What the OpenPGP writer seals, GnuPG opens
+        run: |
+          export GNUPGHOME="$(mktemp -d)"
+          chmod 700 "$GNUPGHOME"
+          G="gpg --batch --yes --no-tty --pinentry-mode loopback --passphrase openpgp-fixture-pass"
+          $G --import build/fixtures/openpgp/alice.sec.asc build/fixtures/openpgp/bob.sec.asc
+          for who in alice bob; do
+            ./build/linux/openpgp-writer build/fixtures/openpgp/$who.pub.asc build/fixtures/openpgp/body.bin > "$GNUPGHOME/to-$who.asc"
+            $G --decrypt "$GNUPGHOME/to-$who.asc" > "$GNUPGHOME/$who.out"
+            cmp "$GNUPGHOME/$who.out" build/fixtures/openpgp/body.bin
+            echo "$who: gpg's plaintext is byte for byte the input"
+          done
+          ./build/linux/openpgp-writer build/fixtures/openpgp/alice.pub.asc build/fixtures/openpgp/pgpmime-signed.eml --mime > "$GNUPGHOME/sealed.eml"
+          grep -q '^X-hMailServer-Zero-Access: sealed on delivery' "$GNUPGHOME/sealed.eml"
+          ! grep -q 'This is an OpenPGP/MIME signed message' "$GNUPGHOME/sealed.eml"
+          sed -n '/-----BEGIN PGP MESSAGE-----/,/-----END PGP MESSAGE-----/p' "$GNUPGHOME/sealed.eml" > "$GNUPGHOME/inner.asc"
+          $G --decrypt "$GNUPGHOME/inner.asc" > "$GNUPGHOME/inner.out"
+          cmp "$GNUPGHOME/inner.out" build/fixtures/openpgp/pgpmime-signed.eml
+          echo "PGP/MIME: the whole original message is inside, byte for byte, and the outer headers are kept"
+          rm -rf "$GNUPGHOME"
+
       # The binary the regression job below tests. Kept on every run rather than
       # only on a tag, because the tests must run on every push; it is one file and
       # it is gone in three days.

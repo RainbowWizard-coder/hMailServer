@@ -2074,6 +2074,7 @@
     smimeForget();
     pgpForget();
     protectedForget();
+    zaForget();
     var frame = el('message-html');
     if (frame) { frame.hidden = true; frame.removeAttribute('src'); }
     htmlBlobRevoke();
@@ -2202,7 +2203,11 @@
         // The directory's switch and this person's own entry, once per sign-in:
         // the side nav offers the page only where the server answers one.
         loadDirectoryCard();
-        loadPgpKeys();
+        // The zero-access row and, with the sign-in password still in hand,
+        // the key opened from it: a promise the reader waits on, so that a
+        // message opened in the first second is not asked for a passphrase
+        // the key does not need (pgpKeysInHand).
+        zaState.loading = loadPgpKeys().then(loadZeroAccess).then(null, function () {});
         return loadFolders().then(function () {
           if (pending) { var wanted = pending; pending = ''; replaceWith(wanted); }
           else { route(); }
@@ -2237,6 +2242,7 @@
     say('signin-status', '', true);
     var address = el('address').value.trim(), password = el('password').value;
     smimePassword = password;
+    zaPassword = password;
     el('password').value = '';
     var basic = 'Basic ' + btoa(unescape(encodeURIComponent(address + ':' + password)));
     // A new session is a new server as far as this page knows: whatever the
@@ -4441,7 +4447,7 @@
     });
   });
 
-  var loadSecurity = function () { loadPasskeys(); loadAppPasswords(); loadRecovery(); loadSessions(); loadDevices(); loadSmime(); loadPgpPage(); };
+  var loadSecurity = function () { loadPasskeys(); loadAppPasswords(); loadRecovery(); loadSessions(); loadDevices(); loadSmime(); loadPgpPage().then(loadZeroAccess); };
 
   // Focus follows a change of view to its title, unless the view put the
   // focus somewhere itself, so that a screen reader announces where it is.
@@ -5206,7 +5212,10 @@
   // encrypted to a key is opened by whichever copy of that key the module
   // meets first, and only the opened one can open it.
   var pgpKeysInHand = function () {
-    var chain = Promise.resolve();
+    // A zero-access mailbox's key may still be opening from the sign-in
+    // password; a message read before that finished would ask for a
+    // passphrase it does not need.
+    var chain = zaState.loading ? zaState.loading.then(null, function () {}) : Promise.resolve();
     var out = [];
     pgpState.own.concat(pgpState.peers).forEach(function (row) {
       chain = chain.then(function () { return pgpParse(row); }).then(function (key) { if (key) { out.push(key); } });
@@ -5547,6 +5556,7 @@
     el('message-pgp-unlock').hidden = true;
     el('message-pgp-keep').hidden = true;
     el('message-pgp-accept').hidden = true;
+    el('message-za-unlock').hidden = true;
     pgpAcceptOffer = null;
     // Read again for the same message - after an unlock, after a key was
     // kept or accepted - the badges this put there last time come off first,
@@ -5648,11 +5658,20 @@
   });
   var pgpShow = function (m, result) {
     var lines = [];
+    var sealedOnDelivery = /^x-hmailserver-zero-access:/im.test(String(m.headers || ''));
+    el('message-pgp').setAttribute('data-za', sealedOnDelivery ? (result.encrypted && result.encrypted.ok ? 'opened' : 'sealed') : '');
     if (result.encrypted) {
       if (result.encrypted.ok) {
-        lines.push(t('Encrypted with OpenPGP; opened in this browser. It can be searched by its headers only.'));
+        lines.push(sealedOnDelivery
+          ? t('Encrypted on delivery to your mailbox key and opened in this browser; this server never had the text.')
+          : t('Encrypted with OpenPGP; opened in this browser. It can be searched by its headers only.'));
         pgpBadge(t('Encrypted'), 'good');
         if (result.integrityProtected === false) { lines.push(t('It carries no integrity check, which an OpenPGP message written since 2002 does: treat what it says with care.')); }
+      }
+      else if (zaState.enabled && zaState.row && !pgpState.unlocked[zaState.row.fingerprint]) {
+        lines.push(t('Encrypted to your mailbox key. Unlock your mailbox to read it.'));
+        el('message-za-unlock').hidden = false;
+        pgpBadge(t('Encrypted'), 'muted');
       }
       else if (pgpState.own.length && !pgpAllUnlocked()) {
         lines.push(t('Encrypted with OpenPGP. Unlock your key to read it.'));
@@ -5810,6 +5829,286 @@
       say('mail-status', describe(result, t('Could not unsubscribe')), false);
     });
   });
+
+  // ---- Zero-access mailbox (docs/ZeroAccess.md) --------------------------------
+  //
+  // A mailbox this server holds and cannot read: every message delivered to
+  // it is encrypted, after the filters, to the account's own OpenPGP key. What
+  // this page adds to the OpenPGP block above is the key's two other copies
+  // and what opens them - the password, through Argon2id and the module's
+  // zeroAccessPassphrase, and the recovery key - and the one dialogue that
+  // says the consequences and makes the person type the recovery key back
+  // before anything is stored. The reader needs nothing new: a delivery is a
+  // PGP/MIME message and pgpInspect opens it with the key this unlocked.
+  //
+  // zaState.row is what GET /api/v1/me/zero-access answered; unlocking is the
+  // promise of the sign-in derivation, which the reader waits on; password is
+  // the sign-in password, held ONLY until the derivation has used it (or
+  // found it wrong, in which case the unlock dialogue holds it while it is
+  // open, so that a key opened with the previous password or the recovery key
+  // can be sealed again under the current one at once).
+  var zaState = { loaded: false, allowed: false, enabled: false, row: null, loading: null, unlocking: null, password: '', locked: false };
+  var zaPassword = '';
+  var zaForget = function () {
+    zaSettle(false, '');
+    zaConfirmClose();
+    zaState = { loaded: false, allowed: false, enabled: false, row: null, loading: null, unlocking: null, password: '', locked: false };
+    zaPassword = '';
+    el('za-unlock-secret').value = '';
+    el('za-password').value = '';
+    el('za-recovery-typed').value = '';
+    el('za-recovery-key').textContent = '';
+    el('message-za-unlock').hidden = true;
+    say('za-status', '', true);
+  };
+  var zaKey = function () { return zaState.row ? pgpState.unlocked[zaState.row.fingerprint] || null : null; };
+  var zaParams = function (row) { return { passes: row.argon2.passes, memory: row.argon2.memory_kib, lanes: row.argon2.lanes }; };
+  // The key opened with the password: the row's copy, under the passphrase
+  // the module derives. Resolves with the key; rejects with 'wrong passphrase'
+  // when the password is not the one the copy is sealed under.
+  var zaOpenWithPassword = function (row, password) {
+    return pgpLoad().then(function () {
+      return pgpModule.zeroAccessPassphrase(password, row.salt, zaParams(row));
+    }).then(function (passphrase) { return pgpModule.readKey(row.password_wrapped, passphrase); });
+  };
+  var zaOpenWithRecovery = function (row, typed) {
+    var canonical = pgpModule.canonicalRecoveryKey(typed);
+    if (!canonical) { return Promise.reject(new Error('wrong passphrase')); }
+    return pgpModule.readKey(row.recovery_wrapped, canonical);
+  };
+  // The key sealed again under a password: a fresh salt, the default
+  // parameters, and PUT .../rewrap. Answers the body it sent.
+  var zaWrapUnder = function (key, password) {
+    var salt = pgpModule.b64encode(crypto.getRandomValues(new Uint8Array(16)));
+    var params = pgpModule.ARGON2_DEFAULT;
+    return pgpModule.zeroAccessPassphrase(password, salt, params).then(function (passphrase) {
+      return pgpModule.exportSecret(key, passphrase);
+    }).then(function (wrapped) {
+      return { salt: salt, passes: params.passes, memory_kib: params.memory, lanes: params.lanes, password_wrapped: wrapped };
+    });
+  };
+  var zaRewrap = function (key, password) {
+    return zaWrapUnder(key, password).then(function (body) {
+      return call('PUT', '/api/v1/me/zero-access/rewrap', body).then(function (result) {
+        if (result.status !== 200) { throw new Error(describe(result, t('Could not seal the mailbox key'))); }
+        if (result.data) { zaState.row = result.data; }
+        return result;
+      });
+    });
+  };
+  var zaRenderPage = function () {
+    el('za-not-allowed').hidden = zaState.allowed || zaState.enabled;
+    el('za-body').hidden = !(zaState.allowed || zaState.enabled);
+    el('za-state-on').hidden = !zaState.enabled;
+    el('za-state-off').hidden = zaState.enabled;
+    if (zaState.enabled && zaState.row) {
+      el('za-on-text').textContent = tf('On since {0}, with the key {1}.', pgpWhen(zaState.row.enabled_at), pgpGroups(zaState.row.fingerprint));
+    }
+    else if (zaState.enabled) {
+      // The switch is on and the server has no key row for it (a restore that
+      // dropped the table): every delivery is being refused, and the only way
+      // out is the switch-off this state shows.
+      el('za-on-text').textContent = t('Zero access is on, but its key row is missing: switch it off and on again.');
+    }
+    // Which key: one of the account's own, not revoked and not expiring - a
+    // key that expires would have every delivery refused from that day, so
+    // the server refuses it and the list leaves it out. The list is drawn
+    // from the ring the OpenPGP block loaded, so the page is asked to make or
+    // import a key first when there is none.
+    var usable = pgpState.own.filter(function (o) { return !o.revoked && !o.expires; });
+    el('za-no-key').hidden = usable.length > 0 || !zaState.allowed;
+    el('za-on-form').hidden = usable.length === 0 || !zaState.allowed;
+    var select = el('za-key');
+    var chosen = select.value;
+    clear(select);
+    usable.forEach(function (row) {
+      var option = document.createElement('option');
+      option.value = row.fingerprint;
+      option.textContent = row.address + ' - ' + pgpGroups(row.fingerprint);
+      select.appendChild(option);
+    });
+    if (usable.length && !usable.some(function (row) { return row.fingerprint === chosen; })) { select.value = usable[0].fingerprint; }
+  };
+  // The row, asked for once per sign-in after the ring is known; with the
+  // sign-in password still in hand the key is opened at once, and the reader
+  // waits on that promise rather than asking for a passphrase.
+  var loadZeroAccess = function () {
+    var state = zaState;
+    var password = zaPassword;
+    zaPassword = '';
+    return call('GET', '/api/v1/me/zero-access').then(function (result) {
+      if (state !== zaState) { return; }
+      state.loaded = true;
+      if (result.status !== 200 || !result.data) { zaRenderPage(); return; }
+      state.allowed = !!result.data.allowed;
+      state.enabled = !!result.data.enabled;
+      state.row = state.enabled && !result.data.broken ? result.data : null;
+      zaRenderPage();
+      if (!state.enabled || !state.row || zaKey()) { return; }
+      if (!password || smimeViaAppPassword) { state.locked = true; return; }
+      state.unlocking = zaOpenWithPassword(state.row, password).then(function (key) {
+        if (state !== zaState) { return; }
+        pgpState.unlocked[state.row.fingerprint] = key;
+        state.locked = false;
+        state.unlocking = null;
+      }, function (e) {
+        if (state !== zaState) { return; }
+        state.unlocking = null;
+        state.locked = true;
+        if (!e || e.message !== 'wrong passphrase') { return; }
+        // The password the server has just accepted is not the one the copy
+        // is sealed under: an administrator changed it, or a reset link did.
+        // The dialogue asks for the previous one or the recovery key, and
+        // holds the current one for as long as it is open, so that the key
+        // it opens is sealed under the current password at once.
+        state.password = password;
+        var drop = function () { state.password = ''; };
+        zaAsk().then(drop, drop);
+      });
+      return state.unlocking;
+    });
+  };
+  // ---- the unlock dialogue: a password, or the recovery key
+  var zaWaiters = [];
+  var zaAsk = function () {
+    say('za-unlock-status', '', true);
+    el('za-unlock-secret').value = '';
+    el('za-unlock').hidden = false;
+    el('za-unlock-secret').focus();
+    return new Promise(function (resolve, reject) { zaWaiters.push({ resolve: resolve, reject: reject }); });
+  };
+  var zaSettle = function (ok, value) {
+    el('za-unlock').hidden = true;
+    el('za-unlock-secret').value = '';
+    zaWaiters.splice(0).forEach(function (w) { if (ok) { w.resolve(value); } else { w.reject(value); } });
+  };
+  el('za-unlock-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var typed = el('za-unlock-secret').value;
+    var row = zaState.row;
+    if (!typed || !row) { return; }
+    say('za-unlock-status', t('Deriving the key from your password. This takes a few seconds.'), true);
+    var state = zaState;
+    // The recovery key first when the text is shaped like one - it costs
+    // nothing - then the password, which costs the derivation.
+    var attempt = pgpModule.canonicalRecoveryKey(typed) ? zaOpenWithRecovery(row, typed) : Promise.reject(new Error('wrong passphrase'));
+    attempt.then(null, function () { return zaOpenWithPassword(row, typed); }).then(function (key) {
+      if (state !== zaState) { return; }
+      pgpState.unlocked[row.fingerprint] = key;
+      state.locked = false;
+      // Opened with something that is not the current password, while the
+      // current one is here: sealed again under it now, as the note promised.
+      var current = state.password;
+      state.password = '';
+      if (!current || current === typed) { zaSettle(true, ''); return; }
+      say('za-unlock-status', t('Sealing your mailbox key under the new password. This takes a few seconds.'), true);
+      return zaRewrap(key, current).then(function () {
+        zaSettle(true, '');
+        say('za-status', t('Your mailbox key is sealed again under the current password.'), true);
+      }, function (e) { zaSettle(true, ''); say('za-status', String(e && e.message || e), false); });
+    }).catch(function (e) {
+      if (state !== zaState) { return; }
+      say('za-unlock-status', (e && e.message === 'wrong passphrase') ? t('Neither your password nor a recovery key opened the mailbox key.') : String(e && e.message || e), false);
+    });
+  });
+  el('za-unlock-cancel').addEventListener('click', function () { zaSettle(false, t('Not sent. The message is still here.')); });
+  el('message-za-unlock').addEventListener('click', function () {
+    zaAsk().then(function () { if (current) { pgpInspect(current); } }, function () {});
+  });
+  // ---- switching on: the dialogue that says the cost and takes the key back
+  var zaPending = null;
+  var zaConfirmClose = function () {
+    el('za-confirm').hidden = true;
+    el('za-recovery-key').textContent = '';
+    el('za-recovery-typed').value = '';
+    el('za-password').value = '';
+    el('za-accept').checked = false;
+    zaPending = null;
+  };
+  el('za-on-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var fingerprint = el('za-key').value;
+    var row = pgpState.own.filter(function (o) { return o.fingerprint === fingerprint; })[0];
+    if (!row) { say('za-status', t('Make or import an OpenPGP key that does not expire first.'), false); return; }
+    say('za-status', '', true);
+    pgpLoad().then(function () {
+      zaPending = { row: row, recovery: pgpModule.makeRecoveryKey() };
+      el('za-recovery-key').textContent = zaPending.recovery;
+      say('za-confirm-status', '', true);
+      el('za-confirm').hidden = false;
+      el('za-recovery-typed').focus();
+    }).catch(function (e) { say('za-status', String(e && e.message || e), false); });
+  });
+  el('za-confirm-cancel').addEventListener('click', zaConfirmClose);
+  el('za-confirm-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    if (!zaPending) { return; }
+    var typed = pgpModule.canonicalRecoveryKey(el('za-recovery-typed').value);
+    var shown = pgpModule.canonicalRecoveryKey(zaPending.recovery);
+    if (!typed || typed !== shown) { say('za-confirm-status', t('The recovery key you typed is not the one shown.'), false); return; }
+    if (!el('za-accept').checked) { say('za-confirm-status', t('Tick the box: this is the one consequence that cannot be undone.'), false); return; }
+    var password = el('za-password').value;
+    if (!password) { say('za-confirm-status', t('Enter the password.'), false); return; }
+    var pending = zaPending;
+    var state = zaState;
+    // The key itself: open already, or opened now with its own passphrase.
+    var opened = pgpState.unlocked[pending.row.fingerprint]
+      ? Promise.resolve(pgpState.unlocked[pending.row.fingerprint])
+      : pgpUnlock().then(function () { return pgpState.unlocked[pending.row.fingerprint]; });
+    say('za-confirm-status', t('Deriving the key from your password. This takes a few seconds.'), true);
+    opened.then(function (key) {
+      if (!key) { throw new Error(t('The key could not be opened.')); }
+      return zaWrapUnder(key, password).then(function (body) {
+        return pgpModule.exportSecret(key, shown).then(function (recoveryWrapped) {
+          body.fingerprint = pending.row.fingerprint;
+          body.recovery_wrapped = recoveryWrapped;
+          return call('PUT', '/api/v1/me/zero-access', body);
+        });
+      }).then(function (result) {
+        if (state !== zaState) { return; }
+        if (result.status !== 201) { throw new Error(describe(result, t('Could not switch zero access on'))); }
+        pgpState.unlocked[pending.row.fingerprint] = key;
+        zaConfirmClose();
+        state.enabled = true;
+        state.row = result.data;
+        state.locked = false;
+        zaRenderPage();
+        say('za-status', t('Zero access is on. From now on every message that arrives is encrypted to your key, and only you can read it.'), true);
+      });
+    }).catch(function (e) {
+      if (state !== zaState) { return; }
+      say('za-confirm-status', String(e && e.message || e), false);
+    });
+  });
+  el('za-off').addEventListener('click', function () {
+    if (!window.confirm(t('Switch off zero access? Mail already stored stays encrypted; new mail is stored as it arrives.'))) { return; }
+    var state = zaState;
+    call('DELETE', '/api/v1/me/zero-access').then(function (result) {
+      if (state !== zaState) { return; }
+      if (result.status !== 200) { say('za-status', describe(result, t('Could not switch zero access off')), false); return; }
+      state.enabled = false;
+      state.row = null;
+      state.locked = false;
+      zaRenderPage();
+      say('za-status', t('Zero access is off. Mail that arrived while it was on stays encrypted and opens with your key.'), true);
+    });
+  });
+  // ---- a password change through this page carries the key sealed again.
+  // Answers the zero_access member for POST /api/v1/me/password, or null when
+  // the mailbox is not a zero-access one; rejects when the key cannot be
+  // opened with the current password given, since a change that went ahead
+  // would leave the key sealed under a password nobody has.
+  var zaPasswordChange = function (currentPassword, newPassword) {
+    if (!zaState.enabled || !zaState.row) { return Promise.resolve(null); }
+    var row = zaState.row;
+    var opened = zaKey() ? Promise.resolve(zaKey()) : zaOpenWithPassword(row, currentPassword);
+    return opened.then(function (key) {
+      pgpState.unlocked[row.fingerprint] = key;
+      return zaWrapUnder(key, newPassword);
+    }, function (e) {
+      throw new Error((e && e.message === 'wrong passphrase') ? t('The mailbox key is locked; unlock it under Security first.') : String(e && e.message || e));
+    });
+  };
 
   // ---- Rich text: a formatting bar over an editor whose HTML is rebuilt from
   // an allowed subset before it is sent, and a plain text made from the same
@@ -7352,7 +7651,18 @@
     event.preventDefault();
     var now = el('current').value, fresh = el('new').value, again = el('confirm').value;
     if (fresh !== again) { say('password-status', t('The two new passwords differ.'), false); return; }
-    call('POST', '/api/v1/me/password', { current: now, 'new': fresh }, secondFactorHeaders('otp', 'password-code')).then(function (result) {
+    // A zero-access mailbox's key travels with the change, sealed again
+    // under the new password; the server refuses the change without it.
+    if (zaState.enabled) { say('password-status', t('Sealing your mailbox key under the new password. This takes a few seconds.'), true); }
+    zaPasswordChange(now, fresh).then(function (zero) {
+      var body = { current: now, 'new': fresh };
+      if (zero) { body.zero_access = zero; }
+      return call('POST', '/api/v1/me/password', body, secondFactorHeaders('otp', 'password-code'));
+    }, function (e) {
+      say('password-status', String(e && e.message || e), false);
+      return null;
+    }).then(function (result) {
+      if (!result) { return; }
       if (result.status === 200) {
         el('current').value = ''; el('new').value = ''; el('confirm').value = ''; el('otp').value = ''; el('password-code').value = '';
         smimeRewrap(now, fresh).then(function (note) {

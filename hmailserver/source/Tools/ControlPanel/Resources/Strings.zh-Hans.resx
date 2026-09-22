@@ -5638,6 +5638,9 @@
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>关闭。首次尝试时不会推迟任何邮件。</value>
   </data>
+  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>关闭：邮件按到达时的样子存储。服务器允许零访问邮箱后，本人可从网页邮箱的“安全”页面开启。</value>
+  </data>
   <data name="Offi_ce" xml:space="preserve">
     <value>办公地点 (_E)</value>
   </data>
@@ -5670,6 +5673,9 @@
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>打开。此前未见过的发件人/收件人/地址三元组在 RCPT TO 时会收到 451 "Please try again later." 应答，重试时则被接受。它在上面的连接检查之后运行，不加分数。</value>
+  </data>
+  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>开启：投递到此账户的每封邮件在过滤器处理后都会用账户自己的 OpenPGP 密钥加密，此服务器无法阅读、搜索、导出或恢复其邮件。只有本人能从网页邮箱关闭它；这里无法关闭。</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → 外部 AV / DLP 扫描器</value>
@@ -10610,6 +10616,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>工作电话 (_C)</value>
+  </data>
+  <data name="_Zero-access mailbox" xml:space="preserve">
+    <value>零访问邮箱(_Z)</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>一个数字</value>

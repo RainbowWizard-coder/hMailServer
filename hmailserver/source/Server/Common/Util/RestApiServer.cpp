@@ -81,6 +81,7 @@
 #include "CompromiseDetector.h"
 #include "ConfidentialMessages.h"
 #include "ProtectedMessages.h"
+#include "ZeroAccess.h"
 #include "ContactGroups.h"
 #include <iterator>
 #include <list>
@@ -2662,6 +2663,18 @@ namespace HM
          case RouteMeOpenPgpKeyAccepted:
             return HandleMeOpenPgpKeyTrust_(caller, false, route.message_id, GetRequestBody_(request));
 
+         case RouteMeZeroAccess:
+            return HandleMeZeroAccess_(caller);
+
+         case RouteMeZeroAccessPut:
+            return HandleMeZeroAccessPut_(caller, GetRequestBody_(request));
+
+         case RouteMeZeroAccessRewrap:
+            return HandleMeZeroAccessRewrap_(caller, GetRequestBody_(request));
+
+         case RouteMeZeroAccessDelete:
+            return HandleMeZeroAccessDelete_(caller);
+
          case RouteMeStorage:
             return HandleMeStorage_(caller);
 
@@ -3331,6 +3344,26 @@ namespace HM
             route.kind = RouteMeOpenPgpDelete;
          }
 
+         return;
+      }
+
+      // Zero-access mailboxes (RestApiZeroAccess.cpp): the switch, its
+      // re-wrap, and nothing under any other name.
+      if (path == "/api/v1/me/zero-access")
+      {
+         if (method == "GET")
+            route.kind = RouteMeZeroAccess;
+         else if (method == "PUT")
+            route.kind = RouteMeZeroAccessPut;
+         else if (method == "DELETE")
+            route.kind = RouteMeZeroAccessDelete;
+
+         return;
+      }
+
+      if (path == "/api/v1/me/zero-access/rewrap" && method == "PUT")
+      {
+         route.kind = RouteMeZeroAccessRewrap;
          return;
       }
 
@@ -6248,6 +6281,11 @@ namespace HM
       // from then on, and a change accepted is the key the page encrypts to.
       case RouteMeOpenPgpKeyVerified:
       case RouteMeOpenPgpKeyAccepted:
+      // The switch that decides whether this server can read a mailbox, and
+      // the copies of the key it stands on.
+      case RouteMeZeroAccessPut:
+      case RouteMeZeroAccessRewrap:
+      case RouteMeZeroAccessDelete:
       case RouteSettingsOpenPgpPut:
       case RouteAccountOpenPgpPut:
       case RouteAccountOpenPgpDelete:
@@ -10305,6 +10343,10 @@ namespace HM
       case RouteMeOpenPgpLookup:
       case RouteMeOpenPgpKeyVerified:
       case RouteMeOpenPgpKeyAccepted:
+      case RouteMeZeroAccess:
+      case RouteMeZeroAccessPut:
+      case RouteMeZeroAccessRewrap:
+      case RouteMeZeroAccessDelete:
       case RouteMeFolderEmpty:
       case RouteMeMessageSource:
       case RouteMeMessageHtml:
@@ -10506,6 +10548,19 @@ namespace HM
          }
       }
 
+      // A zero-access mailbox's key is sealed under the password, so the
+      // change carries the key sealed again under the new one, or is refused
+      // (RestApiZeroAccess.cpp). Checked here, before anything is written,
+      // and written after the password is, so that neither exists without
+      // the other.
+      ZeroAccess::Row rewrapped;
+      {
+         AnsiString zeroProblem;
+         const int zeroStatus = ZeroAccessPasswordCheck_(account, requestBody, rewrapped, zeroProblem);
+         if (zeroStatus != 0)
+            return BuildResponse_(zeroStatus, "{\"error\":\"" + JsonEscape_(zeroProblem) + "\",\"code\":\"zero_access_rewrap\"}");
+      }
+
       std::shared_ptr<Account> mutableAccount = std::shared_ptr<Account>(new Account());
       if (!PersistentAccount::ReadObject(mutableAccount, account->GetID()) || mutableAccount->GetID() == 0)
          return BuildResponse_(500, "{\"error\":\"the account could not be read\"}");
@@ -10523,6 +10578,23 @@ namespace HM
          AnsiString body;
          body.Format("{\"error\":\"%hs\"}", JsonEscape_(Utf8_(saveError.IsEmpty() ? String(_T("the account could not be saved")) : saveError)).c_str());
          return BuildResponse_(500, body);
+      }
+
+      // The mailbox key, sealed again under the password that is now the
+      // account's. A failure here leaves the password changed and the key
+      // under the old one - which the recovery key still opens - and says so
+      // in the answer and the log rather than pretending otherwise.
+      if (account->GetZeroAccess())
+      {
+         AnsiString zeroProblem;
+         int zeroStatus = 500;
+         if (!ZeroAccess::Rewrap(account, rewrapped, zeroProblem, zeroStatus))
+         {
+            LOG_APPLICATION("REST API: " + account->GetAddress() + " changed its own password but its zero-access mailbox key could not be sealed again under the new one: " + String(zeroProblem) + ". The recovery key still opens it.");
+            RevokeSessionsForAccount_(account->GetID(), caller.via_session ? caller.session_hash : AnsiString());
+            SpendSecondFactor_(account, recoveryCodeId);
+            return BuildResponse_(500, "{\"changed\":true,\"error\":\"the password was changed, but the mailbox key could not be sealed again under it: " + JsonEscape_(zeroProblem) + ". Unlock the mailbox with the recovery key at the next sign-in.\"}");
+         }
       }
 
       // Every other browser signed in to this account is signed out: a
@@ -14492,6 +14564,11 @@ namespace HM
             std::shared_ptr<Message> copy = confidential
                ? ConfidentialMessages::CopyKeptToFolder(keptPath, from, sent)
                : PersistentMessage::CopyToIMAPFolder(message, sent);
+            // A zero-access mailbox's copy of what it sent is sealed to its key
+            // as a delivery is (docs/ZeroAccess.md); a copy that cannot be is
+            // not kept, and the send goes ahead.
+            if (copy && !ZeroAccess::SealStoredCopy(account, copy, "Sent copy of a message sent from the webmail"))
+               copy.reset();
             if (copy)
             {
                copy->SetFlagSeen(true);
@@ -15811,6 +15888,7 @@ namespace HM
       openApiJson += OpenApiConfidentialPaths_();
       openApiJson += OpenApiOpenPgpKeysPaths_();
       openApiJson += OpenApiProtectedPaths_();
+      openApiJson += OpenApiZeroAccessPaths_();
       openApiJson += OpenApiContactGroupsPaths_();
       openApiJson += OpenApiAddressBookPaths_();
       openApiJson += OpenApiOfflinePaths_();

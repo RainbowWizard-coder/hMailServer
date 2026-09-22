@@ -648,6 +648,9 @@ namespace HM
          entry += ",\"ad_username\":\"" + quote(account->GetADUsername()) + "\"";
          entry += ",\"sieve_script\":\"" + quote(SieveStorage::GetActiveScript(account->GetAddress())) + "\"";
          flag("openpgp_publish", account->GetOpenPGPPublish());
+         // Read-only here: the person switches it from the webmail, and an
+         // administrator sees the state (docs/ZeroAccess.md).
+         flag("zero_access", account->GetZeroAccess());
 
          // The recovery address, as much of it as anybody is shown: whether one
          // is set, whether it has been confirmed, the masked spelling and how

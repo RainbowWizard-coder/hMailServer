@@ -5638,6 +5638,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Kapalı. Hiçbir ileti ilk denemede ertelenmiyor.</value>
   </data>
+  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Kapalı: posta geldiği gibi saklanır. Sunucu sıfır erişimli posta kutularına izin verdiğinde kişi bunu web postasının Güvenlik sayfasından açar.</value>
+  </data>
   <data name="Offi_ce" xml:space="preserve">
     <value>_Ofis</value>
   </data>
@@ -5670,6 +5673,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Açık. Daha önce görülmemiş bir gönderen/alıcı/adres üçlüsü RCPT TO'da 451 "Please try again later." ile yanıtlanır ve yeniden denediğinde kabul edilir. Yukarıdaki bağlantı denetimlerinden sonra çalışır ve puan eklemez.</value>
+  </data>
+  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Açık: bu hesaba teslim edilen her ileti, süzgeçlerden sonra hesabın kendi OpenPGP anahtarıyla şifrelenir ve bu sunucu postasını okuyamaz, arayamaz, dışa aktaramaz veya kurtaramaz. Yalnızca kişi web postasından kapatabilir; burada hiçbir şey kapatamaz.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → dış AV / DLP tarayıcısı</value>
@@ -10610,6 +10616,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>İş _telefonu</value>
+  </data>
+  <data name="_Zero-access mailbox" xml:space="preserve">
+    <value>Sıfır erişimli posta k_utusu</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>bir rakam</value>

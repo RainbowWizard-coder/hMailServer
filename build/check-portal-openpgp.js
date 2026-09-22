@@ -14,6 +14,15 @@
 // revocation certificate. Both directions, against an implementation that is
 // not this one.
 //
+// And two more things since the zero-access row (docs/ZeroAccess.md): the
+// module's BLAKE2b and Argon2 against the vectors of RFC 7693 and RFC 9106,
+// which is how the derivation a mailbox key is sealed under is held to the
+// RFCs rather than to itself; and a PGP/MIME message the SERVER's writer
+// made (build/fixtures/openpgp/server-sealed-to-alice.eml, from the Linux
+// build's openpgp-writer) opened by the module with Alice's key - and by gpg,
+// where there is one - which is the page reading what a delivery to a
+// zero-access mailbox writes.
+//
 // Usage: node build/check-portal-openpgp.js [module.js] [fixtures dir]
 // Needs Node 20 or later (Web Crypto, Ed25519 and X25519). gpg is optional:
 // the committed fixtures are what the style workflow reads, so the check runs
@@ -201,6 +210,78 @@ function gpgStatus(home, args, input, passphrase) {
   check(pgp.parseAutocrypt('addr=a@b.test; keydata=' + Buffer.from('x').toString('base64') + '; unknown=1') === null, 'a header with an unknown attribute is ignored, as Autocrypt Level 1 says');
   check(pgp.parseAutocrypt('prefer-encrypt=mutual') === null, 'a header with no addr and no keydata is ignored');
 
+  console.log('== BLAKE2b and Argon2, against the RFCs');
+  // RFC 7693 appendix A: BLAKE2b-512 of "abc".
+  const blakeAbc = Buffer.from(pgp.blake2b(pgp.utf8('abc'), 64)).toString('hex');
+  check(blakeAbc === 'ba80a53f981c4d0d6a2797b69f12f6e94c212f14685ac4b74b12bb6fdbffa2d17d87c5392aab792dc252d5de4533cc9518d38aa8dbf1925ab92386edd4009923',
+    'BLAKE2b-512 of "abc" is RFC 7693 appendix A\'s');
+  // Two blocks and exactly one, against Node's own BLAKE2b.
+  const nodeCrypto = require('crypto');
+  const twoBlocks = new Uint8Array(200); for (let i = 0; i < 200; i++) { twoBlocks[i] = i; }
+  check(Buffer.from(pgp.blake2b(twoBlocks, 64)).toString('hex') === nodeCrypto.createHash('blake2b512').update(twoBlocks).digest('hex'), 'BLAKE2b over two blocks agrees with Node\'s');
+  const oneBlock = new Uint8Array(128).fill(7);
+  check(Buffer.from(pgp.blake2b(oneBlock, 64)).toString('hex') === nodeCrypto.createHash('blake2b512').update(oneBlock).digest('hex'), 'and over exactly one block');
+  check(Buffer.from(pgp.blake2b(new Uint8Array(0), 32)).toString('hex') === '0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8', 'BLAKE2b-256 of nothing is the known value');
+  // RFC 9106 sections 5.1 to 5.3: the three variants, with the secret and the
+  // associated data the RFC's vectors carry, t=3, m=32 KiB, p=4, 32 octets.
+  const rfcPassword = new Uint8Array(32).fill(1), rfcSalt = new Uint8Array(16).fill(2), rfcSecret = new Uint8Array(8).fill(3), rfcAd = new Uint8Array(12).fill(4);
+  const argonVectors = [
+    ['Argon2d', pgp.ARGON2.D, '512b391b6f1162975371d30919734294f868e3be3984f3c1a13a4db9fabe4acb'],
+    ['Argon2i', pgp.ARGON2.I, 'c814d9d1dc7f37aa13f0d77f2494bda1c8de6b016dd388d29952a4c4672b6ce8'],
+    ['Argon2id', pgp.ARGON2.ID, '0d640df58d78766c08c037a34a8b53c9d01ef0452d75b65eb52520e96b01e659']
+  ];
+  for (const [name, type, want] of argonVectors) {
+    const tag = Buffer.from(await pgp.argon2({ password: rfcPassword, salt: rfcSalt, secret: rfcSecret, ad: rfcAd, passes: 3, memory: 32, lanes: 4, length: 32, type: type, yield: false })).toString('hex');
+    check(tag === want, name + ' reproduces RFC 9106\'s test vector');
+  }
+  // And at the parameters a mailbox key is actually sealed under - three
+  // passes over 64 MiB in four lanes - against a reference implementation
+  // (argon2-cffi 25.1, the reference C code): the RFC's vectors run at 32 KiB,
+  // where the reference index of section 3.4.1.2 is exercised over a few
+  // hundred blocks and never at the sizes where its 64-bit square matters.
+  // This takes a second or two, which is what a sign-in costs.
+  const bigTag = await pgp.zeroAccessPassphrase('correct horse battery staple', 'BRIfLDlGU2BteoeUoa67yA==', { passes: 3, memory: 65536, lanes: 4 });
+  check(bigTag === 'c4e2377097b2e89ada4b2fbcc4788be511a5fedda7d1f94d88be76b0dcf69c65', 'Argon2id at 64 MiB, three passes, four lanes agrees with the reference implementation');
+  // What a mailbox key is sealed under: 64 hex characters, the same for the
+  // same password and salt, different for a different salt.
+  const salt1 = pgp.b64encode(new Uint8Array(16).fill(9));
+  const salt2 = pgp.b64encode(new Uint8Array(16).fill(10));
+  const smallParams = { passes: 1, memory: 256, lanes: 1 };
+  const pass1 = await pgp.zeroAccessPassphrase('correct horse', salt1, smallParams);
+  const pass1again = await pgp.zeroAccessPassphrase('correct horse', salt1, smallParams);
+  const pass2 = await pgp.zeroAccessPassphrase('correct horse', salt2, smallParams);
+  check(/^[0-9a-f]{64}$/.test(pass1) && pass1 === pass1again && pass1 !== pass2, 'the derived passphrase is 64 hex characters, repeatable, and salted');
+  const recovery = pgp.makeRecoveryKey();
+  check(/^([A-Z2-7]{6}-){7}[A-Z2-7]{6}$/.test(recovery), 'a recovery key is eight groups of six base32 characters: ' + recovery);
+  check(pgp.canonicalRecoveryKey(recovery.toLowerCase().replace(/-/g, ' ')) === recovery.replace(/-/g, ''), 'and reads back in any case, with or without its separators');
+  check(pgp.canonicalRecoveryKey(recovery.slice(0, 40)) === '', 'a recovery key with a group missing is refused');
+  check(pgp.makeRecoveryKey() !== recovery, 'two recovery keys differ');
+  // A key sealed under the derived passphrase and under the recovery key is
+  // an ordinary OpenPGP secret key that opens with either, as GnuPG would.
+  const sealedUnderPassword = await pgp.exportSecret(aliceSecret, pass1);
+  const reopened = await pgp.readKey(sealedUnderPassword, pass1);
+  check(reopened.unlocked === true && reopened.fingerprint === aliceFpr, 'Alice\'s key sealed under the derived passphrase opens with it');
+  const wrongPassphrase = await pgp.readKey(sealedUnderPassword, pass2).then(function () { return ''; }, function (e) { return e.message; });
+  check(wrongPassphrase === 'wrong passphrase', 'and not with the passphrase of another salt');
+  const sealedUnderRecovery = await pgp.exportSecret(aliceSecret, pgp.canonicalRecoveryKey(recovery));
+  const reopenedRecovery = await pgp.readKey(sealedUnderRecovery, pgp.canonicalRecoveryKey(recovery));
+  check(reopenedRecovery.unlocked === true, 'and sealed under the recovery key, opens with it');
+
+  console.log('== what the server\'s writer sealed, read by the page');
+  // build/fixtures/openpgp/server-sealed-to-alice.eml was written by the
+  // server's OpenPgpWriter (the Linux build's openpgp-writer, --mime) over a
+  // small message to Alice: what a zero-access mailbox's delivery looks like.
+  const serverSealed = await pgp.readMessage(read('server-sealed-to-alice.eml'), [aliceSecret, bob]);
+  check(serverSealed.layers.join(',') === 'encrypted', 'the server\'s PGP/MIME message is seen as encrypted, and not signed');
+  check(serverSealed.encrypted && serverSealed.encrypted.ok === true, 'it decrypts with Alice\'s key: ' + (serverSealed.encrypted ? serverSealed.encrypted.error || 'good' : 'none'));
+  check(serverSealed.content && serverSealed.content.text === 'The body goes under the key.\r\n', 'and the text under it is the original body: ' + JSON.stringify(serverSealed.content && serverSealed.content.text));
+  check(serverSealed.compressed !== true, 'the server compressed nothing');
+  const serverSealedText = readText('server-sealed-to-alice.eml');
+  check(/^X-hMailServer-Zero-Access: sealed on delivery\r?$/m.test(serverSealedText) && /^Subject: A sealed delivery\r?$/m.test(serverSealedText), 'the outer headers carry the subject in the clear and the server\'s mark');
+  check(serverSealedText.indexOf('The body goes under the key.') < 0, 'and the plaintext body is nowhere in the file');
+  const serverSealedByBob = await pgp.readMessage(read('server-sealed-to-alice.eml'), [bobSecret]);
+  check(serverSealedByBob.encrypted && serverSealedByBob.encrypted.ok === false, 'a key that is not the mailbox\'s does not open it');
+
   console.log('== keys and messages the page makes');
   const madeEd = await pgp.generateKey({ type: 'curve25519', name: 'Page Curve', email: 'page-curve@fixtures.test', passphrase: 'page-pass', expiresIn: 0 });
   const madeRsa = await pgp.generateKey({ type: 'rsa', bits: 2048, name: 'Page RSA', email: 'page-rsa@fixtures.test', passphrase: 'page-pass', expiresIn: 3600 * 24 * 365 });
@@ -271,7 +352,6 @@ function gpgStatus(home, args, input, passphrase) {
   const bareLiteral = pgp.armor('MESSAGE', pgp.writePacket(pgp.TAG.LITERAL, literalBody));
   const bareRefused = await pgp.openProtected(bareLiteral, 'any password').then(function () { return ''; }, function (e) { return e.message; });
   check(bareRefused === 'wrong passphrase', 'a message that was never encrypted is refused by the reading page in the one sentence: ' + bareRefused);
-  const nodeCrypto = require('crypto');
   const sessionKey = new Uint8Array(nodeCrypto.randomBytes(32));
   const skesk = await pgp.writeSkesk('the-password', pgp.SYM.AES256, sessionKey);
   // RFC 4880 section 5.7: the prefix under a zero IV, then the data under
@@ -348,6 +428,15 @@ function gpgStatus(home, args, input, passphrase) {
       check(revokedThere.ok, 'GnuPG imports the page\'s revocation certificate');
       const afterRevocation = gpg(home, ['--with-colons', '--list-keys', madeRsa.fingerprint.toUpperCase()]);
       check(/^pub:r:/m.test(afterRevocation.text), 'and reports the key as revoked afterwards');
+
+      // The server's writer, read by GnuPG: the inner armour of the fixture
+      // the module opened above, handed to gpg with Alice's key.
+      const serverArmour = readText('server-sealed-to-alice.eml').replace(/\r\n/g, '\n');
+      const armourStart = serverArmour.indexOf('-----BEGIN PGP MESSAGE-----');
+      const armourEnd = serverArmour.indexOf('-----END PGP MESSAGE-----');
+      const serverOpened = gpg(home, ['--decrypt'], Buffer.from(serverArmour.slice(armourStart, armourEnd) + '-----END PGP MESSAGE-----\n', 'utf8'), PASS);
+      check(serverOpened.ok && serverOpened.text.indexOf('The body goes under the key.') >= 0 && serverOpened.text.indexOf('Subject: A sealed delivery') >= 0,
+        'GnuPG opens what the server\'s writer sealed, and finds the whole original message inside' + (serverOpened.ok ? '' : ': ' + serverOpened.err.trim()));
 
       const symmetricMine = await pgp.encryptBytes({ data: mine, recipients: [], passwords: ['page-symmetric'] });
       const symmetricThere = gpg(home, ['--decrypt'], Buffer.from(pgp.armor('MESSAGE', symmetricMine), 'utf8'), 'page-symmetric');

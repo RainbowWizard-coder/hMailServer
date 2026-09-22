@@ -244,6 +244,14 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_OPENPGP_LOOKUP_TIMEOUT, 10);
       property_set_->EnsureLong(PROPERTY_PROTECTED_MESSAGE_DAYS, 30);
 
+      // Zero-access mailboxes: OFF. A mailbox with this on is one the
+      // administrator cannot read, search, export or recover, and a lost
+      // password without the recovery key is the mail lost; an installation
+      // chooses that with its eyes open, once, here. Schema 6083 seeds the
+      // same row; this is here because a read of a missing property reports
+      // HM5015 every time.
+      property_set_->EnsureLong(PROPERTY_ZERO_ACCESS_ALLOWED, 0);
+
       // The quota policy's two server-wide shares. Both 0, which is the server
       // as it has always been: no grace past a mailbox's limit, and no point at
       // which an account stops being able to send. A domain that sets its own
@@ -2104,6 +2112,18 @@ namespace HM
    Configuration::SetOpenPGPWebKeyDirectoryEnabled(bool enabled)
    {
       GetSettings()->SetLong(PROPERTY_OPENPGP_WKD_ENABLED, enabled ? 1 : 0);
+   }
+
+   bool
+   Configuration::GetZeroAccessAllowed()
+   {
+      return GetSettings()->GetLong(PROPERTY_ZERO_ACCESS_ALLOWED) == 1;
+   }
+
+   void
+   Configuration::SetZeroAccessAllowed(bool allowed)
+   {
+      GetSettings()->SetLong(PROPERTY_ZERO_ACCESS_ALLOWED, allowed ? 1 : 0);
    }
 
    int

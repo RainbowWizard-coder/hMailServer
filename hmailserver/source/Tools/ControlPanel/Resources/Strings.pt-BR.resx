@@ -5638,6 +5638,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Desligado. Nenhuma mensagem é adiada em uma primeira tentativa.</value>
   </data>
+  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Desativado: o e-mail é guardado como chega. A pessoa o ativa na página Segurança do webmail quando o servidor permitir caixas de acesso zero.</value>
+  </data>
   <data name="Offi_ce" xml:space="preserve">
     <value>Esc_ritório</value>
   </data>
@@ -5670,6 +5673,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Ligado. Um trio remetente/destinatário/endereço que nunca foi visto antes recebe 451 "Please try again later." no RCPT TO, e é aceito quando tenta de novo. Roda depois das verificações de conexão acima e não adiciona pontuação.</value>
+  </data>
+  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Ativado: cada mensagem entregue a esta conta é criptografada, depois dos filtros, com a chave OpenPGP da própria conta, e este servidor não pode ler, pesquisar, exportar nem recuperar o e-mail dela. Só a pessoa pode desativá-lo, pelo webmail; nada aqui pode.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → verificador externo de AV / DLP</value>
@@ -10610,6 +10616,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>_Telefone comercial</value>
+  </data>
+  <data name="_Zero-access mailbox" xml:space="preserve">
+    <value>Caixa de acesso _zero</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>um dígito</value>

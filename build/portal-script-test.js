@@ -409,6 +409,15 @@ const WITH_AUTOCRYPT = {
    text: 'Hello.', html: '', html_remote: false, flags: { seen: true, flagged: false, draft: false }, attachments: []
 };
 
+// One message a zero-access mailbox received: encrypted on delivery to the
+// account's own key, the outer headers kept, the server's mark on it.
+const SEALED_ON_DELIVERY = {
+   id: 603, folder_id: 1, uid: 23, subject: 'Sealed on delivery', from: 'c@example.net', to: 'user@example.com', cc: '',
+   date: '2026-09-18 09:00', size: 2400, message_id: '<sealed-on-delivery@example.net>', references: '', in_reply_to: '',
+   headers: 'From: c@example.net\r\nSubject: Sealed on delivery\r\nX-hMailServer-Zero-Access: sealed on delivery\r\nContent-Type: multipart/encrypted; protocol="application/pgp-encrypted"; boundary="za"\r\n',
+   text: '', html: '', html_remote: false, flags: { seen: false, flagged: false, draft: false }, attachments: []
+};
+
 const INBOX = { id: 1, account_id: 7, name: 'INBOX', path: 'INBOX', parent_id: 0, special_use: '', subscribed: true, writable: true, messages: 3, unseen: 2, uidvalidity: 1, subfolders: [] };
 const SENT = { id: 2, account_id: 7, name: 'Sent', path: 'Sent', parent_id: 0, special_use: '\\Sent', subscribed: true, writable: true, messages: 1, unseen: 0, uidvalidity: 1, subfolders: [] };
 const WORK = { id: 3, account_id: 7, name: 'Work', path: 'INBOX.Work', parent_id: 1, special_use: '', subscribed: true, writable: true, messages: 0, unseen: 0, uidvalidity: 1, subfolders: [] };
@@ -1523,6 +1532,45 @@ function answer(method, path, body) {
    if (path === '/api/v1/me/messages/602/source' && method === 'GET') {
       return { status: 200, headers: { 'Content-Type': 'message/rfc822' }, body: WITH_AUTOCRYPT.headers + '\r\nHello.\r\n' };
    }
+   if (path === '/api/v1/me/messages/603' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(SEALED_ON_DELIVERY)))); }
+   if (path === '/api/v1/me/messages/603/source' && method === 'GET') {
+      return { status: 200, headers: { 'Content-Type': 'message/rfc822' }, body: SEALED_ON_DELIVERY.headers + '\r\n--za\r\nContent-Type: application/pgp-encrypted\r\n\r\nVersion: 1\r\n\r\n--za\r\nContent-Type: application/octet-stream\r\n\r\nsealed\r\n--za--\r\n' };
+   }
+   // Zero-access mailboxes (RestApiZeroAccess.cpp): the switch, its re-wrap,
+   // and the row the page reads at sign-in. The server checks that each copy
+   // is a secret key of the fingerprint and can check nothing else about it.
+   if (path === '/api/v1/me/zero-access' && method === 'GET') {
+      if (zaBroken[account]) { return json(200, { allowed: zaAllowed, enabled: true, broken: true, problem: 'zero access is on for this mailbox and its key row is missing, so every delivery to it is being refused: switch zero access off and on again' }); }
+      const row = zaRows[account];
+      return json(200, Object.assign({ allowed: zaAllowed, enabled: !!row }, row || {}));
+   }
+   if (path === '/api/v1/me/zero-access' && method === 'PUT') {
+      if (!zaAllowed) { return json(403, { error: 'zero-access mailboxes are not allowed on this server', code: 'zero_access_not_allowed' }); }
+      if (zaRows[account]) { return json(409, { error: 'zero access is already on for this mailbox; switch it off first' }); }
+      const wanted = JSON.parse(body || '{}');
+      const own = pgpStoreOf(account).own.filter((o) => o.fingerprint === wanted.fingerprint)[0];
+      if (!own) { return json(404, { error: 'fingerprint: no key of your own with that fingerprint is in the ring' }); }
+      for (const name of ['password_wrapped', 'recovery_wrapped']) {
+         const parts = String(wanted[name] || '').split(':');
+         if (parts[0] !== 'SEC' || parts[2] !== wanted.fingerprint) { return json(400, { error: name + ': not the key named by fingerprint' }); }
+      }
+      zaRows[account] = { fingerprint: wanted.fingerprint, salt: wanted.salt, argon2: { passes: wanted.passes, memory_kib: wanted.memory_kib, lanes: wanted.lanes },
+         password_wrapped: wanted.password_wrapped, recovery_wrapped: wanted.recovery_wrapped, enabled_at: 1758182400 };
+      return json(201, Object.assign({ allowed: zaAllowed, enabled: true }, zaRows[account]));
+   }
+   if (path === '/api/v1/me/zero-access/rewrap' && method === 'PUT') {
+      const row = zaRows[account];
+      if (!row) { return json(404, { error: 'zero access is not on for this mailbox' }); }
+      const wanted = JSON.parse(body || '{}');
+      row.salt = wanted.salt; row.argon2 = { passes: wanted.passes, memory_kib: wanted.memory_kib, lanes: wanted.lanes }; row.password_wrapped = wanted.password_wrapped;
+      return json(200, Object.assign({ allowed: zaAllowed, enabled: true }, row));
+   }
+   if (path === '/api/v1/me/zero-access' && method === 'DELETE') {
+      if (!zaRows[account] && !zaBroken[account]) { return json(404, { error: 'zero access is not on for this mailbox' }); }
+      delete zaRows[account];
+      delete zaBroken[account];
+      return json(200, { enabled: false });
+   }
    if (path === '/api/v1/me/openpgp/keys' && method === 'GET') {
       const store = pgpStoreOf(account);
       return json(200, { own: store.own, correspondents: store.correspondents, limits: { own: 20, correspondents: 500 }, lookup: { wkd: true, keyserver: false } });
@@ -1657,6 +1705,14 @@ function answer(method, path, body) {
    }
    if (path === '/api/v1/me/password' && method === 'POST') {
       if (passwordAnswer) { return json(passwordAnswer.status, passwordAnswer.body); }
+      // A zero-access mailbox's change carries the key sealed again under the
+      // new password, or is refused, as the server refuses it.
+      if (zaRows[account]) {
+         const wanted = JSON.parse(body || '{}');
+         if (!wanted.zero_access || !wanted.zero_access.password_wrapped) { return json(409, { error: 'this mailbox is a zero-access mailbox: a password change carries the key sealed again under the new one', code: 'zero_access_rewrap' }); }
+         zaRows[account].salt = wanted.zero_access.salt;
+         zaRows[account].password_wrapped = wanted.zero_access.password_wrapped;
+      }
       return json(200, { changed: true });
    }
    if (path === '/api/v1/me/folders' && method === 'POST') { return json(201, { id: 9, name: 'Bills' }); }
@@ -1844,6 +1900,22 @@ const pgpStub = {
       return 'MIME-Version: 1.0\r\nContent-Type: multipart/encrypted; protocol="application/pgp-encrypted"; boundary="b"\r\n\r\nsealed\r\n';
    }
 };
+// Zero access (docs/ZeroAccess.md), as far as the page uses the module: the
+// passphrase derived from a password is 'ZA_<password>_<salt>' rather than
+// Argon2id - the real derivation is held to RFC 9106's vectors by
+// build/check-portal-openpgp.js - and the recovery key is a fixed one, so a
+// check can type it back. The zero-access rows the recorded server holds, per
+// account, and whether the administrator allows the opt-in.
+const ZA_RECOVERY = 'ABCDEF-GHIJKL-MNOPQR-STUVWX-YZ2345-67ABCD-EFGHIJ-KLMNOP';
+pgpStub.zeroAccessPassphrase = async (password, saltBase64, params) => 'ZA_' + String(password) + '_' + String(saltBase64);
+pgpStub.makeRecoveryKey = () => ZA_RECOVERY;
+pgpStub.canonicalRecoveryKey = (typed) => { const clean = String(typed || '').toUpperCase().replace(/[^A-Z2-7]/g, ''); return clean.length === 48 ? clean : ''; };
+pgpStub.ARGON2_DEFAULT = { passes: 3, memory: 65536, lanes: 4 };
+const zaRows = {};
+let zaAllowed = true;
+// The switch on with no key row beside it (a restore that dropped the table):
+// the server answers enabled with broken, and DELETE is the way out.
+let zaBroken = {};
 // The OpenPGP key ring the recorded server answers with, per account.
 const pgpStores = {};
 const pgpStoreOf = (address) => pgpStores[address] || (pgpStores[address] = { own: [], correspondents: [] });
@@ -6881,6 +6953,12 @@ async function main() {
    // ---- A password-protected message to anyone: the compose control, the
    // send that carries no password and no text, and the reading page
    await protectedChecks();
+   // ---- Zero-access mailbox: the switch-on flow that stops until the
+   // recovery key is typed back, the consequences said first, the sign-in
+   // that opens the key from the password, the reader opening a delivery
+   // sealed to it, the recovery key after a password reset, the password
+   // change that carries the key sealed again, and the switch-off
+   await zeroAccessChecks();
 
    // ---- Web Push: the devices, and the service worker's own handler
    await pushChecks();
@@ -7085,6 +7163,10 @@ async function main() {
       document.getElementById('compose-protect-label').hidden === true, 'hidden=' + document.getElementById('compose-protect-label').hidden);
    window.hmSmime = smimeStub;
    delete window.isSecureContext;
+
+   // ---- Zero access, the half that signs out and in: the key opened from
+   // the sign-in password, and the recovery key after a reset
+   await zeroAccessSignInChecks();
 
    if (failures.length) {
       console.error('\nportal script: ' + failures.length + ' of ' + checks + ' checks failed\n');
@@ -8085,6 +8167,306 @@ async function readingPageChecks() {
    check('Protected page: the sender opens the reply with the password they set',
       reopened.content.text.indexOf('Thank you, received.') === 0 && reopened.subject === 'Re: The board pack', reopened.subject + ' / ' + reopened.content.text.slice(0, 30));
    check('Protected page: and the reader is told it is on its way', q('reply-status').textContent.indexOf('on its way') >= 0, q('reply-status').textContent);
+}
+
+// ---- Zero-access mailbox (docs/ZeroAccess.md). The module is the stub, so
+// what is asserted is what the page does with it: which requests it makes,
+// with what in them, and what the reader is shown; the cryptography is
+// build/check-portal-openpgp.js's business.
+async function zeroAccessChecks() {
+   window.hmOpenPgp = pgpStub;
+   const PASSPHRASE = 'the-key-passphrase';
+   const own = pgpFingerprint(account);
+   const zaText = () => document.getElementById('za-status').textContent;
+   const confirmText = () => document.getElementById('za-confirm-status').textContent;
+   const putsOfSwitch = (from) => since(from).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/zero-access');
+
+   // ---- a key that expires is not offered: every delivery would be refused
+   // from that day, so the server refuses it and the page leaves it out
+   pgpStores[account] = { own: [pgpOwnRowOf(account, PASSPHRASE)], correspondents: [] };
+   pgpStores[account].own[0].expires = 1900000000;
+   delete zaRows[account];
+   zaAllowed = true;
+   location.hash = '#/security';
+   await flush();
+   await flush();
+   await flush();
+   check('Zero access: a key that expires is not offered as the mailbox key, and the page asks for one that does not',
+      document.getElementById('za-key').children.length === 0 && document.getElementById('za-no-key').hidden === false && document.getElementById('za-on-form').hidden === true,
+      document.getElementById('za-key').children.length + ' options, hint hidden=' + document.getElementById('za-no-key').hidden);
+   check('Zero access: the page says what is sealed and what is not, in one sentence beside the consequences',
+      document.getElementById('za-scope').hidden === false && document.getElementById('za-scope').textContent.length > 60,
+      document.getElementById('za-scope').textContent.slice(0, 60));
+   pgpStores[account] = { own: [pgpOwnRowOf(account, PASSPHRASE)], correspondents: [] };
+   location.hash = '#/f/1';
+   await flush();
+   location.hash = '#/security';
+   await flush();
+   await flush();
+   await flush();
+   check('Zero access: the Security page says what it costs before the switch',
+      document.getElementById('za-body').hidden === false && document.getElementById('za-consequences').hidden === false &&
+      document.getElementById('za-consequences').textContent.length > 300 &&
+      document.getElementById('za-state-off').hidden === false && document.getElementById('za-on-form').hidden === false,
+      'body hidden=' + document.getElementById('za-body').hidden + ' form hidden=' + document.getElementById('za-on-form').hidden);
+   check('Zero access: the account\'s own key is offered, by its fingerprint',
+      document.getElementById('za-key').children.length === 1 && document.getElementById('za-key').children[0].value === own,
+      document.getElementById('za-key').children.length + ' options');
+
+   // ---- the switch-on flow: the recovery key shown, and nothing sent until
+   // it is typed back and the consequence is acknowledged
+   const beforeSwitch = requests.length;
+   document.getElementById('za-key').value = own;
+   document.getElementById('za-on-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   await flush();
+   check('Zero access: switching on shows the recovery key as eight groups of six, and the sentence that it is the only way back',
+      document.getElementById('za-confirm').hidden === false && document.getElementById('za-recovery-key').textContent === ZA_RECOVERY &&
+      /^([A-Z2-7]{6}-){7}[A-Z2-7]{6}$/.test(document.getElementById('za-recovery-key').textContent),
+      document.getElementById('za-recovery-key').textContent);
+   document.getElementById('za-confirm-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   check('Zero access: with nothing typed back, nothing is sent and the page says the key is not the one shown',
+      putsOfSwitch(beforeSwitch).length === 0 && confirmText().length > 0 && document.getElementById('za-confirm').hidden === false,
+      confirmText());
+   document.getElementById('za-recovery-typed').value = 'ABCDEF-GHIJKL-MNOPQR-STUVWX-YZ2345-67ABCD-EFGHIJ-KLMNOQ';
+   document.getElementById('za-confirm-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   check('Zero access: a recovery key typed back wrong is refused, and nothing is sent',
+      putsOfSwitch(beforeSwitch).length === 0 && confirmText().length > 0,
+      confirmText());
+   // Right, in lower case with the dashes left out: the canonical form is what counts.
+   document.getElementById('za-recovery-typed').value = ZA_RECOVERY.toLowerCase().replace(/-/g, '');
+   document.getElementById('za-confirm-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   const notTicked = confirmText();
+   check('Zero access: the key typed back right but the consequence not acknowledged: still nothing sent',
+      putsOfSwitch(beforeSwitch).length === 0 && notTicked.length > 0 && document.getElementById('za-confirm').hidden === false,
+      notTicked);
+   document.getElementById('za-accept').checked = true;
+   document.getElementById('za-confirm-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   check('Zero access: and without the password, still nothing sent',
+      putsOfSwitch(beforeSwitch).length === 0 && confirmText().length > 0,
+      confirmText());
+   document.getElementById('za-password').value = 'a-real-password';
+   document.getElementById('za-confirm-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   await flush();
+   // The key may be locked (a session that never unlocked it): the page
+   // then asks for its passphrase first, through the OpenPGP dialogue.
+   if (document.getElementById('pgp-unlock').hidden === false) {
+      document.getElementById('pgp-unlock-passphrase').value = PASSPHRASE;
+      document.getElementById('pgp-unlock-form').dispatchEvent(makeEvent('submit'));
+   }
+   await flush();
+   await flush();
+   await flush();
+   await flush();
+   const switched = putsOfSwitch(beforeSwitch);
+   const switchBody = switched.length ? JSON.parse(switched[0].body || '{}') : {};
+   check('Zero access: then one PUT switches it on, naming the key and carrying both copies sealed in the browser',
+      switched.length === 1 && switchBody.fingerprint === own && typeof switchBody.salt === 'string' && switchBody.salt.length > 0 &&
+      switchBody.passes === 3 && switchBody.memory_kib === 65536 && switchBody.lanes === 4,
+      JSON.stringify(Object.keys(switchBody)) + ' ' + JSON.stringify(switchBody.passes));
+   check('Zero access: the password copy is the key sealed under the passphrase derived from the password and the salt',
+      switchBody.password_wrapped === 'SEC:' + account + ':' + own + ':ZA_a-real-password_' + switchBody.salt,
+      String(switchBody.password_wrapped));
+   check('Zero access: the recovery copy is the key sealed under the canonical recovery key',
+      switchBody.recovery_wrapped === 'SEC:' + account + ':' + own + ':' + ZA_RECOVERY.replace(/-/g, ''),
+      String(switchBody.recovery_wrapped));
+   check('Zero access: the dialogue closes, the password box and the typed key are cleared, and the page says it is on',
+      document.getElementById('za-confirm').hidden === true && document.getElementById('za-password').value === '' &&
+      document.getElementById('za-recovery-typed').value === '' && document.getElementById('za-recovery-key').textContent === '' &&
+      document.getElementById('za-state-on').hidden === false && document.getElementById('za-state-off').hidden === true && zaText().length > 0,
+      zaText());
+
+   // ---- the reader opens a message sealed on delivery, with the key in hand
+   pgpMessageResult = { layers: ['encrypted'], encrypted: { ok: true, keyId: own.slice(-16) }, signed: null, inline: false, integrityProtected: true,
+      content: { text: 'What only the mailbox key opens.', html: '', attachments: [] }, autocrypt: null };
+   const readBefore = pgpReadWith.length;
+   location.hash = '#/m/603';
+   await flush();
+   await flush();
+   await flush();
+   check('Zero access: a delivery sealed to the mailbox key is read with the opened key in hand',
+      pgpReadWith.length === readBefore + 1 && pgpReadWith[readBefore].indexOf(account + '!') >= 0,
+      JSON.stringify(pgpReadWith.slice(readBefore)));
+   check('Zero access: and the reader shows the text and says it was sealed on delivery and opened here',
+      document.getElementById('message-text').textContent === 'What only the mailbox key opens.' &&
+      document.getElementById('message-pgp').getAttribute('data-za') === 'opened' && document.getElementById('message-pgp-text').textContent.length > 0,
+      document.getElementById('message-pgp').getAttribute('data-za') + ' | ' + document.getElementById('message-text').textContent);
+
+   // ---- a password change through the page carries the key sealed again
+   location.hash = '#/password';
+   await flush();
+   const beforeChange = requests.length;
+   document.getElementById('current').value = 'a-real-password';
+   document.getElementById('new').value = 'a-newer-password';
+   document.getElementById('confirm').value = 'a-newer-password';
+   document.getElementById('password-form').dispatchEvent(makeEvent('submit'));
+   await flush(); await flush(); await flush(); await flush();
+   const changes = since(beforeChange).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/password');
+   const changeBody = changes.length ? JSON.parse(changes[0].body || '{}') : {};
+   check('Zero access: a password change from the page carries the key sealed again under the new password, in the same request',
+      changes.length === 1 && changeBody['new'] === 'a-newer-password' && changeBody.zero_access &&
+      changeBody.zero_access.password_wrapped === 'SEC:' + account + ':' + own + ':ZA_a-newer-password_' + changeBody.zero_access.salt &&
+      changeBody.zero_access.passes === 3,
+      JSON.stringify(changeBody.zero_access || null));
+   check('Zero access: and the page reports the change as made',
+      document.getElementById('password-status').className.indexOf('ok') > 0 && document.getElementById('password-status').textContent.length > 0,
+      document.getElementById('password-status').className + ' ' + document.getElementById('password-status').textContent);
+
+   // ---- switching off: one DELETE, and the page says what stays encrypted
+   location.hash = '#/security';
+   await flush();
+   await flush();
+   await flush();
+   const beforeOff = requests.length;
+   window.confirm = () => true;
+   document.getElementById('za-off').dispatchEvent(makeEvent('click'));
+   await flush();
+   await flush();
+   check('Zero access: switching off is one DELETE, and the page says stored mail stays encrypted',
+      called(beforeOff, 'DELETE', '/api/v1/me/zero-access') && document.getElementById('za-state-off').hidden === false &&
+      zaText().length > 0 && document.getElementById('za-status').className.indexOf('ok') > 0,
+      zaText());
+
+   // ---- the switch on with no key row (a restore that dropped the table):
+   // the page says so rather than showing a switch-on form that would answer
+   // 409, and the switch-off it offers is the way out
+   zaBroken[account] = true;
+   location.hash = '#/f/1';
+   await flush();
+   location.hash = '#/security';
+   await flush();
+   await flush();
+   await flush();
+   check('Zero access: a switch on with no key row is said in a sentence, with the switch-off offered',
+      document.getElementById('za-state-on').hidden === false && document.getElementById('za-state-off').hidden === true &&
+      document.getElementById('za-on-text').textContent.length > 0 && document.getElementById('za-on-text').textContent.indexOf('On since') < 0,
+      'on hidden=' + document.getElementById('za-state-on').hidden + ' text=' + document.getElementById('za-on-text').textContent.slice(0, 60));
+   const beforeBrokenOff = requests.length;
+   document.getElementById('za-off').dispatchEvent(makeEvent('click'));
+   await flush();
+   await flush();
+   check('Zero access: switching off from that state is the same one DELETE, and the page is back to off',
+      called(beforeBrokenOff, 'DELETE', '/api/v1/me/zero-access') && !zaBroken[account] && document.getElementById('za-state-off').hidden === false,
+      'broken=' + !!zaBroken[account]);
+
+   // ---- the server-wide switch off: the page offers nothing
+   zaAllowed = false;
+   location.hash = '#/f/1';
+   await flush();
+   location.hash = '#/security';
+   await flush();
+   await flush();
+   await flush();
+   check('Zero access: with the administrator\'s switch off, the page offers no switch and says so',
+      document.getElementById('za-not-allowed').hidden === false && document.getElementById('za-body').hidden === true,
+      'not-allowed hidden=' + document.getElementById('za-not-allowed').hidden);
+   zaAllowed = true;
+   location.hash = '#/f/1';
+   await flush();
+}
+
+// ---- Zero access, the sign-in half, run at the end of main() because it
+// signs out and in and the run's own sign-out checks need the second account
+// still attached: the key opens from the sign-in password alone, and after
+// a password an administrator set, the recovery key opens it and the page
+// seals it again under the password the person now has.
+async function zeroAccessSignInChecks() {
+   window.hmOpenPgp = pgpStub;
+   const PASSPHRASE = 'the-key-passphrase';
+   const own = pgpFingerprint(account);
+   const signIn = async (password) => {
+      document.getElementById('address').value = account;
+      document.getElementById('password').value = password;
+      document.getElementById('signin-form').dispatchEvent(makeEvent('submit'));
+      await flush(); await flush(); await flush(); await flush();
+   };
+   document.getElementById('signout').dispatchEvent(makeEvent('click'));
+   await flush();
+   pgpStores[account] = { own: [pgpOwnRowOf(account, PASSPHRASE)], correspondents: [] };
+   zaAllowed = true;
+   zaRows[account] = { fingerprint: own, salt: 'c2FsdC1vbmU=', argon2: { passes: 3, memory_kib: 65536, lanes: 4 },
+      password_wrapped: 'SEC:' + account + ':' + own + ':ZA_a-real-password_c2FsdC1vbmU=',
+      recovery_wrapped: 'SEC:' + account + ':' + own + ':' + ZA_RECOVERY.replace(/-/g, ''), enabled_at: 1758182400 };
+   pgpMessageResult = { layers: ['encrypted'], encrypted: { ok: true, keyId: own.slice(-16) }, signed: null, inline: false, integrityProtected: true,
+      content: { text: 'What only the mailbox key opens.', html: '', attachments: [] }, autocrypt: null };
+
+   // ---- the key opens from the sign-in password alone, nothing typed, and
+   // the reader is not asked for a passphrase
+   await signIn('a-real-password');
+   const readAgain = pgpReadWith.length;
+   location.hash = '#/m/603';
+   await flush();
+   await flush();
+   await flush();
+   check('Zero access: after a fresh sign-in the sealed delivery opens with the key derived from the sign-in password, nothing asked',
+      pgpReadWith.length === readAgain + 1 && pgpReadWith[readAgain].indexOf(account + '!') >= 0 &&
+      document.getElementById('pgp-unlock').hidden === true && document.getElementById('za-unlock').hidden === true &&
+      document.getElementById('message-text').textContent === 'What only the mailbox key opens.',
+      JSON.stringify(pgpReadWith.slice(readAgain)) + ' unlock hidden=' + document.getElementById('pgp-unlock').hidden);
+
+   // ---- a password an administrator set: the sign-in password does not open
+   // the copy, the page asks for the previous one or the recovery key, and
+   // the recovery key opens it and seals it again under the current password
+   location.hash = '#/f/1';
+   await flush();
+   document.getElementById('signout').dispatchEvent(makeEvent('click'));
+   await flush();
+   const beforeReset = requests.length;
+   await signIn('the-password-an-admin-set');
+   check('Zero access: a sign-in password that does not open the copy opens the unlock dialogue',
+      document.getElementById('za-unlock').hidden === false && document.getElementById('za-unlock-note').textContent.length > 0,
+      'hidden=' + document.getElementById('za-unlock').hidden);
+   document.getElementById('za-unlock-secret').value = 'not the password';
+   document.getElementById('za-unlock-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   await flush();
+   check('Zero access: a wrong password in the dialogue is refused in a sentence',
+      document.getElementById('za-unlock').hidden === false && document.getElementById('za-unlock-status').textContent.length > 0,
+      document.getElementById('za-unlock-status').textContent);
+   document.getElementById('za-unlock-secret').value = ZA_RECOVERY;
+   document.getElementById('za-unlock-form').dispatchEvent(makeEvent('submit'));
+   await flush(); await flush(); await flush(); await flush();
+   const rewraps = since(beforeReset).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/zero-access/rewrap');
+   const rewrapBody = rewraps.length ? JSON.parse(rewraps[0].body || '{}') : {};
+   check('Zero access: the recovery key opens the copy and the key is sealed again under the password the person now has',
+      rewraps.length === 1 && rewrapBody.password_wrapped === 'SEC:' + account + ':' + own + ':ZA_the-password-an-admin-set_' + rewrapBody.salt &&
+      document.getElementById('za-unlock').hidden === true && document.getElementById('za-unlock-secret').value === '',
+      JSON.stringify(rewrapBody));
+   const readAfterRecovery = pgpReadWith.length;
+   location.hash = '#/m/603';
+   await flush();
+   await flush();
+   await flush();
+   check('Zero access: and the sealed delivery opens',
+      pgpReadWith.length === readAfterRecovery + 1 && pgpReadWith[readAfterRecovery].indexOf(account + '!') >= 0 &&
+      document.getElementById('message-text').textContent === 'What only the mailbox key opens.',
+      JSON.stringify(pgpReadWith.slice(readAfterRecovery)));
+
+   // ---- sign-out forgets all of it: the opened key, the password held for
+   // the dialogue, the recovery key shown, and every field of the two forms
+   location.hash = '#/f/1';
+   await flush();
+   document.getElementById('za-unlock-secret').value = 'left in the field';
+   document.getElementById('za-password').value = 'left in the field';
+   document.getElementById('signout').dispatchEvent(makeEvent('click'));
+   await flush();
+   await flush();
+   check('Zero access: signing out forgets the mailbox key, the dialogue fields and the recovery key shown',
+      document.getElementById('za-unlock').hidden === true && document.getElementById('za-unlock-secret').value === '' &&
+      document.getElementById('za-password').value === '' && document.getElementById('za-recovery-typed').value === '' &&
+      document.getElementById('za-recovery-key').textContent === '' && document.getElementById('message-za-unlock').hidden === true,
+      'unlock hidden=' + document.getElementById('za-unlock').hidden + ' secret=' + JSON.stringify(document.getElementById('za-unlock-secret').value) + ' recovery=' + JSON.stringify(document.getElementById('za-recovery-key').textContent));
+   delete zaRows[account];
+   pgpMessageResult = { layers: [], encrypted: null, signed: null, content: null, autocrypt: null, inline: false };
+   await signIn('a-real-password');
+   check('Zero access: and a sign-in after that reads nothing of it, since the switch is off',
+      document.getElementById('za-unlock').hidden === true && document.getElementById('message-list') !== null,
+      'unlock hidden=' + document.getElementById('za-unlock').hidden);
 }
 
 async function pushChecks() {

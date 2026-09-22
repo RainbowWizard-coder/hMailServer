@@ -69,6 +69,16 @@ namespace HM
       if (!PersistentAccount::ReadObject(account, String(route.identifier)) || account->GetID() == 0)
          return BuildResponse_(404, "{\"error\":\"account not found\"}");
 
+      // A zero-access mailbox's mail is not the administrator's to export:
+      // the files would be ciphertext, and the row says the read is refused
+      // (RestApiZeroAccess.cpp). The person's own export, over /api/v1/me,
+      // is theirs and stays open.
+      {
+         HttpResponse refusal;
+         if (RefuseZeroAccessRead_(account, refusal))
+            return refusal;
+      }
+
       JsonValue body;
       if (!ParseObject(requestBody, body))
          return BuildResponse_(400, "{\"error\":\"The body must be a JSON object with directory.\"}");
@@ -191,6 +201,12 @@ namespace HM
       std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
       if (!PersistentAccount::ReadObject(account, String(route.identifier)) || account->GetID() == 0)
          return BuildResponse_(404, "{\"error\":\"account not found\"}");
+
+      {
+         HttpResponse refusal;
+         if (RefuseZeroAccessRead_(account, refusal))
+            return refusal;
+      }
 
       return ArchiveDownload_(account);
    }

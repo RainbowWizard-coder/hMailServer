@@ -299,6 +299,7 @@ namespace HM
          { _T("welcomepop3"), _T(""), 0, KindString },
          { _T("welcomesmtp"), _T(""), 0, KindString },
          { _T("workerthreadpriority"), _T(""), 0, KindNumber },
+         { _T("ZeroAccessAllowed"), _T(""), 0, KindNumber },
       };
 
       static const size_t SettingsCount = sizeof(Settings) / sizeof(Settings[0]);
@@ -554,6 +555,7 @@ namespace HM
          _T("welcomepop3"),
          _T("welcomesmtp"),
          _T("workerthreadpriority"),
+         _T("zeroaccessallowed"),
       };
 
       static const size_t PropertyNameCount = sizeof(PropertyNames) / sizeof(PropertyNames[0]);

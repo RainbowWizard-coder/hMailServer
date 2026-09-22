@@ -56,6 +56,10 @@ namespace hMailServer.ControlPanel.Views
       private readonly Wpf.Ui.Controls.TextBox generatedShow_ = new();
       private readonly TextBlock pwStrength_ = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md) };
       private readonly TextBlock lastLogon_ = new();
+      // Read-only by design (docs/ZeroAccess.md): the person's own switch,
+      // thrown from the webmail once the server allows it; an administrator
+      // sees the state and cannot change it.
+      private readonly TextBlock zeroAccess_ = new() { TextWrapping = TextWrapping.Wrap };
 
       // Forwarding
       private readonly CheckBox forwardOn_ = new() { Content = L("_Forward incoming mail") };
@@ -283,6 +287,9 @@ namespace hMailServer.ControlPanel.Views
 
          lastLogon_.SetResourceReference(FrameworkElement.StyleProperty, "TextBody");
          panel.Children.Add(Label(L("Last l_ogon"), lastLogon_));
+
+         zeroAccess_.SetResourceReference(FrameworkElement.StyleProperty, "TextBody");
+         panel.Children.Add(Label(L("_Zero-access mailbox"), zeroAccess_));
          return DialogFields.Scroll(panel);
       }
 
@@ -917,6 +924,15 @@ namespace hMailServer.ControlPanel.Views
             lastName_.Text = (string)a.PersonLastName ?? "";
             try { lastLogon_.Text = Convert.ToString(a.LastLogonTime); } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { lastLogon_.Text = L("Never"); }
             if (string.IsNullOrWhiteSpace(lastLogon_.Text)) lastLogon_.Text = L("Never");
+
+            // Account.ZeroAccess arrived with schema 6083; tolerate a server without it.
+            try
+            {
+               zeroAccess_.Text = (bool)a.ZeroAccess
+                  ? L("On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can.")
+                  : L("Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes.");
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { zeroAccess_.Text = L("Off"); }
 
             forwardOn_.IsChecked = (bool)a.ForwardEnabled;
             forwardTo_.Text = (string)a.ForwardAddress ?? "";

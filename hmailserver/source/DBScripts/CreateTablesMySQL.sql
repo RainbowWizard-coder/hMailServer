@@ -188,7 +188,8 @@ create table hm_accounts
 	accountantispamenabled tinyint not null default 1,
 	accountspammarkthreshold int not null default -1,
 	accountspamdeletethreshold int not null default -1,
-	accountopenpgppublish int not null default 0
+	accountopenpgppublish int not null default 0,
+	accountzeroaccess int not null default 0
 ) DEFAULT CHARSET=utf8;
 
 CREATE INDEX idx_hm_accounts ON hm_accounts (accountaddress);
@@ -2228,6 +2229,28 @@ ALTER TABLE hm_protectedmessages ADD CONSTRAINT fk_hm_protectedmessages_account 
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ProtectedMessageDays', '', 30);
 
+create table hm_zeroaccess
+(
+	zaid int auto_increment not null, primary key(`zaid`), unique(`zaid`),
+	zaaccountid int not null,
+	zafingerprint varchar(64) not null,
+	zasalt varchar(64) not null,
+	zapasses int not null,
+	zamemory int not null,
+	zalanes int not null,
+	zasecret mediumtext not null,
+	zarecovery mediumtext not null,
+	zaenabledat bigint not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_zeroaccess_account ON hm_zeroaccess (zaaccountid);
+
+ALTER TABLE hm_zeroaccess ENGINE=InnoDB;
+
+ALTER TABLE hm_zeroaccess ADD CONSTRAINT fk_hm_zeroaccess_account FOREIGN KEY (zaaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('ZeroAccessAllowed', '', 0);
+
 insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPWebKeyDirectoryEnabled', '', 0);
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('OpenPGPKeyMaximumBytes', '', 65536);
@@ -2467,4 +2490,4 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0);
 
-insert into hm_dbversion values (6082);
+insert into hm_dbversion values (6083);

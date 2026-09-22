@@ -5638,6 +5638,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Off. No message is deferred on a first attempt." xml:space="preserve">
     <value>Uit. Er wordt bij een eerste poging geen bericht uitgesteld.</value>
   </data>
+  <data name="Off: mail is stored as it arrives. The person switches it on from the webmail's Security page once the server allows zero-access mailboxes." xml:space="preserve">
+    <value>Uit: post wordt opgeslagen zoals ze aankomt. De persoon schakelt het in op de pagina Beveiliging van de webmail zodra de server zero-access-postbussen toestaat.</value>
+  </data>
   <data name="Offi_ce" xml:space="preserve">
     <value>_Kantoor</value>
   </data>
@@ -5670,6 +5673,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Aan. Een triplet van afzender/ontvanger/adres dat nog niet eerder is gezien, krijgt bij RCPT TO 451 "Please try again later." als antwoord en wordt geaccepteerd wanneer het opnieuw wordt geprobeerd. Het draait na de verbindingscontroles hierboven en telt geen score op.</value>
+  </data>
+  <data name="On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key, and this server cannot read, search, export or recover its mail. The person switches it off from the webmail; nothing here can." xml:space="preserve">
+    <value>Aan: elk bericht dat aan dit account wordt bezorgd wordt na de filters versleuteld met de eigen OpenPGP-sleutel van het account, en deze server kan de post niet lezen, doorzoeken, exporteren of herstellen. Alleen de persoon kan het uitschakelen, vanuit de webmail; niets hier kan dat.</value>
   </data>
   <data name="OnAcceptMessage → external AV / DLP scanner" xml:space="preserve">
     <value>OnAcceptMessage → externe AV-/DLP-scanner</value>
@@ -10610,6 +10616,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Work telephone" xml:space="preserve">
     <value>_Telefoon werk</value>
+  </data>
+  <data name="_Zero-access mailbox" xml:space="preserve">
+    <value>_Zero-access-postbus</value>
   </data>
   <data name="a digit" xml:space="preserve">
     <value>een cijfer</value>

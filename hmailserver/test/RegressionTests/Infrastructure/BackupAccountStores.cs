@@ -533,6 +533,49 @@ namespace RegressionTests.Infrastructure
             "The secret key comes back byte for byte, which is the only way it is any use.");
       }
 
+      // ---------------------------------------------------------- hm_zeroaccess
+
+      [Test]
+      [Description("hm_zeroaccess: a zero-access mailbox's switch and the two sealed copies of its key survive a backup and a restore together")]
+      public void TheZeroAccessMailboxComesBack()
+      {
+         string secret = OpenPgpTestSupport.RingOwnSecretArmoured
+            .Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n");
+
+         Response key = Rest("PUT", "/api/v1/me/openpgp/keys/own", User(),
+            "{\"public_key\":\"" + OpenPgpTestSupport.RingOwnPublicBase64 + "\","
+            + "\"secret_key\":\"" + secret + "\",\"source\":\"generated\"}");
+         Assert.AreEqual(201, key.Status, "Body: " + key.Body);
+
+         Response allowed = Rest("PUT", "/api/v1/settings/openpgp", BasicAuth("Administrator", AdminPassword), "{\"zero_access_allowed\":true}");
+         Assert.AreEqual(200, allowed.Status, "Body: " + allowed.Body);
+         try
+         {
+            Response on = Rest("PUT", "/api/v1/me/zero-access", User(),
+               "{\"fingerprint\":\"" + OpenPgpTestSupport.RingOwnFingerprint + "\",\"salt\":\"AAECAwQFBgcICQoLDA0ODw==\",\"passes\":3,\"memory_kib\":65536,\"lanes\":4,"
+               + "\"password_wrapped\":\"" + secret + "\",\"recovery_wrapped\":\"" + secret + "\"}");
+            Assert.AreEqual(201, on.Status, "Body: " + on.Body);
+
+            BackupDeleteAndRestore();
+
+            Response row = Rest("GET", "/api/v1/me/zero-access", User());
+            Assert.AreEqual(200, row.Status, "Body: " + row.Body);
+            StringAssert.Contains("\"enabled\":true", row.Body, "The switch comes back with the row beside it: a switch without its row refuses every delivery.");
+            StringAssert.Contains("\"fingerprint\":\"" + OpenPgpTestSupport.RingOwnFingerprint + "\"", row.Body);
+            StringAssert.Contains("\"salt\":\"AAECAwQFBgcICQoLDA0ODw==\"", row.Body);
+            StringAssert.Contains("\"argon2\":{\"passes\":3,\"memory_kib\":65536,\"lanes\":4}", row.Body);
+            // The two copies above all: sealed under passphrases this server has
+            // never had, so nothing here would fail if they came back changed -
+            // and the person would never open their mail again.
+            StringAssert.Contains("\"password_wrapped\":\"" + secret + "\"", row.Body);
+            StringAssert.Contains("\"recovery_wrapped\":\"" + secret + "\"", row.Body);
+         }
+         finally
+         {
+            Rest("PUT", "/api/v1/settings/openpgp", BasicAuth("Administrator", AdminPassword), "{\"zero_access_allowed\":false}");
+         }
+      }
+
       // ---------------------------------------------- hm_calendars/-objects
 
       [Test]

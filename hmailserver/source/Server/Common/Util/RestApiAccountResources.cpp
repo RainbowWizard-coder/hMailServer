@@ -1809,7 +1809,14 @@ namespace HM
       case RouteAccountMessageDelete:
          return DeleteMessage(bridge, account, route.message_id);
       case RouteAccountMessageSource:
+      {
+         // A zero-access mailbox's mail is not the administrator's to read,
+         // and the bytes are the mail (RestApiZeroAccess.cpp).
+         HttpResponse refusal;
+         if (RefuseZeroAccessRead_(account, refusal))
+            return refusal;
          return MessageSource(bridge, account, route.message_id);
+      }
       case RouteAccountMessageCopy:
          return CopyMessage(bridge, account, route.message_id, requestBody);
 

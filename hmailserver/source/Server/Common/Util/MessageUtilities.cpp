@@ -27,6 +27,7 @@
 
 #include "../BO/ACLPermission.h"
 #include "../Application/ACLManager.h"
+#include "ZeroAccess.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -303,6 +304,11 @@ namespace HM
 
       std::shared_ptr<Message> copy = PersistentMessage::CopyToIMAPFolder(message, sent);
       if (!copy)
+         return false;
+
+      // A zero-access mailbox's Sent copy is sealed to its key as a delivery
+      // is (docs/ZeroAccess.md); one that cannot be is not kept.
+      if (!ZeroAccess::SealStoredCopy(account, copy, "Sent copy of a released message"))
          return false;
 
       copy->SetFlagSeen(true);

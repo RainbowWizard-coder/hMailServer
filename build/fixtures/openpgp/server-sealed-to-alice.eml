@@ -1,0 +1,35 @@
+From: sender@example.org
+To: alice@fixtures.test
+Subject: A sealed delivery
+Message-ID: <one@example.org>
+X-hMailServer-Zero-Access: sealed on delivery
+MIME-Version: 1.0
+Content-Type: multipart/encrypted; protocol="application/pgp-encrypted";
+ boundary="hmailserver-zero-access-702ffee81605a9cb7a759eb117cd0b91"
+
+This is an OpenPGP/MIME encrypted message (RFC 3156). It was encrypted on delivery to the mailbox's own key, and only the mailbox's key opens it.
+
+--hmailserver-zero-access-702ffee81605a9cb7a759eb117cd0b91
+Content-Type: application/pgp-encrypted
+Content-Description: PGP/MIME version identification
+
+Version: 1
+
+--hmailserver-zero-access-702ffee81605a9cb7a759eb117cd0b91
+Content-Type: application/octet-stream; name="encrypted.asc"
+Content-Description: OpenPGP encrypted message
+Content-Disposition: inline; filename="encrypted.asc"
+
+-----BEGIN PGP MESSAGE-----
+
+wV4D6qA4IWKdBHMSAQdAtuiYUHCTc55H4uAlCGdTBzqWqcWEuDldFZhdCTKPlWswady3O/f1E3x+
+TAFnmaQVfgzAaYfTFb49u1SuznDqtq46hoS5T0c4APHSL/sDo8FF0sA8Ac2TerjFd0AlulmUh0zl
+VTEtxRxb+/url6fgl8SFVcrBYlcSroDXfR/VjTABj7K1aJmlS9cTt/1NkeWtqe+m6GxY7zH70Aw6
+W4VmqaROBb0c1KFPFieJO83+FHJvFqBEhMvJARKWNVhfYMbvmNIY8Cun+1vaj+89tiJBFkCzX8o1
+9AFlZU6f7s9U1IJeNc4q5/P8Q9zZflHU57bK+PBVfRx78nUZ8gQ6qXh7tbtkqvuYfIRtTwze/zwM
+q0jmcz6I+ubN8n8btHJKW2t8737M+KJGsqTvLwZP+wmg63s/KOu9/uu58fCqwFoSWOEJvTZhSuE8
+aUDgR/hDzAD4
+=lfgo
+-----END PGP MESSAGE-----
+
+--hmailserver-zero-access-702ffee81605a9cb7a759eb117cd0b91--
