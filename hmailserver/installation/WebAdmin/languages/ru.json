@@ -865,7 +865,7 @@
   "Remove {0} from the list of {1}?": "Удалить {0} из списка домена {1}?",
   "Removed from the suppression list: {0}": "Удалён из списка подавления: {0}",
   "Removed the OpenPGP key of {0}": "Ключ OpenPGP учётной записи {0} удалён",
-  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone.": "Заменить ящик {0} ящиком из архива? Сначала каждая папка будет очищена: почта, пришедшая после резервного копирования, пропадёт.",
+  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone, kept only for RecoverDeletedDays, which is off by default.": "Заменить ящик {0} ящиком из архива? Сначала каждая папка будет очищена: почта, пришедшая после резервного копирования, пропадёт и хранится только в течение RecoverDeletedDays, что по умолчанию выключено.",
   "Replace: empty every folder first, so the mailbox is the archive's - mail that arrived since the backup is gone": "Заменить: сначала очистить каждую папку, чтобы ящик стал таким, как в архиве - почта, пришедшая после резервного копирования, пропадёт",
   "Report {0}, covering {1} to {2}, read {3}. The reporter saw p={4}.": "Отчёт {0}, охватывает с {1} по {2}, прочитан {3}. Отправитель отчёта видел p={4}.",
   "Reported by": "Сообщил",

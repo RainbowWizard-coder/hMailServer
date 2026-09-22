@@ -973,6 +973,9 @@ def backup_restore_mailbox_command(client, arguments):
         raise ApiError(0, "choose one of --merge and --replace")
     if arguments.folder and not arguments.message:
         raise ApiError(0, "--folder names where one message goes; give --message ID with it")
+    if arguments.message and (arguments.merge or arguments.replace):
+        raise ApiError(0, "a mode does not apply to a single message: --message puts that one message back as merge "
+                          "of it; leave --merge and --replace out")
 
     body = {}
     if arguments.message:
@@ -2627,7 +2630,7 @@ def build_parser():
     backup_mailbox = backup_verbs.add_parser(
         "mailbox", parents=[common],
         help="one account's folders and messages as an archive holds them, with the ids restore-mailbox takes")
-    backup_mailbox.add_argument("archive", help="the archive's name as `backup archives` lists it, or its path in the destination")
+    backup_mailbox.add_argument("archive", help="the archive's name as `backup archives` lists it (a path is not taken here; over COM it is)")
     backup_mailbox.add_argument("address", help="the account")
     backup_mailbox.add_argument("--folder", help="list one folder path only")
     backup_mailbox.add_argument("--passphrase-file", metavar="FILE",
@@ -2638,7 +2641,7 @@ def build_parser():
     backup_restore_mailbox = backup_verbs.add_parser(
         "restore-mailbox", parents=[common],
         help="put one account's mailbox back from an archive (merge, the default, or replace), or one message of it")
-    backup_restore_mailbox.add_argument("archive", help="the archive's name as `backup archives` lists it, or its path in the destination")
+    backup_restore_mailbox.add_argument("archive", help="the archive's name as `backup archives` lists it (a path is not taken here; over COM it is)")
     backup_restore_mailbox.add_argument("address", help="the account; it has to exist on the server")
     backup_restore_mailbox.add_argument("--merge", action="store_true",
                                         help="add the archive's folders and messages the mailbox lacks; nothing there is removed (the default)")

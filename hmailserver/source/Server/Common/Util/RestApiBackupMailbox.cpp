@@ -33,6 +33,8 @@
 #include "../Application/Logger.h"
 #include "../Application/MailboxRestore.h"
 
+#include <boost/filesystem.hpp>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -105,11 +107,16 @@ namespace HM
             // is; it costs a few bytes off the front of each file.
             const bool encrypted = Compression::GetArchiveEncryption(path) == Compression::EncryptionHeaders;
 
+            // A whole message store's archive is routinely past what a long
+            // holds on Windows, and the picker shows this number.
+            boost::system::error_code sizeError;
+            const boost::uintmax_t size = boost::filesystem::file_size(boost::filesystem::path(path.c_str()), sizeError);
+
             AnsiString entry;
-            entry.Format("{\"name\":%hs,\"path\":%hs,\"created\":%hs,\"size\":%ld,\"encrypted\":%hs}",
+            entry.Format("{\"name\":%hs,\"path\":%hs,\"created\":%hs,\"size\":%I64u,\"encrypted\":%hs}",
                BackupJsonQuoted_(archive.file_name).c_str(), BackupJsonQuoted_(path).c_str(),
                BackupJsonQuoted_(Time::GetTimeStampFromDateTime(archive.created)).c_str(),
-               FileUtilities::FileSize(path), encrypted ? "true" : "false");
+               (unsigned __int64) (sizeError ? 0 : size), encrypted ? "true" : "false");
 
             body += entry;
          }
@@ -208,6 +215,7 @@ namespace HM
                if (!MailboxRestore::ParseMode(mode, request.mode))
                   return BackupRefusal_(400, _T("mode must be merge or replace"));
 
+               request.mode_given = true;
                continue;
             }
 
@@ -256,6 +264,10 @@ namespace HM
 
       if (!manager->StartMailboxRestore(job, failureReason))
       {
+         // The job was registered by Prepare; it will not run, and its status
+         // must say so rather than "queued" for the life of the process.
+         MailboxRestore::MarkNotStarted(job->GetJob(), failureReason);
+
          AnsiString conflict;
          conflict.Format("{\"error\":\"%hs\",\"status\":\"%hs\"}",
             JsonEscape_(Utf8_(failureReason)).c_str(), JsonEscape_(Utf8_(manager->GetStatus())).c_str());

@@ -865,7 +865,7 @@
   "Remove {0} from the list of {1}?": "Αφαίρεση του {0} από τη λίστα του {1};",
   "Removed from the suppression list: {0}": "Αφαιρέθηκε από τη λίστα αποκλεισμού: {0}",
   "Removed the OpenPGP key of {0}": "Αφαιρέθηκε το κλειδί OpenPGP του {0}",
-  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone.": "Αντικατάσταση του γραμματοκιβωτίου του {0} με αυτό του αρχείου; Κάθε φάκελος αδειάζει πρώτα: η αλληλογραφία που έφτασε μετά το αντίγραφο ασφαλείας χάνεται.",
+  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone, kept only for RecoverDeletedDays, which is off by default.": "Αντικατάσταση του γραμματοκιβωτίου του {0} με αυτό του αρχείου; Κάθε φάκελος αδειάζει πρώτα: η αλληλογραφία που έφτασε μετά το αντίγραφο ασφαλείας χάνεται και κρατιέται μόνο για RecoverDeletedDays, που είναι απενεργοποιημένο από προεπιλογή.",
   "Replace: empty every folder first, so the mailbox is the archive's - mail that arrived since the backup is gone": "Αντικατάσταση: πρώτα αδειάζει κάθε φάκελος, ώστε το γραμματοκιβώτιο να είναι αυτό του αρχείου - η αλληλογραφία που έφτασε μετά το αντίγραφο ασφαλείας χάνεται",
   "Report {0}, covering {1} to {2}, read {3}. The reporter saw p={4}.": "Αναφορά {0}, που καλύπτει {1} έως {2}, διαβάστηκε {3}. Ο αναφέρων είδε p={4}.",
   "Reported by": "Αναφέρθηκε από",

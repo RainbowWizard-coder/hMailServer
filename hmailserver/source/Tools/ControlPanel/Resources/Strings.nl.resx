@@ -6879,10 +6879,10 @@ SMTP 25 en 587, POP3 110, IMAP 143 - zonder verbindingsbeveiliging. TLS-poorten 
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>Het client-IP vervangen voor geauthenticeerde gebruikers (leeg = het echte IP behouden)</value>
   </data>
-  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone. It is kept only for RecoverDeletedDays, which is off by default." xml:space="preserve">
     <value>De mailbox van {0} vervangen door die uit het archief?
 
-Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg.</value>
+Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg. Die wordt alleen bewaard gedurende RecoverDeletedDays, dat standaard uit staat.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Vervangt elke poort door de standaardset: SMTP 25 en 587, POP3 110, IMAP 143, alle zonder verbindingsbeveiliging.</value>

@@ -6879,10 +6879,10 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>为已验证用户替换客户端 IP（留空 = 保留真实 IP）</value>
   </data>
-  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone. It is kept only for RecoverDeletedDays, which is off by default." xml:space="preserve">
     <value>用存档中的邮箱替换 {0} 的邮箱?
 
-会先清空每个文件夹: 备份之后收到的邮件将丢失。</value>
+会先清空每个文件夹: 备份之后收到的邮件将丢失。仅在 RecoverDeletedDays 期间保留, 而该设置默认关闭。</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>把每个端口都替换为标准组合：SMTP 25 和 587、POP3 110、IMAP 143，全部不带连接安全。</value>

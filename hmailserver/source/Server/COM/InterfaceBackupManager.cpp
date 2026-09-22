@@ -123,7 +123,11 @@ InterfaceBackupManager::StartMailboxRestore_(const HM::MailboxRestore::Request &
       return COMError::GenerateError(failureReason);
 
    if (!backup_manager_->StartMailboxRestore(job, failureReason))
+   {
+      // Registered by Prepare and refused the slot: its status says so.
+      HM::MailboxRestore::MarkNotStarted(job->GetJob(), failureReason);
       return COMError::GenerateError(failureReason);
+   }
 
    // The request, recorded here because nothing the restore itself does can
    // be: it runs on the maintenance work queue, where no actor is installed.

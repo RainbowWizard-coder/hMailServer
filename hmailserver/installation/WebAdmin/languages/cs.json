@@ -865,7 +865,7 @@
   "Remove {0} from the list of {1}?": "Odebrat {0} ze seznamu domény {1}?",
   "Removed from the suppression list: {0}": "Odebráno ze seznamu blokovaných: {0}",
   "Removed the OpenPGP key of {0}": "Klíč OpenPGP účtu {0} byl odebrán",
-  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone.": "Nahradit schránku {0} tou z archivu? Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude pryč.",
+  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone, kept only for RecoverDeletedDays, which is off by default.": "Nahradit schránku {0} tou z archivu? Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude pryč a zůstane uchována jen po dobu RecoverDeletedDays, což je ve výchozím nastavení vypnuto.",
   "Replace: empty every folder first, so the mailbox is the archive's - mail that arrived since the backup is gone": "Nahradit: nejprve vyprázdnit každou složku, aby schránka byla přesně jako v archivu - pošta, která přišla od zálohy, bude pryč",
   "Report {0}, covering {1} to {2}, read {3}. The reporter saw p={4}.": "Zpráva {0}, pokrývající {1} až {2}, přečtena {3}. Odesílatel zprávy viděl p={4}.",
   "Reported by": "Nahlásil",

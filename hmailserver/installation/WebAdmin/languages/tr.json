@@ -865,7 +865,7 @@
   "Remove {0} from the list of {1}?": "{0}, {1} listesinden kaldırılsın mı?",
   "Removed from the suppression list: {0}": "Engelleme listesinden çıkarıldı: {0}",
   "Removed the OpenPGP key of {0}": "{0} hesabının OpenPGP anahtarı kaldırıldı",
-  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone.": "{0} posta kutusu arşivdekiyle değiştirilsin mi? Önce her klasör boşaltılır: yedeklemeden sonra gelen postalar kaybolur.",
+  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone, kept only for RecoverDeletedDays, which is off by default.": "{0} posta kutusu arşivdekiyle değiştirilsin mi? Önce her klasör boşaltılır: yedeklemeden sonra gelen postalar kaybolur ve yalnızca RecoverDeletedDays süresince saklanır; bu varsayılan olarak kapalıdır.",
   "Replace: empty every folder first, so the mailbox is the archive's - mail that arrived since the backup is gone": "Değiştir: önce her klasörü boşalt, böylece posta kutusu arşivdekiyle aynı olur - yedeklemeden sonra gelen postalar kaybolur",
   "Report {0}, covering {1} to {2}, read {3}. The reporter saw p={4}.": "Rapor {0}, {1} ile {2} arasını kapsıyor, {3} tarihinde okundu. Raporlayan p={4} gördü.",
   "Reported by": "Bildiren",

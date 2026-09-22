@@ -53,9 +53,18 @@ namespace HM
 
    struct ArchivedMailbox
    {
+      ArchivedMailbox() : unrestorable(0) { }
+
       String address;      // as the archive spells it
       String domain_name;
       std::vector<ArchivedFolder> folders;
+
+      // Rows of the account whose Filename is not one the executer writes
+      // (IsArchivedFilenameSound) - never restored, never listed, never
+      // used to name a file; counted so that a listing and a restore can say
+      // how many, with the first ten names for the log.
+      unsigned int unrestorable;
+      std::vector<String> unrestorable_named;
 
       size_t MessageCount() const;
    };
@@ -98,13 +107,14 @@ namespace HM
 
       struct Request
       {
-         Request() : mode(ModeMerge), message_id(0) { }
+         Request() : mode(ModeMerge), mode_given(false), message_id(0) { }
 
          String archive;        // as the caller named it
          String archive_file;   // as ResolveArchive resolved it
          String passphrase;     // an encrypted archive's; empty otherwise
          String address;
          Mode mode;
+         bool mode_given;       // whether the caller named a mode at all: one message takes none
          __int64 message_id;    // 0: the whole mailbox; else this one message
          String folder;         // for one message: the live folder path, or empty for the archived one
       };
@@ -132,6 +142,16 @@ namespace HM
       // The names the two modes go by over every interface.
       static String ModeName(Mode mode);
       static bool ParseMode(const String &name, Mode &mode);
+
+      // Whether a Filename read out of an archive's index is one the executer
+      // writes - "{" + 36 characters + "}.eml" and nothing else: no separator,
+      // no colon, no leading dot - and so may name a file to read out of the
+      // staged directory and a place to write it under the account's own. The
+      // index is a file in a directory more hands write to than the server's
+      // administrators, and this is the one place a name read out of it
+      // chooses a path; anything else is a row that cannot be restored, and is
+      // counted as one, never reaching a Combine or SetPartialFileName.
+      static bool IsArchivedFilenameSound(const String &filename);
 
       // Resolves what a caller named - the bare file name the archive listing
       // answers, or a path - to a file inside the backup destination, and
@@ -172,6 +192,11 @@ namespace HM
       static bool GetOutcome(int job, Outcome &outcome);
       static std::vector<Outcome> ListOutcomes();
 
+      // A registered job the run slot refused: marked failed with the reason,
+      // so that its status never reads "queued" for something that will not
+      // run.
+      static void MarkNotStarted(int job, const String &reason);
+
       // The two documents every interface answers with, built once so that
       // REST and COM cannot describe one mailbox two ways: a listing (archive,
       // address, folders with their messages, the count, whether subjects
@@ -208,6 +233,9 @@ namespace HM
       static void UpdateJob_(const Outcome &outcome);
 
       bool RunInner_(std::shared_ptr<const Account> account, String &failureReason);
+      // Every file name a delivered row of the live account carries, in
+      // whatever folder, lower-cased: the identity rule's set. One query.
+      bool ReadLiveFileNames_(std::shared_ptr<const Account> account, std::set<String> &liveFileNames, String &failureReason);
       bool RestoreFolder_(std::shared_ptr<const Account> account, std::shared_ptr<IMAPFolders> tree,
                           const ArchivedFolder &archived, const std::vector<String> &livePath,
                           const std::vector<const ArchivedMessage *> &messages, const String &stagedStore,
@@ -221,5 +249,12 @@ namespace HM
 
       // The first ten files the archive did not hold, for the log.
       std::vector<String> missing_named_;
+   };
+
+   // Holds IsArchivedFilenameSound to examples, in ClassTester::DoTests.
+   class MailboxRestoreTester
+   {
+   public:
+      void Test();
    };
 }

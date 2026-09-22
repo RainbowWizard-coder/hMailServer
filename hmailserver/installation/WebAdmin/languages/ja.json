@@ -865,7 +865,7 @@
   "Remove {0} from the list of {1}?": "{1} の一覧から {0} を削除しますか?",
   "Removed from the suppression list: {0}": "抑止リストから削除しました: {0}",
   "Removed the OpenPGP key of {0}": "{0} の OpenPGP 鍵を削除しました",
-  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone.": "{0} のメールボックスをアーカイブの内容で置き換えますか? まずすべてのフォルダーが空にされます。バックアップ以降に届いたメールは失われます。",
+  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone, kept only for RecoverDeletedDays, which is off by default.": "{0} のメールボックスをアーカイブの内容で置き換えますか? まずすべてのフォルダーが空にされます。バックアップ以降に届いたメールは失われ、RecoverDeletedDays の期間だけ保持されます (既定では無効)。",
   "Replace: empty every folder first, so the mailbox is the archive's - mail that arrived since the backup is gone": "置き換え: まずすべてのフォルダーを空にし、メールボックスをアーカイブと同じ状態にします。バックアップ以降に届いたメールは失われます",
   "Report {0}, covering {1} to {2}, read {3}. The reporter saw p={4}.": "レポート {0}、対象期間 {1} から {2}、読み取り {3}。報告者は p={4} を確認しました。",
   "Reported by": "報告元",

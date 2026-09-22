@@ -213,6 +213,34 @@ namespace HM
    }
 
    bool
+   MailboxRestore::IsArchivedFilenameSound(const String &filename)
+   {
+      // "{" + 36 characters + "}.eml": 42 in all, as Message::GenerateFileName
+      // writes them. The 36 are the GUID's hexadecimal digits and hyphens; the
+      // braces and the extension are the frame. Nothing that could steer a path
+      // is allowed inside the frame either.
+      if (filename.GetLength() != 42)
+         return false;
+
+      if (filename.Left(1) != _T("{") || filename.Mid(37) != _T("}.eml"))
+         return false;
+
+      for (int i = 1; i <= 36; i++)
+      {
+         const wchar_t character = filename.SafeGetAt((unsigned int) i);
+
+         const bool digit = character >= L'0' && character <= L'9';
+         const bool lower = character >= L'a' && character <= L'f';
+         const bool upper = character >= L'A' && character <= L'F';
+
+         if (!digit && !lower && !upper && character != L'-')
+            return false;
+      }
+
+      return true;
+   }
+
+   bool
    MailboxRestore::ResolveArchive(const String &named, String &archiveFile, bool &notFound, String &failureReason)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
@@ -333,11 +361,19 @@ namespace HM
                message.flags = _ttoi(messageNode->GetAttrValue(_T("Flags")));
                message.uid = (unsigned int) _ttoi(messageNode->GetAttrValue(_T("UID")));
 
-               // A row with no file name has nothing to restore from and cannot
-               // be named by the identity rule; the whole restore writes such a
-               // row and it is then a message that cannot be fetched.
-               if (message.filename.IsEmpty())
+               // A row whose file name is not one the executer writes - empty,
+               // or any other shape - has nothing this operation may read from
+               // or write to, and cannot be named by the identity rule. It is
+               // counted rather than trusted, and goes no further than this.
+               if (!IsArchivedFilenameSound(message.filename))
+               {
+                  mailbox.unrestorable++;
+
+                  if (mailbox.unrestorable_named.size() < MISSING_NAMED_LIMIT)
+                     mailbox.unrestorable_named.push_back(message.filename.IsEmpty() ? String(_T("(no file name)")) : message.filename.Left(80));
+
                   continue;
+               }
 
                folder.messages.push_back(message);
             }
@@ -354,6 +390,8 @@ namespace HM
    {
       mailbox.folders.clear();
       mailbox.address.Empty();
+      mailbox.unrestorable = 0;
+      mailbox.unrestorable_named.clear();
       mailbox.domain_name = StringParser::ExtractDomain(address);
 
       XNode *domainsNode = backupNode ? backupNode->GetChild(_T("Domains")) : 0;
@@ -458,7 +496,20 @@ namespace HM
       String domainDirectory = StoreDirectoryName(mailbox.domain_name);
       String accountDirectory = StoreDirectoryName(StringParser::ExtractAddress(mailbox.address));
 
-      if (!restorer.StageAccountMessageStore(archiveFile, domainDirectory, accountDirectory, timeoutMilliseconds, &timedOut, failureReason))
+      // Only the files of the messages listed - a folder's, when the listing
+      // is one folder's - and never the account's directory.
+      std::vector<String> fileNames;
+
+      for (size_t f = 0; f < mailbox.folders.size(); f++)
+      {
+         for (size_t m = 0; m < mailbox.folders[f].messages.size(); m++)
+         {
+            if (IsArchivedFilenameSound(mailbox.folders[f].messages[m].filename))
+               fileNames.push_back(mailbox.folders[f].messages[m].filename);
+         }
+      }
+
+      if (!restorer.StageAccountMessageStore(archiveFile, domainDirectory, accountDirectory, fileNames, timeoutMilliseconds, &timedOut, failureReason))
          return false;
 
       if (!restorer.GetHasStagedMessageStore())
@@ -475,6 +526,12 @@ namespace HM
 
          for (size_t m = 0; m < messages.size(); m++)
          {
+            // Checked again where the name becomes a path, so that this line
+            // is safe to read on its own and not only by the argument that
+            // ParseFolders_ ran first.
+            if (!IsArchivedFilenameSound(messages[m].filename))
+               continue;
+
             String file = FileUtilities::Combine(FileUtilities::Combine(store, messages[m].filename.Mid(1, 2)), messages[m].filename);
 
             if (!FileUtilities::Exists(file))
@@ -522,6 +579,21 @@ namespace HM
       boost::lock_guard<boost::mutex> guard(jobs_mutex);
 
       jobs[outcome.job] = outcome;
+   }
+
+   void
+   MailboxRestore::MarkNotStarted(int job, const String &reason)
+   {
+      boost::lock_guard<boost::mutex> guard(jobs_mutex);
+
+      std::map<int, Outcome>::iterator found = jobs.find(job);
+
+      if (found == jobs.end())
+         return;
+
+      found->second.state = _T("failed");
+      found->second.error = reason;
+      found->second.finished = Time::GetCurrentDateTime();
    }
 
    bool
@@ -596,6 +668,7 @@ namespace HM
       }
 
       json += _T("],\"messages\":") + StringParser::IntToString((unsigned int) mailbox.MessageCount()) +
+              _T(",\"unrestorable\":") + StringParser::IntToString(mailbox.unrestorable) +
               _T(",\"subjects\":") + String(subjects ? _T("true") : _T("false")) +
               _T(",\"subjects_note\":") + JsonQuote(subjectsNote) + _T("}");
 
@@ -683,6 +756,24 @@ namespace HM
                        job->mailbox_, accountNotFound, failureReason))
       {
          statusCode = openTimedOut ? 504 : (accountNotFound ? 404 : 400);
+         return std::shared_ptr<MailboxRestore>();
+      }
+
+      // One message takes no mode: it is merge of one row, and a mode given
+      // with it would be either redundant or - replace - a request to empty a
+      // mailbox in order to put one message back, which nobody means.
+      if (request.message_id > 0 && request.mode_given)
+      {
+         failureReason = "mode does not apply to a single message: message is put back as merge of that one message. Leave mode out, or leave message out to restore the whole mailbox.";
+         return std::shared_ptr<MailboxRestore>();
+      }
+
+      // Replace of a mailbox the archive holds nothing for would only empty it.
+      // The archive says so up front, and this is refused up front.
+      if (request.message_id == 0 && request.mode == ModeReplace && job->mailbox_.MessageCount() == 0)
+      {
+         failureReason = Formatter::Format("The archive holds no messages for {0}; replace would only empty the mailbox. Use merge, which changes nothing here, or an archive that holds the mailbox. Nothing has been changed on this server.",
+            request.address);
          return std::shared_ptr<MailboxRestore>();
       }
 
@@ -863,6 +954,16 @@ namespace HM
       {
          const ArchivedMessage &archivedMessage = *messages[i];
 
+         // Checked where the name becomes a path, as in ReadSubjects: a row
+         // that got this far with any other shape is a bug in the parser, and
+         // is still not written anywhere.
+         if (!IsArchivedFilenameSound(archivedMessage.filename))
+         {
+            outcome_.failed++;
+            failedHere++;
+            continue;
+         }
+
          if (liveFileNames.find(Lower(archivedMessage.filename)) != liveFileNames.end())
          {
             outcome_.skipped++;
@@ -954,6 +1055,30 @@ namespace HM
    }
 
    bool
+   MailboxRestore::ReadLiveFileNames_(std::shared_ptr<const Account> account, std::set<String> &liveFileNames, String &failureReason)
+   {
+      SQLCommand command("select messagefilename from hm_messages where messageaccountid = @ACCOUNTID and messagetype = @TYPE");
+      command.AddParameter("@ACCOUNTID", account->GetID());
+      command.AddParameter("@TYPE", (int) Message::Delivered);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+
+      if (!recordset)
+      {
+         failureReason = "The messages of " + request_.address + " could not be read from the database, so what is already in the mailbox cannot be told from what is not.";
+         return false;
+      }
+
+      while (!recordset->IsEOF())
+      {
+         liveFileNames.insert(Lower(FileUtilities::GetFileNameFromFullPath(recordset->GetStringValue("messagefilename"))));
+         recordset->MoveNext();
+      }
+
+      return true;
+   }
+
+   bool
    MailboxRestore::RunInner_(std::shared_ptr<const Account> account, String &failureReason)
    {
       // PHASE ONE: everything read, nothing changed. The index again, on this
@@ -972,9 +1097,6 @@ namespace HM
 
       String domainDirectory = StoreDirectoryName(mailbox_.domain_name);
       String accountDirectory = StoreDirectoryName(StringParser::ExtractAddress(mailbox_.address));
-
-      if (!restorer.StageAccountMessageStore(request_.archive_file, domainDirectory, accountDirectory, 0, nullptr, failureReason))
-         return false;
 
       // Which archived folders and messages this run puts back.
       std::vector<const ArchivedFolder *> folders;
@@ -1006,9 +1128,19 @@ namespace HM
       }
 
       size_t wanted = 0;
+      std::vector<String> fileNames;
 
       for (size_t i = 0; i < selected.size(); i++)
+      {
          wanted += selected[i].size();
+
+         for (size_t m = 0; m < selected[i].size(); m++)
+            fileNames.push_back(selected[i][m]->filename);
+      }
+
+      // Only those files, extracted before anything is touched.
+      if (!restorer.StageAccountMessageStore(request_.archive_file, domainDirectory, accountDirectory, fileNames, 0, nullptr, failureReason))
+         return false;
 
       if (wanted > 0 && !restorer.GetHasStagedMessageStore())
       {
@@ -1026,25 +1158,8 @@ namespace HM
       // message.
       std::set<String> liveFileNames;
 
-      {
-         SQLCommand command("select messagefilename from hm_messages where messageaccountid = @ACCOUNTID and messagetype = @TYPE");
-         command.AddParameter("@ACCOUNTID", account->GetID());
-         command.AddParameter("@TYPE", (int) Message::Delivered);
-
-         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
-
-         if (!recordset)
-         {
-            failureReason = "The messages of " + request_.address + " could not be read from the database, so what is already in the mailbox cannot be told from what is not. Nothing has been changed on this server.";
-            return false;
-         }
-
-         while (!recordset->IsEOF())
-         {
-            liveFileNames.insert(Lower(FileUtilities::GetFileNameFromFullPath(recordset->GetStringValue("messagefilename"))));
-            recordset->MoveNext();
-         }
-      }
+      if (!ReadLiveFileNames_(account, liveFileNames, failureReason))
+         return false;
 
       std::shared_ptr<IMAPFolders> tree = IMAPFolderContainer::Instance()->GetFoldersForAccount(account->GetID());
 
@@ -1061,14 +1176,33 @@ namespace HM
          int foldersEmptied = 0;
          int removed = EmptyLiveFolders_(account, tree, foldersEmptied);
 
-         // The files are gone with the rows, so nothing is "still there".
+         Log_(Formatter::Format("replace: {0} message(s) removed from {1} folder(s) of the live mailbox before filling it from the archive.", removed, foldersEmptied));
+
+         // Read again rather than cleared: a row the database refused to
+         // delete is kept, with its file (Messages::DeleteMessages), and is
+         // then still in the mailbox - to be skipped as such, not written a
+         // second time under a fresh name.
          liveFileNames.clear();
 
-         Log_(Formatter::Format("replace: {0} message(s) removed from {1} folder(s) of the live mailbox before filling it from the archive.", removed, foldersEmptied));
+         if (!ReadLiveFileNames_(account, liveFileNames, failureReason))
+            return false;
       }
 
       for (size_t i = 0; i < folders.size(); i++)
          RestoreFolder_(account, tree, *folders[i], livePaths[i], selected[i], restorer.GetStagedMessageStore(), liveFileNames);
+
+      // The rows ParseFolders_ would not take: counted as failed here, for a
+      // whole mailbox, since they are part of what the archive says the
+      // mailbox held and were not put back. One message names one row, which
+      // was found sound or was not found at all.
+      if (request_.message_id == 0 && mailbox_.unrestorable > 0)
+      {
+         outcome_.failed += (int) mailbox_.unrestorable;
+
+         Log_(Formatter::Format("{0} message row(s) of the archive carry a file name that is not one this server's backup writes{1}: {2}. They cannot be restored and were not.",
+            mailbox_.unrestorable, mailbox_.unrestorable > (unsigned int) MISSING_NAMED_LIMIT ? String(_T(" (the first ten)")) : String(_T("")),
+            StringParser::JoinVector(mailbox_.unrestorable_named, _T(", "))));
+      }
 
       if (!missing_named_.empty())
       {
@@ -1107,6 +1241,17 @@ namespace HM
 
       outcome_.finished = Time::GetCurrentDateTime();
 
+      // A replace that removed what was there and then could not put all of
+      // the archive's back has left the mailbox holding less than either: that
+      // is a failure of the job, whatever the count, and is reported as one.
+      // Merge with failures is done with the count - nothing was removed.
+      if (completed && request_.message_id == 0 && request_.mode == ModeReplace && outcome_.failed > 0)
+      {
+         completed = false;
+         failureReason = Formatter::Format("replace emptied the live folders and then could not put back {0} of the archive's {1} message(s) ({2} added, {3} skipped); the mailbox now holds less than the archive did. The backup log names what could not be restored.",
+            outcome_.failed, outcome_.added + outcome_.skipped + outcome_.failed, outcome_.added, outcome_.skipped);
+      }
+
       if (!completed)
       {
          outcome_.state = _T("failed");
@@ -1124,5 +1269,34 @@ namespace HM
 
       Log_(Formatter::Format("completed: {0} folder(s), {1} message(s) added, {2} skipped as still in the mailbox, {3} failed.",
          outcome_.folders, outcome_.added, outcome_.skipped, outcome_.failed));
+   }
+
+   void
+   MailboxRestoreTester::Test()
+   {
+      if (!MailboxRestore::IsArchivedFilenameSound(_T("{6F9619FF-8B86-D011-B42D-00C04FC964FF}.eml")))
+         throw std::logic_error("IsArchivedFilenameSound refused the name the executer writes.");
+      if (!MailboxRestore::IsArchivedFilenameSound(_T("{6f9619ff-8b86-d011-b42d-00c04fc964ff}.eml")))
+         throw std::logic_error("IsArchivedFilenameSound refused a lower-case GUID.");
+      if (MailboxRestore::IsArchivedFilenameSound(_T("")))
+         throw std::logic_error("IsArchivedFilenameSound accepted an empty name.");
+      if (MailboxRestore::IsArchivedFilenameSound(_T("6F9619FF-8B86-D011-B42D-00C04FC964FF.eml")))
+         throw std::logic_error("IsArchivedFilenameSound accepted a name without the braces.");
+      if (MailboxRestore::IsArchivedFilenameSound(_T("{6F9619FF-8B86-D011-B42D-00C04FC964FF}.txt")))
+         throw std::logic_error("IsArchivedFilenameSound accepted another extension.");
+      if (MailboxRestore::IsArchivedFilenameSound(_T("..\\{6F9619FF-8B86-D011-B42D-00C04FC964F}.eml")))
+         throw std::logic_error("IsArchivedFilenameSound accepted a name with a separator and a parent step.");
+      if (MailboxRestore::IsArchivedFilenameSound(_T("{6F9619FF-8B86-D011-B42D-00C04FC964F/}.eml")))
+         throw std::logic_error("IsArchivedFilenameSound accepted a forward slash inside the braces.");
+      if (MailboxRestore::IsArchivedFilenameSound(_T("{6F9619FF-8B86-D011-B42D-00C04FC964F:}.eml")))
+         throw std::logic_error("IsArchivedFilenameSound accepted a colon inside the braces.");
+      if (MailboxRestore::IsArchivedFilenameSound(_T(".{6F9619FF-8B86-D011-B42D-00C04FC964FF}.eml")))
+         throw std::logic_error("IsArchivedFilenameSound accepted a leading dot.");
+      if (MailboxRestore::IsArchivedFilenameSound(_T("{6F9619FF-8B86-D011-B42D-00C04FC964FF}.eml ")))
+         throw std::logic_error("IsArchivedFilenameSound accepted a trailing space.");
+      if (MailboxRestore::IsArchivedFilenameSound(_T("{6F9619FF-8B86-D011-B42D-00C04FC964FFF}.eml")))
+         throw std::logic_error("IsArchivedFilenameSound accepted a GUID one character too long.");
+      if (MailboxRestore::IsArchivedFilenameSound(_T("{6F9619FF-8B86-D011-B42D-00C04FC964G}.eml")))
+         throw std::logic_error("IsArchivedFilenameSound accepted a character outside hexadecimal.");
    }
 }

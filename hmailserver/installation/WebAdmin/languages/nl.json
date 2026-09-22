@@ -865,7 +865,7 @@
   "Remove {0} from the list of {1}?": "{0} uit de lijst van {1} verwijderen?",
   "Removed from the suppression list: {0}": "Van de onderdrukkingslijst verwijderd: {0}",
   "Removed the OpenPGP key of {0}": "OpenPGP-sleutel van {0} verwijderd",
-  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone.": "De mailbox van {0} vervangen door die uit het archief? Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg.",
+  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone, kept only for RecoverDeletedDays, which is off by default.": "De mailbox van {0} vervangen door die uit het archief? Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg en wordt alleen bewaard gedurende RecoverDeletedDays, dat standaard uit staat.",
   "Replace: empty every folder first, so the mailbox is the archive's - mail that arrived since the backup is gone": "Vervangen: eerst elke map leegmaken, zodat de mailbox die van het archief is - post die sinds de back-up is binnengekomen, is weg",
   "Report {0}, covering {1} to {2}, read {3}. The reporter saw p={4}.": "Rapport {0}, over {1} tot {2}, gelezen op {3}. De rapporteur zag p={4}.",
   "Reported by": "Gemeld door",

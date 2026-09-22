@@ -865,7 +865,7 @@
   "Remove {0} from the list of {1}?": "Poistetaanko {0} verkkotunnuksen {1} luettelosta?",
   "Removed from the suppression list: {0}": "Poistettu estolistalta: {0}",
   "Removed the OpenPGP key of {0}": "Tilin {0} OpenPGP-avain poistettiin",
-  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone.": "Korvataanko tilin {0} postilaatikko arkiston postilaatikolla? Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häviää.",
+  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone, kept only for RecoverDeletedDays, which is off by default.": "Korvataanko tilin {0} postilaatikko arkiston postilaatikolla? Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häviää ja säilyy vain RecoverDeletedDays-ajan, joka on oletuksena pois käytöstä.",
   "Replace: empty every folder first, so the mailbox is the archive's - mail that arrived since the backup is gone": "Korvaa: tyhjennä ensin jokainen kansio, jotta postilaatikko on arkiston mukainen - varmuuskopion jälkeen saapunut posti häviää",
   "Report {0}, covering {1} to {2}, read {3}. The reporter saw p={4}.": "Raportti {0}, kattaa {1}–{2}, luettu {3}. Raportoija näki p={4}.",
   "Reported by": "Ilmoittaja",

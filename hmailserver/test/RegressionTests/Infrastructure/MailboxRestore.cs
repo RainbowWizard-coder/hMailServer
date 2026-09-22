@@ -3,9 +3,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using hMailServer;
 using NUnit.Framework;
@@ -45,6 +48,7 @@ namespace RegressionTests.Infrastructure
       private string _backupDir;
       private Account _ann;
       private Account _bob;
+      private Account _carl;
 
       [SetUp]
       public void StartRestApi()
@@ -76,11 +80,24 @@ namespace RegressionTests.Infrastructure
       {
          try
          {
+            // The passphrase one test sets, and the ini key another sets, taken
+            // back whatever the test did; the write-only passphrase is cleared
+            // by an empty one.
+            dynamic backupSettings = _application.Settings.Backup;
+            backupSettings.EncryptionPassphrase = "";
+            IniFileSetting.Delete("BackupMessagesDBOnly");
+
             RestListener.Stop();
             _application.Reinitialize();
          }
          finally
          {
+            // Every failure a test here provokes on purpose is reported as
+            // HM5014 and consumed by the test; this is the net for a test that
+            // threw before it could, so that the next fixture's clean-log check
+            // does not fail on this one's doing.
+            LogHandler.DeleteErrorLog();
+
             try
             {
                if (Directory.Exists(_backupDir))
@@ -98,12 +115,14 @@ namespace RegressionTests.Infrastructure
 
       /// <summary>
       ///    ann has first (flagged, with a label), second and third in INBOX, and
-      ///    copies of second and third in Projects.Alpha; bob has two of his own.
+      ///    copies of second and third in Projects.Alpha; bob has two of his own;
+      ///    carl has nothing at all.
       /// </summary>
       private void Populate()
       {
          _ann = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "ann@" + _domain.Name, Password);
          _bob = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "bob@" + _domain.Name, Password);
+         _carl = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "carl@" + _domain.Name, Password);
 
          var smtp = new SmtpClientSimulator();
 
@@ -133,7 +152,7 @@ namespace RegressionTests.Infrastructure
          ImapClientSimulator.AssertMessageCount(_ann.Address, Password, "Projects.Alpha", 2);
       }
 
-      private string TakeBackup()
+      private string TakeBackup(bool encrypted = false)
       {
          _application.BackupManager.StartBackup();
 
@@ -165,7 +184,8 @@ namespace RegressionTests.Infrastructure
 
             JsonElement newest = archives[0];
             StringAssert.StartsWith("HMBackup ", newest.GetProperty("name").GetString(), listed.body);
-            Assert.IsFalse(newest.GetProperty("encrypted").GetBoolean(), "No passphrase is set, so the archive must not read as encrypted.");
+            Assert.AreEqual(encrypted, newest.GetProperty("encrypted").GetBoolean(), "The listing reads whether an archive is encrypted from its own header: " + listed.body);
+            Assert.Greater(newest.GetProperty("size").GetInt64(), 0L, "The archive's size is read from the file: " + listed.body);
             Assert.AreEqual(_backupDir.TrimEnd('\\'), document.RootElement.GetProperty("destination").GetString());
 
             return newest.GetProperty("name").GetString();
@@ -182,6 +202,102 @@ namespace RegressionTests.Infrastructure
 
       private (int status, string body) As(string address, string method, string path, string requestBody)
          => RestRequest.Send("127.0.0.1", RestPort, method, path, Basic(address, Password), requestBody);
+
+      /// <summary>The listing with an encrypted archive's passphrase in the one header a GET has for it.</summary>
+      private (int status, string body) AdminWithPassphrase(string path, string passphrase)
+         => RestRequest.Send("127.0.0.1", RestPort, "GET", path, Basic("Administrator", AdminPassword), null, "X-hMailServer-Backup-Passphrase: " + passphrase);
+
+      private string BackupLog()
+      {
+         try
+         {
+            return TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
+         }
+         catch (IOException)
+         {
+            return "";
+         }
+      }
+
+      /// <summary>
+      ///    A copy of the archive under a name the listing recognises, with its
+      ///    index edited: the way to make an archive say what the backup never
+      ///    would - a file the store lacks, a name the executer never writes,
+      ///    five hundred rows too many.
+      /// </summary>
+      private string EditedArchive(string archive, Func<string, string> edit)
+      {
+         const string copyName = "HMBackup 2000-01-01 000000.7z";
+         string copy = Path.Combine(_backupDir, copyName);
+         File.Copy(Path.Combine(_backupDir, archive), copy, true);
+
+         string staging = Path.Combine(_backupDir, "edited");
+         Directory.CreateDirectory(staging);
+         Run7Za("e \"" + copy + "\" hMailServerBackup.xml -o\"" + staging + "\" -y", staging);
+         string index = Path.Combine(staging, "hMailServerBackup.xml");
+         Assert.IsTrue(File.Exists(index), "7za.exe did not extract the backup's index.");
+
+         // settings-store-exempt: reads and rewrites the backup archive's index, not hMailServer.ini.
+         string xml = edit(File.ReadAllText(index));
+         // UTF-16 with a byte-order mark, which is what the server writes the index in.
+         // settings-store-exempt: writes the backup archive's index, not hMailServer.ini.
+         File.WriteAllText(index, xml, Encoding.Unicode);
+         File.SetLastWriteTimeUtc(index, DateTime.UtcNow.AddMinutes(1));
+         Run7Za("u \"" + copy + "\" hMailServerBackup.xml", staging);
+         Directory.Delete(staging, true);
+
+         return copyName;
+      }
+
+      private void Run7Za(string arguments, string workingDirectory)
+      {
+         string programDirectory = _application.Settings.Directories.ProgramDirectory;
+         string[] candidates =
+         {
+            Path.Combine(programDirectory, "7za.exe"),
+            Path.Combine(programDirectory, "Bin", "7za.exe"),
+         };
+         string sevenZip = candidates.FirstOrDefault(File.Exists);
+         if (sevenZip == null)
+            Assert.Fail("Could not find 7za.exe next to the server. Looked in " + string.Join(" and ", candidates) + ".");
+
+         var startInfo = new ProcessStartInfo(sevenZip, arguments)
+         {
+            WorkingDirectory = workingDirectory,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+         };
+
+         using (var process = Process.Start(startInfo))
+         {
+            Assert.IsNotNull(process, "7za.exe could not be started.");
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+            Assert.AreEqual(0, process.ExitCode, "7za.exe " + arguments + " failed: " + output);
+         }
+      }
+
+      /// <summary>The index from ann's account element on: where her rows are edited.</summary>
+      private static int AnnsAccountAt(string xml, string address)
+      {
+         int at = xml.IndexOf("<Account Name=\"" + address + "\"", StringComparison.OrdinalIgnoreCase);
+         Assert.Greater(at, 0, "The index has no account element for " + address);
+         return at;
+      }
+
+      private static string ReplaceNthFilenameAfter(string xml, int from, int nth, string replacement)
+      {
+         var filename = new Regex("Filename=\"[^\"]*\"");
+         Match match = filename.Match(xml, from);
+         for (int i = 0; i < nth; i++)
+         {
+            Assert.IsTrue(match.Success, "The index has fewer Filename attributes than expected after " + from);
+            match = match.NextMatch();
+         }
+         Assert.IsTrue(match.Success, "The index has fewer Filename attributes than expected after " + from);
+         return xml.Substring(0, match.Index) + "Filename=\"" + replacement + "\"" + xml.Substring(match.Index + match.Length);
+      }
 
       private static string Basic(string user, string password)
          => "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(user + ":" + password));
@@ -445,20 +561,34 @@ namespace RegressionTests.Infrastructure
          Assert.AreEqual(404, gone.status, gone.body);
          StringAssert.Contains("no account", gone.body);
 
-         // A path outside the destination, whatever it points at.
+         // Over REST the archive is a NAME and nothing else: a path percent-encodes
+         // its separators, the route does not decode them, and what arrives is a
+         // name the destination lacks - 404, and nothing opened. (The outside-path
+         // refusal itself is proved over COM, in TheComRoundTrip, which is the
+         // one interface that takes a path.)
          string outside = Path.Combine(Path.GetTempPath(), "hm-outside-" + TestSetup.UniqueString() + ".7z");
          File.Copy(Path.Combine(_backupDir, archive), outside);
          try
          {
             (int status, string body) refused = Admin("POST", MailboxRoute(outside, _ann.Address, "/restore"), "{\"mode\":\"merge\"}");
-            Assert.AreEqual(400, refused.status, refused.body);
-            StringAssert.Contains("not inside the backup destination", refused.body);
-            Assert.AreEqual(400, Admin("GET", MailboxRoute(outside, _ann.Address), null).status);
+            Assert.AreEqual(404, refused.status, refused.body);
+            StringAssert.Contains("no archive", refused.body);
+            Assert.AreEqual(404, Admin("GET", MailboxRoute(outside, _ann.Address), null).status);
          }
          finally
          {
             File.Delete(outside);
          }
+
+         // One message takes no mode, and replace of a mailbox the archive holds
+         // nothing for would only empty it.
+         (int status, string body) modeAndMessage = Admin("POST", MailboxRoute(archive, _ann.Address, "/restore"), "{\"mode\":\"merge\",\"message\":1}");
+         Assert.AreEqual(400, modeAndMessage.status, modeAndMessage.body);
+         StringAssert.Contains("does not apply to a single message", modeAndMessage.body);
+         (int status, string body) emptyReplace = Admin("POST", MailboxRoute(archive, _carl.Address, "/restore"), "{\"mode\":\"replace\"}");
+         Assert.AreEqual(400, emptyReplace.status, emptyReplace.body);
+         StringAssert.Contains("would only empty the mailbox", emptyReplace.body);
+         Assert.AreEqual(0, Count(_carl.Address, "INBOX"));
 
          // A name the destination does not hold.
          Assert.AreEqual(404, Admin("POST", MailboxRoute("HMBackup 2000-01-01 000000.7z", _ann.Address, "/restore"), "{\"mode\":\"merge\"}").status);
@@ -484,17 +614,23 @@ namespace RegressionTests.Infrastructure
          // Let the backup finish before the next test empties the destination.
          for (int i = 0; i < 240; i++)
          {
-            try
-            {
-               string contents = TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
-               if (contents.IndexOf("Backup completed successfully", StringComparison.Ordinal) != contents.LastIndexOf("Backup completed successfully", StringComparison.Ordinal))
-                  break;
-            }
-            catch (IOException)
-            {
-            }
+            string contents = BackupLog();
+            if (contents.IndexOf("Backup completed successfully", StringComparison.Ordinal) != contents.LastIndexOf("Backup completed successfully", StringComparison.Ordinal))
+               break;
 
             Thread.Sleep(250);
+         }
+
+         // The job the refused request registered reads failed with that reason,
+         // not queued: it is the one numbered just before the next job started.
+         JsonElement next = RestoreAndWait(archive, _ann.Address, "{\"mode\":\"merge\"}");
+         int refusedJob = next.GetProperty("job").GetInt32() - 1;
+         (int status, string body) phantom = Admin("GET", "/api/v1/backup/restore-mailbox/" + refusedJob, null);
+         Assert.AreEqual(200, phantom.status, phantom.body);
+         using (JsonDocument document = JsonDocument.Parse(phantom.body))
+         {
+            Assert.AreEqual("failed", document.RootElement.GetProperty("state").GetString(), phantom.body);
+            StringAssert.Contains("already running", document.RootElement.GetProperty("error").GetString());
          }
       }
 
@@ -510,7 +646,11 @@ namespace RegressionTests.Infrastructure
 
          var session = new ImapClientSimulator();
          Assert.IsTrue(session.ConnectAndLogon(_ann.Address, Password));
-         Assert.IsTrue(session.SelectFolder("INBOX"));
+         string selected;
+         Assert.IsTrue(session.SelectFolder("INBOX", out selected));
+         Match uidNextMatch = Regex.Match(selected, @"UIDNEXT (\d+)");
+         Assert.IsTrue(uidNextMatch.Success, "SELECT did not answer UIDNEXT: " + selected);
+         int uidNextBefore = int.Parse(uidNextMatch.Groups[1].Value);
          Assert.AreEqual(2, session.GetMessageCount("INBOX"));
 
          JsonElement outcome = RestoreAndWait(archive, _ann.Address, "{\"mode\":\"merge\"}");
@@ -519,6 +659,13 @@ namespace RegressionTests.Infrastructure
          // The session that had the folder selected the whole time.
          string noop = session.SendSingleCommand("NOOP");
          StringAssert.Contains("3 EXISTS", noop, "The selected session must be told about the addition: " + noop);
+
+         // A fresh UID, above what the folder had promised: a client with a
+         // cached folder sees a new message, never a reused number.
+         string uidSearch = session.SendSingleCommand("UID SEARCH SUBJECT \"first\"");
+         Match uidMatch = Regex.Match(uidSearch, @"\* SEARCH (\d+)");
+         Assert.IsTrue(uidMatch.Success, "UID SEARCH did not find the restored message: " + uidSearch);
+         Assert.GreaterOrEqual(int.Parse(uidMatch.Groups[1].Value), uidNextBefore, "The restored message's UID must be at or above the folder's earlier UIDNEXT: " + uidSearch);
          session.Disconnect();
 
          Assert.IsNotEmpty(Search(_ann.Address, "INBOX", "TEXT \"" + Needle + "\""), "The search must find the restored message.");
@@ -579,6 +726,160 @@ namespace RegressionTests.Infrastructure
          Assert.Throws<System.Runtime.InteropServices.COMException>(() => manager.RestoreMailbox(archive, _ann.Address, "overwrite", ""));
          Assert.Throws<System.Runtime.InteropServices.COMException>(() => manager.MailboxRestoreStatus(987654));
          Assert.AreEqual(3, Count(_ann.Address, "INBOX"));
+      }
+
+      [Test]
+      [Description("An index naming a file the store lacks, and a row whose file name is not the backup's own: the listing leaves the unsound row out and counts it, a merge counts both as failed with the log lines and goes on, the request is on the audit trail, and a replace from the same archive ends failed with the BACKUP ERROR line because it emptied more than it could put back.")]
+      public void AJobThatFailsAfterQueuingIsReportedAndAReplaceThatCannotRefillFails()
+      {
+         Populate();
+         string archive = TakeBackup();
+
+         string edited = EditedArchive(archive, xml =>
+         {
+            int at = AnnsAccountAt(xml, _ann.Address);
+            xml = ReplaceNthFilenameAfter(xml, at, 0, "{00000000-0000-0000-0000-000000000000}.eml");
+            return ReplaceNthFilenameAfter(xml, at, 1, "..\\evil.eml");
+         });
+
+         // The listing: four rows it can take and one it cannot.
+         (int status, string body) listed = Admin("GET", MailboxRoute(edited, _ann.Address), null);
+         Assert.AreEqual(200, listed.status, listed.body);
+         using (JsonDocument document = JsonDocument.Parse(listed.body))
+         {
+            Assert.AreEqual(4, document.RootElement.GetProperty("messages").GetInt32(), listed.body);
+            Assert.AreEqual(1, document.RootElement.GetProperty("unrestorable").GetInt32(), listed.body);
+         }
+         StringAssert.DoesNotContain("evil", listed.body, "A name the backup never writes must not be listed.");
+
+         // Merge: the missing file and the unsound row are failed, the three that
+         // are still in the mailbox are skipped, nothing is written under a name
+         // the backup never made.
+         JsonElement merged = RestoreAndWait(edited, _ann.Address, "{\"mode\":\"merge\"}");
+         AssertOutcome(merged, folders: 3, added: 0, skipped: 3, failed: 2);
+         Assert.AreEqual(3, Count(_ann.Address, "INBOX"));
+         string log = BackupLog();
+         StringAssert.Contains("whose file the archive does not hold", log);
+         StringAssert.Contains("not one this server's backup writes", log);
+         Assert.IsFalse(File.Exists(Path.Combine(_application.Settings.Directories.DataDirectory, "evil.eml")), "Nothing may be written from an unsound name.");
+
+         // The request is on the audit trail, by whoever asked.
+         (int status, string body) trail = Admin("GET", "/api/v1/audit?action=mailbox%20restore%20started&limit=1", null);
+         Assert.AreEqual(200, trail.status, trail.body);
+         StringAssert.Contains(_ann.Address, trail.body, "The mailbox restore request must be on the audit trail: " + trail.body);
+         StringAssert.Contains("merging", trail.body, trail.body);
+
+         // Replace: the folders are emptied, two rows cannot come back, and that
+         // is a failed job with the whole restore's report.
+         JsonElement replaced = RestoreAndWait(edited, _ann.Address, "{\"mode\":\"replace\"}");
+         Assert.AreEqual("failed", replaced.GetProperty("state").GetString(), replaced.GetRawText());
+         Assert.AreEqual(3, replaced.GetProperty("added").GetInt32(), replaced.GetRawText());
+         Assert.AreEqual(2, replaced.GetProperty("failed").GetInt32(), replaced.GetRawText());
+         StringAssert.Contains("could not put back 2", replaced.GetProperty("error").GetString());
+         Assert.AreEqual(1, Count(_ann.Address, "INBOX"), "Only the sound INBOX row came back.");
+         Assert.AreEqual(2, Count(_ann.Address, "Projects.Alpha"));
+         StringAssert.Contains("BACKUP ERROR: Mailbox restore", BackupLog());
+         CustomAsserts.AssertReportedError("HM5014");
+      }
+
+      [Test]
+      [Description("An encrypted archive: the listing refuses without the passphrase and with a wrong one in the server's own words, answers with the right one in the header, and the restore takes the passphrase in its body.")]
+      public void AnEncryptedArchiveNeedsItsPassphraseInTheHeaderAndTheBody()
+      {
+         const string passphrase = "correct horse battery staple";
+         Populate();
+
+         dynamic backupSettings = _application.Settings.Backup;
+         backupSettings.EncryptionPassphrase = passphrase;
+         string archive = TakeBackup(encrypted: true);
+
+         (int status, string body) bare = Admin("GET", MailboxRoute(archive, _ann.Address), null);
+         Assert.AreEqual(400, bare.status, bare.body);
+         StringAssert.Contains("is encrypted, and no passphrase was given", bare.body);
+
+         (int status, string body) wrong = AdminWithPassphrase(MailboxRoute(archive, _ann.Address), "not the passphrase");
+         Assert.AreEqual(400, wrong.status, wrong.body);
+         StringAssert.Contains("could not be opened with the passphrase given", wrong.body);
+
+         (int status, string body) right = AdminWithPassphrase(MailboxRoute(archive, _ann.Address), passphrase);
+         Assert.AreEqual(200, right.status, right.body);
+         using (JsonDocument document = JsonDocument.Parse(right.body))
+         {
+            Assert.AreEqual(5, document.RootElement.GetProperty("messages").GetInt32(), right.body);
+            Assert.IsTrue(document.RootElement.GetProperty("subjects").GetBoolean(), "Subjects come from the staged files, opened with the passphrase: " + right.body);
+         }
+
+         DeleteBySubject(_ann.Address, "INBOX", "second");
+         Assert.AreEqual(400, Admin("POST", MailboxRoute(archive, _ann.Address, "/restore"), "{\"mode\":\"merge\"}").status);
+         Assert.AreEqual(400, Admin("POST", MailboxRoute(archive, _ann.Address, "/restore"), "{\"mode\":\"merge\",\"passphrase\":\"not the passphrase\"}").status);
+         Assert.AreEqual(2, Count(_ann.Address, "INBOX"), "A refused restore changes nothing.");
+
+         JsonElement outcome = RestoreAndWait(archive, _ann.Address, "{\"mode\":\"merge\",\"passphrase\":\"" + passphrase + "\"}");
+         AssertOutcome(outcome, folders: 3, added: 1, skipped: 4, failed: 0);
+         Assert.AreEqual(3, Count(_ann.Address, "INBOX"));
+      }
+
+      [Test]
+      [Description("An archive taken with BackupMessagesDBOnly holds rows and no files: the listing reads no subjects and says why, and a restore from it fails with the reason rather than emptying or writing anything.")]
+      public void AnArchiveWithRowsAndNoFilesCannotRestoreAMailbox()
+      {
+         IniFileSetting.Write("BackupMessagesDBOnly", "1");
+         _application.Reinitialize();
+
+         Populate();
+         string archive = TakeBackup();
+
+         (int status, string body) listed = Admin("GET", MailboxRoute(archive, _ann.Address), null);
+         Assert.AreEqual(200, listed.status, listed.body);
+         using (JsonDocument document = JsonDocument.Parse(listed.body))
+         {
+            Assert.AreEqual(5, document.RootElement.GetProperty("messages").GetInt32(), listed.body);
+            Assert.IsFalse(document.RootElement.GetProperty("subjects").GetBoolean(), listed.body);
+            StringAssert.Contains("no message files", document.RootElement.GetProperty("subjects_note").GetString());
+         }
+
+         DeleteBySubject(_ann.Address, "INBOX", "second");
+         JsonElement outcome = RestoreAndWait(archive, _ann.Address, "{\"mode\":\"replace\"}");
+         Assert.AreEqual("failed", outcome.GetProperty("state").GetString(), outcome.GetRawText());
+         StringAssert.Contains("BackupMessagesDBOnly", outcome.GetProperty("error").GetString());
+         Assert.AreEqual(2, Count(_ann.Address, "INBOX"), "Nothing was emptied: the refusal came before the deletion.");
+         CustomAsserts.AssertReportedError("HM5014");
+      }
+
+      [Test]
+      [Description("Subjects are read for a listing of at most 500 messages: an index with more is listed without them and says so, and narrowing to one folder brings them back.")]
+      public void SubjectsAreWithheldPastTheCeiling()
+      {
+         Populate();
+         string archive = TakeBackup();
+
+         string edited = EditedArchive(archive, xml =>
+         {
+            int at = AnnsAccountAt(xml, _ann.Address);
+            Match first = new Regex("<Message\\b[^>]*/>").Match(xml, at);
+            Assert.IsTrue(first.Success, "The index has no message element for the account.");
+            var copies = new StringBuilder();
+            for (int i = 0; i < 500; i++)
+               copies.Append(Regex.Replace(first.Value, "ID=\"\\d+\"", "ID=\"" + (900001 + i) + "\""));
+            return xml.Substring(0, first.Index + first.Length) + copies + xml.Substring(first.Index + first.Length);
+         });
+
+         (int status, string body) listed = Admin("GET", MailboxRoute(edited, _ann.Address), null);
+         Assert.AreEqual(200, listed.status, listed.body);
+         using (JsonDocument document = JsonDocument.Parse(listed.body))
+         {
+            Assert.AreEqual(505, document.RootElement.GetProperty("messages").GetInt32(), "messages: " + document.RootElement.GetProperty("messages").GetRawText());
+            Assert.IsFalse(document.RootElement.GetProperty("subjects").GetBoolean(), "Past the ceiling no subject is read.");
+            StringAssert.Contains("at most 500", document.RootElement.GetProperty("subjects_note").GetString());
+         }
+
+         (int status, string body) narrowed = Admin("GET", MailboxRoute(edited, _ann.Address) + "?folder=Projects.Alpha", null);
+         Assert.AreEqual(200, narrowed.status, narrowed.body);
+         using (JsonDocument document = JsonDocument.Parse(narrowed.body))
+         {
+            Assert.AreEqual(2, document.RootElement.GetProperty("messages").GetInt32(), narrowed.body);
+            Assert.IsTrue(document.RootElement.GetProperty("subjects").GetBoolean(), "One folder under the ceiling is listed with subjects: " + narrowed.body);
+         }
       }
 
       [Test]

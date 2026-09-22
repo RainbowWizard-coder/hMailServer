@@ -6879,10 +6879,10 @@ SMTP 25 e 587, POP3 110, IMAP 143 - senza sicurezza della connessione. Le porte 
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>Sostituisci l'IP del client per gli utenti autenticati (vuoto = mantieni l'IP reale)</value>
   </data>
-  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone. It is kept only for RecoverDeletedDays, which is off by default." xml:space="preserve">
     <value>Sostituire la casella di {0} con quella dell'archivio?
 
-Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.</value>
+Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta. Viene conservata solo per RecoverDeletedDays, che è disattivato per impostazione predefinita.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Sostituisce ogni porta con l'insieme standard: SMTP 25 e 587, POP3 110, IMAP 143, tutte senza sicurezza della connessione.</value>

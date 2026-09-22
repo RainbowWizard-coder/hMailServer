@@ -6879,10 +6879,10 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>認証済みユーザーのクライアント IP を置き換える (空 = 実際の IP を保持)</value>
   </data>
-  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone. It is kept only for RecoverDeletedDays, which is off by default." xml:space="preserve">
     <value>{0} のメールボックスをアーカイブの内容で置き換えますか?
 
-まずすべてのフォルダーが空にされます。バックアップ以降に届いたメールは失われます。</value>
+まずすべてのフォルダーが空にされます。バックアップ以降に届いたメールは失われます。RecoverDeletedDays の期間だけ保持されます (既定では無効)。</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>すべてのポートを標準のセットに置き換えます: SMTP 25 と 587、POP3 110、IMAP 143 で、いずれも接続のセキュリティはありません。</value>

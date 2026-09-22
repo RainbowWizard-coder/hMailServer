@@ -265,7 +265,7 @@ namespace HM
       // it is one of the things that must not run beside them.
       if (!ClaimRunSlot_(task, RunRestore))
       {
-         failureReason = "A backup or restore is already running; a mailbox restore waits for it. Ask again when it has finished.";
+         failureReason = "A backup or restore is already running, so this mailbox restore was not started. Ask again when it has finished.";
          Logger::Instance()->LogBackup(Formatter::Format("Mailbox restore {0} not started: {1}", job->GetJob(), failureReason));
          return false;
       }

@@ -6879,10 +6879,10 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>Заменять IP клиента для прошедших аутентификацию пользователей (пусто — сохранять настоящий IP)</value>
   </data>
-  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone. It is kept only for RecoverDeletedDays, which is off by default." xml:space="preserve">
     <value>Заменить ящик {0} ящиком из архива?
 
-Сначала каждая папка будет очищена: почта, пришедшая после резервного копирования, пропадёт.</value>
+Сначала каждая папка будет очищена: почта, пришедшая после резервного копирования, пропадёт. Она хранится только в течение RecoverDeletedDays, что по умолчанию выключено.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Заменяет все порты стандартным набором: SMTP 25 и 587, POP3 110, IMAP 143 — все без защиты подключения.</value>

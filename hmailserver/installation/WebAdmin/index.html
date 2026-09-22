@@ -5766,7 +5766,7 @@ async function startMailboxRestore(){
   if(!archive){setErr("err_mailboxrestore",t("Choose an archive from the backup destination."));return;}
   if(!address){setErr("err_mailboxrestore",t("Give the address of the account whose mailbox to restore."));return;}
   const question=mode==="replace"
-    ?tf("Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone.",address)
+    ?tf("Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone, kept only for RecoverDeletedDays, which is off by default.",address)
     :tf("Merge the archive's folders and messages into the mailbox of {0}? Nothing already there is removed.",address);
   if(!confirm(question)) return;
   const body={mode:mode};

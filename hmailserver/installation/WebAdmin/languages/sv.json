@@ -865,7 +865,7 @@
   "Remove {0} from the list of {1}?": "Ta bort {0} från listan för {1}?",
   "Removed from the suppression list: {0}": "Borttagen från spärrlistan: {0}",
   "Removed the OpenPGP key of {0}": "OpenPGP-nyckeln för {0} togs bort",
-  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone.": "Ersätta brevlådan för {0} med arkivets? Varje mapp töms först: post som kommit sedan säkerhetskopian är borta.",
+  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone, kept only for RecoverDeletedDays, which is off by default.": "Ersätta brevlådan för {0} med arkivets? Varje mapp töms först: post som kommit sedan säkerhetskopian är borta och behålls bara under RecoverDeletedDays, som är av som standard.",
   "Replace: empty every folder first, so the mailbox is the archive's - mail that arrived since the backup is gone": "Ersätt: töm varje mapp först, så att brevlådan blir arkivets - post som kommit sedan säkerhetskopian är borta",
   "Report {0}, covering {1} to {2}, read {3}. The reporter saw p={4}.": "Rapport {0}, som omfattar {1} till {2}, läst {3}. Rapportören såg p={4}.",
   "Reported by": "Rapporterat av",

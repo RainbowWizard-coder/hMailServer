@@ -834,7 +834,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/audit/{id}/revert` | ? | `manage_settings` | yes |
 | `POST /api/v1/backup` | BackupSettings, Backup | - | yes |
 | `POST /api/v1/backup/restore` | ? | `accepted`, `account`, `archive`, `domain`, `domains`, `file`, `folder`, `from`, `keys`, `passphrase`, `reason`, `restore_domains`, `restore_messages`, `restore_settings` | yes |
-| `POST /api/v1/backup/{archive}/mailboxes/{address}/restore` | ? | `accepted`, `account`, `deleted`, `domain`, `file`, `first`, `folder`, `from`, `keys`, `log`, `mailbox`, `message`, `mode`, `name`, `passphrase`, `to` | - |
+| `POST /api/v1/backup/{archive}/mailboxes/{address}/restore` | ? | `accepted`, `account`, `domain`, `file`, `first`, `folder`, `from`, `keys`, `log`, `mailbox`, `message`, `mode`, `name`, `passphrase`, `to` | - |
 | `POST /api/v1/blocked-attachments` | BlockedAttachment | `description`, `domain`, `file`, `keys`, `message`, `name`, `pattern`, `read`, `wildcard` | yes |
 | `PUT /api/v1/blocked-attachments/{id}` | BlockedAttachment | `body`, `description`, `domain`, `field`, `file`, `keys`, `message`, `name`, `pattern`, `read`, `value`, `wildcard` | - |
 | `POST /api/v1/blocked-senders` | BlockedSender | `address`, `blocked`, `description`, `domain`, `keys`, `message`, `read`, `score`, `sender` | yes |

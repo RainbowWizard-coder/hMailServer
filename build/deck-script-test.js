@@ -2230,7 +2230,6 @@ function answer(method, path, headers, raw) {
    if (mailboxMatch) {
       const archive = decodeURIComponent(mailboxMatch[1]);
       const address = decodeURIComponent(mailboxMatch[2]);
-      if (archive.indexOf('outside') >= 0) { return json(400, { error: 'The archive path ' + archive + ' is not inside the backup destination /var/backups/hmailserver. A mailbox is restored from an archive this server wrote there, and from nowhere else.' }); }
       if (!state.backupArchives.archives.some((a) => a.name === archive)) { return json(404, { error: 'There is no archive ' + archive + ' in the backup destination.' }); }
       if (archive.indexOf('2026-09-21') >= 0 && (headers['X-hMailServer-Backup-Passphrase'] || headers['x-hmailserver-backup-passphrase'] || parsed.passphrase) !== 'correct horse battery staple') {
          return json(400, { error: 'The backup archive ' + archive + ' is encrypted, and no passphrase was given for it.' });
@@ -2239,7 +2238,7 @@ function answer(method, path, headers, raw) {
       if (!mailboxMatch[3] && method === 'GET') { return json(200, state.archivedMailbox); }
       if (mailboxMatch[3] && method === 'POST') {
          if (parsed.mode !== undefined && parsed.mode !== 'merge' && parsed.mode !== 'replace') { return json(400, { error: 'mode must be merge or replace' }); }
-         if (state.backupRunning) { return json(409, { error: 'A backup or restore is already running; a mailbox restore waits for it. Ask again when it has finished.', status: '' }); }
+         if (state.backupRunning) { return json(409, { error: 'A backup or restore is already running, so this mailbox restore was not started. Ask again when it has finished.', status: '' }); }
          const job = nextId++;
          const mode = parsed.message ? 'message' : (parsed.mode || 'merge');
          state.mailboxRestoreJobs[job] = { job: job, state: 'done', archive: '/var/backups/hmailserver/' + archive, address: address, mode: mode,

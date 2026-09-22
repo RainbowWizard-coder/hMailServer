@@ -6879,10 +6879,10 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan. TLS portlar
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>Kimliği doğrulanmış kullanıcılar için istemci IP'sini şununla değiştir (boş = gerçek IP'yi koru)</value>
   </data>
-  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone. It is kept only for RecoverDeletedDays, which is off by default." xml:space="preserve">
     <value>{0} posta kutusu arşivdekiyle değiştirilsin mi?
 
-Önce her klasör boşaltılır: yedeklemeden sonra gelen postalar kaybolur.</value>
+Önce her klasör boşaltılır: yedeklemeden sonra gelen postalar kaybolur. Yalnızca RecoverDeletedDays süresince saklanır; bu varsayılan olarak kapalıdır.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Her portu standart kümeyle değiştirir: SMTP 25 ve 587, POP3 110, IMAP 143, hepsi bağlantı güvenliği olmadan.</value>

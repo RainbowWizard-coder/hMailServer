@@ -19,6 +19,7 @@
 #include "../Util/PushNotifier.h"
 #include "../Util/ExternalSenderTagger.h"
 #include "../Util/ImpersonationCheck.h"
+#include "../Application/MailboxRestore.h"
 #include "../Util/ReputationWatch.h"
 #include "../Util/DisclaimerAdder.h"
 #include "../Util/Journaling.h"
@@ -177,6 +178,12 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing ImpersonationCheck\n"));
       ImpersonationCheckTester impersonationCheckTester;
       impersonationCheckTester.Test();
+
+      // Restoring one mailbox from a backup: the shape a file name read out of
+      // an archive's index must have before it may name a path.
+      OutputDebugString(_T("hMailServer: Testing MailboxRestore\n"));
+      MailboxRestoreTester mailboxRestoreTester;
+      mailboxRestoreTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing DisclaimerAdder\n"));
       DisclaimerAdderTester disclaimerAdderTester;

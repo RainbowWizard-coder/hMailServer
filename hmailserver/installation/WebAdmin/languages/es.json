@@ -865,7 +865,7 @@
   "Remove {0} from the list of {1}?": "¿Quitar {0} de la lista de {1}?",
   "Removed from the suppression list: {0}": "Quitada de la lista de supresión: {0}",
   "Removed the OpenPGP key of {0}": "Se quitó la clave OpenPGP de {0}",
-  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone.": "¿Reemplazar el buzón de {0} por el del archivo? Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad desaparece.",
+  "Replace the mailbox of {0} with the archive's? Every folder is emptied first: mail that arrived since the backup is gone, kept only for RecoverDeletedDays, which is off by default.": "¿Reemplazar el buzón de {0} por el del archivo? Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad desaparece y solo se conserva durante RecoverDeletedDays, que está desactivado de forma predeterminada.",
   "Replace: empty every folder first, so the mailbox is the archive's - mail that arrived since the backup is gone": "Reemplazar: vaciar primero cada carpeta, para que el buzón sea el del archivo - el correo llegado desde la copia de seguridad desaparece",
   "Report {0}, covering {1} to {2}, read {3}. The reporter saw p={4}.": "Informe {0}, que abarca de {1} a {2}, leído el {3}. El informante vio p={4}.",
   "Reported by": "Informado por",

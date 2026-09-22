@@ -1076,6 +1076,12 @@ def run_python_refusals(url):
 
     # A restore with nothing chosen, and a passphrase asked for as an argument:
     # the two ways somebody reaches for this command and gets it wrong.
+    # One message takes no mode: the client refuses the pair before any request.
+    completed = run(["backup", "restore-mailbox", "HMBackup 2026-09-21 020000.7z", "ann@example.com", "--message", "4101", "--replace"])
+    check(completed.returncode != 0 and "does not apply to a single message" in (completed.stderr + completed.stdout),
+          "hmctl backup restore-mailbox --message with --replace should refuse the pair, said: %s%s"
+          % (completed.stdout, completed.stderr))
+
     completed = run(["backup", "restore", "/var/backups/one.7z"])
     check(completed.returncode != 0 and "--domains" in (completed.stdout + completed.stderr),
           "hmctl backup restore with nothing chosen should say which flags to choose from, said: %s%s"

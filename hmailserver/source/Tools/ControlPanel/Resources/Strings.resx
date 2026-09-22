@@ -6879,10 +6879,10 @@ SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>Replace the client IP for authenticated users (empty = keep the real IP)</value>
   </data>
-  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone. It is kept only for RecoverDeletedDays, which is off by default." xml:space="preserve">
     <value>Replace the mailbox of {0} with the one in the archive?
 
-Every folder is emptied first: mail that arrived since the backup is gone.</value>
+Every folder is emptied first: mail that arrived since the backup is gone. It is kept only for RecoverDeletedDays, which is off by default.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security.</value>

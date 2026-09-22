@@ -6,6 +6,8 @@
 
 #include "Compression.h"
 #include "ProcessLauncher.h"
+#include "FileUtilities.h"
+#include "Unicode.h"
 
 #include <boost/filesystem.hpp>
 
@@ -120,6 +122,49 @@ namespace HM
          GetExecutableFullPath_(), zipFile, wildCard, targetDirectory);
 
       return LaunchCommand_(commandLine, passphrase);
+   }
+
+   bool
+   Compression::UncompressMembers(const String &zipFile, const String &targetDirectory, const std::vector<String> &members, const String &passphrase)
+   {
+      if (members.empty())
+         return true;
+
+      // The list file sits in the target directory, which is the caller's own
+      // scratch directory, and is removed once the archiver has read it. Bytes
+      // written directly: UTF-8 with the byte-order mark 7-Zip recognises, one
+      // member per line, no quoting - a list file takes a name with spaces as
+      // it is.
+      String listFile = FileUtilities::Combine(targetDirectory, _T("hMailServer-members.txt"));
+
+      {
+         std::ofstream out(listFile.c_str(), std::ios::binary | std::ios::trunc);
+
+         if (!out)
+            return false;
+
+         out.write("\xEF\xBB\xBF", 3);
+
+         for (size_t i = 0; i < members.size(); i++)
+         {
+            AnsiString utf8;
+            Unicode::WideToMultiByte(members[i], utf8);
+            out.write(utf8.c_str(), utf8.GetLength());
+            out.write("\r\n", 2);
+         }
+
+         if (!out)
+            return false;
+      }
+
+      String commandLine = Formatter::Format("\"{0}\" x \"{1}\" \"@{2}\" -o\"{3}\" -y -scsUTF-8",
+         GetExecutableFullPath_(), zipFile, listFile, targetDirectory);
+
+      const bool result = LaunchCommand_(commandLine, passphrase);
+
+      FileUtilities::DeleteFile(listFile);
+
+      return result;
    }
 
    Compression::ArchiveEncryption

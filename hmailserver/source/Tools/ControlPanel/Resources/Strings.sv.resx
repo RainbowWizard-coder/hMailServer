@@ -6879,10 +6879,10 @@ SMTP 25 och 587, POP3 110, IMAP 143 - utan anslutningssäkerhet. TLS-portar och 
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>Ersätt klient-IP för autentiserade användare (tomt = behåll den verkliga IP:n)</value>
   </data>
-  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone." xml:space="preserve">
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone. It is kept only for RecoverDeletedDays, which is off by default." xml:space="preserve">
     <value>Ersätta brevlådan för {0} med den i arkivet?
 
-Varje mapp töms först: post som kommit sedan säkerhetskopian är borta.</value>
+Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den behålls bara under RecoverDeletedDays, som är av som standard.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Ersätter varje port med standarduppsättningen: SMTP 25 och 587, POP3 110, IMAP 143, alla utan anslutningssäkerhet.</value>

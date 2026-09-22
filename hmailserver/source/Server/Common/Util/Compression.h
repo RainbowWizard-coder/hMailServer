@@ -35,6 +35,17 @@ namespace HM
       bool UncompressAll(const String &zipFile, const String &targetDirectory, const String &passphrase = String());
       bool UncompressMember(const String &zipFile, const String &targetDirectory, const String &wildCard, const String &passphrase = String());
 
+      // Exactly the named members - each a path inside the archive, as
+      // "7za l" prints it - and nothing beside them, handed to the archiver as
+      // a list file (@file, one member per line, UTF-8 with a byte-order mark
+      // and -scsUTF-8, so that a domain or account directory named outside
+      // ASCII is read as written). A member the archive does not hold is not
+      // an error to the archiver and is not one here: what came out is the
+      // caller's to judge. Measured with the bundled 7za 19.00, which matches
+      // the names without regard to case on Windows. An empty list extracts
+      // nothing and answers true.
+      bool UncompressMembers(const String &zipFile, const String &targetDirectory, const std::vector<String> &members, const String &passphrase = String());
+
       // A ceiling on how long one archiver run may take, in milliseconds. Zero -
       // the default - is no ceiling, which is what writing a backup needs: 7za
       // legitimately runs for hours over a large message store and killing it

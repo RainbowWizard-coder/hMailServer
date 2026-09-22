@@ -439,6 +439,7 @@ namespace HM
 
    bool
    BackupRestorer::StageAccountMessageStore(const String &archiveFile, const String &domainDirectory, const String &accountDirectory,
+                                            const std::vector<String> &fileNames,
                                             unsigned int archiveOpenTimeoutMilliseconds, bool *timedOut, String &failureReason)
    {
       if (timedOut)
@@ -465,13 +466,22 @@ namespace HM
          return false;
       }
 
-      // The member's path inside the archive, as the executer wrote it: the
-      // DataBackup folder, the domain's directory and the account's, in the
-      // store's own spelling. Naming the directory extracts its subtree and
-      // nothing beside it - measured with the bundled 7za 19.00, which also
-      // matches the name without regard to case on Windows, where the store's
-      // directory names are written as the address was.
-      String member = FileUtilities::Combine(FileUtilities::Combine(BACKUP_DATA_FOLDER_NAME, domainDirectory), accountDirectory);
+      // The account's directory inside the archive, as the executer wrote it:
+      // the DataBackup folder, the domain's directory and the account's, in the
+      // store's own spelling. Each file named lies under it in the two-character
+      // fan-out folder PersistentMessage::GetFileName lays the store out with.
+      // The members are named one by one to the archiver rather than as the
+      // directory, so that a listing of one folder, or a restore of one
+      // message, extracts that and not a mailbox of any size - measured with
+      // the bundled 7za 19.00, which matches the names without regard to case
+      // on Windows, where the store's directory names are written as the
+      // address was.
+      String accountMember = FileUtilities::Combine(FileUtilities::Combine(BACKUP_DATA_FOLDER_NAME, domainDirectory), accountDirectory);
+
+      std::vector<String> members;
+
+      for (size_t i = 0; i < fileNames.size(); i++)
+         members.push_back(FileUtilities::Combine(FileUtilities::Combine(accountMember, fileNames[i].Mid(1, 2)), fileNames[i]));
 
       String format = formatAttribute->value;
 
@@ -490,7 +500,7 @@ namespace HM
          if (archiveOpenTimeoutMilliseconds > 0)
             compression.SetMaximumRunTime(archiveOpenTimeoutMilliseconds);
 
-         if (!compression.UncompressMember(archiveFile, staging_directory_, member, passphrase_))
+         if (!compression.UncompressMembers(archiveFile, staging_directory_, members, passphrase_))
          {
             if (compression.GetLastRunTimedOut())
             {
@@ -506,7 +516,7 @@ namespace HM
             return false;
          }
 
-         String candidate = FileUtilities::Combine(staging_directory_, member);
+         String candidate = FileUtilities::Combine(staging_directory_, accountMember);
 
          // 7za reports success for a member that matched nothing, so the
          // directory's absence is the caller's to judge, not a failure here.

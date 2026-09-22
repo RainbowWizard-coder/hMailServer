@@ -379,7 +379,7 @@ namespace hMailServer.ControlPanel.Views
          bool replace = MailboxModeReplace.IsChecked is true;
 
          string question = replace
-            ? F("Replace the mailbox of {0} with the one in the archive?\n\nEvery folder is emptied first: mail that arrived since the backup is gone.", address)
+            ? F("Replace the mailbox of {0} with the one in the archive?\n\nEvery folder is emptied first: mail that arrived since the backup is gone. It is kept only for RecoverDeletedDays, which is off by default.", address)
             : F("Merge the folders and messages of the archive into the mailbox of {0}?\n\nNothing already there is removed.", address);
 
          if (MessageBox.Show(question, L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
