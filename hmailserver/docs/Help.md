@@ -1,0 +1,179 @@
+Help where the question is
+==========================
+
+Every page of the three administration surfaces - the Windows Control Panel,
+the browser Control Deck and the webmail - has a help button that opens what
+the documentation says about that page, beside the page rather than instead
+of it, and the same text is in the binary, so a server with no route to the
+Internet is not a server with no documentation. The Ctrl+K palette matches a
+page's purpose sentence to find the page; this is the other direction, from
+the page to its text.
+
+Where the text comes from
+-------------------------
+
+The text is this directory: `hmailserver/docs/*.md`, the operator
+documentation, which is what the wiki's reference pages are written from. It
+is in the repository, so CI holds it (a document the checkers can read is one
+that cannot drift from the code it describes), and it can be embedded. The
+wiki itself lives in another repository and cannot be built in, so what the
+help pane shows is the same text the wiki shows, and *Open on the wiki* takes
+you to the wiki's copy when the server can reach it.
+
+`build/generate-help-pages.py` embeds every document except `README.md` (the
+index of the others) and `DeckParity.md` (a census a checker rewrites) as
+`hmailserver/source/Server/Common/Util/HelpPagesData.cpp`: the text with LF
+line endings, in pieces of at most four thousand characters, with a table of
+the file name without its extension, the byte length of the text, and the
+document's level-one and level-two headings with the line each starts on.
+The table ends with a build tag, the first sixteen hex digits of the SHA-256
+of every page's text, which the routes serve as the ETag. Today that is 71
+documents and 1.1 MB of text, which is 1.2 MB of generated C++ and about
+1.1 MB in the binary; `--check` fails when the unit is behind the documents,
+and the style workflow runs it on every pull request.
+
+The Control Panel talks to the server over COM only and must work with no
+REST listener, so it carries its own copy: the same files, embedded as
+resources straight from this directory by its project file
+(`ControlPanel.csproj`, `EmbeddedResource Include="..\..\..\docs\*.md"`, the
+same two files excluded, each named `Help.<Name>.md`). Nothing is copied
+into the Control Panel's tree, so its copy cannot be behind the documents.
+
+The routes
+----------
+
+Both are unauthenticated, as `/deck-lang/` is: the text is the repository's
+own public documentation and nothing of this server's but the wiki base URL,
+so a credential would protect nothing and would keep the Deck's sign-in card
+from offering help.
+
+| Route | Answers |
+|---|---|
+| `GET /api/v1/help` | `{wiki, tag, pages:[{name, title, bytes, headings:[{text, level, line}]}]}`. `wiki` is the `HelpWikiBaseUrl` setting, empty when the administrator hid the link; `tag` is the build tag; each page's `name` is what the page route takes, its `title` its first heading, its `headings` the level-one and level-two ones with the line each starts on, counted from 0. |
+| `GET /api/v1/help/{page}` | The page's markdown, `text/markdown; charset=utf-8`, with `Cache-Control: public, max-age=86400` and an `ETag` of the build tag and the page name; a request whose `If-None-Match` names that tag is answered `304`. `{page}` is a file name without its extension and without a path - `Backup` for `Backup.md` - matched without regard to case. A name carrying a dot, a separator or anything outside letters and digits, and a name that is not a page, are one and the same `404`, so a request that tries the path for a file learns nothing. |
+
+The answers are the same bytes for every reader, so they are on the list of
+what the listener compresses (see [ResponseCompression.md](ResponseCompression.md)),
+once per distinct answer.
+
+How a page is mapped
+--------------------
+
+One table per surface, in the surface's own code, each entry a page, a
+document and an optional heading:
+
+| Surface | Table | Keyed by |
+|---|---|---|
+| Control Panel | `Services/HelpMap.cs` | the navigation key of every page in `Services/NavigationMap.cs`, the nodes the palette indexes |
+| Control Deck | `HELP_MAP` in `hmailserver/installation/WebAdmin/index.html` | every `data-view` section |
+| Webmail | `HELP_MAP` in `Common/Util/Portal.js` | every route head the router distinguishes (`f` for a folder, `m` for a message, `compose`, `search`, `settings`, ...) |
+
+The heading, where one is named, is a level-one or level-two heading of the
+document, and the pane scrolls to it. A page whose subject has no document
+of its own - the TCP/IP ports, the certificates, the groups - is mapped to
+the nearest one, because an entry that names nothing would be a pane that
+opens on nothing; when a document is written for such a page, its entry is
+the one line that changes. The documents no page maps to are listed as
+reference-only in `HelpMap.cs` and are reachable from every pane's *All
+documentation* list, as every document is.
+
+The checker
+-----------
+
+`build/check-help-map.py` reads the three tables and holds them to the
+documents: every page of each surface has an entry, every entry names a
+document that exists, every heading named is in that document (by the same
+parser the generator lists headings with), and no document is unreachable
+from every surface without being listed as reference-only - and nothing
+listed as reference-only is mapped. `--self-test` is its negative control:
+the same check over a copy of the maps with an entry naming a heading that
+is not there, and another naming a document that is not, which must fail.
+The style workflow runs both, beside `generate-help-pages.py --check`.
+
+The panes
+---------
+
+The same shape in all three, in the register of the tours
+([ControlPanelDesign.md](ControlPanelDesign.md)): a right-hand pane, never a
+window and never a dialog, that follows the page as the navigation changes,
+with the document's headings as a list at the top, a search box over the
+open document, the text, and two links at the foot - *Open on the wiki* and
+*All documentation*, the second listing every document for opening in the
+same pane. A link in a document to another document of the set opens that
+document in the pane; a link to the web opens in a new tab. Its rendering is
+a small converter of each surface's own - headings, paragraphs, emphasis,
+inline code, code blocks, bulleted and numbered lists, links, block quotes,
+rules and tables as a grid; nothing else, and anything else as its text -
+so the text can carry nothing the page runs: the two browser pages build DOM
+nodes and never assign markup, the Control Panel builds a `FlowDocument`.
+
+* **The Control Panel:** the `?` button in the window's command bar, and
+  `F1`. The text comes from its own embedded copy over no route at all. The
+  pane's width and whether it is open are kept in
+  `HKCU\Software\hMailServer\ControlPanel` under `HelpPaneWidth` and
+  `HelpPaneOpen`, beside the window bounds, the palette's history and the
+  tour record. `Services/MarkdownBlocks.cs` is the parser (compiled into
+  `ControlPanel.Core` and tested without WPF), `Services/MarkdownFlow.cs`
+  the rendering into a `FlowDocument`, `Services/HelpPages.cs` the embedded
+  copy, `Views/HelpPane.cs` the pane.
+* **The Deck:** the `?` button in the command bar, and `F1` when the
+  keyboard is not in a field; `Escape` closes it. The keyboard shortcuts
+  list, which had the `?` button, keeps the `?` *key* and has a keyboard
+  glyph for its button. The document is fetched from `/api/v1/help/{page}`
+  and rendered by a copy of the webmail's renderer inline in the page (its
+  policy allows no script but its own). Whether the pane is open is kept in
+  `localStorage` under `hmsHelp`, beside the theme and the language.
+* **The webmail:** the `?` button in the toolbar, `F1`, and *Help for this
+  page* in the Ctrl+K palette; the keyboard shortcuts button has a keyboard
+  glyph for the same reason. The renderer is `/portal-markdown.js`
+  (`Common/Util/PortalMarkdown.js`, served beside the S/MIME module and
+  carried by the service worker as part of the shell). Whether the pane is
+  open is kept in `localStorage` under `hmPortalHelp`.
+
+The wiki link
+-------------
+
+`HelpWikiBaseUrl`, a server setting in `hm_settings` (never an ini key),
+shipped as `https://gitlab.com/Progressiverobot/hmailserver/-/wikis/`, the
+project's wiki. Each pane's *Open on the wiki* is that URL with the
+document's name as the page. It is `help_wiki_base_url` on `GET` and `PUT
+/api/v1/settings`, so it is on the Deck's Settings page; on the Control
+Panel's Advanced page under General; and `Settings.HelpWikiBaseUrl` over COM.
+A value that is not empty and not an absolute `http://` or `https://` URL is
+refused in the same words on every door; empty hides the link everywhere.
+The two browser pages read it from `GET /api/v1/help`, the Control Panel
+over COM.
+
+What is thinner than the row asks
+---------------------------------
+
+* The text is the repository's documentation, not the wiki's own pages. The
+  wiki cannot be built in; the same text can, and *Open on the wiki* is the
+  bridge.
+* There is no search across all documents in the pane - only within the open
+  one. The Ctrl+K palette still finds pages by their purpose sentence, and
+  *All documentation* lists every document by its title.
+* A page with no document of its own opens the nearest one, said above.
+* The first-run walk gains no stop for the help button; the button is in the
+  command bar of every page, where the walk's later stops already point.
+
+What is tested
+--------------
+
+* `build/check-help-map.py`, with `--self-test` as its negative control, and
+  `build/generate-help-pages.py --check`, both in the style workflow.
+* `RegressionTests/API/RestApiHelp.cs`: the list answers every document with
+  its headings, as the repository's files have them; a page answers its
+  markdown byte for byte with the file in the tree, as `text/markdown` with
+  the cache headers and the ETag, and `304` to a request carrying it; a path,
+  a dot-dot, an unknown name and an extension are `404`; no credential is
+  asked; the wiki setting round-trips over REST and COM, an empty one is
+  allowed, and a value that is not a URL is refused on both doors with
+  nothing changed.
+* `ControlPanel.Tests`: the markdown parser over a fixed document (headings
+  of both kinds, a list, a code block, a table, a link), the map's lookup for
+  three pages and its coverage of every navigation page, and the pane's
+  heading scroll target.
+* `build/deck-script-test.js` and `build/portal-script-test.js`: the button,
+  the fetch path, the rendering of a heading and a list, and the map lookup
+  for three views.

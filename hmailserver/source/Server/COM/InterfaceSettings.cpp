@@ -3447,6 +3447,57 @@ STDMETHODIMP InterfaceSettings::put_ReputationWatchAddresses(BSTR newVal)
    }
 }
 
+STDMETHODIMP InterfaceSettings::get_HelpWikiBaseUrl(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetHelpWikiBaseUrl().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_HelpWikiBaseUrl(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      HM::String url = newVal;
+      url.Trim();
+
+      // Refused rather than stored and shown as a link that goes nowhere: the
+      // same sentence the REST row uses, so the Control Panel and the Deck
+      // refuse a value in the same words.
+      if (!url.IsEmpty())
+      {
+         HM::String lowered = url;
+         lowered.MakeLower();
+
+         if (lowered.Find(_T("http://")) != 0 && lowered.Find(_T("https://")) != 0)
+            return COMError::GenerateError("The wiki base URL is absolute and begins with http:// or https://, such as https://gitlab.com/Progressiverobot/hmailserver/-/wikis/; empty hides the link.");
+      }
+
+      config_->SetHelpWikiBaseUrl(url);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 STDMETHODIMP InterfaceSettings::TestLdapDirectory(long MaxUsers, BSTR *ResultText, VARIANT_BOOL *pResult)
 {
    try

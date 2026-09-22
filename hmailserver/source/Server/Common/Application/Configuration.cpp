@@ -171,6 +171,10 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_REPUTATION_WATCH_ENABLED, 1);
       property_set_->EnsureString(PROPERTY_REPUTATION_WATCH_LISTS, ReputationWatch::DefaultLists);
       property_set_->EnsureString(PROPERTY_REPUTATION_WATCH_ADDRESSES, _T(""));
+
+      // The help panes' "Open on the wiki" link: the project's wiki, since that
+      // is where the same documents are published. Empty hides the link.
+      property_set_->EnsureString(PROPERTY_HELP_WIKI_BASE_URL, _T("https://gitlab.com/Progressiverobot/hmailserver/-/wikis/"));
       property_set_->EnsureLong(PROPERTY_BREACH_CHECK_UNREACHABLE_ACTION, PasswordBreachCheck::UnreachableAllow);
 
       // Bounces read, and the suppression list. Off, and with it off nothing below
@@ -1011,6 +1015,18 @@ namespace HM
    Configuration::SetReputationWatchAddresses(const String &newVal)
    {
       GetSettings()->SetString(PROPERTY_REPUTATION_WATCH_ADDRESSES, newVal);
+   }
+
+   String
+   Configuration::GetHelpWikiBaseUrl() const
+   {
+      return GetSettings()->GetString(PROPERTY_HELP_WIKI_BASE_URL);
+   }
+
+   void
+   Configuration::SetHelpWikiBaseUrl(const String &newVal)
+   {
+      GetSettings()->SetString(PROPERTY_HELP_WIKI_BASE_URL, newVal);
    }
 
    int

@@ -269,6 +269,15 @@ jobs:
         run: python3 build/generate-portal-openpgp.py --check
       - name: The webmail's page embedded in the server is current
         run: python3 build/generate-portal-page.py --check
+      - name: The documentation embedded in the server is current
+        run: python3 build/generate-help-pages.py --check
+      # Every page of the three surfaces has help, every entry names a
+      # document and a heading that exist, and the checker refuses one that
+      # does not (--self-test is its negative control).
+      - name: The help maps hold to the documents
+        run: |
+          python3 build/check-help-map.py
+          python3 build/check-help-map.py --self-test
 
   dotnet-format:
     name: dotnet format leaves the C# tree unchanged

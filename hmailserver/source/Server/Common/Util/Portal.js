@@ -40,6 +40,9 @@
         }
       } else if (n.nodeType === 1) {
         if (n.tagName === 'SCRIPT' || n.tagName === 'STYLE') { continue; }
+        // The help pane's body is a document's text, not the page's: a
+        // word of it that happens to be a key stays as the author wrote it.
+        if (n.hasAttribute && n.hasAttribute('data-nowalk')) { continue; }
         for (var a = 0; a < LOCALISED_ATTRIBUTES.length; a++) {
           var name = LOCALISED_ATTRIBUTES[a];
           if (!n.hasAttribute || !n.hasAttribute(name)) { continue; }
@@ -1983,6 +1986,8 @@
     var r = parseHash();
     var head = r.parts[0] || '';
     if (head !== 'security') { forgetSecret(); }
+    helpCurrent = head || 'f';
+    helpFollow();
     if (head === 'f' && r.parts[1]) { cameFromList = true; showMail(Number(r.parts[1]), r.params); return; }
     if (head === 'search') { cameFromList = true; showSearch(r.params); return; }
     if (head === 'm' && r.parts[1]) { showMessage(Number(r.parts[1])); return; }
@@ -2020,6 +2025,202 @@
     replaceWith('/f/' + (state.folderId || inboxId));
   };
 
+  // ---- Help, beside the page ----------------------------------------------
+  // The documentation the server carries (GET /api/v1/help/{page}: the
+  // repository's own hmailserver/docs, embedded), one document per page,
+  // drawn in a pane to the right of the work area rather than in its
+  // place. HELP_MAP is the page's document and, where one is named, the
+  // heading the pane opens on, keyed by the route head route() reads;
+  // build/check-help-map.py holds it to the documents, and the Control
+  // Panel (Services/HelpMap.cs) and the Deck (WebAdmin/index.html) keep
+  // the same table for their pages. The pane follows the route, and
+  // whether it is open is this browser's choice, kept beside the theme.
+  // The renderer is /portal-markdown.js (window.hmMarkdown): it builds
+  // nodes and never assigns markup, so a document can carry nothing the
+  // page runs.
+  var HELP_MAP = {
+    f: ['WebmailShortcuts.md', 'Keyboard shortcuts'],
+    search: ['WebmailShortcuts.md', 'Search operators'],
+    m: ['WebmailShortcuts.md', 'Keyboard shortcuts'],
+    starred: ['ImportantMail.md'],
+    important: ['ImportantMail.md', 'The heuristic'],
+    recover: ['RecoverDeleted.md'],
+    confidential: ['ConfidentialMessages.md'],
+    protected: ['OpenPGP.md', 'A password-protected message to anyone'],
+    scheduled: ['WebmailShortcuts.md', 'Writing a message'],
+    compose: ['FormattedMessages.md'],
+    held: ['SenderListsAndDigests.md', 'The quarantine digest'],
+    folders: ['WebmailShortcuts.md', 'Keyboard shortcuts'],
+    settings: ['OfflineMail.md', 'What the reader chooses'],
+    filters: ['MailFlowRules.md'],
+    contacts: ['Contacts.md'],
+    directory: ['Directory.md'],
+    calendar: ['Calendar.md'],
+    tasks: ['Calendar.md', 'Tasks'],
+    away: ['OutOfOffice.md', 'Where it is set'],
+    storage: ['QuotaPolicy.md'],
+    senders: ['SenderListsAndDigests.md', 'The list'],
+    subscriptions: ['SenderListsAndDigests.md'],
+    masked: ['MaskedAddresses.md', 'In the webmail'],
+    accounts: ['SecondAccount.md'],
+    security: ['PasskeysAndSingleSignOn.md', 'Passkeys'],
+    password: ['PasswordBreachCheck.md', 'Where it applies, and where it does not']
+  };
+  var helpCurrent = 'f';
+  var helpShown = '';
+  var helpWiki = '';
+  var helpPages = null;
+  var helpMarks = [];
+  var helpMarkAt = -1;
+  var helpWanted = (function () { try { return localStorage.getItem('hmPortalHelp') === '1'; } catch (e) { return false; } }());
+  var helpOpen = function () { return el('help-pane').hidden === false; };
+  var helpRemember = function (open) { helpWanted = open; try { if (open) { localStorage.setItem('hmPortalHelp', '1'); } else { localStorage.removeItem('hmPortalHelp'); } } catch (e) { /* a browser that keeps nothing is still a browser */ } };
+  var helpTarget = function (head) { var entry = HELP_MAP[head || helpCurrent]; return entry ? { name: entry[0].replace(/\.md$/, ''), heading: entry[1] || '' } : null; };
+  var helpIndex = function () {
+    if (helpPages) { return Promise.resolve(helpPages); }
+    return fetch('/api/v1/help', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : { pages: [] }; })
+      .then(function (list) { helpWiki = String(list.wiki || ''); helpPages = Array.isArray(list.pages) ? list.pages : []; return helpPages; })
+      .catch(function () { helpWiki = ''; helpPages = []; return helpPages; });
+  };
+  // The first element under root that test accepts, by walking the tree:
+  // this page reaches nothing by selector, as a rule.
+  var helpFind = function (root, test) {
+    var kids = root.childNodes || [];
+    for (var i = 0; i < kids.length; i++) {
+      var c = kids[i];
+      if (c.nodeType !== 1) { continue; }
+      if (test(c)) { return c; }
+      var deeper = helpFind(c, test);
+      if (deeper) { return deeper; }
+    }
+    return null;
+  };
+  var helpScrollTo = function (heading) {
+    var body = el('help-body');
+    var target = heading ? helpFind(body, function (n) { return n.getAttribute && n.getAttribute('data-level') !== null && n.textContent === heading; }) : null;
+    if (target && target.scrollIntoView) { target.scrollIntoView(); } else { body.scrollTop = 0; }
+  };
+  var helpUnmark = function () {
+    helpMarks.forEach(function (m) { var p = m.parentNode; if (!p) { return; } p.replaceChild(document.createTextNode(m.textContent), m); if (p.normalize) { p.normalize(); } });
+    helpMarks = []; helpMarkAt = -1;
+  };
+  var helpReset = function (title) {
+    clear(el('help-body')); clear(el('help-heads')); helpMarks = []; helpMarkAt = -1; el('help-search').value = '';
+    el('help-title').textContent = title;
+  };
+  // One document into the pane, opened on a heading; the same document
+  // again only scrolls.
+  var helpShow = function (name, heading) {
+    el('help-pane').hidden = false;
+    if (helpShown === name) { helpScrollTo(heading); return Promise.resolve(); }
+    helpReset(name);
+    var body = el('help-body');
+    return fetch('/api/v1/help/' + encodeURIComponent(name), { credentials: 'same-origin' })
+      .then(function (r) { if (!r.ok) { throw new Error('HTTP ' + r.status); } return r.text(); })
+      .then(function (text) {
+        var md = window.hmMarkdown;
+        if (!md) { throw new Error('no renderer'); }
+        helpShown = name;
+        var list = md.headings(text);
+        if (list.length && list[0].level === 1) { el('help-title').textContent = list[0].text; }
+        list.forEach(function (h, i) {
+          if (i === 0 && h.level === 1) { return; }
+          var b = document.createElement('button'); b.type = 'button'; b.className = h.level === 2 ? 'head sub' : 'head';
+          b.appendChild(document.createTextNode(h.text)); b.setAttribute('data-line', String(h.line));
+          b.addEventListener('click', function () { helpScrollTo(h.text); });
+          el('help-heads').appendChild(b);
+        });
+        body.appendChild(md.render(text, document, md.link));
+        return helpIndex();
+      })
+      .then(function () {
+        var wiki = el('help-wiki');
+        if (helpWiki) { wiki.setAttribute('href', helpWiki + name); wiki.hidden = false; } else { wiki.removeAttribute('href'); wiki.hidden = true; }
+        helpScrollTo(heading);
+      })
+      .catch(function () { helpShown = ''; clear(body); body.appendChild(document.createTextNode(t('The documentation could not be loaded.'))); });
+  };
+  // Every document, by its title, for opening in the pane.
+  var helpList = function () {
+    el('help-pane').hidden = false;
+    helpShown = '';
+    helpReset(t('All documentation'));
+    el('help-wiki').hidden = true;
+    return helpIndex().then(function (pages) {
+      var body = el('help-body');
+      if (!pages.length) { body.appendChild(document.createTextNode(t('The documentation could not be loaded.'))); return; }
+      var ul = document.createElement('ul'); ul.className = 'doclist';
+      pages.forEach(function (p) {
+        var li = document.createElement('li');
+        var b = document.createElement('button'); b.type = 'button';
+        b.appendChild(document.createTextNode(String(p.title || p.name)));
+        var small = document.createElement('small'); small.appendChild(document.createTextNode(String(p.name) + '.md')); b.appendChild(small);
+        b.addEventListener('click', function () { helpShow(String(p.name), ''); });
+        li.appendChild(b); ul.appendChild(li);
+      });
+      body.appendChild(ul);
+    });
+  };
+  // The pane follows the page: opened when this browser keeps it open,
+  // and the page's document once it is. Called by route(), so a page drawn
+  // again costs a comparison.
+  var helpFollow = function () {
+    if (el('help-pane').hidden) { if (!helpWanted) { return; } el('help-pane').hidden = false; }
+    var target = helpTarget();
+    if (target) { helpShow(target.name, target.heading); }
+  };
+  var helpClose = function () { el('help-pane').hidden = true; helpRemember(false); el('help-btn').focus(); };
+  var helpToggle = function () {
+    if (helpOpen()) { helpClose(); return; }
+    helpRemember(true);
+    var target = helpTarget();
+    if (target) { helpShow(target.name, target.heading); } else { helpList(); }
+  };
+  // The search box over the open document: every match marked, the first
+  // scrolled to, Enter moving to the next.
+  var helpNextMark = function () {
+    if (!helpMarks.length) { return; }
+    helpMarkAt = (helpMarkAt + 1) % helpMarks.length;
+    var m = helpMarks[helpMarkAt]; if (m.scrollIntoView) { m.scrollIntoView(); }
+  };
+  var helpSearch = function (q) {
+    helpUnmark();
+    q = String(q || '').trim().toLowerCase();
+    if (q.length < 2) { return; }
+    var found = [];
+    var walk = function (n) { var kids = n.childNodes; for (var i = 0; i < kids.length; i++) { var c = kids[i]; if (c.nodeType === 3) { if (String(c.nodeValue || '').toLowerCase().indexOf(q) >= 0) { found.push(c); } } else if (c.nodeType === 1) { walk(c); } } };
+    walk(el('help-body'));
+    found.forEach(function (node) {
+      var text = String(node.nodeValue || ''); var lower = text.toLowerCase();
+      var span = document.createElement('span'); var at = 0; var hit;
+      while ((hit = lower.indexOf(q, at)) >= 0) {
+        if (hit > at) { span.appendChild(document.createTextNode(text.slice(at, hit))); }
+        var mark = document.createElement('mark'); mark.appendChild(document.createTextNode(text.slice(hit, hit + q.length))); span.appendChild(mark); helpMarks.push(mark);
+        at = hit + q.length;
+      }
+      if (at < text.length) { span.appendChild(document.createTextNode(text.slice(at))); }
+      node.parentNode.replaceChild(span, node);
+    });
+    helpNextMark();
+  };
+  el('help-btn').addEventListener('click', helpToggle);
+  el('help-close').addEventListener('click', helpClose);
+  el('help-all').addEventListener('click', function () { helpRemember(true); helpList(); });
+  el('help-search').addEventListener('input', function (e) { helpSearch(e.target.value); });
+  el('help-search').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); helpNextMark(); } });
+  el('help-body').addEventListener('click', function (e) {
+    var a = e.target;
+    while (a && a !== el('help-body') && !(a.tagName === 'A' && a.getAttribute && a.getAttribute('data-doc'))) { a = a.parentNode; }
+    if (!a || a === el('help-body')) { return; }
+    e.preventDefault();
+    var slug = 'help-' + String(a.getAttribute('data-heading') || '').replace(/[^\w-]/g, '');
+    helpShow(a.getAttribute('data-doc'), '').then(function () {
+      if (slug === 'help-') { return; }
+      var h = helpFind(el('help-body'), function (n) { return n.getAttribute && n.getAttribute('id') === slug; });
+      if (h && h.scrollIntoView) { h.scrollIntoView(); }
+    });
+  });
+
   // ---- Sign in and sign out -----------------------------------------------
   // Everything the signed-in account put in this page. Called when the
   // gate goes back up, because the next person to use this browser must
@@ -2037,6 +2238,10 @@
   var forgetView = function () {
     // A send still waiting cannot go on a session that has ended.
     cancelUndo();
+    el('help-pane').hidden = true;
+    helpShown = '';
+    clear(el('help-body'));
+    clear(el('help-heads'));
     me = '';
     identities = [];
     // The directory is the account's own domain's, so none of it survives a
@@ -8546,6 +8751,7 @@
     if (!directoryLinked) { add('Change password', 'page', function () { go('/password'); }); }
     add('Light or dark', 'action', function () { el('theme-btn').click(); });
     add('Keyboard shortcuts', 'action', openKeys);
+    add(t('Help for this page'), 'action', helpToggle);
     add('Sign out', 'action', function () { el('signout').click(); });
     var open = current && !el('mail-section').hidden && !el('message-view').hidden;
     if (open) {
@@ -8630,6 +8836,8 @@
     if (el('account').hidden) { return; }
     if ((event.ctrlKey || event.metaKey) && !event.altKey && (event.key === 'k' || event.key === 'K')) { event.preventDefault(); openPalette(); return; }
     if (event.key === 'Escape' && (!el('keys-overlay').hidden || !el('palette').hidden)) { closeOverlays(); return; }
+    if (event.key === 'F1' && !event.ctrlKey && !event.metaKey && !event.altKey) { event.preventDefault(); helpToggle(); return; }
+    if (event.key === 'Escape' && helpOpen() && !(event.target && event.target.id === 'help-search' && event.target.value)) { helpClose(); return; }
     var tag = (event.target && event.target.tagName) || '';
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || event.ctrlKey || event.metaKey || event.altKey) { return; }
     if (event.key === '?') { event.preventDefault(); if (el('keys-overlay').hidden) { openKeys(); } else { closeOverlays(); } }

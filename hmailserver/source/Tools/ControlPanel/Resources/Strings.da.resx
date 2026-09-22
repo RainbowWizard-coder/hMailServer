@@ -1124,6 +1124,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Aliases are listed under their domain and can be deleted without touching the mailbox behind them." xml:space="preserve">
     <value>Aliasser vises under deres domæne og kan slettes, uden at postkassen bag dem berøres.</value>
   </data>
+  <data name="All documentation" xml:space="preserve">
+    <value>Al dokumentation</value>
+  </data>
   <data name="All files (*.*)|*.*" xml:space="preserve">
     <value>Alle filer (*.*)|*.*</value>
   </data>
@@ -2063,6 +2066,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="Close the group members window" xml:space="preserve">
     <value>Luk vinduet med gruppemedlemmer</value>
+  </data>
+  <data name="Close the help" xml:space="preserve">
+    <value>Luk hjælpen</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Luk modtagerlisten</value>
@@ -3920,11 +3926,23 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>Chunk-størrelse ved læsning af headere (byte)</value>
   </data>
+  <data name="Headings" xml:space="preserve">
+    <value>Overskrifter</value>
+  </data>
   <data name="Held" xml:space="preserve">
     <value>Tilbageholdt</value>
   </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Tilbageholdt fordi: {0}</value>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>Hjælp</value>
+  </data>
+  <data name="Help for this page (F1)" xml:space="preserve">
+    <value>Hjælp til denne side (F1)</value>
+  </data>
+  <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
+    <value>Hjælp til denne side. Tastaturgenvej F1.</value>
   </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Skjul den nye API-nøgle</value>
@@ -5806,6 +5824,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Open log folder" xml:space="preserve">
     <value>Åbn logmappen</value>
   </data>
+  <data name="Open on the _wiki" xml:space="preserve">
+    <value>Åbn på _wikien</value>
+  </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Åbn leveringskøen</value>
   </data>
@@ -7442,6 +7463,9 @@ Vil du fortsætte?</value>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Søg i leveringskøen</value>
   </data>
+  <data name="Search this document" xml:space="preserve">
+    <value>Søg i dette dokument</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Søg, eller sig hvad du vil gøre - "stop spam", "blokér en IP"</value>
   </data>
@@ -8678,6 +8702,9 @@ Markér nøglen ovenfor og kopiér den manuelt - den vises ikke igen.</value>
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>Kataloget svarede og AFVISTE disse legitimationsoplysninger: {0} (LDAP-fejl {1}). Forbindelsen, transporten og konfigurationen virker alle - dette er et problem med legitimationsoplysningerne, præcis hvad en bruger, der skriver en forkert adgangskode, ville se.</value>
   </data>
+  <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>Den dokumentation, hjælpepanelet viser, er serverens egen kopi; her står, hvor den samme side findes på wikien, med dokumentets navn tilføjet. Som leveret er det projektets GitLab-wiki.</value>
+  </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>Domænet har endnu ingen signeringsnøgle.</value>
   </data>
@@ -9232,6 +9259,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="The whole accept pipeline; then the sender gets a 451. 0 = no bound." xml:space="preserve">
     <value>Hele accept-pipelinen; derefter får afsenderen et 451. 0 = ingen grænse.</value>
   </data>
+  <data name="The wiki could not be opened in a browser." xml:space="preserve">
+    <value>Wikien kunne ikke åbnes i en browser.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>{0}-serveren er slået fra på siden Protokoller, så der lyttes ikke på denne port. Rækken beholdes. At slå protokollen til igen starter ikke lytteren af sig selv - portlisten og de aktiverede protokoller læses begge én gang, når tjenesten starter - så genstart tjenesten efter aktivering.</value>
   </data>
@@ -9296,6 +9326,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
     <value>Dette opretter og opdaterer postkasser på serveren, så de matcher kataloget{0}
 
 Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
+  </data>
+  <data name="This document is not in this copy of the program." xml:space="preserve">
+    <value>Dette dokument findes ikke i denne kopi af programmet.</value>
   </data>
   <data name="This entry was not checked." xml:space="preserve">
     <value>Denne post blev ikke kontrolleret.</value>
@@ -10047,6 +10080,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="Why it is listed" xml:space="preserve">
     <value>Hvorfor den er listet</value>
   </data>
+  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
+    <value>Wiki, som hjælpepanelets "Åbn på wikien" peger på (tomt skjuler linket)</value>
+  </data>
   <data name="Wildcard" xml:space="preserve">
     <value>Jokertegn</value>
   </data>
@@ -10181,6 +10217,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Add…" xml:space="preserve">
     <value>_Tilføj…</value>
+  </data>
+  <data name="_All documentation" xml:space="preserve">
+    <value>_Al dokumentation</value>
   </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>Tillad at sende adgangskoden over en _ubeskyttet forbindelse (AllowUnprotectedPassword)</value>

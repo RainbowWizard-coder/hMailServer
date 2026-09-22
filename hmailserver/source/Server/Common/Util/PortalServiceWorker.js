@@ -4,7 +4,7 @@
 
 'use strict';
 var CACHE = 'hm-portal-shell-v1';
-var SHELL = ['/portal', '/portal.js', '/portal-smime.js', '/portal.webmanifest'];
+var SHELL = ['/portal', '/portal.js', '/portal-smime.js', '/portal-markdown.js', '/portal.webmanifest'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));
 });

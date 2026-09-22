@@ -265,6 +265,19 @@ if (!document.body) { throw new Error('the page has no <body>'); }
 /* -------------------------------------------------- window, location, timers */
 
 const window = new Element('#window');
+// The help pane's renderer, which the page loads as /portal-markdown.js:
+// the real module, required from beside the script, so the checks below
+// render the documentation with what ships.
+window.hmMarkdown = require(require('path').resolve(scriptPath.slice(0, Math.max(scriptPath.lastIndexOf('/'), scriptPath.lastIndexOf('\\')) + 1) + 'PortalMarkdown.js'));
+// The documentation the help pane shows: the repository's hmailserver/docs,
+// which the server embeds and answers at /api/v1/help and /api/v1/help/<page>.
+const docsDir = require('path').resolve(scriptPath.slice(0, Math.max(scriptPath.lastIndexOf('/'), scriptPath.lastIndexOf('\\')) + 1) + '../../../../docs');
+const helpPages = () => fs.readdirSync(docsDir).filter((f) => f.endsWith('.md') && f !== 'README.md' && f !== 'DeckParity.md').sort()
+   .map((f) => {
+      const body = fs.readFileSync(require('path').join(docsDir, f), 'utf8').replace(/\r\n/g, '\n');
+      const heads = window.hmMarkdown.headings(body);
+      return { name: f.slice(0, -3), title: heads.length && heads[0].level === 1 ? heads[0].text : f.slice(0, -3), bytes: Buffer.byteLength(body), headings: heads };
+   });
 // A confirm box the test answers: what was asked is recorded, the answer is scripted.
 const confirms = [];
 let confirmAnswer = true;
@@ -1320,6 +1333,14 @@ function answerSecond(method, path, body) {
 }
 
 function answer(method, path, body) {
+   if (method === 'GET' && path === '/api/v1/help') {
+      return json(200, { wiki: 'https://wiki.test/', tag: 'deadbeefdeadbeef', pages: helpPages() });
+   }
+   if (method === 'GET' && /^\/api\/v1\/help\/[A-Za-z0-9]+$/.test(path)) {
+      const file = require('path').join(docsDir, path.slice(13) + '.md');
+      if (!fs.existsSync(file)) { return json(404, { error: 'no such page' }); }
+      return { status: 200, headers: { 'Content-Type': 'text/markdown; charset=utf-8' }, body: fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n') };
+   }
    if (method === 'POST' && path === '/api/v1/session?bearer=1') { return answerSecondSignIn(); }
    if (/^Bearer /.test(currentAuth)) {
       if (!secondToken || currentAuth !== 'Bearer ' + secondToken) { return json(401, { error: 'the session has ended' }); }
@@ -7422,6 +7443,90 @@ async function main() {
       document.getElementById('compose-protect-label').hidden === true, 'hidden=' + document.getElementById('compose-protect-label').hidden);
    window.hmSmime = smimeStub;
    delete window.isSecureContext;
+
+   // ---- help, beside the page
+   // What the row asks for and a build cannot see: the button opens the
+   // pane and not a window, the document is the page's, the text is drawn
+   // as headings and lists rather than as a wall, the pane follows the
+   // route, F1 and Escape do what the shortcut list says, the palette
+   // offers it, and the choice to keep it open is this browser's.
+   // Whatever the checks above left open is closed first: the page's own
+   // Escape closes an overlay before it reaches the pane.
+   if (!document.getElementById('palette').hidden || !document.getElementById('keys-overlay').hidden) {
+      document.dispatchEvent(makeEvent('keydown', { key: 'Escape', target: document.body }));
+      await flush();
+   }
+   try { localStorage.removeItem('hmPortalHelp'); } catch (e) { /* no storage */ }
+   location.hash = '#/settings';
+   await flush();
+   const helpPane = document.getElementById('help-pane');
+   // Every element under root that test accepts, walked as the page walks.
+   const helpAll = (root, test) => { const out = []; const walk = (n) => { (n.childNodes || []).forEach((c) => { if (c.nodeType === 1) { if (test(c)) { out.push(c); } walk(c); } }); }; walk(root); return out; };
+   const helpTags = (id, tag) => helpAll(document.getElementById(id), (n) => n.tagName === tag);
+   // The page is in German by now: the pane's own words are the catalogue's,
+   // the documents' words are the documents' own.
+   const helpSaid = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+   check('the help pane is closed until it is asked for', helpPane.hidden === true && document.getElementById('help-btn') !== null);
+   let beforeHelp = requests.length;
+   document.getElementById('help-btn').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('the help button opens the pane beside the page and fetches the page\'s document from the help route',
+      helpPane.hidden === false && called(beforeHelp, 'GET', '/api/v1/help/OfflineMail'), JSON.stringify(since(beforeHelp).map((r) => r.path)));
+   check('the pane is titled by the document\'s first heading', document.getElementById('help-title').textContent === 'Offline mail in the webmail',
+      document.getElementById('help-title').textContent);
+   check('a heading is rendered as a heading and a list as a list, both as nodes',
+      helpTags('help-body', 'H3').length > 0 && helpTags('help-body', 'UL').length > 0 && helpTags('help-body', 'LI').length > 0,
+      document.getElementById('help-body').textContent.slice(0, 120));
+   check('the document\'s other headings are listed at the top, each a button', helpTags('help-heads', 'BUTTON').length >= 4 &&
+      document.getElementById('help-heads').textContent.indexOf('What the reader chooses') >= 0, document.getElementById('help-heads').textContent);
+   check('Open on the wiki is the base URL the server answered with the document\'s name',
+      document.getElementById('help-wiki').hidden === false && document.getElementById('help-wiki').getAttribute('href') === 'https://wiki.test/OfflineMail',
+      String(document.getElementById('help-wiki').getAttribute('href')));
+   check('the choice to keep the pane open is remembered', localStorage.getItem('hmPortalHelp') === '1');
+   beforeHelp = requests.length;
+   location.hash = '#/calendar';
+   await flush();
+   check('the pane follows the page: the calendar opens the calendar document',
+      called(beforeHelp, 'GET', '/api/v1/help/Calendar') && document.getElementById('help-title').textContent === 'The calendar and the tasks',
+      JSON.stringify(since(beforeHelp).map((r) => r.path)) + ' ' + document.getElementById('help-title').textContent);
+   beforeHelp = requests.length;
+   location.hash = '#/tasks';
+   await flush();
+   check('a page mapped to a heading of the document showing asks the server for nothing', !called(beforeHelp, 'GET', /^\/api\/v1\/help/) &&
+      document.getElementById('help-title').textContent === 'The calendar and the tasks', JSON.stringify(since(beforeHelp).map((r) => r.path)));
+   beforeHelp = requests.length;
+   location.hash = '#/contacts';
+   await flush();
+   check('the third of three: Contacts opens the address book document', called(beforeHelp, 'GET', '/api/v1/help/Contacts') &&
+      document.getElementById('help-title').textContent === 'The address book', JSON.stringify(since(beforeHelp).map((r) => r.path)));
+   document.dispatchEvent(makeEvent('keydown', { key: 'Escape', target: document.body }));
+   check('Escape closes the pane and forgets the choice', helpPane.hidden === true && localStorage.getItem('hmPortalHelp') === null,
+      'hidden=' + helpPane.hidden + ' stored=' + localStorage.getItem('hmPortalHelp'));
+   document.dispatchEvent(makeEvent('keydown', { key: 'F1', target: document.body }));
+   await flush();
+   check('F1 opens it again', helpPane.hidden === false && localStorage.getItem('hmPortalHelp') === '1');
+   document.dispatchEvent(makeEvent('keydown', { key: 'F1', target: document.body }));
+   check('and closes it', helpPane.hidden === true);
+   document.dispatchEvent(makeEvent('keydown', { key: 'k', ctrlKey: true, target: document.body }));
+   await flush();
+   document.getElementById('palette-input').value = helpSaid('Help for this page').toLowerCase();
+   document.getElementById('palette-input').dispatchEvent(makeEvent('input'));
+   await flush();
+   const helpRows = Array.from(document.getElementById('palette-list').children || []);
+   check('the palette offers Help for this page, in the reader\'s language', helpRows.length >= 1 && helpRows[0].textContent.indexOf(helpSaid('Help for this page')) >= 0,
+      JSON.stringify(helpRows.map((li) => li.textContent)));
+   document.getElementById('palette-input').dispatchEvent(makeEvent('keydown', { key: 'Enter' }));
+   await flush();
+   check('and choosing it opens the pane', helpPane.hidden === false && document.getElementById('palette').hidden === true,
+      'pane=' + helpPane.hidden + ' palette=' + document.getElementById('palette').hidden);
+   document.getElementById('help-all').dispatchEvent(makeEvent('click'));
+   await flush();
+   check('All documentation lists every document by its title, for opening in the pane',
+      document.getElementById('help-title').textContent === helpSaid('All documentation') &&
+      helpTags('help-body', 'BUTTON').length === helpPages().length,
+      document.getElementById('help-title').textContent + ' ' + helpTags('help-body', 'BUTTON').length + ' of ' + helpPages().length);
+   document.getElementById('help-close').dispatchEvent(makeEvent('click'));
+   check('the close button closes it', helpPane.hidden === true);
 
    // ---- Zero access, the half that signs out and in: the key opened from
    // the sign-in password, and the recovery key after a reset

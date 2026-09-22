@@ -1124,6 +1124,9 @@
   <data name="Aliases are listed under their domain and can be deleted without touching the mailbox behind them." xml:space="preserve">
     <value>エイリアスは所属するドメインの下に一覧表示され、その先にあるメールボックスに触れずに削除できます。</value>
   </data>
+  <data name="All documentation" xml:space="preserve">
+    <value>すべてのドキュメント</value>
+  </data>
   <data name="All files (*.*)|*.*" xml:space="preserve">
     <value>すべてのファイル (*.*)|*.*</value>
   </data>
@@ -2063,6 +2066,9 @@
   </data>
   <data name="Close the group members window" xml:space="preserve">
     <value>グループ メンバー ウィンドウを閉じる</value>
+  </data>
+  <data name="Close the help" xml:space="preserve">
+    <value>ヘルプを閉じる</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>受信者リストを閉じる</value>
@@ -3920,11 +3926,23 @@
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>ヘッダーの読み取りチャンク サイズ (バイト)</value>
   </data>
+  <data name="Headings" xml:space="preserve">
+    <value>見出し</value>
+  </data>
   <data name="Held" xml:space="preserve">
     <value>保留</value>
   </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>保留の理由: {0}</value>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>ヘルプ</value>
+  </data>
+  <data name="Help for this page (F1)" xml:space="preserve">
+    <value>このページのヘルプ (F1)</value>
+  </data>
+  <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
+    <value>このページのヘルプ。キーボード ショートカット F1。</value>
   </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>新しい API キーを隠す</value>
@@ -5806,6 +5824,9 @@
   <data name="Open log folder" xml:space="preserve">
     <value>ログ フォルダーを開く</value>
   </data>
+  <data name="Open on the _wiki" xml:space="preserve">
+    <value>Wiki で開く(_W)</value>
+  </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>配信キューを開く</value>
   </data>
@@ -7442,6 +7463,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Search the delivery queue" xml:space="preserve">
     <value>配信キューを検索</value>
   </data>
+  <data name="Search this document" xml:space="preserve">
+    <value>このドキュメント内を検索</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>検索するか、やりたいことを入力してください - 「スパムを止める」「IP をブロックする」</value>
   </data>
@@ -8678,6 +8702,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>ディレクトリは応答し、この資格情報を拒否しました: {0} (LDAP エラー {1})。接続、トランスポート、設定はすべて機能しています。これは資格情報の問題であり、誤ったパスワードを入力したユーザーに見えるものとまったく同じです。</value>
   </data>
+  <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>ヘルプ ペインに表示されるドキュメントはサーバー自身のコピーです。これは同じページが Wiki 上のどこにあるかを示し、ドキュメント名が付加されます。既定ではプロジェクトの GitLab Wiki です。</value>
+  </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>このドメインにはまだ署名鍵がありません。</value>
   </data>
@@ -9232,6 +9259,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The whole accept pipeline; then the sender gets a 451. 0 = no bound." xml:space="preserve">
     <value>受け入れパイプライン全体。その後、送信者は 451 を受け取ります。0 = 上限なし。</value>
   </data>
+  <data name="The wiki could not be opened in a browser." xml:space="preserve">
+    <value>Wiki をブラウザーで開けませんでした。</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>{0} サーバーはプロトコル ページでオフになっているため、このポートは待ち受けされていません。行は保持されます。プロトコルを再びオンにしてもリスナーは自動的には起動しません。ポート リストと有効なプロトコルはどちらもサービス起動時に 1 回だけ読み込まれるため、有効にした後にサービスを再起動してください。</value>
   </data>
@@ -9296,6 +9326,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
     <value>これはサーバー上のメールボックスをディレクトリに合わせて作成・更新します{0}
 
 メッセージが削除されることも、アカウントが削除されることもありません。続行しますか?</value>
+  </data>
+  <data name="This document is not in this copy of the program." xml:space="preserve">
+    <value>このドキュメントはこのプログラムのコピーには含まれていません。</value>
   </data>
   <data name="This entry was not checked." xml:space="preserve">
     <value>このエントリはチェックされませんでした。</value>
@@ -10047,6 +10080,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Why it is listed" xml:space="preserve">
     <value>リストに載っている理由</value>
   </data>
+  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
+    <value>ヘルプ ペインの「Wiki で開く」リンク先の Wiki (空欄でリンクを非表示)</value>
+  </data>
   <data name="Wildcard" xml:space="preserve">
     <value>ワイルドカード</value>
   </data>
@@ -10181,6 +10217,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="_Add…" xml:space="preserve">
     <value>追加(_A)…</value>
+  </data>
+  <data name="_All documentation" xml:space="preserve">
+    <value>すべてのドキュメント(_A)</value>
   </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>保護されていない接続でのパスワード送信を許可する (AllowUnprotectedPassword)(_A)</value>

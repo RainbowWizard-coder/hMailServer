@@ -1124,6 +1124,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Aliases are listed under their domain and can be deleted without touching the mailbox behind them." xml:space="preserve">
     <value>Aliasy są wymienione pod swoją domeną i można je usunąć bez naruszania skrzynki pocztowej, która za nimi stoi.</value>
   </data>
+  <data name="All documentation" xml:space="preserve">
+    <value>Cała dokumentacja</value>
+  </data>
   <data name="All files (*.*)|*.*" xml:space="preserve">
     <value>Wszystkie pliki (*.*)|*.*</value>
   </data>
@@ -2063,6 +2066,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   </data>
   <data name="Close the group members window" xml:space="preserve">
     <value>Zamknij okno członków grupy</value>
+  </data>
+  <data name="Close the help" xml:space="preserve">
+    <value>Zamknij pomoc</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Zamknij listę odbiorców</value>
@@ -3920,11 +3926,23 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>Rozmiar porcji odczytu nagłówka (w bajtach)</value>
   </data>
+  <data name="Headings" xml:space="preserve">
+    <value>Nagłówki</value>
+  </data>
   <data name="Held" xml:space="preserve">
     <value>Wstrzymana</value>
   </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Wstrzymana z powodu: {0}</value>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>Pomoc</value>
+  </data>
+  <data name="Help for this page (F1)" xml:space="preserve">
+    <value>Pomoc do tej strony (F1)</value>
+  </data>
+  <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
+    <value>Pomoc do tej strony. Skrót klawiaturowy F1.</value>
   </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Ukryj nowy klucz API</value>
@@ -5806,6 +5824,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Open log folder" xml:space="preserve">
     <value>Otwórz folder dzienników</value>
   </data>
+  <data name="Open on the _wiki" xml:space="preserve">
+    <value>Otwórz na _wiki</value>
+  </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Otwórz kolejkę dostarczania</value>
   </data>
@@ -7442,6 +7463,9 @@ Kontynuować?</value>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Przeszukaj kolejkę dostarczania</value>
   </data>
+  <data name="Search this document" xml:space="preserve">
+    <value>Szukaj w tym dokumencie</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Szukaj albo napisz, co chcesz zrobić - „zatrzymaj spam”, „zablokuj adres IP”</value>
   </data>
@@ -8678,6 +8702,9 @@ Należy zaznaczyć klucz powyżej i skopiować go ręcznie - nie zostanie pokaza
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>Katalog odpowiedział i ODRZUCIŁ te poświadczenia: {0} (błąd LDAP {1}). Połączenie, transport i konfiguracja działają - to problem z poświadczeniami, czyli dokładnie to, co zobaczyłby użytkownik wpisujący błędne hasło.</value>
   </data>
+  <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>Dokumentacja wyświetlana w panelu pomocy to własna kopia serwera; tutaj podaje się, gdzie ta sama strona znajduje się na wiki, z dodaną nazwą dokumentu. Domyślnie wiki projektu na GitLabie.</value>
+  </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>Domena nie ma jeszcze klucza podpisu.</value>
   </data>
@@ -9232,6 +9259,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="The whole accept pipeline; then the sender gets a 451. 0 = no bound." xml:space="preserve">
     <value>Cały potok przyjmowania; po jego przekroczeniu nadawca otrzymuje 451. 0 = brak ograniczenia.</value>
   </data>
+  <data name="The wiki could not be opened in a browser." xml:space="preserve">
+    <value>Nie udało się otworzyć wiki w przeglądarce.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>Serwer {0} jest wyłączony na stronie Protokoły, więc na tym porcie nic nie nasłuchuje. Wiersz jest zachowywany. Ponowne włączenie protokołu samo z siebie nie uruchamia nasłuchu - lista portów i włączone protokoły są odczytywane raz, przy starcie usługi - więc po włączeniu należy ponownie uruchomić usługę.</value>
   </data>
@@ -9296,6 +9326,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
     <value>Spowoduje to utworzenie i zaktualizowanie skrzynek pocztowych na serwerze tak, aby odpowiadały katalogowi{0}
 
 Żadna wiadomość nie zostanie usunięta i żadne konto nie zostanie skasowane. Kontynuować?</value>
+  </data>
+  <data name="This document is not in this copy of the program." xml:space="preserve">
+    <value>Tego dokumentu nie ma w tej kopii programu.</value>
   </data>
   <data name="This entry was not checked." xml:space="preserve">
     <value>Ten wpis nie został sprawdzony.</value>
@@ -10047,6 +10080,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Why it is listed" xml:space="preserve">
     <value>Dlaczego jest na liście</value>
   </data>
+  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
+    <value>Wiki, do której prowadzi „Otwórz na wiki” w panelu pomocy (puste ukrywa łącze)</value>
+  </data>
   <data name="Wildcard" xml:space="preserve">
     <value>Symbol wieloznaczny</value>
   </data>
@@ -10181,6 +10217,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Add…" xml:space="preserve">
     <value>_Dodaj…</value>
+  </data>
+  <data name="_All documentation" xml:space="preserve">
+    <value>_Cała dokumentacja</value>
   </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>Z_ezwalaj na wysyłanie hasła przez połączenie niezabezpieczone (AllowUnprotectedPassword)</value>

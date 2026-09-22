@@ -369,6 +369,8 @@ END_COM_MAP()
    STDMETHOD(put_ReputationWatchLists)(/*[in]*/ BSTR newVal);
    STDMETHOD(get_ReputationWatchAddresses)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(put_ReputationWatchAddresses)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_HelpWikiBaseUrl)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_HelpWikiBaseUrl)(/*[in]*/ BSTR newVal);
 
    // Spam traps, which live in hm_settings as the digest does.
    STDMETHOD(get_SpamTrapBanMinutes)(/*[out, retval]*/ long *pVal);

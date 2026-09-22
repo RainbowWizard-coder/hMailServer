@@ -1124,6 +1124,9 @@
   <data name="Aliases are listed under their domain and can be deleted without touching the mailbox behind them." xml:space="preserve">
     <value>别名列在其所属的域之下，可以删除而不影响其背后的邮箱。</value>
   </data>
+  <data name="All documentation" xml:space="preserve">
+    <value>全部文档</value>
+  </data>
   <data name="All files (*.*)|*.*" xml:space="preserve">
     <value>所有文件 (*.*)|*.*</value>
   </data>
@@ -2063,6 +2066,9 @@
   </data>
   <data name="Close the group members window" xml:space="preserve">
     <value>关闭组成员窗口</value>
+  </data>
+  <data name="Close the help" xml:space="preserve">
+    <value>关闭帮助</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>关闭收件人列表</value>
@@ -3920,11 +3926,23 @@
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>标头读取块大小（字节）</value>
   </data>
+  <data name="Headings" xml:space="preserve">
+    <value>标题</value>
+  </data>
   <data name="Held" xml:space="preserve">
     <value>已暂挂</value>
   </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>暂挂原因：{0}</value>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>帮助</value>
+  </data>
+  <data name="Help for this page (F1)" xml:space="preserve">
+    <value>此页面的帮助 (F1)</value>
+  </data>
+  <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
+    <value>此页面的帮助。键盘快捷键 F1。</value>
   </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>隐藏新的 API 密钥</value>
@@ -5806,6 +5824,9 @@
   <data name="Open log folder" xml:space="preserve">
     <value>打开日志文件夹</value>
   </data>
+  <data name="Open on the _wiki" xml:space="preserve">
+    <value>在 Wiki 中打开(_W)</value>
+  </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>打开投递队列</value>
   </data>
@@ -7442,6 +7463,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Search the delivery queue" xml:space="preserve">
     <value>搜索投递队列</value>
   </data>
+  <data name="Search this document" xml:space="preserve">
+    <value>在此文档中搜索</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>搜索，或说出您想做什么 - “阻止垃圾邮件”、“封禁一个 IP”</value>
   </data>
@@ -8678,6 +8702,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>目录已应答并拒绝了这些凭据: {0} (LDAP 错误 {1})。连接、传输和配置都正常 - 这是凭据问题，正是输错密码的用户会看到的情况。</value>
   </data>
+  <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>帮助窗格显示的文档是服务器自己的副本；此处指定同一页面在 Wiki 上的位置，并附加文档名称。出厂设置为项目的 GitLab Wiki。</value>
+  </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>该域还没有签名密钥。</value>
   </data>
@@ -9232,6 +9259,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The whole accept pipeline; then the sender gets a 451. 0 = no bound." xml:space="preserve">
     <value>整个接收流水线；之后发件人收到 451。0 = 无上限。</value>
   </data>
+  <data name="The wiki could not be opened in a browser." xml:space="preserve">
+    <value>无法在浏览器中打开 Wiki。</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>{0} 服务器已在“协议”页关闭，因此此端口未被监听。该行仍会保留。重新开启该协议不会自行启动监听器 - 端口列表和已启用的协议都只在服务启动时读取一次 - 因此启用后请重启服务。</value>
   </data>
@@ -9296,6 +9326,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
     <value>这会在服务器上创建和更新邮箱以匹配目录{0}
 
 不会删除任何邮件，也不会移除任何账户。继续吗?</value>
+  </data>
+  <data name="This document is not in this copy of the program." xml:space="preserve">
+    <value>此文档不在本程序的此副本中。</value>
   </data>
   <data name="This entry was not checked." xml:space="preserve">
     <value>此条目未被检查。</value>
@@ -10047,6 +10080,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Why it is listed" xml:space="preserve">
     <value>列入原因</value>
   </data>
+  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
+    <value>帮助窗格中“在 Wiki 中打开”链接指向的 Wiki（留空则隐藏链接）</value>
+  </data>
   <data name="Wildcard" xml:space="preserve">
     <value>通配符</value>
   </data>
@@ -10181,6 +10217,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="_Add…" xml:space="preserve">
     <value>添加(_A)…</value>
+  </data>
+  <data name="_All documentation" xml:space="preserve">
+    <value>全部文档(_A)</value>
   </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>允许通过未受保护的连接发送密码(A)（AllowUnprotectedPassword）(_G)</value>

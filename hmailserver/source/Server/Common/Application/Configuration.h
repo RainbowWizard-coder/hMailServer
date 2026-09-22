@@ -173,6 +173,13 @@ namespace HM
       String GetReputationWatchAddresses() const;
       void SetReputationWatchAddresses(const String &newVal);
 
+      // The wiki base URL the help panes link to, with the document's name as
+      // the page; empty hides the link. Validated where it is set - the REST
+      // row and the COM property refuse a value that is not empty and not an
+      // absolute http or https URL - so what is stored is usable.
+      String GetHelpWikiBaseUrl() const;
+      void SetHelpWikiBaseUrl(const String &newVal);
+
 
       int GetWorkerThreadPriority() const;
       void SetWorkerThreadPriority(int iNewVal);

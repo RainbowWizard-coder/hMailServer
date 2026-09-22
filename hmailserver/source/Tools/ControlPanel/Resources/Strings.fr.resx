@@ -1124,6 +1124,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Aliases are listed under their domain and can be deleted without touching the mailbox behind them." xml:space="preserve">
     <value>Les alias sont listés sous leur domaine et peuvent être supprimés sans toucher la boîte qui se trouve derrière.</value>
   </data>
+  <data name="All documentation" xml:space="preserve">
+    <value>Toute la documentation</value>
+  </data>
   <data name="All files (*.*)|*.*" xml:space="preserve">
     <value>Tous les fichiers (*.*)|*.*</value>
   </data>
@@ -2063,6 +2066,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   </data>
   <data name="Close the group members window" xml:space="preserve">
     <value>Fermer la fenêtre des membres du groupe</value>
+  </data>
+  <data name="Close the help" xml:space="preserve">
+    <value>Fermer l'aide</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Fermer la liste des destinataires</value>
@@ -3920,11 +3926,23 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>Taille des blocs de lecture des en-têtes (octets)</value>
   </data>
+  <data name="Headings" xml:space="preserve">
+    <value>Titres</value>
+  </data>
   <data name="Held" xml:space="preserve">
     <value>Retenu</value>
   </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Retenu parce que : {0}</value>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>Aide</value>
+  </data>
+  <data name="Help for this page (F1)" xml:space="preserve">
+    <value>Aide pour cette page (F1)</value>
+  </data>
+  <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
+    <value>Aide pour cette page. Raccourci clavier F1.</value>
   </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Masquer la nouvelle clé d'API</value>
@@ -5806,6 +5824,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Open log folder" xml:space="preserve">
     <value>Ouvrir le dossier des journaux</value>
   </data>
+  <data name="Open on the _wiki" xml:space="preserve">
+    <value>Ouvrir sur le _wiki</value>
+  </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Ouvrir la file de livraison</value>
   </data>
@@ -7442,6 +7463,9 @@ Continuer ?</value>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Rechercher dans la file de livraison</value>
   </data>
+  <data name="Search this document" xml:space="preserve">
+    <value>Rechercher dans ce document</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Recherchez, ou dites ce que vous voulez faire - « arrêter le spam », « bloquer une IP »</value>
   </data>
@@ -8678,6 +8702,9 @@ Sélectionnez la clé ci-dessus et copiez-la à la main - elle ne sera plus jama
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>L'annuaire a répondu et REFUSÉ ces identifiants : {0} (erreur LDAP {1}). La connexion, le transport et la configuration fonctionnent tous - c'est un problème d'identifiants, exactement ce que verrait un utilisateur qui tape un mauvais mot de passe.</value>
   </data>
+  <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>La documentation affichée dans le volet d'aide est la copie propre du serveur ; ceci indique où se trouve la même page sur le wiki, avec le nom du document ajouté. Par défaut, le wiki GitLab du projet.</value>
+  </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>Le domaine n'a pas encore de clé de signature.</value>
   </data>
@@ -9232,6 +9259,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="The whole accept pipeline; then the sender gets a 451. 0 = no bound." xml:space="preserve">
     <value>Tout le pipeline d'acceptation ; ensuite l'expéditeur reçoit un 451. 0 = pas de borne.</value>
   </data>
+  <data name="The wiki could not be opened in a browser." xml:space="preserve">
+    <value>Le wiki n'a pas pu être ouvert dans un navigateur.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>Le serveur {0} est désactivé sur la page Protocoles : ce port n'est donc pas écouté. La ligne est conservée. Réactiver le protocole ne démarre pas l'écouteur à lui seul - la liste des ports et les protocoles activés sont tous deux lus une seule fois, au démarrage du service - redémarrez donc le service après l'avoir activé.</value>
   </data>
@@ -9296,6 +9326,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
     <value>Ceci crée et met à jour des boîtes sur le serveur pour correspondre à l'annuaire{0}
 
 Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
+  </data>
+  <data name="This document is not in this copy of the program." xml:space="preserve">
+    <value>Ce document n'est pas dans cette copie du programme.</value>
   </data>
   <data name="This entry was not checked." xml:space="preserve">
     <value>Cette entrée n'a pas été vérifiée.</value>
@@ -10047,6 +10080,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="Why it is listed" xml:space="preserve">
     <value>Pourquoi elle est listée</value>
   </data>
+  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
+    <value>Wiki vers lequel pointe « Ouvrir sur le wiki » du volet d'aide (vide masque le lien)</value>
+  </data>
   <data name="Wildcard" xml:space="preserve">
     <value>Joker</value>
   </data>
@@ -10181,6 +10217,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="_Add…" xml:space="preserve">
     <value>A_jouter…</value>
+  </data>
+  <data name="_All documentation" xml:space="preserve">
+    <value>_Toute la documentation</value>
   </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>Autoriser l'envoi du mot de passe _sur une connexion non protégée (AllowUnprotectedPassword)</value>

@@ -1023,6 +1023,11 @@ interface IInterfaceSettings : IDispatch{
    [propget, id(140), helpstring("Whether a message sent to a real mailbox by a session that addressed a spam trap is taught to SpamAssassin as spam (the spamc TELL command, into the store its verdicts come from). Off by default; does nothing unless SpamAssassin is enabled and its spamd allows TELL. A trap hit with no message after it teaches nothing, because the trap is refused at RCPT TO and its own message never arrives.")] HRESULT SpamTrapTeachSpamAssassin([out, retval] VARIANT_BOOL *pVal);
    [propput, id(140), helpstring("Whether a message sent to a real mailbox by a session that addressed a spam trap is taught to SpamAssassin as spam (the spamc TELL command, into the store its verdicts come from). Off by default; does nothing unless SpamAssassin is enabled and its spamd allows TELL. A trap hit with no message after it teaches nothing, because the trap is refused at RCPT TO and its own message never arrives.")] HRESULT SpamTrapTeachSpamAssassin([in] VARIANT_BOOL newVal);
 
+   // The help panes (Common/Util/HelpPages.h). Stored in hm_settings. 175 is
+   // the next free id on this interface; 141 to 174 are taken further up.
+   [propget, id(175), helpstring("The wiki the help panes' Open on the wiki link points at, with the document's name as the page - https://gitlab.com/Progressiverobot/hmailserver/-/wikis/ as shipped. Absolute, beginning with http:// or https://; empty hides the link. The same value as help_wiki_base_url on GET and PUT /api/v1/settings.")] HRESULT HelpWikiBaseUrl([out, retval] BSTR *pVal);
+   [propput, id(175), helpstring("The wiki the help panes' Open on the wiki link points at, with the document's name as the page - https://gitlab.com/Progressiverobot/hmailserver/-/wikis/ as shipped. Absolute, beginning with http:// or https://; empty hides the link. The same value as help_wiki_base_url on GET and PUT /api/v1/settings.")] HRESULT HelpWikiBaseUrl([in] BSTR newVal);
+
 };
 
 

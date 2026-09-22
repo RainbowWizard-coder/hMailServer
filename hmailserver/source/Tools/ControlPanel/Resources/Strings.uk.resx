@@ -1124,6 +1124,9 @@
   <data name="Aliases are listed under their domain and can be deleted without touching the mailbox behind them." xml:space="preserve">
     <value>Псевдоніми перелічено в межах їхнього домену; їх можна видаляти, не торкаючись поштової скриньки, що стоїть за ними.</value>
   </data>
+  <data name="All documentation" xml:space="preserve">
+    <value>Уся документація</value>
+  </data>
   <data name="All files (*.*)|*.*" xml:space="preserve">
     <value>Усі файли (*.*)|*.*</value>
   </data>
@@ -2063,6 +2066,9 @@
   </data>
   <data name="Close the group members window" xml:space="preserve">
     <value>Закрити вікно учасників групи</value>
+  </data>
+  <data name="Close the help" xml:space="preserve">
+    <value>Закрити довідку</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Закрити список отримувачів</value>
@@ -3920,11 +3926,23 @@
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>Розмір блоку читання заголовків (байтів)</value>
   </data>
+  <data name="Headings" xml:space="preserve">
+    <value>Заголовки</value>
+  </data>
   <data name="Held" xml:space="preserve">
     <value>Утримано</value>
   </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Утримано, бо: {0}</value>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>Довідка</value>
+  </data>
+  <data name="Help for this page (F1)" xml:space="preserve">
+    <value>Довідка щодо цієї сторінки (F1)</value>
+  </data>
+  <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
+    <value>Довідка щодо цієї сторінки. Сполучення клавіш F1.</value>
   </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Сховати новий ключ API</value>
@@ -5806,6 +5824,9 @@
   <data name="Open log folder" xml:space="preserve">
     <value>Відкрити папку журналів</value>
   </data>
+  <data name="Open on the _wiki" xml:space="preserve">
+    <value>Відкрити у _вікі</value>
+  </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Відкрити чергу доставки</value>
   </data>
@@ -7442,6 +7463,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Пошук у черзі доставки</value>
   </data>
+  <data name="Search this document" xml:space="preserve">
+    <value>Пошук у цьому документі</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Шукайте або скажіть, що хочете зробити - «зупинити спам», «заблокувати IP»</value>
   </data>
@@ -8678,6 +8702,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>Каталог відповів і ВІДХИЛИВ ці облікові дані: {0} (помилка LDAP {1}). З'єднання, транспорт і налаштування працюють - це проблема облікових даних, саме те, що побачив би користувач, набравши неправильний пароль.</value>
   </data>
+  <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>Документація в панелі довідки — власна копія сервера; тут указано, де та сама сторінка розміщена у вікі, з доданим іменем документа. За замовчуванням — вікі проєкту на GitLab.</value>
+  </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>Домен ще не має ключа підпису.</value>
   </data>
@@ -9232,6 +9259,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The whole accept pipeline; then the sender gets a 451. 0 = no bound." xml:space="preserve">
     <value>Увесь конвеєр приймання; потім відправник отримує 451. 0 = без обмеження.</value>
   </data>
+  <data name="The wiki could not be opened in a browser." xml:space="preserve">
+    <value>Не вдалося відкрити вікі у браузері.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>Сервер {0} вимкнено на сторінці «Протоколи», тому цей порт не прослуховується. Рядок збережено. Увімкнення протоколу назад саме по собі не запускає слухача - і список портів, і увімкнені протоколи читаються один раз, під час запуску служби, - тому після увімкнення перезапустіть службу.</value>
   </data>
@@ -9296,6 +9326,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Це створює та оновлює поштові скриньки на сервері відповідно до каталогу{0}
 
 Жодне повідомлення не видаляється і жоден обліковий запис не вилучається. Продовжити?</value>
+  </data>
+  <data name="This document is not in this copy of the program." xml:space="preserve">
+    <value>Цього документа немає в цій копії програми.</value>
   </data>
   <data name="This entry was not checked." xml:space="preserve">
     <value>Цей запис не перевірявся.</value>
@@ -10047,6 +10080,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Why it is listed" xml:space="preserve">
     <value>Чому вона у списку</value>
   </data>
+  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
+    <value>Вікі, на яку веде посилання «Відкрити у вікі» панелі довідки (порожнє приховує посилання)</value>
+  </data>
   <data name="Wildcard" xml:space="preserve">
     <value>Шаблон</value>
   </data>
@@ -10181,6 +10217,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Add…" xml:space="preserve">
     <value>_Додати…</value>
+  </data>
+  <data name="_All documentation" xml:space="preserve">
+    <value>_Уся документація</value>
   </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>_Дозволити надсилання пароля через незахищене підключення (AllowUnprotectedPassword)</value>

@@ -320,6 +320,7 @@
     <Compile Include="Infrastructure\Utf16FileFormat.cs" />
     <Compile Include="Infrastructure\PrivacyTools.cs" />
     <Compile Include="API\RestApiPersonExport.cs" />
+    <Compile Include="API\RestApiHelp.cs" />
     <Compile Include="IMAP\CapabilityAuthAdvertisement.cs" />
     <Compile Include="IMAP\Utf8Append.cs" />
     <Compile Include="IMAP\MasterUserImpersonation.cs" />

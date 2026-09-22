@@ -38,6 +38,12 @@
          reach its page. -->
     <Compile Include="..\ControlPanel\Services\SearchTerms.cs" />
     <Compile Include="..\ControlPanel\Services\NavigationMap.cs" />
+    <!-- Help where the question is: every page's document and heading, and the
+         markdown reading the pane draws from. Both are plain data and pure
+         functions - the WPF half is Views/HelpPane.cs and MarkdownFlow.cs - so
+         a test can hold the map to the navigation and the parser to a document. -->
+    <Compile Include="..\ControlPanel\Services\HelpMap.cs" />
+    <Compile Include="..\ControlPanel\Services\MarkdownBlocks.cs" />
     <Compile Include="..\ControlPanel\Services\WelcomeIntents.cs" />
     <Compile Include="..\ControlPanel\Services\IntentIndex.cs" />
     <Compile Include="..\ControlPanel\Services\PaletteUsage.cs" />

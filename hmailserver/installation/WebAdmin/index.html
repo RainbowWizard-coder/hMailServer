@@ -129,6 +129,49 @@ kbd{font-family:var(--mono);font-size:var(--fs-caption);background:var(--surface
 /* ---------- The content area ---------- */
 .main{flex:1;display:flex;flex-direction:column;min-width:0}
 .content{flex:1;overflow:auto;padding:var(--s5) var(--s5) var(--s5)}
+
+/* ---------- The help pane, beside the view ----------
+   A column to the right of the content, never over it: the view stays
+   usable while the text is open. The body's typography is the page's own,
+   scaled to a column; everything in it is a node the renderer made. */
+.helppane{width:min(440px,45vw);flex:none;display:flex;flex-direction:column;min-height:0;background:var(--surface);border-inline-start:1px solid var(--line)}
+.helppane[hidden]{display:none}
+.helppane .head{display:flex;align-items:center;gap:var(--s2);padding:var(--s3) var(--s4);border-bottom:1px solid var(--line)}
+.helppane .head h2{flex:1;min-width:0;font-size:var(--fs-body);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.helppane .find{padding:var(--s2) var(--s4)}
+.helppane .find input{width:100%;height:30px;padding:0 var(--s3);border-radius:var(--pill);background:var(--surface-2);border:1px solid transparent;font-size:var(--fs-caption)}
+.helppane .find input:focus{background:var(--surface);border-color:var(--accent)}
+.helppane .heads{display:flex;flex-direction:column;gap:1px;padding:0 var(--s3) var(--s2);border-bottom:1px solid var(--line);max-height:28vh;overflow:auto}
+.helppane .heads:empty{display:none}
+.helppane .heads button{all:unset;cursor:pointer;padding:2px var(--s2);border-radius:var(--radius-control);font-size:var(--fs-caption);color:var(--accent-text)}
+.helppane .heads button.sub{padding-inline-start:var(--s4)}
+.helppane .heads button:hover{background:var(--surface-2)}
+.helppane .heads button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.helppane .body{flex:1;overflow:auto;padding:var(--s3) var(--s4) var(--s5);font-size:var(--fs-body);line-height:1.5;overflow-wrap:anywhere}
+.helppane .body h2{font-size:var(--fs-subtitle);font-weight:600;margin:var(--s3) 0 var(--s2)}
+.helppane .body h3{font-size:var(--fs-body);font-weight:600;margin:var(--s4) 0 var(--s2)}
+.helppane .body h4,.helppane .body h5,.helppane .body h6{font-size:var(--fs-body);font-weight:600;margin:var(--s3) 0 var(--s1)}
+.helppane .body p{margin:0 0 var(--s3)}
+.helppane .body ul,.helppane .body ol{margin:0 0 var(--s3);padding-inline-start:var(--s5)}
+.helppane .body li{margin:2px 0}
+.helppane .body li>ul,.helppane .body li>ol{margin-bottom:0}
+.helppane .body code{font-family:var(--mono);font-size:var(--fs-caption);background:var(--surface-2);padding:0 4px;border-radius:4px}
+.helppane .body pre{background:var(--surface-2);padding:var(--s3);border-radius:var(--radius-control);overflow:auto;margin:0 0 var(--s3);font-size:var(--fs-caption)}
+.helppane .body pre code{background:none;padding:0}
+.helppane .body table{font-size:var(--fs-caption);margin:0 0 var(--s3)}
+.helppane .body th,.helppane .body td{padding:var(--s1) var(--s2);vertical-align:top}
+.helppane .body blockquote{border-inline-start:3px solid var(--line-2);padding-inline-start:var(--s3);color:var(--text-2);margin:0 0 var(--s3)}
+.helppane .body hr{border:0;border-top:1px solid var(--line);margin:var(--s3) 0}
+.helppane .body a{color:var(--accent-text)}
+.helppane .body mark{background:var(--warn-soft);color:inherit;border-radius:3px}
+.helppane .body .doclist{list-style:none;padding:0}
+.helppane .body .doclist button{all:unset;cursor:pointer;display:block;width:100%;padding:var(--s1) var(--s2);border-radius:var(--radius-control);color:var(--accent-text)}
+.helppane .body .doclist button:hover{background:var(--surface-2)}
+.helppane .body .doclist button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.helppane .body .doclist small{display:block;color:var(--muted);font-size:var(--fs-caption)}
+.helppane .foot{display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap;padding:var(--s3) var(--s4);border-top:1px solid var(--line);font-size:var(--fs-caption)}
+.helppane .foot a{color:var(--accent-text)}
+@media (max-width:900px){.helppane{width:min(340px,80vw)}}
 .view{animation:rise .2s ease-out}
 @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
@@ -298,7 +341,8 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
     <select data-lang id="langSel" aria-label="Language" title="Language"></select>
     <button class="iconbtn" id="themeBtn" data-nowalk>◐</button>
     <button class="iconbtn" id="tourBtn" title="Show me around" aria-label="Show me around">◎</button>
-    <button class="iconbtn" id="keysBtn" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">?</button>
+    <button class="iconbtn" id="helpBtn" title="Help for this view" aria-label="Help for this view">?</button>
+    <button class="iconbtn" id="keysBtn" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">⌨</button>
     <button class="iconbtn" id="logoutBtn" title="Sign out" aria-label="Sign out">⏻</button>
   </header>
   <div class="shell">
@@ -345,6 +389,17 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
       <div class="foot">v<span id="ver">—</span></div>
     </aside>
     <main class="main"><div class="content" id="content" tabindex="-1"></div></main>
+    <!-- The help pane: what the documentation says about the view showing,
+         beside it. The body and the headings are drawn from the document by
+         the script and are not the page's texts, so the localiser leaves
+         them; the head, the search and the foot are. -->
+    <aside class="helppane" id="helpPane" hidden aria-label="Help">
+      <div class="head"><h2 id="helpTitle">Help</h2><button class="iconbtn" id="helpClose" title="Close the help" aria-label="Close the help">✕</button></div>
+      <div class="find"><input id="helpSearch" type="search" placeholder="Search this document" aria-label="Search this document"></div>
+      <nav class="heads" id="helpHeads" aria-label="Headings" data-nowalk></nav>
+      <div class="body" id="helpBody" tabindex="-1" data-nowalk></div>
+      <div class="foot"><a id="helpWiki" href="#" target="_blank" rel="noopener noreferrer" hidden>Open on the wiki</a><button class="btn ghost sm" id="helpAll">All documentation</button></div>
+    </aside>
   </div>
 </div>
 
@@ -752,6 +807,7 @@ function enter(status){
   $("#gate").style.display="none";$("#app").style.display="flex";
   $("#ver").textContent=status.version||"?";
   if(!view){$("#viewTitle").textContent="";$("#content").innerHTML='<div class="empty">'+t("This role reaches none of the pages of the Deck. Ask an administrator for one that does.")+'</div>';return;}
+  if(helpRemembered()){$("#helpPane").hidden=false;}
   render();
   if(!pollTimer)pollTimer=setInterval(()=>{if(view==="dash")render(true);},3000);
 }
@@ -769,6 +825,7 @@ const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
+  helpFollow();
   try{
     if(view==="dash")await renderDash(silent);
     else if(view==="domains")await renderDomains();
@@ -1255,6 +1312,7 @@ $("#content").addEventListener("keydown",e=>{
 const SHORTCUTS=[
   ["/",K("Search this view")],
   ["?",K("Show or hide this list")],
+  ["F1",K("Help for this view, beside it")],
   ["Esc",K("Close this list, or leave the search box")],
   ["↑ ↓",K("Move through the rows of a table, or the views while the keyboard is in the navigation column")],
   ["Enter",K("Open the row the cursor is on")],
@@ -1296,6 +1354,540 @@ function openRow(){
   if(button)button.click();
 }
 
+/* ---------- Help, beside the view ----------
+   The documentation the server carries (GET /api/v1/help/{page}: the
+   repository's own hmailserver/docs, embedded), one document per view,
+   drawn in a pane to the right of the content rather than in its place.
+   HELP_MAP is the view's document and, where one is named, the heading
+   the pane opens on; build/check-help-map.py holds it to the documents,
+   and the Control Panel (Services/HelpMap.cs) and the webmail (Portal.js)
+   keep the same table for their pages. The pane follows the view as the
+   navigation changes, and whether it is open is this browser's choice,
+   kept beside the theme and the language.
+
+   The renderer is a copy of the webmail's /portal-markdown.js
+   (Common/Util/PortalMarkdown.js): this page's policy allows no script but
+   its own inline one, so the module cannot be loaded here. The copy is the
+   module's factory body verbatim, and a change there is a change here. It
+   builds nodes and never assigns markup, so a document can carry nothing
+   the page runs. */
+const hmMarkdown=(function () {
+  'use strict';
+
+  var FENCE = /^ {0,3}(```|~~~)\s*([\w.+-]*)\s*$/;
+  var ATX = /^ {0,3}(#{1,6})[ \t]+(.*?)[ \t]*#*[ \t]*$/;
+  var SETEXT_ONE = /^ {0,3}=+[ \t]*$/;
+  var SETEXT_TWO = /^ {0,3}-+[ \t]*$/;
+  var RULE = /^ {0,3}([-*_])[ \t]*(?:\1[ \t]*){2,}$/;
+  var BULLET = /^( *)([-*+])[ \t]+(.*)$/;
+  var NUMBERED = /^( *)(\d{1,9})[.)][ \t]+(.*)$/;
+  var QUOTE = /^ {0,3}>[ ]?(.*)$/;
+  var TABLE_DELIMITER = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
+
+  var isBlank = function (line) { return !line || !line.trim(); };
+  var isListStart = function (line) { return BULLET.test(line) || NUMBERED.test(line); };
+  var isTableRow = function (line) { return line.indexOf('|') >= 0; };
+
+  // The cells of a table row: the outer pipes dropped, a pipe inside a code
+  // span kept as the character it is.
+  var splitRow = function (line) {
+    var cells = [];
+    var current = '';
+    var inCode = false;
+    var text = line.trim();
+    if (text.charAt(0) === '|') { text = text.slice(1); }
+    if (text.charAt(text.length - 1) === '|' && text.charAt(text.length - 2) !== '\\') { text = text.slice(0, -1); }
+    for (var i = 0; i < text.length; i++) {
+      var ch = text.charAt(i);
+      if (ch === '`') { inCode = !inCode; current += ch; }
+      else if (ch === '\\' && text.charAt(i + 1) === '|') { current += '|'; i++; }
+      else if (ch === '|' && !inCode) { cells.push(current.trim()); current = ''; }
+      else { current += ch; }
+    }
+    cells.push(current.trim());
+    return cells;
+  };
+
+  // ---- Blocks ---------------------------------------------------------------
+  // parse(text) -> an array of blocks, each with the line it starts on:
+  //   {type:'heading', level, text, line}
+  //   {type:'paragraph', text, line}
+  //   {type:'code', text, language, line}
+  //   {type:'list', ordered, start, items:[[block...]], line}
+  //   {type:'quote', blocks:[block...], line}
+  //   {type:'table', header:[text...], rows:[[text...]], line}
+  //   {type:'rule', line}
+  var parseBlocks = function (lines, offset) {
+    var blocks = [];
+    var i = 0;
+    var n = lines.length;
+    var at = function () { return offset + i; };
+    while (i < n) {
+      var line = lines[i];
+      if (isBlank(line)) { i++; continue; }
+
+      var fence = FENCE.exec(line);
+      if (fence) {
+        var start = at();
+        var mark = fence[1];
+        var language = fence[2] || '';
+        var code = [];
+        i++;
+        while (i < n) {
+          var close = FENCE.exec(lines[i]);
+          if (close && close[1] === mark && !close[2]) { i++; break; }
+          code.push(lines[i]);
+          i++;
+        }
+        blocks.push({ type: 'code', text: code.join('\n'), language: language, line: start });
+        continue;
+      }
+
+      var atx = ATX.exec(line);
+      if (atx) {
+        blocks.push({ type: 'heading', level: atx[1].length, text: atx[2], line: at() });
+        i++;
+        continue;
+      }
+
+      if (RULE.test(line)) {
+        // A run of dashes under a paragraph line is a setext heading, read
+        // below when the paragraph is gathered; here the line stands alone.
+        blocks.push({ type: 'rule', line: at() });
+        i++;
+        continue;
+      }
+
+      var quote = QUOTE.exec(line);
+      if (quote) {
+        var quoteStart = at();
+        var inner = [];
+        while (i < n) {
+          var q = QUOTE.exec(lines[i]);
+          if (q) { inner.push(q[1]); i++; }
+          else if (!isBlank(lines[i]) && inner.length && !isListStart(lines[i]) && !FENCE.test(lines[i]) && !ATX.test(lines[i])) { inner.push(lines[i]); i++; }
+          else { break; }
+        }
+        blocks.push({ type: 'quote', blocks: parseBlocks(inner, quoteStart), line: quoteStart });
+        continue;
+      }
+
+      if (isListStart(line)) {
+        var listStart = at();
+        var first = BULLET.exec(line) || NUMBERED.exec(line);
+        var ordered = !!NUMBERED.exec(line);
+        var indent = first[1].length;
+        var items = [];
+        var item = null;
+        var itemIndent = 0;
+        while (i < n) {
+          var current = lines[i];
+          var open = BULLET.exec(current) || NUMBERED.exec(current);
+          if (open && open[1].length <= indent) {
+            if (open[1].length < indent) { break; }
+            if ((ordered && !NUMBERED.exec(current)) || (!ordered && !BULLET.exec(current))) { break; }
+            if (item) { items.push(item); }
+            // The item's own text is indented to where its text began, so a
+            // line under it that is indented that far belongs to it.
+            itemIndent = current.length - open[3].length;
+            item = { lines: [open[3]], start: at() };
+            i++;
+            continue;
+          }
+          if (!item) { break; }
+          if (isBlank(current)) {
+            // A blank line ends the list unless the next line is indented
+            // under the item (a second paragraph, a nested list) or another
+            // item of this list.
+            var next = i + 1 < n ? lines[i + 1] : '';
+            var nextOpen = BULLET.exec(next) || NUMBERED.exec(next);
+            var continues = (!isBlank(next) && next.length - next.replace(/^ */, '').length >= itemIndent) ||
+              (nextOpen && nextOpen[1].length === indent && ((ordered && NUMBERED.exec(next)) || (!ordered && BULLET.exec(next))));
+            if (!continues) { break; }
+            item.lines.push('');
+            i++;
+            continue;
+          }
+          var lead = current.length - current.replace(/^ */, '').length;
+          if (lead >= itemIndent) { item.lines.push(current.slice(itemIndent)); i++; continue; }
+          if (open) { break; }
+          if (FENCE.test(current) || ATX.test(current) || (isTableRow(current) && i + 1 < n && isTableRow(lines[i + 1]) && TABLE_DELIMITER.test(lines[i + 1]))) { break; }
+          // A lazy continuation of the item's paragraph.
+          item.lines.push(current.trim());
+          i++;
+        }
+        if (item) { items.push(item); }
+        blocks.push({
+          type: 'list', ordered: ordered, start: ordered ? parseInt(first[2], 10) : 1,
+          items: items.map(function (entry) { return parseBlocks(entry.lines, entry.start); }),
+          line: listStart
+        });
+        continue;
+      }
+
+      if (isTableRow(line) && i + 1 < n && TABLE_DELIMITER.test(lines[i + 1]) && isTableRow(lines[i + 1])) {
+        var tableStart = at();
+        var header = splitRow(line);
+        var rows = [];
+        i += 2;
+        while (i < n && !isBlank(lines[i]) && isTableRow(lines[i])) { rows.push(splitRow(lines[i])); i++; }
+        blocks.push({ type: 'table', header: header, rows: rows, line: tableStart });
+        continue;
+      }
+
+      // A paragraph: lines until a blank one or the start of something else.
+      // A setext underline under it makes the line above it a heading, and
+      // the lines before that a paragraph of their own.
+      var paragraphStart = at();
+      var text = [];
+      while (i < n) {
+        var candidate = lines[i];
+        if (isBlank(candidate)) { break; }
+        if (text.length && (SETEXT_ONE.test(candidate) || SETEXT_TWO.test(candidate))) {
+          var headingText = text.pop();
+          if (text.length) { blocks.push({ type: 'paragraph', text: text.join(' '), line: paragraphStart }); }
+          blocks.push({ type: 'heading', level: SETEXT_ONE.test(candidate) ? 1 : 2, text: headingText, line: at() - 1 });
+          text = [];
+          i++;
+          paragraphStart = at();
+          break;
+        }
+        if (text.length && (FENCE.test(candidate) || ATX.test(candidate) || isListStart(candidate) || QUOTE.test(candidate) || RULE.test(candidate))) { break; }
+        if (text.length && isTableRow(candidate) && i + 1 < n && isTableRow(lines[i + 1]) && TABLE_DELIMITER.test(lines[i + 1])) { break; }
+        text.push(candidate.trim());
+        i++;
+      }
+      if (text.length) { blocks.push({ type: 'paragraph', text: text.join(' '), line: paragraphStart }); }
+    }
+    return blocks;
+  };
+
+  var parse = function (text) {
+    return parseBlocks(String(text || '').replace(/\r\n?/g, '\n').split('\n'), 0);
+  };
+
+  // The level-one and level-two headings, as the server lists them.
+  var headings = function (text) {
+    var found = [];
+    parse(text).forEach(function (block) {
+      if (block.type === 'heading' && block.level <= 2) { found.push({ text: block.text, level: block.level, line: block.line }); }
+    });
+    return found;
+  };
+
+  // ---- Inlines --------------------------------------------------------------
+  // Code spans first, since nothing inside one is markup; then links, strong,
+  // emphasis and autolinks, left to right; an image is its alternative text.
+  var inlinesInto = function (doc, parent, text, linkOf) {
+    var rest = String(text || '');
+    var buffer = '';
+    var flush = function () { if (buffer) { parent.appendChild(doc.createTextNode(buffer)); buffer = ''; } };
+    var pattern = /(`+)([\s\S]*?[^`])\1(?!`)|!\[([^\]]*)\]\(([^)\s]*)(?:\s+"[^"]*")?\)|\[([^\]]+)\]\(([^)\s]*)(?:\s+"[^"]*")?\)|<((?:https?|mailto):[^>\s]+)>|(\*\*|__)(?=\S)([\s\S]*?\S)\8|(\*|_)(?=\S)([\s\S]*?\S)\10/;
+    while (rest.length) {
+      var m = pattern.exec(rest);
+      if (!m) { buffer += rest; break; }
+      // An underscore inside a word is a character, not emphasis: setting_name.
+      if (m[10] === '_' && m.index > 0 && /\w/.test(rest.charAt(m.index - 1))) {
+        buffer += rest.slice(0, m.index + 1);
+        rest = rest.slice(m.index + 1);
+        continue;
+      }
+      buffer += rest.slice(0, m.index);
+      flush();
+      if (m[1]) {
+        var code = doc.createElement('code');
+        code.appendChild(doc.createTextNode(m[2].replace(/^ (.+) $/, '$1')));
+        parent.appendChild(code);
+      } else if (m[3] !== undefined) {
+        buffer += m[3];
+      } else if (m[5] !== undefined) {
+        var target = linkOf(m[6]);
+        if (target) {
+          var a = doc.createElement('a');
+          a.setAttribute('href', target.href);
+          if (target.doc) { a.setAttribute('data-doc', target.doc); if (target.heading) { a.setAttribute('data-heading', target.heading); } }
+          else { a.setAttribute('target', '_blank'); a.setAttribute('rel', 'noopener noreferrer'); }
+          inlinesInto(doc, a, m[5], linkOf);
+          parent.appendChild(a);
+        } else {
+          inlinesInto(doc, parent, m[5], linkOf);
+        }
+      } else if (m[7]) {
+        var auto = linkOf(m[7]);
+        if (auto) {
+          var link = doc.createElement('a');
+          link.setAttribute('href', auto.href);
+          link.setAttribute('target', '_blank');
+          link.setAttribute('rel', 'noopener noreferrer');
+          link.appendChild(doc.createTextNode(m[7]));
+          parent.appendChild(link);
+        } else { buffer += m[7]; }
+      } else if (m[8]) {
+        var strong = doc.createElement('strong');
+        inlinesInto(doc, strong, m[9], linkOf);
+        parent.appendChild(strong);
+      } else if (m[10]) {
+        var em = doc.createElement('em');
+        inlinesInto(doc, em, m[11], linkOf);
+        parent.appendChild(em);
+      }
+      rest = rest.slice(m.index + m[0].length);
+    }
+    flush();
+  };
+
+  // Where a link may go. http, https and mailto are followed as they are;
+  // Name.md and Name.md#fragment name another document of the set, which the
+  // pane opens; a fragment alone names a heading of this one; anything else -
+  // a path, a script, a protocol the pane does not know - is not a link.
+  var defaultLink = function (href) {
+    var target = String(href || '').trim();
+    if (/^(https?|mailto):/i.test(target)) { return { href: target }; }
+    var doc = /^([A-Za-z0-9]+)\.md(?:#(.*))?$/.exec(target);
+    if (doc) { return { href: '#', doc: doc[1], heading: doc[2] || '' }; }
+    if (/^#[\w-]+$/.test(target)) { return { href: target }; }
+    return null;
+  };
+
+  var slug = function (text) {
+    return String(text || '').toLowerCase().replace(/`/g, '').replace(/[^\wÀ-￿]+/g, '-').replace(/^-+|-+$/g, '');
+  };
+
+  // ---- Rendering ------------------------------------------------------------
+  var renderBlocks = function (doc, parent, blocks, linkOf) {
+    blocks.forEach(function (block) {
+      var node;
+      if (block.type === 'heading') {
+        node = doc.createElement('h' + Math.min(6, block.level + 1));
+        node.setAttribute('id', 'help-' + slug(block.text));
+        node.setAttribute('data-line', String(block.line));
+        node.setAttribute('data-level', String(block.level));
+        inlinesInto(doc, node, block.text, linkOf);
+      } else if (block.type === 'paragraph') {
+        node = doc.createElement('p');
+        inlinesInto(doc, node, block.text, linkOf);
+      } else if (block.type === 'code') {
+        node = doc.createElement('pre');
+        var code = doc.createElement('code');
+        if (block.language) { code.setAttribute('data-language', block.language); }
+        code.appendChild(doc.createTextNode(block.text));
+        node.appendChild(code);
+      } else if (block.type === 'list') {
+        node = doc.createElement(block.ordered ? 'ol' : 'ul');
+        if (block.ordered && block.start !== 1) { node.setAttribute('start', String(block.start)); }
+        block.items.forEach(function (item) {
+          var li = doc.createElement('li');
+          // One paragraph in an item is the item's text; more keeps its blocks.
+          if (item.length === 1 && item[0].type === 'paragraph') { inlinesInto(doc, li, item[0].text, linkOf); }
+          else { renderBlocks(doc, li, item, linkOf); }
+          node.appendChild(li);
+        });
+      } else if (block.type === 'quote') {
+        node = doc.createElement('blockquote');
+        renderBlocks(doc, node, block.blocks, linkOf);
+      } else if (block.type === 'table') {
+        node = doc.createElement('table');
+        var thead = doc.createElement('thead');
+        var headRow = doc.createElement('tr');
+        block.header.forEach(function (cell) { var th = doc.createElement('th'); inlinesInto(doc, th, cell, linkOf); headRow.appendChild(th); });
+        thead.appendChild(headRow);
+        node.appendChild(thead);
+        var tbody = doc.createElement('tbody');
+        block.rows.forEach(function (row) {
+          var tr = doc.createElement('tr');
+          for (var c = 0; c < block.header.length; c++) { var td = doc.createElement('td'); inlinesInto(doc, td, row[c] || '', linkOf); tr.appendChild(td); }
+          tbody.appendChild(tr);
+        });
+        node.appendChild(tbody);
+      } else if (block.type === 'rule') {
+        node = doc.createElement('hr');
+      }
+      if (node) {
+        if (block.type !== 'heading') { node.setAttribute('data-line', String(block.line)); }
+        parent.appendChild(node);
+      }
+    });
+  };
+
+  // render(text, doc, linkOf) -> a fragment of doc holding the document.
+  var render = function (text, doc, linkOf) {
+    var fragment = doc.createDocumentFragment ? doc.createDocumentFragment() : doc.createElement('div');
+    renderBlocks(doc, fragment, parse(text), linkOf || defaultLink);
+    return fragment;
+  };
+
+  return { parse: parse, headings: headings, render: render, slug: slug, link: defaultLink, splitRow: splitRow };
+}());
+const HELP_MAP={
+  dash:["SetupChecklist.md","Where it is"],
+  checklist:["SetupChecklist.md"],
+  domains:["DomainTransforms.md"],
+  groups:["Backup.md","In the archive"],
+  ipranges:["CountryBlocking.md"],
+  fetch:["Migration.md","From another IMAP server"],
+  lists:["DistributionLists.md"],
+  spamtraps:["SpamTraps.md"],
+  journal:["Journaling.md"],
+  queue:["DiagnosingStalledMail.md","Delivering: the message is accepted but never leaves"],
+  tlsa:["RemoteDomains.md","Outbound TLS"],
+  settings:["ChangedFromStock.md"],
+  changed:["ChangedFromStock.md"],
+  backup:["Backup.md"],
+  messages:["BounceSuppression.md","Delivery reports"],
+  rules:["MailFlowRules.md"],
+  routes:["RemoteDomains.md","A policy is not a route"],
+  remotedomains:["RemoteDomains.md"],
+  certs:["RemoteDomains.md","Outbound TLS"],
+  ports:["SetupChecklist.md","The document"],
+  roles:["Roles.md"],
+  devices:["DevicesAndSessions.md"],
+  logs:["DiagnosingStalledMail.md","Turn on debug logging first"],
+  reputation:["ReputationWatch.md"],
+  reports:["Reports.md"],
+  audit:["AlertsAndAuditTrail.md","The audit trail"],
+  webhooks:["Webhooks.md"],
+  quarantine:["SenderListsAndDigests.md","The quarantine digest"],
+  review:["CompromisedAccounts.md","Reviewing"],
+  archive:["Journaling.md"],
+  folders:["Backup.md","In the archive"],
+  dns:["SetupChecklist.md","The document"],
+  diagnostics:["DiagnosingStalledMail.md","What to include in a report"],
+  metrics:["Reports.md","The three sources"],
+  update:["Upgrading.md"],
+  apikeys:["CommandLine.md","Credentials"],
+  passkeys:["PasskeysAndSingleSignOn.md","Passkeys"]
+};
+let helpShown="",helpWiki="",helpPages=null,helpMarks=[],helpMarkAt=-1;
+function helpOpen(){return $("#helpPane").hidden===false;}
+function helpRemembered(){try{return localStorage.getItem("hmsHelp")==="1";}catch(_){return false;}}
+function helpRemember(open){try{if(open)localStorage.setItem("hmsHelp","1");else localStorage.removeItem("hmsHelp");}catch(_){}}
+/* The view's document and heading: the map's entry, the name without .md. */
+function helpTarget(name){const entry=HELP_MAP[name||view];return entry?{name:entry[0].replace(/\.md$/,""),heading:entry[1]||""}:null;}
+/* The list: every document with its title, and the wiki base URL. Asked once. */
+async function helpIndex(){
+  if(helpPages)return helpPages;
+  try{const list=await api("/api/v1/help");helpWiki=String(list.wiki||"");helpPages=asList(list,"pages");}
+  catch(_){helpWiki="";helpPages=[];}
+  return helpPages;
+}
+/* A link in a document: the web opens in a new tab, another document of
+   the set opens in this pane. */
+function helpLinkOf(href){return hmMarkdown.link(href);}
+function helpScrollTo(heading){
+  const body=$("#helpBody");
+  let target=null;
+  if(heading){Array.from(body.querySelectorAll("[data-level]")).forEach(h=>{if(!target&&h.textContent===heading)target=h;});}
+  if(target&&target.scrollIntoView)target.scrollIntoView();
+  else body.scrollTop=0;
+}
+/* One document into the pane, opened on a heading; the same document
+   again only scrolls. */
+async function helpShow(name,heading){
+  const pane=$("#helpPane");pane.hidden=false;
+  if(helpShown!==name){
+    const body=$("#helpBody"),heads=$("#helpHeads");
+    body.textContent="";heads.textContent="";helpMarks=[];helpMarkAt=-1;$("#helpSearch").value="";
+    $("#helpTitle").textContent=name;
+    let text="";
+    try{const res=await fetch("/api/v1/help/"+encodeURIComponent(name),{credentials:"same-origin"});if(!res.ok)throw new Error("HTTP "+res.status);text=await res.text();}
+    catch(_){body.textContent=t("The documentation could not be loaded.");helpShown="";return;}
+    helpShown=name;
+    const list=hmMarkdown.headings(text);
+    if(list.length&&list[0].level===1)$("#helpTitle").textContent=list[0].text;
+    list.forEach((h,i)=>{
+      if(i===0&&h.level===1)return;
+      const b=document.createElement("button");b.type="button";b.className=h.level===2?"head sub":"head";b.textContent=h.text;b.dataset.line=String(h.line);
+      b.onclick=()=>helpScrollTo(h.text);heads.appendChild(b);
+    });
+    body.appendChild(hmMarkdown.render(text,document,helpLinkOf));
+    await helpIndex();
+    const wiki=$("#helpWiki");
+    if(helpWiki){wiki.setAttribute("href",helpWiki+name);wiki.hidden=false;}else{wiki.removeAttribute("href");wiki.hidden=true;}
+  }
+  helpScrollTo(heading);
+}
+/* Every document, by its title, for opening in the pane. */
+async function helpList(){
+  const pane=$("#helpPane");pane.hidden=false;
+  const body=$("#helpBody"),heads=$("#helpHeads");
+  body.textContent="";heads.textContent="";helpShown="";helpMarks=[];helpMarkAt=-1;$("#helpSearch").value="";
+  $("#helpTitle").textContent=t("All documentation");
+  $("#helpWiki").hidden=true;
+  const pages=await helpIndex();
+  if(!pages.length){body.textContent=t("The documentation could not be loaded.");return;}
+  const ul=document.createElement("ul");ul.className="doclist";
+  pages.forEach(p=>{
+    const li=document.createElement("li"),b=document.createElement("button");b.type="button";
+    b.appendChild(document.createTextNode(String(p.title||p.name)));
+    const small=document.createElement("small");small.textContent=String(p.name)+".md";b.appendChild(small);
+    b.onclick=()=>helpShow(String(p.name),"");li.appendChild(b);ul.appendChild(li);
+  });
+  body.appendChild(ul);
+}
+/* The pane follows the view: the view's document, or nothing changes when
+   the pane is closed. Called by render(), so a view drawn again for a
+   poll costs a comparison. */
+function helpFollow(){
+  if(!helpOpen())return;
+  const target=helpTarget();
+  if(target)helpShow(target.name,target.heading);
+}
+function helpToggle(){
+  if(helpOpen()){helpClose();return;}
+  helpRemember(true);
+  const target=helpTarget();
+  if(target)helpShow(target.name,target.heading);else helpList();
+}
+function helpClose(){$("#helpPane").hidden=true;helpRemember(false);$("#helpBtn").focus();}
+/* The search box over the open document: every match marked, the first
+   scrolled to, Enter moving to the next. The marks are nodes wrapped round
+   the text and taken off again before the next search. */
+function helpUnmark(){
+  helpMarks.forEach(m=>{const p=m.parentNode;if(!p)return;p.replaceChild(document.createTextNode(m.textContent),m);p.normalize&&p.normalize();});
+  helpMarks=[];helpMarkAt=-1;
+}
+function helpSearch(q){
+  helpUnmark();
+  q=String(q||"").trim().toLowerCase();
+  if(q.length<2)return;
+  const found=[];
+  const walk=n=>{Array.from(n.childNodes).forEach(c=>{if(c.nodeType===3){if(String(c.nodeValue||"").toLowerCase().indexOf(q)>=0)found.push(c);}else if(c.nodeType===1)walk(c);});};
+  walk($("#helpBody"));
+  found.forEach(node=>{
+    const text=String(node.nodeValue||"");const lower=text.toLowerCase();
+    const span=document.createElement("span");let at=0,hit;
+    while((hit=lower.indexOf(q,at))>=0){
+      if(hit>at)span.appendChild(document.createTextNode(text.slice(at,hit)));
+      const mark=document.createElement("mark");mark.textContent=text.slice(hit,hit+q.length);span.appendChild(mark);helpMarks.push(mark);
+      at=hit+q.length;
+    }
+    if(at<text.length)span.appendChild(document.createTextNode(text.slice(at)));
+    node.parentNode.replaceChild(span,node);
+  });
+  helpNextMark();
+}
+function helpNextMark(){
+  if(!helpMarks.length)return;
+  helpMarkAt=(helpMarkAt+1)%helpMarks.length;
+  const m=helpMarks[helpMarkAt];if(m.scrollIntoView)m.scrollIntoView();
+}
+$("#helpBtn").onclick=helpToggle;
+$("#helpClose").onclick=helpClose;
+$("#helpAll").onclick=()=>{helpRemember(true);helpList();};
+$("#helpSearch").oninput=e=>helpSearch(e.target.value);
+$("#helpSearch").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();helpNextMark();}});
+$("#helpBody").addEventListener("click",e=>{
+  const a=e.target&&e.target.closest?e.target.closest("a[data-doc]"):null;
+  if(!a)return;
+  e.preventDefault();
+  helpShow(a.getAttribute("data-doc"),"").then(()=>{
+    const slug=a.getAttribute("data-heading");
+    if(!slug)return;
+    const h=$("#helpBody").querySelector("#help-"+slug.replace(/[^\w-]/g,""));
+    if(h&&h.scrollIntoView)h.scrollIntoView();
+  });
+});
+
 /* One search for every view. It hides the rows of a table and the rows of a
    form that do not carry what was typed, which is what the desktop console's
    toolbar does to a grid. Two views have a filter of their own - the settings
@@ -1322,8 +1914,10 @@ document.addEventListener("keydown",e=>{
   // The sign-in card owns the keyboard until there is a session.
   if($("#app").style.display==="none")return;
   const tag=(e.target&&e.target.tagName)||"";
+  if(e.key==="F1"&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();helpToggle();return;}
   if(e.key==="Escape"){
     if(keysOpen()){e.preventDefault();closeKeys();return;}
+    if(helpOpen()&&!(e.target&&e.target.closest&&e.target.closest("#helpPane")&&e.target.id==="helpSearch"&&e.target.value)){e.preventDefault();helpClose();return;}
     if(e.target===$("#deckSearch")){
       e.preventDefault();
       $("#deckSearch").value="";filterRows();$("#deckSearch").blur();$("#content").focus();

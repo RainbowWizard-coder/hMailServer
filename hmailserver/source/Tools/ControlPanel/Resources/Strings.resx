@@ -1124,6 +1124,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Aliases are listed under their domain and can be deleted without touching the mailbox behind them." xml:space="preserve">
     <value>Aliases are listed under their domain and can be deleted without touching the mailbox behind them.</value>
   </data>
+  <data name="All documentation" xml:space="preserve">
+    <value>All documentation</value>
+  </data>
   <data name="All files (*.*)|*.*" xml:space="preserve">
     <value>All files (*.*)|*.*</value>
   </data>
@@ -2063,6 +2066,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   </data>
   <data name="Close the group members window" xml:space="preserve">
     <value>Close the group members window</value>
+  </data>
+  <data name="Close the help" xml:space="preserve">
+    <value>Close the help</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Close the recipient list</value>
@@ -3920,11 +3926,23 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>Header read chunk size (bytes)</value>
   </data>
+  <data name="Headings" xml:space="preserve">
+    <value>Headings</value>
+  </data>
   <data name="Held" xml:space="preserve">
     <value>Held</value>
   </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Held because: {0}</value>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="Help for this page (F1)" xml:space="preserve">
+    <value>Help for this page (F1)</value>
+  </data>
+  <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
+    <value>Help for this page. Keyboard shortcut F1.</value>
   </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Hide the new API key</value>
@@ -5806,6 +5824,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Open log folder" xml:space="preserve">
     <value>Open log folder</value>
   </data>
+  <data name="Open on the _wiki" xml:space="preserve">
+    <value>Open on the _wiki</value>
+  </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Open the delivery queue</value>
   </data>
@@ -7442,6 +7463,9 @@ Continue?</value>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Search the delivery queue</value>
   </data>
+  <data name="Search this document" xml:space="preserve">
+    <value>Search this document</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Search, or say what you want to do - "stop spam", "block an IP"</value>
   </data>
@@ -8678,6 +8702,9 @@ Select the key above and copy it by hand - it will not be shown again.</value>
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see.</value>
   </data>
+  <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki.</value>
+  </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>The domain has no signing key yet.</value>
   </data>
@@ -9232,6 +9259,9 @@ It will keep trying as you use the application.</value>
   <data name="The whole accept pipeline; then the sender gets a 451. 0 = no bound." xml:space="preserve">
     <value>The whole accept pipeline; then the sender gets a 451. 0 = no bound.</value>
   </data>
+  <data name="The wiki could not be opened in a browser." xml:space="preserve">
+    <value>The wiki could not be opened in a browser.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it.</value>
   </data>
@@ -9296,6 +9326,9 @@ It will keep trying as you use the application.</value>
     <value>This creates and updates mailboxes on the server to match the directory{0}&#13;
 &#13;
 No message is deleted and no account is removed. Continue?</value>
+  </data>
+  <data name="This document is not in this copy of the program." xml:space="preserve">
+    <value>This document is not in this copy of the program.</value>
   </data>
   <data name="This entry was not checked." xml:space="preserve">
     <value>This entry was not checked.</value>
@@ -10047,6 +10080,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="Why it is listed" xml:space="preserve">
     <value>Why it is listed</value>
   </data>
+  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
+    <value>Wiki the help pane's "Open on the wiki" link points at (empty hides the link)</value>
+  </data>
   <data name="Wildcard" xml:space="preserve">
     <value>Wildcard</value>
   </data>
@@ -10181,6 +10217,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="_Add…" xml:space="preserve">
     <value>_Add…</value>
+  </data>
+  <data name="_All documentation" xml:space="preserve">
+    <value>_All documentation</value>
   </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)</value>

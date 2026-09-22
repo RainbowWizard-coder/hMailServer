@@ -37,6 +37,19 @@ const out = console;
 // page: the files in the repository, so a check here runs against the
 // translations that ship.
 const CATALOGUES = nodePath.join(__dirname, '..', 'hmailserver', 'installation', 'WebAdmin', 'languages');
+// The documentation the help pane shows: the repository's hmailserver/docs,
+// which the server embeds (build/generate-help-pages.py) and answers at
+// /api/v1/help and /api/v1/help/<page>. The list's headings are read with
+// the webmail's renderer, which agrees with the generator's parser; the
+// pages are the files. The Deck carries a copy of the renderer inline.
+const DOCS = nodePath.join(__dirname, '..', 'hmailserver', 'docs');
+const markdown = require(nodePath.join(__dirname, '..', 'hmailserver', 'source', 'Server', 'Common', 'Util', 'PortalMarkdown.js'));
+const helpPages = () => fs.readdirSync(DOCS).filter((f) => f.endsWith('.md') && f !== 'README.md' && f !== 'DeckParity.md').sort()
+   .map((f) => {
+      const body = fs.readFileSync(nodePath.join(DOCS, f), 'utf8').replace(/\r\n/g, '\n');
+      const heads = markdown.headings(body);
+      return { name: f.slice(0, -3), title: heads.length && heads[0].level === 1 ? heads[0].text : f.slice(0, -3), bytes: Buffer.byteLength(body), headings: heads };
+   });
 
 const [pagePath, scriptPath] = process.argv.slice(2);
 if (!pagePath || !scriptPath) {
@@ -378,6 +391,9 @@ document.getElementById = function (id) {
    return found;
 };
 document.createElement = function (tag) { return new Element(tag); };
+// The help pane's renderer builds text nodes rather than assigning markup,
+// which is the whole of why a document can carry nothing the page runs.
+document.createTextNode = function (text) { return new TextNode(String(text)); };
 
 /* ------------------------------------------------ timers, storage, the rest */
 
@@ -1660,6 +1676,14 @@ function answer(method, path, headers, raw) {
       const data = JSON.parse(fs.readFileSync(file, 'utf8'));
       if (droppedKey) { delete data[droppedKey]; }
       return json(200, data);
+   }
+   if (method === 'GET' && path === '/api/v1/help') {
+      return json(200, { wiki: 'https://wiki.test/', tag: 'deadbeefdeadbeef', pages: helpPages() });
+   }
+   if (method === 'GET' && /^\/api\/v1\/help\/[A-Za-z0-9]+$/.test(path)) {
+      const file = nodePath.join(DOCS, path.slice(13) + '.md');
+      if (!fs.existsSync(file)) { return json(404, { error: 'no such page' }); }
+      return { status: 200, body: fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n'), headers: { 'Content-Type': 'text/markdown; charset=utf-8' } };
    }
    if (path === '/api/v1/signin-methods' && method === 'GET') {
       return json(200, { passkeys: true, oidc: true, oidc_label: 'login.example.com' });
@@ -6211,8 +6235,9 @@ async function main() {
    check('the shortcut list is shut until it is asked for', $('#keysOverlay').hidden === true);
    press('?');
    check('? opens it, drawn from the page\'s one table and taking the keyboard with it',
-      $('#keysOverlay').hidden === false && $('#keysList').querySelectorAll('kbd').length === 6 &&
-      $('#keysList').textContent.indexOf('Search this view') >= 0 && document.activeElement === $('#keysClose'), $('#keysList').textContent);
+      $('#keysOverlay').hidden === false && $('#keysList').querySelectorAll('kbd').length === 7 &&
+      $('#keysList').textContent.indexOf('Search this view') >= 0 && $('#keysList').textContent.indexOf('F1') >= 0 &&
+      document.activeElement === $('#keysClose'), $('#keysList').textContent);
    press('Tab', $('#keysClose'));
    check('while it is open the keyboard stays on it and cannot act on what it hides',
       $('#keysOverlay').hidden === false && document.activeElement === $('#keysClose'));
@@ -6986,6 +7011,63 @@ async function main() {
    check('and the administrator is shown everything again, the administrator-only page included',
       !$('#nav button[data-view="settings"]').hidden && !$('#nav button[data-view="roles"]').hidden &&
       !$('#nav button[data-view="changed"]').hidden);
+
+   // ---- help, beside the view
+   // What the row asks for and a build cannot see: the button opens the
+   // pane and not a window, the document is the view's, the text is drawn
+   // as headings and lists and tables rather than as a wall, the pane
+   // follows the view, F1 and Escape do what the list says, and the
+   // choice to keep it open is this browser's.
+   try { localStorage.removeItem('hmsHelp'); } catch (e) { /* no storage */ }
+   await goTo('backup');
+   check('the help pane is closed until it is asked for', $('#helpPane').hidden === true && $('#helpBtn') !== null && $('#helpBtn').textContent === '?');
+   before = requests.length;
+   click($('#helpBtn'));
+   await flush();
+   check('the ? button opens the pane beside the view and fetches the view\'s document from the help route',
+      $('#helpPane').hidden === false && called(before, 'GET', '/api/v1/help/Backup').length === 1, paths(before));
+   check('the pane is titled by the document\'s first heading', $('#helpTitle').textContent === 'What the backup carries, and what it does not', $('#helpTitle').textContent);
+   check('a heading is rendered as a heading, a list as a list and a table as a table, all as nodes',
+      $('#helpBody').querySelector('h3') !== null && $('#helpBody').querySelector('ul li') !== null && $('#helpBody').querySelector('table td') !== null,
+      $('#helpBody').textContent.slice(0, 120));
+   check('the document\'s other headings are listed at the top, each a button', $('#helpHeads').querySelectorAll('button').length >= 5 &&
+      $('#helpHeads').textContent.indexOf('In the archive') >= 0, $('#helpHeads').textContent);
+   check('Open on the wiki is the base URL the server answered with the document\'s name',
+      $('#helpWiki').hidden === false && $('#helpWiki').getAttribute('href') === 'https://wiki.test/Backup', String($('#helpWiki').getAttribute('href')));
+   check('the choice to keep the pane open is remembered', localStorage.getItem('hmsHelp') === '1');
+   before = requests.length;
+   await goTo('rules');
+   check('the pane follows the view: Rules opens the mail flow rules document',
+      called(before, 'GET', '/api/v1/help/MailFlowRules').length === 1 && $('#helpTitle').textContent === 'Mail flow rules', paths(before) + ' ' + $('#helpTitle').textContent);
+   before = requests.length;
+   await goTo('queue');
+   check('and a view mapped to a heading opens that document: the queue opens the stalled-mail runbook',
+      called(before, 'GET', '/api/v1/help/DiagnosingStalledMail').length === 1 && $('#helpTitle').textContent === 'Diagnosing slow or stalled mail', paths(before));
+   before = requests.length;
+   await goTo('roles');
+   check('the third of three: Roles opens the roles document', called(before, 'GET', '/api/v1/help/Roles').length === 1, paths(before));
+   before = requests.length;
+   await goTo('roles');
+   check('the same view again asks the server for nothing', called(before, 'GET', /^\/api\/v1\/help/).length === 0, paths(before));
+   press('Escape');
+   check('Escape closes the pane and forgets the choice', $('#helpPane').hidden === true && localStorage.getItem('hmsHelp') === null);
+   press('F1');
+   await flush();
+   check('F1 opens it again', $('#helpPane').hidden === false && localStorage.getItem('hmsHelp') === '1');
+   press('F1');
+   check('and closes it', $('#helpPane').hidden === true);
+   click($('#helpBtn'));
+   await flush();
+   click($('#helpAll'));
+   await flush();
+   check('All documentation lists every document by its title, for opening in the pane',
+      $('#helpTitle').textContent === 'All documentation' && $('#helpBody').querySelectorAll('.doclist button').length === helpPages().length &&
+      $('#helpBody').textContent.indexOf('What the backup carries') >= 0, String($('#helpBody').querySelectorAll('.doclist button').length));
+   before = requests.length;
+   click($('#helpBody').querySelectorAll('.doclist button')[0]);
+   await flush();
+   check('and one of them opens', called(before, 'GET', /^\/api\/v1\/help\/[A-Za-z]+$/).length === 1 && $('#helpBody').querySelector('h3') !== null, paths(before));
+   press('Escape');
 
    if (failures.length) {
       out.error('\ndeck script: ' + failures.length + ' of ' + checks + ' checks failed\n');

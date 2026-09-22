@@ -735,7 +735,11 @@ namespace HM
             return true;
          if (path == "/portal" || path == "/portal.js" || path == "/portal-smime.js" ||
              path == "/portal-openpgp.js" || path == "/portal-protected.js" ||
+             path == "/portal-markdown.js" ||
              path == "/portal.webmanifest" || path == "/portal-sw.js")
+            return true;
+         // The documentation: the same bytes for every reader, by construction.
+         if (path == "/api/v1/help" || path.StartsWith("/api/v1/help/"))
             return true;
          // The reading page of a password-protected message: one document for
          // every token, since its script reads the token from the address bar.
@@ -1655,6 +1659,16 @@ namespace HM
       if (method == "GET" && path.StartsWith("/deck-lang/") && path.EndsWith(".json") && path.GetLength() > 16)
          return HandleWebAdminLanguage_(path.Mid(11, path.GetLength() - 16));
 
+      // The documentation the help panes show, unauthenticated for the same
+      // reason: it is the repository's own public documentation, embedded,
+      // and nothing of this server's but the wiki base URL. RestApiHelp.cpp
+      // refuses anything after /help/ that is not a bare page name.
+      if (method == "GET" && path == "/api/v1/help")
+         return HandleHelpList_();
+
+      if (method == "GET" && path.StartsWith("/api/v1/help/"))
+         return HandleHelpPage_(path.Mid(13), request);
+
       // The self-service page, likewise unauthenticated: it is a static sign-in
       // form whose script presents the account's credentials to /api/v1/me.
       if (method == "GET" && path == "/portal")
@@ -1665,6 +1679,11 @@ namespace HM
 
       if (method == "GET" && path == "/portal-smime.js")
          return HandlePortalSmimeScript_();
+
+      // The markdown renderer the webmail's help pane draws the documentation
+      // with; the page loads it beside the S/MIME module.
+      if (method == "GET" && path == "/portal-markdown.js")
+         return HandlePortalMarkdownScript_();
 
       // The OpenPGP module, which the page fetches only when a message or a
       // setting needs it: it is the largest script this server serves and most
@@ -15990,6 +16009,7 @@ namespace HM
       openApiJson += OpenApiWebhooksPaths_();
       openApiJson += OpenApiMailboxMovePaths_();
       openApiJson += OpenApiMessageRecallPaths_();
+      openApiJson += OpenApiHelpPaths_();
       openApiJson += openApiTail;
 
       // The same bytes for every caller, built on every call: compressed once.

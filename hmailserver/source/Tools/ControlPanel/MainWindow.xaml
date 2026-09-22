@@ -9,6 +9,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:loc="clr-namespace:hMailServer.ControlPanel.Services"
     xmlns:scaffold="clr-namespace:hMailServer.ControlPanel.Views.Scaffold"
+    xmlns:views="clr-namespace:hMailServer.ControlPanel.Views"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     FontFamily="Segoe UI Variable Text, Segoe UI"
     Title="{loc:L 'hMailServer Control Panel'}"
@@ -47,6 +48,7 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -120,9 +122,19 @@
                        AutomationProperties.AutomationId="theme-toggle"
                        Click="Theme_Click" />
 
+            <!-- Help where the question is: the documentation for the page showing,
+                 in a pane beside it (Views/HelpPane.cs), which F1 also opens. The
+                 words, not just a glyph, in the accessible name and the tool tip. -->
+            <ui:Button x:Name="HelpButton" Grid.Column="5" Appearance="Transparent" Padding="8,6" Margin="4,0,0,0"
+                       Icon="{ui:SymbolIcon QuestionCircle24}" VerticalAlignment="Center"
+                       AutomationProperties.AutomationId="help-toggle"
+                       AutomationProperties.Name="{loc:L 'Help for this page. Keyboard shortcut F1.'}"
+                       ToolTip="{loc:L 'Help for this page (F1)'}"
+                       Click="Help_Click" />
+
             <!-- The administrator's menu: who is signed in and where, the server
                  version, the language, the theme, and the About page. -->
-            <ui:Button x:Name="AdminButton" Grid.Column="5" Appearance="Transparent" Padding="8,6" Margin="4,0,0,0"
+            <ui:Button x:Name="AdminButton" Grid.Column="6" Appearance="Transparent" Padding="8,6" Margin="4,0,0,0"
                        Icon="{ui:SymbolIcon Person24}" VerticalAlignment="Center"
                        AutomationProperties.AutomationId="admin-menu"
                        AutomationProperties.Name="{loc:L 'Administrator menu'}"
@@ -150,6 +162,9 @@
                      rail, all three become AppRailWidth - see ApplySidebar_. -->
                 <ColumnDefinition x:Name="SidebarColumn" Width="0.28*" MinWidth="200" MaxWidth="320" />
                 <ColumnDefinition Width="*" />
+                <!-- The help pane's column: nothing until the pane is opened, then
+                     the width the administrator last left it at (OpenHelp_). -->
+                <ColumnDefinition x:Name="HelpColumn" Width="0" />
             </Grid.ColumnDefinitions>
 
             <!-- Sidebar -->
@@ -305,12 +320,20 @@
                 </Grid>
             </Border>
 
-            <!-- The tour. Last child and spanning both columns, so a step can
+            <!-- Help beside the page: a third column, opened by the ? button or
+                 F1, sized by the splitter, following the page as the navigation
+                 changes. A pane, not a window and not a dialog: the page stays
+                 usable while the text is open. -->
+            <GridSplitter x:Name="HelpSplitter" Grid.Column="2" Width="6" HorizontalAlignment="Left" VerticalAlignment="Stretch"
+                          Background="Transparent" Visibility="Collapsed" Focusable="False" />
+            <views:HelpPane x:Name="HelpPanel" Grid.Column="2" Margin="6,4,0,0" Visibility="Collapsed" />
+
+            <!-- The tour. Last child and spanning every column, so a step can
                  point at a control in the sidebar as readily as at one on the
                  page; it has no background of its own, so every pixel under it
                  - including the control it is pointing at - stays clickable
                  while a tour runs. Collapsed until one does. -->
-            <scaffold:TourOverlay x:Name="TourLayer" Grid.Column="0" Grid.ColumnSpan="2"
+            <scaffold:TourOverlay x:Name="TourLayer" Grid.Column="0" Grid.ColumnSpan="3"
                                   AutomationProperties.AutomationId="tour-overlay"
                                   AutomationProperties.Name="{loc:L 'Tour'}" />
         </Grid>

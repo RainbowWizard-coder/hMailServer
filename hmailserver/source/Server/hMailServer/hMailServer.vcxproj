@@ -704,6 +704,8 @@ EXIT 0
     <ClCompile Include="..\Common\Util\PortalLanguagesData.cpp" />
     <ClCompile Include="..\Common\Util\PortalSmimeData.cpp" />
     <ClCompile Include="..\Common\Util\PortalPageData.cpp" />
+    <ClCompile Include="..\Common\Util\HelpPagesData.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiHelp.cpp" />
     <ClCompile Include="..\Common\Util\RestApiScheduled.cpp" />
     <ClCompile Include="..\Common\Util\RestApiMessageReplies.cpp" />
     <ClCompile Include="..\Common\Util\RestApiAppPasswords.cpp" />
@@ -1520,6 +1522,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\Reports.h" />
     <ClInclude Include="..\Common\Util\SessionFollow.h" />
     <ClInclude Include="..\Common\Util\RestApiServer.h" />
+    <ClInclude Include="..\Common\Util\HelpPages.h" />
     <ClInclude Include="..\Common\Util\WebServicesServer.h" />
     <ClInclude Include="..\Common\Util\ContactStore.h" />
     <ClInclude Include="..\Common\Util\VCard.h" />

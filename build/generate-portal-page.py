@@ -5,9 +5,10 @@
 
 """Embed the webmail's page in the server.
 
-Reads, from hmailserver/source/Server/Common/Util/, the four files the portal
-is served from - Portal.html (the page, its stylesheet inline), Portal.js (the
-script it loads as /portal.js), Portal.webmanifest and PortalServiceWorker.js -
+Reads, from hmailserver/source/Server/Common/Util/, the files the portal is
+served from - Portal.html (the page, its stylesheet inline), Portal.js (the
+script it loads as /portal.js), Portal.webmanifest, PortalServiceWorker.js and
+PortalMarkdown.js (the help pane's renderer, /portal-markdown.js) -
 and writes PortalPageData.cpp beside them: each file in pieces of at most four
 thousand characters (a compiler's limit on one literal is sixteen thousand; the
 pieces are elements of an array the server joins on first use), so the file
@@ -36,6 +37,7 @@ PARTS = [
     ("PortalScriptPieces", "Portal.js"),
     ("PortalManifestPieces", "Portal.webmanifest"),
     ("PortalServiceWorkerPieces", "PortalServiceWorker.js"),
+    ("PortalMarkdownScriptPieces", "PortalMarkdown.js"),
     ("PortalProtectedHtmlPieces", "PortalProtected.html"),
     ("PortalProtectedScriptPieces", "PortalProtected.js"),
 ]

@@ -1124,6 +1124,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Aliases are listed under their domain and can be deleted without touching the mailbox behind them." xml:space="preserve">
     <value>Aliassen staan onder hun domein en kunnen worden verwijderd zonder het postvak erachter aan te raken.</value>
   </data>
+  <data name="All documentation" xml:space="preserve">
+    <value>Alle documentatie</value>
+  </data>
   <data name="All files (*.*)|*.*" xml:space="preserve">
     <value>Alle bestanden (*.*)|*.*</value>
   </data>
@@ -2063,6 +2066,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Close the group members window" xml:space="preserve">
     <value>Het venster met groepsleden sluiten</value>
+  </data>
+  <data name="Close the help" xml:space="preserve">
+    <value>Help sluiten</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>De ontvangerslijst sluiten</value>
@@ -3920,11 +3926,23 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>Blokgrootte voor het lezen van headers (bytes)</value>
   </data>
+  <data name="Headings" xml:space="preserve">
+    <value>Koppen</value>
+  </data>
   <data name="Held" xml:space="preserve">
     <value>Vastgehouden</value>
   </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Vastgehouden omdat: {0}</value>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="Help for this page (F1)" xml:space="preserve">
+    <value>Help bij deze pagina (F1)</value>
+  </data>
+  <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
+    <value>Help bij deze pagina. Sneltoets F1.</value>
   </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>De nieuwe API-sleutel verbergen</value>
@@ -5806,6 +5824,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Open log folder" xml:space="preserve">
     <value>Logboekmap openen</value>
   </data>
+  <data name="Open on the _wiki" xml:space="preserve">
+    <value>Openen op de _wiki</value>
+  </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>De bezorgwachtrij openen</value>
   </data>
@@ -7442,6 +7463,9 @@ Doorgaan?</value>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>De bezorgwachtrij doorzoeken</value>
   </data>
+  <data name="Search this document" xml:space="preserve">
+    <value>Zoeken in dit document</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Zoek, of zeg wat u wilt doen - "stop spam", "blokkeer een IP"</value>
   </data>
@@ -8678,6 +8702,9 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>De directory antwoordde en WEIGERDE deze referenties: {0} (LDAP-fout {1}). De verbinding, het transport en de configuratie werken allemaal - dit is een probleem met de referenties, precies wat een gebruiker die een verkeerd wachtwoord typt te zien krijgt.</value>
   </data>
+  <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>De documentatie die het helpvenster toont, is de eigen kopie van de server; dit is waar dezelfde pagina op de wiki staat, met de naam van het document erachter. Standaard de GitLab-wiki van het project.</value>
+  </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>Het domein heeft nog geen ondertekeningssleutel.</value>
   </data>
@@ -9232,6 +9259,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="The whole accept pipeline; then the sender gets a 451. 0 = no bound." xml:space="preserve">
     <value>De hele acceptatiepijplijn; daarna krijgt de afzender een 451. 0 = geen begrenzing.</value>
   </data>
+  <data name="The wiki could not be opened in a browser." xml:space="preserve">
+    <value>De wiki kon niet in een browser worden geopend.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>De {0}-server staat uit op de pagina Protocollen, dus er wordt niet op deze poort geluisterd. De rij blijft bewaard. Het protocol weer aanzetten start de listener niet vanzelf - de poortenlijst en de ingeschakelde protocollen worden allebei één keer gelezen, wanneer de service start - dus herstart de service nadat u het hebt ingeschakeld.</value>
   </data>
@@ -9296,6 +9326,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
     <value>Dit maakt postvakken op de server aan en werkt ze bij zodat ze overeenkomen met de directory{0}
 
 Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?</value>
+  </data>
+  <data name="This document is not in this copy of the program." xml:space="preserve">
+    <value>Dit document zit niet in deze kopie van het programma.</value>
   </data>
   <data name="This entry was not checked." xml:space="preserve">
     <value>Deze vermelding is niet gecontroleerd.</value>
@@ -10047,6 +10080,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Why it is listed" xml:space="preserve">
     <value>Waarom het op de lijst staat</value>
   </data>
+  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
+    <value>Wiki waarnaar "Openen op de wiki" in het helpvenster verwijst (leeg verbergt de koppeling)</value>
+  </data>
   <data name="Wildcard" xml:space="preserve">
     <value>Jokerteken</value>
   </data>
@@ -10181,6 +10217,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Add…" xml:space="preserve">
     <value>_Toevoegen…</value>
+  </data>
+  <data name="_All documentation" xml:space="preserve">
+    <value>_Alle documentatie</value>
   </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>Verzenden van het wachtwoord over _een onbeveiligde verbinding toestaan (AllowUnprotectedPassword)</value>

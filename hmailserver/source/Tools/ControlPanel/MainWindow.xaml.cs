@@ -37,6 +37,26 @@ namespace hMailServer.ControlPanel
       /// </summary>
       private const string SidebarCollapsedValue = "SidebarCollapsed";
 
+      /// <summary>
+      /// Where the help pane's state is kept: whether it is open, and the width
+      /// the administrator last left it at. Beside the window bounds, the
+      /// palette's history and the sidebar's collapse, and for the same reason:
+      /// a per-user convenience, never required for the program to work.
+      /// </summary>
+      private const string HelpPaneOpenValue = "HelpPaneOpen";
+      private const string HelpPaneWidthValue = "HelpPaneWidth";
+
+      /// <summary>
+      /// The wiki the help pane links to when the server it is connected to
+      /// has no HelpWikiBaseUrl setting to say otherwise - an older server. A
+      /// server that has the setting is believed, an empty one included.
+      /// </summary>
+      private const string DefaultHelpWikiBaseUrl = "https://gitlab.com/Progressiverobot/hmailserver/-/wikis/";
+
+      private bool helpOpen_;
+      private bool helpWanted_;
+      private double helpWidth_ = 380;
+
       private readonly Dictionary<string, UserControl> pageCache_ = new();
       private readonly List<RadioButton> railItems_ = new();
       private bool sidebarCollapsedByUser_;
@@ -77,15 +97,19 @@ namespace hMailServer.ControlPanel
          BuildNavTree();
          BuildNavRail_();
          LoadSidebarPreference_();
+         LoadHelpPreference_();
+         HelpPanel.CloseRequested += (s, e) => CloseHelp_();
 
          NavTree.IsEnabled = false;
          NavRail.IsEnabled = false;
          SearchButton.IsEnabled = false;
+         HelpButton.IsEnabled = false;
          ShowLinkState_(LinkState.NotConnected);
          ContentHost.Content = new ConnectView(OnConnected);
 
          Closing += (s, e) => SaveWindowBounds();
          Closing += (s, e) => SavePaletteUsage();
+         Closing += (s, e) => SaveHelpPreference_();
 
          ServerSession.Reconnected += OnSessionReconnected;
          Closing += (s, e) => ServerSession.Reconnected -= OnSessionReconnected;
@@ -126,6 +150,14 @@ namespace hMailServer.ControlPanel
             if (connected_ && e.Key == Key.K && Keyboard.Modifiers == ModifierKeys.Control)
             {
                ShowPalette();
+               e.Handled = true;
+            }
+
+            // F1, the platform's help key: the pane beside the page, open or
+            // closed. Only once there is a page to be helped with.
+            if (connected_ && e.Key == Key.F1 && Keyboard.Modifiers == ModifierKeys.None)
+            {
+               ToggleHelp_();
                e.Handled = true;
             }
          };
@@ -869,6 +901,8 @@ namespace hMailServer.ControlPanel
          NavTree.IsEnabled = true;
          NavRail.IsEnabled = true;
          SearchButton.IsEnabled = true;
+         HelpButton.IsEnabled = true;
+         HelpPanel.WikiBaseUrl = ReadHelpWikiBaseUrl_();
 
          // "admin @ mail.example.test" is a fact, not a statement: nothing in it
          // says that this is a live connection. The pill says so in colour, shape
@@ -919,6 +953,10 @@ namespace hMailServer.ControlPanel
          {
             automaticNavigation_ = false;
          }
+
+         // The pane comes back as it was left: open, on the page just opened.
+         if (helpWanted_ && !helpOpen_)
+            OpenHelp_();
       }
 
       /// <summary>
@@ -1039,6 +1077,10 @@ namespace hMailServer.ControlPanel
          UpdateBreadcrumb(key);
          UpdateRail_(key);
 
+         // The help follows the page, when it is open.
+         if (helpOpen_)
+            HelpPanel.ShowPage(key);
+
          // Only pages the user chose. OnConnected navigates to the dashboard on every
          // launch, so counting that visit made "Most used" report the dashboard at the
          // top for ever - one count per launch, against single digits for the pages the
@@ -1080,6 +1122,111 @@ namespace hMailServer.ControlPanel
          {
             Services.Toast.Info(F("Could not load this page: {0}", ServerSession.DescribeComError(ex)),
                L("Server unavailable"));
+         }
+      }
+
+      /// <summary>
+      /// The help pane, open: the column takes the width it was last left at,
+      /// bounded so that neither the page nor the pane can be squeezed to
+      /// nothing, and the pane shows the page's document.
+      /// </summary>
+      private void OpenHelp_()
+      {
+         helpOpen_ = true;
+         helpWanted_ = true;
+         HelpColumn.MinWidth = 260;
+         HelpColumn.MaxWidth = 760;
+         HelpColumn.Width = new GridLength(Math.Max(260, Math.Min(760, helpWidth_)));
+         HelpSplitter.Visibility = Visibility.Visible;
+         HelpPanel.Visibility = Visibility.Visible;
+         HelpPanel.ShowPage(currentPage_);
+         SaveHelpPreference_();
+      }
+
+      private void CloseHelp_()
+      {
+         if (helpOpen_ && HelpColumn.ActualWidth > 0)
+            helpWidth_ = HelpColumn.ActualWidth;
+
+         helpOpen_ = false;
+         helpWanted_ = false;
+         HelpColumn.MinWidth = 0;
+         HelpColumn.MaxWidth = double.PositiveInfinity;
+         HelpColumn.Width = new GridLength(0);
+         HelpSplitter.Visibility = Visibility.Collapsed;
+         HelpPanel.Visibility = Visibility.Collapsed;
+         SaveHelpPreference_();
+         HelpButton.Focus();
+      }
+
+      private void ToggleHelp_()
+      {
+         if (helpOpen_)
+            CloseHelp_();
+         else
+            OpenHelp_();
+      }
+
+      private void Help_Click(object sender, RoutedEventArgs e)
+      {
+         if (connected_)
+            ToggleHelp_();
+      }
+
+      /// <summary>
+      /// The wiki the pane's "Open on the wiki" is made against, from the
+      /// server's HelpWikiBaseUrl setting over COM - late-bound, as the settings
+      /// pages read, so a server without the property (an older one) is a
+      /// server whose link goes to the project's wiki rather than a failed
+      /// connection. An empty value is the administrator hiding the link.
+      /// </summary>
+      private static string ReadHelpWikiBaseUrl_()
+      {
+         try
+         {
+            dynamic settings = ServerSession.Current?.Application?.Settings;
+            if (settings == null)
+               return DefaultHelpWikiBaseUrl;
+
+            return ((string)settings.HelpWikiBaseUrl ?? "").Trim();
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            return DefaultHelpWikiBaseUrl;
+         }
+      }
+
+      private void LoadHelpPreference_()
+      {
+         try
+         {
+            using RegistryKey key = Registry.CurrentUser.OpenSubKey(RegistryPath);
+            helpWanted_ = string.Equals(key?.GetValue(HelpPaneOpenValue) as string, "1", StringComparison.Ordinal);
+            double width = ToDouble(key?.GetValue(HelpPaneWidthValue));
+            if (width >= 260 && width <= 760)
+               helpWidth_ = width;
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            helpWanted_ = false;
+         }
+      }
+
+      private void SaveHelpPreference_()
+      {
+         try
+         {
+            using RegistryKey key = Registry.CurrentUser.CreateSubKey(RegistryPath);
+            if (key == null)
+               return;
+
+            key.SetValue(HelpPaneOpenValue, helpWanted_ ? "1" : "0");
+            double width = helpOpen_ && HelpColumn.ActualWidth > 0 ? HelpColumn.ActualWidth : helpWidth_;
+            key.SetValue(HelpPaneWidthValue, (int)width);
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            // Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding.
          }
       }
 

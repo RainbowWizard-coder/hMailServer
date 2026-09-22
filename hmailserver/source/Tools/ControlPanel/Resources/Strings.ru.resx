@@ -1124,6 +1124,9 @@ Control Panel может читать файлы сообщений только
   <data name="Aliases are listed under their domain and can be deleted without touching the mailbox behind them." xml:space="preserve">
     <value>Псевдонимы перечислены в составе своего домена, и их можно удалить, не затрагивая стоящий за ними почтовый ящик.</value>
   </data>
+  <data name="All documentation" xml:space="preserve">
+    <value>Вся документация</value>
+  </data>
   <data name="All files (*.*)|*.*" xml:space="preserve">
     <value>Все файлы (*.*)|*.*</value>
   </data>
@@ -2063,6 +2066,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Close the group members window" xml:space="preserve">
     <value>Закрыть окно участников группы</value>
+  </data>
+  <data name="Close the help" xml:space="preserve">
+    <value>Закрыть справку</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Закрыть список получателей</value>
@@ -3920,11 +3926,23 @@ Control Panel может читать файлы сообщений только
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>Размер блока чтения заголовков (байты)</value>
   </data>
+  <data name="Headings" xml:space="preserve">
+    <value>Заголовки</value>
+  </data>
   <data name="Held" xml:space="preserve">
     <value>Задержано</value>
   </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Задержано, потому что: {0}</value>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>Справка</value>
+  </data>
+  <data name="Help for this page (F1)" xml:space="preserve">
+    <value>Справка по этой странице (F1)</value>
+  </data>
+  <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
+    <value>Справка по этой странице. Сочетание клавиш F1.</value>
   </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Скрыть новый ключ API</value>
@@ -5806,6 +5824,9 @@ Control Panel может читать файлы сообщений только
   <data name="Open log folder" xml:space="preserve">
     <value>Открыть папку журналов</value>
   </data>
+  <data name="Open on the _wiki" xml:space="preserve">
+    <value>Открыть в _вики</value>
+  </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Открыть очередь доставки</value>
   </data>
@@ -7442,6 +7463,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Поиск по очереди доставки</value>
   </data>
+  <data name="Search this document" xml:space="preserve">
+    <value>Поиск в этом документе</value>
+  </data>
   <data name="Search, or say what you want to do - &quot;stop spam&quot;, &quot;block an IP&quot;" xml:space="preserve">
     <value>Ищите или скажите, что нужно сделать, — «остановить спам», «заблокировать IP»</value>
   </data>
@@ -8678,6 +8702,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>Каталог ответил и ОТКЛОНИЛ эти учётные данные: {0} (ошибка LDAP {1}). Соединение, транспорт и настройка работают - это проблема учётных данных, ровно то, что увидел бы пользователь, набравший неверный пароль.</value>
   </data>
+  <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
+    <value>Документация в панели справки — собственная копия сервера; здесь указано, где та же страница находится в вики, с добавлением имени документа. По умолчанию — вики проекта на GitLab.</value>
+  </data>
   <data name="The domain has no signing key yet." xml:space="preserve">
     <value>У домена пока нет ключа подписи.</value>
   </data>
@@ -9232,6 +9259,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The whole accept pipeline; then the sender gets a 451. 0 = no bound." xml:space="preserve">
     <value>Весь конвейер приёма; затем отправитель получает 451. 0 = без ограничения.</value>
   </data>
+  <data name="The wiki could not be opened in a browser." xml:space="preserve">
+    <value>Не удалось открыть вики в браузере.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>Сервер {0} выключен на странице «Протоколы», поэтому этот порт не прослушивается. Строка сохранена. Включение протокола обратно само по себе не запускает прослушиватель - и список портов, и включённые протоколы читаются один раз, при запуске службы, - поэтому после включения перезапустите службу.</value>
   </data>
@@ -9296,6 +9326,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>Это создаёт и обновляет почтовые ящики на сервере в соответствии с каталогом{0}
 
 Ни одно сообщение не удаляется и ни одна учётная запись не убирается. Продолжить?</value>
+  </data>
+  <data name="This document is not in this copy of the program." xml:space="preserve">
+    <value>Этого документа нет в этой копии программы.</value>
   </data>
   <data name="This entry was not checked." xml:space="preserve">
     <value>Эта запись не проверялась.</value>
@@ -10047,6 +10080,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Why it is listed" xml:space="preserve">
     <value>Почему он в списке</value>
   </data>
+  <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
+    <value>Вики, на которую ведёт ссылка «Открыть в вики» панели справки (пусто — ссылка скрыта)</value>
+  </data>
   <data name="Wildcard" xml:space="preserve">
     <value>Шаблон</value>
   </data>
@@ -10181,6 +10217,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Add…" xml:space="preserve">
     <value>_Добавить…</value>
+  </data>
+  <data name="_All documentation" xml:space="preserve">
+    <value>Вся _документация</value>
   </data>
   <data name="_Allow sending the password over an unprotected connection (AllowUnprotectedPassword)" xml:space="preserve">
     <value>_Разрешить передачу пароля по незащищённому соединению (AllowUnprotectedPassword)</value>

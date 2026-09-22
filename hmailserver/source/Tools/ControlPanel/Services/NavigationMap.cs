@@ -476,7 +476,7 @@ namespace hMailServer.ControlPanel.Services
                Page("journaling", N("Journaling and dual delivery"),
                   N("A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself."),
                   aliases: "Journaling|Journal|Dual delivery|Compliance archive|Copy every message|Send a copy elsewhere|Archive to another system|Migration copy|Envelope report|Blind copy to an archive",
-                  seeAlso: "audit|messagetrace|archive",
+                  seeAlso: "audit|messagetrace",
                   needs: "administer_server"),
 
                Page("audit", N("Audit trail"),

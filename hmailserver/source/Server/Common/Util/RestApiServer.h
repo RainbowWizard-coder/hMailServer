@@ -1368,6 +1368,14 @@ namespace HM
       static HttpResponse HandleMeSmimeChain_(const AnsiString &requestBody);
       static HttpResponse HandlePortalSmimeScript_();
 
+      // The documentation (RestApiHelp.cpp, HelpPages.h): the list, one page,
+      // and the webmail's markdown renderer. All three unauthenticated, as
+      // /deck-lang/ is - the text is the repository's public documentation.
+      static HttpResponse HandleHelpList_();
+      static HttpResponse HandleHelpPage_(const AnsiString &name, const AnsiString &request);
+      static HttpResponse HandlePortalMarkdownScript_();
+      static AnsiString OpenApiHelpPaths_();
+
       // OpenPGP in the webmail (RestApiOpenPgpKeys.cpp): the account's key
       // ring, the lookup a browser cannot make for itself, and the module the
       // page does the cryptography in.

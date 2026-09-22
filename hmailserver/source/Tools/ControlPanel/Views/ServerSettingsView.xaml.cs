@@ -2578,6 +2578,16 @@ namespace hMailServer.ControlPanel.Views
          general.Settings.Add(new ComText { Path = "DefaultDomain", Label = L("Default domain (for unqualified logons)") });
          general.Settings.Add(new ComBool { Path = "IPv6PreferredEnabled", Label = L("Prefer IPv6 when delivering") });
 
+         // The help panes' "Open on the wiki" link, in all three surfaces. The
+         // server refuses a value that is not empty and not an absolute http or
+         // https URL, in the same words the Deck shows.
+         general.Settings.Add(new ComText
+         {
+            Path = "HelpWikiBaseUrl",
+            Label = L("Wiki the help pane's \"Open on the wiki\" link points at (empty hides the link)"),
+            Blurb = L("The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki.")
+         });
+
          // The old label said "legacy COM admin tools", which was closer to the
          // truth than most of this page but still let an administrator believe it
          // would translate something they can see. It cannot: the server hands the
