@@ -657,12 +657,12 @@ namespace RegressionTests.Infrastructure
          AssertOutcome(outcome, folders: 3, added: 1, skipped: 4, failed: 0);
 
          // The session that had the folder selected the whole time.
-         string noop = session.SendSingleCommand("NOOP");
+         string noop = session.SendSingleCommand("A20 NOOP");
          StringAssert.Contains("3 EXISTS", noop, "The selected session must be told about the addition: " + noop);
 
          // A fresh UID, above what the folder had promised: a client with a
          // cached folder sees a new message, never a reused number.
-         string uidSearch = session.SendSingleCommand("UID SEARCH SUBJECT \"first\"");
+         string uidSearch = session.SendSingleCommand("A21 UID SEARCH SUBJECT \"first\"");
          Match uidMatch = Regex.Match(uidSearch, @"\* SEARCH (\d+)");
          Assert.IsTrue(uidMatch.Success, "UID SEARCH did not find the restored message: " + uidSearch);
          Assert.GreaterOrEqual(int.Parse(uidMatch.Groups[1].Value), uidNextBefore, "The restored message's UID must be at or above the folder's earlier UIDNEXT: " + uidSearch);
