@@ -2682,15 +2682,16 @@
     list.forEach(function (w) { box.appendChild(node('div', w)); });
     box.hidden = !list.length;
   };
-  // X-hMailServer-Impersonation as the server writes it - name "<display
-  // name>" is <owner>'s; from <address>, or domain <x> looks like <y>; ... -
-  // turned into the sentence the reader sees, or nothing for no header or a
-  // shape this does not know.
+  // X-hMailServer-Impersonation as the server writes it - name "<shown>"
+  // matches <person> (<owner>); from <address>, or domain <x> looks like
+  // <y>; ... - turned into the sentence the reader sees, naming the person
+  // here whose name was borrowed and the address they really have, or
+  // nothing for no header or a shape this does not know.
   var impersonationWarning = function (value) {
     var text = String(value || '').trim();
     if (!text) { return ''; }
-    var name = /^name "(.*)" is (.*?); from ([^\s;]+)/.exec(text);
-    if (name) { return tf('This sender\'s name matches {0} here, but the message is from {1}.', name[1], name[3]); }
+    var name = /^name "(.*)" matches (.*?) \(([^()]*)\); from ([^\s;]+)/.exec(text);
+    if (name) { return tf('This sender\'s name matches {0} here, but the message is from {1}.', name[2] + ' (' + name[3] + ')', name[4]); }
     var domain = /^domain ([^\s;]+) looks like ([^\s;]+)/.exec(text);
     if (domain) { return tf('This message\'s domain {0} looks like {1}.', domain[1], domain[2]); }
     return '';

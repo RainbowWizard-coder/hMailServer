@@ -491,7 +491,7 @@ const impersonated = (id, subject, from, impersonation) => ({
    text: 'Please pay the attached invoice today.', html: '', html_remote: false, flags: { seen: true, flagged: false, draft: false }, attachments: [],
    impersonation: impersonation || ''
 });
-const BORROWED_NAME = impersonated(604, 'Urgent', '"Ada Lovelace" <ada@evil.example>', 'name "Ada Lovelace" is ada@example.com\'s; from ada@evil.example');
+const BORROWED_NAME = impersonated(604, 'Urgent', '"Ada Lovelace" <ada@evil.example>', 'name "Ada Lovelace" matches Ada Lovelace (ada@example.com); from ada@evil.example');
 const LOOKALIKE_DOMAIN = impersonated(605, 'Invoice', 'accounts@examp1e.com', 'domain examp1e.com looks like example.com; from accounts@examp1e.com');
 const NOT_IMPERSONATED = impersonated(606, 'Lunch', 'colleague@example.com', '');
 
@@ -8750,7 +8750,7 @@ async function zeroAccessChecks() {
       await flush();
       check('Impersonation: a borrowed name is a warning bar naming the name and the address the message really came from',
          !document.getElementById('message-warnings').hidden &&
-         warningTexts().indexOf(fill("This sender's name matches {0} here, but the message is from {1}.", 'Ada Lovelace', 'ada@evil.example')) >= 0,
+         warningTexts().indexOf(fill("This sender's name matches {0} here, but the message is from {1}.", 'Ada Lovelace (ada@example.com)', 'ada@evil.example')) >= 0,
          JSON.stringify(warningTexts()));
 
       location.hash = '#/m/605';

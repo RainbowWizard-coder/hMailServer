@@ -50,6 +50,7 @@
 
 #include "PreSaveLimitationsCheck.h"
 #include "../Sieve/SieveStorage.h"
+#include "../Util/ImpersonationCheck.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -76,6 +77,10 @@ namespace HM
    {
       __int64 iID = pAccount->GetID();
       HM_ASSERT(iID);
+
+      // The impersonation check's per-domain memory of the accounts' names
+      // and addresses is stale from here on.
+      ImpersonationCheck::Invalidate();
 
       if (iID <= 0)
          return false;
@@ -444,6 +449,10 @@ namespace HM
    {
       if (!PreSaveLimitationsCheck::CheckLimitations(mode, pAccount, sErrorMessage))
          return false;
+
+      // A name, an address or the active flag may be changing: the
+      // impersonation check's per-domain memory is stale from here on.
+      ImpersonationCheck::Invalidate();
 
       __int64 iID = pAccount->GetID();
       if (iID > 0)

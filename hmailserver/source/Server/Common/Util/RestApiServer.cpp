@@ -13677,7 +13677,10 @@ namespace HM
       AnsiString receiptRequestedBy;
       AnsiString externalStamp;
       AnsiString firstContactStamp;
-      AnsiString impersonationStamp;
+      // The impersonation warning ImpersonationCheck stamped at delivery,
+      // decoded: it carries the display name as the reader sees it, RFC 2047
+      // encoded when that name is not ASCII.
+      String impersonationText;
       if (!header.IsEmpty())
       {
          MimeHeader mimeHeader;
@@ -13695,14 +13698,13 @@ namespace HM
          externalStamp = value ? value : "";
          value = mimeHeader.GetRawFieldValue("X-hMailServer-First-Contact");
          firstContactStamp = value ? value : "";
-         value = mimeHeader.GetRawFieldValue("X-hMailServer-Impersonation");
-         impersonationStamp = value ? value : "";
+         impersonationText = mimeHeader.GetUnicodeFieldValue("X-hMailServer-Impersonation");
+         impersonationText.TrimLeft();
+         impersonationText.TrimRight();
          externalStamp.TrimLeft();
          externalStamp.TrimRight();
          firstContactStamp.TrimLeft();
          firstContactStamp.TrimRight();
-         impersonationStamp.TrimLeft();
-         impersonationStamp.TrimRight();
          listUnsubscribe.TrimLeft();
          listUnsubscribe.TrimRight();
          listUnsubscribePost.ToLower();
@@ -13744,11 +13746,6 @@ namespace HM
       Unicode::MultiByteToWide(receiptRequestedBy, receiptText);
 
       AnsiString json;
-      // The impersonation warning ImpersonationCheck stamped at delivery, as
-      // written - ASCII, one line - for the page to turn into its sentence.
-      String impersonationText;
-      Unicode::MultiByteToWide(impersonationStamp, impersonationText);
-
       json.Format("\"headers\":\"%hs\",\"authentication\":{\"spf\":\"%hs\",\"dkim\":\"%hs\",\"dkim_domain\":\"%hs\",\"dmarc\":\"%hs\",\"results\":\"%hs\"},\"external\":%hs,\"external_stamped\":%hs,\"first_contact\":%hs,\"impersonation\":\"%hs\",\"list_unsubscribe\":\"%hs\",\"list_unsubscribe_post\":%hs,\"receipt_requested_by\":\"%hs\"",
          JsonEscape_(Utf8_(headerText)).c_str(),
          VerdictOf(results, "spf").c_str(),

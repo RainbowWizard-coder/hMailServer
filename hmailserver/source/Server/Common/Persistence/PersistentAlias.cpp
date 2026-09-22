@@ -11,6 +11,7 @@
 
 #include "PreSaveLimitationsCheck.h"
 #include "PersistenceMode.h"
+#include "../Util/ImpersonationCheck.h"
 
 #include "../BO/Alias.h"
 
@@ -34,6 +35,10 @@ namespace HM
    PersistentAlias::DeleteObject(std::shared_ptr<Alias> pAlias)
    {
       HM_ASSERT(pAlias->GetID());
+
+      // An alias is one of its account's addresses to the impersonation
+      // check, whose memory of them is stale from here on.
+      ImpersonationCheck::Invalidate();
 
       bool bResult = false;
       if (pAlias->GetID() > 0)
@@ -62,6 +67,10 @@ namespace HM
    {
       if (!PreSaveLimitationsCheck::CheckLimitations(mode, pAlias, sErrorMessage))
          return false;
+
+      // An alias is one of its account's addresses to the impersonation
+      // check, whose memory of them is stale from here on.
+      ImpersonationCheck::Invalidate();
 
       SQLStatement oStatement;
       

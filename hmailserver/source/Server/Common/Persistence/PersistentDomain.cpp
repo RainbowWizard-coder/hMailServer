@@ -39,6 +39,7 @@
 #include "PersistenceMode.h"
 #include "../Sieve/SieveStorage.h"
 #include "../AntiSpam/DKIM/DkimRotation.h"
+#include "../Util/ImpersonationCheck.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -406,6 +407,10 @@ namespace HM
       __int64 iDomainID = pDomain->GetID();
       HM_ASSERT(iDomainID);
 
+      // The impersonation check's memory of the hosted names and of this
+      // domain's people and partners is stale from here on.
+      ImpersonationCheck::Invalidate();
+
       if (iDomainID > 0)
       {
          // Every name under which this domain currently accepts mail, collected
@@ -717,6 +722,10 @@ namespace HM
    {
       if (!PreSaveLimitationsCheck::CheckLimitations(mode, pDomain, sErrorMessage))
          return false;
+
+      // The name, the protected persons or the protected partners may be
+      // changing: the impersonation check's memory is stale from here on.
+      ImpersonationCheck::Invalidate();
 
       // Set when this save is a rename, so that the references other domains hold
       // to addresses at the old name can be rewritten once the new name is

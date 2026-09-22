@@ -9,6 +9,7 @@
 
 #include "PreSaveLimitationsCheck.h"
 #include "PersistenceMode.h"
+#include "../Util/ImpersonationCheck.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -58,6 +59,10 @@ namespace HM
    bool
    PersistentDomainAlias::DeleteObject(std::shared_ptr<DomainAlias> pDA)
    {
+      // An alias domain is one of the hosted names to the impersonation
+      // check, whose memory of them is stale from here on.
+      ImpersonationCheck::Invalidate();
+
       SQLCommand command("delete from hm_domain_aliases where daid = @DAID");
       command.AddParameter("@DAID", pDA->GetID());
 
@@ -85,6 +90,10 @@ namespace HM
    {
       if (!PreSaveLimitationsCheck::CheckLimitations(mode, oDA, sErrorMessage))
          return false;
+
+      // An alias domain is one of the hosted names to the impersonation
+      // check, whose memory of them is stale from here on.
+      ImpersonationCheck::Invalidate();
 
       SQLStatement oStatement;
       oStatement.SetTable("hm_domain_aliases");

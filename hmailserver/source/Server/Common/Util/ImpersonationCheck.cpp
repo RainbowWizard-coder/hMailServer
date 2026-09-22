@@ -18,7 +18,6 @@
 #include "../AntiSpam/QuarantineStore.h"
 #include "../AntiSpam/SenderListCache.h"
 #include "../BO/Account.h"
-#include "../BO/Alias.h"
 #include "../BO/Domain.h"
 #include "../BO/DomainAlias.h"
 #include "../BO/DomainAliases.h"
@@ -31,7 +30,12 @@
 #include "../SQL/SQLCommand.h"
 
 #include <algorithm>
+#include <ctime>
+#include <map>
 #include <set>
+
+#include <boost/thread/lock_guard.hpp>
+#include <boost/thread/mutex.hpp>
 
 #ifndef HM_PLATFORM_POSIX
 // NormalizeString (NFKC) lives in Normaliz.lib, as it does for SASLprep.
@@ -45,6 +49,16 @@
 
 namespace HM
 {
+   // What one domain's judgement reads: its people (accounts with their
+   // aliases, and the protected persons), folded once, and the hosted and
+   // partner names prepared once.
+   struct ImpersonationCheck::Facts
+   {
+      time_t made;
+      std::vector<Person> people;
+      std::vector<Name> names;
+   };
+
    namespace
    {
       // THE CONFUSABLE TABLE, single characters: what a reader's eye takes for a
@@ -68,6 +82,11 @@ namespace HM
          { 0x0410, L'a' }, { 0x0415, L'e' }, { 0x041E, L'o' }, { 0x0420, L'p' }, { 0x0421, L'c' },
          { 0x0425, L'x' }, { 0x0423, L'y' }, { 0x0406, L'i' }, { 0x0408, L'j' }, { 0x0405, L's' },
          { 0x04BA, L'h' }, { 0x0500, L'd' },
+         // Cyrillic capitals whose lower case does not look Latin but which
+         // do: Т Н В М К - and the palochka Ӏ ӏ, Ԛ ԛ, Ԝ ԝ, Ѵ ѵ in both cases.
+         { 0x0422, L't' }, { 0x041D, L'h' }, { 0x0412, L'b' }, { 0x041C, L'm' }, { 0x041A, L'k' },
+         { 0x04C0, L'l' }, { 0x04CF, L'l' }, { 0x051A, L'q' }, { 0x051B, L'q' }, { 0x051C, L'w' },
+         { 0x051D, L'w' }, { 0x0474, L'v' }, { 0x0475, L'v' },
          // Latin small letter script g
          { 0x0261, L'g' },
          // Greek capitals: Α Β Ε Ζ Η Ι Κ Μ Ν Ο Ρ Τ Υ Χ
@@ -85,6 +104,27 @@ namespace HM
                return Confusables[i].to;
 
          return c;
+      }
+
+      // The format characters no client draws: a zero-width space or joiner
+      // inside a word, a soft hyphen, a bidi control, a byte order mark. They
+      // are deleted before anything else looks at the text, because a name
+      // with one of them in it is rendered exactly as the name without it.
+      bool IsInvisible(wchar_t c)
+      {
+         return c == 0x00AD || c == 0x034F || (c >= 0x200B && c <= 0x200F) ||
+                (c >= 0x2028 && c <= 0x202E) || (c >= 0x2060 && c <= 0x2064) || c == 0xFEFF;
+      }
+
+      String WithoutInvisibles(const String &text)
+      {
+         String result;
+
+         for (int i = 0; i < text.GetLength(); i++)
+            if (!IsInvisible(text.GetAt(i)))
+               result += text.GetAt(i);
+
+         return result;
       }
 
       // Unicode NFKC where the platform has it. On Windows this is the same
@@ -259,15 +299,15 @@ namespace HM
          return result;
       }
 
-      // Exactly hosted or a partner, or beneath one.
-      bool IsOwnOrBeneath(const String &domain, const std::vector<String> &names)
+      // Exactly one of the names, or beneath one, both sides IDNA decoded.
+      bool IsOwnOrBeneath(const String &idna, const std::vector<ImpersonationCheck::Name> &names)
       {
          for (size_t i = 0; i < names.size(); i++)
          {
-            if (domain == names[i])
+            if (idna == names[i].idna)
                return true;
 
-            if (domain.GetLength() > names[i].GetLength() + 1 && domain.EndsWith(_T(".") + names[i]))
+            if (idna.GetLength() > names[i].idna.GetLength() + 1 && idna.EndsWith(_T(".") + names[i].idna))
                return true;
          }
 
@@ -278,6 +318,152 @@ namespace HM
       {
          return c == L',' || c == L' ' || c == L';' || c == L'\t' || c == L'\r' || c == L'\n';
       }
+
+      String StripQuotes(const String &text)
+      {
+         String name = Trimmed(text);
+
+         if (name.GetLength() >= 2 && name.GetAt(0) == L'"' && name.GetAt(name.GetLength() - 1) == L'"')
+            name = Trimmed(name.Mid(1, name.GetLength() - 2));
+
+         return name;
+      }
+
+      // A name is written back in quotes when it holds a comma, so that the
+      // stored text reads back as one entry.
+      String Quoted(const String &name)
+      {
+         if (name.Find(_T(",")) >= 0)
+            return _T("\"") + name + _T("\"");
+
+         return name;
+      }
+
+      // One entry of the persons list, as typed or as stored: "Name <address>",
+      // "Name" or "address". False with the refusal when the address is not an
+      // address, a quote is inside the name, or the angle brackets are odd.
+      bool ParseEntry(const String &entry, ImpersonationCheck::Person &person, String &canonical, String &refusal)
+      {
+         person = ImpersonationCheck::Person();
+
+         const int open = entry.Find(_T("<"));
+
+         if (open >= 0)
+         {
+            const int close = entry.Find(_T(">"), open);
+            if (close < 0)
+            {
+               refusal = _T("protected_persons: ") + entry + _T(" opens an address with < and never closes it.");
+               return false;
+            }
+
+            const String address = Lower(Trimmed(entry.Mid(open + 1, close - open - 1)));
+            const String name = StripQuotes(entry.Mid(0, open));
+
+            if (!StringParser::IsValidEmailAddress(address))
+            {
+               refusal = _T("protected_persons: ") + address + _T(" is not an address.");
+               return false;
+            }
+
+            if (name.Find(_T("\"")) >= 0)
+            {
+               refusal = _T("protected_persons: ") + entry + _T(" has a quote inside the name.");
+               return false;
+            }
+
+            person.name = name;
+            person.addresses.push_back(address);
+            person.owner = address;
+            canonical = name.IsEmpty() ? address : Quoted(name) + _T(" <") + address + _T(">");
+            return true;
+         }
+
+         if (entry.Find(_T(">")) >= 0)
+         {
+            refusal = _T("protected_persons: ") + entry + _T(" closes an address with > that was never opened.");
+            return false;
+         }
+
+         if (entry.GetAt(0) != L'"' && entry.Find(_T("@")) >= 0)
+         {
+            const String address = Lower(entry);
+
+            if (!StringParser::IsValidEmailAddress(address))
+            {
+               refusal = _T("protected_persons: ") + entry + _T(" is not an address. Write a name, an address, or Name <address>.");
+               return false;
+            }
+
+            person.addresses.push_back(address);
+            person.owner = address;
+            canonical = address;
+            return true;
+         }
+
+         const String name = StripQuotes(entry);
+
+         if (name.IsEmpty())
+         {
+            refusal = _T("protected_persons: ") + entry + _T(" is an empty name.");
+            return false;
+         }
+
+         if (name.Find(_T("\"")) >= 0)
+         {
+            refusal = _T("protected_persons: ") + entry + _T(" has a quote inside the name.");
+            return false;
+         }
+
+         person.name = name;
+         person.owner = _T("a protected person");
+         canonical = Quoted(name);
+         return true;
+      }
+
+      // The persons text cut into entries: at a line break, and at a comma
+      // that is not inside quotes. False with the refusal for a quote that
+      // is not closed on its line.
+      bool SplitEntries(const String &text, std::vector<String> &entries, String &refusal)
+      {
+         String current;
+         bool inQuotes = false;
+
+         for (int i = 0; i <= text.GetLength(); i++)
+         {
+            const wchar_t c = i < text.GetLength() ? text.GetAt(i) : L'\n';
+
+            if (c == L'"')
+            {
+               inQuotes = !inQuotes;
+               current += c;
+               continue;
+            }
+
+            if (c == L'\n' && inQuotes)
+            {
+               refusal = _T("protected_persons: ") + Trimmed(current) + _T(" has an unbalanced quote.");
+               return false;
+            }
+
+            if (c == L'\n' || (c == L',' && !inQuotes))
+            {
+               current.Trim();
+               if (!current.IsEmpty())
+                  entries.push_back(current);
+               current = _T("");
+               continue;
+            }
+
+            current += c;
+         }
+
+         return true;
+      }
+
+      // The held facts, by domain id.
+      boost::mutex facts_mutex_;
+      std::map<__int64, std::shared_ptr<const ImpersonationCheck::Facts> > facts_;
    }
 
    // ------------------------------------------------------------- the folding
@@ -297,10 +483,11 @@ namespace HM
    ImpersonationCheck::FoldName(const String &name)
    {
       // NFKC first, so that a full-width or ligature spelling becomes the
-      // letters it stands for; then the single confusables, before the
-      // lower-casing so that a capital I folds to l; then the case; then every
-      // run of white space and punctuation to one space; then the pairs.
-      String text = NormalizeKC(name);
+      // letters it stands for; the invisible format characters deleted; then
+      // the single confusables, before the lower-casing so that a capital I
+      // folds to l; then the case; then every run of white space and
+      // punctuation to one space; then the pairs.
+      String text = WithoutInvisibles(NormalizeKC(name));
 
       String single;
       for (int i = 0; i < text.GetLength(); i++)
@@ -332,7 +519,7 @@ namespace HM
    }
 
    String
-   ImpersonationCheck::FoldDomain(const String &domain)
+   ImpersonationCheck::IdnaOf(const String &domain)
    {
       String lower = Lower(WithoutTrailingDot(Trimmed(domain)));
 
@@ -343,16 +530,31 @@ namespace HM
       {
          String label = labels[i];
 
-         // An internationalised label travels as xn--; what the reader sees is
-         // its decoded form, so that is what is compared.
          if (label.StartsWith(_T("xn--")))
          {
             String decoded;
             if (DecodePunycode(AnsiString(label.Mid(4)), decoded))
-               label = decoded;
+               label = Lower(decoded);
          }
 
-         label = NormalizeKC(label);
+         if (i > 0)
+            result += L'.';
+
+         result += label;
+      }
+
+      return result;
+   }
+
+   String
+   ImpersonationCheck::FoldDomain(const String &domain)
+   {
+      std::vector<String> labels = Labels(IdnaOf(domain));
+      String result;
+
+      for (size_t i = 0; i < labels.size(); i++)
+      {
+         const String label = WithoutInvisibles(NormalizeKC(labels[i]));
 
          String single;
          for (int j = 0; j < label.GetLength(); j++)
@@ -374,6 +576,11 @@ namespace HM
    {
       const int n = a.GetLength();
       const int m = b.GetLength();
+
+      // Lengths two apart are two edits apart at least, and that is all the
+      // caller asks.
+      if (n - m > 1 || m - n > 1)
+         return n > m ? n - m : m - n;
 
       std::vector<std::vector<int> > d((size_t) n + 1, std::vector<int>((size_t) m + 1, 0));
 
@@ -535,6 +742,10 @@ namespace HM
 
       const String from = Lower(Trimmed(fromAddress));
 
+      // What the reason carries of the name: enough to recognise, never
+      // enough to push the header line past what RFC 5322 allows.
+      const String capped = shown.GetLength() > MaxShownLength ? shown.Left(MaxShownLength) + _T("...") : shown;
+
       auto isOwn = [&](const Person &person)
       {
          for (size_t i = 0; i < person.addresses.size(); i++)
@@ -545,7 +756,10 @@ namespace HM
 
       auto borrowed = [&](const Person &person)
       {
-         reason = _T("name \"") + shown + _T("\" is ") + person.owner + _T("'s; from ") + from;
+         String who = person.name.IsEmpty() ? String(_T("the address")) : person.name;
+         if (who.GetLength() > MaxShownLength)
+            who = who.Left(MaxShownLength) + _T("...");
+         reason = _T("name \"") + capped + _T("\" matches ") + who + _T(" (") + person.owner + _T("); from ") + from;
          return true;
       };
 
@@ -572,7 +786,11 @@ namespace HM
 
       for (size_t i = 0; i < people.size(); i++)
       {
-         if (people[i].name.IsEmpty() || FoldName(people[i].name) != folded)
+         if (people[i].name.IsEmpty())
+            continue;
+
+         const String personFolded = people[i].folded.IsEmpty() ? FoldName(people[i].name) : people[i].folded;
+         if (personFolded != folded)
             continue;
 
          // The person's own address, or one of their aliases: the name is theirs
@@ -586,63 +804,113 @@ namespace HM
       return false;
    }
 
+   std::vector<ImpersonationCheck::Name>
+   ImpersonationCheck::PrepareNames(const std::vector<String> &names)
+   {
+      std::vector<Name> prepared;
+
+      for (size_t i = 0; i < names.size(); i++)
+      {
+         Name name;
+         name.raw = Lower(WithoutTrailingDot(Trimmed(names[i])));
+         if (name.raw.IsEmpty())
+            continue;
+         name.idna = IdnaOf(name.raw);
+         name.folded = FoldDomain(name.raw);
+         prepared.push_back(name);
+      }
+
+      return prepared;
+   }
+
    bool
    ImpersonationCheck::JudgeDomain(const String &domain, const std::vector<String> &hosted,
                                    const std::vector<String> &partners, const String &address,
                                    const String &label, String &reason)
    {
+      std::vector<String> all = hosted;
+      all.insert(all.end(), partners.begin(), partners.end());
+
+      return JudgeDomain(domain, PrepareNames(all), address, label, reason);
+   }
+
+   bool
+   ImpersonationCheck::JudgeDomain(const String &domain, const std::vector<Name> &names,
+                                   const String &address, const String &label, String &reason)
+   {
       const String raw = Lower(WithoutTrailingDot(Trimmed(domain)));
       if (raw.IsEmpty())
          return false;
 
-      // Exactly one of ours or a partner's, or beneath one: mail.example.test
-      // is example.test's own, not a stranger one label away from it.
-      if (IsOwnOrBeneath(raw, hosted) || IsOwnOrBeneath(raw, partners))
+      // Exactly one of ours or a partner's, or beneath one, the A-label and the
+      // U-label of a name being one name: mail.example.test is example.test's
+      // own, not a stranger one label away from it.
+      if (IsOwnOrBeneath(IdnaOf(raw), names))
          return false;
 
-      const String folded = FoldDomain(raw);
-      const std::vector<String> candidateLabels = Labels(folded);
-
-      std::vector<String> names = hosted;
-      names.insert(names.end(), partners.begin(), partners.end());
-
-      auto lookalike = [&](const String &name)
+      auto lookalike = [&](const String &candidate, const Name &name)
       {
-         reason = _T("domain ") + raw + _T(" looks like ") + name + _T("; ") + label + _T(" ") + Lower(Trimmed(address));
+         reason = _T("domain ") + candidate + _T(" looks like ") + name.raw + _T("; ") + label + _T(" ") + Lower(Trimmed(address));
          return true;
       };
 
-      // Equal after the confusable folding while not equal before it.
-      for (size_t i = 0; i < names.size(); i++)
-         if (folded == FoldDomain(names[i]) && raw != names[i])
-            return lookalike(names[i]);
+      // The candidate, then each parent name of it down to two labels, so
+      // that secure.examp1e.test is caught by the examp1e.test inside it -
+      // stopping at the first parent that is one of ours, since everything
+      // beneath that is ours too.
+      String candidate = raw;
 
-      // One edit, inside one label: the label counts agree, every other label
-      // is the same, and the one that differs is one insertion, deletion,
-      // substitution or transposition away. An edit that adds, removes or
-      // moves a dot is not counted, so a name is only ever compared with a
-      // name of the same shape.
-      for (size_t i = 0; i < names.size(); i++)
+      for (;;)
       {
-         const std::vector<String> nameLabels = Labels(FoldDomain(names[i]));
+         const String candidateIdna = IdnaOf(candidate);
+         const String candidateFolded = FoldDomain(candidate);
+         const std::vector<String> candidateLabels = Labels(candidateFolded);
 
-         if (nameLabels.size() != candidateLabels.size())
-            continue;
+         // Equal after the confusable folding while not equal before it.
+         for (size_t i = 0; i < names.size(); i++)
+            if (candidateFolded == names[i].folded && candidateIdna != names[i].idna)
+               return lookalike(candidate, names[i]);
 
-         int differing = 0;
-         int distance = 0;
-
-         for (size_t j = 0; j < nameLabels.size(); j++)
+         // One edit, inside one label: the label counts agree, every other
+         // label is the same, and the one that differs is one insertion,
+         // deletion, substitution or transposition away. An edit that adds,
+         // removes or moves a dot is not counted, so a name is only ever
+         // compared with a name of the same shape.
+         for (size_t i = 0; i < names.size(); i++)
          {
-            if (nameLabels[j] == candidateLabels[j])
+            const std::vector<String> nameLabels = Labels(names[i].folded);
+
+            if (nameLabels.size() != candidateLabels.size())
                continue;
 
-            differing++;
-            distance = EditDistance(nameLabels[j], candidateLabels[j]);
+            int differing = 0;
+            int distance = 0;
+
+            for (size_t j = 0; j < nameLabels.size(); j++)
+            {
+               if (nameLabels[j] == candidateLabels[j])
+                  continue;
+
+               differing++;
+               distance = EditDistance(nameLabels[j], candidateLabels[j]);
+            }
+
+            if (differing == 1 && distance == 1)
+               return lookalike(candidate, names[i]);
          }
 
-         if (differing == 1 && distance == 1)
-            return lookalike(names[i]);
+         const int dot = candidate.Find(_T("."));
+         if (dot < 0)
+            break;
+
+         const String parent = candidate.Mid(dot + 1);
+         if (Labels(parent).size() < 2)
+            break;
+
+         if (IsOwnOrBeneath(IdnaOf(parent), names))
+            break;
+
+         candidate = parent;
       }
 
       return false;
@@ -760,75 +1028,23 @@ namespace HM
          return false;
       }
 
+      std::vector<String> raw;
+      if (!SplitEntries(value, raw, refusal))
+         return false;
+
       std::vector<String> entries;
       std::set<String> seen;
-      String current;
 
-      for (int i = 0; i <= value.GetLength(); i++)
+      for (size_t i = 0; i < raw.size(); i++)
       {
-         const wchar_t c = i < value.GetLength() ? value.GetAt(i) : L'\n';
-
-         if (c != L'\n' && c != L',')
-         {
-            current += c;
-            continue;
-         }
-
-         current.Trim();
-
-         if (current.IsEmpty())
-            continue;
-
+         Person person;
          String entry;
-         const int open = current.Find(_T("<"));
 
-         if (open >= 0)
-         {
-            const int close = current.Find(_T(">"), open);
-            if (close < 0)
-            {
-               refusal = _T("protected_persons: ") + current + _T(" opens an address with < and never closes it.");
-               return false;
-            }
-
-            String address = Lower(Trimmed(current.Mid(open + 1, close - open - 1)));
-            String name = Trimmed(current.Mid(0, open));
-
-            if (name.GetLength() >= 2 && name.GetAt(0) == L'"' && name.GetAt(name.GetLength() - 1) == L'"')
-               name = Trimmed(name.Mid(1, name.GetLength() - 2));
-
-            if (!StringParser::IsValidEmailAddress(address))
-            {
-               refusal = _T("protected_persons: ") + address + _T(" is not an address.");
-               return false;
-            }
-
-            entry = name.IsEmpty() ? address : name + _T(" <") + address + _T(">");
-         }
-         else if (current.Find(_T("@")) >= 0)
-         {
-            String address = Lower(current);
-
-            if (!StringParser::IsValidEmailAddress(address))
-            {
-               refusal = _T("protected_persons: ") + current + _T(" is not an address. Write a name, an address, or Name <address>.");
-               return false;
-            }
-
-            entry = address;
-         }
-         else if (current.Find(_T(">")) >= 0)
-         {
-            refusal = _T("protected_persons: ") + current + _T(" closes an address with > that was never opened.");
+         if (!ParseEntry(raw[i], person, entry, refusal))
             return false;
-         }
-         else
-            entry = current;
 
          if (seen.insert(Lower(entry)).second)
             entries.push_back(entry);
-
-         current = _T("");
       }
 
       canonical = _T("");
@@ -876,36 +1092,25 @@ namespace HM
          if (!current.IsEmpty())
          {
             Person person;
-            const int open = current.Find(_T("<"));
+            String canonical;
+            String refusal;
 
-            if (open >= 0)
+            // A stored entry passed the canonicaliser once; one that does not
+            // pass now is skipped rather than guessed at.
+            if (ParseEntry(current, person, canonical, refusal))
             {
-               const int close = current.Find(_T(">"), open);
-               const String address = Lower(Trimmed(current.Mid(open + 1, close > open ? close - open - 1 : 0)));
-               person.name = Trimmed(current.Mid(0, open));
-               if (!address.IsEmpty())
-                  person.addresses.push_back(address);
-               person.owner = address.IsEmpty() ? String(_T("a protected person")) : address;
-            }
-            else if (current.Find(_T("@")) >= 0)
-            {
-               const String address = Lower(current);
-               person.addresses.push_back(address);
-               person.owner = address;
-
                // An address of an account here protects that account's name as
                // well as the address: the chairman at another hosted domain.
-               std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(address);
-               if (account)
-                  person.name = DirectoryStore::NameOf(account->GetPersonFirstName(), account->GetPersonLastName());
-            }
-            else
-            {
-               person.name = current;
-               person.owner = _T("a protected person");
-            }
+               if (person.name.IsEmpty() && !person.addresses.empty())
+               {
+                  std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(person.addresses[0]);
+                  if (account)
+                     person.name = DirectoryStore::NameOf(account->GetPersonFirstName(), account->GetPersonLastName());
+               }
 
-            people.push_back(person);
+               person.folded = FoldName(person.name);
+               people.push_back(person);
+            }
          }
 
          current = _T("");
@@ -959,10 +1164,13 @@ namespace HM
       if (!recordset)
          return people;
 
+      std::map<String, size_t> byAddress;
+
       while (!recordset->IsEOF())
       {
          Person person;
          person.name = DirectoryStore::NameOf(recordset->GetStringValue("accountpersonfirstname"), recordset->GetStringValue("accountpersonlastname"));
+         person.folded = FoldName(person.name);
 
          const String address = Lower(recordset->GetStringValue("accountaddress"));
          person.addresses.push_back(address);
@@ -971,9 +1179,32 @@ namespace HM
          // An account with no person name entered is protected by its address
          // alone: JudgeName compares nothing against an empty name, and the
          // address still answers for a display name that is an address.
+         byAddress[address] = people.size();
          people.push_back(person);
 
          recordset->MoveNext();
+      }
+
+      // The domain's active aliases are the accounts' addresses too: an alias
+      // of the account may carry the account's name, and a display name that
+      // is an alias address is the account's own.
+      SQLCommand aliases("select aliasname, aliasvalue from hm_aliases where aliasdomainid = @DOMAINID and aliasactive = 1");
+      aliases.AddParameter("@DOMAINID", domain->GetID());
+
+      std::shared_ptr<DALRecordset> aliasRows = Application::Instance()->GetDBManager()->OpenRecordset(aliases);
+      if (aliasRows)
+      {
+         while (!aliasRows->IsEOF())
+         {
+            const String name = Lower(aliasRows->GetStringValue("aliasname"));
+            const String value = Lower(aliasRows->GetStringValue("aliasvalue"));
+
+            std::map<String, size_t>::const_iterator found = byAddress.find(value);
+            if (found != byAddress.end() && !name.IsEmpty() && !Contains(people[found->second].addresses, name))
+               people[found->second].addresses.push_back(name);
+
+            aliasRows->MoveNext();
+         }
       }
 
       return people;
@@ -1014,17 +1245,57 @@ namespace HM
       return names;
    }
 
-   String
-   ImpersonationCheck::Ascii_(const String &text)
+   std::shared_ptr<const ImpersonationCheck::Facts>
+   ImpersonationCheck::FactsFor_(std::shared_ptr<const Domain> domain)
    {
-      // The header is ASCII and one line: anything else becomes a question
-      // mark, so the reason is legible everywhere the file goes.
+      const time_t now = time(0);
+
+      {
+         boost::lock_guard<boost::mutex> guard(facts_mutex_);
+
+         std::map<__int64, std::shared_ptr<const Facts> >::const_iterator found = facts_.find(domain->GetID());
+         if (found != facts_.end() && now - found->second->made <= CacheSeconds)
+            return found->second;
+      }
+
+      // Built outside the lock: two queries and the folding of every name,
+      // which another thread delivering to the same domain may do too - the
+      // last one in wins, and both answers are equally current.
+      std::shared_ptr<Facts> facts = std::shared_ptr<Facts>(new Facts());
+      facts->made = now;
+      facts->people = AccountsOf_(domain);
+
+      const std::vector<Person> protectedPeople = ParsePersons(domain->GetProtectedPersons());
+      facts->people.insert(facts->people.end(), protectedPeople.begin(), protectedPeople.end());
+
+      std::vector<String> names = HostedDomains_();
+      const std::vector<String> partners = SplitList_(domain->GetProtectedPartners());
+      names.insert(names.end(), partners.begin(), partners.end());
+      facts->names = PrepareNames(names);
+
+      boost::lock_guard<boost::mutex> guard(facts_mutex_);
+      facts_[domain->GetID()] = facts;
+      return facts;
+   }
+
+   void
+   ImpersonationCheck::Invalidate()
+   {
+      boost::lock_guard<boost::mutex> guard(facts_mutex_);
+      facts_.clear();
+   }
+
+   String
+   ImpersonationCheck::OneLine_(const String &text)
+   {
+      // The header is one line whatever a display name carried; the RFC 2047
+      // writer folds it if it is long.
       String result;
 
       for (int i = 0; i < text.GetLength(); i++)
       {
          const wchar_t c = text.GetAt(i);
-         result += (c >= 0x20 && c < 0x7F) ? c : L'?';
+         result += (c == L'\r' || c == L'\n' || c == L'\t') ? L' ' : c;
       }
 
       return result;
@@ -1046,16 +1317,9 @@ namespace HM
 
       const String fileName = PersistentMessage::GetFileName(account, message);
 
+      // The header block and the outside/inside decision: the tagger's, when
+      // the domain tags, and read here once otherwise.
       MessageOrigin::Judge(message, fileName, sendersIP, origin);
-
-      // The From header as the reader sees it, RFC 2047 decoded, and the
-      // address in it as the DMARC check reads it.
-      MimeHeader mimeHeader;
-      mimeHeader.Load(origin.header.c_str(), origin.header.GetLength(), true);
-      const String fromHeader = mimeHeader.GetUnicodeFieldValue("From");
-      const String fromAddress = Lower(Trimmed(DMARC::ExtractAddressFromHeaderValue(fromHeader)));
-      const String displayName = DisplayNameOf(fromHeader);
-      const String envelope = Lower(Trimmed(origin.facts.envelope_sender));
 
       // A stranger's forged warning is removed along with anything else this
       // finds nothing to say about; where there is something to say the
@@ -1066,6 +1330,16 @@ namespace HM
 
       if (origin.external)
       {
+         // The From header as the reader sees it, RFC 2047 decoded, and the
+         // address in it as the DMARC check reads it. Parsed only for a copy
+         // from outside, which is the only one judged.
+         MimeHeader mimeHeader;
+         mimeHeader.Load(origin.header.c_str(), origin.header.GetLength(), true);
+         const String fromHeader = mimeHeader.GetUnicodeFieldValue("From");
+         const String fromAddress = Lower(Trimmed(DMARC::ExtractAddressFromHeaderValue(fromHeader)));
+         const String displayName = DisplayNameOf(fromHeader);
+         const String envelope = Lower(Trimmed(origin.facts.envelope_sender));
+
          // The reader's own safe senders, and the domain's and the server's
          // allow list where nothing nearer decides: a sender somebody vouched
          // for is not then warned about.
@@ -1082,63 +1356,32 @@ namespace HM
          }
          else
          {
-            const std::vector<String> hosted = HostedDomains_();
-            const std::vector<String> partners = SplitList_(domain->GetProtectedPartners());
+            std::shared_ptr<const Facts> facts = FactsFor_(domain);
 
             const String fromDomain = Lower(WithoutTrailingDot(StringParser::ExtractDomain(fromAddress)));
             const String envelopeDomain = Lower(WithoutTrailingDot(StringParser::ExtractDomain(envelope)));
 
-            // A sender domain that is itself hosted here or a protected
-            // partner, exactly, is exempt from both checks.
-            const bool trustedFrom = !fromDomain.IsEmpty() && (Contains(hosted, fromDomain) || Contains(partners, fromDomain));
+            // A From domain that is itself hosted here or a protected partner,
+            // exactly - its U-label and A-label being one name - is exempt from
+            // both checks; the envelope is still judged below.
+            bool trustedFrom = false;
+
+            if (!fromDomain.IsEmpty())
+            {
+               const String fromIdna = IdnaOf(fromDomain);
+
+               for (size_t i = 0; i < facts->names.size() && !trustedFrom; i++)
+                  trustedFrom = facts->names[i].idna == fromIdna;
+            }
 
             if (!trustedFrom)
             {
-               std::vector<Person> people = AccountsOf_(domain);
-               const std::vector<Person> protectedPeople = ParsePersons(domain->GetProtectedPersons());
-               people.insert(people.end(), protectedPeople.begin(), protectedPeople.end());
-
-               // The From address is its own identity, and so are an alias
-               // domain's spelling of it and the account an alias of it points
-               // at - what RecipientParser resolves on the way in.
-               std::vector<String> identities;
-               identities.push_back(fromAddress);
-
-               std::shared_ptr<DomainAliases> domainAliases = ObjectCache::Instance()->GetDomainAliases();
-               const String primary = Lower(domainAliases ? domainAliases->ApplyAliasesOnAddress(fromAddress) : fromAddress);
-               if (!primary.IsEmpty() && !Contains(identities, primary))
-                  identities.push_back(primary);
-
-               std::shared_ptr<const Alias> alias = CacheContainer::Instance()->GetAlias(primary);
-               if (alias && alias->GetIsActive())
-               {
-                  const String target = Lower(domainAliases ? domainAliases->ApplyAliasesOnAddress(alias->GetValue()) : alias->GetValue());
-                  if (!target.IsEmpty() && !Contains(identities, target))
-                     identities.push_back(target);
-               }
-
-               // A person whose address is one of the sender's identities is
-               // the sender: the name is theirs.
-               for (size_t i = 0; i < people.size(); i++)
-               {
-                  for (size_t j = 0; j < identities.size(); j++)
-                  {
-                     if (Contains(people[i].addresses, identities[j]))
-                     {
-                        for (size_t k = 0; k < identities.size(); k++)
-                           if (!Contains(people[i].addresses, identities[k]))
-                              people[i].addresses.push_back(identities[k]);
-                        break;
-                     }
-                  }
-               }
-
-               if (!JudgeName(displayName, fromAddress, people, reason) && !fromDomain.IsEmpty())
-                  JudgeDomain(fromDomain, hosted, partners, fromAddress, _T("from"), reason);
+               if (!JudgeName(displayName, fromAddress, facts->people, reason) && !fromDomain.IsEmpty())
+                  JudgeDomain(fromDomain, facts->names, fromAddress, _T("from"), reason);
             }
 
             if (reason.IsEmpty() && !envelopeDomain.IsEmpty() && envelopeDomain != fromDomain)
-               JudgeDomain(envelopeDomain, hosted, partners, envelope, _T("envelope sender"), reason);
+               JudgeDomain(envelopeDomain, facts->names, envelope, _T("envelope sender"), reason);
          }
       }
 
@@ -1157,7 +1400,7 @@ namespace HM
          return Clean;
       }
 
-      const String headerValue = Ascii_(reason);
+      const String headerValue = OneLine_(reason);
 
       if (action == Quarantine)
       {
@@ -1199,7 +1442,9 @@ namespace HM
          return Clean;
       }
 
-      data.SetFieldValue(String(Header()), headerValue);
+      // Through the RFC 2047 writer in UTF-8, whatever charset the message
+      // declares, so that the shown name reaches the reader as it was shown.
+      data.GetMimeMessage()->SetUnicodeFieldValue(Header(), headerValue, "utf-8");
 
       if (!data.WriteReported(fileName, "The impersonation warning"))
       {
@@ -1264,11 +1509,32 @@ namespace HM
       if (ImpersonationCheck::FoldName(cyrillic) != _T("ada lovelace"))
          throw std::logic_error("FoldName did not fold the Cyrillic look-alikes to Latin.");
 
+      // A Cyrillic capital whose lower case looks nothing like Latin: Тom.
+      String tom;
+      tom += (wchar_t) 0x0422;
+      tom += _T("om Smith");
+      if (ImpersonationCheck::FoldName(tom) != _T("tom smith"))
+         throw std::logic_error("FoldName did not fold Cyrillic capital Te to t.");
+
       String greek = _T("L");
       greek += (wchar_t) 0x039F;
       greek += _T("velace");
       if (ImpersonationCheck::FoldName(greek) != _T("lovelace"))
          throw std::logic_error("FoldName did not fold Greek capital omicron to o.");
+
+      // The invisible format characters are deleted, not turned into spaces:
+      // a zero-width space inside a word, a soft hyphen inside a word.
+      String zeroWidth = _T("A");
+      zeroWidth += (wchar_t) 0x200B;
+      zeroWidth += _T("da Lovelace");
+      if (ImpersonationCheck::FoldName(zeroWidth) != _T("ada lovelace"))
+         throw std::logic_error("FoldName did not delete a zero-width space inside a name.");
+
+      String softHyphen = _T("Ada Love");
+      softHyphen += (wchar_t) 0x00AD;
+      softHyphen += _T("lace");
+      if (ImpersonationCheck::FoldName(softHyphen) != _T("ada lovelace"))
+         throw std::logic_error("FoldName did not delete a soft hyphen inside a name.");
 
       if (ImpersonationCheck::FoldName(_T("")) != _T(""))
          throw std::logic_error("FoldName of nothing is not nothing.");
@@ -1282,6 +1548,16 @@ namespace HM
       if (ImpersonationCheck::FoldDomain(_T("xn--exmple-4nf.test")) != _T("example.test"))
          throw std::logic_error("FoldDomain did not decode the IDNA label and fold its Cyrillic a.");
 
+      // IdnaOf decodes and lower-cases and folds nothing: the A-label and the
+      // U-label are one name, and a look-alike letter is still itself.
+      String buecherExample = _T("b");
+      buecherExample += (wchar_t) 0x00FC;
+      buecherExample += _T("cher.example");
+      if (ImpersonationCheck::IdnaOf(_T("XN--BCHER-KVA.Example")) != buecherExample)
+         throw std::logic_error("IdnaOf did not decode the A-label to the U-label.");
+      if (ImpersonationCheck::IdnaOf(_T("examp1e.test")) != _T("examp1e.test"))
+         throw std::logic_error("IdnaOf folded a confusable, which is not its job.");
+
       String decoded;
       String muenchen = _T("m");
       muenchen += (wchar_t) 0x00FC;
@@ -1294,6 +1570,16 @@ namespace HM
       buecher += _T("cher");
       if (!ImpersonationCheck::DecodePunycode("bcher-kva", decoded) || decoded != buecher)
          throw std::logic_error("Punycode: bcher-kva did not decode.");
+
+      // RFC 3492 section 7.1 (A), Arabic (Egyptian): the seventeen code
+      // points the RFC lists for egbpdaj6bu4bxfgehfvwxn.
+      const wchar_t arabicPoints[] = { 0x0644, 0x064A, 0x0647, 0x0645, 0x0627, 0x0628, 0x062A, 0x0643, 0x0644,
+                                       0x0645, 0x0648, 0x0634, 0x0639, 0x0631, 0x0628, 0x064A, 0x061F };
+      String arabic;
+      for (size_t i = 0; i < sizeof(arabicPoints) / sizeof(arabicPoints[0]); i++)
+         arabic += arabicPoints[i];
+      if (!ImpersonationCheck::DecodePunycode("egbpdaj6bu4bxfgehfvwxn", decoded) || decoded != arabic)
+         throw std::logic_error("Punycode: RFC 3492 sample (A) did not decode to the RFC's code points.");
 
       if (!ImpersonationCheck::DecodePunycode("abc-", decoded) || decoded != _T("abc"))
          throw std::logic_error("Punycode: an all-basic label did not decode to itself.");
@@ -1322,6 +1608,8 @@ namespace HM
          throw std::logic_error("EditDistance did not count a substitution as 1.");
       if (ImpersonationCheck::EditDistance(_T("abcd"), _T("dcba")) < 2)
          throw std::logic_error("EditDistance of a reversal is not more than 1.");
+      if (ImpersonationCheck::EditDistance(_T("ab"), _T("abcde")) != 3)
+         throw std::logic_error("EditDistance's length pre-check did not answer the difference.");
    }
 
    void
@@ -1347,11 +1635,16 @@ namespace HM
       chair.owner = _T("chair@board.example");
       people.push_back(chair);
 
+      ImpersonationCheck::Person nameless;
+      nameless.addresses.push_back(_T("ceo@example.test"));
+      nameless.owner = _T("ceo@example.test");
+      people.push_back(nameless);
+
       String reason;
 
       if (!ImpersonationCheck::JudgeName(_T("Ada Lovelace"), _T("x@evil.test"), people, reason))
          throw std::logic_error("A borrowed account name from a stranger was not judged.");
-      if (reason != _T("name \"Ada Lovelace\" is ada@example.test's; from x@evil.test"))
+      if (reason != _T("name \"Ada Lovelace\" matches Ada Lovelace (ada@example.test); from x@evil.test"))
          throw std::logic_error("The borrowed-name reason is not in the header's shape.");
 
       if (ImpersonationCheck::JudgeName(_T("Ada Lovelace"), _T("ADA@example.test"), people, reason))
@@ -1365,10 +1658,12 @@ namespace HM
 
       if (!ImpersonationCheck::JudgeName(_T("Ada L0velace"), _T("x@evil.test"), people, reason))
          throw std::logic_error("A name spelled with a zero for the o was not judged as borrowed.");
+      if (reason.Find(_T("name \"Ada L0velace\" matches Ada Lovelace (ada@example.test)")) != 0)
+         throw std::logic_error("The reason does not carry the shown spelling and the person it matches.");
 
       if (!ImpersonationCheck::JudgeName(_T("The Chairman"), _T("anyone@anywhere.test"), people, reason))
          throw std::logic_error("A protected person's name with no address was not judged as borrowed.");
-      if (reason != _T("name \"The Chairman\" is a protected person's; from anyone@anywhere.test"))
+      if (reason != _T("name \"The Chairman\" matches The Chairman (a protected person); from anyone@anywhere.test"))
          throw std::logic_error("The protected-person reason is not in the header's shape.");
 
       if (ImpersonationCheck::JudgeName(_T("Board Chair"), _T("chair@board.example"), people, reason))
@@ -1380,11 +1675,33 @@ namespace HM
       if (!ImpersonationCheck::JudgeName(_T("ada@example.test"), _T("x@evil.test"), people, reason))
          throw std::logic_error("A display name that is an account's address was not compared as an address.");
 
+      if (!ImpersonationCheck::JudgeName(_T("ada.l@example.test"), _T("x@evil.test"), people, reason))
+         throw std::logic_error("A display name that is an account's alias address was not compared as an address.");
+
+      if (!ImpersonationCheck::JudgeName(_T("ceo@example.test"), _T("x@evil.test"), people, reason))
+         throw std::logic_error("A display name that is a nameless account's address was not compared as an address.");
+      if (reason != _T("name \"ceo@example.test\" matches the address (ceo@example.test); from x@evil.test"))
+         throw std::logic_error("The nameless-account reason is not in the header's shape.");
+
       if (ImpersonationCheck::JudgeName(_T(""), _T("x@evil.test"), people, reason))
          throw std::logic_error("An empty display name was judged.");
 
       if (ImpersonationCheck::JudgeName(_T("Somebody Else"), _T("x@evil.test"), people, reason))
          throw std::logic_error("A name nobody here has was judged.");
+
+      // A name longer than the reason carries is cut with an ellipsis.
+      String longName;
+      for (int i = 0; i < 200; i++)
+         longName += L'x';
+      longName += _T(" Ada Lovelace");
+      ImpersonationCheck::Person longPerson;
+      longPerson.name = longName;
+      longPerson.owner = _T("a protected person");
+      people.push_back(longPerson);
+      if (!ImpersonationCheck::JudgeName(longName, _T("x@evil.test"), people, reason))
+         throw std::logic_error("A long protected name was not judged.");
+      if (reason.Find(_T("...\" matches ")) < 0 || reason.Find(_T("... (a protected person)")) < 0 || reason.GetLength() > 400)
+         throw std::logic_error("A long shown name, or the long person it matched, was not capped in the reason.");
    }
 
    void
@@ -1392,6 +1709,7 @@ namespace HM
    {
       std::vector<String> hosted;
       hosted.push_back(_T("example.test"));
+      hosted.push_back(_T("xn--bcher-kva.example"));
       std::vector<String> partners;
       partners.push_back(_T("partner.example"));
 
@@ -1421,8 +1739,21 @@ namespace HM
          throw std::logic_error("The IDNA spelling with a Cyrillic a was not a lookalike.");
       if (!judge(L"example.tset"))
          throw std::logic_error("A transposition in the last label was not a lookalike.");
+
+      // A lookalike used as a lookalike is used: one label in front of it.
+      if (!judge(L"mail.examp1e.test"))
+         throw std::logic_error("A name beneath a lookalike was not judged by the lookalike inside it.");
+      if (reason != _T("domain examp1e.test looks like example.test; from stranger@mail.examp1e.test"))
+         throw std::logic_error("The reason for a name beneath a lookalike does not name the lookalike.");
+      if (!judge(L"secure-login.exarnple.test"))
+         throw std::logic_error("A name two labels deep beneath a lookalike was not judged.");
+      if (!judge(L"invoices.xn--exmple-4nf.test"))
+         throw std::logic_error("A name beneath the IDNA lookalike was not judged.");
+
       if (judge(L"mail.example.test"))
          throw std::logic_error("A name beneath the hosted domain was judged a lookalike.");
+      if (judge(L"a.b.mail.example.test"))
+         throw std::logic_error("A name deep beneath the hosted domain was judged a lookalike.");
       if (judge(L"example.test"))
          throw std::logic_error("The hosted domain itself was judged a lookalike.");
       if (judge(L"EXAMPLE.test."))
@@ -1443,6 +1774,21 @@ namespace HM
          throw std::logic_error("A name beneath the partner was judged a lookalike.");
       if (judge(L""))
          throw std::logic_error("An empty domain was judged.");
+
+      // A hosted internationalised name in its U-label spelling is that name,
+      // not a lookalike of its own A-label; the same letters without the
+      // umlaut are one edit from it.
+      String buecher = _T("b");
+      buecher += (wchar_t) 0x00FC;
+      buecher += _T("cher.example");
+      if (judge(buecher.c_str()))
+         throw std::logic_error("The U-label spelling of a hosted A-label was judged a lookalike of itself.");
+      String beneathBuecher = _T("mail.");
+      beneathBuecher += buecher;
+      if (judge(beneathBuecher.c_str()))
+         throw std::logic_error("A name beneath the U-label spelling of a hosted name was judged.");
+      if (!judge(L"bucher.example"))
+         throw std::logic_error("The umlaut-less spelling of a hosted IDNA name was not a lookalike.");
    }
 
    void
@@ -1482,6 +1828,15 @@ namespace HM
       if (canonical != _T("The Chairman\nchair@board.example\nAda Lovelace <ada@example.test>"))
          throw std::logic_error("The persons list was not canonicalised: " + std::string(AnsiString(canonical)));
 
+      // A comma inside quotes is part of the name, and the name is stored in
+      // quotes so that it reads back as one entry.
+      if (!ImpersonationCheck::CanonicalisePersons(_T("\"Holloway, Chris\" <chris@board.example>, \"Board, The\", Plain Name"), canonical, refusal))
+         throw std::logic_error("A quoted name with a comma was refused: " + std::string(AnsiString(refusal)));
+      if (canonical != _T("\"Holloway, Chris\" <chris@board.example>\n\"Board, The\"\nPlain Name"))
+         throw std::logic_error("A quoted name with a comma was not kept whole: " + std::string(AnsiString(canonical)));
+
+      if (ImpersonationCheck::CanonicalisePersons(_T("\"Holloway, Chris <chris@board.example>"), canonical, refusal) || refusal.Find(_T("unbalanced quote")) < 0)
+         throw std::logic_error("An unbalanced quote was not refused with the sentence.");
       if (ImpersonationCheck::CanonicalisePersons(_T("Ada <not an address>"), canonical, refusal) || refusal.Find(_T("not an address")) < 0)
          throw std::logic_error("A person with a bad address was not refused with the sentence.");
       if (ImpersonationCheck::CanonicalisePersons(_T("Ada <ada@example.test"), canonical, refusal))
@@ -1491,15 +1846,17 @@ namespace HM
       if (ImpersonationCheck::CanonicalisePersons(tooLong, canonical, refusal) || refusal.Find(_T("2000")) < 0)
          throw std::logic_error("A persons list of 2,001 characters was not refused.");
 
-      std::vector<ImpersonationCheck::Person> people = ImpersonationCheck::ParsePersons(_T("The Chairman\nchair@board.example\nAda Lovelace <ada@example.test>"));
-      if (people.size() != 3)
-         throw std::logic_error("ParsePersons did not read three entries.");
-      if (people[0].name != _T("The Chairman") || !people[0].addresses.empty() || people[0].owner != _T("a protected person"))
+      std::vector<ImpersonationCheck::Person> people = ImpersonationCheck::ParsePersons(_T("The Chairman\nchair@board.example\nAda Lovelace <ada@example.test>\n\"Holloway, Chris\" <chris@board.example>"));
+      if (people.size() != 4)
+         throw std::logic_error("ParsePersons did not read four entries.");
+      if (people[0].name != _T("The Chairman") || !people[0].addresses.empty() || people[0].owner != _T("a protected person") || people[0].folded != _T("the chairman"))
          throw std::logic_error("ParsePersons misread a bare name.");
       if (people[1].addresses.size() != 1 || people[1].addresses[0] != _T("chair@board.example") || people[1].owner != _T("chair@board.example"))
          throw std::logic_error("ParsePersons misread a bare address.");
       if (people[2].name != _T("Ada Lovelace") || people[2].addresses.size() != 1 || people[2].addresses[0] != _T("ada@example.test"))
          throw std::logic_error("ParsePersons misread Name <address>.");
+      if (people[3].name != _T("Holloway, Chris") || people[3].addresses.size() != 1 || people[3].addresses[0] != _T("chris@board.example"))
+         throw std::logic_error("ParsePersons misread a quoted name with a comma.");
 
       int action = -1;
       if (!ImpersonationCheck::ReadAction(_T("Quarantine"), action) || action != ImpersonationCheck::Quarantine)

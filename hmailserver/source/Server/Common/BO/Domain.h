@@ -383,9 +383,9 @@ namespace HM
       void SetExternalTagSubject(bool bNewVal) { external_tag_subject_ = bNewVal; }
 
       // Stamp X-hMailServer-External on a message this domain receives from
-      // outside. Prepending a field is signature-safe - DKIM selects duplicate
-      // fields from the bottom up - so this costs the sender's signature
-      // nothing, and the webmail turns it into a banner.
+      // outside. Added as a field of its own, which a DKIM signature never
+      // names in its h= tag, so this costs the sender's signature nothing,
+      // and the webmail turns it into a banner.
       bool GetExternalTagHeader() const { return external_tag_header_; }
       void SetExternalTagHeader(bool bNewVal) { external_tag_header_ = bNewVal; }
 

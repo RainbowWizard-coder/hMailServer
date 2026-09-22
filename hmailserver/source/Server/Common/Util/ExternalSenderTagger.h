@@ -43,10 +43,11 @@ namespace HM
                         const String &sendersIP,
                         MessageOrigin::Verdict &origin);
 
-      // Stamped on a message from outside. Prepending a field is
-      // signature-safe: DKIM selects duplicate fields from the bottom up, so a
-      // sender's signature over their own From or Subject is untouched by a
-      // field appearing above it.
+      // Stamped on a message from outside. Added as a field of its own -
+      // MimeHeader::SetField appends a field that was not there - which is
+      // signature-safe: a DKIM signature covers the fields its h= tag names,
+      // and a sender's signature over their own From or Subject never names
+      // this one.
       static const char *ExternalHeader() { return "X-hMailServer-External"; }
 
       // Stamped when this account has had mail from other people but never from

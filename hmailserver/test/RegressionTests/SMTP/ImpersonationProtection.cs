@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
@@ -25,11 +26,14 @@ namespace RegressionTests.SMTP
    ///    from Infrastructure.MainOperations.TestInternals). What is proved
    ///    here is the wiring, each case with its negative control: that the
    ///    checks run at delivery on the recipient's copy and only on a message
-   ///    from outside, that the header carries the reason in its two shapes,
-   ///    that the quarantine holds the copy and releases it as spam is
-   ///    released, that the default does nothing, what is exempt, and the
-   ///    three surfaces' refusals and round trips including the XML store
-   ///    through a backup.
+   ///    from outside, that the header carries the reason in its two shapes
+   ///    and survives a non-ASCII name, that a stranger's forged header is
+   ///    removed, replaced or - with the action off - left alone, that the
+   ///    quarantine holds the copy and releases it as spam is released and
+   ///    flags instead when the store is off, that the default does nothing,
+   ///    what is exempt at both scopes and for an alias domain, and the three
+   ///    surfaces' refusals and round trips including the XML store through a
+   ///    backup.
    ///
    ///    The three new COM properties are reached through dynamic, as the
    ///    restricted-delivery fixture reaches its two: the suite's interop
@@ -37,7 +41,9 @@ namespace RegressionTests.SMTP
    ///    The suite's own domain (example.test, remade for every test) is the
    ///    protected one. The Cyrillic spelling of it is sent in its IDNA form,
    ///    xn--exmple-4nf.test, which is what an address carries on the wire and
-   ///    what the server accepts at MAIL FROM; the check decodes it.
+   ///    what the server accepts at MAIL FROM; the check decodes it. The
+   ///    Cyrillic display name is sent as RFC 2047 encodes it, which is what a
+   ///    header carries on the wire.
    /// </summary>
    [TestFixture]
    public class ImpersonationProtection : TestFixtureBase
@@ -50,6 +56,10 @@ namespace RegressionTests.SMTP
       private const string Header = "X-hMailServer-Impersonation";
 
       private const string Stranger = "stranger@elsewhere.test";
+
+      // "Аdа Lоvеlасе" - Cyrillic А а о е а с е where the Latin letters stand -
+      // as an RFC 2047 encoded word.
+      private const string CyrillicAdaEncoded = "=?UTF-8?B?0JBk0LAgTNC+dtC1bNCw0YHQtQ==?=";
 
       [SetUp]
       public void StartRestApi()
@@ -76,7 +86,7 @@ namespace RegressionTests.SMTP
       }
 
       [Test]
-      [Description("With the action flag, a message from outside whose From name is an account's person name arrives with the header naming the account; the same name from the account's own address over an authenticated session, from an alias of the account, and from a protected partner domain has no header; a name one letter off has none.")]
+      [Description("With the action flag, a message from outside whose From name is an account's person name arrives with the header naming the person and the address the message came from; the same name from the account's own address over an authenticated session, from an alias of the account, and from a protected partner domain has no header; a name one letter off has none; a look-alike spelling has one; a display name that is the account's alias address is compared as an address.")]
       public void ABorrowedAccountNameIsFlaggedAndTheOwnersOwnAddressesAreNot()
       {
          Account ada = NamedAccount("ada", "Ada", "Lovelace");
@@ -86,8 +96,8 @@ namespace RegressionTests.SMTP
 
          Deliver(Stranger, reader.Address, "\"Ada Lovelace\" <ada.lovelace@elsewhere.test>", "Urgent");
          string flagged = Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password);
-         StringAssert.Contains(Header + ": name \"Ada Lovelace\" is " + ada.Address + "'s; from ada.lovelace@elsewhere.test", Unfolded(flagged),
-            "A stranger borrowing an account's name must be flagged with the reason naming the account.");
+         StringAssert.Contains(Header + ": name \"Ada Lovelace\" matches Ada Lovelace (" + ada.Address + "); from ada.lovelace@elsewhere.test", Unfolded(flagged),
+            "A stranger borrowing an account's name must be flagged with the reason naming the person and the real address.");
          StringAssert.Contains("Subject: Urgent", flagged, "The subject is left alone.");
 
          // The negative controls. The owner over an authenticated session is
@@ -99,8 +109,8 @@ namespace RegressionTests.SMTP
 
          // From outside - the envelope is a stranger's, so the message is
          // outside and the check runs - with the name over an alias of the
-         // account: the alias is at a hosted domain, which is exempt, and the
-         // name is the alias's owner's to use either way.
+         // account: the alias is one of the account's own addresses, and at a
+         // hosted domain, which is exempt either way.
          Deliver(Stranger, reader.Address, "\"Ada Lovelace\" <ada.l@" + _domain.Name + ">", "Alias");
          StringAssert.DoesNotContain(Header, Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password),
             "An alias of the account carrying the account's name must not be flagged.");
@@ -115,14 +125,56 @@ namespace RegressionTests.SMTP
          StringAssert.DoesNotContain(Header, Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password),
             "A name one letter off must not be flagged.");
 
-         // And a look-alike spelling of the name is the name.
+         // And a look-alike spelling of the name is the name: the reason names
+         // the spelling shown and the person it matches.
          Deliver(Stranger, reader.Address, "\"Ada L0velace\" <ada.lovelace@elsewhere.test>", "Zero for o");
-         StringAssert.Contains(Header + ": name \"Ada L0velace\" is " + ada.Address + "'s", Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password)),
+         StringAssert.Contains(Header + ": name \"Ada L0velace\" matches Ada Lovelace (" + ada.Address + ")", Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password)),
             "A confusable spelling of the account's name must be flagged.");
+
+         // The alias address as a display name in front of a stranger's: the
+         // account's aliases are its addresses, so this is compared as one.
+         Deliver(Stranger, reader.Address, "\"ada.l@" + _domain.Name + "\" <x@elsewhere.test>", "Alias as name");
+         StringAssert.Contains(Header + ": name \"ada.l@" + _domain.Name + "\" matches Ada Lovelace (" + ada.Address + "); from x@elsewhere.test",
+            Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password)),
+            "A display name that is the account's alias address must be compared as an address.");
       }
 
       [Test]
-      [Description("A protected person's name borrowed from outside is flagged with the reason naming the person; the same name from the address given for the person in the list is not; an address-shaped display name that is an account's address is compared as an address.")]
+      [Description("A Cyrillic look-alike display name - sent as an RFC 2047 encoded word, as a header carries it - is flagged, and the reason the webmail reads through GET /api/v1/me/messages/{id} carries the name as shown beside the person it matches; the listing marks the row.")]
+      public void ACyrillicDisplayNameIsFlaggedAndTheReasonSurvivesToTheReader()
+      {
+         Account ada = NamedAccount("ada", "Ada", "Lovelace");
+         Account reader = NamedAccount("reader", "Robert", "Reader");
+         Configure("flag", "", "");
+
+         Deliver(Stranger, reader.Address, CyrillicAdaEncoded + " <ada.lovelace@elsewhere.test>", "Cyrillic");
+         Pop3ClientSimulator.AssertMessageCount(reader.Address, Password, 1);
+
+         string asReader = Basic(reader.Address, Password);
+         var folders = Send("GET", "/api/v1/me/folders", asReader, null);
+         Assert.AreEqual(200, folders.status, folders.body);
+         string inboxId = FolderId(folders.body, "INBOX");
+         Assert.IsNotEmpty(inboxId, "No INBOX in " + folders.body);
+
+         var listing = Send("GET", "/api/v1/me/folders/" + inboxId + "/messages", asReader, null);
+         Assert.AreEqual(200, listing.status, listing.body);
+         StringAssert.Contains("\"impersonation\":true", listing.body, "The listing marks the stamped row.");
+         Match id = Regex.Match(listing.body.Substring(listing.body.IndexOf("\"messages\":[", StringComparison.Ordinal)), "\"id\":(\\d+)");
+         Assert.IsTrue(id.Success, "No message id in " + listing.body);
+
+         var message = Send("GET", "/api/v1/me/messages/" + id.Groups[1].Value, asReader, null);
+         Assert.AreEqual(200, message.status, message.body);
+         StringAssert.Contains("matches Ada Lovelace (" + ada.Address + "); from ada.lovelace@elsewhere.test", message.body,
+            "The decoded reason must name the person and the real address.");
+         StringAssert.DoesNotContain("name \\\"?d?", message.body, "The shown name must not have been reduced to question marks.");
+         StringAssert.Contains("\"impersonation\":\"name \\\"", message.body, "The reason starts with the shown name.");
+
+         string raw = Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password);
+         StringAssert.Contains(Header + ":", raw, "The header is on the copy.");
+      }
+
+      [Test]
+      [Description("A protected person's name borrowed from outside is flagged with the reason naming the person; the same name from the address given for the person in the list is not; an address-shaped display name that is an account's address is compared as an address, and a nameless account is named by its address.")]
       public void AProtectedPersonsNameIsFlaggedAndTheirOwnAddressIsNot()
       {
          Account reader = NamedAccount("reader", "Robert", "Reader");
@@ -130,7 +182,7 @@ namespace RegressionTests.SMTP
          Configure("flag", "The Chairman <chair@board.example>, The Auditor", "");
 
          Deliver(Stranger, reader.Address, "\"The Chairman\" <chairman@elsewhere.test>", "Wire transfer");
-         StringAssert.Contains(Header + ": name \"The Chairman\" is chair@board.example's; from chairman@elsewhere.test",
+         StringAssert.Contains(Header + ": name \"The Chairman\" matches The Chairman (chair@board.example); from chairman@elsewhere.test",
             Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password)),
             "A protected person's name from another address must be flagged.");
 
@@ -139,19 +191,19 @@ namespace RegressionTests.SMTP
             "The protected person writing from the address given for them must not be flagged.");
 
          Deliver(Stranger, reader.Address, "\"the auditor\" <audit@elsewhere.test>", "Findings");
-         StringAssert.Contains(Header + ": name \"the auditor\" is a protected person's; from audit@elsewhere.test",
+         StringAssert.Contains(Header + ": name \"the auditor\" matches The Auditor (a protected person); from audit@elsewhere.test",
             Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password)),
             "A protected name with no address must be flagged from any outside address, whatever its case.");
 
          // A display name that is an account's address, in front of a stranger's.
          Deliver(Stranger, reader.Address, "\"" + ceo.Address + "\" <x@elsewhere.test>", "Address as name");
-         StringAssert.Contains(Header + ": name \"" + ceo.Address + "\" is " + ceo.Address + "'s; from x@elsewhere.test",
+         StringAssert.Contains(Header + ": name \"" + ceo.Address + "\" matches the address (" + ceo.Address + "); from x@elsewhere.test",
             Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password)),
             "A display name that is an account's address must be compared as an address.");
       }
 
       [Test]
-      [Description("Look-alike domains - a 1 for an l, rn for m, a transposition, an insertion, the IDNA spelling with a Cyrillic a - are flagged against the hosted domain, naming both; a subdomain of it and the domain itself are not; a look-alike of a protected partner is flagged and the partner itself is not.")]
+      [Description("Look-alike domains - a 1 for an l, rn for m, a transposition, an insertion, the IDNA spelling with a Cyrillic a, and a look-alike with a label in front of it - are flagged against the hosted domain, naming both; a subdomain of it and the domain itself are not; a look-alike of a protected partner is flagged and the partner itself is not.")]
       public void LookalikeDomainsAreFlaggedAndOurOwnNamesAreNot()
       {
          Account reader = NamedAccount("reader", "Robert", "Reader");
@@ -164,6 +216,12 @@ namespace RegressionTests.SMTP
                Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password)),
                lookalike + " must be flagged as a look-alike of " + _domain.Name + ".");
          }
+
+         // The shape a bought look-alike is used in: a label in front of it.
+         Deliver("invoices@mail.examp1e.test", reader.Address, "Invoices <invoices@mail.examp1e.test>", "Beneath a look-alike");
+         StringAssert.Contains(Header + ": domain examp1e.test looks like " + _domain.Name + "; from invoices@mail.examp1e.test",
+            Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password)),
+            "A name beneath a look-alike must be flagged by the look-alike inside it.");
 
          Deliver("invoices@mail." + _domain.Name, reader.Address, "Invoices <invoices@mail." + _domain.Name + ">", "Beneath");
          StringAssert.DoesNotContain(Header, Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password),
@@ -188,6 +246,63 @@ namespace RegressionTests.SMTP
          Deliver(Stranger, reader.Address, "Someone <someone@elsewhere.test>", "Unrelated");
          StringAssert.DoesNotContain(Header, Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password),
             "An unrelated domain must not be flagged.");
+      }
+
+      [Test]
+      [Description("An alias domain is a hosted name: a sender at it from outside is exempt, and a look-alike of the alias name is flagged naming the alias.")]
+      public void AnAliasDomainIsAHostedName()
+      {
+         Account reader = NamedAccount("reader", "Robert", "Reader");
+         Configure("flag", "", "");
+
+         DomainAlias alias = _domain.DomainAliases.Add();
+         alias.DomainID = _domain.ID;
+         alias.AliasName = "example-alias.test";
+         alias.Save();
+
+         try
+         {
+            // The control: without the alias this spelling is a stranger's.
+            Deliver(Stranger, reader.Address, "Someone <someone@example-alias.test>", "At the alias");
+            StringAssert.DoesNotContain(Header, Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password),
+               "A sender at an alias domain is at a hosted name and must not be flagged.");
+
+            Deliver("invoices@examp1e-alias.test", reader.Address, "Invoices <invoices@examp1e-alias.test>", "Alias look-alike");
+            StringAssert.Contains(Header + ": domain examp1e-alias.test looks like example-alias.test; from invoices@examp1e-alias.test",
+               Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password)),
+               "A look-alike of an alias domain must be flagged naming the alias.");
+         }
+         finally
+         {
+            _domain.DomainAliases.DeleteByDBID(alias.ID);
+         }
+      }
+
+      [Test]
+      [Description("A stranger's own X-hMailServer-Impersonation header is removed from a message the check finds nothing to say about, replaced by the real reason where it does, and left alone with the action off.")]
+      public void AForgedHeaderIsRemovedReplacedOrLeftAlone()
+      {
+         Account ada = NamedAccount("ada", "Ada", "Lovelace");
+         Account reader = NamedAccount("reader", "Robert", "Reader");
+         const string forged = Header + ": name \"Nobody\" matches Nobody (nobody@example.test); from forged@elsewhere.test";
+
+         Configure("flag", "", "");
+
+         Deliver(Stranger, reader.Address, "Someone <someone@elsewhere.test>", "Nothing to say", forged);
+         string removed = Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password));
+         StringAssert.DoesNotContain(Header, removed, "A forged warning on a clean message must be removed.");
+
+         Deliver(Stranger, reader.Address, "\"Ada Lovelace\" <ada.lovelace@elsewhere.test>", "Replaced", forged);
+         string replaced = Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password));
+         StringAssert.Contains(Header + ": name \"Ada Lovelace\" matches Ada Lovelace (" + ada.Address + ")", replaced, "The real reason must be written.");
+         StringAssert.DoesNotContain("Nobody", replaced, "The forged text must be gone.");
+         ClassicAssert.AreEqual(1, Occurrences(replaced, Header + ":"), "Exactly one header, the server's.");
+
+         Configure("off", "", "");
+
+         Deliver(Stranger, reader.Address, "\"Ada Lovelace\" <ada.lovelace@elsewhere.test>", "Left alone", forged);
+         string untouched = Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password));
+         StringAssert.Contains("Nobody", untouched, "With the action off nothing is read, so a forged header is left as it arrived.");
       }
 
       [Test]
@@ -221,7 +336,7 @@ namespace RegressionTests.SMTP
             var quarantine = _settings.AntiSpam.Quarantine;
             quarantine.Refresh();
             ClassicAssert.AreEqual(1, quarantine.Count, "The borrowed name must be in the quarantine.");
-            StringAssert.Contains("name \"Ada Lovelace\" is " + ada.Address + "'s", quarantine[0].Reason, "The row's reason is the header's text.");
+            StringAssert.Contains("name \"Ada Lovelace\" matches Ada Lovelace (" + ada.Address + ")", quarantine[0].Reason, "The row's reason is the header's text.");
             StringAssert.Contains(reader.Address, quarantine[0].Recipients);
 
             // The digest lists it.
@@ -250,6 +365,25 @@ namespace RegressionTests.SMTP
       }
 
       [Test]
+      [Description("With the action quarantine and the quarantine store off, the copy is flagged and delivered instead: a message stored nowhere is not discarded.")]
+      public void QuarantineWithTheStoreOffFlagsInstead()
+      {
+         Account ada = NamedAccount("ada", "Ada", "Lovelace");
+         Account reader = NamedAccount("reader", "Robert", "Reader");
+
+         IniFileSetting.Delete("QuarantineEnabled");
+         _application.Reinitialize();
+
+         Configure("quarantine", "", "");
+
+         Deliver(Stranger, reader.Address, "\"Ada Lovelace\" <ada.lovelace@elsewhere.test>", "Store off");
+         Pop3ClientSimulator.AssertMessageCount(reader.Address, Password, 1);
+         StringAssert.Contains(Header + ": name \"Ada Lovelace\" matches Ada Lovelace (" + ada.Address + ")",
+            Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password)),
+            "With the store off a quarantine action must flag the copy and deliver it.");
+      }
+
+      [Test]
       [Description("With the action off - the default - nothing is stamped and nothing is held, for a borrowed account name, a protected person's name and a look-alike domain alike.")]
       public void TheDefaultDoesNothing()
       {
@@ -275,13 +409,13 @@ namespace RegressionTests.SMTP
       }
 
       [Test]
-      [Description("A safe-sender entry of the recipient for the look-alike domain exempts it; the envelope-sender look-alike with a clean From is flagged, naming the envelope.")]
-      public void TheSafeSenderIsExemptAndTheEnvelopeIsJudged()
+      [Description("A safe-sender entry of the recipient for the look-alike domain exempts it, and so does the domain's allow list; the envelope-sender look-alike with a clean From is flagged, naming the envelope.")]
+      public void TheSafeSenderIsExemptAtBothScopesAndTheEnvelopeIsJudged()
       {
          Account reader = NamedAccount("reader", "Robert", "Reader");
          Configure("flag", "", "");
 
-         // The control: the look-alike is flagged before the reader vouches.
+         // The control: the look-alike is flagged before anybody vouches.
          Deliver("invoices@examp1e.test", reader.Address, "Invoices <invoices@examp1e.test>", "Before");
          StringAssert.Contains(Header, Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password));
 
@@ -292,15 +426,31 @@ namespace RegressionTests.SMTP
          StringAssert.DoesNotContain(Header, Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password),
             "A domain the reader marked safe must not be flagged.");
 
+         // The domain's allow list, edited by an administrator over COM as the
+         // Control Panel does, exempts another look-alike for every reader.
+         Deliver("invoices@exampel.test", reader.Address, "Invoices <invoices@exampel.test>", "Before the domain vouches");
+         StringAssert.Contains(Header, Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password));
+
+         dynamic domainList = ((dynamic) _domain).SenderList;
+         dynamic entry = domainList.Add();
+         entry.Value = "exampel.test";
+         entry.Blocked = false;
+         entry.Reason = "a supplier of the whole domain";
+         entry.Save();
+
+         Deliver("invoices@exampel.test", reader.Address, "Invoices <invoices@exampel.test>", "After the domain vouches");
+         StringAssert.DoesNotContain(Header, Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password),
+            "A domain the domain's allow list vouches for must not be flagged.");
+
          // The envelope: a clean From over a look-alike return path.
-         Deliver("bounce@exampel.test", reader.Address, "Someone <someone@elsewhere.test>", "Envelope");
-         StringAssert.Contains(Header + ": domain exampel.test looks like " + _domain.Name + "; envelope sender bounce@exampel.test",
+         Deliver("bounce@examplee.test", reader.Address, "Someone <someone@elsewhere.test>", "Envelope");
+         StringAssert.Contains(Header + ": domain examplee.test looks like " + _domain.Name + "; envelope sender bounce@examplee.test",
             Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password)),
             "A look-alike envelope sender under a clean From must be flagged, naming the envelope.");
       }
 
       [Test]
-      [Description("Over REST: a list of 2,001 characters is 400, a partner that is an address is 400 with a sentence, an action of 3 is 400, GET answers what PUT wrote canonicalised, and the action round-trips as digits and as words.")]
+      [Description("Over REST: a list of 2,001 characters is 400, a partner that is an address is 400 with a sentence, an unbalanced quote is 400 with a sentence, an action of 3 is 400, GET answers what PUT wrote canonicalised - a quoted name with a comma kept whole - and the action round-trips as digits and as words.")]
       public void TheRestRefusalsAndRoundTrips()
       {
          string domainPath = "/api/v1/domains/" + _domain.Name;
@@ -323,6 +473,10 @@ namespace RegressionTests.SMTP
          Assert.AreEqual(400, badPerson.status, badPerson.body);
          StringAssert.Contains("not an address", badPerson.body);
 
+         var unbalanced = Admin("PUT", domainPath, "{\"active\":true,\"protected_persons\":\"\\\"Holloway, Chris <chris@board.example>\"}");
+         Assert.AreEqual(400, unbalanced.status, unbalanced.body);
+         StringAssert.Contains("unbalanced quote", unbalanced.body);
+
          var fourth = Admin("PUT", domainPath, "{\"active\":true,\"impersonation_action\":3}");
          Assert.AreEqual(400, fourth.status, fourth.body);
          StringAssert.Contains("impersonation_action must be 0", fourth.body);
@@ -331,11 +485,12 @@ namespace RegressionTests.SMTP
          Assert.AreEqual(400, Admin("PUT", domainPath, "{\"active\":true,\"impersonation_action\":true}").status);
 
          var written = Admin("PUT", domainPath,
-            "{\"active\":true,\"impersonation_action\":\"quarantine\",\"protected_partners\":\"Partner.Example  other.example,partner.example\",\"protected_persons\":\"The Chairman, chair@Board.Example\\n\\\"Ada\\\" <ADA@Example.Test>\"}");
+            "{\"active\":true,\"impersonation_action\":\"quarantine\",\"protected_partners\":\"Partner.Example  other.example,partner.example\",\"protected_persons\":\"The Chairman, chair@Board.Example\\n\\\"Ada\\\" <ADA@Example.Test>, \\\"Holloway, Chris\\\" <chris@board.example>\"}");
          Assert.AreEqual(200, written.status, written.body);
          StringAssert.Contains("\"impersonation_action\":2", written.body);
          StringAssert.Contains("\"protected_partners\":\"partner.example, other.example\"", written.body, "Lower-cased, canonical separators, duplicates dropped.");
-         StringAssert.Contains("\"protected_persons\":\"The Chairman\\nchair@board.example\\nAda <ada@example.test>\"", written.body, "One per line, addresses lower-cased.");
+         StringAssert.Contains("\"protected_persons\":\"The Chairman\\nchair@board.example\\nAda <ada@example.test>\\n\\\"Holloway, Chris\\\" <chris@board.example>\"", written.body,
+            "One per line, addresses lower-cased, a name with a comma kept whole in quotes.");
 
          string read = Admin("GET", domainPath, null).body;
          StringAssert.Contains("\"impersonation_action\":2", read, "GET answers what PUT wrote.");
@@ -382,7 +537,7 @@ namespace RegressionTests.SMTP
          // What COM wrote is what the check reads.
          Account reader = NamedAccount("reader", "Robert", "Reader");
          Deliver(Stranger, reader.Address, "\"The Chairman\" <chairman@elsewhere.test>", "Wire transfer");
-         StringAssert.Contains(Header + ": name \"The Chairman\" is a protected person's", Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password)));
+         StringAssert.Contains(Header + ": name \"The Chairman\" matches The Chairman (a protected person)", Unfolded(Pop3ClientSimulator.AssertGetFirstMessageText(reader.Address, Password)));
       }
 
       [Test]
@@ -433,18 +588,46 @@ namespace RegressionTests.SMTP
 
       /// <summary>
       ///    One message from outside - an unauthenticated session, the envelope
-      ///    sender given - with the From header as written.
+      ///    sender given - with the From header as written and, when given, one
+      ///    more header line the sender wrote.
       /// </summary>
-      private static void Deliver(string envelopeSender, string to, string fromHeader, string subject)
+      private static void Deliver(string envelopeSender, string to, string fromHeader, string subject, string extraHeader = null)
       {
          new SmtpClientSimulator().SendRaw(envelopeSender, to,
-            "From: " + fromHeader + "\r\nTo: " + to + "\r\nSubject: " + subject + "\r\n\r\nBody.\r\n");
+            "From: " + fromHeader + "\r\nTo: " + to + "\r\nSubject: " + subject + "\r\n" + (extraHeader == null ? "" : extraHeader + "\r\n") + "\r\nBody.\r\n");
       }
 
       /// <summary>A message text with its folded header lines joined, so a header value can be looked for whole.</summary>
       private static string Unfolded(string message)
       {
          return message.Replace("\r\n ", " ").Replace("\r\n\t", " ");
+      }
+
+      private static int Occurrences(string haystack, string needle)
+      {
+         int count = 0;
+
+         for (int at = haystack.IndexOf(needle, StringComparison.Ordinal); at >= 0;
+              at = haystack.IndexOf(needle, at + needle.Length, StringComparison.Ordinal))
+            count++;
+
+         return count;
+      }
+
+      /// <summary>The id of the folder of that name in the folders document, or empty.</summary>
+      private static string FolderId(string foldersJson, string name)
+      {
+         foreach (Match folder in Regex.Matches(foldersJson, "\\{[^{}]*\\}"))
+         {
+            if (folder.Value.IndexOf("\"name\":\"" + name + "\"", StringComparison.Ordinal) < 0)
+               continue;
+
+            Match id = Regex.Match(folder.Value, "\"id\":(\\d+)");
+            if (id.Success)
+               return id.Groups[1].Value;
+         }
+
+         return "";
       }
 
       private void EmptyTheQuarantine()
