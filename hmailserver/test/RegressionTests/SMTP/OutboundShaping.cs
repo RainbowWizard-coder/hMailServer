@@ -43,6 +43,12 @@ namespace RegressionTests.SMTP
       private const string SecondDomain = "other-example.com";
       private const string SecondHost = "127.0.0.2";
 
+      // A third address for the second of the two tests that set the fixed
+      // per-destination rate: the rate's bucket is keyed by the target and
+      // slides over a minute, so two tests a few seconds apart on one address
+      // would find the first one's delivery still in the bucket.
+      private const string ThirdHost = "127.0.0.3";
+
       private const string SlowDownAtMailFrom = "451 4.7.650 The mail server has been temporarily rate limited";
       private const string SlowDownAtBanner = "421 4.7.0 [TSS04] Messages temporarily deferred due to unexpected volume";
 
@@ -185,17 +191,17 @@ namespace RegressionTests.SMTP
       private bool WaitForBackoff_(string destination)
          => WaitFor_(() => FindBackoff_(destination).HasValue, 20);
 
-      /// <summary>The queue's rows for recipients at a domain: (id, tries).</summary>
-      private List<(long id, int tries)> Queued_(string domain)
+      /// <summary>The queue's rows for recipients at a domain: (id, tries, locked).</summary>
+      private List<(long id, int tries, bool locked)> Queued_(string domain)
       {
          (int status, string body) answer = Admin("GET", "/api/v1/queue", null);
          Assert.AreEqual(200, answer.status, answer.body);
 
-         var rows = new List<(long, int)>();
+         var rows = new List<(long, int, bool)>();
          foreach (JsonElement message in JsonDocument.Parse(answer.body).RootElement.GetProperty("messages").EnumerateArray())
          {
             if ((message.GetProperty("recipients").GetString() ?? "").IndexOf("@" + domain, StringComparison.OrdinalIgnoreCase) >= 0)
-               rows.Add((message.GetProperty("id").GetInt64(), message.GetProperty("tries").GetInt32()));
+               rows.Add((message.GetProperty("id").GetInt64(), message.GetProperty("tries").GetInt32(), message.GetProperty("locked").GetBoolean()));
          }
 
          return rows;
@@ -217,12 +223,16 @@ namespace RegressionTests.SMTP
          return "";
       }
 
-      /// <summary>The one queued message with no attempt counted, for the retry.</summary>
+      /// <summary>
+      ///    The one queued message with no attempt counted, for the retry. Not a
+      ///    locked one: a message whose session is being held open is in the
+      ///    queue with zero tries too, and it is not the held one.
+      /// </summary>
       private long HeldMessageId_(string domain)
       {
-         List<(long id, int tries)> rows = Queued_(domain);
-         (long id, int tries) held = rows.Find(r => r.tries == 0);
-         Assert.AreNotEqual(0, held.id, "No queued message with zero tries for " + domain + "; the queue holds " + rows.Count + ".");
+         List<(long id, int tries, bool locked)> rows = Queued_(domain);
+         (long id, int tries, bool locked) held = rows.Find(r => r.tries == 0 && !r.locked);
+         Assert.AreNotEqual(0, held.id, "No unlocked queued message with zero tries for " + domain + "; the queue holds " + rows.Count + ".");
          return held.id;
       }
 
@@ -276,7 +286,7 @@ namespace RegressionTests.SMTP
             Assert.Less(ServerTime_(backoff.GetProperty("since").GetString()), ServerTime_(backoff.GetProperty("until").GetString()), "until is not after since.");
 
             // The refused one counted an attempt; the held one did not.
-            List<(long id, int tries)> queued = Queued_(FirstDomain);
+            List<(long id, int tries, bool locked)> queued = Queued_(FirstDomain);
             Assert.AreEqual(2, queued.Count, "Both messages should be in the queue.");
             Assert.AreEqual(1, queued.FindAll(r => r.tries == 1).Count, "The message the remote refused should have one try counted.");
             Assert.AreEqual(1, queued.FindAll(r => r.tries == 0).Count, "The message the window held should have no try counted.");
@@ -487,7 +497,7 @@ namespace RegressionTests.SMTP
             Assert.IsTrue(LogHandler.DefaultLogContains("deferred due to the per-destination rate limit"), "The second message was not deferred by the rate.");
             Assert.IsTrue(LogHandler.DefaultLogContains("the attempt is not counted against the retry limit"), "The deferral was counted.");
 
-            List<(long id, int tries)> queued = Queued_(FirstDomain);
+            List<(long id, int tries, bool locked)> queued = Queued_(FirstDomain);
             Assert.AreEqual(1, queued.Count, "The deferred message is not in the queue.");
             Assert.AreEqual(0, queued[0].tries, "The deferral counted an attempt.");
 
@@ -536,13 +546,15 @@ namespace RegressionTests.SMTP
                remote.SecondsToWaitBeforeTerminate = 120;
                remote.StartListen();
 
-               AddRoute_(FirstDomain, FirstHost, port, 3);
+               // The third address: the other rate test ran on the first a few
+               // seconds ago, and its bucket has not drained yet.
+               AddRoute_(FirstDomain, ThirdHost, port, 3);
 
                SmtpClientSimulator.StaticSend(_account.Address, "test@" + FirstDomain, "First", "Within the rate");
                Assert.IsTrue(WaitFor_(() => remote.MessageData.Contains("Within the rate"), 20), "The first message was not delivered.");
 
                SmtpClientSimulator.StaticSend(_account.Address, "test@" + FirstDomain, "Second", "Over the rate");
-               Assert.IsTrue(LogHandler.DefaultLogContains("deferred due to the per-destination rate limit"), "The second message was not deferred by the rate.");
+               Assert.IsTrue(LogHandler.DefaultLogContains("Delivery to " + ThirdHost + " deferred due to the per-destination rate limit"), "The second message was not deferred by the rate.");
 
                long held = HeldMessageId_(FirstDomain);
 
@@ -600,8 +612,18 @@ namespace RegressionTests.SMTP
             SmtpClientSimulator.StaticSend(_account.Address, "test@" + FirstDomain, "First", "Opens the window and is bounced at its one try");
             Assert.IsTrue(WaitForBackoff_(FirstHost), "The 421 banner did not open a window.");
 
+            // The report the bounce writes is a new queue row, and the queue
+            // looks for new rows on its own minute timer unless it is woken -
+            // which is what SubmitEMail does, and what the suite's other
+            // mailbox waits do while they poll.
             var pop3 = new Pop3ClientSimulator();
-            Assert.IsTrue(WaitFor_(() => pop3.GetMessageCount(_account.Address, "test") == 1, 30), "The first message's one try was a 421, so it should have bounced at once.");
+            DateTime firstBounce = DateTime.UtcNow.AddSeconds(30);
+            while (DateTime.UtcNow < firstBounce && pop3.GetMessageCount(_account.Address, "test") < 1)
+            {
+               _application.SubmitEMail();
+               Thread.Sleep(1000);
+            }
+            Assert.AreEqual(1, pop3.GetMessageCount(_account.Address, "test"), "The first message's one try was a 421, so it should have bounced at once.");
 
             for (int held = 0; held < 3; held++)
                SmtpClientSimulator.StaticSend(_account.Address, "test@" + FirstDomain, "Held " + held, "Held by the window");

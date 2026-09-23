@@ -282,8 +282,15 @@ namespace HM
       }
 
       // The destination, as the back-off and the connection ceilings name it:
-      // the recipient domain of an MX delivery, the host of a route or a relay.
+      // the recipient domain of an MX delivery, the host of a route or a relay
+      // - or its address, when the route names an IP literal, because
+      // ServerTargetResolver puts a literal in the address and leaves the host
+      // name empty, and an empty key would make every such route one
+      // destination (which is what MaxOutboundPerDestinationPerMinute had
+      // been doing since it was written: "smtp-out:" for all of them).
       String target = recipientDomain;
+      if (target.IsEmpty())
+         target = serverInfo->GetIpAddress();
       target.ToLower();
 
       // A destination that asked this server to slow down is not connected to
@@ -433,9 +440,9 @@ namespace HM
       int maxOutboundPerDestination = IniFileSettings::Instance()->GetMaxOutboundPerDestinationPerMinute();
       if (maxOutboundPerDestination > 0)
       {
-         if (!RateLimiter::Instance()->TryConsume(_T("smtp-out:") + recipientDomain.ToLower(), maxOutboundPerDestination))
+         if (!RateLimiter::Instance()->TryConsume(_T("smtp-out:") + target, maxOutboundPerDestination))
          {
-            LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Delivery to " + recipientDomain + " deferred due to the per-destination rate limit.");
+            LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Delivery to " + target + " deferred due to the per-destination rate limit.");
             String errorMessage = _T("   Error Type: SMTP\r\n   Error Description: Delivery temporarily deferred by the sending server's per-destination rate limit.\r\n\r\n");
             // RFC 3463 X.4.5 "Mail system congestion". The congestion is this
             // server's own deliberate shaping rather than an overload, but the
