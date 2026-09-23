@@ -14,6 +14,8 @@
 #include "../Application/IniFileSettings.h"
 #include "../Application/ErrorManager.h"
 
+#include <boost/thread/thread.hpp>
+
 #ifdef HM_PLATFORM_POSIX
 #include "ProcessLauncher.h"
 #include <cstdlib>
@@ -50,6 +52,65 @@ namespace HM
       String Quote_(const String &text)
       {
          return _T("\"") + text + _T("\"");
+      }
+
+      // How long a drain the apply entered may last with the helper neither
+      // stopping the service nor writing an outcome, and how often the watcher
+      // looks. A constant rather than a setting, deliberately: the helper stops
+      // the service within seconds on every path that works, and the number only
+      // has to be long enough that a slow installer's own wait is not cut short
+      // and short enough that a server is not left refusing connections for an
+      // afternoon because of a helper that gave up in silence. Upgrading.md and
+      // README.md name the ten minutes.
+      const int UPDATE_APPLY_DRAIN_MINUTES = 10;
+      const int UPDATE_APPLY_WATCH_POLL_SECONDS = 5;
+   }
+
+   void
+   UpdateInstaller::WatchTheHelper_(const String &drainSince)
+   {
+      const ULONGLONG deadline = GetTickCount64() + (ULONGLONG) UPDATE_APPLY_DRAIN_MINUTES * 60 * 1000;
+      bool outcomeSeen = false;
+
+      for (;;)
+      {
+         Sleep(UPDATE_APPLY_WATCH_POLL_SECONDS * 1000);
+
+         // The state first, and nothing else when it is not this drain: the stop
+         // the helper issued has come (Stopping, and this process is on its way
+         // out), a reinitialise ended it, or somebody left it over the route -
+         // each of which has already said so.
+         Application::DrainStatus drain = Application::Instance()->GetDrainStatus();
+         if (!drain.draining || drain.since != drainSince)
+            return;
+
+         String outcome = OutcomePath();
+         if (!outcome.IsEmpty() && FileUtilities::Exists(outcome))
+         {
+            // Seen on two consecutive polls, so that whoever wrote it has finished
+            // writing and whoever was waiting to read it has read it.
+            if (!outcomeSeen)
+            {
+               outcomeSeen = true;
+               continue;
+            }
+
+            LOG_APPLICATION(Formatter::Format(_T("Update: the helper has finished while this service is still running, so the service was not stopped and this is still hMailServer {0}; the drain is left and the outcome is reported now rather than at the next start."),
+               UpdateChecker::RunningVersion()));
+            Application::Instance()->LeaveDrainAsTheServer(_T("The update helper finished without stopping the service; its outcome is reported now."));
+            ReportLastOutcome();
+            return;
+         }
+
+         if (GetTickCount64() >= deadline)
+         {
+            String message = Formatter::Format(_T("The update helper neither stopped the service nor wrote an outcome within {0} minutes, so the drain the apply entered has been left and the service accepts again. The verified installer is where the download put it; the helper's log in {1} says how far it got."),
+               UPDATE_APPLY_DRAIN_MINUTES, UpdateDownloader::UpdatesDirectory());
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 7151, "UpdateInstaller::WatchTheHelper_", message);
+            UpdateChecker::RecordFailure(message);
+            Application::Instance()->LeaveDrainAsTheServer(Formatter::Format(_T("The update helper neither stopped the service nor wrote an outcome within {0} minutes."), UPDATE_APPLY_DRAIN_MINUTES));
+            return;
+         }
       }
    }
 
@@ -478,6 +539,10 @@ namespace HM
          return false;
       }
 
+      // When this drain began: the watcher started below leaves the drain only
+      // while it is still this one, and not a drain an operator entered later.
+      const String drainSince = Application::Instance()->GetDrainStatus().since;
+
       struct LeaveDrainOnFailure
       {
          LeaveDrainOnFailure() : keep(false) {}
@@ -539,6 +604,7 @@ namespace HM
       UpdateChecker::RecordInstalling();
       LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} is being applied by hmailserver-update; the server has drained, the service will stop and start, and the outcome is reported when it does."),
          snapshot.available_version));
+      boost::thread(&UpdateInstaller::WatchTheHelper_, drainSince).detach();
       return true;
 #else
       AnsiString token;
@@ -595,6 +661,7 @@ namespace HM
       UpdateChecker::RecordInstalling();
       LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} is being applied by {1}; the server has drained, the service will stop and start, and the outcome is reported when it does."),
          snapshot.available_version, helper));
+      boost::thread(&UpdateInstaller::WatchTheHelper_, drainSince).detach();
       return true;
 #endif
    }

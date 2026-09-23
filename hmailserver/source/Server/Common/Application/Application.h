@@ -96,6 +96,12 @@ namespace HM
       bool IsDraining() const;
       DrainStatus GetDrainStatus();
 
+      // LeaveDrain on the server's own behalf, with the reason logged and the
+      // "left" recorded under the actor "server": what the live update's watcher
+      // does when the helper it started finished without stopping the service,
+      // or never stopped it. Answers what LeaveDrain answers.
+      String LeaveDrainAsTheServer(const String &reason);
+
       // Called from the stop's drain wait about once a second while it waits,
       // so that the service host can tell the service controller the stop is
       // still making progress (a checkpoint) rather than letting its wait hint
@@ -150,6 +156,12 @@ namespace HM
       // io threads did not answer), which the caller says rather than logging
       // "listeners closed" over a door that may be open.
       bool CloseTheDoors_();
+
+      // The "left" event under an actor named server, of kind system: what a
+      // stop from Draining and LeaveDrainAsTheServer both record, so that the
+      // operator's "entered" is never left without its other half by something
+      // that had no request thread to carry an actor.
+      void RecordDrainLeftByTheServer_(const String &detail);
 
       std::function<void()> stop_progress_;
 

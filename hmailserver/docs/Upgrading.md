@@ -192,7 +192,18 @@ shows as `draining` in `/healthz`, `hmailserver_state`, the Deck's dashboard and
 its update view (which carries **Drain** and **Resume** buttons), the Control
 Panel's status page and `Application.ServerState` (`hStateDraining`, 5). A live
 update refuses to apply while somebody else's drain is in progress ("already
-draining"): leave it, or wait for it to end, and apply again. **A reinitialise
+draining"): leave it, or wait for it to end, and apply again. **The update's own
+drain is watched.** The helper is meant to stop the service, after which the
+outcome it writes is read at the next start; a helper that finishes without
+stopping it - an installer that failed while the service stayed up, or one that
+did nothing - or that never gets that far would otherwise leave the server
+drained for ever. So after the helper is started the server polls for its
+outcome every five seconds, for up to **ten minutes** (a constant,
+`UPDATE_APPLY_DRAIN_MINUTES` in `UpdateInstaller.cpp`, not a setting): an outcome
+written while the service is still running, or the ten minutes passing with no
+stop, and the server leaves the drain itself, records `left` on the audit trail
+as `server`, logs why, and reports the outcome then rather than at the next start
+(`HM7151` when the helper wrote nothing at all). **A reinitialise
 ends maintenance mode**: SIGHUP, the Control Panel's Reinitialize, `POST
 /api/v1/server/reinitialize`, a backup restore and an ACME deployment all stop
 and restart the servers in place, and the restarted servers accept again; the

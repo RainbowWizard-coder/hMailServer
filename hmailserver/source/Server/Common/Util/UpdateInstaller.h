@@ -54,6 +54,17 @@ namespace HM
 
    private:
       static bool EnsureRollbackImage_(const String &runningVersion, String &rollbackPath, String &why);
+
+      // Watches the helper Apply started, on a thread of its own, for as long as
+      // the drain Apply entered is still this drain: the helper is meant to stop
+      // the service, after which this process is gone and the outcome is read
+      // at the next start - but a helper that finishes without stopping it (an
+      // installer that failed while the service stayed up, one that did nothing)
+      // or never gets that far would otherwise leave the server draining for
+      // ever, since nothing else would end it. So: an outcome file seen on two
+      // consecutive polls, or UPDATE_APPLY_DRAIN_MINUTES with no stop, leaves
+      // the drain as the server, says why, and reports the outcome then.
+      static void WatchTheHelper_(const String &drainSince);
       // Windows: starts the helper detached with the assembled command line.
       static bool Launch_(const String &commandLine, const String &workingDirectory, String &error);
       // POSIX: hands the request to hmailserver-update through the path unit, or

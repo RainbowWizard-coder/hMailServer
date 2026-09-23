@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.Win32;
@@ -81,6 +82,13 @@ namespace RegressionTests.API
          // setup would fail on it.
          if (File.Exists(OutcomePath))
             File.Delete(OutcomePath);
+
+         // The apply drains the server before it starts the helper, and a helper
+         // whose installer never stopped the service - every fake here but the
+         // stopper - leaves that drain on until the server's own watcher ends it.
+         // Left here, explicitly, so that one test's apply never blinds the next
+         // ("already draining"), whatever the watcher's timing.
+         LeaveTheDrainIfDraining();
          WriteSetting("UpdateCheckEnabled", "0");
          WriteSetting("UpdateFeedUrl", "");
          WriteSetting("UpdateTrustRootsFile", "");
@@ -339,12 +347,86 @@ namespace RegressionTests.API
          Assert.IsFalse(TokenListed(), "A stale token is removed when it is presented.");
          StringAssert.Contains("Update apply token refused: it had expired", LogHandler.ReadCurrentDefaultLog());
 
+         // The first apply drained the server and its "installer" never stopped
+         // the service, so the drain is on until the server's watcher sees the
+         // outcome and ends it; a second apply before that is refused as "already
+         // draining". Wait for the server to notice, as an operator would.
+         WaitUntil(() => !Draining(), 30, "The server did not leave the first apply's drain after the helper finished without stopping it.");
+
          // And a wrong token, right shape, is refused without touching a fresh one.
          ServeRelease(_quiet, _starter);
          Assert.IsTrue(status.CheckForUpdate() && status.DownloadUpdate() && status.InstallUpdate(), status.UpdateLastError);
          WaitForOutcome(OutcomePath, 60);
          Assert.IsNull(new Application().Authenticate("Administrator", "token:" + new string('0', 64)));
          Assert.IsTrue(TokenListed(), "A wrong guess does not burn the token.");
+      }
+
+      [Test]
+      [Description("A helper that finishes without stopping the service - an installer that failed while the service stayed up - would leave the server drained for ever; the server watches for the outcome, leaves the drain itself, records the 'left' as the server, and reports the outcome then rather than at the next start.")]
+      public void AHelperThatFinishesWithoutStoppingTheServiceHasTheDrainLeftForIt()
+      {
+         ServeRelease(_failing, _starter);
+         var status = Downloaded();
+         Assert.IsTrue(status.InstallUpdate(), status.UpdateLastError);
+         Assert.IsTrue(Draining(), "The apply drains the server before it starts the helper.");
+
+         string outcome = WaitForOutcome(OutcomePath, 60);
+         StringAssert.StartsWith("failed " + Newer + " the installer exited with 1 but the service is running", outcome);
+
+         // Within the watcher's poll - five seconds, the file seen twice - the
+         // server leaves the drain by itself, with no reinitialize and no DELETE.
+         WaitUntil(() => !Draining(), 30, "The server did not leave the drain after the helper finished without stopping it.");
+         Assert.AreEqual(3, (int) _application.ServerState, "The server is not Running after leaving the drain.");
+         WaitUntil(() => File.Exists(OutcomePath + ".reported"), 30, "The outcome was not reported while the service was still running.");
+
+         string log = LogHandler.ReadCurrentDefaultLog();
+         StringAssert.Contains("Update: the helper has finished while this service is still running", log);
+         StringAssert.Contains("Drain: left by the server. The update helper finished without stopping the service", log);
+         StringAssert.Contains("Update to hMailServer " + Newer + " did not succeed (failed)", LogHandler.ReadErrorLog(),
+            "The failure is reported now, as an ERROR, not at the next start.");
+
+         // The 'left' is on the audit trail under the server's own name.
+         (int code, string body) trail = Http("GET", "/api/v1/audit?limit=50");
+         Assert.AreEqual(200, trail.code, trail.body);
+         string body = trail.body;
+         using (JsonDocument document = JsonDocument.Parse(body))
+         {
+            JsonElement left = document.RootElement.GetProperty("entries").EnumerateArray()
+               .Where(e => e.GetProperty("object_type").GetString() == "server" && e.GetProperty("object").GetString() == "drain" && e.GetProperty("action").GetString() == "left")
+               .OrderBy(e => e.GetProperty("id").GetInt64())
+               .Select(e => e.Clone())
+               .LastOrDefault();
+            Assert.AreNotEqual(JsonValueKind.Undefined, left.ValueKind, "No 'left' on the audit trail: " + body);
+            Assert.AreEqual("server", left.GetProperty("actor").GetString(), "The 'left' is not the server's own.");
+            Assert.AreEqual("system", left.GetProperty("actor_type").GetString());
+            StringAssert.Contains("finished without stopping the service", left.GetProperty("detail").GetString());
+         }
+
+         Console.WriteLine("hMailServer error log (expected for this fixture):");
+         Console.WriteLine(LogHandler.ReadErrorLog());
+         LogHandler.ClearErrorLogUntilSettled();
+      }
+
+      // Whether the server is in maintenance mode, read over the route the Deck
+      // reads it from: GET /api/v1/server/drain answers draining true or false.
+      private static bool Draining()
+      {
+         (int code, string body) = Http("GET", "/api/v1/server/drain");
+         return code == 200 && body.Contains("\"draining\":true");
+      }
+
+      private static void LeaveTheDrainIfDraining()
+      {
+         try
+         {
+            if (Draining())
+               Http("DELETE", "/api/v1/server/drain");
+         }
+         catch (Exception e) when (!ExceptionPolicy.IsFatal(e))
+         {
+            // A test that restarted the service behind the harness's back may have
+            // left the listener elsewhere; the reinitialize below ends a drain too.
+         }
       }
 
       [Test]

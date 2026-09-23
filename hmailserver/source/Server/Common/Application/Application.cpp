@@ -1108,15 +1108,7 @@ namespace HM
             // "entered", and a "left" with no actor of theirs is the honest
             // record of a drain that a restart ended.
             LOG_APPLICATION("Drain: ended by a stop of the servers (a service stop or a reinitialise); the listeners were already closed.");
-
-            AuditTrail::Actor actor;
-            actor.present = true;
-            actor.name = _T("server");
-            actor.kind = _T("system");
-            actor.interface_name = _T("server");
-            AuditScope scope(actor);
-            AuditTrail::Instance()->RecordEvent(_T("server"), _T("drain"), _T("left"),
-               _T("Ended by a stop of the servers - a service stop or a reinitialise - with the listeners already closed."));
+            RecordDrainLeftByTheServer_(_T("Ended by a stop of the servers - a service stop or a reinitialise - with the listeners already closed."));
          }
       }
 
@@ -1368,6 +1360,35 @@ namespace HM
             Formatter::Format("The drain was left, but the listener(s) on {0} could not be reopened - something else took the port while the listeners were closed; the error log names it (HM4316). The other listeners are open and delivery has resumed. A restart of the service tries every port again.", list));
       }
 
+      return "";
+   }
+
+   void
+   Application::RecordDrainLeftByTheServer_(const String &detail)
+   {
+      AuditTrail::Actor actor;
+      actor.present = true;
+      actor.name = _T("server");
+      actor.kind = _T("system");
+      actor.interface_name = _T("server");
+      AuditScope scope(actor);
+      AuditTrail::Instance()->RecordEvent(_T("server"), _T("drain"), _T("left"),
+         detail);
+   }
+
+   String
+   Application::LeaveDrainAsTheServer(const String &reason)
+   {
+      std::vector<String> notReopened;
+      String refusal = LeaveDrain(notReopened);
+      if (!refusal.IsEmpty())
+      {
+         LOG_APPLICATION("Drain: the server tried to leave the drain (" + reason + ") and could not: " + refusal);
+         return refusal;
+      }
+
+      LOG_APPLICATION("Drain: left by the server. " + reason);
+      RecordDrainLeftByTheServer_(reason);
       return "";
    }
 

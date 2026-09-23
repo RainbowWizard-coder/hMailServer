@@ -309,7 +309,12 @@ hands the installer to
 installer replaces `Bin`. The helper runs the installer silently, waits for the
 service to come back, and if it does not, reinstalls the previous version; either
 way it writes one line the service reports in its log and `Status.UpdateApplyOutcome`
-the next time it starts. The token replaces the administrator password the silent
+the next time it starts. A helper that finishes *without* stopping the service -
+an installer that failed while the service stayed up, or one that did nothing - or
+that never gets that far, would otherwise leave the server drained for ever, so
+the server watches for it: an outcome written while the service is still running,
+or ten minutes with no stop, and the server leaves the drain itself, records the
+`left` on the audit trail as `server`, and reports the outcome then. The token replaces the administrator password the silent
 upgrade would otherwise need: it is 32 random bytes in a file only the machine's
 administrators can read, good for one hour and one use, accepted by
 `Application.Authenticate` as `token:<hex>` exactly once. A rollback reinstalls the
