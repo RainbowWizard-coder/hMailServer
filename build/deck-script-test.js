@@ -1406,6 +1406,16 @@ const state = {
       { id: 41, from: 'anna@example.com', recipients: 'far@away.example', next_try: '2026-09-14 10:00:00' },
       { id: 42, from: 'bob@example.com', recipients: 'gone@nowhere.example', next_try: '2026-09-14 10:05:00' }
    ],
+   // What the queue is holding back from: one destination that asked this
+   // server to slow down, and the connections open under a ceiling. The reply
+   // is the remote's own words, as the route answers them.
+   shaping: {
+      backoffs: [
+         { destination: 'slow.example', since: '2026-09-22 12:00:00', until: '2026-09-22 12:02:00', window_minutes: 2,
+           reply: '421 4.7.0 [TSS04] Messages temporarily deferred due to unexpected volume', host: 'mx.slow.example', deferred: 3, probing: false }
+      ],
+      connections: { destinations: { 'slow.example': 1 }, tenants: { 'example.com': 2 } }
+   },
    tlsa: { records: [{ record: '_25._tcp.mail.example.com. IN TLSA 3 1 1 0123abcd' }, { record: '_465._tcp.mail.example.com. IN TLSA 3 1 1 0123abcd' }] },
    /* The eight pages the Deck gained last: what each of their routes answers,
       in the shape the server answers it - the listings that are bare arrays
@@ -2349,6 +2359,14 @@ function answer(method, path, headers, raw) {
    }
 
    if (path === '/api/v1/queue' && method === 'GET') { return json(200, { messages: state.queue }); }
+   if (path === '/api/v1/queue/shaping' && method === 'GET') { return json(200, state.shaping); }
+   if (/^\/api\/v1\/queue\/shaping\/[^/]+$/.test(path) && method === 'DELETE') {
+      const destination = segment(path, 5);
+      const at = state.shaping.backoffs.findIndex((b) => b.destination === destination);
+      if (at < 0) { return json(404, { error: 'no back-off is open for that destination' }); }
+      state.shaping.backoffs.splice(at, 1);
+      return json(200, { cleared: true });
+   }
    if (/^\/api\/v1\/queue\/\d+\/retry$/.test(path) && method === 'POST') { return json(200, { rescheduled: true }); }
    if (/^\/api\/v1\/queue\/\d+$/.test(path) && method === 'DELETE') {
       const id = Number(segment(path, 4));
@@ -4676,6 +4694,29 @@ async function main() {
    click(act('delmsg', { id: 41 }));
    await flush();
    check('Delete confirms, deletes and re-reads', confirmations[confirmations.length - 1].indexOf('41') >= 0 && called(before, 'DELETE', '/api/v1/queue/41').length === 1 && rows().length === 1);
+
+   // ---- the slowed destinations, beside the queue
+   check('the slowed destinations are read with the queue', called(0, 'GET', '/api/v1/queue/shaping').length >= 1);
+   check('a back-off is drawn with its destination, its window and the reply that opened it',
+      content().textContent.indexOf('slow.example') >= 0 && content().textContent.indexOf('until 2026-09-22 12:02:00') >= 0 &&
+      content().textContent.indexOf('window 2 min') >= 0 && content().textContent.indexOf('3 deferred') >= 0 &&
+      content().textContent.indexOf('421 4.7.0 [TSS04]') >= 0 && content().textContent.indexOf('mx.slow.example') >= 0, content().textContent);
+   check('the connections in use are drawn, destinations and tenants apart',
+      content().textContent.indexOf('slow.example: 1') >= 0 && content().textContent.indexOf('example.com: 2') >= 0);
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('shresume', { id: 'slow.example' }));
+   await flush();
+   check('Resume asks first, naming the destination, and no sends nothing', confirmations[confirmations.length - 1].indexOf('slow.example') >= 0 &&
+      called(before, 'DELETE', /queue\/shaping/).length === 0);
+   confirmAnswer = true;
+   before = requests.length;
+   click(act('shresume', { id: 'slow.example' }));
+   await flush();
+   check('Resume deletes the destination\'s back-off and re-reads the queue', called(before, 'DELETE', '/api/v1/queue/shaping/slow.example').length === 1 &&
+      called(before, 'GET', '/api/v1/queue/shaping').length === 1 && called(before, 'GET', '/api/v1/queue').length === 1, paths(before));
+   check('and with the window gone the box says so', content().textContent.indexOf('No destination has asked this server to slow down.') >= 0 &&
+      content().querySelectorAll('button[data-act="shresume"]').length === 0 && toastText() === 'Back-off cleared', toastText());
 
 
    // ---- DANE / TLSA

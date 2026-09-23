@@ -53,6 +53,13 @@ namespace RegressionTests.Shared
 
       public int SecondsToWaitBeforeTerminate { get; set; }
 
+      /// <summary>
+      ///    How many clients have connected so far. For a test whose point is
+      ///    that a second connection was NOT made - a destination in a back-off
+      ///    window - while the simulator still listens for one.
+      /// </summary>
+      public int NumberOfConnectedClients => _numberOfConnectedClients;
+
       // Appended in linear time: a large message arriving in small reads
       // used to re-copy the whole conversation on every read.
       private readonly StringBuilder _conversation = new StringBuilder();

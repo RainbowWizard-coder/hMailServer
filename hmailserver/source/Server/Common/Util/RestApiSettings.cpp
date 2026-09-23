@@ -584,6 +584,31 @@ namespace
         "The most MX hosts tried for one recipient domain.",
         ROW_NUMBER(Smtp()->GetMaxNumberOfMXHosts()), ROW_SET(Smtp()->SetMaxNumberOfMXHosts((int) v.number)), ROW_NO_CHECK },
 
+      // Outbound shaping (SMTP/DestinationBackoff.h, docs/OutboundShaping.md).
+      { "outbound_backoff_minutes", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How long deliveries to a destination are held after it answers a slow-down reply - a 421, an enhanced code of 4.7.0, 4.7.28, 4.7.500, 4.7.650, 4.3.2 or 4.4.5, or a 4xx whose text says rate limit, too many, try again later and the like: the first window, in minutes. When it ends one delivery probes the destination, and a second slow-down reply doubles the window up to outbound_backoff_max_minutes. A deferral this server chooses is not counted against the message's retries. 0 turns the back-off off. 0 to 10080; 2 by default.",
+        ROW_NUMBER(Config()->GetOutboundBackoffMinutes()), ROW_SET(Config()->SetOutboundBackoffMinutes((int) v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 10080) ? String(_T("outbound_backoff_minutes must be between 0 and 10080.")) : String(); } },
+      { "outbound_backoff_max_minutes", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The most a back-off window grows to by doubling, in minutes. Not below outbound_backoff_minutes: to raise both, raise this one first. 1 to 10080; 60 by default.",
+        ROW_NUMBER(Config()->GetOutboundBackoffMaxMinutes()), ROW_SET(Config()->SetOutboundBackoffMaxMinutes((int) v.number)),
+        [] (const Value &v)
+        {
+           if (v.number < 1 || v.number > 10080)
+              return String(_T("outbound_backoff_max_minutes must be between 1 and 10080."));
+           if (v.number < Config()->GetOutboundBackoffMinutes())
+              return String(_T("outbound_backoff_max_minutes must not be below outbound_backoff_minutes."));
+           return String();
+        } },
+      { "max_outbound_connections_per_destination", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The most sessions this server holds open at once to one destination - a recipient domain, or the host of a route - that no remote domain policy sets a connection ceiling for; a policy's own ceiling wins where there is one. Over it, a delivery is deferred for a minute without counting a retry. 0 is no ceiling. 0 to 1000; 0 by default.",
+        ROW_NUMBER(Config()->GetMaxOutboundConnectionsPerDestination()), ROW_SET(Config()->SetMaxOutboundConnectionsPerDestination((int) v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 1000) ? String(_T("max_outbound_connections_per_destination must be between 0 and 1000.")) : String(); } },
+      { "max_outbound_connections_per_tenant", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The most deliveries one tenant may have in flight at once, where the tenant is the hosted domain of the envelope sender (an alias domain counts as its domain) and every sender this server does not host is the one tenant (external). A share of connections, never more than max_delivery_threads; the per-account sending limit is the volume control. Over it, a delivery is deferred for a minute without counting a retry. 0 is no share. 0 to 1000; 0 by default.",
+        ROW_NUMBER(Config()->GetMaxOutboundConnectionsPerTenant()), ROW_SET(Config()->SetMaxOutboundConnectionsPerTenant((int) v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 1000) ? String(_T("max_outbound_connections_per_tenant must be between 0 and 1000.")) : String(); } },
+
       // Inbound SMTP behaviour.
       { "allow_smtp_auth_plain", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether AUTH PLAIN and AUTH LOGIN are offered on an unencrypted connection.",

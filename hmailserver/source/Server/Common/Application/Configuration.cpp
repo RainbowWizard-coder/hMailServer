@@ -248,6 +248,16 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_OPENPGP_LOOKUP_TIMEOUT, 10);
       property_set_->EnsureLong(PROPERTY_PROTECTED_MESSAGE_DAYS, 30);
 
+      // Outbound shaping (SMTP/DestinationBackoff.h). The back-off on, at two
+      // minutes doubling to an hour: a destination that says slow down is
+      // obeyed on a stock installation, which is what a mail transfer agent is
+      // expected to do. The two connection ceilings off, so nothing is held
+      // that was not held before until an administrator sets one.
+      property_set_->EnsureLong(PROPERTY_OUTBOUND_BACKOFF_MINUTES, 2);
+      property_set_->EnsureLong(PROPERTY_OUTBOUND_BACKOFF_MAX_MINUTES, 60);
+      property_set_->EnsureLong(PROPERTY_MAX_OUTBOUND_CONNS_PER_DEST, 0);
+      property_set_->EnsureLong(PROPERTY_MAX_OUTBOUND_CONNS_PER_TENANT, 0);
+
       // Zero-access mailboxes: OFF. A mailbox with this on is one the
       // administrator cannot read, search, export or recover, and a lost
       // password without the recovery key is the mail lost; an installation
@@ -2260,6 +2270,59 @@ namespace HM
    Configuration::SetRecallDays(int days)
    {
       GetSettings()->SetLong(PROPERTY_RECALL_DAYS, ClampSetting(days, 1, 365));
+   }
+
+   int
+   Configuration::GetOutboundBackoffMinutes()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_OUTBOUND_BACKOFF_MINUTES), 0, 10080);
+   }
+
+   void
+   Configuration::SetOutboundBackoffMinutes(int minutes)
+   {
+      GetSettings()->SetLong(PROPERTY_OUTBOUND_BACKOFF_MINUTES, ClampSetting(minutes, 0, 10080));
+   }
+
+   int
+   Configuration::GetOutboundBackoffMaxMinutes()
+   {
+      // Never below the base: a ceiling under the first window would make the
+      // doubling shrink it, and the invariant is kept here as well as at the
+      // setters, so an old row cannot break it.
+      const int ceiling = ClampSetting(GetSettings()->GetLong(PROPERTY_OUTBOUND_BACKOFF_MAX_MINUTES), 1, 10080);
+      const int base = GetOutboundBackoffMinutes();
+      return ceiling < base ? base : ceiling;
+   }
+
+   void
+   Configuration::SetOutboundBackoffMaxMinutes(int minutes)
+   {
+      GetSettings()->SetLong(PROPERTY_OUTBOUND_BACKOFF_MAX_MINUTES, ClampSetting(minutes, 1, 10080));
+   }
+
+   int
+   Configuration::GetMaxOutboundConnectionsPerDestination()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_MAX_OUTBOUND_CONNS_PER_DEST), 0, 1000);
+   }
+
+   void
+   Configuration::SetMaxOutboundConnectionsPerDestination(int connections)
+   {
+      GetSettings()->SetLong(PROPERTY_MAX_OUTBOUND_CONNS_PER_DEST, ClampSetting(connections, 0, 1000));
+   }
+
+   int
+   Configuration::GetMaxOutboundConnectionsPerTenant()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_MAX_OUTBOUND_CONNS_PER_TENANT), 0, 1000);
+   }
+
+   void
+   Configuration::SetMaxOutboundConnectionsPerTenant(int connections)
+   {
+      GetSettings()->SetLong(PROPERTY_MAX_OUTBOUND_CONNS_PER_TENANT, ClampSetting(connections, 0, 1000));
    }
 
    bool

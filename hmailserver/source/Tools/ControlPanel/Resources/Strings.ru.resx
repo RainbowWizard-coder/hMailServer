@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
   https://www.progressiverobot.com
   Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
@@ -383,6 +383,9 @@
   <data name="; database folder {0}" xml:space="preserve">
     <value>; папка базы данных {0}</value>
   </data>
+  <data name="A 421, a rate-limit code or words to that effect from a remote server opens a window in which nothing is sent to that destination; when it ends one delivery probes it, and the same answer doubles the window. A deferral this server chooses does not count against the retries above." xml:space="preserve">
+    <value>Код 421, код ограничения скорости или слова в этом смысле от удалённого сервера открывают окно, в течение которого этому адресату ничего не отправляется; по его окончании одна доставка его проверяет, и тот же ответ удваивает окно. Отсрочка, выбранная этим сервером, не засчитывается в повторы выше.</value>
+  </data>
   <data name="A CA certificate bundle file must be specified when client certificates are requested or required. Without one, Require would reject every client and Request would verify nothing." xml:space="preserve">
     <value>Когда клиентские сертификаты запрашиваются или требуются, необходимо указать файл набора сертификатов ЦС. Без него режим «Требовать» отклонял бы каждого клиента, а «Запрашивать» ничего бы не проверял.</value>
   </data>
@@ -610,6 +613,9 @@
   </data>
   <data name="A service account password is stored in hMailServer.INI in plain text - the DPAPI setting does not cover it, because the registration step has nowhere else to read it from. Now that the service has been registered, Windows keeps its own copy, so clear the value on the Server limits &amp; expert settings page. A virtual account (NT SERVICE\hMailServer) or a group managed service account avoids the question entirely." xml:space="preserve">
     <value>Пароль учётной записи службы хранится в hMailServer.INI открытым текстом — параметр DPAPI его не охватывает, поскольку шагу регистрации больше неоткуда его прочитать. Теперь, когда служба зарегистрирована, Windows хранит собственную копию, поэтому очистите это значение на странице «Ограничения сервера и экспертные параметры». Виртуальная учётная запись (NT SERVICE\hMailServer) или групповая управляемая учётная запись службы снимает вопрос полностью.</value>
+  </data>
+  <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
+    <value>Доля соединений, никогда не больше потоков доставки: учётные записи одного размещённого домена или вся ретранслируемая почта вместе не могут занять все потоки доставки. Объём контролирует лимит отправки на учётную запись; это не он.</value>
   </data>
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>Короткий встроенный список — «password», «123456», «changeme» и ещё около тридцати — сравнение без учёта регистра. Это намеренно не список «топ-10000», для которого понадобились бы файл данных и способ его обновления; список ловит те пароли, которые вводят при настройке почтового ящика, к которому потом никто не возвращается.</value>
@@ -4624,6 +4630,9 @@ Control Panel может читать файлы сообщений только
   <data name="Logon tarpit" xml:space="preserve">
     <value>Замедление входа (tarpit)</value>
   </data>
+  <data name="Longest such window, in minutes" xml:space="preserve">
+    <value>Самое длинное такое окно, в минутах</value>
+  </data>
   <data name="Look for &quot;Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue&quot; and, when it is severe, &quot;All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start&quot;. That means every worker is occupied and messages are queuing behind them: one slow dependency does this to the whole server, which is why a single wedged scanner used to look like the server had stopped responding. The task names say which sessions are stuck; the stage timings say what they are stuck on." xml:space="preserve">
     <value>Ищите «Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue», а в тяжёлых случаях — «All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start». Это значит, что все рабочие потоки заняты и сообщения выстраиваются в очередь за ними: одна медленная зависимость делает такое со всем сервером — именно поэтому один застрявший сканер раньше выглядел так, будто сервер перестал отвечать. Имена задач говорят, какие сеансы застряли; тайминги этапов — на чём именно.</value>
   </data>
@@ -4825,6 +4834,9 @@ Control Panel может читать файлы сообщений только
   <data name="Max authenticated submissions per client IP per minute (0 = unlimited)" xml:space="preserve">
     <value>Максимум аутентифицированных отправок с одного IP клиента в минуту (0 — без ограничения)</value>
   </data>
+  <data name="Max deliveries in flight for one sending domain (0 = unlimited)" xml:space="preserve">
+    <value>Макс. текущих доставок для одного отправляющего домена (0 = без ограничений)</value>
+  </data>
   <data name="Max delivery threads" xml:space="preserve">
     <value>Максимум потоков доставки</value>
   </data>
@@ -4860,6 +4872,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Max simultaneous connections (0 = unlimited)" xml:space="preserve">
     <value>Максимум одновременных подключений (0 — без ограничения)</value>
+  </data>
+  <data name="Max simultaneous connections to one destination without a remote domain policy (0 = unlimited)" xml:space="preserve">
+    <value>Макс. одновременных соединений с одним адресатом без политики удалённого домена (0 = без ограничений)</value>
   </data>
   <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
     <value>Максимальный размер _домена (МБ, 0 — без ограничения)</value>
@@ -5066,6 +5081,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Minutes between scan attempts while held" xml:space="preserve">
     <value>Минут между попытками проверки, пока сообщение задержано</value>
+  </data>
+  <data name="Minutes to hold a destination that asked this server to slow down (0 = off)" xml:space="preserve">
+    <value>Минуты удержания адресата, попросившего этот сервер замедлиться (0 = выкл.)</value>
   </data>
   <data name="Mirror address (empty = disabled)" xml:space="preserve">
     <value>Адрес зеркалирования (пусто — отключено)</value>
@@ -9532,8 +9550,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Throttle abusive senders submitting to this server. Limits are per minute; 0 disables the limit. (Throttling your own outbound rate to a destination is on the Delivery of e-mail page.)" xml:space="preserve">
     <value>Ограничивайте злоупотребляющих отправителей, передающих почту на этот сервер. Пределы - в минуту; 0 отключает предел. (Ограничение собственной исходящей скорости к назначению - на странице «Доставка почты».)</value>
   </data>
-  <data name="Throttling your own outbound rate to a domain that rate-limits you. Deferred messages consume the retry budget above." xml:space="preserve">
-    <value>Ограничение собственной исходящей скорости к домену, который ограничивает вас. Отложенные сообщения расходуют бюджет повторных попыток выше.</value>
+  <data name="Throttling your own outbound rate to a domain that rate-limits you. A deferred message is retried a minute later without spending the retry budget above." xml:space="preserve">
+    <value>Ограничивает вашу собственную скорость отправки в домен, который ограничивает вас. Отложенное сообщение повторяется через минуту, не расходуя бюджет повторов выше.</value>
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Автоконфигурация Thunderbird + автообнаружение Outlook</value>

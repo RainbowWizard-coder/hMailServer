@@ -134,6 +134,32 @@ namespace RegressionTests.Shared
       public Dictionary<string, string> RecipientReplyTexts { get; } =
          new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+      /// <summary>
+      ///    The banner, when a test wants one other than "220 ESMTP Test Server":
+      ///    "421 4.7.0 [TSS04] Messages temporarily deferred due to unexpected
+      ///    volume", say, which is how a server shedding load answers before a
+      ///    word is said. The whole line without its line ending; null is the
+      ///    ordinary banner. Every session gets it.
+      /// </summary>
+      public string ConnectReply { get; set; }
+
+      /// <summary>
+      ///    The whole reply to MAIL FROM - "451 4.7.650 The mail server has been
+      ///    temporarily rate limited", say - in place of the bare code MailFromResult
+      ///    answers with. Null answers with the code. The sender is accepted only
+      ///    when the reply starts with 250, exactly as with the code.
+      /// </summary>
+      public string MailFromReply { get; set; }
+
+      /// <summary>
+      ///    Replies to MAIL FROM for the sessions in order, one taken per session,
+      ///    for a test whose first session is refused and whose second is not.
+      ///    When the queue is empty MailFromReply, then MailFromResult, decide.
+      /// </summary>
+      public Queue<string> MailFromReplies { get; } = new Queue<string>();
+
+      private string _sessionMailFromReply;
+
       public void AddRecipientResult(Dictionary<string, int> result)
       {
          _recipientResults.Add(result);
@@ -143,6 +169,8 @@ namespace RegressionTests.Shared
       {
          _currentRecipientResult = _recipientResults[0];
          _recipientResults.Remove(_currentRecipientResult);
+
+         _sessionMailFromReply = MailFromReplies.Count > 0 ? MailFromReplies.Dequeue() : MailFromReply;
 
          Run();
       }
@@ -155,7 +183,7 @@ namespace RegressionTests.Shared
             Thread.Sleep(TimeSpan.FromMinutes(15));
 
 
-         Send("220 ESMTP Test Server\r\n");
+         Send((ConnectReply ?? "220 ESMTP Test Server") + "\r\n");
 
          _pending = "";
 
@@ -311,9 +339,13 @@ namespace RegressionTests.Shared
 
             EnvelopeArrivedPipelined = _pending.IndexOf("\r\n", StringComparison.Ordinal) >= 0;
 
-            Send(_mailFromresult + "\r\n");
+            // The bare code, as it always was, unless a test wrote the whole
+            // reply; either way the sender is accepted on a 250 and on nothing else.
+            string mailFromReply = _sessionMailFromReply ?? _mailFromresult.ToString();
 
-            if (_mailFromresult == 250)
+            Send(mailFromReply + "\r\n");
+
+            if (mailFromReply.StartsWith("250", StringComparison.Ordinal))
                _hasMailFrom = true;
 
             MailFromCommand = command;

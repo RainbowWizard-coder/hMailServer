@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
   https://www.progressiverobot.com
   Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
@@ -383,6 +383,9 @@ Czy mimo to zapisać to słabe hasło?</value>
   <data name="; database folder {0}" xml:space="preserve">
     <value>; folder bazy danych {0}</value>
   </data>
+  <data name="A 421, a rate-limit code or words to that effect from a remote server opens a window in which nothing is sent to that destination; when it ends one delivery probes it, and the same answer doubles the window. A deferral this server chooses does not count against the retries above." xml:space="preserve">
+    <value>Kod 421, kod ograniczenia tempa lub słowa w tym sensie od zdalnego serwera otwierają okno, w którym nic nie jest wysyłane do tego celu; po jego zakończeniu jedno doręczenie go sonduje, a ta sama odpowiedź podwaja okno. Odroczenie wybrane przez ten serwer nie liczy się do powyższych ponowień.</value>
+  </data>
   <data name="A CA certificate bundle file must be specified when client certificates are requested or required. Without one, Require would reject every client and Request would verify nothing." xml:space="preserve">
     <value>Gdy certyfikaty klienta są żądane lub wymagane, trzeba wskazać plik pakietu certyfikatów CA. Bez niego ustawienie Wymagaj odrzucałoby każdego klienta, a Żądaj niczego by nie weryfikowało.</value>
   </data>
@@ -610,6 +613,9 @@ Czy mimo to zapisać to słabe hasło?</value>
   </data>
   <data name="A service account password is stored in hMailServer.INI in plain text - the DPAPI setting does not cover it, because the registration step has nowhere else to read it from. Now that the service has been registered, Windows keeps its own copy, so clear the value on the Server limits &amp; expert settings page. A virtual account (NT SERVICE\hMailServer) or a group managed service account avoids the question entirely." xml:space="preserve">
     <value>Hasło konta usługi jest przechowywane w hMailServer.INI jawnym tekstem - ustawienie DPAPI go nie obejmuje, ponieważ krok rejestracji nie ma go skąd odczytać. Skoro usługa została już zarejestrowana, Windows przechowuje własną kopię, więc wartość należy wyczyścić na stronie Limity serwera i ustawienia eksperckie. Konto wirtualne (NT SERVICE\hMailServer) lub grupowe zarządzane konto usługi całkowicie usuwa ten problem.</value>
+  </data>
+  <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
+    <value>Udział w połączeniach, nigdy większy niż liczba wątków doręczania: konta jednej hostowanej domeny ani cała przekazywana poczta razem nie mogą zająć wszystkich wątków doręczania. Ilość kontroluje limit wysyłania na konto; to nim nie jest.</value>
   </data>
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>Krótka lista wbudowana - „password”, „123456”, „changeme” i jeszcze około trzydziestu - porównywana bez rozróżniania wielkości liter. Celowo nie jest to lista „top 10000”, która wymagałaby pliku danych i ścieżki aktualizacji; wyłapuje hasła wpisywane przy zakładaniu skrzynki pocztowej, do której nikt już nie wraca.</value>
@@ -4624,6 +4630,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Logon tarpit" xml:space="preserve">
     <value>Tarpit logowania</value>
   </data>
+  <data name="Longest such window, in minutes" xml:space="preserve">
+    <value>Najdłuższe takie okno w minutach</value>
+  </data>
   <data name="Look for &quot;Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue&quot; and, when it is severe, &quot;All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start&quot;. That means every worker is occupied and messages are queuing behind them: one slow dependency does this to the whole server, which is why a single wedged scanner used to look like the server had stopped responding. The task names say which sessions are stuck; the stage timings say what they are stuck on." xml:space="preserve">
     <value>Należy szukać wpisu „Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue”, a w cięższych przypadkach „All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start”. Oznacza to, że każdy wątek roboczy jest zajęty, a wiadomości ustawiają się za nimi w kolejce: jedna wolna zależność robi to całemu serwerowi i właśnie dlatego pojedynczy zaklinowany skaner wyglądał dawniej tak, jakby serwer przestał odpowiadać. Nazwy zadań mówią, które sesje utknęły; czasy etapów mówią, na czym.</value>
   </data>
@@ -4825,6 +4834,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Max authenticated submissions per client IP per minute (0 = unlimited)" xml:space="preserve">
     <value>Maksymalna liczba uwierzytelnionych wysyłek na adres IP klienta na minutę (0 = bez ograniczeń)</value>
   </data>
+  <data name="Max deliveries in flight for one sending domain (0 = unlimited)" xml:space="preserve">
+    <value>Maks. trwających doręczeń dla jednej domeny nadawcy (0 = bez limitu)</value>
+  </data>
   <data name="Max delivery threads" xml:space="preserve">
     <value>Maksymalna liczba wątków dostarczania</value>
   </data>
@@ -4860,6 +4872,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   </data>
   <data name="Max simultaneous connections (0 = unlimited)" xml:space="preserve">
     <value>Maksymalna liczba jednoczesnych połączeń (0 = bez ograniczeń)</value>
+  </data>
+  <data name="Max simultaneous connections to one destination without a remote domain policy (0 = unlimited)" xml:space="preserve">
+    <value>Maks. jednoczesnych połączeń z jednym celem bez zasady domeny zdalnej (0 = bez limitu)</value>
   </data>
   <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
     <value>Maksymalny rozmiar _domeny (MB, 0 = bez ograniczeń)</value>
@@ -5066,6 +5081,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="Minutes between scan attempts while held" xml:space="preserve">
     <value>Minuty między próbami skanowania w czasie wstrzymania</value>
+  </data>
+  <data name="Minutes to hold a destination that asked this server to slow down (0 = off)" xml:space="preserve">
+    <value>Minuty wstrzymania celu, który poprosił ten serwer o zwolnienie (0 = wyłączone)</value>
   </data>
   <data name="Mirror address (empty = disabled)" xml:space="preserve">
     <value>Adres kopii lustrzanej (puste = wyłączone)</value>
@@ -9532,8 +9550,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Throttle abusive senders submitting to this server. Limits are per minute; 0 disables the limit. (Throttling your own outbound rate to a destination is on the Delivery of e-mail page.)" xml:space="preserve">
     <value>Ogranicz nadawców nadużywających wysyłki na ten serwer. Limity są na minutę; 0 wyłącza limit. (Ograniczanie własnej szybkości wysyłki do celu jest na stronie Dostarczanie poczty.)</value>
   </data>
-  <data name="Throttling your own outbound rate to a domain that rate-limits you. Deferred messages consume the retry budget above." xml:space="preserve">
-    <value>Ograniczanie własnej szybkości wysyłki do domeny, która nakłada na Ciebie limity. Odroczone wiadomości zużywają budżet ponowień powyżej.</value>
+  <data name="Throttling your own outbound rate to a domain that rate-limits you. A deferred message is retried a minute later without spending the retry budget above." xml:space="preserve">
+    <value>Ogranicza własne tempo wysyłania do domeny, która was ogranicza. Odroczona wiadomość jest ponawiana minutę później bez zużywania powyższego budżetu ponowień.</value>
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Autokonfiguracja Thunderbird + autodiscover Outlook</value>

@@ -346,6 +346,20 @@
 // to another its sender may still withdraw the unread copies, and how long
 // the rows that make that possible are kept. 1 to 365, 14 by default.
 #define PROPERTY_RECALL_DAYS                    _T("RecallDays")
+// Outbound shaping (SMTP/DestinationBackoff.h, docs/OutboundShaping.md). The
+// back-off a destination's slow-down reply opens: the first window in minutes
+// (0 turns it off; 2 by default) and the most it doubles to (60). And the two
+// connection ceilings, both off at 0: how many sessions this server holds open
+// to one destination whose remote domain policy sets none, and how many
+// deliveries one tenant - the hosted domain of the envelope sender, or
+// "(external)" for relayed mail - may have in flight at once. The last two row
+// names are shorter than their COM properties
+// (MaxOutboundConnectionsPerDestination, MaxOutboundConnectionsPerTenant),
+// because hm_settings.settingname holds thirty characters.
+#define PROPERTY_OUTBOUND_BACKOFF_MINUTES       _T("OutboundBackoffMinutes")
+#define PROPERTY_OUTBOUND_BACKOFF_MAX_MINUTES   _T("OutboundBackoffMaxMinutes")
+#define PROPERTY_MAX_OUTBOUND_CONNS_PER_DEST    _T("MaxOutboundConnsPerDestination")
+#define PROPERTY_MAX_OUTBOUND_CONNS_PER_TENANT  _T("MaxOutboundConnsPerTenant")
 // Zero-access mailboxes (docs/ZeroAccess.md). OFF: an administrator has to
 // allow the opt-in before any account can make it, because a mailbox with this
 // on is one the administrator cannot read, search, export or recover, and a

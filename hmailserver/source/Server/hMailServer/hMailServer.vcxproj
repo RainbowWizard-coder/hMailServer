@@ -1028,6 +1028,8 @@ EXIT 0
     <ClCompile Include="..\Smtp\DeliveryQueue.cpp" />
     <ClCompile Include="..\Smtp\DeliveryTask.cpp" />
     <ClCompile Include="..\SMTP\ExternalDelivery.cpp" />
+    <ClCompile Include="..\SMTP\DestinationBackoff.cpp" />
+    <ClCompile Include="..\SMTP\DestinationBackoffTester.cpp" />
     <ClCompile Include="..\SMTP\TlsPolicy.cpp" />
     <ClCompile Include="..\SMTP\GreyListCleanerTask.cpp" />
     <ClCompile Include="..\SMTP\DmarcRptReporterTask.cpp" />
@@ -1817,6 +1819,8 @@ EXIT 0
     <ClInclude Include="..\SMTP\FeedbackReportParser.h" />
     <ClInclude Include="..\Smtp\DeliveryTask.h" />
     <ClInclude Include="..\SMTP\ExternalDelivery.h" />
+    <ClInclude Include="..\SMTP\DestinationBackoff.h" />
+    <ClInclude Include="..\SMTP\DestinationBackoffTester.h" />
     <ClInclude Include="..\SMTP\ExternalDeliveryServerResult.h" />
     <ClInclude Include="..\SMTP\RecipientCallout.h" />
     <ClInclude Include="..\SMTP\TlsPolicy.h" />

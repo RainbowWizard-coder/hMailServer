@@ -74,6 +74,13 @@ namespace HM
       return existing == in_use_.end() ? 0 : existing->second;
    }
 
+   std::map<String, int>
+   RemoteDomainThrottle::GetInUseAll() const
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+      return in_use_;
+   }
+
    void
    RemoteDomainThrottle::Clear()
    {

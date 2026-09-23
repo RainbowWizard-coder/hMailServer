@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
   https://www.progressiverobot.com
   Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
@@ -383,6 +383,9 @@
   <data name="; database folder {0}" xml:space="preserve">
     <value>；数据库文件夹 {0}</value>
   </data>
+  <data name="A 421, a rate-limit code or words to that effect from a remote server opens a window in which nothing is sent to that destination; when it ends one delivery probes it, and the same answer doubles the window. A deferral this server chooses does not count against the retries above." xml:space="preserve">
+    <value>远程服务器返回的 421、限速代码或类似措辞会打开一个窗口，期间不向该目标发送任何邮件；窗口结束后由一次投递进行探测，若得到同样的回复则窗口加倍。本服务器自行选择的推迟不计入上面的重试次数。</value>
+  </data>
   <data name="A CA certificate bundle file must be specified when client certificates are requested or required. Without one, Require would reject every client and Request would verify nothing." xml:space="preserve">
     <value>请求或要求客户端证书时，必须指定 CA 证书捆绑文件。没有它，“要求”会拒绝每一个客户端，而“请求”则什么也不验证。</value>
   </data>
@@ -610,6 +613,9 @@
   </data>
   <data name="A service account password is stored in hMailServer.INI in plain text - the DPAPI setting does not cover it, because the registration step has nowhere else to read it from. Now that the service has been registered, Windows keeps its own copy, so clear the value on the Server limits &amp; expert settings page. A virtual account (NT SERVICE\hMailServer) or a group managed service account avoids the question entirely." xml:space="preserve">
     <value>服务账户密码以明文形式存储在 hMailServer.INI 中 - DPAPI 设置并不涵盖它，因为注册步骤没有别的地方可以读取它。既然服务已经注册，Windows 会自行保留一份副本，因此请在“服务器限制与专家设置”页上清除该值。使用虚拟账户（NT SERVICE\hMailServer）或组托管服务账户可以彻底避免这个问题。</value>
+  </data>
+  <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
+    <value>这是连接的份额，永远不超过投递线程数：一个托管域名的账户，或全部中继邮件加在一起，都不能占用所有投递线程。控制数量的是每账户发送上限；这不是。</value>
   </data>
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>一份简短的内置列表 - "password"、"123456"、"changeme" 以及另外三十来个 - 比较时不区分大小写。它有意不是“前 10000 名”那种列表，那需要一个数据文件和一条更新途径；它拦截的是在建立一个此后无人再管的邮箱时随手输入的那些密码。</value>
@@ -4624,6 +4630,9 @@
   <data name="Logon tarpit" xml:space="preserve">
     <value>登录延迟陷阱</value>
   </data>
+  <data name="Longest such window, in minutes" xml:space="preserve">
+    <value>此类窗口的最长时间 (分钟)</value>
+  </data>
   <data name="Look for &quot;Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue&quot; and, when it is severe, &quot;All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start&quot;. That means every worker is occupied and messages are queuing behind them: one slow dependency does this to the whole server, which is why a single wedged scanner used to look like the server had stopped responding. The task names say which sessions are stuck; the stage timings say what they are stuck on." xml:space="preserve">
     <value>查找 "Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue"，情况严重时则查找 "All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start"。这表示所有工作线程都被占用，邮件在它们后面排队：一个缓慢的依赖项就会让整个服务器如此，这就是为什么过去一个卡住的扫描器看起来像是服务器停止响应了。任务名称说明哪些会话卡住了；阶段耗时说明它们卡在什么上面。</value>
   </data>
@@ -4825,6 +4834,9 @@
   <data name="Max authenticated submissions per client IP per minute (0 = unlimited)" xml:space="preserve">
     <value>每个客户端 IP 每分钟最大已验证提交数（0 = 不限制）</value>
   </data>
+  <data name="Max deliveries in flight for one sending domain (0 = unlimited)" xml:space="preserve">
+    <value>单个发件域名同时进行的最大投递数 (0 = 不限)</value>
+  </data>
   <data name="Max delivery threads" xml:space="preserve">
     <value>最大投递线程数</value>
   </data>
@@ -4860,6 +4872,9 @@
   </data>
   <data name="Max simultaneous connections (0 = unlimited)" xml:space="preserve">
     <value>最大同时连接数（0 = 不限制）</value>
+  </data>
+  <data name="Max simultaneous connections to one destination without a remote domain policy (0 = unlimited)" xml:space="preserve">
+    <value>对没有远程域策略的单个目标的最大并发连接数 (0 = 不限)</value>
   </data>
   <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
     <value>最大域大小(_D)（MB，0 = 不限制）</value>
@@ -5066,6 +5081,9 @@
   </data>
   <data name="Minutes between scan attempts while held" xml:space="preserve">
     <value>暂挂期间两次扫描尝试之间的分钟数</value>
+  </data>
+  <data name="Minutes to hold a destination that asked this server to slow down (0 = off)" xml:space="preserve">
+    <value>要求本服务器放慢速度的目标的保留分钟数 (0 = 关闭)</value>
   </data>
   <data name="Mirror address (empty = disabled)" xml:space="preserve">
     <value>镜像地址（留空 = 禁用）</value>
@@ -9532,8 +9550,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Throttle abusive senders submitting to this server. Limits are per minute; 0 disables the limit. (Throttling your own outbound rate to a destination is on the Delivery of e-mail page.)" xml:space="preserve">
     <value>限制向本服务器提交邮件的滥用发件人。限制以每分钟计；0 表示禁用限制。(限制您自己到某个目标的出站速率在“电子邮件投递”页。)</value>
   </data>
-  <data name="Throttling your own outbound rate to a domain that rate-limits you. Deferred messages consume the retry budget above." xml:space="preserve">
-    <value>限制您自己到一个对您限速的域的出站速率。被推迟的邮件会消耗上面的重试预算。</value>
+  <data name="Throttling your own outbound rate to a domain that rate-limits you. A deferred message is retried a minute later without spending the retry budget above." xml:space="preserve">
+    <value>对限制您速率的域名自行限制出站速率。被推迟的邮件会在一分钟后重试，而不消耗上面的重试预算。</value>
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbird autoconfig + Outlook autodiscover</value>

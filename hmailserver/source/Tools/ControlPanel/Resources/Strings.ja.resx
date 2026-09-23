@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
   https://www.progressiverobot.com
   Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
@@ -383,6 +383,9 @@
   <data name="; database folder {0}" xml:space="preserve">
     <value>、データベース フォルダー {0}</value>
   </data>
+  <data name="A 421, a rate-limit code or words to that effect from a remote server opens a window in which nothing is sent to that destination; when it ends one delivery probes it, and the same answer doubles the window. A deferral this server chooses does not count against the retries above." xml:space="preserve">
+    <value>リモートサーバーからの 421、レート制限コード、またはその趣旨の文言により、その宛先に何も送信しないウィンドウが開きます。ウィンドウが終わると 1 件の配信で試行し、同じ応答ならウィンドウを 2 倍にします。このサーバー自身が選んだ延期は、上記の再試行回数には数えません。</value>
+  </data>
   <data name="A CA certificate bundle file must be specified when client certificates are requested or required. Without one, Require would reject every client and Request would verify nothing." xml:space="preserve">
     <value>クライアント証明書を要求または必須にする場合は、CA 証明書バンドル ファイルを指定する必要があります。指定がないと、「必須」ではすべてのクライアントが拒否され、「要求」では何も検証されません。</value>
   </data>
@@ -610,6 +613,9 @@
   </data>
   <data name="A service account password is stored in hMailServer.INI in plain text - the DPAPI setting does not cover it, because the registration step has nowhere else to read it from. Now that the service has been registered, Windows keeps its own copy, so clear the value on the Server limits &amp; expert settings page. A virtual account (NT SERVICE\hMailServer) or a group managed service account avoids the question entirely." xml:space="preserve">
     <value>サービス アカウントのパスワードは hMailServer.INI に平文で保存されます。DPAPI の設定はこれを保護しません。登録の手順ではほかに読み取り元がないためです。サービスの登録が済んだ今は Windows が独自のコピーを保持しているので、「サーバーの制限と上級者向け設定」ページでこの値を消去してください。仮想アカウント (NT SERVICE\hMailServer) やグループの管理されたサービス アカウントを使えば、この問題自体が起こりません。</value>
+  </data>
+  <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
+    <value>接続の割り当てであり、配信スレッド数を超えることはありません。ホストする 1 つのドメインのアカウント、あるいは中継メール全体が、すべての配信スレッドを占有することはできません。量を制御するのはアカウントごとの送信上限であり、これはそうではありません。</value>
   </data>
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>「password」「123456」「changeme」など 30 個ほどからなる、組み込みの短いリストです。大文字と小文字は区別せずに比較します。「上位 10000 件」のようなリストにしていないのは意図的で、それにはデータ ファイルと更新の手段が必要になるためです。このリストは、誰も後から見直さないメールボックスを用意するときに入力されがちなパスワードを捕らえます。</value>
@@ -4624,6 +4630,9 @@
   <data name="Logon tarpit" xml:space="preserve">
     <value>ログオン タールピット</value>
   </data>
+  <data name="Longest such window, in minutes" xml:space="preserve">
+    <value>このウィンドウの最長時間 (分)</value>
+  </data>
   <data name="Look for &quot;Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue&quot; and, when it is severe, &quot;All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start&quot;. That means every worker is occupied and messages are queuing behind them: one slow dependency does this to the whole server, which is why a single wedged scanner used to look like the server had stopped responding. The task names say which sessions are stuck; the stage timings say what they are stuck on." xml:space="preserve">
     <value>"Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue" を探し、深刻な場合は "All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start" を探してください。これはすべてのワーカーが占有され、メッセージがその後ろに並んでいることを意味します。1 つの遅い依存先がサーバー全体にこれを引き起こすため、かつては 1 つの固まったスキャナーがサーバーの無応答のように見えたのです。タスク名がどのセッションが詰まっているかを、ステージの所要時間が何に詰まっているかを示します。</value>
   </data>
@@ -4825,6 +4834,9 @@
   <data name="Max authenticated submissions per client IP per minute (0 = unlimited)" xml:space="preserve">
     <value>クライアント IP ごとの 1 分あたりの認証済みサブミッションの最大数 (0 = 無制限)</value>
   </data>
+  <data name="Max deliveries in flight for one sending domain (0 = unlimited)" xml:space="preserve">
+    <value>送信ドメイン 1 つあたりの最大同時配信数 (0 = 無制限)</value>
+  </data>
   <data name="Max delivery threads" xml:space="preserve">
     <value>配信スレッドの最大数</value>
   </data>
@@ -4860,6 +4872,9 @@
   </data>
   <data name="Max simultaneous connections (0 = unlimited)" xml:space="preserve">
     <value>最大同時接続数 (0 = 無制限)</value>
+  </data>
+  <data name="Max simultaneous connections to one destination without a remote domain policy (0 = unlimited)" xml:space="preserve">
+    <value>リモートドメインポリシーのない宛先 1 つへの最大同時接続数 (0 = 無制限)</value>
   </data>
   <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
     <value>ドメインの最大サイズ (MB、0 = 無制限)(_D)</value>
@@ -5066,6 +5081,9 @@
   </data>
   <data name="Minutes between scan attempts while held" xml:space="preserve">
     <value>保留中のスキャン試行の間隔 (分)</value>
+  </data>
+  <data name="Minutes to hold a destination that asked this server to slow down (0 = off)" xml:space="preserve">
+    <value>このサーバーに減速を求めた宛先を保留する分数 (0 = 無効)</value>
   </data>
   <data name="Mirror address (empty = disabled)" xml:space="preserve">
     <value>ミラー アドレス (空 = 無効)</value>
@@ -9532,8 +9550,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Throttle abusive senders submitting to this server. Limits are per minute; 0 disables the limit. (Throttling your own outbound rate to a destination is on the Delivery of e-mail page.)" xml:space="preserve">
     <value>このサーバーに送信する悪質な送信者を抑制します。制限は 1 分あたりです。0 で制限を無効にします。(宛先への自身の送信レートの抑制はメール配信ページにあります。)</value>
   </data>
-  <data name="Throttling your own outbound rate to a domain that rate-limits you. Deferred messages consume the retry budget above." xml:space="preserve">
-    <value>あなたをレート制限するドメインへの、自身の送信レートの抑制。延期されたメッセージは上の再試行予算を消費します。</value>
+  <data name="Throttling your own outbound rate to a domain that rate-limits you. A deferred message is retried a minute later without spending the retry budget above." xml:space="preserve">
+    <value>レート制限をかけてくる宛先ドメインへの自身の送信速度を抑えます。延期されたメッセージは、上記の再試行回数を消費せずに 1 分後に再試行されます。</value>
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbird autoconfig + Outlook autodiscover</value>

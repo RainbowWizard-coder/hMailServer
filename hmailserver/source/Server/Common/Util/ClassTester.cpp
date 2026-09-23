@@ -37,6 +37,7 @@
 #include "PasskeyStore.h"
 #include "MaskedAddresses.h"
 #include "../../SMTP/BounceTracker.h"
+#include "../../SMTP/DestinationBackoffTester.h"
 #include "../../SMTP/DeliveryReportParser.h"
 #include "../../SMTP/ComplaintTracker.h"
 #include "DomainReports.h"
@@ -184,6 +185,12 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing MailboxRestore\n"));
       MailboxRestoreTester mailboxRestoreTester;
       mailboxRestoreTester.Test();
+
+      // The per-destination back-off: the signal table, the window and its
+      // doubling to the ceiling, the probe, all against a clock the test moves.
+      OutputDebugString(_T("hMailServer: Testing DestinationBackoff\n"));
+      DestinationBackoffTester destinationBackoffTester;
+      destinationBackoffTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing DisclaimerAdder\n"));
       DisclaimerAdderTester disclaimerAdderTester;

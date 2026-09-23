@@ -233,6 +233,16 @@ END_COM_MAP()
    STDMETHOD(put_QuotaGracePercent)(/*[in]*/ long newVal);
    STDMETHOD(get_QuotaSendStopPercent)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_QuotaSendStopPercent)(/*[in]*/ long newVal);
+
+   // Outbound shaping (SMTP/DestinationBackoff.h). See the IDL.
+   STDMETHOD(get_OutboundBackoffMinutes)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_OutboundBackoffMinutes)(/*[in]*/ long newVal);
+   STDMETHOD(get_OutboundBackoffMaxMinutes)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_OutboundBackoffMaxMinutes)(/*[in]*/ long newVal);
+   STDMETHOD(get_MaxOutboundConnectionsPerDestination)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_MaxOutboundConnectionsPerDestination)(/*[in]*/ long newVal);
+   STDMETHOD(get_MaxOutboundConnectionsPerTenant)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_MaxOutboundConnectionsPerTenant)(/*[in]*/ long newVal);
    STDMETHOD(get_TlsOptionPrioritizeChaChaEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_TlsOptionPrioritizeChaChaEnabled)(/*[in]*/ VARIANT_BOOL newVal);
 

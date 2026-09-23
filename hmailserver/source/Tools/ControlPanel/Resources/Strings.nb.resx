@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
   https://www.progressiverobot.com
   Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
@@ -383,6 +383,9 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name="; database folder {0}" xml:space="preserve">
     <value>; databasemappe {0}</value>
   </data>
+  <data name="A 421, a rate-limit code or words to that effect from a remote server opens a window in which nothing is sent to that destination; when it ends one delivery probes it, and the same answer doubles the window. A deferral this server chooses does not count against the retries above." xml:space="preserve">
+    <value>En 421, en hastighetsbegrensningskode eller ord i den retning fra en ekstern server åpner et vindu der ingenting sendes til det målet; når det slutter, prøver én levering det, og samme svar dobler vinduet. En utsettelse denne serveren selv velger, teller ikke mot forsøkene ovenfor.</value>
+  </data>
   <data name="A CA certificate bundle file must be specified when client certificates are requested or required. Without one, Require would reject every client and Request would verify nothing." xml:space="preserve">
     <value>En fil med en CA-sertifikatpakke må angis når klientsertifikater bes om eller kreves. Uten en slik ville «Krev» avvise hver eneste klient, og «Be om» ville ikke verifisere noe.</value>
   </data>
@@ -610,6 +613,9 @@ Vil du lagre dette svake passordet likevel?</value>
   </data>
   <data name="A service account password is stored in hMailServer.INI in plain text - the DPAPI setting does not cover it, because the registration step has nowhere else to read it from. Now that the service has been registered, Windows keeps its own copy, so clear the value on the Server limits &amp; expert settings page. A virtual account (NT SERVICE\hMailServer) or a group managed service account avoids the question entirely." xml:space="preserve">
     <value>Et passord for tjenestekontoen er lagret i klartekst i hMailServer.INI - DPAPI-innstillingen dekker det ikke, fordi registreringstrinnet ikke har noe annet sted å lese det fra. Nå som tjenesten er registrert, beholder Windows sin egen kopi, så tøm verdien på siden Servergrenser og ekspertinnstillinger. En virtuell konto (NT SERVICE\hMailServer) eller en gruppeadministrert tjenestekonto unngår spørsmålet helt.</value>
+  </data>
+  <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
+    <value>En andel av tilkoblingene, aldri flere enn leveringstrådene: kontoene i ett driftet domene, eller all videresendt post til sammen, kan ikke oppta alle leveringstrådene. Sendegrensen per konto styrer volumet; dette gjør ikke det.</value>
   </data>
   <data name="A short built-in list - &quot;password&quot;, &quot;123456&quot;, &quot;changeme&quot; and about thirty more - compared without regard to case. It is deliberately not a &quot;top 10000&quot; list, which would need a data file and an update path; it catches the passwords that get typed while setting up a mailbox nobody comes back to." xml:space="preserve">
     <value>En kort innebygd liste - «password», «123456», «changeme» og rundt tretti til - sammenlignet uten hensyn til store og små bokstaver. Den er bevisst ikke en «topp 10000»-liste, som ville trengt en datafil og en oppdateringsvei; den fanger passordene som blir skrevet inn mens man setter opp en postboks ingen kommer tilbake til.</value>
@@ -4624,6 +4630,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Logon tarpit" xml:space="preserve">
     <value>Påloggingstarpit</value>
   </data>
+  <data name="Longest such window, in minutes" xml:space="preserve">
+    <value>Lengste slike vindu i minutter</value>
+  </data>
   <data name="Look for &quot;Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue&quot; and, when it is severe, &quot;All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start&quot;. That means every worker is occupied and messages are queuing behind them: one slow dependency does this to the whole server, which is why a single wedged scanner used to look like the server had stopped responding. The task names say which sessions are stuck; the stage timings say what they are stuck on." xml:space="preserve">
     <value>Se etter "Task SMTP-accept session=42 ip=... waited 8 seconds for a thread in work queue Asynchronous task queue" og, når det er alvorlig, "All 15 threads in work queue Asynchronous task queue have been busy for at least 120 seconds, so no further task on this queue can start". Det betyr at hver arbeider er opptatt og meldinger står i kø bak dem: én treg avhengighet gjør dette mot hele serveren, som er grunnen til at én fastkjørt skanner pleide å se ut som om serveren hadde sluttet å svare. Oppgavenavnene sier hvilke økter som sitter fast; trinntidene sier hva de sitter fast på.</value>
   </data>
@@ -4825,6 +4834,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Max authenticated submissions per client IP per minute (0 = unlimited)" xml:space="preserve">
     <value>Maks autentiserte innsendinger per klient-IP per minutt (0 = ubegrenset)</value>
   </data>
+  <data name="Max deliveries in flight for one sending domain (0 = unlimited)" xml:space="preserve">
+    <value>Maks. pågående leveringer for ett avsenderdomene (0 = ubegrenset)</value>
+  </data>
   <data name="Max delivery threads" xml:space="preserve">
     <value>Maks antall leveringstråder</value>
   </data>
@@ -4860,6 +4872,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="Max simultaneous connections (0 = unlimited)" xml:space="preserve">
     <value>Maks samtidige tilkoblinger (0 = ubegrenset)</value>
+  </data>
+  <data name="Max simultaneous connections to one destination without a remote domain policy (0 = unlimited)" xml:space="preserve">
+    <value>Maks. samtidige tilkoblinger til ett mål uten policy for eksternt domene (0 = ubegrenset)</value>
   </data>
   <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
     <value>Maksimal _domenestørrelse (MB, 0 = ubegrenset)</value>
@@ -5066,6 +5081,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Minutes between scan attempts while held" xml:space="preserve">
     <value>Minutter mellom skanneforsøk mens den holdes tilbake</value>
+  </data>
+  <data name="Minutes to hold a destination that asked this server to slow down (0 = off)" xml:space="preserve">
+    <value>Minutter et mål holdes tilbake når det har bedt denne serveren om å senke farten (0 = av)</value>
   </data>
   <data name="Mirror address (empty = disabled)" xml:space="preserve">
     <value>Speiladresse (tom = deaktivert)</value>
@@ -9532,8 +9550,8 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="Throttle abusive senders submitting to this server. Limits are per minute; 0 disables the limit. (Throttling your own outbound rate to a destination is on the Delivery of e-mail page.)" xml:space="preserve">
     <value>Strup avsendere som misbruker innsending til denne serveren. Grensene er per minutt; 0 deaktiverer grensen. (Struping av din egen utgående hastighet til et mål er på siden Levering av e-post.)</value>
   </data>
-  <data name="Throttling your own outbound rate to a domain that rate-limits you. Deferred messages consume the retry budget above." xml:space="preserve">
-    <value>Struping av din egen utgående hastighet til et domene som begrenser deg. Utsatte meldinger bruker av budsjettet for nye forsøk ovenfor.</value>
+  <data name="Throttling your own outbound rate to a domain that rate-limits you. A deferred message is retried a minute later without spending the retry budget above." xml:space="preserve">
+    <value>Begrenser din egen utgående hastighet til et domene som begrenser deg. En utsatt melding prøves igjen ett minutt senere uten å bruke av forsøksbudsjettet ovenfor.</value>
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbird autoconfig + Outlook autodiscover</value>

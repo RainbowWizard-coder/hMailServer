@@ -71,6 +71,11 @@ namespace HM
       // diagnostic; delivery does not read it.
       int GetInUse(const String &destination) const;
 
+      // Every key with a count, for GET /api/v1/queue/shaping: a policy's name,
+      // "destination:<target>" or "tenant:<domain>", as the callers key them. A
+      // copy, read under the lock.
+      std::map<String, int> GetInUseAll() const;
+
       // Forgets every count. For the self-tests only - calling it while
       // deliveries are running would let every destination past its ceiling
       // until the open sessions closed.

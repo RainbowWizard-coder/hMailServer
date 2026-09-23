@@ -1262,8 +1262,37 @@ namespace hMailServer.ControlPanel.Views
             Path = "MaxOutboundPerDestinationPerMinute",
             Label = L("Max outbound messages per destination domain per minute (0 = unlimited)"),
             Default = 0,
-            Blurb = L("Throttling your own outbound rate to a domain that rate-limits you. Deferred messages consume the retry budget above."),
+            Blurb = L("Throttling your own outbound rate to a domain that rate-limits you. A deferred message is retried a minute later without spending the retry budget above."),
             IniStore = iniStore_
+         });
+         // Outbound shaping, beside the fixed per-destination rate it completes:
+         // the back-off a destination's own slow-down reply opens, and the two
+         // connection ceilings. All four are hm_settings rows reached over COM.
+         del.Settings.Add(new ComText
+         {
+            Path = "OutboundBackoffMinutes",
+            Label = L("Minutes to hold a destination that asked this server to slow down (0 = off)"),
+            Numeric = true,
+            Blurb = L("A 421, a rate-limit code or words to that effect from a remote server opens a window in which nothing is sent to that destination; when it ends one delivery probes it, and the same answer doubles the window. A deferral this server chooses does not count against the retries above.")
+         });
+         del.Settings.Add(new ComText
+         {
+            Path = "OutboundBackoffMaxMinutes",
+            Label = L("Longest such window, in minutes"),
+            Numeric = true
+         });
+         del.Settings.Add(new ComText
+         {
+            Path = "MaxOutboundConnectionsPerDestination",
+            Label = L("Max simultaneous connections to one destination without a remote domain policy (0 = unlimited)"),
+            Numeric = true
+         });
+         del.Settings.Add(new ComText
+         {
+            Path = "MaxOutboundConnectionsPerTenant",
+            Label = L("Max deliveries in flight for one sending domain (0 = unlimited)"),
+            Numeric = true,
+            Blurb = L("A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one.")
          });
          Tab(L("Delivery")).Cards.Add(del);
 

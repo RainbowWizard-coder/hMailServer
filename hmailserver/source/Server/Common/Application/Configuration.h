@@ -548,6 +548,18 @@ namespace HM
       int GetRecallDays();
       void SetRecallDays(int days);
 
+      // Outbound shaping (SMTP/DestinationBackoff.h, docs/OutboundShaping.md).
+      // Four rows in hm_settings; the getters clamp, so a hand-edited row
+      // cannot make a window of a week or a ceiling of a million.
+      int GetOutboundBackoffMinutes();             // 0 (off) to 10080
+      void SetOutboundBackoffMinutes(int minutes);
+      int GetOutboundBackoffMaxMinutes();          // 1 to 10080; read never below the base
+      void SetOutboundBackoffMaxMinutes(int minutes);
+      int GetMaxOutboundConnectionsPerDestination(); // 0 (off) to 1000
+      void SetMaxOutboundConnectionsPerDestination(int connections);
+      int GetMaxOutboundConnectionsPerTenant();    // 0 (off) to 1000
+      void SetMaxOutboundConnectionsPerTenant(int connections);
+
       // Web Push (see Common/Util/WebPush.h). Seven rows in hm_settings; the
       // getters clamp, so a hand-edited row cannot make a time to live of a year
       // or an attempt count of none.

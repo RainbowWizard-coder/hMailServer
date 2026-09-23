@@ -230,6 +230,11 @@ namespace HM
          RouteQueueList,
          RouteQueueRetry,
          RouteQueueDelete,
+         // The outbound shaping (SMTP/DestinationBackoff.h): the destinations
+         // that asked this server to slow down, with the connections in use,
+         // and one back-off cleared by name. Server-wide, as the queue is.
+         RouteQueueShaping,
+         RouteQueueShapingClear,
          RouteTlsa,
          RouteSrv,
          RouteMetricsHistory,
@@ -1724,6 +1729,8 @@ namespace HM
       static HttpResponse HandleListQueue_();
       static HttpResponse HandleQueueRetry_(__int64 messageId);
       static HttpResponse HandleQueueDelete_(__int64 messageId);
+      static HttpResponse HandleQueueShaping_();
+      static HttpResponse HandleQueueShapingClear_(const String &destination);
       static HttpResponse HandleTlsa_();
 
       // Ready-to-publish client-discovery SRV records (RFC 6186 / RFC 8314,

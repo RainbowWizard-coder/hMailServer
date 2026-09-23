@@ -5402,3 +5402,166 @@ STDMETHODIMP InterfaceSettings::put_QuotaSendStopPercent(long newVal)
       return COMError::GenerateGenericMessage();
    }
 }
+
+// Outbound shaping (SMTP/DestinationBackoff.h). Each setter refuses rather
+// than clamps, so a caller that asked for a value outside the range learns
+// that it did not get it; the sentence is the one the REST route answers.
+
+STDMETHODIMP InterfaceSettings::get_OutboundBackoffMinutes(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetOutboundBackoffMinutes();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_OutboundBackoffMinutes(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 0 || newVal > 10080)
+         return COMError::GenerateError("OutboundBackoffMinutes must be between 0 and 10080.");
+
+      config_->SetOutboundBackoffMinutes((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_OutboundBackoffMaxMinutes(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetOutboundBackoffMaxMinutes();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_OutboundBackoffMaxMinutes(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 1 || newVal > 10080)
+         return COMError::GenerateError("OutboundBackoffMaxMinutes must be between 1 and 10080.");
+
+      if (newVal < config_->GetOutboundBackoffMinutes())
+         return COMError::GenerateError("OutboundBackoffMaxMinutes must not be below OutboundBackoffMinutes.");
+
+      config_->SetOutboundBackoffMaxMinutes((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_MaxOutboundConnectionsPerDestination(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetMaxOutboundConnectionsPerDestination();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_MaxOutboundConnectionsPerDestination(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 0 || newVal > 1000)
+         return COMError::GenerateError("MaxOutboundConnectionsPerDestination must be between 0 and 1000.");
+
+      config_->SetMaxOutboundConnectionsPerDestination((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_MaxOutboundConnectionsPerTenant(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetMaxOutboundConnectionsPerTenant();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_MaxOutboundConnectionsPerTenant(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 0 || newVal > 1000)
+         return COMError::GenerateError("MaxOutboundConnectionsPerTenant must be between 0 and 1000.");
+
+      config_->SetMaxOutboundConnectionsPerTenant((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

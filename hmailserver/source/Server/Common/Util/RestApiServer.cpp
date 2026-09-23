@@ -151,6 +151,8 @@
 #include "../TCPIP/SocketConstants.h"
 #include "../TCPIP/SslContextInitializer.h"
 #include "../../SMTP/DeliveryQueue.h"
+#include "../../SMTP/DestinationBackoff.h"
+#include "RemoteDomainThrottle.h"
 
 // <ws2tcpip.h> is Winsock's TCP/IP header. Everything this file takes from it -
 // the address structures and the address-conversion calls - comes from
@@ -2005,6 +2007,12 @@ namespace HM
 
          case RouteQueueDelete:
             return HandleQueueDelete_(route.message_id);
+
+         case RouteQueueShaping:
+            return HandleQueueShaping_();
+
+         case RouteQueueShapingClear:
+            return HandleQueueShapingClear_(String(route.identifier));
 
          case RouteTlsa:
             return HandleTlsa_();
@@ -4614,6 +4622,31 @@ namespace HM
          return;
       }
 
+      // The outbound shaping (SMTP/DestinationBackoff.h): the destinations
+      // that asked this server to slow down, with the connections in use, and
+      // one back-off cleared by name. Parsed before the queue's id routes, so
+      // that "shaping" is never read as a message id. The destination is
+      // decoded with the other identifiers below, separators excepted.
+      if (method == "GET" && path == "/api/v1/queue/shaping")
+      {
+         route.kind = RouteQueueShaping;
+         return;
+      }
+
+      const AnsiString shapingPrefix = "/api/v1/queue/shaping/";
+
+      if (method == "DELETE" && path.StartsWith(shapingPrefix))
+      {
+         const AnsiString destination = path.Mid(shapingPrefix.GetLength());
+
+         if (!destination.IsEmpty() && destination.Find("/") < 0)
+         {
+            route.kind = RouteQueueShapingClear;
+            route.identifier = destination;
+            return;
+         }
+      }
+
       // /api/v1/queue/<id>/retry and /api/v1/queue/<id>
       const AnsiString queuePrefix = "/api/v1/queue/";
 
@@ -6257,6 +6290,7 @@ namespace HM
       case RouteDomainDelete:
       case RouteQueueRetry:
       case RouteQueueDelete:
+      case RouteQueueShapingClear:
       case RouteQuarantineRelease:
       case RouteQuarantineDelete:
       case RouteIpRangeCreate:
@@ -6903,12 +6937,17 @@ namespace HM
       // with the same senders and recipients in it.
       case RouteQueueList:
       case RouteReviewList:
+      // The destinations the queue is holding back from, and the connections
+      // in use: what the queue is doing, read.
+      case RouteQueueShaping:
          return RolePermission::ViewQueue;
 
       // Retrying a queued message, or dropping it; releasing a held one back
-      // into the queue, or discarding it.
+      // into the queue, or discarding it; clearing a destination's back-off so
+      // the queue delivers to it now.
       case RouteQueueRetry:
       case RouteQueueDelete:
+      case RouteQueueShapingClear:
       case RouteReviewRelease:
       case RouteReviewDiscard:
          return RolePermission::ManageQueue;
@@ -7649,7 +7688,8 @@ namespace HM
       // GET /api/v1/queue lists the sender and every recipient of all of them -
       // so there is no honest way to narrow it to a domain. Refused outright
       // rather than narrowed wrongly.
-      if (route.kind == RouteQueueList || route.kind == RouteQueueRetry || route.kind == RouteQueueDelete)
+      if (route.kind == RouteQueueList || route.kind == RouteQueueRetry || route.kind == RouteQueueDelete ||
+          route.kind == RouteQueueShaping || route.kind == RouteQueueShapingClear)
       {
          refusalReason = "this credential is restricted to named domains, and the delivery queue is server-wide";
          return AuthorizationForbidden;
@@ -9297,6 +9337,97 @@ namespace HM
       LOG_APPLICATION("RestApi: Queue message " + StringParser::IntToString(messageId) + " removed from the delivery queue.");
 
       return BuildResponse_(200, "{\"deleted\":true}");
+   }
+
+   HttpResponse
+   RestApiServer::HandleQueueShaping_()
+   {
+      // The two units, each read under its own lock: the destinations in a
+      // back-off window (SMTP/DestinationBackoff.h) and the sessions open
+      // under a connection ceiling (Util/RemoteDomainThrottle.h). Both are in
+      // memory, per process; a restart forgets both.
+      const std::vector<DestinationBackoff::Entry> entries = DestinationBackoff::Instance()->List();
+
+      AnsiString backoffs;
+
+      for (const DestinationBackoff::Entry &entry : entries)
+      {
+         AnsiString item;
+         item.Format("{\"destination\":\"%hs\",\"since\":\"%hs\",\"until\":\"%hs\",\"window_minutes\":%d,\"reply\":\"%hs\",\"host\":\"%hs\",\"deferred\":%d,\"probing\":%hs}",
+            JsonEscape_(Utf8_(entry.destination)).c_str(),
+            JsonEscape_(Utf8_(DestinationBackoff::FormatTime(entry.since))).c_str(),
+            JsonEscape_(Utf8_(DestinationBackoff::FormatTime(entry.until))).c_str(),
+            entry.window_minutes,
+            JsonEscape_(Utf8_(entry.reply)).c_str(),
+            JsonEscape_(Utf8_(entry.host)).c_str(),
+            entry.deferred,
+            entry.probing ? "true" : "false");
+
+         if (!backoffs.IsEmpty())
+            backoffs += ",";
+
+         backoffs += item;
+      }
+
+      // The throttle's keys as its callers make them: a remote domain policy's
+      // name bare, "destination:<target>" for the server-wide ceiling and
+      // "tenant:<domain>" for the tenant share. The first two are destinations.
+      const std::map<String, int> inUse = RemoteDomainThrottle::Instance()->GetInUseAll();
+
+      AnsiString destinations;
+      AnsiString tenants;
+
+      for (const auto &pair : inUse)
+      {
+         String name = pair.first;
+         AnsiString *list = &destinations;
+
+         if (name.StartsWith(_T("tenant:")))
+         {
+            name = name.Mid(7);
+            list = &tenants;
+         }
+         else if (name.StartsWith(_T("destination:")))
+         {
+            name = name.Mid(12);
+         }
+
+         AnsiString item;
+         item.Format("\"%hs\":%d", JsonEscape_(Utf8_(name)).c_str(), pair.second);
+
+         if (!list->IsEmpty())
+            *list += ",";
+
+         *list += item;
+      }
+
+      AnsiString body;
+      body.Format("{\"backoffs\":[%hs],\"connections\":{\"destinations\":{%hs},\"tenants\":{%hs}}}",
+         backoffs.c_str(), destinations.c_str(), tenants.c_str());
+
+      return BuildResponse_(200, body);
+   }
+
+   HttpResponse
+   RestApiServer::HandleQueueShapingClear_(const String &destination)
+   {
+      String key = destination;
+      key.Trim();
+      key.ToLower();
+
+      if (key.IsEmpty() || !DestinationBackoff::Instance()->Clear(key))
+         return BuildResponse_(404, "{\"error\":\"no back-off is open for that destination\"}");
+
+      LOG_APPLICATION("RestApi: The back-off for " + key + " was cleared; deliveries to it resume at once.");
+
+      // On the audit trail, in the actor's name, because the window is in
+      // memory and no chokepoint sees it go: an administrator who lifts a
+      // hold the destination itself asked for is making a decision worth a
+      // record.
+      AuditTrail::Instance()->RecordEvent(_T("queue"), key, _T("back-off cleared"),
+         _T("The destination's back-off window was cleared, so deliveries to it resume at once; its next slow-down reply opens a new window."));
+
+      return BuildResponse_(200, "{\"cleared\":true}");
    }
 
    HttpResponse
@@ -16005,6 +16136,8 @@ namespace HM
          "\"/api/v1/queue\":{\"get\":{\"summary\":\"List the delivery queue\",\"description\":\"Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of queued messages\"}}}},"
          "\"/api/v1/queue/{id}/retry\":{\"post\":{\"summary\":\"Retry a queued message now\",\"responses\":{\"200\":{\"description\":\"Rescheduled\"},\"404\":{\"description\":\"Unknown id\"}}}},"
          "\"/api/v1/queue/{id}\":{\"delete\":{\"summary\":\"Remove a message from the queue\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}},"
+         "\"/api/v1/queue/shaping\":{\"get\":{\"summary\":\"The destinations that asked this server to slow down, and the outbound connections in use\",\"description\":\"backoffs: one per destination in a back-off window - destination (the recipient domain, or the host of a route), since, until, window_minutes, reply (the remote's own words, at most 200 characters), host, deferred (how many deliveries the window has held back) and probing (the window has passed and one delivery is finding out); connections: destinations and tenants, each a map of name to the sessions open right now under a ceiling - a remote domain policy's, max_outbound_connections_per_destination's or max_outbound_connections_per_tenant's. In memory, per process: a restart forgets all of it. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"backoffs and connections\"}}}},"
+         "\"/api/v1/queue/shaping/{destination}\":{\"delete\":{\"summary\":\"Clear one destination's back-off, so deliveries to it resume at once\",\"description\":\"For an administrator who has fixed the cause and need not wait for the window. The next slow-down reply opens a new window from the base. Recorded on the audit trail. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Cleared\"},\"404\":{\"description\":\"No back-off is open for that destination\"}}}},"
          "\"/api/v1/quarantine\":{\"get\":{\"summary\":\"List quarantined messages\",\"description\":\"Server-wide; refused for domain-restricted keys. Bounded to the newest 1000.\",\"responses\":{\"200\":{\"description\":\"Array of quarantined messages\"}}}},"
          "\"/api/v1/quarantine/{id}/release\":{\"post\":{\"summary\":\"Release a quarantined message to its original recipients\",\"description\":\"Delivery is direct rather than back through the filters: a release is an administrator overruling them.\",\"responses\":{\"200\":{\"description\":\"Released\"},\"404\":{\"description\":\"Unknown id\"}}}},"
          "\"/api/v1/quarantine/{id}\":{\"delete\":{\"summary\":\"Delete a quarantined message\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}},"

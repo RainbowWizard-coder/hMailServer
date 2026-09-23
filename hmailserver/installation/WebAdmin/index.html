@@ -1192,6 +1192,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="del")delAccount(d.address,d.domain);
   else if(d.act==="retry")retryMsg(d.id);
   else if(d.act==="delmsg")delMsg(d.id);
+  else if(d.act==="shresume")resumeDestination(d.id);
   else if(d.act==="log")showLog(d.name,d.lines);
   else if(d.act==="sessrefresh")render();
   else if(d.act==="follow")followSession(Number(d.id));
@@ -3804,16 +3805,41 @@ async function deleteGroupMember(accountId,address){
 
 /* ---------- Delivery queue ---------- */
 async function renderQueue(){
-  const q=await api("/api/v1/queue");
+  /* The queue, and beside it what the queue is holding back from: the
+     destinations that asked this server to slow down (each with its window
+     and the reply that opened it, and a Resume that clears the window now)
+     and the connections open under a ceiling. Both from
+     /api/v1/queue/shaping, read with the queue. */
+  const [q,shaping]=await Promise.all([api("/api/v1/queue"),api("/api/v1/queue/shaping")]);
   const rows=(q.messages||[]).map(x=>`
     <tr><td>${escHtml(x.id)}</td><td>${escHtml(x.from||"—")}</td><td>${escHtml(x.recipients||"—")}</td><td>${escHtml(x.next_try||"—")}</td>
         <td style="text-align:right;white-space:nowrap">
           <button class="btn ghost sm" data-act="retry" data-id="${escHtml(x.id)}">${t("Retry now")}</button>
           <button class="btn danger sm" data-act="delmsg" data-id="${escHtml(x.id)}">${t("Delete")}</button>
           <div class="err" id="err_queue_${escHtml(x.id)}"></div></td></tr>`).join("");
-  $("#content").innerHTML=`<div class="card view">
+  const backoffs=(shaping&&shaping.backoffs)||[];
+  const conns=(shaping&&shaping.connections)||{};
+  const counts=obj=>Object.keys(obj||{}).map(k=>escHtml(k)+": "+escHtml(String(obj[k]))).join(", ");
+  const slowed=backoffs.map(b=>`
+    <div class="row" style="justify-content:space-between;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)">
+      <div style="flex:1;min-width:0"><b style="word-break:break-all">${escHtml(b.destination||"")}</b>${b.probing?' <span class="badge info">'+t("probing")+'</span>':""}
+        <div class="hint">${escHtml(tf("Since {0}, until {1}; window {2} min; {3} deferred",b.since||"",b.until||"",b.window_minutes||0,b.deferred||0))}</div>
+        <div class="hint"><code>${escHtml(b.reply||"")}</code>${b.host?' <span class="muted">'+escHtml(b.host)+'</span>':""}</div>
+        <div class="err" id="err_shaping_${escHtml(b.destination||"")}"></div></div>
+      ${may("manage_queue")?`<button class="btn ghost sm" data-act="shresume" data-id="${escHtml(b.destination||"")}">${t("Resume")}</button>`:""}</div>`).join("");
+  $("#content").innerHTML=`<div class="view"><div class="card view">
     <div class="tablewrap"><table><thead><tr><th>${t("ID")}</th><th>${t("From")}</th><th>${t("To")}</th><th>${t("Next try")}</th><th></th></tr></thead>
-    <tbody>${rows||'<tr><td colspan="5" class="empty">'+t("The delivery queue is empty. ✦")+'</td></tr>'}</tbody></table></div></div>`;
+    <tbody>${rows||'<tr><td colspan="5" class="empty">'+t("The delivery queue is empty. ✦")+'</td></tr>'}</tbody></table></div></div>
+    <div class="sect"><h2>${t("Slowed destinations")}</h2><div class="card flat">
+      <p class="note">${t("A destination that answered a slow-down reply - a 421, a rate-limit code or words to that effect - is not connected to until its window ends; then one delivery probes it, and the same answer doubles the window. Resume clears the window now.")}</p>
+      ${slowed||'<div class="empty">'+t("No destination has asked this server to slow down.")+'</div>'}
+      <div class="hint">${t("Connections in use")} — ${t("destinations")}: ${counts(conns.destinations)||"—"}; ${t("tenants")}: ${counts(conns.tenants)||"—"}</div>
+    </div></div></div>`;
+}
+async function resumeDestination(destination){
+  if(!confirm(tf("Resume deliveries to {0} now? The next slow-down reply opens a new window.",destination)))return;
+  try{await api("/api/v1/queue/shaping/"+encodeURIComponent(destination),{method:"DELETE"});toast(t("Back-off cleared"));renderQueue();}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_shaping_"+destination,e.message);}
 }
 async function retryMsg(id){
   try{await api("/api/v1/queue/"+encodeURIComponent(id)+"/retry",{method:"POST"});toast(t("Delivery retriggered"));renderQueue();}

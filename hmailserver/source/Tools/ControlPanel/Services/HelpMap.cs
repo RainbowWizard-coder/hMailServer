@@ -156,6 +156,7 @@ namespace hMailServer.ControlPanel.Services
          "MessageRecall.md",
          "MigratingDatabaseBackend.md",
          "OutboundContentPolicy.md",
+         "OutboundShaping.md",
          "PackageManagers.md",
          "PersonalData.md",
          "RegressionEnvironment.md",

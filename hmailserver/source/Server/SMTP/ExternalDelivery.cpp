@@ -31,7 +31,11 @@
 #include "../Common/Util/TlsRptStore.h"
 #include "../Common/Util/RateLimiter.h"
 #include "../Common/Util/RemoteDomainThrottle.h"
+#include "../Common/Application/ObjectCache.h"
+#include "../Common/BO/DomainAliases.h"
+#include "../Common/Cache/CacheContainer.h"
 
+#include "DestinationBackoff.h"
 #include "ServerTargetResolver.h"
 #include "SMTPConfiguration.h"
 #include "SMTPClientConnection.h"
@@ -71,6 +75,35 @@ namespace HM
          else
             existing->second = failure;
       }
+
+      // Ends the probe of a destination whose back-off window has passed. On
+      // the stack around the connection attempts, so that no path out of
+      // DeliverToSingleDomain_ - an early return, a throw - can leave the
+      // destination marked probing: a probe that was answered with a slow-down
+      // reply has had its window doubled by then and this does nothing; any
+      // other end of the probe opens the destination again.
+      class BackoffProbe
+      {
+      public:
+         BackoffProbe() : active_(false), slowed_down_(false) {}
+         ~BackoffProbe()
+         {
+            if (active_ && !slowed_down_)
+               DestinationBackoff::Instance()->ProbeEnded(target_);
+         }
+
+         void Begin(const String &target) { target_ = target; active_ = true; }
+         void SlowedDown() { slowed_down_ = true; }
+         bool IsActive() const { return active_; }
+
+      private:
+         BackoffProbe(const BackoffProbe &);
+         BackoffProbe &operator=(const BackoffProbe &);
+
+         String target_;
+         bool active_;
+         bool slowed_down_;
+      };
    }
 
    ExternalDelivery::ExternalDelivery(const String &sSendersIP, std::shared_ptr<Message> message, const RuleResult &globalRuleResult) :
@@ -80,7 +113,8 @@ namespace HM
       quick_retries_(0),
       quick_retries_Minutes(0),
       queue_randomness_minutes_(0),
-      mxtries_factor_(0)
+      mxtries_factor_(0),
+      shaping_deferral_minutes_(0)
    {
 
    }
@@ -247,6 +281,50 @@ namespace HM
          }
       }
 
+      // The destination, as the back-off and the connection ceilings name it:
+      // the recipient domain of an MX delivery, the host of a route or a relay.
+      String target = recipientDomain;
+      target.ToLower();
+
+      // A destination that asked this server to slow down is not connected to
+      // until its window has passed (SMTP/DestinationBackoff.h). Judged before
+      // the rate and connection checks so that a held batch consumes no token
+      // and no slot; after the size ceiling, because that one never connects
+      // and its answer is permanent, and there is nothing to wait for.
+      const int backoffMinutes = Configuration::Instance()->GetOutboundBackoffMinutes();
+      const int backoffMaxMinutes = Configuration::Instance()->GetOutboundBackoffMaxMinutes();
+      BackoffProbe probe;
+
+      if (backoffMinutes > 0)
+      {
+         DestinationBackoff::Entry entry;
+         int deferMinutes = 0;
+         const time_t now = time(nullptr);
+
+         const DestinationBackoff::Verdict verdict = DestinationBackoff::Instance()->Ask(target, now, entry, deferMinutes);
+
+         if (verdict == DestinationBackoff::Wait)
+         {
+            const String since = DestinationBackoff::FormatTime(entry.since);
+            const String nextAttempt = DestinationBackoff::FormatTime(now + (time_t) deferMinutes * 60);
+
+            LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Delivery to " + target + " deferred: the destination asked this server to slow down at " + since + " (" + entry.reply + "); next attempt after " + nextAttempt + ".");
+
+            String errorMessage;
+            errorMessage.Format(_T("   Error Type: SMTP\r\n   Error Description: Delivery deferred: the destination %s asked this server to slow down at %s (%s). Next attempt after %s.\r\n\r\n"),
+               target.c_str(), since.c_str(), entry.reply.c_str(), nextAttempt.c_str());
+
+            DeferBatchWithoutCounting_(vecRecipients, deferMinutes, errorMessage);
+            return;
+         }
+
+         if (verdict == DestinationBackoff::Probe)
+         {
+            probe.Begin(target);
+            LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": The back-off window for " + target + " has passed; this delivery probes it.");
+         }
+      }
+
       // How many messages a minute this server will push at the remote. Its own
       // bucket, keyed by the policy rather than by the domain, so that one
       // pattern covering several domains is one ceiling - which is what an
@@ -265,17 +343,21 @@ namespace HM
                policyName.c_str(), (int) policy->GetMaxMessagesPerMinute());
 
             // RFC 3463 X.4.5 "Mail system congestion", as the per-destination
-            // rate limit above uses: the congestion is this server's own
+            // rate limit below uses: the congestion is this server's own
             // deliberate shaping, and "too much mail for this route right now,
-            // try later" is exactly what X.4.5 carries.
-            HandleExternalDeliveryFailure_(vecRecipients, false, errorMessage, _T("4.4.5"));
+            // try later" is exactly what X.4.5 carries. One minute, which is
+            // the window; not counted, because nothing was attempted.
+            DeferBatchWithoutCounting_(vecRecipients, 1, errorMessage);
             return;
          }
       }
 
       // How many sessions this server will hold open to the remote at once. The
       // slot lives to the end of this function, which is the end of the last
-      // connection attempt for this batch; every return below releases it.
+      // connection attempt for this batch; every return below releases it. A
+      // policy's ceiling wins when there is one - an administrator who wrote it
+      // keeps it - and the server-wide MaxOutboundConnectionsPerDestination
+      // covers every destination no policy names.
       RemoteDomainThrottle::Slot connectionSlot;
 
       if (policy && policy->GetMaxConnections() > 0)
@@ -290,7 +372,56 @@ namespace HM
             errorMessage.Format(_T("   Error Type: SMTP\r\n   Error Description: Delivery deferred by the remote domain policy for %s, which allows %d simultaneous connection(s) to this destination.\r\n\r\n"),
                policyName.c_str(), (int) policy->GetMaxConnections());
 
-            HandleExternalDeliveryFailure_(vecRecipients, false, errorMessage, _T("4.4.5"));
+            DeferBatchWithoutCounting_(vecRecipients, 1, errorMessage);
+            return;
+         }
+      }
+      else
+      {
+         const int maxPerDestination = Configuration::Instance()->GetMaxOutboundConnectionsPerDestination();
+
+         if (maxPerDestination > 0)
+         {
+            RemoteDomainThrottle::Instance()->Acquire(connectionSlot, _T("destination:") + target, maxPerDestination);
+
+            if (!connectionSlot.Acquired())
+            {
+               LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Delivery to " + target + " deferred. This server allows " + StringParser::IntToString(maxPerDestination) + " simultaneous connection(s) to one destination, and they are all in use.");
+
+               String errorMessage;
+               errorMessage.Format(_T("   Error Type: SMTP\r\n   Error Description: Delivery deferred: this server allows %d simultaneous connection(s) to %s, and they are all in use.\r\n\r\n"),
+                  maxPerDestination, target.c_str());
+
+               DeferBatchWithoutCounting_(vecRecipients, 1, errorMessage);
+               return;
+            }
+         }
+      }
+
+      // How many deliveries one tenant may have in flight at once, so that one
+      // hosted domain - or all the mail relayed for outsiders together - cannot
+      // hold every delivery thread. A share of connections, bounded by the
+      // delivery threads; the per-account sending limit is the volume control.
+      // Released with the destination slot, at the end of this function.
+      RemoteDomainThrottle::Slot tenantSlot;
+
+      const int maxPerTenant = Configuration::Instance()->GetMaxOutboundConnectionsPerTenant();
+
+      if (maxPerTenant > 0)
+      {
+         const String tenant = SenderTenant_();
+
+         RemoteDomainThrottle::Instance()->Acquire(tenantSlot, _T("tenant:") + tenant, maxPerTenant);
+
+         if (!tenantSlot.Acquired())
+         {
+            LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Delivery to " + target + " deferred. The tenant " + tenant + " may have " + StringParser::IntToString(maxPerTenant) + " deliver(y/ies) in flight at once, and they are all in use.");
+
+            String errorMessage;
+            errorMessage.Format(_T("   Error Type: SMTP\r\n   Error Description: Delivery deferred: the sending domain %s may have %d deliver(y/ies) in flight at once on this server, and they are all in use.\r\n\r\n"),
+               tenant.c_str(), maxPerTenant);
+
+            DeferBatchWithoutCounting_(vecRecipients, 1, errorMessage);
             return;
          }
       }
@@ -309,8 +440,9 @@ namespace HM
             // RFC 3463 X.4.5 "Mail system congestion". The congestion is this
             // server's own deliberate shaping rather than an overload, but the
             // meaning a sender needs - too much mail for this route right now,
-            // try later - is exactly what X.4.5 carries.
-            HandleExternalDeliveryFailure_(vecRecipients, false, errorMessage, _T("4.4.5"));
+            // try later - is exactly what X.4.5 carries. One minute, the
+            // window's length; not counted, because nothing was attempted.
+            DeferBatchWithoutCounting_(vecRecipients, 1, errorMessage);
             return;
          }
       }
@@ -591,6 +723,33 @@ namespace HM
             DeliverToSingleServer_(remainingRecipients, serverInfo);
          }
 
+         // What the host said, read back: a reply that asks this server to
+         // slow down opens the destination's back-off window, or - when this
+         // delivery was the probe - doubles it. Only a reply a remote really
+         // gave counts; a refused connection, a timeout and this server's own
+         // reasons for not delivering leave the remote reply empty.
+         if (backoffMinutes > 0)
+         {
+            String slowDownReply, slowDownHost;
+
+            if (FindSlowDownReply_(remainingRecipients, slowDownReply, slowDownHost))
+            {
+               if (slowDownHost.IsEmpty())
+                  slowDownHost = hostAndIp.GetHostName();
+
+               DestinationBackoff::Entry entry;
+               const bool changed = DestinationBackoff::Instance()->ReportSlowDown(target, probe.IsActive(), slowDownReply, slowDownHost,
+                  backoffMinutes, backoffMaxMinutes, time(nullptr), entry);
+
+               probe.SlowedDown();
+
+               if (changed)
+               {
+                  LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": " + target + " asked this server to slow down (" + entry.reply + "). Deliveries to it are held for " + StringParser::IntToString(entry.window_minutes) + " minute(s), until " + DestinationBackoff::FormatTime(entry.until) + ".");
+               }
+            }
+         }
+
          bool try_next_server = RecipientWithNonFatalDeliveryErrorExists_(vecRecipients);
 
          if (!try_next_server)
@@ -764,7 +923,87 @@ namespace HM
          }
 
          iterRecipient++;
-      } 
+      }
+   }
+
+   void
+   ExternalDelivery::DeferBatchWithoutCounting_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, int minutes, String &sErrorString)
+   {
+      // RFC 3463 X.4.5 "Mail system congestion": too much mail for this route
+      // right now, try later - which is what every shaping deferral means.
+      HandleExternalDeliveryFailure_(vecRecipients, false, sErrorString, _T("4.4.5"));
+
+      for (std::shared_ptr<MessageRecipient> recipient : vecRecipients)
+      {
+         if (recipient->GetDeliveryResult() == MessageRecipient::ResultNonFatalError)
+            shaping_deferred_.insert(recipient->GetAddress());
+      }
+
+      if (minutes < 1)
+         minutes = 1;
+
+      if (minutes > shaping_deferral_minutes_)
+         shaping_deferral_minutes_ = minutes;
+   }
+
+   bool
+   ExternalDelivery::EveryFailureIsShaping_(const std::map<String,DeliveryFailure> &mapFailedDueToNonFatalError) const
+   {
+      if (shaping_deferred_.empty() || mapFailedDueToNonFatalError.empty())
+         return false;
+
+      for (const auto &failed : mapFailedDueToNonFatalError)
+      {
+         if (shaping_deferred_.find(failed.first) == shaping_deferred_.end())
+            return false;
+      }
+
+      return true;
+   }
+
+   String
+   ExternalDelivery::SenderTenant_() const
+   {
+      const String sender = original_message_->GetFromAddress();
+
+      std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
+      String domain = StringParser::ExtractDomain(aliases ? aliases->ApplyAliasesOnAddress(sender) : sender);
+      domain.ToLower();
+
+      // Not hosted here - relayed for an IP range or a route, forwarded from
+      // outside, or the null sender - is the one tenant every outsider shares.
+      if (domain.IsEmpty() || !CacheContainer::Instance()->GetDomain(domain))
+         return _T("(external)");
+
+      return domain;
+   }
+
+   bool
+   ExternalDelivery::FindSlowDownReply_(const std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, String &reply, String &host)
+   {
+      for (std::shared_ptr<MessageRecipient> recipient : vecRecipients)
+      {
+         if (recipient->GetDeliveryResult() != MessageRecipient::ResultNonFatalError)
+            continue;
+
+         const String remoteReply = recipient->GetRemoteSmtpReply();
+         if (remoteReply.IsEmpty())
+            continue;
+
+         // The three-digit code the reply opens with; the enhanced status is
+         // the one the client recorded from the same reply (DeliveryFailure's
+         // parsing), or the class's undefined code when the remote sent none.
+         const int replyCode = _ttoi(remoteReply.Left(3).c_str());
+
+         if (DestinationBackoff::IsSlowDownReply(replyCode, recipient->GetEnhancedStatusCode(), remoteReply))
+         {
+            reply = remoteReply;
+            host = recipient->GetRemoteMta();
+            return true;
+         }
+      }
+
+      return false;
    }
 
    void
@@ -1124,6 +1363,25 @@ namespace HM
          PersistentMessage::UnlockObject(original_message_);
 
          LOG_APPLICATION("SMTPDeliverer - Route Message: HOLD for later delivery..");
+         return true; // Do not delete e-mail now
+      }
+
+      // Every failure of this pass was a deferral this server chose - a
+      // back-off window, a connection ceiling, a per-minute rate - and nothing
+      // was offered to anybody. The next try is the deferral's own length, the
+      // tries counter is untouched, and neither the quick-retry schedule nor
+      // the randomness applies: the minutes are the window's. A pass in which
+      // any recipient failed at a remote takes the counted path below, because
+      // a remote failure is what the retry budget is for.
+      if (EveryFailureIsShaping_(mapFailedDueToNonFatalError))
+      {
+         const long shapingMinutes = shaping_deferral_minutes_ > 0 ? shaping_deferral_minutes_ : 1;
+
+         LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Delivery deferred by this server's own shaping, not by a remote server. Scheduling it for later delivery in " + StringParser::IntToString((int) shapingMinutes) + " minute(s); the attempt is not counted against the retry limit.");
+         PersistentMessage::SetNextTryTime(original_message_->GetID(), false, shapingMinutes);
+
+         PersistentMessage::UnlockObject(original_message_);
+
          return true; // Do not delete e-mail now
       }
 

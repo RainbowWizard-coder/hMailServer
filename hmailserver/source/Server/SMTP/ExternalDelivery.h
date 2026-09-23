@@ -6,6 +6,8 @@
 
 #include "DeliveryFailure.h"
 
+#include <set>
+
 namespace HM
 {
    class Message;
@@ -37,6 +39,26 @@ namespace HM
       void HandleExternalDeliveryFailure_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, bool bIsFatal, String &sErrorString, const String &enhancedStatusCode);
       void HandleNoRecipientServers_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, bool bDNSQueryOK, bool isSpecificRelayServer);
 
+      // A deferral this server chose - a back-off window, a connection
+      // ceiling, a per-minute rate - rather than one a remote inflicted. The
+      // recipients are marked non-fatal with 4.4.5 and the reason, exactly as
+      // a remote deferral marks them, and the pass remembers them so that
+      // RescheduleDelivery_ can set the next try WITHOUT counting an attempt:
+      // nothing was attempted, and a retry budget spent on this server's own
+      // waiting is how a message is bounced that was never offered to anybody.
+      void DeferBatchWithoutCounting_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, int minutes, String &sErrorString);
+      bool EveryFailureIsShaping_(const std::map<String,DeliveryFailure> &mapFailedDueToNonFatalError) const;
+
+      // The tenant of this message for the per-tenant connection share: the
+      // hosted domain of the envelope sender (an alias domain resolved to its
+      // domain), or "(external)" for mail this server relays for somebody else.
+      String SenderTenant_() const;
+
+      // Whether any recipient of the batch was answered, by a remote, with a
+      // reply that asks this server to slow down (SMTP/DestinationBackoff.h).
+      // Fills the reply and the host that gave it.
+      static bool FindSlowDownReply_(const std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, String &reply, String &host);
+
       // The pending failures are carried as DeliveryFailure rather than as the
       // address-to-prose map this used to be, so that the enhanced status code,
       // the remote server's reply and the host it came from survive the retry
@@ -56,6 +78,11 @@ namespace HM
       int quick_retries_;      
       int quick_retries_Minutes;      
       int queue_randomness_minutes_;
-      int mxtries_factor_; 
+      int mxtries_factor_;
+
+      // The recipients deferred by this server's own shaping in this pass, and
+      // the longest of those deferrals in minutes. See DeferBatchWithoutCounting_.
+      std::set<String> shaping_deferred_;
+      int shaping_deferral_minutes_;
    };
 }
