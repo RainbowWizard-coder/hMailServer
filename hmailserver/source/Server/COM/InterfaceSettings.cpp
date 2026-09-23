@@ -5436,6 +5436,9 @@ STDMETHODIMP InterfaceSettings::put_OutboundBackoffMinutes(long newVal)
       if (newVal < 0 || newVal > 10080)
          return COMError::GenerateError("OutboundBackoffMinutes must be between 0 and 10080.");
 
+      if (newVal > config_->GetOutboundBackoffMaxMinutes())
+         return COMError::GenerateError("OutboundBackoffMinutes must not be above OutboundBackoffMaxMinutes.");
+
       config_->SetOutboundBackoffMinutes((int) newVal);
 
       return S_OK;

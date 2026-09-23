@@ -231,7 +231,7 @@
   "Connection problem": "Problém s připojením",
   "Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143.": "Zabezpečení připojení a port patří k sobě: SSL/TLS na 995 (POP3) nebo 993 (IMAP), STARTTLS na 110 nebo 143.",
   "Connections": "Připojení",
-  "Connections in use": "Používaná spojení",
+  "Connections in use when the page was drawn": "Používaná spojení v okamžiku vykreslení stránky",
   "Consulted for the next message.": "Použije se u další zprávy.",
   "Copied to clipboard": "Zkopírováno do schránky",
   "Copy": "Kopírovat",

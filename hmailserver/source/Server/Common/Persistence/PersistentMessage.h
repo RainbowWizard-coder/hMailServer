@@ -59,6 +59,12 @@ namespace HM
       static bool ReadObject(std::shared_ptr<Message> pMessage, const SQLCommand &command);
 
       static bool SetNextTryTime(__int64 iMessageID, bool bUpdateNoOfTries, long lNoOfMinutes);
+
+      // The reschedule of a pass in which this server deferred the message
+      // itself (SMTP/DestinationBackoff.h): the next try without a try counted,
+      // and Message::FlagFirstPassDone set in the same statement, so that the
+      // steps gated on "first pass" are not repeated on the next one.
+      static bool SetNextTryTimeUncounted(__int64 iMessageID, long lNoOfMinutes);
       static void EnsureFileExistance(std::shared_ptr<const Account> account, std::shared_ptr<Message> pMessage);
       
       static bool MoveFileToPublicFolder(const String &sourceLocation, std::shared_ptr<Message> pMessage);

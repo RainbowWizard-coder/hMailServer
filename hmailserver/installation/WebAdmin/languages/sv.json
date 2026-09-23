@@ -231,7 +231,7 @@
   "Connection problem": "Anslutningsproblem",
   "Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143.": "Anslutningssäkerhet och port hör ihop: SSL/TLS på 995 (POP3) eller 993 (IMAP), STARTTLS på 110 eller 143.",
   "Connections": "Anslutningar",
-  "Connections in use": "Anslutningar i bruk",
+  "Connections in use when the page was drawn": "Anslutningar i bruk när sidan ritades",
   "Consulted for the next message.": "Används för nästa meddelande.",
   "Copied to clipboard": "Kopierat till urklipp",
   "Copy": "Kopiera",

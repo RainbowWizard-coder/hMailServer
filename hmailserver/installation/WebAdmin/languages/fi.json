@@ -231,7 +231,7 @@
   "Connection problem": "Yhteysongelma",
   "Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143.": "Yhteyden suojaus ja portti kuuluvat yhteen: SSL/TLS portissa 995 (POP3) tai 993 (IMAP), STARTTLS portissa 110 tai 143.",
   "Connections": "Yhteydet",
-  "Connections in use": "Käytössä olevat yhteydet",
+  "Connections in use when the page was drawn": "Käytössä olleet yhteydet, kun sivu piirrettiin",
   "Consulted for the next message.": "Käytetään seuraavaan viestiin.",
   "Copied to clipboard": "Kopioitu leikepöydälle",
   "Copy": "Kopioi",

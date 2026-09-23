@@ -231,7 +231,7 @@
   "Connection problem": "Проблема с соединением",
   "Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143.": "Защита соединения и порт идут вместе: SSL/TLS на 995 (POP3) или 993 (IMAP), STARTTLS на 110 или 143.",
   "Connections": "Соединения",
-  "Connections in use": "Используемые соединения",
+  "Connections in use when the page was drawn": "Используемые соединения на момент отрисовки страницы",
   "Consulted for the next message.": "Будет учтено для следующего сообщения.",
   "Copied to clipboard": "Скопировано в буфер обмена",
   "Copy": "Копировать",

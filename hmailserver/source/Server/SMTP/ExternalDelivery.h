@@ -49,6 +49,15 @@ namespace HM
       void DeferBatchWithoutCounting_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, int minutes, String &sErrorString);
       bool EveryFailureIsShaping_(const std::map<String,DeliveryFailure> &mapFailedDueToNonFatalError) const;
 
+      // How long a deferral by a rate or a connection ceiling waits: one to
+      // five minutes by the message's id, so that a backlog held behind one
+      // ceiling does not come back as one pass per message every minute.
+      int SpreadMinutes_() const;
+
+      // Seconds since the message was accepted, from the creation time its row
+      // carries; -1 when that cannot be read.
+      long SecondsSinceCreation_() const;
+
       // The tenant of this message for the per-tenant connection share: the
       // hosted domain of the envelope sender (an alias domain resolved to its
       // domain), or "(external)" for mail this server relays for somebody else.

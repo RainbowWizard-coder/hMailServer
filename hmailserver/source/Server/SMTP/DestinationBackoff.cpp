@@ -16,21 +16,48 @@ namespace HM
    namespace
    {
       // RFC 3463 codes a remote uses to say it is deferring this sender for
-      // now. 4.4.5 is the code this server's own shaping uses, so a peer that
-      // shapes the same way is read the same way.
+      // now: the security/policy subject's deferrals (4.7.0, 4.7.28, 4.7.500,
+      // 4.7.650, 4.7.652) and "system not accepting network messages".
       const TCHAR *SlowDownStatuses[] =
       {
-         _T("4.7.0"), _T("4.7.28"), _T("4.7.500"), _T("4.7.650"), _T("4.3.2"), _T("4.4.5"), nullptr
+         _T("4.7.0"), _T("4.7.28"), _T("4.7.500"), _T("4.7.650"), _T("4.7.652"), _T("4.3.2"), nullptr
       };
 
-      // Phrases in the lower-cased text of a 4xx. The table is fixed; see the
-      // header for why it is not editable. It is documented in
-      // docs/OutboundShaping.md.
+      // Codes that are never the destination's word, whatever the text, and
+      // win over it: greylisting and policy refusals (4.7.1), one mailbox
+      // (4.2.x), too many recipients for one message (4.5.3, which this
+      // server's batching of a hundred can meet on its own), and the network
+      // subject (4.4.x - a 421 4.4.2 is the remote's idle timeout on a slow
+      // DATA, and it is this message that is slow, not the destination busy).
+      const TCHAR *ExcludedStatuses[] =
+      {
+         _T("4.7.1"), _T("4.5.3"), nullptr
+      };
+
+      const TCHAR *ExcludedStatusPrefixes[] =
+      {
+         _T("4.2."), _T("4.4."), nullptr
+      };
+
+      // Phrases in the lower-cased text of a 4xx, in English - a remote that
+      // says the same thing in another language is read by its codes alone.
+      // The table is fixed; see the header for why it is not editable. It is
+      // documented in docs/OutboundShaping.md. "too many" alone matched a
+      // per-message recipient limit, so it is "too many messages" and "too
+      // many connections" now.
       const TCHAR *SlowDownPhrases[] =
       {
-         _T("rate limit"), _T("rate-limit"), _T("ratelimit"), _T("too many"), _T("too much"),
-         _T("unusual rate"), _T("unexpected volume"), _T("temporarily deferred"), _T("temporarily rate"),
+         _T("rate limit"), _T("rate-limit"), _T("ratelimit"), _T("too many messages"), _T("too many connections"),
+         _T("too much"), _T("unusual rate"), _T("unexpected volume"), _T("temporarily deferred"), _T("temporarily rate"),
          _T("throttl"), _T("try again later"), _T("server busy"), _T("back off"), _T("slow down"), nullptr
+      };
+
+      // A word in the text that means the reply is about this message's first
+      // contact, not the destination's load - a greylister that sends no
+      // enhanced code says "try again later" too.
+      const TCHAR *ExcludedPhrases[] =
+      {
+         _T("greylist"), _T("graylist"), nullptr
       };
    }
 
@@ -47,29 +74,43 @@ namespace HM
    bool
    DestinationBackoff::IsSlowDownReply(int replyCode, const String &enhancedStatus, const String &text)
    {
-      // 421: the service is closing the transmission channel. Whatever the
-      // words, the remote is not taking mail from this session now.
-      if (replyCode == 421)
-         return true;
-
       // Only a transient reply can be a request to wait. A 5xx is a refusal.
       if (replyCode < 400 || replyCode > 499)
          return false;
 
-      // Not a signal, whatever the text: 4.7.1 (greylisting and policy
-      // refusals answer it, and it is about this message, not the
-      // destination) and 4.2.x (one mailbox).
-      if (enhancedStatus == _T("4.7.1") || enhancedStatus.StartsWith(_T("4.2.")))
-         return false;
+      // The exclusions first, because they win over everything below - a
+      // 421 included: "421 4.4.2 timeout exceeded" is about this session.
+      for (int i = 0; ExcludedStatuses[i] != nullptr; i++)
+      {
+         if (enhancedStatus == ExcludedStatuses[i])
+            return false;
+      }
+
+      for (int i = 0; ExcludedStatusPrefixes[i] != nullptr; i++)
+      {
+         if (enhancedStatus.StartsWith(ExcludedStatusPrefixes[i]))
+            return false;
+      }
+
+      String lower = text;
+      lower.ToLower();
+
+      for (int i = 0; ExcludedPhrases[i] != nullptr; i++)
+      {
+         if (lower.Find(ExcludedPhrases[i]) >= 0)
+            return false;
+      }
+
+      // 421: the service is closing the transmission channel. Whatever the
+      // words, the remote is not taking mail from this session now.
+      if (replyCode == 421)
+         return true;
 
       for (int i = 0; SlowDownStatuses[i] != nullptr; i++)
       {
          if (enhancedStatus == SlowDownStatuses[i])
             return true;
       }
-
-      String lower = text;
-      lower.ToLower();
 
       for (int i = 0; SlowDownPhrases[i] != nullptr; i++)
       {
@@ -157,10 +198,14 @@ namespace HM
 
       Entry &found = existing->second;
 
-      if (!wasProbe)
+      if (!wasProbe || !found.probing)
       {
          // A delivery that was already talking to the destination when the
-         // window opened. The window it opened stands as it is.
+         // window opened, or the probe reporting a second time - the delivery
+         // client keeps a recipient's first non-fatal reply through every later
+         // host's non-fatal outcome, so the hook that runs after each host
+         // finds the same reply again. The probe's first report cleared the
+         // flag; that is the guard. The window stands as it is.
          entry = found;
          return false;
       }

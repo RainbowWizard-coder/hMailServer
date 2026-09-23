@@ -38,11 +38,12 @@ namespace HM
       {
          { 421, _T("4.7.0"),   _T("421 4.7.0 [TSS04] Messages temporarily deferred due to unexpected volume") },
          { 451, _T("4.7.650"), _T("451 4.7.650 The mail server has been temporarily rate limited") },
+         { 451, _T("4.7.652"), _T("451 4.7.652 The mail server has exceeded the maximum number of connections") },
          { 450, _T("4.7.28"),  _T("450 4.7.28 Our system has detected an unusual rate of unsolicited mail") },
          { 421, _T("4.0.0"),   _T("421 Service not available, closing transmission channel") },
          { 452, _T("4.3.2"),   _T("452 4.3.2 System not accepting network messages") },
-         { 451, _T("4.4.5"),   _T("451 4.4.5 Mail system congestion") },
          { 451, _T("4.0.0"),   _T("451 Too many messages from your address") },
+         { 451, _T("4.0.0"),   _T("451 Too many connections from your host") },
          { 450, _T("4.0.0"),   _T("450 Requested action aborted: try again later") },
          { 451, _T("4.0.0"),   _T("451 Server busy, please slow down") },
          { 451, _T("4.7.500"), _T("451 4.7.500 Server busy. Please try again later") },
@@ -54,9 +55,14 @@ namespace HM
       {
          { 550, _T("5.1.1"),   _T("550 5.1.1 User unknown") },
          { 451, _T("4.7.1"),   _T("451 4.7.1 Greylisted, please try again later") },
-         { 451, _T("4.7.1"),   _T("451 4.7.1 Too many recipients for a new sender") },
+         { 451, _T("4.7.1"),   _T("451 4.7.1 Too many messages for a new sender") },
+         { 450, _T("4.0.0"),   _T("450 Greylisted, please try again later") },
          { 450, _T("4.2.1"),   _T("450 4.2.1 Mailbox busy") },
          { 452, _T("4.2.2"),   _T("452 4.2.2 Mailbox full, too many messages") },
+         { 452, _T("4.5.3"),   _T("452 4.5.3 Too many recipients") },
+         { 452, _T("4.0.0"),   _T("452 Too many recipients") },
+         { 421, _T("4.4.2"),   _T("421 4.4.2 Connection timeout exceeded") },
+         { 451, _T("4.4.5"),   _T("451 4.4.5 Mail system congestion") },
          { 250, _T(""),        _T("250 OK") },
          { 554, _T("5.7.1"),   _T("554 5.7.1 Rate limit exceeded, you are blocked") },
          { 552, _T("5.2.2"),   _T("552 Too many messages in the mailbox") },
@@ -112,6 +118,13 @@ namespace HM
       // And case does not matter in the text.
       Expect(DestinationBackoff::IsSlowDownReply(451, _T("4.0.0"), _T("451 RATE LIMIT EXCEEDED")),
          "The phrase table is case-sensitive.");
+
+      // The word greylist wins over the phrase table, and a 421 that carries
+      // the network subject is the session's timeout, not the destination.
+      Expect(!DestinationBackoff::IsSlowDownReply(451, _T("4.0.0"), _T("451 Greylisting in effect, rate limit reached, try again later")),
+         "A reply that says it is greylisting was read as a slow-down because of its other words.");
+      Expect(!DestinationBackoff::IsSlowDownReply(421, _T("4.4.2"), _T("421 4.4.2 Timeout exceeded, slow down")),
+         "A 421 4.4.x was read as a slow-down.");
    }
 
    void
@@ -170,6 +183,13 @@ namespace HM
          "The doubled window does not carry the probe's reply.");
       Expect(backoff->Ask(_T("slow.example"), t0 + 131, entry, deferMinutes) == DestinationBackoff::Wait && deferMinutes == 4,
          "The doubled window did not hold the next delivery.");
+
+      // The probe reporting a second time - the same reply found again after
+      // the next MX host - changes nothing: one probe, one doubling.
+      Expect(!backoff->ReportSlowDown(_T("slow.example"), true, _T("451 4.7.650 rate limited"), _T("mx3.slow.example"), 2, 60, t0 + 135, entry),
+         "A second report from the same probe doubled the window again.");
+      Expect(entry.window_minutes == 4 && entry.until == t0 + 130 + 240 && entry.host == _T("mx2.slow.example"),
+         "The window was altered by the probe's second report.");
 
       // ProbeEnded on an entry whose probe was answered does nothing.
       backoff->ProbeEnded(_T("slow.example"));

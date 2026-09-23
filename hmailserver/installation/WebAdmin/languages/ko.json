@@ -231,7 +231,7 @@
   "Connection problem": "연결 문제",
   "Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143.": "연결 보안과 포트는 짝을 이룹니다. SSL/TLS는 995(POP3) 또는 993(IMAP), STARTTLS는 110 또는 143입니다.",
   "Connections": "연결",
-  "Connections in use": "사용 중인 연결",
+  "Connections in use when the page was drawn": "페이지를 그릴 때 사용 중이던 연결",
   "Consulted for the next message.": "다음 메시지부터 참조됩니다.",
   "Copied to clipboard": "클립보드에 복사했습니다",
   "Copy": "복사",

@@ -528,15 +528,20 @@ namespace HM
          return false;
       }
 
-      // DKIM-sign the message before it is split between local and external delivery paths.
-      if (pMessage->GetNoOfRetries() == 0)
+      // DKIM-sign the message before it is split between local and external
+      // delivery paths. On the first pass only: the counter says so, and so
+      // does the mark a shaping deferral leaves, because such a deferral keeps
+      // the counter at nought (Message::FlagFirstPassDone) and DKIM's own
+      // "already signed" check does not cover the ARC seal that follows it.
+      if (pMessage->GetNoOfRetries() == 0 && !pMessage->GetFirstPassDone())
       {
          DKIMSigner signer;
          signer.Sign(pMessage);
       }
 
-      // Run mirroring
-      if (pMessage->GetNoOfRetries() == 0)
+      // Run mirroring. The same guard: MirrorMessage has no "already mirrored"
+      // check, and one copy per held pass was what the counter alone allowed.
+      if (pMessage->GetNoOfRetries() == 0 && !pMessage->GetFirstPassDone())
       {
          MirrorMessage mirrorer(pMessage);
          mirrorer.Send();

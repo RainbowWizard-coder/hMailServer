@@ -90,8 +90,8 @@ namespace RegressionTests.SMTP
 
       private void ResetSettings_()
       {
-         // The ceiling before the base, so that neither write is refused by the
-         // other's current value.
+         // The ceiling first: each write is refused when it would cross the
+         // other, and no test here leaves the base above sixty.
          _settings.OutboundBackoffMaxMinutes = 60;
          _settings.OutboundBackoffMinutes = 2;
          _settings.MaxOutboundConnectionsPerDestination = 0;
@@ -116,14 +116,14 @@ namespace RegressionTests.SMTP
          return policy;
       }
 
-      private Route AddRoute_(string domainName, string host, int port, int tries, bool treatAsLocal = false)
+      private Route AddRoute_(string domainName, string host, int port, int tries, bool treatAsLocal = false, int minutesBetween = 5)
       {
          Route route = _settings.Routes.Add();
          route.DomainName = domainName;
          route.TargetSMTPHost = host;
          route.TargetSMTPPort = port;
          route.NumberOfTries = tries;
-         route.MinutesBetweenTry = 5;
+         route.MinutesBetweenTry = minutesBetween;
          route.TreatRecipientAsLocalDomain = treatAsLocal;
          route.TreatSenderAsLocalDomain = treatAsLocal;
          route.ConnectionSecurity = eConnectionSecurity.eCSNone;
@@ -199,6 +199,22 @@ namespace RegressionTests.SMTP
          }
 
          return rows;
+      }
+
+      /// <summary>The next try the queue lists for the one message at a domain.</summary>
+      private string NextTry_(string domain)
+      {
+         (int status, string body) answer = Admin("GET", "/api/v1/queue", null);
+         Assert.AreEqual(200, answer.status, answer.body);
+
+         foreach (JsonElement message in JsonDocument.Parse(answer.body).RootElement.GetProperty("messages").EnumerateArray())
+         {
+            if ((message.GetProperty("recipients").GetString() ?? "").IndexOf("@" + domain, StringComparison.OrdinalIgnoreCase) >= 0)
+               return message.GetProperty("next_try").GetString();
+         }
+
+         Assert.Fail("No queued message for " + domain + ".");
+         return "";
       }
 
       /// <summary>The one queued message with no attempt counted, for the retry.</summary>
@@ -367,7 +383,11 @@ namespace RegressionTests.SMTP
 
             SmtpClientSimulator.StaticSend(_account.Address, "test@" + FirstDomain, "Greylisted", "4.7.1 is this message's, not the destination's");
             Assert.IsTrue(WaitFor_(() => remote.NumberOfConnectedClients >= 1, 20), "The greylisted message was not offered.");
-            Assert.IsTrue(LogHandler.DefaultLogContains("Scheduling it for later delivery"), "The greylisted message was not rescheduled on the ordinary path.");
+
+            // The counted path's own sentence, and the try it counted: the
+            // uncounted path's line also says "Scheduling it for later delivery".
+            Assert.IsTrue(LogHandler.DefaultLogContains("Message could not be delivered. Scheduling it for later delivery"), "The greylisted message was not rescheduled on the counted path.");
+            Assert.IsTrue(WaitFor_(() => Queued_(FirstDomain).Exists(r => r.tries == 1), 20), "The greylisting reply did not count an attempt.");
 
             SmtpClientSimulator.StaticSend(_account.Address, "busy@" + FirstDomain, "Busy mailbox", "4.2.1 is one mailbox");
             Assert.IsTrue(WaitFor_(() => remote.NumberOfConnectedClients >= 2, 20), "The busy-mailbox message was not offered: the greylisting reply opened a window.");
@@ -441,7 +461,7 @@ namespace RegressionTests.SMTP
       // ---- not counted --------------------------------------------------------
 
       [Test]
-      [Description("A deferral by MaxOutboundPerDestinationPerMinute at one try is not a bounce: no report in the sender's mailbox, the message queued with zero tries, and it arrives within the minute.")]
+      [Description("A deferral by MaxOutboundPerDestinationPerMinute at one try is not a bounce: no report in the sender's mailbox, the message queued with zero tries for one to five minutes, and once the rate's window has drained a retry delivers it.")]
       public void AShapingDeferralDoesNotSpendTheRetryBudget()
       {
          IniFileSetting.Write("MaxOutboundPerDestinationPerMinute", "1");
@@ -474,19 +494,136 @@ namespace RegressionTests.SMTP
             var pop3 = new Pop3ClientSimulator();
             Assert.AreEqual(0, pop3.GetMessageCount(_account.Address, "test"), "A delivery report reached the sender for a message that was never offered.");
 
-            // Within the next minute and a half, on the queue's own schedule; the
-            // wake-ups only make the queue look, they do not move the next try.
-            DateTime deadline = DateTime.UtcNow.AddSeconds(90);
+            // The deferral is one to five minutes, spread by the message's id.
+            TimeSpan wait = ServerTime_(NextTry_(FirstDomain)) - DateTime.Now;
+            Assert.That(wait, Is.GreaterThan(TimeSpan.FromSeconds(45)).And.LessThan(TimeSpan.FromSeconds(320)), "The deferral is not one to five minutes: " + wait);
+
+            // Retried every few seconds: each retry only makes the queue look
+            // again, and while the rate's window has not drained each look is
+            // deferred again, uncounted. Once it has, the message arrives.
+            long held = queued[0].id;
+            DateTime deadline = DateTime.UtcNow.AddSeconds(100);
             while (DateTime.UtcNow < deadline && !remote.MessageData.Contains("Over the rate"))
+            {
+               Admin("POST", "/api/v1/queue/" + held + "/retry", null);
+               Thread.Sleep(5000);
+            }
+
+            remote.WaitForCompletion();
+            StringAssert.Contains("Over the rate", remote.MessageData, "The deferred message did not arrive once the rate's window had drained.");
+            Assert.AreEqual(0, pop3.GetMessageCount(_account.Address, "test"), "A delivery report reached the sender.");
+            Assert.AreEqual(0, Queued_(FirstDomain).Count, "The message is still queued after its delivery.");
+         }
+      }
+
+      [Test]
+      [Description("An uncounted pass does not repeat the first pass's side effects: with a mirror address set and the second message deferred by the rate through several passes, the mirror mailbox holds one copy per message, not one per pass.")]
+      public void AnUncountedPassDoesNotMirrorAgain()
+      {
+         Account mirror = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "mirror-shaping@example.test", "test");
+         _settings.MirrorEMailAddress = mirror.Address;
+         IniFileSetting.Write("MaxOutboundPerDestinationPerMinute", "1");
+         _application.Reinitialize();
+
+         try
+         {
+            int port = TestSetup.GetNextFreePort();
+
+            using (var remote = new SmtpServerSimulator(2, port))
+            {
+               remote.AddRecipientResult(Accepts_("test@" + FirstDomain));
+               remote.AddRecipientResult(Accepts_("test@" + FirstDomain));
+               remote.SecondsToWaitBeforeTerminate = 120;
+               remote.StartListen();
+
+               AddRoute_(FirstDomain, FirstHost, port, 3);
+
+               SmtpClientSimulator.StaticSend(_account.Address, "test@" + FirstDomain, "First", "Within the rate");
+               Assert.IsTrue(WaitFor_(() => remote.MessageData.Contains("Within the rate"), 20), "The first message was not delivered.");
+
+               SmtpClientSimulator.StaticSend(_account.Address, "test@" + FirstDomain, "Second", "Over the rate");
+               Assert.IsTrue(LogHandler.DefaultLogContains("deferred due to the per-destination rate limit"), "The second message was not deferred by the rate.");
+
+               long held = HeldMessageId_(FirstDomain);
+
+               // Several uncounted passes before the rate's window drains: each
+               // retry makes the queue look again, and each look is deferred.
+               for (int pass = 0; pass < 3; pass++)
+               {
+                  Assert.AreEqual(200, Admin("POST", "/api/v1/queue/" + held + "/retry", null).status);
+                  Thread.Sleep(3000);
+               }
+
+               Assert.IsTrue(Queued_(FirstDomain).Exists(r => r.id == held && r.tries == 0), "The held message counted a try, or left the queue, during the uncounted passes.");
+
+               DateTime deadline = DateTime.UtcNow.AddSeconds(100);
+               while (DateTime.UtcNow < deadline && !remote.MessageData.Contains("Over the rate"))
+               {
+                  Admin("POST", "/api/v1/queue/" + held + "/retry", null);
+                  Thread.Sleep(5000);
+               }
+
+               remote.WaitForCompletion();
+               StringAssert.Contains("Over the rate", remote.MessageData, "The deferred message did not arrive once the rate's window had drained.");
+
+               // One mirror copy per message: two, and still two a moment later.
+               var pop3 = new Pop3ClientSimulator();
+               Assert.IsTrue(WaitFor_(() => pop3.GetMessageCount(mirror.Address, "test") >= 2, 20), "The two messages were not mirrored.");
+               Thread.Sleep(5000);
+               Assert.AreEqual(2, pop3.GetMessageCount(mirror.Address, "test"), "An uncounted pass mirrored the held message again.");
+            }
+         }
+         finally
+         {
+            _settings.MirrorEMailAddress = "";
+         }
+      }
+
+      [Test]
+      [Description("A hold is bounded by the retry schedule's span: with a one-minute window, one try a minute apart and a destination that answers 421 to every session, every held message is bounced within the schedule rather than held for as long as the windows keep doubling.")]
+      public void AnUncountedHoldIsBoundedByTheRetrySchedule()
+      {
+         _settings.OutboundBackoffMinutes = 1;
+
+         int port = TestSetup.GetNextFreePort();
+
+         using (var remote = new SmtpServerSimulator(6, port))
+         {
+            remote.ConnectReply = SlowDownAtBanner;
+            for (int session = 0; session < 6; session++)
+               remote.AddRecipientResult(Accepts_("test@" + FirstDomain));
+            remote.StartListen();
+
+            // One try, a minute between tries: the schedule spans one minute.
+            AddRoute_(FirstDomain, FirstHost, port, 1, false, 1);
+
+            SmtpClientSimulator.StaticSend(_account.Address, "test@" + FirstDomain, "First", "Opens the window and is bounced at its one try");
+            Assert.IsTrue(WaitForBackoff_(FirstHost), "The 421 banner did not open a window.");
+
+            var pop3 = new Pop3ClientSimulator();
+            Assert.IsTrue(WaitFor_(() => pop3.GetMessageCount(_account.Address, "test") == 1, 30), "The first message's one try was a 421, so it should have bounced at once.");
+
+            for (int held = 0; held < 3; held++)
+               SmtpClientSimulator.StaticSend(_account.Address, "test@" + FirstDomain, "Held " + held, "Held by the window");
+
+            Assert.IsTrue(WaitFor_(() => Queued_(FirstDomain).FindAll(r => r.tries == 0).Count == 3, 20), "The three messages were not held uncounted.");
+            Assert.AreEqual(1, remote.NumberOfConnectedClients, "A held message was offered while the window was open.");
+
+            // Only one of the three can probe when the window ends; the other
+            // two would wait for a doubled window, and the next, and the next.
+            // The bound is what brings them back: once queued longer than the
+            // schedule's one minute, a shaping deferral is counted, and at one
+            // try that is the bounce.
+            DateTime deadline = DateTime.UtcNow.AddSeconds(170);
+            while (DateTime.UtcNow < deadline && pop3.GetMessageCount(_account.Address, "test") < 4)
             {
                _application.SubmitEMail();
                Thread.Sleep(5000);
             }
 
-            remote.WaitForCompletion();
-            StringAssert.Contains("Over the rate", remote.MessageData, "The deferred message did not arrive within a minute and a half.");
-            Assert.AreEqual(0, pop3.GetMessageCount(_account.Address, "test"), "A delivery report reached the sender.");
-            Assert.AreEqual(0, Queued_(FirstDomain).Count, "The message is still queued after its delivery.");
+            Assert.AreEqual(4, pop3.GetMessageCount(_account.Address, "test"), "The held messages were not all bounced within the schedule's span.");
+            Assert.IsTrue(LogHandler.DefaultLogContains("longer than the 1 minute(s) its retry schedule spans"), "The bound did not say why it counted the deferral.");
+            Assert.AreEqual(0, Queued_(FirstDomain).Count, "A message is still held.");
          }
       }
 
@@ -765,6 +902,14 @@ namespace RegressionTests.SMTP
          Assert.AreEqual(400, belowBase.status, belowBase.body);
          StringAssert.Contains("must not be below outbound_backoff_minutes", belowBase.body);
 
+         // And the mirror image: a base above the ceiling, refused the same
+         // way, with GET answering the ceiling the row holds and no other.
+         (int status, string body) aboveCeiling = Admin("PUT", "/api/v1/settings", "{\"outbound_backoff_minutes\":91}");
+         Assert.AreEqual(400, aboveCeiling.status, aboveCeiling.body);
+         StringAssert.Contains("must not be above outbound_backoff_max_minutes", aboveCeiling.body);
+         Assert.AreEqual(90, JsonDocument.Parse(Admin("GET", "/api/v1/settings", null).body).RootElement.GetProperty("outbound_backoff_max_minutes").GetInt32(),
+            "GET does not answer the stored ceiling.");
+
          (int status, string body) negative = Admin("PUT", "/api/v1/settings", "{\"outbound_backoff_minutes\":-1}");
          Assert.AreEqual(400, negative.status, negative.body);
          StringAssert.Contains("between 0 and 10080", negative.body);
@@ -785,6 +930,8 @@ namespace RegressionTests.SMTP
          // COM refuses the same values with a sentence.
          var ceiling = Assert.Throws<System.Runtime.InteropServices.COMException>(() => _settings.OutboundBackoffMaxMinutes = 2);
          StringAssert.Contains("must not be below OutboundBackoffMinutes", ceiling.Message);
+         var baseAbove = Assert.Throws<System.Runtime.InteropServices.COMException>(() => _settings.OutboundBackoffMinutes = 91);
+         StringAssert.Contains("must not be above OutboundBackoffMaxMinutes", baseAbove.Message);
          var tenant = Assert.Throws<System.Runtime.InteropServices.COMException>(() => _settings.MaxOutboundConnectionsPerTenant = -1);
          StringAssert.Contains("between 0 and 1000", tenant.Message);
          Assert.Throws<System.Runtime.InteropServices.COMException>(() => _settings.OutboundBackoffMinutes = 10081);

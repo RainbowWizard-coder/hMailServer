@@ -332,7 +332,9 @@ namespace HM
       // is what says its sender was told when it was held. Neither guard
       // applies to "not sent": that message is gone, and its sender has not
       // been told anything.
-      if (!notSent && pOriginalMessage->GetNoOfRetries() != 0)
+      // The counter, or the mark a shaping deferral leaves in its place: such
+      // a deferral (SMTP/DestinationBackoff.h) keeps the counter at nought.
+      if (!notSent && (pOriginalMessage->GetNoOfRetries() != 0 || pOriginalMessage->GetFirstPassDone()))
       {
          LOG_DEBUG("RuleApplier::SendPolicyNotice_: not the first delivery attempt, so the sender has been told already.");
          return;

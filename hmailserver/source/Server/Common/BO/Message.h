@@ -49,7 +49,17 @@ namespace HM
          // must know not to hold it again. Only the server sets it: it lives in
          // hm_messages, not in anything a sender writes, so it cannot be forged
          // the way a header could.
-         FlagReleasedFromQuarantine = 512
+         FlagReleasedFromQuarantine = 512,
+
+         // The message has had its first delivery pass. Until outbound shaping
+         // existed, "first pass" and "retry count nought" were the same thing,
+         // and DKIM/ARC signing, the mirror copy and a rule's policy notice were
+         // gated on the counter. A shaping deferral (SMTP/DestinationBackoff.h)
+         // leaves the counter at nought on purpose - nothing was attempted -
+         // so those three need a mark of their own, or every held pass would
+         // mirror, seal and notify again. Set in the same UPDATE that
+         // reschedules an uncounted pass, so a restart cannot lose it.
+         FlagFirstPassDone = 1024
       };
 
       Message(bool generateFileName);
@@ -164,6 +174,17 @@ namespace HM
       void SetNoOfRetries(unsigned short lNewVal) {no_of_retries_ = lNewVal; }
       unsigned short GetNoOfRetries() const { return no_of_retries_;}
 
+
+      // See FlagFirstPassDone. The three "first pass only" steps of the
+      // deliverer ask both this and the retry counter.
+      bool GetFirstPassDone() const { return (flags_ & FlagFirstPassDone) != 0; }
+      void SetFirstPassDone(bool done)
+      {
+         if (done)
+            flags_ |= FlagFirstPassDone;
+         else
+            flags_ &= ~FlagFirstPassDone;
+      }
 
       void SetCreateTime(const String &sCreateTime) {create_time_ = sCreateTime; }
       String GetCreateTime() const {return create_time_; }

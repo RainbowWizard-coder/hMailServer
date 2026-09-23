@@ -231,7 +231,7 @@
   "Connection problem": "Πρόβλημα σύνδεσης",
   "Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143.": "Η ασφάλεια της σύνδεσης και η θύρα πάνε μαζί: SSL/TLS στη 995 (POP3) ή στη 993 (IMAP), STARTTLS στη 110 ή στη 143.",
   "Connections": "Συνδέσεις",
-  "Connections in use": "Συνδέσεις σε χρήση",
+  "Connections in use when the page was drawn": "Συνδέσεις σε χρήση όταν σχεδιάστηκε η σελίδα",
   "Consulted for the next message.": "Λαμβάνεται υπόψη από το επόμενο μήνυμα.",
   "Copied to clipboard": "Αντιγράφηκε στο πρόχειρο",
   "Copy": "Αντιγραφή",

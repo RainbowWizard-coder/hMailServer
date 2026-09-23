@@ -976,6 +976,24 @@ namespace HM
    }
 
    bool
+   PersistentMessage::SetNextTryTimeUncounted(__int64 iMessageID, long lNoOfMinutes)
+   {
+      // As SetNextTryTime without the counter, plus the first-pass mark in the
+      // same statement: the two must land together or a restart between them
+      // would give the message a first pass twice. The bitwise OR is the form
+      // Messages::SetFlagOnMessages already uses across the four backends.
+      String sUpdateSQL = Formatter::Format("update hm_messages set messagenexttrytime = {0} ", SQLStatement::GetCurrentTimestampPlusMinutes(lNoOfMinutes));
+      sUpdateSQL += " , messagetype = 1 , messageflags = messageflags | @FLAGS ";
+      sUpdateSQL += _T("where messageid = @MESSAGEID and (messagetype = 1 or messagetype = 3)");
+
+      SQLCommand command(sUpdateSQL);
+      command.AddParameter("@FLAGS", (int) Message::FlagFirstPassDone);
+      command.AddParameter("@MESSAGEID", iMessageID);
+
+      return Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   bool
    PersistentMessage::MoveFileToPublicFolder(const String &sourceLocation, std::shared_ptr<Message> pMessage)
    {
       String dataDirectory = IniFileSettings::Instance()->GetDataDirectory();

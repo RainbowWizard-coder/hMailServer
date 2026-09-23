@@ -586,11 +586,18 @@ namespace
 
       // Outbound shaping (SMTP/DestinationBackoff.h, docs/OutboundShaping.md).
       { "outbound_backoff_minutes", KindInteger, ReadWrite, EffectNow, nullptr,
-        "How long deliveries to a destination are held after it answers a slow-down reply - a 421, an enhanced code of 4.7.0, 4.7.28, 4.7.500, 4.7.650, 4.3.2 or 4.4.5, or a 4xx whose text says rate limit, too many, try again later and the like: the first window, in minutes. When it ends one delivery probes the destination, and a second slow-down reply doubles the window up to outbound_backoff_max_minutes. A deferral this server chooses is not counted against the message's retries. 0 turns the back-off off. 0 to 10080; 2 by default.",
+        "How long deliveries to a destination are held after it answers a slow-down reply - a 421, an enhanced code of 4.7.0, 4.7.28, 4.7.500, 4.7.650, 4.7.652 or 4.3.2, or a 4xx whose English text says rate limit, too many messages, try again later and the like; never a 4.7.1, a 4.2.x, a 4.5.3 or a 4.4.x, and never a reply that says greylist: the first window, in minutes. When it ends one delivery probes the destination, and a second slow-down reply doubles the window up to outbound_backoff_max_minutes. A deferral this server chooses is not counted against the message's retries until the message has been queued longer than its retry schedule spans. Never above outbound_backoff_max_minutes: to move both past each other, move the ceiling first when raising and this one first when lowering. 0 turns the back-off off. 0 to 10080; 2 by default.",
         ROW_NUMBER(Config()->GetOutboundBackoffMinutes()), ROW_SET(Config()->SetOutboundBackoffMinutes((int) v.number)),
-        [] (const Value &v) { return (v.number < 0 || v.number > 10080) ? String(_T("outbound_backoff_minutes must be between 0 and 10080.")) : String(); } },
+        [] (const Value &v)
+        {
+           if (v.number < 0 || v.number > 10080)
+              return String(_T("outbound_backoff_minutes must be between 0 and 10080."));
+           if (v.number > Config()->GetOutboundBackoffMaxMinutes())
+              return String(_T("outbound_backoff_minutes must not be above outbound_backoff_max_minutes."));
+           return String();
+        } },
       { "outbound_backoff_max_minutes", KindInteger, ReadWrite, EffectNow, nullptr,
-        "The most a back-off window grows to by doubling, in minutes. Not below outbound_backoff_minutes: to raise both, raise this one first. 1 to 10080; 60 by default.",
+        "The most a back-off window grows to by doubling, in minutes. Never below outbound_backoff_minutes, which is never above it: to move both past each other, move this one first when raising and the base first when lowering. 1 to 10080; 60 by default.",
         ROW_NUMBER(Config()->GetOutboundBackoffMaxMinutes()), ROW_SET(Config()->SetOutboundBackoffMaxMinutes((int) v.number)),
         [] (const Value &v)
         {

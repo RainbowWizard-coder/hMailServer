@@ -3833,7 +3833,7 @@ async function renderQueue(){
     <div class="sect"><h2>${t("Slowed destinations")}</h2><div class="card flat">
       <p class="note">${t("A destination that answered a slow-down reply - a 421, a rate-limit code or words to that effect - is not connected to until its window ends; then one delivery probes it, and the same answer doubles the window. Resume clears the window now.")}</p>
       ${slowed||'<div class="empty">'+t("No destination has asked this server to slow down.")+'</div>'}
-      <div class="hint">${t("Connections in use")} — ${t("destinations")}: ${counts(conns.destinations)||"—"}; ${t("tenants")}: ${counts(conns.tenants)||"—"}</div>
+      <div class="hint">${t("Connections in use when the page was drawn")} — ${t("destinations")}: ${counts(conns.destinations)||"—"}; ${t("tenants")}: ${counts(conns.tenants)||"—"}</div>
     </div></div></div>`;
 }
 async function resumeDestination(destination){

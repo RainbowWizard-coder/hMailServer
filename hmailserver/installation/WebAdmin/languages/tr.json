@@ -231,7 +231,7 @@
   "Connection problem": "Bağlantı sorunu",
   "Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143.": "Bağlantı güvenliği ile port birlikte gider: SSL/TLS 995 (POP3) veya 993 (IMAP) üzerinde, STARTTLS 110 veya 143 üzerinde.",
   "Connections": "Bağlantılar",
-  "Connections in use": "Kullanımdaki bağlantılar",
+  "Connections in use when the page was drawn": "Sayfa çizildiği anda kullanımdaki bağlantılar",
   "Consulted for the next message.": "Bir sonraki iletiden itibaren başvurulur.",
   "Copied to clipboard": "Panoya kopyalandı",
   "Copy": "Kopyala",

@@ -115,13 +115,14 @@ Limits
 | Setting | 0 means | Beyond it |
 |---|---|---|
 | Largest message (KB) | no limit of ours | The message is **not attempted**: no connection is opened, and it is bounced at once with `5.3.4`, naming the policy and both sizes. This is the one refusal that is permanent - a message will not be smaller on the next attempt. |
-| Simultaneous connections | unlimited | The delivery is deferred with `4.4.5` for a minute. Delivery threads never wait for a slot, because a thread waiting is a thread not delivering anybody else's mail. The count covers every domain the policy's pattern matches. |
-| Messages a minute | unlimited | Deferred with `4.4.5` for a minute, as the server-wide `MaxOutboundPerDestinationPerMinute` does; the two are independent and both apply. |
+| Simultaneous connections | unlimited | The delivery is deferred with `4.4.5` for one to five minutes. Delivery threads never wait for a slot, because a thread waiting is a thread not delivering anybody else's mail. The count covers every domain the policy's pattern matches. |
+| Messages a minute | unlimited | Deferred with `4.4.5` for one to five minutes, as the server-wide `MaxOutboundPerDestinationPerMinute` does; the two are independent and both apply. |
 
-Both are deferrals this server chose, and since 22 September 2026 neither
-counts as an attempt: the message's next try is one minute on and its tries
-counter is untouched, so a tight ceiling delays mail by a minute and never
-bounces it (before that, a deferral waited for the route's retry interval and
+Both are deferrals this server chose, and since 23 September 2026 neither
+counts as an attempt: the message's next try is one to five minutes on and its
+tries counter is untouched, so a tight ceiling delays mail by minutes and
+bounces it only once it has been queued for longer than its retry schedule
+spans (before that, a deferral waited for the route's retry interval and
 spent one of its retries). The same rule, the server-wide ceiling for domains
 no policy names, the tenant share, and the back-off a destination's own
 slow-down reply opens are in [OutboundShaping.md](OutboundShaping.md); a policy's

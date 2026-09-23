@@ -231,7 +231,7 @@
   "Connection problem": "连接问题",
   "Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143.": "连接的安全方式与端口是配套的：SSL/TLS 用 995（POP3）或 993（IMAP），STARTTLS 用 110 或 143。",
   "Connections": "连接",
-  "Connections in use": "使用中的连接",
+  "Connections in use when the page was drawn": "绘制页面时使用中的连接",
   "Consulted for the next message.": "从下一封邮件起生效。",
   "Copied to clipboard": "已复制到剪贴板",
   "Copy": "复制",

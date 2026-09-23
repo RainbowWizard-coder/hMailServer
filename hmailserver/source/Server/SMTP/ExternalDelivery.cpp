@@ -345,9 +345,9 @@ namespace HM
             // RFC 3463 X.4.5 "Mail system congestion", as the per-destination
             // rate limit below uses: the congestion is this server's own
             // deliberate shaping, and "too much mail for this route right now,
-            // try later" is exactly what X.4.5 carries. One minute, which is
-            // the window; not counted, because nothing was attempted.
-            DeferBatchWithoutCounting_(vecRecipients, 1, errorMessage);
+            // try later" is exactly what X.4.5 carries. One to five minutes,
+            // spread by id; not counted, because nothing was attempted.
+            DeferBatchWithoutCounting_(vecRecipients, SpreadMinutes_(), errorMessage);
             return;
          }
       }
@@ -372,7 +372,7 @@ namespace HM
             errorMessage.Format(_T("   Error Type: SMTP\r\n   Error Description: Delivery deferred by the remote domain policy for %s, which allows %d simultaneous connection(s) to this destination.\r\n\r\n"),
                policyName.c_str(), (int) policy->GetMaxConnections());
 
-            DeferBatchWithoutCounting_(vecRecipients, 1, errorMessage);
+            DeferBatchWithoutCounting_(vecRecipients, SpreadMinutes_(), errorMessage);
             return;
          }
       }
@@ -392,7 +392,7 @@ namespace HM
                errorMessage.Format(_T("   Error Type: SMTP\r\n   Error Description: Delivery deferred: this server allows %d simultaneous connection(s) to %s, and they are all in use.\r\n\r\n"),
                   maxPerDestination, target.c_str());
 
-               DeferBatchWithoutCounting_(vecRecipients, 1, errorMessage);
+               DeferBatchWithoutCounting_(vecRecipients, SpreadMinutes_(), errorMessage);
                return;
             }
          }
@@ -421,7 +421,7 @@ namespace HM
             errorMessage.Format(_T("   Error Type: SMTP\r\n   Error Description: Delivery deferred: the sending domain %s may have %d deliver(y/ies) in flight at once on this server, and they are all in use.\r\n\r\n"),
                tenant.c_str(), maxPerTenant);
 
-            DeferBatchWithoutCounting_(vecRecipients, 1, errorMessage);
+            DeferBatchWithoutCounting_(vecRecipients, SpreadMinutes_(), errorMessage);
             return;
          }
       }
@@ -440,9 +440,9 @@ namespace HM
             // RFC 3463 X.4.5 "Mail system congestion". The congestion is this
             // server's own deliberate shaping rather than an overload, but the
             // meaning a sender needs - too much mail for this route right now,
-            // try later - is exactly what X.4.5 carries. One minute, the
-            // window's length; not counted, because nothing was attempted.
-            DeferBatchWithoutCounting_(vecRecipients, 1, errorMessage);
+            // try later - is exactly what X.4.5 carries. One to five minutes,
+            // spread by id; not counted, because nothing was attempted.
+            DeferBatchWithoutCounting_(vecRecipients, SpreadMinutes_(), errorMessage);
             return;
          }
       }
@@ -961,6 +961,44 @@ namespace HM
       return true;
    }
 
+   int
+   ExternalDelivery::SpreadMinutes_() const
+   {
+      return 1 + (int) (original_message_->GetID() % 5);
+   }
+
+   long
+   ExternalDelivery::SecondsSinceCreation_() const
+   {
+      // "YYYY-MM-DD HH:MM:SS", the local system date the row was written with.
+      // Parsed by hand rather than through the C library's scanners, which
+      // differ between the two platforms this builds on.
+      const String created = original_message_->GetCreateTime();
+
+      if (created.GetLength() < 19)
+         return -1;
+
+      struct tm moment = {};
+      moment.tm_year = _ttoi(created.Mid(0, 4).c_str()) - 1900;
+      moment.tm_mon = _ttoi(created.Mid(5, 2).c_str()) - 1;
+      moment.tm_mday = _ttoi(created.Mid(8, 2).c_str());
+      moment.tm_hour = _ttoi(created.Mid(11, 2).c_str());
+      moment.tm_min = _ttoi(created.Mid(14, 2).c_str());
+      moment.tm_sec = _ttoi(created.Mid(17, 2).c_str());
+      moment.tm_isdst = -1;
+
+      // A year before 2000 is not a creation time this server wrote - the ETRN
+      // hold parks a message at 1901 - and mktime's own failure is -1.
+      if (moment.tm_year < 100)
+         return -1;
+
+      const time_t when = mktime(&moment);
+      if (when == (time_t) -1)
+         return -1;
+
+      return (long) (time(nullptr) - when);
+   }
+
    String
    ExternalDelivery::SenderTenant_() const
    {
@@ -1373,16 +1411,39 @@ namespace HM
       // the randomness applies: the minutes are the window's. A pass in which
       // any recipient failed at a remote takes the counted path below, because
       // a remote failure is what the retry budget is for.
+      //
+      // Bounded, though: a message that has been queued for longer than the
+      // span the counted schedule would have allowed it - (retries + 1) times
+      // the minutes between tries - takes the counted path from then on, so
+      // that a destination which answers "slow down" for good turns into the
+      // bounce it always was, on the schedule's own clock, rather than a hold
+      // for as long as the backlog lasts; this server sends no delayed
+      // delivery report, so nobody would otherwise learn of it.
       if (EveryFailureIsShaping_(mapFailedDueToNonFatalError))
       {
-         const long shapingMinutes = shaping_deferral_minutes_ > 0 ? shaping_deferral_minutes_ : 1;
+         const long spanMinutes = (iMaxNoOfRetries + 1) * lMinutesBewteen;
+         const long ageSeconds = SecondsSinceCreation_();
 
-         LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Delivery deferred by this server's own shaping, not by a remote server. Scheduling it for later delivery in " + StringParser::IntToString((int) shapingMinutes) + " minute(s); the attempt is not counted against the retry limit.");
-         PersistentMessage::SetNextTryTime(original_message_->GetID(), false, shapingMinutes);
+         if (spanMinutes > 0 && ageSeconds > spanMinutes * 60)
+         {
+            LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Deferred by this server's own shaping, but it has been queued for " + StringParser::IntToString((int) (ageSeconds / 60)) + " minute(s), longer than the " + StringParser::IntToString((int) spanMinutes) + " minute(s) its retry schedule spans. This deferral is counted, so that the message is not held for ever.");
+         }
+         else
+         {
+            const long shapingMinutes = shaping_deferral_minutes_ > 0 ? shaping_deferral_minutes_ : 1;
 
-         PersistentMessage::UnlockObject(original_message_);
+            LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Delivery deferred by this server's own shaping, not by a remote server. Scheduling it for later delivery in " + StringParser::IntToString((int) shapingMinutes) + " minute(s); the attempt is not counted against the retry limit.");
 
-         return true; // Do not delete e-mail now
+            // The first-pass mark travels in the same statement, and onto the
+            // cached object, so the next pass neither mirrors nor seals nor
+            // notifies again.
+            PersistentMessage::SetNextTryTimeUncounted(original_message_->GetID(), shapingMinutes);
+            original_message_->SetFirstPassDone(true);
+
+            PersistentMessage::UnlockObject(original_message_);
+
+            return true; // Do not delete e-mail now
+         }
       }
 
       if (iCurNoOfRetries < iMaxNoOfRetries)

@@ -231,7 +231,7 @@
   "Connection problem": "接続の問題",
   "Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143.": "接続の保護とポートは対になります。SSL/TLS は 995 (POP3) または 993 (IMAP)、STARTTLS は 110 または 143 です。",
   "Connections": "接続",
-  "Connections in use": "使用中の接続",
+  "Connections in use when the page was drawn": "ページ描画時に使用中だった接続",
   "Consulted for the next message.": "次のメッセージから参照されます。",
   "Copied to clipboard": "クリップボードにコピーしました",
   "Copy": "コピー",

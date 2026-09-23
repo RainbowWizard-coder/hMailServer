@@ -2287,12 +2287,12 @@ namespace HM
    int
    Configuration::GetOutboundBackoffMaxMinutes()
    {
-      // Never below the base: a ceiling under the first window would make the
-      // doubling shrink it, and the invariant is kept here as well as at the
-      // setters, so an old row cannot break it.
-      const int ceiling = ClampSetting(GetSettings()->GetLong(PROPERTY_OUTBOUND_BACKOFF_MAX_MINUTES), 1, 10080);
-      const int base = GetOutboundBackoffMinutes();
-      return ceiling < base ? base : ceiling;
+      // The stored value, within its range. The setters on every surface keep
+      // it at or above the base and the base at or below it; the back-off
+      // itself reads a ceiling under the base as the base, so a hand-edited
+      // row cannot make the doubling shrink a window, and what is answered
+      // here is always what the row holds.
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_OUTBOUND_BACKOFF_MAX_MINUTES), 1, 10080);
    }
 
    void
