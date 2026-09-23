@@ -33,6 +33,7 @@
 #include "../Util/Languages.h"
 #include "../Util/Utilities.h"
 #include "../Util/MetricsServer.h"
+#include "../Util/RateLimiter.h"
 #include "../Util/JwksKeySet.h"
 #include "../Util/OtelTracer.h"
 #include "../Util/OtelMetricsExporter.h"
@@ -868,6 +869,22 @@ namespace HM
       ini->Subscribe(davRedirects, []()
       {
          WebServicesServer::ForgetDavRedirectTargets();
+      });
+
+      // The two per-minute rate limits start their window again when they are
+      // saved: the events counted under the old limit are dropped, as a restart
+      // always dropped them, so a limit counts from when it was set. Without this
+      // a limit saved a few seconds after traffic counted under an earlier one
+      // refused the first transaction it saw - found by SMTP.RateShaping, run
+      // within a minute of a test that had used the limit.
+      ini->Subscribe(_T("MaxSubmissionsPerIPPerMinute"), []()
+      {
+         RateLimiter::Instance()->ClearBuckets(_T("smtp-submit:"));
+      });
+
+      ini->Subscribe(_T("MaxOutboundPerDestinationPerMinute"), []()
+      {
+         RateLimiter::Instance()->ClearBuckets(_T("smtp-out:"));
       });
 
       // The database fault injector applies when it is saved, and says so the

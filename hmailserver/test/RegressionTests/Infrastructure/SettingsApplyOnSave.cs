@@ -376,6 +376,36 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
+      [Description("A saved per-minute limit counts from when it was saved (the bench of 23 September 2026, SMTP.RateShaping): with MaxSubmissionsPerIPPerMinute at 2, two MAIL FROMs are accepted and the third refused; saved as 3, the window starts again and a fresh connection is accepted three times before the fourth is refused. The negative control is the first half, and the count: kept, the two events already in the window would have let one more through, not three - which is how a test that had used the limit left RateShaping's first MAIL FROM refused a few seconds later.")]
+      public void ASavedRateLimitCountsFromWhenItWasSaved()
+      {
+         try
+         {
+            PutIni_("MaxSubmissionsPerIPPerMinute", "2");
+            using (TcpConnection socket = OpenSmtp_())
+            {
+               StringAssert.StartsWith("250", StartTransaction_(socket), "The first transaction at 2.");
+               StringAssert.StartsWith("250", StartTransaction_(socket), "The second transaction at 2.");
+               StringAssert.StartsWith("421", StartTransaction_(socket), "The third transaction at 2 should be refused.");
+               socket.Send("QUIT\r\n");
+            }
+
+            PutIni_("MaxSubmissionsPerIPPerMinute", "3");
+            using (TcpConnection socket = OpenSmtp_())
+            {
+               for (int i = 0; i < 3; i++)
+                  StringAssert.StartsWith("250", StartTransaction_(socket), "Saved as 3, transaction " + i + " of a new window should be accepted.");
+               StringAssert.StartsWith("421", StartTransaction_(socket), "The fourth transaction at 3 should be refused.");
+               socket.Send("QUIT\r\n");
+            }
+         }
+         finally
+         {
+            DeleteIni_("MaxSubmissionsPerIPPerMinute");
+         }
+      }
+
+      [Test]
       [Description("A key marked now whose reader copied it when it started is re-latched by a subscriber when it is saved: /.well-known/caldav, whose redirect target the web services listener caches for a minute, answers the new CalDavRedirectUrl straight after the save. The negative control is the order: the first request primes the cache with the old target, which is what it would go on answering for up to a minute without the subscriber.")]
       public void ASubscribedKeyIsRelatchedWhenItIsSaved()
       {
@@ -455,32 +485,46 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
-      [Description("A check of the route against the baseline, not a proof that any mark is right: every key GET /api/v1/settings/ini lists carries the baseline's mark as applies - or null when the baseline does not list it - and a pending flag, and the applies map holds exactly the [Settings] keys of build/ini-settings-baseline.txt, each with the baseline's mark. check-ini-coverage.py already holds the header the route reads to the baseline, so what this proves is that the route answers the header; whether a mark is TRUE is what the behavioural tests here prove, for the keys they exercise.")]
+      [Description("A check of the route against the baseline, not a proof that any mark is right: GET /api/v1/settings/ini keeps its entries as {name, value, secret} - the shape the export clients read, a name the loader does not read listed like any other - and beside them an applies map holding exactly the [Settings] keys of build/ini-settings-baseline.txt, each with the baseline's mark, and a pending array naming what GET /api/v1/server/settings/pending lists. check-ini-coverage.py already holds the header the route reads to the baseline, so what this proves is that the route answers the header; whether a mark is TRUE is what the behavioural tests here prove, for the keys they exercise.")]
       public void EveryKeyCarriesItsMark()
       {
-         (int status, string body) answer = Admin("GET", "/api/v1/settings/ini", null);
-         Assert.AreEqual(200, answer.status, answer.body);
-         JsonElement root = JsonDocument.Parse(answer.body).RootElement;
+         // A name the loader does not read, stored as a script's own key would be:
+         // listed with its value, and without a mark.
+         const string ScriptKey = "ZzSettingsApplyScriptKey";
+         PutIni_(ScriptKey, "kept for a script");
 
-         Dictionary<string, string> baseline = BaselineMarks_();
-         var byName = new Dictionary<string, string>(baseline, StringComparer.OrdinalIgnoreCase);
-
-         foreach (JsonElement entry in root.GetProperty("settings").EnumerateArray())
+         try
          {
-            string name = entry.GetProperty("name").GetString();
-            JsonElement applies = entry.GetProperty("applies");
-            if (byName.TryGetValue(name, out string mark))
-               Assert.AreEqual(mark, applies.GetString(), name + " carries a different applies from the baseline's mark.");
-            else
-               Assert.AreEqual(JsonValueKind.Null, applies.ValueKind, name + " is not a key the loader reads, and carries applies " + applies + " rather than null.");
+            (int status, string body) answer = Admin("GET", "/api/v1/settings/ini", null);
+            Assert.AreEqual(200, answer.status, answer.body);
+            JsonElement root = JsonDocument.Parse(answer.body).RootElement;
 
-            JsonValueKind pendingKind = entry.GetProperty("pending").ValueKind;
-            Assert.IsTrue(pendingKind == JsonValueKind.True || pendingKind == JsonValueKind.False,
-               name + " carries no pending flag.");
+            StringAssert.Contains("{\"name\":\"" + ScriptKey + "\",\"value\":\"kept for a script\",\"secret\":false}", answer.body,
+               "A stored name the loader does not read is listed with its value, in the entry shape the clients read.");
+
+            foreach (JsonElement entry in root.GetProperty("settings").EnumerateArray())
+            {
+               var members = entry.EnumerateObject().Select(property => property.Name).ToArray();
+               CollectionAssert.AreEqual(new[] { "name", "value", "secret" }, members,
+                  entry.GetProperty("name").GetString() + " is listed with members other than name, value and secret.");
+            }
+
+            CollectionAssert.AreEquivalent(Pending_().Keys.ToArray(),
+               root.GetProperty("pending").EnumerateArray().Select(name => name.GetString()).ToArray(),
+               "The list's pending array and the pending route disagree.");
+
+            Assert.IsFalse(root.GetProperty("applies").TryGetProperty(ScriptKey, out _), "A name the loader does not read has a mark in the applies map.");
+         }
+         finally
+         {
+            DeleteIni_(ScriptKey);
          }
 
+         JsonElement listed = JsonDocument.Parse(Admin("GET", "/api/v1/settings/ini", null).body).RootElement;
+         Dictionary<string, string> baseline = BaselineMarks_();
+
          var served = new Dictionary<string, string>(StringComparer.Ordinal);
-         foreach (JsonProperty property in root.GetProperty("applies").EnumerateObject())
+         foreach (JsonProperty property in listed.GetProperty("applies").EnumerateObject())
             served[property.Name] = property.Value.GetString();
 
          Assert.AreEqual(baseline.Count, served.Count, "The server marks " + served.Count + " keys and the baseline lists " + baseline.Count + ".");

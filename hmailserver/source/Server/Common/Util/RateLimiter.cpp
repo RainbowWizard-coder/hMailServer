@@ -181,6 +181,20 @@ namespace HM
       buckets_.clear();
    }
 
+   void
+   RateLimiter::ClearBuckets(const String &prefix)
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+
+      for (auto bucket = buckets_.begin(); bucket != buckets_.end(); )
+      {
+         if (bucket->first.StartsWith(prefix))
+            bucket = buckets_.erase(bucket);
+         else
+            ++bucket;
+      }
+   }
+
    // -------------------------------------------------------------------------
    // Per-account sending quota
    // -------------------------------------------------------------------------

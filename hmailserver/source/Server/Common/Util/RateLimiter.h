@@ -101,6 +101,13 @@ namespace HM
       // account a fresh budget.
       void Clear();
 
+      // Removes the per-minute buckets whose key starts with prefix -
+      // "smtp-submit:" for MaxSubmissionsPerIPPerMinute, "smtp-out:" for
+      // MaxOutboundPerDestinationPerMinute - which is what a save of either limit
+      // does (Application::SubscribeToSettings_): a limit counts from when it was
+      // set. The per-account quota counters are not touched, as Clear leaves them.
+      void ClearBuckets(const String &prefix);
+
       // Effective limits for an authenticated account: the global values from
       // [SendingLimits] in hMailServer.ini, overridden per address by an entry in
       // [SendingLimitsOverrides]. The parsed settings are cached and only re-read

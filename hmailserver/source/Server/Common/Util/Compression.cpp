@@ -138,7 +138,13 @@ namespace HM
       String listFile = FileUtilities::Combine(targetDirectory, _T("hMailServer-members.txt"));
 
       {
+         // A narrow path on POSIX: libstdc++'s streams take no wide one.
+#ifdef HM_PLATFORM_POSIX
+         const AnsiString narrowListFile(listFile);
+         std::ofstream out(narrowListFile.c_str(), std::ios::binary | std::ios::trunc);
+#else
          std::ofstream out(listFile.c_str(), std::ios::binary | std::ios::trunc);
+#endif
 
          if (!out)
             return false;

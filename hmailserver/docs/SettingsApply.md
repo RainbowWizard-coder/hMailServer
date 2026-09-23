@@ -42,17 +42,18 @@ negative control on every run.
 |---|---|
 | Control Panel | A small line under each field kept in the settings store - **Applies on save**, **After reinitialize** or **After a restart** - on the feature-settings pages, the server settings pages and the Backup page. Every key's mark comes in ONE COM call when such a page is opened (`Settings.IniSettingAppliesAll`); a call that fails is not remembered, and the next page asks again. The blanket "hMailServer.ini settings apply after a service restart" footers and the "Applies after a service restart" sentence under thirty-odd fields are gone; the mark says it, from one source. |
 | Control Deck | The same three words as a badge beside a settings field kept in the store (the document's `x-applies`), in the Settings view. |
-| REST | `applies` on every entry of `GET /api/v1/settings/ini`, on `GET`, `PUT` and `DELETE /api/v1/settings/ini/{name}`, and an `applies` object in the list mapping every key this build reads - stored or not - to its mark. The OpenAPI document gives the ini-backed rows of the settings groups the mark's sentence and `x-applies`. |
+| REST | `applies` on `GET`, `PUT` and `DELETE /api/v1/settings/ini/{name}`, and in the list `GET /api/v1/settings/ini` an `applies` object mapping every key this build reads - stored or not - to its mark. The list's entries stay `{name, value, secret}`, the shape the export clients read, and every stored name is in them, whether this build reads it or not. The OpenAPI document gives the ini-backed rows of the settings groups the mark's sentence and `x-applies`. |
 | COM | `Settings.IniSettingApplies(name)` answers `now`, `reinitialize` or `restart`, and refuses a name the loader does not read; `Settings.IniSettingAppliesAll` answers every key's mark as one JSON object, the REST list's `applies` map. |
 
 A name the loader does not read - `UseLanguage`, the webmail's branding keys, a
 key a script of your own reads, a misspelling - has **no mark on either surface**.
-COM's `IniSettingApplies` refuses it, and the REST answers carry `applies: null`
-with the same sentence as `applies_refused`: a misspelled key answered `now` would
-be the misspelling looking like a working setting. The REST route still reads and
-stores such a name - it does so on purpose, for a setting a script of your own
-reads - and COM takes the name as spelled, as `GetIniSetting` does, so a name with
-a space round it is no key on either.
+COM's `IniSettingApplies` refuses it, the single-key REST answers carry `applies:
+null` with the same sentence as `applies_refused`, and the list's `applies` map does
+not name it: a misspelled key answered `now` would be the misspelling looking like a
+working setting. The REST route and COM still store, read and list such a name - on
+purpose, for a setting a script of your own reads - and COM takes the name as
+spelled, as `GetIniSetting` does, so a name with a space round it is no key on
+either.
 
 ## The pending list
 
@@ -67,7 +68,7 @@ the running values at every request, never remembered, so:
 
 | Where | What |
 |---|---|
-| REST | `GET /api/v1/server/settings/pending` - `[{name, stored, running, applies, secret}]`; a secret's two values are `(set)` or empty. `pending`, true or false, on every ini answer. The administrator password's route, as the ini list is. |
+| REST | `GET /api/v1/server/settings/pending` - `[{name, stored, running, applies, secret}]`; a secret's two values are `(set)` or empty. `pending`, true or false, on every single-key ini answer, and a `pending` array of names in the list. The administrator password's route, as the ini list is. |
 | COM | `Settings.PendingIniSettings` - the names, one per line, as `IniSettingNames` lists names. |
 | Control Panel | The **pending bar** at the foot of the window: "N saved setting(s) wait for a reinitialize", with **Apply now**, refreshed once after every save - however many fields it wrote, reusing the list the page read after its save - and afresh on every page and every connection. A page's own save says how many of its keys wait. A page's save writes only the fields whose value changed: every write publishes, and a page of a hundred fields saved with one changed was a hundred reloads of the store. |
 | Control Deck | The same sentence above the Settings view's groups, with the pending keys and their two values, and **Apply now**. |
@@ -142,6 +143,7 @@ started, and can take a new one in place, subscribes
 | `OtelEndpoint`, `OtelServiceName`, `OtelMetricsEndpoint`, `OtelMetricsInterval`, `OtelLogsEndpoint` | Restarts the exporter in place, under a lock of its own that a reinitialise's restart shares. |
 | `CalDavRedirectUrl`, `CardDavRedirectUrl` | Drops the web-services listener's one-minute cache of the redirect targets. |
 | `SimulateDatabaseFailureFor` | The injector reads the value per statement already; the subscriber says `HM6119` the moment it is set, as a start does. |
+| `MaxSubmissionsPerIPPerMinute`, `MaxOutboundPerDestinationPerMinute` | Read per transaction already; the subscriber starts each limit's one-minute window again (`RateLimiter::ClearBuckets`), so a saved limit counts from when it was saved, as a restart always made it. Kept, the events counted under the old limit refused the first transaction a new limit saw - found by `SMTP.RateShaping` run within a minute of a test that had used the limit. |
 
 A subscriber runs on the thread that saved, after the new values are published
 **and the reload lock released**, so an exporter restart waiting on a collector
@@ -256,6 +258,8 @@ written:
 * a `now` key applying with no reinitialise (`MaxSubmissionsPerIPPerMinute`, the
   third MAIL FROM a 421 at once) and a DELETE returning it to its default at once,
   answering `applies` now and `pending` false;
+* a saved rate limit counting from when it was saved: two MAIL FROMs at 2 and a
+  refusal, then three at a newly saved 3 before the fourth is refused;
 * a subscribed key re-latched (`CalDavRedirectUrl` after the redirect cache was
   primed with the old target);
 * a `reinitialize` key stored and not applied (`ManageSieveServerPort`: the old port
@@ -270,9 +274,11 @@ written:
   each key ending as its own client's last acknowledged request left it;
 * a name the loader does not read: refused over COM, `applies` null with the same
   sentence over REST;
-* the reinitialise's `drained` answer; the route's marks against the baseline file
-  (a check that the route answers the header, not a proof of any mark); COM's
-  `IniSettingApplies`, `IniSettingAppliesAll` and `PendingIniSettings`.
+* the reinitialise's `drained` answer; the list's entries kept as `{name, value,
+  secret}` with a script's own key among them, its `pending` array against the
+  pending route and its `applies` map against the baseline file (a check that the
+  route answers the header, not a proof of any mark); COM's `IniSettingApplies`,
+  `IniSettingAppliesAll` and `PendingIniSettings`.
 
 `IniFileSettingsTester` in the internal suite (`MainOperations.RunTestSuite`): the
 swap under load, a save of a `now` key in effect and told to its subscriber once, a
@@ -294,6 +300,6 @@ members answered over REST; `IniFileSettingsTester` does not run there, because 
 Linux suite's `RunTestSuite` is skipped, so the Linux build's
 `std::atomic<std::shared_ptr>` path and the thread-local build context are covered
 only by the fixture. They compile: every file this change touches was built with
-clang (C++20) in an Ubuntu 26.04 container on 23 September 2026, though the build as
-a whole stopped then at two errors elsewhere, in `CardDavServer.cpp` and
-`Compression.cpp`.
+clang (C++20) in an Ubuntu 26.04 container on 23 September 2026, and with the two
+errors that build found elsewhere fixed - `CardDavServer.cpp` and `Compression.cpp` -
+the server links.

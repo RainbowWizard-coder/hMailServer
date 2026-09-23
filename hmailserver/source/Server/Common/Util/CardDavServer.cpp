@@ -1105,7 +1105,7 @@ namespace HM
                      ? XmlEscape("The people and lists of " + Utf8(DomainPartOf(context.addressWide)) + ", read-only")
                      : XmlEscape(Utf8(resource.book.record.name) + " of " + resource.book.ownerUtf8 +
                           (resource.book.shared
-                             ? (resource.book.writable ? ", shared with you" : ", shared with you read-only")
+                             ? AnsiString(resource.book.writable ? ", shared with you" : ", shared with you read-only")
                              : AnsiString("")));
                   return true;
                }
