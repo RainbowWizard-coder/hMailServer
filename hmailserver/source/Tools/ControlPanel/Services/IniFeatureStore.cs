@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.Win32;
 
@@ -47,6 +48,99 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>Writes a [Settings] value over COM. An empty value DELETES the key - see Write.</summary>
       public static Action<string, string> ComWriteSetting;
+
+      /// <summary>
+      /// Settings.IniSettingApplies over COM: when a saved key reaches the running
+      /// server - now, reinitialize or restart (SettingApplies). Injected for the
+      /// reason ComReadSetting is. Null in the tests and before a session exists.
+      /// </summary>
+      public static Func<string, string> ComSettingApplies;
+
+      /// <summary>
+      /// Settings.PendingIniSettings over COM: the keys saved and not yet running,
+      /// one per line. Null in the tests and before a session exists.
+      /// </summary>
+      public static Func<string> ComPendingSettings;
+
+      /// <summary>
+      /// Raised after every write through <see cref="Write"/>, on the thread that
+      /// wrote. The window listens, so its pending bar follows every page's save
+      /// without each page having to tell it.
+      /// </summary>
+      public static event Action Written;
+
+      // The marks, read once per key per session: a mark is a property of the
+      // server's build, not of anything a page can change, so asking again on
+      // every page would be a COM call per field for the same answer.
+      private static readonly Dictionary<string, string> appliesCache_ = new(StringComparer.OrdinalIgnoreCase);
+      private static readonly object appliesLock_ = new();
+
+      /// <summary>
+      /// When a saved value of this [Settings] key reaches the running server, as
+      /// the server says - "now", "reinitialize" or "restart" - or null when there
+      /// is nobody to ask or the server has no mark for it (an older server, or a
+      /// key its loader does not read). A page shows no mark for null rather than a
+      /// guessed one.
+      /// </summary>
+      public static string AppliesFor(string key)
+      {
+         if (string.IsNullOrEmpty(key))
+            return null;
+
+         lock (appliesLock_)
+         {
+            if (appliesCache_.TryGetValue(key, out string known))
+               return known;
+         }
+
+         Func<string, string> ask = ComSettingApplies;
+         if (ask == null)
+            return null;
+
+         string mark;
+         try
+         {
+            mark = ask(key);
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            // Refused (a key the loader does not read) or unavailable (an older
+            // server). Remembered as nothing, so the page does not ask again.
+            mark = null;
+         }
+
+         lock (appliesLock_)
+            appliesCache_[key] = mark;
+
+         return mark;
+      }
+
+      /// <summary>Forgets the marks, when the session moves to another server.</summary>
+      public static void ForgetApplies()
+      {
+         lock (appliesLock_)
+            appliesCache_.Clear();
+      }
+
+      /// <summary>
+      /// The keys saved and not yet running, as the server lists them now. Empty
+      /// when there is nobody to ask or the server cannot say.
+      /// </summary>
+      public static IReadOnlyList<string> PendingNames()
+      {
+         Func<string> ask = ComPendingSettings;
+         if (ask == null)
+            return Array.Empty<string>();
+
+         try
+         {
+            return SettingApplies.ParsePending(ask());
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            return Array.Empty<string>();
+         }
+      }
 
       /// <summary>
       /// Whether the [Settings] section can be reached at all, by either route. This
@@ -194,6 +288,10 @@ namespace hMailServer.ControlPanel.Services
                "reported in the server's error log and undone at the next start.");
 
          write(key, value);
+
+         // The server published the value as it stored it: a key marked now is in
+         // effect, and one marked reinitialize or restart may be pending.
+         Written?.Invoke();
       }
 
       public void WriteBool(string key, bool value) => Write(key, value ? "1" : "0");

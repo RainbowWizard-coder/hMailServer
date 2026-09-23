@@ -2251,6 +2251,8 @@ namespace HM
             return HandleIniSettingList_();
          case RouteSettingsChanged:
             return HandleSettingsChanged_();
+         case RouteServerSettingsPending:
+            return HandleServerSettingsPending_();
          case RouteIniSettingGet:
             return HandleIniSettingGet_(route.identifier);
          case RouteIniSettingPut:
@@ -5925,6 +5927,12 @@ namespace HM
          return;
       }
 
+      if (method == "GET" && path == "/api/v1/server/settings/pending")
+      {
+         route.kind = RouteServerSettingsPending;
+         return;
+      }
+
       if (path == "/api/v1/server/drain")
       {
          if (method == "GET")
@@ -6127,6 +6135,9 @@ namespace HM
       // for every credential but the administrator password, by data-admin on
       // its button, so that a role is not offered a page it would be refused.
       case RouteSettingsChanged:
+      // The pending list is those settings' values again - the stored one and the
+      // running one side by side - so it is the administrator password's too.
+      case RouteServerSettingsPending:
       // The audit trail names every administrator and every change they made,
       // and the alert rules hold the webhook secrets. A key that could read the
       // first could watch for its own footprints; a key that could write the
@@ -6732,6 +6743,7 @@ namespace HM
       case RouteIniSettingList:
       case RouteIniSettingGet:
       case RouteSettingsChanged:
+      case RouteServerSettingsPending:
       case RouteSettingsScriptingGet:
       case RouteScriptingCheck:
       case RouteSettingsPushGet:
@@ -7863,6 +7875,7 @@ namespace HM
       case RouteDomainReportsExpire:
       case RouteSettingsGet:
       case RouteSettingsChanged:
+      case RouteServerSettingsPending:
       case RouteSettingsPut:
       case RouteSettingsAntiSpamGet:
       case RouteSettingsAntiSpamPut:
@@ -10324,15 +10337,24 @@ namespace HM
       // once.
       // One thread while one restart is pending: two hundred requests in one
       // rate window queued two hundred stop-and-start cycles behind the mutex.
+      //
+      // A reinitialise ends maintenance mode (Application::Reinitialize says so in
+      // the log and on the audit trail), so a caller who asked while the server was
+      // draining is told in the answer: drained is true, and the listeners come back
+      // open. The Deck and the Control Panel ask before they send one.
+      const AnsiString answer = Application::Instance()->IsDraining()
+         ? "{\"reinitializing\":true,\"drained\":true}"
+         : "{\"reinitializing\":true,\"drained\":false}";
+
       bool notPending = false;
       if (!reinitialize_pending_.compare_exchange_strong(notPending, true))
       {
          LOG_APPLICATION("RestApi: Reinitialize requested while one is pending; the pending one serves both.");
-         return BuildResponse_(202, "{\"reinitializing\":true}");
+         return BuildResponse_(202, answer);
       }
       LOG_APPLICATION("RestApi: Reinitialize requested; the services restart in a moment.");
       boost::thread(&ReinitializeAfterTheAnswer_).detach();
-      return BuildResponse_(202, "{\"reinitializing\":true}");
+      return BuildResponse_(202, answer);
    }
 
    std::atomic<bool> RestApiServer::reinitialize_pending_(false);
@@ -16181,7 +16203,8 @@ namespace HM
          "\"description\":\"Administration API. Authenticate with the administrator password (HTTP Basic, user 'Administrator') or an API key (Bearer). API keys can be read-only or restricted to named domains; key management itself requires the administrator password. The /api/v1/me endpoints are the exception: they answer to an account\'s own credentials (HTTP Basic, user = the mailbox address) and to nothing else, and /portal is a sign-in page for them. An account that holds an administrative role also reaches the routes that role permits, with the same credential or a browser session: GET /api/v1/session says what a credential may do, and GET /api/v1/roles lists the roles and what each holds.\"},"
          "\"paths\":{"
          "\"/api/v1/status\":{\"get\":{\"summary\":\"Server status\",\"responses\":{\"200\":{\"description\":\"Version, state, the message counters, the session counts, and build: what this build can do - script_engine, argon2id, post_quantum_key_exchange\"}}}},"
-         "\"/api/v1/server/reinitialize\":{\"post\":{\"summary\":\"Restart the services in place\",\"description\":\"What the Control Panel's Reinitialize does: every service is stopped, the configuration reloaded and the services started again in the same process, so that a port, a certificate binding or a setting the document marks as taking effect on restart takes effect now. Answers before it happens, because the REST listener itself restarts: poll GET /api/v1/status until it answers again. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"202\":{\"description\":\"Reinitialising; the listeners restart in a moment\"}}}},"
+         "\"/api/v1/server/reinitialize\":{\"post\":{\"summary\":\"Restart the services in place\",\"description\":\"What the Control Panel's Reinitialize does: every service is stopped, the configuration reloaded and the services started again in the same process, so that a port, a certificate binding or a setting the document marks as taking effect on restart takes effect now - and every [Settings] key marked reinitialize that GET /api/v1/server/settings/pending lists is taken, which empties that list of them (a key marked restart waits for the service to start again). Answers before it happens, because the REST listener itself restarts: poll GET /api/v1/status until it answers again. A reinitialise ends maintenance mode: when the server was draining, drained is true in the answer and the listeners come back open. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"202\":{\"description\":\"{reinitializing: true, drained}: reinitialising, the listeners restart in a moment; drained is true when this ends a drain\"}}}},"
+         "\"/api/v1/server/settings/pending\":{\"get\":{\"summary\":\"The saved settings the server is not running on yet\",\"description\":\"Every [Settings] key saved since what applies it last happened: a key marked reinitialize or restart in GET /api/v1/settings/ini whose stored value is not the value the running server is using, as [{name, stored, running, applies, secret}]. Recomputed from the store and the running values at every request rather than remembered, so a value put back before anything applied it is not listed, and POST /api/v1/server/reinitialize empties it of every reinitialize key (a restart key waits for the service to start again). A secret's two values are (set) or empty, as the ini list shows them. What Settings.PendingIniSettings lists over COM. Administrator password only, as the ini list is.\",\"responses\":{\"200\":{\"description\":\"[{name, stored, running, applies, secret}], empty when nothing waits\"}}}},"
          "\"/api/v1/server/drain\":{"
          "\"get\":{\"summary\":\"Maintenance mode: whether the server is draining and what is still in flight\",\"description\":\"draining, since (when it was entered), sessions (SMTP, IMAP and POP3 sessions open), deliveries (outbound deliveries running or waiting for a thread) and drained (draining with nothing in flight). Server-wide; view_configuration.\",\"responses\":{\"200\":{\"description\":\"The drain's state\"}}},"
          "\"post\":{\"summary\":\"Enter maintenance mode: close the listeners and pause delivery, with the process up\",\"description\":\"The SMTP, IMAP, POP3 and ManageSieve listeners are closed - a new connection is refused at the socket - and the delivery queue is paused; the sessions and deliveries in flight finish at their own pace, /readyz answers 503 with 'draining', and this listener (the Deck, the webmail and its send, which queues), the metrics listener and the web services (CalDAV, CardDAV) keep answering. This is what a stop does first, and what the live update does before it starts its helper, so the state is what an upgrade without a window looks like from outside. A stop or a reinitialise while draining ends it, with a 'left' recorded by the server. Server-wide; manage_server; recorded on the audit trail. 409 when already draining or not running.\",\"responses\":{\"200\":{\"description\":\"Draining; the same document GET answers\"},\"409\":{\"description\":\"already draining, or not running\"}}},"

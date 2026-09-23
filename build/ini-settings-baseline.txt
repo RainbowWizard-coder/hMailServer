@@ -25,282 +25,298 @@
 # default is edited in the source and not regenerated here, because a list of what
 # has been changed that compares against last month's defaults is confidently wrong.
 #
-# One "Section Key Kind Default" per line, four whitespace-separated fields. Kind is
-# "integer" where the server reads the key with GetPrivateProfileInt, which stops at
-# the first character that is not part of a number - so a stored "0009" is the same
-# setting as a default of 9 - and "string" where it reads the text. Default is JSON
-# encoded, so that an empty default is a token rather than a missing column.
-# Regenerate with:
+# It is also where each key's APPLIES MARK lives - when a change to it reaches the
+# running server, decided key by key from the code that reads it (22 September
+# 2026, docs/SettingsApply.md has the reason for every key that is not now):
+#   now           a save applies it: every reader asks for the value when it uses
+#                 it, or a subscriber takes the new one when the store changes;
+#   reinitialize  bound into something the servers build when they start - a
+#                 listener, a TLS context, a work queue's size - so it waits for
+#                 POST /api/v1/server/reinitialize;
+#   restart       read once per process, before the database is open or where
+#                 nothing can rebuild it in place, so it waits for the service to
+#                 be restarted. Every bootstrap key is restart.
+# The server answers it as `applies`, holds a stored value that is not yet running
+# as PENDING by it, and keeps a key's running value through a reload until what
+# applies it has happened.
+#
+# One "Section Key Kind Default Applies" per line, five whitespace-separated fields.
+# Kind is "integer" where the server reads the key with GetPrivateProfileInt, which
+# stops at the first character that is not part of a number - so a stored "0009" is
+# the same setting as a default of 9 - and "string" where it reads the text. Default
+# is JSON encoded, so that an empty default is a token rather than a missing column.
+# Applies is now, reinitialize or restart; a line without one fails the check.
+# Regenerate with (the marks already here are kept):
 #   python3 build/check-ini-coverage.py --write-baseline
 
-Database AllowUnencryptedConnection integer "0"
-Database ConnectionAttempts integer "6"
-Database ConnectionAttemptsDelay integer "5"
-Database ConnectionStringOptions string ""
-Database Database string ""
-Database Internal integer "0"
-Database NumberOfConnections integer "5"
-Database Password string ""
-Database Passwordencryption integer "0"
-Database Port integer "0"
-Database PostgreSQLSslMode string ""
-Database PostgreSQLSslRootCert string ""
-Database Provider string ""
-Database Server string ""
-Database ServerFailoverPartner string ""
-Database Type string ""
-Database UpgradeOnStart integer "0"
-Database Username string ""
+Database AllowUnencryptedConnection integer "0" restart
+Database ConnectionAttempts integer "6" restart
+Database ConnectionAttemptsDelay integer "5" restart
+Database ConnectionStringOptions string "" restart
+Database Database string "" restart
+Database Internal integer "0" restart
+Database NumberOfConnections integer "5" restart
+Database Password string "" restart
+Database Passwordencryption integer "0" restart
+Database Port integer "0" restart
+Database PostgreSQLSslMode string "" restart
+Database PostgreSQLSslRootCert string "" restart
+Database Provider string "" restart
+Database Server string "" restart
+Database ServerFailoverPartner string "" restart
+Database Type string "" restart
+Database UpgradeOnStart integer "0" restart
+Database Username string "" restart
 
-Directories DataFolder string ""
-Directories DatabaseFolder string ""
-Directories EventFolder string ""
-Directories ProgramFolder string ""
-Directories TempFolder string ""
+Directories DataFolder string "" restart
+Directories DatabaseFolder string "" restart
+Directories EventFolder string "" restart
+Directories ProgramFolder string "" restart
+Directories TempFolder string "" restart
 
-GUILanguages ValidLanguages string ""
+GUILanguages ValidLanguages string "" restart
 
-Security AdministratorPassword string ""
-Security AdministratorTotpSecret string ""
+Security AdministratorPassword string "" restart
+Security AdministratorTotpSecret string "" restart
 
-Settings AVFailAction integer "0"
-Settings AVFailMaxHolds integer "16"
-Settings AVFailRetryMinutes integer "15"
-Settings AccountLockoutMinutes integer "30"
-Settings AccountLockoutThreshold integer "0"
-Settings AccountLockoutWindowMinutes integer "30"
-Settings AcmeCertificateDirectory string ""
-Settings AcmeContactEmail string ""
-Settings AcmeDirectoryUrl string "https://acme-v02.api.letsencrypt.org/directory"
-Settings AcmeDomains string ""
-Settings AcmeEnabled integer "0"
-Settings AcmeHttpPort integer "80"
-Settings AcmeReuseKey integer "1"
-Settings AddXAuthUserHeader integer "0"
-Settings AddXAuthUserIP integer "1"
-Settings AddXOriginalRcptTo integer "0"
-Settings ArcSealingEnabled integer "0"
-Settings ArchiveDir string ""
-Settings ArchiveDomains string ""
-Settings ArchiveHardLinks integer "0"
-Settings ArchiveRetentionDays integer "0"
-Settings AsyncQueueReservedThreads integer "2"
-Settings AsyncQueueStallThreshold integer "120"
-Settings AuthUserReplacementIP string ""
-Settings AuthenticationResultsEnabled integer "0"
-Settings AuthenticationResultsIdentity string ""
-Settings AutoBanCommand string ""
-Settings AutoBanFirewall integer "0"
-Settings AutoBanNeverBan string ""
-Settings AutoconfigClientHost string ""
-Settings AutoconfigEnabled integer "1"
-Settings BATVEnabled integer "0"
-Settings BATVSecret string ""
-Settings BackupMessagesDBOnly integer "0"
-Settings BackupVerifyRestore integer "1"
-Settings BlockedIPHoldSeconds integer "0"
-Settings CalDavRedirectUrl string ""
-Settings CardDavRedirectUrl string ""
-Settings ClamMaxTimeout integer "90"
-Settings ClamMinTimeout integer "15"
-Settings ClientSessionCeiling integer "1800"
-Settings DBConnectionAcquireTimeout integer "60"
-Settings DKIMEnforceSignatureExpiry integer "1"
-Settings DKIMExpiryClockSkewSeconds integer "300"
-Settings DKIMSignatureValiditySeconds integer "0"
-Settings DNSBLChecksAfterMailFrom integer "1"
-Settings DNSQueryTimeout integer "10"
-Settings DNSServer string ""
-Settings DaemonAddressDomain string ""
-Settings DaneEnforcementEnabled integer "1"
-Settings DatabaseStatementTimeout integer "30"
-Settings DeliveryHardLinks integer "0"
-Settings DisableAUTHList string ""
-Settings DiskSpaceWarningThresholdMB integer "1024"
-Settings DkimAcceptSha1 integer "0"
-Settings DkimOversignHeaders string ""
-Settings DmarcRptFromAddress string ""
-Settings DmarcRptOrganizationName string "hMailServer"
-Settings DmarcRptSchemaVersion integer "1"
-Settings DmarcTreeWalkEnabled integer "1"
-Settings DnssecTrustAnchors string ""
-Settings DnssecValidationEnabled integer "1"
-Settings ExternalProcessTimeout integer "300"
-Settings FetchOAuth2Hosts string "outlook.office365.com"
-Settings FilterHookFailClosed integer "0"
-Settings FilterHookMaxMessageSizeKB integer "10240"
-Settings FilterHookRejectScore integer "100"
-Settings FilterHookTimeoutSeconds integer "10"
-Settings FilterHookUrl string ""
-Settings FinalizationTimeout integer "240"
-Settings GreylistingEnabledDuringRecordExpiration integer "1"
-Settings GreylistingRecordExpirationInterval integer "240"
-Settings HttpProxy string ""
-Settings IMAPCompressionEnabled integer "1"
-Settings IMAPExpungeRetentionRecords integer "5000"
-Settings IMAPSearchMaxMegabytes integer "2048"
-Settings IMAPSearchTimeout integer "60"
-Settings IndexerFullLimit integer "25000"
-Settings IndexerFullMinutes integer "720"
-Settings IndexerFullText integer "0"
-Settings IndexerFullTextBatchSize integer "250"
-Settings IndexerFullTextMaxTokensPerMessage integer "2048"
-Settings IndexerFullTextMinTokenLength integer "3"
-Settings IndexerQuickLimit integer "1000"
-Settings JsonLogging integer "0"
-Settings LoadBodyReadSize integer "4000"
-Settings LoadHeaderReadSize integer "4000"
-Settings LogDeleteDays integer "0"
-Settings LogLevel integer "9"
-Settings LogonTarpitSeconds integer "0"
-Settings MXTriesFactor integer "0"
-Settings ManageSieveServerBindAddress string "127.0.0.1"
-Settings ManageSieveServerPort integer "0"
-Settings MaxLogLineLen integer "500"
-Settings MaxNumberOfExternalFetchThreads integer "15"
-Settings MaxOutboundPerDestinationPerMinute integer "0"
-Settings MaxSubmissionsPerIPPerMinute integer "0"
-Settings MessageStoreConsistencyCheck integer "0"
-Settings MessageStoreFsync integer "0"
-Settings MessageTraceEnabled integer "0"
-Settings MessageTraceRetentionDays integer "30"
-Settings MetricsHistoryDays integer "7"
-Settings MetricsPerDomainEnabled integer "0"
-Settings MetricsServerAuthPassword string ""
-Settings MetricsServerAuthToken string ""
-Settings MetricsServerAuthUsername string ""
-Settings MetricsServerBindAddress string "127.0.0.1"
-Settings MetricsServerCertificateFile string ""
-Settings MetricsServerPort integer "0"
-Settings MetricsServerPrivateKeyFile string ""
-Settings MinimumAcceptedHashAlgorithm integer "0"
-Settings MinimumFreeDiskSpaceMB integer "100"
-Settings MtaStsEnabled integer "1"
-Settings MtaStsHostingEnabled integer "1"
-Settings MtaStsPolicyMaxAge integer "604800"
-Settings MtaStsPolicyMode string "enforce"
-Settings MtaStsPolicyMx string ""
-Settings OAuth2AllowedAlgorithms string "RS256"
-Settings OAuth2Audience string ""
-Settings OAuth2Enabled integer "0"
-Settings OAuth2HmacSecret string ""
-Settings OAuth2IntrospectionCacheSeconds integer "300"
-Settings OAuth2IntrospectionClientId string ""
-Settings OAuth2IntrospectionClientSecret string ""
-Settings OAuth2IntrospectionFailOpen integer "0"
-Settings OAuth2IntrospectionUrl string ""
-Settings OAuth2Issuer string ""
-Settings OAuth2JwksCacheSeconds integer "3600"
-Settings OAuth2JwksUrl string ""
-Settings OAuth2PublicKeyFile string ""
-Settings OAuth2RequireTLS integer "1"
-Settings OAuth2UsernameClaim string "email"
-Settings OtelEndpoint string ""
-Settings OtelLogsEndpoint string ""
-Settings OtelMetricsEndpoint string ""
-Settings OtelMetricsInterval integer "60"
-Settings OtelServiceName string "hmailserver"
-Settings OutboundChunking integer "1"
-Settings OutboundOAuth2ClientId string ""
-Settings OutboundOAuth2ClientSecret string ""
-Settings OutboundOAuth2FixedToken string ""
-Settings OutboundOAuth2Hosts string "smtp.office365.com"
-Settings OutboundOAuth2Scope string "https://outlook.office365.com/.default"
-Settings OutboundOAuth2TokenUrl string ""
-Settings OutboundPipelining integer "1"
-Settings POP3CMaxTimeout integer "900"
-Settings POP3CMinTimeout integer "30"
-Settings POP3DMaxTimeout integer "600"
-Settings POP3DMinTimeout integer "10"
-Settings PasswordHashIterations integer "0"
-Settings PasswordHashMemoryKB integer "0"
-Settings PasswordHashTimeCost integer "0"
-Settings PasswordPepper string ""
-Settings PasswordPolicyHistoryCount integer "0"
-Settings PasswordPolicyMaximumAgeDays integer "0"
-Settings PasswordPolicyMinimumLength integer "0"
-Settings PasswordPolicyRejectCommon integer "0"
-Settings PasswordPolicyRequireDigit integer "0"
-Settings PasswordPolicyRequireMixedCase integer "0"
-Settings PasswordPolicyRequireNonAlphanumeric integer "0"
-Settings Pop3LoginDelaySeconds integer "0"
-Settings PreferredHashAlgorithm integer "4"
-Settings ProtectStoredSecretsWithDPAPI integer "1"
-Settings QuarantineEnabled integer "0"
-Settings QuarantineRetentionDays integer "30"
-Settings QueueRandomnessMinutes integer "0"
-Settings QuickRetries integer "0"
-Settings QuickRetriesMinutes integer "6"
-Settings QuotaWarningPercent integer "90"
-Settings ReceivedSpfHeaderEnabled integer "0"
-Settings RejectFullMailboxAtRcpt integer "1"
-Settings RestApiBindAddress string "127.0.0.1"
-Settings RestApiCertificateFile string ""
-Settings RestApiPort integer "0"
-Settings RestApiPrivateKeyFile string ""
-Settings RewriteEnvelopeFromWhenForwarding integer "0"
-Settings SAMaxTimeout integer "90"
-Settings SAMinTimeout integer "30"
-Settings SAMoveVsCopy integer "0"
-Settings SMTPCMaxTimeout integer "600"
-Settings SMTPCMinTimeout integer "30"
-Settings SMTPDMaxSizeDrop integer "0"
-Settings SMTPDMaxTimeout integer "1800"
-Settings SMTPDMinTimeout integer "10"
-Settings SMTPProxyProtocolEnabled integer "0"
-Settings SMTPProxyProtocolTrustedIPs string ""
-Settings SMTPXClientEnabled integer "0"
-Settings SMTPXClientTrustedIPs string ""
-Settings SRSEnabled integer "0"
-Settings SRSSecret string ""
-Settings ScheduledBackupIntervalMinutes integer "0"
-Settings ScheduledBackupKeepCount integer "0"
-Settings ScheduledBackupMaxAgeDays integer "0"
-Settings ScheduledBackupTime string ""
-Settings ScriptAllowedObjects string "*"
-Settings ScriptTimeout integer "60"
-Settings SepSvcLogs integer "0"
-Settings ServiceAccountName string ""
-Settings ServiceAccountPassword string ""
-Settings ShutdownDrainSeconds integer "0"
-Settings SimulateDatabaseFailureFor string ""
-Settings SimulateSpoolWriteFailure integer "0"
-Settings SlowQueryLogMilliseconds integer "0"
-Settings SmtpAuthenticatedSenderCheck integer "0"
-Settings SmtpTarpitCount integer "0"
-Settings SmtpTarpitDelaySeconds integer "0"
-Settings SpamAssassinLearnOnMove integer "0"
-Settings SpamAssassinUser string ""
-Settings SpamAssassinUserFromRecipient integer "0"
-Settings SpfVoidLookupLimit integer "2"
-Settings TlsCipherSuites13 string ""
-Settings TlsKeyExchangeGroups string "X25519MLKEM768:SecP256r1MLKEM768:X25519:secp384r1:secp256r1"
-Settings TlsRptFromAddress string ""
-Settings TlsRptOrganizationName string "hMailServer"
-Settings TlsSessionCacheSize integer "0"
-Settings TlsSessionTicketsEnabled integer "1"
-Settings TlsSessionTimeoutSeconds integer "0"
-Settings TlsTicketKeyRotationSeconds integer "0"
-Settings UpdateAutoDownload integer "0"
-Settings UpdateBackupBeforeApply integer "1"
-Settings UpdateChannel string "stable"
-Settings UpdateCheckEnabled integer "0"
-Settings UpdateCheckHours integer "24"
-Settings UpdateFeedUrl string ""
-Settings UpdateLogPublicKeyFile string ""
-Settings UpdateRequireAuthenticode integer "0"
-Settings UpdateServiceWaitSeconds integer "180"
-Settings UpdateSigningIdentity string ""
-Settings UpdateSigningIssuer string ""
-Settings UpdateSourceRepository string ""
-Settings UpdateTrustRootsFile string ""
-Settings UpdateWindow string ""
-Settings UseDNSCache integer "1"
-Settings WebServicesBindAddress string "0.0.0.0"
-Settings WebServicesCertificateFile string ""
-Settings WebServicesHttpPort integer "0"
-Settings WebServicesHttpsPort integer "0"
-Settings WebServicesPrivateKeyFile string ""
-Settings WebServicesTrustedProxies string ""
-Settings WindowsEventLogEnabled integer "1"
-Settings WindowsEventLogLevel integer "2"
+Settings AVFailAction integer "0" now
+Settings AVFailMaxHolds integer "16" now
+Settings AVFailRetryMinutes integer "15" now
+Settings AccountLockoutMinutes integer "30" now
+Settings AccountLockoutThreshold integer "0" now
+Settings AccountLockoutWindowMinutes integer "30" now
+Settings AcmeCertificateDirectory string "" reinitialize
+Settings AcmeContactEmail string "" now
+Settings AcmeDirectoryUrl string "https://acme-v02.api.letsencrypt.org/directory" now
+Settings AcmeDomains string "" now
+Settings AcmeEnabled integer "0" reinitialize
+Settings AcmeHttpPort integer "80" now
+Settings AcmeReuseKey integer "1" now
+Settings AddXAuthUserHeader integer "0" now
+Settings AddXAuthUserIP integer "1" now
+Settings AddXOriginalRcptTo integer "0" now
+Settings ArcSealingEnabled integer "0" now
+Settings ArchiveDir string "" now
+Settings ArchiveDomains string "" now
+Settings ArchiveHardLinks integer "0" now
+Settings ArchiveRetentionDays integer "0" now
+Settings AsyncQueueReservedThreads integer "2" now
+Settings AsyncQueueStallThreshold integer "120" now
+Settings AuthUserReplacementIP string "" now
+Settings AuthenticationResultsEnabled integer "0" now
+Settings AuthenticationResultsIdentity string "" now
+Settings AutoBanCommand string "" now
+Settings AutoBanFirewall integer "0" now
+Settings AutoBanNeverBan string "" now
+Settings AutoconfigClientHost string "" now
+Settings AutoconfigEnabled integer "1" now
+Settings BATVEnabled integer "0" now
+Settings BATVSecret string "" now
+Settings BackupMessagesDBOnly integer "0" now
+Settings BackupVerifyRestore integer "1" now
+Settings BlockedIPHoldSeconds integer "0" now
+Settings CalDavRedirectUrl string "" now
+Settings CardDavRedirectUrl string "" now
+Settings ClamMaxTimeout integer "90" now
+Settings ClamMinTimeout integer "15" now
+Settings ClientSessionCeiling integer "1800" now
+Settings DBConnectionAcquireTimeout integer "60" now
+Settings DKIMEnforceSignatureExpiry integer "1" now
+Settings DKIMExpiryClockSkewSeconds integer "300" now
+Settings DKIMSignatureValiditySeconds integer "0" now
+Settings DNSBLChecksAfterMailFrom integer "1" now
+Settings DNSQueryTimeout integer "10" now
+Settings DNSServer string "" now
+Settings DaemonAddressDomain string "" now
+Settings DaneEnforcementEnabled integer "1" now
+Settings DatabaseStatementTimeout integer "30" reinitialize
+Settings DeliveryHardLinks integer "0" now
+Settings DisableAUTHList string "" now
+Settings DiskSpaceWarningThresholdMB integer "1024" now
+Settings DkimAcceptSha1 integer "0" now
+Settings DkimOversignHeaders string "" now
+Settings DmarcRptFromAddress string "" now
+Settings DmarcRptOrganizationName string "hMailServer" now
+Settings DmarcRptSchemaVersion integer "1" now
+Settings DmarcTreeWalkEnabled integer "1" now
+Settings DnssecTrustAnchors string "" now
+Settings DnssecValidationEnabled integer "1" now
+Settings ExternalProcessTimeout integer "300" now
+Settings FetchOAuth2Hosts string "outlook.office365.com" now
+Settings FilterHookFailClosed integer "0" now
+Settings FilterHookMaxMessageSizeKB integer "10240" now
+Settings FilterHookRejectScore integer "100" now
+Settings FilterHookTimeoutSeconds integer "10" now
+Settings FilterHookUrl string "" now
+Settings FinalizationTimeout integer "240" now
+Settings GreylistingEnabledDuringRecordExpiration integer "1" now
+Settings GreylistingRecordExpirationInterval integer "240" now
+Settings HttpProxy string "" now
+Settings IMAPCompressionEnabled integer "1" now
+Settings IMAPExpungeRetentionRecords integer "5000" now
+Settings IMAPSearchMaxMegabytes integer "2048" now
+Settings IMAPSearchTimeout integer "60" now
+Settings IndexerFullLimit integer "25000" now
+Settings IndexerFullMinutes integer "720" now
+Settings IndexerFullText integer "0" now
+Settings IndexerFullTextBatchSize integer "250" now
+Settings IndexerFullTextMaxTokensPerMessage integer "2048" now
+Settings IndexerFullTextMinTokenLength integer "3" now
+Settings IndexerQuickLimit integer "1000" now
+Settings JsonLogging integer "0" now
+Settings LoadBodyReadSize integer "4000" now
+Settings LoadHeaderReadSize integer "4000" now
+Settings LogDeleteDays integer "0" now
+Settings LogLevel integer "9" now
+Settings LogonTarpitSeconds integer "0" now
+Settings MXTriesFactor integer "0" now
+Settings ManageSieveServerBindAddress string "127.0.0.1" reinitialize
+Settings ManageSieveServerPort integer "0" reinitialize
+Settings MaxLogLineLen integer "500" now
+Settings MaxNumberOfExternalFetchThreads integer "15" reinitialize
+Settings MaxOutboundPerDestinationPerMinute integer "0" now
+Settings MaxSubmissionsPerIPPerMinute integer "0" now
+Settings MessageStoreConsistencyCheck integer "0" now
+Settings MessageStoreFsync integer "0" now
+Settings MessageTraceEnabled integer "0" now
+Settings MessageTraceRetentionDays integer "30" now
+Settings MetricsHistoryDays integer "7" now
+Settings MetricsPerDomainEnabled integer "0" now
+Settings MetricsServerAuthPassword string "" reinitialize
+Settings MetricsServerAuthToken string "" reinitialize
+Settings MetricsServerAuthUsername string "" reinitialize
+Settings MetricsServerBindAddress string "127.0.0.1" reinitialize
+Settings MetricsServerCertificateFile string "" reinitialize
+Settings MetricsServerPort integer "0" reinitialize
+Settings MetricsServerPrivateKeyFile string "" reinitialize
+Settings MinimumAcceptedHashAlgorithm integer "0" now
+Settings MinimumFreeDiskSpaceMB integer "100" now
+Settings MtaStsEnabled integer "1" now
+Settings MtaStsHostingEnabled integer "1" now
+Settings MtaStsPolicyMaxAge integer "604800" now
+Settings MtaStsPolicyMode string "enforce" now
+Settings MtaStsPolicyMx string "" now
+Settings OAuth2AllowedAlgorithms string "RS256" now
+Settings OAuth2Audience string "" now
+Settings OAuth2Enabled integer "0" now
+Settings OAuth2HmacSecret string "" now
+Settings OAuth2IntrospectionCacheSeconds integer "300" now
+Settings OAuth2IntrospectionClientId string "" now
+Settings OAuth2IntrospectionClientSecret string "" now
+Settings OAuth2IntrospectionFailOpen integer "0" now
+Settings OAuth2IntrospectionUrl string "" now
+Settings OAuth2Issuer string "" now
+Settings OAuth2JwksCacheSeconds integer "3600" now
+Settings OAuth2JwksUrl string "" now
+Settings OAuth2PublicKeyFile string "" now
+Settings OAuth2RequireTLS integer "1" now
+Settings OAuth2UsernameClaim string "email" now
+Settings OtelEndpoint string "" now
+Settings OtelLogsEndpoint string "" now
+Settings OtelMetricsEndpoint string "" now
+Settings OtelMetricsInterval integer "60" now
+Settings OtelServiceName string "hmailserver" now
+Settings OutboundChunking integer "1" now
+Settings OutboundOAuth2ClientId string "" now
+Settings OutboundOAuth2ClientSecret string "" now
+Settings OutboundOAuth2FixedToken string "" now
+Settings OutboundOAuth2Hosts string "smtp.office365.com" now
+Settings OutboundOAuth2Scope string "https://outlook.office365.com/.default" now
+Settings OutboundOAuth2TokenUrl string "" now
+Settings OutboundPipelining integer "1" now
+Settings POP3CMaxTimeout integer "900" now
+Settings POP3CMinTimeout integer "30" now
+Settings POP3DMaxTimeout integer "600" now
+Settings POP3DMinTimeout integer "10" now
+Settings PasswordHashIterations integer "0" now
+Settings PasswordHashMemoryKB integer "0" now
+Settings PasswordHashTimeCost integer "0" now
+Settings PasswordPepper string "" now
+Settings PasswordPolicyHistoryCount integer "0" now
+Settings PasswordPolicyMaximumAgeDays integer "0" now
+Settings PasswordPolicyMinimumLength integer "0" now
+Settings PasswordPolicyRejectCommon integer "0" now
+Settings PasswordPolicyRequireDigit integer "0" now
+Settings PasswordPolicyRequireMixedCase integer "0" now
+Settings PasswordPolicyRequireNonAlphanumeric integer "0" now
+Settings Pop3LoginDelaySeconds integer "0" now
+Settings PreferredHashAlgorithm integer "4" now
+Settings ProtectStoredSecretsWithDPAPI integer "1" now
+Settings QuarantineEnabled integer "0" now
+Settings QuarantineRetentionDays integer "30" now
+Settings QueueRandomnessMinutes integer "0" now
+Settings QuickRetries integer "0" now
+Settings QuickRetriesMinutes integer "6" now
+Settings QuotaWarningPercent integer "90" now
+Settings ReceivedSpfHeaderEnabled integer "0" now
+Settings RejectFullMailboxAtRcpt integer "1" now
+Settings RestApiBindAddress string "127.0.0.1" reinitialize
+Settings RestApiCertificateFile string "" reinitialize
+Settings RestApiPort integer "0" reinitialize
+Settings RestApiPrivateKeyFile string "" reinitialize
+Settings RewriteEnvelopeFromWhenForwarding integer "0" now
+Settings SAMaxTimeout integer "90" now
+Settings SAMinTimeout integer "30" now
+Settings SAMoveVsCopy integer "0" now
+Settings SMTPCMaxTimeout integer "600" now
+Settings SMTPCMinTimeout integer "30" now
+Settings SMTPDMaxSizeDrop integer "0" now
+Settings SMTPDMaxTimeout integer "1800" now
+Settings SMTPDMinTimeout integer "10" now
+Settings SMTPProxyProtocolEnabled integer "0" now
+Settings SMTPProxyProtocolTrustedIPs string "" now
+Settings SMTPXClientEnabled integer "0" now
+Settings SMTPXClientTrustedIPs string "" now
+Settings SRSEnabled integer "0" now
+Settings SRSSecret string "" now
+Settings ScheduledBackupIntervalMinutes integer "0" now
+Settings ScheduledBackupKeepCount integer "0" now
+Settings ScheduledBackupMaxAgeDays integer "0" now
+Settings ScheduledBackupTime string "" now
+Settings ScriptAllowedObjects string "*" now
+Settings ScriptTimeout integer "60" now
+Settings SepSvcLogs integer "0" now
+Settings ServiceAccountName string "" restart
+Settings ServiceAccountPassword string "" restart
+Settings ShutdownDrainSeconds integer "0" now
+Settings SimulateDatabaseFailureFor string "" now
+Settings SimulateSpoolWriteFailure integer "0" now
+Settings SlowQueryLogMilliseconds integer "0" now
+Settings SmtpAuthenticatedSenderCheck integer "0" now
+Settings SmtpTarpitCount integer "0" now
+Settings SmtpTarpitDelaySeconds integer "0" now
+Settings SpamAssassinLearnOnMove integer "0" now
+Settings SpamAssassinUser string "" now
+Settings SpamAssassinUserFromRecipient integer "0" now
+Settings SpfVoidLookupLimit integer "2" now
+Settings TlsCipherSuites13 string "" reinitialize
+Settings TlsKeyExchangeGroups string "X25519MLKEM768:SecP256r1MLKEM768:X25519:secp384r1:secp256r1" reinitialize
+Settings TlsRptFromAddress string "" now
+Settings TlsRptOrganizationName string "hMailServer" now
+Settings TlsSessionCacheSize integer "0" reinitialize
+Settings TlsSessionTicketsEnabled integer "1" reinitialize
+Settings TlsSessionTimeoutSeconds integer "0" reinitialize
+Settings TlsTicketKeyRotationSeconds integer "0" reinitialize
+Settings UpdateAutoDownload integer "0" now
+Settings UpdateBackupBeforeApply integer "1" now
+Settings UpdateChannel string "stable" now
+Settings UpdateCheckEnabled integer "0" now
+Settings UpdateCheckHours integer "24" now
+Settings UpdateFeedUrl string "" now
+Settings UpdateLogPublicKeyFile string "" now
+Settings UpdateRequireAuthenticode integer "0" now
+Settings UpdateServiceWaitSeconds integer "180" now
+Settings UpdateSigningIdentity string "" now
+Settings UpdateSigningIssuer string "" now
+Settings UpdateSourceRepository string "" now
+Settings UpdateTrustRootsFile string "" now
+Settings UpdateWindow string "" now
+Settings UseDNSCache integer "1" now
+Settings WebServicesBindAddress string "0.0.0.0" reinitialize
+Settings WebServicesCertificateFile string "" reinitialize
+Settings WebServicesHttpPort integer "0" reinitialize
+Settings WebServicesHttpsPort integer "0" reinitialize
+Settings WebServicesPrivateKeyFile string "" reinitialize
+Settings WebServicesTrustedProxies string "" now
+Settings WindowsEventLogEnabled integer "1" now
+Settings WindowsEventLogLevel integer "2" now

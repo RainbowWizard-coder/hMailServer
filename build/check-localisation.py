@@ -114,6 +114,7 @@ LOCALISED = {
    "Services/PathPicker.cs",
    "Services/PasswordStrength.cs",
    "Services/ServerSession.cs",
+   "Services/SettingApplies.cs",
    "Services/HostReachability.cs",
    "Services/WelcomeIntents.cs",
    "Services/IntentIndex.cs",

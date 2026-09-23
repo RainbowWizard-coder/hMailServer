@@ -202,6 +202,15 @@ namespace HM
       SchemaUpgraderTester schemaUpgraderTester;
       schemaUpgraderTester.Test();
 
+      // The settings block swapped under load: a thousand publishes and more while
+      // this thread reads a String getter ten thousand times, every read one of the
+      // two values; a save of a key marked now in effect when it returns and told to
+      // its subscriber once; a key marked reinitialize held at its running value and
+      // pending until the stored value is put back (docs/SettingsApply.md).
+      OutputDebugString(_T("hMailServer: Testing IniFileSettings\n"));
+      IniFileSettingsTester iniFileSettingsTester;
+      iniFileSettingsTester.Test();
+
       OutputDebugString(_T("hMailServer: Testing DisclaimerAdder\n"));
       DisclaimerAdderTester disclaimerAdderTester;
       disclaimerAdderTester.Test();

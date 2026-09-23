@@ -147,6 +147,17 @@ all of that lives and its header is the reference. The file keeps `[Directories]
 administrator is let in without one, and the language list that is read before it is
 open.
 
+**A save of a setting publishes it.** Since 22 September 2026 the values those keys
+are read into are one immutable block (`IniFileSettings::Values`) swapped atomically,
+and a write to the store reloads and publishes it: a key marked `now` in
+`build/ini-settings-baseline.txt` is in effect when the save returns, one marked
+`reinitialize` (a listener, a TLS context, a work queue's size) waits for a
+reinitialise, one marked `restart` for the service to start again, and the server
+lists what waits (`GET /api/v1/server/settings/pending`). A subsystem that copies a
+value when the servers start subscribes and re-latches it
+(`IniFileSettings::Subscribe`). A new getter returns a copy, never a reference into
+the block. `docs/SettingsApply.md` has the marks, the inventory and the reasons.
+
 **A new server-wide setting goes in `hm_settings`, not in the file.** That is the
 rule from 15 September 2026, written in `.github/CONTRIBUTING.md` and held by
 `build/check-ini-coverage.py` against the committed baseline

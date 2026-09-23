@@ -109,17 +109,19 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
-      /// The sentence after a save. hMailServer.ini is read when the service
-      /// starts, so an INI-backed row does not take effect until it is restarted -
-      /// the sentence says so rather than claiming everything applied.
+      /// The sentence after a save. A save publishes (docs/SettingsApply.md), so a
+      /// row kept in the settings store applies as a COM row does unless the server
+      /// marks its key reinitialize or restart and lists it as pending; waiting is
+      /// how many of this save's keys it lists, and the sentence claims exactly
+      /// that - no restart nobody needs, and no effect that has not happened.
       /// </summary>
-      public static string SaveSentence(int saved, int failed, string timeText, bool iniWritten)
+      public static string SaveSentence(int saved, int failed, string timeText, int waiting)
       {
          if (failed > 0)
             return F("Saved {0} settings, {1} could not be written.", saved, failed);
 
-         string appliedNote = iniWritten
-            ? L(" - server settings applied immediately; hMailServer.ini settings apply after a service restart.")
+         string appliedNote = waiting > 0
+            ? F(" - {0} of them wait for a reinitialize or a restart; the rest applied immediately.", waiting)
             : L(" - applied immediately.");
 
          return F("Saved {0} settings at {1}", saved, timeText ?? "") + appliedNote;

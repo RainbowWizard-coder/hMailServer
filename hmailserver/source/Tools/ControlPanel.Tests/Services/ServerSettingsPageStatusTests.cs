@@ -78,17 +78,21 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Fact]
       public void TheSaveSentenceCountsTheWritesAndPromisesOnlyWhatApplied()
       {
-         string all = ServerSettingsPageStatus.SaveSentence(18, 0, "14:20:00", iniWritten: false);
+         // Nothing the server lists as pending: everything applied, and no
+         // restart is promised or asked for - a save publishes.
+         string all = ServerSettingsPageStatus.SaveSentence(18, 0, "14:20:00", waiting: 0);
          Assert.Contains("18", all);
          Assert.Contains("14:20:00", all);
          Assert.DoesNotContain("restart", all);
+         Assert.DoesNotContain("reinitialize", all);
 
-         // An INI-backed row is read when the service starts, so the sentence
-         // must not claim it applied.
-         string ini = ServerSettingsPageStatus.SaveSentence(18, 0, "14:20:00", iniWritten: true);
-         Assert.Contains("restart", ini);
+         // Keys the server marks reinitialize or restart and lists as pending: the
+         // sentence says how many wait, and must not claim they applied.
+         string waiting = ServerSettingsPageStatus.SaveSentence(18, 0, "14:20:00", waiting: 2);
+         Assert.Contains("2 of them wait", waiting);
+         Assert.Contains("reinitialize", waiting);
 
-         string partial = ServerSettingsPageStatus.SaveSentence(16, 2, "14:20:00", iniWritten: true);
+         string partial = ServerSettingsPageStatus.SaveSentence(16, 2, "14:20:00", waiting: 1);
          Assert.Contains("16", partial);
          Assert.Contains("2", partial);
          Assert.DoesNotContain("14:20:00", partial);

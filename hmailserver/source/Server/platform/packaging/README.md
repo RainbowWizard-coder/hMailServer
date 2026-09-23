@@ -211,10 +211,11 @@ and both keep its owner and mode: `--set-admin-password` (step 4 below) and
 `--set-setting` (step 7). The service reads it and, since schema 6042, also
 tries to keep the `[Settings]` section in step with the settings store in the
 database; on this layout it cannot write the file, so a setting changed later
-over the REST API or with `hmctl` is stored, and applies at the next start or
-reload, but its line in the file lags, and the error log says so (`HM5806` when
-it is stored, `HM5803` at each start after) until the file is writable by the
-service. See *What is still owed*.
+over the REST API or with `hmctl` is stored, and applies when it is saved (or
+waits for a reinitialise or a restart, for the keys
+[SettingsApply.md](../../../../docs/SettingsApply.md) lists), but its line in the
+file lags, and the error log says so (`HM5806` when it is stored, `HM5803` at each
+start after) until the file is writable by the service. See *What is still owed*.
 
 ## Install and get running
 
@@ -635,8 +636,9 @@ when the packaging changes.
 * **The service cannot write its copy of the settings.** The configuration is
   `root:hmailserver 0640` and the server runs as `hmailserver`, so every
   `[Settings]` change made over the REST API or with `hmctl` is stored, and
-  applies at the next start or reload, but is reported (`HM5806`, then `HM5803`
-  at each start) because the line in the file cannot be brought up to date.
+  applies when it is saved (or waits for a reinitialise or a restart, as
+  SettingsApply.md lists), but is reported (`HM5806`, then `HM5803` at each
+  start) because the line in the file cannot be brought up to date.
   `--set-setting` sidesteps it by running as root. Making the file
   group-writable would end the reports and let the service rewrite a file that
   holds the database password; the choice has not been made.

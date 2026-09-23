@@ -30,6 +30,12 @@ namespace HM
       DateTime GetNextRunTime() const;
       void SetNextRunTime();
 
+      // A new period taken from now, as a start takes it, rather than from the run
+      // that was due: for a period changed while the server runs, so that a shorter
+      // one does not first wait out the rest of the longer. The caller holds the
+      // scheduler's lock (Scheduler::SetTaskInterval).
+      void RestartPeriod(int minutes);
+
    private:
 
       Reoccurance reoccurance_;

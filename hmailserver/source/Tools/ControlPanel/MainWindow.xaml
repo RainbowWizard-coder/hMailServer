@@ -29,6 +29,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <ui:TitleBar Grid.Row="0" Title="{loc:L 'hMailServer Control Panel'}" ShowMaximize="True" ShowMinimize="True">
@@ -337,6 +338,25 @@
                                   AutomationProperties.AutomationId="tour-overlay"
                                   AutomationProperties.Name="{loc:L 'Tour'}" />
         </Grid>
+
+        <!-- The pending bar, at the foot of the window: the saved settings the
+             server is not running on yet (docs/SettingsApply.md) - a key marked
+             reinitialize or restart, saved since what applies it last happened -
+             and Apply now, which reinitialises for the ones a reinitialise takes.
+             Refreshed on every save through IniFeatureStore, every page entered
+             and every connection; collapsed while nothing waits. -->
+        <Border x:Name="PendingBar" Grid.Row="3" Visibility="Collapsed" Padding="16,6,16,8"
+                BorderThickness="0,1,0,0" BorderBrush="{DynamicResource AppDividerBrush}"
+                AutomationProperties.AutomationId="pending-settings-bar">
+            <DockPanel LastChildFill="True">
+                <ui:Button x:Name="ApplyPendingButton" DockPanel.Dock="Right" Margin="12,0,0,0"
+                           Content="{loc:L '_Apply now'}" Appearance="Primary" VerticalAlignment="Center"
+                           AutomationProperties.AutomationId="apply-pending-settings"
+                           Click="ApplyPending_Click" />
+                <scaffold:InlineNotice x:Name="PendingNotice" Level="Warning" VerticalAlignment="Center"
+                                       AutomationProperties.AutomationId="pending-settings-notice" />
+            </DockPanel>
+        </Border>
 
         <ui:SnackbarPresenter Grid.Row="2" x:Name="RootSnackbar"
                               VerticalAlignment="Bottom" HorizontalAlignment="Center"

@@ -59,11 +59,11 @@ Salvar esta senha fraca mesmo assim?</value>
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> - nenhum ServicePassword é armazenado ou digitado, e uma senha vazia é recusada antes de ser enviada</value>
   </data>
-  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
-    <value> - as configurações do servidor são aplicadas imediatamente; as do hMailServer.ini valem após reiniciar o serviço.</value>
-  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> - mostrado acima como o nome desta máquina</value>
+  </data>
+  <data name=" - {0} of them wait for a reinitialize or a restart; the rest applied immediately." xml:space="preserve">
+    <value> - {0} deles aguardam uma reinicialização completa ou um reinício do serviço; o restante foi aplicado imediatamente.</value>
   </data>
   <data name=" Also skipped for any recipient domain that has greylisting turned off in its own settings." xml:space="preserve">
     <value> Também ignorado para qualquer domínio destinatário que tenha o greylisting desligado nas próprias configurações.</value>
@@ -170,11 +170,11 @@ Salvar esta senha fraca mesmo assim?</value>
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> {0} de {1} mensagens estão indexadas.</value>
   </data>
-  <data name=" — INI settings need a service restart." xml:space="preserve">
-    <value> — as configurações INI precisam de reinício do serviço.</value>
-  </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — aplicado imediatamente.</value>
+  </data>
+  <data name=" — {0} wait for a reinitialize or a restart." xml:space="preserve">
+    <value> — {0} aguardam uma reinicialização completa ou um reinício do serviço.</value>
   </data>
   <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
     <value>"Qualquer um no domínio" significa que o endereço do remetente está em um domínio hospedado neste servidor, o que alguém de fora pode alegar a menos que a lista também exija autenticação. Marque isso abaixo se a lista deve ser restrita a pessoas que fizeram login.</value>
@@ -281,8 +281,8 @@ Salvar esta senha fraca mesmo assim?</value>
   <data name="0 is the shipped default and preserves today's behaviour exactly. 1 never delivers unscanned mail." xml:space="preserve">
     <value>0 é o padrão de fábrica e preserva exatamente o comportamento atual. 1 nunca entrega e-mails não verificados.</value>
   </data>
-  <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess. Applies after a service restart." xml:space="preserve">
-    <value>0 é o padrão de fábrica. 2 é um começo razoável: uma senha digitada errado custa a uma pessoa dois segundos uma vez, e a um cliente de password spraying dois, quatro, seis... segundos por tentativa. Vale após reiniciar o serviço.</value>
+  <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
+    <value>0 é o padrão de fábrica. 2 é um começo razoável: uma senha digitada errado custa a uma pessoa dois segundos uma vez, e a um cliente de password spraying dois, quatro, seis... segundos por tentativa.</value>
   </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 mantém a entrada até ela ser removida.</value>
@@ -509,8 +509,8 @@ Salvar esta senha fraca mesmo assim?</value>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
     <value>Uma mensagem com pontuação {0} ou mais é recusada (550 antes do corpo, 554 depois). Nada é marcado.</value>
   </data>
-  <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log. Applies after a service restart." xml:space="preserve">
-    <value>Uma mensagem para dez caixas locais é gravada uma vez e recebe dez links em vez de ser copiada dez vezes, o que é a diferença entre uma gravação em disco e dez para uma mensagem grande enviada a uma lista de distribuição. Precisa do diretório de dados em NTFS; se o link não puder ser criado, o servidor copia o arquivo e diz isso no log SMTP. Vale após reiniciar o serviço.</value>
+  <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log." xml:space="preserve">
+    <value>Uma mensagem para dez caixas locais é gravada uma vez e recebe dez links em vez de ser copiada dez vezes, o que é a diferença entre uma gravação em disco e dez para uma mensagem grande enviada a uma lista de distribuição. Precisa do diretório de dados em NTFS; se o link não puder ser criado, o servidor copia o arquivo e diz isso no log SMTP.</value>
   </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Um aplicativo de administração moderno para o hMailServer: painel ao vivo, domínios e contas, fila de entrega, transmissão de logs, todas as configurações do servidor e os recursos de segurança de transporte da 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
@@ -1106,6 +1106,12 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Advanced" xml:space="preserve">
     <value>Avançado</value>
   </data>
+  <data name="After a restart" xml:space="preserve">
+    <value>Após reiniciar o serviço</value>
+  </data>
+  <data name="After reinitialize" xml:space="preserve">
+    <value>Após reinicializar</value>
+  </data>
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
     <value>Após o corpo ser recebido — uma recusa aqui é um 554</value>
   </data>
@@ -1241,20 +1247,20 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="An alias points one address at another without needing a second mailbox." xml:space="preserve">
     <value>Um alias aponta um endereço para outro sem precisar de uma segunda caixa.</value>
   </data>
-  <data name="An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case. Applies after a service restart." xml:space="preserve">
-    <value>Um arquivo geralmente é mantido por um motivo legal ou contratual, e esse motivo geralmente se aplica a domínios específicos e não a todos os que este servidor hospeda. Com uma lista aqui, uma mensagem só é arquivada quando seu remetente local ou um de seus destinatários pertence a um domínio listado, e só as cópias dos domínios listados são feitas - um destinatário listado ainda recebe sua cópia quando o domínio do remetente não está listado. Comparado sem distinguir maiúsculas. Vale após reiniciar o serviço.</value>
+  <data name="An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case." xml:space="preserve">
+    <value>Um arquivo geralmente é mantido por um motivo legal ou contratual, e esse motivo geralmente se aplica a domínios específicos e não a todos os que este servidor hospeda. Com uma lista aqui, uma mensagem só é arquivada quando seu remetente local ou um de seus destinatários pertence a um domínio listado, e só as cópias dos domínios listados são feitas - um destinatário listado ainda recebe sua cópia quando o domínio do remetente não está listado. Comparado sem distinguir maiúsculas.</value>
   </data>
   <data name="An authenticated session may only send as an address its account owns or has been granted" xml:space="preserve">
     <value>Uma sessão autenticada só pode enviar como um endereço que sua conta possui ou que lhe foi concedido</value>
   </data>
-  <data name="An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all. All three apply after a service restart." xml:space="preserve">
-    <value>Um banimento automático é aplicado pelos próprios listeners do servidor: o sistema operacional aceita o endereço, entrega-o ao servidor e o servidor o descarta. Estas configurações levam o banimento ao firewall do sistema operacional, entregam-no a um programa seu e nomeiam os endereços que nunca devem ser banidos. As três valem após reiniciar o serviço.</value>
+  <data name="An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all." xml:space="preserve">
+    <value>Um banimento automático é aplicado pelos próprios listeners do servidor: o sistema operacional aceita o endereço, entrega-o ao servidor e o servidor o descarta. Estas configurações levam o banimento ao firewall do sistema operacional, entregam-no a um programa seu e nomeiam os endereços que nunca devem ser banidos.</value>
   </data>
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>Uma sessão inteira de entrega de saída. 0 = sem limite.</value>
   </data>
-  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects. Applies after a service restart." xml:space="preserve">
-    <value>Um script de evento roda dentro do servidor com os direitos da conta de serviço, então o que ele pode instanciar é uma decisão de segurança, e não uma conveniência. Como distribuído, isto é *, que permite qualquer objeto, para que uma atualização nunca quebre um script que uma instalação já executa - é a configuração a restringir, não o estado seguro. Nomeie apenas o que algum script seu realmente precisa - um objeto de sistema de arquivos de script, um cliente HTTP - e todo o resto é recusado, com o nome do objeto no log de erros; vazio recusa tudo além dos objetos do próprio hMailServer. Vale após reiniciar o serviço.</value>
+  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
+    <value>Um script de evento roda dentro do servidor com os direitos da conta de serviço, então o que ele pode instanciar é uma decisão de segurança, e não uma conveniência. Como distribuído, isto é *, que permite qualquer objeto, para que uma atualização nunca quebre um script que uma instalação já executa - é a configuração a restringir, não o estado seguro. Nomeie apenas o que algum script seu realmente precisa - um objeto de sistema de arquivos de script, um cliente HTTP - e todo o resto é recusado, com o nome do objeto no log de erros; vazio recusa tudo além dos objetos do próprio hMailServer.</value>
   </data>
   <data name="An external scanner process. 0 = no bound." xml:space="preserve">
     <value>Um processo de verificação externo. 0 = sem limite.</value>
@@ -1371,6 +1377,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="Applies at the next service restart or Reinitialize. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>Passa a valer na próxima reinicialização do serviço ou ao reinicializar. Os arquivos de log não mudam: isto envia uma cópia, não move nada. Sem um host coletor abaixo, um servidor sob systemd no Linux grava no journal - no Linux, portanto, esta única chave é toda a configuração.</value>
   </data>
+  <data name="Applies on save" xml:space="preserve">
+    <value>Vale ao salvar</value>
+  </data>
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
     <value>Vale somente enquanto o processamento de retornos estiver ativado. Um relatório só é contado quando cita uma mensagem que este servidor realmente entregou a esse destinatário, chegou de fora sem autenticação e passou por SPF e DMARC onde eles são registrados - mas qualquer pessoa que recebeu a mesma mensagem poderia forjar um para outro destinatário visível. Desativado, os relatórios não são lidos; as recusas encontradas durante a entrega continuam sendo contadas.</value>
   </data>
@@ -1389,8 +1398,8 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="Archive in the backup destination (_name or path)" xml:space="preserve">
     <value>Arquivo no destino do backup (_nome ou caminho)</value>
   </data>
-  <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after. Applies after a service restart." xml:space="preserve">
-    <value>ArchiveDir é uma cópia bruta de toda mensagem que passa pelo servidor, e até agora nada jamais removia algo dela - então num servidor ocupado é um diretório que só cresce, e o administrador que descobre é aquele cujo disco lotou. Isto o poda. 0 mantém tudo, e é o padrão de propósito: um arquivo geralmente é mantido por um motivo legal ou contratual, e um servidor que começasse a apagar dele na atualização destruiria exatamente o que foi mandado guardar. A varredura só remove arquivos .eml, então qualquer outra coisa que você guarde no arquivo é deixada em paz, e ela roda na inicialização e a cada doze horas depois. Vale após reiniciar o serviço.</value>
+  <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
+    <value>ArchiveDir é uma cópia bruta de toda mensagem que passa pelo servidor, e até agora nada jamais removia algo dela - então num servidor ocupado é um diretório que só cresce, e o administrador que descobre é aquele cujo disco lotou. Isto o poda. 0 mantém tudo, e é o padrão de propósito: um arquivo geralmente é mantido por um motivo legal ou contratual, e um servidor que começasse a apagar dele na atualização destruiria exatamente o que foi mandado guardar. A varredura só remove arquivos .eml, então qualquer outra coisa que você guarde no arquivo é deixada em paz, e ela roda na inicialização e a cada doze horas depois.</value>
   </data>
   <data name="Archives to kee_p (0 = keep all)" xml:space="preserve">
     <value>Arquivos a _manter (0 = manter todos)</value>
@@ -1587,14 +1596,8 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>Intervalo de backup em minutos (0 = desligado)</value>
   </data>
-  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
-    <value>Agendamento de backup salvo - o serviço lê estas configurações quando inicia, então elas valem após reiniciar o serviço.</value>
-  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>Agendamento de backup salvo.</value>
-  </data>
-  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
-    <value>Configurações de backup salvas - a opção de apenas metadados das mensagens vale após reiniciar o serviço.</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>Configurações de backup salvas.</value>
@@ -1815,8 +1818,8 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
     <value>Não é possível dizer se um agendamento está configurado: o hMailServer.ini não foi encontrado nesta máquina. Verifique ScheduledBackupTime e ScheduledBackupIntervalMinutes no próprio servidor.</value>
   </data>
-  <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0. Applies after a service restart." xml:space="preserve">
-    <value>Tetos para um único IMAP SEARCH ou SORT, medidos a partir do início da busca, para que um cliente buscando em uma caixa postal muito grande não possa ocupar uma conexão indefinidamente. Se usuários com caixas postais grandes relatarem buscas que falham ou não retornam nada, estes são os dois a aumentar. Cada metade pode ser desligada por conta própria definindo-a como 0. Vale após reiniciar o serviço.</value>
+  <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
+    <value>Tetos para um único IMAP SEARCH ou SORT, medidos a partir do início da busca, para que um cliente buscando em uma caixa postal muito grande não possa ocupar uma conexão indefinidamente. Se usuários com caixas postais grandes relatarem buscas que falham ou não retornam nada, estes são os dois a aumentar. Cada metade pode ser desligada por conta própria definindo-a como 0.</value>
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these live in the [SendingLimits] and [SendingLimitsOverrides] sections of hMailServer.INI and are re-read within a couple of seconds of the file changing - saving here applies them WITHOUT a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Tetos para o que uma conta autenticada pode enviar ao longo de um período móvel - o freio contra uma conta comprometida usada para enviar spam. Contados por conta no envio SMTP: mensagens e destinatários de envelope separadamente, e uma mensagem recusada pelo limite recebe um erro temporário para que um cliente real tente de novo mais tarde. Diferente do resto desta página, estes ficam nas seções [SendingLimits] e [SendingLimitsOverrides] do hMailServer.INI e são relidos em poucos segundos após o arquivo mudar - salvar aqui os aplica SEM reiniciar o serviço. Os contadores sobrevivem a um reinício por meio de um arquivo de estado no diretório de dados.</value>
@@ -1869,8 +1872,8 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="Change the language" xml:space="preserve">
     <value>Alterar o idioma</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal. Applies after a service restart." xml:space="preserve">
-    <value>Muda o que acontece no limite de exclusão. Desligado, uma mensagem acima dele é recusada durante a conversa SMTP com um 550 e o remetente é avisado. Ligado, ela é aceita com um 250 e retida para revisão - o remetente acredita que foi entregue e não tentará de novo, o que é o que torna um falso positivo recuperável sem devolver para um caminho de retorno que provavelmente é forjado, e também significa que a fila de revisão passa a ser o único lugar onde essa mensagem existe. Vale para as verificações que rodam depois que o corpo da mensagem foi recebido; um veredito alcançado antes disso (um IP conectando que está em lista negra, um HELO ruim) não tem mensagem para reter e continua sendo uma recusa. Vale após reiniciar o serviço.</value>
+  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>Muda o que acontece no limite de exclusão. Desligado, uma mensagem acima dele é recusada durante a conversa SMTP com um 550 e o remetente é avisado. Ligado, ela é aceita com um 250 e retida para revisão - o remetente acredita que foi entregue e não tentará de novo, o que é o que torna um falso positivo recuperável sem devolver para um caminho de retorno que provavelmente é forjado, e também significa que a fila de revisão passa a ser o único lugar onde essa mensagem existe. Vale para as verificações que rodam depois que o corpo da mensagem foi recebido; um veredito alcançado antes disso (um IP conectando que está em lista negra, um HELO ruim) não tem mensagem para reter e continua sendo uma recusa.</value>
   </data>
   <data name="Changing two-factor authentication settings requires administrator rights. Restart the Control Panel as an administrator and try again." xml:space="preserve">
     <value>Alterar as configurações de autenticação de dois fatores exige direitos de administrador. Reinicie o Control Panel como administrador e tente de novo.</value>
@@ -2455,6 +2458,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Não foi possível ler {0}: {1}</value>
+  </data>
+  <data name="Could not reinitialize: {0}" xml:space="preserve">
+    <value>Não foi possível reinicializar: {0}</value>
   </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>Não foi possível remover a ação: {0}</value>
@@ -3497,8 +3503,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Cada verificação na ordem em que o servidor as executa, sua pontuação, e o que o total faz com a mensagem.</value>
   </data>
-  <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series. Applies after a service restart." xml:space="preserve">
-    <value>Todo contador que o endpoint de métricas expõe é de todo o servidor, que é o que impede as métricas de virarem relatórios: dá para ver quanto e-mail o servidor tratou, nunca quanto cada domínio tratou. Isto acrescenta uma contagem de mensagens enviadas e recebidas por domínio hospedado. Vem desligado por padrão, e isso é uma decisão de cardinalidade e não de cautela - cada valor de rótulo é uma série temporal separada no que quer que faça a coleta, então um operador que hospeda vários milhares de domínios deve escolher pagar por isso em vez de descobrir depois. Só os domínios que este servidor hospeda chegam a ser rotulados, então nenhuma quantidade de e-mail de estranhos pode criar séries. Vale após reiniciar o serviço.</value>
+  <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
+    <value>Todo contador que o endpoint de métricas expõe é de todo o servidor, que é o que impede as métricas de virarem relatórios: dá para ver quanto e-mail o servidor tratou, nunca quanto cada domínio tratou. Isto acrescenta uma contagem de mensagens enviadas e recebidas por domínio hospedado. Vem desligado por padrão, e isso é uma decisão de cardinalidade e não de cautela - cada valor de rótulo é uma série temporal separada no que quer que faça a coleta, então um operador que hospeda vários milhares de domínios deve escolher pagar por isso em vez de descobrir depois. Só os domínios que este servidor hospeda chegam a ser rotulados, então nenhuma quantidade de e-mail de estranhos pode criar séries.</value>
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>Todos os eventos do id de fila {0}, do mais antigo ao mais recente.</value>
@@ -3764,8 +3770,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>Para cada certificado cujo arquivo de chave seja um PEM criptografado, defina a senha da chave privada do certificado na página Certificados SSL (a frase secreta foi definida por quem criou a chave, então só você pode fornecê-la) - ou substitua o arquivo por uma chave não criptografada.</value>
   </data>
-  <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it. Applies after a service restart." xml:space="preserve">
-    <value>Por exemplo http://127.0.0.1:11333/checkv2. Por enquanto apenas HTTP simples, então o mecanismo deve estar nesta máquina ou em uma rede em que você confie - a mensagem inteira é enviada a ele. Vale após reiniciar o serviço.</value>
+  <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
+    <value>Por exemplo http://127.0.0.1:11333/checkv2. Por enquanto apenas HTTP simples, então o mecanismo deve estar nesta máquina ou em uma rede em que você confie - a mensagem inteira é enviada a ele.</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Para o modo de busca: uma conta de serviço com permissão para ler o diretório. Qualquer conta comum do domínio pode, por padrão; ela não precisa de nenhum outro direito.</value>
@@ -3788,8 +3794,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Forwarding" xml:space="preserve">
     <value>Encaminhamento</value>
   </data>
-  <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set. Changes take effect after a service restart." xml:space="preserve">
-    <value>Encaminhar uma mensagem preserva o remetente do envelope original, então o próximo salto verifica o SPF de um domínio que nunca autorizou este servidor e a mensagem falha. Estas são as duas respostas. O SRS reescreve o remetente do envelope para um que este servidor pode avalizar e desfazer no caminho de volta, de modo que os bounces ainda chegam ao remetente original; o BATV marca o remetente do envelope dos e-mails de saída para que um bounce forjado - um para uma mensagem que este servidor nunca enviou - possa ser distinguido de um real. Ambos usam um segredo de todo o servidor e não fazem absolutamente nada até que um seja definido. As alterações valem após reiniciar o serviço.</value>
+  <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set." xml:space="preserve">
+    <value>Encaminhar uma mensagem preserva o remetente do envelope original, então o próximo salto verifica o SPF de um domínio que nunca autorizou este servidor e a mensagem falha. Estas são as duas respostas. O SRS reescreve o remetente do envelope para um que este servidor pode avalizar e desfazer no caminho de volta, de modo que os bounces ainda chegam ao remetente original; o BATV marca o remetente do envelope dos e-mails de saída para que um bounce forjado - um para uma mensagem que este servidor nunca enviou - possa ser distinguido de um real. Ambos usam um segredo de todo o servidor e não fazem absolutamente nada até que um seja definido.</value>
   </data>
   <data name="Forwarding breaks SPF, because the envelope sender changes, and often breaks DKIM, because the body is modified - so a mailing list or a forwarded mailbox can turn a message that passed DMARC at the sender into one that fails it here. A valid ARC chain (RFC 8617) from a forwarder you trust carries the original result, and this cancels exactly the DMARC failure score, never more. It needs 'Evaluate DMARC policies' above to be on, since it only ever offsets a penalty that test adds." xml:space="preserve">
     <value>O encaminhamento quebra o SPF, porque o remetente do envelope muda, e frequentemente quebra o DKIM, porque o corpo é modificado - então uma lista de discussão ou uma caixa encaminhada pode transformar uma mensagem que passou no DMARC na origem em uma que falha aqui. Uma cadeia ARC válida (RFC 8617) de um encaminhador em que você confia carrega o resultado original, e isto cancela exatamente a pontuação de falha do DMARC, nunca mais que isso. Precisa que 'Avaliar as políticas DMARC' acima esteja ligado, já que só compensa uma penalidade que essa verificação adiciona.</value>
@@ -4058,8 +4064,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Como as entradas chegam ao coletor</value>
   </data>
-  <data name="How long a connection may sit idle before it is closed, per protocol, in seconds. &quot;Server&quot; is hMailServer accepting a connection from a mail client or another mail server; &quot;client&quot; is hMailServer connecting out to deliver mail or to fetch it from an external POP3 account. The effective timeout moves between the minimum and the maximum with server load, so a busy server drops idle connections sooner. Applies after a service restart." xml:space="preserve">
-    <value>Por quanto tempo uma conexão pode ficar ociosa antes de ser fechada, por protocolo, em segundos. "Servidor" é o hMailServer aceitando uma conexão de um cliente de e-mail ou de outro servidor de e-mail; "cliente" é o hMailServer conectando para fora para entregar e-mails ou para coletá-los de uma conta POP3 externa. O tempo limite efetivo se move entre o mínimo e o máximo conforme a carga do servidor, então um servidor ocupado derruba conexões ociosas mais cedo. Vale após reiniciar o serviço.</value>
+  <data name="How long a connection may sit idle before it is closed, per protocol, in seconds. &quot;Server&quot; is hMailServer accepting a connection from a mail client or another mail server; &quot;client&quot; is hMailServer connecting out to deliver mail or to fetch it from an external POP3 account. The effective timeout moves between the minimum and the maximum with server load, so a busy server drops idle connections sooner." xml:space="preserve">
+    <value>Por quanto tempo uma conexão pode ficar ociosa antes de ser fechada, por protocolo, em segundos. "Servidor" é o hMailServer aceitando uma conexão de um cliente de e-mail ou de outro servidor de e-mail; "cliente" é o hMailServer conectando para fora para entregar e-mails ou para coletá-los de uma conta POP3 externa. O tempo limite efetivo se move entre o mínimo e o máximo conforme a carga do servidor, então um servidor ocupado derruba conexões ociosas mais cedo.</value>
   </data>
   <data name="How long a counted failure is kept, rather than a sliding window: a housekeeping pass running once a minute deletes failure records older than this - and only while auto-ban is enabled." xml:space="preserve">
     <value>Por quanto tempo uma falha contabilizada é mantida, em vez de uma janela deslizante: uma passagem de manutenção que roda uma vez por minuto exclui os registros de falha mais antigos que isto - e só enquanto o banimento automático estiver ativado.</value>
@@ -4088,8 +4094,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Como os e-mails entram, para onde vão em seguida, e o que acontece com eles no caminho.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>Como os usuários das caixas provam quem são: provedores de identidade externos, como as senhas são armazenadas, e onde o SMTP AUTH é oferecido (hMailServer.INI). As alterações valem após reiniciar o serviço.</value>
+  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI)." xml:space="preserve">
+    <value>Como os usuários das caixas provam quem são: provedores de identidade externos, como as senhas são armazenadas, e onde o SMTP AUTH é oferecido (hMailServer.INI).</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Quantas conexões de banco de dados o servidor mantém abertas e compartilha entre suas threads de trabalho. Aumentar isto só ajuda quando as threads estão visivelmente esperando por uma conexão - veja o tempo limite de obtenção de conexão de banco de dados na página Limites do servidor e configurações avançadas, que é o que elas estão esperando.</value>
@@ -4121,14 +4127,14 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="How the password is proved" xml:space="preserve">
     <value>Como a senha é comprovada</value>
   </data>
-  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes. Applies after a service restart." xml:space="preserve">
-    <value>Como o servidor decide que mail.example.com e example.com pertencem à mesma organização, que é o que o alinhamento relaxado padrão do DMARC compara. A resposta antiga era a Public Suffix List - um arquivo com as regras de delegação de cada registro, compilado no programa e atualizado em tempo de compilação. O DMARCbis a substituiu por uma subida pela árvore do DNS perguntando a cada nível se ele é um limite organizacional, de modo que o dono de um domínio pode declarar onde fica o seu limite em vez de peticionar a uma lista. Desligar isto recorre à lista compilada, que é também o que acontece com qualquer consulta isolada que a subida não consiga completar porque o DNS estava indisponível - uma indisponibilidade do resolvedor não pode transformar silenciosamente o alinhamento relaxado em estrito. Custa até oito consultas DNS por domínio, com cache de cinco minutos. Vale após reiniciar o serviço.</value>
+  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
+    <value>Como o servidor decide que mail.example.com e example.com pertencem à mesma organização, que é o que o alinhamento relaxado padrão do DMARC compara. A resposta antiga era a Public Suffix List - um arquivo com as regras de delegação de cada registro, compilado no programa e atualizado em tempo de compilação. O DMARCbis a substituiu por uma subida pela árvore do DNS perguntando a cada nível se ele é um limite organizacional, de modo que o dono de um domínio pode declarar onde fica o seu limite em vez de peticionar a uma lista. Desligar isto recorre à lista compilada, que é também o que acontece com qualquer consulta isolada que a subida não consiga completar porque o DNS estava indisponível - uma indisponibilidade do resolvedor não pode transformar silenciosamente o alinhamento relaxado em estrito. Custa até oito consultas DNS por domínio, com cache de cinco minutos.</value>
   </data>
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Como o servidor usa o banco de dados para o qual já está configurado. ONDE esse banco de dados está - o servidor, o nome, as credenciais e o tipo - é definido pelo assistente de instalação e deliberadamente não é editável aqui, porque um valor errado ali impede o servidor de iniciar em vez de deixá-lo mais lento. Vale após reiniciar o serviço.</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>Como este servidor resolve as consultas de MX, PTR, SPF, DKIM, DMARC e listas negras (hMailServer.INI). As alterações valem após reiniciar o serviço.</value>
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
+    <value>Como este servidor resolve as consultas de MX, PTR, SPF, DKIM, DMARC e listas negras (hMailServer.INI).</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (e-mail push)</value>
@@ -4357,8 +4363,8 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Keep" xml:space="preserve">
     <value>Manter</value>
   </data>
-  <data name="Keep greylisting active during the record-expiration window (restart required)" xml:space="preserve">
-    <value>Manter o greylisting ativo durante a janela de expiração do registro (requer reinício)</value>
+  <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
+    <value>Manter o greylisting ativo durante a janela de expiração do registro</value>
   </data>
   <data name="Keep log files open (performance)" xml:space="preserve">
     <value>Manter os arquivos de log abertos (desempenho)</value>
@@ -4498,8 +4504,8 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>Permite que o Outlook, o Thunderbird e clientes móveis se configurem sozinhos a partir apenas de um endereço de e-mail, buscando as URLs de configuração deste servidor.</value>
   </data>
-  <data name="Lets a client ask for the rest of the session to be compressed, which is worth most on a slow or metered link where a large mailbox listing is mostly repeated text. On by default; a client that does not ask is unaffected. Applies after a service restart." xml:space="preserve">
-    <value>Permite que um cliente peça que o resto da sessão seja comprimido, o que vale mais em um link lento ou tarifado, onde a listagem de uma caixa grande é, em sua maior parte, texto repetido. Ligado por padrão; um cliente que não pede não é afetado. Vale após reiniciar o serviço.</value>
+  <data name="Lets a client ask for the rest of the session to be compressed, which is worth most on a slow or metered link where a large mailbox listing is mostly repeated text. On by default; a client that does not ask is unaffected." xml:space="preserve">
+    <value>Permite que um cliente peça que o resto da sessão seja comprimido, o que vale mais em um link lento ou tarifado, onde a listagem de uma caixa grande é, em sua maior parte, texto repetido. Ligado por padrão; um cliente que não pede não é afetado.</value>
   </data>
   <data name="Lets clients log on with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install." xml:space="preserve">
     <value>Permite que clientes façam login com tokens portadores de um provedor de identidade em vez de senhas; tokens só são aceitos se a assinatura deles for verificada contra o material de chave que você instalar.</value>
@@ -4714,8 +4720,8 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="MX query" xml:space="preserve">
     <value>Consulta MX</value>
   </data>
-  <data name="Machine-readable output for log shippers. Applies after a service restart." xml:space="preserve">
-    <value>Saída legível por máquina para coletores de log. Vale após reiniciar o serviço.</value>
+  <data name="Machine-readable output for log shippers." xml:space="preserve">
+    <value>Saída legível por máquina para coletores de log.</value>
   </data>
   <data name="Mail clients send through the submission port, and without TLS their passwords cross the network in the clear." xml:space="preserve">
     <value>Clientes de e-mail enviam pela porta de envio, e sem TLS as senhas deles cruzam a rede em texto claro.</value>
@@ -4863,9 +4869,6 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="Max parallel external POP3 fetch threads" xml:space="preserve">
     <value>Máx. de threads paralelas de coleta POP3 externa</value>
-  </data>
-  <data name="Max parallel external POP3 fetch threads (restart required)" xml:space="preserve">
-    <value>Máx. de threads paralelas de coleta POP3 externa (requer reinício)</value>
   </data>
   <data name="Max recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>Máx. de destinatários por conta por período (0 = sem limite)</value>
@@ -5127,8 +5130,8 @@ Nada do que já está lá é removido.</value>
   <data name="Move signing for {0} to the next key now?" xml:space="preserve">
     <value>Passar agora a assinatura de {0} para a próxima chave?</value>
   </data>
-  <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
-    <value>Mover o arquivo da mensagem para o SpamAssassin em vez de copiá-lo (requer reinício)</value>
+  <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
+    <value>Mover o arquivo da mensagem para o SpamAssassin em vez de copiá-lo</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Mover a janela numa retentativa que chega cedo demais</value>
@@ -5139,8 +5142,8 @@ Nada do que já está lá é removido.</value>
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>Mover para pasta IMAP</value>
   </data>
-  <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves. Applies after a service restart." xml:space="preserve">
-    <value>Mover uma mensagem para a pasta designada como Junk a reporta ao sa-learn como spam, e tirar uma de lá a reporta como ham, de modo que o filtro aprende com o que as pessoas já fazem em vez de com um ritual separado que ninguém cumpre. Desligado por padrão: ele executa o sa-learn a cada movimentação, e um usuário que arquiva newsletters na Junk está ensinando ao filtro que newsletters são spam para todos que o verificador atende. Vale após reiniciar o serviço.</value>
+  <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
+    <value>Mover uma mensagem para a pasta designada como Junk a reporta ao sa-learn como spam, e tirar uma de lá a reporta como ham, de modo que o filtro aprende com o que as pessoas já fazem em vez de com um ritual separado que ninguém cumpre. Desligado por padrão: ele executa o sa-learn a cada movimentação, e um usuário que arquiva newsletters na Junk está ensinando ao filtro que newsletters são spam para todos que o verificador atende.</value>
   </data>
   <data name="Must be an absolute URL, as above." xml:space="preserve">
     <value>Deve ser uma URL absoluta, como acima.</value>
@@ -5712,8 +5715,8 @@ Nada do que já está lá é removido.</value>
   <data name="Off" xml:space="preserve">
     <value>Desligado</value>
   </data>
-  <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing. Applies after a service restart." xml:space="preserve">
-    <value>Desligado por padrão porque custa uma tabela de termos de alguns kilobytes por mensagem e uma passagem de preenchimento retroativo sobre todas as mensagens já entregues - uma decisão do administrador, nunca de uma atualização. Os resultados são idênticos ligado ou desligado: o índice apenas reduz quais mensagens a varredura de substring precisa ler. Exige que a indexação de mensagens (acima) esteja ativada; sozinho, isto não indexa nada. Vale após reiniciar o serviço.</value>
+  <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
+    <value>Desligado por padrão porque custa uma tabela de termos de alguns kilobytes por mensagem e uma passagem de preenchimento retroativo sobre todas as mensagens já entregues - uma decisão do administrador, nunca de uma atualização. Os resultados são idênticos ligado ou desligado: o índice apenas reduz quais mensagens a varredura de substring precisa ler. Exige que a indexação de mensagens (acima) esteja ativada; sozinho, isto não indexa nada.</value>
   </data>
   <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
     <value>Desligado por padrão, e inerte quando desligado: contas vinculadas ao diretório são então validadas do jeito antigo, pelo login do Windows. Quando ligado, as mesmas contas - aquelas com a aba Diretório preenchida - passam a ser validadas por um vínculo LDAP contra o servidor abaixo. Contas sem diretório nunca são afetadas de nenhum dos dois modos.</value>
@@ -5742,8 +5745,8 @@ Nada do que já está lá é removido.</value>
   <data name="Off by default: a full mailbox is usually emptied, and listing it would stop mail to somebody who reads it next week." xml:space="preserve">
     <value>Desativado por padrão: uma caixa cheia costuma ser esvaziada, e listá-la impediria mensagens para alguém que vai lê-la na semana que vem.</value>
   </data>
-  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that. Applies after a service restart." xml:space="preserve">
-    <value>Desligado, e desligado é o que a RFC 8301 exige: ela removeu o rsa-sha1 do DKIM por completo, então um assinante não deve usá-lo e um verificador deve tratar como inválida uma assinatura que o use. Uma assinatura DKIM é uma afirmação de identidade e o alinhamento DMARC é construído sobre ela, e colisões de SHA-1 são práticas desde 2020 - uma assinatura que alguém pode forjar vale menos do que nenhuma assinatura, porque leva o domínio do assinante através de uma verificação DMARC alinhada. Ligar isto restaura as duas metades: assinaturas que o usam voltam a ser verificadas, e um domínio configurado para assinar com ele passa a fazê-lo em vez de ser elevado para rsa-sha256. Chaves menores que 1024 bits são recusadas de qualquer forma, e esta configuração não afeta isso. Vale após reiniciar o serviço.</value>
+  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that." xml:space="preserve">
+    <value>Desligado, e desligado é o que a RFC 8301 exige: ela removeu o rsa-sha1 do DKIM por completo, então um assinante não deve usá-lo e um verificador deve tratar como inválida uma assinatura que o use. Uma assinatura DKIM é uma afirmação de identidade e o alinhamento DMARC é construído sobre ela, e colisões de SHA-1 são práticas desde 2020 - uma assinatura que alguém pode forjar vale menos do que nenhuma assinatura, porque leva o domínio do assinante através de uma verificação DMARC alinhada. Ligar isto restaura as duas metades: assinaturas que o usam voltam a ser verificadas, e um domínio configurado para assinar com ele passa a fazê-lo em vez de ser elevado para rsa-sha256. Chaves menores que 1024 bits são recusadas de qualquer forma, e esta configuração não afeta isso.</value>
   </data>
   <data name="Off. Directory-linked accounts are validated through Windows logon (LogonUser), which only works when this host is joined to the domain - every failure there looks like a wrong password." xml:space="preserve">
     <value>Desligado. Contas vinculadas ao diretório são validadas pelo login do Windows (LogonUser), que só funciona quando este host está ingressado no domínio - toda falha ali parece uma senha errada.</value>
@@ -5763,8 +5766,8 @@ Nada do que já está lá é removido.</value>
   <data name="On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches YOUR directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
     <value>Ligado por padrão, e só um 0 explícito no INI o desliga. Desligado, a conexão criptografada deixa de provar que alcança o SEU diretório: qualquer um que consiga interceptá-la pode apresentar qualquer certificado e coletar todas as senhas enviadas por ela. O servidor anota essa desativação no log de aplicativo uma vez por inicialização do serviço. Só faz sentido para LDAPS e StartTLS.</value>
   </data>
-  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is. Applies after a service restart." xml:space="preserve">
-    <value>Ligado por padrão, e a única opção aqui cujo padrão não é o cauteloso. Com ele desligado, uma mensagem para uma caixa que já está acima da cota é aceita e depois respondida com um relatório de não entrega endereçado ao remetente do envelope - que o tráfego que enche as caixas mais rápido forjou. Esse relatório então vai deste servidor para alguém que não enviou nada, o que é backscatter, e é a reputação deste servidor que paga por isso. Recusar no RCPT TO com um 452 temporário, em vez disso, deixa a mensagem na fila do servidor remetente, então o e-mail de um remetente legítimo espera a caixa ser esvaziada e acaba sendo reportado pela máquina que sabe quem o remetente realmente é. Vale após reiniciar o serviço.</value>
+  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is." xml:space="preserve">
+    <value>Ligado por padrão, e a única opção aqui cujo padrão não é o cauteloso. Com ele desligado, uma mensagem para uma caixa que já está acima da cota é aceita e depois respondida com um relatório de não entrega endereçado ao remetente do envelope - que o tráfego que enche as caixas mais rápido forjou. Esse relatório então vai deste servidor para alguém que não enviou nada, o que é backscatter, e é a reputação deste servidor que paga por isso. Recusar no RCPT TO com um 452 temporário, em vez disso, deixa a mensagem na fila do servidor remetente, então o e-mail de um remetente legítimo espera a caixa ser esvaziada e acaba sendo reportado pela máquina que sabe quem o remetente realmente é.</value>
   </data>
   <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
     <value>Ao parar, aguardar até N segundos para que as sessões ativas terminem (0 = parar imediatamente)</value>
@@ -5799,8 +5802,8 @@ Nada do que já está lá é removido.</value>
   <data name="OnAcceptMessage → webhook (SIEM / Slack / Teams)" xml:space="preserve">
     <value>OnAcceptMessage → webhook (SIEM / Slack / Teams)</value>
   </data>
-  <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off. Applies after a service restart." xml:space="preserve">
-    <value>Uma vez por minuto o servidor grava uma linha por métrica - sessões, mensagens processadas, entregues, adiadas e devolvidas, spam e vírus, resultados de autenticação e de TLS, arquivos de mensagem ausentes - em hm_metricsamples, e as guarda por esta quantidade de dias. É o que as visões de 24 horas, 7 dias e 30 dias do painel e o GET /api/v1/metrics/history leem. Uma semana de histórico com resolução de minuto são cerca de cento e quarenta mil linhas pequenas. 0 desliga o amostrador. Vale após reiniciar o serviço.</value>
+  <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off." xml:space="preserve">
+    <value>Uma vez por minuto o servidor grava uma linha por métrica - sessões, mensagens processadas, entregues, adiadas e devolvidas, spam e vírus, resultados de autenticação e de TLS, arquivos de mensagem ausentes - em hm_metricsamples, e as guarda por esta quantidade de dias. É o que as visões de 24 horas, 7 dias e 30 dias do painel e o GET /api/v1/metrics/history leem. Uma semana de histórico com resolução de minuto são cerca de cento e quarenta mil linhas pequenas. 0 desliga o amostrador.</value>
   </data>
   <data name="One configured port is not being listened on: " xml:space="preserve">
     <value>Uma porta configurada não está sendo escutada: </value>
@@ -6021,8 +6024,8 @@ Nada do que já está lá é removido.</value>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Entrega de saída, novas tentativas e limitação de taxa. Manter o e-mail encaminhado alinhado com SPF (SRS) e a marcação de devoluções (BATV) ficam na página Segurança de transporte.</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>Políticas de autenticação e criptografia do e-mail de saída (hMailServer.INI). As alterações valem após reiniciar o serviço.</value>
+  <data name="Outbound mail authentication and encryption policies (hMailServer.INI)." xml:space="preserve">
+    <value>Políticas de autenticação e criptografia do e-mail de saída (hMailServer.INI).</value>
   </data>
   <data name="Override DNS server (empty = the name servers Windows uses)" xml:space="preserve">
     <value>Substituir o servidor DNS (vazio = os servidores de nomes que o Windows usa)</value>
@@ -6075,8 +6078,8 @@ Nada do que já está lá é removido.</value>
   <data name="POP3 conversations to syslog" xml:space="preserve">
     <value>Conversas POP3 para o syslog</value>
   </data>
-  <data name="POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses logins that arrive early with a code the client understands as &quot;slow down&quot; rather than as a wrong password. Applies after a service restart." xml:space="preserve">
-    <value>O POP3 não dá ao servidor nenhuma forma de avisar um cliente de que chegou e-mail, então os clientes que querem parecer ágeis ficam consultando - e alguns consultam a cada poucos segundos. Cada consulta é uma nova conexão, um handshake TLS e uma verificação de senha, que com Argon2id é deliberadamente cara, de modo que um punhado de clientes ansiosos pode custar mais do que o próprio e-mail. Definir um atraso informa aos clientes o intervalo na lista de capacidades do servidor e recusa os logins que chegam cedo demais com um código que o cliente entende como "vá mais devagar", e não como senha errada. Vale após reiniciar o serviço.</value>
+  <data name="POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses logins that arrive early with a code the client understands as &quot;slow down&quot; rather than as a wrong password." xml:space="preserve">
+    <value>O POP3 não dá ao servidor nenhuma forma de avisar um cliente de que chegou e-mail, então os clientes que querem parecer ágeis ficam consultando - e alguns consultam a cada poucos segundos. Cada consulta é uma nova conexão, um handshake TLS e uma verificação de senha, que com Argon2id é deliberadamente cara, de modo que um punhado de clientes ansiosos pode custar mais do que o próprio e-mail. Definir um atraso informa aos clientes o intervalo na lista de capacidades do servidor e recusa os logins que chegam cedo demais com um código que o cliente entende como "vá mais devagar", e não como senha errada.</value>
   </data>
   <data name="POP3 or IMAP mailboxes hMailServer collects mail from on behalf of this account. Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143." xml:space="preserve">
     <value>Caixas POP3 ou IMAP das quais o hMailServer coleta e-mails em nome desta conta. A segurança da conexão e a porta andam juntas: SSL/TLS na 995 (POP3) ou 993 (IMAP), STARTTLS na 110 ou 143.</value>
@@ -6464,8 +6467,8 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Restaurar {0} ao valor que tinha antes desta alteração? A restauração é registrada como uma alteração própria.</value>
   </data>
-  <data name="QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer. Applies after a service restart." xml:space="preserve">
-    <value>Clientes QRESYNC e CONDSTORE perguntam o que sumiu enquanto estavam fora, em vez de relistar a pasta. O servidor responde a partir de uma tabela de registros de EXPUNGE, podada para os N mais recentes a cada doze horas e uma vez no início do serviço. Um cliente cuja última sincronização é mais antiga que o histórico retido recebe uma ressincronização completa - nunca uma resposta errada. Vale após reiniciar o serviço.</value>
+  <data name="QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer." xml:space="preserve">
+    <value>Clientes QRESYNC e CONDSTORE perguntam o que sumiu enquanto estavam fora, em vez de relistar a pasta. O servidor responde a partir de uma tabela de registros de EXPUNGE, podada para os N mais recentes a cada doze horas e uma vez no início do serviço. Um cliente cuja última sincronização é mais antiga que o histórico retido recebe uma ressincronização completa - nunca uma resposta errada.</value>
   </data>
   <data name="QUOTA" xml:space="preserve">
     <value>QUOTA</value>
@@ -6509,8 +6512,8 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="REST listener settings…" xml:space="preserve">
     <value>Configurações do ouvinte REST…</value>
   </data>
-  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take. Applies after a service restart." xml:space="preserve">
-    <value>RFC 7208 4.6.4. Uma "void lookup" é um termo da política SPF de um remetente - um a:, mx: ou exists: - cuja consulta DNS volta sem absolutamente nada. O limite separado de dez termos que consultam o DNS delimita o que uma política pode pedir a este servidor para consultar; ele não delimita o que uma política pode desperdiçar, e dez termos nomeando hosts que não existem custam uma resolução completa cada um por um registro que nunca poderá corresponder. Dois é o que a RFC diz. Isso também pega o caso comum: uma política que ainda lista hosts desativados anos atrás, sobre o que o dono dela preferiria ser avisado. Aumentar o valor é seguro; 0 desliga o limite, que é a configuração para um correspondente cuja política está errada exatamente dessa forma e cujo e-mail você prefere aceitar. Vale após reiniciar o serviço.</value>
+  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
+    <value>RFC 7208 4.6.4. Uma "void lookup" é um termo da política SPF de um remetente - um a:, mx: ou exists: - cuja consulta DNS volta sem absolutamente nada. O limite separado de dez termos que consultam o DNS delimita o que uma política pode pedir a este servidor para consultar; ele não delimita o que uma política pode desperdiçar, e dez termos nomeando hosts que não existem custam uma resolução completa cada um por um registro que nunca poderá corresponder. Dois é o que a RFC diz. Isso também pega o caso comum: uma política que ainda lista hosts desativados anos atrás, sobre o que o dono dela preferiria ser avisado. Aumentar o valor é seguro; 0 desliga o limite, que é a configuração para um correspondente cuja política está errada exatamente dessa forma e cujo e-mail você prefere aceitar.</value>
   </data>
   <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred." xml:space="preserve">
     <value>A resposta que a própria RFC 7208 dá a uma verificação que não pôde ser concluída: tente de novo quando o DNS funcionar. A transação é adiada com 451 4.4.3 e a pontuação de temperror acima é ignorada, porque uma mensagem adiada nunca é aceita. Desligado, um temperror é aceito e pontuado. Um remetente da lista branca de domínios nunca é adiado.</value>
@@ -6678,14 +6681,14 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   <data name="Record a queryable message trace" xml:space="preserve">
     <value>Registrar um rastreamento de mensagens consultável</value>
   </data>
-  <data name="Record expiration interval, minutes (restart required)" xml:space="preserve">
-    <value>Intervalo de expiração dos registros, minutos (requer reinício)</value>
+  <data name="Record expiration interval, minutes" xml:space="preserve">
+    <value>Intervalo de expiração dos registros, minutos</value>
   </data>
   <data name="Record type: TXT.  Host/Name" xml:space="preserve">
     <value>Tipo do registro: TXT.  Host/Nome</value>
   </data>
-  <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom. Applies after a service restart." xml:space="preserve">
-    <value>Grava uma linha consultável para cada entrega, recusa e quarentena, de modo que "o que aconteceu com a mensagem que a Jane enviou às 14:20" possa ser respondido por uma busca em vez de um grep nos logs. Os eventos são os mesmos que o diário do AWStats sempre viu; isto lhes dá um lugar onde possam ser interrogados. Desligado por padrão, porque armazena endereços de remetente e de destinatário - o que faz dele um registro de quem se corresponde com quem. Vale após reiniciar o serviço.</value>
+  <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
+    <value>Grava uma linha consultável para cada entrega, recusa e quarentena, de modo que "o que aconteceu com a mensagem que a Jane enviou às 14:20" possa ser respondido por uma busca em vez de um grep nos logs. Os eventos são os mesmos que o diário do AWStats sempre viu; isto lhes dá um lugar onde possam ser interrogados. Desligado por padrão, porque armazena endereços de remetente e de destinatário - o que faz dele um registro de quem se corresponde com quem.</value>
   </data>
   <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam page for it to appear." xml:space="preserve">
     <value>Registra o veredito SPF de cada mensagem de entrada aceita como um cabeçalho Received-SPF (RFC 7208 seção 9.1). O cabeçalho só é gravado quando a verificação SPF de fato rodou, então 'Verificar SPF' precisa estar ativado na página Anti-spam para que ele apareça.</value>
@@ -6755,6 +6758,15 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   </data>
   <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and point OAuth2PublicKeyFile in hMailServer.ini at it (or set OAuth2HmacSecret for HS256). Set OAuth2Issuer and OAuth2Audience to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
     <value>Registre este servidor como uma aplicação no provedor de identidade, baixe a chave pública de assinatura do provedor como um arquivo PEM e aponte OAuth2PublicKeyFile no hMailServer.ini para ele (ou defina OAuth2HmacSecret para HS256). Defina OAuth2Issuer e OAuth2Audience com os valores que o provedor coloca nos tokens dele, ou a validação os rejeitará.</value>
+  </data>
+  <data name="Reinitialize the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
+    <value>Reinicializar o servidor agora? Todos os serviços param e voltam a iniciar no mesmo processo, então os clientes conectados são desconectados e se reconectam.</value>
+  </data>
+  <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
+    <value>Reinicializado - as configurações salvas estão valendo.</value>
+  </data>
+  <data name="Reinitializing the server..." xml:space="preserve">
+    <value>Reinicializando o servidor...</value>
   </data>
   <data name="Reject empty sender addresses (MAIL FROM:&lt;&gt;)" xml:space="preserve">
     <value>Rejeitar endereços de remetente vazios (MAIL FROM:&lt;&gt;)</value>
@@ -7407,11 +7419,17 @@ Continuar?</value>
   <data name="Saved at {0}." xml:space="preserve">
     <value>Salvo às {0}.</value>
   </data>
+  <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
+    <value>Salvo: {0} - todas as configurações desta página estão valendo.</value>
+  </data>
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>Salvo: {0} - reinicie o serviço para aplicar.</value>
   </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>Salvo: {0} - o servidor detecta isso em até dois segundos. Não é preciso reiniciar o serviço.</value>
+  </data>
+  <data name="Saved {0} - {1} setting(s) wait for a reinitialize; Apply now, in the bar at the foot of the window, takes them." xml:space="preserve">
+    <value>Salvo: {0} - {1} configuração(ões) aguardam uma reinicialização completa; Aplicar agora, na barra no rodapé da janela, as aplica.</value>
   </data>
   <data name="Saved {0} settings" xml:space="preserve">
     <value>{0} configurações salvas</value>
@@ -7773,14 +7791,14 @@ Continuar?</value>
   <data name="Sends daily aggregate reports about TLS connection failures to recipient domains (RFC 8460)." xml:space="preserve">
     <value>Envia relatórios agregados diários sobre falhas de conexão TLS aos domínios destinatários (RFC 8460).</value>
   </data>
-  <data name="Sends the commands of a transaction without waiting for each answer, which removes a round trip per recipient - the difference is largest on a slow link or to a distant server. Used only with a server that advertises it. Applies after a service restart." xml:space="preserve">
-    <value>Envia os comandos de uma transação sem esperar por cada resposta, o que elimina uma ida e volta por destinatário - a diferença é maior em um link lento ou para um servidor distante. Usado apenas com um servidor que o anuncia. Vale após reiniciar o serviço.</value>
+  <data name="Sends the commands of a transaction without waiting for each answer, which removes a round trip per recipient - the difference is largest on a slow link or to a distant server. Used only with a server that advertises it." xml:space="preserve">
+    <value>Envia os comandos de uma transação sem esperar por cada resposta, o que elimina uma ida e volta por destinatário - a diferença é maior em um link lento ou para um servidor distante. Usado apenas com um servidor que o anuncia.</value>
   </data>
   <data name="Sends the daily aggregate reports that domains ask for with a rua= tag in their DMARC record (RFC 7489) - who sent mail claiming to be them, and whether it passed. Reports only go to an address outside the policy domain when that address's own DNS says it wants them, so a domain cannot use its DMARC record to aim this server's reports at somebody else." xml:space="preserve">
     <value>Envia os relatórios agregados diários que os domínios pedem com uma tag rua= no seu registro DMARC (RFC 7489) - quem enviou e-mails alegando ser eles, e se passaram. Os relatórios só vão para um endereço fora do domínio da política quando o DNS desse próprio endereço diz que os quer, de modo que um domínio não pode usar seu registro DMARC para apontar os relatórios deste servidor a outra pessoa.</value>
   </data>
-  <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME. Applies after a service restart." xml:space="preserve">
-    <value>Envia a mensagem como blocos contados em vez do DATA com escape de ponto. É também o que leva adiante uma mensagem binária sem reescrevê-la: uma mensagem aceita como BINARYMIME só pode ser retransmitida como chegou para um servidor que ofereça tanto isto quanto BINARYMIME. Vale após reiniciar o serviço.</value>
+  <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME." xml:space="preserve">
+    <value>Envia a mensagem como blocos contados em vez do DATA com escape de ponto. É também o que leva adiante uma mensagem binária sem reescrevê-la: uma mensagem aceita como BINARYMIME só pode ser retransmitida como chegou para um servidor que ofereça tanto isto quanto BINARYMIME.</value>
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Envia o endereço do destinatário como o cabeçalho User:, para que o spamd aplique as preferências da própria caixa - o formato que um spamd de usuários virtuais (--virtual-config-dir com %u ou %d) espera. Uma verificação roda uma vez por mensagem, e não uma vez por destinatário, então uma mensagem para várias pessoas não pode ser verificada sob as preferências de nenhuma delas e usa o perfil acima.</value>
@@ -7878,8 +7896,8 @@ Continuar?</value>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature." xml:space="preserve">
     <value>Tetos de todo o servidor, durabilidade e controles contra abuso que não pertencem a nenhum protocolo ou recurso específico.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason. Stored in hMailServer.INI, and unless a card says otherwise, changes take effect after a service restart." xml:space="preserve">
-    <value>Tetos de todo o servidor, durabilidade e controles contra abuso que não pertencem a nenhum protocolo ou recurso específico. Os padrões são seguros; altere-os apenas com um motivo específico. Armazenados em hMailServer.INI e, a menos que um cartão diga o contrário, as alterações passam a valer após reiniciar o serviço.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
+    <value>Tetos de todo o servidor, durabilidade e controles contra abuso que não pertencem a nenhum protocolo ou recurso específico. Os padrões são seguros; altere-os apenas com um motivo específico.</value>
   </data>
   <data name="Server-wide defaults, keeping copies of mail and the scripting engine." xml:space="preserve">
     <value>Padrões de todo o servidor, guardar cópias dos e-mails e o mecanismo de scripts.</value>
@@ -7914,8 +7932,8 @@ Continuar?</value>
   <data name="Services" xml:space="preserve">
     <value>Serviços</value>
   </data>
-  <data name="Session caching and session tickets let a returning client skip the full handshake. At the defaults these four settings make no OpenSSL call at all, so resumption keeps OpenSSL's stock behaviour - they are here for administrators who need to bound how long a resumption secret stays useful. Applies after a service restart." xml:space="preserve">
-    <value>O cache de sessões e os tickets de sessão permitem que um cliente que retorna pule o handshake completo. Nos padrões, estas quatro configurações não fazem nenhuma chamada ao OpenSSL, então a retomada mantém o comportamento de fábrica do OpenSSL - elas estão aqui para administradores que precisam limitar por quanto tempo um segredo de retomada continua útil. Vale após reiniciar o serviço.</value>
+  <data name="Session caching and session tickets let a returning client skip the full handshake. At the defaults these four settings make no OpenSSL call at all, so resumption keeps OpenSSL's stock behaviour - they are here for administrators who need to bound how long a resumption secret stays useful." xml:space="preserve">
+    <value>O cache de sessões e os tickets de sessão permitem que um cliente que retorna pule o handshake completo. Nos padrões, estas quatro configurações não fazem nenhuma chamada ao OpenSSL, então a retomada mantém o comportamento de fábrica do OpenSSL - elas estão aqui para administradores que precisam limitar por quanto tempo um segredo de retomada continua útil.</value>
   </data>
   <data name="Session resumption" xml:space="preserve">
     <value>Retomada de sessão</value>
@@ -7983,8 +8001,8 @@ Continuar?</value>
   <data name="Settings" xml:space="preserve">
     <value>Configurações</value>
   </data>
-  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Configurações salvas. O serviço hMailServer precisa ser reiniciado para que as alterações passem a valer.
+  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>Configurações salvas. {0} delas só passam a valer quando o serviço hMailServer reiniciar.
 
 Reiniciá-lo agora?</value>
   </data>
@@ -8273,8 +8291,8 @@ Reiniciá-lo agora?</value>
   <data name="Stored in hMailServer.INI exactly as typed - the DPAPI switch above does not cover it, and there is nowhere else for the Service Control Manager's registration step to read it from. That is the strongest reason to use NT SERVICE\hMailServer or a group managed service account instead: neither has a password to store. If you do set one here, clear it again once the registration has been run - the SCM keeps its own copy from then on." xml:space="preserve">
     <value>Armazenado em hMailServer.INI exatamente como digitado - a opção DPAPI acima não o cobre, e não há outro lugar de onde a etapa de registro do Gerenciador de Controle de Serviços possa lê-lo. Esse é o motivo mais forte para usar NT SERVICE\hMailServer ou uma conta de serviço gerenciada de grupo em vez disso: nenhuma das duas tem senha a armazenar. Se você definir uma aqui, apague-a de novo assim que o registro tiver sido executado - a partir daí o SCM mantém a própria cópia.</value>
   </data>
-  <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays. The service reads them when it starts, so changes here apply after a service restart." xml:space="preserve">
-    <value>Armazenado em hMailServer.ini como ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount e ScheduledBackupMaxAgeDays. O serviço os lê ao iniciar, então as alterações feitas aqui valem após reiniciar o serviço.</value>
+  <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays." xml:space="preserve">
+    <value>Armazenado em hMailServer.ini como ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount e ScheduledBackupMaxAgeDays.</value>
   </data>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>Armazenado em hMailServer.ini no servidor. O token que ele obtém fica em cache na memória até que 80% do seu tempo de vida tenha passado, e é buscado de novo automaticamente.</value>
@@ -8710,8 +8728,8 @@ A próxima mensagem para esse endereço será enviada, e ele só volta à lista 
   <data name="The bounce and error texts the server sends are editable templates." xml:space="preserve">
     <value>Os textos de devolução e de erro que o servidor envia são modelos editáveis.</value>
   </data>
-  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>O ouvinte HTTP embutido que serve a autoconfiguração de clientes de e-mail e as políticas MTA-STS dos seus domínios locais (hMailServer.INI). As alterações passam a valer após reiniciar o serviço.</value>
+  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI)." xml:space="preserve">
+    <value>O ouvinte HTTP embutido que serve a autoconfiguração de clientes de e-mail e as políticas MTA-STS dos seus domínios locais (hMailServer.INI).</value>
   </data>
   <data name="The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges." xml:space="preserve">
     <value>O ouvinte HTTP embutido: Autodiscover, autoconfig, a política MTA-STS e os desafios ACME.</value>
@@ -8817,8 +8835,8 @@ Selecione a chave acima e copie-a à mão - ela não será mostrada de novo.</va
   <data name="The delivery queue lists what is waiting and why." xml:space="preserve">
     <value>A fila de entrega lista o que está esperando e por quê.</value>
   </data>
-  <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know. Applies after a service restart." xml:space="preserve">
-    <value>A entrega que leva uma caixa além desta porcentagem produz um aviso à pessoa dona da caixa, vindo do postmaster do próprio domínio dela. UM, não um por mensagem: o servidor trata o limiar como algo que a caixa ATRAVESSA e não como um estado em que ela está, então uma caixa parada em 95% não é avisada de novo a cada entrega - o que a encheria mais rápido do que o e-mail enche. Esvaziar a caixa e enchê-la de novo avisa de novo, que é o comportamento que qualquer um esperaria e que aqui sai de graça, em vez de ser algo que precisasse ser lembrado e expirado. Ligado por padrão, porque a alternativa é o que este servidor fazia antes: não dizer nada até que o e-mail comece a ser recusado, momento em que a pessoa a quem isso acontece é a última a saber. Vale após reiniciar o serviço.</value>
+  <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know." xml:space="preserve">
+    <value>A entrega que leva uma caixa além desta porcentagem produz um aviso à pessoa dona da caixa, vindo do postmaster do próprio domínio dela. UM, não um por mensagem: o servidor trata o limiar como algo que a caixa ATRAVESSA e não como um estado em que ela está, então uma caixa parada em 95% não é avisada de novo a cada entrega - o que a encheria mais rápido do que o e-mail enche. Esvaziar a caixa e enchê-la de novo avisa de novo, que é o comportamento que qualquer um esperaria e que aqui sai de graça, em vez de ser algo que precisasse ser lembrado e expirado. Ligado por padrão, porque a alternativa é o que este servidor fazia antes: não dizer nada até que o e-mail comece a ser recusado, momento em que a pessoa a quem isso acontece é a última a saber.</value>
   </data>
   <data name="The directory ACCEPTED the credentials: bound as {0}. This account would log on." xml:space="preserve">
     <value>O diretório ACEITOU as credenciais: vinculado como {0}. Esta conta conseguiria entrar.</value>
@@ -8906,8 +8924,8 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   <data name="The group members could not be read: " xml:space="preserve">
     <value>Os membros do grupo não puderam ser lidos: </value>
   </data>
-  <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark. Applies after a service restart." xml:space="preserve">
-    <value>Os grupos com os quais este servidor vai negociar uma chave TLS, no formato de lista do OpenSSL. Como distribuído, ele oferece primeiro os dois híbridos pós-quânticos e recorre a X25519 e às curvas NIST para um par que não tenha nenhum dos dois, então nada muda para um cliente mais antigo. Uma lista vazia, ou uma que o OpenSSL rejeite ou que não deixaria nenhum grupo habilitado, não é aplicada: o servidor a registra e usa o fallback clássico, então um erro aqui não pode derrubar o TLS - mas ele abre mão dos híbridos em silêncio, e é por isso que a lista distribuída é mostrada em vez de um campo em branco. Mude-a com base em uma varredura, e não no escuro. Vale após reiniciar o serviço.</value>
+  <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
+    <value>Os grupos com os quais este servidor vai negociar uma chave TLS, no formato de lista do OpenSSL. Como distribuído, ele oferece primeiro os dois híbridos pós-quânticos e recorre a X25519 e às curvas NIST para um par que não tenha nenhum dos dois, então nada muda para um cliente mais antigo. Uma lista vazia, ou uma que o OpenSSL rejeite ou que não deixaria nenhum grupo habilitado, não é aplicada: o servidor a registra e usa o fallback clássico, então um erro aqui não pode derrubar o TLS - mas ele abre mão dos híbridos em silêncio, e é por isso que a lista distribuída é mostrada em vez de um campo em branco. Mude-a com base em uma varredura, e não no escuro.</value>
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>O caminho guiado: qual metade, quais linhas de log, e a configuração que limita cada etapa.</value>
@@ -9229,8 +9247,8 @@ Adicionar mesmo assim?</value>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>A senha de administração do servidor, e quem tem permissão para usar estas ferramentas.</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request. Every setting here is in hMailServer.ini and applies after a service restart." xml:space="preserve">
-    <value>O servidor pode detectar uma nova versão, validá-la contra a assinatura Sigstore da própria versão e aplicá-la - com um clique na página Status, ou por conta própria dentro de uma janela que você definir. Desligado até você ligar a verificação; a verificação não envia nada além da requisição. Cada configuração aqui está no hMailServer.ini e vale após reiniciar o serviço.</value>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>O servidor pode detectar uma nova versão, validá-la contra a assinatura Sigstore da própria versão e aplicá-la - com um clique na página Status, ou por conta própria dentro de uma janela que você definir. Desligado até você ligar a verificação; a verificação não envia nada além da requisição.</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>O servidor não enfileirou o envio. Verifique o curinga de endereço e o log de erros do hMailServer.</value>
@@ -9252,8 +9270,11 @@ Quem responde é o resolvedor do próprio servidor - o mesmo que a entrega SMTP 
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>O servidor gera a próxima chave, mostra o registro TXT a publicar, verifica-o com o próprio resolvedor e só passa a assinatura para ela quando o registro tiver sido resolvido durante todo o período de propagação. O seletor antigo é mantido durante o período de retenção e depois aposentado.</value>
   </data>
-  <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep and restart the service." xml:space="preserve">
-    <value>O servidor não mantém histórico: MetricsHistoryDays é 0 no hMailServer.ini. Defina-o com os dias a manter e reinicie o serviço.</value>
+  <data name="The server is draining. A reinitialize ends maintenance mode: the listeners open again and delivery resumes. Reinitialize the server now?" xml:space="preserve">
+    <value>O servidor está sendo drenado. Uma reinicialização completa encerra o modo de manutenção: os listeners voltam a abrir e a entrega é retomada. Reinicializar o servidor agora?</value>
+  </data>
+  <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
+    <value>O servidor não mantém histórico: MetricsHistoryDays é 0 no hMailServer.ini. Defina-o com os dias a manter.</value>
   </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>O servidor lembra quem escreveu para cada conta e para quem cada conta escreveu, e diz isso no leitor na primeira vez que um remetente de fora aparece. Custa uma consulta ao banco de dados para cada mensagem entregue a este domínio, e nada enquanto isto estiver desligado.</value>
@@ -10024,11 +10045,11 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="What rotation defends: OpenSSL's default ticket key is generated once, when the listener starts, and is never rotated, so every ticket that listener issues for the life of the process is sealed under the same key - and that key, recovered later, decrypts every ticket ever recorded. With an interval set, a captured ticket is useless after at most two intervals. 86400 is a day. Only meaningful while session tickets are enabled above." xml:space="preserve">
     <value>O que a rotação defende: a chave de tickets padrão do OpenSSL é gerada uma vez, quando o ouvinte inicia, e nunca é rotacionada, então todo ticket que esse ouvinte emite durante a vida do processo é selado sob a mesma chave - e essa chave, recuperada mais tarde, descriptografa todo ticket já gravado. Com um intervalo definido, um ticket capturado é inútil depois de no máximo dois intervalos. 86400 é um dia. Só faz sentido enquanto os tickets de sessão estiverem ativados acima.</value>
   </data>
-  <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value. Applies after a service restart." xml:space="preserve">
-    <value>O que impede que uma instrução bloqueada em um lock prenda uma thread de trabalho para sempre. Respeitado no momento da conexão por MySQL/MariaDB e PostgreSQL; MS SQL e SQL CE começam nos 30 segundos do próprio ADO e assumem este valor em qualquer conexão que tenha executado um script de atualização ou de manutenção. Esses scripts rodam sob um teto próprio de 30 minutos por instrução, independentemente deste valor. Vale após reiniciar o serviço.</value>
+  <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value." xml:space="preserve">
+    <value>O que impede que uma instrução bloqueada em um lock prenda uma thread de trabalho para sempre. Respeitado no momento da conexão por MySQL/MariaDB e PostgreSQL; MS SQL e SQL CE começam nos 30 segundos do próprio ADO e assumem este valor em qualquer conexão que tenha executado um script de atualização ou de manutenção. Esses scripts rodam sob um teto próprio de 30 minutos por instrução, independentemente deste valor.</value>
   </data>
-  <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are. Applies after a service restart." xml:space="preserve">
-    <value>O que o servidor faz conforme o volume do repositório de mensagens enche. Os dois valores são megabytes absolutos e não porcentagens, porque o que decide se a próxima mensagem cabe é quantos bytes restam, e não que fração do volume eles representam. Vale após reiniciar o serviço.</value>
+  <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
+    <value>O que o servidor faz conforme o volume do repositório de mensagens enche. Os dois valores são megabytes absolutos e não porcentagens, porque o que decide se a próxima mensagem cabe é quantos bytes restam, e não que fração do volume eles representam.</value>
   </data>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>O que o servidor grava em seus arquivos de log (visíveis na página Logs ao vivo).</value>
@@ -10165,8 +10186,8 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="Which services this server runs, connection limits and greetings." xml:space="preserve">
     <value>Quais serviços este servidor executa, limites de conexão e saudações.</value>
   </data>
-  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire. Applies after a service restart." xml:space="preserve">
-    <value>Qual grafia do relatório agregado DMARC sai para os domínios sobre os quais este servidor reporta. 1 é o que todo consumidor de relatórios em uso hoje interpreta; 2 é o DMARCbis, para o dia em que os consumidores tiverem se atualizado. Qualquer outro valor é relatado como erro e tratado como 1, porque um erro de digitação não pode decidir o que vai para a rede. Vale após reiniciar o serviço.</value>
+  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire." xml:space="preserve">
+    <value>Qual grafia do relatório agregado DMARC sai para os domínios sobre os quais este servidor reporta. 1 é o que todo consumidor de relatórios em uso hoje interpreta; 2 é o DMARCbis, para o dia em que os consumidores tiverem se atualizado. Qualquer outro valor é relatado como erro e tratado como 1, porque um erro de digitação não pode decidir o que vai para a rede.</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>Em que sentido</value>
@@ -10255,8 +10276,8 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>Com uma frase secreta definida e a compactação desligada, os arquivos de mensagens são copiados ao lado do arquivo em vez de dentro dele, onde nada os criptografa - e a cópia de segurança se recusa a rodar. Ligue a compactação ou limpe a frase secreta.</value>
   </data>
-  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart." xml:space="preserve">
-    <value>Com isto ligado, o MAIL FROM em uma sessão autenticada precisa ser o próprio endereço da conta, um alias que resolva para ele, ou outra caixa cujo dono tenha concedido à conta o direito de postagem (p) na INBOX dele - que é como o Send-As de uma caixa compartilhada é concedido, pelo editor de ACL de qualquer cliente IMAP (SETACL) ou pela API COM. Qualquer outra coisa é recusada com 550 5.7.1 antes que um byte da mensagem seja aceito, então uma conta comprometida ou descuidada não consegue mais enviar como todas as outras. Desligado por padrão porque nada restringia isso antes e uma instalação pode depender disso; o remetente nulo é sempre permitido. Sessões não autenticadas não são afetadas. Vale após reiniciar o serviço.</value>
+  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
+    <value>Com isto ligado, o MAIL FROM em uma sessão autenticada precisa ser o próprio endereço da conta, um alias que resolva para ele, ou outra caixa cujo dono tenha concedido à conta o direito de postagem (p) na INBOX dele - que é como o Send-As de uma caixa compartilhada é concedido, pelo editor de ACL de qualquer cliente IMAP (SETACL) ou pela API COM. Qualquer outra coisa é recusada com 550 5.7.1 antes que um byte da mensagem seja aceito, então uma conta comprometida ou descuidada não consegue mais enviar como todas as outras. Desligado por padrão porque nada restringia isso antes e uma instalação pode depender disso; o remetente nulo é sempre permitido. Sessões não autenticadas não são afetadas.</value>
   </data>
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>Com isto ligado, a mensagem de ausência própria de uma conta continua respondendo aos colegas, mas remetentes de fora recebem o texto genérico do domínio - assim, detalhes pessoais em uma mensagem de ausência ficam dentro da organização.</value>
@@ -10359,6 +10380,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="_Apply" xml:space="preserve">
     <value>_Aplicar</value>
+  </data>
+  <data name="_Apply now" xml:space="preserve">
+    <value>_Aplicar agora</value>
   </data>
   <data name="_Bind address" xml:space="preserve">
     <value>_Endereço de vínculo</value>
@@ -11083,11 +11107,11 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
     <value>hMailServer.INI não foi encontrado nesta máquina. Estas configurações só podem ser editadas no próprio servidor; o teste de conexão ainda funciona com os valores digitados aqui.</value>
   </data>
-  <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore, after a service restart." xml:space="preserve">
-    <value>Configuração BackupMessagesDBOnly do hMailServer.ini. O backup passa a registrar quais mensagens existem, mas não o conteúdo delas, e uma restauração espera que os arquivos ainda estejam na pasta de dados. Vale para o backup e para a restauração, após reiniciar o serviço.</value>
+  <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
+    <value>Configuração BackupMessagesDBOnly do hMailServer.ini. O backup passa a registrar quais mensagens existem, mas não o conteúdo delas, e uma restauração espera que os arquivos ainda estejam na pasta de dados. Vale para o backup e para a restauração.</value>
   </data>
-  <data name="hMailServer.ini setting BackupVerifyRestore, on by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold. Applies after a service restart." xml:space="preserve">
-    <value>Configuração BackupVerifyRestore do hMailServer.ini, ligada por padrão. Depois que o arquivo compactado é gravado, seu repositório de mensagens é extraído para a pasta temporária pelo mesmo código que uma restauração usa, limitado exatamente aos arquivos que o backup preparou, e cada linha de mensagem é conferida em busca do seu arquivo; o resultado fica no log de backup. O repositório existe duas vezes enquanto isso roda, então desligue-a para um repositório que o volume temporário não comporte. Vale após reiniciar o serviço.</value>
+  <data name="hMailServer.ini setting BackupVerifyRestore, on by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold." xml:space="preserve">
+    <value>Configuração BackupVerifyRestore do hMailServer.ini, ligada por padrão. Depois que o arquivo compactado é gravado, seu repositório de mensagens é extraído para a pasta temporária pelo mesmo código que uma restauração usa, limitado exatamente aos arquivos que o backup preparou, e cada linha de mensagem é conferida em busca do seu arquivo; o resultado fica no log de backup. O repositório existe duas vezes enquanto isso roda, então desligue-a para um repositório que o volume temporário não comporte.</value>
   </data>
   <data name="hMailServer.ini was not found on this machine, so BackupMessagesDBOnly can only be changed on the server itself." xml:space="preserve">
     <value>hMailServer.ini não foi encontrado nesta máquina, então BackupMessagesDBOnly só pode ser alterado no próprio servidor.</value>
@@ -11530,6 +11554,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>o servidor não consegue alcançar seu banco de dados. Verifique a conexão com o banco de dados e o log de erros do hMailServer, e então pressione Recarregar. ({0})</value>
   </data>
+  <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
+    <value>o servidor não informou Em execução em trinta segundos; a página Status mostra o que ele está fazendo.</value>
+  </data>
   <data name="the server is slow" xml:space="preserve">
     <value>o servidor está lento</value>
   </data>
@@ -11901,6 +11928,15 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="{0} samples." xml:space="preserve">
     <value>{0} amostras.</value>
+  </data>
+  <data name="{0} saved setting(s) wait for a reinitialize, and {1} for a service restart." xml:space="preserve">
+    <value>{0} configuração(ões) salva(s) aguardam uma reinicialização completa, e {1} um reinício do serviço.</value>
+  </data>
+  <data name="{0} saved setting(s) wait for a reinitialize." xml:space="preserve">
+    <value>{0} configuração(ões) salva(s) aguardam uma reinicialização completa.</value>
+  </data>
+  <data name="{0} saved setting(s) wait for a service restart." xml:space="preserve">
+    <value>{0} configuração(ões) salva(s) aguardam um reinício do serviço.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} pontua {1} sozinho, o que já atinge {2}, valor a partir do qual o servidor para de testar - então {3} não roda para uma mensagem que ele reprove, e não aparece no log.</value>

@@ -57,6 +57,29 @@ hand:
             check, because a list of what has been changed that compares against
             last month's defaults is worse than no list: it is confidently wrong.
 
+  applies   Every line of the baseline carries a fifth field saying when a
+            change to that key reaches the running server - which is what the
+            server answers as `applies` over REST and COM, what decides whether a
+            stored value is PENDING, and what the Control Panel and the Deck
+            print beside the field. Three words:
+               now           a save applies it: every reader asks for the value
+                             when it uses it, or a subscriber takes the new one
+                             when the store changes;
+               reinitialize  bound into something the servers build when they
+                             start - a listener, a TLS context, a work queue's
+                             size - so it waits for POST /api/v1/server/reinitialize
+                             (or the Control Panel's Reinitialize);
+               restart       read once per process, before the database is open
+                             or where nothing can rebuild it in place, so it waits
+                             for the service to be restarted.
+            A line without one fails with that sentence, and a bootstrap key -
+            [Database], [Directories], [Security], [GUILanguages] - is always
+            restart, since a reload never re-reads it. The mark is not in the
+            source, so --write-baseline keeps the marks the file already has.
+            The check proves its own negative control on every run: an unmarked
+            line and a bootstrap line marked now are fed to the line parser and
+            must be refused.
+
 Exits 1 listing what is missing.
 """
 import json
@@ -220,33 +243,109 @@ def control_panel_text():
    return "\n".join(parts)
 
 
-def read_baseline():
-   """The committed baseline, as {(section, key): (kind, default)}.
+MARKS = ("now", "reinitialize", "restart")
 
-   Four fields to a line - section, key, kind, default - with the default JSON
+MARK_SENTENCE = (
+   "Every line ends with when a change to the key reaches the running server: "
+   "now (a save applies it - every reader asks for the value when it uses it, or a "
+   "subscriber takes the new one), reinitialize (it is bound into something the servers "
+   "build when they start - a listener, a TLS context, a work queue's size - and waits "
+   "for POST /api/v1/server/reinitialize) or restart (it is read once per process, "
+   "before the database is open or where nothing can rebuild it in place, and waits "
+   "for the service to be restarted). Decide it from the code that reads the key and "
+   "say why in hmailserver/docs/SettingsApply.md.")
+
+
+def parse_line(line):
+   """One baseline line, as (section, key, kind, default, mark), or a problem.
+
+   Five fields - section, key, kind, default, applies - with the default JSON
    encoded, so that an empty one is a token rather than a missing column and one
    that ever holds a space, a quote or a character outside ASCII survives the
-   round trip."""
+   round trip. The default is everything between the kind and the last word, so
+   a default with a space in it still parses; the last word is the mark.
+
+   Answers (None, sentence) for a line this check must refuse: one with no mark
+   or a mark that is not one of the three, and a bootstrap key marked anything
+   but restart - a reload never re-reads those sections, so any other mark on
+   one would be a promise the server does not keep."""
+   parts = line.split(None, 3)
+   if len(parts) != 4:
+      return None, "  `%s` is not section, key, kind, default and applies. %s" % (line, MARK_SENTENCE)
+   section, key, kind, rest = parts
+   pieces = rest.rsplit(None, 1)
+   mark = pieces[1] if len(pieces) == 2 else ""
+   if mark not in MARKS:
+      return None, "  [%s] %s has no applies mark. %s" % (section, key, MARK_SENTENCE)
+   try:
+      value = json.loads(pieces[0])
+   except ValueError:
+      return None, "  [%s] %s has a default that is not JSON: %s" % (section, key, pieces[0])
+   if section in BOOTSTRAP and mark != "restart":
+      return None, ("  [%s] %s is marked %s, and a key in [%s] is read before the database is "
+                    "open and never by a reload, so it can only be restart." % (section, key, mark, section))
+   return (section, key, kind, value, mark), None
+
+
+def read_baseline():
+   """The committed baseline, as ({(section, key): (kind, default)},
+   {(section, key): mark}, [problems])."""
    pairs = {}
+   marks = {}
+   problems = []
    if not os.path.exists(BASELINE):
-      return None
+      return None, {}, []
    for line in read(BASELINE).splitlines():
       line = line.strip()
       if not line or line.startswith("#"):
          continue
-      parts = line.split(None, 3)
-      if len(parts) != 4:
+      parsed, problem = parse_line(line)
+      if problem:
+         problems.append(problem)
+         # The kind and the default are still read where they can be, so a line
+         # that lacks only its mark is reported once, for that, and not also as
+         # a key the server reads that the baseline does not list.
+         parts = line.split(None, 3)
+         if len(parts) == 4:
+            try:
+               pairs[(parts[0], parts[1])] = (parts[2], json.loads(parts[3].rsplit(None, 1)[0] if parts[3].rsplit(None, 1)[-1] in MARKS else parts[3]))
+            except ValueError:
+               pass
          continue
-      try:
-         value = json.loads(parts[3])
-      except ValueError:
-         continue
-      pairs[(parts[0], parts[1])] = (parts[2], value)
-   return pairs
+      section, key, kind, value, mark = parsed
+      pairs[(section, key)] = (kind, value)
+      marks[(section, key)] = mark
+   return pairs, marks, problems
 
 
-def write_baseline(pairs):
-   """Rewrites the baseline, keeping the explanation at the top of the file."""
+def self_test():
+   """The negative control, run on every run: a line with no mark, a line with a
+   word that is not a mark, and a bootstrap line marked now are refused - each
+   with its sentence - and a well-formed line is not."""
+   failures = []
+   good, problem = parse_line('Settings MaxSubmissionsPerIPPerMinute integer "0" now')
+   if problem or good[4] != "now" or good[3] != "0":
+      failures.append("  self-test: a well-formed line was refused: %s" % problem)
+   spaced, problem = parse_line('Settings Example string "a b" reinitialize')
+   if problem or spaced[3] != "a b" or spaced[4] != "reinitialize":
+      failures.append("  self-test: a default holding a space was misread: %s" % problem)
+   for line, expected in (('Settings MaxSubmissionsPerIPPerMinute integer "0"', "has no applies mark"),
+                          ('Settings MaxSubmissionsPerIPPerMinute integer "0" soon', "has no applies mark"),
+                          ('Database Server string "" now', "can only be restart")):
+      parsed, problem = parse_line(line)
+      if parsed is not None or not problem or expected not in problem:
+         failures.append("  self-test: `%s` was not refused with the sentence (%r)" % (line, problem))
+      elif expected == "has no applies mark" and MARK_SENTENCE not in problem:
+         failures.append("  self-test: `%s` was refused without saying what the three marks mean" % line)
+   return failures
+
+
+def write_baseline(pairs, marks):
+   """Rewrites the baseline, keeping the explanation at the top of the file and
+   the mark every line already has: the mark is a judgement about the code that
+   reads a key, not something the source says, so regenerating the list must not
+   lose it. A bootstrap key is restart whatever; a [Settings] key the file has no
+   mark for is written without one, and the check then fails asking for it."""
    header = []
    if os.path.exists(BASELINE):
       for line in read(BASELINE).splitlines():
@@ -264,17 +363,23 @@ def write_baseline(pairs):
          lines.append("")
          section = this_section
       kind, value = pairs[(this_section, key)]
-      lines.append("%s %s %s %s" % (this_section, key, kind, json.dumps(value)))
+      mark = "restart" if this_section in BOOTSTRAP else marks.get((this_section, key), "")
+      line = "%s %s %s %s" % (this_section, key, kind, json.dumps(value))
+      if mark:
+         line += " " + mark
+      lines.append(line)
 
    with open(BASELINE, "w", encoding="utf-8", newline="\r\n") as handle:
       handle.write("\n".join(lines) + "\n")
 
    print("Wrote %s: %d key(s)." % (os.path.basename(BASELINE), len(pairs)))
 
-   write_baseline_header(pairs)
+   write_baseline_header(pairs, marks)
 
 
-HEADER_ROW = re.compile(r'\{\s*_T\("((?:[^"\\]|\\.)*)"\),\s*_T\("((?:[^"\\]|\\.)*)"\),\s*(true|false)\s*\}')
+HEADER_ROW = re.compile(r'\{\s*_T\("((?:[^"\\]|\\.)*)"\),\s*_T\("((?:[^"\\]|\\.)*)"\),\s*(true|false),\s*Applies(Now|Reinitialize|Restart)\s*\}')
+
+HEADER_MARK = {"now": "AppliesNow", "reinitialize": "AppliesReinitialize", "restart": "AppliesRestart"}
 
 
 def cpp_literal(value):
@@ -297,8 +402,9 @@ def baseline_header_text(settings):
       "// request. Do not edit: change what IniFileSettings reads, regenerate both.",
       "//",
       "// Every [Settings] key the server reads through IniFileSettings, with the",
-      "// default it reads it with and whether it reads it as a number, as a C++ array,",
-      "// so that the server knows the list at run time. Two things consult it:",
+      "// default it reads it with, whether it reads it as a number and when a change",
+      "// to it reaches the running server, as a C++ array, so that the server knows",
+      "// the list at run time. Three things consult it:",
       "//",
       "//   IniSettingStore::IsSettingTheServerReads, for `hmailserver --set-setting",
       "//   NAME=VALUE`, which refuses a name that is not here because storing it would",
@@ -310,6 +416,10 @@ def baseline_header_text(settings):
       "//   stands in the source; IsInteger says the read is GetPrivateProfileInt, which",
       "//   stops at the first character that is not part of a number, so a stored",
       "//   \"0009\" is the same setting as a default of 9 and is not a difference.",
+      "//",
+      "//   IniFileSettings, whose reload keeps the running value of every key that is",
+      "//   not AppliesNow until what applies it has happened, and which answers",
+      "//   `applies` and the pending list from Applies (docs/SettingsApply.md).",
       "",
       "#pragma once",
       "",
@@ -317,19 +427,30 @@ def baseline_header_text(settings):
       "{",
       "   namespace IniSettingsBaseline",
       "   {",
+      "      // When a change to a key reaches the running server: at the save, at the",
+      "      // next reinitialise, or at the next start of the service.",
+      "      enum ApplyMark",
+      "      {",
+      "         AppliesNow,",
+      "         AppliesReinitialize,",
+      "         AppliesRestart",
+      "      };",
+      "",
       "      struct Setting",
       "      {",
       "         const TCHAR *Name;",
       "         const TCHAR *Default;",
       "         bool IsInteger;",
+      "         ApplyMark Applies;",
       "      };",
       "",
       "      static const Setting Settings[] =",
       "      {",
    ]
-   for key, kind, value in settings:
-      lines.append('         { _T("%s"), _T("%s"), %s },'
-                   % (cpp_literal(key), cpp_literal(value), "true" if kind == "integer" else "false"))
+   for key, kind, value, mark in settings:
+      lines.append('         { _T("%s"), _T("%s"), %s, %s },'
+                   % (cpp_literal(key), cpp_literal(value), "true" if kind == "integer" else "false",
+                      HEADER_MARK.get(mark, "AppliesNow /* UNMARKED */")))
    lines += [
       "      };",
       "",
@@ -340,27 +461,27 @@ def baseline_header_text(settings):
    return "\n".join(lines) + "\n"
 
 
-def baseline_settings(pairs):
-   """The [Settings] rows of a baseline, as (key, kind, default), sorted by key."""
-   return sorted((key, pairs[(section, key)][0], pairs[(section, key)][1])
+def baseline_settings(pairs, marks):
+   """The [Settings] rows of a baseline, as (key, kind, default, mark), sorted by key."""
+   return sorted((key, pairs[(section, key)][0], pairs[(section, key)][1], marks.get((section, key), ""))
                  for (section, key) in pairs if section == "Settings")
 
 
-def write_baseline_header(pairs):
-   settings = baseline_settings(pairs)
+def write_baseline_header(pairs, marks):
+   settings = baseline_settings(pairs, marks)
    with open(BASELINE_HEADER, "w", encoding="utf-8", newline="\r\n") as handle:
       handle.write(baseline_header_text(settings))
    print("Wrote %s: %d [Settings] key(s)." % (os.path.basename(BASELINE_HEADER), len(settings)))
 
 
-def check_baseline_header(baseline):
+def check_baseline_header(baseline, marks):
    """The keys the header carries, against the baseline's [Settings] keys."""
-   expected = baseline_settings(baseline)
+   expected = baseline_settings(baseline, marks)
    if not os.path.exists(BASELINE_HEADER):
       return ["  %s is missing; run python3 build/check-ini-coverage.py --write-baseline"
               % os.path.relpath(BASELINE_HEADER, ROOT)]
-   found = [(name, "integer" if integer == "true" else "string", value)
-            for name, value, integer in HEADER_ROW.findall(read(BASELINE_HEADER))]
+   found = [(name, "integer" if integer == "true" else "string", value, mark.lower())
+            for name, value, integer, mark in HEADER_ROW.findall(read(BASELINE_HEADER))]
    if found == expected:
       return []
    problems = []
@@ -399,11 +520,17 @@ def main():
                   "default, or teach reads_of() to work this one out." % (section, key, text))
          print("FAIL: nothing was written.")
          return 1
-      write_baseline(present)
+      _, existing_marks, _ = read_baseline()
+      write_baseline(present, existing_marks or {})
       return 0
 
-   baseline = read_baseline()
+   baseline, marks, mark_problems = read_baseline()
    frozen = []
+
+   # The negative control first: if the parser has stopped refusing an unmarked
+   # line, every other answer below is worth nothing.
+   frozen.extend(self_test())
+   frozen.extend(mark_problems)
 
    for section, key, text in unreadable:
       frozen.append(
@@ -415,6 +542,7 @@ def main():
       frozen.append("  the baseline %s is missing, so nothing is holding the rule that "
                     "a setting goes in the database" % os.path.basename(BASELINE))
       baseline = present
+      marks = {}
 
    for section, key in sorted(set(present) - set(baseline)):
       if section == "Settings":
@@ -459,7 +587,7 @@ def main():
             "build/check-ini-coverage.py --write-baseline in the same commit as the change."
             % (section, key, now_kind, now_value, os.path.basename(BASELINE), was_kind, was_value))
 
-   frozen.extend(check_baseline_header(baseline))
+   frozen.extend(check_baseline_header(baseline, marks))
 
    settings = sorted(by_section.get("Settings", ()))
    if not settings:
@@ -505,10 +633,12 @@ def main():
       print("FAIL: %d problem(s) with the settings the server reads from hMailServer.INI" % problems)
       return 1
 
+   counted = dict((mark, sum(1 for m in marks.values() if m == mark)) for mark in MARKS)
    print("OK    all %d [Settings] keys have a Control Panel editor (%d exempt), the %d key(s) "
          "in the baseline are exactly the keys the server reads with exactly the defaults it "
-         "reads them with, and every section is read through IniFileSettings"
-         % (len(settings), len(EXEMPT), len(baseline)))
+         "reads them with, each marked when it applies (%d now, %d reinitialize, %d restart; "
+         "an unmarked line is refused), and every section is read through IniFileSettings"
+         % (len(settings), len(EXEMPT), len(baseline), counted["now"], counted["reinitialize"], counted["restart"]))
    return 0
 
 

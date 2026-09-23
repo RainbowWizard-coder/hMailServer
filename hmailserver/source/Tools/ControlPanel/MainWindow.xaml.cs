@@ -117,6 +117,13 @@ namespace hMailServer.ControlPanel
          ServerSession.LinkStateChanged += OnLinkStateChanged;
          Closing += (s, e) => ServerSession.LinkStateChanged -= OnLinkStateChanged;
 
+         // Every save through IniFeatureStore - any page's - asks the server again
+         // what is pending, so the bar at the foot follows the saves without each
+         // page having to tell the window.
+         Action written = () => Dispatcher.BeginInvoke(new Action(RefreshPendingBar_));
+         IniFeatureStore.Written += written;
+         Closing += (s, e) => IniFeatureStore.Written -= written;
+
          // Every page header's help button lands here: the event bubbles out of
          // whichever page raised it, so no page has to be wired to the shell.
          AddHandler(Views.Scaffold.PageHeader.ShowTourEvent, new RoutedEventHandler(OnPageHelpRequested_));
@@ -1111,6 +1118,8 @@ namespace hMailServer.ControlPanel
       /// </summary>
       private void EnterPage(object page)
       {
+         RefreshPendingBar_();
+
          if (page is not IPageLifecycle lifecycle)
             return;
 
@@ -1123,6 +1132,117 @@ namespace hMailServer.ControlPanel
             Services.Toast.Info(F("Could not load this page: {0}", ServerSession.DescribeComError(ex)),
                L("Server unavailable"));
          }
+      }
+
+      // ServerStatus.StateRunning and StateDraining, as the COM enum numbers them.
+      private const int ServerStateRunning_ = 3;
+      private const int ServerStateDraining_ = 5;
+
+      /// <summary>
+      /// The pending bar: what the server lists as saved and not yet running, with
+      /// Apply now when a reinitialise can take some of it (docs/SettingsApply.md).
+      /// Asked of the server, never remembered here, so a value put back empties
+      /// the bar and another administrator's save fills it at the next refresh.
+      /// </summary>
+      private void RefreshPendingBar_()
+      {
+         IReadOnlyList<string> pending = connected_ ? IniFeatureStore.PendingNames() : Array.Empty<string>();
+
+         int waitingForRestart = pending.Count(name => IniFeatureStore.AppliesFor(name) == SettingApplies.Restart);
+         int waitingForReinitialize = pending.Count - waitingForRestart;
+
+         string banner = SettingApplies.Banner(waitingForReinitialize, waitingForRestart);
+         if (banner == null)
+         {
+            PendingBar.Visibility = Visibility.Collapsed;
+            return;
+         }
+
+         PendingNotice.Text = banner;
+         ApplyPendingButton.Visibility = waitingForReinitialize > 0 ? Visibility.Visible : Visibility.Collapsed;
+         ApplyPendingButton.IsEnabled = true;
+         PendingBar.Visibility = Visibility.Visible;
+      }
+
+      /// <summary>
+      /// Apply now: reinitialises the server - every service stopped and started
+      /// again in place - which takes every key marked reinitialize, then waits for
+      /// the server to report Running and asks again what is pending. Asked first,
+      /// and asked differently when the server is draining, because a reinitialise
+      /// ends maintenance mode. Called on this thread, as every COM call here is:
+      /// the session's objects belong to it.
+      /// </summary>
+      private void ApplyPending_Click(object sender, RoutedEventArgs e)
+      {
+         ServerSession session = ServerSession.Current;
+         if (session == null)
+            return;
+
+         bool draining = false;
+         try
+         {
+            draining = (int)session.Application.ServerState == ServerStateDraining_;
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            // Cannot tell: the question says the ordinary thing, and the reinitialise
+            // below reports what it finds.
+         }
+
+         if (MessageBox.Show(SettingApplies.ApplyNowQuestion(draining), L("Control Panel"),
+                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+         ApplyPendingButton.IsEnabled = false;
+         PendingNotice.Level = StatusLevel.Information;
+         PendingNotice.Text = L("Reinitializing the server...");
+         Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
+
+         Mouse.OverrideCursor = Cursors.Wait;
+         string failure = null;
+         try
+         {
+            session.Application.Reinitialize();
+
+            // Reinitialize returns once the servers are started again; the state is
+            // what says they are serving. A few seconds' grace for a slow start.
+            bool running = false;
+            for (int attempt = 0; attempt < 60 && !running; attempt++)
+            {
+               try
+               {
+                  running = (int)session.Application.ServerState == ServerStateRunning_;
+               }
+               catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+               {
+                  running = false;
+               }
+
+               if (!running)
+                  System.Threading.Thread.Sleep(500);
+            }
+
+            if (!running)
+               failure = L("the server did not report Running within thirty seconds; the Status page says what it is doing.");
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            failure = ServerSession.DescribeComError(ex);
+         }
+         finally
+         {
+            Mouse.OverrideCursor = null;
+            PendingNotice.Level = StatusLevel.Warning;
+         }
+
+         if (failure == null)
+            Services.Toast.Success(L("Reinitialized - the saved settings are in effect."));
+         else
+            Services.Toast.Info(F("Could not reinitialize: {0}", failure), L("Control Panel"));
+
+         // Entering the page again refreshes the bar and puts what the server now
+         // runs on in front of the administrator.
+         EnterPage(ContentHost.Content);
       }
 
       /// <summary>

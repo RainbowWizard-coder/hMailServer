@@ -292,6 +292,10 @@
                     <StackPanel>
                         <TextBlock x:Name="PART_Label" Style="{StaticResource TextCaption}" Margin="0,0,0,4" />
                         <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                        <!-- When a saved value reaches the running server, for a field
+                             kept in the settings store (FieldRow.Applies). -->
+                        <TextBlock x:Name="PART_Applies" Text="{TemplateBinding Applies}"
+                                   Style="{StaticResource TextCaptionTertiary}" FontStyle="Italic" Margin="0,4,0,0" />
                         <TextBlock x:Name="PART_Hint" Text="{TemplateBinding Hint}"
                                    Style="{StaticResource TextCaptionTertiary}" Margin="0,4,0,0" />
                         <Grid x:Name="PART_ErrorRow" Margin="0,4,0,0">
@@ -313,6 +317,9 @@
                         </Trigger>
                         <Trigger Property="Hint" Value="{x:Null}">
                             <Setter TargetName="PART_Hint" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="Applies" Value="{x:Null}">
+                            <Setter TargetName="PART_Applies" Property="Visibility" Value="Collapsed" />
                         </Trigger>
                         <Trigger Property="Error" Value="{x:Null}">
                             <Setter TargetName="PART_ErrorRow" Property="Visibility" Value="Collapsed" />

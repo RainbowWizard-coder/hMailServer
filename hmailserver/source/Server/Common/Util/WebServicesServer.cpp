@@ -427,6 +427,18 @@ namespace HM
       }
    }
 
+   void
+   WebServicesServer::ForgetDavRedirectTargets()
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(dav_redirect_mutex);
+
+      // The invalid-value flags go with the targets, as at a start: a new value that
+      // is wrong is worth its own error entry.
+      dav_redirect_expires = 0;
+      dav_caldav_invalid_reported = false;
+      dav_carddav_invalid_reported = false;
+   }
+
    bool
    WebServicesServer::Start(const String &bind_address, int http_port, int https_port,
                             const String &certificate_file, const String &private_key_file)

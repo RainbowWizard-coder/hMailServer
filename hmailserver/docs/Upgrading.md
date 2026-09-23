@@ -208,7 +208,10 @@ ends maintenance mode**: SIGHUP, the Control Panel's Reinitialize, `POST
 /api/v1/server/reinitialize`, a backup restore and an ACME deployment all stop
 and restart the servers in place, and the restarted servers accept again; the
 server records the `left` event itself (actor `server`), so the trail pairs your
-`entered` with what ended it.
+`entered` with what ended it. **Apply now**, on the Control Panel's pending bar
+and the Deck's Settings view ([SettingsApply.md](SettingsApply.md)), is a
+reinitialise too: while the server is draining its question says the drain ends,
+and `POST /api/v1/server/reinitialize` answers `drained: true` when it did.
 
 **On Windows, `hMailServer.exe --upgrade-database`** now runs the same chain from
 the command line, for all four backends, without DBUpdater's window or the

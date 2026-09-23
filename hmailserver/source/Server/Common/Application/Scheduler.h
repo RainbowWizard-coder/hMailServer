@@ -20,6 +20,13 @@ namespace HM
 
       void ScheduleTask(std::shared_ptr<ScheduledTask> pTask);
 
+      // Moves a registered task to a new period, measured from now, under the same
+      // lock the due list is taken with. For a setting that decides a task's period
+      // and is applied when it is saved (GreylistingRecordExpirationInterval):
+      // without the lock the scheduler thread could be reading the next run time
+      // while this wrote it.
+      void SetTaskInterval(std::shared_ptr<ScheduledTask> pTask, int minutes);
+
       void DoWork();
 
    private:

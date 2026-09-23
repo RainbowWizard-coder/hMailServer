@@ -6,6 +6,11 @@
 #include "IniFileSettings.h"
 
 #include "IniSettingStore.h"
+#include "IniSettingsBaseline.h"
+
+#include <atomic>
+#include <stdexcept>
+#include <thread>
 #include "../Util/Crypt.h"
 #include "../Util/Hashing/HashCreator.h"
 #include "../Util/DiskSpace.h"
@@ -28,6 +33,109 @@
 
 namespace HM
 {
+   namespace
+   {
+      // A build of the [Settings] block in progress on THIS thread: the block being
+      // filled, the block the server is running on, and which marks the build must
+      // leave at their running value. Thread-local because the reads are the
+      // ordinary ReadIniSettingString_ / ReadIniSettingInteger_ calls - which is
+      // what lets build/check-ini-coverage.py go on reading every key and its
+      // default out of this file - and a read on another thread at the same moment
+      // (GetSettingsValue over COM, the pending list) must see none of it.
+      struct BuildContext
+      {
+         IniFileSettings::Values *block;
+         const IniFileSettings::Values *running;
+         bool keep_reinitialize;
+         bool keep_restart;
+         bool reload;
+      };
+
+      thread_local BuildContext *build_context = nullptr;
+
+      // Installs a build context on this thread for its lifetime and puts back
+      // whatever was there, so a throw out of a read cannot leave a context
+      // pointing at a block that no longer exists.
+      struct BuildScope
+      {
+         explicit BuildScope(BuildContext *context) : previous_(build_context) { build_context = context; }
+         ~BuildScope() { build_context = previous_; }
+
+         BuildContext *previous_;
+      };
+
+      // The baseline's rows by lower-cased name, built once. The loader spells every
+      // key as the baseline does - both come from this file - so a build's lookups
+      // match exactly; a caller's name is matched without case, as the file matches.
+      const std::map<String, size_t> &BaselineIndex()
+      {
+         static const std::map<String, size_t> index = []()
+         {
+            std::map<String, size_t> built;
+            for (size_t i = 0; i < IniSettingsBaseline::SettingsCount; i++)
+            {
+               String lowered = IniSettingsBaseline::Settings[i].Name;
+               lowered.ToLower();
+               built[lowered] = i;
+            }
+            return built;
+         }();
+
+         return index;
+      }
+
+      const IniSettingsBaseline::Setting *FindBaselineSetting(const String &name)
+      {
+         String lowered = name;
+         lowered.ToLower();
+
+         const std::map<String, size_t> &index = BaselineIndex();
+         auto found = index.find(lowered);
+         if (found == index.end())
+            return nullptr;
+
+         return &IniSettingsBaseline::Settings[(*found).second];
+      }
+
+      const TCHAR *AppliesWord(IniSettingsBaseline::ApplyMark mark)
+      {
+         switch (mark)
+         {
+         case IniSettingsBaseline::AppliesReinitialize:
+            return _T("reinitialize");
+         case IniSettingsBaseline::AppliesRestart:
+            return _T("restart");
+         default:
+            return _T("now");
+         }
+      }
+
+      // Whether a build keeps this key at its running value, and that value. A key
+      // the running block never resolved - the first build of a process - is read
+      // from the store whatever its mark.
+      bool KeepRunningValue(const BuildContext &build, const String &key, String &value)
+      {
+         if (!build.running || (!build.keep_reinitialize && !build.keep_restart))
+            return false;
+
+         const IniSettingsBaseline::Setting *setting = FindBaselineSetting(key);
+         if (!setting)
+            return false;
+
+         bool keep = (setting->Applies == IniSettingsBaseline::AppliesReinitialize && build.keep_reinitialize) ||
+                     (setting->Applies == IniSettingsBaseline::AppliesRestart && build.keep_restart);
+         if (!keep)
+            return false;
+
+         auto found = build.running->resolved.find(key);
+         if (found == build.running->resolved.end())
+            return false;
+
+         value = (*found).second;
+         return true;
+      }
+   }
+
    String IniFileSettings::ini_file_;
   
    IniFileSettings::IniFileSettings() :
@@ -35,72 +143,13 @@ namespace HM
       is_internal_database_(false),
       dbport_(0),
       no_of_dbconnections_(0),
-      add_xauth_user_header_(false),
-      add_xoriginal_rcpt_to_header_(false),
       no_of_dbconnection_attempts_(6),
       no_of_dbconnection_attempts_Delay(5),
       database_allow_unencrypted_connection_(false),
-      max_no_of_external_fetch_threads_(15),
-      greylisting_enabled_during_record_expiration_(true),
-      greylisting_expiration_interval_(240),
-      preferred_hash_algorithm_(3),
-      minimum_accepted_hash_algorithm_(0),
-      password_hash_iterations_(0),
-      oauth2_jwks_cache_seconds_(3600),
-      oauth2_introspection_cache_seconds_(300),
-      oauth2_introspection_fail_open_(false),
-      password_hash_memory_kib_(0),
-      password_hash_time_cost_(0),
-      dnsbl_checks_after_mail_from_(false),
-      log_level_(0),
-      max_log_line_len_(500),
-      quick_retries_(0),
-      quick_retries_Minutes(0),
-      queue_randomness_minutes_(0),
-      mxtries_factor_(0),
       sqldbtype_(HM::DatabaseSettings::TypeUnknown),
-      sep_svc_logs_(false),
-     rewrite_envelope_from_when_forwarding_(false),
-      srs_enabled_(false),
-      max_submissions_per_ip_per_minute_(0),
-      max_outbound_per_destination_per_minute_(0),
-      archive_hardlinks_(false),
-      pop3dmin_timeout_(0),
-      pop3dmax_timeout_(0),
-      pop3cmin_timeout_(0),
-      pop3cmax_timeout_(0),
-      smtpdmin_timeout_(0),
-      smtpdmax_timeout_(0),
-      smtpcmin_timeout_(0),
-      smtpcmax_timeout_(0),
-      samin_timeout_(0),
-      samax_timeout_(0),
-      spamassassin_user_from_recipient_(false),
-      spamassassin_learn_on_move_(false),
-      clam_min_timeout_(0),
-      clam_max_timeout_(0),
-      samove_vs_copy_(false),
-      indexer_full_minutes_(0),
-      indexer_full_limit_(0),
-      indexer_quick_limit_(0),
-      load_header_read_size_(0),
-      load_body_read_size_(0),
-      blocked_iphold_seconds_(0),
-      smtpdmax_size_drop_(0),
-      backup_messages_dbonly_(false),
-      backup_verify_restore_(true),
-      outbound_pipelining_(true),
-      outbound_chunking_(true),
-      smtp_authenticated_sender_check_(false),
-      metrics_history_days_(7),
-      add_xauth_user_ip_(false),
-      use_dns_cache_(true),
-      // The Windows event log sink's two settings are read on the ERROR path,
-      // where an error reported before LoadSettings has run must still find the
-      // shipped defaults rather than an uninitialised read.
-      windows_event_log_enabled_(true),
-      windows_event_log_level_(2)
-
+      simulate_database_failure_enabled_(false),
+      running_values_latched_(false),
+      values_(std::make_shared<Values>())
    {
 
    }
@@ -112,12 +161,16 @@ namespace HM
    }
 
    void
-   IniFileSettings::LoadSettings()
+   IniFileSettings::LoadSettings(LoadScope scope)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
-   // Load all settings from hMailServer.ini
+   // Reads the bootstrap sections from hMailServer.ini, then builds and publishes
+   // the [Settings] block (BuildAndPublish_). The bootstrap is read here and
+   // nowhere else: a reload never re-reads it.
    //---------------------------------------------------------------------------()
    {
+      boost::lock_guard<boost::recursive_mutex> guard(reload_mutex_);
+
       administrator_password_ = ReadIniSettingString_("Security", "AdministratorPassword", "");
       administrator_totp_secret_protected_ = ReadIniSettingString_("Security", "AdministratorTotpSecret", "");
 
@@ -199,13 +252,6 @@ namespace HM
          no_of_dbconnections_ = 1;
       }
 
-      max_no_of_external_fetch_threads_ = ReadIniSettingInteger_("Settings", "MaxNumberOfExternalFetchThreads", 15);
-      add_xauth_user_header_ = ReadIniSettingInteger_("Settings", "AddXAuthUserHeader", 0) == 1;
-
-      daemonaddress_domain_ = ReadIniSettingString_("Settings", "DaemonAddressDomain", "");
-      
-      greylisting_enabled_during_record_expiration_ = ReadIniSettingInteger_("Settings", "GreylistingEnabledDuringRecordExpiration", 1) == 1;
-      greylisting_expiration_interval_ = ReadIniSettingInteger_("Settings", "GreylistingRecordExpirationInterval", 240);
 
       database_directory_ = ResolveAgainstProgramDirectory_(ReadIniSettingString_("Directories", "DatabaseFolder", ""));
 #ifdef HM_PLATFORM_POSIX
@@ -219,7 +265,53 @@ namespace HM
       String sValidLanguages = ReadIniSettingString_("GUILanguages", "ValidLanguages", "");
       valid_languages_ = StringParser::SplitString(sValidLanguages, ",");
 
-      preferred_hash_algorithm_ = ReadIniSettingInteger_("Settings", "PreferredHashAlgorithm", 4);
+      BuildAndPublish_(scope, false);
+
+      // DataFolder may just have changed, and the cached free-space reading is
+      // about whichever volume it named a moment ago.
+      DiskSpace::InvalidateCache();
+   }
+
+   void
+   IniFileSettings::BuildAndPublish_(LoadScope scope, bool reload)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Builds a new [Settings] block from the store and publishes it with one atomic
+   // store. Every read below is the ordinary ReadIniSettingString_ /
+   // ReadIniSettingInteger_ call, with this thread's build context set: the
+   // context records what each key resolved to and, for a key the scope must not
+   // apply, answers the running block's value in place of the store's - so the
+   // clamps and corrections below run on the same text either way, and a key kept
+   // at its running value comes out exactly as it went in.
+   //---------------------------------------------------------------------------()
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(reload_mutex_);
+
+      std::shared_ptr<const Values> running = Current();
+      std::shared_ptr<Values> block = std::make_shared<Values>();
+      Values &v = *block;
+
+      const bool latched = running_values_latched_.load();
+
+      BuildContext context;
+      context.block = block.get();
+      context.running = running.get();
+      context.keep_restart = latched;
+      context.keep_reinitialize = latched && scope == ScopeNow;
+      context.reload = reload;
+
+      // Set on this thread for the reads below and cleared however they end.
+      BuildScope scope_of_build(&context);
+
+      v.max_no_of_external_fetch_threads_ = ReadIniSettingInteger_("Settings", "MaxNumberOfExternalFetchThreads", 15);
+      v.add_xauth_user_header_ = ReadIniSettingInteger_("Settings", "AddXAuthUserHeader", 0) == 1;
+
+      v.daemonaddress_domain_ = ReadIniSettingString_("Settings", "DaemonAddressDomain", "");
+   
+      v.greylisting_enabled_during_record_expiration_ = ReadIniSettingInteger_("Settings", "GreylistingEnabledDuringRecordExpiration", 1) == 1;
+      v.greylisting_expiration_interval_ = ReadIniSettingInteger_("Settings", "GreylistingRecordExpirationInterval", 240);
+
+      v.preferred_hash_algorithm_ = ReadIniSettingInteger_("Settings", "PreferredHashAlgorithm", 4);
 
       // Crypt::EncryptionType: 0 None, 1 Blowfish, 2 MD5, 3 SHA256, 4 PBKDF2,
       // 5 Argon2id. The first three are not password hashes - None and Blowfish are
@@ -232,40 +324,46 @@ namespace HM
       // account passwords and app passwords in a form anybody with the database can
       // read back. Reported rather than silently corrected, because an administrator
       // who set this deliberately is owed an explanation of why it did not take.
-      if (preferred_hash_algorithm_ < 3 || preferred_hash_algorithm_ > 7 || preferred_hash_algorithm_ == 6)
+      if (v.preferred_hash_algorithm_ < 3 || v.preferred_hash_algorithm_ > 7 || v.preferred_hash_algorithm_ == 6)
       {
          String message;
          message.Format(_T("PreferredHashAlgorithm is set to %d, which is not a password-hashing scheme this server will store a new secret under (0 is no hashing, 1 is reversible, 2 is MD5, 6 is the machine-bound DPAPI scheme for stored secrets). Using 4 (PBKDF2) instead. Set it to 3 (SHA256), 4 (PBKDF2), 5 (Argon2id) or 7 (scrypt) to choose deliberately."),
-                        preferred_hash_algorithm_);
+                        v.preferred_hash_algorithm_);
 
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5528, "IniFileSettings::LoadSettings", message);
+         if (ReportThisLoad_(_T("PreferredHashAlgorithm")))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5528, "IniFileSettings::LoadSettings", message);
+         }
 
-         preferred_hash_algorithm_ = 4;
+         v.preferred_hash_algorithm_ = 4;
       }
 
       // Argon2id (5) is only a choice on a build whose OpenSSL has the KDF - 3.2
       // or later; a Linux build against a distribution's 3.0 does not. Read as
       // scrypt (7), the other memory-hard scheme, and reported: a preference this
       // build cannot honour must not become an empty hash stored for a password.
-      if (preferred_hash_algorithm_ == 5 && !HashCreator::Argon2idAvailable())
+      if (v.preferred_hash_algorithm_ == 5 && !HashCreator::Argon2idAvailable())
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5607, "IniFileSettings::LoadSettings",
-            "PreferredHashAlgorithm is 5 (Argon2id), but this build's OpenSSL has no Argon2id KDF - OpenSSL 3.2 or later has it. "
-            "Using 7 (scrypt) instead, which is memory-hard as well. Set it to 7 or 4 to choose deliberately.");
+         if (ReportThisLoad_(_T("PreferredHashAlgorithm")))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5607, "IniFileSettings::LoadSettings",
+               "PreferredHashAlgorithm is 5 (Argon2id), but this build's OpenSSL has no Argon2id KDF - OpenSSL 3.2 or later has it. "
+               "Using 7 (scrypt) instead, which is memory-hard as well. Set it to 7 or 4 to choose deliberately.");
+         }
 
-         preferred_hash_algorithm_ = 7;
+         v.preferred_hash_algorithm_ = 7;
       }
 
       // Minimum password hash scheme an account may use to authenticate. Accounts
       // whose stored hash is weaker than this (Crypt::StrengthRank ordering, under
       // which Argon2id and scrypt are peers) are refused. 0 (ETNone) disables the
       // policy and preserves prior behaviour.
-      minimum_accepted_hash_algorithm_ = ReadIniSettingInteger_("Settings", "MinimumAcceptedHashAlgorithm", 0);
+      v.minimum_accepted_hash_algorithm_ = ReadIniSettingInteger_("Settings", "MinimumAcceptedHashAlgorithm", 0);
 
       // Optional server-wide secret ("pepper") HMAC-mixed into Argon2id password hashes
       // (see Crypt::EnCrypt/Validate). Empty disables it (no behaviour change). It only
       // affects Argon2id hashes so PBKDF2 stays usable as the SCRAM SaltedPassword.
-      password_pepper_ = ReadIniSettingString_("Settings", "PasswordPepper", "");
+      v.password_pepper_ = ReadIniSettingString_("Settings", "PasswordPepper", "");
 
       // Work factors for new password hashes. 0 is the built-in default: 210,000
       // PBKDF2 iterations, and 19,456 KiB with 2 passes for Argon2id, the OWASP
@@ -275,49 +373,49 @@ namespace HM
       // a connection thread. The ceilings match what ValidatePBKDF2 and
       // ValidateArgon2id will verify at all. Out of range is reported and read as
       // the default, the way PreferredHashAlgorithm above is.
-      password_hash_iterations_ = ReadPasswordHashWorkFactor_("PasswordHashIterations", 10000, 10000000);
-      password_hash_memory_kib_ = ReadPasswordHashWorkFactor_("PasswordHashMemoryKB", 4096, 1048576);
-      password_hash_time_cost_ = ReadPasswordHashWorkFactor_("PasswordHashTimeCost", 1, 20);
+      v.password_hash_iterations_ = ReadPasswordHashWorkFactor_("PasswordHashIterations", 10000, 10000000);
+      v.password_hash_memory_kib_ = ReadPasswordHashWorkFactor_("PasswordHashMemoryKB", 4096, 1048576);
+      v.password_hash_time_cost_ = ReadPasswordHashWorkFactor_("PasswordHashTimeCost", 1, 20);
 
       // OAuth2 bearer-token authentication (SASL XOAUTH2 / OAUTHBEARER). Disabled by
       // default. When enabled, presented JWT bearer tokens are verified locally against
       // the configured signing key(s); the mechanism is TLS-gated by default.
-      oauth2_enabled_ = ReadIniSettingInteger_("Settings", "OAuth2Enabled", 0) == 1;
-      oauth2_require_tls_ = ReadIniSettingInteger_("Settings", "OAuth2RequireTLS", 1) == 1;
-      outbound_oauth2_token_url_ = ReadIniSettingString_("Settings", "OutboundOAuth2TokenUrl", "");
-      outbound_oauth2_client_id_ = ReadIniSettingString_("Settings", "OutboundOAuth2ClientId", "");
-      outbound_oauth2_client_secret_ = ReadIniSettingString_("Settings", "OutboundOAuth2ClientSecret", "");
+      v.oauth2_enabled_ = ReadIniSettingInteger_("Settings", "OAuth2Enabled", 0) == 1;
+      v.oauth2_require_tls_ = ReadIniSettingInteger_("Settings", "OAuth2RequireTLS", 1) == 1;
+      v.outbound_oauth2_token_url_ = ReadIniSettingString_("Settings", "OutboundOAuth2TokenUrl", "");
+      v.outbound_oauth2_client_id_ = ReadIniSettingString_("Settings", "OutboundOAuth2ClientId", "");
+      v.outbound_oauth2_client_secret_ = ReadIniSettingString_("Settings", "OutboundOAuth2ClientSecret", "");
       // The .default scope is what Exchange Online's client-credentials flow expects.
-      outbound_oauth2_scope_ = ReadIniSettingString_("Settings", "OutboundOAuth2Scope", "https://outlook.office365.com/.default");
-      outbound_oauth2_hosts_ = ReadIniSettingString_("Settings", "OutboundOAuth2Hosts", "smtp.office365.com");
-      outbound_oauth2_fixed_token_ = ReadIniSettingString_("Settings", "OutboundOAuth2FixedToken", "");
-      fetch_oauth2_hosts_ = ReadIniSettingString_("Settings", "FetchOAuth2Hosts", "outlook.office365.com");
+      v.outbound_oauth2_scope_ = ReadIniSettingString_("Settings", "OutboundOAuth2Scope", "https://outlook.office365.com/.default");
+      v.outbound_oauth2_hosts_ = ReadIniSettingString_("Settings", "OutboundOAuth2Hosts", "smtp.office365.com");
+      v.outbound_oauth2_fixed_token_ = ReadIniSettingString_("Settings", "OutboundOAuth2FixedToken", "");
+      v.fetch_oauth2_hosts_ = ReadIniSettingString_("Settings", "FetchOAuth2Hosts", "outlook.office365.com");
       // Comma-separated allow-list of accepted JWT "alg" values (e.g. "RS256,HS256").
       // "none" is never accepted regardless of this list.
-      oauth2_allowed_algorithms_ = ReadIniSettingString_("Settings", "OAuth2AllowedAlgorithms", "RS256");
+      v.oauth2_allowed_algorithms_ = ReadIniSettingString_("Settings", "OAuth2AllowedAlgorithms", "RS256");
       // Shared secret for HS256 verification (HMAC key).
-      oauth2_hmac_secret_ = ReadIniSettingString_("Settings", "OAuth2HmacSecret", "");
+      v.oauth2_hmac_secret_ = ReadIniSettingString_("Settings", "OAuth2HmacSecret", "");
       // PEM file holding the RSA/EC public key for RS256 verification.
-      oauth2_rsa_public_key_file_ = ReadIniSettingString_("Settings", "OAuth2PublicKeyFile", "");
+      v.oauth2_rsa_public_key_file_ = ReadIniSettingString_("Settings", "OAuth2PublicKeyFile", "");
       // Expected token issuer (iss) and audience (aud); empty disables that check.
-      oauth2_issuer_ = ReadIniSettingString_("Settings", "OAuth2Issuer", "");
-      oauth2_audience_ = ReadIniSettingString_("Settings", "OAuth2Audience", "");
+      v.oauth2_issuer_ = ReadIniSettingString_("Settings", "OAuth2Issuer", "");
+      v.oauth2_audience_ = ReadIniSettingString_("Settings", "OAuth2Audience", "");
       // Claim that carries the account's e-mail address / login name.
-      oauth2_username_claim_ = ReadIniSettingString_("Settings", "OAuth2UsernameClaim", "email");
+      v.oauth2_username_claim_ = ReadIniSettingString_("Settings", "OAuth2UsernameClaim", "email");
       // RFC 7517 JWK Set: where the provider publishes its current signing keys, so a
       // key rotation needs no hand-copied PEM file. Empty keeps the PEM file the only
       // source. https, or plain http to a loopback address only.
-      oauth2_jwks_url_ = ReadIniSettingString_("Settings", "OAuth2JwksUrl", "");
-      oauth2_jwks_cache_seconds_ = ReadIniSettingInteger_("Settings", "OAuth2JwksCacheSeconds", 3600);
+      v.oauth2_jwks_url_ = ReadIniSettingString_("Settings", "OAuth2JwksUrl", "");
+      v.oauth2_jwks_cache_seconds_ = ReadIniSettingInteger_("Settings", "OAuth2JwksCacheSeconds", 3600);
       // RFC 7662 token introspection: the provider's live word on whether a token
       // that verified is still active, which is the only check that sees a
       // revocation. Empty = no such check. An unanswerable check refuses the token
       // unless FailOpen=1, the way RFC 7662 reads.
-      oauth2_introspection_url_ = ReadIniSettingString_("Settings", "OAuth2IntrospectionUrl", "");
-      oauth2_introspection_client_id_ = ReadIniSettingString_("Settings", "OAuth2IntrospectionClientId", "");
-      oauth2_introspection_client_secret_ = ReadIniSettingString_("Settings", "OAuth2IntrospectionClientSecret", "");
-      oauth2_introspection_cache_seconds_ = ReadIniSettingInteger_("Settings", "OAuth2IntrospectionCacheSeconds", 300);
-      oauth2_introspection_fail_open_ = ReadIniSettingInteger_("Settings", "OAuth2IntrospectionFailOpen", 0) == 1;
+      v.oauth2_introspection_url_ = ReadIniSettingString_("Settings", "OAuth2IntrospectionUrl", "");
+      v.oauth2_introspection_client_id_ = ReadIniSettingString_("Settings", "OAuth2IntrospectionClientId", "");
+      v.oauth2_introspection_client_secret_ = ReadIniSettingString_("Settings", "OAuth2IntrospectionClientSecret", "");
+      v.oauth2_introspection_cache_seconds_ = ReadIniSettingInteger_("Settings", "OAuth2IntrospectionCacheSeconds", 300);
+      v.oauth2_introspection_fail_open_ = ReadIniSettingInteger_("Settings", "OAuth2IntrospectionFailOpen", 0) == 1;
 
       // Protect reversible secrets at rest (the database password in this INI plus
       // the DB-stored route/fetch/relayer passwords) with the platform's secret
@@ -329,7 +427,7 @@ namespace HM
       // allow restoring a backup onto a different Windows machine; on Linux the
       // key file travels with the data directory, so there is no such reason).
       // Existing legacy values are always still readable.
-      protect_stored_secrets_with_dpapi_ = ReadIniSettingInteger_("Settings", "ProtectStoredSecretsWithDPAPI", 1) == 1;
+      v.protect_stored_secrets_with_dpapi_ = ReadIniSettingInteger_("Settings", "ProtectStoredSecretsWithDPAPI", 1) == 1;
 
       // Optional least-privilege Windows service account for the hMailServer service.
       // Empty (the default) leaves the service running under LocalSystem, exactly as
@@ -339,31 +437,31 @@ namespace HM
       // account must be granted "Log on as a service" plus access to the hMailServer
       // program, data and database directories. Takes effect when the service is
       // (re)registered.
-      service_account_name_ = ReadIniSettingString_("Settings", "ServiceAccountName", "");
-      service_account_password_ = ReadIniSettingString_("Settings", "ServiceAccountPassword", "");
+      v.service_account_name_ = ReadIniSettingString_("Settings", "ServiceAccountName", "");
+      v.service_account_password_ = ReadIniSettingString_("Settings", "ServiceAccountPassword", "");
 
-      dnsbl_checks_after_mail_from_ = ReadIniSettingInteger_("Settings", "DNSBLChecksAfterMailFrom", 1) == 1;
+      v.dnsbl_checks_after_mail_from_ = ReadIniSettingInteger_("Settings", "DNSBLChecksAfterMailFrom", 1) == 1;
 
-      sep_svc_logs_ = ReadIniSettingInteger_("Settings", "SepSvcLogs", 0) == 1;
-      log_level_ = ReadIniSettingInteger_("Settings", "LogLevel", 9);
-      max_log_line_len_ = ReadIniSettingInteger_("Settings", "MaxLogLineLen", 500);
-      if (max_log_line_len_ < 100) max_log_line_len_ = 100;
-      quick_retries_ = ReadIniSettingInteger_("Settings", "QuickRetries", 0);
-      quick_retries_Minutes = ReadIniSettingInteger_("Settings", "QuickRetriesMinutes", 6);
-      queue_randomness_minutes_ = ReadIniSettingInteger_("Settings", "QueueRandomnessMinutes", 0);
-      // If queue_randomness_minutes_ out of range use 0 
-      if (queue_randomness_minutes_ <= 0) queue_randomness_minutes_ = 0;
-      mxtries_factor_ = ReadIniSettingInteger_("Settings", "MXTriesFactor", 0);
-      if (mxtries_factor_ <= 0) mxtries_factor_ = 0;
-      archive_dir_ = ReadIniSettingString_("Settings", "ArchiveDir", "");
-      if (archive_dir_.Right(1) == FileUtilities::PathSeparator)
-         archive_dir_ = archive_dir_.Left(archive_dir_.GetLength() -1);
-      archive_hardlinks_ =  ReadIniSettingInteger_("Settings", "ArchiveHardLinks", 0) == 1;
-      delivery_hardlinks_ = ReadIniSettingInteger_("Settings", "DeliveryHardLinks", 0) == 1;
+      v.sep_svc_logs_ = ReadIniSettingInteger_("Settings", "SepSvcLogs", 0) == 1;
+      v.log_level_ = ReadIniSettingInteger_("Settings", "LogLevel", 9);
+      v.max_log_line_len_ = ReadIniSettingInteger_("Settings", "MaxLogLineLen", 500);
+      if (v.max_log_line_len_ < 100) v.max_log_line_len_ = 100;
+      v.quick_retries_ = ReadIniSettingInteger_("Settings", "QuickRetries", 0);
+      v.quick_retries_Minutes = ReadIniSettingInteger_("Settings", "QuickRetriesMinutes", 6);
+      v.queue_randomness_minutes_ = ReadIniSettingInteger_("Settings", "QueueRandomnessMinutes", 0);
+      // If v.queue_randomness_minutes_ out of range use 0 
+      if (v.queue_randomness_minutes_ <= 0) v.queue_randomness_minutes_ = 0;
+      v.mxtries_factor_ = ReadIniSettingInteger_("Settings", "MXTriesFactor", 0);
+      if (v.mxtries_factor_ <= 0) v.mxtries_factor_ = 0;
+      v.archive_dir_ = ReadIniSettingString_("Settings", "ArchiveDir", "");
+      if (v.archive_dir_.Right(1) == FileUtilities::PathSeparator)
+         v.archive_dir_ = v.archive_dir_.Left(v.archive_dir_.GetLength() -1);
+      v.archive_hardlinks_ =  ReadIniSettingInteger_("Settings", "ArchiveHardLinks", 0) == 1;
+      v.delivery_hardlinks_ = ReadIniSettingInteger_("Settings", "DeliveryHardLinks", 0) == 1;
 
       // Comma-separated, case-insensitive, whitespace tolerated. Kept lower-cased
       // so that IsArchiveDomain is one lookup.
-      archive_domains_.clear();
+      v.archive_domains_.clear();
       std::vector<String> archiveDomains = StringParser::SplitString(ReadIniSettingString_("Settings", "ArchiveDomains", ""), ",");
       for (size_t i = 0; i < archiveDomains.size(); i++)
       {
@@ -371,45 +469,48 @@ namespace HM
          domain.Trim();
 
          if (!domain.IsEmpty())
-            archive_domains_.insert(domain.ToLower());
+            v.archive_domains_.insert(domain.ToLower());
       }
-      pop3dmin_timeout_ =  ReadIniSettingInteger_("Settings", "POP3DMinTimeout", 10);
-      pop3dmax_timeout_ =  ReadIniSettingInteger_("Settings", "POP3DMaxTimeout",600);
-      pop3cmin_timeout_ =  ReadIniSettingInteger_("Settings", "POP3CMinTimeout", 30);
-      pop3cmax_timeout_ =  ReadIniSettingInteger_("Settings", "POP3CMaxTimeout",900);
-      smtpdmin_timeout_ =  ReadIniSettingInteger_("Settings", "SMTPDMinTimeout", 10);
-      smtpdmax_timeout_ =  ReadIniSettingInteger_("Settings", "SMTPDMaxTimeout",1800);
-      smtpcmin_timeout_ =  ReadIniSettingInteger_("Settings", "SMTPCMinTimeout", 30);
-      smtpcmax_timeout_ =  ReadIniSettingInteger_("Settings", "SMTPCMaxTimeout",600);
-      samin_timeout_ =  ReadIniSettingInteger_("Settings", "SAMinTimeout", 30);
-      samax_timeout_ =  ReadIniSettingInteger_("Settings", "SAMaxTimeout",90);
+      v.pop3dmin_timeout_ =  ReadIniSettingInteger_("Settings", "POP3DMinTimeout", 10);
+      v.pop3dmax_timeout_ =  ReadIniSettingInteger_("Settings", "POP3DMaxTimeout",600);
+      v.pop3cmin_timeout_ =  ReadIniSettingInteger_("Settings", "POP3CMinTimeout", 30);
+      v.pop3cmax_timeout_ =  ReadIniSettingInteger_("Settings", "POP3CMaxTimeout",900);
+      v.smtpdmin_timeout_ =  ReadIniSettingInteger_("Settings", "SMTPDMinTimeout", 10);
+      v.smtpdmax_timeout_ =  ReadIniSettingInteger_("Settings", "SMTPDMaxTimeout",1800);
+      v.smtpcmin_timeout_ =  ReadIniSettingInteger_("Settings", "SMTPCMinTimeout", 30);
+      v.smtpcmax_timeout_ =  ReadIniSettingInteger_("Settings", "SMTPCMaxTimeout",600);
+      v.samin_timeout_ =  ReadIniSettingInteger_("Settings", "SAMinTimeout", 30);
+      v.samax_timeout_ =  ReadIniSettingInteger_("Settings", "SAMaxTimeout",90);
 
       // The spamd User: header. The value goes onto the wire as a protocol header line,
       // so a control character in it would end that line early or start another one;
       // refused rather than sent, with the reason reported, because a header spamd
       // rejects is a scan that never happens.
-      spamassassin_user_ = ReadIniSettingString_("Settings", "SpamAssassinUser", "");
-      for (int i = 0; i < spamassassin_user_.GetLength(); i++)
+      v.spamassassin_user_ = ReadIniSettingString_("Settings", "SpamAssassinUser", "");
+      for (int i = 0; i < v.spamassassin_user_.GetLength(); i++)
       {
-         const wchar_t ch = spamassassin_user_[i];
+         const wchar_t ch = v.spamassassin_user_[i];
          if (ch < 0x20 || ch == 0x7F)
          {
-            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5562, "IniFileSettings::LoadSettings",
-               "SpamAssassinUser in hMailServer.ini contains a control character and has been ignored; no User: header is sent to spamd.");
-            spamassassin_user_ = "";
+            if (ReportThisLoad_(_T("SpamAssassinUser")))
+            {
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5562, "IniFileSettings::LoadSettings",
+                  "SpamAssassinUser in hMailServer.ini contains a control character and has been ignored; no User: header is sent to spamd.");
+            }
+            v.spamassassin_user_ = "";
             break;
          }
       }
-      spamassassin_user_from_recipient_ = ReadIniSettingInteger_("Settings", "SpamAssassinUserFromRecipient", 0) == 1;
-      spamassassin_learn_on_move_ = ReadIniSettingInteger_("Settings", "SpamAssassinLearnOnMove", 0) == 1;
+      v.spamassassin_user_from_recipient_ = ReadIniSettingInteger_("Settings", "SpamAssassinUserFromRecipient", 0) == 1;
+      v.spamassassin_learn_on_move_ = ReadIniSettingInteger_("Settings", "SpamAssassinLearnOnMove", 0) == 1;
       // Upper bound, in seconds, on the accept/save work that runs after end-of-data
       // and holds the thread that sends the "250". Past this the message is refused
       // with a temporary 451 so the sending MTA retries, rather than the reply
       // stalling past the sender's own timeout (discussion #18). 0 disables it.
       // Default 240s: comfortably under Postfix's 600s data-done timeout.
-      finalization_timeout_ =  ReadIniSettingInteger_("Settings", "FinalizationTimeout", 240);
-      clam_min_timeout_ =  ReadIniSettingInteger_("Settings", "ClamMinTimeout", 15);
-      clam_max_timeout_ =  ReadIniSettingInteger_("Settings", "ClamMaxTimeout",90);
+      v.finalization_timeout_ =  ReadIniSettingInteger_("Settings", "FinalizationTimeout", 240);
+      v.clam_min_timeout_ =  ReadIniSettingInteger_("Settings", "ClamMinTimeout", 15);
+      v.clam_max_timeout_ =  ReadIniSettingInteger_("Settings", "ClamMaxTimeout",90);
 
       // Bounds on operations that would otherwise wait forever and, because they
       // run on bounded thread pools, take the whole server down with them when
@@ -419,32 +520,32 @@ namespace HM
       // never becomes free; an administrator's event script that loops or blocks
       // in a COM call; an external virus scanner that hangs. All four were
       // unbounded, and all four sit on a path that a remote sender can drive.
-      dns_query_timeout_ =  ReadIniSettingInteger_("Settings", "DNSQueryTimeout", 10);
+      v.dns_query_timeout_ =  ReadIniSettingInteger_("Settings", "DNSQueryTimeout", 10);
 
       // Absolute ceiling on an outbound client session, as distinct from the idle
       // timeouts above. 30 minutes is far longer than any healthy delivery needs
       // and still bounds a remote server that answers slowly enough to keep the
       // idle timer alive forever.
-      client_session_ceiling_ =  ReadIniSettingInteger_("Settings", "ClientSessionCeiling", 1800);
+      v.client_session_ceiling_ =  ReadIniSettingInteger_("Settings", "ClientSessionCeiling", 1800);
 
       // Bounding this wait is only safe because the callers that act on a lookup
       // can now tell "the database did not answer" from "the database answered
       // with nothing" - see DatabaseUnavailableMarker. Without that, a wait that
       // expired during a backup would have reported a valid recipient as unknown
       // and the sender would have bounced the mail instead of retrying.
-      db_connection_acquire_timeout_ =  ReadIniSettingInteger_("Settings", "DBConnectionAcquireTimeout", 60);
-      script_timeout_ =  ReadIniSettingInteger_("Settings", "ScriptTimeout", 60);
+      v.db_connection_acquire_timeout_ =  ReadIniSettingInteger_("Settings", "DBConnectionAcquireTimeout", 60);
+      v.script_timeout_ =  ReadIniSettingInteger_("Settings", "ScriptTimeout", 60);
       // Absent means "*": a key that appears in an upgrade must not break the
       // scripts an installation already runs. Present and empty means none.
-      script_allowed_objects_ = ReadIniSettingString_("Settings", "ScriptAllowedObjects", "*");
-      external_process_timeout_ =  ReadIniSettingInteger_("Settings", "ExternalProcessTimeout", 300);
+      v.script_allowed_objects_ = ReadIniSettingString_("Settings", "ScriptAllowedObjects", "*");
+      v.external_process_timeout_ =  ReadIniSettingInteger_("Settings", "ExternalProcessTimeout", 300);
 
       // Async work-queue health. The stall threshold is how long every worker may
       // be busy before the server reports which tasks are holding them; the
       // reserved count keeps that many threads out of the reach of scanning and
       // scripting so short work (saving an accepted message) always has one.
-      async_queue_stall_threshold_ =  ReadIniSettingInteger_("Settings", "AsyncQueueStallThreshold", 120);
-      async_queue_reserved_threads_ =  ReadIniSettingInteger_("Settings", "AsyncQueueReservedThreads", 2);
+      v.async_queue_stall_threshold_ =  ReadIniSettingInteger_("Settings", "AsyncQueueStallThreshold", 120);
+      v.async_queue_reserved_threads_ =  ReadIniSettingInteger_("Settings", "AsyncQueueReservedThreads", 2);
 
       // Absolute ceilings on a single IMAP SEARCH. SEARCH BODY and SEARCH TEXT are
       // resolved by reading and MIME-parsing every message in the mailbox
@@ -476,16 +577,16 @@ namespace HM
       // cost far more than ten thousand 2 KB ones. 2 GB is more content than any
       // interactive search legitimately reads and still a hard cap on the I/O a
       // single command can demand.
-      imap_search_timeout_ = ReadIniSettingInteger_("Settings", "IMAPSearchTimeout", 60);
-      if (imap_search_timeout_ < 0) imap_search_timeout_ = 0;
-      imap_search_max_megabytes_ = ReadIniSettingInteger_("Settings", "IMAPSearchMaxMegabytes", 2048);
-      if (imap_search_max_megabytes_ < 0) imap_search_max_megabytes_ = 0;
+      v.imap_search_timeout_ = ReadIniSettingInteger_("Settings", "IMAPSearchTimeout", 60);
+      if (v.imap_search_timeout_ < 0) v.imap_search_timeout_ = 0;
+      v.imap_search_max_megabytes_ = ReadIniSettingInteger_("Settings", "IMAPSearchMaxMegabytes", 2048);
+      if (v.imap_search_max_megabytes_ < 0) v.imap_search_max_megabytes_ = 0;
 
-      samove_vs_copy_ = ReadIniSettingInteger_("Settings", "SAMoveVsCopy", 0) == 1;
-      auth_user_replacement_ip_ = ReadIniSettingString_("Settings", "AuthUserReplacementIP", "");
-      indexer_full_minutes_ =  ReadIniSettingInteger_("Settings", "IndexerFullMinutes",720);
-      indexer_full_limit_ =  ReadIniSettingInteger_("Settings", "IndexerFullLimit",25000);
-      indexer_quick_limit_ =  ReadIniSettingInteger_("Settings", "IndexerQuickLimit",1000);
+      v.samove_vs_copy_ = ReadIniSettingInteger_("Settings", "SAMoveVsCopy", 0) == 1;
+      v.auth_user_replacement_ip_ = ReadIniSettingString_("Settings", "AuthUserReplacementIP", "");
+      v.indexer_full_minutes_ =  ReadIniSettingInteger_("Settings", "IndexerFullMinutes",720);
+      v.indexer_full_limit_ =  ReadIniSettingInteger_("Settings", "IndexerFullLimit",25000);
+      v.indexer_quick_limit_ =  ReadIniSettingInteger_("Settings", "IndexerQuickLimit",1000);
 
       // The full-text term index behind SEARCH BODY/TEXT. Off by default -
       // enabling it costs a term table of a few kilobytes per message and a
@@ -494,16 +595,16 @@ namespace HM
       // narrows the set of messages the existing substring scan reads, so the
       // results are identical on and off; correctness never depends on these
       // values, which is why they can be clamped rather than rejected.
-      indexer_full_text_enabled_ = ReadIniSettingInteger_("Settings", "IndexerFullText", 0) == 1;
+      v.indexer_full_text_enabled_ = ReadIniSettingInteger_("Settings", "IndexerFullText", 0) == 1;
 
       // Batch: the id-range width of one backfill pass, so also the most
       // messages one pass will read and tokenise before the cursor is saved
       // and the thread pauses. Small enough not to monopolise the database,
       // large enough that a million-message backfill finishes in hours, not
       // weeks.
-      indexer_full_text_batch_size_ = ReadIniSettingInteger_("Settings", "IndexerFullTextBatchSize", 250);
-      if (indexer_full_text_batch_size_ < 1) indexer_full_text_batch_size_ = 1;
-      if (indexer_full_text_batch_size_ > 100000) indexer_full_text_batch_size_ = 100000;
+      v.indexer_full_text_batch_size_ = ReadIniSettingInteger_("Settings", "IndexerFullTextBatchSize", 250);
+      if (v.indexer_full_text_batch_size_ < 1) v.indexer_full_text_batch_size_ = 1;
+      if (v.indexer_full_text_batch_size_ > 100000) v.indexer_full_text_batch_size_ = 100000;
 
       // The shortest search-string run the index is allowed to answer for.
       // Clamped at 3 from below because the index never STORES tokens shorter
@@ -511,28 +612,28 @@ namespace HM
       // that changing this setting can never make the index promise answers
       // the stored terms cannot give. Raising it only makes more searches
       // fall back to the scan.
-      indexer_full_text_min_token_length_ = ReadIniSettingInteger_("Settings", "IndexerFullTextMinTokenLength", 3);
-      if (indexer_full_text_min_token_length_ < 3) indexer_full_text_min_token_length_ = 3;
-      if (indexer_full_text_min_token_length_ > 64) indexer_full_text_min_token_length_ = 64;
+      v.indexer_full_text_min_token_length_ = ReadIniSettingInteger_("Settings", "IndexerFullTextMinTokenLength", 3);
+      if (v.indexer_full_text_min_token_length_ < 3) v.indexer_full_text_min_token_length_ = 3;
+      if (v.indexer_full_text_min_token_length_ > 64) v.indexer_full_text_min_token_length_ = 64;
 
       // Distinct terms per message before the indexer marks the message
       // always-scanned instead. 2048 covers ordinary mail and most HTML;
       // messages richer than that (inline base64 images, enormous newsletters)
       // are scanned on every search, which is exactly what they cost today.
-      indexer_full_text_max_tokens_ = ReadIniSettingInteger_("Settings", "IndexerFullTextMaxTokensPerMessage", 2048);
-      if (indexer_full_text_max_tokens_ < 64) indexer_full_text_max_tokens_ = 64;
-      if (indexer_full_text_max_tokens_ > 1000000) indexer_full_text_max_tokens_ = 1000000;
-      load_header_read_size_ =  ReadIniSettingInteger_("Settings", "LoadHeaderReadSize",4000);
-      load_body_read_size_ =  ReadIniSettingInteger_("Settings", "LoadBodyReadSize",4000);
-      blocked_iphold_seconds_ =  ReadIniSettingInteger_("Settings", "BlockedIPHoldSeconds",0);
-      smtpdmax_size_drop_ =  ReadIniSettingInteger_("Settings", "SMTPDMaxSizeDrop",0);
-      backup_messages_dbonly_ =  ReadIniSettingInteger_("Settings", "BackupMessagesDBOnly",0) == 1;
-      backup_verify_restore_ = ReadIniSettingInteger_("Settings", "BackupVerifyRestore", 1) == 1;
-      add_xauth_user_ip_ =  ReadIniSettingInteger_("Settings", "AddXAuthUserIP",1) == 1;
-      add_xoriginal_rcpt_to_header_ = ReadIniSettingInteger_("Settings", "AddXOriginalRcptTo", 0) == 1;
-      use_dns_cache_ = ReadIniSettingInteger_("Settings", "UseDNSCache", 1) == 1;
-      dns_server_ = ReadIniSettingString_("Settings", "DNSServer", "");
-      mta_sts_enabled_ = ReadIniSettingInteger_("Settings", "MtaStsEnabled", 1) == 1;
+      v.indexer_full_text_max_tokens_ = ReadIniSettingInteger_("Settings", "IndexerFullTextMaxTokensPerMessage", 2048);
+      if (v.indexer_full_text_max_tokens_ < 64) v.indexer_full_text_max_tokens_ = 64;
+      if (v.indexer_full_text_max_tokens_ > 1000000) v.indexer_full_text_max_tokens_ = 1000000;
+      v.load_header_read_size_ =  ReadIniSettingInteger_("Settings", "LoadHeaderReadSize",4000);
+      v.load_body_read_size_ =  ReadIniSettingInteger_("Settings", "LoadBodyReadSize",4000);
+      v.blocked_iphold_seconds_ =  ReadIniSettingInteger_("Settings", "BlockedIPHoldSeconds",0);
+      v.smtpdmax_size_drop_ =  ReadIniSettingInteger_("Settings", "SMTPDMaxSizeDrop",0);
+      v.backup_messages_dbonly_ =  ReadIniSettingInteger_("Settings", "BackupMessagesDBOnly",0) == 1;
+      v.backup_verify_restore_ = ReadIniSettingInteger_("Settings", "BackupVerifyRestore", 1) == 1;
+      v.add_xauth_user_ip_ =  ReadIniSettingInteger_("Settings", "AddXAuthUserIP",1) == 1;
+      v.add_xoriginal_rcpt_to_header_ = ReadIniSettingInteger_("Settings", "AddXOriginalRcptTo", 0) == 1;
+      v.use_dns_cache_ = ReadIniSettingInteger_("Settings", "UseDNSCache", 1) == 1;
+      v.dns_server_ = ReadIniSettingString_("Settings", "DNSServer", "");
+      v.mta_sts_enabled_ = ReadIniSettingInteger_("Settings", "MtaStsEnabled", 1) == 1;
 
       // Auto-ban below the server. Off as shipped: a rule in the operating
       // system's firewall outlives a mistake in a way a row in hm_securityranges
@@ -540,84 +641,83 @@ namespace HM
       // their own addresses in AutoBanNeverBan first. AutoBanCommand is any
       // program, run as "<command> ban <address> <minutes> <ports>" and
       // "<command> unban <address>", on both platforms. See AutoBanFirewall.h.
-      auto_ban_firewall_enabled_ = ReadIniSettingInteger_("Settings", "AutoBanFirewall", 0) == 1;
-      auto_ban_command_ = ReadIniSettingString_("Settings", "AutoBanCommand", "");
-      auto_ban_never_ban_ = ReadIniSettingString_("Settings", "AutoBanNeverBan", "");
-      dane_enabled_ = ReadIniSettingInteger_("Settings", "DaneEnforcementEnabled", 1) == 1;
-      dnssec_validation_enabled_ = ReadIniSettingInteger_("Settings", "DnssecValidationEnabled", 1) == 1;
-      dnssec_trust_anchors_ = ReadIniSettingString_("Settings", "DnssecTrustAnchors", "");
-      update_check_enabled_ = ReadIniSettingInteger_("Settings", "UpdateCheckEnabled", 0) == 1;
-      update_channel_ = ReadIniSettingString_("Settings", "UpdateChannel", "stable");
-      update_feed_url_ = ReadIniSettingString_("Settings", "UpdateFeedUrl", "");
-      http_proxy_ = ReadIniSettingString_("Settings", "HttpProxy", "");
-      caldav_redirect_url_ = ReadIniSettingString_("Settings", "CalDavRedirectUrl", "");
-      carddav_redirect_url_ = ReadIniSettingString_("Settings", "CardDavRedirectUrl", "");
-      update_check_hours_ = ReadIniSettingInteger_("Settings", "UpdateCheckHours", 24);
-      if (update_check_hours_ < 1)
-         update_check_hours_ = 1;
-      imap_compression_enabled_ = ReadIniSettingInteger_("Settings", "IMAPCompressionEnabled", 1) == 1;
-      update_trust_roots_file_ = ReadIniSettingString_("Settings", "UpdateTrustRootsFile", "");
-      update_log_public_key_file_ = ReadIniSettingString_("Settings", "UpdateLogPublicKeyFile", "");
-      update_signing_identity_ = ReadIniSettingString_("Settings", "UpdateSigningIdentity", "");
-      update_signing_issuer_ = ReadIniSettingString_("Settings", "UpdateSigningIssuer", "");
-      update_source_repository_ = ReadIniSettingString_("Settings", "UpdateSourceRepository", "");
-      update_require_authenticode_ = ReadIniSettingInteger_("Settings", "UpdateRequireAuthenticode", 0) == 1;
-      update_service_wait_seconds_ = ReadIniSettingInteger_("Settings", "UpdateServiceWaitSeconds", 180);
-      if (update_service_wait_seconds_ < 5)
-         update_service_wait_seconds_ = 5;
-      update_window_ = ReadIniSettingString_("Settings", "UpdateWindow", "");
-      update_auto_download_ = ReadIniSettingInteger_("Settings", "UpdateAutoDownload", 0) == 1;
-      update_backup_before_apply_ = ReadIniSettingInteger_("Settings", "UpdateBackupBeforeApply", 1) == 1;
-      json_logging_ = ReadIniSettingInteger_("Settings", "JsonLogging", 0) == 1;
-      log_delete_days_ = ReadIniSettingInteger_("Settings", "LogDeleteDays", 0);
-      shutdown_drain_seconds_ = ReadIniSettingInteger_("Settings", "ShutdownDrainSeconds", 0);
-      slow_query_log_ms_ = ReadIniSettingInteger_("Settings", "SlowQueryLogMilliseconds", 0);
-      message_store_fsync_ = ReadIniSettingInteger_("Settings", "MessageStoreFsync", 0) == 1;
+      v.auto_ban_firewall_enabled_ = ReadIniSettingInteger_("Settings", "AutoBanFirewall", 0) == 1;
+      v.auto_ban_command_ = ReadIniSettingString_("Settings", "AutoBanCommand", "");
+      v.auto_ban_never_ban_ = ReadIniSettingString_("Settings", "AutoBanNeverBan", "");
+      v.dane_enabled_ = ReadIniSettingInteger_("Settings", "DaneEnforcementEnabled", 1) == 1;
+      v.dnssec_validation_enabled_ = ReadIniSettingInteger_("Settings", "DnssecValidationEnabled", 1) == 1;
+      v.dnssec_trust_anchors_ = ReadIniSettingString_("Settings", "DnssecTrustAnchors", "");
+      v.update_check_enabled_ = ReadIniSettingInteger_("Settings", "UpdateCheckEnabled", 0) == 1;
+      v.update_channel_ = ReadIniSettingString_("Settings", "UpdateChannel", "stable");
+      v.update_feed_url_ = ReadIniSettingString_("Settings", "UpdateFeedUrl", "");
+      v.http_proxy_ = ReadIniSettingString_("Settings", "HttpProxy", "");
+      v.caldav_redirect_url_ = ReadIniSettingString_("Settings", "CalDavRedirectUrl", "");
+      v.carddav_redirect_url_ = ReadIniSettingString_("Settings", "CardDavRedirectUrl", "");
+      v.update_check_hours_ = ReadIniSettingInteger_("Settings", "UpdateCheckHours", 24);
+      if (v.update_check_hours_ < 1)
+         v.update_check_hours_ = 1;
+      v.imap_compression_enabled_ = ReadIniSettingInteger_("Settings", "IMAPCompressionEnabled", 1) == 1;
+      v.update_trust_roots_file_ = ReadIniSettingString_("Settings", "UpdateTrustRootsFile", "");
+      v.update_log_public_key_file_ = ReadIniSettingString_("Settings", "UpdateLogPublicKeyFile", "");
+      v.update_signing_identity_ = ReadIniSettingString_("Settings", "UpdateSigningIdentity", "");
+      v.update_signing_issuer_ = ReadIniSettingString_("Settings", "UpdateSigningIssuer", "");
+      v.update_source_repository_ = ReadIniSettingString_("Settings", "UpdateSourceRepository", "");
+      v.update_require_authenticode_ = ReadIniSettingInteger_("Settings", "UpdateRequireAuthenticode", 0) == 1;
+      v.update_service_wait_seconds_ = ReadIniSettingInteger_("Settings", "UpdateServiceWaitSeconds", 180);
+      if (v.update_service_wait_seconds_ < 5)
+         v.update_service_wait_seconds_ = 5;
+      v.update_window_ = ReadIniSettingString_("Settings", "UpdateWindow", "");
+      v.update_auto_download_ = ReadIniSettingInteger_("Settings", "UpdateAutoDownload", 0) == 1;
+      v.update_backup_before_apply_ = ReadIniSettingInteger_("Settings", "UpdateBackupBeforeApply", 1) == 1;
+      v.json_logging_ = ReadIniSettingInteger_("Settings", "JsonLogging", 0) == 1;
+      v.log_delete_days_ = ReadIniSettingInteger_("Settings", "LogDeleteDays", 0);
+      v.shutdown_drain_seconds_ = ReadIniSettingInteger_("Settings", "ShutdownDrainSeconds", 0);
+      v.slow_query_log_ms_ = ReadIniSettingInteger_("Settings", "SlowQueryLogMilliseconds", 0);
+      v.message_store_fsync_ = ReadIniSettingInteger_("Settings", "MessageStoreFsync", 0) == 1;
 
       // Free-space policy on the message-store volume. Both clamped at 0 (= off)
       // rather than trusted, because a negative megabyte count would otherwise
       // become an enormous unsigned byte count in DiskSpace and refuse every
       // message on a perfectly healthy server. See the getters for the defaults
       // and the argument for them.
-      minimum_free_disk_space_mb_ = ReadIniSettingInteger_("Settings", "MinimumFreeDiskSpaceMB", 100);
-      if (minimum_free_disk_space_mb_ < 0) minimum_free_disk_space_mb_ = 0;
-      disk_space_warning_threshold_mb_ = ReadIniSettingInteger_("Settings", "DiskSpaceWarningThresholdMB", 1024);
-      if (disk_space_warning_threshold_mb_ < 0) disk_space_warning_threshold_mb_ = 0;
+      v.minimum_free_disk_space_mb_ = ReadIniSettingInteger_("Settings", "MinimumFreeDiskSpaceMB", 100);
+      if (v.minimum_free_disk_space_mb_ < 0) v.minimum_free_disk_space_mb_ = 0;
+      v.disk_space_warning_threshold_mb_ = ReadIniSettingInteger_("Settings", "DiskSpaceWarningThresholdMB", 1024);
+      if (v.disk_space_warning_threshold_mb_ < 0) v.disk_space_warning_threshold_mb_ = 0;
 
-      simulate_spool_write_failure_ = ReadIniSettingInteger_("Settings", "SimulateSpoolWriteFailure", 0);
-      simulate_database_failure_for_ = ReadIniSettingString_("Settings", "SimulateDatabaseFailureFor", "");
-      simulate_database_failure_enabled_ = !simulate_database_failure_for_.IsEmpty();
-      message_store_consistency_check_ = ReadIniSettingInteger_("Settings", "MessageStoreConsistencyCheck", 0) == 1;
-      metrics_server_port_ = ReadIniSettingInteger_("Settings", "MetricsServerPort", 0);
-      metrics_server_bind_address_ = ReadIniSettingString_("Settings", "MetricsServerBindAddress", "127.0.0.1");
+      v.simulate_spool_write_failure_ = ReadIniSettingInteger_("Settings", "SimulateSpoolWriteFailure", 0);
+      v.simulate_database_failure_for_ = ReadIniSettingString_("Settings", "SimulateDatabaseFailureFor", "");
+      v.message_store_consistency_check_ = ReadIniSettingInteger_("Settings", "MessageStoreConsistencyCheck", 0) == 1;
+      v.metrics_server_port_ = ReadIniSettingInteger_("Settings", "MetricsServerPort", 0);
+      v.metrics_server_bind_address_ = ReadIniSettingString_("Settings", "MetricsServerBindAddress", "127.0.0.1");
 
       // Metrics access control and TLS. Every one of these defaults to empty, which is
       // the old behaviour exactly: a loopback scrape is unauthenticated plain HTTP as it
       // has always been. They only start mattering once an operator moves the listener
       // off loopback, which is when /metrics needs a credential to stay open.
-      metrics_server_auth_token_ = ReadIniSettingString_("Settings", "MetricsServerAuthToken", "");
-      metrics_server_auth_username_ = ReadIniSettingString_("Settings", "MetricsServerAuthUsername", "");
-      metrics_server_auth_password_ = ReadIniSettingString_("Settings", "MetricsServerAuthPassword", "");
-      metrics_server_certificate_file_ = ReadIniSettingString_("Settings", "MetricsServerCertificateFile", "");
-      metrics_server_private_key_file_ = ReadIniSettingString_("Settings", "MetricsServerPrivateKeyFile", "");
+      v.metrics_server_auth_token_ = ReadIniSettingString_("Settings", "MetricsServerAuthToken", "");
+      v.metrics_server_auth_username_ = ReadIniSettingString_("Settings", "MetricsServerAuthUsername", "");
+      v.metrics_server_auth_password_ = ReadIniSettingString_("Settings", "MetricsServerAuthPassword", "");
+      v.metrics_server_certificate_file_ = ReadIniSettingString_("Settings", "MetricsServerCertificateFile", "");
+      v.metrics_server_private_key_file_ = ReadIniSettingString_("Settings", "MetricsServerPrivateKeyFile", "");
 
       // Scheduled backups. All four absent by default: no schedule is registered and no
       // archive is ever deleted, so an existing installation is untouched until somebody
       // configures one. Retention is deliberately off rather than defaulted to something
       // tidy - a default that deletes archives is a default that loses somebody's only
       // backup.
-      scheduled_backup_time_ = ReadIniSettingString_("Settings", "ScheduledBackupTime", "");
-      scheduled_backup_interval_minutes_ = ReadIniSettingInteger_("Settings", "ScheduledBackupIntervalMinutes", 0);
-      scheduled_backup_keep_count_ = ReadIniSettingInteger_("Settings", "ScheduledBackupKeepCount", 0);
-      scheduled_backup_max_age_days_ = ReadIniSettingInteger_("Settings", "ScheduledBackupMaxAgeDays", 0);
-      otel_endpoint_ = ReadIniSettingString_("Settings", "OtelEndpoint", "");
-      otel_service_name_ = ReadIniSettingString_("Settings", "OtelServiceName", "hmailserver");
-      otel_metrics_endpoint_ = ReadIniSettingString_("Settings", "OtelMetricsEndpoint", "");
-      otel_logs_endpoint_ = ReadIniSettingString_("Settings", "OtelLogsEndpoint", "");
-      otel_metrics_interval_ = ReadIniSettingInteger_("Settings", "OtelMetricsInterval", 60);
-      manage_sieve_server_port_ = ReadIniSettingInteger_("Settings", "ManageSieveServerPort", 0);
-      manage_sieve_server_bind_address_ = ReadIniSettingString_("Settings", "ManageSieveServerBindAddress", "127.0.0.1");
-      arc_sealing_enabled_ = ReadIniSettingInteger_("Settings", "ArcSealingEnabled", 0) == 1;
+      v.scheduled_backup_time_ = ReadIniSettingString_("Settings", "ScheduledBackupTime", "");
+      v.scheduled_backup_interval_minutes_ = ReadIniSettingInteger_("Settings", "ScheduledBackupIntervalMinutes", 0);
+      v.scheduled_backup_keep_count_ = ReadIniSettingInteger_("Settings", "ScheduledBackupKeepCount", 0);
+      v.scheduled_backup_max_age_days_ = ReadIniSettingInteger_("Settings", "ScheduledBackupMaxAgeDays", 0);
+      v.otel_endpoint_ = ReadIniSettingString_("Settings", "OtelEndpoint", "");
+      v.otel_service_name_ = ReadIniSettingString_("Settings", "OtelServiceName", "hmailserver");
+      v.otel_metrics_endpoint_ = ReadIniSettingString_("Settings", "OtelMetricsEndpoint", "");
+      v.otel_logs_endpoint_ = ReadIniSettingString_("Settings", "OtelLogsEndpoint", "");
+      v.otel_metrics_interval_ = ReadIniSettingInteger_("Settings", "OtelMetricsInterval", 60);
+      v.manage_sieve_server_port_ = ReadIniSettingInteger_("Settings", "ManageSieveServerPort", 0);
+      v.manage_sieve_server_bind_address_ = ReadIniSettingString_("Settings", "ManageSieveServerBindAddress", "127.0.0.1");
+      v.arc_sealing_enabled_ = ReadIniSettingInteger_("Settings", "ArcSealingEnabled", 0) == 1;
 
       // DKIM signature timestamps (RFC 6376 3.5). See DKIM::Sign and
       // DKIM::VerifySignature_ for what each of these does.
@@ -626,34 +726,34 @@ namespace HM
       // deliberate: honouring an expiry another server published costs us nothing and is
       // what the signer asked for, whereas publishing one of our own is a promise about
       // mail already in flight.
-      dkim_signature_validity_seconds_ = ReadIniSettingInteger_("Settings", "DKIMSignatureValiditySeconds", 0);
-      if (dkim_signature_validity_seconds_ < 0)
-         dkim_signature_validity_seconds_ = 0;
+      v.dkim_signature_validity_seconds_ = ReadIniSettingInteger_("Settings", "DKIMSignatureValiditySeconds", 0);
+      if (v.dkim_signature_validity_seconds_ < 0)
+         v.dkim_signature_validity_seconds_ = 0;
 
-      dkim_enforce_signature_expiry_ = ReadIniSettingInteger_("Settings", "DKIMEnforceSignatureExpiry", 1) == 1;
+      v.dkim_enforce_signature_expiry_ = ReadIniSettingInteger_("Settings", "DKIMEnforceSignatureExpiry", 1) == 1;
 
-      dkim_expiry_clock_skew_seconds_ = ReadIniSettingInteger_("Settings", "DKIMExpiryClockSkewSeconds", 300);
-      if (dkim_expiry_clock_skew_seconds_ < 0)
-         dkim_expiry_clock_skew_seconds_ = 0;
+      v.dkim_expiry_clock_skew_seconds_ = ReadIniSettingInteger_("Settings", "DKIMExpiryClockSkewSeconds", 300);
+      if (v.dkim_expiry_clock_skew_seconds_ < 0)
+         v.dkim_expiry_clock_skew_seconds_ = 0;
 
-      dkim_oversign_headers_ = ReadIniSettingString_("Settings", "DkimOversignHeaders", "");
+      v.dkim_oversign_headers_ = ReadIniSettingString_("Settings", "DkimOversignHeaders", "");
 
       // RFC 8601 / RFC 7208 9.1 trace headers on inbound mail. Both default off: an
       // Authentication-Results field is a claim other systems act on, and it is worth
       // something only if the reader trusts this server's name, so turning it on is a
       // deliberate act rather than something an upgrade does quietly.
-      authentication_results_enabled_ = ReadIniSettingInteger_("Settings", "AuthenticationResultsEnabled", 0) == 1;
-      received_spf_header_enabled_ = ReadIniSettingInteger_("Settings", "ReceivedSpfHeaderEnabled", 0) == 1;
-      authentication_results_identity_ = ReadIniSettingString_("Settings", "AuthenticationResultsIdentity", "");
-      tls_rpt_from_address_ = ReadIniSettingString_("Settings", "TlsRptFromAddress", "");
-      tls_rpt_organization_name_ = ReadIniSettingString_("Settings", "TlsRptOrganizationName", "hMailServer");
+      v.authentication_results_enabled_ = ReadIniSettingInteger_("Settings", "AuthenticationResultsEnabled", 0) == 1;
+      v.received_spf_header_enabled_ = ReadIniSettingInteger_("Settings", "ReceivedSpfHeaderEnabled", 0) == 1;
+      v.authentication_results_identity_ = ReadIniSettingString_("Settings", "AuthenticationResultsIdentity", "");
+      v.tls_rpt_from_address_ = ReadIniSettingString_("Settings", "TlsRptFromAddress", "");
+      v.tls_rpt_organization_name_ = ReadIniSettingString_("Settings", "TlsRptOrganizationName", "hMailServer");
 
       // DMARC aggregate reporting (RFC 7489 7.2), the exact shape of the two
       // TLS-RPT keys above: an empty sender address means statistics are
       // collected and discarded, never sent - a mail server must not start
       // mailing third parties because someone turned DMARC checking on.
-      dmarc_rpt_from_address_ = ReadIniSettingString_("Settings", "DmarcRptFromAddress", "");
-      dmarc_rpt_organization_name_ = ReadIniSettingString_("Settings", "DmarcRptOrganizationName", "hMailServer");
+      v.dmarc_rpt_from_address_ = ReadIniSettingString_("Settings", "DmarcRptFromAddress", "");
+      v.dmarc_rpt_organization_name_ = ReadIniSettingString_("Settings", "DmarcRptOrganizationName", "hMailServer");
 
       // Which schema the aggregate report itself is written in. 1 is RFC 7489
       // Appendix C; 2 is RFC 9990 (DMARCbis), which changes the namespace, drops
@@ -668,7 +768,7 @@ namespace HM
       // an operator whose report consumers have caught up can switch, and that
       // the day the balance tips the default is a one-line change rather than a
       // feature to write.
-      dmarc_rpt_schema_version_ = ReadIniSettingInteger_("Settings", "DmarcRptSchemaVersion", 1);
+      v.dmarc_rpt_schema_version_ = ReadIniSettingInteger_("Settings", "DmarcRptSchemaVersion", 1);
 
       // Anything else is a typo, and a typo must not decide what goes on the
       // wire. Falling back to 1 rather than refusing to report: the value only
@@ -678,15 +778,18 @@ namespace HM
       // is owed the reason their reports are still going out as 7489 - and this
       // cannot fire on a stock server, where the key is absent and the default
       // is in range.
-      if (dmarc_rpt_schema_version_ != 1 && dmarc_rpt_schema_version_ != 2)
+      if (v.dmarc_rpt_schema_version_ != 1 && v.dmarc_rpt_schema_version_ != 2)
       {
          String message;
          message.Format(_T("DmarcRptSchemaVersion is set to %d, which is not a DMARC aggregate report schema this server can write. Using 1 (RFC 7489 Appendix C) instead. Set it to 1, or to 2 for the RFC 9990 (DMARCbis) schema."),
-                        dmarc_rpt_schema_version_);
+                        v.dmarc_rpt_schema_version_);
 
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6210, "IniFileSettings::LoadSettings", message);
+         if (ReportThisLoad_(_T("DmarcRptSchemaVersion")))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6210, "IniFileSettings::LoadSettings", message);
+         }
 
-         dmarc_rpt_schema_version_ = 1;
+         v.dmarc_rpt_schema_version_ = 1;
       }
 
       // What happens to a message the virus scanner could not examine. 0, the
@@ -699,45 +802,45 @@ namespace HM
       // table deliberately: a new settings row would report HM5015 on every read
       // until every database in the field had been upgraded, and this is one
       // integer.
-      av_fail_action_ = ReadIniSettingInteger_("Settings", "AVFailAction", 0);
-      if (av_fail_action_ < 0 || av_fail_action_ > 1)
-         av_fail_action_ = 0;
+      v.av_fail_action_ = ReadIniSettingInteger_("Settings", "AVFailAction", 0);
+      if (v.av_fail_action_ < 0 || v.av_fail_action_ > 1)
+         v.av_fail_action_ = 0;
 
       // The hold's own schedule, deliberately independent of the SMTP delivery
       // retry budget - see the getters for why borrowing `smtpnooftries` (which
       // ships as 0) would have made the whole policy bounce on the first blip.
-      av_fail_retry_minutes_ = ReadIniSettingInteger_("Settings", "AVFailRetryMinutes", 15);
-      if (av_fail_retry_minutes_ < 1)
-         av_fail_retry_minutes_ = 15;
+      v.av_fail_retry_minutes_ = ReadIniSettingInteger_("Settings", "AVFailRetryMinutes", 15);
+      if (v.av_fail_retry_minutes_ < 1)
+         v.av_fail_retry_minutes_ = 15;
 
       // Sixteen attempts at the default fifteen-minute interval is about four
       // hours of holding, which is the intended window - expressed in attempts
       // because attempts are what this policy advances itself. See the getter.
-      av_fail_max_holds_ = ReadIniSettingInteger_("Settings", "AVFailMaxHolds", 16);
-      if (av_fail_max_holds_ < 0)
-         av_fail_max_holds_ = 16;
+      v.av_fail_max_holds_ = ReadIniSettingInteger_("Settings", "AVFailMaxHolds", 16);
+      if (v.av_fail_max_holds_ < 0)
+         v.av_fail_max_holds_ = 16;
 
       // Per-name authentication lockout (see AccountLockout.h). Threshold 0 -
       // the default - disables the whole mechanism; the windows only matter
       // once it is on.
-      account_lockout_threshold_ = ReadIniSettingInteger_("Settings", "AccountLockoutThreshold", 0);
-      account_lockout_window_minutes_ = ReadIniSettingInteger_("Settings", "AccountLockoutWindowMinutes", 30);
-      account_lockout_minutes_ = ReadIniSettingInteger_("Settings", "AccountLockoutMinutes", 30);
-      if (account_lockout_window_minutes_ < 1)
-         account_lockout_window_minutes_ = 30;
-      if (account_lockout_minutes_ < 1)
-         account_lockout_minutes_ = 30;
+      v.account_lockout_threshold_ = ReadIniSettingInteger_("Settings", "AccountLockoutThreshold", 0);
+      v.account_lockout_window_minutes_ = ReadIniSettingInteger_("Settings", "AccountLockoutWindowMinutes", 30);
+      v.account_lockout_minutes_ = ReadIniSettingInteger_("Settings", "AccountLockoutMinutes", 30);
+      if (v.account_lockout_window_minutes_ < 1)
+         v.account_lockout_window_minutes_ = 30;
+      if (v.account_lockout_minutes_ < 1)
+         v.account_lockout_minutes_ = 30;
 
       // Tarpits (see AccountLogon::TarpitDelaySeconds and SMTPConnection::
       // TarpitRecipient_). Both off by default: a delay is a policy, and the
       // installations that upgrade onto this must behave as they did. Bounded
       // above because a pause longer than a protocol's idle timeout is a
       // disconnect with extra steps.
-      logon_tarpit_seconds_ = ClampTarpitSeconds_(ReadIniSettingInteger_("Settings", "LogonTarpitSeconds", 0));
-      smtp_tarpit_count_ = ReadIniSettingInteger_("Settings", "SmtpTarpitCount", 0);
-      if (smtp_tarpit_count_ < 0)
-         smtp_tarpit_count_ = 0;
-      smtp_tarpit_delay_seconds_ = ClampTarpitSeconds_(ReadIniSettingInteger_("Settings", "SmtpTarpitDelaySeconds", 0));
+      v.logon_tarpit_seconds_ = ClampTarpitSeconds_(ReadIniSettingInteger_("Settings", "LogonTarpitSeconds", 0));
+      v.smtp_tarpit_count_ = ReadIniSettingInteger_("Settings", "SmtpTarpitCount", 0);
+      if (v.smtp_tarpit_count_ < 0)
+         v.smtp_tarpit_count_ = 0;
+      v.smtp_tarpit_delay_seconds_ = ClampTarpitSeconds_(ReadIniSettingInteger_("Settings", "SmtpTarpitDelaySeconds", 0));
 
       // Hybrid post-quantum key exchange first, classical curves after it. The
       // list is only a preference order - the group actually used is negotiated,
@@ -745,120 +848,365 @@ namespace HM
       // of the NIST curves and nothing changes for it. See
       // SslContextInitializer::SetKeyExchangeGroups_ for the fallback that keeps
       // TLS working if OpenSSL rejects whatever is configured here.
-      tls_key_exchange_groups_ = ReadIniSettingString_("Settings", "TlsKeyExchangeGroups", "X25519MLKEM768:SecP256r1MLKEM768:X25519:secp384r1:secp256r1");
+      v.tls_key_exchange_groups_ = ReadIniSettingString_("Settings", "TlsKeyExchangeGroups", "X25519MLKEM768:SecP256r1MLKEM768:X25519:secp384r1:secp256r1");
 
       // Empty, unlike the group list above, and deliberately so. A default here would
       // pin the TLS 1.3 suites to whatever was current when this line was written and
       // silently keep them pinned as OpenSSL's own defaults moved on. Empty means "use
       // OpenSSL's", which is the better answer until an administrator says otherwise.
-      tls_cipher_suites13_ = ReadIniSettingString_("Settings", "TlsCipherSuites13", "");
+      v.tls_cipher_suites13_ = ReadIniSettingString_("Settings", "TlsCipherSuites13", "");
 
       // TLS session resumption and ticket management. See SslContextInitializer's
       // SetSessionResumption_ for what each one defends. Every default reproduces
       // today's behaviour exactly: tickets on, OpenSSL's own cache size and timeout, and
       // no ticket-key callback installed.
-      tls_session_tickets_enabled_ = ReadIniSettingInteger_("Settings", "TlsSessionTicketsEnabled", 1) == 1;
-      tls_session_cache_size_ = ReadIniSettingInteger_("Settings", "TlsSessionCacheSize", 0);
-      tls_session_timeout_seconds_ = ReadIniSettingInteger_("Settings", "TlsSessionTimeoutSeconds", 0);
+      v.tls_session_tickets_enabled_ = ReadIniSettingInteger_("Settings", "TlsSessionTicketsEnabled", 1) == 1;
+      v.tls_session_cache_size_ = ReadIniSettingInteger_("Settings", "TlsSessionCacheSize", 0);
+      v.tls_session_timeout_seconds_ = ReadIniSettingInteger_("Settings", "TlsSessionTimeoutSeconds", 0);
 
-      tls_ticket_key_rotation_seconds_ = ReadIniSettingInteger_("Settings", "TlsTicketKeyRotationSeconds", 0);
-      if (tls_ticket_key_rotation_seconds_ < 0)
-         tls_ticket_key_rotation_seconds_ = 0;
-      rest_api_port_ = ReadIniSettingInteger_("Settings", "RestApiPort", 0);
-      rest_api_bind_address_ = ReadIniSettingString_("Settings", "RestApiBindAddress", "127.0.0.1");
-      rest_api_certificate_file_ = ReadIniSettingString_("Settings", "RestApiCertificateFile", "");
-      rest_api_private_key_file_ = ReadIniSettingString_("Settings", "RestApiPrivateKeyFile", "");
-      acme_enabled_ = ReadIniSettingInteger_("Settings", "AcmeEnabled", 0) == 1;
-      acme_directory_url_ = ReadIniSettingString_("Settings", "AcmeDirectoryUrl", "https://acme-v02.api.letsencrypt.org/directory");
-      acme_contact_email_ = ReadIniSettingString_("Settings", "AcmeContactEmail", "");
-      acme_domains_ = ReadIniSettingString_("Settings", "AcmeDomains", "");
-      acme_certificate_directory_ = ReadIniSettingString_("Settings", "AcmeCertificateDirectory", "");
-      acme_http_port_ = ReadIniSettingInteger_("Settings", "AcmeHttpPort", 80);
-      acme_reuse_key_ = ReadIniSettingInteger_("Settings", "AcmeReuseKey", 1) == 1;
-      web_services_http_port_ = ReadIniSettingInteger_("Settings", "WebServicesHttpPort", 0);
-      web_services_https_port_ = ReadIniSettingInteger_("Settings", "WebServicesHttpsPort", 0);
-      web_services_bind_address_ = ReadIniSettingString_("Settings", "WebServicesBindAddress", "0.0.0.0");
-      web_services_certificate_file_ = ReadIniSettingString_("Settings", "WebServicesCertificateFile", "");
-      web_services_private_key_file_ = ReadIniSettingString_("Settings", "WebServicesPrivateKeyFile", "");
-      web_services_trusted_proxies_ = ReadIniSettingString_("Settings", "WebServicesTrustedProxies", "");
-      mta_sts_hosting_enabled_ = ReadIniSettingInteger_("Settings", "MtaStsHostingEnabled", 1) == 1;
-      mta_sts_policy_mode_ = ReadIniSettingString_("Settings", "MtaStsPolicyMode", "enforce");
-      mta_sts_policy_max_age_ = ReadIniSettingInteger_("Settings", "MtaStsPolicyMaxAge", 604800);
-      mta_sts_policy_mx_ = ReadIniSettingString_("Settings", "MtaStsPolicyMx", "");
-      autoconfig_enabled_ = ReadIniSettingInteger_("Settings", "AutoconfigEnabled", 1) == 1;
-      autoconfig_client_host_ = ReadIniSettingString_("Settings", "AutoconfigClientHost", "");
-      rewrite_envelope_from_when_forwarding_ = ReadIniSettingInteger_("Settings", "RewriteEnvelopeFromWhenForwarding", 0) == 1;
-      srs_enabled_ = ReadIniSettingInteger_("Settings", "SRSEnabled", 0) == 1;
-      srs_secret_ = ReadIniSettingString_("Settings", "SRSSecret", "");
-      batv_enabled_ = ReadIniSettingInteger_("Settings", "BATVEnabled", 0) == 1;
-      outbound_pipelining_ = ReadIniSettingInteger_("Settings", "OutboundPipelining", 1) == 1;
-      outbound_chunking_ = ReadIniSettingInteger_("Settings", "OutboundChunking", 1) == 1;
-      smtp_authenticated_sender_check_ = ReadIniSettingInteger_("Settings", "SmtpAuthenticatedSenderCheck", 0) == 1;
-      metrics_history_days_ = ReadIniSettingInteger_("Settings", "MetricsHistoryDays", 7);
-      if (metrics_history_days_ < 0)
-         metrics_history_days_ = 0;
-      batv_secret_ = ReadIniSettingString_("Settings", "BATVSecret", "");
-      max_submissions_per_ip_per_minute_ = ReadIniSettingInteger_("Settings", "MaxSubmissionsPerIPPerMinute", 0);
-      pop3_login_delay_seconds_ = ReadIniSettingInteger_("Settings", "Pop3LoginDelaySeconds", 0);
-      smtp_proxy_protocol_enabled_ = ReadIniSettingInteger_("Settings", "SMTPProxyProtocolEnabled", 0) == 1;
-      smtp_proxy_protocol_trusted_ips_ = ReadIniSettingString_("Settings", "SMTPProxyProtocolTrustedIPs", "");
-      smtp_xclient_enabled_ = ReadIniSettingInteger_("Settings", "SMTPXClientEnabled", 0) == 1;
-      smtp_xclient_trusted_ips_ = ReadIniSettingString_("Settings", "SMTPXClientTrustedIPs", "");
-      quarantine_enabled_ = ReadIniSettingInteger_("Settings", "QuarantineEnabled", 0) == 1;
-      quarantine_retention_days_ = ReadIniSettingInteger_("Settings", "QuarantineRetentionDays", 30);
-      message_trace_enabled_ = ReadIniSettingInteger_("Settings", "MessageTraceEnabled", 0) == 1;
-      message_trace_retention_days_ = ReadIniSettingInteger_("Settings", "MessageTraceRetentionDays", 30);
-      windows_event_log_enabled_ = ReadIniSettingInteger_("Settings", "WindowsEventLogEnabled", 1) == 1;
-      windows_event_log_level_ = ReadIniSettingInteger_("Settings", "WindowsEventLogLevel", 2);
+      v.tls_ticket_key_rotation_seconds_ = ReadIniSettingInteger_("Settings", "TlsTicketKeyRotationSeconds", 0);
+      if (v.tls_ticket_key_rotation_seconds_ < 0)
+         v.tls_ticket_key_rotation_seconds_ = 0;
+      v.rest_api_port_ = ReadIniSettingInteger_("Settings", "RestApiPort", 0);
+      v.rest_api_bind_address_ = ReadIniSettingString_("Settings", "RestApiBindAddress", "127.0.0.1");
+      v.rest_api_certificate_file_ = ReadIniSettingString_("Settings", "RestApiCertificateFile", "");
+      v.rest_api_private_key_file_ = ReadIniSettingString_("Settings", "RestApiPrivateKeyFile", "");
+      v.acme_enabled_ = ReadIniSettingInteger_("Settings", "AcmeEnabled", 0) == 1;
+      v.acme_directory_url_ = ReadIniSettingString_("Settings", "AcmeDirectoryUrl", "https://acme-v02.api.letsencrypt.org/directory");
+      v.acme_contact_email_ = ReadIniSettingString_("Settings", "AcmeContactEmail", "");
+      v.acme_domains_ = ReadIniSettingString_("Settings", "AcmeDomains", "");
+      v.acme_certificate_directory_ = ReadIniSettingString_("Settings", "AcmeCertificateDirectory", "");
+      v.acme_http_port_ = ReadIniSettingInteger_("Settings", "AcmeHttpPort", 80);
+      v.acme_reuse_key_ = ReadIniSettingInteger_("Settings", "AcmeReuseKey", 1) == 1;
+      v.web_services_http_port_ = ReadIniSettingInteger_("Settings", "WebServicesHttpPort", 0);
+      v.web_services_https_port_ = ReadIniSettingInteger_("Settings", "WebServicesHttpsPort", 0);
+      v.web_services_bind_address_ = ReadIniSettingString_("Settings", "WebServicesBindAddress", "0.0.0.0");
+      v.web_services_certificate_file_ = ReadIniSettingString_("Settings", "WebServicesCertificateFile", "");
+      v.web_services_private_key_file_ = ReadIniSettingString_("Settings", "WebServicesPrivateKeyFile", "");
+      v.web_services_trusted_proxies_ = ReadIniSettingString_("Settings", "WebServicesTrustedProxies", "");
+      v.mta_sts_hosting_enabled_ = ReadIniSettingInteger_("Settings", "MtaStsHostingEnabled", 1) == 1;
+      v.mta_sts_policy_mode_ = ReadIniSettingString_("Settings", "MtaStsPolicyMode", "enforce");
+      v.mta_sts_policy_max_age_ = ReadIniSettingInteger_("Settings", "MtaStsPolicyMaxAge", 604800);
+      v.mta_sts_policy_mx_ = ReadIniSettingString_("Settings", "MtaStsPolicyMx", "");
+      v.autoconfig_enabled_ = ReadIniSettingInteger_("Settings", "AutoconfigEnabled", 1) == 1;
+      v.autoconfig_client_host_ = ReadIniSettingString_("Settings", "AutoconfigClientHost", "");
+      v.rewrite_envelope_from_when_forwarding_ = ReadIniSettingInteger_("Settings", "RewriteEnvelopeFromWhenForwarding", 0) == 1;
+      v.srs_enabled_ = ReadIniSettingInteger_("Settings", "SRSEnabled", 0) == 1;
+      v.srs_secret_ = ReadIniSettingString_("Settings", "SRSSecret", "");
+      v.batv_enabled_ = ReadIniSettingInteger_("Settings", "BATVEnabled", 0) == 1;
+      v.outbound_pipelining_ = ReadIniSettingInteger_("Settings", "OutboundPipelining", 1) == 1;
+      v.outbound_chunking_ = ReadIniSettingInteger_("Settings", "OutboundChunking", 1) == 1;
+      v.smtp_authenticated_sender_check_ = ReadIniSettingInteger_("Settings", "SmtpAuthenticatedSenderCheck", 0) == 1;
+      v.metrics_history_days_ = ReadIniSettingInteger_("Settings", "MetricsHistoryDays", 7);
+      if (v.metrics_history_days_ < 0)
+         v.metrics_history_days_ = 0;
+      v.batv_secret_ = ReadIniSettingString_("Settings", "BATVSecret", "");
+      v.max_submissions_per_ip_per_minute_ = ReadIniSettingInteger_("Settings", "MaxSubmissionsPerIPPerMinute", 0);
+      v.pop3_login_delay_seconds_ = ReadIniSettingInteger_("Settings", "Pop3LoginDelaySeconds", 0);
+      v.smtp_proxy_protocol_enabled_ = ReadIniSettingInteger_("Settings", "SMTPProxyProtocolEnabled", 0) == 1;
+      v.smtp_proxy_protocol_trusted_ips_ = ReadIniSettingString_("Settings", "SMTPProxyProtocolTrustedIPs", "");
+      v.smtp_xclient_enabled_ = ReadIniSettingInteger_("Settings", "SMTPXClientEnabled", 0) == 1;
+      v.smtp_xclient_trusted_ips_ = ReadIniSettingString_("Settings", "SMTPXClientTrustedIPs", "");
+      v.quarantine_enabled_ = ReadIniSettingInteger_("Settings", "QuarantineEnabled", 0) == 1;
+      v.quarantine_retention_days_ = ReadIniSettingInteger_("Settings", "QuarantineRetentionDays", 30);
+      v.message_trace_enabled_ = ReadIniSettingInteger_("Settings", "MessageTraceEnabled", 0) == 1;
+      v.message_trace_retention_days_ = ReadIniSettingInteger_("Settings", "MessageTraceRetentionDays", 30);
+      v.windows_event_log_enabled_ = ReadIniSettingInteger_("Settings", "WindowsEventLogEnabled", 1) == 1;
+      v.windows_event_log_level_ = ReadIniSettingInteger_("Settings", "WindowsEventLogLevel", 2);
 
       // Severities run 1 (Critical) to 4 (Low); anything outside is folded to the
       // nearest end rather than passed to the sink, whose own defensive clamp
       // exists for the value that arrives between this load and the next.
-      if (windows_event_log_level_ < 1)
-         windows_event_log_level_ = 1;
+      if (v.windows_event_log_level_ < 1)
+         v.windows_event_log_level_ = 1;
 
-      if (windows_event_log_level_ > 4)
-         windows_event_log_level_ = 4;
-      dmarc_tree_walk_enabled_ = ReadIniSettingInteger_("Settings", "DmarcTreeWalkEnabled", 1) == 1;
-      spf_void_lookup_limit_ = ReadIniSettingInteger_("Settings", "SpfVoidLookupLimit", 2);
-      reject_full_mailbox_at_rcpt_ = ReadIniSettingInteger_("Settings", "RejectFullMailboxAtRcpt", 1) == 1;
-      dkim_accept_sha1_ = ReadIniSettingInteger_("Settings", "DkimAcceptSha1", 0) == 1;
-      quota_warning_percent_ = ReadIniSettingInteger_("Settings", "QuotaWarningPercent", 90);
-      archive_retention_days_ = ReadIniSettingInteger_("Settings", "ArchiveRetentionDays", 0);
-      database_statement_timeout_ = ReadIniSettingInteger_("Settings", "DatabaseStatementTimeout", 30);
-      imap_expunge_retention_records_ = ReadIniSettingInteger_("Settings", "IMAPExpungeRetentionRecords", 5000);
+      if (v.windows_event_log_level_ > 4)
+         v.windows_event_log_level_ = 4;
+      v.dmarc_tree_walk_enabled_ = ReadIniSettingInteger_("Settings", "DmarcTreeWalkEnabled", 1) == 1;
+      v.spf_void_lookup_limit_ = ReadIniSettingInteger_("Settings", "SpfVoidLookupLimit", 2);
+      v.reject_full_mailbox_at_rcpt_ = ReadIniSettingInteger_("Settings", "RejectFullMailboxAtRcpt", 1) == 1;
+      v.dkim_accept_sha1_ = ReadIniSettingInteger_("Settings", "DkimAcceptSha1", 0) == 1;
+      v.quota_warning_percent_ = ReadIniSettingInteger_("Settings", "QuotaWarningPercent", 90);
+      v.archive_retention_days_ = ReadIniSettingInteger_("Settings", "ArchiveRetentionDays", 0);
+      v.database_statement_timeout_ = ReadIniSettingInteger_("Settings", "DatabaseStatementTimeout", 30);
+      v.imap_expunge_retention_records_ = ReadIniSettingInteger_("Settings", "IMAPExpungeRetentionRecords", 5000);
 
       // Both are "0 means no limit", so a negative value is folded into that rather
       // than being passed on to a backend that would read it as an enormous one.
-      if (database_statement_timeout_ < 0)
-         database_statement_timeout_ = 0;
+      if (v.database_statement_timeout_ < 0)
+         v.database_statement_timeout_ = 0;
 
-      if (imap_expunge_retention_records_ < 0)
-         imap_expunge_retention_records_ = 0;
+      if (v.imap_expunge_retention_records_ < 0)
+         v.imap_expunge_retention_records_ = 0;
 
-      metrics_per_domain_enabled_ = ReadIniSettingInteger_("Settings", "MetricsPerDomainEnabled", 0) == 1;
+      v.metrics_per_domain_enabled_ = ReadIniSettingInteger_("Settings", "MetricsPerDomainEnabled", 0) == 1;
 
-      filter_hook_url_ = ReadIniSettingString_("Settings", "FilterHookUrl", "");
-      filter_hook_timeout_seconds_ = ReadIniSettingInteger_("Settings", "FilterHookTimeoutSeconds", 10);
-      filter_hook_fail_closed_ = ReadIniSettingInteger_("Settings", "FilterHookFailClosed", 0) == 1;
-      filter_hook_reject_score_ = ReadIniSettingInteger_("Settings", "FilterHookRejectScore", 100);
-      filter_hook_max_message_size_kb_ = ReadIniSettingInteger_("Settings", "FilterHookMaxMessageSizeKB", 10240);
+      v.filter_hook_url_ = ReadIniSettingString_("Settings", "FilterHookUrl", "");
+      v.filter_hook_timeout_seconds_ = ReadIniSettingInteger_("Settings", "FilterHookTimeoutSeconds", 10);
+      v.filter_hook_fail_closed_ = ReadIniSettingInteger_("Settings", "FilterHookFailClosed", 0) == 1;
+      v.filter_hook_reject_score_ = ReadIniSettingInteger_("Settings", "FilterHookRejectScore", 100);
+      v.filter_hook_max_message_size_kb_ = ReadIniSettingInteger_("Settings", "FilterHookMaxMessageSizeKB", 10240);
 
-      if (filter_hook_timeout_seconds_ < 1)
-         filter_hook_timeout_seconds_ = 1;
-      password_policy_minimum_length_ = ReadIniSettingInteger_("Settings", "PasswordPolicyMinimumLength", 0);
-      password_policy_require_mixed_case_ = ReadIniSettingInteger_("Settings", "PasswordPolicyRequireMixedCase", 0) == 1;
-      password_policy_require_digit_ = ReadIniSettingInteger_("Settings", "PasswordPolicyRequireDigit", 0) == 1;
-      password_policy_require_non_alphanumeric_ = ReadIniSettingInteger_("Settings", "PasswordPolicyRequireNonAlphanumeric", 0) == 1;
-      password_policy_reject_common_ = ReadIniSettingInteger_("Settings", "PasswordPolicyRejectCommon", 0) == 1;
-      password_policy_history_count_ = ReadIniSettingInteger_("Settings", "PasswordPolicyHistoryCount", 0);
-      password_policy_maximum_age_days_ = ReadIniSettingInteger_("Settings", "PasswordPolicyMaximumAgeDays", 0);
-      max_outbound_per_destination_per_minute_ = ReadIniSettingInteger_("Settings", "MaxOutboundPerDestinationPerMinute", 0);
-      m_sDisableAUTHList = ReadIniSettingString_("Settings", "DisableAUTHList", "");
+      if (v.filter_hook_timeout_seconds_ < 1)
+         v.filter_hook_timeout_seconds_ = 1;
+      v.password_policy_minimum_length_ = ReadIniSettingInteger_("Settings", "PasswordPolicyMinimumLength", 0);
+      v.password_policy_require_mixed_case_ = ReadIniSettingInteger_("Settings", "PasswordPolicyRequireMixedCase", 0) == 1;
+      v.password_policy_require_digit_ = ReadIniSettingInteger_("Settings", "PasswordPolicyRequireDigit", 0) == 1;
+      v.password_policy_require_non_alphanumeric_ = ReadIniSettingInteger_("Settings", "PasswordPolicyRequireNonAlphanumeric", 0) == 1;
+      v.password_policy_reject_common_ = ReadIniSettingInteger_("Settings", "PasswordPolicyRejectCommon", 0) == 1;
+      v.password_policy_history_count_ = ReadIniSettingInteger_("Settings", "PasswordPolicyHistoryCount", 0);
+      v.password_policy_maximum_age_days_ = ReadIniSettingInteger_("Settings", "PasswordPolicyMaximumAgeDays", 0);
+      v.max_outbound_per_destination_per_minute_ = ReadIniSettingInteger_("Settings", "MaxOutboundPerDestinationPerMinute", 0);
+      v.m_sDisableAUTHList = ReadIniSettingString_("Settings", "DisableAUTHList", "");
 
-      // DataFolder may just have changed, and the cached free-space reading is
-      // about whichever volume it named a moment ago.
-      DiskSpace::InvalidateCache();
+      std::shared_ptr<const Values> published = block;
+#if defined(__cpp_lib_atomic_shared_ptr)
+      values_.store(published);
+#else
+      std::atomic_store(&values_, published);
+#endif
+
+      // After the block, so a reader that sees the flag set finds the pattern in
+      // the block it loads; an empty pattern is no failure either way.
+      simulate_database_failure_enabled_ = !v.simulate_database_failure_for_.IsEmpty();
+   }
+
+   std::shared_ptr<const IniFileSettings::Values>
+   IniFileSettings::Current() const
+   {
+#if defined(__cpp_lib_atomic_shared_ptr)
+      return values_.load();
+#else
+      return std::atomic_load(&values_);
+#endif
+   }
+
+   void
+   IniFileSettings::Reload()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // What a save does: the overlay re-read from the store, a new block built in
+   // ScopeNow and published, and the subscribers of every key that moved called.
+   // The bootstrap and [SettingsOverride] are not re-read.
+   //---------------------------------------------------------------------------()
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(reload_mutex_);
+
+      RefreshDatabaseSettings_();
+
+      std::shared_ptr<const Values> before = Current();
+      BuildAndPublish_(ScopeNow, true);
+      std::shared_ptr<const Values> after = Current();
+
+      Notify_(before, after);
+   }
+
+   void
+   IniFileSettings::RefreshDatabaseSettings_()
+   {
+      {
+         boost::lock_guard<boost::recursive_mutex> guard(database_settings_mutex_);
+
+         // No store loaded - the bootstrap before the database is open, a command
+         // line with no server - and the file is the only source there is. The
+         // build below reads it.
+         if (!database_settings_loaded_)
+            return;
+      }
+
+      // The first step of LoadDatabaseSettings, as it describes it: the file
+      // reconciled against the table, the table winning. A table that cannot be
+      // read keeps the overlay as it was - Synchronize has said why - rather than
+      // dropping every stored value to the file's copy mid-flight.
+      IniSettingStore store;
+      std::map<String, String> resolved;
+      if (!store.Synchronize(resolved, false))
+         return;
+
+      boost::lock_guard<boost::recursive_mutex> guard(database_settings_mutex_);
+
+      // The overrides the last start loaded, applied again and not re-read: a key
+      // forced from [SettingsOverride] goes on winning between starts, and a change
+      // to that section still takes a start - and still announces itself there.
+      for (auto iter = start_overrides_.begin(); iter != start_overrides_.end(); iter++)
+         resolved[(*iter).first] = (*iter).second;
+
+      database_settings_ = resolved;
+   }
+
+   void
+   IniFileSettings::Subscribe(const String &name, std::function<void()> subscriber)
+   {
+      std::vector<String> names;
+      names.push_back(name);
+      Subscribe(names, subscriber);
+   }
+
+   void
+   IniFileSettings::Subscribe(const std::vector<String> &names, std::function<void()> subscriber)
+   {
+      if (names.empty() || !subscriber)
+         return;
+
+      Subscription subscription;
+      subscription.names = names;
+      subscription.call = subscriber;
+
+      boost::lock_guard<boost::mutex> guard(subscriptions_mutex_);
+      subscriptions_.push_back(subscription);
+   }
+
+   void
+   IniFileSettings::Notify_(const std::shared_ptr<const Values> &before, const std::shared_ptr<const Values> &after)
+   {
+      std::vector<Subscription> subscriptions;
+      {
+         boost::lock_guard<boost::mutex> guard(subscriptions_mutex_);
+         subscriptions = subscriptions_;
+      }
+
+      const String nothing;
+
+      for (size_t i = 0; i < subscriptions.size(); i++)
+      {
+         const Subscription &subscription = subscriptions[i];
+
+         bool moved = false;
+         for (size_t n = 0; n < subscription.names.size() && !moved; n++)
+         {
+            auto was = before->resolved.find(subscription.names[n]);
+            auto now = after->resolved.find(subscription.names[n]);
+
+            const String &wasValue = was == before->resolved.end() ? nothing : (*was).second;
+            const String &nowValue = now == after->resolved.end() ? nothing : (*now).second;
+
+            moved = wasValue != nowValue;
+         }
+
+         if (!moved)
+            continue;
+
+         // Contained: a subscriber that fails must not turn a save that succeeded
+         // into an error, and must not keep the others from being told.
+         try
+         {
+            subscription.call();
+         }
+         catch (...)
+         {
+            LOG_APPLICATION("IniFileSettings: a subscriber to " + StringParser::JoinVector(subscription.names, _T(", ")) +
+               " failed while taking a new value. The value is stored and published; the subsystem takes it at the next reinitialise.");
+         }
+      }
+   }
+
+   void
+   IniFileSettings::LatchRunningValues()
+   {
+      running_values_latched_ = true;
+   }
+
+   bool
+   IniFileSettings::ReportThisLoad_(const String &key) const
+   {
+      BuildContext *build = build_context;
+      if (!build || !build->reload || !build->running)
+         return true;
+
+      auto was = build->running->resolved.find(key);
+      auto now = build->block->resolved.find(key);
+      if (was == build->running->resolved.end() || now == build->block->resolved.end())
+         return true;
+
+      return (*was).second != (*now).second;
+   }
+
+   bool
+   IniFileSettings::GetApplies(const String &name, String &applies, String &spelling)
+   {
+      const IniSettingsBaseline::Setting *setting = FindBaselineSetting(name);
+      if (!setting)
+         return false;
+
+      applies = AppliesWord(setting->Applies);
+      spelling = setting->Name;
+      return true;
+   }
+
+   String
+   IniFileSettings::AppliesOrNow(const String &name)
+   {
+      // A name the loader does not read is read, if at all, where it is used -
+      // UseLanguage on every call, the webmail's branding keys per request, a
+      // script's own key by the script - so nothing holds a copy a save could miss.
+      String applies;
+      String spelling;
+      if (!GetApplies(name, applies, spelling))
+         return _T("now");
+
+      return applies;
+   }
+
+   String
+   IniFileSettings::ResolveStored_(const String &name, const String &defaultValue, bool isInteger)
+   {
+      if (isInteger)
+         return StringParser::IntToString(ResolveInteger_(_T("Settings"), name, _ttoi(defaultValue.c_str())));
+
+      return ResolveString_(_T("Settings"), name, defaultValue);
+   }
+
+   std::vector<IniFileSettings::PendingSetting>
+   IniFileSettings::GetPendingSettings()
+   {
+      std::vector<PendingSetting> pending;
+
+      std::shared_ptr<const Values> running = Current();
+
+      for (size_t i = 0; i < IniSettingsBaseline::SettingsCount; i++)
+      {
+         const IniSettingsBaseline::Setting &setting = IniSettingsBaseline::Settings[i];
+
+         if (setting.Applies == IniSettingsBaseline::AppliesNow)
+            continue;
+
+         // A key the running block never resolved is one this process has not
+         // loaded at all yet, and nothing is running on it to differ from.
+         auto found = running->resolved.find(setting.Name);
+         if (found == running->resolved.end())
+            continue;
+
+         // Read as the loader reads it - the overlay, an override, the file, the
+         // default - and compared as the loader resolved it, so "0009" stored for a
+         // running 9 is not a difference, and a value put back is not pending.
+         String stored = ResolveStored_(setting.Name, setting.Default, setting.IsInteger);
+
+         if (stored == (*found).second)
+            continue;
+
+         PendingSetting entry;
+         entry.name = setting.Name;
+         entry.stored = stored;
+         entry.running = (*found).second;
+         entry.applies = AppliesWord(setting.Applies);
+         pending.push_back(entry);
+      }
+
+      return pending;
+   }
+
+   bool
+   IniFileSettings::IsPending(const String &name)
+   {
+      std::vector<PendingSetting> pending = GetPendingSettings();
+
+      for (size_t i = 0; i < pending.size(); i++)
+      {
+         if (pending[i].name.CompareNoCase(name) == 0)
+            return true;
+      }
+
+      return false;
    }
 
    int
@@ -876,7 +1224,8 @@ namespace HM
       message.Format(_T("%s is set to %d, which is outside the range %d to %d this server will derive a password hash with. Using the built-in default instead. Set it to 0 to choose the default deliberately."),
                      sKey.c_str(), value, minimum, maximum);
 
-      ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5561, "IniFileSettings::LoadSettings", message);
+      if (ReportThisLoad_(sKey))
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5561, "IniFileSettings::LoadSettings", message);
 
       return 0;
    }
@@ -907,6 +1256,8 @@ namespace HM
    void
    IniFileSettings::LoadDatabaseSettings()
    {
+      boost::lock_guard<boost::recursive_mutex> reloadGuard(reload_mutex_);
+
       IniSettingStore store;
 
       std::map<String, String> resolved;
@@ -957,6 +1308,7 @@ namespace HM
 
       database_settings_ = resolved;
       file_overrides_ = overridden;
+      start_overrides_ = overrides;
       database_settings_loaded_ = true;
    }
 
@@ -967,6 +1319,7 @@ namespace HM
 
       database_settings_.clear();
       file_overrides_.clear();
+      start_overrides_.clear();
       database_settings_loaded_ = false;
    }
 
@@ -1018,6 +1371,10 @@ namespace HM
             Formatter::Format("The setting '{0}' was stored, but the [SettingsOverride] section of hMailServer.INI forces a different value for it, so the stored one will not take effect. Remove the key from that section to let the stored value be used.", key));
       }
 
+      // And published: a key marked now is in effect when this returns, one marked
+      // reinitialize or restart is pending until what applies it has happened.
+      Reload();
+
       return true;
    }
 
@@ -1037,11 +1394,8 @@ namespace HM
       if (count < 0)
          count = 0;
 
-      if (!WriteSettingsValue(_T("SmtpTarpitCount"), StringParser::IntToString(count)))
-         return false;
-
-      smtp_tarpit_count_ = count;
-      return true;
+      // The reload inside WriteSettingsValue publishes the value it stored.
+      return WriteSettingsValue(_T("SmtpTarpitCount"), StringParser::IntToString(count));
    }
 
    bool
@@ -1049,11 +1403,7 @@ namespace HM
    {
       seconds = ClampTarpitSeconds_(seconds);
 
-      if (!WriteSettingsValue(_T("SmtpTarpitDelaySeconds"), StringParser::IntToString(seconds)))
-         return false;
-
-      smtp_tarpit_delay_seconds_ = seconds;
-      return true;
+      return WriteSettingsValue(_T("SmtpTarpitDelaySeconds"), StringParser::IntToString(seconds));
    }
 
    bool
@@ -1072,6 +1422,9 @@ namespace HM
          if (database_settings_loaded_ && file_overrides_.find(key) == file_overrides_.end())
             database_settings_.erase(key);
       }
+
+      // Back to its default, in effect or pending as WriteSettingsValue says.
+      Reload();
 
       return true;
    }
@@ -1092,6 +1445,31 @@ namespace HM
 
    String
    IniFileSettings::ReadIniSettingString_(const String &sSection, const String &sKey, const String &sDefault)
+   {
+      // A build of the block on this thread records what the key resolved to and,
+      // for a key its scope must not apply, answers the running value instead.
+      BuildContext *build = sSection.CompareNoCase(_T("Settings")) == 0 ? build_context : nullptr;
+
+      if (build)
+      {
+         String running;
+         if (KeepRunningValue(*build, sKey, running))
+         {
+            build->block->resolved[sKey] = running;
+            return running;
+         }
+      }
+
+      String value = ResolveString_(sSection, sKey, sDefault);
+
+      if (build)
+         build->block->resolved[sKey] = value;
+
+      return value;
+   }
+
+   String
+   IniFileSettings::ResolveString_(const String &sSection, const String &sKey, const String &sDefault)
    {
       // [Settings] only, and only once the store has been loaded. Every other
       // section is read from the file and nowhere else, because those are the
@@ -1125,6 +1503,32 @@ namespace HM
 
    int
    IniFileSettings::ReadIniSettingInteger_(const String &sSection, const String &sKey, int iDefault)
+   {
+      // As ReadIniSettingString_, with the number kept as text: a key held at its
+      // running value comes back as the same number, and the pending list compares
+      // numbers as the loader read them rather than as the store spells them.
+      BuildContext *build = sSection.CompareNoCase(_T("Settings")) == 0 ? build_context : nullptr;
+
+      if (build)
+      {
+         String running;
+         if (KeepRunningValue(*build, sKey, running))
+         {
+            build->block->resolved[sKey] = running;
+            return _ttoi(running.c_str());
+         }
+      }
+
+      int value = ResolveInteger_(sSection, sKey, iDefault);
+
+      if (build)
+         build->block->resolved[sKey] = StringParser::IntToString(value);
+
+      return value;
+   }
+
+   int
+   IniFileSettings::ResolveInteger_(const String &sSection, const String &sKey, int iDefault)
    {
       if (sSection.CompareNoCase(_T("Settings")) == 0)
       {
@@ -1480,7 +1884,7 @@ namespace HM
       // Prefer machine-scoped DPAPI so the database password in hMailServer.ini
       // cannot be decrypted off-box. Fall back to the legacy Blowfish scheme when
       // DPAPI is disabled or unavailable (so a non-empty password is never lost).
-      if (protect_stored_secrets_with_dpapi_)
+      if (GetProtectStoredSecretsWithDPAPI())
       {
          String protectedValue = Crypt::Instance()->EnCrypt(password_, Crypt::ETDPAPI);
          if (!protectedValue.IsEmpty() || password_.IsEmpty())
@@ -1562,9 +1966,8 @@ namespace HM
    void
    IniFileSettings::SetRewriteEnvelopeFromWhenForwarding(bool value)
    {
-      rewrite_envelope_from_when_forwarding_ = value;
-
-      // Store first, file second, as every write does now. Writing the file here and
+      // Store first, file second, as every write does now; the reload inside
+      // WriteSettingsValue publishes it. Writing the file here and
       // recording the row afterwards - which is what this did - would let a failed
       // row write produce a file the next start reads as an administrator's edit and
       // puts back, reverting a change that reported success.
@@ -1580,13 +1983,15 @@ namespace HM
    std::set<int> 
    IniFileSettings::GetAuthDisabledOnPorts()
    {
-      if (m_sDisableAUTHList.IsEmpty())
+      const String disableAuthList = Current()->m_sDisableAUTHList;
+
+      if (disableAuthList.IsEmpty())
       {
          std::set<int> empty;
          return empty;
       }
 
-      std::vector<String> authDisabledOnPortsStr = StringParser::SplitString(m_sDisableAUTHList, ",");
+      std::vector<String> authDisabledOnPortsStr = StringParser::SplitString(disableAuthList, ",");
 
       std::set<int> authDisabledOnPorts;
 
@@ -1601,13 +2006,276 @@ namespace HM
    bool
    IniFileSettings::IsArchiveDomain(const String &domain) const
    {
-      if (archive_domains_.empty())
+      // One block for the whole question: the set it tests against must be the one
+      // it asked about being empty.
+      std::shared_ptr<const Values> values = Current();
+
+      if (values->archive_domains_.empty())
          return true;
 
       String lowered = domain;
       lowered.Trim();
       lowered.ToLower();
 
-      return archive_domains_.find(lowered) != archive_domains_.end();
+      return values->archive_domains_.find(lowered) != values->archive_domains_.end();
+   }
+
+   // ---- the tester -------------------------------------------------------------
+
+   namespace
+   {
+      void FailSettingsTest_(const String &sentence)
+      {
+         throw std::logic_error(std::string(AnsiString(sentence).c_str()));
+      }
+   }
+
+   void
+   IniFileSettingsTester::SetOverlay_(const String &key, const String &value)
+   {
+      IniFileSettings *ini = IniFileSettings::Instance();
+      boost::lock_guard<boost::recursive_mutex> guard(ini->database_settings_mutex_);
+      ini->database_settings_[key] = value;
+   }
+
+   void
+   IniFileSettingsTester::Publish_()
+   {
+      IniFileSettings::Instance()->BuildAndPublish_(IniFileSettings::ScopeNow, true);
+   }
+
+   bool
+   IniFileSettingsTester::GetOverlay_(const String &key, String &value)
+   {
+      IniFileSettings *ini = IniFileSettings::Instance();
+      boost::lock_guard<boost::recursive_mutex> guard(ini->database_settings_mutex_);
+      auto found = ini->database_settings_.find(key);
+      if (found == ini->database_settings_.end())
+         return false;
+      value = (*found).second;
+      return true;
+   }
+
+   void
+   IniFileSettingsTester::RestoreOverlay_(const String &key, bool had, const String &value)
+   {
+      IniFileSettings *ini = IniFileSettings::Instance();
+      boost::lock_guard<boost::recursive_mutex> guard(ini->database_settings_mutex_);
+      if (had)
+         ini->database_settings_[key] = value;
+      else
+         ini->database_settings_.erase(key);
+   }
+
+   bool
+   IniFileSettingsTester::OverlayLoaded_()
+   {
+      IniFileSettings *ini = IniFileSettings::Instance();
+      boost::lock_guard<boost::recursive_mutex> guard(ini->database_settings_mutex_);
+      return ini->database_settings_loaded_;
+   }
+
+   void
+   IniFileSettingsTester::Test()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The swap under load, which is the test for the block: one thread publishes a
+   // new block thousands of times, alternating one String key between two values
+   // of different lengths, and calls the real Reload among them, while this thread
+   // reads the key's getter ten thousand times and more. Every read must be one of
+   // the two values - never a mixture, never empty, never a crash. Then the three
+   // promises around it: a save of a key marked now is in effect when it returns
+   // and tells its subscriber once; a key marked reinitialize is held at its
+   // running value by a reload and is pending until the stored value is put back;
+   // and the pending list is recomputed, not remembered.
+   //
+   // TlsRptOrganizationName, because nothing reads it except the hourly TLS-RPT
+   // pass, which only sends when TlsRptFromAddress is set - so a value it holds for
+   // the length of the test changes nothing on the server running it. The stored
+   // value is put back however the test ends.
+   //---------------------------------------------------------------------------()
+   {
+      IniFileSettings *ini = IniFileSettings::Instance();
+
+      if (!OverlayLoaded_())
+         FailSettingsTest_(_T("The settings store is not loaded in this process, so the tester has nothing to publish from."));
+
+      const String key = _T("TlsRptOrganizationName");
+      const String first = _T("hMailServer settings tester A");
+      const String second = _T("hMailServer settings tester B - longer, so that half of one and half of the other is neither");
+
+      std::vector<String> names;
+      ini->GetSettingsNames(names);
+      bool wasStored = false;
+      for (size_t i = 0; i < names.size(); i++)
+      {
+         if (names[i].CompareNoCase(key) == 0)
+            wasStored = true;
+      }
+      const String before = ini->GetSettingsValue(key);
+
+      // Subscribed once per process: a subscription lives as long as the process
+      // does, and a tester run twice must not leave two behind.
+      static std::shared_ptr<std::atomic<int>> notified;
+      if (!notified)
+      {
+         notified = std::make_shared<std::atomic<int>>(0);
+         std::shared_ptr<std::atomic<int>> counter = notified;
+         ini->Subscribe(key, [counter]() { (*counter)++; });
+      }
+
+      const String reinitializeKey = _T("RestApiBindAddress");
+      const String runningBind = ini->GetRestApiBindAddress();
+      String storedBind;
+      const bool bindInOverlay = GetOverlay_(reinitializeKey, storedBind);
+      const bool bindPendingBefore = ini->IsPending(reinitializeKey);
+
+      try
+      {
+         // A save of a key marked now: in effect when it returns, and its subscriber
+         // told once - and not told again by a save that changes nothing.
+         if (!ini->WriteSettingsValue(key, first))
+            FailSettingsTest_(_T("The tester could not store a value."));
+
+         const int told = notified->load();
+
+         if (ini->GetTlsRptOrganizationName() != first)
+            FailSettingsTest_(_T("A save of a key marked now was not in effect when it returned."));
+
+         if (!ini->WriteSettingsValue(key, second) || ini->GetTlsRptOrganizationName() != second)
+            FailSettingsTest_(_T("A second save of a key marked now was not in effect when it returned."));
+
+         if (notified->load() != told + 1)
+            FailSettingsTest_(Formatter::Format(_T("A save that moved the key told its subscriber {0} time(s), not once."), notified->load() - told));
+
+         if (!ini->WriteSettingsValue(key, second) || notified->load() != told + 1)
+            FailSettingsTest_(_T("A save that did not move the key told its subscriber."));
+
+         if (!ini->WriteSettingsValue(key, first))
+            FailSettingsTest_(_T("The tester could not store a value."));
+
+         // The swap under load.
+         std::atomic<bool> stop(false);
+         std::atomic<int> publishes(0);
+         std::atomic<bool> writerFailed(false);
+
+         std::thread writer([&]()
+         {
+            try
+            {
+               bool flip = false;
+               while (!stop.load())
+               {
+                  SetOverlay_(key, flip ? first : second);
+                  Publish_();
+
+                  // The real thing among them: the store read back, which puts the
+                  // stored value - the first - in place again.
+                  if ((publishes.load() % 64) == 63)
+                     ini->Reload();
+
+                  flip = !flip;
+                  publishes++;
+               }
+            }
+            catch (...)
+            {
+               writerFailed = true;
+            }
+         });
+
+         int reads = 0;
+         int torn = 0;
+         int sawFirst = 0;
+         int sawSecond = 0;
+         String example;
+
+         const unsigned __int64 started = GetTickCount64();
+
+         // Ten thousand reads at least, and on until the writer has published a
+         // thousand blocks under them, so the reads cannot all fall between two
+         // publishes. Bounded, so a writer that stalls fails the test rather than
+         // hanging the suite.
+         while ((reads < 10000 || publishes.load() < 1000) && GetTickCount64() - started < 60000)
+         {
+            const String value = ini->GetTlsRptOrganizationName();
+
+            if (value == first)
+               sawFirst++;
+            else if (value == second)
+               sawSecond++;
+            else
+            {
+               torn++;
+               example = value;
+            }
+
+            reads++;
+         }
+
+         stop = true;
+         writer.join();
+
+         if (writerFailed.load())
+            FailSettingsTest_(_T("The publishing thread failed while the reads went on."));
+
+         if (torn > 0)
+            FailSettingsTest_(Formatter::Format(_T("{0} of {1} reads under {2} publishes were neither value - for example '{3}'."), torn, reads, publishes.load(), example));
+
+         if (reads < 10000 || publishes.load() < 1000)
+            FailSettingsTest_(Formatter::Format(_T("The load did not run its course in a minute: {0} reads, {1} publishes."), reads, publishes.load()));
+
+         if (sawFirst == 0 || sawSecond == 0)
+            FailSettingsTest_(Formatter::Format(_T("The reads saw only one of the two values ({0} and {1}), so they never ran across a swap."), sawFirst, sawSecond));
+
+         // A key marked reinitialize: held at its running value by a reload, pending
+         // while the store says otherwise, and not pending once the stored value is
+         // put back - recomputed, not remembered.
+         const String elsewhere = runningBind == _T("127.0.0.2") ? _T("127.0.0.3") : _T("127.0.0.2");
+         SetOverlay_(reinitializeKey, elsewhere);
+         Publish_();
+
+         if (ini->GetRestApiBindAddress() != runningBind)
+            FailSettingsTest_(_T("A reload applied a key marked reinitialize - RestApiBindAddress moved under a running listener."));
+
+         if (!ini->IsPending(reinitializeKey))
+            FailSettingsTest_(_T("A key marked reinitialize whose stored value differs from the running one is not pending."));
+
+         bool listed = false;
+         std::vector<IniFileSettings::PendingSetting> pending = ini->GetPendingSettings();
+         for (size_t i = 0; i < pending.size(); i++)
+         {
+            if (pending[i].name == reinitializeKey)
+               listed = pending[i].stored == elsewhere && pending[i].running == runningBind && pending[i].applies == _T("reinitialize");
+         }
+         if (!listed)
+            FailSettingsTest_(_T("The pending list does not carry the key with its stored value, its running value and reinitialize."));
+
+         RestoreOverlay_(reinitializeKey, bindInOverlay, storedBind);
+         Publish_();
+
+         if (!bindPendingBefore && ini->IsPending(reinitializeKey))
+            FailSettingsTest_(_T("A key marked reinitialize is still pending after its stored value was put back."));
+      }
+      catch (...)
+      {
+         RestoreOverlay_(reinitializeKey, bindInOverlay, storedBind);
+         if (wasStored)
+            ini->WriteSettingsValue(key, before);
+         else
+            ini->RemoveSettingsValue(key);
+         throw;
+      }
+
+      // Put back through the store, which is also what puts the overlay back.
+      if (wasStored)
+         ini->WriteSettingsValue(key, before);
+      else
+         ini->RemoveSettingsValue(key);
+
+      ini->Reload();
+
+      if (ini->GetTlsRptOrganizationName() != (wasStored ? before : String(_T("hMailServer"))))
+         FailSettingsTest_(_T("The tester could not put TlsRptOrganizationName back as it found it."));
    }
 }

@@ -38,6 +38,18 @@ namespace hMailServer.ControlPanel.Views
 
       public void OnEnter()
       {
+         // When a save of each row kept in the settings store reaches the running
+         // server, as the server marks it (Services/SettingApplies). All six are
+         // marked now: the backup reads its two switches when it runs, and the
+         // schedule task reads the time and the interval on every tick - a schedule
+         // set on a server that started without one is registered by the save.
+         MessagesDbOnlyRow.Applies = SettingApplies.Caption(IniFeatureStore.AppliesFor("BackupMessagesDBOnly"));
+         VerifyRestoreRow.Applies = SettingApplies.Caption(IniFeatureStore.AppliesFor("BackupVerifyRestore"));
+         ScheduleTimeRow.Applies = SettingApplies.Caption(IniFeatureStore.AppliesFor("ScheduledBackupTime"));
+         IntervalRow.Applies = SettingApplies.Caption(IniFeatureStore.AppliesFor("ScheduledBackupIntervalMinutes"));
+         KeepCountRow.Applies = SettingApplies.Caption(IniFeatureStore.AppliesFor("ScheduledBackupKeepCount"));
+         MaxAgeRow.Applies = SettingApplies.Caption(IniFeatureStore.AppliesFor("ScheduledBackupMaxAgeDays"));
+
          if (iniStore_.IsAvailable)
          {
             CheckMessagesDbOnly.IsChecked = iniStore_.ReadBool("BackupMessagesDBOnly", false);
@@ -236,11 +248,10 @@ namespace hMailServer.ControlPanel.Views
       {
          if (SaveBackupSettings())
          {
-            // The COM properties are live immediately; the INI one is read when
-            // the service starts, so don't claim both took effect.
-            ShowNotice_(StatusLevel.Good, iniStore_.IsAvailable
-               ? L("Backup settings saved - the message-metadata-only switch applies after a service restart.")
-               : L("Backup settings saved."));
+            // The COM properties are live immediately, and so are the two ini
+            // switches now: both are marked now, and a save publishes them
+            // (docs/SettingsApply.md).
+            ShowNotice_(StatusLevel.Good, L("Backup settings saved."));
             Services.Toast.Success(L("Backup settings saved."));
 
             // The destination may have changed, and the destination is where the
@@ -548,7 +559,7 @@ namespace hMailServer.ControlPanel.Views
          KeepCountBox.Text = keepCount.ToString(CultureInfo.InvariantCulture);
          MaxAgeBox.Text = maxAgeDays.ToString(CultureInfo.InvariantCulture);
 
-         ShowNotice_(StatusLevel.Good, L("Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart."));
+         ShowNotice_(StatusLevel.Good, L("Backup schedule saved."));
          Services.Toast.Success(L("Backup schedule saved."));
          RefreshScheduleStatus();
       }

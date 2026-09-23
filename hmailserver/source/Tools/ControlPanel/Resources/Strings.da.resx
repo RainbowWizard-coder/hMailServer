@@ -59,11 +59,11 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> – ingen ServicePassword gemmes eller indtastes, og en tom adgangskode afvises, før den sendes</value>
   </data>
-  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
-    <value> – serverindstillinger træder i kraft med det samme; indstillinger i hMailServer.ini træder i kraft efter en genstart af tjenesten.</value>
-  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> – vist ovenfor som denne maskines navn</value>
+  </data>
+  <data name=" - {0} of them wait for a reinitialize or a restart; the rest applied immediately." xml:space="preserve">
+    <value> – {0} af dem venter på en reinitialisering eller en genstart; resten trådte i kraft med det samme.</value>
   </data>
   <data name=" Also skipped for any recipient domain that has greylisting turned off in its own settings." xml:space="preserve">
     <value> Springes også over for ethvert modtagerdomæne, der har greylisting slået fra i sine egne indstillinger.</value>
@@ -170,11 +170,11 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> {0} af {1} meddelelser er indekseret.</value>
   </data>
-  <data name=" — INI settings need a service restart." xml:space="preserve">
-    <value> — INI-indstillinger kræver en genstart af tjenesten.</value>
-  </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — træder i kraft med det samme.</value>
+  </data>
+  <data name=" — {0} wait for a reinitialize or a restart." xml:space="preserve">
+    <value> – {0} venter på en reinitialisering eller en genstart.</value>
   </data>
   <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
     <value>"Alle i domænet" betyder, at afsenderens adresse ligger i et domæne, som denne server hoster, hvilket en udenforstående kan påstå, medmindre listen også kræver godkendelse. Sæt hak i det nedenfor, hvis listen skal være begrænset til personer, der er logget på.</value>
@@ -281,8 +281,8 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="0 is the shipped default and preserves today's behaviour exactly. 1 never delivers unscanned mail." xml:space="preserve">
     <value>0 er den medfølgende standard og bevarer nøjagtigt den nuværende adfærd. 1 leverer aldrig uscannet post.</value>
   </data>
-  <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess. Applies after a service restart." xml:space="preserve">
-    <value>0 er den medfølgende standard. 2 er et fornuftigt udgangspunkt: en fejlindtastet adgangskode koster et menneske to sekunder én gang, og en klient, der gennemprøver adgangskoder, to, fire, seks… sekunder pr. gæt. Træder i kraft efter en genstart af tjenesten.</value>
+  <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
+    <value>0 er den medfølgende standard. 2 er et fornuftigt udgangspunkt: en fejlindtastet adgangskode koster et menneske to sekunder én gang, og en klient, der gennemprøver adgangskoder, to, fire, seks… sekunder pr. gæt.</value>
   </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 beholder posten, til den fjernes.</value>
@@ -509,8 +509,8 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
     <value>En meddelelse med en score på {0} eller derover afvises (550 før brødteksten, 554 efter den). Intet markeres.</value>
   </data>
-  <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log. Applies after a service restart." xml:space="preserve">
-    <value>En meddelelse til ti lokale postkasser skrives én gang og linkes ti gange frem for at blive kopieret ti gange, hvilket er forskellen på én diskskrivning og ti for en stor meddelelse til en distributionsliste. Kræver, at datamappen ligger på NTFS; hvor et link ikke kan oprettes, kopierer serveren filen og siger det i SMTP-loggen. Gælder efter en genstart af tjenesten.</value>
+  <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log." xml:space="preserve">
+    <value>En meddelelse til ti lokale postkasser skrives én gang og linkes ti gange frem for at blive kopieret ti gange, hvilket er forskellen på én diskskrivning og ti for en stor meddelelse til en distributionsliste. Kræver, at datamappen ligger på NTFS; hvor et link ikke kan oprettes, kopierer serveren filen og siger det i SMTP-loggen.</value>
   </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>En moderne administrationsapp til hMailServer: live-dashboard, domæner og konti, leveringskø, log-streaming, alle serverindstillinger og transportsikkerhedsfunktionerne i 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
@@ -1106,6 +1106,12 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Advanced" xml:space="preserve">
     <value>Avanceret</value>
   </data>
+  <data name="After a restart" xml:space="preserve">
+    <value>Efter en genstart</value>
+  </data>
+  <data name="After reinitialize" xml:space="preserve">
+    <value>Efter reinitialisering</value>
+  </data>
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
     <value>Efter at brødteksten er modtaget — en afvisning her er en 554</value>
   </data>
@@ -1241,20 +1247,20 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="An alias points one address at another without needing a second mailbox." xml:space="preserve">
     <value>Et alias peger én adresse mod en anden uden behov for endnu en postkasse.</value>
   </data>
-  <data name="An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case. Applies after a service restart." xml:space="preserve">
-    <value>Et arkiv opbevares som regel af juridiske eller kontraktlige årsager, og den årsag gælder som regel bestemte domæner frem for alle domæner, denne server hoster. Med en liste her arkiveres en meddelelse kun, når dens lokale afsender eller en af dens modtagere hører til et domæne på listen, og kun kopierne for domæner på listen laves – en modtager på listen får stadig sin kopi, når afsenderens domæne ikke står på listen. Sammenlignes uden hensyn til store og små bogstaver. Træder i kraft efter en genstart af tjenesten.</value>
+  <data name="An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case." xml:space="preserve">
+    <value>Et arkiv opbevares som regel af juridiske eller kontraktlige årsager, og den årsag gælder som regel bestemte domæner frem for alle domæner, denne server hoster. Med en liste her arkiveres en meddelelse kun, når dens lokale afsender eller en af dens modtagere hører til et domæne på listen, og kun kopierne for domæner på listen laves – en modtager på listen får stadig sin kopi, når afsenderens domæne ikke står på listen. Sammenlignes uden hensyn til store og små bogstaver.</value>
   </data>
   <data name="An authenticated session may only send as an address its account owns or has been granted" xml:space="preserve">
     <value>En godkendt session må kun sende som en adresse, som dens konto ejer eller har fået tildelt</value>
   </data>
-  <data name="An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all. All three apply after a service restart." xml:space="preserve">
-    <value>En automatisk udelukkelse håndhæves af serverens egne lyttere: operativsystemet accepterer adressen, giver den videre til serveren, og serveren afbryder. Disse indstillinger skubber udelukkelsen ned i operativsystemets firewall, giver den til et program efter dit valg og navngiver de adresser, der aldrig må udelukkes. Alle tre gælder efter genstart af tjenesten.</value>
+  <data name="An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all." xml:space="preserve">
+    <value>En automatisk udelukkelse håndhæves af serverens egne lyttere: operativsystemet accepterer adressen, giver den videre til serveren, og serveren afbryder. Disse indstillinger skubber udelukkelsen ned i operativsystemets firewall, giver den til et program efter dit valg og navngiver de adresser, der aldrig må udelukkes.</value>
   </data>
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>En hel udgående leveringssession. 0 = ingen grænse.</value>
   </data>
-  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects. Applies after a service restart." xml:space="preserve">
-    <value>Et hændelsesscript kører inde i serveren med tjenestekontoens rettigheder, så hvad det må instantiere, er en sikkerhedsbeslutning frem for en bekvemmelighed. Som leveret er dette *, som tillader ethvert objekt, så en opgradering aldrig ødelægger et script, en installation allerede kører - det er indstillingen at indsnævre, ikke den sikre tilstand. Navngiv kun det, et af dine egne scripts rent faktisk har brug for - et scripting-filsystemobjekt, en HTTP-klient - og alt andet afvises med objektets navn i fejlloggen; tomt afviser alt ud over hMailServers egne objekter. Gælder efter en genstart af tjenesten.</value>
+  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
+    <value>Et hændelsesscript kører inde i serveren med tjenestekontoens rettigheder, så hvad det må instantiere, er en sikkerhedsbeslutning frem for en bekvemmelighed. Som leveret er dette *, som tillader ethvert objekt, så en opgradering aldrig ødelægger et script, en installation allerede kører - det er indstillingen at indsnævre, ikke den sikre tilstand. Navngiv kun det, et af dine egne scripts rent faktisk har brug for - et scripting-filsystemobjekt, en HTTP-klient - og alt andet afvises med objektets navn i fejlloggen; tomt afviser alt ud over hMailServers egne objekter.</value>
   </data>
   <data name="An external scanner process. 0 = no bound." xml:space="preserve">
     <value>En ekstern scannerproces. 0 = ingen grænse.</value>
@@ -1371,6 +1377,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Applies at the next service restart or Reinitialize. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>Træder i kraft ved næste genstart af tjenesten eller ved Reinitialiser. Logfilerne påvirkes ikke: dette sender en kopi, det flytter ikke noget. Uden en samlervært nedenfor skriver en server under systemd på Linux i stedet til journalen - på Linux er denne ene kontakt altså hele opsætningen.</value>
   </data>
+  <data name="Applies on save" xml:space="preserve">
+    <value>Træder i kraft, når det gemmes</value>
+  </data>
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
     <value>Gælder kun, mens behandling af returmails er slået til. En rapport tælles kun, når den nævner en besked, som denne server faktisk leverede til modtageren, kom uautentificeret udefra og bestod SPF og DMARC, hvor de registreres - men enhver, der modtog den samme besked, kan forfalske en for en anden synlig modtager. Slået fra læses rapporter slet ikke; afvisninger under levering tælles stadig.</value>
   </data>
@@ -1389,8 +1398,8 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Archive in the backup destination (_name or path)" xml:space="preserve">
     <value>Arkiv i backupdestinationen (_navn eller sti)</value>
   </data>
-  <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after. Applies after a service restart." xml:space="preserve">
-    <value>ArchiveDir er en rå kopi af hver eneste meddelelse, der passerer gennem serveren, og indtil nu har intet nogensinde fjernet noget fra den – så på en travl server er det en mappe, der kun vokser, og den administrator, der finder ud af det, er den, hvis disk løb fuld. Dette beskærer den. 0 beholder alt, og det er standarden med vilje: et arkiv opbevares som regel af juridiske eller kontraktlige årsager, og en server, der ved en opgradering begyndte at slette fra et arkiv, ville ødelægge præcis det, den fik besked på at bevare. Oprydningen fjerner kun .eml-filer, så alt andet, du gemmer i arkivet, bliver ladt i fred, og den kører ved opstart og hver tolvte time derefter. Træder i kraft efter en genstart af tjenesten.</value>
+  <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
+    <value>ArchiveDir er en rå kopi af hver eneste meddelelse, der passerer gennem serveren, og indtil nu har intet nogensinde fjernet noget fra den – så på en travl server er det en mappe, der kun vokser, og den administrator, der finder ud af det, er den, hvis disk løb fuld. Dette beskærer den. 0 beholder alt, og det er standarden med vilje: et arkiv opbevares som regel af juridiske eller kontraktlige årsager, og en server, der ved en opgradering begyndte at slette fra et arkiv, ville ødelægge præcis det, den fik besked på at bevare. Oprydningen fjerner kun .eml-filer, så alt andet, du gemmer i arkivet, bliver ladt i fred, og den kører ved opstart og hver tolvte time derefter.</value>
   </data>
   <data name="Archives to kee_p (0 = keep all)" xml:space="preserve">
     <value>Arkiver, der skal be_holdes (0 = behold alle)</value>
@@ -1587,14 +1596,8 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>Sikkerhedskopiinterval i minutter (0 = fra)</value>
   </data>
-  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
-    <value>Sikkerhedskopitidsplan gemt - tjenesten læser disse indstillinger, når den starter, så de gælder efter genstart af tjenesten.</value>
-  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>Sikkerhedskopitidsplan gemt.</value>
-  </data>
-  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
-    <value>Sikkerhedskopiindstillinger gemt - kontakten for kun meddelelsesmetadata gælder efter genstart af tjenesten.</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>Sikkerhedskopiindstillinger gemt.</value>
@@ -1815,8 +1818,8 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
     <value>Kan ikke afgøre, om en tidsplan er konfigureret: hMailServer.ini blev ikke fundet på denne maskine. Kontrollér ScheduledBackupTime og ScheduledBackupIntervalMinutes på selve serveren.</value>
   </data>
-  <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0. Applies after a service restart." xml:space="preserve">
-    <value>Lofter for en enkelt IMAP SEARCH eller SORT, målt fra søgningens start, så én klient, der søger i en meget stor postkasse, ikke kan optage en forbindelse på ubestemt tid. Hvis brugere med store postkasser melder, at søgninger fejler eller intet returnerer, er disse de to at hæve. Hver halvdel kan slås fra for sig ved at sætte den til 0. Gælder efter genstart af tjenesten.</value>
+  <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
+    <value>Lofter for en enkelt IMAP SEARCH eller SORT, målt fra søgningens start, så én klient, der søger i en meget stor postkasse, ikke kan optage en forbindelse på ubestemt tid. Hvis brugere med store postkasser melder, at søgninger fejler eller intet returnerer, er disse de to at hæve. Hver halvdel kan slås fra for sig ved at sætte den til 0.</value>
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these live in the [SendingLimits] and [SendingLimitsOverrides] sections of hMailServer.INI and are re-read within a couple of seconds of the file changing - saving here applies them WITHOUT a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Lofter for, hvad én godkendt konto må indlevere over en glidende periode - bremsen mod, at en kompromitteret konto bruges til at spamme. Talt pr. konto ved SMTP-indlevering: meddelelser og konvolutmodtagere hver for sig, og en meddelelse afvist af grænsen får en midlertidig fejl, så en rigtig klient prøver igen senere. I modsætning til resten af denne side bor disse i sektionerne [SendingLimits] og [SendingLimitsOverrides] i hMailServer.INI og genlæses inden for et par sekunder efter, at filen ændres - at gemme her anvender dem UDEN genstart af tjenesten. Tællere overlever en genstart via en tilstandsfil i datamappen.</value>
@@ -1869,8 +1872,8 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Change the language" xml:space="preserve">
     <value>Skift sprog</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal. Applies after a service restart." xml:space="preserve">
-    <value>Ændrer, hvad der sker ved sletningstærsklen. Fra: en meddelelse over den afvises under SMTP-samtalen med et 550, og afsenderen får det at vide. Til: den accepteres med et 250 og tilbageholdes til gennemsyn i stedet - afsenderen tror, den blev leveret, og prøver ikke igen, hvilket er det, der gør en falsk positiv genoprettelig uden at afvise til en returvej, der sandsynligvis er forfalsket, og som også betyder, at gennemsynskøen bliver det eneste sted, meddelelsen findes. Gælder for kontroller, der kører, efter at meddelelsens brødtekst er modtaget; en afgørelse truffet før det (en sortlistet forbindende IP, en dårlig HELO) har ingen meddelelse at tilbageholde og forbliver en afvisning. Gælder efter genstart af tjenesten.</value>
+  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>Ændrer, hvad der sker ved sletningstærsklen. Fra: en meddelelse over den afvises under SMTP-samtalen med et 550, og afsenderen får det at vide. Til: den accepteres med et 250 og tilbageholdes til gennemsyn i stedet - afsenderen tror, den blev leveret, og prøver ikke igen, hvilket er det, der gør en falsk positiv genoprettelig uden at afvise til en returvej, der sandsynligvis er forfalsket, og som også betyder, at gennemsynskøen bliver det eneste sted, meddelelsen findes. Gælder for kontroller, der kører, efter at meddelelsens brødtekst er modtaget; en afgørelse truffet før det (en sortlistet forbindende IP, en dårlig HELO) har ingen meddelelse at tilbageholde og forbliver en afvisning.</value>
   </data>
   <data name="Changing two-factor authentication settings requires administrator rights. Restart the Control Panel as an administrator and try again." xml:space="preserve">
     <value>Ændring af indstillinger for tofaktorgodkendelse kræver administratorrettigheder. Genstart Control Panel som administrator, og prøv igen.</value>
@@ -2455,6 +2458,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Kunne ikke læse {0}: {1}</value>
+  </data>
+  <data name="Could not reinitialize: {0}" xml:space="preserve">
+    <value>Kunne ikke reinitialisere: {0}</value>
   </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>Kunne ikke fjerne handlingen: {0}</value>
@@ -3497,8 +3503,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Hver kontrol i den rækkefølge, serveren kører dem, dens score, og hvad totalen gør ved meddelelsen.</value>
   </data>
-  <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series. Applies after a service restart." xml:space="preserve">
-    <value>Hver tæller, som metrics-endepunktet eksponerer, gælder hele serveren, og det er det, der forhindrer metrics i at blive til rapportering: du kan se, hvor meget post serveren har håndteret, aldrig hvor meget et enkelt domæne har. Dette tilføjer en optælling af sendte og modtagne meddelelser pr. hostet domæne. Slået fra som standard, og det er en kardinalitetsbeslutning snarere end en forsigtig beslutning – hver etiketværdi er en separat tidsserie i det, der scraper dette, så en operatør, der hoster flere tusinde domæner, bør vælge at betale for det frem for at opdage det. Kun domæner, som denne server hoster, får nogensinde en etiket, så ingen mængde post fra fremmede kan skabe serier. Gælder efter en genstart af tjenesten.</value>
+  <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
+    <value>Hver tæller, som metrics-endepunktet eksponerer, gælder hele serveren, og det er det, der forhindrer metrics i at blive til rapportering: du kan se, hvor meget post serveren har håndteret, aldrig hvor meget et enkelt domæne har. Dette tilføjer en optælling af sendte og modtagne meddelelser pr. hostet domæne. Slået fra som standard, og det er en kardinalitetsbeslutning snarere end en forsigtig beslutning – hver etiketværdi er en separat tidsserie i det, der scraper dette, så en operatør, der hoster flere tusinde domæner, bør vælge at betale for det frem for at opdage det. Kun domæner, som denne server hoster, får nogensinde en etiket, så ingen mængde post fra fremmede kan skabe serier.</value>
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>Hver hændelse for kø-id {0}, ældste først.</value>
@@ -3764,8 +3770,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>For hvert certifikat, hvis nøglefil er en krypteret PEM, skal certifikatets adgangskode til den private nøgle angives på siden SSL-certifikater (adgangssætningen blev sat af den, der oprettede nøglen, så kun du kan levere den) - eller erstat filen med en ukrypteret nøgle.</value>
   </data>
-  <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it. Applies after a service restart." xml:space="preserve">
-    <value>For eksempel http://127.0.0.1:11333/checkv2. Indtil videre kun almindelig HTTP, så motoren bør stå på denne maskine eller på et netværk, du stoler på – hele meddelelsen sendes til den. Gælder efter en genstart af tjenesten.</value>
+  <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
+    <value>For eksempel http://127.0.0.1:11333/checkv2. Indtil videre kun almindelig HTTP, så motoren bør stå på denne maskine eller på et netværk, du stoler på – hele meddelelsen sendes til den.</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Til søgetilstand: en tjenestekonto, der må læse kataloget. Det må enhver almindelig domænekonto som standard; den behøver ingen andre rettigheder.</value>
@@ -3788,8 +3794,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Forwarding" xml:space="preserve">
     <value>Videresendelse</value>
   </data>
-  <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set. Changes take effect after a service restart." xml:space="preserve">
-    <value>Videresendelse af en meddelelse beholder den oprindelige konvolutafsender, så næste hop kontrollerer SPF for et domæne, der aldrig har autoriseret denne server, og meddelelsen fejler. Dette er de to svar. SRS omskriver konvolutafsenderen til en, som denne server kan stå inde for og kan gøre om på vejen tilbage, så bounces stadig når frem til den oprindelige afsender; BATV mærker konvolutafsenderen på udgående post, så en forfalsket bounce – en for en meddelelse, denne server aldrig har sendt – kan skelnes fra en ægte. Begge bruger en serverdækkende hemmelighed og gør slet ingenting, før en er sat. Ændringer træder i kraft efter en genstart af tjenesten.</value>
+  <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set." xml:space="preserve">
+    <value>Videresendelse af en meddelelse beholder den oprindelige konvolutafsender, så næste hop kontrollerer SPF for et domæne, der aldrig har autoriseret denne server, og meddelelsen fejler. Dette er de to svar. SRS omskriver konvolutafsenderen til en, som denne server kan stå inde for og kan gøre om på vejen tilbage, så bounces stadig når frem til den oprindelige afsender; BATV mærker konvolutafsenderen på udgående post, så en forfalsket bounce – en for en meddelelse, denne server aldrig har sendt – kan skelnes fra en ægte. Begge bruger en serverdækkende hemmelighed og gør slet ingenting, før en er sat.</value>
   </data>
   <data name="Forwarding breaks SPF, because the envelope sender changes, and often breaks DKIM, because the body is modified - so a mailing list or a forwarded mailbox can turn a message that passed DMARC at the sender into one that fails it here. A valid ARC chain (RFC 8617) from a forwarder you trust carries the original result, and this cancels exactly the DMARC failure score, never more. It needs 'Evaluate DMARC policies' above to be on, since it only ever offsets a penalty that test adds." xml:space="preserve">
     <value>Videresendelse bryder SPF, fordi konvolutafsenderen ændres, og bryder ofte DKIM, fordi brødteksten ændres – så en mailingliste eller en videresendt postkasse kan forvandle en meddelelse, der bestod DMARC hos afsenderen, til en, der fejler den her. En gyldig ARC-kæde (RFC 8617) fra en videresender, du stoler på, bærer det oprindelige resultat, og dette ophæver nøjagtigt DMARC-fejlscoren, aldrig mere. Det kræver, at 'Evaluér DMARC-politikker' ovenfor er slået til, da det kun nogensinde udligner en straf, som den test lægger til.</value>
@@ -4058,8 +4064,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Hvordan posterne når samleren</value>
   </data>
-  <data name="How long a connection may sit idle before it is closed, per protocol, in seconds. &quot;Server&quot; is hMailServer accepting a connection from a mail client or another mail server; &quot;client&quot; is hMailServer connecting out to deliver mail or to fetch it from an external POP3 account. The effective timeout moves between the minimum and the maximum with server load, so a busy server drops idle connections sooner. Applies after a service restart." xml:space="preserve">
-    <value>Hvor længe en forbindelse må stå inaktiv, før den lukkes, pr. protokol, i sekunder. "Server" er hMailServer, der accepterer en forbindelse fra en mailklient eller en anden mailserver; "klient" er hMailServer, der forbinder udad for at levere post eller hente den fra en ekstern POP3-konto. Den effektive timeout bevæger sig mellem minimum og maksimum med serverens belastning, så en travl server dropper inaktive forbindelser tidligere. Gælder efter en genstart af tjenesten.</value>
+  <data name="How long a connection may sit idle before it is closed, per protocol, in seconds. &quot;Server&quot; is hMailServer accepting a connection from a mail client or another mail server; &quot;client&quot; is hMailServer connecting out to deliver mail or to fetch it from an external POP3 account. The effective timeout moves between the minimum and the maximum with server load, so a busy server drops idle connections sooner." xml:space="preserve">
+    <value>Hvor længe en forbindelse må stå inaktiv, før den lukkes, pr. protokol, i sekunder. "Server" er hMailServer, der accepterer en forbindelse fra en mailklient eller en anden mailserver; "klient" er hMailServer, der forbinder udad for at levere post eller hente den fra en ekstern POP3-konto. Den effektive timeout bevæger sig mellem minimum og maksimum med serverens belastning, så en travl server dropper inaktive forbindelser tidligere.</value>
   </data>
   <data name="How long a counted failure is kept, rather than a sliding window: a housekeeping pass running once a minute deletes failure records older than this - and only while auto-ban is enabled." xml:space="preserve">
     <value>Hvor længe en talt fejl beholdes, snarere end et glidende vindue: en oprydningskørsel, der kører én gang i minuttet, sletter fejlposter, der er ældre end dette – og kun mens automatisk blokering er aktiveret.</value>
@@ -4088,8 +4094,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Hvordan post kommer ind, hvor den går hen derefter, og hvad der sker med den undervejs.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>Hvordan postkassebrugere beviser, hvem de er: eksterne identitetsudbydere, hvordan adgangskoder gemmes, og hvor SMTP AUTH tilbydes (hMailServer.INI). Ændringer træder i kraft efter en genstart af tjenesten.</value>
+  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI)." xml:space="preserve">
+    <value>Hvordan postkassebrugere beviser, hvem de er: eksterne identitetsudbydere, hvordan adgangskoder gemmes, og hvor SMTP AUTH tilbydes (hMailServer.INI).</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Hvor mange databaseforbindelser serveren holder åbne og deler mellem sine worker-tråde. At hæve tallet hjælper kun, når tråde synligt venter på en forbindelse – se timeouten for at få en databaseforbindelse på siden Servergrænser og ekspertindstillinger, som er det, de venter på.</value>
@@ -4121,14 +4127,14 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="How the password is proved" xml:space="preserve">
     <value>Hvordan adgangskoden bevises</value>
   </data>
-  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes. Applies after a service restart." xml:space="preserve">
-    <value>Hvordan serveren afgør, at mail.example.com og example.com hører til den samme organisation, hvilket er det, DMARCs standard, afslappet alignment, sammenligner. Det gamle svar var Public Suffix List – en fil med hvert registers delegeringsregler, kompileret ind og opdateret ved byggetid. DMARCbis erstattede den med en gennemgang op ad DNS, der spørger hvert niveau, om det er en organisatorisk grænse, så en domæneejer kan angive, hvor deres grænse går, i stedet for at anmode en liste. Slås dette fra, falder serveren tilbage til den kompilerede liste, hvilket også er, hvad der sker for ethvert enkelt opslag, som gennemgangen ikke kan fuldføre, fordi DNS var utilgængelig – et resolverudfald må ikke stille og roligt forvandle afslappet alignment til streng. Koster op til otte DNS-forespørgsler pr. domæne, cachet i fem minutter. Gælder efter en genstart af tjenesten.</value>
+  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
+    <value>Hvordan serveren afgør, at mail.example.com og example.com hører til den samme organisation, hvilket er det, DMARCs standard, afslappet alignment, sammenligner. Det gamle svar var Public Suffix List – en fil med hvert registers delegeringsregler, kompileret ind og opdateret ved byggetid. DMARCbis erstattede den med en gennemgang op ad DNS, der spørger hvert niveau, om det er en organisatorisk grænse, så en domæneejer kan angive, hvor deres grænse går, i stedet for at anmode en liste. Slås dette fra, falder serveren tilbage til den kompilerede liste, hvilket også er, hvad der sker for ethvert enkelt opslag, som gennemgangen ikke kan fuldføre, fordi DNS var utilgængelig – et resolverudfald må ikke stille og roligt forvandle afslappet alignment til streng. Koster op til otte DNS-forespørgsler pr. domæne, cachet i fem minutter.</value>
   </data>
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Hvordan serveren bruger den database, den allerede er konfigureret til. Hvor den database ER – serveren, navnet, legitimationsoplysningerne og typen – sættes op af installationsguiden og kan med vilje ikke redigeres her, fordi en forkert værdi dér forhindrer serveren i at starte frem for at gøre den langsommere. Gælder efter en genstart af tjenesten.</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>Hvordan denne server slår MX, PTR, SPF, DKIM, DMARC og sortlister op (hMailServer.INI). Ændringer træder i kraft efter en genstart af tjenesten.</value>
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
+    <value>Hvordan denne server slår MX, PTR, SPF, DKIM, DMARC og sortlister op (hMailServer.INI).</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (push-mail)</value>
@@ -4357,8 +4363,8 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Keep" xml:space="preserve">
     <value>Behold</value>
   </data>
-  <data name="Keep greylisting active during the record-expiration window (restart required)" xml:space="preserve">
-    <value>Hold greylisting aktiv i vinduet for udløb af poster (genstart kræves)</value>
+  <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
+    <value>Hold greylisting aktiv i vinduet for udløb af poster</value>
   </data>
   <data name="Keep log files open (performance)" xml:space="preserve">
     <value>Hold logfiler åbne (ydelse)</value>
@@ -4498,8 +4504,8 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>Lader Outlook, Thunderbird og mobilklienter sætte sig selv op ud fra en e-mailadresse alene ved at hente denne servers konfigurations-URL'er.</value>
   </data>
-  <data name="Lets a client ask for the rest of the session to be compressed, which is worth most on a slow or metered link where a large mailbox listing is mostly repeated text. On by default; a client that does not ask is unaffected. Applies after a service restart." xml:space="preserve">
-    <value>Lader en klient bede om, at resten af sessionen komprimeres, hvilket er mest værd på en langsom eller forbrugsafregnet forbindelse, hvor en stor postkasseoversigt for det meste er gentaget tekst. Slået til som standard; en klient, der ikke beder om det, er upåvirket. Gælder efter en genstart af tjenesten.</value>
+  <data name="Lets a client ask for the rest of the session to be compressed, which is worth most on a slow or metered link where a large mailbox listing is mostly repeated text. On by default; a client that does not ask is unaffected." xml:space="preserve">
+    <value>Lader en klient bede om, at resten af sessionen komprimeres, hvilket er mest værd på en langsom eller forbrugsafregnet forbindelse, hvor en stor postkasseoversigt for det meste er gentaget tekst. Slået til som standard; en klient, der ikke beder om det, er upåvirket.</value>
   </data>
   <data name="Lets clients log on with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install." xml:space="preserve">
     <value>Lader klienter logge på med bearer-tokens fra en identitetsudbyder i stedet for adgangskoder; tokens accepteres kun, hvis deres signatur verificeres mod nøglemateriale, du installerer.</value>
@@ -4714,8 +4720,8 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="MX query" xml:space="preserve">
     <value>MX-forespørgsel</value>
   </data>
-  <data name="Machine-readable output for log shippers. Applies after a service restart." xml:space="preserve">
-    <value>Maskinlæsbart output til log-afsendere. Gælder efter en genstart af tjenesten.</value>
+  <data name="Machine-readable output for log shippers." xml:space="preserve">
+    <value>Maskinlæsbart output til log-afsendere.</value>
   </data>
   <data name="Mail clients send through the submission port, and without TLS their passwords cross the network in the clear." xml:space="preserve">
     <value>E-mailklienter sender gennem indleveringsporten, og uden TLS går deres adgangskoder i klartekst over nettet.</value>
@@ -4863,9 +4869,6 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Max parallel external POP3 fetch threads" xml:space="preserve">
     <value>Maks. antal parallelle tråde til ekstern POP3-afhentning</value>
-  </data>
-  <data name="Max parallel external POP3 fetch threads (restart required)" xml:space="preserve">
-    <value>Maks. antal parallelle tråde til ekstern POP3-afhentning (genstart kræves)</value>
   </data>
   <data name="Max recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>Maks. antal modtagere pr. konto pr. periode (0 = ingen grænse)</value>
@@ -5127,8 +5130,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Move signing for {0} to the next key now?" xml:space="preserve">
     <value>Skifte signeringen for {0} til den næste nøgle nu?</value>
   </data>
-  <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
-    <value>Flyt meddelelsesfilen til SpamAssassin i stedet for at kopiere den (genstart kræves)</value>
+  <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
+    <value>Flyt meddelelsesfilen til SpamAssassin i stedet for at kopiere den</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Flyt vinduet ved et genforsøg, der kommer for tidligt</value>
@@ -5139,8 +5142,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>Flyt til IMAP-mappe</value>
   </data>
-  <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves. Applies after a service restart." xml:space="preserve">
-    <value>At flytte en meddelelse ind i den mappe, der er udpeget som Junk, rapporterer den til sa-learn som spam, og at flytte en ud igen rapporterer den som ham, så filteret lærer af det, folk allerede gør, frem for af et særskilt ritual, som ingen udfører. Slået fra som standard: den kører sa-learn pr. flytning, og en bruger, der lægger nyhedsbreve i Junk, lærer filteret, at nyhedsbreve er spam for alle, som scanneren betjener. Gælder efter en genstart af tjenesten.</value>
+  <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
+    <value>At flytte en meddelelse ind i den mappe, der er udpeget som Junk, rapporterer den til sa-learn som spam, og at flytte en ud igen rapporterer den som ham, så filteret lærer af det, folk allerede gør, frem for af et særskilt ritual, som ingen udfører. Slået fra som standard: den kører sa-learn pr. flytning, og en bruger, der lægger nyhedsbreve i Junk, lærer filteret, at nyhedsbreve er spam for alle, som scanneren betjener.</value>
   </data>
   <data name="Must be an absolute URL, as above." xml:space="preserve">
     <value>Skal være en absolut URL, som ovenfor.</value>
@@ -5712,8 +5715,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Off" xml:space="preserve">
     <value>Fra</value>
   </data>
-  <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing. Applies after a service restart." xml:space="preserve">
-    <value>Slået fra som standard, fordi det koster en termtabel på nogle få kilobyte pr. meddelelse og et backfill-gennemløb over hver meddelelse, der allerede er leveret - en administrators beslutning, aldrig en opgraderings. Resultaterne er identiske, uanset om det er slået til eller fra: indekset indsnævrer kun, hvilke meddelelser delstrengsscanningen skal læse. Kræver, at meddelelsesindeksering (ovenfor) er aktiveret; alene indekserer dette ingenting. Gælder efter en genstart af tjenesten.</value>
+  <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
+    <value>Slået fra som standard, fordi det koster en termtabel på nogle få kilobyte pr. meddelelse og et backfill-gennemløb over hver meddelelse, der allerede er leveret - en administrators beslutning, aldrig en opgraderings. Resultaterne er identiske, uanset om det er slået til eller fra: indekset indsnævrer kun, hvilke meddelelser delstrengsscanningen skal læse. Kræver, at meddelelsesindeksering (ovenfor) er aktiveret; alene indekserer dette ingenting.</value>
   </data>
   <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
     <value>Slået fra som standard og uvirksom, når den er fra: katalogtilknyttede konti valideres så på den gamle måde, gennem Windows-pålogning. Når den er slået til, valideres de samme konti - dem med Katalog-fanen udfyldt - i stedet ved en LDAP-binding mod serveren nedenfor. Konti uden katalogtilknytning påvirkes aldrig, hverken den ene eller den anden vej.</value>
@@ -5742,8 +5745,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Off by default: a full mailbox is usually emptied, and listing it would stop mail to somebody who reads it next week." xml:space="preserve">
     <value>Slået fra som standard: en fuld postkasse tømmes som regel, og at liste den ville stoppe post til en, der læser den i næste uge.</value>
   </data>
-  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that. Applies after a service restart." xml:space="preserve">
-    <value>Fra, og fra er, hvad RFC 8301 kræver: den fjernede rsa-sha1 fra DKIM helt og aldeles, så en signerer må ikke bruge den, og en verificerer skal behandle en signatur, der gør, som ugyldig. En DKIM-signatur er en påstand om identitet, og DMARC-alignment er bygget på den, og SHA-1-kollisioner har været praktisk mulige siden 2020 - en signatur, nogen kan forfalske, er mindre værd end ingen signatur overhovedet, fordi den bærer signererens domæne forbi en aligned DMARC-kontrol. At slå dette til genopretter begge halvdele: signaturer, der bruger den, verificeres igen, og et domæne, der er konfigureret til at signere med den, gør det i stedet for at blive opgraderet til rsa-sha256. Nøgler kortere end 1024 bit afvises uanset hvad, og denne indstilling påvirker ikke det. Gælder efter en genstart af tjenesten.</value>
+  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that." xml:space="preserve">
+    <value>Fra, og fra er, hvad RFC 8301 kræver: den fjernede rsa-sha1 fra DKIM helt og aldeles, så en signerer må ikke bruge den, og en verificerer skal behandle en signatur, der gør, som ugyldig. En DKIM-signatur er en påstand om identitet, og DMARC-alignment er bygget på den, og SHA-1-kollisioner har været praktisk mulige siden 2020 - en signatur, nogen kan forfalske, er mindre værd end ingen signatur overhovedet, fordi den bærer signererens domæne forbi en aligned DMARC-kontrol. At slå dette til genopretter begge halvdele: signaturer, der bruger den, verificeres igen, og et domæne, der er konfigureret til at signere med den, gør det i stedet for at blive opgraderet til rsa-sha256. Nøgler kortere end 1024 bit afvises uanset hvad, og denne indstilling påvirker ikke det.</value>
   </data>
   <data name="Off. Directory-linked accounts are validated through Windows logon (LogonUser), which only works when this host is joined to the domain - every failure there looks like a wrong password." xml:space="preserve">
     <value>Fra. Katalogtilknyttede konti valideres gennem Windows-pålogning (LogonUser), som kun virker, når denne vært er meldt ind i domænet - hver fejl dér ligner en forkert adgangskode.</value>
@@ -5763,8 +5766,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches YOUR directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
     <value>Slået til som standard, og kun et udtrykkeligt 0 i INI-filen slår den fra. Slået fra beviser den krypterede forbindelse ikke længere, at den når DIT katalog: enhver, der kan opsnappe den, kan fremvise et hvilket som helst certifikat og indsamle hver adgangskode, der sendes over den. Serveren noterer deaktiveringen i sin programlog én gang pr. start af tjenesten. Kun relevant for LDAPS og StartTLS.</value>
   </data>
-  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is. Applies after a service restart." xml:space="preserve">
-    <value>Slået til som standard, og den ene kontakt her, hvis standard ikke er den forsigtige. Med den slået fra accepteres en meddelelse til en postkasse, der allerede er over kvoten, og besvares derefter med en rapport om manglende levering adresseret til konvolutafsenderen - som den trafik, der fylder postkasser hurtigst, har forfalsket. Den rapport går så fra denne server til nogen, der intet har sendt, hvilket er backscatter, og det er denne servers omdømme, der betaler for det. At afvise ved RCPT TO med en midlertidig 452 i stedet lader meddelelsen blive i den afsendende servers kø, så en legitim afsenders post venter på, at postkassen bliver tømt, og til sidst rapporteres af den maskine, der ved, hvem afsenderen virkelig er. Gælder efter en genstart af tjenesten.</value>
+  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is." xml:space="preserve">
+    <value>Slået til som standard, og den ene kontakt her, hvis standard ikke er den forsigtige. Med den slået fra accepteres en meddelelse til en postkasse, der allerede er over kvoten, og besvares derefter med en rapport om manglende levering adresseret til konvolutafsenderen - som den trafik, der fylder postkasser hurtigst, har forfalsket. Den rapport går så fra denne server til nogen, der intet har sendt, hvilket er backscatter, og det er denne servers omdømme, der betaler for det. At afvise ved RCPT TO med en midlertidig 452 i stedet lader meddelelsen blive i den afsendende servers kø, så en legitim afsenders post venter på, at postkassen bliver tømt, og til sidst rapporteres af den maskine, der ved, hvem afsenderen virkelig er.</value>
   </data>
   <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
     <value>Ved stop ventes op til N sekunder på, at aktive sessioner bliver færdige (0 = stop med det samme)</value>
@@ -5799,8 +5802,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="OnAcceptMessage → webhook (SIEM / Slack / Teams)" xml:space="preserve">
     <value>OnAcceptMessage → webhook (SIEM / Slack / Teams)</value>
   </data>
-  <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off. Applies after a service restart." xml:space="preserve">
-    <value>Én gang i minuttet skriver serveren én række pr. metrik - sessioner, behandlede, leverede, udsatte og bouncede meddelelser, spam og virus, godkendelses- og TLS-udfald, manglende meddelelsesfiler - til hm_metricsamples og beholder dem i så mange dage. Det er det, dashboardets visninger for 24 timer, 7 dage og 30 dage samt GET /api/v1/metrics/history læser. En uges historik med minutopløsning er omkring hundrede og fyrre tusind små rækker. 0 slår måleren fra. Gælder efter en genstart af tjenesten.</value>
+  <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off." xml:space="preserve">
+    <value>Én gang i minuttet skriver serveren én række pr. metrik - sessioner, behandlede, leverede, udsatte og bouncede meddelelser, spam og virus, godkendelses- og TLS-udfald, manglende meddelelsesfiler - til hm_metricsamples og beholder dem i så mange dage. Det er det, dashboardets visninger for 24 timer, 7 dage og 30 dage samt GET /api/v1/metrics/history læser. En uges historik med minutopløsning er omkring hundrede og fyrre tusind små rækker. 0 slår måleren fra.</value>
   </data>
   <data name="One configured port is not being listened on: " xml:space="preserve">
     <value>Der lyttes ikke på én konfigureret port: </value>
@@ -6021,8 +6024,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Udgående levering, genforsøg og begrænsning. At holde videresendt post SPF-aligned (SRS) og bounce-mærkning (BATV) findes på siden Transportsikkerhed.</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>Politikker for godkendelse og kryptering af udgående post (hMailServer.INI). Ændringer træder i kraft efter en genstart af tjenesten.</value>
+  <data name="Outbound mail authentication and encryption policies (hMailServer.INI)." xml:space="preserve">
+    <value>Politikker for godkendelse og kryptering af udgående post (hMailServer.INI).</value>
   </data>
   <data name="Override DNS server (empty = the name servers Windows uses)" xml:space="preserve">
     <value>Tilsidesæt DNS-server (tomt = de navneservere, Windows bruger)</value>
@@ -6075,8 +6078,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="POP3 conversations to syslog" xml:space="preserve">
     <value>POP3-samtaler til syslog</value>
   </data>
-  <data name="POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses logins that arrive early with a code the client understands as &quot;slow down&quot; rather than as a wrong password. Applies after a service restart." xml:space="preserve">
-    <value>POP3 har ingen måde, hvorpå serveren kan fortælle en klient, at der er kommet post, så klienter, der vil virke hurtige, poller - og nogle poller med få sekunders mellemrum. Hver polling er en ny forbindelse, et TLS-handshake og en adgangskodeverifikation, som med Argon2id er bevidst dyr, så en håndfuld ivrige klienter kan koste mere, end posten gør. At sætte en forsinkelse fortæller klienterne intervallet i serverens liste over funktioner og afviser pålogninger, der kommer for tidligt, med en kode, som klienten forstår som "sæt farten ned" og ikke som en forkert adgangskode. Gælder efter en genstart af tjenesten.</value>
+  <data name="POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses logins that arrive early with a code the client understands as &quot;slow down&quot; rather than as a wrong password." xml:space="preserve">
+    <value>POP3 har ingen måde, hvorpå serveren kan fortælle en klient, at der er kommet post, så klienter, der vil virke hurtige, poller - og nogle poller med få sekunders mellemrum. Hver polling er en ny forbindelse, et TLS-handshake og en adgangskodeverifikation, som med Argon2id er bevidst dyr, så en håndfuld ivrige klienter kan koste mere, end posten gør. At sætte en forsinkelse fortæller klienterne intervallet i serverens liste over funktioner og afviser pålogninger, der kommer for tidligt, med en kode, som klienten forstår som "sæt farten ned" og ikke som en forkert adgangskode.</value>
   </data>
   <data name="POP3 or IMAP mailboxes hMailServer collects mail from on behalf of this account. Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143." xml:space="preserve">
     <value>POP3- eller IMAP-postkasser, som hMailServer henter post fra på vegne af denne konto. Forbindelsessikkerhed og port hører sammen: SSL/TLS på 995 (POP3) eller 993 (IMAP), STARTTLS på 110 eller 143.</value>
@@ -6464,8 +6467,8 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Sæt {0} tilbage til den værdi, den havde før denne ændring? Tilbagesætningen registreres som en ændring i sig selv.</value>
   </data>
-  <data name="QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer. Applies after a service restart." xml:space="preserve">
-    <value>QRESYNC- og CONDSTORE-klienter spørger, hvad der forsvandt, mens de var væk, i stedet for at liste mappen igen. Serveren svarer ud fra en tabel af expunge-poster, beskåret til de nyeste N hver tolvte time og én gang ved start af tjenesten. En klient, hvis seneste synkronisering er ældre end den bevarede historik, får en fuld resynkronisering - aldrig et forkert svar. Gælder efter en genstart af tjenesten.</value>
+  <data name="QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer." xml:space="preserve">
+    <value>QRESYNC- og CONDSTORE-klienter spørger, hvad der forsvandt, mens de var væk, i stedet for at liste mappen igen. Serveren svarer ud fra en tabel af expunge-poster, beskåret til de nyeste N hver tolvte time og én gang ved start af tjenesten. En klient, hvis seneste synkronisering er ældre end den bevarede historik, får en fuld resynkronisering - aldrig et forkert svar.</value>
   </data>
   <data name="QUOTA" xml:space="preserve">
     <value>QUOTA</value>
@@ -6509,8 +6512,8 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="REST listener settings…" xml:space="preserve">
     <value>Indstillinger for REST-lytteren…</value>
   </data>
-  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take. Applies after a service restart." xml:space="preserve">
-    <value>RFC 7208 4.6.4. Et "void lookup" er et led i en afsenders SPF-politik - et a:, mx: eller exists: - hvis DNS-forespørgsel kommer tilbage med slet ingenting. Den særskilte grænse på ti DNS-forespørgende led begrænser, hvad en politik kan bede denne server om at slå op; den begrænser ikke, hvad en politik kan spilde, og ti led, der nævner værter, som ikke findes, koster en fuld opløsning hver for en post, der aldrig kan matche. To er, hvad RFC'en siger. Det fanger også det almindelige tilfælde: en politik, der stadig nævner værter, der blev taget ud af drift for år siden, hvilket dens ejer hellere vil have at vide. At hæve den er sikkert; 0 slår grænsen fra, hvilket er indstillingen for en korrespondent, hvis politik er forkert på nøjagtigt denne måde, og hvis post du hellere vil tage imod. Gælder efter en genstart af tjenesten.</value>
+  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
+    <value>RFC 7208 4.6.4. Et "void lookup" er et led i en afsenders SPF-politik - et a:, mx: eller exists: - hvis DNS-forespørgsel kommer tilbage med slet ingenting. Den særskilte grænse på ti DNS-forespørgende led begrænser, hvad en politik kan bede denne server om at slå op; den begrænser ikke, hvad en politik kan spilde, og ti led, der nævner værter, som ikke findes, koster en fuld opløsning hver for en post, der aldrig kan matche. To er, hvad RFC'en siger. Det fanger også det almindelige tilfælde: en politik, der stadig nævner værter, der blev taget ud af drift for år siden, hvilket dens ejer hellere vil have at vide. At hæve den er sikkert; 0 slår grænsen fra, hvilket er indstillingen for en korrespondent, hvis politik er forkert på nøjagtigt denne måde, og hvis post du hellere vil tage imod.</value>
   </data>
   <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred." xml:space="preserve">
     <value>RFC 7208’s eget svar på en kontrol, der ikke kunne fuldføres: prøv igen, når DNS virker. Transaktionen udsættes med 451 4.4.3, og temperror-scoren ovenfor ignoreres, fordi en udsat besked aldrig accepteres. Fra: en temperror accepteres og scores. En afsender på domænehvidlisten udsættes aldrig.</value>
@@ -6678,14 +6681,14 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Record a queryable message trace" xml:space="preserve">
     <value>Registrér en søgbar meddelelsessporing</value>
   </data>
-  <data name="Record expiration interval, minutes (restart required)" xml:space="preserve">
-    <value>Udløbsinterval for poster, minutter (genstart kræves)</value>
+  <data name="Record expiration interval, minutes" xml:space="preserve">
+    <value>Udløbsinterval for poster, minutter</value>
   </data>
   <data name="Record type: TXT.  Host/Name" xml:space="preserve">
     <value>Posttype: TXT.  Vært/navn</value>
   </data>
-  <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom. Applies after a service restart." xml:space="preserve">
-    <value>Registrerer en søgbar række for hver levering, afvisning og karantæne, så "hvad skete der med den meddelelse, Jane sendte kl. 14:20" kan besvares ved at søge i stedet for at greppe i logfiler. Hændelserne er de samme, som AWStats-journalen altid har set; dette giver dem et sted at blive spurgt. Slået fra som standard, fordi det gemmer afsender- og modtageradresser - hvilket gør det til en fortegnelse over, hvem der korresponderer med hvem. Gælder efter en genstart af tjenesten.</value>
+  <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
+    <value>Registrerer en søgbar række for hver levering, afvisning og karantæne, så "hvad skete der med den meddelelse, Jane sendte kl. 14:20" kan besvares ved at søge i stedet for at greppe i logfiler. Hændelserne er de samme, som AWStats-journalen altid har set; dette giver dem et sted at blive spurgt. Slået fra som standard, fordi det gemmer afsender- og modtageradresser - hvilket gør det til en fortegnelse over, hvem der korresponderer med hvem.</value>
   </data>
   <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam page for it to appear." xml:space="preserve">
     <value>Registrerer SPF-afgørelsen for hver accepteret indgående meddelelse som en Received-SPF-header (RFC 7208 afsnit 9.1). Headeren skrives kun, når SPF-kontrollen rent faktisk kørte, så 'Kontrollér SPF' skal være aktiveret på siden Antispam, for at den vises.</value>
@@ -6755,6 +6758,15 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   </data>
   <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and point OAuth2PublicKeyFile in hMailServer.ini at it (or set OAuth2HmacSecret for HS256). Set OAuth2Issuer and OAuth2Audience to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
     <value>Registrér denne server som et program hos identitetsudbyderen, download udbyderens offentlige signeringsnøgle som en PEM-fil, og peg OAuth2PublicKeyFile i hMailServer.ini på den (eller sæt OAuth2HmacSecret, hvis du bruger HS256). Sæt OAuth2Issuer og OAuth2Audience til de værdier, udbyderen lægger i sine tokens, ellers afviser valideringen dem.</value>
+  </data>
+  <data name="Reinitialize the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
+    <value>Reinitialiser serveren nu? Alle tjenester stopper og starter igen på stedet, så tilsluttede klienter afbrydes og forbinder igen.</value>
+  </data>
+  <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
+    <value>Reinitialiseret - de gemte indstillinger er i kraft.</value>
+  </data>
+  <data name="Reinitializing the server..." xml:space="preserve">
+    <value>Reinitialiserer serveren...</value>
   </data>
   <data name="Reject empty sender addresses (MAIL FROM:&lt;&gt;)" xml:space="preserve">
     <value>Afvis tomme afsenderadresser (MAIL FROM:&lt;&gt;)</value>
@@ -7407,11 +7419,17 @@ Vil du fortsætte?</value>
   <data name="Saved at {0}." xml:space="preserve">
     <value>Gemt kl. {0}.</value>
   </data>
+  <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
+    <value>Gemte {0} - alle indstillinger på denne side er i kraft.</value>
+  </data>
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>Gemte {0} - genstart tjenesten for at anvende.</value>
   </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>Gemte {0} - serveren opfanger det inden for to sekunder. Ingen genstart af tjenesten er nødvendig.</value>
+  </data>
+  <data name="Saved {0} - {1} setting(s) wait for a reinitialize; Apply now, in the bar at the foot of the window, takes them." xml:space="preserve">
+    <value>Gemte {0} - {1} indstilling(er) venter på en reinitialisering; Anvend nu i linjen nederst i vinduet sætter dem i kraft.</value>
   </data>
   <data name="Saved {0} settings" xml:space="preserve">
     <value>Gemte {0} indstillinger</value>
@@ -7773,14 +7791,14 @@ Vil du fortsætte?</value>
   <data name="Sends daily aggregate reports about TLS connection failures to recipient domains (RFC 8460)." xml:space="preserve">
     <value>Sender daglige aggregerede rapporter om TLS-forbindelsesfejl til modtagerdomæner (RFC 8460).</value>
   </data>
-  <data name="Sends the commands of a transaction without waiting for each answer, which removes a round trip per recipient - the difference is largest on a slow link or to a distant server. Used only with a server that advertises it. Applies after a service restart." xml:space="preserve">
-    <value>Sender kommandoerne i en transaktion uden at vente på hvert svar, hvilket fjerner en rundtur pr. modtager - forskellen er størst på en langsom forbindelse eller til en fjern server. Bruges kun med en server, der annoncerer det. Gælder efter en genstart af tjenesten.</value>
+  <data name="Sends the commands of a transaction without waiting for each answer, which removes a round trip per recipient - the difference is largest on a slow link or to a distant server. Used only with a server that advertises it." xml:space="preserve">
+    <value>Sender kommandoerne i en transaktion uden at vente på hvert svar, hvilket fjerner en rundtur pr. modtager - forskellen er størst på en langsom forbindelse eller til en fjern server. Bruges kun med en server, der annoncerer det.</value>
   </data>
   <data name="Sends the daily aggregate reports that domains ask for with a rua= tag in their DMARC record (RFC 7489) - who sent mail claiming to be them, and whether it passed. Reports only go to an address outside the policy domain when that address's own DNS says it wants them, so a domain cannot use its DMARC record to aim this server's reports at somebody else." xml:space="preserve">
     <value>Sender de daglige aggregerede rapporter, som domæner beder om med et rua=-tag i deres DMARC-post (RFC 7489) - hvem der sendte post og påstod at være dem, og om den bestod. Rapporter går kun til en adresse uden for politikdomænet, når den adresses eget DNS siger, at den vil have dem, så et domæne kan ikke bruge sin DMARC-post til at rette denne servers rapporter mod en anden.</value>
   </data>
-  <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME. Applies after a service restart." xml:space="preserve">
-    <value>Sender meddelelsen som optalte bidder frem for som DATA med dot-stuffing. Det er også det, der bærer en binær meddelelse videre uden at omskrive den: en meddelelse, der er accepteret som BINARYMIME, kan kun relayes, som den ankom, til en server, der tilbyder både dette og BINARYMIME. Gælder efter en genstart af tjenesten.</value>
+  <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME." xml:space="preserve">
+    <value>Sender meddelelsen som optalte bidder frem for som DATA med dot-stuffing. Det er også det, der bærer en binær meddelelse videre uden at omskrive den: en meddelelse, der er accepteret som BINARYMIME, kan kun relayes, som den ankom, til en server, der tilbyder både dette og BINARYMIME.</value>
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Sender modtagerens adresse som User:-headeren, så spamd anvender den postkasses egne præferencer - den form, en virtual-user-spamd (--virtual-config-dir med %u eller %d) forventer. En scanning kører én gang pr. meddelelse, ikke én gang pr. modtager, så en meddelelse til flere personer kan ikke scannes under nogen af deres præferencer og bruger profilen ovenfor i stedet.</value>
@@ -7878,8 +7896,8 @@ Vil du fortsætte?</value>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature." xml:space="preserve">
     <value>Serverdækkende lofter, holdbarhed og misbrugskontroller, der ikke hører til nogen enkelt protokol eller funktion.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason. Stored in hMailServer.INI, and unless a card says otherwise, changes take effect after a service restart." xml:space="preserve">
-    <value>Serverdækkende lofter, holdbarhed og misbrugskontroller, der ikke hører til nogen enkelt protokol eller funktion. Standarderne er sikre; ændr kun disse med en konkret grund. Gemmes i hMailServer.INI, og medmindre et kort siger andet, får ændringer virkning efter genstart af tjenesten.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
+    <value>Serverdækkende lofter, holdbarhed og misbrugskontroller, der ikke hører til nogen enkelt protokol eller funktion. Standarderne er sikre; ændr kun disse med en konkret grund.</value>
   </data>
   <data name="Server-wide defaults, keeping copies of mail and the scripting engine." xml:space="preserve">
     <value>Serverdækkende standarder, opbevaring af kopier af post og scriptmotoren.</value>
@@ -7914,8 +7932,8 @@ Vil du fortsætte?</value>
   <data name="Services" xml:space="preserve">
     <value>Tjenester</value>
   </data>
-  <data name="Session caching and session tickets let a returning client skip the full handshake. At the defaults these four settings make no OpenSSL call at all, so resumption keeps OpenSSL's stock behaviour - they are here for administrators who need to bound how long a resumption secret stays useful. Applies after a service restart." xml:space="preserve">
-    <value>Sessionscaching og session tickets lader en tilbagevendende klient springe det fulde handshake over. Ved standarderne foretager disse fire indstillinger slet ingen OpenSSL-kald, så genoptagelse beholder OpenSSL's standardadfærd - de er her for administratorer, der har brug for at begrænse, hvor længe en genoptagelseshemmelighed forbliver nyttig. Gælder efter genstart af tjenesten.</value>
+  <data name="Session caching and session tickets let a returning client skip the full handshake. At the defaults these four settings make no OpenSSL call at all, so resumption keeps OpenSSL's stock behaviour - they are here for administrators who need to bound how long a resumption secret stays useful." xml:space="preserve">
+    <value>Sessionscaching og session tickets lader en tilbagevendende klient springe det fulde handshake over. Ved standarderne foretager disse fire indstillinger slet ingen OpenSSL-kald, så genoptagelse beholder OpenSSL's standardadfærd - de er her for administratorer, der har brug for at begrænse, hvor længe en genoptagelseshemmelighed forbliver nyttig.</value>
   </data>
   <data name="Session resumption" xml:space="preserve">
     <value>Sessionsgenoptagelse</value>
@@ -7983,8 +8001,8 @@ Vil du fortsætte?</value>
   <data name="Settings" xml:space="preserve">
     <value>Indstillinger</value>
   </data>
-  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Indstillinger gemt. hMailServer-tjenesten skal genstartes, for at ændringerne træder i kraft.
+  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>Indstillingerne er gemt. {0} af dem træder først i kraft, når hMailServer-tjenesten genstartes.
 
 Genstart den nu?</value>
   </data>
@@ -8273,8 +8291,8 @@ Genstart den nu?</value>
   <data name="Stored in hMailServer.INI exactly as typed - the DPAPI switch above does not cover it, and there is nowhere else for the Service Control Manager's registration step to read it from. That is the strongest reason to use NT SERVICE\hMailServer or a group managed service account instead: neither has a password to store. If you do set one here, clear it again once the registration has been run - the SCM keeps its own copy from then on." xml:space="preserve">
     <value>Gemmes i hMailServer.INI præcis som skrevet - DPAPI-kontakten ovenfor dækker den ikke, og der er intet andet sted, Service Control Managers registreringstrin kan læse den fra. Det er den stærkeste grund til at bruge NT SERVICE\hMailServer eller en group managed service account i stedet: ingen af dem har en adgangskode at gemme. Hvis du sætter en her, så ryd den igen, når registreringen er kørt - SCM beholder sin egen kopi fra da af.</value>
   </data>
-  <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays. The service reads them when it starts, so changes here apply after a service restart." xml:space="preserve">
-    <value>Gemmes i hMailServer.ini som ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount og ScheduledBackupMaxAgeDays. Tjenesten læser dem, når den starter, så ændringer her gælder efter genstart af tjenesten.</value>
+  <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays." xml:space="preserve">
+    <value>Gemmes i hMailServer.ini som ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount og ScheduledBackupMaxAgeDays.</value>
   </data>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>Gemmes i hMailServer.ini på serveren. Det token, den køber, caches i hukommelsen, indtil 80 % af dets levetid er gået, og hentes automatisk igen.</value>
@@ -8710,8 +8728,8 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   <data name="The bounce and error texts the server sends are editable templates." xml:space="preserve">
     <value>De afvisnings- og fejltekster, serveren sender, er redigerbare skabeloner.</value>
   </data>
-  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>Den indbyggede HTTP-lytter, der serverer mailklient-autokonfiguration og MTA-STS-politikker for dine lokale domæner (hMailServer.INI). Ændringer træder i kraft efter genstart af tjenesten.</value>
+  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI)." xml:space="preserve">
+    <value>Den indbyggede HTTP-lytter, der serverer mailklient-autokonfiguration og MTA-STS-politikker for dine lokale domæner (hMailServer.INI).</value>
   </data>
   <data name="The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges." xml:space="preserve">
     <value>Den indbyggede HTTP-lytter: Autodiscover, autoconfig, MTA-STS-politikken og ACME-udfordringer.</value>
@@ -8817,8 +8835,8 @@ Markér nøglen ovenfor og kopiér den manuelt - den vises ikke igen.</value>
   <data name="The delivery queue lists what is waiting and why." xml:space="preserve">
     <value>Leveringskøen viser, hvad der venter, og hvorfor.</value>
   </data>
-  <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know. Applies after a service restart." xml:space="preserve">
-    <value>Den levering, der bringer en postkasse forbi denne procent, giver én besked til den person, hvis postkasse det er, fra dennes eget domænes postmaster. ÉN, ikke én pr. meddelelse: serveren behandler tærsklen som noget, postkassen KRYDSER, snarere end en tilstand, den er i, så en postkasse, der står på 95 %, advares ikke igen ved hver levering - hvilket ville fylde den hurtigere, end posten gør. Tømmes postkassen og fyldes igen, advares der igen, hvilket er den adfærd, enhver ville forvente, og her er den gratis i stedet for noget, der skulle huskes og udløbe. Slået til som standard, fordi alternativet er, hvad denne server gjorde før: sige ingenting overhovedet, indtil post begynder at blive afvist, og på det tidspunkt er den, det sker for, den sidste, der ved det. Gælder efter genstart af tjenesten.</value>
+  <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know." xml:space="preserve">
+    <value>Den levering, der bringer en postkasse forbi denne procent, giver én besked til den person, hvis postkasse det er, fra dennes eget domænes postmaster. ÉN, ikke én pr. meddelelse: serveren behandler tærsklen som noget, postkassen KRYDSER, snarere end en tilstand, den er i, så en postkasse, der står på 95 %, advares ikke igen ved hver levering - hvilket ville fylde den hurtigere, end posten gør. Tømmes postkassen og fyldes igen, advares der igen, hvilket er den adfærd, enhver ville forvente, og her er den gratis i stedet for noget, der skulle huskes og udløbe. Slået til som standard, fordi alternativet er, hvad denne server gjorde før: sige ingenting overhovedet, indtil post begynder at blive afvist, og på det tidspunkt er den, det sker for, den sidste, der ved det.</value>
   </data>
   <data name="The directory ACCEPTED the credentials: bound as {0}. This account would log on." xml:space="preserve">
     <value>Kataloget ACCEPTEREDE legitimationsoplysningerne: bundet som {0}. Denne konto ville kunne logge på.</value>
@@ -8906,8 +8924,8 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The group members could not be read: " xml:space="preserve">
     <value>Gruppemedlemmerne kunne ikke læses:</value>
   </data>
-  <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark. Applies after a service restart." xml:space="preserve">
-    <value>De grupper, som denne server vil aftale en TLS-nøgle med, i OpenSSLs listeform. Som leveret tilbyder den de to postkvante-hybrider først og falder tilbage til X25519 og NIST-kurverne for en modpart, der ikke har nogen af dem, så intet ændrer sig for en ældre klient. En tom liste, eller en som OpenSSL afviser, eller som ikke ville lade nogen gruppe være aktiveret, anvendes ikke: serveren logger den og bruger det klassiske fallback, så en fejl her kan ikke tage TLS ned - men den opgiver stille hybriderne, og derfor vises den leverede liste frem for et tomt felt. Ændr den op imod en scanning frem for i blinde. Gælder efter en genstart af tjenesten.</value>
+  <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
+    <value>De grupper, som denne server vil aftale en TLS-nøgle med, i OpenSSLs listeform. Som leveret tilbyder den de to postkvante-hybrider først og falder tilbage til X25519 og NIST-kurverne for en modpart, der ikke har nogen af dem, så intet ændrer sig for en ældre klient. En tom liste, eller en som OpenSSL afviser, eller som ikke ville lade nogen gruppe være aktiveret, anvendes ikke: serveren logger den og bruger det klassiske fallback, så en fejl her kan ikke tage TLS ned - men den opgiver stille hybriderne, og derfor vises den leverede liste frem for et tomt felt. Ændr den op imod en scanning frem for i blinde.</value>
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>Den guidede vej: hvilken halvdel, hvilke loglinjer og den indstilling, der begrænser hvert trin.</value>
@@ -9229,8 +9247,8 @@ Tilføj alligevel?</value>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Serverens administrationsadgangskode, og hvem der overhovedet må bruge disse værktøjer.</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request. Every setting here is in hMailServer.ini and applies after a service restart." xml:space="preserve">
-    <value>Serveren kan opdage en ny udgivelse, verificere den mod udgivelsens egen Sigstore-signatur og installere den – med et klik på statussiden eller på egen hånd inden for et vindue, du angiver. Slået fra, indtil du slår kontrollen til; kontrollen sender intet andet end forespørgslen. Hver indstilling her findes i hMailServer.ini og træder i kraft efter en genstart af tjenesten.</value>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>Serveren kan opdage en ny udgivelse, verificere den mod udgivelsens egen Sigstore-signatur og installere den – med et klik på statussiden eller på egen hånd inden for et vindue, du angiver. Slået fra, indtil du slår kontrollen til; kontrollen sender intet andet end forespørgslen.</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Serveren satte ikke udsendelsen i kø. Kontrollér adressejokertegnet og hMailServers fejllog.</value>
@@ -9252,8 +9270,11 @@ Det er serverens egen resolver, der svarer - den samme, som SMTP-levering bruger
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>Serveren genererer den næste nøgle, viser den TXT-post, der skal udgives, kontrollerer den via sin egen resolver og skifter først signeringen til den, når posten har kunnet slås op i hele udbredelsesperioden. Den gamle selector beholdes i opbevaringsperioden og udfases derefter.</value>
   </data>
-  <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep and restart the service." xml:space="preserve">
-    <value>Serveren gemmer ingen historik: MetricsHistoryDays er 0 i hMailServer.ini. Sæt den til antallet af dage, der skal beholdes, og genstart tjenesten.</value>
+  <data name="The server is draining. A reinitialize ends maintenance mode: the listeners open again and delivery resumes. Reinitialize the server now?" xml:space="preserve">
+    <value>Serveren dræner. En reinitialisering afslutter vedligeholdelsestilstanden: lytterne åbner igen, og leveringen genoptages. Reinitialiser serveren nu?</value>
+  </data>
+  <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
+    <value>Serveren gemmer ingen historik: MetricsHistoryDays er 0 i hMailServer.ini. Sæt den til antallet af dage, der skal beholdes.</value>
   </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Serveren husker, hvem der har skrevet til hver konto, og hvem hver konto har skrevet til, og siger det i læseren første gang en afsender udefra dukker op. Det koster ét databaseopslag for hver meddelelse, der leveres til dette domæne, og slet ingenting, mens det er slået fra.</value>
@@ -10024,11 +10045,11 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="What rotation defends: OpenSSL's default ticket key is generated once, when the listener starts, and is never rotated, so every ticket that listener issues for the life of the process is sealed under the same key - and that key, recovered later, decrypts every ticket ever recorded. With an interval set, a captured ticket is useless after at most two intervals. 86400 is a day. Only meaningful while session tickets are enabled above." xml:space="preserve">
     <value>Hvad rotation forsvarer mod: OpenSSL's standard-ticketnøgle genereres én gang, når lytteren starter, og roteres aldrig, så hver ticket, den lytter udsteder i hele processens levetid, forsegles under den samme nøgle - og den nøgle, gendannet senere, dekrypterer hver ticket, der nogensinde er optaget. Med et interval sat er en opsnappet ticket ubrugelig efter højst to intervaller. 86400 er en dag. Kun meningsfuldt, mens session tickets er aktiveret ovenfor.</value>
   </data>
-  <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value. Applies after a service restart." xml:space="preserve">
-    <value>Hvad der forhindrer én sætning, der er blokeret på en lås, i at holde en arbejdstråd for evigt. Respekteres ved forbindelse af MySQL/MariaDB og PostgreSQL; MS SQL og SQL CE starter på ADO's egne 30 sekunder og samler denne værdi op på enhver forbindelse, der har kørt et opgraderings- eller vedligeholdelsesscript. Disse scripts kører under deres eget loft på 30 minutter pr. sætning uanset denne værdi. Gælder efter genstart af tjenesten.</value>
+  <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value." xml:space="preserve">
+    <value>Hvad der forhindrer én sætning, der er blokeret på en lås, i at holde en arbejdstråd for evigt. Respekteres ved forbindelse af MySQL/MariaDB og PostgreSQL; MS SQL og SQL CE starter på ADO's egne 30 sekunder og samler denne værdi op på enhver forbindelse, der har kørt et opgraderings- eller vedligeholdelsesscript. Disse scripts kører under deres eget loft på 30 minutter pr. sætning uanset denne værdi.</value>
   </data>
-  <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are. Applies after a service restart." xml:space="preserve">
-    <value>Hvad serveren gør, når meddelelseslagerets volumen fyldes. Begge værdier er absolutte megabyte snarere end procenter, fordi det, der afgør, om der er plads til den næste meddelelse, er, hvor mange bytes der er tilbage, ikke hvilken brøkdel af volumenet de er. Gælder efter genstart af tjenesten.</value>
+  <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
+    <value>Hvad serveren gør, når meddelelseslagerets volumen fyldes. Begge værdier er absolutte megabyte snarere end procenter, fordi det, der afgør, om der er plads til den næste meddelelse, er, hvor mange bytes der er tilbage, ikke hvilken brøkdel af volumenet de er.</value>
   </data>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Hvad serveren skriver til sine logfiler (kan ses på siden Levende logs).</value>
@@ -10165,8 +10186,8 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="Which services this server runs, connection limits and greetings." xml:space="preserve">
     <value>Hvilke tjenester denne server kører, forbindelsesgrænser og hilsner.</value>
   </data>
-  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire. Applies after a service restart." xml:space="preserve">
-    <value>Hvilken stavemåde af DMARC-aggregatrapporten der går ud til de domæner, denne server rapporterer om. 1 er det, hver rapportforbruger, der er udrullet i dag, kan parse; 2 er DMARCbis, til den dag forbrugerne har indhentet det. Enhver anden værdi rapporteres som en fejl og behandles som 1, fordi en tastefejl ikke må afgøre, hvad der går over ledningen. Gælder efter genstart af tjenesten.</value>
+  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire." xml:space="preserve">
+    <value>Hvilken stavemåde af DMARC-aggregatrapporten der går ud til de domæner, denne server rapporterer om. 1 er det, hver rapportforbruger, der er udrullet i dag, kan parse; 2 er DMARCbis, til den dag forbrugerne har indhentet det. Enhver anden værdi rapporteres som en fejl og behandles som 1, fordi en tastefejl ikke må afgøre, hvad der går over ledningen.</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>Hvilken vej</value>
@@ -10255,8 +10276,8 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>Med en adgangssætning sat og komprimering slået fra kopieres meddelelsesfilerne ved siden af arkivet i stedet for ind i det, hvor intet krypterer dem - og sikkerhedskopien nægter at køre. Slå komprimering til, eller ryd adgangssætningen.</value>
   </data>
-  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart." xml:space="preserve">
-    <value>Med dette slået til skal MAIL FROM i en godkendt session være kontoens egen adresse, et alias, der slår op til den, eller en anden postkasse, hvis ejer har givet kontoen rettigheden post (p) på sin INBOX - hvilket er, hvordan Send som for en delt postkasse tildeles, fra enhver IMAP-klients ACL-editor (SETACL) eller over COM API'et. Alt andet afvises med 550 5.7.1, før en byte af meddelelsen accepteres, så én kompromitteret eller skødesløs konto ikke længere kan sende som alle andre. Slået fra som standard, fordi intet begrænsede dette før, og en installation kan afhænge af det; null-afsenderen er altid tilladt. Ugodkendte sessioner påvirkes ikke. Gælder efter genstart af tjenesten.</value>
+  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
+    <value>Med dette slået til skal MAIL FROM i en godkendt session være kontoens egen adresse, et alias, der slår op til den, eller en anden postkasse, hvis ejer har givet kontoen rettigheden post (p) på sin INBOX - hvilket er, hvordan Send som for en delt postkasse tildeles, fra enhver IMAP-klients ACL-editor (SETACL) eller over COM API'et. Alt andet afvises med 550 5.7.1, før en byte af meddelelsen accepteres, så én kompromitteret eller skødesløs konto ikke længere kan sende som alle andre. Slået fra som standard, fordi intet begrænsede dette før, og en installation kan afhænge af det; null-afsenderen er altid tilladt. Ugodkendte sessioner påvirkes ikke.</value>
   </data>
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>Med dette slået til svarer en kontos egen feriemeddelelse stadig kolleger, men udefrakommende afsendere får domænets generiske tekst i stedet - så personlige detaljer i en feriemeddelelse bliver inden for organisationen.</value>
@@ -10359,6 +10380,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Apply" xml:space="preserve">
     <value>_Anvend</value>
+  </data>
+  <data name="_Apply now" xml:space="preserve">
+    <value>_Anvend nu</value>
   </data>
   <data name="_Bind address" xml:space="preserve">
     <value>_Bindingsadresse</value>
@@ -11083,11 +11107,11 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
     <value>hMailServer.INI blev ikke fundet på denne maskine. Disse indstillinger kan kun redigeres på selve serveren; forbindelsestesten virker stadig med de værdier, der er indtastet her.</value>
   </data>
-  <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore, after a service restart." xml:space="preserve">
-    <value>hMailServer.ini-indstillingen BackupMessagesDBOnly. Sikkerhedskopien registrerer så, hvilke meddelelser der findes, men ikke deres indhold, og en gendannelse forventer, at filerne stadig ligger i datamappen. Gælder for sikkerhedskopiering og gendannelse, efter en genstart af tjenesten.</value>
+  <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
+    <value>hMailServer.ini-indstillingen BackupMessagesDBOnly. Sikkerhedskopien registrerer så, hvilke meddelelser der findes, men ikke deres indhold, og en gendannelse forventer, at filerne stadig ligger i datamappen. Gælder for sikkerhedskopiering og gendannelse.</value>
   </data>
-  <data name="hMailServer.ini setting BackupVerifyRestore, on by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold. Applies after a service restart." xml:space="preserve">
-    <value>hMailServer.ini-indstillingen BackupVerifyRestore, slået til som standard. Når arkivet er skrevet, udpakkes dets meddelelseslager til temp-mappen gennem den samme kode, som en gendannelse bruger, holdt til nøjagtigt de filer, sikkerhedskopien klargjorde, og hver meddelelsesrække kontrolleres for sin fil; resultatet står i sikkerhedskopieringsloggen. Lageret findes to gange, mens det kører, så slå det fra for et lager, som temp-volumen ikke kan rumme. Gælder efter en genstart af tjenesten.</value>
+  <data name="hMailServer.ini setting BackupVerifyRestore, on by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold." xml:space="preserve">
+    <value>hMailServer.ini-indstillingen BackupVerifyRestore, slået til som standard. Når arkivet er skrevet, udpakkes dets meddelelseslager til temp-mappen gennem den samme kode, som en gendannelse bruger, holdt til nøjagtigt de filer, sikkerhedskopien klargjorde, og hver meddelelsesrække kontrolleres for sin fil; resultatet står i sikkerhedskopieringsloggen. Lageret findes to gange, mens det kører, så slå det fra for et lager, som temp-volumen ikke kan rumme.</value>
   </data>
   <data name="hMailServer.ini was not found on this machine, so BackupMessagesDBOnly can only be changed on the server itself." xml:space="preserve">
     <value>hMailServer.ini blev ikke fundet på denne maskine, så BackupMessagesDBOnly kan kun ændres på selve serveren.</value>
@@ -11530,6 +11554,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>serveren kan ikke nå sin database. Kontrollér databaseforbindelsen og hMailServers fejllog, og tryk derefter på Genindlæs. ({0})</value>
   </data>
+  <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
+    <value>serveren meldte ikke Kører inden for tredive sekunder; siden Status viser, hvad den laver.</value>
+  </data>
   <data name="the server is slow" xml:space="preserve">
     <value>serveren er langsom</value>
   </data>
@@ -11901,6 +11928,15 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0} samples." xml:space="preserve">
     <value>{0} målinger.</value>
+  </data>
+  <data name="{0} saved setting(s) wait for a reinitialize, and {1} for a service restart." xml:space="preserve">
+    <value>{0} gemt(e) indstilling(er) venter på en reinitialisering og {1} på en genstart af tjenesten.</value>
+  </data>
+  <data name="{0} saved setting(s) wait for a reinitialize." xml:space="preserve">
+    <value>{0} gemt(e) indstilling(er) venter på en reinitialisering.</value>
+  </data>
+  <data name="{0} saved setting(s) wait for a service restart." xml:space="preserve">
+    <value>{0} gemt(e) indstilling(er) venter på en genstart af tjenesten.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} scorer {1} alene, hvilket når den {2}, hvor serveren holder op med at teste - så {3} kører ikke for en meddelelse, der fejler den, og vises ikke i loggen.</value>

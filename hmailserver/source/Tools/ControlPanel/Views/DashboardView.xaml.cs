@@ -158,7 +158,7 @@ namespace hMailServer.ControlPanel.Views
 
             if (!enabled)
             {
-               rangeNote_.Text = L("The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep and restart the service.");
+               rangeNote_.Text = L("The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep.");
                ChartsGrid.Children.Add(throughputCard_);
                ChartsGrid.Children.Add(sessionsCard_);
                return;

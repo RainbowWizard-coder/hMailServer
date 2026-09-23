@@ -173,12 +173,14 @@ error log still names it at every start.
 
 ## Which values these are
 
-This server process's. A setting stored since it started is listed as stored,
-though **most settings take effect only when the server next starts** — that is
-true of the whole `[Settings]` half and is not a property of this list. A setting
-stored by another process (`hmailserver --set-setting`, another node on the same
-database) is listed as this server last loaded it, until it restarts or is
-reinitialised.
+This server process's. A setting stored since it started is listed as stored.
+Since 22 September 2026 a save of one of the `[Settings]` half is in effect when
+it returns, except for the keys that wait for a reinitialise or a restart, which
+are listed as pending until then ([SettingsApply.md](SettingsApply.md)) - that is
+a property of those keys and not of this list. A setting stored by another
+process (`hmailserver --set-setting`, another node on the same database) is
+listed as this server last loaded it, until its next save, a reinitialise or a
+restart.
 
 It is the value **stored**, not the value the server settled on where the two
 differ. The loader clamps a handful and says so: `PasswordHashIterations` outside

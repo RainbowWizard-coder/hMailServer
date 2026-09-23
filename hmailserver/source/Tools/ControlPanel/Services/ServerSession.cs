@@ -129,6 +129,9 @@ namespace hMailServer.ControlPanel.Services
          {
             IniFeatureStore.ComReadSetting = null;
             IniFeatureStore.ComWriteSetting = null;
+            IniFeatureStore.ComSettingApplies = null;
+            IniFeatureStore.ComPendingSettings = null;
+            IniFeatureStore.ForgetApplies();
             return;
          }
 
@@ -146,6 +149,14 @@ namespace hMailServer.ControlPanel.Services
          // text box being cleared is not one of them.
          IniFeatureStore.ComWriteSetting = (key, value) =>
             session.Application.Settings.SetIniSetting(key, value ?? "");
+
+         // When a saved key reaches the running server, and which saved keys have
+         // not yet (docs/SettingsApply.md): the mark beside every field kept in
+         // that store, and the window's pending bar. Another server may be a
+         // different build with different marks, so the cache goes with the session.
+         IniFeatureStore.ForgetApplies();
+         IniFeatureStore.ComSettingApplies = key => (string)session.Application.Settings.IniSettingApplies(key);
+         IniFeatureStore.ComPendingSettings = () => (string)session.Application.Settings.PendingIniSettings;
       }
 
       /// <summary>

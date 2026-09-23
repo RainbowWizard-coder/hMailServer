@@ -336,7 +336,7 @@ namespace HM
    }
 
    bool
-   IniSettingStore::Synchronize(std::map<String, String> &resolvedValues)
+   IniSettingStore::Synchronize(std::map<String, String> &resolvedValues, bool atStart)
    {
       resolvedValues.clear();
 
@@ -528,7 +528,9 @@ namespace HM
                StringParser::JoinVector(edited, _T(", "))));
       }
 
-      if (!unwritable.empty())
+      // Said at a start; a save's reload leaves it to the HM5806 the save itself
+      // reported (see the declaration).
+      if (!unwritable.empty() && atStart)
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5803, "IniSettingStore::Synchronize",
             Formatter::Format("These settings could not be written into hMailServer.INI: {0}. The server is using the stored values, so the settings themselves are right, but hMailServer.exe /Register and anything else that reads the file directly will see the old ones until the account the service runs as has write access to it.",

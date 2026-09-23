@@ -109,9 +109,27 @@ namespace HM
          }
 
          // Rescheduled whatever happened, so a task that fails once is retried on its
-         // own interval rather than run again on every tick.
+         // own interval rather than run again on every tick. Under the lock, because
+         // SetTaskInterval writes the same time from a thread that saved a setting.
+         boost::lock_guard<boost::recursive_mutex> guard(mutex_);
          pTask->SetNextRunTime();
       }
+   }
+
+   void
+   Scheduler::SetTaskInterval(std::shared_ptr<ScheduledTask> pTask, int minutes)
+   {
+      if (!pTask)
+         return;
+
+      boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+
+      if (pTask->GetMinutesBetweenRun() == minutes)
+         return;
+
+      // From now, as a start would take it, so a shorter period is not left
+      // waiting out the rest of the longer one.
+      pTask->RestartPeriod(minutes);
    }
 
    void

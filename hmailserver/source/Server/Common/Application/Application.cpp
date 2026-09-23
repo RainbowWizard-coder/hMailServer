@@ -110,7 +110,8 @@ namespace HM
       asynchronous_tasks_queue_("Asynchronous task queue"),
       name_lookup_queue_("Name lookup queue"),
       unique_id_(0),
-      initialized_(false)
+      initialized_(false),
+      settings_subscribed_(false)
    {
       version_ = Formatter::Format("{0}-B{1}", HMAILSERVER_VERSION, HMAILSERVER_BUILD);
       start_time_ = Time::GetCurrentDateTime();
@@ -155,7 +156,11 @@ namespace HM
       ServerStatus::Instance()->SetState(ServerStatus::StateStopped);
 
       // Initialize objects that should always exist, regardless of anything.
-      IniFileSettings::Instance()->LoadSettings();
+      //
+      // ScopeReinitialize, because this is the one place the servers are built from
+      // the settings: every key marked now or reinitialize is taken from the store,
+      // and a restart key keeps what this process started with (docs/SettingsApply.md).
+      IniFileSettings::Instance()->LoadSettings(IniFileSettings::ScopeReinitialize);
 
       if (!IniFileSettings::Instance()->GetDatabaseSettingsExists())
       {
@@ -201,7 +206,13 @@ namespace HM
          bootstrap runs on: it is how the server finds the database at all.
       */
       IniFileSettings::Instance()->LoadDatabaseSettings();
-      IniFileSettings::Instance()->LoadSettings();
+      IniFileSettings::Instance()->LoadSettings(IniFileSettings::ScopeReinitialize);
+
+      // What the servers are about to be built from is now what they run on: from
+      // here a save applies only the keys marked now, and the rest are pending until
+      // a reinitialise or a restart takes them.
+      IniFileSettings::Instance()->LatchRunningValues();
+      SubscribeToSettings_();
 
       LOG_DEBUG("Application::InitInstance - Loading configuration...");
       if (!Configuration::Instance()->Load())
@@ -254,12 +265,7 @@ namespace HM
       const String simulateDatabaseFailureFor = IniFileSettings::Instance()->GetSimulateDatabaseFailureFor();
 
       if (!simulateDatabaseFailureFor.IsEmpty())
-      {
-         ErrorManager::Instance()->ReportError(ErrorManager::High, 6119, "Application::OpenDatabase",
-            "[Settings] SimulateDatabaseFailureFor is set to '" + simulateDatabaseFailureFor +
-            "', so every database statement containing that text is being FAILED ON PURPOSE. This is a test facility. "
-            "Clear the setting in hMailServer.INI and restart the server unless you are deliberately testing failure handling.");
-      }
+         AnnounceDatabaseFaultInjector_(simulateDatabaseFailureFor);
 
       db_manager_ = std::shared_ptr<DatabaseConnectionManager>(new DatabaseConnectionManager);
       bool bConnectedSuccessfully = db_manager_->CreateConnections(sErrorMessage);
@@ -700,6 +706,151 @@ namespace HM
       }
    }
 
+   void
+   Application::ScheduleBackups_()
+   {
+      std::shared_ptr<BackupScheduleTask> backupScheduleTask = std::shared_ptr<BackupScheduleTask>(new BackupScheduleTask);
+      backupScheduleTask->SetReoccurance(ScheduledTask::RunInfinitely);
+      backupScheduleTask->SetMinutesBetweenRun(1);
+      scheduler_->ScheduleTask(backupScheduleTask);
+
+      // Kept, so that a schedule saved while one is already registered is not
+      // registered twice (SubscribeToSettings_).
+      backup_schedule_task_ = backupScheduleTask;
+   }
+
+   bool
+   Application::IsServing_()
+   {
+      const int state = ServerStatus::Instance()->GetState();
+      return state == ServerStatus::StateRunning || state == ServerStatus::StateDraining;
+   }
+
+   void
+   Application::AnnounceDatabaseFaultInjector_(const String &pattern)
+   {
+      // High severity and the error log rather than the application log, deliberately:
+      // this makes writes fail on purpose, and an operator who finds mail behaving
+      // strangely should meet this line before they start looking anywhere else.
+      ErrorManager::Instance()->ReportError(ErrorManager::High, 6119, "Application::OpenDatabase",
+         "[Settings] SimulateDatabaseFailureFor is set to '" + pattern +
+         "', so every database statement containing that text is being FAILED ON PURPOSE. This is a test facility. "
+         "Clear the setting - it applies when it is saved - unless you are deliberately testing failure handling.");
+   }
+
+   void
+   Application::SubscribeToSettings_()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The subsystems that copy a [Settings] value into something of their own when
+   // the servers start, and can take a new one in place, take it here when a save
+   // changes it (IniFileSettings::Subscribe) - which is what lets the baseline mark
+   // their keys now. Once per process: the subscriptions outlive a reinitialise,
+   // which rebuilds what they reach and finds them still in place.
+   //
+   // Each reaches only a server that is running or draining; a stopped or starting
+   // one reads the new value when StartServers runs, since the save published it
+   // first. The two that reach the scheduler do nothing while a reinitialise holds
+   // its mutex: that reinitialise is rebuilding the scheduler from the published
+   // values, and a handle to the one it is tearing down is not worth racing for.
+   //
+   // docs/SettingsApply.md lists them; a latch found later that cannot be redone
+   // safely is marked reinitialize in build/ini-settings-baseline.txt instead.
+   //---------------------------------------------------------------------------()
+   {
+      if (settings_subscribed_)
+         return;
+
+      settings_subscribed_ = true;
+
+      IniFileSettings *ini = IniFileSettings::Instance();
+
+      // The greylist cleaner's period, set from the setting when the task is built.
+      ini->Subscribe(_T("GreylistingRecordExpirationInterval"), [this]()
+      {
+         boost::unique_lock<boost::mutex> rebuilding(reinitialize_mutex_, boost::try_to_lock);
+         if (!rebuilding.owns_lock() || !IsServing_())
+            return;
+
+         std::shared_ptr<Scheduler> scheduler = scheduler_;
+         std::shared_ptr<ScheduledTask> task = greylist_cleaner_task_;
+         if (scheduler && task)
+            scheduler->SetTaskInterval(task, IniFileSettings::Instance()->GetGreylistingExpirationInterval());
+      });
+
+      // The backup schedule: registered at a start only when one is configured. A
+      // schedule set on a server that started without one is registered now, as a
+      // start would register it. One already registered reads the time and the
+      // interval on every tick and needs nothing here; one switched off no-ops on
+      // its next tick, as it always has.
+      std::vector<String> backupSchedule;
+      backupSchedule.push_back(_T("ScheduledBackupTime"));
+      backupSchedule.push_back(_T("ScheduledBackupIntervalMinutes"));
+      ini->Subscribe(backupSchedule, [this]()
+      {
+         if (!BackupScheduleTask::IsEnabled())
+            return;
+
+         boost::unique_lock<boost::mutex> rebuilding(reinitialize_mutex_, boost::try_to_lock);
+         if (!rebuilding.owns_lock() || !IsServing_() || !scheduler_ || backup_schedule_task_)
+            return;
+
+         ScheduleBackups_();
+      });
+
+      // The three OpenTelemetry exporters, each of which reads its endpoint, the
+      // service name and (metrics) the interval when it starts. Start() stops the
+      // running exporter and starts it on the published values, under the
+      // exporter's own lock, so a restart from here and one from a reinitialise
+      // cannot overlap.
+      std::vector<String> tracer;
+      tracer.push_back(_T("OtelEndpoint"));
+      tracer.push_back(_T("OtelServiceName"));
+      ini->Subscribe(tracer, []()
+      {
+         if (IsServing_())
+            OtelTracer::Instance()->Start();
+      });
+
+      std::vector<String> metrics;
+      metrics.push_back(_T("OtelMetricsEndpoint"));
+      metrics.push_back(_T("OtelServiceName"));
+      metrics.push_back(_T("OtelMetricsInterval"));
+      ini->Subscribe(metrics, []()
+      {
+         if (IsServing_())
+            OtelMetricsExporter::Instance()->Start();
+      });
+
+      std::vector<String> logs;
+      logs.push_back(_T("OtelLogsEndpoint"));
+      logs.push_back(_T("OtelServiceName"));
+      ini->Subscribe(logs, []()
+      {
+         if (IsServing_())
+            OtelLogExporter::Instance()->Start();
+      });
+
+      // The RFC 6764 redirect targets, cached for a minute by the web services
+      // listener: dropped, so the next request reads the saved value.
+      std::vector<String> davRedirects;
+      davRedirects.push_back(_T("CalDavRedirectUrl"));
+      davRedirects.push_back(_T("CardDavRedirectUrl"));
+      ini->Subscribe(davRedirects, []()
+      {
+         WebServicesServer::ForgetDavRedirectTargets();
+      });
+
+      // The database fault injector applies when it is saved, and says so the
+      // moment it is set - the start and a reinitialise say it as well.
+      ini->Subscribe(_T("SimulateDatabaseFailureFor"), []()
+      {
+         const String pattern = IniFileSettings::Instance()->GetSimulateDatabaseFailureFor();
+         if (!pattern.IsEmpty())
+            AnnounceDatabaseFaultInjector_(pattern);
+      });
+   }
+
    void 
    Application::CreateScheduledTasks_()
    //---------------------------------------------------------------------------()
@@ -713,6 +864,10 @@ namespace HM
          pCleanerTask->SetReoccurance(ScheduledTask::RunInfinitely);
          pCleanerTask->SetMinutesBetweenRun(IniFileSettings::Instance()->GetGreylistingExpirationInterval());
          scheduler_->ScheduleTask(pCleanerTask);
+
+         // Kept, so that a saved GreylistingRecordExpirationInterval can move its
+         // period in place (SubscribeToSettings_).
+         greylist_cleaner_task_ = pCleanerTask;
       }
 
       // cleaning of expired IP ranges.
@@ -1003,12 +1158,7 @@ namespace HM
       // backup that is genuinely owed is taken on the first tick a minute later,
       // which is also when the task first reads the destination.
       if (BackupScheduleTask::IsEnabled())
-      {
-         std::shared_ptr<BackupScheduleTask> backupScheduleTask = std::shared_ptr<BackupScheduleTask>(new BackupScheduleTask);
-         backupScheduleTask->SetReoccurance(ScheduledTask::RunInfinitely);
-         backupScheduleTask->SetMinutesBetweenRun(1);
-         scheduler_->ScheduleTask(backupScheduleTask);
-      }
+         ScheduleBackups_();
 
       // Unattended directory synchronisation. Registered only when [LDAP] is switched
       // on AND SyncScheduleMinutes is set, so a default installation - and every
@@ -1218,6 +1368,10 @@ namespace HM
       LOG_DEBUG("Application::StopServers() - Destructing FetchManager");
       if (external_fetch_manager_) external_fetch_manager_.reset();
       LOG_DEBUG("Application::StopServers() - Destructing Scheduler");
+      // The two task handles a saved setting reaches go with the scheduler that
+      // holds the tasks.
+      greylist_cleaner_task_.reset();
+      backup_schedule_task_.reset();
       if (scheduler_) scheduler_.reset();
       
       LOG_DEBUG("Application::StopServers() - Destructing Rest");

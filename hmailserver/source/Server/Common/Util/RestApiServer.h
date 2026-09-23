@@ -537,6 +537,9 @@ namespace HM
          RouteIniSettingPut,
          RouteIniSettingDelete,
          RouteSettingsChanged,
+         // GET /api/v1/server/settings/pending: the [Settings] keys saved and not
+         // yet running, with both values (docs/SettingsApply.md).
+         RouteServerSettingsPending,
          RouteLogonFailuresClear,
          RouteSettingsScriptingGet,
          RouteSettingsScriptingPut,
@@ -1814,6 +1817,11 @@ namespace HM
       // maintenance mode, leaving it. One handler, because the three answer the
       // same document.
       HttpResponse HandleServerDrain_(RouteKind kind);
+
+      // GET /api/v1/server/settings/pending: every [Settings] key marked
+      // reinitialize or restart whose stored value is not the running one, as
+      // [{name, stored, running, applies, secret}]. RestApiSettings.cpp.
+      HttpResponse HandleServerSettingsPending_();
       static AnsiString DrainStatusJson_(const std::vector<String> &notReopened);
       static std::atomic<bool> reinitialize_pending_;
 

@@ -59,11 +59,11 @@
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> - 不会存储也不会输入 ServicePassword，空密码在发送之前就会被拒绝</value>
   </data>
-  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
-    <value> - 服务器设置立即生效；hMailServer.ini 中的设置在重启服务后生效。</value>
-  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> - 上面显示为本机的名称</value>
+  </data>
+  <data name=" - {0} of them wait for a reinitialize or a restart; the rest applied immediately." xml:space="preserve">
+    <value> - 其中 {0} 项等待重新初始化或重启；其余已立即生效。</value>
   </data>
   <data name=" Also skipped for any recipient domain that has greylisting turned off in its own settings." xml:space="preserve">
     <value> 对于在自身设置中关闭了灰名单的任何收件人域，同样会跳过。</value>
@@ -170,11 +170,11 @@
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> {1} 封邮件中有 {0} 封已建立索引。</value>
   </data>
-  <data name=" — INI settings need a service restart." xml:space="preserve">
-    <value> — INI 设置需要重启服务。</value>
-  </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — 立即生效。</value>
+  </data>
+  <data name=" — {0} wait for a reinitialize or a restart." xml:space="preserve">
+    <value> — {0} 项等待重新初始化或重启。</value>
   </data>
   <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
     <value>“域内任何人”是指发件人地址位于本服务器托管的某个域下，除非该列表同时要求身份验证，否则外部人员也可以冒称。如果该列表必须限定为已登录的人员，请勾选下面的选项。</value>
@@ -281,8 +281,8 @@
   <data name="0 is the shipped default and preserves today's behaviour exactly. 1 never delivers unscanned mail." xml:space="preserve">
     <value>0 是出厂默认值，完全保持当前的行为。1 则绝不投递未经扫描的邮件。</value>
   </data>
-  <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess. Applies after a service restart." xml:space="preserve">
-    <value>0 是出厂默认值。2 是一个合理的起点：密码输错一次只会让人多等两秒，而对密码喷洒的客户端来说，每猜一次要等两秒、四秒、六秒……。需要重启服务后生效。</value>
+  <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
+    <value>0 是出厂默认值。2 是一个合理的起点：密码输错一次只会让人多等两秒，而对密码喷洒的客户端来说，每猜一次要等两秒、四秒、六秒……。</value>
   </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 表示保留该条目，直到被移除。</value>
@@ -509,8 +509,8 @@
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
     <value>分数达到 {0} 或以上的邮件会被拒收（正文之前为 550，之后为 554）。不会标记任何邮件。</value>
   </data>
-  <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log. Applies after a service restart." xml:space="preserve">
-    <value>发给十个本地邮箱的邮件只写入一次并建立十个链接，而不是复制十份；对于发往分发列表的大邮件来说，这就是一次磁盘写入与十次磁盘写入的区别。需要数据目录位于 NTFS 上；在无法建立链接的地方，服务器会复制文件并在 SMTP 日志中说明。在重启服务后生效。</value>
+  <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log." xml:space="preserve">
+    <value>发给十个本地邮箱的邮件只写入一次并建立十个链接，而不是复制十份；对于发往分发列表的大邮件来说，这就是一次磁盘写入与十次磁盘写入的区别。需要数据目录位于 NTFS 上；在无法建立链接的地方，服务器会复制文件并在 SMTP 日志中说明。</value>
   </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>面向 hMailServer 的现代管理应用：实时仪表板、域与账户、投递队列、日志流、完整的服务器设置，以及 6.x 的传输安全功能（DANE、MTA-STS、ARC、TLS-RPT、ACME）。</value>
@@ -1106,6 +1106,12 @@
   <data name="Advanced" xml:space="preserve">
     <value>高级</value>
   </data>
+  <data name="After a restart" xml:space="preserve">
+    <value>重启后生效</value>
+  </data>
+  <data name="After reinitialize" xml:space="preserve">
+    <value>重新初始化后生效</value>
+  </data>
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
     <value>在正文接收完毕之后 — 此处的拒绝是 554</value>
   </data>
@@ -1241,20 +1247,20 @@
   <data name="An alias points one address at another without needing a second mailbox." xml:space="preserve">
     <value>别名可以把一个地址指向另一个地址，而无需第二个邮箱。</value>
   </data>
-  <data name="An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case. Applies after a service restart." xml:space="preserve">
-    <value>保留存档通常出于法律或合同上的原因，而该原因通常只涉及特定的域，而不是本服务器托管的所有域。此处填写列表之后，只有当邮件的本地发件人或某个收件人属于列出的域时，该邮件才会被存档，而且只会生成列出的域所对应的副本 - 即使发件人的域未被列出，列出的收件人仍会得到自己的那一份。匹配时不区分大小写。需要重启服务后生效。</value>
+  <data name="An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case." xml:space="preserve">
+    <value>保留存档通常出于法律或合同上的原因，而该原因通常只涉及特定的域，而不是本服务器托管的所有域。此处填写列表之后，只有当邮件的本地发件人或某个收件人属于列出的域时，该邮件才会被存档，而且只会生成列出的域所对应的副本 - 即使发件人的域未被列出，列出的收件人仍会得到自己的那一份。匹配时不区分大小写。</value>
   </data>
   <data name="An authenticated session may only send as an address its account owns or has been granted" xml:space="preserve">
     <value>已通过身份验证的会话只能以其账户拥有或被授权的地址发信</value>
   </data>
-  <data name="An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all. All three apply after a service restart." xml:space="preserve">
-    <value>自动封禁由服务器自身的监听器执行：操作系统接受该地址的连接，交给服务器，再由服务器断开。这些设置把封禁下推到操作系统的防火墙，交给您指定的程序，并指定绝不能被封禁的地址。三项都在服务重启后生效。</value>
+  <data name="An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all." xml:space="preserve">
+    <value>自动封禁由服务器自身的监听器执行：操作系统接受该地址的连接，交给服务器，再由服务器断开。这些设置把封禁下推到操作系统的防火墙，交给您指定的程序，并指定绝不能被封禁的地址。</value>
   </data>
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>整个出站投递会话。0 = 不限制。</value>
   </data>
-  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects. Applies after a service restart." xml:space="preserve">
-    <value>事件脚本在服务器内部以服务账户的权限运行，因此它可以实例化什么是一项安全决定，而不是一件图方便的事。出厂设置为 *，即允许任何对象，这样升级永远不会弄坏某个安装环境已经在运行的脚本 - 这是一个应当收窄的设置，而不是安全状态。只写下您的脚本确实需要的东西 - 一个脚本文件系统对象、一个 HTTP 客户端 - 其余一切都会被拒绝，并把对象的名称记入错误日志；留空则拒绝 hMailServer 自己的对象以外的一切。在重启服务后生效。</value>
+  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
+    <value>事件脚本在服务器内部以服务账户的权限运行，因此它可以实例化什么是一项安全决定，而不是一件图方便的事。出厂设置为 *，即允许任何对象，这样升级永远不会弄坏某个安装环境已经在运行的脚本 - 这是一个应当收窄的设置，而不是安全状态。只写下您的脚本确实需要的东西 - 一个脚本文件系统对象、一个 HTTP 客户端 - 其余一切都会被拒绝，并把对象的名称记入错误日志；留空则拒绝 hMailServer 自己的对象以外的一切。</value>
   </data>
   <data name="An external scanner process. 0 = no bound." xml:space="preserve">
     <value>一个外部扫描器进程。0 = 不限制。</value>
@@ -1371,6 +1377,9 @@
   <data name="Applies at the next service restart or Reinitialize. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>在下次服务重启或重新初始化时生效。日志文件不受影响：这里发送的是副本，不会移动任何内容。若下方未填写收集器主机，Linux 上运行于 systemd 的服务器会改为写入 journal，因此在 Linux 上这一个开关就是全部配置。</value>
   </data>
+  <data name="Applies on save" xml:space="preserve">
+    <value>保存即生效</value>
+  </data>
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
     <value>仅在退信处理开启时生效。只有当报告指明本服务器确实已投递给该收件人的邮件、从外部未经身份验证到达、并在有记录的情况下通过了 SPF 和 DMARC 检查时，才会计入——但收到同一封邮件的任何人都可以为另一位可见收件人伪造报告。关闭后将完全不读取报告；投递过程中遇到的拒绝仍会计入。</value>
   </data>
@@ -1389,8 +1398,8 @@
   <data name="Archive in the backup destination (_name or path)" xml:space="preserve">
     <value>备份目标中的存档 (名称或路径)(_N)</value>
   </data>
-  <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after. Applies after a service restart." xml:space="preserve">
-    <value>ArchiveDir 保存的是经过服务器的每一封邮件的原始副本，而直到现在都没有任何机制从中删除任何东西 - 因此在繁忙的服务器上，它是一个只增不减的目录，而发现这一点的管理员往往就是磁盘被写满的那一位。此项会对它进行清理。0 表示保留全部，而且这是刻意为之的默认值：保留存档通常出于法律或合同上的原因，而一台在升级后开始从中删除内容的服务器，恰恰会销毁它被要求保留的东西。清理只会删除 .eml 文件，因此您在存档中保存的其他内容不会被动；它在启动时运行，此后每十二小时运行一次。需要重启服务后生效。</value>
+  <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
+    <value>ArchiveDir 保存的是经过服务器的每一封邮件的原始副本，而直到现在都没有任何机制从中删除任何东西 - 因此在繁忙的服务器上，它是一个只增不减的目录，而发现这一点的管理员往往就是磁盘被写满的那一位。此项会对它进行清理。0 表示保留全部，而且这是刻意为之的默认值：保留存档通常出于法律或合同上的原因，而一台在升级后开始从中删除内容的服务器，恰恰会销毁它被要求保留的东西。清理只会删除 .eml 文件，因此您在存档中保存的其他内容不会被动；它在启动时运行，此后每十二小时运行一次。</value>
   </data>
   <data name="Archives to kee_p (0 = keep all)" xml:space="preserve">
     <value>要保留的存档数(_P)（0 = 全部保留）</value>
@@ -1587,14 +1596,8 @@
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>备份间隔（分钟）（0 = 关闭）</value>
   </data>
-  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
-    <value>备份计划已保存 - 服务在启动时读取这些设置，因此它们在重启服务后生效。</value>
-  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>备份计划已保存。</value>
-  </data>
-  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
-    <value>备份设置已保存 - “仅邮件元数据”开关在重启服务后生效。</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>备份设置已保存。</value>
@@ -1815,8 +1818,8 @@
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
     <value>无法判断是否配置了计划：在本机上未找到 hMailServer.ini。请在服务器本机上检查 ScheduledBackupTime 和 ScheduledBackupIntervalMinutes。</value>
   </data>
-  <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0. Applies after a service restart." xml:space="preserve">
-    <value>单次 IMAP SEARCH 或 SORT 的上限，从搜索开始时计算，以免一个客户端搜索超大邮箱时无限期占用一个连接。如果拥有大邮箱的用户报告搜索失败或没有返回结果，就应该调高这两个值。任何一半都可以单独设为 0 以关闭。在重启服务后生效。</value>
+  <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
+    <value>单次 IMAP SEARCH 或 SORT 的上限，从搜索开始时计算，以免一个客户端搜索超大邮箱时无限期占用一个连接。如果拥有大邮箱的用户报告搜索失败或没有返回结果，就应该调高这两个值。任何一半都可以单独设为 0 以关闭。</value>
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these live in the [SendingLimits] and [SendingLimitsOverrides] sections of hMailServer.INI and are re-read within a couple of seconds of the file changing - saving here applies them WITHOUT a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>一个已验证账户在一段滚动时间内可提交量的上限 - 是防止被盗账户被用来发垃圾邮件的刹车。在 SMTP 提交时按账户计数：邮件数和信封收件人数分别计数，被该限制拒绝的邮件会收到临时错误，因此真正的客户端稍后会重试。与本页的其他内容不同，这些设置位于 hMailServer.INI 的 [SendingLimits] 和 [SendingLimitsOverrides] 节，并在文件更改后的几秒钟内重新读取 - 在此处保存后无需重启服务即可生效。计数器通过数据目录中的一个状态文件在重启后得以保留。</value>
@@ -1869,8 +1872,8 @@
   <data name="Change the language" xml:space="preserve">
     <value>更改语言</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal. Applies after a service restart." xml:space="preserve">
-    <value>更改在删除阈值处发生的事情。关闭时，超过该阈值的邮件会在 SMTP 会话期间以 550 拒绝，并告知发件方。打开时，它会以 250 接受并转为暂挂等待审核 - 发件方以为已投递而不会重试，正因如此，误判才能在不退信到一个很可能伪造的返回路径的情况下得以挽回，但这也意味着审核队列成为该邮件唯一存在的地方。适用于在邮件正文接收完毕之后运行的检查；在此之前得出的判定（连接 IP 被列入黑名单、HELO 不正确）没有邮件可暂挂，仍然是拒绝。在重启服务后生效。</value>
+  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>更改在删除阈值处发生的事情。关闭时，超过该阈值的邮件会在 SMTP 会话期间以 550 拒绝，并告知发件方。打开时，它会以 250 接受并转为暂挂等待审核 - 发件方以为已投递而不会重试，正因如此，误判才能在不退信到一个很可能伪造的返回路径的情况下得以挽回，但这也意味着审核队列成为该邮件唯一存在的地方。适用于在邮件正文接收完毕之后运行的检查；在此之前得出的判定（连接 IP 被列入黑名单、HELO 不正确）没有邮件可暂挂，仍然是拒绝。</value>
   </data>
   <data name="Changing two-factor authentication settings requires administrator rights. Restart the Control Panel as an administrator and try again." xml:space="preserve">
     <value>更改双因素身份验证设置需要管理员权限。请以管理员身份重新启动控制面板，然后重试。</value>
@@ -2455,6 +2458,9 @@
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>无法读取 {0}：{1}</value>
+  </data>
+  <data name="Could not reinitialize: {0}" xml:space="preserve">
+    <value>无法重新初始化：{0}</value>
   </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>无法移除该操作：{0}</value>
@@ -3497,8 +3503,8 @@
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>每项检查按服务器运行它们的顺序列出，以及它的分数，还有总分会对邮件产生什么影响。</value>
   </data>
-  <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series. Applies after a service restart." xml:space="preserve">
-    <value>指标端点公开的每一个计数器都是服务器范围的，这正是防止指标变成报告的原因：您能看到服务器处理了多少邮件，却永远看不到任何一个域处理了多少。此项会为每个托管域添加已发送和已接收邮件的计数。默认关闭，这是出于基数考虑而不是出于谨慎 - 在抓取它的任何系统中，每个标签值都是一个单独的时间序列，因此托管数千个域的运维人员应当主动选择为此付出代价，而不是事后才发现。只会为本服务器托管的域打标签，因此无论陌生人发来多少邮件都无法创建序列。在重启服务后生效。</value>
+  <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
+    <value>指标端点公开的每一个计数器都是服务器范围的，这正是防止指标变成报告的原因：您能看到服务器处理了多少邮件，却永远看不到任何一个域处理了多少。此项会为每个托管域添加已发送和已接收邮件的计数。默认关闭，这是出于基数考虑而不是出于谨慎 - 在抓取它的任何系统中，每个标签值都是一个单独的时间序列，因此托管数千个域的运维人员应当主动选择为此付出代价，而不是事后才发现。只会为本服务器托管的域打标签，因此无论陌生人发来多少邮件都无法创建序列。</value>
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>队列 id {0} 的每一个事件，最早的在前。</value>
@@ -3764,8 +3770,8 @@
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>对于密钥文件是加密 PEM 的每个证书，请在“SSL 证书”页设置该证书的私钥密码（密码短语由创建密钥的人设置，因此只有您能提供）- 或者把该文件替换为未加密的密钥。</value>
   </data>
-  <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it. Applies after a service restart." xml:space="preserve">
-    <value>例如 http://127.0.0.1:11333/checkv2。目前仅支持纯 HTTP，因此引擎应当位于本机或您信任的网络上 - 整封邮件都会发送给它。在重启服务后生效。</value>
+  <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
+    <value>例如 http://127.0.0.1:11333/checkv2。目前仅支持纯 HTTP，因此引擎应当位于本机或您信任的网络上 - 整封邮件都会发送给它。</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>搜索模式使用：一个被允许读取目录的服务账户。默认情况下任何普通域账户都可以；它不需要其他任何权限。</value>
@@ -3788,8 +3794,8 @@
   <data name="Forwarding" xml:space="preserve">
     <value>转发</value>
   </data>
-  <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set. Changes take effect after a service restart." xml:space="preserve">
-    <value>转发邮件会保留原始的信封发件人，因此下一跳会针对一个从未授权本服务器的域检查 SPF，邮件就会失败。这里是两种解决办法。SRS 把信封发件人改写成本服务器能够担保、并能在返回时还原的地址，这样退信仍能到达原始发件人；BATV 给出站邮件的信封发件人加上标记，这样伪造的退信 - 针对本服务器从未发送过的邮件的退信 - 就能与真实退信区分开。两者都使用一个服务器范围的机密，在设置机密之前什么都不做。更改在重启服务后生效。</value>
+  <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set." xml:space="preserve">
+    <value>转发邮件会保留原始的信封发件人，因此下一跳会针对一个从未授权本服务器的域检查 SPF，邮件就会失败。这里是两种解决办法。SRS 把信封发件人改写成本服务器能够担保、并能在返回时还原的地址，这样退信仍能到达原始发件人；BATV 给出站邮件的信封发件人加上标记，这样伪造的退信 - 针对本服务器从未发送过的邮件的退信 - 就能与真实退信区分开。两者都使用一个服务器范围的机密，在设置机密之前什么都不做。</value>
   </data>
   <data name="Forwarding breaks SPF, because the envelope sender changes, and often breaks DKIM, because the body is modified - so a mailing list or a forwarded mailbox can turn a message that passed DMARC at the sender into one that fails it here. A valid ARC chain (RFC 8617) from a forwarder you trust carries the original result, and this cancels exactly the DMARC failure score, never more. It needs 'Evaluate DMARC policies' above to be on, since it only ever offsets a penalty that test adds." xml:space="preserve">
     <value>转发会破坏 SPF，因为信封发件人变了；也常常破坏 DKIM，因为正文被修改了 - 因此邮件列表或转发邮箱可能把一封在发件方通过了 DMARC 的邮件变成在此处失败的邮件。来自您信任的转发方的有效 ARC 链（RFC 8617）会携带原始结果，此项恰好抵消 DMARC 失败分数，不会多抵消。它需要打开上面的“评估 DMARC 策略”，因为它只会抵消该测试所加的处罚。</value>
@@ -4058,8 +4064,8 @@
   <data name="How entries reach the collector" xml:space="preserve">
     <value>条目如何送达收集器</value>
   </data>
-  <data name="How long a connection may sit idle before it is closed, per protocol, in seconds. &quot;Server&quot; is hMailServer accepting a connection from a mail client or another mail server; &quot;client&quot; is hMailServer connecting out to deliver mail or to fetch it from an external POP3 account. The effective timeout moves between the minimum and the maximum with server load, so a busy server drops idle connections sooner. Applies after a service restart." xml:space="preserve">
-    <value>连接在被关闭之前可以空闲多久，按协议划分，以秒计。“服务器”指 hMailServer 接受来自邮件客户端或另一台邮件服务器的连接；“客户端”指 hMailServer 向外连接以投递邮件或从外部 POP3 账户收取邮件。实际超时会随服务器负载在最小值和最大值之间变动，因此繁忙的服务器会更早断开空闲连接。在重启服务后生效。</value>
+  <data name="How long a connection may sit idle before it is closed, per protocol, in seconds. &quot;Server&quot; is hMailServer accepting a connection from a mail client or another mail server; &quot;client&quot; is hMailServer connecting out to deliver mail or to fetch it from an external POP3 account. The effective timeout moves between the minimum and the maximum with server load, so a busy server drops idle connections sooner." xml:space="preserve">
+    <value>连接在被关闭之前可以空闲多久，按协议划分，以秒计。“服务器”指 hMailServer 接受来自邮件客户端或另一台邮件服务器的连接；“客户端”指 hMailServer 向外连接以投递邮件或从外部 POP3 账户收取邮件。实际超时会随服务器负载在最小值和最大值之间变动，因此繁忙的服务器会更早断开空闲连接。</value>
   </data>
   <data name="How long a counted failure is kept, rather than a sliding window: a housekeeping pass running once a minute deletes failure records older than this - and only while auto-ban is enabled." xml:space="preserve">
     <value>已计数的失败保留多久，而不是滑动窗口：每分钟运行一次的清理过程会删除早于此时间的失败记录 - 并且只在启用了自动封禁时进行。</value>
@@ -4088,8 +4094,8 @@
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>邮件如何进入、接下来去哪里，以及途中会发生什么。</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>邮箱用户如何证明自己的身份：外部身份提供方、密码如何存储，以及在哪里提供 SMTP AUTH（hMailServer.INI）。更改在重启服务后生效。</value>
+  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI)." xml:space="preserve">
+    <value>邮箱用户如何证明自己的身份：外部身份提供方、密码如何存储，以及在哪里提供 SMTP AUTH（hMailServer.INI）。</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>服务器保持打开并在工作线程之间共享的数据库连接数。只有在线程明显在等待连接时提高它才有帮助 - 请参阅“服务器限制和专家设置”页上的数据库连接获取超时，那正是它们所等待的。</value>
@@ -4121,14 +4127,14 @@
   <data name="How the password is proved" xml:space="preserve">
     <value>密码如何证明</value>
   </data>
-  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes. Applies after a service restart." xml:space="preserve">
-    <value>服务器如何判定 mail.example.com 和 example.com 属于同一个组织，这正是 DMARC 默认的宽松对齐所比较的内容。旧的答案是公共后缀列表 - 一个包含每个注册机构委派规则的文件，编译进程序并在构建时刷新。DMARCbis 用沿 DNS 向上遍历、逐级询问是否为组织边界的方式取代了它，这样域所有者可以自行声明边界在哪里，而不必向列表申请。关闭此项会回退到编译进来的列表；对于因 DNS 不可用而无法完成遍历的任何单次查询也是如此 - 解析器故障绝不能悄悄把宽松对齐变成严格对齐。每个域最多花费八次 DNS 查询，缓存五分钟。在重启服务后生效。</value>
+  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
+    <value>服务器如何判定 mail.example.com 和 example.com 属于同一个组织，这正是 DMARC 默认的宽松对齐所比较的内容。旧的答案是公共后缀列表 - 一个包含每个注册机构委派规则的文件，编译进程序并在构建时刷新。DMARCbis 用沿 DNS 向上遍历、逐级询问是否为组织边界的方式取代了它，这样域所有者可以自行声明边界在哪里，而不必向列表申请。关闭此项会回退到编译进来的列表；对于因 DNS 不可用而无法完成遍历的任何单次查询也是如此 - 解析器故障绝不能悄悄把宽松对齐变成严格对齐。每个域最多花费八次 DNS 查询，缓存五分钟。</value>
   </data>
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>服务器如何使用它已经配置好的数据库。该数据库在哪里 - 服务器、名称、凭据和类型 - 由安装向导设置，并且有意不在此处提供编辑，因为那里的错误值会让服务器无法启动，而不仅仅是变慢。在重启服务后生效。</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>本服务器如何解析 MX、PTR、SPF、DKIM、DMARC 和黑名单查询（hMailServer.INI）。更改在重启服务后生效。</value>
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
+    <value>本服务器如何解析 MX、PTR、SPF、DKIM、DMARC 和黑名单查询（hMailServer.INI）。</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE（推送邮件）</value>
@@ -4357,8 +4363,8 @@
   <data name="Keep" xml:space="preserve">
     <value>保留</value>
   </data>
-  <data name="Keep greylisting active during the record-expiration window (restart required)" xml:space="preserve">
-    <value>在记录到期窗口期间保持灰名单活动（需要重启）</value>
+  <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
+    <value>在记录到期窗口期间保持灰名单活动</value>
   </data>
   <data name="Keep log files open (performance)" xml:space="preserve">
     <value>保持日志文件打开（性能）</value>
@@ -4498,8 +4504,8 @@
   <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>让 Outlook、Thunderbird 和移动客户端仅凭电子邮件地址就能自行设置，方法是获取本服务器的配置 URL。</value>
   </data>
-  <data name="Lets a client ask for the rest of the session to be compressed, which is worth most on a slow or metered link where a large mailbox listing is mostly repeated text. On by default; a client that does not ask is unaffected. Applies after a service restart." xml:space="preserve">
-    <value>让客户端可以要求把会话的其余部分压缩，这在缓慢或按流量计费的链路上最有价值，因为大邮箱的列表大多是重复的文本。默认打开；不提出要求的客户端不受影响。在重启服务后生效。</value>
+  <data name="Lets a client ask for the rest of the session to be compressed, which is worth most on a slow or metered link where a large mailbox listing is mostly repeated text. On by default; a client that does not ask is unaffected." xml:space="preserve">
+    <value>让客户端可以要求把会话的其余部分压缩，这在缓慢或按流量计费的链路上最有价值，因为大邮箱的列表大多是重复的文本。默认打开；不提出要求的客户端不受影响。</value>
   </data>
   <data name="Lets clients log on with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install." xml:space="preserve">
     <value>让客户端用来自身份提供方的持有者令牌而不是密码登录；只有当令牌的签名能通过您安装的密钥材料验证时才会被接受。</value>
@@ -4714,8 +4720,8 @@
   <data name="MX query" xml:space="preserve">
     <value>MX 查询</value>
   </data>
-  <data name="Machine-readable output for log shippers. Applies after a service restart." xml:space="preserve">
-    <value>供日志传送器使用的机器可读输出。在重启服务后生效。</value>
+  <data name="Machine-readable output for log shippers." xml:space="preserve">
+    <value>供日志传送器使用的机器可读输出。</value>
   </data>
   <data name="Mail clients send through the submission port, and without TLS their passwords cross the network in the clear." xml:space="preserve">
     <value>邮件客户端通过提交端口发送，没有 TLS，密码就会以明文穿过网络。</value>
@@ -4863,9 +4869,6 @@
   </data>
   <data name="Max parallel external POP3 fetch threads" xml:space="preserve">
     <value>最大并行外部 POP3 收取线程数</value>
-  </data>
-  <data name="Max parallel external POP3 fetch threads (restart required)" xml:space="preserve">
-    <value>最大并行外部 POP3 收取线程数（需要重启）</value>
   </data>
   <data name="Max recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>每个账户每周期最大收件人数（0 = 不限制）</value>
@@ -5127,8 +5130,8 @@
   <data name="Move signing for {0} to the next key now?" xml:space="preserve">
     <value>要立即将 {0} 的签名切换到下一个密钥吗？</value>
   </data>
-  <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
-    <value>把邮件文件移动到 SpamAssassin 而不是复制（需要重启）</value>
+  <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
+    <value>把邮件文件移动到 SpamAssassin 而不是复制</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>重试来得过早时移动窗口</value>
@@ -5139,8 +5142,8 @@
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>移动到 IMAP 文件夹</value>
   </data>
-  <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves. Applies after a service restart." xml:space="preserve">
-    <value>把邮件移入指定为 Junk 的文件夹，会向 sa-learn 报告它是垃圾邮件；把邮件再移出来，则报告它是正常邮件。这样过滤器就能从人们本来就在做的事情中学习，而不是从一套没人会执行的单独仪式中学习。默认关闭：它每移动一次就运行一次 sa-learn，而一个把新闻邮件归入 Junk 的用户，是在教过滤器：对该扫描器所服务的所有人来说，新闻邮件都是垃圾邮件。在重启服务后生效。</value>
+  <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
+    <value>把邮件移入指定为 Junk 的文件夹，会向 sa-learn 报告它是垃圾邮件；把邮件再移出来，则报告它是正常邮件。这样过滤器就能从人们本来就在做的事情中学习，而不是从一套没人会执行的单独仪式中学习。默认关闭：它每移动一次就运行一次 sa-learn，而一个把新闻邮件归入 Junk 的用户，是在教过滤器：对该扫描器所服务的所有人来说，新闻邮件都是垃圾邮件。</value>
   </data>
   <data name="Must be an absolute URL, as above." xml:space="preserve">
     <value>必须是绝对 URL，同上。</value>
@@ -5712,8 +5715,8 @@
   <data name="Off" xml:space="preserve">
     <value>关闭</value>
   </data>
-  <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing. Applies after a service restart." xml:space="preserve">
-    <value>默认关闭，因为它的代价是每封邮件几千字节的词条表，以及对每封已投递邮件的一次回填遍历 - 这是管理员的决定，绝不是升级的决定。打开和关闭的结果完全相同：索引只是缩小了子串扫描必须读取的邮件范围。需要启用（上面的）邮件索引；单独打开此项不会索引任何内容。在重启服务后生效。</value>
+  <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
+    <value>默认关闭，因为它的代价是每封邮件几千字节的词条表，以及对每封已投递邮件的一次回填遍历 - 这是管理员的决定，绝不是升级的决定。打开和关闭的结果完全相同：索引只是缩小了子串扫描必须读取的邮件范围。需要启用（上面的）邮件索引；单独打开此项不会索引任何内容。</value>
   </data>
   <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
     <value>默认关闭，关闭时不起作用：关联目录的账户此时按旧方式通过 Windows 登录验证。打开时，同样的这些账户 - 填写了“目录”选项卡的账户 - 改为通过对下面的服务器进行 LDAP 绑定来验证。非目录账户在任何情况下都不受影响。</value>
@@ -5742,8 +5745,8 @@
   <data name="Off by default: a full mailbox is usually emptied, and listing it would stop mail to somebody who reads it next week." xml:space="preserve">
     <value>默认关闭：已满的邮箱通常会被清空，将其列入会让下周才阅读邮件的人收不到邮件。</value>
   </data>
-  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that. Applies after a service restart." xml:space="preserve">
-    <value>关闭，而关闭正是 RFC 8301 的要求：它把 rsa-sha1 从 DKIM 中彻底移除，因此签名方不得使用它，验证方必须把使用它的签名视为无效。DKIM 签名是身份声明，DMARC 对齐建立在它之上，而 SHA-1 碰撞自 2020 年起已切实可行 - 一个别人能伪造的签名比没有签名更糟，因为它能让签名方的域通过对齐的 DMARC 检查。打开此项会恢复两个方面：使用它的签名重新可以通过验证，配置为用它签名的域也会照此签名，而不是被升级到 rsa-sha256。短于 1024 位的密钥无论如何都会被拒绝，此设置不影响这一点。在重启服务后生效。</value>
+  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that." xml:space="preserve">
+    <value>关闭，而关闭正是 RFC 8301 的要求：它把 rsa-sha1 从 DKIM 中彻底移除，因此签名方不得使用它，验证方必须把使用它的签名视为无效。DKIM 签名是身份声明，DMARC 对齐建立在它之上，而 SHA-1 碰撞自 2020 年起已切实可行 - 一个别人能伪造的签名比没有签名更糟，因为它能让签名方的域通过对齐的 DMARC 检查。打开此项会恢复两个方面：使用它的签名重新可以通过验证，配置为用它签名的域也会照此签名，而不是被升级到 rsa-sha256。短于 1024 位的密钥无论如何都会被拒绝，此设置不影响这一点。</value>
   </data>
   <data name="Off. Directory-linked accounts are validated through Windows logon (LogonUser), which only works when this host is joined to the domain - every failure there looks like a wrong password." xml:space="preserve">
     <value>关闭。关联目录的账户通过 Windows 登录（LogonUser）验证，这只有在本主机加入了域时才有效 - 那里的每一次失败看起来都像密码错误。</value>
@@ -5763,8 +5766,8 @@
   <data name="On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches YOUR directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
     <value>默认打开，只有 INI 中明确的 0 才会关闭它。关闭后，加密连接不再能证明它到达的是您的目录：任何能截获它的人都可以出示任意证书并收集经由它发送的每一个密码。服务器每次服务启动时会在应用程序日志中记录一次此项已禁用。仅对 LDAPS 和 StartTLS 有意义。</value>
   </data>
-  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is. Applies after a service restart." xml:space="preserve">
-    <value>默认打开，是这里唯一一个默认值不是保守选项的开关。关闭它时，发给已超出配额的邮箱的邮件会先被接受，然后以一份寄给信封发件人的未送达报告作答 - 而最快填满邮箱的那类流量恰恰伪造了信封发件人。这份报告随后从本服务器发给一个什么都没发过的人，这就是反向散射，付出代价的是本服务器的声誉。改为在 RCPT TO 时以临时的 452 拒绝，则邮件留在发送服务器的队列中，合法发件人的邮件会等到邮箱被清空，并最终由知道发件人究竟是谁的那台机器来报告。在重启服务后生效。</value>
+  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is." xml:space="preserve">
+    <value>默认打开，是这里唯一一个默认值不是保守选项的开关。关闭它时，发给已超出配额的邮箱的邮件会先被接受，然后以一份寄给信封发件人的未送达报告作答 - 而最快填满邮箱的那类流量恰恰伪造了信封发件人。这份报告随后从本服务器发给一个什么都没发过的人，这就是反向散射，付出代价的是本服务器的声誉。改为在 RCPT TO 时以临时的 452 拒绝，则邮件留在发送服务器的队列中，合法发件人的邮件会等到邮箱被清空，并最终由知道发件人究竟是谁的那台机器来报告。</value>
   </data>
   <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
     <value>停止时，最多等待 N 秒让活动会话完成（0 = 立即停止）</value>
@@ -5799,8 +5802,8 @@
   <data name="OnAcceptMessage → webhook (SIEM / Slack / Teams)" xml:space="preserve">
     <value>OnAcceptMessage → Webhook（SIEM / Slack / Teams）</value>
   </data>
-  <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off. Applies after a service restart." xml:space="preserve">
-    <value>服务器每分钟为每个指标写入一行 - 会话、已处理、已投递、已推迟和已退回的邮件、垃圾邮件和病毒、身份验证和 TLS 结果、缺失的邮件文件 - 写入 hm_metricsamples，并保留这么多天。仪表板的 24 小时、7 天和 30 天视图以及 GET /api/v1/metrics/history 读取的正是这些数据。一周的分钟级历史大约是十四万行小记录。0 会关闭采样器。在重启服务后生效。</value>
+  <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off." xml:space="preserve">
+    <value>服务器每分钟为每个指标写入一行 - 会话、已处理、已投递、已推迟和已退回的邮件、垃圾邮件和病毒、身份验证和 TLS 结果、缺失的邮件文件 - 写入 hm_metricsamples，并保留这么多天。仪表板的 24 小时、7 天和 30 天视图以及 GET /api/v1/metrics/history 读取的正是这些数据。一周的分钟级历史大约是十四万行小记录。0 会关闭采样器。</value>
   </data>
   <data name="One configured port is not being listened on: " xml:space="preserve">
     <value>有一个已配置的端口未被监听： </value>
@@ -6021,8 +6024,8 @@
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>出站投递、重试和限速。让转发邮件保持 SPF 对齐（SRS）和退信标记（BATV）在“传输安全”页。</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>出站邮件身份验证和加密策略（hMailServer.INI）。更改在重启服务后生效。</value>
+  <data name="Outbound mail authentication and encryption policies (hMailServer.INI)." xml:space="preserve">
+    <value>出站邮件身份验证和加密策略（hMailServer.INI）。</value>
   </data>
   <data name="Override DNS server (empty = the name servers Windows uses)" xml:space="preserve">
     <value>覆盖 DNS 服务器（留空 = Windows 使用的名称服务器）</value>
@@ -6075,8 +6078,8 @@
   <data name="POP3 conversations to syslog" xml:space="preserve">
     <value>POP3 会话发送到 syslog</value>
   </data>
-  <data name="POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses logins that arrive early with a code the client understands as &quot;slow down&quot; rather than as a wrong password. Applies after a service restart." xml:space="preserve">
-    <value>POP3 没有办法让服务器告诉客户端邮件已到达，因此想要显得灵敏的客户端会轮询 - 有些每隔几秒就轮询一次。每次轮询都是一个新连接、一次 TLS 握手和一次密码验证，而用 Argon2id 时密码验证是有意昂贵的，因此少数几个急切的客户端的开销可能比邮件本身还大。设置延迟会在服务器的能力列表中告知客户端间隔，并用客户端理解为“慢一点”而不是“密码错误”的代码拒绝过早到达的登录。在重启服务后生效。</value>
+  <data name="POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses logins that arrive early with a code the client understands as &quot;slow down&quot; rather than as a wrong password." xml:space="preserve">
+    <value>POP3 没有办法让服务器告诉客户端邮件已到达，因此想要显得灵敏的客户端会轮询 - 有些每隔几秒就轮询一次。每次轮询都是一个新连接、一次 TLS 握手和一次密码验证，而用 Argon2id 时密码验证是有意昂贵的，因此少数几个急切的客户端的开销可能比邮件本身还大。设置延迟会在服务器的能力列表中告知客户端间隔，并用客户端理解为“慢一点”而不是“密码错误”的代码拒绝过早到达的登录。</value>
   </data>
   <data name="POP3 or IMAP mailboxes hMailServer collects mail from on behalf of this account. Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143." xml:space="preserve">
     <value>hMailServer 代表此账户收取邮件的 POP3 或 IMAP 邮箱。连接安全和端口是配套的：SSL/TLS 用 995（POP3）或 993（IMAP），STARTTLS 用 110 或 143。</value>
@@ -6464,8 +6467,8 @@
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>将 {0} 恢复为此更改之前的值？恢复操作本身会记录为一项更改。</value>
   </data>
-  <data name="QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer. Applies after a service restart." xml:space="preserve">
-    <value>QRESYNC 和 CONDSTORE 客户端会询问它们离开期间消失了什么，而不是重新列出文件夹。服务器从一张清除记录表中作答，该表每十二小时以及每次服务启动时修剪到最新的 N 条。上次同步早于所保留历史的客户端会得到一次完整的重新同步 - 绝不会得到错误的答案。在重启服务后生效。</value>
+  <data name="QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer." xml:space="preserve">
+    <value>QRESYNC 和 CONDSTORE 客户端会询问它们离开期间消失了什么，而不是重新列出文件夹。服务器从一张清除记录表中作答，该表每十二小时以及每次服务启动时修剪到最新的 N 条。上次同步早于所保留历史的客户端会得到一次完整的重新同步 - 绝不会得到错误的答案。</value>
   </data>
   <data name="QUOTA" xml:space="preserve">
     <value>QUOTA</value>
@@ -6509,8 +6512,8 @@
   <data name="REST listener settings…" xml:space="preserve">
     <value>REST 监听器设置…</value>
   </data>
-  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take. Applies after a service restart." xml:space="preserve">
-    <value>RFC 7208 第 4.6.4 节。“空查询”指的是发件人 SPF 策略中的某一项 - a:、mx: 或 exists: - 其 DNS 查询完全没有返回任何结果。另一条“最多十个发起 DNS 查询的项”的限制约束的是一份策略可以要求本服务器查询多少次；它并不约束一份策略能浪费多少，而十个指向并不存在的主机的项，每一个都要为一条永远不可能匹配的记录付出一次完整的解析。RFC 给出的数值是二。它同时也能发现一种寻常情形：一份策略仍然列着多年前就已下线的主机，而它的所有者多半也希望有人告诉他这件事。调高这个值是安全的；0 表示关闭该限制，这正是为那种策略恰好错在此处、而您又宁愿收下其邮件的通信方准备的设置。在重启服务后生效。</value>
+  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
+    <value>RFC 7208 第 4.6.4 节。“空查询”指的是发件人 SPF 策略中的某一项 - a:、mx: 或 exists: - 其 DNS 查询完全没有返回任何结果。另一条“最多十个发起 DNS 查询的项”的限制约束的是一份策略可以要求本服务器查询多少次；它并不约束一份策略能浪费多少，而十个指向并不存在的主机的项，每一个都要为一条永远不可能匹配的记录付出一次完整的解析。RFC 给出的数值是二。它同时也能发现一种寻常情形：一份策略仍然列着多年前就已下线的主机，而它的所有者多半也希望有人告诉他这件事。调高这个值是安全的；0 表示关闭该限制，这正是为那种策略恰好错在此处、而您又宁愿收下其邮件的通信方准备的设置。</value>
   </data>
   <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred." xml:space="preserve">
     <value>RFC 7208 对无法完成的检查给出的答案：等 DNS 恢复后再试。事务以 451 4.4.3 延迟，上面的 temperror 分数被忽略，因为延迟的邮件永远不会被接受。关闭时，temperror 会被接受并计分。域白名单中的发件人从不被延迟。</value>
@@ -6678,14 +6681,14 @@
   <data name="Record a queryable message trace" xml:space="preserve">
     <value>记录可查询的邮件跟踪</value>
   </data>
-  <data name="Record expiration interval, minutes (restart required)" xml:space="preserve">
-    <value>记录过期间隔，分钟（需要重启）</value>
+  <data name="Record expiration interval, minutes" xml:space="preserve">
+    <value>记录过期间隔，分钟</value>
   </data>
   <data name="Record type: TXT.  Host/Name" xml:space="preserve">
     <value>记录类型：TXT。  主机/名称</value>
   </data>
-  <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom. Applies after a service restart." xml:space="preserve">
-    <value>为每一次投递、拒绝和隔离记录一行可查询的数据，这样“Jane 在 14:20 发的那封邮件到底怎么样了”就可以通过搜索来回答，而不必去 grep 日志。这些事件与 AWStats 日志一直以来看到的是同一批；此功能只是给它们一个可以被提问的地方。默认关闭，因为它会存储发件人和收件人地址 - 这就使它成为一份谁与谁通信的记录。在重启服务后生效。</value>
+  <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
+    <value>为每一次投递、拒绝和隔离记录一行可查询的数据，这样“Jane 在 14:20 发的那封邮件到底怎么样了”就可以通过搜索来回答，而不必去 grep 日志。这些事件与 AWStats 日志一直以来看到的是同一批；此功能只是给它们一个可以被提问的地方。默认关闭，因为它会存储发件人和收件人地址 - 这就使它成为一份谁与谁通信的记录。</value>
   </data>
   <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam page for it to appear." xml:space="preserve">
     <value>把每封被接受的入站邮件的 SPF 判定结果记录为一个 Received-SPF 标头（RFC 7208 第 9.1 节）。只有在 SPF 检查确实运行过时才会写入该标头，因此必须在“反垃圾邮件”页上启用“检查 SPF”，它才会出现。</value>
@@ -6755,6 +6758,15 @@
   </data>
   <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and point OAuth2PublicKeyFile in hMailServer.ini at it (or set OAuth2HmacSecret for HS256). Set OAuth2Issuer and OAuth2Audience to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
     <value>在身份提供方处把本服务器注册为一个应用程序，把提供方的公开签名密钥下载为 PEM 文件，并让 hMailServer.ini 中的 OAuth2PublicKeyFile 指向它（若使用 HS256，则改为设置 OAuth2HmacSecret）。请把 OAuth2Issuer 和 OAuth2Audience 设置为提供方写进其令牌中的值，否则验证会拒绝这些令牌。</value>
+  </data>
+  <data name="Reinitialize the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
+    <value>现在重新初始化服务器吗？所有服务会就地停止并重新启动，因此已连接的客户端会断开并重新连接。</value>
+  </data>
+  <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
+    <value>已重新初始化 - 保存的设置已生效。</value>
+  </data>
+  <data name="Reinitializing the server..." xml:space="preserve">
+    <value>正在重新初始化服务器...</value>
   </data>
   <data name="Reject empty sender addresses (MAIL FROM:&lt;&gt;)" xml:space="preserve">
     <value>拒绝空的发件人地址（MAIL FROM:&lt;&gt;）</value>
@@ -7407,11 +7419,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Saved at {0}." xml:space="preserve">
     <value>已于 {0} 保存。</value>
   </data>
+  <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
+    <value>已保存 {0} - 此页上的每项设置都已生效。</value>
+  </data>
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>已保存 {0} - 重启服务以应用。</value>
   </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>已保存 {0} - 服务器会在两秒内读取。无需重启服务。</value>
+  </data>
+  <data name="Saved {0} - {1} setting(s) wait for a reinitialize; Apply now, in the bar at the foot of the window, takes them." xml:space="preserve">
+    <value>已保存 {0} - {1} 项设置等待重新初始化；窗口底部栏中的“立即应用”会使其生效。</value>
   </data>
   <data name="Saved {0} settings" xml:space="preserve">
     <value>已保存 {0} 项设置</value>
@@ -7773,14 +7791,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Sends daily aggregate reports about TLS connection failures to recipient domains (RFC 8460)." xml:space="preserve">
     <value>向收件人域发送关于 TLS 连接失败的每日汇总报告 (RFC 8460)。</value>
   </data>
-  <data name="Sends the commands of a transaction without waiting for each answer, which removes a round trip per recipient - the difference is largest on a slow link or to a distant server. Used only with a server that advertises it. Applies after a service restart." xml:space="preserve">
-    <value>发送一次事务的各条命令而不等待每一个应答，这样每个收件人就少一次往返 - 在缓慢的链路上或发往远处的服务器时差别最大。只对通告了它的服务器使用。在重启服务后生效。</value>
+  <data name="Sends the commands of a transaction without waiting for each answer, which removes a round trip per recipient - the difference is largest on a slow link or to a distant server. Used only with a server that advertises it." xml:space="preserve">
+    <value>发送一次事务的各条命令而不等待每一个应答，这样每个收件人就少一次往返 - 在缓慢的链路上或发往远处的服务器时差别最大。只对通告了它的服务器使用。</value>
   </data>
   <data name="Sends the daily aggregate reports that domains ask for with a rua= tag in their DMARC record (RFC 7489) - who sent mail claiming to be them, and whether it passed. Reports only go to an address outside the policy domain when that address's own DNS says it wants them, so a domain cannot use its DMARC record to aim this server's reports at somebody else." xml:space="preserve">
     <value>发送各域通过其 DMARC 记录中的 rua= 标签请求的每日汇总报告 (RFC 7489) - 谁声称是它们在发送邮件，以及是否通过。只有当策略域之外的地址自身的 DNS 表示希望接收时，报告才会发往该地址，因此一个域无法利用其 DMARC 记录把本服务器的报告引向别人。</value>
   </data>
-  <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME. Applies after a service restart." xml:space="preserve">
-    <value>把邮件作为计数的分块发送，而不是使用经过点填充的 DATA。它也正是在不重写邮件的情况下把二进制邮件继续送出去的手段：以 BINARYMIME 接受的邮件，只能按其到达时的原样中继给同时提供本项和 BINARYMIME 的服务器。在重启服务后生效。</value>
+  <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME." xml:space="preserve">
+    <value>把邮件作为计数的分块发送，而不是使用经过点填充的 DATA。它也正是在不重写邮件的情况下把二进制邮件继续送出去的手段：以 BINARYMIME 接受的邮件，只能按其到达时的原样中继给同时提供本项和 BINARYMIME 的服务器。</value>
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>将收件人的地址作为 User: 标头发送，这样 spamd 就会应用该邮箱自己的偏好设置 - 这是虚拟用户 spamd (带 %u 或 %d 的 --virtual-config-dir) 所期望的形式。扫描按每封邮件运行一次，而不是按每个收件人一次，因此发给多人的邮件无法按其中任何一人的偏好扫描，而是改用上面的配置文件。</value>
@@ -7878,8 +7896,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature." xml:space="preserve">
     <value>不属于任何单一协议或功能的服务器范围上限、持久性和防滥用控制。</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason. Stored in hMailServer.INI, and unless a card says otherwise, changes take effect after a service restart." xml:space="preserve">
-    <value>不属于任何单一协议或功能的服务器范围上限、持久性和防滥用控制。默认值是安全的；只在有明确原因时才更改。存储在 hMailServer.INI 中，除非卡片另有说明，否则更改在服务重启后生效。</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
+    <value>不属于任何单一协议或功能的服务器范围上限、持久性和防滥用控制。默认值是安全的；只在有明确原因时才更改。</value>
   </data>
   <data name="Server-wide defaults, keeping copies of mail and the scripting engine." xml:space="preserve">
     <value>服务器范围的默认值、邮件副本保留和脚本引擎。</value>
@@ -7914,8 +7932,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Services" xml:space="preserve">
     <value>服务</value>
   </data>
-  <data name="Session caching and session tickets let a returning client skip the full handshake. At the defaults these four settings make no OpenSSL call at all, so resumption keeps OpenSSL's stock behaviour - they are here for administrators who need to bound how long a resumption secret stays useful. Applies after a service restart." xml:space="preserve">
-    <value>会话缓存和会话票据让回访的客户端跳过完整握手。在默认值下，这四个设置根本不会调用 OpenSSL，因此恢复会话保持 OpenSSL 的原有行为 - 它们是为需要限制恢复机密有效时长的管理员准备的。服务重启后生效。</value>
+  <data name="Session caching and session tickets let a returning client skip the full handshake. At the defaults these four settings make no OpenSSL call at all, so resumption keeps OpenSSL's stock behaviour - they are here for administrators who need to bound how long a resumption secret stays useful." xml:space="preserve">
+    <value>会话缓存和会话票据让回访的客户端跳过完整握手。在默认值下，这四个设置根本不会调用 OpenSSL，因此恢复会话保持 OpenSSL 的原有行为 - 它们是为需要限制恢复机密有效时长的管理员准备的。</value>
   </data>
   <data name="Session resumption" xml:space="preserve">
     <value>会话恢复</value>
@@ -7983,10 +8001,10 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Settings" xml:space="preserve">
     <value>设置</value>
   </data>
-  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>设置已保存。必须重启 hMailServer 服务，更改才会生效。
+  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>设置已保存。其中 {0} 项只有在 hMailServer 服务重启后才会生效。
 
-现在重启吗?</value>
+现在重启吗？</value>
   </data>
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>以前位于此页的设置</value>
@@ -8273,8 +8291,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Stored in hMailServer.INI exactly as typed - the DPAPI switch above does not cover it, and there is nowhere else for the Service Control Manager's registration step to read it from. That is the strongest reason to use NT SERVICE\hMailServer or a group managed service account instead: neither has a password to store. If you do set one here, clear it again once the registration has been run - the SCM keeps its own copy from then on." xml:space="preserve">
     <value>按原样存储在 hMailServer.INI 中 - 上面的 DPAPI 开关不覆盖它，服务控制管理器的注册步骤也没有其他地方可以读取它。这是改用 NT SERVICE\hMailServer 或组托管服务账户的最有力理由: 两者都没有需要存储的密码。如果您确实在此设置了密码，请在注册运行后再次清空 - 从那时起 SCM 会保留自己的副本。</value>
   </data>
-  <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays. The service reads them when it starts, so changes here apply after a service restart." xml:space="preserve">
-    <value>以 ScheduledBackupTime、ScheduledBackupIntervalMinutes、ScheduledBackupKeepCount 和 ScheduledBackupMaxAgeDays 存储在 hMailServer.ini 中。服务在启动时读取它们，因此此处的更改在服务重启后生效。</value>
+  <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays." xml:space="preserve">
+    <value>以 ScheduledBackupTime、ScheduledBackupIntervalMinutes、ScheduledBackupKeepCount 和 ScheduledBackupMaxAgeDays 存储在 hMailServer.ini 中。</value>
   </data>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>存储在服务器上的 hMailServer.ini 中。它获取的令牌会缓存在内存中，直到其生命周期过去 80%，然后自动重新获取。</value>
@@ -8710,8 +8728,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The bounce and error texts the server sends are editable templates." xml:space="preserve">
     <value>服务器发送的退信和错误文本是可编辑的模板。</value>
   </data>
-  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>为本地域提供邮件客户端自动配置和 MTA-STS 策略的内置 HTTP 监听器 (hMailServer.INI)。更改在服务重启后生效。</value>
+  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI)." xml:space="preserve">
+    <value>为本地域提供邮件客户端自动配置和 MTA-STS 策略的内置 HTTP 监听器 (hMailServer.INI)。</value>
   </data>
   <data name="The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges." xml:space="preserve">
     <value>内置 HTTP 监听器: Autodiscover、autoconfig、MTA-STS 策略和 ACME 质询。</value>
@@ -8817,8 +8835,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The delivery queue lists what is waiting and why." xml:space="preserve">
     <value>投递队列列出正在等待的邮件及其原因。</value>
   </data>
-  <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know. Applies after a service restart." xml:space="preserve">
-    <value>使邮箱越过此百分比的那次投递，会以该邮箱所属域的 postmaster 名义向邮箱所有者发出一条通知。只有一条，而不是每封邮件一条: 服务器把阈值当作邮箱“越过”的一条线，而不是它所处的一种状态，因此停留在 95% 的邮箱不会在每次投递时都被再次警告 - 那样填满邮箱的速度会比邮件本身还快。清空邮箱再重新填满会再次警告，这是任何人都会预期的行为，而且在这里无需记录和过期机制就自然实现了。默认开启，因为另一种做法就是本服务器以前的做法: 在邮件开始被拒绝之前什么也不说，而到那时，受影响的人是最后一个知道的。服务重启后生效。</value>
+  <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know." xml:space="preserve">
+    <value>使邮箱越过此百分比的那次投递，会以该邮箱所属域的 postmaster 名义向邮箱所有者发出一条通知。只有一条，而不是每封邮件一条: 服务器把阈值当作邮箱“越过”的一条线，而不是它所处的一种状态，因此停留在 95% 的邮箱不会在每次投递时都被再次警告 - 那样填满邮箱的速度会比邮件本身还快。清空邮箱再重新填满会再次警告，这是任何人都会预期的行为，而且在这里无需记录和过期机制就自然实现了。默认开启，因为另一种做法就是本服务器以前的做法: 在邮件开始被拒绝之前什么也不说，而到那时，受影响的人是最后一个知道的。</value>
   </data>
   <data name="The directory ACCEPTED the credentials: bound as {0}. This account would log on." xml:space="preserve">
     <value>目录已接受该凭据: 以 {0} 身份绑定。该账户可以登录。</value>
@@ -8906,8 +8924,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The group members could not be read: " xml:space="preserve">
     <value>无法读取组成员:</value>
   </data>
-  <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark. Applies after a service restart." xml:space="preserve">
-    <value>本服务器愿意用来协商 TLS 密钥的群组，采用 OpenSSL 的列表格式。出厂设置会先提供两个后量子混合群组，对于两者都不支持的对端则回退到 X25519 和 NIST 曲线，因此对较旧的客户端来说没有任何变化。空列表、OpenSSL 拒绝的列表，或者会导致没有任何群组可用的列表都不会被应用：服务器会将其记入日志并使用经典回退列表，因此这里的错误不会让 TLS 瘫痪 - 但它会悄悄放弃混合群组，这正是此处显示出厂列表而不是空白的原因。请对照一次扫描的结果来更改它，而不是在两眼一抹黑的情况下更改。在重启服务后生效。</value>
+  <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
+    <value>本服务器愿意用来协商 TLS 密钥的群组，采用 OpenSSL 的列表格式。出厂设置会先提供两个后量子混合群组，对于两者都不支持的对端则回退到 X25519 和 NIST 曲线，因此对较旧的客户端来说没有任何变化。空列表、OpenSSL 拒绝的列表，或者会导致没有任何群组可用的列表都不会被应用：服务器会将其记入日志并使用经典回退列表，因此这里的错误不会让 TLS 瘫痪 - 但它会悄悄放弃混合群组，这正是此处显示出厂列表而不是空白的原因。请对照一次扫描的结果来更改它，而不是在两眼一抹黑的情况下更改。</value>
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>引导式路径: 是哪一半、哪些日志行，以及限制每个阶段的设置。</value>
@@ -9229,8 +9247,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>服务器管理密码，以及究竟谁可以使用这些工具。</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request. Every setting here is in hMailServer.ini and applies after a service restart." xml:space="preserve">
-    <value>服务器可以发现新的发行版，用该发行版自带的 Sigstore 签名对其进行验证，然后安装它 - 可以在“状态”页上点击安装，也可以由服务器在您设定的窗口内自行安装。在您打开该检查之前，它一直处于关闭状态；该检查除请求本身之外不发送任何内容。此处的每一项设置都在 hMailServer.ini 中，并在重启服务后生效。</value>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>服务器可以发现新的发行版，用该发行版自带的 Sigstore 签名对其进行验证，然后安装它 - 可以在“状态”页上点击安装，也可以由服务器在您设定的窗口内自行安装。在您打开该检查之前，它一直处于关闭状态；该检查除请求本身之外不发送任何内容。</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>服务器没有将群发排入队列。请检查地址通配符和 hMailServer 错误日志。</value>
@@ -9252,8 +9270,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>服务器生成下一个密钥，显示要发布的 TXT 记录，用它自己的解析器检查该记录，并且只有在整个传播期内记录都能解析后，才将签名切换到新密钥。旧选择器在保留期内保留，然后停用。</value>
   </data>
-  <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep and restart the service." xml:space="preserve">
-    <value>服务器不保留历史: hMailServer.ini 中的 MetricsHistoryDays 为 0。请将其设为要保留的天数并重启服务。</value>
+  <data name="The server is draining. A reinitialize ends maintenance mode: the listeners open again and delivery resumes. Reinitialize the server now?" xml:space="preserve">
+    <value>服务器正在排空。重新初始化会结束维护模式：侦听器重新打开，投递恢复。现在重新初始化服务器吗？</value>
+  </data>
+  <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
+    <value>服务器不保留历史: hMailServer.ini 中的 MetricsHistoryDays 为 0。请将其设为要保留的天数。</value>
   </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>服务器会记住谁写信给每个账户、每个账户又写信给谁，并在外部发件人首次出现时在阅读界面中说明。这会为投递到本域的每封邮件带来一次数据库查询；关闭时则毫无开销。</value>
@@ -10024,11 +10045,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="What rotation defends: OpenSSL's default ticket key is generated once, when the listener starts, and is never rotated, so every ticket that listener issues for the life of the process is sealed under the same key - and that key, recovered later, decrypts every ticket ever recorded. With an interval set, a captured ticket is useless after at most two intervals. 86400 is a day. Only meaningful while session tickets are enabled above." xml:space="preserve">
     <value>轮换防范的是什么: OpenSSL 的默认票据密钥在监听器启动时生成一次，之后永不轮换，因此该监听器在进程整个生命周期内签发的每张票据都用同一个密钥密封 - 而这个密钥一旦事后被恢复，就能解密曾经记录下来的每一张票据。设置了间隔后，被截获的票据最多在两个间隔后就失效。86400 是一天。仅在上面启用了会话票据时才有意义。</value>
   </data>
-  <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value. Applies after a service restart." xml:space="preserve">
-    <value>是什么阻止一条被锁阻塞的语句永远占用一个工作线程。MySQL/MariaDB 和 PostgreSQL 在连接时遵守它；MS SQL 和 SQL CE 从 ADO 自己的 30 秒开始，并在任何运行过升级或维护脚本的连接上采用此值。这些脚本无论此值如何，都在其自身每条语句 30 分钟的上限下运行。服务重启后生效。</value>
+  <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value." xml:space="preserve">
+    <value>是什么阻止一条被锁阻塞的语句永远占用一个工作线程。MySQL/MariaDB 和 PostgreSQL 在连接时遵守它；MS SQL 和 SQL CE 从 ADO 自己的 30 秒开始，并在任何运行过升级或维护脚本的连接上采用此值。这些脚本无论此值如何，都在其自身每条语句 30 分钟的上限下运行。</value>
   </data>
-  <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are. Applies after a service restart." xml:space="preserve">
-    <value>邮件存储卷填满时服务器的做法。两个值都是绝对的兆字节而不是百分比，因为决定下一封邮件能否放下的是剩余多少字节，而不是它们占卷的比例。服务重启后生效。</value>
+  <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
+    <value>邮件存储卷填满时服务器的做法。两个值都是绝对的兆字节而不是百分比，因为决定下一封邮件能否放下的是剩余多少字节，而不是它们占卷的比例。</value>
   </data>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>服务器写入其日志文件的内容 (可在“实时日志”页查看)。</value>
@@ -10165,8 +10186,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Which services this server runs, connection limits and greetings." xml:space="preserve">
     <value>本服务器运行哪些服务、连接限制和问候语。</value>
   </data>
-  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire. Applies after a service restart." xml:space="preserve">
-    <value>DMARC 汇总报告以哪种写法发往本服务器所报告的域。1 是当今部署的每个报告消费者都能解析的；2 是 DMARCbis，留给消费者跟上的那一天。任何其他值都会被报告为错误并按 1 处理，因为拼写错误不应决定线路上发出的内容。服务重启后生效。</value>
+  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire." xml:space="preserve">
+    <value>DMARC 汇总报告以哪种写法发往本服务器所报告的域。1 是当今部署的每个报告消费者都能解析的；2 是 DMARCbis，留给消费者跟上的那一天。任何其他值都会被报告为错误并按 1 处理，因为拼写错误不应决定线路上发出的内容。</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>哪个方向</value>
@@ -10255,8 +10276,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>设置了口令而压缩处于关闭状态时，邮件文件会被复制到存档旁边而不是存档里面，那里没有任何东西为它们加密，因此备份会拒绝运行。请打开压缩，或者清除口令。</value>
   </data>
-  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart." xml:space="preserve">
-    <value>开启后，已验证会话中的 MAIL FROM 必须是账户自己的地址、解析到它的别名，或所有者已向该账户授予其 INBOX 上投递 (p) 权限的另一个邮箱 - 共享邮箱的“代表发送”就是这样授予的，可通过任何 IMAP 客户端的 ACL 编辑器 (SETACL) 或通过 COM API。其他任何情况都会在接受邮件的第一个字节之前以 550 5.7.1 拒绝，因此一个被攻陷或粗心的账户再也不能冒充所有其他账户发送。默认关闭，因为以前没有任何东西限制这一点，现有安装可能依赖它；空发件人始终允许。未验证的会话不受影响。服务重启后生效。</value>
+  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
+    <value>开启后，已验证会话中的 MAIL FROM 必须是账户自己的地址、解析到它的别名，或所有者已向该账户授予其 INBOX 上投递 (p) 权限的另一个邮箱 - 共享邮箱的“代表发送”就是这样授予的，可通过任何 IMAP 客户端的 ACL 编辑器 (SETACL) 或通过 COM API。其他任何情况都会在接受邮件的第一个字节之前以 550 5.7.1 拒绝，因此一个被攻陷或粗心的账户再也不能冒充所有其他账户发送。默认关闭，因为以前没有任何东西限制这一点，现有安装可能依赖它；空发件人始终允许。未验证的会话不受影响。</value>
   </data>
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>开启后，账户自己的休假消息仍会回复同事，但外部发件人会收到域的通用文本 - 这样休假消息中的个人细节就留在了组织内部。</value>
@@ -10359,6 +10380,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="_Apply" xml:space="preserve">
     <value>应用(_A)</value>
+  </data>
+  <data name="_Apply now" xml:space="preserve">
+    <value>立即应用(_A)</value>
   </data>
   <data name="_Bind address" xml:space="preserve">
     <value>绑定地址(_B)</value>
@@ -11083,11 +11107,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
     <value>在本机上未找到 hMailServer.INI。这些设置只能在服务器本机上编辑；连接测试仍然可以用此处输入的值运行。</value>
   </data>
-  <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore, after a service restart." xml:space="preserve">
-    <value>hMailServer.ini 设置 BackupMessagesDBOnly。这样备份只记录存在哪些邮件，而不记录它们的内容，还原时则要求这些文件仍然留在数据文件夹中。适用于备份和还原，在重启服务后生效。</value>
+  <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
+    <value>hMailServer.ini 设置 BackupMessagesDBOnly。这样备份只记录存在哪些邮件，而不记录它们的内容，还原时则要求这些文件仍然留在数据文件夹中。适用于备份和还原。</value>
   </data>
-  <data name="hMailServer.ini setting BackupVerifyRestore, on by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold. Applies after a service restart." xml:space="preserve">
-    <value>hMailServer.ini 设置 BackupVerifyRestore，默认开启。存档写入之后，会通过还原所用的同一套代码把它的邮件存储解压到临时文件夹，严格限定为备份所暂存的那些文件，并逐条检查每一行邮件记录是否有对应的文件；结果记录在备份日志中。运行期间存储会同时存在两份，因此对于临时卷容纳不下的存储请关闭它。在重启服务后生效。</value>
+  <data name="hMailServer.ini setting BackupVerifyRestore, on by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold." xml:space="preserve">
+    <value>hMailServer.ini 设置 BackupVerifyRestore，默认开启。存档写入之后，会通过还原所用的同一套代码把它的邮件存储解压到临时文件夹，严格限定为备份所暂存的那些文件，并逐条检查每一行邮件记录是否有对应的文件；结果记录在备份日志中。运行期间存储会同时存在两份，因此对于临时卷容纳不下的存储请关闭它。</value>
   </data>
   <data name="hMailServer.ini was not found on this machine, so BackupMessagesDBOnly can only be changed on the server itself." xml:space="preserve">
     <value>在本机上未找到 hMailServer.ini，因此 BackupMessagesDBOnly 只能在服务器本机上更改。</value>
@@ -11530,6 +11554,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>服务器无法连接到它的数据库。请检查数据库连接和 hMailServer 错误日志，然后按“重新加载”。({0})</value>
   </data>
+  <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
+    <value>服务器在三十秒内未报告正在运行；“状态”页会显示它正在做什么。</value>
+  </data>
   <data name="the server is slow" xml:space="preserve">
     <value>服务器很慢</value>
   </data>
@@ -11901,6 +11928,15 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="{0} samples." xml:space="preserve">
     <value>{0} 个样本。</value>
+  </data>
+  <data name="{0} saved setting(s) wait for a reinitialize, and {1} for a service restart." xml:space="preserve">
+    <value>已保存的设置中有 {0} 项等待重新初始化，{1} 项等待服务重启。</value>
+  </data>
+  <data name="{0} saved setting(s) wait for a reinitialize." xml:space="preserve">
+    <value>已保存的设置中有 {0} 项等待重新初始化。</value>
+  </data>
+  <data name="{0} saved setting(s) wait for a service restart." xml:space="preserve">
+    <value>已保存的设置中有 {0} 项等待服务重启。</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} 单独就得 {1} 分，达到了服务器停止继续检测的{2}，因此对于它判定失败的邮件，{3} 不会运行，也不会出现在日志中。</value>

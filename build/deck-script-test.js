@@ -771,8 +771,10 @@ function body(props, required) {
 
 /* The settings groups, in the shape OpenApiProperties emits them: a type, a
    description, an enum for a word setting, readOnly for a fact, writeOnly for
-   a secret, and "Takes effect when the server restarts." for a key the running
-   server reads only at start. */
+   a secret, "Takes effect when the server restarts." for a key the running
+   server reads only at start, and x-applies - the settings baseline's mark,
+   with its sentence - on a row kept in the store that was hMailServer.ini's
+   [Settings] section (docs/SettingsApply.md). */
 const SETTING_GROUPS = {
    '/api/v1/settings': {
       props: {
@@ -789,9 +791,10 @@ const SETTING_GROUPS = {
       props: {
          spam_mark_threshold: { type: 'integer', description: 'The score at which a message is marked as spam.' },
          spam_delete_threshold: { type: 'integer', description: 'The score at which a message is deleted.' },
-         use_spf: { type: 'boolean', description: 'Whether SPF is checked.' }
+         use_spf: { type: 'boolean', description: 'Whether SPF is checked.' },
+         tarpit_count: { type: 'integer', description: 'The recipient count in one session after which each further RCPT TO is delayed; 0 is off. Kept in hMailServer.ini. Applies when it is saved.', 'x-applies': 'now' }
       },
-      values: { spam_mark_threshold: 5, spam_delete_threshold: 20, use_spf: true }
+      values: { spam_mark_threshold: 5, spam_delete_threshold: 20, use_spf: true, tarpit_count: 0 }
    },
    '/api/v1/settings/logging': {
       props: {
@@ -1258,6 +1261,9 @@ const state = {
    assignments: [{ address: 'anna@example.com', role: 'helpdesk', domains: '' }],
    status: { version: '6.3.3', state: 3, processedMessages: 1234, spamMessages: 56, virusesRemoved: 7, sessions: { smtp: 3, imap: 12, pop3: 1 } },
    drain: { draining: false, since: '', sessions: 0, deliveries: 0, drained: false },
+   // What GET /api/v1/server/settings/pending answers: a key marked reinitialize
+   // saved and not yet running. A reinitialise takes it.
+   pendingSettings: [{ name: 'ManageSieveServerPort', stored: '4190', running: '0', applies: 'reinitialize', secret: false }],
    domains: [
       domainRecord('example.com', true, 'postmaster@example.com'),
       domainRecord(HOSTILE, false, ''),
@@ -2743,7 +2749,15 @@ function answer(method, path, headers, raw) {
       if (method === 'PUT') { state.ports[at] = Object.assign({ id, address: '0.0.0.0', connection_security: 'none', certificate_id: 0, client_certificate_policy: 'off', client_certificate_ca_file: '' }, parsed); return json(200, state.ports[at]); }
       if (method === 'DELETE') { state.ports.splice(at, 1); return json(200, { deleted: true }); }
    }
-   if (path === '/api/v1/server/reinitialize' && method === 'POST') { return json(202, { reinitializing: true }); }
+   if (path === '/api/v1/server/reinitialize' && method === 'POST') {
+      // A reinitialise takes every key marked reinitialize, and ends a drain -
+      // which the answer says, as the server's does.
+      const drained = state.drain.draining;
+      state.pendingSettings = state.pendingSettings.filter((p) => p.applies !== 'reinitialize');
+      Object.assign(state.drain, { draining: false, since: '', sessions: 0, deliveries: 0, drained: false });
+      return json(202, { reinitializing: true, drained });
+   }
+   if (path === '/api/v1/server/settings/pending' && method === 'GET') { return json(200, state.pendingSettings); }
 
 
    if (path === '/api/v1/webhooks' && method === 'GET') {
@@ -4771,6 +4785,32 @@ async function main() {
    check('a key that waits for a restart is marked', document.getElementById('set_srv_service_smtp').closest('.fr').textContent.indexOf('restart') >= 0 &&
       document.getElementById('set_srv_hostname').closest('.fr').querySelector('.badge.warn') === null);
    check('the description is the hint', document.getElementById('set_srv_hostname').closest('.fr').textContent.indexOf('SMTP banner') >= 0);
+   // When a saved value reaches the running server (docs/SettingsApply.md): the
+   // document's x-applies is the mark beside the field, and it replaces the
+   // restart badge rather than joining it.
+   const tarpitRow = document.getElementById('set_spam_tarpit_count').closest('.fr');
+   check('a key kept in the settings store carries its mark', !!tarpitRow.querySelector('[data-applies="now"]') &&
+      tarpitRow.textContent.indexOf('Applies on save') >= 0 && tarpitRow.textContent.indexOf('restart') < 0, tarpitRow.textContent);
+   check('and a key without one carries none', document.getElementById('set_srv_hostname').closest('.fr').querySelector('[data-applies]') === null);
+   check('the settings view reads what is pending, and says it above the groups', called(before, 'GET', '/api/v1/server/settings/pending').length === 1 &&
+      !!$('#pendingBar') && $('#pendingBar').textContent.indexOf('1 saved setting(s) wait for a reinitialize.') >= 0 &&
+      $('#pendingBar').textContent.indexOf('ManageSieveServerPort') >= 0 && !!act('applypending'), $('#pendingBar') ? $('#pendingBar').textContent : 'no bar');
+   confirmAnswer = false;
+   let pendingBefore = requests.length;
+   click(act('applypending'));
+   await flush();
+   check('Apply now asks first, and a no sends nothing', called(pendingBefore, 'POST', /reinitialize/).length === 0 &&
+      confirmations[confirmations.length - 1].indexOf('Reinitialize the server now?') >= 0 &&
+      confirmations[confirmations.length - 1].indexOf('draining') < 0, confirmations[confirmations.length - 1]);
+   state.drain.draining = true;
+   pendingBefore = requests.length;
+   click(act('applypending'));
+   await flush();
+   check('and while the server is draining it says that a reinitialize ends maintenance mode', called(pendingBefore, 'GET', '/api/v1/server/drain').length === 1 &&
+      called(pendingBefore, 'POST', /reinitialize/).length === 0 && confirmations[confirmations.length - 1].indexOf('ends maintenance mode') >= 0,
+      confirmations[confirmations.length - 1]);
+   state.drain.draining = false;
+   confirmAnswer = true;
 
    before = requests.length;
    click(act('setsave', { group: 'srv' }));

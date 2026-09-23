@@ -121,6 +121,10 @@ namespace HM
                return false;
             }
 
+            // Published, as a save through IniFileSettings is: a key marked now is
+            // back in effect when the revert returns.
+            IniFileSettings::Instance()->Reload();
+
             restored = _T("(default)");
             return true;
          }
@@ -136,6 +140,8 @@ namespace HM
             error = _T("The value could not be written. The error log says why.");
             return false;
          }
+
+         IniFileSettings::Instance()->Reload();
 
          restored = oldValue;
          return true;

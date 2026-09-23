@@ -38,6 +38,16 @@ namespace HM
       SetNextRunTime();
    }
 
+   void
+   ScheduledTask::RestartPeriod(int minutes)
+   {
+      minutes_between_run_ = minutes;
+
+      DateTimeSpan dts;
+      dts.SetDateTimeSpan(0, 0, minutes_between_run_, 0);
+      next_run_time_ = DateTime::GetCurrentTime() + dts;
+   }
+
    ScheduledTask::Reoccurance 
    ScheduledTask::GetReoccurance() const
    {

@@ -59,6 +59,7 @@
 #include "CompromiseDetector.h"
 #include "SessionPolicies.h"
 #include "../Application/IniSettingStore.h"
+#include "../Application/IniSettingsBaseline.h"
 #include "../Application/SettingsDiff.h"
 #include "../Application/Backup.h"
 #include "../BO/ServerMessages.h"
@@ -191,6 +192,12 @@ namespace
       // Optional: refuses a value before anything in the request is applied,
       // in the setting's own sentence. Empty means acceptable.
       String (*check)(const Value &value);
+
+      // The [Settings] key the row is kept in, for the rows whose value lives in
+      // hm_inisettings rather than hm_settings. When set, when the change applies
+      // is the key's mark in build/ini-settings-baseline.txt - one source for the
+      // row, the ini route, COM and the Control Panel - and effect is not read.
+      const TCHAR *ini_key;
    };
 
    struct Group
@@ -783,7 +790,8 @@ namespace
         ROW_FLAG(Config()->GetIPv6Preferred()), ROW_SET(Config()->SetIPv6Preferred(v.flag)), ROW_NO_CHECK },
       { "rewrite_envelope_from_when_forwarding", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether a forwarded message leaves with the forwarding account as its envelope sender.",
-        ROW_FLAG(Ini()->GetRewriteEnvelopeFromWhenForwarding()), ROW_SET(Ini()->SetRewriteEnvelopeFromWhenForwarding(v.flag)), ROW_NO_CHECK },
+        ROW_FLAG(Ini()->GetRewriteEnvelopeFromWhenForwarding()), ROW_SET(Ini()->SetRewriteEnvelopeFromWhenForwarding(v.flag)), ROW_NO_CHECK,
+        _T("RewriteEnvelopeFromWhenForwarding") },
       { "create_default_special_use_folders", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether a new account gets Drafts, Sent, Junk and Trash folders.",
         ROW_FLAG(Config()->GetCreateDefaultSpecialUseFolders()), ROW_SET(Config()->SetCreateDefaultSpecialUseFolders(v.flag)), ROW_NO_CHECK },
@@ -1394,12 +1402,14 @@ namespace
         "The recipient count in one session after which each further RCPT TO is delayed; 0 is off. Kept in hMailServer.ini.",
         ROW_NUMBER(Ini()->GetSmtpTarpitCount()),
         [] (const Value &v) { return Ini()->SetSmtpTarpitCount((int) v.number) ? Applied() : Failed(IniWriteFailure); },
-        [] (const Value &v) { return v.number < 0 ? String(TarpitCountRefusal) : String(); } },
+        [] (const Value &v) { return v.number < 0 ? String(TarpitCountRefusal) : String(); },
+        _T("SmtpTarpitCount") },
       { "tarpit_delay", KindInteger, ReadWrite, EffectNow, nullptr,
         "The delay in seconds, 0 to 30. Kept in hMailServer.ini.",
         ROW_NUMBER(Ini()->GetSmtpTarpitDelaySeconds()),
         [] (const Value &v) { return Ini()->SetSmtpTarpitDelaySeconds((int) v.number) ? Applied() : Failed(IniWriteFailure); },
-        [] (const Value &v) { return (v.number < 0 || v.number > IniFileSettings::TARPIT_MAX_SECONDS) ? String(TarpitDelayRefusal) : String(); } },
+        [] (const Value &v) { return (v.number < 0 || v.number > IniFileSettings::TARPIT_MAX_SECONDS) ? String(TarpitDelayRefusal) : String(); },
+        _T("SmtpTarpitDelaySeconds") },
       { "greylisting_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether a first delivery attempt from an unknown sender, recipient and address is deferred.",
         ROW_FLAG(AntiSpam().GetUseGreyListing()), ROW_SET(AntiSpam().SetUseGreyListing(v.flag)), ROW_NO_CHECK },
@@ -2323,6 +2333,17 @@ namespace
    // The OpenAPI paths, from the same tables.
    // ---------------------------------------------------------------------
 
+   // The sentence a key's mark stands for, wherever the document says when an
+   // ini-backed value applies (docs/SettingsApply.md).
+   const char *IniAppliesSentence(const AnsiString &applies)
+   {
+      if (applies == "reinitialize")
+         return "Stored at once and applied at the next reinitialise (POST /api/v1/server/reinitialize); pending until then.";
+      if (applies == "restart")
+         return "Stored at once and applied when the service next starts; pending until then.";
+      return "Applies when it is saved.";
+   }
+
    AnsiString OpenApiProperties(const Group &group, const Bridge &bridge)
    {
       AnsiString properties;
@@ -2350,16 +2371,27 @@ namespace
          }
 
          AnsiString description = row.description;
-         switch (row.effect)
+         AnsiString applies;
+         if (row.ini_key)
          {
-         case EffectNow:
-            break;
-         case EffectRestart:
-            description += " Takes effect when the server restarts.";
-            break;
-         case EffectStored:
-            description += " Stored for the Control Panel; nothing in this server reads it.";
-            break;
+            // A row kept in hm_inisettings says what the baseline says of its key,
+            // and carries the word as x-applies for a client to show beside it.
+            applies = AnsiString(IniFileSettings::AppliesOrNow(row.ini_key));
+            description += " " + AnsiString(IniAppliesSentence(applies));
+         }
+         else
+         {
+            switch (row.effect)
+            {
+            case EffectNow:
+               break;
+            case EffectRestart:
+               description += " Takes effect when the server restarts.";
+               break;
+            case EffectStored:
+               description += " Stored for the Control Panel; nothing in this server reads it.";
+               break;
+            }
          }
 
          properties += "\"";
@@ -2384,6 +2416,8 @@ namespace
             properties += ",\"readOnly\":true";
          if (row.access == WriteOnly)
             properties += ",\"writeOnly\":true";
+         if (!applies.IsEmpty())
+            properties += ",\"x-applies\":\"" + applies + "\"";
 
          properties += "}";
       }
@@ -2476,14 +2510,37 @@ namespace
       return false;
    }
 
+   // applies is the key's mark in the baseline - now, reinitialize or restart - and
+   // "now" for a name the loader does not read, which is read where it is used.
+   // pending is whether the stored value is not yet the running one: a key marked
+   // reinitialize or restart saved since what applies it last happened. Computed
+   // from the store and the running values, not remembered, so a value put back
+   // is not pending.
    AnsiString IniSettingJson(const String &name, const Bridge &bridge)
    {
       AnsiString json = "{\"name\":\"" + bridge.escape(Utf8(name)) + "\",\"value\":\"";
       json += bridge.escape(Utf8(Ini()->GetSettingsValue(name)));
       json += "\",\"present\":";
       json += IniHas(name) ? "true" : "false";
+      json += ",\"applies\":\"" + AnsiString(IniFileSettings::AppliesOrNow(name)) + "\"";
+      json += ",\"pending\":";
+      json += Ini()->IsPending(name) ? "true" : "false";
       json += "}";
       return json;
+   }
+
+   // The pending keys, by name without case, for a list that marks each entry.
+   std::set<String> PendingNames()
+   {
+      std::set<String> names;
+      std::vector<IniFileSettings::PendingSetting> pending = Ini()->GetPendingSettings();
+      for (size_t i = 0; i < pending.size(); i++)
+      {
+         String lowered = pending[i].name;
+         lowered.ToLower();
+         names.insert(lowered);
+      }
+      return names;
    }
 
    // Both shapes at once. names is what this route has always answered and
@@ -2500,12 +2557,14 @@ namespace
    // the same path: IniFileSettings' in-process overlay, which the server
    // loaded at start with the stored value, or the [SettingsOverride] value
    // where the file forces one, and which falls back to the file's line for a
-   // name it does not hold. Only this process's own writes (COM SetIniSetting,
-   // PUT here) update the overlay. So a value this server stored since it
-   // started is listed as stored, though it reads most of them only when it
-   // next starts; and a value stored by another process - `hmailserver
-   // --set-setting`, another node on the same database - is listed as this
-   // server last loaded it until it restarts or reloads. names is
+   // name it does not hold. A save through this process (COM SetIniSetting, PUT
+   // here) reloads the overlay from the store and publishes it
+   // (docs/SettingsApply.md). So a value this server stored since it started is
+   // listed as stored, and applies is what says whether it is in effect or
+   // waits for a reinitialise or a restart; and a value stored by another
+   // process - `hmailserver --set-setting`, another node on the same database -
+   // is listed as this server last loaded it until its next save, a
+   // reinitialise or a restart. names is
    // ReadSettingNames: the union of the store's rows and the file's [Settings]
    // lines, in std::set order, which is by name WITH case - so PasswordPepper,
    // which the store never holds, is in it when the file has it.
@@ -2529,6 +2588,8 @@ namespace
          json += "\"" + bridge.escape(Utf8(names[i])) + "\"";
       }
 
+      const std::set<String> pending = PendingNames();
+
       json += "],\"settings\":[";
       for (size_t i = 0; i < names.size(); i++)
       {
@@ -2539,15 +2600,68 @@ namespace
          if (secret && !value.IsEmpty())
             value = _T("(set)");
 
+         String lowered = name;
+         lowered.ToLower();
+
          if (i > 0)
             json += ",";
          json += "{\"name\":\"" + bridge.escape(Utf8(name)) + "\",\"value\":\"";
          json += bridge.escape(Utf8(value));
          json += "\",\"secret\":";
          json += secret ? "true" : "false";
+         json += ",\"applies\":\"" + AnsiString(IniFileSettings::AppliesOrNow(name)) + "\"";
+         json += ",\"pending\":";
+         json += pending.find(lowered) != pending.end() ? "true" : "false";
          json += "}";
       }
-      json += "]}";
+
+      // Every key this build reads, stored or not, with its mark: the whole of
+      // build/ini-settings-baseline.txt's [Settings] half, so that a client can
+      // label a field whose key has never been stored.
+      json += "],\"applies\":{";
+      for (size_t i = 0; i < IniSettingsBaseline::SettingsCount; i++)
+      {
+         if (i > 0)
+            json += ",";
+         json += "\"" + bridge.escape(Utf8(IniSettingsBaseline::Settings[i].Name)) + "\":\"";
+         json += AnsiString(IniFileSettings::AppliesOrNow(IniSettingsBaseline::Settings[i].Name)) + "\"";
+      }
+      json += "}}";
+      return bridge.respond(200, json, "");
+   }
+
+   // GET /api/v1/server/settings/pending: every key saved since what applies it last
+   // happened, with the value stored and the value running. A secret's two values
+   // are "(set)" or empty, as the list shows them.
+   HttpResponse IniPending(const Bridge &bridge)
+   {
+      std::vector<IniFileSettings::PendingSetting> pending = Ini()->GetPendingSettings();
+
+      AnsiString json = "[";
+      for (size_t i = 0; i < pending.size(); i++)
+      {
+         const IniFileSettings::PendingSetting &entry = pending[i];
+         const bool secret = IniSettingStore::IsSecretName(entry.name);
+
+         String stored = entry.stored;
+         String running = entry.running;
+         if (secret)
+         {
+            stored = stored.IsEmpty() ? String() : String(_T("(set)"));
+            running = running.IsEmpty() ? String() : String(_T("(set)"));
+         }
+
+         if (i > 0)
+            json += ",";
+         json += "{\"name\":\"" + bridge.escape(Utf8(entry.name)) + "\"";
+         json += ",\"stored\":\"" + bridge.escape(Utf8(stored)) + "\"";
+         json += ",\"running\":\"" + bridge.escape(Utf8(running)) + "\"";
+         json += ",\"applies\":\"" + bridge.escape(Utf8(entry.applies)) + "\"";
+         json += ",\"secret\":";
+         json += secret ? "true" : "false";
+         json += "}";
+      }
+      json += "]";
       return bridge.respond(200, json, "");
    }
 
@@ -2819,13 +2933,13 @@ namespace
       ",\"/api/v1/settings/breach-check/test\":{\"post\":{\"summary\":\"Ask the password breach check endpoint for a range\",\"description\":\"What Settings.TestBreachCheckEndpoint does over COM: the endpoint - url in the body, or breach_check_url when the body has none - is asked for the prefix 00000, which belongs to no password, with the padding header and the timeout a real check uses, and the answer is reported: reachable, the HTTP status, how many entries came back, whether any was padding, and how long it took. The body of the answer is never returned. A url the check would not accept is a 400 with the reason. Nothing is changed. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"required\":false,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"url\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{reachable: true, status, entries, padded, milliseconds}, or {reachable: false, status (0 when no answer arrived), error, milliseconds}\"},\"400\":{\"description\":\"The body is not a JSON object, url is not a string, or the url is not one the check accepts (the reason is in error)\"}}}}";
 
    const char *ChangedFromStockPath =
-      ",\"/api/v1/settings/changed\":{\"get\":{\"summary\":\"What this server has changed from stock\",\"description\":\"Every setting whose value is not the one this version of the server ships with, with the shipped value beside it - the same document Settings.GetChangedFromDefault answers over COM, built by the same function. It is the first thing to look at when a server behaves oddly and the first thing to put in a support message: a server holds several hundred settings across its two stores and an administrator has usually changed twenty, and until this route there was no way to be told which twenty. changed is how many are listed and considered is how many settings the two stores hold altogether, so that a count of 3 reads as 3 of 391. Each entry is {store, name, value, default, secret, known, overridden}. store is ini for the keys that were the [Settings] section of hMailServer.ini (hm_inisettings since schema 6042), whose shipped value is the third argument of the read in the server's own source, and database for hm_settings, whose shipped value is what this version's create script puts in a new database. DEFAULT MEANS what the server behaves as though the setting has when nothing is stored for it, not what a fresh installation's files happen to contain: hMailServer.ini ships with lines the packaging wrote, every one adopted into the store at the first start, and a line holding the shipped value is not a change to anything and is not listed - which is what keeps this list short enough to read. A line the installer wrote with a value that is NOT the shipped one is listed, and should be. A setting whose name says its value is a secret (a password, a shared secret, a token, the pepper; not a key FILE, which is a path) is listed with value (set) when it has one and empty when it has none, and secret true, by the same rule GET /api/v1/settings/ini uses; GET /api/v1/settings/ini/{name} reads such a value when it is wanted. overridden is true where the [SettingsOverride] section of hMailServer.ini is forcing the value over whatever is stored - the deliberate door for a database that is unreachable or holds a value the server will not start on, which no other page and no backup shows, and a key forced that way is listed even when neither store holds a row for it. A row of hm_settings that this build does not read is not listed at all: an installation upgraded from an old schema holds a dozen that upgrade scripts inserted for features that have gone, and a row nothing reads cannot explain anything the server is doing. known is false for a setting this build ships no default for - a key stored for a script of the administrator's own, or one the server reads by name where it is used rather than through the loader - which is a difference from stock all the same, since stock has no such value at all. The values are this server process's: a setting stored since it started is listed as stored though most take effect at the next start, and one stored by another process (hmailserver --set-setting, another node on the same database) is listed as this server last loaded it until it restarts or reloads. Administrator password only: an api key of any scope is refused with a 401 and an account holding an administrative role with a 403, for the same reason the ini list is - the settings include the server's secrets and the commands it runs, and AutoBanCommand is a command this server runs as the service account.\",\"responses\":{\"200\":{\"description\":\"{changed, considered, settings: [{store, name, value, default, secret, known, overridden}]}\"}}}}";
+      ",\"/api/v1/settings/changed\":{\"get\":{\"summary\":\"What this server has changed from stock\",\"description\":\"Every setting whose value is not the one this version of the server ships with, with the shipped value beside it - the same document Settings.GetChangedFromDefault answers over COM, built by the same function. It is the first thing to look at when a server behaves oddly and the first thing to put in a support message: a server holds several hundred settings across its two stores and an administrator has usually changed twenty, and until this route there was no way to be told which twenty. changed is how many are listed and considered is how many settings the two stores hold altogether, so that a count of 3 reads as 3 of 391. Each entry is {store, name, value, default, secret, known, overridden}. store is ini for the keys that were the [Settings] section of hMailServer.ini (hm_inisettings since schema 6042), whose shipped value is the third argument of the read in the server's own source, and database for hm_settings, whose shipped value is what this version's create script puts in a new database. DEFAULT MEANS what the server behaves as though the setting has when nothing is stored for it, not what a fresh installation's files happen to contain: hMailServer.ini ships with lines the packaging wrote, every one adopted into the store at the first start, and a line holding the shipped value is not a change to anything and is not listed - which is what keeps this list short enough to read. A line the installer wrote with a value that is NOT the shipped one is listed, and should be. A setting whose name says its value is a secret (a password, a shared secret, a token, the pepper; not a key FILE, which is a path) is listed with value (set) when it has one and empty when it has none, and secret true, by the same rule GET /api/v1/settings/ini uses; GET /api/v1/settings/ini/{name} reads such a value when it is wanted. overridden is true where the [SettingsOverride] section of hMailServer.ini is forcing the value over whatever is stored - the deliberate door for a database that is unreachable or holds a value the server will not start on, which no other page and no backup shows, and a key forced that way is listed even when neither store holds a row for it. A row of hm_settings that this build does not read is not listed at all: an installation upgraded from an old schema holds a dozen that upgrade scripts inserted for features that have gone, and a row nothing reads cannot explain anything the server is doing. known is false for a setting this build ships no default for - a key stored for a script of the administrator's own, or one the server reads by name where it is used rather than through the loader - which is a difference from stock all the same, since stock has no such value at all. The values are this server process's: a setting stored since it started is listed as stored - a save applies most [Settings] keys at once, and GET /api/v1/server/settings/pending lists the ones that wait for a reinitialise or a restart - and one stored by another process (hmailserver --set-setting, another node on the same database) is listed as this server last loaded it until its next save, a reinitialise or a restart. Administrator password only: an api key of any scope is refused with a 401 and an account holding an administrative role with a 403, for the same reason the ini list is - the settings include the server's secrets and the commands it runs, and AutoBanCommand is a command this server runs as the service account.\",\"responses\":{\"200\":{\"description\":\"{changed, considered, settings: [{store, name, value, default, secret, known, overridden}]}\"}}}}";
 
    const char *IniAndLogonFailurePaths =
-      ",\"/api/v1/settings/ini\":{\"get\":{\"summary\":\"The server settings that were the [Settings] section of hMailServer.ini\",\"description\":\"names: every name in the settings store or in the [Settings] section of the file, sorted by name with case - what Settings.IniSettingNames lists over COM; PasswordPepper, which the store never holds, is among them when the file has it. settings: the same names as {name, value, secret}, with the value GET /api/v1/settings/ini/{name} answers - the stored value, or the [SettingsOverride] value where the file forces one, as this server process last loaded or wrote it. A value this server stored since it started is listed as stored, and most settings apply when it next starts; a value stored by another process (hmailserver --set-setting, another node on the same database) is listed as this server last loaded it until it restarts or reloads. A setting whose name says its value is a secret (a password, a shared secret, a token, the pepper; not a key FILE, which is a path) is listed with value (set) when it has one and empty when it has none, and secret true: this list is what a configuration export is built from, and GET /api/v1/settings/ini/{name} reads such a value when it is wanted. Since schema 6042 the database (hm_inisettings) is the store and the section in the file is the server's copy of it. Administrator password only: an api key of any scope is refused, since the settings include the server's secrets and the commands it runs.\",\"responses\":{\"200\":{\"description\":\"{names: [...], settings: [{name, value, secret}]}\"}}}},"
+      ",\"/api/v1/settings/ini\":{\"get\":{\"summary\":\"The server settings that were the [Settings] section of hMailServer.ini\",\"description\":\"names: every name in the settings store or in the [Settings] section of the file, sorted by name with case - what Settings.IniSettingNames lists over COM; PasswordPepper, which the store never holds, is among them when the file has it. settings: the same names as {name, value, secret, applies, pending}, with the value GET /api/v1/settings/ini/{name} answers - the stored value, or the [SettingsOverride] value where the file forces one, as this server process last loaded or wrote it. applies is when a change to the key reaches the running server: now (a save applies it - most keys), reinitialize (it waits for POST /api/v1/server/reinitialize) or restart (it waits for the service to start again), the key's mark in build/ini-settings-baseline.txt; a name this build does not read through its loader is now, since it is read where it is used. pending is true for a key saved since what applies it last happened; GET /api/v1/server/settings/pending lists those with both values. applies (the member) maps every [Settings] key this build reads, stored or not, to its mark. A save reloads the store, so a value stored by another process (hmailserver --set-setting, another node on the same database) is listed as this server last loaded it until the next save here, a reinitialise or a restart. A setting whose name says its value is a secret (a password, a shared secret, a token, the pepper; not a key FILE, which is a path) is listed with value (set) when it has one and empty when it has none, and secret true: this list is what a configuration export is built from, and GET /api/v1/settings/ini/{name} reads such a value when it is wanted. Since schema 6042 the database (hm_inisettings) is the store and the section in the file is the server's copy of it. Administrator password only: an api key of any scope is refused, since the settings include the server's secrets and the commands it runs.\",\"responses\":{\"200\":{\"description\":\"{names: [...], settings: [{name, value, secret, applies, pending}], applies: {name: now|reinitialize|restart}}\"}}}},"
       "\"/api/v1/settings/ini/{name}\":{"
-      "\"get\":{\"summary\":\"One server setting, by the name it has in [Settings]\",\"description\":\"name, value and present. An absent key answers 200 with an empty value and present false, as Settings.GetIniSetting answers an empty string: a setting the store does not hold is at its default, not an error. The value is the stored value, or the [SettingsOverride] value where the file forces one, as this server process last loaded or wrote it: most settings take effect only at the next start, so it is not always the value in use, and a value stored by another process (hmailserver --set-setting, another node) may show only after a restart or reload. It is given secret or not - this is the one place a secret is read, deliberately and by name; the list masks it. A name the store could not hold - empty, over 100 characters, surrounded by whitespace, or containing = [ ] or a line break - is a 400 with that sentence. The name is taken from the path as spelled, and matched without case. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"{name, value, present}\"},\"400\":{\"description\":\"The name cannot be a key\"}}},"
-      "\"put\":{\"summary\":\"Store one server setting\",\"description\":\"Body: value (a string of at most 4000 characters with no line break; surrounding whitespace is trimmed). Stored in the database, which is the settings store since schema 6042, and then written into the [Settings] section of hMailServer.ini as the server's copy - what Settings.SetIniSetting does over COM. Read by the server when it next starts or is reinitialised (POST /api/v1/server/reinitialize), except for the few settings it reads afresh each time it needs them. Editing the file instead sets nothing: the stored value is used, the edit is named in the error log as HM5804 and the line is put back at the next start. Answers as GET does. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"value\"],\"properties\":{\"value\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{name, value, present: true}\"},\"400\":{\"description\":\"The name cannot be a key, the value cannot be stored, or the body has no string value\"},\"500\":{\"description\":\"The database could not be written, so nothing was stored and nothing changed (for PasswordPepper, which is kept in the file only, the file could not be written). A value that was stored but whose line could not then be written into the file is a 200: the setting is stored, and the error log names it (HM5806)\"}}},"
+      "\"get\":{\"summary\":\"One server setting, by the name it has in [Settings]\",\"description\":\"name, value, present, applies and pending. An absent key answers 200 with an empty value and present false, as Settings.GetIniSetting answers an empty string: a setting the store does not hold is at its default, not an error. The value is the stored value, or the [SettingsOverride] value where the file forces one, as this server process last loaded or wrote it. applies says when a change reaches the running server - now, reinitialize or restart, as Settings.IniSettingApplies answers - and pending is true while a stored reinitialize or restart value is not yet the running one, so the value is then not the value in use. A value stored by another process (hmailserver --set-setting, another node) shows after the next save here, a reinitialise or a restart. It is given secret or not - this is the one place a secret is read, deliberately and by name; the list masks it. A name the store could not hold - empty, over 100 characters, surrounded by whitespace, or containing = [ ] or a line break - is a 400 with that sentence. The name is taken from the path as spelled, and matched without case. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"{name, value, present, applies, pending}\"},\"400\":{\"description\":\"The name cannot be a key\"}}},"
+      "\"put\":{\"summary\":\"Store one server setting\",\"description\":\"Body: value (a string of at most 4000 characters with no line break; surrounding whitespace is trimmed). Stored in the database, which is the settings store since schema 6042, and then written into the [Settings] section of hMailServer.ini as the server's copy - what Settings.SetIniSetting does over COM. Then published: the server rebuilds its settings from the store, so a key whose applies is now is in effect when this answers, and one marked reinitialize or restart answers pending true until POST /api/v1/server/reinitialize or a restart of the service takes it. Editing the file instead sets nothing: the stored value is used, the edit is named in the error log as HM5804 and the line is put back at the next start. Answers as GET does. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"value\"],\"properties\":{\"value\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{name, value, present: true, applies, pending}\"},\"400\":{\"description\":\"The name cannot be a key, the value cannot be stored, or the body has no string value\"},\"500\":{\"description\":\"The database could not be written, so nothing was stored and nothing changed (for PasswordPepper, which is kept in the file only, the file could not be written). A value that was stored but whose line could not then be written into the file is a 200: the setting is stored, and the error log names it (HM5806)\"}}},"
       "\"delete\":{\"summary\":\"Remove one server setting, returning it to its default\",\"description\":\"The line is removed from the file and the row is dropped from the store, which returns the setting to its default at the next start or reinitialise - not the same as writing an empty value, and since schema 6042 the only way a setting is returned to its default: a line deleted from the file by hand is written back from the stored row. Removing a key that is not there is a 200. Answers as GET does, with present false. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"200\":{\"description\":\"{name, value: empty, present: false}\"},\"400\":{\"description\":\"The name cannot be a key\"},\"500\":{\"description\":\"The line could not be removed from the file, or the row could not be dropped; the setting is still set. When the row is what failed the error log says so (HM5806) and the next start writes the line back\"}}}},"
       "\"/api/v1/settings/logon-failures/clear\":{\"post\":{\"summary\":\"Forget every recorded logon failure\",\"description\":\"What Settings.ClearLogonFailureList does over COM: the failures the auto-ban counts are deleted, so that an address that was one failure from a ban starts again at none. It does not lift a ban already placed; that is an IP range, deleted through /api/v1/ipranges. Server-wide, and there is no per-domain form of it: the table behind it records the ADDRESS a failure came from and the time, and holds no account and no domain, so clearing it resets the counter for every domain on the server. Refused for domain-restricted and read-only keys, and to a credential whose role is confined to named domains - a help desk included, although the unlock permission is what classifies this route. A confined help desk lifts one person's lockout with POST /api/v1/accounts/{address}/unlock, which is scoped to that account's domain. On the audit trail as object type logon failures, action cleared.\",\"responses\":{\"200\":{\"description\":\"{cleared: true}\"},\"500\":{\"description\":\"The list could not be cleared\"}}}}";
 }
@@ -2961,6 +3075,13 @@ namespace HM
    {
       Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
       return IniList(bridge);
+   }
+
+   HttpResponse
+   RestApiServer::HandleServerSettingsPending_()
+   {
+      Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
+      return IniPending(bridge);
    }
 
    HttpResponse

@@ -16,6 +16,7 @@ namespace HM
    class BackupManager;
    class DatabaseConnectionManager;
    class Scheduler;
+   class ScheduledTask;
    class WorkQueue;
    class IOService;
    class ServerMessages;
@@ -143,6 +144,23 @@ namespace HM
       void RegisterSessionTypes_();
       void CreateScheduledTasks_();
 
+      // The backup schedule's task, registered by a start when a schedule is
+      // configured and by a save that configures one on a running server.
+      void ScheduleBackups_();
+
+      // The subsystems that re-latch a [Settings] value when a save changes it
+      // (IniFileSettings::Subscribe). Once per process; see the definition.
+      void SubscribeToSettings_();
+      bool settings_subscribed_;
+
+      // Running or draining: the states in which the servers StartServers built
+      // exist and a subscriber may reach them.
+      static bool IsServing_();
+
+      // HM6119: the database fault injector is on. Said by every start and
+      // reinitialise that finds it set, and by the save that sets it.
+      static void AnnounceDatabaseFaultInjector_(const String &pattern);
+
       // The two queues whose tasks hold a live TCPConnection, and therefore a
       // socket that belongs to io_service_'s io_context. Created and removed with
       // the servers rather than with the process, so that their lifetime nests
@@ -188,6 +206,13 @@ namespace HM
       std::shared_ptr<ExternalFetchManager> external_fetch_manager_;
       std::shared_ptr<BackupManager> backup_manager_;
       std::shared_ptr<Scheduler> scheduler_;
+
+      // The two scheduled tasks a saved setting reaches in place: the greylist
+      // cleaner, whose period is GreylistingRecordExpirationInterval, and the
+      // backup schedule, registered only once a schedule is configured. Reset with
+      // the scheduler.
+      std::shared_ptr<ScheduledTask> greylist_cleaner_task_;
+      std::shared_ptr<ScheduledTask> backup_schedule_task_;
 
       // Reinitialize() is reachable from a COM client and from the
       // Reinitializator thread an ACME deployment or a backup restore starts,

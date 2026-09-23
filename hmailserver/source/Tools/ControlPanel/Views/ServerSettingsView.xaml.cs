@@ -120,8 +120,20 @@ namespace hMailServer.ControlPanel.Views
             {
                Label = CaptionOnRow ? Label : null,
                Hint = Blurb,
-               Content = BuildEditor(value)
+               Content = BuildEditor(value),
+               Applies = AppliesCaption
             };
+
+         /// <summary>
+         /// When a save of this row reaches the running server, for a row kept in
+         /// hMailServer.ini (Services/SettingApplies): the server's mark for a
+         /// [Settings] key, and "After a restart" for a [Database] one, which is read
+         /// once before the database is open. Nothing for a COM row.
+         /// </summary>
+         protected virtual string AppliesCaption
+            => this is IIniSetting
+               ? SettingApplies.Caption(this is SectionIniNumber ? SettingApplies.Restart : IniFeatureStore.AppliesFor(Path))
+               : null;
 
          public abstract object ReadEditor();
 
@@ -1034,7 +1046,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "RejectFullMailboxAtRcpt",
             Label = L("Refuse a full mailbox during the conversation (452 4.2.2)"),
-            Blurb = L("On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is. Applies after a service restart."),
+            Blurb = L("On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is."),
             IniStore = iniStore_
          });
          smtp.Settings.Add(new IniBool
@@ -1042,7 +1054,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "SmtpAuthenticatedSenderCheck",
             Label = L("An authenticated session may only send as an address its account owns or has been granted"),
             Default = false,
-            Blurb = L("With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart."),
+            Blurb = L("With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected."),
             IniStore = iniStore_
          });
          smtp.Settings.Add(new IniNumber
@@ -1050,7 +1062,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "QuotaWarningPercent",
             Label = L("Warn the mailbox owner at this percentage of their quota (0 = never)"),
             Default = 90,
-            Blurb = L("The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know. Applies after a service restart."),
+            Blurb = L("The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know."),
             IniStore = iniStore_
          });
          smtp.Settings.Add(new ComText
@@ -1072,7 +1084,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "ArchiveRetentionDays",
             Label = L("Delete archived messages after (days; 0 = keep for ever)"),
             Default = 0,
-            Blurb = L("ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after. Applies after a service restart."),
+            Blurb = L("ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after."),
             IniStore = iniStore_
          });
 
@@ -1080,7 +1092,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "MetricsPerDomainEnabled",
             Label = L("Expose per-domain message counters on /metrics"),
-            Blurb = L("Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series. Applies after a service restart."),
+            Blurb = L("Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series."),
             IniStore = iniStore_
          });
          smtp.Settings.Add(new ComBool { Path = "AllowIncorrectLineEndings", Label = L("Allow incorrect line endings") });
@@ -1100,7 +1112,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "IMAPCompressionEnabled",
             Label = L("COMPRESS=DEFLATE (RFC 4978)"),
             Default = true,
-            Blurb = L("Lets a client ask for the rest of the session to be compressed, which is worth most on a slow or metered link where a large mailbox listing is mostly repeated text. On by default; a client that does not ask is unaffected. Applies after a service restart."),
+            Blurb = L("Lets a client ask for the rest of the session to be compressed, which is worth most on a slow or metered link where a large mailbox listing is mostly repeated text. On by default; a client that does not ask is unaffected."),
             IniStore = iniStore_
          });
          imap.Settings.Add(new ComBool { Path = "CreateDefaultSpecialUseFoldersEnabled", Label = L("Create Drafts, Sent, Trash and Junk for new accounts") });
@@ -1117,7 +1129,7 @@ namespace hMailServer.ControlPanel.Views
          // Storage mechanism is not a subject heading; the search limits belong
          // beside the SORT switch they interact with.
          var imapSearch = Card(L("IMAP search limits"),
-            L("Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0. Applies after a service restart."));
+            L("Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0."));
          imapSearch.Settings.Add(new IniNumber
          {
             Path = "IMAPSearchTimeout",
@@ -1140,7 +1152,7 @@ namespace hMailServer.ControlPanel.Views
          // resync for every client, which reads as "IMAP is slow" rather than as
          // anything to do with this value.
          var history = Card(L("Change history for synchronising clients"),
-            L("QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer. Applies after a service restart."));
+            L("QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer."));
          history.Settings.Add(new IniNumber
          {
             Path = "IMAPExpungeRetentionRecords",
@@ -1160,7 +1172,7 @@ namespace hMailServer.ControlPanel.Views
          // that is where the question is asked, and next to the connection ceiling it
          // is the gentler alternative to.
          var pop3Polling = Card(L("How often a client may check for mail"),
-            L("POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses logins that arrive early with a code the client understands as \"slow down\" rather than as a wrong password. Applies after a service restart."));
+            L("POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses logins that arrive early with a code the client understands as \"slow down\" rather than as a wrong password."));
          pop3Polling.Settings.Add(new IniNumber
          {
             Path = "Pop3LoginDelaySeconds",
@@ -1178,7 +1190,7 @@ namespace hMailServer.ControlPanel.Views
          // the thing that confuses people, and it only reads clearly when all
          // eight are in one place.
          var idle = Card(L("Idle timeouts"),
-            L("How long a connection may sit idle before it is closed, per protocol, in seconds. \"Server\" is hMailServer accepting a connection from a mail client or another mail server; \"client\" is hMailServer connecting out to deliver mail or to fetch it from an external POP3 account. The effective timeout moves between the minimum and the maximum with server load, so a busy server drops idle connections sooner. Applies after a service restart."));
+            L("How long a connection may sit idle before it is closed, per protocol, in seconds. \"Server\" is hMailServer accepting a connection from a mail client or another mail server; \"client\" is hMailServer connecting out to deliver mail or to fetch it from an external POP3 account. The effective timeout moves between the minimum and the maximum with server load, so a busy server drops idle connections sooner."));
          idle.Settings.Add(new IniNumber { Path = "SMTPDMinTimeout", Label = L("SMTP server minimum timeout (s)"), Default = 10, IniStore = iniStore_ });
          idle.Settings.Add(new IniNumber { Path = "SMTPDMaxTimeout", Label = L("SMTP server maximum timeout (s)"), Default = 1800, IniStore = iniStore_ });
          idle.Settings.Add(new IniNumber { Path = "SMTPCMinTimeout", Label = L("SMTP client minimum timeout (s)"), Default = 30, IniStore = iniStore_ });
@@ -1219,7 +1231,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "OutboundPipelining",
             Label = L("Use PIPELINING when the receiving server offers it"),
             Default = true,
-            Blurb = L("Sends the commands of a transaction without waiting for each answer, which removes a round trip per recipient - the difference is largest on a slow link or to a distant server. Used only with a server that advertises it. Applies after a service restart."),
+            Blurb = L("Sends the commands of a transaction without waiting for each answer, which removes a round trip per recipient - the difference is largest on a slow link or to a distant server. Used only with a server that advertises it."),
             IniStore = iniStore_
          });
          del.Settings.Add(new IniBool
@@ -1227,7 +1239,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "OutboundChunking",
             Label = L("Use CHUNKING (BDAT) when the receiving server offers it"),
             Default = true,
-            Blurb = L("Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME. Applies after a service restart."),
+            Blurb = L("Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME."),
             IniStore = iniStore_
          });
          del.Settings.Add(new IniBool
@@ -1235,7 +1247,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "DeliveryHardLinks",
             Label = L("Hard link each local recipient's copy instead of copying the file"),
             Default = false,
-            Blurb = L("A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log. Applies after a service restart."),
+            Blurb = L("A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log."),
             IniStore = iniStore_
          });
          // Directly modifies the retry count three rows up, and only makes sense
@@ -1456,7 +1468,7 @@ namespace hMailServer.ControlPanel.Views
          // Directly under the delete threshold, because this setting changes what that
          // threshold DOES rather than adding a feature beside it.
          var quarantine = Card(L("Quarantine instead of refusing"),
-            L("Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal. Applies after a service restart."));
+            L("Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal."));
          quarantine.Settings.Add(new IniBool
          {
             Path = "QuarantineEnabled",
@@ -1511,7 +1523,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "SpfVoidLookupLimit",
             Label = L("Void SPF lookups allowed before permerror (0 = no limit)"),
-            Blurb = L("RFC 7208 4.6.4. A \"void lookup\" is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take. Applies after a service restart."),
+            Blurb = L("RFC 7208 4.6.4. A \"void lookup\" is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take."),
             IniStore = iniStore_
          });
          auth.Settings.Add(new ComBool { Path = "AntiSpam.DKIMVerificationEnabled", Label = L("Verify DKIM signatures") });
@@ -1520,7 +1532,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "DkimAcceptSha1",
             Label = L("Accept DKIM signatures that use rsa-sha1"),
-            Blurb = L("Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that. Applies after a service restart."),
+            Blurb = L("Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that."),
             IniStore = iniStore_
          });
          auth.Settings.Add(new ComBool { Path = "AntiSpam.DMARCEnabled", Label = L("Evaluate DMARC policies") });
@@ -1529,7 +1541,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "DmarcTreeWalkEnabled",
             Label = L("Find organizational domains by DNS tree walk (RFC 9989)"),
-            Blurb = L("How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes. Applies after a service restart."),
+            Blurb = L("How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes."),
             IniStore = iniStore_
          });
          auth.Settings.Add(new IniNumber
@@ -1538,7 +1550,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990"),
             Default = 1,
             MinimumValue = 1,
-            Blurb = L("Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire. Applies after a service restart."),
+            Blurb = L("Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire."),
             IniStore = iniStore_
          });
          auth.Settings.Add(new ComBool
@@ -1618,12 +1630,12 @@ namespace hMailServer.ControlPanel.Views
          // The last two greylisting settings are stored in hMailServer.INI rather
          // than in the settings database, and they used to be on the catch-all INI
          // page because of it - so half of greylisting was configured here and half
-         // somewhere an administrator would only find by accident. They apply after
-         // a service restart, unlike the COM rows above; the labels say so.
+         // somewhere an administrator would only find by accident. Both apply when
+         // they are saved, as the COM rows above do; the mark under each says so.
          grey.Settings.Add(new IniBool
          {
             Path = "GreylistingEnabledDuringRecordExpiration",
-            Label = L("Keep greylisting active during the record-expiration window (restart required)"),
+            Label = L("Keep greylisting active during the record-expiration window"),
             Default = true,
             Blurb = L("A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once."),
             IniStore = iniStore_
@@ -1631,7 +1643,7 @@ namespace hMailServer.ControlPanel.Views
          grey.Settings.Add(new IniNumber
          {
             Path = "GreylistingRecordExpirationInterval",
-            Label = L("Record expiration interval, minutes (restart required)"),
+            Label = L("Record expiration interval, minutes"),
             Default = 240,
             Blurb = L("How long that window lasts. Four hours by default."),
             IniStore = iniStore_
@@ -1682,7 +1694,7 @@ namespace hMailServer.ControlPanel.Views
          sa.Settings.Add(new IniBool
          {
             Path = "SAMoveVsCopy",
-            Label = L("Move the message file to SpamAssassin instead of copying it (restart required)"),
+            Label = L("Move the message file to SpamAssassin instead of copying it"),
             Default = false,
             Blurb = L("How the message reaches SpamAssassin when it runs on this machine: a move saves writing a second copy of every message to disk, which matters on a busy server. It only works when SpamAssassin reads from the same volume; against a remote spamd it is the wrong choice."),
             IniStore = iniStore_
@@ -1710,7 +1722,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "SpamAssassinLearnOnMove",
             Label = L("Teach SpamAssassin when a user files a message as spam or takes it back out"),
             Default = false,
-            Blurb = L("Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves. Applies after a service restart."),
+            Blurb = L("Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves."),
             IniStore = iniStore_
          });
          Tab(L("SpamAssassin")).Cards.Add(sa);
@@ -1721,7 +1733,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "FilterHookUrl",
             Label = L("Engine URL (empty = no external engine)"),
-            Blurb = L("For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it. Applies after a service restart."),
+            Blurb = L("For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it."),
             IniStore = iniStore_
          });
          hook.Settings.Add(new IniNumber
@@ -1887,7 +1899,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "TlsKeyExchangeGroups",
             Label = L("Key exchange groups, in order of preference (empty = the classical fallback secp384r1:x25519:secp256r1)"),
-            Blurb = L("The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark. Applies after a service restart."),
+            Blurb = L("The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark."),
             // What the server uses when the key is absent - shown, so that saving
             // the page writes the truth back rather than a blank that would drop
             // the post-quantum hybrids to the classical fallback.
@@ -1927,7 +1939,7 @@ namespace hMailServer.ControlPanel.Views
          // house rule that a default value makes no OpenSSL call at all - so the
          // card can honestly promise that the defaults change nothing.
          var resume = Card(L("Session resumption"),
-            L("Session caching and session tickets let a returning client skip the full handshake. At the defaults these four settings make no OpenSSL call at all, so resumption keeps OpenSSL's stock behaviour - they are here for administrators who need to bound how long a resumption secret stays useful. Applies after a service restart."));
+            L("Session caching and session tickets let a returning client skip the full handshake. At the defaults these four settings make no OpenSSL call at all, so resumption keeps OpenSSL's stock behaviour - they are here for administrators who need to bound how long a resumption secret stays useful."));
          resume.Settings.Add(new IniBool
          {
             Path = "TlsSessionTicketsEnabled",
@@ -2035,7 +2047,7 @@ namespace hMailServer.ControlPanel.Views
          // server reads to have an editor here, which is also why they are
          // findable from the palette.
          var below = Card(L("Below the server: the firewall"),
-            L("An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all. All three apply after a service restart."));
+            L("An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all."));
          below.Settings.Add(new IniBool
          {
             Path = "AutoBanFirewall",
@@ -2125,7 +2137,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "LogonTarpitSeconds",
             Label = L("Delay per failed logon, multiplied by the failures so far on that connection (seconds; 0 = off)"),
             Default = 0,
-            Blurb = L("0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess. Applies after a service restart."),
+            Blurb = L("0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess."),
             IniStore = iniStore_
          });
          Tab(L("Auto-ban")).Cards.Add(tarpit);
@@ -2179,7 +2191,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "JsonLogging",
             Label = L("Write logs as JSON lines"),
             Default = false,
-            Blurb = L("Machine-readable output for log shippers. Applies after a service restart."),
+            Blurb = L("Machine-readable output for log shippers."),
             IniStore = iniStore_
          };
          log.Settings.Add(format);
@@ -2302,7 +2314,7 @@ namespace hMailServer.ControlPanel.Views
          // Beside log retention rather than in a section of its own: the two answer the
          // same operational question - how much history is kept, and for how long.
          var trace = Card(L("Message trace"),
-            L("Records a queryable row for every delivery, refusal and quarantine, so \"what happened to the message Jane sent at 14:20\" can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom. Applies after a service restart."));
+            L("Records a queryable row for every delivery, refusal and quarantine, so \"what happened to the message Jane sent at 14:20\" can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom."));
          trace.Settings.Add(new IniBool
          {
             Path = "MessageTraceEnabled",
@@ -2391,7 +2403,7 @@ namespace hMailServer.ControlPanel.Views
          threads.Settings.Add(new IniNumber
          {
             Path = "MaxNumberOfExternalFetchThreads",
-            Label = L("Max parallel external POP3 fetch threads (restart required)"),
+            Label = L("Max parallel external POP3 fetch threads"),
             Default = 15,
             Blurb = L("How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes."),
             IniStore = iniStore_
@@ -2465,7 +2477,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "IndexerFullText",
             Label = L("Full-text term index for IMAP SEARCH BODY and TEXT"),
             Default = false,
-            Blurb = L("Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing. Applies after a service restart."),
+            Blurb = L("Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing."),
             IniStore = iniStore_
          });
          index.Settings.Add(new IniNumber
@@ -2590,7 +2602,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Seconds a single SQL statement may run (0 = no limit)"),
             Default = 30,
             MinimumValue = 0,
-            Blurb = L("What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value. Applies after a service restart."),
+            Blurb = L("What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value."),
             IniStore = iniStore_
          });
 
@@ -2656,7 +2668,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "ArchiveDomains",
             Label = L("Only archive mail for these domains (comma-separated; empty = every message)"),
             Placeholder = "example.com, example.org", // no-loc
-            Blurb = L("An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case. Applies after a service restart."),
+            Blurb = L("An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case."),
             IniStore = iniStore_
          });
          archive.Settings.Add(new IniBool
@@ -2672,7 +2684,7 @@ namespace hMailServer.ControlPanel.Views
          // The two disk-space keys govern the message-store volume, which is also
          // what archiving fills, so they sit here rather than under Database.
          var disk = Card(L("Disk space"),
-            L("What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are. Applies after a service restart."));
+            L("What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are."));
          disk.Settings.Add(new IniNumber
          {
             Path = "DiskSpaceWarningThresholdMB",
@@ -2700,7 +2712,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "ScriptAllowedObjects",
             Label = L("COM objects a script may create (* = any, as shipped; empty = none beyond hMailServer's own; ProgIDs or CLSIDs, comma separated)"),
-            Blurb = L("An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects. Applies after a service restart."),
+            Blurb = L("An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects."),
             // Absent means "*", so that a key appearing in an upgrade cannot break
             // scripts an installation already runs; the editor shows that, because
             // a blank here saved back would mean "none" and break them itself.
@@ -3603,7 +3615,10 @@ namespace hMailServer.ControlPanel.Views
          // written" and nothing about which or why.
          string firstFailure = null;
 
-         bool iniWritten = false;
+         // The [Settings] keys this save wrote, to ask the server which of them it
+         // is not yet running on. [Database] rows (SectionIniNumber) are not among
+         // them: those are read once at the start and their row says so.
+         var iniKeys = new List<string>();
 
          foreach (ComSetting setting in tabs_.SelectMany(tab => tab.Cards).SelectMany(card => card.Settings))
          {
@@ -3613,7 +3628,8 @@ namespace hMailServer.ControlPanel.Views
                if (setting is IIniSetting ini)
                {
                   ini.SaveToIni();
-                  iniWritten = true;
+                  if (!(setting is SectionIniNumber) && !string.IsNullOrEmpty(setting.Path))
+                     iniKeys.Add(setting.Path);
                   saved++;
                   continue;
                }
@@ -3640,21 +3656,29 @@ namespace hMailServer.ControlPanel.Views
             }
          }
 
-         // ServerSettingsPageStatus writes the sentence, including the part about
-         // hMailServer.ini being read when the service starts - so an INI-backed
-         // row does not take effect until it is restarted, and the sentence does
-         // not claim otherwise. A save that failed anywhere is Critical, because
-         // what is on screen is then not what the server holds and the reader has
-         // to find out which rows.
+         // A save publishes (docs/SettingsApply.md): a key marked now is in effect
+         // already, and the ones that are not are what the server lists as pending.
+         // ServerSettingsPageStatus writes the sentence from that count, so it
+         // claims neither a restart nobody needs nor an effect that has not
+         // happened. A save that failed anywhere is Critical, because what is on
+         // screen is then not what the server holds and the reader has to find out
+         // which rows.
+         int waiting = 0;
+         if (iniKeys.Count > 0)
+         {
+            var pending = new HashSet<string>(IniFeatureStore.PendingNames(), StringComparer.OrdinalIgnoreCase);
+            waiting = iniKeys.Count(pending.Contains);
+         }
+
          ServerSettingsPageState outcome = failed == 0 ? ServerSettingsPageState.Saved : ServerSettingsPageState.PartlySaved;
          ShowState_(outcome);
-         string saveSentence = ServerSettingsPageStatus.SaveSentence(saved, failed, DateTime.Now.ToLongTimeString(), iniWritten);
+         string saveSentence = ServerSettingsPageStatus.SaveSentence(saved, failed, DateTime.Now.ToLongTimeString(), waiting);
          ShowNotice_(
             firstFailure == null ? saveSentence : saveSentence + " " + firstFailure,
             ServerSettingsPageStatus.LevelFor(outcome));
 
          if (failed == 0)
-            Services.Toast.Success(F("Saved {0} settings", saved) + (iniWritten ? L(" \u2014 INI settings need a service restart.") : L(" \u2014 applied immediately.")));
+            Services.Toast.Success(F("Saved {0} settings", saved) + (waiting > 0 ? F(" \u2014 {0} wait for a reinitialize or a restart.", waiting) : L(" \u2014 applied immediately.")));
          else
             Services.Toast.Info(F("{0} setting(s) could not be written.", failed), L("Partly saved"));
 

@@ -59,11 +59,11 @@
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> — ServicePassword не збережено й не введено, а порожній пароль відхиляється ще до надсилання</value>
   </data>
-  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
-    <value> — параметри сервера застосовуються негайно; параметри з hMailServer.ini — після перезапуску служби.</value>
-  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> — показано вище як ім’я цього комп’ютера</value>
+  </data>
+  <data name=" - {0} of them wait for a reinitialize or a restart; the rest applied immediately." xml:space="preserve">
+    <value> — {0} з них чекають на повторну ініціалізацію або перезапуск; решта застосована негайно.</value>
   </data>
   <data name=" Also skipped for any recipient domain that has greylisting turned off in its own settings." xml:space="preserve">
     <value> Також пропускається для будь-якого домену отримувача, у власних параметрах якого сірий список вимкнено.</value>
@@ -170,11 +170,11 @@
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> Проіндексовано {0} з {1} повідомлень.</value>
   </data>
-  <data name=" — INI settings need a service restart." xml:space="preserve">
-    <value> — параметри INI потребують перезапуску служби.</value>
-  </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — застосовується негайно.</value>
+  </data>
+  <data name=" — {0} wait for a reinitialize or a restart." xml:space="preserve">
+    <value> — {0} чекають на повторну ініціалізацію або перезапуск.</value>
   </data>
   <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
     <value>«Будь-хто в домені» означає, що адреса відправника належить до домену, який обслуговує цей сервер, а це може заявити про себе й стороння особа, якщо список додатково не вимагає автентифікації. Установіть відповідний прапорець нижче, якщо список має бути обмежений тими, хто ввійшов у систему.</value>
@@ -281,8 +281,8 @@
   <data name="0 is the shipped default and preserves today's behaviour exactly. 1 never delivers unscanned mail." xml:space="preserve">
     <value>0 — типове значення з постачання, воно точно зберігає теперішню поведінку. 1 ніколи не доставляє неперевірену пошту.</value>
   </data>
-  <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess. Applies after a service restart." xml:space="preserve">
-    <value>0 — типове значення з постачання. 2 — розумний початок: помилково введений пароль коштує людині двох секунд один раз, а клієнтові, який перебирає паролі, — двох, чотирьох, шести… секунд на кожну спробу. Застосовується після перезапуску служби.</value>
+  <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
+    <value>0 — типове значення з постачання. 2 — розумний початок: помилково введений пароль коштує людині двох секунд один раз, а клієнтові, який перебирає паролі, — двох, чотирьох, шести… секунд на кожну спробу.</value>
   </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 залишає запис, доки його не вилучать.</value>
@@ -509,8 +509,8 @@
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
     <value>Повідомлення з оцінкою {0} або вищою відхиляється (550 до тіла повідомлення, 554 після нього). Нічого не позначається.</value>
   </data>
-  <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log. Applies after a service restart." xml:space="preserve">
-    <value>Повідомлення до десяти локальних поштових скриньок записується один раз і зв'язується посиланням десять разів, а не копіюється десять разів, а це різниця між одним записом на диск і десятьма для великого повідомлення, надісланого до списку розсилки. Потрібна папка даних на NTFS; якщо посилання створити не вдається, сервер копіює файл і повідомляє про це в журналі SMTP. Застосовується після перезапуску служби.</value>
+  <data name="A message to ten local mailboxes is written once and linked ten times rather than copied ten times, which is the difference between one disk write and ten for a large message to a distribution list. Needs the data directory on NTFS; where a link cannot be made the server copies the file and says so in the SMTP log." xml:space="preserve">
+    <value>Повідомлення до десяти локальних поштових скриньок записується один раз і зв'язується посиланням десять разів, а не копіюється десять разів, а це різниця між одним записом на диск і десятьма для великого повідомлення, надісланого до списку розсилки. Потрібна папка даних на NTFS; якщо посилання створити не вдається, сервер копіює файл і повідомляє про це в журналі SMTP.</value>
   </data>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Сучасна програма адміністрування для hMailServer: жива інформаційна панель, домени та облікові записи, черга доставки, потокове передавання журналів, повні параметри сервера та функції безпеки транспорту 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
@@ -1106,6 +1106,12 @@
   <data name="Advanced" xml:space="preserve">
     <value>Додатково</value>
   </data>
+  <data name="After a restart" xml:space="preserve">
+    <value>Після перезапуску</value>
+  </data>
+  <data name="After reinitialize" xml:space="preserve">
+    <value>Після повторної ініціалізації</value>
+  </data>
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
     <value>Після отримання тіла повідомлення — відмова тут має код 554</value>
   </data>
@@ -1241,20 +1247,20 @@
   <data name="An alias points one address at another without needing a second mailbox." xml:space="preserve">
     <value>Псевдонім спрямовує одну адресу на іншу, не потребуючи другої поштової скриньки.</value>
   </data>
-  <data name="An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case. Applies after a service restart." xml:space="preserve">
-    <value>Архів зазвичай ведуть із юридичних або договірних причин, і ця причина зазвичай стосується окремих доменів, а не кожного домену, який обслуговує цей сервер. Якщо тут задано список, повідомлення архівується лише тоді, коли його локальний відправник або хтось із отримувачів належить до переліченого домену, і створюються лише копії для перелічених доменів — перелічений отримувач усе одно отримує свою копію, навіть якщо домен відправника не перелічено. Зіставляється без урахування регістру. Застосовується після перезапуску служби.</value>
+  <data name="An archive is usually kept for a legal or contractual reason, and that reason usually applies to particular domains rather than to every domain this server hosts. With a list here a message is archived only when its local sender or one of its recipients belongs to a listed domain, and only the copies for listed domains are made - a listed recipient still gets their copy when the sender's domain is not listed. Matched without regard to case." xml:space="preserve">
+    <value>Архів зазвичай ведуть із юридичних або договірних причин, і ця причина зазвичай стосується окремих доменів, а не кожного домену, який обслуговує цей сервер. Якщо тут задано список, повідомлення архівується лише тоді, коли його локальний відправник або хтось із отримувачів належить до переліченого домену, і створюються лише копії для перелічених доменів — перелічений отримувач усе одно отримує свою копію, навіть якщо домен відправника не перелічено. Зіставляється без урахування регістру.</value>
   </data>
   <data name="An authenticated session may only send as an address its account owns or has been granted" xml:space="preserve">
     <value>Автентифікований сеанс може надсилати лише від імені адреси, яка належить його обліковому запису або надана йому</value>
   </data>
-  <data name="An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all. All three apply after a service restart." xml:space="preserve">
-    <value>Автоматичний бан застосовують слухачі самого сервера: операційна система приймає адресу, передає її серверові, а сервер розриває з'єднання. Ці параметри опускають бан у брандмауер операційної системи, передають його вашій програмі та називають адреси, які не можна банити ніколи. Усі три набирають чинності після перезапуску служби.</value>
+  <data name="An auto-ban is enforced by the server's own listeners: the address is accepted by the operating system, handed to the server and dropped. These settings push the ban down into the operating system's firewall, hand it to a program of yours, and name the addresses that must never be banned at all." xml:space="preserve">
+    <value>Автоматичний бан застосовують слухачі самого сервера: операційна система приймає адресу, передає її серверові, а сервер розриває з'єднання. Ці параметри опускають бан у брандмауер операційної системи, передають його вашій програмі та називають адреси, які не можна банити ніколи.</value>
   </data>
   <data name="An entire outbound delivery session. 0 = no bound." xml:space="preserve">
     <value>Увесь сеанс вихідної доставки. 0 = без обмеження.</value>
   </data>
-  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects. Applies after a service restart." xml:space="preserve">
-    <value>Скрипт подій виконується всередині сервера з правами облікового запису служби, тому те, які об'єкти йому дозволено створювати, — це рішення щодо безпеки, а не питання зручності. У постаченому вигляді тут стоїть *, що дозволяє будь-який об'єкт, щоб оновлення ніколи не зламало скрипт, який інсталяція вже виконує, — це параметр, який слід звужувати, а не безпечний стан. Називайте лише те, що справді потрібне якомусь із ваших скриптів, — об'єкт файлової системи для скриптів, HTTP-клієнт, — а все інше відхиляється із записом імені об'єкта в журнал помилок; порожньо відхиляє все, крім власних об'єктів hMailServer. Застосовується після перезапуску служби.</value>
+  <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
+    <value>Скрипт подій виконується всередині сервера з правами облікового запису служби, тому те, які об'єкти йому дозволено створювати, — це рішення щодо безпеки, а не питання зручності. У постаченому вигляді тут стоїть *, що дозволяє будь-який об'єкт, щоб оновлення ніколи не зламало скрипт, який інсталяція вже виконує, — це параметр, який слід звужувати, а не безпечний стан. Називайте лише те, що справді потрібне якомусь із ваших скриптів, — об'єкт файлової системи для скриптів, HTTP-клієнт, — а все інше відхиляється із записом імені об'єкта в журнал помилок; порожньо відхиляє все, крім власних об'єктів hMailServer.</value>
   </data>
   <data name="An external scanner process. 0 = no bound." xml:space="preserve">
     <value>Процес зовнішнього сканера. 0 = без обмеження.</value>
@@ -1371,6 +1377,9 @@
   <data name="Applies at the next service restart or Reinitialize. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>Набуває чинності під час наступного запуску служби або повторної ініціалізації. Файли журналу не змінюються: надсилається копія, нічого не переміщується. Якщо вузол збирача нижче не вказано, сервер під systemd у Linux пише до journal - тобто в Linux цей один перемикач і є всім налаштуванням.</value>
   </data>
+  <data name="Applies on save" xml:space="preserve">
+    <value>Застосовується під час збереження</value>
+  </data>
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
     <value>Діє, лише поки ввімкнено обробку відмов. Звіт зараховується, лише якщо він називає повідомлення, яке цей сервер справді доставив цьому отримувачу, прийшов ззовні без автентифікації та пройшов SPF і DMARC там, де вони записуються, - але будь-хто, хто отримав те саме повідомлення, може підробити такий звіт для іншого видимого отримувача. Якщо вимкнути, звіти взагалі не читаються; відмови під час доставки й далі зараховуються.</value>
   </data>
@@ -1389,8 +1398,8 @@
   <data name="Archive in the backup destination (_name or path)" xml:space="preserve">
     <value>Архів у місці призначення резервних копій (_ім'я або шлях)</value>
   </data>
-  <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after. Applies after a service restart." xml:space="preserve">
-    <value>ArchiveDir — це необроблена копія кожного повідомлення, що проходить через сервер, і досі ніщо ніколи нічого з неї не видаляло, тож на завантаженому сервері це папка, яка лише росте, а дізнається про це той адміністратор, у якого заповнився диск. Цей параметр очищає її. 0 зберігає все, і це типове значення обрано навмисно: архів зазвичай ведуть із юридичних або договірних причин, а сервер, який після оновлення почав би з нього видаляти, знищував би саме те, що йому доручили зберігати. Очищення видаляє лише файли .eml, тож усе інше, що ви тримаєте в архіві, лишається недоторканим; воно виконується під час запуску й далі кожні дванадцять годин. Застосовується після перезапуску служби.</value>
+  <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
+    <value>ArchiveDir — це необроблена копія кожного повідомлення, що проходить через сервер, і досі ніщо ніколи нічого з неї не видаляло, тож на завантаженому сервері це папка, яка лише росте, а дізнається про це той адміністратор, у якого заповнився диск. Цей параметр очищає її. 0 зберігає все, і це типове значення обрано навмисно: архів зазвичай ведуть із юридичних або договірних причин, а сервер, який після оновлення почав би з нього видаляти, знищував би саме те, що йому доручили зберігати. Очищення видаляє лише файли .eml, тож усе інше, що ви тримаєте в архіві, лишається недоторканим; воно виконується під час запуску й далі кожні дванадцять годин.</value>
   </data>
   <data name="Archives to kee_p (0 = keep all)" xml:space="preserve">
     <value>_Скільки архівів зберігати (0 = зберігати всі)</value>
@@ -1587,14 +1596,8 @@
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>Інтервал резервного копіювання у хвилинах (0 = вимкнено)</value>
   </data>
-  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
-    <value>Розклад резервного копіювання збережено — служба читає ці параметри під час запуску, тому вони застосовуються після перезапуску служби.</value>
-  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>Розклад резервного копіювання збережено.</value>
-  </data>
-  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
-    <value>Параметри резервного копіювання збережено — перемикач «лише метадані повідомлень» застосовується після перезапуску служби.</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>Параметри резервного копіювання збережено.</value>
@@ -1815,8 +1818,8 @@
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
     <value>Неможливо визначити, чи налаштовано розклад: hMailServer.ini не знайдено на цьому комп’ютері. Перевірте ScheduledBackupTime і ScheduledBackupIntervalMinutes безпосередньо на сервері.</value>
   </data>
-  <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0. Applies after a service restart." xml:space="preserve">
-    <value>Межі для одного IMAP SEARCH або SORT, які відлічуються від початку пошуку, щоб один клієнт, який шукає у дуже великій поштовій скриньці, не займав підключення нескінченно. Якщо користувачі з великими скриньками скаржаться, що пошук завершується помилкою або нічого не повертає, підвищувати слід саме ці два значення. Кожну з половин можна вимкнути окремо, задавши їй 0. Застосовується після перезапуску служби.</value>
+  <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
+    <value>Межі для одного IMAP SEARCH або SORT, які відлічуються від початку пошуку, щоб один клієнт, який шукає у дуже великій поштовій скриньці, не займав підключення нескінченно. Якщо користувачі з великими скриньками скаржаться, що пошук завершується помилкою або нічого не повертає, підвищувати слід саме ці два значення. Кожну з половин можна вимкнути окремо, задавши їй 0.</value>
   </data>
   <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these live in the [SendingLimits] and [SendingLimitsOverrides] sections of hMailServer.INI and are re-read within a couple of seconds of the file changing - saving here applies them WITHOUT a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
     <value>Межі того, скільки один автентифікований обліковий запис може подати за рухомий період, — гальмо на випадок, коли зламаний обліковий запис використовують для розсилання спаму. Підраховується для кожного облікового запису під час подання через SMTP: окремо повідомлення й окремо отримувачі конверта, а повідомлення, відхилене за обмеженням, отримує тимчасову помилку, тож справжній клієнт повторить спробу пізніше. На відміну від решти цієї сторінки, ці значення містяться в розділах [SendingLimits] і [SendingLimitsOverrides] файлу hMailServer.INI і перечитуються протягом кількох секунд після зміни файлу — збереження тут застосовує їх БЕЗ перезапуску служби. Лічильники переживають перезапуск завдяки файлу стану в каталозі даних.</value>
@@ -1869,8 +1872,8 @@
   <data name="Change the language" xml:space="preserve">
     <value>Змінити мову</value>
   </data>
-  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal. Applies after a service restart." xml:space="preserve">
-    <value>Змінює те, що відбувається на порозі видалення. Якщо вимкнено, повідомлення з оцінкою понад цей поріг відхиляється під час SMTP-діалогу кодом 550, і відправникові про це повідомляють. Якщо ввімкнено, воно натомість приймається з кодом 250 й утримується для перегляду — відправник вважає, що повідомлення доставлено, і не повторює спроби, а саме це дає змогу виправити хибне спрацювання, не надсилаючи відмову на зворотну адресу, яка, найімовірніше, підроблена; це також означає, що черга перегляду стає єдиним місцем, де це повідомлення існує. Стосується перевірок, які виконуються після отримання тіла повідомлення; висновок, зроблений раніше (заблокована IP-адреса підключення, хибний HELO), не має повідомлення, яке можна утримати, і залишається відмовою. Застосовується після перезапуску служби.</value>
+  <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
+    <value>Змінює те, що відбувається на порозі видалення. Якщо вимкнено, повідомлення з оцінкою понад цей поріг відхиляється під час SMTP-діалогу кодом 550, і відправникові про це повідомляють. Якщо ввімкнено, воно натомість приймається з кодом 250 й утримується для перегляду — відправник вважає, що повідомлення доставлено, і не повторює спроби, а саме це дає змогу виправити хибне спрацювання, не надсилаючи відмову на зворотну адресу, яка, найімовірніше, підроблена; це також означає, що черга перегляду стає єдиним місцем, де це повідомлення існує. Стосується перевірок, які виконуються після отримання тіла повідомлення; висновок, зроблений раніше (заблокована IP-адреса підключення, хибний HELO), не має повідомлення, яке можна утримати, і залишається відмовою.</value>
   </data>
   <data name="Changing two-factor authentication settings requires administrator rights. Restart the Control Panel as an administrator and try again." xml:space="preserve">
     <value>Зміна параметрів двофакторної автентифікації потребує прав адміністратора. Перезапустіть Панель керування від імені адміністратора й повторіть спробу.</value>
@@ -2455,6 +2458,9 @@
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Не вдалося прочитати {0}: {1}</value>
+  </data>
+  <data name="Could not reinitialize: {0}" xml:space="preserve">
+    <value>Не вдалося виконати повторну ініціалізацію: {0}</value>
   </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
     <value>Не вдалося вилучити дію: {0}</value>
@@ -3497,8 +3503,8 @@
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Кожна перевірка в порядку, в якому сервер їх виконує, її оцінка і що сума робить із повідомленням.</value>
   </data>
-  <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series. Applies after a service restart." xml:space="preserve">
-    <value>Кожен лічильник, який відкриває кінцева точка метрик, є загальносерверним, і саме це не дає метрикам перетворитися на звітність: ви бачите, скільки пошти обробив сервер, але ніколи - скільки обробив якийсь один домен. Це додає лічильник надісланих і отриманих повідомлень на кожен розміщений домен. Типово вимкнено, і це рішення про кардинальність, а не обережність - кожне значення мітки є окремим часовим рядом у тому, що це збирає, тож оператор, який розміщує кілька тисяч доменів, має свідомо вирішити за це заплатити, а не виявити це згодом. Мітки отримують лише домени, які розміщує цей сервер, тому жодна кількість пошти від чужих не може створити рядів. Застосовується після перезапуску служби.</value>
+  <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
+    <value>Кожен лічильник, який відкриває кінцева точка метрик, є загальносерверним, і саме це не дає метрикам перетворитися на звітність: ви бачите, скільки пошти обробив сервер, але ніколи - скільки обробив якийсь один домен. Це додає лічильник надісланих і отриманих повідомлень на кожен розміщений домен. Типово вимкнено, і це рішення про кардинальність, а не обережність - кожне значення мітки є окремим часовим рядом у тому, що це збирає, тож оператор, який розміщує кілька тисяч доменів, має свідомо вирішити за це заплатити, а не виявити це згодом. Мітки отримують лише домени, які розміщує цей сервер, тому жодна кількість пошти від чужих не може створити рядів.</value>
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>Кожна подія для ідентифікатора черги {0}, найстаріші спочатку.</value>
@@ -3764,8 +3770,8 @@
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>Для кожного сертифіката, чий файл ключа є зашифрованим PEM, задайте пароль закритого ключа сертифіката на сторінці «Сертифікати SSL» (парольну фразу задав той, хто створив ключ, тому надати її можете лише ви) - або замініть файл незашифрованим ключем.</value>
   </data>
-  <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it. Applies after a service restart." xml:space="preserve">
-    <value>Наприклад http://127.0.0.1:11333/checkv2. Поки що лише простий HTTP, тому рушій має бути на цьому комп'ютері або в мережі, якій ви довіряєте - йому надсилається все повідомлення. Застосовується після перезапуску служби.</value>
+  <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
+    <value>Наприклад http://127.0.0.1:11333/checkv2. Поки що лише простий HTTP, тому рушій має бути на цьому комп'ютері або в мережі, якій ви довіряєте - йому надсилається все повідомлення.</value>
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Для режиму пошуку: обліковий запис служби, якому дозволено читати каталог. Будь-який звичайний доменний обліковий запис може це типово; інших прав йому не потрібно.</value>
@@ -3788,8 +3794,8 @@
   <data name="Forwarding" xml:space="preserve">
     <value>Пересилання</value>
   </data>
-  <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set. Changes take effect after a service restart." xml:space="preserve">
-    <value>Пересилання повідомлення зберігає початкового відправника конверта, тому наступний вузол перевіряє SPF для домену, який ніколи не авторизував цей сервер, і повідомлення не проходить. Ось дві відповіді. SRS переписує відправника конверта на такого, за якого цей сервер може поручитися і якого може повернути назад на зворотному шляху, тож повернення все одно досягають початкового відправника; BATV позначає відправника конверта вихідної пошти, щоб підроблене повернення - для повідомлення, якого цей сервер ніколи не надсилав - можна було відрізнити від справжнього. Обидва використовують загальносерверний секрет і не роблять узагалі нічого, доки його не задано. Зміни набирають чинності після перезапуску служби.</value>
+  <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set." xml:space="preserve">
+    <value>Пересилання повідомлення зберігає початкового відправника конверта, тому наступний вузол перевіряє SPF для домену, який ніколи не авторизував цей сервер, і повідомлення не проходить. Ось дві відповіді. SRS переписує відправника конверта на такого, за якого цей сервер може поручитися і якого може повернути назад на зворотному шляху, тож повернення все одно досягають початкового відправника; BATV позначає відправника конверта вихідної пошти, щоб підроблене повернення - для повідомлення, якого цей сервер ніколи не надсилав - можна було відрізнити від справжнього. Обидва використовують загальносерверний секрет і не роблять узагалі нічого, доки його не задано.</value>
   </data>
   <data name="Forwarding breaks SPF, because the envelope sender changes, and often breaks DKIM, because the body is modified - so a mailing list or a forwarded mailbox can turn a message that passed DMARC at the sender into one that fails it here. A valid ARC chain (RFC 8617) from a forwarder you trust carries the original result, and this cancels exactly the DMARC failure score, never more. It needs 'Evaluate DMARC policies' above to be on, since it only ever offsets a penalty that test adds." xml:space="preserve">
     <value>Пересилання ламає SPF, бо відправник конверта змінюється, і часто ламає DKIM, бо тіло змінюється - тож список розсилки або переслана скринька можуть перетворити повідомлення, яке пройшло DMARC у відправника, на таке, що не проходить тут. Дійсний ланцюжок ARC (RFC 8617) від пересилача, якому ви довіряєте, несе початковий результат, і це скасовує рівно оцінку за провал DMARC, не більше. Йому потрібне увімкнене «Оцінювати політики DMARC» вище, оскільки воно лише компенсує штраф, який додає та перевірка.</value>
@@ -4058,8 +4064,8 @@
   <data name="How entries reach the collector" xml:space="preserve">
     <value>Як записи потрапляють до збирача</value>
   </data>
-  <data name="How long a connection may sit idle before it is closed, per protocol, in seconds. &quot;Server&quot; is hMailServer accepting a connection from a mail client or another mail server; &quot;client&quot; is hMailServer connecting out to deliver mail or to fetch it from an external POP3 account. The effective timeout moves between the minimum and the maximum with server load, so a busy server drops idle connections sooner. Applies after a service restart." xml:space="preserve">
-    <value>Як довго з'єднання може простоювати, перш ніж його закриють, для кожного протоколу, у секундах. «Сервер» - це hMailServer, що приймає з'єднання від поштового клієнта або іншого поштового сервера; «клієнт» - це hMailServer, що підключається назовні для доставки пошти або забирання її із зовнішнього облікового запису POP3. Чинний час очікування переміщується між мінімумом і максимумом залежно від навантаження, тому навантажений сервер розриває бездіяльні з'єднання раніше. Застосовується після перезапуску служби.</value>
+  <data name="How long a connection may sit idle before it is closed, per protocol, in seconds. &quot;Server&quot; is hMailServer accepting a connection from a mail client or another mail server; &quot;client&quot; is hMailServer connecting out to deliver mail or to fetch it from an external POP3 account. The effective timeout moves between the minimum and the maximum with server load, so a busy server drops idle connections sooner." xml:space="preserve">
+    <value>Як довго з'єднання може простоювати, перш ніж його закриють, для кожного протоколу, у секундах. «Сервер» - це hMailServer, що приймає з'єднання від поштового клієнта або іншого поштового сервера; «клієнт» - це hMailServer, що підключається назовні для доставки пошти або забирання її із зовнішнього облікового запису POP3. Чинний час очікування переміщується між мінімумом і максимумом залежно від навантаження, тому навантажений сервер розриває бездіяльні з'єднання раніше.</value>
   </data>
   <data name="How long a counted failure is kept, rather than a sliding window: a housekeeping pass running once a minute deletes failure records older than this - and only while auto-ban is enabled." xml:space="preserve">
     <value>Як довго зберігається порахована невдача, а не ковзне вікно: прохід прибирання, що виконується щохвилини, видаляє записи про невдачі, старші за це - і лише доки автоблокування увімкнено.</value>
@@ -4088,8 +4094,8 @@
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Як пошта потрапляє всередину, куди йде далі і що з нею відбувається дорогою.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>Як користувачі скриньок доводять, хто вони: зовнішні постачальники ідентичності, як зберігаються паролі і де пропонується SMTP AUTH (hMailServer.INI). Зміни набирають чинності після перезапуску служби.</value>
+  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI)." xml:space="preserve">
+    <value>Як користувачі скриньок доводять, хто вони: зовнішні постачальники ідентичності, як зберігаються паролі і де пропонується SMTP AUTH (hMailServer.INI).</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Скільки з'єднань з базою даних сервер тримає відкритими і ділить між робочими потоками. Збільшення допомагає лише тоді, коли потоки помітно чекають на з'єднання - див. час очікування отримання з'єднання з базою даних на сторінці «Обмеження сервера та експертні параметри»; саме на нього вони чекають.</value>
@@ -4121,14 +4127,14 @@
   <data name="How the password is proved" xml:space="preserve">
     <value>Як доводиться пароль</value>
   </data>
-  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes. Applies after a service restart." xml:space="preserve">
-    <value>Як сервер вирішує, що mail.example.com і example.com належать одній організації - саме це порівнює типове послаблене вирівнювання DMARC. Стара відповідь - Public Suffix List, файл із правилами делегування кожного реєстру, вкомпільований і оновлюваний під час збірки. DMARCbis замінив його обходом угору по DNS із запитом до кожного рівня, чи є він організаційною межею, тож власник домену може заявити, де його межа, замість того щоб просити список. Вимкнення повертає до вкомпільованого списку, що також стається з будь-яким окремим пошуком, який обхід не може завершити через недоступність DNS - збій розв'язувача не повинен непомітно перетворити послаблене вирівнювання на суворе. Коштує до восьми запитів DNS на домен, кешується на п'ять хвилин. Застосовується після перезапуску служби.</value>
+  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
+    <value>Як сервер вирішує, що mail.example.com і example.com належать одній організації - саме це порівнює типове послаблене вирівнювання DMARC. Стара відповідь - Public Suffix List, файл із правилами делегування кожного реєстру, вкомпільований і оновлюваний під час збірки. DMARCbis замінив його обходом угору по DNS із запитом до кожного рівня, чи є він організаційною межею, тож власник домену може заявити, де його межа, замість того щоб просити список. Вимкнення повертає до вкомпільованого списку, що також стається з будь-яким окремим пошуком, який обхід не може завершити через недоступність DNS - збій розв'язувача не повинен непомітно перетворити послаблене вирівнювання на суворе. Коштує до восьми запитів DNS на домен, кешується на п'ять хвилин.</value>
   </data>
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Як сервер використовує базу даних, для якої його вже налаштовано. ДЕ ця база даних - сервер, назва, облікові дані й тип - налаштовує майстер встановлення, і тут це навмисно не редагується, бо неправильне значення там не дає серверу запуститися, а не робить його повільнішим. Застосовується після перезапуску служби.</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>Як цей сервер розв'язує запити MX, PTR, SPF, DKIM, DMARC і чорних списків (hMailServer.INI). Зміни набирають чинності після перезапуску служби.</value>
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
+    <value>Як цей сервер розв'язує запити MX, PTR, SPF, DKIM, DMARC і чорних списків (hMailServer.INI).</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (push-пошта)</value>
@@ -4357,8 +4363,8 @@
   <data name="Keep" xml:space="preserve">
     <value>Залишити</value>
   </data>
-  <data name="Keep greylisting active during the record-expiration window (restart required)" xml:space="preserve">
-    <value>Не вимикати сірий список протягом вікна закінчення терміну дії записів (потрібен перезапуск)</value>
+  <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
+    <value>Не вимикати сірий список протягом вікна закінчення терміну дії записів</value>
   </data>
   <data name="Keep log files open (performance)" xml:space="preserve">
     <value>Тримати файли журналів відкритими (продуктивність)</value>
@@ -4498,8 +4504,8 @@
   <data name="Lets Outlook, Thunderbird and mobile clients set themselves up from an e-mail address alone, by fetching this server's configuration URLs." xml:space="preserve">
     <value>Дозволяє Outlook, Thunderbird і мобільним клієнтам налаштовуватися самостійно лише за поштовою адресою, отримуючи URL-адреси конфігурації цього сервера.</value>
   </data>
-  <data name="Lets a client ask for the rest of the session to be compressed, which is worth most on a slow or metered link where a large mailbox listing is mostly repeated text. On by default; a client that does not ask is unaffected. Applies after a service restart." xml:space="preserve">
-    <value>Дозволяє клієнту попросити, щоб решту сеансу було стиснуто, а найбільша користь від цього — на повільному або лімітованому каналі, де великий перелік поштової скриньки складається здебільшого з повторюваного тексту. Типово ввімкнено; клієнта, який про це не просить, воно не зачіпає. Застосовується після перезапуску служби.</value>
+  <data name="Lets a client ask for the rest of the session to be compressed, which is worth most on a slow or metered link where a large mailbox listing is mostly repeated text. On by default; a client that does not ask is unaffected." xml:space="preserve">
+    <value>Дозволяє клієнту попросити, щоб решту сеансу було стиснуто, а найбільша користь від цього — на повільному або лімітованому каналі, де великий перелік поштової скриньки складається здебільшого з повторюваного тексту. Типово ввімкнено; клієнта, який про це не просить, воно не зачіпає.</value>
   </data>
   <data name="Lets clients log on with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install." xml:space="preserve">
     <value>Дозволяє клієнтам входити з токенами bearer від провайдера ідентифікації замість паролів; токени приймаються, лише якщо їхній підпис перевіряється матеріалом ключів, який ви встановили.</value>
@@ -4714,8 +4720,8 @@
   <data name="MX query" xml:space="preserve">
     <value>Запит MX</value>
   </data>
-  <data name="Machine-readable output for log shippers. Applies after a service restart." xml:space="preserve">
-    <value>Машиночитаний вивід для збирачів журналів. Застосовується після перезапуску служби.</value>
+  <data name="Machine-readable output for log shippers." xml:space="preserve">
+    <value>Машиночитаний вивід для збирачів журналів.</value>
   </data>
   <data name="Mail clients send through the submission port, and without TLS their passwords cross the network in the clear." xml:space="preserve">
     <value>Поштові клієнти надсилають через порт надсилання, і без TLS їхні паролі йдуть мережею відкритим текстом.</value>
@@ -4863,9 +4869,6 @@
   </data>
   <data name="Max parallel external POP3 fetch threads" xml:space="preserve">
     <value>Макс. кількість паралельних потоків збирання із зовнішніх POP3</value>
-  </data>
-  <data name="Max parallel external POP3 fetch threads (restart required)" xml:space="preserve">
-    <value>Макс. кількість паралельних потоків збирання із зовнішніх POP3 (потрібен перезапуск)</value>
   </data>
   <data name="Max recipients per account per period (0 = no limit)" xml:space="preserve">
     <value>Макс. кількість отримувачів на обліковий запис за період (0 = без обмеження)</value>
@@ -5127,8 +5130,8 @@
   <data name="Move signing for {0} to the next key now?" xml:space="preserve">
     <value>Перевести підпис домену {0} на наступний ключ зараз?</value>
   </data>
-  <data name="Move the message file to SpamAssassin instead of copying it (restart required)" xml:space="preserve">
-    <value>Переміщати файл повідомлення до SpamAssassin замість копіювання (потрібен перезапуск)</value>
+  <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
+    <value>Переміщати файл повідомлення до SpamAssassin замість копіювання</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Зсувати вікно за надто ранньої повторної спроби</value>
@@ -5139,8 +5142,8 @@
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>Перемістити до папки IMAP</value>
   </data>
-  <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves. Applies after a service restart." xml:space="preserve">
-    <value>Переміщення повідомлення до папки, позначеної як Junk, повідомляє про нього sa-learn як про спам, а переміщення назад повідомляє про нього як про ham, тож фільтр учиться з того, що люди й так роблять, а не з окремого ритуалу, якого ніхто не виконує. Типово вимкнено: на кожне переміщення запускається sa-learn, а користувач, який складає інформаційні розсилки до Junk, навчає фільтр, що інформаційні розсилки є спамом для всіх, кого обслуговує сканер. Застосовується після перезапуску служби.</value>
+  <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
+    <value>Переміщення повідомлення до папки, позначеної як Junk, повідомляє про нього sa-learn як про спам, а переміщення назад повідомляє про нього як про ham, тож фільтр учиться з того, що люди й так роблять, а не з окремого ритуалу, якого ніхто не виконує. Типово вимкнено: на кожне переміщення запускається sa-learn, а користувач, який складає інформаційні розсилки до Junk, навчає фільтр, що інформаційні розсилки є спамом для всіх, кого обслуговує сканер.</value>
   </data>
   <data name="Must be an absolute URL, as above." xml:space="preserve">
     <value>Має бути абсолютною URL-адресою, як вище.</value>
@@ -5712,8 +5715,8 @@
   <data name="Off" xml:space="preserve">
     <value>Вимкнено</value>
   </data>
-  <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing. Applies after a service restart." xml:space="preserve">
-    <value>Типово вимкнено, бо коштує таблиці термів у кілька кілобайтів на повідомлення та проходу заповнення по кожному вже доставленому повідомленню — це рішення адміністратора, а ніколи не оновлення. Результати однакові як з увімкненим, так і з вимкненим: індекс лише звужує, які повідомлення має читати пошук підрядка. Потребує ввімкненого індексування повідомлень (вище); саме по собі нічого не індексує. Застосовується після перезапуску служби.</value>
+  <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
+    <value>Типово вимкнено, бо коштує таблиці термів у кілька кілобайтів на повідомлення та проходу заповнення по кожному вже доставленому повідомленню — це рішення адміністратора, а ніколи не оновлення. Результати однакові як з увімкненим, так і з вимкненим: індекс лише звужує, які повідомлення має читати пошук підрядка. Потребує ввімкненого індексування повідомлень (вище); саме по собі нічого не індексує.</value>
   </data>
   <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
     <value>Типово вимкнено, а вимкнене — бездіяльне: пов’язані з каталогом облікові записи тоді перевіряються по-старому, через вхід Windows. Коли ввімкнено, ті самі облікові записи — ті, в яких заповнено вкладку «Каталог», — натомість перевіряються прив’язкою LDAP до сервера нижче. Облікових записів без каталогу це не торкається в жодному разі.</value>
@@ -5742,8 +5745,8 @@
   <data name="Off by default: a full mailbox is usually emptied, and listing it would stop mail to somebody who reads it next week." xml:space="preserve">
     <value>Типово вимкнено: переповнену скриньку зазвичай звільняють, а внесення її до списку зупинило б пошту для того, хто прочитає її наступного тижня.</value>
   </data>
-  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that. Applies after a service restart." xml:space="preserve">
-    <value>Вимкнено, і саме вимкненого вимагає RFC 8301: він повністю вилучив rsa-sha1 із DKIM, тому підписувач не має його використовувати, а перевірник має вважати підпис із ним недійсним. Підпис DKIM — це твердження про ідентичність, і на ньому побудовано вирівнювання DMARC, а колізії SHA-1 практично досяжні з 2020 року — підпис, який хтось може підробити, вартий менше, ніж відсутність підпису, бо проносить домен підписувача повз вирівняну перевірку DMARC. Увімкнення відновлює обидві половини: підписи з ним знову перевіряються, а домен, налаштований підписувати ним, робить це замість підвищення до rsa-sha256. Ключі, коротші за 1024 біти, відхиляються в будь-якому разі, і цей параметр на це не впливає. Застосовується після перезапуску служби.</value>
+  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that." xml:space="preserve">
+    <value>Вимкнено, і саме вимкненого вимагає RFC 8301: він повністю вилучив rsa-sha1 із DKIM, тому підписувач не має його використовувати, а перевірник має вважати підпис із ним недійсним. Підпис DKIM — це твердження про ідентичність, і на ньому побудовано вирівнювання DMARC, а колізії SHA-1 практично досяжні з 2020 року — підпис, який хтось може підробити, вартий менше, ніж відсутність підпису, бо проносить домен підписувача повз вирівняну перевірку DMARC. Увімкнення відновлює обидві половини: підписи з ним знову перевіряються, а домен, налаштований підписувати ним, робить це замість підвищення до rsa-sha256. Ключі, коротші за 1024 біти, відхиляються в будь-якому разі, і цей параметр на це не впливає.</value>
   </data>
   <data name="Off. Directory-linked accounts are validated through Windows logon (LogonUser), which only works when this host is joined to the domain - every failure there looks like a wrong password." xml:space="preserve">
     <value>Вимкнено. Пов’язані з каталогом облікові записи перевіряються через вхід Windows (LogonUser), який працює лише тоді, коли цей вузол приєднано до домену, — кожна невдача там виглядає як неправильний пароль.</value>
@@ -5763,8 +5766,8 @@
   <data name="On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches YOUR directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS." xml:space="preserve">
     <value>Типово ввімкнено, і лише явний 0 в INI це вимикає. Вимкнене: зашифроване підключення більше не доводить, що доходить до ВАШОГО каталогу — будь-хто, здатний його перехопити, може показати будь-який сертифікат і зібрати кожен надісланий ним пароль. Сервер відзначає вимкнення у своєму журналі програм раз на кожен запуск служби. Має значення лише для LDAPS і StartTLS.</value>
   </data>
-  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is. Applies after a service restart." xml:space="preserve">
-    <value>Типово ввімкнено, і це єдиний перемикач тут, чиє типове значення не є обережним. Коли вимкнено, повідомлення для поштової скриньки, яка вже перевищила квоту, приймається, а потім на нього відповідають звітом про недоставку на адресу відправника конверта — яку трафік, що найшвидше наповнює скриньки, підробив. Той звіт потім іде з цього сервера до когось, хто нічого не надсилав, — це зворотне розсіювання, і платить за нього репутація цього сервера. Відмова на RCPT TO тимчасовим 452 натомість залишає повідомлення в черзі сервера-відправника, тож пошта законного відправника чекає, доки скриньку очистять, і зрештою про неї повідомляє комп’ютер, який знає, хто відправник насправді. Застосовується після перезапуску служби.</value>
+  <data name="On by default, and the one switch here whose default is not the cautious one. With it off, a message for a mailbox that is already over quota is accepted and then answered with a non-delivery report addressed to the envelope sender - which the traffic that fills mailboxes fastest has forged. That report then goes from this server to somebody who sent nothing, which is backscatter, and it is this server's reputation that pays for it. Refusing at RCPT TO with a temporary 452 instead leaves the message in the sending server's queue, so a legitimate sender's mail waits for the mailbox to be emptied and is eventually reported by the machine that knows who the sender really is." xml:space="preserve">
+    <value>Типово ввімкнено, і це єдиний перемикач тут, чиє типове значення не є обережним. Коли вимкнено, повідомлення для поштової скриньки, яка вже перевищила квоту, приймається, а потім на нього відповідають звітом про недоставку на адресу відправника конверта — яку трафік, що найшвидше наповнює скриньки, підробив. Той звіт потім іде з цього сервера до когось, хто нічого не надсилав, — це зворотне розсіювання, і платить за нього репутація цього сервера. Відмова на RCPT TO тимчасовим 452 натомість залишає повідомлення в черзі сервера-відправника, тож пошта законного відправника чекає, доки скриньку очистять, і зрештою про неї повідомляє комп’ютер, який знає, хто відправник насправді.</value>
   </data>
   <data name="On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)" xml:space="preserve">
     <value>Під час зупинки чекати до N секунд на завершення активних сеансів (0 = зупинятися негайно)</value>
@@ -5799,8 +5802,8 @@
   <data name="OnAcceptMessage → webhook (SIEM / Slack / Teams)" xml:space="preserve">
     <value>OnAcceptMessage → вебхук (SIEM / Slack / Teams)</value>
   </data>
-  <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off. Applies after a service restart." xml:space="preserve">
-    <value>Раз на хвилину сервер записує по одному рядку на метрику — сеанси, оброблені, доставлені, відкладені та повернуті повідомлення, спам і віруси, результати автентифікації та TLS, відсутні файли повідомлень — до hm_metricsamples і зберігає їх стільки днів. Саме це читають подання інформаційної панелі за 24 години, 7 днів і 30 днів та GET /api/v1/metrics/history. Тиждень історії з похвилинною роздільністю — це приблизно сто сорок тисяч невеликих рядків. 0 вимикає збирач зразків. Застосовується після перезапуску служби.</value>
+  <data name="Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off." xml:space="preserve">
+    <value>Раз на хвилину сервер записує по одному рядку на метрику — сеанси, оброблені, доставлені, відкладені та повернуті повідомлення, спам і віруси, результати автентифікації та TLS, відсутні файли повідомлень — до hm_metricsamples і зберігає їх стільки днів. Саме це читають подання інформаційної панелі за 24 години, 7 днів і 30 днів та GET /api/v1/metrics/history. Тиждень історії з похвилинною роздільністю — це приблизно сто сорок тисяч невеликих рядків. 0 вимикає збирач зразків.</value>
   </data>
   <data name="One configured port is not being listened on: " xml:space="preserve">
     <value>Один налаштований порт не прослуховується: </value>
@@ -6021,8 +6024,8 @@
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Вихідна доставка, повторні спроби та обмеження швидкості. Збереження вирівнювання SPF для пересланої пошти (SRS) і теґування повернень (BATV) — на сторінці «Транспортна безпека».</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>Політики автентифікації та шифрування вихідної пошти (hMailServer.INI). Зміни набувають чинності після перезапуску служби.</value>
+  <data name="Outbound mail authentication and encryption policies (hMailServer.INI)." xml:space="preserve">
+    <value>Політики автентифікації та шифрування вихідної пошти (hMailServer.INI).</value>
   </data>
   <data name="Override DNS server (empty = the name servers Windows uses)" xml:space="preserve">
     <value>Замінити DNS-сервер (порожньо = сервери імен, які використовує Windows)</value>
@@ -6075,8 +6078,8 @@
   <data name="POP3 conversations to syslog" xml:space="preserve">
     <value>Діалоги POP3 до syslog</value>
   </data>
-  <data name="POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses logins that arrive early with a code the client understands as &quot;slow down&quot; rather than as a wrong password. Applies after a service restart." xml:space="preserve">
-    <value>У POP3 сервер не має способу повідомити клієнта про надходження пошти, тому клієнти, які хочуть виглядати чуйними, опитують сервер — а деякі опитують кожні кілька секунд. Кожне опитування — це нове підключення, рукостискання TLS і перевірка пароля, яка з Argon2id навмисно дорога, тож жменька надто завзятих клієнтів може коштувати більше, ніж сама пошта. Задана затримка повідомляє клієнтам інтервал у списку можливостей сервера й відхиляє надто ранні входи кодом, який клієнт розуміє як «повільніше», а не як неправильний пароль. Застосовується після перезапуску служби.</value>
+  <data name="POP3 has no way for the server to tell a client that mail has arrived, so clients that want to look responsive poll - and some poll every few seconds. Each poll is a new connection, a TLS handshake and a password verification, which with Argon2id is deliberately expensive, so a handful of eager clients can cost more than the mail does. Setting a delay tells clients the interval in the server's capability list and refuses logins that arrive early with a code the client understands as &quot;slow down&quot; rather than as a wrong password." xml:space="preserve">
+    <value>У POP3 сервер не має способу повідомити клієнта про надходження пошти, тому клієнти, які хочуть виглядати чуйними, опитують сервер — а деякі опитують кожні кілька секунд. Кожне опитування — це нове підключення, рукостискання TLS і перевірка пароля, яка з Argon2id навмисно дорога, тож жменька надто завзятих клієнтів може коштувати більше, ніж сама пошта. Задана затримка повідомляє клієнтам інтервал у списку можливостей сервера й відхиляє надто ранні входи кодом, який клієнт розуміє як «повільніше», а не як неправильний пароль.</value>
   </data>
   <data name="POP3 or IMAP mailboxes hMailServer collects mail from on behalf of this account. Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143." xml:space="preserve">
     <value>Поштові скриньки POP3 або IMAP, з яких hMailServer збирає пошту від імені цього облікового запису. Захист підключення й порт ідуть у парі: SSL/TLS на 995 (POP3) або 993 (IMAP), STARTTLS на 110 або 143.</value>
@@ -6464,8 +6467,8 @@
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Повернути {0} до значення до цієї зміни? Повернення записується як окрема зміна.</value>
   </data>
-  <data name="QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer. Applies after a service restart." xml:space="preserve">
-    <value>Клієнти QRESYNC і CONDSTORE запитують, що зникло за їхньої відсутності, замість повторного перелічування папки. Сервер відповідає з таблиці записів про знищення, яка скорочується до найновіших N кожні дванадцять годин і один раз під час запуску служби. Клієнт, чия остання синхронізація старіша за збережену історію, отримує повну повторну синхронізацію — ніколи не хибну відповідь. Застосовується після перезапуску служби.</value>
+  <data name="QRESYNC and CONDSTORE clients ask what vanished while they were away instead of re-listing the folder. The server answers from a table of expunge records, pruned to the newest N twelve-hourly and once at service start. A client whose last sync is older than the retained history gets a full resync - never a wrong answer." xml:space="preserve">
+    <value>Клієнти QRESYNC і CONDSTORE запитують, що зникло за їхньої відсутності, замість повторного перелічування папки. Сервер відповідає з таблиці записів про знищення, яка скорочується до найновіших N кожні дванадцять годин і один раз під час запуску служби. Клієнт, чия остання синхронізація старіша за збережену історію, отримує повну повторну синхронізацію — ніколи не хибну відповідь.</value>
   </data>
   <data name="QUOTA" xml:space="preserve">
     <value>QUOTA</value>
@@ -6509,8 +6512,8 @@
   <data name="REST listener settings…" xml:space="preserve">
     <value>Параметри слухача REST…</value>
   </data>
-  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take. Applies after a service restart." xml:space="preserve">
-    <value>RFC 7208 4.6.4. «Порожній пошук» — це терм політики SPF відправника (a:, mx: або exists:), DNS-запит якого не повертає взагалі нічого. Окреме обмеження в десять термів із DNS-запитами обмежує те, що політика може попросити цей сервер знайти; воно не обмежує того, що політика може змарнувати, а десять термів із неіснуючими вузлами коштують по повному розв’язанню кожен заради запису, який ніколи не збіжиться. Два — це те, що каже RFC. Воно також ловить звичайний випадок: політику, яка досі перелічує вузли, виведені з експлуатації роки тому, про що її власник радше хотів би дізнатися. Підвищувати безпечно; 0 вимикає обмеження — це значення для кореспондента, чия політика хибна саме так і чию пошту ви радше приймете. Застосовується після перезапуску служби.</value>
+  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
+    <value>RFC 7208 4.6.4. «Порожній пошук» — це терм політики SPF відправника (a:, mx: або exists:), DNS-запит якого не повертає взагалі нічого. Окреме обмеження в десять термів із DNS-запитами обмежує те, що політика може попросити цей сервер знайти; воно не обмежує того, що політика може змарнувати, а десять термів із неіснуючими вузлами коштують по повному розв’язанню кожен заради запису, який ніколи не збіжиться. Два — це те, що каже RFC. Воно також ловить звичайний випадок: політику, яка досі перелічує вузли, виведені з експлуатації роки тому, про що її власник радше хотів би дізнатися. Підвищувати безпечно; 0 вимикає обмеження — це значення для кореспондента, чия політика хибна саме так і чию пошту ви радше приймете.</value>
   </data>
   <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender on the domain white list is never deferred." xml:space="preserve">
     <value>Власна відповідь RFC 7208 на перевірку, яку не вдалося завершити: повторити, коли запрацює DNS. Транзакція відкладається з 451 4.4.3, а бал temperror вище ігнорується, бо відкладений лист ніколи не приймається. Вимкнено: temperror приймається й оцінюється. Відправник із білого списку доменів ніколи не відкладається.</value>
@@ -6678,14 +6681,14 @@
   <data name="Record a queryable message trace" xml:space="preserve">
     <value>Записувати трасування повідомлень із можливістю запитів</value>
   </data>
-  <data name="Record expiration interval, minutes (restart required)" xml:space="preserve">
-    <value>Інтервал закінчення терміну дії записів, хвилин (потрібен перезапуск)</value>
+  <data name="Record expiration interval, minutes" xml:space="preserve">
+    <value>Інтервал закінчення терміну дії записів, хвилин</value>
   </data>
   <data name="Record type: TXT.  Host/Name" xml:space="preserve">
     <value>Тип запису: TXT.  Вузол/Ім’я</value>
   </data>
-  <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom. Applies after a service restart." xml:space="preserve">
-    <value>Записує рядок із можливістю запиту для кожної доставки, відмови та карантину, тож на запитання «що сталося з повідомленням, яке Яна надіслала о 14:20» можна відповісти пошуком, а не перебиранням журналів. Події ті самі, які завжди бачив журнал AWStats; це дає їм місце, де їх можна розпитати. Типово вимкнено, бо зберігаються адреси відправників і отримувачів — а це робить його записом про те, хто з ким листується. Застосовується після перезапуску служби.</value>
+  <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
+    <value>Записує рядок із можливістю запиту для кожної доставки, відмови та карантину, тож на запитання «що сталося з повідомленням, яке Яна надіслала о 14:20» можна відповісти пошуком, а не перебиранням журналів. Події ті самі, які завжди бачив журнал AWStats; це дає їм місце, де їх можна розпитати. Типово вимкнено, бо зберігаються адреси відправників і отримувачів — а це робить його записом про те, хто з ким листується.</value>
   </data>
   <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam page for it to appear." xml:space="preserve">
     <value>Записує вердикт SPF для кожного прийнятого вхідного повідомлення як заголовок Received-SPF (RFC 7208, розділ 9.1). Заголовок записується лише тоді, коли перевірка SPF справді виконувалася, тому щоб він з’являвся, на сторінці «Захист від спаму» має бути ввімкнено «Перевірити SPF».</value>
@@ -6755,6 +6758,15 @@
   </data>
   <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and point OAuth2PublicKeyFile in hMailServer.ini at it (or set OAuth2HmacSecret for HS256). Set OAuth2Issuer and OAuth2Audience to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
     <value>Зареєструйте цей сервер як програму у провайдера ідентифікації, завантажте відкритий ключ підписування провайдера як файл PEM і вкажіть його в OAuth2PublicKeyFile у hMailServer.ini (або задайте OAuth2HmacSecret для HS256). Задайте OAuth2Issuer і OAuth2Audience значеннями, які провайдер вміщує у свої токени, інакше перевірка їх відхилить.</value>
+  </data>
+  <data name="Reinitialize the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
+    <value>Виконати повторну ініціалізацію сервера зараз? Усі служби зупиняться й знову запустяться на місці, тож підключені клієнти від'єднаються й під'єднаються знову.</value>
+  </data>
+  <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
+    <value>Повторну ініціалізацію виконано — збережені параметри діють.</value>
+  </data>
+  <data name="Reinitializing the server..." xml:space="preserve">
+    <value>Повторна ініціалізація сервера...</value>
   </data>
   <data name="Reject empty sender addresses (MAIL FROM:&lt;&gt;)" xml:space="preserve">
     <value>Відхиляти порожні адреси відправника (MAIL FROM:&lt;&gt;)</value>
@@ -7407,11 +7419,17 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Saved at {0}." xml:space="preserve">
     <value>Збережено о {0}.</value>
   </data>
+  <data name="Saved {0} - every setting on this page is in effect." xml:space="preserve">
+    <value>Збережено {0} - усі параметри на цій сторінці діють.</value>
+  </data>
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>Збережено {0} - перезапустіть службу, щоб застосувати.</value>
   </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>Збережено {0} - сервер підхопить це протягом двох секунд. Перезапуск служби не потрібен.</value>
+  </data>
+  <data name="Saved {0} - {1} setting(s) wait for a reinitialize; Apply now, in the bar at the foot of the window, takes them." xml:space="preserve">
+    <value>Збережено {0} - {1} параметр(ів) чекають на повторну ініціалізацію; кнопка «Застосувати зараз» на панелі внизу вікна застосує їх.</value>
   </data>
   <data name="Saved {0} settings" xml:space="preserve">
     <value>Збережено параметрів: {0}</value>
@@ -7773,14 +7791,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Sends daily aggregate reports about TLS connection failures to recipient domains (RFC 8460)." xml:space="preserve">
     <value>Надсилає щоденні агреговані звіти про збої TLS-з'єднань доменам-отримувачам (RFC 8460).</value>
   </data>
-  <data name="Sends the commands of a transaction without waiting for each answer, which removes a round trip per recipient - the difference is largest on a slow link or to a distant server. Used only with a server that advertises it. Applies after a service restart." xml:space="preserve">
-    <value>Надсилає команди транзакції, не чекаючи на кожну відповідь, що прибирає один цикл «запит — відповідь» на кожного отримувача — різниця найбільша на повільному каналі або до віддаленого сервера. Використовується лише із сервером, який це оголошує. Застосовується після перезапуску служби.</value>
+  <data name="Sends the commands of a transaction without waiting for each answer, which removes a round trip per recipient - the difference is largest on a slow link or to a distant server. Used only with a server that advertises it." xml:space="preserve">
+    <value>Надсилає команди транзакції, не чекаючи на кожну відповідь, що прибирає один цикл «запит — відповідь» на кожного отримувача — різниця найбільша на повільному каналі або до віддаленого сервера. Використовується лише із сервером, який це оголошує.</value>
   </data>
   <data name="Sends the daily aggregate reports that domains ask for with a rua= tag in their DMARC record (RFC 7489) - who sent mail claiming to be them, and whether it passed. Reports only go to an address outside the policy domain when that address's own DNS says it wants them, so a domain cannot use its DMARC record to aim this server's reports at somebody else." xml:space="preserve">
     <value>Надсилає щоденні агреговані звіти, яких домени просять тегом rua= у своєму записі DMARC (RFC 7489) - хто надсилав пошту від їхнього імені і чи пройшла вона перевірку. Звіти йдуть на адресу поза доменом політики лише тоді, коли власний DNS цієї адреси каже, що хоче їх, тому домен не може використати свій запис DMARC, щоб спрямувати звіти цього сервера комусь іншому.</value>
   </data>
-  <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME. Applies after a service restart." xml:space="preserve">
-    <value>Надсилає повідомлення підрахованими блоками, а не через DATA з крапковим екрануванням. Саме воно й переносить двійкове повідомлення далі, не переписуючи його: повідомлення, прийняте як BINARYMIME, можна ретранслювати таким, як воно надійшло, лише до сервера, який пропонує і це, і BINARYMIME. Застосовується після перезапуску служби.</value>
+  <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME." xml:space="preserve">
+    <value>Надсилає повідомлення підрахованими блоками, а не через DATA з крапковим екрануванням. Саме воно й переносить двійкове повідомлення далі, не переписуючи його: повідомлення, прийняте як BINARYMIME, можна ретранслювати таким, як воно надійшло, лише до сервера, який пропонує і це, і BINARYMIME.</value>
   </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Надсилає адресу отримувача як заголовок User:, щоб spamd застосував власні налаштування цієї скриньки - саме цього очікує spamd з віртуальними користувачами (--virtual-config-dir з %u або %d). Сканування виконується один раз на повідомлення, а не на кожного отримувача, тому повідомлення кільком людям не може бути проскановане за налаштуваннями жодного з них і використовує профіль вище.</value>
@@ -7878,8 +7896,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature." xml:space="preserve">
     <value>Загальносерверні межі, довговічність і засоби проти зловживань, що не належать жодному окремому протоколу чи функції.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason. Stored in hMailServer.INI, and unless a card says otherwise, changes take effect after a service restart." xml:space="preserve">
-    <value>Загальносерверні межі, довговічність і засоби проти зловживань, що не належать жодному окремому протоколу чи функції. Типові значення безпечні; змінюйте їх лише з конкретної причини. Зберігаються в hMailServer.INI, і, якщо картка не каже інакше, зміни набирають чинності після перезапуску служби.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
+    <value>Загальносерверні межі, довговічність і засоби проти зловживань, що не належать жодному окремому протоколу чи функції. Типові значення безпечні; змінюйте їх лише з конкретної причини.</value>
   </data>
   <data name="Server-wide defaults, keeping copies of mail and the scripting engine." xml:space="preserve">
     <value>Загальносерверні типові значення, збереження копій пошти та рушій скриптів.</value>
@@ -7914,8 +7932,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Services" xml:space="preserve">
     <value>Служби</value>
   </data>
-  <data name="Session caching and session tickets let a returning client skip the full handshake. At the defaults these four settings make no OpenSSL call at all, so resumption keeps OpenSSL's stock behaviour - they are here for administrators who need to bound how long a resumption secret stays useful. Applies after a service restart." xml:space="preserve">
-    <value>Кешування сесій і квитки сесій дозволяють клієнту, що повертається, пропустити повне рукостискання. З типовими значеннями ці чотири параметри взагалі не роблять викликів OpenSSL, тому поновлення зберігає стандартну поведінку OpenSSL - вони тут для адміністраторів, яким потрібно обмежити, як довго секрет поновлення залишається корисним. Застосовується після перезапуску служби.</value>
+  <data name="Session caching and session tickets let a returning client skip the full handshake. At the defaults these four settings make no OpenSSL call at all, so resumption keeps OpenSSL's stock behaviour - they are here for administrators who need to bound how long a resumption secret stays useful." xml:space="preserve">
+    <value>Кешування сесій і квитки сесій дозволяють клієнту, що повертається, пропустити повне рукостискання. З типовими значеннями ці чотири параметри взагалі не роблять викликів OpenSSL, тому поновлення зберігає стандартну поведінку OpenSSL - вони тут для адміністраторів, яким потрібно обмежити, як довго секрет поновлення залишається корисним.</value>
   </data>
   <data name="Session resumption" xml:space="preserve">
     <value>Поновлення сесій</value>
@@ -7983,10 +8001,10 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Settings" xml:space="preserve">
     <value>Параметри</value>
   </data>
-  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Параметри збережено. Щоб зміни набрали чинності, службу hMailServer потрібно перезапустити.
+  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>Параметри збережено. {0} з них наберуть чинності лише після перезапуску служби hMailServer.
 
-Перезапустити зараз?</value>
+Перезапустити її зараз?</value>
   </data>
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Параметри, які раніше були на цій сторінці</value>
@@ -8273,8 +8291,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Stored in hMailServer.INI exactly as typed - the DPAPI switch above does not cover it, and there is nowhere else for the Service Control Manager's registration step to read it from. That is the strongest reason to use NT SERVICE\hMailServer or a group managed service account instead: neither has a password to store. If you do set one here, clear it again once the registration has been run - the SCM keeps its own copy from then on." xml:space="preserve">
     <value>Зберігається в hMailServer.INI рівно так, як набрано - перемикач DPAPI вище його не охоплює, і крок реєстрації Диспетчера керування службами не має іншого місця, звідки його прочитати. Це найвагоміша причина використовувати натомість NT SERVICE\hMailServer або груповий керований службовий обліковий запис: у жодного з них немає пароля для зберігання. Якщо ви все ж задаєте пароль тут, очистьте його знову після виконання реєстрації - відтоді SCM зберігає власну копію.</value>
   </data>
-  <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays. The service reads them when it starts, so changes here apply after a service restart." xml:space="preserve">
-    <value>Зберігається в hMailServer.ini як ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount і ScheduledBackupMaxAgeDays. Служба читає їх під час запуску, тому зміни тут застосовуються після перезапуску служби.</value>
+  <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays." xml:space="preserve">
+    <value>Зберігається в hMailServer.ini як ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount і ScheduledBackupMaxAgeDays.</value>
   </data>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>Зберігається в hMailServer.ini на сервері. Токен, який він отримує, кешується в пам'яті, доки не мине 80% його терміну дії, і отримується заново автоматично.</value>
@@ -8710,8 +8728,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The bounce and error texts the server sends are editable templates." xml:space="preserve">
     <value>Тексти повернень і помилок, які надсилає сервер, - це шаблони, які можна редагувати.</value>
   </data>
-  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI). Changes take effect after a service restart." xml:space="preserve">
-    <value>Вбудований слухач HTTP, який віддає автоконфігурацію поштових клієнтів і політики MTA-STS для ваших локальних доменів (hMailServer.INI). Зміни набирають чинності після перезапуску служби.</value>
+  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI)." xml:space="preserve">
+    <value>Вбудований слухач HTTP, який віддає автоконфігурацію поштових клієнтів і політики MTA-STS для ваших локальних доменів (hMailServer.INI).</value>
   </data>
   <data name="The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges." xml:space="preserve">
     <value>Вбудований слухач HTTP: Autodiscover, autoconfig, політика MTA-STS і перевірки ACME.</value>
@@ -8817,8 +8835,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The delivery queue lists what is waiting and why." xml:space="preserve">
     <value>Черга доставки показує, що чекає і чому.</value>
   </data>
-  <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know. Applies after a service restart." xml:space="preserve">
-    <value>Доставка, через яку поштова скринька переходить цей відсоток, породжує одне сповіщення власникові скриньки від постмайстра його власного домену. ОДНЕ, а не по одному на повідомлення: сервер вважає поріг тим, що скринька ПЕРЕТИНАЄ, а не станом, у якому вона перебуває, тому скринька, що стоїть на 95%, не попереджається знову при кожній доставці - це заповнювало б її швидше за саму пошту. Спорожнення скриньки і повторне заповнення попереджають знову - саме такої поведінки всі й очікують, і тут вона дається задарма, а не вимагає щось запам'ятовувати і скидати за терміном. Увімкнено типово, бо альтернатива - те, що цей сервер робив раніше: мовчати, доки пошта не почне відхилятися, а на той момент той, з ким це відбувається, дізнається останнім. Застосовується після перезапуску служби.</value>
+  <data name="The delivery that takes a mailbox past this percentage produces one notice to the person whose mailbox it is, from their own domain's postmaster. ONE, not one per message: the server treats the threshold as something the mailbox CROSSES rather than a state it is in, so a mailbox sitting at 95% is not warned about again on every delivery - which would fill it faster than the mail does. Emptying the mailbox and filling it again warns again, which is the behaviour anyone would expect and is free here rather than something that had to be remembered and expired. On by default, because the alternative is what this server did before: say nothing at all until mail starts being refused, by which point the person it happens to is the last to know." xml:space="preserve">
+    <value>Доставка, через яку поштова скринька переходить цей відсоток, породжує одне сповіщення власникові скриньки від постмайстра його власного домену. ОДНЕ, а не по одному на повідомлення: сервер вважає поріг тим, що скринька ПЕРЕТИНАЄ, а не станом, у якому вона перебуває, тому скринька, що стоїть на 95%, не попереджається знову при кожній доставці - це заповнювало б її швидше за саму пошту. Спорожнення скриньки і повторне заповнення попереджають знову - саме такої поведінки всі й очікують, і тут вона дається задарма, а не вимагає щось запам'ятовувати і скидати за терміном. Увімкнено типово, бо альтернатива - те, що цей сервер робив раніше: мовчати, доки пошта не почне відхилятися, а на той момент той, з ким це відбувається, дізнається останнім.</value>
   </data>
   <data name="The directory ACCEPTED the credentials: bound as {0}. This account would log on." xml:space="preserve">
     <value>Каталог ПРИЙНЯВ облікові дані: прив'язка як {0}. Цей обліковий запис увійшов би.</value>
@@ -8906,8 +8924,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The group members could not be read: " xml:space="preserve">
     <value>Не вдалося прочитати учасників групи:</value>
   </data>
-  <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark. Applies after a service restart." xml:space="preserve">
-    <value>Групи, за якими цей сервер погоджуватиме ключ TLS, у форматі списку OpenSSL. У постаченому вигляді він пропонує спочатку два постквантові гібриди, а для сторони, яка не має жодного з них, відкочується до X25519 і кривих NIST, тому для старішого клієнта нічого не змінюється. Порожній список, список, який OpenSSL відхиляє, або такий, що не залишив би жодної ввімкненої групи, не застосовується: сервер записує його в журнал і використовує класичний запасний список, тому помилка тут не може вивести TLS з ладу — але гібриди при цьому мовчки втрачаються, і саме тому показано постачений список, а не порожнє поле. Змінюйте його за результатами сканування, а не наосліп. Застосовується після перезапуску служби.</value>
+  <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
+    <value>Групи, за якими цей сервер погоджуватиме ключ TLS, у форматі списку OpenSSL. У постаченому вигляді він пропонує спочатку два постквантові гібриди, а для сторони, яка не має жодного з них, відкочується до X25519 і кривих NIST, тому для старішого клієнта нічого не змінюється. Порожній список, список, який OpenSSL відхиляє, або такий, що не залишив би жодної ввімкненої групи, не застосовується: сервер записує його в журнал і використовує класичний запасний список, тому помилка тут не може вивести TLS з ладу — але гібриди при цьому мовчки втрачаються, і саме тому показано постачений список, а не порожнє поле. Змінюйте його за результатами сканування, а не наосліп.</value>
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>Шлях з підказками: яка половина, які рядки журналу і параметр, що обмежує кожен етап.</value>
@@ -9229,8 +9247,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Пароль адміністрування сервера і хто взагалі має право користуватися цими інструментами.</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request. Every setting here is in hMailServer.ini and applies after a service restart." xml:space="preserve">
-    <value>Сервер може помітити новий випуск, перевірити його за власним підписом Sigstore цього випуску та застосувати його — клацанням на сторінці «Стан» або самостійно в межах вікна, яке ви задаєте. Вимкнено, доки ви не ввімкнете перевірку; перевірка не надсилає нічого, крім самого запиту. Кожен параметр тут міститься у hMailServer.ini і застосовується після перезапуску служби.</value>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>Сервер може помітити новий випуск, перевірити його за власним підписом Sigstore цього випуску та застосувати його — клацанням на сторінці «Стан» або самостійно в межах вікна, яке ви задаєте. Вимкнено, доки ви не ввімкнете перевірку; перевірка не надсилає нічого, крім самого запиту.</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Сервер не поставив розсилання в чергу. Перевірте шаблон адреси та журнал помилок hMailServer.</value>
@@ -9252,8 +9270,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>Сервер створює наступний ключ, показує запис TXT для публікації, перевіряє його через власний резолвер і переводить підпис на новий ключ, лише коли запис розв'язується протягом усього періоду поширення. Старий селектор зберігається на період зберігання, а потім виводиться з ужитку.</value>
   </data>
-  <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep and restart the service." xml:space="preserve">
-    <value>Сервер не зберігає історії: MetricsHistoryDays у hMailServer.ini дорівнює 0. Задайте кількість днів зберігання і перезапустіть службу.</value>
+  <data name="The server is draining. A reinitialize ends maintenance mode: the listeners open again and delivery resumes. Reinitialize the server now?" xml:space="preserve">
+    <value>Сервер розвантажується. Повторна ініціалізація завершує режим обслуговування: прослуховувачі знову відкриваються, і доставка відновлюється. Виконати повторну ініціалізацію сервера зараз?</value>
+  </data>
+  <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
+    <value>Сервер не зберігає історії: MetricsHistoryDays у hMailServer.ini дорівнює 0. Задайте кількість днів зберігання.</value>
   </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Сервер пам'ятає, хто писав кожному обліковому запису і кому писав він, і каже про це у програмі читання, коли зовнішній відправник з'являється вперше. Це коштує одного звернення до бази даних на кожне доставлене в цей домен повідомлення і зовсім нічого, доки це вимкнено.</value>
@@ -10024,11 +10045,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="What rotation defends: OpenSSL's default ticket key is generated once, when the listener starts, and is never rotated, so every ticket that listener issues for the life of the process is sealed under the same key - and that key, recovered later, decrypts every ticket ever recorded. With an interval set, a captured ticket is useless after at most two intervals. 86400 is a day. Only meaningful while session tickets are enabled above." xml:space="preserve">
     <value>Від чого захищає ротація: ключ квитків OpenSSL типово генерується один раз, під час запуску слухача, і ніколи не ротується, тому кожен квиток, виданий цим слухачем за весь час життя процесу, запечатано тим самим ключем - а цей ключ, відновлений пізніше, розшифровує кожен будь-коли записаний квиток. Із заданим інтервалом перехоплений квиток стає марним щонайбільше через два інтервали. 86400 - це доба. Має сенс лише доки квитки сесій увімкнено вище.</value>
   </data>
-  <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value. Applies after a service restart." xml:space="preserve">
-    <value>Що не дає одному запиту, заблокованому на блокуванні, вічно тримати робочий потік. Дотримується під час підключення MySQL/MariaDB і PostgreSQL; MS SQL і SQL CE починають із власних 30 секунд ADO і підхоплюють це значення на будь-якому з'єднанні, що виконувало скрипт оновлення або обслуговування. Ці скрипти виконуються під власною 30-хвилинною межею на оператор незалежно від цього значення. Застосовується після перезапуску служби.</value>
+  <data name="What stops one statement blocked on a lock from holding a worker thread for ever. Honoured at connect time by MySQL/MariaDB and PostgreSQL; MS SQL and SQL CE start at ADO's own 30 seconds and pick this value up on any connection that has run an upgrade or maintenance script. Those scripts run under a 30-minute per-statement ceiling of their own regardless of this value." xml:space="preserve">
+    <value>Що не дає одному запиту, заблокованому на блокуванні, вічно тримати робочий потік. Дотримується під час підключення MySQL/MariaDB і PostgreSQL; MS SQL і SQL CE починають із власних 30 секунд ADO і підхоплюють це значення на будь-якому з'єднанні, що виконувало скрипт оновлення або обслуговування. Ці скрипти виконуються під власною 30-хвилинною межею на оператор незалежно від цього значення.</value>
   </data>
-  <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are. Applies after a service restart." xml:space="preserve">
-    <value>Що робить сервер у міру заповнення тому сховища повідомлень. Обидва значення - абсолютні мегабайти, а не відсотки, бо чи вміститься наступне повідомлення, вирішує кількість байтів, що залишилися, а не їхня частка від тому. Застосовується після перезапуску служби.</value>
+  <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
+    <value>Що робить сервер у міру заповнення тому сховища повідомлень. Обидва значення - абсолютні мегабайти, а не відсотки, бо чи вміститься наступне повідомлення, вирішує кількість байтів, що залишилися, а не їхня частка від тому.</value>
   </data>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Що сервер пише у файли журналів (переглядати на сторінці «Живі журнали»).</value>
@@ -10165,8 +10186,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Which services this server runs, connection limits and greetings." xml:space="preserve">
     <value>Які служби запускає цей сервер, межі з'єднань і привітання.</value>
   </data>
-  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire. Applies after a service restart." xml:space="preserve">
-    <value>У якому написанні агрегований звіт DMARC надсилається доменам, про які цей сервер звітує. 1 - те, що розбирає кожен розгорнутий сьогодні споживач звітів; 2 - DMARCbis, на той день, коли споживачі його наздоженуть. Будь-яке інше значення повідомляється як помилка і трактується як 1, бо друкарська помилка не повинна вирішувати, що піде в мережу. Застосовується після перезапуску служби.</value>
+  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire." xml:space="preserve">
+    <value>У якому написанні агрегований звіт DMARC надсилається доменам, про які цей сервер звітує. 1 - те, що розбирає кожен розгорнутий сьогодні споживач звітів; 2 - DMARCbis, на той день, коли споживачі його наздоженуть. Будь-яке інше значення повідомляється як помилка і трактується як 1, бо друкарська помилка не повинна вирішувати, що піде в мережу.</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>У який бік</value>
@@ -10255,8 +10276,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>Якщо парольну фразу задано, а стиснення вимкнено, файли повідомлень копіюються поруч з архівом, а не всередину нього, де їх ніщо не шифрує - і резервне копіювання відмовиться працювати. Увімкніть стиснення або очистіть парольну фразу.</value>
   </data>
-  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected. Applies after a service restart." xml:space="preserve">
-    <value>Якщо це увімкнено, MAIL FROM в автентифікованій сесії має бути власною адресою облікового запису, псевдонімом, який у нього розв'язується, або іншою поштовою скринькою, чий власник надав обліковому запису право надсилання (p) на свій INBOX - саме так надається «надіслати від імені» для спільної скриньки, з редактора ACL будь-якого клієнта IMAP (SETACL) або через COM API. Усе інше відхиляється з 550 5.7.1 до приймання першого байта повідомлення, тому один скомпрометований або недбалий обліковий запис більше не може надсилати від імені всіх інших. Типово вимкнено, бо раніше цього ніщо не обмежувало, і установка може на це покладатися; порожній відправник дозволений завжди. Неавтентифіковані сесії не зачіпаються. Застосовується після перезапуску служби.</value>
+  <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
+    <value>Якщо це увімкнено, MAIL FROM в автентифікованій сесії має бути власною адресою облікового запису, псевдонімом, який у нього розв'язується, або іншою поштовою скринькою, чий власник надав обліковому запису право надсилання (p) на свій INBOX - саме так надається «надіслати від імені» для спільної скриньки, з редактора ACL будь-якого клієнта IMAP (SETACL) або через COM API. Усе інше відхиляється з 550 5.7.1 до приймання першого байта повідомлення, тому один скомпрометований або недбалий обліковий запис більше не може надсилати від імені всіх інших. Типово вимкнено, бо раніше цього ніщо не обмежувало, і установка може на це покладатися; порожній відправник дозволений завжди. Неавтентифіковані сесії не зачіпаються.</value>
   </data>
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>Якщо це увімкнено, власне повідомлення про відпустку облікового запису й далі відповідає колегам, а зовнішні відправники отримують загальний текст домену - так особисті подробиці з повідомлення про відпустку залишаються всередині організації.</value>
@@ -10359,6 +10380,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Apply" xml:space="preserve">
     <value>_Застосувати</value>
+  </data>
+  <data name="_Apply now" xml:space="preserve">
+    <value>_Застосувати зараз</value>
   </data>
   <data name="_Bind address" xml:space="preserve">
     <value>_Адреса прив’язки</value>
@@ -11083,11 +11107,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
     <value>hMailServer.INI не знайдено на цьому комп’ютері. Ці параметри можна редагувати лише на самому сервері; перевірка підключення все одно працює зі значеннями, введеними тут.</value>
   </data>
-  <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore, after a service restart." xml:space="preserve">
-    <value>Параметр BackupMessagesDBOnly у hMailServer.ini. Тоді резервна копія фіксує, які повідомлення існують, але не їхній вміст, а відновлення очікує, що файли й далі лежать у папці даних. Стосується резервного копіювання та відновлення, після перезапуску служби.</value>
+  <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
+    <value>Параметр BackupMessagesDBOnly у hMailServer.ini. Тоді резервна копія фіксує, які повідомлення існують, але не їхній вміст, а відновлення очікує, що файли й далі лежать у папці даних. Стосується резервного копіювання та відновлення.</value>
   </data>
-  <data name="hMailServer.ini setting BackupVerifyRestore, on by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold. Applies after a service restart." xml:space="preserve">
-    <value>Параметр BackupVerifyRestore у hMailServer.ini, типово ввімкнений. Після того як архів записано, його сховище повідомлень видобувається до тимчасової папки тим самим кодом, який використовує відновлення, обмежується рівно тими файлами, які підготувало резервне копіювання, і для кожного рядка повідомлення перевіряється наявність його файлу; результат — у журналі резервного копіювання. Поки це триває, сховище існує у двох примірниках, тож вимкніть перевірку для сховища, яке не вміщається на тимчасовому томі. Застосовується після перезапуску служби.</value>
+  <data name="hMailServer.ini setting BackupVerifyRestore, on by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold." xml:space="preserve">
+    <value>Параметр BackupVerifyRestore у hMailServer.ini, типово ввімкнений. Після того як архів записано, його сховище повідомлень видобувається до тимчасової папки тим самим кодом, який використовує відновлення, обмежується рівно тими файлами, які підготувало резервне копіювання, і для кожного рядка повідомлення перевіряється наявність його файлу; результат — у журналі резервного копіювання. Поки це триває, сховище існує у двох примірниках, тож вимкніть перевірку для сховища, яке не вміщається на тимчасовому томі.</value>
   </data>
   <data name="hMailServer.ini was not found on this machine, so BackupMessagesDBOnly can only be changed on the server itself." xml:space="preserve">
     <value>hMailServer.ini не знайдено на цьому комп’ютері, тому BackupMessagesDBOnly можна змінити лише на самому сервері.</value>
@@ -11530,6 +11554,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>сервер не може дістатися своєї бази даних. Перевірте підключення до бази даних і журнал помилок hMailServer, а потім натисніть «Перезавантажити». ({0})</value>
   </data>
+  <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
+    <value>сервер не повідомив про стан «Працює» протягом тридцяти секунд; що він робить, показує сторінка «Стан».</value>
+  </data>
   <data name="the server is slow" xml:space="preserve">
     <value>сервер працює повільно</value>
   </data>
@@ -11901,6 +11928,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} samples." xml:space="preserve">
     <value>{0} зразків.</value>
+  </data>
+  <data name="{0} saved setting(s) wait for a reinitialize, and {1} for a service restart." xml:space="preserve">
+    <value>{0} збережених параметр(ів) чекають на повторну ініціалізацію, а {1} — на перезапуск служби.</value>
+  </data>
+  <data name="{0} saved setting(s) wait for a reinitialize." xml:space="preserve">
+    <value>{0} збережених параметр(ів) чекають на повторну ініціалізацію.</value>
+  </data>
+  <data name="{0} saved setting(s) wait for a service restart." xml:space="preserve">
+    <value>{0} збережених параметр(ів) чекають на перезапуск служби.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} сама по собі дає {1}, що досягає {2}, на якому сервер припиняє перевірку, — тому {3} не виконуватиметься для повідомлення, яке її не проходить, і не з’явиться в журналі.</value>

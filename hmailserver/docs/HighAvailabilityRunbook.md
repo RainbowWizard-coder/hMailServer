@@ -84,7 +84,10 @@ message-store directory.
 hMailServer exposes Kubernetes-style probes on the metrics listener. Enable it on
 **both** nodes. These are stored settings: set them in the Control Panel, over
 `/api/v1/settings/ini`, with `hmctl`, or on a Linux node whose REST listener is
-not yet on with `hmailserver --set-setting NAME=VALUE`, and restart the service. They are shown
+not yet on with `hmailserver --set-setting NAME=VALUE`, then reinitialise the server (the
+Control Panel's or the Deck's **Apply now**, or `POST /api/v1/server/reinitialize`) or restart
+the service: the listener's port and address are bound when it starts, so they wait for one
+of those ([SettingsApply.md](SettingsApply.md)). They are shown
 below in the `[Settings]` shape they have always been written in, and that section of
 each node's `hMailServer.ini` still holds a copy — but since schema 6042 it is a copy
 the server maintains, not the place to change them.

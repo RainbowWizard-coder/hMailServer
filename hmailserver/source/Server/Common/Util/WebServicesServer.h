@@ -107,6 +107,13 @@ namespace HM
       // forever after the first call.
       static void ReportUnreachableFeatures();
 
+      // Drops the cached RFC 6764 redirect targets, as a start does, so the next
+      // /.well-known/caldav or /.well-known/carddav reads CalDavRedirectUrl and
+      // CardDavRedirectUrl as they are now rather than as they were up to a
+      // minute ago. Subscribed to both, so a save applies them at once
+      // (Application::SubscribeToSettings_).
+      static void ForgetDavRedirectTargets();
+
    private:
 
       struct ProtocolEndpoint

@@ -3034,6 +3034,64 @@ STDMETHODIMP InterfaceSettings::get_IniSettingNames(BSTR *pVal)
    }
 }
 
+STDMETHODIMP InterfaceSettings::IniSettingApplies(BSTR Name, BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!pVal)
+         return COMError::GenerateGenericMessage();
+
+      HM::String name = Name;
+      name.Trim();
+
+      // Refused rather than answered "now" for a name the loader does not read: a
+      // misspelled key answered as though it applied would be the misspelling
+      // looking like a working setting, which is what GetIniSetting refuses for too.
+      HM::String applies;
+      HM::String spelling;
+      if (!HM::IniFileSettings::GetApplies(name, applies, spelling))
+         return COMError::GenerateError("This build does not read a [Settings] key of that name through its settings loader, so it has no mark saying when a change to it applies. The keys it reads, and the mark of each, are in IniSettingsBaseline.h; a key a script of the administrator's own reads applies whenever that script next reads it.");
+
+      *pVal = applies.AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_PendingIniSettings(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!pVal)
+         return COMError::GenerateGenericMessage();
+
+      std::vector<HM::IniFileSettings::PendingSetting> pending = HM::IniFileSettings::Instance()->GetPendingSettings();
+
+      // One per line, as IniSettingNames: a name cannot contain a line break.
+      std::vector<HM::String> names;
+      for (size_t i = 0; i < pending.size(); i++)
+         names.push_back(pending[i].name);
+
+      *pVal = HM::StringParser::JoinVector(names, _T("\r\n")).AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 STDMETHODIMP InterfaceSettings::get_QuarantineDigestBaseUrl(BSTR *pVal)
 {
    try

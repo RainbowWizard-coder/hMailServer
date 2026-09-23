@@ -38,8 +38,11 @@ namespace HM
    void
    OtelLogExporter::Start()
    {
-      // Reinitialize re-runs the server start sequence; reset cleanly each time.
-      Stop();
+      std::lock_guard<std::mutex> lifecycle(lifecycle_mutex_);
+
+      // Reinitialize re-runs the server start sequence, and a saved setting restarts
+      // the exporter in place; reset cleanly each time.
+      StopLocked_();
 
       AnsiString endpoint = IniFileSettings::Instance()->GetOtelLogsEndpoint();
       if (endpoint.IsEmpty())
@@ -80,6 +83,13 @@ namespace HM
 
    void
    OtelLogExporter::Stop()
+   {
+      std::lock_guard<std::mutex> lifecycle(lifecycle_mutex_);
+      StopLocked_();
+   }
+
+   void
+   OtelLogExporter::StopLocked_()
    {
       if (!running_)
       {

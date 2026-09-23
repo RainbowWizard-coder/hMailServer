@@ -350,6 +350,10 @@ END_COM_MAP()
    STDMETHOD(DeleteIniSetting)(/*[in]*/ BSTR Name);
    STDMETHOD(get_IniSettingNames)(/*[out, retval]*/ BSTR *pVal);
 
+   // When a saved key applies, and which saved keys wait (docs/SettingsApply.md).
+   STDMETHOD(IniSettingApplies)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(get_PendingIniSettings)(/*[out, retval]*/ BSTR *pVal);
+
    // The quarantine digest, which lives in hm_settings rather than the ini.
    STDMETHOD(get_QuarantineDigestBaseUrl)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(put_QuarantineDigestBaseUrl)(/*[in]*/ BSTR newVal);

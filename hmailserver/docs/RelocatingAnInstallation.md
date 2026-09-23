@@ -223,11 +223,14 @@ under the old root:
 - **The settings-store paths.** In the Control Panel under **Settings**, whose
   search box finds each one by name; or `Settings.SetIniSetting` over COM,
   `PUT /api/v1/settings/ini/{name}`, or `hmctl ini set <name> <value>`. Each
-  stores the new value in the database and writes it into the file's copy as
-  well. Restart the service afterwards, because these are read when it starts.
-  Until then the server runs on the old paths, which still resolve because step 3
-  copied the tree rather than moving it. Do not make the old tree unreachable
-  (step 12) until that restart has picked up the new paths.
+  stores the new value in the database, writes it into the file's copy as well,
+  and applies it - except the listeners' certificate paths and the ACME
+  certificate directory, which are bound when the servers start and wait for a
+  reinitialise (**Apply now**, or `POST /api/v1/server/reinitialize`;
+  [SettingsApply.md](SettingsApply.md) lists them). Until then the server runs on
+  those old paths, which still resolve because step 3 copied the tree rather than
+  moving it. Do not make the old tree unreachable (step 12) until that
+  reinitialise has picked up the new paths.
 - **SSL certificates.** The Control Panel's certificate grid is read-only except
   for the passphrase, so each certificate must be deleted and re-added with its
   new file names, or set over COM.

@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #include "OtelExportChannel.h"
 
 #include <thread>
@@ -71,10 +73,19 @@ namespace HM
       void Run_();
       void ExportBatch_(const std::vector<LogRecord> &records);
 
-      bool enabled_;
+      // Atomic: read by every thread that produces a span, a metric or a log record,
+      // and written by Start and Stop - which a save of an Otel setting now calls
+      // while the server runs (Application::SubscribeToSettings_).
+      std::atomic<bool> enabled_;
       OtelExportChannel channel_;
       AnsiString service_name_;
       bool last_post_failed_;
+
+      // Serialises Start and Stop: a restart from a saved setting and one from a
+      // reinitialise must not both assign worker_ - a std::thread assigned over a
+      // joinable one ends the process.
+      std::mutex lifecycle_mutex_;
+      void StopLocked_();
 
       std::thread worker_;
       std::thread::id worker_thread_id_;

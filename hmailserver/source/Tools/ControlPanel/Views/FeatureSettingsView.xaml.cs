@@ -128,8 +128,20 @@ namespace hMailServer.ControlPanel.Views
             if (editor != null && hint != null)
                AutomationProperties.SetHelpText(editor, hint);
 
-            return new FieldRow { Label = caption, Hint = hint, Content = content };
+            // When a save of this key reaches the running server, as the server
+            // marks it (Services/SettingApplies); nothing for a row kept in another
+            // section, which the mark does not cover.
+            string applies = InSettingsSection ? SettingApplies.Caption(IniFeatureStore.AppliesFor(Key)) : null;
+
+            return new FieldRow { Label = caption, Hint = hint, Content = content, Applies = applies };
          }
+
+         /// <summary>
+         /// Whether the row's Key is a [Settings] key - the settings store, which the
+         /// server marks with when a save applies. False for the rows kept in another
+         /// section of the file.
+         /// </summary>
+         protected virtual bool InSettingsSection => true;
 
          /// <summary>The width of a text editor on these pages: one column, whatever the value.</summary>
          protected const double EditorWidth = 520;
@@ -477,6 +489,8 @@ namespace hMailServer.ControlPanel.Views
       private class SectionTextSetting : Setting
       {
          public string Section;
+
+         protected override bool InSettingsSection => false;
          public string Default = "";
          public string Placeholder = "";
          private Wpf.Ui.Controls.TextBox box_;
@@ -516,6 +530,8 @@ namespace hMailServer.ControlPanel.Views
       private class SectionLinesSetting : Setting
       {
          public string Section;
+
+         protected override bool InSettingsSection => false;
          public string Placeholder = "";
          private Wpf.Ui.Controls.TextBox box_;
          private string loaded_;
@@ -1324,7 +1340,7 @@ namespace hMailServer.ControlPanel.Views
          {
             case Section.Security:
                Header.Title = L("Transport security");
-               Header.Subtitle = L("Outbound mail authentication and encryption policies (hMailServer.INI). Changes take effect after a service restart.");
+               Header.Subtitle = L("Outbound mail authentication and encryption policies (hMailServer.INI).");
                cards_.Add(new CardDef
                {
                   Title = L("DANE & DNSSEC"),
@@ -1501,7 +1517,7 @@ namespace hMailServer.ControlPanel.Views
                cards_.Add(new CardDef
                {
                   Title = L("Forwarded mail & bounce protection (SRS / BATV)"),
-                  Blurb = L("Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set. Changes take effect after a service restart."),
+                  Blurb = L("Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set."),
                   Settings =
                   {
                      new BoolSetting
@@ -1625,7 +1641,7 @@ namespace hMailServer.ControlPanel.Views
                         Default = "7",
                         Label = L("Keep metric history for (days; 0 = do not record)"),
                         Placeholder = "7",
-                        Blurb = L("Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off. Applies after a service restart.")
+                        Blurb = L("Once a minute the server writes one row per metric - sessions, messages processed, delivered, deferred and bounced, spam and viruses, authentication and TLS outcomes, missing message files - to hm_metricsamples, and keeps them this many days. It is what the dashboard's 24 hours, 7 days and 30 days views and GET /api/v1/metrics/history read. A week of minute-resolution history is about a hundred and forty thousand small rows. 0 turns the sampler off.")
                      },
                      new TextSetting
                      {
@@ -1839,7 +1855,7 @@ namespace hMailServer.ControlPanel.Views
                   // the buttons. Everything is off until the check is turned on, and
                   // the check sends nothing but the request.
                   Title = L("Updates"),
-                  Blurb = L("The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request. Every setting here is in hMailServer.ini and applies after a service restart."),
+                  Blurb = L("The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request."),
                   Settings =
                   {
                      new BoolSetting { Key = "UpdateCheckEnabled", Default = false, Label = L("Check for a new release once a day (UpdateCheckEnabled)") },
@@ -1968,7 +1984,7 @@ namespace hMailServer.ControlPanel.Views
             // so every existing link and bookmark still lands here.
             case Section.Hardening:
                Header.Title = L("Server limits & expert settings");
-               Header.Subtitle = L("Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason. Stored in hMailServer.INI, and unless a card says otherwise, changes take effect after a service restart.");
+               Header.Subtitle = L("Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason.");
                cards_.Add(new CardDef
                {
                   Title = L("Timeouts and queue bounds"),
@@ -2292,7 +2308,7 @@ namespace hMailServer.ControlPanel.Views
 
             case Section.Authentication:
                Header.Title = L("Authentication");
-               Header.Subtitle = L("How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI). Changes take effect after a service restart.");
+               Header.Subtitle = L("How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI).");
                cards_.Add(new CardDef
                {
                   Title = L("OAuth2 / external identity provider"),
@@ -2386,7 +2402,7 @@ namespace hMailServer.ControlPanel.Views
 
             case Section.Dns:
                Header.Title = L("DNS resolver");
-               Header.Subtitle = L("How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI). Changes take effect after a service restart.");
+               Header.Subtitle = L("How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI).");
                cards_.Add(new CardDef
                {
                   Title = L("Name servers"),
@@ -2424,7 +2440,7 @@ namespace hMailServer.ControlPanel.Views
 
             case Section.WebServices:
                Header.Title = L("Web services & client autoconfiguration");
-               Header.Subtitle = L("The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI). Changes take effect after a service restart.");
+               Header.Subtitle = L("The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI).");
                cards_.Add(new CardDef
                {
                   Title = L("Listener"),
@@ -2699,10 +2715,33 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         SetState_(SettingsPageState.Saved, F("Saved {0} - restart the service to apply.", DateTime.Now.ToLongTimeString()));
+         // The server published what it stored (docs/SettingsApply.md): a key marked
+         // now is in effect already. What is not is what the server lists as pending
+         // among this page's keys - a key marked reinitialize waits for the window's
+         // Apply now, and only a key marked restart needs the service restarted.
+         var pageKeys = new HashSet<string>(
+            cards_.SelectMany(card => card.Settings).Select(setting => setting.Key).Where(key => !string.IsNullOrEmpty(key)),
+            StringComparer.OrdinalIgnoreCase);
+         List<string> waiting = IniFeatureStore.PendingNames().Where(pageKeys.Contains).ToList();
+         int waitingForRestart = waiting.Count(key => IniFeatureStore.AppliesFor(key) == SettingApplies.Restart);
+         string time = DateTime.Now.ToLongTimeString();
+
+         if (waiting.Count == 0)
+         {
+            SetState_(SettingsPageState.Applied, F("Saved {0} - every setting on this page is in effect.", time));
+            return;
+         }
+
+         if (waitingForRestart == 0)
+         {
+            SetState_(SettingsPageState.Saved, F("Saved {0} - {1} setting(s) wait for a reinitialize; Apply now, in the bar at the foot of the window, takes them.", time, waiting.Count));
+            return;
+         }
+
+         SetState_(SettingsPageState.Saved, F("Saved {0} - restart the service to apply.", time));
 
          if (MessageBox.Show(
-                L("Settings saved. The hMailServer service must be restarted for the changes to take effect.\n\nRestart it now?"),
+                F("Settings saved. {0} of them take effect only when the hMailServer service restarts.\n\nRestart it now?", waitingForRestart),
                 L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
          {
             RestartService();

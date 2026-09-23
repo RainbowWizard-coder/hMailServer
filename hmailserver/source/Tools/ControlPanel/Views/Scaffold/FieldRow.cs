@@ -47,6 +47,9 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       public static readonly DependencyProperty ErrorProperty = DependencyProperty.Register(
          nameof(Error), typeof(string), typeof(FieldRow), new PropertyMetadata(null, OnAnyChanged, NullWhenEmpty));
 
+      public static readonly DependencyProperty AppliesProperty = DependencyProperty.Register(
+         nameof(Applies), typeof(string), typeof(FieldRow), new PropertyMetadata(null, OnAnyChanged, NullWhenEmpty));
+
       /// <summary>The caption, with its Alt key marked by an underscore.</summary>
       public string Label
       {
@@ -66,6 +69,19 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       {
          get => (string)GetValue(ErrorProperty);
          set => SetValue(ErrorProperty, value);
+      }
+
+      /// <summary>
+      /// When a saved value of this field reaches the running server - "Applies on
+      /// save", "After reinitialize" or "After a restart" (Services/SettingApplies) -
+      /// for a field kept in the settings store that was hMailServer.ini's [Settings]
+      /// section, or null for every other field. Shown small under the editor and
+      /// read with its help text, so a screen reader hears it with the field.
+      /// </summary>
+      public string Applies
+      {
+         get => (string)GetValue(AppliesProperty);
+         set => SetValue(AppliesProperty, value);
       }
 
       protected override AutomationControlType ControlType => AutomationControlType.Group;
@@ -108,6 +124,8 @@ namespace hMailServer.ControlPanel.Views.Scaffold
             AutomationProperties.SetName(editor, AccessibleNames.Qualify(MnemonicText.Strip(label), ""));
 
          string help = Hint ?? "";
+         if (Applies != null)
+            help = help.Length == 0 ? Applies : help + " " + Applies;
          if (Error != null)
             help = help.Length == 0 ? Error : help + " " + Error;
 

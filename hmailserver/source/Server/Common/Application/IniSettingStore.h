@@ -91,8 +91,15 @@ namespace HM
       /// boot because its settings store is momentarily unavailable is worse than
       /// one running on the copy sitting in front of it. That fallback is also the
       /// only reason the file is kept complete.
+      ///
+      /// atStart is false for the reload a save runs (IniFileSettings::Reload):
+      /// then a line the file cannot take is not reported as HM5803 again. The
+      /// save that stored it has already said so (HM5806), and on a layout where
+      /// the service cannot write the file at all - the Linux package's - every
+      /// save would otherwise repeat the complaint about every line stored since
+      /// the start. A start reports it, as it always has.
       /// </summary>
-      bool Synchronize(std::map<String, String> &resolvedValues);
+      bool Synchronize(std::map<String, String> &resolvedValues, bool atStart = true);
 
       /// <summary>
       /// The [SettingsOverride] section of the ini: the values an administrator has
@@ -136,11 +143,11 @@ namespace HM
       /// hMailServer.exe /Register, which has no database - keep seeing the old one.
       ///
       /// Note what this does NOT do: it does not make the value take effect in the
-      /// running process. Almost every one of these is latched into a typed member
-      /// by LoadSettings() at start-up, and reloading them here would rewrite ~150
-      /// members underneath running sessions. So the value is persisted and applies
-      /// on the next start. Publishing a change to a running server is a roadmap row
-      /// of its own (Roadmap2 section 13), and it needs this store first.
+      /// running process. IniFileSettings::WriteSettingsValue, which every door to
+      /// the store goes through, does that after this returns - it reloads and
+      /// publishes the store (docs/SettingsApply.md) - and a write straight to this
+      /// store, as the audit trail's revert makes, calls IniFileSettings::Reload
+      /// itself.
       /// </summary>
       static bool WriteSetting(const String &name, const String &value);
 
