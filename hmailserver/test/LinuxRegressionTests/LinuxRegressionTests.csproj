@@ -237,6 +237,7 @@
     <Compile Include="..\RegressionTests\Infrastructure\SessionLimitingTests.cs" Link="Infrastructure\SessionLimitingTests.cs" />
     <Compile Include="..\RegressionTests\Infrastructure\ShutdownDrain.cs" Link="Infrastructure\ShutdownDrain.cs" />
     <Compile Include="..\RegressionTests\Infrastructure\DrainAndUpgrade.cs" Link="Infrastructure\DrainAndUpgrade.cs" />
+    <Compile Include="..\RegressionTests\Infrastructure\SettingsApplyOnSave.cs" Link="Infrastructure\SettingsApplyOnSave.cs" />
     <Compile Include="..\RegressionTests\Infrastructure\SqlLayerErrorHandling.cs" Link="Infrastructure\SqlLayerErrorHandling.cs" />
     <Compile Include="..\RegressionTests\Infrastructure\TCPIP.cs" Link="Infrastructure\TCPIP.cs" />
     <Compile Include="..\RegressionTests\Infrastructure\Timeouts.cs" Link="Infrastructure\Timeouts.cs" />

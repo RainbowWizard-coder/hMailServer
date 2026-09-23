@@ -37,8 +37,9 @@ namespace RegressionTests.Infrastructure
    ///
    ///    Ports: the REST listener on 9876, the web services listener on 9877, the
    ///    ManageSieve listener moved between 9878 and 9879 (the range this row was
-   ///    allocated, 9876-9885). Everything is put back in the teardown, which
-   ///    reinitialises whatever a failure left.
+   ///    allocated, 9876-9885). What the set-up changes the teardown puts back, each
+   ///    write guarded on its own, and it reinitialises whatever a failure left;
+   ///    what a test changes beyond that, the test puts back in its own finally.
    /// </summary>
    [TestFixture]
    public class SettingsApplyOnSave : TestFixtureBase
@@ -80,18 +81,33 @@ namespace RegressionTests.Infrastructure
       {
          try
          {
-            try { Admin("DELETE", "/api/v1/server/drain", null); } catch (Exception e) when (!ExceptionPolicy.IsFatal(e)) { }
-            try { if ((int) _application.ServerState != StateRunning) _application.Start(); } catch (Exception e) when (!ExceptionPolicy.IsFatal(e)) { }
+            Guarded_(() => Admin("DELETE", "/api/v1/server/drain", null));
+            Guarded_(() => { if ((int) _application.ServerState != StateRunning) _application.Start(); });
 
-            IniFileSetting.Write("MaxSubmissionsPerIPPerMinute", "0");
-            IniFileSetting.Write("ManageSieveServerPort", "0");
-            IniFileSetting.Write("CalDavRedirectUrl", "");
+            // Each on its own, so one that fails does not keep the others from being
+            // put back.
+            Guarded_(() => IniFileSetting.Write("MaxSubmissionsPerIPPerMinute", "0"));
+            Guarded_(() => IniFileSetting.Write("ManageSieveServerPort", "0"));
+            Guarded_(() => IniFileSetting.Write("CalDavRedirectUrl", ""));
+            Guarded_(() => IniFileSetting.Delete("WebServicesBindAddress"));
          }
          finally
          {
             IniFileSetting.Write("WebServicesHttpPort", "0");
             RestListener.Stop();
             _application.Reinitialize();
+         }
+      }
+
+      private static void Guarded_(Action step)
+      {
+         try
+         {
+            step();
+         }
+         catch (Exception e) when (!ExceptionPolicy.IsFatal(e))
+         {
+            Console.WriteLine("SettingsApplyOnSave teardown: " + e.Message);
          }
       }
 
@@ -110,6 +126,31 @@ namespace RegressionTests.Infrastructure
             "{\"value\":" + JsonSerializer.Serialize(value) + "}");
          Assert.AreEqual(200, answer.status, "PUT " + name + ": " + answer.body);
          return JsonDocument.Parse(answer.body).RootElement.Clone();
+      }
+
+      /// <summary>GET /api/v1/settings/ini/{name}, answered as JSON.</summary>
+      private JsonElement GetIni_(string name)
+      {
+         (int status, string body) answer = Admin("GET", "/api/v1/settings/ini/" + name, null);
+         Assert.AreEqual(200, answer.status, "GET " + name + ": " + answer.body);
+         return JsonDocument.Parse(answer.body).RootElement.Clone();
+      }
+
+      /// <summary>DELETE /api/v1/settings/ini/{name}, answered as JSON.</summary>
+      private JsonElement DeleteIni_(string name)
+      {
+         (int status, string body) answer = Admin("DELETE", "/api/v1/settings/ini/" + name, null);
+         Assert.AreEqual(200, answer.status, "DELETE " + name + ": " + answer.body);
+         return JsonDocument.Parse(answer.body).RootElement.Clone();
+      }
+
+      /// <summary>Puts one key back as GetIni_ found it: stored with its value, or not stored.</summary>
+      private void PutBack_(string name, JsonElement before)
+      {
+         if (before.GetProperty("present").GetBoolean())
+            PutIni_(name, before.GetProperty("value").GetString());
+         else
+            DeleteIni_(name);
       }
 
       /// <summary>GET /api/v1/server/settings/pending, by name.</summary>
@@ -294,7 +335,7 @@ namespace RegressionTests.Infrastructure
       // ---- the tests ------------------------------------------------------------
 
       [Test]
-      [Description("A key marked now applies when it is saved, with no reinitialise: MaxSubmissionsPerIPPerMinute set to 2 over REST makes the third MAIL FROM on a fresh connection a 421 at once, and set back to 0 the next MAIL FROM is accepted at once. The negative control is the first half: at 0, ten transactions in a row are accepted.")]
+      [Description("A key marked now applies when it is saved, with no reinitialise: MaxSubmissionsPerIPPerMinute set to 2 over REST makes the third MAIL FROM on a fresh connection a 421 at once, and DELETE returns it to its default of unlimited at once - the answer says applies now and pending false, and the next MAIL FROM is accepted. The negative control is the first half: at 0, ten transactions in a row are accepted.")]
       public void ANowKeyAppliesWhenItIsSaved()
       {
          // At 0 - the control - nothing is throttled.
@@ -319,11 +360,17 @@ namespace RegressionTests.Infrastructure
             socket.Send("QUIT\r\n");
          }
 
-         PutIni_("MaxSubmissionsPerIPPerMinute", "0");
+         // Returned to its default with DELETE, which publishes as PUT does: no
+         // reinitialise, and the throttle is gone for the next connection.
+         JsonElement removed = DeleteIni_("MaxSubmissionsPerIPPerMinute");
+         Assert.IsFalse(removed.GetProperty("present").GetBoolean(), "Answer: " + removed);
+         Assert.AreEqual("now", removed.GetProperty("applies").GetString(), "The DELETE answer should carry the key's mark: " + removed);
+         Assert.IsFalse(removed.GetProperty("pending").GetBoolean(), "A key marked now is not pending after a DELETE: " + removed);
 
          using (TcpConnection socket = OpenSmtp_())
          {
-            StringAssert.StartsWith("250", StartTransaction_(socket), "Set back to 0, a MAIL FROM should be accepted at once.");
+            for (int i = 0; i < 3; i++)
+               StringAssert.StartsWith("250", StartTransaction_(socket), "Deleted, the default of unlimited should apply at once - transaction " + i + ".");
             socket.Send("QUIT\r\n");
          }
       }
@@ -408,24 +455,30 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
-      [Description("Every key GET /api/v1/settings/ini lists carries an applies of now, reinitialize or restart, and its applies map holds exactly the [Settings] keys of build/ini-settings-baseline.txt, each with the baseline's mark. The negative control is the comparison itself: a key missing, added or marked differently fails it by name.")]
+      [Description("A check of the route against the baseline, not a proof that any mark is right: every key GET /api/v1/settings/ini lists carries the baseline's mark as applies - or null when the baseline does not list it - and a pending flag, and the applies map holds exactly the [Settings] keys of build/ini-settings-baseline.txt, each with the baseline's mark. check-ini-coverage.py already holds the header the route reads to the baseline, so what this proves is that the route answers the header; whether a mark is TRUE is what the behavioural tests here prove, for the keys they exercise.")]
       public void EveryKeyCarriesItsMark()
       {
          (int status, string body) answer = Admin("GET", "/api/v1/settings/ini", null);
          Assert.AreEqual(200, answer.status, answer.body);
          JsonElement root = JsonDocument.Parse(answer.body).RootElement;
 
-         var words = new HashSet<string> { "now", "reinitialize", "restart" };
+         Dictionary<string, string> baseline = BaselineMarks_();
+         var byName = new Dictionary<string, string>(baseline, StringComparer.OrdinalIgnoreCase);
+
          foreach (JsonElement entry in root.GetProperty("settings").EnumerateArray())
          {
-            string applies = entry.GetProperty("applies").GetString();
-            Assert.IsTrue(words.Contains(applies), entry.GetProperty("name").GetString() + " carries applies '" + applies + "'.");
+            string name = entry.GetProperty("name").GetString();
+            JsonElement applies = entry.GetProperty("applies");
+            if (byName.TryGetValue(name, out string mark))
+               Assert.AreEqual(mark, applies.GetString(), name + " carries a different applies from the baseline's mark.");
+            else
+               Assert.AreEqual(JsonValueKind.Null, applies.ValueKind, name + " is not a key the loader reads, and carries applies " + applies + " rather than null.");
+
             JsonValueKind pendingKind = entry.GetProperty("pending").ValueKind;
             Assert.IsTrue(pendingKind == JsonValueKind.True || pendingKind == JsonValueKind.False,
-               entry.GetProperty("name").GetString() + " carries no pending flag.");
+               name + " carries no pending flag.");
          }
 
-         Dictionary<string, string> baseline = BaselineMarks_();
          var served = new Dictionary<string, string>(StringComparer.Ordinal);
          foreach (JsonProperty property in root.GetProperty("applies").EnumerateObject())
             served[property.Name] = property.Value.GetString();
@@ -464,6 +517,202 @@ namespace RegressionTests.Infrastructure
          CollectionAssert.AreEquivalent(Pending_().Keys.ToArray(),
             settings.PendingIniSettings.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries),
             "COM and REST disagree about what is pending once the value is put back.");
+
+         // Every mark in one call - what the Control Panel reads once per page - and
+         // the same map the REST list answers.
+         var overComAll = new Dictionary<string, string>(StringComparer.Ordinal);
+         foreach (JsonProperty property in JsonDocument.Parse(settings.IniSettingAppliesAll).RootElement.EnumerateObject())
+            overComAll[property.Name] = property.Value.GetString();
+         var overRest = new Dictionary<string, string>(StringComparer.Ordinal);
+         foreach (JsonProperty property in JsonDocument.Parse(Admin("GET", "/api/v1/settings/ini", null).body).RootElement.GetProperty("applies").EnumerateObject())
+            overRest[property.Name] = property.Value.GetString();
+         CollectionAssert.AreEquivalent(overRest, overComAll, "IniSettingAppliesAll and the REST applies map disagree.");
+         Assert.AreEqual("reinitialize", overComAll["ManageSieveServerPort"]);
+      }
+
+      [Test]
+      [Description("REST and COM agree about a name the loader does not read: COM's IniSettingApplies refuses it, and GET /api/v1/settings/ini/{name} answers applies null with the refusal's own sentence as applies_refused - not now, which made a misspelled key look like a working setting. The route still reads the name, which it stores and reads on purpose for a script's own key. The negative control is a key the loader does read, which answers its mark and no applies_refused. COM also takes the name as spelled: with a space round it, it is no key.")]
+      public void ANameTheLoaderDoesNotReadHasNoMarkOnEitherSurface()
+      {
+         const string Unknown = "NoSuchSettingTheLoaderReads";
+
+         string refusedOverCom = null;
+         try
+         {
+            _settings.IniSettingApplies(Unknown);
+         }
+         catch (COMException e)
+         {
+            refusedOverCom = e.Message;
+         }
+         Assert.IsNotNull(refusedOverCom, "COM answered a mark for a name the loader does not read.");
+
+         JsonElement overRest = GetIni_(Unknown);
+         Assert.AreEqual(JsonValueKind.Null, overRest.GetProperty("applies").ValueKind, "REST answered a mark for a name the loader does not read: " + overRest);
+         Assert.AreEqual(refusedOverCom.Trim(), overRest.GetProperty("applies_refused").GetString(), "REST and COM refuse the name in different words.");
+         Assert.IsFalse(overRest.GetProperty("pending").GetBoolean());
+
+         JsonElement known = GetIni_("MaxSubmissionsPerIPPerMinute");
+         Assert.AreEqual("now", known.GetProperty("applies").GetString());
+         Assert.IsFalse(known.TryGetProperty("applies_refused", out _), "A key the loader reads carries applies_refused: " + known);
+
+         Assert.Throws<COMException>(() => _settings.IniSettingApplies(" MaxSubmissionsPerIPPerMinute "),
+            "A name with a space round it is not a key, as GetIniSetting refuses it.");
+      }
+
+      [Test]
+      [Description("Saves racing saves (the review of 22 September 2026, finding 1): two clients each make twenty PUT/DELETE pairs on a key of their own at once - one ending on a DELETE, one on a PUT - and afterwards each key is stored exactly as its own client's last acknowledged request left it. Before the save path took the reload lock for its store write, and before a save's reload was made read-only, one save's reload reconciling the file against the table could write a line back between another save's DELETE of the line and of the row - which that save's reload then adopted, so the setting came back after a DELETE that answered 200 - or put an older value back over a PUT. The race needs two saves inside a few milliseconds of each other, so this cannot fail on demand against that code; it holds the end state, which that code could leave wrong. The internal IniFileSettingsTester runs the same storm on eight threads, and checks the running values as well.")]
+      public void SavesRacingSavesLeaveWhatWasLastAcknowledged()
+      {
+         const int Pairs = 20;
+         const string EndsDeleted = "DmarcRptOrganizationName";
+         const string EndsWritten = "TlsRptOrganizationName";
+
+         JsonElement deletedBefore = GetIni_(EndsDeleted);
+         JsonElement writtenBefore = GetIni_(EndsWritten);
+
+         var failures = new List<string>();
+         string lastWritten = null;
+
+         try
+         {
+            var first = new Thread(() =>
+            {
+               for (int i = 0; i < Pairs; i++)
+               {
+                  (int status, string body) put = Admin("PUT", "/api/v1/settings/ini/" + EndsDeleted, "{\"value\":\"racing " + i + "\"}");
+                  (int status, string body) delete = Admin("DELETE", "/api/v1/settings/ini/" + EndsDeleted, null);
+                  if (put.status != 200 || delete.status != 200)
+                     lock (failures) failures.Add(EndsDeleted + " pair " + i + ": " + put.status + "/" + delete.status);
+               }
+            });
+
+            var second = new Thread(() =>
+            {
+               for (int i = 0; i < Pairs; i++)
+               {
+                  string value = "racing " + i;
+                  (int status, string body) delete = Admin("DELETE", "/api/v1/settings/ini/" + EndsWritten, null);
+                  (int status, string body) put = Admin("PUT", "/api/v1/settings/ini/" + EndsWritten, "{\"value\":\"" + value + "\"}");
+                  if (put.status != 200 || delete.status != 200)
+                     lock (failures) failures.Add(EndsWritten + " pair " + i + ": " + delete.status + "/" + put.status);
+                  else
+                     lastWritten = value;
+               }
+            });
+
+            first.Start();
+            second.Start();
+            first.Join();
+            second.Join();
+
+            CollectionAssert.IsEmpty(failures, "Some of the racing requests were refused.");
+
+            JsonElement deleted = GetIni_(EndsDeleted);
+            Assert.IsFalse(deleted.GetProperty("present").GetBoolean(),
+               EndsDeleted + "'s last acknowledged request was a DELETE, and the setting is back: " + deleted);
+
+            JsonElement written = GetIni_(EndsWritten);
+            Assert.IsTrue(written.GetProperty("present").GetBoolean(), EndsWritten + "'s last acknowledged request was a PUT, and nothing is stored: " + written);
+            Assert.AreEqual(lastWritten, written.GetProperty("value").GetString(),
+               EndsWritten + " holds a value other than the last one acknowledged - another save put an older one back.");
+
+            // And what the store itself holds, over COM, which reads the same rows.
+            string[] names = _settings.IniSettingNames.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            CollectionAssert.DoesNotContain(names, EndsDeleted);
+            CollectionAssert.Contains(names, EndsWritten);
+         }
+         finally
+         {
+            PutBack_(EndsDeleted, deletedBefore);
+            PutBack_(EndsWritten, writtenBefore);
+         }
+      }
+
+      [Test]
+      [Description("A key marked restart is held across a reinitialise: ServiceAccountName saved answers pending with applies restart, and after POST /api/v1/server/reinitialize it is still pending with the same running value - the reinitialise takes the keys marked reinitialize and not this one. Put back, it is not pending. The negative control is the reinitialize key beside it in AReinitializeKeyWaitsForTheReinitialize, which the same reinitialise does take.")]
+      public void ARestartKeyIsHeldAcrossAReinitialize()
+      {
+         const string Key = "ServiceAccountName";
+         JsonElement before = GetIni_(Key);
+         string running = before.GetProperty("value").GetString();
+
+         try
+         {
+            JsonElement saved = PutIni_(Key, @".\hmail-settings-apply-test");
+            Assert.AreEqual("restart", saved.GetProperty("applies").GetString(), "Answer: " + saved);
+            Assert.IsTrue(saved.GetProperty("pending").GetBoolean(), "A saved restart key should answer pending: " + saved);
+
+            ReinitializeOverRest_();
+
+            Dictionary<string, JsonElement> pending = Pending_();
+            Assert.IsTrue(pending.ContainsKey(Key), "The reinitialise took a key marked restart.");
+            Assert.AreEqual(running, pending[Key].GetProperty("running").GetString(), "The running value moved across the reinitialise.");
+            Assert.AreEqual(@".\hmail-settings-apply-test", pending[Key].GetProperty("stored").GetString());
+            Assert.AreEqual("restart", pending[Key].GetProperty("applies").GetString());
+         }
+         finally
+         {
+            PutBack_(Key, before);
+         }
+
+         Assert.IsFalse(Pending_().ContainsKey(Key), "Put back, the key is still pending.");
+      }
+
+      [Test]
+      [Description("A secret in the pending list is named and never shown: MetricsServerAuthPassword saved answers pending, and GET /api/v1/server/settings/pending lists it with secret true, its stored value as (set) and its running value as (set) or empty - and the password's text appears nowhere in the answer. The negative control is ManageSieveServerPort, which is listed with its two values as they are.")]
+      public void ASecretIsNamedInThePendingListAndNeverShown()
+      {
+         const string Key = "MetricsServerAuthPassword";
+         const string Password = "pending-list-secret-9876";
+         JsonElement before = GetIni_(Key);
+         bool hadOne = before.GetProperty("value").GetString().Length > 0;
+
+         try
+         {
+            PutIni_(Key, Password);
+            PutIni_("ManageSieveServerPort", SievePortA.ToString());
+
+            (int status, string body) answer = Admin("GET", "/api/v1/server/settings/pending", null);
+            Assert.AreEqual(200, answer.status, answer.body);
+            StringAssert.DoesNotContain(Password, answer.body, "The pending list shows the password.");
+
+            Dictionary<string, JsonElement> pending = Pending_();
+            Assert.IsTrue(pending.ContainsKey(Key), "The saved secret is not listed as pending: " + answer.body);
+            Assert.IsTrue(pending[Key].GetProperty("secret").GetBoolean());
+            Assert.AreEqual("(set)", pending[Key].GetProperty("stored").GetString());
+            Assert.AreEqual(hadOne ? "(set)" : "", pending[Key].GetProperty("running").GetString());
+
+            Assert.IsFalse(pending["ManageSieveServerPort"].GetProperty("secret").GetBoolean());
+            Assert.AreEqual(SievePortA.ToString(), pending["ManageSieveServerPort"].GetProperty("stored").GetString());
+         }
+         finally
+         {
+            PutIni_("ManageSieveServerPort", "0");
+            PutBack_(Key, before);
+         }
+      }
+
+      [Test]
+      [Description("The database fault injector says so the moment it is set, with no reinitialise: SimulateDatabaseFailureFor saved over REST - a fragment no statement contains, so nothing fails - puts HM6119 in the error log from the save's own subscriber. The negative control is the set-up, which starts every test with no error log at all, and the clear at the end, which announces nothing.")]
+      public void TheFaultInjectorAnnouncesItselfWhenItIsSaved()
+      {
+         const string Key = "SimulateDatabaseFailureFor";
+         JsonElement before = GetIni_(Key);
+         Assert.AreEqual("", before.GetProperty("value").GetString(), "The fault injector is already set on this bench.");
+
+         try
+         {
+            JsonElement saved = PutIni_(Key, "no-statement-contains-this-9876");
+            Assert.AreEqual("now", saved.GetProperty("applies").GetString(), "Answer: " + saved);
+
+            CustomAsserts.AssertReportedError("HM6119", "no-statement-contains-this-9876");
+         }
+         finally
+         {
+            PutBack_(Key, before);
+            LogHandler.DeleteErrorLog();
+         }
       }
    }
 }

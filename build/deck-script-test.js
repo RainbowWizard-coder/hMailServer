@@ -4811,6 +4811,9 @@ async function main() {
       confirmations[confirmations.length - 1]);
    state.drain.draining = false;
    confirmAnswer = true;
+   check('the note under the banner names the three marks and where Apply now is',
+      document.querySelectorAll('.note [data-applies]').length === 3 && $('#content').textContent.indexOf('which Apply now above does when one waits') >= 0);
+
 
    before = requests.length;
    click(act('setsave', { group: 'srv' }));
@@ -5502,6 +5505,34 @@ async function main() {
    check('then waits for the page to answer again, asked without a credential', probes.length === 3 && probes.every((r) => r.credentials === 'omit'), probes.length + ' probes');
    check('and returns to the sign-in card saying the session ended with the restart', $('#gate').style.display === 'grid' && $('#loginErr').textContent.indexOf('restarted') >= 0, $('#loginErr').textContent);
    check('the session mark is gone with it', sessionStorage.getItem('hmsSession') === null);
+
+   // ---- Apply now's yes path, which ends the session as the restart above does
+   // (the review of 22 September 2026, finding 14): one POST, then the wait for the
+   // page to come back - and, with a key marked restart still pending, a sign-in
+   // card that says the reinitialise did not take it rather than that it took the
+   // saved settings.
+   signedIn = false;
+   await signIn();
+   const pendingKept = state.pendingSettings.slice();
+   state.pendingSettings = [
+      { name: 'ManageSieveServerPort', stored: '4190', running: '0', applies: 'reinitialize', secret: false },
+      { name: 'ServiceAccountName', stored: 'svc-hmail', running: '', applies: 'restart', secret: false }
+   ];
+   await goTo('settings');
+   check('a key that waits for a restart is counted beside one that waits for a reinitialize',
+      !!$('#pendingBar') && $('#pendingBar').textContent.indexOf('1 saved setting(s) wait for a reinitialize, and 1 for a service restart.') >= 0,
+      $('#pendingBar') ? $('#pendingBar').textContent : 'no bar');
+   restartProbes = 0;
+   confirmAnswer = true;
+   before = requests.length;
+   click(act('applypending'));
+   await flush();
+   check('Apply now, answered yes, posts one reinitialize', called(before, 'POST', '/api/v1/server/reinitialize').length === 1, paths(before));
+   for (let i = 0; i < 6 && $('#gate').style.display === 'none'; i += 1) { fireTimers(); await flush(); }
+   check('then waits for the page, and says what still waits for a restart when the session ends',
+      $('#gate').style.display === 'grid' && $('#loginErr').textContent.indexOf('1 still wait for a service restart') >= 0 &&
+      $('#loginErr').textContent.indexOf('took the saved settings') < 0, $('#loginErr').textContent);
+   state.pendingSettings = pendingKept;
 
    // ---- back in, to the logs
    signedIn = false;

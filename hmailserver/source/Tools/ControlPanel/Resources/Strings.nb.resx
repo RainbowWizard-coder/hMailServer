@@ -59,6 +59,9 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> - ingen ServicePassword lagres eller skrives inn, og et tomt passord avvises før det sendes</value>
   </data>
+  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value> - serverinnstillinger tas i bruk umiddelbart; innstillinger i hMailServer.ini gjelder etter en omstart av tjenesten.</value>
+  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> - vist ovenfor som navnet på denne maskinen</value>
   </data>
@@ -169,6 +172,9 @@ Vil du lagre dette svake passordet likevel?</value>
   </data>
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> {0} av {1} meldinger er indeksert.</value>
+  </data>
+  <data name=" — INI settings need a service restart." xml:space="preserve">
+    <value> — INI-innstillinger krever en omstart av tjenesten.</value>
   </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — tas i bruk umiddelbart.</value>
@@ -1596,8 +1602,14 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>Sikkerhetskopiintervall i minutter (0 = av)</value>
   </data>
+  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
+    <value>Tidsplan for sikkerhetskopiering lagret - tjenesten leser disse innstillingene når den starter, så de gjelder etter omstart av tjenesten.</value>
+  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>Tidsplan for sikkerhetskopiering lagret.</value>
+  </data>
+  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
+    <value>Innstillinger for sikkerhetskopiering lagret - bryteren for bare meldingsmetadata gjelder etter omstart av tjenesten.</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>Innstillinger for sikkerhetskopiering lagret.</value>
@@ -6765,6 +6777,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>Reinitialisert - de lagrede innstillingene gjelder.</value>
   </data>
+  <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
+    <value>Reinitialisert – innstillingene som ventet på en reinitialisering, er i kraft; {0} venter fortsatt på en omstart av tjenesten.</value>
+  </data>
   <data name="Reinitializing the server..." xml:space="preserve">
     <value>Reinitialiserer serveren...</value>
   </data>
@@ -8000,6 +8015,11 @@ Fortsette?</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Innstillinger</value>
+  </data>
+  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>Innstillinger lagret. hMailServer-tjenesten må startes på nytt for at endringene skal tre i kraft.
+
+Starte den på nytt nå?</value>
   </data>
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>Innstillingene er lagret. {0} av dem trer i kraft først når hMailServer-tjenesten startes på nytt.

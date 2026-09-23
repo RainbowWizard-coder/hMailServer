@@ -59,6 +59,9 @@ Czy mimo to zapisać to słabe hasło?</value>
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> - żadne ServicePassword nie jest przechowywane ani wpisywane, a puste hasło jest odrzucane, zanim zostanie wysłane</value>
   </data>
+  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value> - ustawienia serwera stosowane natychmiast; ustawienia z hMailServer.ini obowiązują po ponownym uruchomieniu usługi.</value>
+  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> - pokazywana powyżej jako nazwa tego komputera</value>
   </data>
@@ -169,6 +172,9 @@ Czy mimo to zapisać to słabe hasło?</value>
   </data>
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> Zindeksowano {0} z {1} wiadomości.</value>
+  </data>
+  <data name=" — INI settings need a service restart." xml:space="preserve">
+    <value> — ustawienia INI wymagają ponownego uruchomienia usługi.</value>
   </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — stosowane natychmiast.</value>
@@ -1596,8 +1602,14 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>Interwał kopii zapasowej w minutach (0 = wyłączone)</value>
   </data>
+  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
+    <value>Harmonogram kopii zapasowych zapisany - usługa odczytuje te ustawienia przy uruchamianiu, więc obowiązują po ponownym uruchomieniu usługi.</value>
+  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>Harmonogram kopii zapasowych zapisany.</value>
+  </data>
+  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
+    <value>Ustawienia kopii zapasowej zapisane - przełącznik obejmujący wyłącznie metadane wiadomości obowiązuje po ponownym uruchomieniu usługi.</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>Ustawienia kopii zapasowej zapisane.</value>
@@ -6765,6 +6777,9 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>Ponownie zainicjalizowano - zapisane ustawienia obowiązują.</value>
   </data>
+  <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
+    <value>Ponownie zainicjalizowano – ustawienia, które czekały na ponowną inicjalizację, obowiązują; {0} nadal czeka na ponowne uruchomienie usługi.</value>
+  </data>
   <data name="Reinitializing the server..." xml:space="preserve">
     <value>Ponowna inicjalizacja serwera...</value>
   </data>
@@ -8000,6 +8015,11 @@ Kontynuować?</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Ustawienia</value>
+  </data>
+  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>Ustawienia zapisane. Aby zmiany zaczęły obowiązywać, usługa hMailServer musi zostać uruchomiona ponownie.
+
+Uruchomić ją teraz ponownie?</value>
   </data>
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>Ustawienia zapisane. {0} z nich zacznie obowiązywać dopiero po ponownym uruchomieniu usługi hMailServer.

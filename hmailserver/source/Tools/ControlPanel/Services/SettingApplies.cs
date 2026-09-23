@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Services
@@ -15,8 +17,9 @@ namespace hMailServer.ControlPanel.Services
    /// [Settings] section, and in the sentence the window's pending bar says.
    ///
    /// The server decides the mark, not this program: every such key carries one in
-   /// build/ini-settings-baseline.txt, answered over COM by
-   /// Settings.IniSettingApplies(name) and over REST as applies
+   /// build/ini-settings-baseline.txt, answered over COM for one key by
+   /// Settings.IniSettingApplies(name) and for every key at once by
+   /// Settings.IniSettingAppliesAll, and over REST as applies
    /// (docs/SettingsApply.md). Three words:
    ///
    ///   now           a save applies it - most keys;
@@ -56,6 +59,70 @@ namespace hMailServer.ControlPanel.Services
                return null;
          }
       }
+
+      /// <summary>
+      /// Settings.IniSettingAppliesAll's answer - one JSON object from key to mark -
+      /// as a map matched without case, as the server matches keys. Empty for null
+      /// or blank; a JsonException for anything that is not such an object, which
+      /// the caller treats as a failed read and does not remember.
+      /// </summary>
+      public static Dictionary<string, string> ParseMarks(string json)
+      {
+         var marks = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+         if (string.IsNullOrWhiteSpace(json))
+            return marks;
+
+         using JsonDocument document = JsonDocument.Parse(json);
+         if (document.RootElement.ValueKind != JsonValueKind.Object)
+            throw new JsonException("The marks are not a JSON object."); // no-loc
+
+         foreach (JsonProperty property in document.RootElement.EnumerateObject())
+         {
+            if (property.Value.ValueKind == JsonValueKind.String)
+               marks[property.Name] = property.Value.GetString();
+         }
+
+         return marks;
+      }
+
+      /// <summary>
+      /// Whether a COM call failed because the server has no such member - a server
+      /// from before 22 September 2026, which marks nothing and lists nothing as
+      /// pending because it applies every [Settings] key at its next start. The
+      /// late-bound call answers DISP_E_UNKNOWNNAME for a name the object's
+      /// IDispatch does not know (DISP_E_MEMBERNOTFOUND for a property it has
+      /// without that accessor), and the binder may say it in its own words. Told
+      /// apart from any other failure, which may be a moment's - a reinitialise in
+      /// progress, a dropped link - and is never remembered.
+      /// </summary>
+      public static bool IsMissingMember(Exception failure)
+      {
+         const int UnknownName = unchecked((int)0x80020006);     // DISP_E_UNKNOWNNAME
+         const int MemberNotFound = unchecked((int)0x80020003);  // DISP_E_MEMBERNOTFOUND
+
+         for (Exception e = failure; e != null; e = e.InnerException)
+         {
+            if (e is COMException com && (com.HResult == UnknownName || com.HResult == MemberNotFound))
+               return true;
+            if (e is MissingMemberException)
+               return true;
+            if (e.GetType().FullName == "Microsoft.CSharp.RuntimeBinder.RuntimeBinderException") // no-loc
+               return true;
+         }
+
+         return false;
+      }
+
+      /// <summary>
+      /// What Apply now says once the server is Running again. A reinitialise takes
+      /// the keys marked reinitialize and not those marked restart, so when some of
+      /// those are still pending it says how many rather than that everything saved
+      /// is in effect.
+      /// </summary>
+      public static string AppliedSentence(int stillWaitingForRestart)
+         => stillWaitingForRestart <= 0
+            ? L("Reinitialized - the saved settings are in effect.")
+            : F("Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart.", stillWaitingForRestart);
 
       /// <summary>
       /// The names Settings.PendingIniSettings lists, one per line as

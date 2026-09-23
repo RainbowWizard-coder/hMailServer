@@ -59,6 +59,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> - er wordt geen ServicePassword opgeslagen of getypt, en een leeg wachtwoord wordt geweigerd voordat het wordt verzonden</value>
   </data>
+  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value> - serverinstellingen worden direct toegepast; instellingen in hMailServer.ini gelden na een herstart van de service.</value>
+  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> - hierboven getoond als de naam van deze machine</value>
   </data>
@@ -169,6 +172,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   </data>
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> {0} van {1} berichten zijn geïndexeerd.</value>
+  </data>
+  <data name=" — INI settings need a service restart." xml:space="preserve">
+    <value> — INI-instellingen vereisen een herstart van de service.</value>
   </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — direct toegepast.</value>
@@ -1596,8 +1602,14 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>Back-upinterval in minuten (0 = uit)</value>
   </data>
+  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
+    <value>Back-upschema opgeslagen - de service leest deze instellingen bij het starten, dus ze gelden na een herstart van de service.</value>
+  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>Back-upschema opgeslagen.</value>
+  </data>
+  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
+    <value>Back-upinstellingen opgeslagen - de schakelaar voor alleen berichtmetadata geldt na een herstart van de service.</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>Back-upinstellingen opgeslagen.</value>
@@ -6765,6 +6777,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>Geherinitialiseerd - de opgeslagen instellingen zijn van kracht.</value>
   </data>
+  <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
+    <value>Geherinitialiseerd - de instellingen die op een herinitialisatie wachtten, zijn van kracht; {0} wachten nog op een herstart van de service.</value>
+  </data>
   <data name="Reinitializing the server..." xml:space="preserve">
     <value>De server wordt geherinitialiseerd...</value>
   </data>
@@ -8000,6 +8015,11 @@ Doorgaan?</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Instellingen</value>
+  </data>
+  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>Instellingen opgeslagen. De hMailServer-service moet worden herstart om de wijzigingen van kracht te laten worden.
+
+Nu herstarten?</value>
   </data>
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>Instellingen opgeslagen. {0} ervan worden pas van kracht wanneer de hMailServer-service opnieuw start.

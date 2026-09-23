@@ -103,6 +103,11 @@ namespace RegressionTests.Shared
       public const string NoIniSettings =
          "reads or writes hMailServer.ini through Settings.GetIniSetting/SetIniSetting/DeleteIniSetting, and this server's REST API has no /api/v1/settings/ini (it arrived after 6.3.2)";
 
+      public const string NoSettingsApply =
+         "reads when a saved setting applies - Settings.IniSettingApplies, IniSettingAppliesAll or "
+         + "PendingIniSettings - and this server's REST API answers no applies and has no GET "
+         + "/api/v1/server/settings/pending (they arrived after 6.3.4)";
+
       public const string NoChangedFromStock =
          "reads Settings.GetChangedFromDefault, and this server's REST API has no GET "
          + "/api/v1/settings/changed (it arrived after 6.3.3)";

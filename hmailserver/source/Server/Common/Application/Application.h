@@ -146,7 +146,7 @@ namespace HM
 
       // The backup schedule's task, registered by a start when a schedule is
       // configured and by a save that configures one on a running server.
-      void ScheduleBackups_();
+      void ScheduleBackups_(std::shared_ptr<Scheduler> scheduler);
 
       // The subsystems that re-latch a [Settings] value when a save changes it
       // (IniFileSettings::Subscribe). Once per process; see the definition.
@@ -213,6 +213,13 @@ namespace HM
       // the scheduler.
       std::shared_ptr<ScheduledTask> greylist_cleaner_task_;
       std::shared_ptr<ScheduledTask> backup_schedule_task_;
+
+      // Guards scheduler_ and the two handles above wherever a thread other than
+      // the one starting or stopping the servers reaches them - the subscribers a
+      // save calls (SubscribeToSettings_). A service stop resets them without the
+      // reinitialise mutex those subscribers try, so without this a subscriber could
+      // copy a handle the stop was resetting. Held only to copy or assign a pointer.
+      boost::mutex scheduler_handles_mutex_;
 
       // Reinitialize() is reachable from a COM client and from the
       // Reinitializator thread an ACME deployment or a backup restore starts,

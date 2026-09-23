@@ -16,9 +16,10 @@
 // created, a rule deleted - is not a change with an old value to write.
 //
 // Everything else is: the old value goes through PropertySet::SetString or
-// SetLong for an hm_settings row, or through IniSettingStore::WriteSetting or
-// RemoveSetting for a [Settings] key - the two chokepoints that record a
-// change and, for a property, tell the running server - so the put-back is
+// SetLong for an hm_settings row, or through IniFileSettings::WriteSettingsValue
+// or RemoveSettingsValue for a [Settings] key - which record the change through
+// IniSettingStore::WriteSetting and RemoveSetting and publish it as any save
+// does - so the put-back is
 // one more row in the trail, made by whoever asked for it, and never a quiet
 // edit of history.
 #include "StdAfx.h"
@@ -115,15 +116,16 @@ namespace HM
       {
          if (oldValue == _T("(default)"))
          {
-            if (!IniSettingStore::RemoveSetting(spelling))
+            // Through IniFileSettings, as every other door to the store goes: the
+            // removal and its reload under the one hold of the reload lock that keeps
+            // another save's reload from writing the line back between them, and
+            // published - a key marked now is back at its default when the revert
+            // returns.
+            if (!IniFileSettings::Instance()->RemoveSettingsValue(spelling))
             {
                error = _T("The setting could not be returned to its default: the row or the line could not be removed. The error log says which.");
                return false;
             }
-
-            // Published, as a save through IniFileSettings is: a key marked now is
-            // back in effect when the revert returns.
-            IniFileSettings::Instance()->Reload();
 
             restored = _T("(default)");
             return true;
@@ -135,13 +137,12 @@ namespace HM
             return false;
          }
 
-         if (!IniSettingStore::WriteSetting(spelling, oldValue))
+         // As above: the store write and its reload under one hold, and published.
+         if (!IniFileSettings::Instance()->WriteSettingsValue(spelling, oldValue))
          {
             error = _T("The value could not be written. The error log says why.");
             return false;
          }
-
-         IniFileSettings::Instance()->Reload();
 
          restored = oldValue;
          return true;

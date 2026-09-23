@@ -15,7 +15,8 @@ namespace HM
    ScheduledTask::ScheduledTask(void) :
       Task("ScheduledTask"),
       minutes_between_run_(0),
-      reoccurance_(RunOnce)
+      reoccurance_(RunOnce),
+      period_restarts_(0)
    {
 
    }
@@ -46,6 +47,14 @@ namespace HM
       DateTimeSpan dts;
       dts.SetDateTimeSpan(0, 0, minutes_between_run_, 0);
       next_run_time_ = DateTime::GetCurrentTime() + dts;
+
+      period_restarts_++;
+   }
+
+   unsigned int
+   ScheduledTask::GetPeriodRestarts() const
+   {
+      return period_restarts_;
    }
 
    ScheduledTask::Reoccurance 

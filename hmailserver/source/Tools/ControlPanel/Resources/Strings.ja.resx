@@ -59,6 +59,9 @@
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> - ServicePassword は保存も入力もされず、空のパスワードは送信される前に拒否されます</value>
   </data>
+  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value> - サーバー設定は直ちに適用されます。hMailServer.ini の設定はサービスの再起動後に適用されます。</value>
+  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> - 上ではこのコンピューターの名前として表示されています</value>
   </data>
@@ -169,6 +172,9 @@
   </data>
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> {1} 件中 {0} 件のメッセージがインデックスに登録されています。</value>
+  </data>
+  <data name=" — INI settings need a service restart." xml:space="preserve">
+    <value> — INI の設定はサービスの再起動が必要です。</value>
   </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — 直ちに適用されます。</value>
@@ -1596,8 +1602,14 @@
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>バックアップ間隔 (分、0 = 無効)</value>
   </data>
+  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
+    <value>バックアップ スケジュールを保存しました。サービスはこれらの設定を起動時に読み取るため、サービスの再起動後に適用されます。</value>
+  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>バックアップ スケジュールを保存しました。</value>
+  </data>
+  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
+    <value>バックアップ設定を保存しました。メッセージ メタデータのみのスイッチはサービスの再起動後に適用されます。</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>バックアップ設定を保存しました。</value>
@@ -6765,6 +6777,9 @@
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>再初期化しました。保存した設定が有効です。</value>
   </data>
+  <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
+    <value>再初期化しました - 再初期化を待っていた設定は有効になりました。{0} 件はまだサービスの再起動を待っています。</value>
+  </data>
   <data name="Reinitializing the server..." xml:space="preserve">
     <value>サーバーを再初期化しています...</value>
   </data>
@@ -8000,6 +8015,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Settings" xml:space="preserve">
     <value>設定</value>
+  </data>
+  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>設定を保存しました。変更を有効にするには hMailServer サービスを再起動する必要があります。
+
+今すぐ再起動しますか?</value>
   </data>
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>設定を保存しました。このうち {0} 件は hMailServer サービスの再起動後にのみ有効になります。

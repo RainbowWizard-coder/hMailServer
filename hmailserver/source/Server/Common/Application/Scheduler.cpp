@@ -72,7 +72,9 @@ namespace HM
    // greylist cleanup - with nothing logged to say so.
    //---------------------------------------------------------------------------
    {
-      std::vector<std::shared_ptr<ScheduledTask> > due;
+      // Each due task with how many times its period had been restarted when it was
+      // found due (ScheduledTask::GetPeriodRestarts).
+      std::vector<std::pair<std::shared_ptr<ScheduledTask>, unsigned int> > due;
 
       {
          boost::lock_guard<boost::recursive_mutex> guard(mutex_);
@@ -84,12 +86,14 @@ namespace HM
             std::shared_ptr<ScheduledTask> pTask = (*iterTask);
 
             if (pTask->GetNextRunTime() <= dtNow)
-               due.push_back(pTask);
+               due.push_back(std::make_pair(pTask, pTask->GetPeriodRestarts()));
          }
       }
 
-      for (std::shared_ptr<ScheduledTask> pTask : due)
+      for (auto &entry : due)
       {
+         std::shared_ptr<ScheduledTask> pTask = entry.first;
+
          try
          {
             pTask->Run();
@@ -110,9 +114,13 @@ namespace HM
 
          // Rescheduled whatever happened, so a task that fails once is retried on its
          // own interval rather than run again on every tick. Under the lock, because
-         // SetTaskInterval writes the same time from a thread that saved a setting.
+         // SetTaskInterval writes the same time from a thread that saved a setting -
+         // and not at all when it did so while the task ran: RestartPeriod has set the
+         // next run from now already, and moving it on from there would put the
+         // first run after the save at twice the new period.
          boost::lock_guard<boost::recursive_mutex> guard(mutex_);
-         pTask->SetNextRunTime();
+         if (pTask->GetPeriodRestarts() == entry.second)
+            pTask->SetNextRunTime();
       }
    }
 

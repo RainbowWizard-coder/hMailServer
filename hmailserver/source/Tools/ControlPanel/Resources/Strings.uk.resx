@@ -59,6 +59,9 @@
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> — ServicePassword не збережено й не введено, а порожній пароль відхиляється ще до надсилання</value>
   </data>
+  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value> — параметри сервера застосовуються негайно; параметри з hMailServer.ini — після перезапуску служби.</value>
+  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> — показано вище як ім’я цього комп’ютера</value>
   </data>
@@ -169,6 +172,9 @@
   </data>
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> Проіндексовано {0} з {1} повідомлень.</value>
+  </data>
+  <data name=" — INI settings need a service restart." xml:space="preserve">
+    <value> — параметри INI потребують перезапуску служби.</value>
   </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — застосовується негайно.</value>
@@ -1596,8 +1602,14 @@
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>Інтервал резервного копіювання у хвилинах (0 = вимкнено)</value>
   </data>
+  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
+    <value>Розклад резервного копіювання збережено — служба читає ці параметри під час запуску, тому вони застосовуються після перезапуску служби.</value>
+  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>Розклад резервного копіювання збережено.</value>
+  </data>
+  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
+    <value>Параметри резервного копіювання збережено — перемикач «лише метадані повідомлень» застосовується після перезапуску служби.</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>Параметри резервного копіювання збережено.</value>
@@ -6765,6 +6777,9 @@
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>Повторну ініціалізацію виконано — збережені параметри діють.</value>
   </data>
+  <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
+    <value>Повторну ініціалізацію виконано — налаштування, що на неї чекали, діють; {0} ще чекають на перезапуск служби.</value>
+  </data>
   <data name="Reinitializing the server..." xml:space="preserve">
     <value>Повторна ініціалізація сервера...</value>
   </data>
@@ -8000,6 +8015,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Параметри</value>
+  </data>
+  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>Параметри збережено. Щоб зміни набрали чинності, службу hMailServer потрібно перезапустити.
+
+Перезапустити зараз?</value>
   </data>
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>Параметри збережено. {0} з них наберуть чинності лише після перезапуску служби hMailServer.

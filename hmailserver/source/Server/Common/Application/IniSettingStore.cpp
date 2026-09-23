@@ -314,7 +314,7 @@ namespace HM
       static const String kStore = _T("database");
       static const String kReadMe =
          _T("The [Settings] section below is a CACHE of the hm_inisettings table, which is the settings store from schema 6042. ")
-         _T("Editing a value here does not change it: the stored value is used, the edit is named in hMailServer_ERROR.log and the line is put back at the next start. ")
+         _T("Editing a value here does not change it: the stored value is used, the edit is named in hMailServer_ERROR.log and the line is put back at the next start or reinitialise. ")
          _T("Settings are changed in the Control Panel, over the REST API at /api/v1/settings/ini, with hmctl, or - for a setting needed before the REST listener is on, such as RestApiPort on Linux - with hmailserver --set-setting NAME=VALUE. ")
          _T("To force a value from this file - when the database is unreachable or wrong - put it in a [SettingsOverride] section, which is applied over the store and announced in the error log at every start. ")
          _T("[Directories], [Database] and [Security] are NOT settings: they are how the database is reached and how an administrator is let in without one, and they stay here.");
@@ -336,7 +336,26 @@ namespace HM
    }
 
    bool
-   IniSettingStore::Synchronize(std::map<String, String> &resolvedValues, bool atStart)
+   IniSettingStore::ReadStoredValues(std::map<String, String> &values)
+   {
+      values.clear();
+
+      std::map<String, std::pair<String, String> > rows;
+      if (!ReadAllRows(rows))
+         return false;
+
+      // Every row, a file-only name's included: a row for PasswordPepper is left
+      // only when the start could not write it into the file, and the start ran on
+      // the stored value then (Synchronize, step 1), so a reload must too - reading
+      // the file's instead would change the pepper every hash is made with.
+      for (auto iter = rows.begin(); iter != rows.end(); iter++)
+         values[(*iter).first] = (*iter).second.first;
+
+      return true;
+   }
+
+   bool
+   IniSettingStore::Synchronize(std::map<String, String> &resolvedValues)
    {
       resolvedValues.clear();
 
@@ -528,9 +547,7 @@ namespace HM
                StringParser::JoinVector(edited, _T(", "))));
       }
 
-      // Said at a start; a save's reload leaves it to the HM5806 the save itself
-      // reported (see the declaration).
-      if (!unwritable.empty() && atStart)
+      if (!unwritable.empty())
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5803, "IniSettingStore::Synchronize",
             Formatter::Format("These settings could not be written into hMailServer.INI: {0}. The server is using the stored values, so the settings themselves are right, but hMailServer.exe /Register and anything else that reads the file directly will see the old ones until the account the service runs as has write access to it.",

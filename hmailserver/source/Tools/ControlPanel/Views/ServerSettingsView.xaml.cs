@@ -420,7 +420,14 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private interface IIniSetting
       {
-         void SaveToIni();
+         /// <summary>
+         /// Writes the row's value when it is not what the editor was filled with,
+         /// and says whether it wrote. Every write publishes on the server
+         /// (docs/SettingsApply.md): a page of a hundred rows saved with one changed
+         /// used to be a hundred reloads of the whole store, and stored every default
+         /// it had merely shown.
+         /// </summary>
+         bool SaveToIni();
       }
 
       /// <summary>
@@ -447,17 +454,26 @@ namespace hMailServer.ControlPanel.Views
             if (IniStore != null && IniStore.IsAvailable)
                current = IniStore.ReadBool(Path, Default);
 
+            loaded_ = current;
             return box_ = CheckEditor(current);
          }
 
+         private bool? loaded_;
+
          public override object ReadEditor() => box_?.IsChecked is true;
 
-         public void SaveToIni()
+         public bool SaveToIni()
          {
             if (IniStore == null || !IniStore.IsAvailable || box_ == null)
-               return;
+               return false;
 
-            IniStore.WriteBool(Path, box_.IsChecked is true);
+            bool value = box_.IsChecked is true;
+            if (loaded_ == value)
+               return false;
+
+            IniStore.WriteBool(Path, value);
+            loaded_ = value;
+            return true;
          }
       }
 
@@ -491,19 +507,28 @@ namespace hMailServer.ControlPanel.Views
             if (IniStore != null && IniStore.IsAvailable && !int.TryParse(ReadRaw(), out current))
                current = Default;
 
+            loaded_ = ((long)current).ToString();
             return number_ = NumberEditor(current, MinimumValue, Default);
          }
 
+         private string loaded_;
+
          public override object ReadEditor() => (long)(number_?.Value ?? Default);
 
-         /// <summary>Persists to hMailServer.ini. Save_Click calls this instead
-         /// of the COM write path.</summary>
-         public void SaveToIni()
+         /// <summary>Persists to hMailServer.ini when changed. Save_Click calls this
+         /// instead of the COM write path.</summary>
+         public bool SaveToIni()
          {
             if (IniStore == null || !IniStore.IsAvailable || number_ == null)
-               return;
+               return false;
 
-            WriteRaw(((long)(number_.Value ?? Default)).ToString());
+            string value = ((long)(number_.Value ?? Default)).ToString();
+            if (value == loaded_)
+               return false;
+
+            WriteRaw(value);
+            loaded_ = value;
+            return true;
          }
 
          /// <summary>Where the value is read from and written to - [Settings], unless a subclass says otherwise.</summary>
@@ -568,18 +593,27 @@ namespace hMailServer.ControlPanel.Views
             if (IniStore != null && IniStore.IsAvailable)
                current = IniStore.Read(Path, Default);
 
+            loaded_ = (current ?? "").Trim();
             box_ = TextEditor(current, Placeholder);
             return BrowseFolder ? WithBrowse(box_, folder: true, null) : box_;
          }
 
+         private string loaded_;
+
          public override object ReadEditor() => box_?.Text?.Trim() ?? "";
 
-         public void SaveToIni()
+         public bool SaveToIni()
          {
             if (IniStore == null || !IniStore.IsAvailable || box_ == null)
-               return;
+               return false;
 
-            IniStore.Write(Path, box_.Text.Trim());
+            string value = box_.Text.Trim();
+            if (value == loaded_)
+               return false;
+
+            IniStore.Write(Path, value);
+            loaded_ = value;
+            return true;
          }
       }
 
@@ -949,7 +983,13 @@ namespace hMailServer.ControlPanel.Views
          BuildDefinition();
       }
 
-      public void OnEnter() => BuildUi();
+      public void OnEnter()
+      {
+         // Every field's mark in one call (IniFeatureStore.LoadMarks), before the
+         // rows that show them are built.
+         IniFeatureStore.LoadMarks();
+         BuildUi();
+      }
 
       public void OnLeave()
       {
@@ -2042,8 +2082,8 @@ namespace hMailServer.ControlPanel.Views
             Blurb = L("0 means the connection is dropped but no range is created, so the address is not actually banned.")
          });
 
-         // What a ban does below the server. Three INI keys, read at start-up;
-         // the checker in CI (build/check-ini-coverage.py) requires every key the
+         // What a ban does below the server. Three INI keys, read where the ban is
+         // placed, so a save applies them; the checker in CI (build/check-ini-coverage.py) requires every key the
          // server reads to have an editor here, which is also why they are
          // findable from the palette.
          var below = Card(L("Below the server: the firewall"),
@@ -3615,21 +3655,33 @@ namespace hMailServer.ControlPanel.Views
          // written" and nothing about which or why.
          string firstFailure = null;
 
-         // The [Settings] keys this save wrote, to ask the server which of them it
-         // is not yet running on. [Database] rows (SectionIniNumber) are not among
-         // them: those are read once at the start and their row says so.
+         // The [Settings] keys on this page, to ask the server which of them it is
+         // not yet running on - written by this save or by an earlier one. [Database]
+         // rows (SectionIniNumber) are not among them: those are read before the
+         // database is open, never listed as pending, and a changed one is counted
+         // as waiting by itself.
          var iniKeys = new List<string>();
+         int databaseRowsChanged = 0;
 
          foreach (ComSetting setting in tabs_.SelectMany(tab => tab.Cards).SelectMany(card => card.Settings))
          {
             try
             {
-               // INI-backed rows are not in the COM settings tree.
+               // INI-backed rows are not in the COM settings tree. A row whose value
+               // is what it was filled with is not written (IIniSetting.SaveToIni), and
+               // is still what the server holds, so it is counted as saved.
                if (setting is IIniSetting ini)
                {
-                  ini.SaveToIni();
-                  if (!(setting is SectionIniNumber) && !string.IsNullOrEmpty(setting.Path))
+                  bool wrote = ini.SaveToIni();
+                  if (setting is SectionIniNumber)
+                  {
+                     if (wrote)
+                        databaseRowsChanged++;
+                  }
+                  else if (!string.IsNullOrEmpty(setting.Path))
+                  {
                      iniKeys.Add(setting.Path);
+                  }
                   saved++;
                   continue;
                }
@@ -3663,11 +3715,23 @@ namespace hMailServer.ControlPanel.Views
          // happened. A save that failed anywhere is Critical, because what is on
          // screen is then not what the server holds and the reader has to find out
          // which rows.
-         int waiting = 0;
+         //
+         // One read of the pending list for the whole save; the window's bar reuses
+         // it. Null - the server cannot say, an older one whose keys all apply at its
+         // next start - is not "none", and the sentence then says what it said then.
+         int? waiting = databaseRowsChanged;
          if (iniKeys.Count > 0)
          {
-            var pending = new HashSet<string>(IniFeatureStore.PendingNames(), StringComparer.OrdinalIgnoreCase);
-            waiting = iniKeys.Count(pending.Contains);
+            IReadOnlyList<string> pendingList = IniFeatureStore.PendingNames();
+            if (pendingList == null)
+            {
+               waiting = null;
+            }
+            else
+            {
+               var pending = new HashSet<string>(pendingList, StringComparer.OrdinalIgnoreCase);
+               waiting = databaseRowsChanged + iniKeys.Count(pending.Contains);
+            }
          }
 
          ServerSettingsPageState outcome = failed == 0 ? ServerSettingsPageState.Saved : ServerSettingsPageState.PartlySaved;
@@ -3678,7 +3742,9 @@ namespace hMailServer.ControlPanel.Views
             ServerSettingsPageStatus.LevelFor(outcome));
 
          if (failed == 0)
-            Services.Toast.Success(F("Saved {0} settings", saved) + (waiting > 0 ? F(" \u2014 {0} wait for a reinitialize or a restart.", waiting) : L(" \u2014 applied immediately.")));
+            Services.Toast.Success(F("Saved {0} settings", saved) + (waiting == null
+               ? L(" \u2014 INI settings need a service restart.")
+               : waiting > 0 ? F(" \u2014 {0} wait for a reinitialize or a restart.", waiting.Value) : L(" \u2014 applied immediately.")));
          else
             Services.Toast.Info(F("{0} setting(s) could not be written.", failed), L("Partly saved"));
 

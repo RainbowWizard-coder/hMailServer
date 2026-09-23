@@ -112,17 +112,22 @@ namespace hMailServer.ControlPanel.Services
       /// The sentence after a save. A save publishes (docs/SettingsApply.md), so a
       /// row kept in the settings store applies as a COM row does unless the server
       /// marks its key reinitialize or restart and lists it as pending; waiting is
-      /// how many of this save's keys it lists, and the sentence claims exactly
-      /// that - no restart nobody needs, and no effect that has not happened.
+      /// how many of this page's keys it lists, and the sentence claims exactly
+      /// that - no restart nobody needs, and no effect that has not happened. Null
+      /// waiting is a server that cannot say - one from before a save could publish,
+      /// whose hMailServer.ini settings all apply at its next start - and the
+      /// sentence then says what it said then rather than claim they applied.
       /// </summary>
-      public static string SaveSentence(int saved, int failed, string timeText, int waiting)
+      public static string SaveSentence(int saved, int failed, string timeText, int? waiting)
       {
          if (failed > 0)
             return F("Saved {0} settings, {1} could not be written.", saved, failed);
 
-         string appliedNote = waiting > 0
-            ? F(" - {0} of them wait for a reinitialize or a restart; the rest applied immediately.", waiting)
-            : L(" - applied immediately.");
+         string appliedNote = waiting == null
+            ? L(" - server settings applied immediately; hMailServer.ini settings apply after a service restart.")
+            : waiting > 0
+               ? F(" - {0} of them wait for a reinitialize or a restart; the rest applied immediately.", waiting.Value)
+               : L(" - applied immediately.");
 
          return F("Saved {0} settings at {1}", saved, timeText ?? "") + appliedNote;
       }

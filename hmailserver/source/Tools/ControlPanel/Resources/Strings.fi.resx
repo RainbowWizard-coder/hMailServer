@@ -59,6 +59,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> – ServicePassword-arvoa ei tallenneta eikä kirjoiteta, ja tyhjä salasana hylätään ennen lähettämistä</value>
   </data>
+  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value> – palvelinasetukset tulevat voimaan heti; hMailServer.ini-asetukset vasta palvelun uudelleenkäynnistyksen jälkeen.</value>
+  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> – näkyy yllä tämän koneen nimenä</value>
   </data>
@@ -169,6 +172,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   </data>
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> {0}/{1} viestistä on indeksoitu.</value>
+  </data>
+  <data name=" — INI settings need a service restart." xml:space="preserve">
+    <value> — INI-asetukset edellyttävät palvelun uudelleenkäynnistystä.</value>
   </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — tulee voimaan heti.</value>
@@ -1596,8 +1602,14 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>Varmuuskopioinnin väli minuutteina (0 = pois)</value>
   </data>
+  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
+    <value>Varmuuskopioinnin aikataulu tallennettu - palvelu lukee nämä asetukset käynnistyessään, joten ne tulevat voimaan palvelun uudelleenkäynnistyksen jälkeen.</value>
+  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>Varmuuskopioinnin aikataulu tallennettu.</value>
+  </data>
+  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
+    <value>Varmuuskopioinnin asetukset tallennettu - vain viestien metatiedot -kytkin tulee voimaan palvelun uudelleenkäynnistyksen jälkeen.</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>Varmuuskopioinnin asetukset tallennettu.</value>
@@ -6765,6 +6777,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>Alustettu uudelleen - tallennetut asetukset ovat voimassa.</value>
   </data>
+  <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
+    <value>Uudelleenalustettu – uudelleenalustusta odottaneet asetukset ovat voimassa; {0} odottaa yhä palvelun uudelleenkäynnistystä.</value>
+  </data>
   <data name="Reinitializing the server..." xml:space="preserve">
     <value>Alustetaan palvelinta uudelleen...</value>
   </data>
@@ -8000,6 +8015,11 @@ Jatketaanko?</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Asetukset</value>
+  </data>
+  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>Asetukset tallennettu. hMailServer-palvelu on käynnistettävä uudelleen, jotta muutokset tulevat voimaan.
+
+Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>Asetukset tallennettu. {0} niistä tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen.

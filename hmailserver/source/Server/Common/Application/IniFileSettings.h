@@ -27,9 +27,11 @@ namespace HM
       /// which is why a saved setting applied at the next start: re-running the load
       /// while sessions read the members would have rewritten a String underneath a
       /// reader. Now LoadSettings() builds a NEW block and publishes it with one
-      /// atomic store, and every getter reads through Current(), one atomic load. A
-      /// reader holds the block it loaded for as long as its expression lasts, so it
-      /// sees one block or the other and never half of each.
+      /// atomic store, and every getter reads through Current() - one lock-free load
+      /// of a generation counter, and the shared pointer itself only when a publish
+      /// has happened since this thread last looked. A reader holds the block it
+      /// loaded for as long as its expression lasts, so it sees one block or the
+      /// other and never half of each.
       ///
       /// WHY EVERY GETTER RETURNS A COPY. A getter that answered a const String &
       /// into the block would hand out a reference whose block may be replaced - and
@@ -38,8 +40,12 @@ namespace HM
       /// by value, and one added later must too.
       ///
       /// The bootstrap - [Database], [Directories], [Security], [GUILanguages] - is
-      /// deliberately NOT in the block. It is read once, before the database is open,
-      /// and a reload never touches it.
+      /// deliberately NOT in the block. LoadSettings() reads it into plain members:
+      /// at a start, at a reinitialise, and when COM's Settings.Directories or
+      /// Database.CreateInternalDatabase asks for a load; a save's reload never
+      /// touches it. Those members are rewritten in place under the reload lock,
+      /// which their readers do not take - a race older than the block, and not one
+      /// it closes.
       /// </summary>
       struct Values
       {
@@ -298,7 +304,11 @@ namespace HM
       IniFileSettings();
       virtual ~IniFileSettings();
 
-      /// <summary>The block the server is running on. Never null.</summary>
+      /// <summary>
+      /// The block the server is running on. Never null. Through a copy each thread
+      /// keeps of the last block it loaded, checked against a generation counter
+      /// that every publish advances - see the definition for why.
+      /// </summary>
       std::shared_ptr<const Values> Current() const;
 
       /// <summary>
@@ -331,33 +341,40 @@ namespace HM
 
       /// <summary>
       /// What a save does, and the whole of this row: the overlay is re-read from
-      /// hm_inisettings (the file reconciled against it first, as LoadDatabaseSettings
-      /// describes - the table wins), the [SettingsOverride] values loaded at the last
-      /// start are applied over it again, and a new block is built in ScopeNow and
-      /// published. Every subscriber of a key whose value moved is then called. The
-      /// bootstrap is not re-read, and nor is [SettingsOverride]: an override still
-      /// needs a start, as it always did.
+      /// hm_inisettings - the rows alone, READ-ONLY (IniSettingStore::ReadStoredValues);
+      /// the reconcile that writes the file and the table is a start's and a
+      /// reinitialise's - the [SettingsOverride] values the last start or reinitialise
+      /// loaded are applied over it again, and a new block is built in ScopeNow and
+      /// published. Then, with the reload lock released, every subscriber of a key
+      /// whose value moved is called. The bootstrap is not re-read, and nor is
+      /// [SettingsOverride]: a change to that section waits for a reinitialise
+      /// (Apply now) or a start, which re-read it and announce it (HM5807), and an
+      /// override of a key marked restart waits for a start.
       ///
-      /// Called by WriteSettingsValue and RemoveSettingsValue after the store took
-      /// the write, which is every door to the store - COM SetIniSetting and
-      /// DeleteIniSetting, the REST ini route, the settings-group fields kept in this
-      /// store, the branding and file-link routes, hmailserver --set-setting - and by
-      /// AuditRevert after it puts a value back.
+      /// WriteSettingsValue and RemoveSettingsValue - every door to the store: COM
+      /// SetIniSetting and DeleteIniSetting, the REST ini route, the settings-group
+      /// fields kept in this store, the branding and file-link routes, hmailserver
+      /// --set-setting, the audit trail's revert - do the same inside the one hold of
+      /// the reload lock that covers their store write. This is for a caller that
+      /// stored nothing itself.
       /// </summary>
       void Reload();
 
       /// <summary>
       /// Calls subscriber after every reload that changed the named key's value, on
-      /// the thread that saved, after the new block is published, so the subscriber
-      /// reads the new value through the getters. One subscription may name several
-      /// keys and is called once however many of them moved. For a subsystem that
-      /// copied a getter into a member of its own when it started, and can take a new
-      /// value in place: it re-latches here. A subscriber must be quick and must not
-      /// throw (a throw is contained and logged); one that has to wait for something
-      /// hands the work to a thread of its own. A key whose latch cannot be redone
-      /// safely is marked reinitialize in the baseline instead of subscribing.
-      /// Subscriptions last for the process: the servers a reinitialise rebuilds find
-      /// theirs still in place.
+      /// the thread that saved, after the new block is published and the reload lock
+      /// released, so the subscriber reads the new value through the getters and no
+      /// other save waits for it. One subscription may name several keys and is
+      /// called once however many of them moved. For a subsystem that copied a
+      /// getter into a member of its own when it started, and can take a new value in
+      /// place: it re-latches here. Subscribers are called one at a time, under a
+      /// lock of their own, and each must READ THE VALUE IT TAKES WHEN IT RUNS rather
+      /// than be handed one - that is what makes the last call take the last save
+      /// when two saves of one key are told out of order. A subscriber must not throw
+      /// (a throw is contained and logged). A key whose latch cannot be redone safely
+      /// is marked reinitialize in the baseline instead of subscribing. Subscriptions
+      /// last for the process: the servers a reinitialise rebuilds find theirs still
+      /// in place.
       /// </summary>
       void Subscribe(const String &name, std::function<void()> subscriber);
       void Subscribe(const std::vector<String> &names, std::function<void()> subscriber);
@@ -376,12 +393,22 @@ namespace HM
       /// "reinitialize" or "restart", from the key's mark in the baseline, and its
       /// spelling there. False for a name this build does not read through the
       /// loader - a key a script of the administrator's own reads, UseLanguage, the
-      /// webmail's branding keys - which is read, if at all, where it is used.
+      /// webmail's branding keys, a misspelling - which has no mark: COM's
+      /// IniSettingApplies refuses it with NoApplyMarkSentence, and the REST answers
+      /// carry applies null with the same sentence, rather than either answering
+      /// "now" and making a misspelled key look like a working setting.
       /// </summary>
       static bool GetApplies(const String &name, String &applies, String &spelling);
 
-      /// <summary>The same, for a name this build may not read: "now" when it does not.</summary>
-      static String AppliesOrNow(const String &name);
+      /// <summary>What COM and REST both say for a name GetApplies does not know.</summary>
+      static const char *NoApplyMarkSentence();
+
+      /// <summary>
+      /// Every key the loader reads, in the baseline's spelling and order, with its
+      /// mark: what COM's IniSettingAppliesAll answers, so that a client labels a
+      /// whole page with one call.
+      /// </summary>
+      static void GetAllApplies(std::vector<std::pair<String, String> > &marks);
 
       /// <summary>
       /// A [Settings] key whose stored value is not the value the server is running
@@ -462,10 +489,13 @@ namespace HM
       // after a service restart" wording described, and what it no longer says.
 
       /// <summary>
-      /// Reads one [Settings] value as it stands right now - the stored value when
-      /// the overlay has been loaded, the override when one is in force, and the file
-      /// otherwise. Deliberately the effective value rather than the stored one: a
-      /// reader asking what a setting is should be told what the server is using.
+      /// Reads one [Settings] value as it stands in the store right now - the stored
+      /// value when the overlay has been loaded, the override when one is in force,
+      /// and the file otherwise. For a key marked now that is also the value the
+      /// server is running on. For a PENDING key - one marked reinitialize or restart
+      /// and saved since what applies it last happened - it is the stored value and
+      /// NOT the one in use: GetPendingSettings carries both, and the running block
+      /// (Current) holds the one in use.
       /// </summary>
       String GetSettingsValue(const String &key);
 
@@ -1481,11 +1511,27 @@ namespace HM
       /// </summary>
       bool ReportThisLoad_(const String &key) const;
 
-      /// <summary>The overlay re-read for Reload: the table reconciled, the start's overrides over it.</summary>
+      /// <summary>The overlay re-read for a reload: the rows, read only, with the last load's overrides over them.</summary>
       void RefreshDatabaseSettings_();
 
-      /// <summary>Calls the subscribers of every key whose resolved value differs between the two blocks.</summary>
-      void Notify_(const std::shared_ptr<const Values> &before, const std::shared_ptr<const Values> &after);
+      struct Subscription
+      {
+         std::vector<String> names;
+         std::function<void()> call;
+      };
+
+      /// <summary>
+      /// Reload with the reload lock already held: the overlay refreshed, a block
+      /// built and published, and the subscriptions whose keys moved returned for
+      /// Tell_ to call once the lock is released.
+      /// </summary>
+      std::vector<Subscription> ReloadLocked_();
+
+      /// <summary>The subscriptions with a key whose resolved value differs between the two blocks.</summary>
+      std::vector<Subscription> Due_(const std::shared_ptr<const Values> &before, const std::shared_ptr<const Values> &after);
+
+      /// <summary>Calls them, one at a time, with the reload lock released; see the definition.</summary>
+      void Tell_(const std::vector<Subscription> &due);
 
       /// <summary>The value a load would resolve for one baseline key now, outside any build.</summary>
       String ResolveStored_(const String &name, const String &defaultValue, bool isInteger);
@@ -1509,20 +1555,28 @@ namespace HM
       std::shared_ptr<const Values> values_;
 #endif
 
-      // One build at a time: two saves at once would otherwise each build from the
-      // store and publish in whichever order they finished. Recursive because a
-      // subscriber may itself save a setting.
+      // Advanced after every publish, so Current() can tell without touching
+      // values_ whether the block a thread holds is still the published one.
+      std::atomic<unsigned long long> values_generation_;
+
+      // One build at a time, and ONE HOLD for a save's store write and its reload:
+      // WriteSettingsValue and RemoveSettingsValue take it before they write the
+      // store and release it after they publish, so no other save's reload reads the
+      // store half-way through a write, and no LoadSettings() publishes a value
+      // before the save that stored it has compared its blocks. LoadSettings,
+      // LoadDatabaseSettings and BuildAndPublish_ take it too. The subscribers are
+      // called after it is released (Tell_). Recursive, because the save holds it
+      // across BuildAndPublish_, which takes it again.
       mutable boost::recursive_mutex reload_mutex_;
 
-      // The [SettingsOverride] values the last LoadDatabaseSettings applied, applied
-      // again by every reload so that an override keeps winning between starts.
-      std::map<String, String> start_overrides_;
+      // One subscriber call at a time; see Tell_. Recursive, because a subscriber
+      // may itself save a setting.
+      boost::recursive_mutex notify_mutex_;
 
-      struct Subscription
-      {
-         std::vector<String> names;
-         std::function<void()> call;
-      };
+      // The [SettingsOverride] values the last LoadDatabaseSettings applied - at a
+      // start or a reinitialise - applied again by every save's reload so that an
+      // override keeps winning until the section is next read.
+      std::map<String, String> start_overrides_;
 
       std::vector<Subscription> subscriptions_;
       boost::mutex subscriptions_mutex_;
@@ -1546,5 +1600,6 @@ namespace HM
       static void RestoreOverlay_(const String &key, bool had, const String &value);
       static void Publish_();
       static bool OverlayLoaded_();
+      static void TestSavesRacingSaves_();
    };
 }

@@ -129,7 +129,7 @@ namespace hMailServer.ControlPanel.Services
          {
             IniFeatureStore.ComReadSetting = null;
             IniFeatureStore.ComWriteSetting = null;
-            IniFeatureStore.ComSettingApplies = null;
+            IniFeatureStore.ComAllApplies = null;
             IniFeatureStore.ComPendingSettings = null;
             IniFeatureStore.ForgetApplies();
             return;
@@ -152,10 +152,12 @@ namespace hMailServer.ControlPanel.Services
 
          // When a saved key reaches the running server, and which saved keys have
          // not yet (docs/SettingsApply.md): the mark beside every field kept in
-         // that store, and the window's pending bar. Another server may be a
-         // different build with different marks, so the cache goes with the session.
+         // that store - every key's in one call, IniSettingAppliesAll - and the
+         // window's pending bar. Another server may be a different build with
+         // different marks, or an older one with none, so what is known goes with
+         // the session.
          IniFeatureStore.ForgetApplies();
-         IniFeatureStore.ComSettingApplies = key => (string)session.Application.Settings.IniSettingApplies(key);
+         IniFeatureStore.ComAllApplies = () => (string)session.Application.Settings.IniSettingAppliesAll;
          IniFeatureStore.ComPendingSettings = () => (string)session.Application.Settings.PendingIniSettings;
       }
 

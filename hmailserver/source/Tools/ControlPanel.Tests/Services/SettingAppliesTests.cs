@@ -75,6 +75,47 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       [Fact]
+      public void TheMarksAreReadFromOneObject()
+      {
+         var marks = SettingApplies.ParseMarks("{\"RestApiPort\":\"reinitialize\",\"LogLevel\":\"now\"}");
+         Assert.Equal("reinitialize", marks["restapiport"]);
+         Assert.Equal("now", marks["LogLevel"]);
+         Assert.Empty(SettingApplies.ParseMarks(null));
+         Assert.Empty(SettingApplies.ParseMarks(" "));
+
+         // Not an object: a failed read, which the caller does not remember.
+         Assert.ThrowsAny<System.Text.Json.JsonException>(() => SettingApplies.ParseMarks("[\"RestApiPort\"]"));
+      }
+
+      [Fact]
+      public void AnOlderServerIsAMissingMemberAndAMomentsFailureIsNot()
+      {
+         Assert.True(SettingApplies.IsMissingMember(new System.Runtime.InteropServices.COMException("Unknown name.", unchecked((int)0x80020006))));
+         Assert.True(SettingApplies.IsMissingMember(new System.Runtime.InteropServices.COMException("Member not found.", unchecked((int)0x80020003))));
+         Assert.True(SettingApplies.IsMissingMember(new System.Reflection.TargetInvocationException(new System.MissingMemberException("Settings", "IniSettingAppliesAll"))));
+
+         // The negative controls: the server is there and did not answer this time.
+         Assert.False(SettingApplies.IsMissingMember(new System.Runtime.InteropServices.COMException("The RPC server is unavailable.", unchecked((int)0x800706BA))));
+         Assert.False(SettingApplies.IsMissingMember(new System.InvalidOperationException("a moment's failure")));
+         Assert.False(SettingApplies.IsMissingMember(null));
+      }
+
+      [Fact]
+      public void ApplyNowSaysWhatARestartStillOwes()
+      {
+         string all = SettingApplies.AppliedSentence(0);
+         Assert.Contains("in effect", all);
+         Assert.DoesNotContain("restart", all);
+
+         // A key marked restart is not taken by a reinitialise, and the sentence
+         // does not say the saved settings are in effect while it waits.
+         string some = SettingApplies.AppliedSentence(2);
+         Assert.Contains("2", some);
+         Assert.Contains("restart", some);
+         Assert.DoesNotContain("the saved settings are in effect", some);
+      }
+
+      [Fact]
       public void ApplyNowSaysWhenItEndsADrain()
       {
          Assert.Contains("maintenance mode", SettingApplies.ApplyNowQuestion(draining: true));

@@ -67,6 +67,9 @@ namespace hMailServer.ControlPanel
       private bool arrivedFromSearch_;
       private bool connected_;
 
+      // A pending-bar refresh is queued and has not run yet; see the constructor.
+      private volatile bool pendingRefreshQueued_;
+
       // Set while the application navigates on the user's behalf rather than at their
       // request, so that "Most used" counts choices and not startup.
       private bool automaticNavigation_;
@@ -117,10 +120,23 @@ namespace hMailServer.ControlPanel
          ServerSession.LinkStateChanged += OnLinkStateChanged;
          Closing += (s, e) => ServerSession.LinkStateChanged -= OnLinkStateChanged;
 
-         // Every save through IniFeatureStore - any page's - asks the server again
-         // what is pending, so the bar at the foot follows the saves without each
-         // page having to tell the window.
-         Action written = () => Dispatcher.BeginInvoke(new Action(RefreshPendingBar_));
+         // Every save through IniFeatureStore - any page's - refreshes the bar at the
+         // foot, so it follows the saves without each page having to tell the window.
+         // ONCE per save, not once per field: the writes of a save all raise Written
+         // before the dispatcher runs anything queued, so one refresh is queued for
+         // all of them, and it reuses the list the page read after its save
+         // (IniFeatureStore.PendingNamesSinceLastWrite) rather than asking again.
+         Action written = () =>
+         {
+            if (pendingRefreshQueued_)
+               return;
+            pendingRefreshQueued_ = true;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+               pendingRefreshQueued_ = false;
+               RefreshPendingBar_(fresh: false);
+            }), System.Windows.Threading.DispatcherPriority.Background);
+         };
          IniFeatureStore.Written += written;
          Closing += (s, e) => IniFeatureStore.Written -= written;
 
@@ -1118,19 +1134,22 @@ namespace hMailServer.ControlPanel
       /// </summary>
       private void EnterPage(object page)
       {
-         RefreshPendingBar_();
-
-         if (page is not IPageLifecycle lifecycle)
-            return;
-
          try
          {
-            lifecycle.OnEnter();
+            if (page is IPageLifecycle lifecycle)
+               lifecycle.OnEnter();
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
             Services.Toast.Info(F("Could not load this page: {0}", ServerSession.DescribeComError(ex)),
                L("Server unavailable"));
+         }
+         finally
+         {
+            // After the page, which reads the marks the bar counts by when it has
+            // fields that show them; asked afresh, since another administrator's
+            // save is the kind of thing a page visit is for noticing.
+            RefreshPendingBar_(fresh: true);
          }
       }
 
@@ -1144,12 +1163,28 @@ namespace hMailServer.ControlPanel
       /// Asked of the server, never remembered here, so a value put back empties
       /// the bar and another administrator's save fills it at the next refresh.
       /// </summary>
-      private void RefreshPendingBar_()
+      private void RefreshPendingBar_(bool fresh)
       {
-         IReadOnlyList<string> pending = connected_ ? IniFeatureStore.PendingNames() : Array.Empty<string>();
+         // Null is a server that cannot say - an older one, whose keys all apply at
+         // its next start and which offers nothing to apply now - and shows no bar.
+         IReadOnlyList<string> pending = !connected_ ? null
+            : fresh ? IniFeatureStore.PendingNames() : IniFeatureStore.PendingNamesSinceLastWrite();
+
+         if (pending == null || pending.Count == 0)
+         {
+            PendingBar.Visibility = Visibility.Collapsed;
+            return;
+         }
+
+         // Counted by the marks, and each only by its own: a key whose mark is not
+         // known is offered neither Apply now nor a restart. The marks come from the
+         // page's one read of them; a bar raised before any page read them reads
+         // them itself, once.
+         if (IniFeatureStore.ServerMarksSettings != true)
+            IniFeatureStore.LoadMarks();
 
          int waitingForRestart = pending.Count(name => IniFeatureStore.AppliesFor(name) == SettingApplies.Restart);
-         int waitingForReinitialize = pending.Count - waitingForRestart;
+         int waitingForReinitialize = pending.Count(name => IniFeatureStore.AppliesFor(name) == SettingApplies.Reinitialize);
 
          string banner = SettingApplies.Banner(waitingForReinitialize, waitingForRestart);
          if (banner == null)
@@ -1236,9 +1271,18 @@ namespace hMailServer.ControlPanel
          }
 
          if (failure == null)
-            Services.Toast.Success(L("Reinitialized - the saved settings are in effect."));
+         {
+            // A reinitialise takes the keys marked reinitialize and not those marked
+            // restart: asked again rather than assumed, so a service account saved
+            // beside a port is still said to wait.
+            IReadOnlyList<string> stillPending = IniFeatureStore.PendingNames() ?? Array.Empty<string>();
+            int stillWaitingForRestart = stillPending.Count(name => IniFeatureStore.AppliesFor(name) == SettingApplies.Restart);
+            Services.Toast.Success(SettingApplies.AppliedSentence(stillWaitingForRestart));
+         }
          else
+         {
             Services.Toast.Info(F("Could not reinitialize: {0}", failure), L("Control Panel"));
+         }
 
          // Entering the page again refreshes the bar and puts what the server now
          // runs on in front of the administrator.

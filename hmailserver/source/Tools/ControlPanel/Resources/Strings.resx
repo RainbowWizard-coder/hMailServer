@@ -59,6 +59,9 @@ Save this weak password anyway?</value>
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> - no ServicePassword is stored or typed, and an empty password is refused before it is sent</value>
   </data>
+  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value> - server settings applied immediately; hMailServer.ini settings apply after a service restart.</value>
+  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> - shown above as this machine's name</value>
   </data>
@@ -169,6 +172,9 @@ Save this weak password anyway?</value>
   </data>
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> {0} of {1} messages are indexed.</value>
+  </data>
+  <data name=" — INI settings need a service restart." xml:space="preserve">
+    <value> — INI settings need a service restart.</value>
   </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — applied immediately.</value>
@@ -1596,8 +1602,14 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>Backup interval in minutes (0 = off)</value>
   </data>
+  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
+    <value>Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart.</value>
+  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>Backup schedule saved.</value>
+  </data>
+  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
+    <value>Backup settings saved - the message-metadata-only switch applies after a service restart.</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>Backup settings saved.</value>
@@ -6765,6 +6777,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>Reinitialized - the saved settings are in effect.</value>
   </data>
+  <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
+    <value>Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart.</value>
+  </data>
   <data name="Reinitializing the server..." xml:space="preserve">
     <value>Reinitializing the server...</value>
   </data>
@@ -8000,6 +8015,11 @@ Continue?</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>
+  </data>
+  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>Settings saved. The hMailServer service must be restarted for the changes to take effect.
+
+Restart it now?</value>
   </data>
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>Settings saved. {0} of them take effect only when the hMailServer service restarts.

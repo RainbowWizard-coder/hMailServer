@@ -145,6 +145,27 @@ namespace hMailServer.ControlPanel.Views
 
          /// <summary>The width of a text editor on these pages: one column, whatever the value.</summary>
          protected const double EditorWidth = 520;
+
+         /// <summary>
+         /// The value the editor was filled with, as the INI spells it - what a save
+         /// compares against, so that a page of eighty fields with one changed writes
+         /// one. Every write publishes on the server (docs/SettingsApply.md), and a
+         /// save that wrote every field unchanged was eighty reloads of the whole
+         /// store for one value; it also stored every default it had merely shown,
+         /// turning each into a stored value the next release's default could not
+         /// reach.
+         /// </summary>
+         protected string Loaded;
+
+         /// <summary>Writes the value when it is not what the editor was filled with.</summary>
+         protected void WriteIfChanged(IniFeatureStore store, string value)
+         {
+            if (Loaded != null && string.Equals(value, Loaded, StringComparison.Ordinal))
+               return;
+
+            store.Write(Key, value);
+            Loaded = value;
+         }
       }
 
       private class BoolSetting : Setting
@@ -154,7 +175,9 @@ namespace hMailServer.ControlPanel.Views
 
          public override FrameworkElement CreateEditor(IniFeatureStore store)
          {
-            box_ = new CheckBox { Content = Label, IsChecked = store.ReadBool(Key, Default) };
+            bool current = store.ReadBool(Key, Default);
+            Loaded = current ? "1" : "0";
+            box_ = new CheckBox { Content = Label, IsChecked = current };
             SetAid(box_, Key);
 
             // A checkbox names itself from its Content, so it needs an override
@@ -171,7 +194,7 @@ namespace hMailServer.ControlPanel.Views
          }
 
          public override void Save(IniFeatureStore store)
-            => store.WriteBool(Key, box_.IsChecked is true);
+            => WriteIfChanged(store, box_.IsChecked is true ? "1" : "0");
 
          public override string LiveValue
             => box_ == null ? null : (box_.IsChecked is true ? "1" : "0");
@@ -193,9 +216,11 @@ namespace hMailServer.ControlPanel.Views
 
          public override FrameworkElement CreateEditor(IniFeatureStore store)
          {
+            string current = store.Read(Key, Default);
+            Loaded = (current ?? "").Trim();
             box_ = new Wpf.Ui.Controls.TextBox
             {
-               Text = store.Read(Key, Default),
+               Text = current,
                PlaceholderText = Placeholder,
                Width = EditorWidth,
                HorizontalAlignment = HorizontalAlignment.Left
@@ -205,7 +230,7 @@ namespace hMailServer.ControlPanel.Views
          }
 
          public override void Save(IniFeatureStore store)
-            => store.Write(Key, box_.Text.Trim());
+            => WriteIfChanged(store, box_.Text.Trim());
 
          public override string LiveValue => box_?.Text;
 
@@ -234,9 +259,11 @@ namespace hMailServer.ControlPanel.Views
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
+            string current = store.Read(Key, Default);
+            Loaded = (current ?? "").Trim();
             box_ = new Wpf.Ui.Controls.TextBox
             {
-               Text = store.Read(Key, Default),
+               Text = current,
                PlaceholderText = Placeholder,
                HorizontalAlignment = HorizontalAlignment.Stretch
             };
@@ -275,7 +302,7 @@ namespace hMailServer.ControlPanel.Views
          }
 
          public override void Save(IniFeatureStore store)
-            => store.Write(Key, box_.Text.Trim());
+            => WriteIfChanged(store, box_.Text.Trim());
 
          public override string LiveValue => box_?.Text;
 
@@ -297,6 +324,7 @@ namespace hMailServer.ControlPanel.Views
             combo_ = new ComboBox { Width = EditorWidth, HorizontalAlignment = HorizontalAlignment.Left };
             if (!int.TryParse(store.Read(Key, Default.ToString()), out int current))
                current = Default;
+            Loaded = current.ToString();
             foreach ((int value, string label) in Options)
             {
                var item = new ComboBoxItem { Content = label, Tag = value };
@@ -314,7 +342,7 @@ namespace hMailServer.ControlPanel.Views
          public override void Save(IniFeatureStore store)
          {
             int value = combo_.SelectedItem is ComboBoxItem cbi ? (int)cbi.Tag : Default;
-            store.Write(Key, value.ToString());
+            WriteIfChanged(store, value.ToString());
          }
 
          public override string LiveValue
@@ -1323,6 +1351,10 @@ namespace hMailServer.ControlPanel.Views
          // can all have changed since this page was last open, and a warning
          // reasoning about a stale one is worse than no warning at all.
          ForgetExternalState_();
+
+         // Every field's mark in one call (IniFeatureStore.LoadMarks), before the
+         // rows that show them are built.
+         IniFeatureStore.LoadMarks();
 
          BuildDefinition();
          BuildUi();
@@ -2718,13 +2750,32 @@ namespace hMailServer.ControlPanel.Views
          // The server published what it stored (docs/SettingsApply.md): a key marked
          // now is in effect already. What is not is what the server lists as pending
          // among this page's keys - a key marked reinitialize waits for the window's
-         // Apply now, and only a key marked restart needs the service restarted.
+         // Apply now, and only a key marked restart needs the service restarted. One
+         // read of that list for the whole save; the window's bar reuses it.
+         string time = DateTime.Now.ToLongTimeString();
+         IReadOnlyList<string> pending = IniFeatureStore.PendingNames();
+
+         if (pending == null)
+         {
+            // A server that cannot say - one from before a save could publish, whose
+            // [Settings] keys all apply at its next start, or one that did not answer.
+            // What this page said then, and never that the save took effect.
+            SetState_(SettingsPageState.Saved, F("Saved {0} - restart the service to apply.", time));
+
+            if (MessageBox.Show(
+                   L("Settings saved. The hMailServer service must be restarted for the changes to take effect.\n\nRestart it now?"),
+                   L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+               RestartService();
+            }
+            return;
+         }
+
          var pageKeys = new HashSet<string>(
             cards_.SelectMany(card => card.Settings).Select(setting => setting.Key).Where(key => !string.IsNullOrEmpty(key)),
             StringComparer.OrdinalIgnoreCase);
-         List<string> waiting = IniFeatureStore.PendingNames().Where(pageKeys.Contains).ToList();
+         List<string> waiting = pending.Where(pageKeys.Contains).ToList();
          int waitingForRestart = waiting.Count(key => IniFeatureStore.AppliesFor(key) == SettingApplies.Restart);
-         string time = DateTime.Now.ToLongTimeString();
 
          if (waiting.Count == 0)
          {

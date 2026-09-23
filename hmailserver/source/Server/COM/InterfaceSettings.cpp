@@ -3044,16 +3044,19 @@ STDMETHODIMP InterfaceSettings::IniSettingApplies(BSTR Name, BSTR *pVal)
       if (!pVal)
          return COMError::GenerateGenericMessage();
 
+      // As spelled, not trimmed: GetIniSetting refuses a name with whitespace round
+      // it, and the REST route takes the name from the path as it is - so a name
+      // with a space round it is no key here either, and is refused below.
       HM::String name = Name;
-      name.Trim();
 
       // Refused rather than answered "now" for a name the loader does not read: a
       // misspelled key answered as though it applied would be the misspelling
       // looking like a working setting, which is what GetIniSetting refuses for too.
+      // The same sentence the REST answers carry as applies_refused.
       HM::String applies;
       HM::String spelling;
       if (!HM::IniFileSettings::GetApplies(name, applies, spelling))
-         return COMError::GenerateError("This build does not read a [Settings] key of that name through its settings loader, so it has no mark saying when a change to it applies. The keys it reads, and the mark of each, are in IniSettingsBaseline.h; a key a script of the administrator's own reads applies whenever that script next reads it.");
+         return COMError::GenerateError(HM::IniFileSettings::NoApplyMarkSentence());
 
       *pVal = applies.AllocSysString();
 
@@ -3083,6 +3086,42 @@ STDMETHODIMP InterfaceSettings::get_PendingIniSettings(BSTR *pVal)
          names.push_back(pending[i].name);
 
       *pVal = HM::StringParser::JoinVector(names, _T("\r\n")).AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_IniSettingAppliesAll(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!pVal)
+         return COMError::GenerateGenericMessage();
+
+      // One JSON object, name -> mark, for every key the loader reads: the applies
+      // map GET /api/v1/settings/ini answers. The names are the baseline's own - a
+      // letter, digit or underscore each - and the marks three plain words, so
+      // nothing in it needs escaping.
+      std::vector<std::pair<HM::String, HM::String> > marks;
+      HM::IniFileSettings::GetAllApplies(marks);
+
+      HM::String json = _T("{");
+      for (size_t i = 0; i < marks.size(); i++)
+      {
+         if (i > 0)
+            json += _T(",");
+         json += _T("\"") + marks[i].first + _T("\":\"") + marks[i].second + _T("\"");
+      }
+      json += _T("}");
+
+      *pVal = json.AllocSysString();
 
       return S_OK;
    }

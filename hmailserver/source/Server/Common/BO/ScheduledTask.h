@@ -36,11 +36,18 @@ namespace HM
       // scheduler's lock (Scheduler::SetTaskInterval).
       void RestartPeriod(int minutes);
 
+      // How many times RestartPeriod has run. The scheduler reads it before a run
+      // and after, under its lock: a period restarted while the task was running
+      // has already set the next run from now, and moving it on again when the run
+      // ends would put the first run after the save at twice the period.
+      unsigned int GetPeriodRestarts() const;
+
    private:
 
       Reoccurance reoccurance_;
       DateTime next_run_time_;
       int minutes_between_run_;
+      unsigned int period_restarts_;
 
    };
 }

@@ -368,7 +368,9 @@ namespace RegressionTests.API
          Assert.AreEqual(201, fullKey.status, fullKey.body);
          string fullToken = JsonValue(fullKey.body, "key");
 
-         foreach (string administratorOnly in new[] { "/api/v1/settings/ini", "/api/v1/settings/changed" })
+         // The pending list too (docs/SettingsApply.md): it carries the stored and the
+         // running value of the keys that wait, which is the ini list's content.
+         foreach (string administratorOnly in new[] { "/api/v1/settings/ini", "/api/v1/settings/changed", "/api/v1/server/settings/pending" })
          {
             (int status, string body) refused = AsAccount("audrey@example.test", "GET", administratorOnly);
             Assert.AreEqual(403, refused.status,

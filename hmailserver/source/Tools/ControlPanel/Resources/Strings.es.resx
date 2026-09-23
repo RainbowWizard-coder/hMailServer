@@ -59,6 +59,9 @@
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> - no se guarda ni se escribe ningún ServicePassword, y una contraseña vacía se rechaza antes de enviarse</value>
   </data>
+  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value> - los ajustes del servidor se aplican de inmediato; los de hMailServer.ini se aplican tras reiniciar el servicio.</value>
+  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> - mostrado arriba como el nombre de esta máquina</value>
   </data>
@@ -169,6 +172,9 @@
   </data>
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> {0} de {1} mensajes están indexados.</value>
+  </data>
+  <data name=" — INI settings need a service restart." xml:space="preserve">
+    <value> — los ajustes INI necesitan reiniciar el servicio.</value>
   </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — aplicado de inmediato.</value>
@@ -1596,8 +1602,14 @@ Los detalles completos se escribieron en:
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>Intervalo de copia en minutos (0 = desactivado)</value>
   </data>
+  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
+    <value>Programación de copias guardada - el servicio lee estos ajustes al arrancar, así que se aplican tras reiniciar el servicio.</value>
+  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>Programación de copias guardada.</value>
+  </data>
+  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
+    <value>Ajustes de copia guardados - el interruptor de solo metadatos de mensajes se aplica tras reiniciar el servicio.</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>Ajustes de copia guardados.</value>
@@ -6765,6 +6777,9 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>Reinicializado - los ajustes guardados están en vigor.</value>
   </data>
+  <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
+    <value>Reinicializado: los ajustes que esperaban una reinicialización están en vigor; {0} siguen esperando un reinicio del servicio.</value>
+  </data>
   <data name="Reinitializing the server..." xml:space="preserve">
     <value>Reinicializando el servidor...</value>
   </data>
@@ -8000,6 +8015,11 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Ajustes</value>
+  </data>
+  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>Los ajustes se guardaron. Debe reiniciarse el servicio hMailServer para que los cambios surtan efecto.
+
+¿Reiniciarlo ahora?</value>
   </data>
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>Ajustes guardados. {0} de ellos solo surten efecto cuando se reinicia el servicio hMailServer.

@@ -59,6 +59,9 @@
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> - 不会存储也不会输入 ServicePassword，空密码在发送之前就会被拒绝</value>
   </data>
+  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value> - 服务器设置立即生效；hMailServer.ini 中的设置在重启服务后生效。</value>
+  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> - 上面显示为本机的名称</value>
   </data>
@@ -169,6 +172,9 @@
   </data>
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> {1} 封邮件中有 {0} 封已建立索引。</value>
+  </data>
+  <data name=" — INI settings need a service restart." xml:space="preserve">
+    <value> — INI 设置需要重启服务。</value>
   </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — 立即生效。</value>
@@ -1596,8 +1602,14 @@
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>备份间隔（分钟）（0 = 关闭）</value>
   </data>
+  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
+    <value>备份计划已保存 - 服务在启动时读取这些设置，因此它们在重启服务后生效。</value>
+  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>备份计划已保存。</value>
+  </data>
+  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
+    <value>备份设置已保存 - “仅邮件元数据”开关在重启服务后生效。</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>备份设置已保存。</value>
@@ -6765,6 +6777,9 @@
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>已重新初始化 - 保存的设置已生效。</value>
   </data>
+  <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
+    <value>已重新初始化 - 等待重新初始化的设置已生效；仍有 {0} 项等待重启服务。</value>
+  </data>
   <data name="Reinitializing the server..." xml:space="preserve">
     <value>正在重新初始化服务器...</value>
   </data>
@@ -8000,6 +8015,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Settings" xml:space="preserve">
     <value>设置</value>
+  </data>
+  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>设置已保存。必须重启 hMailServer 服务，更改才会生效。
+
+现在重启吗?</value>
   </data>
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>设置已保存。其中 {0} 项只有在 hMailServer 服务重启后才会生效。

@@ -29,23 +29,30 @@ each line), decided key by key from the code that reads it:
 fails with a sentence saying what the three mean - and writes it into
 `IniSettingsBaseline.h` as each row's `Applies`, which is where the server reads
 it. A bootstrap key (`[Database]`, `[Directories]`, `[Security]`,
-`[GUILanguages]`) can only be `restart`: a reload never re-reads those sections.
-The check proves its own negative control on every run.
+`[GUILanguages]`) can only be `restart`. None of them is in the settings store, so
+no save reaches one and none is ever pending; a save's reload never re-reads those
+sections. A reinitialise does re-read them - it reconnects the database from
+`[Database]` - so some would apply at one, but `restart` is the mark that is true
+of every one of them, and it is the one they carry. The check proves its own
+negative control on every run.
 
 ## Where the mark is shown
 
 | Where | What |
 |---|---|
-| Control Panel | A small line under each field kept in the settings store - **Applies on save**, **After reinitialize** or **After a restart** - on the feature-settings pages, the server settings pages and the Backup page. Read over COM once per key per session. The blanket "hMailServer.ini settings apply after a service restart" footers and the "Applies after a service restart" sentence under thirty-odd fields are gone; the mark says it, from one source. |
+| Control Panel | A small line under each field kept in the settings store - **Applies on save**, **After reinitialize** or **After a restart** - on the feature-settings pages, the server settings pages and the Backup page. Every key's mark comes in ONE COM call when such a page is opened (`Settings.IniSettingAppliesAll`); a call that fails is not remembered, and the next page asks again. The blanket "hMailServer.ini settings apply after a service restart" footers and the "Applies after a service restart" sentence under thirty-odd fields are gone; the mark says it, from one source. |
 | Control Deck | The same three words as a badge beside a settings field kept in the store (the document's `x-applies`), in the Settings view. |
 | REST | `applies` on every entry of `GET /api/v1/settings/ini`, on `GET`, `PUT` and `DELETE /api/v1/settings/ini/{name}`, and an `applies` object in the list mapping every key this build reads - stored or not - to its mark. The OpenAPI document gives the ini-backed rows of the settings groups the mark's sentence and `x-applies`. |
-| COM | `Settings.IniSettingApplies(name)` answers `now`, `reinitialize` or `restart`, and refuses a name the loader does not read. |
+| COM | `Settings.IniSettingApplies(name)` answers `now`, `reinitialize` or `restart`, and refuses a name the loader does not read; `Settings.IniSettingAppliesAll` answers every key's mark as one JSON object, the REST list's `applies` map. |
 
 A name the loader does not read - `UseLanguage`, the webmail's branding keys, a
-key a script of your own reads - is answered `now` over REST: nothing in the
-server holds a copy of it for a save to miss. COM refuses it instead, because a
-misspelled key answered as though it applied would be the misspelling looking
-like a working setting.
+key a script of your own reads, a misspelling - has **no mark on either surface**.
+COM's `IniSettingApplies` refuses it, and the REST answers carry `applies: null`
+with the same sentence as `applies_refused`: a misspelled key answered `now` would
+be the misspelling looking like a working setting. The REST route still reads and
+stores such a name - it does so on purpose, for a setting a script of your own
+reads - and COM takes the name as spelled, as `GetIniSetting` does, so a name with
+a space round it is no key on either.
 
 ## The pending list
 
@@ -62,17 +69,28 @@ the running values at every request, never remembered, so:
 |---|---|
 | REST | `GET /api/v1/server/settings/pending` - `[{name, stored, running, applies, secret}]`; a secret's two values are `(set)` or empty. `pending`, true or false, on every ini answer. The administrator password's route, as the ini list is. |
 | COM | `Settings.PendingIniSettings` - the names, one per line, as `IniSettingNames` lists names. |
-| Control Panel | The **pending bar** at the foot of the window: "N saved setting(s) wait for a reinitialize", with **Apply now**, refreshed after every save, every page and every connection. A page's own save says how many of its keys wait. |
+| Control Panel | The **pending bar** at the foot of the window: "N saved setting(s) wait for a reinitialize", with **Apply now**, refreshed once after every save - however many fields it wrote, reusing the list the page read after its save - and afresh on every page and every connection. A page's own save says how many of its keys wait. A page's save writes only the fields whose value changed: every write publishes, and a page of a hundred fields saved with one changed was a hundred reloads of the store. |
 | Control Deck | The same sentence above the Settings view's groups, with the pending keys and their two values, and **Apply now**. |
 
 **Apply now** is a reinitialise: every service stops and starts again in place,
-which takes every `reinitialize` key. It asks first. A reinitialise ends
-maintenance mode (see [Upgrading.md](Upgrading.md#an-upgrade-without-a-window)),
-so while the server is draining the question says that the listeners open again
-and delivery resumes, and `POST /api/v1/server/reinitialize` answers
-`{"reinitializing": true, "drained": true}` when it ended a drain (`false`
-otherwise). The Deck's session ends with the REST listener it was using, as it
-always has after a reinitialise; the Control Panel's COM session survives it.
+which takes every `reinitialize` key - and not a `restart` key, so when one of
+those waits too, what Apply now says afterwards is how many still wait for a
+service restart rather than that the saved settings are in effect. It asks first.
+A reinitialise ends maintenance mode (see
+[Upgrading.md](Upgrading.md#an-upgrade-without-a-window)), so while the server is
+draining the question says that the listeners open again and delivery resumes, and
+`POST /api/v1/server/reinitialize` answers `{"reinitializing": true, "drained":
+true}` when it ended a drain (`false` otherwise). The Deck's session ends with the
+REST listener it was using, as it always has after a reinitialise; the Control
+Panel's COM session survives it.
+
+**Against a server from before this** - one without `IniSettingAppliesAll` and
+`PendingIniSettings`, whose `[Settings]` keys all apply at its next start - the
+Control Panel says what it said then: every field kept in the store is marked
+**After a restart**, a save says the service must be restarted, and no pending
+bar is shown. It never says a save took effect. It tells such a server by the
+member being unknown (`DISP_E_UNKNOWNNAME`), not by any failure: a call that fails
+for a moment is answered as "cannot say" and is asked again.
 
 ## The inventory
 
@@ -107,8 +125,8 @@ already cached stays until its TTL runs out.
 
 | Key | Why |
 |---|---|
-| `ServiceAccountName`, `ServiceAccountPassword` | Read by `hMailServer.exe /Register`, which runs with no database open; the service logs on as the account it was registered with. A change takes a registration (`/Register`, or the installer) and then a restart. The pending list clears at the next start whether or not the service was re-registered - the **Service account** card on the Hardening page says which account the service actually runs as. |
-| every `[Database]`, `[Directories]`, `[Security]` and `[GUILanguages]` key | The bootstrap: read from the file before the database is open, and never by a reload. They are not in the settings store, so they are never listed as pending; the Control Panel marks its `[Database]` rows **After a restart**. |
+| `ServiceAccountName`, `ServiceAccountPassword` | Read by `hMailServer.exe /Register`, which runs with no database open; the service logs on as the account it was registered with. A change takes a registration (`/Register`, or the installer) and then a restart. A reinitialise keeps the value the process started with, so the key stays pending across one. The pending list clears at the next start whether or not the service was re-registered - the **Service account** card on the Hardening page says which account the service actually runs as. |
+| every `[Database]`, `[Directories]`, `[Security]` and `[GUILanguages]` key | The bootstrap: read from the file before the database is open - at a start, at a reinitialise (which reconnects the database from `[Database]`), and when COM's `Settings.Directories` asks - and never by a save's reload. They are not in the settings store, so they are never listed as pending; the Control Panel marks its `[Database]` rows **After a restart**, and a page's save counts a changed one as waiting. |
 
 ### Keys marked now because a subscriber re-latches them
 
@@ -125,19 +143,32 @@ started, and can take a new one in place, subscribes
 | `CalDavRedirectUrl`, `CardDavRedirectUrl` | Drops the web-services listener's one-minute cache of the redirect targets. |
 | `SimulateDatabaseFailureFor` | The injector reads the value per statement already; the subscriber says `HM6119` the moment it is set, as a start does. |
 
-A subscriber runs on the thread that saved, after the new values are published,
-and must be quick; it reaches only a server that is running or draining (a
-stopped or starting one reads the new value when the servers start), and the two
-that reach the scheduler do nothing while a reinitialise is rebuilding it. A latch
-that could not be redone safely is marked `reinitialize` instead.
+A subscriber runs on the thread that saved, after the new values are published
+**and the reload lock released**, so an exporter restart waiting on a collector
+holds up the save that triggered it and no other save or load. Subscribers are
+called one at a time, and each reads the value it takes when it runs, rather than
+being handed one: when two saves of one key are told out of order, the call that
+runs last runs after the last publish and takes the latest value. A subscriber
+reaches only a server that is running or draining (a stopped or starting one reads
+the new value when the servers start); the two that reach the scheduler do nothing
+while a reinitialise is rebuilding it, and copy the scheduler and their task under
+a lock of their own that a service stop's reset takes too. A period changed while
+the greylist cleaner is running is not moved on again when that run ends, so the
+first run after the save is one period away, not two. A latch that could not be
+redone safely is marked `reinitialize` instead.
 
 ## How it works
 
 **One immutable block, swapped.** The ~240 values the `[Settings]` section is read
 into are one `IniFileSettings::Values`. A load builds a *new* block and publishes it
-with one atomic store; every getter reads through `Current()`, one atomic load, and
-holds the block for as long as its expression lasts. A reader sees one block or the
-other, never half of each. That is also why **every String getter returns a copy**:
+with one atomic store and advances a generation counter; every getter reads through
+`Current()` and holds the block for as long as its expression lasts. A reader sees
+one block or the other, never half of each. `Current()` keeps a copy per thread of
+the block it last loaded and goes to the shared pointer only when the generation
+has moved: the server is built as C++14 on Windows, where `std::atomic_load` of a
+`shared_ptr` takes one spin lock every such atomic in the process shares, and every
+getter on every thread - four per log line - would otherwise take it. The cost is
+one block kept alive per idle thread until it next reads a setting. That is also why **every String getter returns a copy**:
 a reference into a block that may be replaced - and freed, once its last reader lets
 go - the moment after the getter returns would be a use-after-free waiting for the
 first save. The internal `IniFileSettingsTester` reads a String getter ten thousand
@@ -147,33 +178,45 @@ two values of different lengths, and fails on any read that is neither.
 **What a save does.** `WriteSettingsValue` and `RemoveSettingsValue` - every door to
 the store: COM `SetIniSetting` and `DeleteIniSetting`, the REST ini route, the
 settings-group fields kept in the store, the branding and file-link routes,
-`hmailserver --set-setting`, the audit trail's revert - store the value and call
-`Reload()`:
+`hmailserver --set-setting`, the audit trail's revert - take the reload lock, store
+the value, and under the same hold:
 
-1. the store is read back: the file reconciled against the table, the table
-   winning, as a start does it (`IniSettingStore::Synchronize`) - except that a
-   line the service cannot write into the file is not reported again as
-   `HM5803`: the save has said so already (`HM5806`), and on the Linux package's
-   layout, where the service cannot write the file at all, every save would
-   otherwise repeat it for every line stored since the start;
-2. the `[SettingsOverride]` values the last start loaded are applied over it again;
-3. a new block is built in which every `now` key takes the stored value and every
+1. read the store back - **the rows alone, read-only**
+   (`IniSettingStore::ReadStoredValues`): nothing is written into the file or the
+   table, no line the table has never seen is adopted, and nothing is reported;
+2. apply over them again the `[SettingsOverride]` values the last start or
+   reinitialise loaded, without re-reading the section;
+3. build a new block in which every `now` key takes the stored value and every
    `reinitialize` and `restart` key keeps the value it is running on;
-4. the block is published, and the subscribers of every key whose value moved are
-   called.
+4. publish it, release the lock, and call the subscribers of every key whose value
+   moved.
+
+The store write and the reload are under **one** hold because a save's reload used
+to run the whole file-and-table reconcile a start runs, while another thread's save
+was half way through its own store write: a reconcile that read a row before a
+DELETE dropped it and the file after the line had gone wrote the line back, and the
+DELETE's own reload then adopted it as a new setting - the DELETE answered 200 and
+the setting was stored and in effect; one that read a row before a PUT and the file
+after put the old value back into both, under a PUT that had answered 200. The
+reconcile - a hand edit of the file named as `HM5804` and put back, a line the
+service cannot write named as `HM5803`, a line the table has never seen adopted -
+is now a start's and a reinitialise's only, as it was before saves published.
 
 A value a load has to correct - an unusable `PreferredHashAlgorithm`, a control
 character in `SpamAssassinUser` - is reported at every start and reinitialise as it
 always was, and on a save only when that key's value moved.
 
-**What a reload does not re-read.** The bootstrap sections, which are read once
-before the database is open. And `[SettingsOverride]`: a reload applies the
-overrides the last start loaded, but a change to that section still takes a start,
-and still announces itself there (`HM5807`).
+**What a save's reload does not re-read.** The bootstrap sections. And
+`[SettingsOverride]`: a save re-applies the overrides the last start or
+reinitialise loaded and does not re-read the section; a reinitialise (**Apply
+now**) or a start re-reads it and announces it (`HM5807`). An override of a key
+marked `restart` still waits for a start, as the key itself does.
 
 **What a reinitialise and a start take.** A reinitialise (`Application::InitInstance`
-in `ScopeReinitialize`) takes every `now` and `reinitialize` key from the store; a
-`restart` key keeps what the process started with. A start takes everything.
+in `ScopeReinitialize`) reconciles the file against the table, re-reads
+`[SettingsOverride]`, and takes every `now` and `reinitialize` key from the store and
+the overrides; a `restart` key keeps what the process started with. A start takes
+everything.
 
 ## What is thinner than the row asked
 
@@ -181,7 +224,9 @@ in `ScopeReinitialize`) takes every `now` and `reinitialize` key from the store;
   restart** - the listeners, their TLS contexts, the pool's connections and the
   fetch queue are not rebuilt in place. Apply now makes that one click, not a
   service restart.
-* **`[SettingsOverride]` still needs a start.**
+* **A change to `[SettingsOverride]` is not taken by a save.** A reinitialise
+  (Apply now) or a start takes it; an override of a `restart` key waits for a
+  start.
 * **A value stored by another process** - another node on the same database,
   `hmailserver --set-setting` while the service runs - reaches this server at the
   next save here, a reinitialise or a restart. Nothing watches the table.
@@ -193,21 +238,62 @@ in `ScopeReinitialize`) takes every `now` and `reinitialize` key from the store;
 * **Apply now ends the Deck's session**, because the REST listener restarts with
   the other services.
 * **A subscriber that has to wait** - an OpenTelemetry exporter restart behind a
-  collector that is not answering - holds the save that triggered it until the
-  exporter's post times out.
+  collector that is not answering - holds the answer to the save that triggered it
+  until the exporter's post times out. No other save or load waits for it.
+* **The branding and file-link routes** reload once per field they write (four at
+  most); the Control Panel's pages write only what changed.
+* **The bootstrap strings are rewritten in place** by a start, a reinitialise and
+  COM's `Settings.Directories`, under the reload lock their readers do not take - a
+  race older than the block, which it does not close.
 * `hmctl` has no pending verb; `GET /api/v1/server/settings/pending` is one request.
 
 ## Tests
 
 `RegressionTests/Infrastructure/SettingsApplyOnSave.cs` (REST 9876, web services
-9877, ManageSieve 9878-9879), each with its negative control: a `now` key applying
-with no reinitialise (`MaxSubmissionsPerIPPerMinute`, the third MAIL FROM a 421 at
-once, back to unlimited at once); a subscribed key re-latched (`CalDavRedirectUrl`
-after the redirect cache was primed with the old target); a `reinitialize` key
-stored and not applied (`ManageSieveServerPort`: the old port answers, the new does
-not, pending with both values, empty when put back, taken by the reinitialise);
-the reinitialise's `drained` answer; every listed key's mark and the `applies` map
-held to the baseline file; COM's `IniSettingApplies` and `PendingIniSettings`.
-`IniFileSettingsTester` in the internal suite (`MainOperations.RunTestSuite`).
-`check-ini-coverage.py`'s own negative control. The Deck harness checks the badge
-and the banner; `ControlPanel.Tests` checks the words for each mark.
+9877, ManageSieve 9878-9879), each with its negative control where one can be
+written:
+
+* a `now` key applying with no reinitialise (`MaxSubmissionsPerIPPerMinute`, the
+  third MAIL FROM a 421 at once) and a DELETE returning it to its default at once,
+  answering `applies` now and `pending` false;
+* a subscribed key re-latched (`CalDavRedirectUrl` after the redirect cache was
+  primed with the old target);
+* a `reinitialize` key stored and not applied (`ManageSieveServerPort`: the old port
+  answers, the new does not, pending with both values, empty when put back, taken by
+  the reinitialise);
+* a `restart` key (`ServiceAccountName`) still pending, its running value unmoved,
+  after a reinitialise;
+* a secret (`MetricsServerAuthPassword`) named in the pending list as `(set)` and
+  its text nowhere in the answer;
+* the fault injector's `HM6119` from the save's own subscriber;
+* two clients each making twenty PUT/DELETE pairs on a key of their own at once,
+  each key ending as its own client's last acknowledged request left it;
+* a name the loader does not read: refused over COM, `applies` null with the same
+  sentence over REST;
+* the reinitialise's `drained` answer; the route's marks against the baseline file
+  (a check that the route answers the header, not a proof of any mark); COM's
+  `IniSettingApplies`, `IniSettingAppliesAll` and `PendingIniSettings`.
+
+`IniFileSettingsTester` in the internal suite (`MainOperations.RunTestSuite`): the
+swap under load, a save of a `now` key in effect and told to its subscriber once, a
+removal publishing the default with no reload of the tester's own, a `reinitialize`
+key held and pending, and eight threads each alternating two hundred writes and
+deletes of a key of their own while a ninth reloads - every key's row and running
+value what its own thread did last. It logs how long the swap and the storm took.
+`Roles.cs` holds the pending route to the administrator password. `IniSettingsMirror`
+holds a save of another key to leaving an override in force without re-reading the
+section, and a reinitialise to re-reading it. `check-ini-coverage.py`'s own
+negative control. The Deck harness checks the badge, the banner, the note that
+names the three marks, and Apply now's yes path with a `restart` key still waiting;
+`ControlPanel.Tests` checks the words for each mark, the one read of the marks and
+of the pending list, a failed read not remembered, and an older server told apart
+and never told its settings applied.
+
+**On Linux** the fixture is linked into `LinuxRegressionTests`, with the three COM
+members answered over REST; `IniFileSettingsTester` does not run there, because the
+Linux suite's `RunTestSuite` is skipped, so the Linux build's
+`std::atomic<std::shared_ptr>` path and the thread-local build context are covered
+only by the fixture. They compile: every file this change touches was built with
+clang (C++20) in an Ubuntu 26.04 container on 23 September 2026, though the build as
+a whole stopped then at two errors elsewhere, in `CardDavServer.cpp` and
+`Compression.cpp`.

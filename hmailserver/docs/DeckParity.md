@@ -1004,7 +1004,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/settings/indexing` | MessageIndexing | `enabled` | yes |
 | `POST /api/v1/settings/indexing/clear` | MessageIndexing | - | yes |
 | `POST /api/v1/settings/indexing/index` | MessageIndexing | - | yes |
-| `PUT /api/v1/settings/ini/{name}` | - | `database`, `domain`, `file`, `from`, `key`, `keys`, `log`, `read`, `start`, `until`, `value` | - |
+| `PUT /api/v1/settings/ini/{name}` | - | `database`, `domain`, `file`, `from`, `key`, `keys`, `log`, `read`, `start`, `to`, `until`, `value` | - |
 | `PUT /api/v1/settings/logging` | Logging | `device`, `enabled`, `keep_files_open`, `log_application`, `log_awstats`, `log_debug`, `log_format`, `log_imap`, `log_pop3`, `log_smtp`, `log_tcpip`, `syslog_enabled`, `syslog_facility`, `syslog_host`, `syslog_log_application`, `syslog_log_debug`, `syslog_log_imap`, `syslog_log_pop3`, `syslog_log_smtp`, `syslog_log_tcpip`, `syslog_minimum_severity`, `syslog_port`, `syslog_transport` | yes |
 | `POST /api/v1/settings/logon-failures/clear` | - | - | - |
 | `PUT /api/v1/settings/messages/{name}` | ServerMessage | `domain`, `keys`, `read`, `text` | yes |

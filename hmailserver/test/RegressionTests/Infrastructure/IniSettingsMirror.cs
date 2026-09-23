@@ -46,6 +46,12 @@ namespace RegressionTests.Infrastructure
       private const string ProbeKey = "ZzIniMirrorProbe";
 
       /// <summary>
+      ///    A second key of the same kind, saved beside an override to show what a save
+      ///    does to it (docs/SettingsApply.md).
+      /// </summary>
+      private const string OtherKey = "ZzIniMirrorProbeOther";
+
+      /// <summary>
       ///    Not merged into the tests' own cleanup: a test that fails before its last
       ///    line would otherwise leave a row, a line, or an override behind, and the
       ///    next test would start from a state it did not create.
@@ -66,6 +72,7 @@ namespace RegressionTests.Infrastructure
          {
             IniFileSetting.DeleteFileOnly("SettingsOverride", ProbeKey);
             IniFileSetting.Delete(ProbeKey);
+            IniFileSetting.Delete(OtherKey);
             _application.Reinitialize();
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
@@ -183,7 +190,9 @@ namespace RegressionTests.Infrastructure
 
       [Test]
       [Description("A key in [SettingsOverride] is applied over the stored value and announced in the error log at " +
-                   "every start - the door for a database that is unreachable or wrong.")]
+                   "every start and reinitialise - the door for a database that is unreachable or wrong. A save of " +
+                   "another key keeps it in force and does not re-read the section: an edit to it waits for the " +
+                   "next reinitialise, which takes it.")]
       public void AnOverrideInTheFileWinsAndSaysSoEveryTime()
       {
          _application.Settings.SetIniSetting(ProbeKey, "stored");
@@ -207,6 +216,20 @@ namespace RegressionTests.Infrastructure
          Assert.AreEqual("stored", IniFileSetting.Read(ProbeKey),
             "The override was written into the [Settings] cache, so the stored value is no longer visible anywhere.");
 
+         // A save publishes (docs/SettingsApply.md), and its reload applies again the
+         // overrides the last start or reinitialise loaded: the forced value keeps
+         // winning across a save of another key...
+         _application.Settings.SetIniSetting(OtherKey, "saved-beside-the-override");
+         Assert.AreEqual("forced-from-the-file", EffectiveValue(),
+            "A save of another key dropped the override: its reload did not apply [SettingsOverride] again.");
+
+         // ...and the save does NOT re-read the section. An edit to it waits for a
+         // reinitialise (or a start), which is where it is announced.
+         IniFileSetting.WriteFileOnly("SettingsOverride", ProbeKey, "forced-again");
+         _application.Settings.SetIniSetting(OtherKey, "saved-again");
+         Assert.AreEqual("forced-from-the-file", EffectiveValue(),
+            "A save re-read [SettingsOverride]; the section is read at a start and a reinitialise, where it is announced.");
+
          // Every start, not just the first. An override is a standing deviation that
          // no page shows and no backup carries, and the way it stops being forgotten
          // is that it says so every time.
@@ -214,6 +237,10 @@ namespace RegressionTests.Infrastructure
          Reload();
 
          CustomAsserts.AssertReportedError("SettingsOverride", ProbeKey);
+
+         // And the reinitialise re-read the section: the edit made above is in force.
+         Assert.AreEqual("forced-again", EffectiveValue(),
+            "A reinitialise did not re-read [SettingsOverride]; the edit to it is not in force.");
       }
 
       [Test]

@@ -700,9 +700,10 @@ namespace RegressionTests.API
 
          try
          {
-            // The archive directory is latched when the server starts, so the restart
-            // is what switches archiving on; TearDown's restart switches it off again
-            // once the finally below has put the setting back.
+            // The archive directory is read per message, so the save switches archiving
+            // on (docs/SettingsApply.md); the reinitialise is kept as the belt to that
+            // and costs nothing, and the finally below puts the setting back, which
+            // switches it off again.
             IniFileSetting.Write(ArchiveKey, archiveRoot);
             _application.Reinitialize();
 

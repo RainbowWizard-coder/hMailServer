@@ -96,6 +96,12 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("16", partial);
          Assert.Contains("2", partial);
          Assert.DoesNotContain("14:20:00", partial);
+
+         // A server that cannot say which keys wait - one from before a save could
+         // publish - is not told they applied: the sentence it was told then.
+         string older = ServerSettingsPageStatus.SaveSentence(18, 0, "14:20:00", waiting: null);
+         Assert.Contains("hMailServer.ini settings apply after a service restart", older);
+         Assert.DoesNotContain(" - applied immediately.", older);
       }
    }
 }

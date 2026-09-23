@@ -43,6 +43,8 @@ namespace hMailServer.ControlPanel.Views
          // marked now: the backup reads its two switches when it runs, and the
          // schedule task reads the time and the interval on every tick - a schedule
          // set on a server that started without one is registered by the save.
+         // Every mark in one call (IniFeatureStore.LoadMarks).
+         IniFeatureStore.LoadMarks();
          MessagesDbOnlyRow.Applies = SettingApplies.Caption(IniFeatureStore.AppliesFor("BackupMessagesDBOnly"));
          VerifyRestoreRow.Applies = SettingApplies.Caption(IniFeatureStore.AppliesFor("BackupVerifyRestore"));
          ScheduleTimeRow.Applies = SettingApplies.Caption(IniFeatureStore.AppliesFor("ScheduledBackupTime"));
@@ -250,8 +252,11 @@ namespace hMailServer.ControlPanel.Views
          {
             // The COM properties are live immediately, and so are the two ini
             // switches now: both are marked now, and a save publishes them
-            // (docs/SettingsApply.md).
-            ShowNotice_(StatusLevel.Good, L("Backup settings saved."));
+            // (docs/SettingsApply.md). A server from before that reads them when it
+            // starts, and is told so as it was.
+            ShowNotice_(StatusLevel.Good, IniFeatureStore.ServerMarksSettings == false && iniStore_.IsAvailable
+               ? L("Backup settings saved - the message-metadata-only switch applies after a service restart.")
+               : L("Backup settings saved."));
             Services.Toast.Success(L("Backup settings saved."));
 
             // The destination may have changed, and the destination is where the
@@ -559,7 +564,9 @@ namespace hMailServer.ControlPanel.Views
          KeepCountBox.Text = keepCount.ToString(CultureInfo.InvariantCulture);
          MaxAgeBox.Text = maxAgeDays.ToString(CultureInfo.InvariantCulture);
 
-         ShowNotice_(StatusLevel.Good, L("Backup schedule saved."));
+         ShowNotice_(StatusLevel.Good, IniFeatureStore.ServerMarksSettings == false
+            ? L("Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart.")
+            : L("Backup schedule saved."));
          Services.Toast.Success(L("Backup schedule saved."));
          RefreshScheduleStatus();
       }

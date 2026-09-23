@@ -59,6 +59,9 @@
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> — ServicePassword не хранится и не вводится, а пустой пароль отклоняется ещё до отправки</value>
   </data>
+  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value> — параметры сервера применяются немедленно; параметры hMailServer.ini вступают в силу после перезапуска службы.</value>
+  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> — показано выше как имя этого компьютера</value>
   </data>
@@ -169,6 +172,9 @@
   </data>
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> Проиндексировано сообщений: {0} из {1}.</value>
+  </data>
+  <data name=" — INI settings need a service restart." xml:space="preserve">
+    <value> — параметры INI требуют перезапуска службы.</value>
   </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — применяется немедленно.</value>
@@ -1596,8 +1602,14 @@ Control Panel может читать файлы сообщений только
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>Интервал резервного копирования в минутах (0 — выключено)</value>
   </data>
+  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
+    <value>Расписание резервного копирования сохранено — служба читает эти параметры при запуске, поэтому они вступят в силу после перезапуска службы.</value>
+  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>Расписание резервного копирования сохранено.</value>
+  </data>
+  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
+    <value>Параметры резервного копирования сохранены — переключатель «только метаданные сообщений» вступает в силу после перезапуска службы.</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>Параметры резервного копирования сохранены.</value>
@@ -6765,6 +6777,9 @@ Control Panel может читать файлы сообщений только
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>Повторная инициализация выполнена — сохранённые параметры действуют.</value>
   </data>
+  <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
+    <value>Повторная инициализация выполнена — настройки, ожидавшие её, действуют; {0} всё ещё ждут перезапуска службы.</value>
+  </data>
   <data name="Reinitializing the server..." xml:space="preserve">
     <value>Повторная инициализация сервера...</value>
   </data>
@@ -8000,6 +8015,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Параметры</value>
+  </data>
+  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>Параметры сохранены. Чтобы изменения вступили в силу, службу hMailServer необходимо перезапустить.
+
+Перезапустить её сейчас?</value>
   </data>
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>Параметры сохранены. {0} из них вступят в силу только после перезапуска службы hMailServer.

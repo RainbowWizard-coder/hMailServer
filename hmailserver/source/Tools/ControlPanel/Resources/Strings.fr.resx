@@ -59,6 +59,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> - aucun ServicePassword n'est stocké ni saisi, et un mot de passe vide est refusé avant d'être envoyé</value>
   </data>
+  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value> - les réglages du serveur sont appliqués immédiatement ; ceux de hMailServer.ini s'appliquent après un redémarrage du service.</value>
+  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> - affiché ci-dessus comme nom de cette machine</value>
   </data>
@@ -169,6 +172,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   </data>
   <data name=" {0} of {1} messages are indexed." xml:space="preserve">
     <value> {0} messages sur {1} sont indexés.</value>
+  </data>
+  <data name=" — INI settings need a service restart." xml:space="preserve">
+    <value> — les réglages INI nécessitent un redémarrage du service.</value>
   </data>
   <data name=" — applied immediately." xml:space="preserve">
     <value> — appliqué immédiatement.</value>
@@ -1596,8 +1602,14 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Backup interval in minutes (0 = off)" xml:space="preserve">
     <value>Intervalle de sauvegarde en minutes (0 = désactivé)</value>
   </data>
+  <data name="Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart." xml:space="preserve">
+    <value>Planification de sauvegarde enregistrée - le service lit ces réglages au démarrage, ils s'appliquent donc après un redémarrage du service.</value>
+  </data>
   <data name="Backup schedule saved." xml:space="preserve">
     <value>Planification de sauvegarde enregistrée.</value>
+  </data>
+  <data name="Backup settings saved - the message-metadata-only switch applies after a service restart." xml:space="preserve">
+    <value>Réglages de sauvegarde enregistrés - le commutateur « métadonnées des messages seulement » s'applique après un redémarrage du service.</value>
   </data>
   <data name="Backup settings saved." xml:space="preserve">
     <value>Réglages de sauvegarde enregistrés.</value>
@@ -6765,6 +6777,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>Réinitialisé - les réglages enregistrés sont en vigueur.</value>
   </data>
+  <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
+    <value>Réinitialisé - les paramètres qui attendaient une réinitialisation sont en vigueur ; {0} attendent encore un redémarrage du service.</value>
+  </data>
   <data name="Reinitializing the server..." xml:space="preserve">
     <value>Réinitialisation du serveur...</value>
   </data>
@@ -8000,6 +8015,11 @@ Continuer ?</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Réglages</value>
+  </data>
+  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>Réglages enregistrés. Le service hMailServer doit être redémarré pour que les changements prennent effet.
+
+Le redémarrer maintenant ?</value>
   </data>
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>Réglages enregistrés. {0} d'entre eux ne prennent effet qu'au redémarrage du service hMailServer.

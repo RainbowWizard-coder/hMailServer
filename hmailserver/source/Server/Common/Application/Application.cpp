@@ -560,7 +560,10 @@ namespace HM
       folder_manager_ = std::shared_ptr<FolderManager>(new FolderManager());
       
       // Create the scheduler. This is always in use.
-      scheduler_ = std::shared_ptr<Scheduler>(new Scheduler());
+      {
+         boost::lock_guard<boost::mutex> handles(scheduler_handles_mutex_);
+         scheduler_ = std::shared_ptr<Scheduler>(new Scheduler());
+      }
       WorkQueueManager::Instance()->AddTask(iMainServerQueue, scheduler_);
 
       WorkQueueManager::Instance()->AddTask(iMainServerQueue, io_service_);
@@ -707,16 +710,24 @@ namespace HM
    }
 
    void
-   Application::ScheduleBackups_()
+   Application::ScheduleBackups_(std::shared_ptr<Scheduler> scheduler)
    {
+      if (!scheduler)
+         return;
+
       std::shared_ptr<BackupScheduleTask> backupScheduleTask = std::shared_ptr<BackupScheduleTask>(new BackupScheduleTask);
       backupScheduleTask->SetReoccurance(ScheduledTask::RunInfinitely);
       backupScheduleTask->SetMinutesBetweenRun(1);
-      scheduler_->ScheduleTask(backupScheduleTask);
+      scheduler->ScheduleTask(backupScheduleTask);
 
       // Kept, so that a schedule saved while one is already registered is not
-      // registered twice (SubscribeToSettings_).
-      backup_schedule_task_ = backupScheduleTask;
+      // registered twice (SubscribeToSettings_) - and only while the scheduler it
+      // went into is still the running one: a stop that reset the handles while a
+      // subscriber registered on the old scheduler must not leave that handle
+      // behind for the next start to take for its own.
+      boost::lock_guard<boost::mutex> handles(scheduler_handles_mutex_);
+      if (scheduler_ == scheduler)
+         backup_schedule_task_ = backupScheduleTask;
    }
 
    bool
@@ -753,6 +764,10 @@ namespace HM
    // first. The two that reach the scheduler do nothing while a reinitialise holds
    // its mutex: that reinitialise is rebuilding the scheduler from the published
    // values, and a handle to the one it is tearing down is not worth racing for.
+      // A service stop does not take that mutex, so the scheduler and the two task
+      // handles are copied under scheduler_handles_mutex_, which the stop's reset
+      // takes too. Each reads the value it takes when it runs, as Subscribe asks,
+      // and runs after the save's reload lock is released (IniFileSettings::Tell_).
    //
    // docs/SettingsApply.md lists them; a latch found later that cannot be redone
    // safely is marked reinitialize in build/ini-settings-baseline.txt instead.
@@ -772,8 +787,14 @@ namespace HM
          if (!rebuilding.owns_lock() || !IsServing_())
             return;
 
-         std::shared_ptr<Scheduler> scheduler = scheduler_;
-         std::shared_ptr<ScheduledTask> task = greylist_cleaner_task_;
+         std::shared_ptr<Scheduler> scheduler;
+         std::shared_ptr<ScheduledTask> task;
+         {
+            boost::lock_guard<boost::mutex> handles(scheduler_handles_mutex_);
+            scheduler = scheduler_;
+            task = greylist_cleaner_task_;
+         }
+
          if (scheduler && task)
             scheduler->SetTaskInterval(task, IniFileSettings::Instance()->GetGreylistingExpirationInterval());
       });
@@ -792,10 +813,18 @@ namespace HM
             return;
 
          boost::unique_lock<boost::mutex> rebuilding(reinitialize_mutex_, boost::try_to_lock);
-         if (!rebuilding.owns_lock() || !IsServing_() || !scheduler_ || backup_schedule_task_)
+         if (!rebuilding.owns_lock() || !IsServing_())
             return;
 
-         ScheduleBackups_();
+         std::shared_ptr<Scheduler> scheduler;
+         {
+            boost::lock_guard<boost::mutex> handles(scheduler_handles_mutex_);
+            if (!scheduler_ || backup_schedule_task_)
+               return;
+            scheduler = scheduler_;
+         }
+
+         ScheduleBackups_(scheduler);
       });
 
       // The three OpenTelemetry exporters, each of which reads its endpoint, the
@@ -867,6 +896,7 @@ namespace HM
 
          // Kept, so that a saved GreylistingRecordExpirationInterval can move its
          // period in place (SubscribeToSettings_).
+         boost::lock_guard<boost::mutex> handles(scheduler_handles_mutex_);
          greylist_cleaner_task_ = pCleanerTask;
       }
 
@@ -1158,7 +1188,7 @@ namespace HM
       // backup that is genuinely owed is taken on the first tick a minute later,
       // which is also when the task first reads the destination.
       if (BackupScheduleTask::IsEnabled())
-         ScheduleBackups_();
+         ScheduleBackups_(scheduler_);
 
       // Unattended directory synchronisation. Registered only when [LDAP] is switched
       // on AND SyncScheduleMinutes is set, so a default installation - and every
@@ -1369,10 +1399,18 @@ namespace HM
       if (external_fetch_manager_) external_fetch_manager_.reset();
       LOG_DEBUG("Application::StopServers() - Destructing Scheduler");
       // The two task handles a saved setting reaches go with the scheduler that
-      // holds the tasks.
-      greylist_cleaner_task_.reset();
-      backup_schedule_task_.reset();
-      if (scheduler_) scheduler_.reset();
+      // holds the tasks, under the lock the subscribers copy them under. The
+      // scheduler itself is let go of after the lock: the last reference may be
+      // this one.
+      std::shared_ptr<Scheduler> droppedScheduler;
+      {
+         boost::lock_guard<boost::mutex> handles(scheduler_handles_mutex_);
+         greylist_cleaner_task_.reset();
+         backup_schedule_task_.reset();
+         droppedScheduler = scheduler_;
+         scheduler_.reset();
+      }
+      droppedScheduler.reset();
       
       LOG_DEBUG("Application::StopServers() - Destructing Rest");
       if (notification_server_) notification_server_.reset();

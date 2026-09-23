@@ -50,11 +50,12 @@ namespace hMailServer.ControlPanel.Services
       public static Action<string, string> ComWriteSetting;
 
       /// <summary>
-      /// Settings.IniSettingApplies over COM: when a saved key reaches the running
-      /// server - now, reinitialize or restart (SettingApplies). Injected for the
-      /// reason ComReadSetting is. Null in the tests and before a session exists.
+      /// Settings.IniSettingAppliesAll over COM: every [Settings] key the server's
+      /// loader reads, with its mark, as one JSON object (SettingApplies.ParseMarks).
+      /// Injected for the reason ComReadSetting is. Null in the tests and before a
+      /// session exists.
       /// </summary>
-      public static Func<string, string> ComSettingApplies;
+      public static Func<string> ComAllApplies;
 
       /// <summary>
       /// Settings.PendingIniSettings over COM: the keys saved and not yet running,
@@ -65,22 +66,87 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>
       /// Raised after every write through <see cref="Write"/>, on the thread that
       /// wrote. The window listens, so its pending bar follows every page's save
-      /// without each page having to tell it.
+      /// without each page having to tell it - once per save, not once per field
+      /// (MainWindow coalesces, and <see cref="PendingNamesSinceLastWrite"/> reuses
+      /// a page's own read).
       /// </summary>
       public static event Action Written;
 
-      // The marks, read once per key per session: a mark is a property of the
-      // server's build, not of anything a page can change, so asking again on
-      // every page would be a COM call per field for the same answer.
-      private static readonly Dictionary<string, string> appliesCache_ = new(StringComparer.OrdinalIgnoreCase);
+      // The marks, as the last successful IniSettingAppliesAll gave them: a mark is
+      // a property of the server's build, so one read serves every page until the
+      // session moves - but a read that FAILED is not remembered, and the next page
+      // asks again. serverMarks_ is null until a read has said either way, true
+      // once one has succeeded, and false for a server that has no such member.
+      private static Dictionary<string, string> marks_;
+      private static bool? serverMarks_;
       private static readonly object appliesLock_ = new();
+
+      // The pending list as the last read found it, and how many writes have gone
+      // to the server since, so a refresh straight after a page's own read reuses it.
+      private static IReadOnlyList<string> lastPending_;
+      private static int writesSinceRead_ = int.MaxValue;
+
+      /// <summary>
+      /// Asks the server for every mark in ONE call, when a page is opened - rather
+      /// than one call per field, which on a remote link was a hundred round trips
+      /// before the page could show. A failure leaves whatever an earlier read found
+      /// and remembers nothing, except that a server with no IniSettingAppliesAll is
+      /// an older one: its keys all apply at the next start, and the pages say so.
+      /// </summary>
+      public static void LoadMarks()
+      {
+         Func<string> ask = ComAllApplies;
+         if (ask == null)
+            return;
+
+         try
+         {
+            Dictionary<string, string> marks = SettingApplies.ParseMarks(ask());
+            lock (appliesLock_)
+            {
+               marks_ = marks;
+               serverMarks_ = true;
+            }
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            if (SettingApplies.IsMissingMember(fatalCheck))
+            {
+               lock (appliesLock_)
+               {
+                  marks_ = null;
+                  serverMarks_ = false;
+               }
+            }
+
+            // Anything else - a reinitialise in progress, a dropped link, an answer
+            // that did not parse - is a moment's, and the next page asks again.
+         }
+      }
+
+      /// <summary>
+      /// False when the connected server is one from before 22 September 2026: it
+      /// marks no key and lists nothing as pending, because every [Settings] key
+      /// applies at its next start. The pages then say what they said then - that a
+      /// saved value applies after a service restart - and never that a save took
+      /// effect. Null until the server has been asked, or when every ask failed.
+      /// </summary>
+      public static bool? ServerMarksSettings
+      {
+         get
+         {
+            lock (appliesLock_)
+               return serverMarks_;
+         }
+      }
 
       /// <summary>
       /// When a saved value of this [Settings] key reaches the running server, as
-      /// the server says - "now", "reinitialize" or "restart" - or null when there
-      /// is nobody to ask or the server has no mark for it (an older server, or a
-      /// key its loader does not read). A page shows no mark for null rather than a
-      /// guessed one.
+      /// the last <see cref="LoadMarks"/> read it - "now", "reinitialize" or
+      /// "restart" - and "restart" for every key of an older server, which applies
+      /// them all at its next start. Null when nothing is known, or the server's
+      /// loader does not read the key: a page shows no mark rather than a guessed
+      /// one. Never a COM call.
       /// </summary>
       public static string AppliesFor(string key)
       {
@@ -89,57 +155,77 @@ namespace hMailServer.ControlPanel.Services
 
          lock (appliesLock_)
          {
-            if (appliesCache_.TryGetValue(key, out string known))
-               return known;
+            if (serverMarks_ == false)
+               return SettingApplies.Restart;
+
+            return marks_ != null && marks_.TryGetValue(key, out string known) ? known : null;
          }
-
-         Func<string, string> ask = ComSettingApplies;
-         if (ask == null)
-            return null;
-
-         string mark;
-         try
-         {
-            mark = ask(key);
-         }
-         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
-         {
-            // Refused (a key the loader does not read) or unavailable (an older
-            // server). Remembered as nothing, so the page does not ask again.
-            mark = null;
-         }
-
-         lock (appliesLock_)
-            appliesCache_[key] = mark;
-
-         return mark;
       }
 
-      /// <summary>Forgets the marks, when the session moves to another server.</summary>
+      /// <summary>Forgets the marks and the pending list, when the session moves to another server.</summary>
       public static void ForgetApplies()
       {
          lock (appliesLock_)
-            appliesCache_.Clear();
+         {
+            marks_ = null;
+            serverMarks_ = null;
+            lastPending_ = null;
+            writesSinceRead_ = int.MaxValue;
+         }
       }
 
       /// <summary>
-      /// The keys saved and not yet running, as the server lists them now. Empty
-      /// when there is nobody to ask or the server cannot say.
+      /// The keys saved and not yet running, as the server lists them now - one COM
+      /// call. NULL when the server cannot say: there is nobody to ask, the server
+      /// is an older one without the member, or the read failed. Null is not "none":
+      /// a page that is told null says what it said before a save could publish.
       /// </summary>
       public static IReadOnlyList<string> PendingNames()
       {
          Func<string> ask = ComPendingSettings;
          if (ask == null)
-            return Array.Empty<string>();
+            return null;
 
          try
          {
-            return SettingApplies.ParsePending(ask());
+            IReadOnlyList<string> pending = SettingApplies.ParsePending(ask());
+            lock (appliesLock_)
+            {
+               lastPending_ = pending;
+               writesSinceRead_ = 0;
+            }
+            return pending;
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
-            return Array.Empty<string>();
+            if (SettingApplies.IsMissingMember(fatalCheck))
+            {
+               lock (appliesLock_)
+               {
+                  marks_ = null;
+                  serverMarks_ = false;
+               }
+            }
+
+            return null;
          }
+      }
+
+      /// <summary>
+      /// The pending list for a refresh that follows writes: the last read when no
+      /// write has gone to the server since it - a page that read the list after its
+      /// own save - and a fresh read otherwise. What keeps a save to one read of the
+      /// list, however many fields it wrote.
+      /// </summary>
+      public static IReadOnlyList<string> PendingNamesSinceLastWrite()
+      {
+         lock (appliesLock_)
+         {
+            if (writesSinceRead_ == 0 && lastPending_ != null)
+               return lastPending_;
+         }
+
+         return PendingNames();
       }
 
       /// <summary>
@@ -288,6 +374,12 @@ namespace hMailServer.ControlPanel.Services
                "reported in the server's error log and undone at the next start.");
 
          write(key, value);
+
+         lock (appliesLock_)
+         {
+            if (writesSinceRead_ != int.MaxValue)
+               writesSinceRead_++;
+         }
 
          // The server published the value as it stored it: a key marked now is in
          // effect, and one marked reinitialize or restart may be pending.

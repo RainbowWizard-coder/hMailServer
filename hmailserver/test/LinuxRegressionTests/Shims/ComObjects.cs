@@ -332,6 +332,7 @@ namespace hMailServer
       public const string Logging = "/api/v1/settings/logging";
       public const string Directories = "/api/v1/settings/directories";
       public const string Ini = "/api/v1/settings/ini";
+      public const string PendingSettings = "/api/v1/server/settings/pending";
       public const string Changed = "/api/v1/settings/changed";
       public const string LogonFailuresClear = "/api/v1/settings/logon-failures/clear";
       public const string Scripting = "/api/v1/settings/scripting";
@@ -993,6 +994,58 @@ namespace hMailServer
             IniRouteOrSkip();
             var answer = ServerApi.Get(SettingsApi.Ini).Expect(200, "GET " + SettingsApi.Ini);
             var names = ServerApi.Array(answer, "names").Select(n => n.GetString());
+            return string.Join("\r\n", names);
+         }
+      }
+
+      // ---- When a saved setting takes effect (docs/SettingsApply.md) ----
+      //
+      // The three COM members answered from the REST answers that carry the same
+      // facts: applies on GET /api/v1/settings/ini/{name} - null, with the sentence
+      // COM refuses with as applies_refused, for a name the loader does not read -
+      // the applies map on the list, and the pending route.
+
+      private static void AppliesOrSkip(ApiAnswer answer)
+      {
+         JsonElement unused;
+         if (!answer.Json.HasValue || !answer.Json.Value.TryGetProperty("applies", out unused))
+            throw NotOnThisServer.Skipped(NotOnThisServer.NoSettingsApply);
+      }
+
+      public string IniSettingApplies(string name)
+      {
+         IniRouteOrSkip();
+         var answer = IniRefusalAsComException(ServerApi.Get(SettingsApi.Ini + "/" + name), "GET " + SettingsApi.Ini + "/" + name);
+         AppliesOrSkip(answer);
+
+         JsonElement applies = answer.Json.Value.GetProperty("applies");
+         if (applies.ValueKind == JsonValueKind.Null)
+            throw new System.Runtime.InteropServices.COMException(ServerApi.StringOf(answer.Json.Value, "applies_refused"));
+
+         return applies.GetString();
+      }
+
+      /// <summary>The applies map, as the JSON object the COM property answers.</summary>
+      public string IniSettingAppliesAll
+      {
+         get
+         {
+            IniRouteOrSkip();
+            var answer = ServerApi.Get(SettingsApi.Ini).Expect(200, "GET " + SettingsApi.Ini);
+            AppliesOrSkip(answer);
+            return answer.Json.Value.GetProperty("applies").GetRawText();
+         }
+      }
+
+      /// <summary>The pending names one per line, joined with CRLF as the COM property joins them.</summary>
+      public string PendingIniSettings
+      {
+         get
+         {
+            if (!ServerApi.HasRoute(SettingsApi.PendingSettings, "get"))
+               throw NotOnThisServer.Skipped(NotOnThisServer.NoSettingsApply);
+            var answer = ServerApi.Get(SettingsApi.PendingSettings).Expect(200, "GET " + SettingsApi.PendingSettings);
+            var names = ServerApi.Array(answer).Select(entry => ServerApi.StringOf(entry, "name"));
             return string.Join("\r\n", names);
          }
       }

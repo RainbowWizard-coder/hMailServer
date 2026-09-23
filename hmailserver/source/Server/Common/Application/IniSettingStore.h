@@ -92,14 +92,30 @@ namespace HM
       /// one running on the copy sitting in front of it. That fallback is also the
       /// only reason the file is kept complete.
       ///
-      /// atStart is false for the reload a save runs (IniFileSettings::Reload):
-      /// then a line the file cannot take is not reported as HM5803 again. The
-      /// save that stored it has already said so (HM5806), and on a layout where
-      /// the service cannot write the file at all - the Linux package's - every
-      /// save would otherwise repeat the complaint about every line stored since
-      /// the start. A start reports it, as it always has.
+      /// A start and a reinitialise run it (IniFileSettings::LoadDatabaseSettings),
+      /// and nothing else: it WRITES - the file's lines, the rows' filevalue, a row
+      /// for a line the table has never seen - and a write racing a save's own
+      /// could undo that save, so the reload a save runs reads the rows alone
+      /// (ReadStoredValues).
       /// </summary>
-      bool Synchronize(std::map<String, String> &resolvedValues, bool atStart = true);
+      bool Synchronize(std::map<String, String> &resolvedValues);
+
+      /// <summary>
+      /// The value of every row, as name -> value: what a save reads back
+      /// (IniFileSettings::Reload). READ-ONLY, where Synchronize is not: it writes
+      /// neither the file nor the table, adopts no line the table has never seen,
+      /// and reports nothing - no HM5803, no HM5804. That reconcile is left to the
+      /// start and the reinitialise, because run on every save it raced the store
+      /// writes of saves on other threads: a reconcile that read a row before
+      /// another save's DELETE and the file after it wrote the line back, and the
+      /// other save's own reload then adopted it as a new setting, so a DELETE
+      /// answered 200 and the setting came back; and one that read a row before a
+      /// PUT and the file after it put the old value back into both. A line the
+      /// table does not hold is not in the answer and is read from the file by the
+      /// loader, as the start reads it. False when the table cannot be read, and
+      /// the caller keeps what it has.
+      /// </summary>
+      static bool ReadStoredValues(std::map<String, String> &values);
 
       /// <summary>
       /// The [SettingsOverride] section of the ini: the values an administrator has

@@ -9,6 +9,7 @@
 #include "IniSettingsBaseline.h"
 
 #include <atomic>
+#include <chrono>
 #include <stdexcept>
 #include <thread>
 #include "../Util/Crypt.h"
@@ -149,7 +150,8 @@ namespace HM
       sqldbtype_(HM::DatabaseSettings::TypeUnknown),
       simulate_database_failure_enabled_(false),
       running_values_latched_(false),
-      values_(std::make_shared<Values>())
+      values_(std::make_shared<Values>()),
+      values_generation_(0)
    {
 
    }
@@ -166,7 +168,9 @@ namespace HM
    // DESCRIPTION:
    // Reads the bootstrap sections from hMailServer.ini, then builds and publishes
    // the [Settings] block (BuildAndPublish_). The bootstrap is read here and
-   // nowhere else: a reload never re-reads it.
+   // nowhere else - at a start, at a reinitialise, and when COM's
+   // Settings.Directories or Database.CreateInternalDatabase asks - and a save's
+   // reload never re-reads it.
    //---------------------------------------------------------------------------()
    {
       boost::lock_guard<boost::recursive_mutex> guard(reload_mutex_);
@@ -966,6 +970,10 @@ namespace HM
       std::atomic_store(&values_, published);
 #endif
 
+      // After the block, so a reader that sees the new generation loads this block
+      // or a later one (Current).
+      values_generation_.fetch_add(1, std::memory_order_release);
+
       // After the block, so a reader that sees the flag set finds the pattern in
       // the block it loads; an empty pattern is no failure either way.
       simulate_database_failure_enabled_ = !v.simulate_database_failure_for_.IsEmpty();
@@ -973,32 +981,78 @@ namespace HM
 
    std::shared_ptr<const IniFileSettings::Values>
    IniFileSettings::Current() const
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The published block, through a copy this thread keeps of the last one it
+   // loaded. The server is built as C++14 on Windows, where std::atomic_load of a
+   // shared_ptr takes ONE spin lock that every shared_ptr atomic in the process
+   // shares - and every getter on every thread would take it: four per log line,
+   // several per database statement. A block is replaced only by a publish, so
+   // the thread asks the generation counter, one lock-free load, whether one has
+   // happened since, and goes to the shared pointer only when one has. The copy it
+   // keeps holds that block alive until the thread next reads a setting, which
+   // costs one block per idle thread and nothing else.
+   //---------------------------------------------------------------------------()
    {
+      struct Cached
+      {
+         const IniFileSettings *owner = nullptr;
+         unsigned long long generation = 0;
+         std::shared_ptr<const Values> values;
+      };
+
+      thread_local Cached cached;
+
+      // Acquire, paired with the release in BuildAndPublish_: a generation read
+      // here was published after its block was stored, so the load below finds that
+      // block or a later one. Caching a later block under an earlier generation
+      // only means the next read loads it again.
+      const unsigned long long generation = values_generation_.load(std::memory_order_acquire);
+      if (cached.owner == this && cached.generation == generation && cached.values)
+         return cached.values;
+
 #if defined(__cpp_lib_atomic_shared_ptr)
-      return values_.load();
+      std::shared_ptr<const Values> values = values_.load();
 #else
-      return std::atomic_load(&values_);
+      std::shared_ptr<const Values> values = std::atomic_load(&values_);
 #endif
+
+      cached.owner = this;
+      cached.generation = generation;
+      cached.values = values;
+
+      return values;
    }
 
    void
    IniFileSettings::Reload()
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
-   // What a save does: the overlay re-read from the store, a new block built in
-   // ScopeNow and published, and the subscribers of every key that moved called.
-   // The bootstrap and [SettingsOverride] are not re-read.
+   // What a save does, for a caller that has stored nothing itself: the overlay
+   // re-read from the store, a new block built in ScopeNow and published, and then
+   // - with the reload lock released - the subscribers of every key that moved.
    //---------------------------------------------------------------------------()
    {
-      boost::lock_guard<boost::recursive_mutex> guard(reload_mutex_);
+      std::vector<Subscription> due;
 
+      {
+         boost::lock_guard<boost::recursive_mutex> guard(reload_mutex_);
+         due = ReloadLocked_();
+      }
+
+      Tell_(due);
+   }
+
+   std::vector<IniFileSettings::Subscription>
+   IniFileSettings::ReloadLocked_()
+   {
       RefreshDatabaseSettings_();
 
       std::shared_ptr<const Values> before = Current();
       BuildAndPublish_(ScopeNow, true);
       std::shared_ptr<const Values> after = Current();
 
-      Notify_(before, after);
+      return Due_(before, after);
    }
 
    void
@@ -1014,20 +1068,25 @@ namespace HM
             return;
       }
 
-      // The first step of LoadDatabaseSettings, as it describes it: the file
-      // reconciled against the table, the table winning. A table that cannot be
-      // read keeps the overlay as it was - Synchronize has said why - rather than
-      // dropping every stored value to the file's copy mid-flight.
-      IniSettingStore store;
+      // The rows, READ ONLY (IniSettingStore::ReadStoredValues): the reconcile that
+      // writes the file and the table is a start's and a reinitialise's, because run
+      // here it raced other saves' store writes and could undo them. A table that
+      // cannot be read keeps the overlay as it was, rather than dropping every
+      // stored value to the file's copy mid-flight.
       std::map<String, String> resolved;
-      if (!store.Synchronize(resolved, false))
+      if (!IniSettingStore::ReadStoredValues(resolved))
+      {
+         LOG_APPLICATION("IniFileSettings: the settings store could not be read back after a save, so the settings in effect are the ones loaded before it, with the saved value over them.");
          return;
+      }
 
       boost::lock_guard<boost::recursive_mutex> guard(database_settings_mutex_);
 
-      // The overrides the last start loaded, applied again and not re-read: a key
-      // forced from [SettingsOverride] goes on winning between starts, and a change
-      // to that section still takes a start - and still announces itself there.
+      // The overrides the last start or reinitialise loaded, applied again and NOT
+      // re-read: a key forced from [SettingsOverride] goes on winning across saves,
+      // and a change to that section waits for a reinitialise (Apply now) or a start,
+      // which re-read it and announce it (HM5807). An override of a key marked
+      // restart waits for a start, as every restart key does.
       for (auto iter = start_overrides_.begin(); iter != start_overrides_.end(); iter++)
          resolved[(*iter).first] = (*iter).second;
 
@@ -1056,14 +1115,16 @@ namespace HM
       subscriptions_.push_back(subscription);
    }
 
-   void
-   IniFileSettings::Notify_(const std::shared_ptr<const Values> &before, const std::shared_ptr<const Values> &after)
+   std::vector<IniFileSettings::Subscription>
+   IniFileSettings::Due_(const std::shared_ptr<const Values> &before, const std::shared_ptr<const Values> &after)
    {
       std::vector<Subscription> subscriptions;
       {
          boost::lock_guard<boost::mutex> guard(subscriptions_mutex_);
          subscriptions = subscriptions_;
       }
+
+      std::vector<Subscription> due;
 
       const String nothing;
 
@@ -1083,8 +1144,36 @@ namespace HM
             moved = wasValue != nowValue;
          }
 
-         if (!moved)
-            continue;
+         if (moved)
+            due.push_back(subscription);
+      }
+
+      return due;
+   }
+
+   void
+   IniFileSettings::Tell_(const std::vector<Subscription> &due)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Calls the subscribers a reload found due, with the reload lock RELEASED - an
+   // OpenTelemetry exporter's restart joins a worker that may be inside a connect
+   // or a POST for seconds, and no other save or load should wait for that. One
+   // call at a time, under a lock of their own: every subscriber reads the value
+   // it takes from the published block when it runs, so whichever call runs last
+   // runs after the last publish and takes the latest value - two saves of one key
+   // told out of order cannot leave the subsystem on the older one, as a read and a
+   // set racing another save's read and set could. Recursive, because a subscriber
+   // may itself save a setting.
+   //---------------------------------------------------------------------------()
+   {
+      if (due.empty())
+         return;
+
+      boost::lock_guard<boost::recursive_mutex> guard(notify_mutex_);
+
+      for (size_t i = 0; i < due.size(); i++)
+      {
+         const Subscription &subscription = due[i];
 
          // Contained: a subscriber that fails must not turn a save that succeeded
          // into an error, and must not keep the others from being told.
@@ -1133,18 +1222,26 @@ namespace HM
       return true;
    }
 
-   String
-   IniFileSettings::AppliesOrNow(const String &name)
+   void
+   IniFileSettings::GetAllApplies(std::vector<std::pair<String, String> > &marks)
    {
-      // A name the loader does not read is read, if at all, where it is used -
-      // UseLanguage on every call, the webmail's branding keys per request, a
-      // script's own key by the script - so nothing holds a copy a save could miss.
-      String applies;
-      String spelling;
-      if (!GetApplies(name, applies, spelling))
-         return _T("now");
+      marks.clear();
 
-      return applies;
+      for (size_t i = 0; i < IniSettingsBaseline::SettingsCount; i++)
+      {
+         const IniSettingsBaseline::Setting &setting = IniSettingsBaseline::Settings[i];
+         marks.push_back(std::make_pair(String(setting.Name), String(AppliesWord(setting.Applies))));
+      }
+   }
+
+   const char *
+   IniFileSettings::NoApplyMarkSentence()
+   {
+      // One sentence for both surfaces, so COM's refusal and REST's applies null say
+      // the same thing about the same name.
+      return "This build does not read a [Settings] key of that name through its settings loader, so it has no mark saying when a change to it applies. "
+             "The keys it reads, and the mark of each, are in IniSettingsBaseline.h and in the applies map of GET /api/v1/settings/ini; "
+             "a key a script of the administrator's own reads, or one the webmail reads per request, applies whenever it is next read.";
    }
 
    String
@@ -1341,39 +1438,52 @@ namespace HM
       String value = requestedValue;
       value.Trim();
 
-      if (!IniSettingStore::WriteSetting(key, value))
-         return false;
-
-      // The overlay is updated only after the store took the value. Updating it
-      // first would make this process read back a value nothing else can see.
-      //
-      // An override is NOT disturbed: what the file forces is what the server is
-      // running on, and quietly replacing it here would make the overlay disagree
-      // with the next start. The administrator is told instead, because a save that
-      // is stored and then shadowed is the one case where "saved" and "in effect"
-      // are not the same thing.
-      bool shadowed = false;
+      std::vector<Subscription> due;
 
       {
-         boost::lock_guard<boost::recursive_mutex> guard(database_settings_mutex_);
+         // The store write and the reload under ONE hold of the reload lock, so no
+         // other save's reload reads the store between this write and this publish,
+         // and no LoadSettings() publishes this value first - which would leave the
+         // reload below finding nothing moved and telling no subscriber.
+         boost::lock_guard<boost::recursive_mutex> reloadGuard(reload_mutex_);
 
-         shadowed = file_overrides_.find(key) != file_overrides_.end();
+         if (!IniSettingStore::WriteSetting(key, value))
+            return false;
 
-         // A key kept in the file only is never in the overlay: it is read from the
-         // file, which is where the store just put it.
-         if (database_settings_loaded_ && !shadowed && !IniSettingStore::IsFileOnlyName(key))
-            database_settings_[key] = value;
+         // The overlay is updated only after the store took the value. Updating it
+         // first would make this process read back a value nothing else can see.
+         //
+         // An override is NOT disturbed: what the file forces is what the server is
+         // running on, and quietly replacing it here would make the overlay disagree
+         // with the next start. The administrator is told instead, because a save that
+         // is stored and then shadowed is the one case where "saved" and "in effect"
+         // are not the same thing.
+         bool shadowed = false;
+
+         {
+            boost::lock_guard<boost::recursive_mutex> guard(database_settings_mutex_);
+
+            shadowed = file_overrides_.find(key) != file_overrides_.end();
+
+            // A key kept in the file only is never in the overlay: it is read from the
+            // file, which is where the store just put it.
+            if (database_settings_loaded_ && !shadowed && !IniSettingStore::IsFileOnlyName(key))
+               database_settings_[key] = value;
+         }
+
+         if (shadowed)
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5808, "IniFileSettings::WriteSettingsValue",
+               Formatter::Format("The setting '{0}' was stored, but the [SettingsOverride] section of hMailServer.INI forces a different value for it, so the stored one will not take effect. Remove the key from that section to let the stored value be used.", key));
+         }
+
+         // And published: a key marked now is in effect when this returns, one marked
+         // reinitialize or restart is pending until what applies it has happened.
+         due = ReloadLocked_();
       }
 
-      if (shadowed)
-      {
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5808, "IniFileSettings::WriteSettingsValue",
-            Formatter::Format("The setting '{0}' was stored, but the [SettingsOverride] section of hMailServer.INI forces a different value for it, so the stored one will not take effect. Remove the key from that section to let the stored value be used.", key));
-      }
-
-      // And published: a key marked now is in effect when this returns, one marked
-      // reinitialize or restart is pending until what applies it has happened.
-      Reload();
+      // The subscribers, with the reload lock released (Tell_).
+      Tell_(due);
 
       return true;
    }
@@ -1409,22 +1519,33 @@ namespace HM
    bool
    IniFileSettings::RemoveSettingsValue(const String &key)
    {
-      if (!IniSettingStore::RemoveSetting(key))
-         return false;
+      std::vector<Subscription> due;
 
       {
-         boost::lock_guard<boost::recursive_mutex> guard(database_settings_mutex_);
+         // As WriteSettingsValue: the removal and the reload under one hold, so no
+         // other save's reload can read the row before it goes and the file after,
+         // and write the line back.
+         boost::lock_guard<boost::recursive_mutex> reloadGuard(reload_mutex_);
 
-         // An override is left where it is, for the same reason as above: it is what
-         // the server is running on, and it is the file's statement rather than the
-         // store's. Erasing the overlay entry would have this process read the
-         // default while the next start read the override.
-         if (database_settings_loaded_ && file_overrides_.find(key) == file_overrides_.end())
-            database_settings_.erase(key);
+         if (!IniSettingStore::RemoveSetting(key))
+            return false;
+
+         {
+            boost::lock_guard<boost::recursive_mutex> guard(database_settings_mutex_);
+
+            // An override is left where it is, for the same reason as above: it is what
+            // the server is running on, and it is the file's statement rather than the
+            // store's. Erasing the overlay entry would have this process read the
+            // default while the next start read the override.
+            if (database_settings_loaded_ && file_overrides_.find(key) == file_overrides_.end())
+               database_settings_.erase(key);
+         }
+
+         // Back to its default, in effect or pending as WriteSettingsValue says.
+         due = ReloadLocked_();
       }
 
-      // Back to its default, in effect or pending as WriteSettingsValue says.
-      Reload();
+      Tell_(due);
 
       return true;
    }
@@ -2216,6 +2337,13 @@ namespace HM
          stop = true;
          writer.join();
 
+         // Timed, in the application log, because the budget above is a minute and
+         // every publish rebuilds the whole block - reading hMailServer.ini once for
+         // each key the overlay does not hold - so a slow or scanned disk is where it
+         // would run out first.
+         LOG_APPLICATION(Formatter::Format(_T("IniFileSettingsTester: {0} reads under {1} publishes took {2} ms."),
+            reads, publishes.load(), (int) (GetTickCount64() - started)));
+
          if (writerFailed.load())
             FailSettingsTest_(_T("The publishing thread failed while the reads went on."));
 
@@ -2236,7 +2364,7 @@ namespace HM
          Publish_();
 
          if (ini->GetRestApiBindAddress() != runningBind)
-            FailSettingsTest_(_T("A reload applied a key marked reinitialize - RestApiBindAddress moved under a running listener."));
+            FailSettingsTest_(_T("A reload applied a key marked reinitialize - RestApiBindAddress took the stored value without a reinitialise."));
 
          if (!ini->IsPending(reinitializeKey))
             FailSettingsTest_(_T("A key marked reinitialize whose stored value differs from the running one is not pending."));
@@ -2267,15 +2395,207 @@ namespace HM
          throw;
       }
 
-      // Put back through the store, which is also what puts the overlay back.
+      // Put back through the store, which is also what puts the overlay back - and
+      // checked with no reload of the tester's own after it, so a RemoveSettingsValue
+      // that stopped publishing would leave the tester's value in effect and fail
+      // here: the default is in effect because the removal published it.
       if (wasStored)
          ini->WriteSettingsValue(key, before);
       else
          ini->RemoveSettingsValue(key);
 
-      ini->Reload();
-
       if (ini->GetTlsRptOrganizationName() != (wasStored ? before : String(_T("hMailServer"))))
-         FailSettingsTest_(_T("The tester could not put TlsRptOrganizationName back as it found it."));
+         FailSettingsTest_(wasStored ?
+            String(_T("A save of TlsRptOrganizationName's old value was not in effect when it returned.")) :
+            String(_T("A removal of TlsRptOrganizationName did not publish its default: the tester's value was still in effect when it returned.")));
+
+      TestSavesRacingSaves_();
+   }
+
+   void
+   IniFileSettingsTester::TestSavesRacingSaves_()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Saves racing saves. Eight threads each alternate a write and a delete of a key
+   // of their own, two hundred times, while a ninth reloads over and over; then
+   // every key's row in the store and its running value are what its own thread
+   // did last - half end on a write, half on a delete.
+   //
+   // What it guards: before the save path took the reload lock for its store
+   // write, and before a save's reload was made read-only, a reload on one thread
+   // reconciled the file against the table while another thread's save was half
+   // way through its own store write - reading a row before a DELETE dropped it and
+   // the file after the line had gone, writing the line back, and then the other
+   // save's reload adopting it - so a DELETE that answered success left the setting
+   // stored and in effect; and reading a row before a PUT updated it and the file
+   // after, putting the old value back into both.
+   //
+   // Eight keys nothing reads while the internal suite runs: report and signing
+   // names, an ACME contact, the autoconfig and MTA-STS hosts. The threads have no
+   // audit actor, so the storm writes no rows into the audit trail. What each key
+   // held is put back however the test ends.
+   //---------------------------------------------------------------------------()
+   {
+      IniFileSettings *ini = IniFileSettings::Instance();
+
+      const TCHAR *keys[] =
+      {
+         _T("DmarcRptOrganizationName"),
+         _T("AuthenticationResultsIdentity"),
+         _T("AcmeContactEmail"),
+         _T("AutoconfigClientHost"),
+         _T("MtaStsPolicyMx"),
+         _T("UpdateSigningIdentity"),
+         _T("UpdateSigningIssuer"),
+         _T("UpdateSourceRepository")
+      };
+      const size_t count = sizeof(keys) / sizeof(keys[0]);
+      const int operations = 200;
+
+      std::map<String, std::pair<String, String> > rows;
+      if (!IniSettingStore::ReadAllRows(rows))
+         FailSettingsTest_(_T("The tester could not read the settings store."));
+
+      std::vector<char> wasStored(count, 0);
+      std::vector<String> before(count);
+      for (size_t k = 0; k < count; k++)
+      {
+         auto row = rows.find(keys[k]);
+         if (row != rows.end())
+         {
+            wasStored[k] = 1;
+            before[k] = (*row).second.first;
+         }
+      }
+
+      auto putBack = [&]()
+      {
+         for (size_t k = 0; k < count; k++)
+         {
+            if (wasStored[k])
+               ini->WriteSettingsValue(keys[k], before[k]);
+            else
+               ini->RemoveSettingsValue(keys[k]);
+         }
+      };
+
+      try
+      {
+         // Written by thread k only, so no two threads touch one element.
+         std::vector<String> last(count);
+         std::vector<char> lastWasWrite(count, 0);
+
+         std::atomic<int> failures(0);
+         std::atomic<bool> writersDone(false);
+         std::atomic<int> reloads(0);
+
+         const unsigned __int64 started = GetTickCount64();
+
+         std::vector<std::thread> writers;
+         for (size_t k = 0; k < count; k++)
+         {
+            writers.push_back(std::thread([&, k]()
+            {
+               try
+               {
+                  for (int i = 0; i < operations; i++)
+                  {
+                     // Even threads end on a delete, odd ones on a write.
+                     const bool write = ((i + (int) k) % 2) == 0;
+                     if (write)
+                     {
+                        const String value = Formatter::Format(_T("settings tester {0}-{1}"), (int) k, i);
+                        if (!ini->WriteSettingsValue(keys[k], value))
+                           failures++;
+                        last[k] = value;
+                        lastWasWrite[k] = 1;
+                     }
+                     else
+                     {
+                        if (!ini->RemoveSettingsValue(keys[k]))
+                           failures++;
+                        last[k].Empty();
+                        lastWasWrite[k] = 0;
+                     }
+                  }
+               }
+               catch (...)
+               {
+                  failures++;
+               }
+            }));
+         }
+
+         std::thread reloader([&]()
+         {
+            try
+            {
+               while (!writersDone.load())
+               {
+                  ini->Reload();
+                  reloads++;
+                  std::this_thread::sleep_for(std::chrono::milliseconds(2));
+               }
+            }
+            catch (...)
+            {
+               failures++;
+            }
+         });
+
+         for (size_t k = 0; k < writers.size(); k++)
+            writers[k].join();
+         writersDone = true;
+         reloader.join();
+
+         LOG_APPLICATION(Formatter::Format(_T("IniFileSettingsTester: {0} saves on {1} threads, beside {2} reloads, took {3} ms."),
+            (int) (count * operations), (int) count, reloads.load(), (int) (GetTickCount64() - started)));
+
+         if (failures.load() > 0)
+            FailSettingsTest_(Formatter::Format(_T("{0} of the racing saves failed or threw."), failures.load()));
+
+         std::map<String, std::pair<String, String> > after;
+         if (!IniSettingStore::ReadAllRows(after))
+            FailSettingsTest_(_T("The tester could not read the settings store back."));
+
+         std::shared_ptr<const IniFileSettings::Values> running = ini->Current();
+
+         for (size_t k = 0; k < count; k++)
+         {
+            const String key = keys[k];
+
+            auto row = after.find(key);
+            auto resolved = running->resolved.find(key);
+            const String runningValue = resolved == running->resolved.end() ? String() : (*resolved).second;
+
+            if (lastWasWrite[k])
+            {
+               if (row == after.end())
+                  FailSettingsTest_(Formatter::Format(_T("{0}: the last save was a write of '{1}', and the store holds no row for it."), key, last[k]));
+               if ((*row).second.first != last[k])
+                  FailSettingsTest_(Formatter::Format(_T("{0}: the last save was a write of '{1}', and the store holds '{2}' - another save put an older value back."), key, last[k], (*row).second.first));
+               if (runningValue != last[k])
+                  FailSettingsTest_(Formatter::Format(_T("{0}: the last save was a write of '{1}', and the server is running on '{2}'."), key, last[k], runningValue));
+            }
+            else
+            {
+               if (row != after.end())
+                  FailSettingsTest_(Formatter::Format(_T("{0}: the last save was a delete, and the store holds '{1}' - another save brought the setting back."), key, (*row).second.first));
+
+               String defaultValue;
+               bool isInteger = false;
+               IniSettingStore::DefaultFor(key, defaultValue, isInteger);
+               if (runningValue != defaultValue)
+                  FailSettingsTest_(Formatter::Format(_T("{0}: the last save was a delete, and the server is running on '{1}' rather than its default '{2}'."), key, runningValue, defaultValue));
+            }
+         }
+      }
+      catch (...)
+      {
+         putBack();
+         throw;
+      }
+
+      putBack();
    }
 }
