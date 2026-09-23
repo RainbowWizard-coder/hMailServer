@@ -326,7 +326,10 @@ namespace RegressionTests.Infrastructure
             if (fields[0] != "Settings")
                continue;
 
-            marks[fields[1]] = fields[fields.Length - 1];
+            // Applies is the next-to-last field since the setting-levels row added
+            // Levels after it; counting from the end keeps a JSON default that
+            // contains spaces from shifting it.
+            marks[fields[1]] = fields[fields.Length - 2];
          }
 
          return marks;
