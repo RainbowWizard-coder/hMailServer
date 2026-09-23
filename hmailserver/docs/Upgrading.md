@@ -194,7 +194,14 @@ Panel's status page and `Application.ServerState` (`hStateDraining`, 5). A live
 update refuses to apply while somebody else's drain is in progress ("already
 draining"): leave it, or wait for it to end, and apply again. **The update's own
 drain is watched.** The helper is meant to stop the service, after which the
-outcome it writes is read at the next start; a helper that finishes without
+outcome it writes is read at the next start. The helper writes it only once it
+has seen the service running again, and the service says it is running before
+it has loaded anything, so the first thing a start does is look: when the
+helper's log in the Updates directory (`apply-<version>.log`, or on Linux the
+`apply.XXXXXX` it writes until it exits) is newer than the last outcome
+reported and there is no outcome yet, the start-up update task looks for it
+every second, for `UpdateServiceWaitSeconds` plus two minutes, and reports it
+as soon as it is there rather than at the quarter-hour run after. A helper that finishes without
 stopping it - an installer that failed while the service stayed up, or one that
 did nothing - or that never gets that far would otherwise leave the server
 drained for ever. So after the helper is started the server polls for its

@@ -46,6 +46,18 @@ namespace HM
       // verdict, then out of the way.
       static void ReportLastOutcome();
 
+      // At startup, once per process, after ReportLastOutcome: the outcome of an
+      // apply whose helper has not written it yet. The helper writes it only once
+      // it has SEEN the service running, and this service reports running to the
+      // service manager before it loads anything, so the start-up run of the
+      // update task can look for the file a second before it is there - and the
+      // next run is a quarter of an hour away. When the helper's log in the
+      // Updates directory is newer than the last outcome reported, the helper is
+      // still at work: the file is looked for every second, for the helper's own
+      // wait plus two minutes, and reported when it has been seen twice. On the
+      // task's thread, whose sleep a service stop interrupts.
+      static void AwaitOutcomeAtStart();
+
       // Bin\hMailServer.Updater.exe, beside the running executable; on Linux the
       // packaged /usr/lib/hmailserver/hmailserver-update, or the copy an AppImage
       // carries at the same relative path.
@@ -54,6 +66,11 @@ namespace HM
 
    private:
       static bool EnsureRollbackImage_(const String &runningVersion, String &rollbackPath, String &why);
+
+      // A helper's log in the Updates directory - apply-<version>.log, or on Linux
+      // the apply.XXXXXX it writes until it exits - written within the hour and
+      // after the last reported outcome (last-apply.txt.reported), if any.
+      static bool HelperStillAtWork_();
 
       // Watches the helper Apply started, on a thread of its own, for as long as
       // the drain Apply entered is still this drain: the helper is meant to stop

@@ -15,6 +15,9 @@
 #include "../Application/ErrorManager.h"
 
 #include <boost/thread/thread.hpp>
+#include <boost/filesystem.hpp>
+#include <atomic>
+#include <ctime>
 
 #ifdef HM_PLATFORM_POSIX
 #include "ProcessLauncher.h"
@@ -64,6 +67,13 @@ namespace HM
       // README.md name the ten minutes.
       const int UPDATE_APPLY_DRAIN_MINUTES = 10;
       const int UPDATE_APPLY_WATCH_POLL_SECONDS = 5;
+
+      // AwaitOutcomeAtStart: how long past the helper's own wait for the service
+      // the outcome is looked for, and how recent the helper's log must be for an
+      // apply to count as still in progress (the helper gives an installer an
+      // hour).
+      const int UPDATE_OUTCOME_GRACE_SECONDS = 120;
+      const int UPDATE_HELPER_RECENT_SECONDS = 3600;
    }
 
    void
@@ -157,6 +167,91 @@ namespace HM
    {
       String directory = UpdateDownloader::UpdatesDirectory();
       return directory.IsEmpty() ? String() : directory + FileUtilities::PathSeparator + _T("last-apply.txt");
+   }
+
+   bool
+   UpdateInstaller::HelperStillAtWork_()
+   {
+      String directory = UpdateDownloader::UpdatesDirectory();
+      String outcome = OutcomePath();
+      if (directory.IsEmpty() || outcome.IsEmpty())
+         return false;
+
+      const std::time_t now = std::time(nullptr);
+
+      // The last outcome reported, whose file keeps the time the helper wrote it:
+      // a log no newer than that is the log of the apply already reported.
+      std::time_t reported = 0;
+      boost::system::error_code reportedError;
+      boost::filesystem::path reportedPath(std::wstring(outcome + _T(".reported")));
+      if (boost::filesystem::exists(reportedPath, reportedError))
+      {
+         std::time_t written = boost::filesystem::last_write_time(reportedPath, reportedError);
+         if (!reportedError)
+            reported = written;
+      }
+
+      boost::system::error_code ec;
+      for (boost::filesystem::directory_iterator entry(std::wstring(directory), ec); !ec && entry != boost::filesystem::directory_iterator(); entry.increment(ec))
+      {
+         // apply-<version>.log, the Windows helper's log from its first line; on
+         // Linux hmailserver-update writes apply.XXXXXX (mktemp) and moves it to
+         // apply-<version>.log only as it exits, after the outcome.
+         const std::wstring name = entry->path().filename().wstring();
+         const bool windowsLog = name.size() > 10 && name.compare(0, 6, L"apply-") == 0 && name.compare(name.size() - 4, 4, L".log") == 0;
+         const bool posixLog = name.size() == 12 && name.compare(0, 6, L"apply.") == 0;
+         if (!windowsLog && !posixLog)
+            continue;
+
+         boost::system::error_code timeError;
+         std::time_t written = boost::filesystem::last_write_time(entry->path(), timeError);
+         if (timeError)
+            continue;
+         if (written > reported && now - written < UPDATE_HELPER_RECENT_SECONDS)
+            return true;
+      }
+
+      return false;
+   }
+
+   void
+   UpdateInstaller::AwaitOutcomeAtStart()
+   {
+      // Once per process: the start-up run and the first quarter-hour run are the
+      // same task, and only a start can be followed by a helper's late outcome.
+      static std::atomic<bool> asked(false);
+      if (asked.exchange(true))
+         return;
+
+      String outcome = OutcomePath();
+      if (outcome.IsEmpty() || FileUtilities::Exists(outcome) || !HelperStillAtWork_())
+         return;
+
+      const int seconds = IniFileSettings::Instance()->GetUpdateServiceWaitSeconds() + UPDATE_OUTCOME_GRACE_SECONDS;
+      LOG_DEBUG(Formatter::Format(_T("Update: the helper's log is newer than the last outcome reported and there is no outcome yet, so the helper is still at work; its outcome is looked for over the next {0} seconds."), seconds));
+
+      // Seen on two consecutive looks, as WatchTheHelper_ does: the writer has
+      // finished writing.
+      bool seen = false;
+      for (int waited = 0; waited < seconds; waited++)
+      {
+         boost::this_thread::sleep_for(boost::chrono::seconds(1));
+
+         if (!FileUtilities::Exists(outcome))
+         {
+            seen = false;
+            continue;
+         }
+
+         if (!seen)
+         {
+            seen = true;
+            continue;
+         }
+
+         ReportLastOutcome();
+         return;
+      }
    }
 
    bool

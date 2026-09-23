@@ -139,6 +139,11 @@ namespace HM
       // service was down is reported the first time the service is up again.
       UpdateInstaller::ReportLastOutcome();
 
+      // And one the helper has still to write, the first time this task runs in
+      // a process: the helper writes it only after it has seen this service
+      // running, which this process says before it has loaded anything.
+      UpdateInstaller::AwaitOutcomeAtStart();
+
       IniFileSettings *settings = IniFileSettings::Instance();
 
       // And one that was handed over and never answered. A helper that stops the
