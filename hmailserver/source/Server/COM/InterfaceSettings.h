@@ -343,6 +343,14 @@ END_COM_MAP()
    STDMETHOD(GetChangedFromDefault)(/*[out, retval]*/ BSTR *Json);
    STDMETHOD(GetSettingDefault)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *Value);
 
+   // The setting profiles (Common/Application/Profiles, docs/Profiles.md).
+   STDMETHOD(GetProfiles)(/*[out, retval]*/ BSTR *Json);
+   STDMETHOD(GetProfile)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *Json);
+   STDMETHOD(ApplyProfile)(/*[in]*/ BSTR Name, /*[in]*/ VARIANT_BOOL Confirmed, /*[out, retval]*/ BSTR *Json);
+   STDMETHOD(RevertProfile)(/*[out, retval]*/ BSTR *Json);
+   STDMETHOD(DiscardProfileSnapshot)();
+   STDMETHOD(get_AppliedProfile)(/*[out, retval]*/ BSTR *pVal);
+
    // The [Settings] section of hMailServer.INI. See the IDL for why these exist and
    // for the two things they deliberately do not do.
    STDMETHOD(GetIniSetting)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);

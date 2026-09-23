@@ -17,7 +17,7 @@ namespace RegressionTests.API
 {
    /// <summary>
    ///    The first-hour checklist: GET /api/v1/setup/checklist and
-   ///    Utilities.GetSetupChecklist, the same document over REST and over COM. Eight
+   ///    Utilities.GetSetupChecklist, the same document over REST and over COM. Nine
    ///    items - a domain, an account, TLS on the submission port, SPF, DKIM, DMARC, a
    ///    backup destination and a second factor on the administrator password - each
    ///    done, action_needed, cannot_tell or not_needed, with findings that carry a
@@ -81,8 +81,8 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("Eight items in the order a new server meets them, each in one of the four states, each finding with a code, its arguments and a sentence; the fixture's domain and account are done.")]
-      public void EightItemsEachWithAState()
+      [Description("Nine items in the order a new server meets them - a setting profile first - each in one of the four states, each finding with a code, its arguments and a sentence; the fixture's domain and account are done.")]
+      public void NineItemsEachWithAState()
       {
          JsonDocument document = Get(Path);
          JsonElement root = document.RootElement;
@@ -111,7 +111,7 @@ namespace RegressionTests.API
             counted++;
          }
 
-         CollectionAssert.AreEqual(new[] { "domain", "account", "submission", "spf", "dkim", "dmarc", "backup", "second_factor" }, keys);
+         CollectionAssert.AreEqual(new[] { "profile", "domain", "account", "submission", "spf", "dkim", "dmarc", "backup", "second_factor" }, keys);
 
          int summed = root.GetProperty("done").GetInt32() + root.GetProperty("action_needed").GetInt32() +
                       root.GetProperty("cannot_tell").GetInt32() + root.GetProperty("not_needed").GetInt32();
@@ -168,7 +168,7 @@ namespace RegressionTests.API
          {
             ClassicAssert.IsFalse(com.RootElement.GetProperty("dns_looked_up").GetBoolean());
             ClassicAssert.AreEqual("record_not_looked_up", FirstCode(com.RootElement, "spf"));
-            ClassicAssert.AreEqual(8, com.RootElement.GetProperty("items").GetArrayLength());
+            ClassicAssert.AreEqual(9, com.RootElement.GetProperty("items").GetArrayLength());
          }
 
          using (JsonDocument com = JsonDocument.Parse(_application.Utilities.GetSetupChecklist(true)))

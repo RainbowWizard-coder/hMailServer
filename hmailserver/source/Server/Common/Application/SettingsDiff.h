@@ -148,7 +148,12 @@ namespace HM
       /// The same list as one JSON document, which is what both the REST route and
       /// the COM call answer, so that the two cannot describe the server
       /// differently. {"changed": n, "considered": m, "settings": [{store, name,
-      /// value, default, secret, known, overridden}]}.
+      /// value, default, secret, known, overridden, environment, profile}],
+      /// "environment": [...], "from_file": [...], "profile": {name, state,
+      /// applied} or null}. profile beside a value names the setting profile that
+      /// set it, while the profile is applied and the setting still holds what it
+      /// wrote (docs/Profiles.md); the document's own profile is the last one
+      /// applied and what became of it.
       /// </summary>
       static AnsiString Json();
 

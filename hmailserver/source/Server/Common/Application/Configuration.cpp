@@ -12,6 +12,7 @@
 #include "../BO/SSLCertificates.h"
 #include "../Application/Property.h"
 #include "../Application/IniSettingStore.h"
+#include "../Application/Profiles.h"
 #include "../Cache/CacheContainer.h"
 #include "../Application/ObjectCache.h"
 #include "../Scripting/ScriptServer.h"
@@ -67,6 +68,13 @@ namespace HM
       property_set_->Refresh();
 
       EnsureSettingDefaults_();
+
+      // The two records a profile keeps (Profiles.h), made empty here while this is
+      // the only thread, so that an apply on a request thread updates a row and never
+      // inserts one into the set others are reading. Not settings, so not in
+      // EnsureSettingDefaults_, which build/generate-settings-defaults.py reads as
+      // the list of what a database ships with.
+      Profiles::EnsureRecords(*property_set_);
 
       pop3_configuration_ = std::shared_ptr<POP3Configuration>(new POP3Configuration);
       smtp_configuration_ = std::shared_ptr<SMTPConfiguration>(new SMTPConfiguration);

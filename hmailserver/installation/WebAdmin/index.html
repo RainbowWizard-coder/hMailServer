@@ -1267,6 +1267,11 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="auditrevert")revertAuditedChange(d.id);
   else if(d.act==="repwatchcheck")runReputationCheck();
   else if(d.act==="checklistagain")render();
+  else if(d.act==="profileshow"){profileShown_=d.name;render();}
+  else if(d.act==="profilehide"){profileShown_="";render();}
+  else if(d.act==="profileapply")applyProfile(d.name,Number(d.changes)||0,d.needs==="1");
+  else if(d.act==="profilerevert")revertProfile(d.name);
+  else if(d.act==="profilediscard")discardProfile();
   else if(d.act==="samplecreate")createSampleDomain();
   else if(d.act==="sampleremove")removeSampleDomain();
   else if(d.act==="rdnew")openRemoteDomain(0);
@@ -6610,14 +6615,16 @@ async function verifyAuditChain(){
    What is checked, and which lists, are settings (reputation_watch_addresses,
    reputation_watch_lists) and so live on the Settings page with every other one;
    this view is the answer and the button that asks again. */
-/* The first-hour checklist: eight items the server judges itself (SetupChecklist.cpp).
+/* The first-hour checklist: nine items the server judges itself (SetupChecklist.cpp),
+   the first of them a setting profile (docs/Profiles.md).
    Every finding carries a code and its arguments beside the server's English
    sentence, so the sentence is rendered from the catalogue here and the server's
    own is the fallback for a code this page does not know. */
-const CHECKLIST_TITLE={domain:K("A domain"),account:K("An account"),submission:K("TLS on the submission port"),
+const CHECKLIST_TITLE={profile:K("A profile for this server"),domain:K("A domain"),account:K("An account"),submission:K("TLS on the submission port"),
   spf:K("An SPF record"),dkim:K("DKIM signing"),dmarc:K("A DMARC record"),backup:K("A backup destination"),
   second_factor:K("A second factor for the administrator")};
 const CHECKLIST_PURPOSE={
+  profile:K("A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back."),
   domain:K("Mail is addressed to a domain, so the server needs one before it can receive anything."),
   account:K("An account is a mailbox in a domain: the address people write to, and what a client signs in as."),
   submission:K("Mail clients send through the submission port, and without TLS their passwords cross the network in the clear."),
@@ -6628,6 +6635,11 @@ const CHECKLIST_PURPOSE={
   second_factor:K("The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough.")};
 const CHECKLIST_STATE={done:K("Done"),action_needed:K("Action needed"),cannot_tell:K("Cannot tell"),not_needed:K("Not needed")};
 const CHECKLIST_TEXT={
+  profile_none:K("No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made."),
+  profile_in_service:K("This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one."),
+  profile_applied:K("The {0} profile was applied on {1}."),
+  profile_kept:K("The {0} profile was applied on {1}; its way back was discarded and its settings kept."),
+  profile_reverted:K("The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced."),
   domain_none:K("No domain has been added yet."),
   domain_none_active:K("{0} domains, none of them active."),
   domain_count:K("Active domains: {0} of {1}."),
@@ -6664,6 +6676,90 @@ function checklistPill(state){
 function checklistText(finding){
   const key=CHECKLIST_TEXT[finding.code];
   return key?tf(key,...(finding.args||[])):(finding.text||finding.code||"");
+}
+/* ---------- setting profiles ----------
+   The four profiles the server ships (docs/Profiles.md), under the checklist
+   because a profile is where the first hour starts. The page decides nothing:
+   the server answers each entry with the value it holds now, whether applying
+   would change it and whether that change asks for a confirmation - it closes a
+   listener, trusts an address range or turns a filter off - and refuses an apply
+   without the box ticked when one does. What an apply replaces is kept, and put
+   back from here. The profiles' titles, paragraphs and reasons are the server's
+   own English, as a finding's text is for a code the page does not know. */
+let profileShown_="";
+const PROFILE_CAUTION={closes_listener:K("Closes a listener"),trusts_addresses:K("Trusts an address range"),turns_filter_off:K("Turns a filter off")};
+function profileRows(diff){
+  return (diff.entries||[]).map(e=>{
+    const environment=e.environment?'<div class="hint muted">'+escHtml(t("Set by the environment"))+" ("+escHtml(e.environment)+")</div>":"";
+    const refused=e.refused?'<div class="err">'+escHtml(tf("Refused: {0}",e.refused))+"</div>":"";
+    const caution=e.caution&&e.confirm?' <span class="pill" data-level="warn"><span class="mark">●</span>'+escHtml(t(PROFILE_CAUTION[e.caution]||e.caution))+"</span>":"";
+    const value=e.changes?"<b>"+escHtml(e.value)+"</b>":escHtml(e.value);
+    return `<tr class="profilerow" data-name="${escHtml(e.name)}" data-changes="${e.changes?1:0}"><td><code>${escHtml(e.name)}</code>${environment}</td><td>${escHtml(e.current)}</td><td>${value}${caution}</td><td>${escHtml(e.why)}${refused}</td></tr>`;
+  }).join("");
+}
+function profilesCard(list,diff){
+  if(!list)return "";
+  const mayChange=may("manage_settings");
+  const snapshot=list.snapshot&&list.snapshot.profile?list.snapshot:null;
+  const held=snapshot?`<p class="note">${escHtml(tf("The {0} profile is applied. What it replaced is kept, and can be put back.",snapshot.profile))}</p>`+
+    (mayChange?`<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="btn ghost sm" data-act="profilerevert" data-name="${escHtml(snapshot.profile)}">${t("Put back what it changed")}</button>
+      <button class="btn ghost sm" data-act="profilediscard">${t("Keep its settings, forget the way back")}</button></div>`:""):"";
+  const profiles=(list.profiles||[]).map(p=>{
+    const shown=profileShown_===p.name&&diff&&diff.name===p.name;
+    let detail="";
+    if(shown){
+      const needs=(diff.confirmation_needed||[]).length>0;
+      const steps=(diff.steps||[]).map(step=>"<li>"+escHtml(step)+"</li>").join("");
+      detail=`<div class="tablewrap"><table class="profilediff"><thead><tr><th>${t("Setting")}</th><th>${t("This server now")}</th><th>${t("The profile")}</th><th>${t("Why")}</th></tr></thead>
+        <tbody>${profileRows(diff)}</tbody></table></div>`+
+        (steps?`<p class="note"><b>${t("What it cannot do for you")}</b></p><ul class="findings">${steps}</ul>`:"")+
+        (mayChange&&diff.applicable?`<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">`+
+          (needs?`<label class="row" style="gap:7px"><input type="checkbox" id="profileConfirm"> ${t("I confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server.")}</label>`:"")+
+          `<button class="btn sm" data-act="profileapply" data-name="${escHtml(p.name)}" data-changes="${Number(diff.changes)||0}" data-needs="${needs?1:0}">${t("Apply this profile")}</button></div>`:"")+
+        (diff.blocked?`<p class="note">${escHtml(diff.blocked)}</p>`:"");
+    }
+    return `<div class="card flat profilecard" data-name="${escHtml(p.name)}">
+      <div class="row" style="gap:10px;align-items:center"><b>${escHtml(p.title||p.name)}</b> <span class="muted">${escHtml(p.name)}</span></div>
+      <p class="note">${escHtml(p.summary||"")}</p>
+      <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap"><span class="muted">${escHtml(tf("{0} of its {1} settings would change on this server.",Number(p.changes)||0,Number(p.entries)||0))}</span>
+        <button class="btn ghost sm" data-act="${shown?"profilehide":"profileshow"}" data-name="${escHtml(p.name)}">${shown?t("Hide the changes"):t("Show the changes")}</button></div>
+      ${detail}</div>`;
+  }).join("");
+  return `<div class="card flat" id="profilesCard">
+    <div class="row" style="gap:10px;align-items:center"><b>${t("Setting profiles")}</b></div>
+    <p class="note">${t("Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied.")}</p>
+    ${held}${profiles}
+    <div class="err" id="err_profiles"></div></div>`;
+}
+async function applyProfile(name,changes,needs){
+  setErr("err_profiles","");
+  const box=document.getElementById("profileConfirm");
+  const confirmed=!!(box&&box.checked);
+  if(needs&&!confirmed){setErr("err_profiles",t("Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here."));return;}
+  if(!confirm(tf("Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back.",name,changes)))return;
+  try{
+    const answer=await api("/api/v1/settings/profiles/"+encodeURIComponent(name)+"/apply",{method:"POST",body:JSON.stringify({confirm:confirmed})});
+    toast(tf("{0}: {1} set, {2} unchanged, {3} skipped.",name,Number(answer.set)||0,Number(answer.unchanged)||0,Number(answer.skipped)||0));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_profiles",e.message);}
+}
+async function revertProfile(name){
+  setErr("err_profiles","");
+  if(!confirm(tf("Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again.",name)))return;
+  try{
+    const answer=await api("/api/v1/settings/profiles/revert",{method:"POST",body:"{}"});
+    toast(tf("{0}: {1} put back, {2} left as they were.",name,Number(answer.set)||0,Number(answer.skipped)||0));
+    profileShown_="";
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_profiles",e.message);}
+}
+async function discardProfile(){
+  setErr("err_profiles","");
+  try{
+    await api("/api/v1/settings/profiles/discard",{method:"POST",body:"{}"});
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_profiles",e.message);}
 }
 /* ---------- the sample domain ----------
    A throwaway example.test with three mailboxes, a distribution list, a rule
@@ -6740,6 +6836,13 @@ async function removeSampleDomain(){
 }
 async function renderChecklist(){
   const answer=await api("/api/v1/setup/checklist");
+  // The profiles beside the list, as the sample is: a server that cannot answer
+  // them still draws the items it could.
+  let profiles=null,profileDiff=null;
+  try{
+    profiles=await api("/api/v1/settings/profiles");
+    if(profileShown_)profileDiff=await api("/api/v1/settings/profiles/"+encodeURIComponent(profileShown_));
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}profiles=null;}
   // The sample is asked for beside the list rather than inside it: a server
   // that cannot answer this one still draws the eight items it could.
   let sample=null;
@@ -6764,6 +6867,7 @@ async function renderChecklist(){
       </div>
     </div>
     ${cards.join("")}
+    ${profilesCard(profiles,profileDiff)}
     ${sampleDomainCard(sample)}</div>`;
 }
 

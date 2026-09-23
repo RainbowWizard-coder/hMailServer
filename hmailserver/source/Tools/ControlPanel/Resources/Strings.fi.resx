@@ -557,6 +557,12 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name="A password is stored - leave blank to keep it" xml:space="preserve">
     <value>Salasana on tallennettu – jätä tyhjäksi säilyttääksesi sen</value>
   </data>
+  <data name="A profile for this server" xml:space="preserve">
+    <value>Profiili tälle palvelimelle</value>
+  </data>
+  <data name="A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back." xml:space="preserve">
+    <value>Profiili asettaa ne noin kolmekymmentä asetusta, joita tietynlainen palvelin tarvitsee - mitkä, mihin arvoon ja miksi -, näyttää eron tähän palvelimeen ennen kuin mitään muutetaan, ja säilyttää sen, minkä se korvaa, jotta sen voi palauttaa.</value>
+  </data>
   <data name="A quota can be set on the domain and overridden per account." xml:space="preserve">
     <value>Kiintiön voi asettaa verkkotunnukselle ja ohittaa tilikohtaisesti.</value>
   </data>
@@ -1398,11 +1404,17 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
     <value>Koskee vain, kun palautusten käsittely on päällä. Raportti lasketaan vain, kun se nimeää viestin, jonka tämä palvelin todella toimitti kyseiselle vastaanottajalle, se saapui ulkoa todentamatta ja läpäisi SPF:n ja DMARCin, missä ne kirjataan - mutta kuka tahansa saman viestin saanut voi väärentää sellaisen toiselle näkyvälle vastaanottajalle. Pois päältä raportteja ei lueta lainkaan; toimituksen aikaiset hylkäykset lasketaan edelleen.</value>
   </data>
+  <data name="Apply a profile" xml:space="preserve">
+    <value>Ota profiili käyttöön</value>
+  </data>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Suorita hakemistosynkronointi</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Käytä palvelimen roskaposti_suodatusta tähän tiliin</value>
+  </data>
+  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>Otetaanko profiili {0} käyttöön? {1} asetusta muuttuu nyt, ja niiden aiemmat arvot säilytetään, jotta ne voi palauttaa.</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled-arvoa ei voitu lukea: {0}</value>
@@ -1445,6 +1457,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>Saapuva</value>
+  </data>
+  <data name="Asks for a confirmation" xml:space="preserve">
+    <value>Vaatii vahvistuksen</value>
   </data>
   <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
     <value>AsyncQueueStallThreshold (120)</value>
@@ -2108,6 +2123,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Sulje vastaanottajaluettelo</value>
+  </data>
+  <data name="Closes a listener" xml:space="preserve">
+    <value>Sulkee kuuntelijan</value>
   </data>
   <data name="Collapse the navigation" xml:space="preserve">
     <value>Pienennä navigointi</value>
@@ -3257,6 +3275,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>Jokainen viesti skannataan kahdesti: kerran kokonaisena tiedostona levyllä ja sitten kerran liitettä kohden, kukin kirjoitettuna väliaikaiskansioon ja annettuna tarkistimelle erikseen. Toinen kierros on se, joka nappaa liitteen sellaisen rakenteen sisältä, jota tarkistin ei itse pura. Jos viestiä ei voi jäsentää MIME-muotoon, liitekohtainen kierros ohitetaan ja virhe kirjataan lokiin.</value>
   </data>
+  <data name="Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied." xml:space="preserve">
+    <value>Jokainen profiili asettaa asetukset, joita tietynlainen palvelin tarvitsee. Kun profiili näytetään, jokainen asetus näkyy tämän palvelimen nykyisen arvon vieressä; mikään ei muutu ennen käyttöönottoa.</value>
+  </data>
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Jokainen uudelleenyritys ennen alkuviiveen kulumista aloittaa viiveen uudelleen siitä hetkestä, joten ajastimella eikä jonosta uudelleen yrittävä lähettäjä ei koskaan saavuta ikkunaa. Oletuksena pois: hyvin käyttäytyvä palvelin, joka kerran yrittää uudelleen liian nopeasti, viivästyy tämän ollessa päällä hieman pidempään.</value>
   </data>
@@ -4159,6 +4180,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Miten tämä palvelin selvittää MX-, PTR-, SPF-, DKIM-, DMARC- ja estolistahaut (hMailServer.INI).</value>
+  </data>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
+    <value>_Vahvistan yllä merkityt muutokset: ne sulkevat kuuntelijan, luottavat osoitealueeseen tai poistavat suodattimen käytöstä tällä palvelimella.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (push-posti)</value>
@@ -5508,6 +5532,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>Ongelmia ei löytynyt - jokaisella viestirivillä on tiedostonsa levyllä.</value>
   </data>
+  <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
+    <value>Profiilia ei ole otettu käyttöön. Profiili asettaa noin kolmekymmentä asetusta sen mukaan, millainen palvelin tämä on - pieni toimisto, suodattavan yhdyskäytävän takana, lähtevä välityspalvelin, suurten määrien lähettäjä - ja näyttää jokaisen muutoksen ennen sen tekemistä.</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>SMTP-asetuksissa ei ole määritetty julkista konenimeä.</value>
   </data>
@@ -5816,6 +5843,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>Aseta sivulla Varmuuskopio kansio, johon varmuuskopio kirjoitetaan, eri levylle kuin viestivarasto.</value>
+  </data>
+  <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
+    <value>Vertaa sivulla Asetusprofiilit neljää tähän palvelimeen ja ota sopiva käyttöön; sen korvaama säilytetään, jotta sen voi palauttaa.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Anna sivulla TCP/IP-portit lähetysportille (587) STARTTLS varmenteella sivulta SSL-varmenteet, tai lisää portti 465 implisiittisellä TLS:llä.</value>
@@ -6500,6 +6530,12 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Put a setting back" xml:space="preserve">
     <value>Palauta asetus</value>
   </data>
+  <data name="Put back a profile's changes" xml:space="preserve">
+    <value>Palauta profiilin muutokset</value>
+  </data>
+  <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
+    <value>Palautetaanko profiilin {0} korvaamat arvot? Sen jälkeen muutettu asetus jätetään ennalleen, ja profiilin käyttöön ottama suodatin voi poistua taas käytöstä.</value>
+  </data>
   <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
     <value>Palautetaanko viesti {0} tilin {1} postilaatikkoon?</value>
   </data>
@@ -6788,6 +6824,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Hylätty toimitettaessa</value>
+  </data>
+  <data name="Refused: {0}" xml:space="preserve">
+    <value>Hylätty: {0}</value>
   </data>
   <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
     <value>Hylkääminen on tiukempaa, mutta niin kauan kuin päätepisteeseen ei saada yhteyttä, mitään salasanaa ei voi vaihtaa missään, ei edes ylläpitäjän salasanaa.</value>
@@ -8061,6 +8100,9 @@ Jatketaanko?</value>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Asetus  -  {0}</value>
   </data>
+  <data name="Setting profiles" xml:space="preserve">
+    <value>Asetusprofiilit</value>
+  </data>
   <data name="Settings" xml:space="preserve">
     <value>Asetukset</value>
   </data>
@@ -9213,6 +9255,9 @@ Lisätäänkö silti?</value>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>Yksityisen avaimen julkinen puolisko on identtinen varmenteen julkisen avaimen kanssa - pari kuuluu yhteen.</value>
   </data>
+  <data name="The profile" xml:space="preserve">
+    <value>Profiili</value>
+  </data>
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
     <value>Julkinen kokoelma on osoitteessa https://api.pwnedpasswords.com/range/. Organisaatio, jolla on oma peilinsä, antaa sen tässä: viisi merkkiä liitetään polun perään tai kohtaan, jossa lukee {prefix}. Salaamaton http hyväksytään vain osoitteisiin localhost, 127.0.0.1 tai ::1.</value>
   </data>
@@ -9478,6 +9523,18 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Wikiä ei voitu avata selaimessa.</value>
   </data>
+  <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
+    <value>Profiili {0} on käytössä. Sen korvaama on tallessa ja voidaan palauttaa.</value>
+  </data>
+  <data name="The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced." xml:space="preserve">
+    <value>Profiili {0} otettiin käyttöön ja palautettiin sitten {1}; asetukset ovat ne, jotka se oli korvannut.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}." xml:space="preserve">
+    <value>Profiili {0} otettiin käyttöön {1}.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}; its way back was discarded and its settings kept." xml:space="preserve">
+    <value>Profiili {0} otettiin käyttöön {1}; sen paluutie hylättiin ja sen asetukset säilytettiin.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>{0}-palvelin on kytketty pois päältä Protokollat-sivulla, joten tätä porttia ei kuunnella. Rivi säilytetään. Protokollan kytkeminen takaisin päälle ei käynnistä kuuntelijaa itsestään - sekä porttiluettelo että käytössä olevat protokollat luetaan kerran palvelun käynnistyessä - joten käynnistä palvelu uudelleen käyttöönoton jälkeen.</value>
   </data>
@@ -9597,6 +9654,12 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
     <value>Tällä palvelimella ei ole asetustasoja: se on vanhempi kuin skeema 6088, ja jokainen asetus tässä on palvelimen tai verkkotunnuksen oma kenttä.</value>
   </data>
+  <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
+    <value>Tällä palvelimella on {0} tiliä, joten se on käytössä: profiilia tarjotaan uudelle palvelimelle, ja mitä tahansa neljästä voi silti verrata tähän.</value>
+  </data>
+  <data name="This server now" xml:space="preserve">
+    <value>Tämä palvelin nyt</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Tämä palvelin vain TARKISTAA SPF:n saapuvasta postista; tietueen julkaiseminen on kaikkia muita varten - se kertoo vastaanottaville palvelimille, mitkä koneet saavat lähettää postia, joka väittää tulevansa osoitteesta</value>
   </data>
@@ -9650,6 +9713,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbirdin autoconfig + Outlookin autodiscover</value>
+  </data>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
+    <value>Valitse ensin vahvistus: tämä profiili sulkee täällä kuuntelijan, luottaa osoitealueeseen tai poistaa suodattimen käytöstä.</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>Aika</value>
@@ -9741,6 +9807,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
     <value>Luotetut välityspalvelimet, joiden X-Forwarded-Proto: https uskotaan (osoitteet pilkuin eroteltuina; loopback aina)</value>
   </data>
+  <data name="Trusts an address range" xml:space="preserve">
+    <value>Luottaa osoitealueeseen</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Kytke vianjäljityslokitus taas pois päältä</value>
   </data>
@@ -9767,6 +9836,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Tämän poistaminen käytöstä lopettaa istuntoliput jokaisessa TLS-versiossa: TLS 1.2 ja vanhemmat asiakkaat palaavat palvelinpuolen istuntovälimuistiin, joka ei koskaan poistu tästä prosessista, eikä TLS 1.3 -asiakkaille lähetetä lippua lainkaan. Järjestelmänvalvojalle, jonka käytäntö on, ettei mikään pitkäikäisestä avaimesta johdettu koskaan kulje verkossa. Ainoa hinta on jatkamisen tehokkuus - jokainen asiakas voi silti yhdistää täydellä kättelyllä.</value>
+  </data>
+  <data name="Turns a filter off" xml:space="preserve">
+    <value>Poistaa suodattimen käytöstä</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Kaksi sidontatapaa, ja ero merkitsee enemmän kuin miltä se näyttää: toinen lähettää salasanan hakemistoon, toinen ei koskaan laita sitä verkkoon lainkaan.</value>
@@ -10106,6 +10178,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="What is sent" xml:space="preserve">
     <value>Mitä lähetetään</value>
+  </data>
+  <data name="What it cannot do for you" xml:space="preserve">
+    <value>Mitä se ei voi tehdä puolestasi</value>
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>Mihin se on</value>
@@ -10455,6 +10530,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Apply now" xml:space="preserve">
     <value>_Ota käyttöön nyt</value>
   </data>
+  <data name="_Apply this profile" xml:space="preserve">
+    <value>_Ota tämä profiili käyttöön</value>
+  </data>
   <data name="_Bind address" xml:space="preserve">
     <value>S_idontaosoite</value>
   </data>
@@ -10641,6 +10719,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Job title" xml:space="preserve">
     <value>T_ehtävänimike</value>
   </data>
+  <data name="_Keep its settings, forget the way back" xml:space="preserve">
+    <value>_Säilytä asetukset, unohda paluutie</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Säilytä alkuperäinen viesti</value>
   </data>
@@ -10766,6 +10847,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>_Palauta</value>
+  </data>
+  <data name="_Put back what it changed" xml:space="preserve">
+    <value>_Palauta sen tekemät muutokset</value>
   </data>
   <data name="_Put the message back" xml:space="preserve">
     <value>Palauta viesti (_c)</value>
@@ -11943,6 +12027,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0} salausta saatavilla, joten {1} verkon yli selväkielisinä.</value>
   </data>
+  <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
+    <value>{0} sen {1} asetuksesta muuttuisi tällä palvelimella.</value>
+  </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} tilin kertakäyttöisistä palautuskoodeista on käyttämättä.</value>
   </data>
@@ -12221,6 +12308,12 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} ei sisällä PEM-varmennelohkoa, joten siinä ei ole käyttökelpoista CA-varmennetta (palvelinvirhe 6140). Vie CA-varmenne PEM (Base64) -muodossa.</value>
+  </data>
+  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
+    <value>{0}: {1} palautettu, {2} jätetty ennalleen.</value>
+  </data>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
+    <value>{0}: {1} asetettu, {2} ennallaan, {3} ohitettu.</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1} virustorjunta pois päältä, joten {2} noutama posti toimitetaan skannaamatta riippumatta siitä, mitä tässä on asetettu. Kytkin on noutotilillä, ei tällä sivulla.{3}</value>

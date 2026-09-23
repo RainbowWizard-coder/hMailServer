@@ -1,0 +1,27 @@
+{
+  "name": "sender",
+  "order": 4,
+  "title": "A high-volume sender",
+  "summary": "The relay's shape, for a server that sends a great deal - newsletters, notifications, receipts - and is judged by the large providers on its bounce and complaint rates. Everything the relay sets, and more deliveries at once, a ceiling per destination and per sending domain, the feedback loops read so that one complaint suppresses the address, a hard bounce suppressed for good, and the reports receivers send about this server kept for a year.",
+  "includes": "relay",
+  "steps": [
+    "Warm a new sending address up: start with a few hundred messages a day to each large provider and double it every few days while the bounce and complaint rates stay low. No setting does this; the per-destination ceiling below only keeps a burst from undoing it.",
+    "Register a feedback loop with each large provider, and name the mailbox the reports arrive at in the complaint settings (mailbox): until then no complaint is ever read.",
+    "Set TlsRptFromAddress to a mailbox here, so that the TLS reports this server owes the domains that ask for them are sent, and publish an MTA-STS policy for each sending domain.",
+    "Decide who may relay, and switch DKIM signing on per domain, as for the relay."
+  ],
+  "entries": [
+    { "store": "database", "name": "maxdelivertythreads", "value": 50, "why": "a high-volume sender's queue drains in minutes rather than hours" },
+    { "store": "database", "name": "MaxOutboundConnsPerDestination", "value": 20, "why": "twenty sessions to one destination at most, spreading a send without looking like a flood" },
+    { "store": "ini", "name": "MaxOutboundPerDestinationPerMinute", "value": 120, "why": "at most two messages a second to one destination, so that a burst cannot undo an address's warm-up" },
+    { "store": "database", "name": "MaxOutboundConnsPerTenant", "value": 25, "why": "one sending domain cannot take every delivery and hold up the others' mail" },
+    { "store": "database", "name": "BounceSuppressionExpiryDays", "value": 0, "why": "a hard-bounced address stays suppressed until somebody removes it, because a sender judged on its bounce rate never writes to it again" },
+    { "store": "database", "name": "ComplaintProcessingEnabled", "value": 1, "why": "the abuse reports the providers send are read and counted per domain and per account" },
+    { "store": "database", "name": "ComplaintSuppressionThreshold", "value": 1, "why": "one complaint suppresses the address: the reader pressed the spam button and did not want the mail" },
+    { "store": "database", "name": "ComplaintRetentionDays", "value": 180, "why": "six months of complaints, as shipped, which is longer than any rate is measured over" },
+    { "store": "database", "name": "DomainReportRetentionDays", "value": 365, "why": "the DMARC and TLS reports receivers send about this server are kept a year, as shipped" },
+    { "store": "ini", "name": "MtaStsHostingEnabled", "value": 1, "why": "the web services serve each domain's MTA-STS policy, so receivers can hold this server's mail to TLS as well" },
+    { "store": "ini", "name": "MessageTraceRetentionDays", "value": 180, "why": "six months of delivery attempts, because a sender is asked about a campaign long after it went" },
+    { "store": "database", "name": "AlertsEnabled", "value": 1, "why": "a listed address, a filling queue or a rising bounce rate is mailed to whoever is named to receive alerts" }
+  ]
+}

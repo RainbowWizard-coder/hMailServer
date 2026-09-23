@@ -4101,6 +4101,17 @@ namespace HM
          if (row->kind == KindEnum)
             lent.words = Wide(WordList(*row));
 
+         lent.applies = "now";
+         if (row->ini_key)
+         {
+            String applies;
+            String spelling;
+            if (IniFileSettings::GetApplies(String(row->ini_key), applies, spelling))
+               lent.applies = AnsiString(applies);
+         }
+         else if (row->effect == EffectRestart)
+            lent.applies = "restart";
+
          return true;
       }
 

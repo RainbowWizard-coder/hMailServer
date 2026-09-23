@@ -1,0 +1,38 @@
+{
+  "name": "relay",
+  "order": 3,
+  "title": "An outbound relay",
+  "summary": "A server that sends mail for applications and other servers and holds no mailbox anybody reads. IMAP and POP3 are closed, an address that bounces hard is suppressed and the sender told at once, deliveries back off from a destination that asks them to and never hold more than ten sessions open to one, and every delivery attempt is traced and kept for three months, because a relay is asked about what it sent long after it sent it.",
+  "steps": [
+    "Decide who may relay: that is an IP range's question - require authentication on the range the senders connect from, or name their addresses - and a profile does not answer it.",
+    "Switch DKIM signing and its key rotation on for each sending domain: both are the domain's, and the server has no value of them to set.",
+    "Set the sending limits per account in [SendingLimits] if the senders are to be held to a volume: those keys are the settings file's, not the store's."
+  ],
+  "entries": [
+    { "store": "database", "name": "protocolimap", "value": 0, "caution": "closes_listener", "why": "nobody reads mail on a relay, and a listener nobody uses is one more to attack" },
+    { "store": "database", "name": "protocolpop3", "value": 0, "caution": "closes_listener", "why": "the same for POP3" },
+    { "store": "database", "name": "authallowplaintext", "value": 0, "why": "a sender's password is never taken over a connection without TLS" },
+    { "store": "database", "name": "AutoBanOnLogonFailureEnabled", "value": 1, "why": "an address that guesses a relay's passwords is shut out" },
+    { "store": "database", "name": "CreateDefaultSpecialUseFolders", "value": 0, "why": "an account here is a sender's credential, not a mailbox" },
+    { "store": "database", "name": "DirectoryEnabled", "value": 0, "why": "the accounts are applications, not a directory of people to list to each other" },
+    { "store": "database", "name": "BounceProcessingEnabled", "value": 1, "why": "an address that bounces hard is not written to again" },
+    { "store": "database", "name": "BounceHardBounceThreshold", "value": 1, "why": "one hard bounce is enough: the receiver has said the address does not exist" },
+    { "store": "database", "name": "BounceSuppressionAction", "value": 0, "why": "refuse: a submission to a suppressed address is refused at RCPT with the reason, so the application learns it at once" },
+    { "store": "database", "name": "BounceSuppressionExpiryDays", "value": 180, "why": "a suppressed address gets another chance after six months" },
+    { "store": "database", "name": "BounceReadDeliveryReports", "value": 1, "why": "the reports receivers send back are matched to what was sent" },
+    { "store": "database", "name": "OutboundBackoffMaxMinutes", "value": 60, "why": "the longest a destination that keeps asking to slow down is left alone, as shipped" },
+    { "store": "database", "name": "OutboundBackoffMinutes", "value": 2, "why": "a destination that answers a slow-down reply is left alone for two minutes, doubling, as shipped" },
+    { "store": "database", "name": "MaxOutboundConnsPerDestination", "value": 10, "why": "no destination is held more than ten sessions at once, which is what large providers tolerate" },
+    { "store": "database", "name": "maxdelivertythreads", "value": 25, "why": "a relay's work is delivery, so more of it runs at once" },
+    { "store": "database", "name": "smtpnoofretries", "value": 12, "why": "a destination that is down for an afternoon still gets its mail" },
+    { "store": "database", "name": "smtpminutesbetweenretries", "value": 60, "why": "an hour between attempts, as shipped, so twelve of them span half a day" },
+    { "store": "ini", "name": "QuickRetries", "value": 2, "why": "a delivery that failed for a moment is tried again within minutes before the hourly schedule" },
+    { "store": "database", "name": "SmtpDeliveryConnectionSecurity", "value": 2, "why": "STARTTLS whenever the destination offers it, as shipped" },
+    { "store": "database", "name": "VerifyRemoteSslCertificate", "value": 1, "why": "a destination's certificate is checked, so that a policy that requires TLS means it" },
+    { "store": "ini", "name": "MtaStsEnabled", "value": 1, "why": "a recipient domain that publishes an MTA-STS policy gets TLS to a verified host, or no delivery" },
+    { "store": "ini", "name": "DaneEnforcementEnabled", "value": 1, "why": "a recipient domain that publishes TLSA records is held to them" },
+    { "store": "ini", "name": "MessageTraceEnabled", "value": 1, "why": "every delivery attempt is recorded, which is what answers whether a message went" },
+    { "store": "ini", "name": "MessageTraceRetentionDays", "value": 90, "why": "three months of it rather than the thirty days shipped, because a relay is asked about old sends" },
+    { "store": "database", "name": "ReputationWatchEnabled", "value": 1, "why": "a relay whose address is on a block list stops getting its mail through, and you are told" }
+  ]
+}

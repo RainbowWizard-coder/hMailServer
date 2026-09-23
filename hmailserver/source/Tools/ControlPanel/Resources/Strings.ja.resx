@@ -557,6 +557,12 @@
   <data name="A password is stored - leave blank to keep it" xml:space="preserve">
     <value>パスワードは保存済みです - そのままにする場合は空欄のままにしてください</value>
   </data>
+  <data name="A profile for this server" xml:space="preserve">
+    <value>このサーバーのプロファイル</value>
+  </data>
+  <data name="A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back." xml:space="preserve">
+    <value>プロファイルは、ある種類のサーバーに必要な約三十の設定を、どれを、どの値に、なぜ、とともに設定します。何かが変わる前にこのサーバーとの違いを示し、置き換えるものは元に戻せるよう保存します。</value>
+  </data>
   <data name="A quota can be set on the domain and overridden per account." xml:space="preserve">
     <value>クォータはドメインに設定でき、アカウントごとに上書きできます。</value>
   </data>
@@ -1398,11 +1404,17 @@
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
     <value>バウンス処理がオンのときだけ適用されます。レポートがカウントされるのは、このサーバーがその受信者に実際に配信したメッセージを示し、外部から認証なしで届き、記録されている場合は SPF と DMARC に合格したときだけです。ただし、同じメッセージを受け取った人なら、表示されている別の受信者についてのレポートを偽造できます。オフにすると、レポートはまったく読まれません。配信中に受けた拒否は引き続きカウントされます。</value>
   </data>
+  <data name="Apply a profile" xml:space="preserve">
+    <value>プロファイルの適用</value>
+  </data>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>ディレクトリの同期を適用する</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>このアカウントにサーバーのスパム フィルタリングを適用する(_F)</value>
+  </data>
+  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>プロファイル {0} を適用しますか? {1} 個の設定がいま変わり、元の値は戻せるよう保存されます。</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled を読み取れませんでした: {0}</value>
@@ -1445,6 +1457,9 @@
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>受信</value>
+  </data>
+  <data name="Asks for a confirmation" xml:space="preserve">
+    <value>確認が必要</value>
   </data>
   <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
     <value>AsyncQueueStallThreshold (120)</value>
@@ -2108,6 +2123,9 @@
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>受信者リストを閉じる</value>
+  </data>
+  <data name="Closes a listener" xml:space="preserve">
+    <value>リスナーを閉じる</value>
   </data>
   <data name="Collapse the navigation" xml:space="preserve">
     <value>ナビゲーションを折りたたむ</value>
@@ -3257,6 +3275,9 @@
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>各メッセージは 2 度スキャンされます。まずディスク上のファイル全体として、次に添付ファイルごとに、それぞれを一時フォルダーに書き出して単独でスキャナーに渡します。2 回目のパスが、スキャナー自身では解読しない構造の中にある添付ファイルを捕まえます。メッセージを MIME として解析できない場合、添付ファイルごとのパスはスキップされ、エラーがログに記録されます。</value>
   </data>
+  <data name="Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied." xml:space="preserve">
+    <value>各プロファイルは、ある種類のサーバーに必要な設定を定めます。表示すると、各設定がこのサーバーの現在の値の横に並びます。適用するまで何も変わりません。</value>
+  </data>
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>初期遅延が過ぎる前の再試行のたびに、その時点から遅延をやり直すため、キューからではなくタイマーで再試行する送信者はウィンドウに達しません。既定はオフ: 一度だけ早く再試行してしまう行儀のよいサーバーは、オンにすると少し長く待たされます。</value>
   </data>
@@ -4159,6 +4180,9 @@
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>このサーバーが MX、PTR、SPF、DKIM、DMARC、ブラックリストの参照をどう解決するか (hMailServer.INI)。</value>
+  </data>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
+    <value>上で印の付いた変更を確認します: これらはこのサーバーでリスナーを閉じる、アドレス範囲を信頼する、またはフィルターをオフにします(_C)</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (プッシュ メール)</value>
@@ -5508,6 +5532,9 @@
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>問題は見つかりませんでした。すべてのメッセージ行のファイルがディスク上にあります。</value>
   </data>
+  <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
+    <value>プロファイルは適用されていません。プロファイルは、このサーバーの種類 (小規模オフィス、フィルタリングゲートウェイの背後、送信リレー、大量送信者) に合わせて約三十の設定を定め、変更を行う前にすべて示します。</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>SMTP 設定に公開ホスト名が設定されていません。</value>
   </data>
@@ -5816,6 +5843,9 @@
   </data>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>バックアップ ページで、バックアップの書き出し先フォルダーを、メッセージストアとは別のディスクに設定します。</value>
+  </data>
+  <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
+    <value>設定プロファイルのページで四つをこのサーバーと比較し、合うものを適用してください。置き換えたものは元に戻せるよう保存されます。</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>TCP/IP ポート ページで、サブミッションポート (587) に SSL 証明書 ページの証明書を使った STARTTLS を設定するか、暗黙の TLS を使うポート 465 を追加します。</value>
@@ -6500,6 +6530,12 @@
   <data name="Put a setting back" xml:space="preserve">
     <value>設定を元に戻す</value>
   </data>
+  <data name="Put back a profile's changes" xml:space="preserve">
+    <value>プロファイルの変更を元に戻す</value>
+  </data>
+  <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
+    <value>プロファイル {0} が置き換えた値を元に戻しますか? その後に変更された設定はそのまま残り、プロファイルがオンにしたフィルターは再びオフになることがあります。</value>
+  </data>
   <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
     <value>メッセージ {0} を {1} のメールボックスに戻しますか?</value>
   </data>
@@ -6788,6 +6824,9 @@
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>配信中に拒否</value>
+  </data>
+  <data name="Refused: {0}" xml:space="preserve">
+    <value>拒否されました: {0}</value>
   </data>
   <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
     <value>拒否のほうが厳格ですが、エンドポイントに到達できない間は、管理者パスワードを含め、どこでもパスワードを変更できなくなります。</value>
@@ -8061,6 +8100,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>設定  -  {0}</value>
   </data>
+  <data name="Setting profiles" xml:space="preserve">
+    <value>設定プロファイル</value>
+  </data>
   <data name="Settings" xml:space="preserve">
     <value>設定</value>
   </data>
@@ -9213,6 +9255,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>秘密鍵の公開部分は証明書の公開鍵と同一です。このペアは対応しています。</value>
   </data>
+  <data name="The profile" xml:space="preserve">
+    <value>プロファイル</value>
+  </data>
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
     <value>公開コーパスは https://api.pwnedpasswords.com/range/ です。独自のミラーを運用している組織はここに指定します。5 文字はパスの末尾に追加されるか、{prefix} と書かれた位置に挿入されます。暗号化されていない http は localhost、127.0.0.1、::1 に対してのみ受け付けます。</value>
   </data>
@@ -9478,6 +9523,18 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Wiki をブラウザーで開けませんでした。</value>
   </data>
+  <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
+    <value>プロファイル {0} が適用されています。置き換えたものは保存されており、元に戻せます。</value>
+  </data>
+  <data name="The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced." xml:space="preserve">
+    <value>プロファイル {0} は適用された後、{1} に元に戻されました。設定はそれが置き換えていたものです。</value>
+  </data>
+  <data name="The {0} profile was applied on {1}." xml:space="preserve">
+    <value>プロファイル {0} は {1} に適用されました。</value>
+  </data>
+  <data name="The {0} profile was applied on {1}; its way back was discarded and its settings kept." xml:space="preserve">
+    <value>プロファイル {0} は {1} に適用されました。元に戻す手段は破棄され、設定は保持されています。</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>{0} サーバーはプロトコル ページでオフになっているため、このポートは待ち受けされていません。行は保持されます。プロトコルを再びオンにしてもリスナーは自動的には起動しません。ポート リストと有効なプロトコルはどちらもサービス起動時に 1 回だけ読み込まれるため、有効にした後にサービスを再起動してください。</value>
   </data>
@@ -9597,6 +9654,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
     <value>このサーバーには設定レベルがありません。スキーマ 6088 より古く、ここにある設定はすべてサーバーまたはドメイン自身のフィールドです。</value>
   </data>
+  <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
+    <value>このサーバーには {0} 個のアカウントがあるため運用中です。プロファイルは新しいサーバーに提示されますが、四つのいずれともこのサーバーを比較できます。</value>
+  </data>
+  <data name="This server now" xml:space="preserve">
+    <value>このサーバーの現在値</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>このサーバーは受信メールの SPF をチェックするだけです。レコードの公開はそれ以外の全員のためのものです。受信側サーバーに、どのマシンが次のドメインを名乗るメールを送信できるかを伝えます:</value>
   </data>
@@ -9650,6 +9713,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbird autoconfig + Outlook autodiscover</value>
+  </data>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
+    <value>先に確認にチェックを入れてください: このプロファイルはここでリスナーを閉じる、アドレス範囲を信頼する、またはフィルターをオフにします。</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>時刻</value>
@@ -9741,6 +9807,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
     <value>X-Forwarded-Proto: https を信頼するプロキシ（アドレスをコンマ区切りで指定。loopback は常に信頼）</value>
   </data>
+  <data name="Trusts an address range" xml:space="preserve">
+    <value>アドレス範囲を信頼する</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>デバッグ ログを再びオフにする</value>
   </data>
@@ -9767,6 +9836,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>これをオフにすると、すべての TLS バージョンでセッション チケットが停止します。TLS 1.2 以前のクライアントは、このプロセスから決して出ないサーバー側セッション キャッシュにフォールバックし、TLS 1.3 クライアントにはチケットがまったく送られません。長期の鍵から派生したものは何もネットワークに流さない、というポリシーの管理者向けです。唯一の代償は再開の効率で、どのクライアントもフル ハンドシェイクで接続できます。</value>
+  </data>
+  <data name="Turns a filter off" xml:space="preserve">
+    <value>フィルターをオフにする</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>2 つのバインド方式があり、その違いは見た目以上に重要です。一方はパスワードをディレクトリに送信し、もう一方はパスワードをネットワークにまったく流しません。</value>
@@ -10106,6 +10178,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="What is sent" xml:space="preserve">
     <value>送るもの</value>
+  </data>
+  <data name="What it cannot do for you" xml:space="preserve">
+    <value>このプロファイルではできないこと</value>
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>用途</value>
@@ -10455,6 +10530,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_Apply now" xml:space="preserve">
     <value>今すぐ適用(_A)</value>
   </data>
+  <data name="_Apply this profile" xml:space="preserve">
+    <value>このプロファイルを適用(_A)</value>
+  </data>
   <data name="_Bind address" xml:space="preserve">
     <value>バインド アドレス(_B)</value>
   </data>
@@ -10641,6 +10719,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_Job title" xml:space="preserve">
     <value>役職 (_A)</value>
   </data>
+  <data name="_Keep its settings, forget the way back" xml:space="preserve">
+    <value>設定を保持し、元に戻す手段を破棄(_K)</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>元のメッセージを残す(_K)</value>
   </data>
@@ -10766,6 +10847,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>元に戻す(_P)</value>
+  </data>
+  <data name="_Put back what it changed" xml:space="preserve">
+    <value>変更したものを元に戻す(_P)</value>
   </data>
   <data name="_Put the message back" xml:space="preserve">
     <value>メッセージを戻す(_P)</value>
@@ -11943,6 +12027,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0}暗号化が利用できないため、{1}使われるパスワードは平文でネットワークを流れます。</value>
   </data>
+  <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
+    <value>{1} 個の設定のうち {0} 個がこのサーバーで変わります。</value>
+  </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>このアカウントの使い捨て回復コードのうち {0} 個が未使用です。</value>
   </data>
@@ -12221,6 +12308,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} には PEM 証明書ブロックが含まれていないため、使用できる CA 証明書がありません (サーバー エラー 6140)。CA 証明書を PEM (Base64) 形式でエクスポートしてください。</value>
+  </data>
+  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
+    <value>{0}: {1} 個を元に戻し、{2} 個はそのままにしました。</value>
+  </data>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
+    <value>{0}: {1} 個を設定、{2} 個は変更なし、{3} 個はスキップ。</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1}ウイルス対策が無効になっているため、{2}収集したメールは、ここでの設定にかかわらずスキャンされずに配信されます。このスイッチはこのページではなく、取り込みアカウント側にあります。{3}</value>

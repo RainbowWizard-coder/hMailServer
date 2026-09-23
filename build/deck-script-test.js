@@ -1280,6 +1280,39 @@ const state = {
    reputationChecks: 0,
    auditReverts: 0,
    checklistReads: 0,
+   // The setting profiles the checklist view offers under its items
+   // (docs/Profiles.md): the list, the diff of each, and what an apply, a revert
+   // and a discard were sent - the recorded server keeps one way back, as the
+   // real one does, and refuses an apply that needs a confirmation without it.
+   profileApplies: [],
+   profileReverts: 0,
+   profileDiscards: 0,
+   profileSnapshot: null,
+   profileDiffs: {
+      office: {
+         name: 'office', title: 'A small office server', summary: 'One server for an office.', includes: null,
+         steps: ['Give the submission port STARTTLS with a certificate.'],
+         entries: [
+            { store: 'database', name: 'usespf', value: '1', current: '0', stored: true, changes: true, why: 'a forged sender is the commonest spam',
+              caution: null, confirm: false, route: 'PUT /api/v1/settings/antispam use_spf', applies: 'now', levels: null, environment: null, refused: null },
+            { store: 'database', name: 'maxmessagesize', value: '25600', current: '25600', stored: true, changes: false, why: '25 MB',
+              caution: null, confirm: false, route: 'PUT /api/v1/settings max_message_size_kb', applies: 'now', levels: 'limit', environment: null, refused: null },
+            { store: 'ini', name: 'QuarantineEnabled', value: '1', current: '0', stored: false, changes: true, why: 'spam is held',
+              caution: null, confirm: false, route: 'PUT /api/v1/settings/ini/QuarantineEnabled', applies: 'now', levels: null, environment: 'HM_SETTING_QuarantineEnabled', refused: null }
+         ],
+         changes: 1, unchanged: 1, skipped: 1, refused: 0, confirmation_needed: [], applicable: true, blocked: null, applied: null, snapshot: null
+      },
+      gateway: {
+         name: 'gateway', title: 'Behind a filtering gateway', summary: 'Behind a gateway.', includes: null, steps: [],
+         entries: [
+            { store: 'database', name: 'usegreylisting', value: '0', current: '1', stored: true, changes: true, why: 'the gateway has filtered',
+              caution: 'turns_filter_off', confirm: true, route: 'PUT /api/v1/settings/antispam greylisting_enabled', applies: 'now', levels: null, environment: null, refused: null },
+            { store: 'ini', name: 'SMTPXClientEnabled', value: '1', current: '1', stored: true, changes: false, why: 'the gateway passes the client',
+              caution: 'trusts_addresses', confirm: false, route: 'PUT /api/v1/settings/ini/SMTPXClientEnabled', applies: 'now', levels: null, environment: null, refused: null }
+         ],
+         changes: 1, unchanged: 1, skipped: 0, refused: 0, confirmation_needed: ['usegreylisting'], applicable: true, blocked: null, applied: null, snapshot: null
+      }
+   },
    // The sample domain, which the checklist view draws beside the eight items.
    // It starts absent, is made by the button and is taken away by the other one.
    // The state document carries no password: the server mints one per creation and
@@ -1635,8 +1668,11 @@ const state = {
    // catalogue with the arguments, and one whose code it does not, where the
    // server's own sentence is what is shown.
    checklist: {
-      generated: 1789000000, dns_looked_up: true, done: 3, action_needed: 4, cannot_tell: 1, not_needed: 0,
+      generated: 1789000000, dns_looked_up: true, done: 3, action_needed: 5, cannot_tell: 1, not_needed: 0,
       items: [
+         // The profile item, first, whose code the page renders in its own words
+         // rather than the server's (docs/Profiles.md).
+         { key: 'profile', state: 'action_needed', findings: [{ state: 'action_needed', code: 'profile_none', args: [], text: 'the server sentence the page does not use' }] },
          { key: 'domain', state: 'done', findings: [{ state: 'done', code: 'domain_count', args: ['1', '1'], text: 'Active domains: 1 of 1.' }] },
          { key: 'account', state: 'done', findings: [{ state: 'done', code: 'account_count', args: ['3'], text: 'Accounts: 3.' }] },
          { key: 'submission', state: 'action_needed', findings: [
@@ -2332,6 +2368,50 @@ function answer(method, path, headers, raw) {
    }
    if (path === '/api/v1/reputation' && method === 'GET') { return json(200, state.reputation); }
    if (path === '/api/v1/setup/checklist' && method === 'GET') { state.checklistReads += 1; return json(200, state.checklist); }
+   if (path === '/api/v1/settings/profiles' && method === 'GET') {
+      const names = ['office', 'gateway'];
+      return json(200, { profiles: names.map((n) => { const d = state.profileDiffs[n];
+         return { name: n, title: d.title, summary: d.summary, includes: null, entries: d.entries.length, changes: d.changes,
+            confirmation_needed: d.confirmation_needed.length, skipped: d.skipped, refused: 0 }; }),
+         applied: state.profileSnapshot ? { profile: state.profileSnapshot.profile, title: '', applied: 1789000000, state: 'applied', changed: 1789000000 } : null,
+         snapshot: state.profileSnapshot });
+   }
+   if (path === '/api/v1/settings/profiles/revert' && method === 'POST') {
+      if (!state.profileSnapshot) { return json(409, { error: 'There is nothing to revert.' }); }
+      state.profileReverts += 1;
+      const profile = state.profileSnapshot.profile;
+      state.profileSnapshot = null;
+      return json(200, { profile, reverted: 1789000100, entries: [], set: 2, unchanged: 0, skipped: 1, failed: 0, waiting: { reinitialize: 0, restart: 0 }, message: 'reverted' });
+   }
+   if (path === '/api/v1/settings/profiles/discard' && method === 'POST') {
+      if (!state.profileSnapshot) { return json(409, { error: 'There is no way back to discard.' }); }
+      state.profileDiscards += 1;
+      state.profileSnapshot = null;
+      return json(200, { profile: 'office', discarded: 1789000100, entries: 2, message: 'discarded' });
+   }
+   if (/^\/api\/v1\/settings\/profiles\/[a-z-]+\/apply$/.test(path) && method === 'POST') {
+      const name = segment(path, 5);
+      const diff = state.profileDiffs[name];
+      if (!diff) { return json(404, { error: 'There is no profile named ' + name + '.' }); }
+      state.profileApplies.push({ name, body: parsed });
+      if (state.profileSnapshot) { return json(409, { error: 'A way back is held.', confirmation: false, confirmation_needed: [], refused: [], snapshot: state.profileSnapshot }); }
+      if (diff.confirmation_needed.length && !(parsed && parsed.confirm === true)) {
+         return json(409, { error: 'Applying the ' + name + ' profile here changes one entry that asks for a confirmation.', confirmation: true,
+            confirmation_needed: diff.confirmation_needed.map((n) => ({ name: n })), refused: [] });
+      }
+      state.profileSnapshot = { readable: true, profile: name, applied: 1789000050, entries: diff.changes };
+      return json(200, { profile: name, applied: 1789000050, entries: [], set: diff.changes, unchanged: diff.unchanged, skipped: diff.skipped, failed: 0,
+         waiting: { reinitialize: 0, restart: 0 }, message: 'applied' });
+   }
+   if (/^\/api\/v1\/settings\/profiles\/[a-z-]+$/.test(path) && method === 'GET') {
+      const diff = state.profileDiffs[segment(path, 5)];
+      if (!diff) { return json(404, { error: 'There is no profile of that name.' }); }
+      const answer = clone(diff);
+      answer.snapshot = state.profileSnapshot;
+      answer.applicable = !state.profileSnapshot;
+      answer.blocked = state.profileSnapshot ? 'A way back from an earlier profile is held: revert it or discard it before applying another.' : null;
+      return json(200, answer);
+   }
    if (path === '/api/v1/setup/sample-domain' && method === 'GET') { return json(200, state.sampleDomain); }
    if (path === '/api/v1/setup/sample-domain' && method === 'POST') {
       if (state.sampleDomain.exists) { return json(409, { error: 'example.test already exists' }); }
@@ -6454,8 +6534,20 @@ async function main() {
    before = requests.length;
    await goTo('checklist');
    check('the checklist view reads the list', called(before, 'GET', '/api/v1/setup/checklist').length === 1, paths(before));
-   check('one card per item, eight of them', content().querySelectorAll('.checkitem').length === 8,
+   check('one card per item, nine of them', content().querySelectorAll('.checkitem').length === 9,
       String(content().querySelectorAll('.checkitem').length));
+   check('the first item is the profile, drawn from this page\'s own words for its code',
+      content().querySelectorAll('.checkitem')[0].attributes['data-key'] === 'profile' &&
+      content().querySelector('.checkitem[data-key="profile"]').textContent.indexOf('A profile for this server') >= 0 &&
+      content().querySelector('.checkitem[data-key="profile"]').textContent.indexOf('No profile has been applied.') >= 0 &&
+      content().querySelector('.checkitem[data-key="profile"]').textContent.indexOf('the server sentence the page does not use') < 0,
+      content().querySelector('.checkitem[data-key="profile"]') ? content().querySelector('.checkitem[data-key="profile"]').textContent : 'no item');
+   check('the view reads the profiles beside the list, and draws the four offered with their titles and the count of changes',
+      called(before, 'GET', '/api/v1/settings/profiles').length === 1 && $('#profilesCard') !== null &&
+      $('#profilesCard').textContent.indexOf('A small office server') >= 0 &&
+      $('#profilesCard').textContent.indexOf('Behind a filtering gateway') >= 0 &&
+      $('#profilesCard').textContent.indexOf('1 of its 3 settings would change on this server.') >= 0,
+      $('#profilesCard') ? $('#profilesCard').textContent : paths(before));
    check('a done item is drawn as good, with its title and the finding rendered from the code and its arguments',
       content().querySelector('.checkitem[data-key="domain"] .pill[data-level="good"]') !== null &&
       content().querySelector('.checkitem[data-key="domain"]').textContent.indexOf('A domain') >= 0 &&
@@ -6474,8 +6566,101 @@ async function main() {
    check('a code this page does not know is shown in the server\'s own words',
       content().querySelector('.checkitem[data-key="second_factor"]').textContent.indexOf('The server said this in its own words.') >= 0,
       content().querySelector('.checkitem[data-key="second_factor"]').textContent);
-   check('the summary counts the four states', document.getElementById('checklistSummary').textContent === '3 done, 4 need action, 1 cannot be told, 0 not needed.',
+   check('the summary counts the four states', document.getElementById('checklistSummary').textContent === '3 done, 5 need action, 1 cannot be told, 0 not needed.',
       document.getElementById('checklistSummary').textContent);
+
+   // ---- a setting profile: the diff, the confirmation, the apply and the way back
+   before = requests.length;
+   click(act('profileshow', { name: 'office' }));
+   await flush();
+   check('Show the changes reads that profile\'s diff and draws every entry beside the value this server holds',
+      called(before, 'GET', '/api/v1/settings/profiles/office').length === 1 &&
+      content().querySelectorAll('tr.profilerow').length === 3 &&
+      content().querySelector('tr.profilerow[data-name="usespf"]').attributes['data-changes'] === '1' &&
+      content().querySelector('tr.profilerow[data-name="maxmessagesize"]').attributes['data-changes'] === '0',
+      paths(before));
+   check('an entry the environment sets says so and names the variable, and the steps are listed',
+      content().querySelector('tr.profilerow[data-name="QuarantineEnabled"]').textContent.indexOf('Set by the environment (HM_SETTING_QuarantineEnabled)') >= 0 &&
+      $('#profilesCard').textContent.indexOf('What it cannot do for you') >= 0 &&
+      $('#profilesCard').textContent.indexOf('Give the submission port STARTTLS with a certificate.') >= 0,
+      $('#profilesCard').textContent);
+   check('a profile that asks for no confirmation draws no box', document.getElementById('profileConfirm') === null, 'a box was drawn');
+
+   before = requests.length;
+   click(act('profileshow', { name: 'gateway' }));
+   await flush();
+   check('an entry that turns a filter off is marked, and a confirmation box is drawn',
+      called(before, 'GET', '/api/v1/settings/profiles/gateway').length === 1 &&
+      content().querySelector('tr.profilerow[data-name="usegreylisting"]').textContent.indexOf('Turns a filter off') >= 0 &&
+      content().querySelector('tr.profilerow[data-name="SMTPXClientEnabled"]').textContent.indexOf('Trusts an address range') < 0 &&
+      document.getElementById('profileConfirm') !== null,
+      $('#profilesCard').textContent);
+
+   before = requests.length;
+   click(act('profileapply', { name: 'gateway' }));
+   await flush();
+   check('Apply without the box ticked sends nothing and says why',
+      called(before, 'POST', '/api/v1/settings/profiles/gateway/apply').length === 0 &&
+      document.getElementById('err_profiles').textContent.indexOf('Tick the confirmation first') >= 0,
+      document.getElementById('err_profiles').textContent + ' | ' + paths(before));
+
+   setChecked('profileConfirm', true);
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('profileapply', { name: 'gateway' }));
+   await flush();
+   check('Apply asks first, naming how many settings change, and no sends nothing',
+      called(before, 'POST', '/api/v1/settings/profiles/gateway/apply').length === 0 &&
+      confirmations[confirmations.length - 1].indexOf('Apply the gateway profile? 1 settings change now') >= 0,
+      confirmations[confirmations.length - 1]);
+   confirmAnswer = true;
+
+   setChecked('profileConfirm', true);
+   before = requests.length;
+   click(act('profileapply', { name: 'gateway' }));
+   await flush();
+   const applied = state.profileApplies[state.profileApplies.length - 1];
+   check('yes applies it with the confirmation on the body, says what it did, and offers the way back',
+      called(before, 'POST', '/api/v1/settings/profiles/gateway/apply').length === 1 &&
+      applied && applied.body && applied.body.confirm === true &&
+      toastText() === 'gateway: 1 set, 1 unchanged, 0 skipped.' &&
+      content().querySelector('button[data-act="profilerevert"]') !== null &&
+      $('#profilesCard').textContent.indexOf('The gateway profile is applied. What it replaced is kept, and can be put back.') >= 0,
+      toastText() + ' | ' + paths(before));
+   check('with a way back held, the diff offers no apply and says why',
+      content().querySelector('button[data-act="profileapply"]') === null &&
+      $('#profilesCard').textContent.indexOf('A way back from an earlier profile is held') >= 0,
+      $('#profilesCard').textContent);
+
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('profilerevert'));
+   await flush();
+   check('Put back asks first, saying a filter may be turned off again, and no sends nothing',
+      called(before, 'POST', '/api/v1/settings/profiles/revert').length === 0 &&
+      confirmations[confirmations.length - 1].indexOf('a filter the profile turned on may be turned off again') >= 0,
+      confirmations[confirmations.length - 1]);
+   confirmAnswer = true;
+   before = requests.length;
+   click(act('profilerevert'));
+   await flush();
+   check('yes puts it back, says how many, and the way back is gone',
+      called(before, 'POST', '/api/v1/settings/profiles/revert').length === 1 && state.profileReverts === 1 &&
+      toastText() === 'gateway: 2 put back, 1 left as they were.' &&
+      content().querySelector('button[data-act="profilerevert"]') === null,
+      toastText() + ' | ' + paths(before));
+
+   // Discarding the way back keeps the settings and asks nothing: nothing changes.
+   state.profileSnapshot = { readable: true, profile: 'office', applied: 1789000050, entries: 2 };
+   click(act('checklistagain'));
+   await flush();
+   before = requests.length;
+   click(act('profilediscard'));
+   await flush();
+   check('Keep its settings forgets the way back and redraws',
+      called(before, 'POST', '/api/v1/settings/profiles/discard').length === 1 && state.profileDiscards === 1 &&
+      content().querySelector('button[data-act="profilediscard"]') === null,
+      paths(before));
 
    state.checklist = {
       generated: 1789000200, dns_looked_up: true, done: 0, action_needed: 5, cannot_tell: 0, not_needed: 3,

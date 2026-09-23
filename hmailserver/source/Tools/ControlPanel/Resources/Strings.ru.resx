@@ -557,6 +557,12 @@
   <data name="A password is stored - leave blank to keep it" xml:space="preserve">
     <value>Пароль сохранён — оставьте поле пустым, чтобы сохранить его</value>
   </data>
+  <data name="A profile for this server" xml:space="preserve">
+    <value>Профиль для этого сервера</value>
+  </data>
+  <data name="A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back." xml:space="preserve">
+    <value>Профиль задаёт около тридцати параметров, нужных серверу определённого типа, - какие, с каким значением и почему, - показывает отличие от этого сервера до любых изменений и сохраняет то, что заменяет, чтобы это можно было вернуть.</value>
+  </data>
   <data name="A quota can be set on the domain and overridden per account." xml:space="preserve">
     <value>Квоту можно задать на домене и переопределить для отдельной учётной записи.</value>
   </data>
@@ -1398,11 +1404,17 @@ Control Panel может читать файлы сообщений только
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
     <value>Действует, только пока включена обработка отказов. Отчёт засчитывается, только если он называет сообщение, которое этот сервер действительно доставил этому получателю, пришёл извне без проверки подлинности и прошёл SPF и DMARC там, где они записываются, - но любой, кто получил то же сообщение, может подделать такой отчёт для другого видимого получателя. Если выключить, отчёты вообще не читаются; отказы при доставке по-прежнему засчитываются.</value>
   </data>
+  <data name="Apply a profile" xml:space="preserve">
+    <value>Применить профиль</value>
+  </data>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Применить синхронизацию с каталогом</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>_Применять серверную фильтрацию спама к этой учётной записи</value>
+  </data>
+  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>Применить профиль {0}? Сейчас изменятся параметры: {1}; их прежние значения сохранятся, чтобы их можно было вернуть.</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>Не удалось прочитать ArcSealingEnabled: {0}</value>
@@ -1445,6 +1457,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>Входящая</value>
+  </data>
+  <data name="Asks for a confirmation" xml:space="preserve">
+    <value>Требует подтверждения</value>
   </data>
   <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
     <value>AsyncQueueStallThreshold (120)</value>
@@ -2108,6 +2123,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Закрыть список получателей</value>
+  </data>
+  <data name="Closes a listener" xml:space="preserve">
+    <value>Закрывает прослушивающую службу</value>
   </data>
   <data name="Collapse the navigation" xml:space="preserve">
     <value>Свернуть навигацию</value>
@@ -3257,6 +3275,9 @@ Control Panel может читать файлы сообщений только
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>Каждое сообщение проверяется дважды: один раз целиком как файл на диске, а затем по одному разу на каждое вложение — каждое из них записывается во временную папку и передаётся сканеру отдельно. Именно второй проход ловит вложение внутри структуры, которую сканер сам не разбирает. Если сообщение не удаётся разобрать как MIME, проход по вложениям пропускается, а в журнал записывается ошибка.</value>
   </data>
+  <data name="Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied." xml:space="preserve">
+    <value>Каждый профиль задаёт параметры, нужные серверу определённого типа. При показе профиля каждый параметр стоит рядом со значением, которое у этого сервера сейчас; ничего не меняется, пока профиль не применён.</value>
+  </data>
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Каждая повторная попытка до истечения начальной задержки запускает задержку заново с этого момента, поэтому отправитель, повторяющий по таймеру, а не из очереди, никогда не достигает окна. По умолчанию выключено: добропорядочный сервер, один раз повторивший слишком быстро, с этим параметром задерживается чуть дольше.</value>
   </data>
@@ -4159,6 +4180,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Как этот сервер выполняет запросы MX, PTR, SPF, DKIM, DMARC и списков блокировки (hMailServer.INI).</value>
+  </data>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
+    <value>Я _подтверждаю отмеченные выше изменения: они закрывают прослушивающую службу, доверяют диапазону адресов или отключают фильтр на этом сервере.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (доставка push)</value>
@@ -5508,6 +5532,9 @@ Control Panel может читать файлы сообщений только
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>Проблем не найдено — у каждой строки сообщения есть свой файл на диске.</value>
   </data>
+  <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
+    <value>Профиль не применён. Профиль задаёт около тридцати параметров для типа сервера - небольшой офис, за фильтрующим шлюзом, исходящий ретранслятор, массовый отправитель - и показывает каждое изменение до того, как оно будет сделано.</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>В параметрах SMTP не задано публичное имя узла.</value>
   </data>
@@ -5816,6 +5843,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>На странице Резервное копирование задайте папку, в которую записывается резервная копия, на другом диске, чем тот, где лежит хранилище сообщений.</value>
+  </data>
+  <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
+    <value>На странице «Профили параметров» сравните четыре профиля с этим сервером и примените подходящий; то, что он заменит, сохранится, чтобы это можно было вернуть.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>На странице Порты TCP/IP задайте порту отправки (587) STARTTLS с сертификатом со страницы Сертификаты SSL или добавьте порт 465 с неявным TLS.</value>
@@ -6500,6 +6530,12 @@ Control Panel может читать файлы сообщений только
   <data name="Put a setting back" xml:space="preserve">
     <value>Вернуть настройку</value>
   </data>
+  <data name="Put back a profile's changes" xml:space="preserve">
+    <value>Вернуть изменения профиля</value>
+  </data>
+  <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
+    <value>Вернуть значения, заменённые профилем {0}? Параметр, изменённый с тех пор, останется как есть, а фильтр, включённый профилем, может снова отключиться.</value>
+  </data>
   <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
     <value>Вернуть сообщение {0} в ящик {1}?</value>
   </data>
@@ -6788,6 +6824,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Отклонено при доставке</value>
+  </data>
+  <data name="Refused: {0}" xml:space="preserve">
+    <value>Отклонено: {0}</value>
   </data>
   <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
     <value>Отклонение строже, но пока конечная точка недоступна, ни один пароль нигде нельзя сменить, включая пароль администратора.</value>
@@ -8061,6 +8100,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Параметр  —  {0}</value>
   </data>
+  <data name="Setting profiles" xml:space="preserve">
+    <value>Профили параметров</value>
+  </data>
   <data name="Settings" xml:space="preserve">
     <value>Параметры</value>
   </data>
@@ -9213,6 +9255,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>Открытая половина закрытого ключа идентична открытому ключу сертификата - пара принадлежит друг другу.</value>
   </data>
+  <data name="The profile" xml:space="preserve">
+    <value>Профиль</value>
+  </data>
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
     <value>Общедоступная база находится по адресу https://api.pwnedpasswords.com/range/. Организация, у которой есть собственное зеркало, указывает его здесь: пять символов добавляются к пути или подставляются туда, где написано {prefix}. Незашифрованный http принимается только для localhost, 127.0.0.1 или ::1.</value>
   </data>
@@ -9478,6 +9523,18 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Не удалось открыть вики в браузере.</value>
   </data>
+  <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
+    <value>Профиль {0} применён. То, что он заменил, сохранено и может быть возвращено.</value>
+  </data>
+  <data name="The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced." xml:space="preserve">
+    <value>Профиль {0} был применён, а затем отменён {1}; параметры - те, которые он заменил.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}." xml:space="preserve">
+    <value>Профиль {0} был применён {1}.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}; its way back was discarded and its settings kept." xml:space="preserve">
+    <value>Профиль {0} был применён {1}; путь назад отброшен, параметры сохранены.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>Сервер {0} выключен на странице «Протоколы», поэтому этот порт не прослушивается. Строка сохранена. Включение протокола обратно само по себе не запускает прослушиватель - и список портов, и включённые протоколы читаются один раз, при запуске службы, - поэтому после включения перезапустите службу.</value>
   </data>
@@ -9597,6 +9654,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
     <value>На этом сервере нет уровней параметров: он старше схемы 6088, и каждый параметр здесь является собственным полем сервера или домена.</value>
   </data>
+  <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
+    <value>На этом сервере учётных записей: {0}, значит, он в работе: профиль предлагается новому серверу, но любой из четырёх можно по-прежнему сравнить с этим.</value>
+  </data>
+  <data name="This server now" xml:space="preserve">
+    <value>Этот сервер сейчас</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Этот сервер только ПРОВЕРЯЕТ SPF на входящей почте; публикация записи - для всех остальных: она сообщает принимающим серверам, каким машинам разрешено отправлять почту от имени</value>
   </data>
@@ -9650,6 +9713,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Автоконфигурация Thunderbird + автообнаружение Outlook</value>
+  </data>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
+    <value>Сначала отметьте подтверждение: этот профиль здесь закрывает прослушивающую службу, доверяет диапазону адресов или отключает фильтр.</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>Время</value>
@@ -9741,6 +9807,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
     <value>Доверенные прокси, чей X-Forwarded-Proto: https принимается (адреса через запятую; loopback всегда)</value>
   </data>
+  <data name="Trusts an address range" xml:space="preserve">
+    <value>Доверяет диапазону адресов</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Выключить отладочный журнал обратно</value>
   </data>
@@ -9767,6 +9836,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Выключение этого останавливает билеты сессий для всех версий TLS: клиенты TLS 1.2 и старше откатываются к серверному кешу сессий, который никогда не покидает этот процесс, а клиентам TLS 1.3 билет не отправляется вовсе. Для администратора, чья политика в том, что ничто, производное от долгоживущего ключа, никогда не выходит в сеть. Единственная цена - эффективность возобновления: любой клиент по-прежнему может подключиться с полным рукопожатием.</value>
+  </data>
+  <data name="Turns a filter off" xml:space="preserve">
+    <value>Отключает фильтр</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Два метода привязки, и разница важнее, чем кажется: один отправляет пароль в каталог, другой вообще никогда не выпускает его в сеть.</value>
@@ -10106,6 +10178,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="What is sent" xml:space="preserve">
     <value>Что отправляется</value>
+  </data>
+  <data name="What it cannot do for you" xml:space="preserve">
+    <value>Чего он не может сделать за вас</value>
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>Для чего она</value>
@@ -10455,6 +10530,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Apply now" xml:space="preserve">
     <value>_Применить сейчас</value>
   </data>
+  <data name="_Apply this profile" xml:space="preserve">
+    <value>П_рименить этот профиль</value>
+  </data>
   <data name="_Bind address" xml:space="preserve">
     <value>_Адрес привязки</value>
   </data>
@@ -10641,6 +10719,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Job title" xml:space="preserve">
     <value>Должность (_A)</value>
   </data>
+  <data name="_Keep its settings, forget the way back" xml:space="preserve">
+    <value>_Сохранить параметры, забыть путь назад</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Сохранять исходное сообщение</value>
   </data>
@@ -10766,6 +10847,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>_Вернуть</value>
+  </data>
+  <data name="_Put back what it changed" xml:space="preserve">
+    <value>_Вернуть то, что он изменил</value>
   </data>
   <data name="_Put the message back" xml:space="preserve">
     <value>В_ернуть сообщение</value>
@@ -11943,6 +12027,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0} шифрование недоступно, поэтому пароли, используемые на {1}, передаются по сети в открытом виде.</value>
   </data>
+  <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
+    <value>На этом сервере изменилось бы {0} из {1} его параметров.</value>
+  </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>Не использовано одноразовых кодов восстановления: {0}.</value>
   </data>
@@ -12221,6 +12308,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} не содержит блока сертификата PEM, поэтому в нём нет пригодного сертификата ЦС (ошибка сервера 6140). Экспортируйте сертификат ЦС в формате PEM (Base64).</value>
+  </data>
+  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
+    <value>{0}: возвращено {1}, оставлено как было {2}.</value>
+  </data>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
+    <value>{0}: задано {1}, без изменений {2}, пропущено {3}.</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1} антивирус выключен, поэтому почта, собираемая {2}, доставляется без проверки, что бы здесь ни было задано. Переключатель находится на учётной записи сбора почты, а не на этой странице.{3}</value>

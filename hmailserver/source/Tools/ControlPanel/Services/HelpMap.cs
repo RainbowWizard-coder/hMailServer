@@ -125,6 +125,7 @@ namespace hMailServer.ControlPanel.Services
             ["ipranges"] = new HelpTarget("CountryBlocking.md"),
 
             // The server itself.
+            ["profiles"] = new HelpTarget("Profiles.md"),
             ["backup"] = new HelpTarget("Backup.md"),
             ["performance"] = new HelpTarget("DiagnosingStalledMail.md", "Settings that bound each stage"),
             ["advanced"] = new HelpTarget("ChangedFromStock.md"),

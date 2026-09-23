@@ -557,6 +557,12 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name="A password is stored - leave blank to keep it" xml:space="preserve">
     <value>Et passord er lagret - la feltet stå tomt for å beholde det</value>
   </data>
+  <data name="A profile for this server" xml:space="preserve">
+    <value>En profil for denne serveren</value>
+  </data>
+  <data name="A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back." xml:space="preserve">
+    <value>En profil setter de rundt tretti innstillingene en type server trenger - hvilke, til hva og hvorfor -, viser forskjellen fra denne serveren før noe endres, og tar vare på det den erstatter slik at det kan settes tilbake.</value>
+  </data>
   <data name="A quota can be set on the domain and overridden per account." xml:space="preserve">
     <value>En kvote kan settes på domenet og overstyres per konto.</value>
   </data>
@@ -1398,11 +1404,17 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
     <value>Gjelder bare mens behandling av returmeldinger er på. En rapport telles bare når den nevner en melding denne serveren faktisk leverte til mottakeren, kom uautentisert utenfra og besto SPF og DMARC der de registreres - men alle som mottok samme melding, kan forfalske en for en annen synlig mottaker. Slått av leses rapporter ikke i det hele tatt; avvisninger under levering telles fortsatt.</value>
   </data>
+  <data name="Apply a profile" xml:space="preserve">
+    <value>Bruk en profil</value>
+  </data>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Bruk katalogsynkronisering</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Bruk serverens spam_filtrering på denne kontoen</value>
+  </data>
+  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>Bruke profilen {0}? {1} innstillinger endres nå, og det de hadde, tas vare på slik at det kan settes tilbake.</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled kunne ikke leses: {0}</value>
@@ -1445,6 +1457,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>Innkommende</value>
+  </data>
+  <data name="Asks for a confirmation" xml:space="preserve">
+    <value>Krever en bekreftelse</value>
   </data>
   <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
     <value>AsyncQueueStallThreshold (120)</value>
@@ -2108,6 +2123,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Lukk mottakerlisten</value>
+  </data>
+  <data name="Closes a listener" xml:space="preserve">
+    <value>Lukker en lytter</value>
   </data>
   <data name="Collapse the navigation" xml:space="preserve">
     <value>Skjul navigasjonen</value>
@@ -3257,6 +3275,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>Hver melding skannes to ganger: én gang som hele filen på disk, og deretter én gang per vedlegg, hvert skrevet ut til den midlertidige mappen og gitt til skanneren for seg. Den andre passeringen er det som fanger et vedlegg inne i en struktur skanneren ikke dekoder selv. Hvis meldingen ikke kan tolkes som MIME, hoppes passeringen per vedlegg over, og en feil logges.</value>
   </data>
+  <data name="Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied." xml:space="preserve">
+    <value>Hver profil setter innstillingene en type server trenger. Vises en, står hver innstilling ved siden av verdien denne serveren har nå; ingenting endres før den brukes.</value>
+  </data>
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Hvert nytt forsøk før startforsinkelsen har gått, starter forsinkelsen på nytt fra det øyeblikket, så en avsender som prøver på nytt etter en tidtaker i stedet for fra en kø, når aldri vinduet. Av som standard: en veloppdragen server som én gang prøver på nytt for raskt, forsinkes litt lenger med dette på.</value>
   </data>
@@ -4159,6 +4180,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Hvordan denne serveren slår opp MX, PTR, SPF, DKIM, DMARC og svartelister (hMailServer.INI).</value>
+  </data>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
+    <value>Jeg be_krefter endringene merket ovenfor: de lukker en lytter, stoler på et adresseområde eller slår av et filter på denne serveren.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (push-post)</value>
@@ -5508,6 +5532,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>Ingen problemer funnet - hver meldingsrad har filen sin på disk.</value>
   </data>
+  <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
+    <value>Ingen profil er brukt. En profil setter rundt tretti innstillinger for den typen server dette er - et lite kontor, bak en filtrerende gateway, et utgående relé, en avsender med store volumer - og viser hver endring før den gjøres.</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>Ingen offentlig vertsnavn er konfigurert i SMTP-innstillingene.</value>
   </data>
@@ -5816,6 +5843,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>Angi på siden Sikkerhetskopi mappen sikkerhetskopien skrives til, på en annen disk enn den meldingslageret ligger på.</value>
+  </data>
+  <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
+    <value>Sammenlign de fire med denne serveren på siden Innstillingsprofiler, og bruk den som passer; det den erstatter, tas vare på slik at det kan settes tilbake.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Gi innleveringsporten (587) STARTTLS med et sertifikat fra siden SSL-sertifikater på siden TCP/IP-porter, eller legg til port 465 med implisitt TLS.</value>
@@ -6500,6 +6530,12 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Put a setting back" xml:space="preserve">
     <value>Sett en innstilling tilbake</value>
   </data>
+  <data name="Put back a profile's changes" xml:space="preserve">
+    <value>Sett tilbake en profils endringer</value>
+  </data>
+  <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
+    <value>Sette tilbake verdiene profilen {0} erstattet? En innstilling som er endret siden, blir stående som den er, og et filter profilen slo på, kan bli slått av igjen.</value>
+  </data>
   <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
     <value>Legge melding {0} tilbake i postkassen til {1}?</value>
   </data>
@@ -6788,6 +6824,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Avvist under levering</value>
+  </data>
+  <data name="Refused: {0}" xml:space="preserve">
+    <value>Avvist: {0}</value>
   </data>
   <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
     <value>Å avvise er strengere, men så lenge endepunktet ikke kan nås, kan ingen passord endres noe sted, heller ikke administratorpassordet.</value>
@@ -8061,6 +8100,9 @@ Fortsette?</value>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Innstilling  -  {0}</value>
   </data>
+  <data name="Setting profiles" xml:space="preserve">
+    <value>Innstillingsprofiler</value>
+  </data>
   <data name="Settings" xml:space="preserve">
     <value>Innstillinger</value>
   </data>
@@ -9213,6 +9255,9 @@ Legg til likevel?</value>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>Den offentlige halvdelen av den private nøkkelen er identisk med sertifikatets offentlige nøkkel - paret hører sammen.</value>
   </data>
+  <data name="The profile" xml:space="preserve">
+    <value>Profilen</value>
+  </data>
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
     <value>Den offentlige samlingen er https://api.pwnedpasswords.com/range/. En organisasjon som driver sitt eget speil, oppgir det her: de fem tegnene legges til stien, eller settes inn der {prefix} står. Ukryptert http godtas bare til localhost, 127.0.0.1 eller ::1.</value>
   </data>
@@ -9478,6 +9523,18 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Wikien kunne ikke åpnes i en nettleser.</value>
   </data>
+  <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
+    <value>Profilen {0} er brukt. Det den erstattet, er tatt vare på og kan settes tilbake.</value>
+  </data>
+  <data name="The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced." xml:space="preserve">
+    <value>Profilen {0} ble brukt og deretter tilbakestilt {1}; innstillingene er de den hadde erstattet.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}." xml:space="preserve">
+    <value>Profilen {0} ble brukt {1}.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}; its way back was discarded and its settings kept." xml:space="preserve">
+    <value>Profilen {0} ble brukt {1}; veien tilbake ble forkastet og innstillingene beholdt.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>{0}-serveren er slått av på siden Protokoller, så denne porten lyttes ikke på. Raden beholdes. Å slå protokollen på igjen starter ikke lytteren av seg selv - portlisten og de aktiverte protokollene leses begge én gang, når tjenesten starter - så start tjenesten på nytt etter aktivering.</value>
   </data>
@@ -9597,6 +9654,12 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
     <value>Denne serveren har ingen innstillingsnivåer: den er eldre enn skjema 6088, og hver innstilling her er et eget felt for serveren eller domenet.</value>
   </data>
+  <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
+    <value>Denne serveren har {0} kontoer og er dermed i drift: en profil tilbys en ny server, og hver av de fire kan fortsatt sammenlignes med denne.</value>
+  </data>
+  <data name="This server now" xml:space="preserve">
+    <value>Denne serveren nå</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Denne serveren SJEKKER bare SPF på innkommende post; å publisere oppføringen er for alle andre - den forteller mottakende servere hvilke maskiner som har lov til å sende post som hevder å være fra</value>
   </data>
@@ -9650,6 +9713,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbird autoconfig + Outlook autodiscover</value>
+  </data>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
+    <value>Kryss først av for bekreftelsen: denne profilen lukker en lytter, stoler på et adresseområde eller slår av et filter her.</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>Tid</value>
@@ -9741,6 +9807,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
     <value>Klarerte proxyer hvis X-Forwarded-Proto: https tros (adresser, kommaseparert; loopback alltid)</value>
   </data>
+  <data name="Trusts an address range" xml:space="preserve">
+    <value>Stoler på et adresseområde</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Slå feilsøkingslogging av igjen</value>
   </data>
@@ -9767,6 +9836,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Å slå dette av stopper øktbilletter på alle TLS-versjoner: TLS 1.2 og eldre klienter faller tilbake til øktbufferen på serversiden, som aldri forlater denne prosessen, og TLS 1.3-klienter får ingen billett i det hele tatt. For en administrator med policy om at ingenting avledet fra en langlivet nøkkel noen gang går over linjen. Den eneste kostnaden er effektiviteten ved gjenopptakelse - hver klient kan fortsatt koble til med et fullt håndtrykk.</value>
+  </data>
+  <data name="Turns a filter off" xml:space="preserve">
+    <value>Slår av et filter</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>To bindingsmetoder, og forskjellen betyr mer enn den ser ut: den ene sender passordet til katalogen, den andre legger det aldri på linjen i det hele tatt.</value>
@@ -10106,6 +10178,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="What is sent" xml:space="preserve">
     <value>Hva som sendes</value>
+  </data>
+  <data name="What it cannot do for you" xml:space="preserve">
+    <value>Det den ikke kan gjøre for deg</value>
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>Hva den er til</value>
@@ -10455,6 +10530,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="_Apply now" xml:space="preserve">
     <value>_Bruk nå</value>
   </data>
+  <data name="_Apply this profile" xml:space="preserve">
+    <value>_Bruk denne profilen</value>
+  </data>
   <data name="_Bind address" xml:space="preserve">
     <value>_Bindingsadresse</value>
   </data>
@@ -10641,6 +10719,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="_Job title" xml:space="preserve">
     <value>_Stillingstittel</value>
   </data>
+  <data name="_Keep its settings, forget the way back" xml:space="preserve">
+    <value>Be_hold innstillingene, glem veien tilbake</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Behold opprinnelig melding</value>
   </data>
@@ -10766,6 +10847,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>Sett _tilbake</value>
+  </data>
+  <data name="_Put back what it changed" xml:space="preserve">
+    <value>_Sett tilbake det den endret</value>
   </data>
   <data name="_Put the message back" xml:space="preserve">
     <value>Legg meldingen tilbake (_c)</value>
@@ -11943,6 +12027,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0} ingen kryptering tilgjengelig, så passord som brukes på {1} nettverket i klartekst.</value>
   </data>
+  <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
+    <value>{0} av de {1} innstillingene ville endres på denne serveren.</value>
+  </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} av kontoens engangskoder for gjenoppretting er ubrukte.</value>
   </data>
@@ -12221,6 +12308,12 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} inneholder ingen PEM-sertifikatblokk, så den har ikke noe brukbart CA-sertifikat (serverfeil 6140). Eksporter CA-sertifikatet i PEM-format (Base64).</value>
+  </data>
+  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
+    <value>{0}: {1} satt tilbake, {2} latt være som de var.</value>
+  </data>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
+    <value>{0}: {1} satt, {2} uendret, {3} hoppet over.</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1} antivirus slått av, så post hentet av {2} leveres uskannet uansett hva som er satt her. Bryteren ligger på hentekontoen, ikke på denne siden.{3}</value>

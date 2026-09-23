@@ -59,6 +59,18 @@
 #                                   no-op when the database already exists
 #   HM_UPGRADE_DATABASE (default 1) -> hmailserver --upgrade-database, which is a
 #                                   no-op when the schema is current
+#   HM_PROFILE (office|gateway|relay|sender)
+#                                -> hmailserver --apply-profile NAME --once: the
+#                                   setting profile of that name (docs/Profiles.md)
+#                                   applied at the first start, after the settings
+#                                   above, and never again - a later start, and a
+#                                   start after an administrator reverted it, leave
+#                                   the settings alone. A profile entry that closes
+#                                   a listener, trusts an address range or turns a
+#                                   filter off is applied only with
+#   HM_PROFILE_CONFIRM=yes       -> --confirm; without it such a profile does not
+#                                   apply, the container does not start, and the
+#                                   log names the entries.
 #
 # then exec the command - hmailserver --foreground unless told otherwise - so
 # signals reach the server and it is PID 1's child, not a grandchild.
@@ -170,6 +182,7 @@ applies_environment() {
       case "$(printf '%s' "$name" | tr '[:lower:]' '[:upper:]')" in
          HM_DB_TYPE|HM_DB_HOST|HM_DB_PORT|HM_DB_NAME|HM_DB_USER|HM_DB_PASSWORD|HM_DB_PASSWORD_FILE) ;;
          HM_ADMIN_PASSWORD|HM_ADMIN_PASSWORD_FILE|HM_INI|HM_CREATE_DATABASE|HM_UPGRADE_DATABASE) ;;
+         HM_PROFILE|HM_PROFILE_CONFIRM) ;;
          HM_*) return 0 ;;
       esac
    done
@@ -184,6 +197,22 @@ applies_environment() {
 
 if applies_environment; then
    hmailserver --config "$INI" --apply-environment
+fi
+
+# A setting profile, applied once: --once does nothing on a database a profile has
+# been applied to before (the hm_settings row ProfileApplied says so, and it is
+# not in a backup), so a restart, or a start after an administrator reverted the
+# profile in the Deck, does not apply it again. After the environment's settings,
+# so that a setting the environment manages is skipped and said to be. A profile
+# that would close a listener, trust an address range or turn a filter off asks
+# for --confirm, which HM_PROFILE_CONFIRM=yes gives; without it the verb exits 3
+# having changed nothing, and the container does not start on a shape nobody
+# confirmed.
+if [ -n "${HM_PROFILE:-}" ]; then
+   case "${HM_PROFILE_CONFIRM:-no}" in
+      yes|YES|Yes|1|true|TRUE|True) hmailserver --config "$INI" --apply-profile "$HM_PROFILE" --once --confirm ;;
+      *) hmailserver --config "$INI" --apply-profile "$HM_PROFILE" --once ;;
+   esac
 fi
 
 if [ "${1:-}" = "hmailserver" ] && ! printf '%s\n' "$@" | grep -q -- '--config'; then

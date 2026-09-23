@@ -5,8 +5,9 @@
 // The first-hour checklist: what a new server still needs done, judged by the
 // server itself rather than by whoever is reading the documentation.
 //
-// Eight items, the ones every installation has to get past before it is a
-// mail server anybody can use: a domain, an account in it, TLS on the port
+// Nine items, the ones every installation has to get past before it is a
+// mail server anybody can use: a profile chosen for the kind of server it is
+// (on a young server; docs/Profiles.md), a domain, an account in it, TLS on the port
 // clients submit through, an SPF record, DKIM signing with its record
 // published, a DMARC record, a backup destination, and a second factor on the
 // administrator password. Each is judged from what the server can see - its

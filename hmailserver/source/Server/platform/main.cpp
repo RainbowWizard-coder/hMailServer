@@ -43,6 +43,7 @@
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/IniSettingStore.h"
 #include "../Common/Application/EnvironmentSettings.h"
+#include "../Common/Application/Profiles.h"
 #include "../Common/Application/SampleDomain.h"
 #include "../Common/Application/Logger.h"
 #include "../Common/Util/Utilities.h"
@@ -170,6 +171,18 @@ namespace
          "                    run without it. The container's entrypoint runs it\n"
          "                    when there is anything to apply; run it as the user\n"
          "                    the service runs as.\n"
+         "  --apply-profile NAME [--confirm] [--once]\n"
+         "                    apply one of the setting profiles - office,\n"
+         "                    gateway, relay or sender (docs/Profiles.md) - as\n"
+         "                    the REST API applies it: every entry checked, the\n"
+         "                    values it changes saved as the way back, then\n"
+         "                    each written, one line each. --confirm is needed\n"
+         "                    where an entry would close a listener, trust an\n"
+         "                    address range or turn a filter off; --once does\n"
+         "                    nothing on a server a profile was applied to\n"
+         "                    before, which is what the container's HM_PROFILE\n"
+         "                    runs. Exit 3 when a --confirm is needed. Run it as\n"
+         "                    the user the service runs as.\n"
          "  --sample-domain create\n"
          "  --sample-domain remove\n"
          "                    make a throwaway example.test - three mailboxes\n"
@@ -879,6 +892,9 @@ int main(int argc, char *argv[])
    bool create_database = false;
    bool upgrade_database = false;
    bool apply_environment = false;
+   std::string apply_profile;
+   bool profile_confirm = false;
+   bool profile_once = false;
 
    for (int index = 1; index < argc; index++)
    {
@@ -918,6 +934,26 @@ int main(int argc, char *argv[])
       if (argument == "--apply-environment")
       {
          apply_environment = true;
+         continue;
+      }
+      if (argument == "--apply-profile")
+      {
+         if (index + 1 >= argc)
+         {
+            std::fprintf(stderr, "--apply-profile needs the profile's name: office, gateway, relay or sender.\n");
+            return 2;
+         }
+         apply_profile = argv[++index];
+         continue;
+      }
+      if (argument == "--confirm")
+      {
+         profile_confirm = true;
+         continue;
+      }
+      if (argument == "--once")
+      {
+         profile_once = true;
          continue;
       }
       if (argument == "--set-setting")
@@ -1046,6 +1082,13 @@ int main(int argc, char *argv[])
    // the create and upgrade steps, at every start.
    if (apply_environment)
       return HM::EnvironmentSettings::RunCommand();
+
+   // A setting profile (Common/Application/Profiles, docs/Profiles.md): what the
+   // container's entrypoint runs with --once when HM_PROFILE names one, after the
+   // environment's own settings are stored, so that a setting the environment
+   // manages is skipped with the variable named.
+   if (!apply_profile.empty())
+      return HM::Profiles::RunCommand(HM::String(apply_profile.c_str()), profile_confirm, profile_once);
 
    if (!sample_domain.empty())
       return SampleDomainCommand(sample_domain);

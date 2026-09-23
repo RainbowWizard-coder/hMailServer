@@ -557,6 +557,12 @@
   <data name="A password is stored - leave blank to keep it" xml:space="preserve">
     <value>已存储密码 - 留空则保持不变</value>
   </data>
+  <data name="A profile for this server" xml:space="preserve">
+    <value>此服务器的配置方案</value>
+  </data>
+  <data name="A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back." xml:space="preserve">
+    <value>配置方案会设置某类服务器所需的约三十项设置——设置哪些、设为何值、为何如此——在任何更改之前显示与此服务器的差异，并保留它所替换的值以便恢复。</value>
+  </data>
   <data name="A quota can be set on the domain and overridden per account." xml:space="preserve">
     <value>可以在域上设置配额，并在账户上逐个覆盖。</value>
   </data>
@@ -1398,11 +1404,17 @@
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
     <value>仅在退信处理开启时生效。只有当报告指明本服务器确实已投递给该收件人的邮件、从外部未经身份验证到达、并在有记录的情况下通过了 SPF 和 DMARC 检查时，才会计入——但收到同一封邮件的任何人都可以为另一位可见收件人伪造报告。关闭后将完全不读取报告；投递过程中遇到的拒绝仍会计入。</value>
   </data>
+  <data name="Apply a profile" xml:space="preserve">
+    <value>应用配置方案</value>
+  </data>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>应用目录同步</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>对此账户应用服务器的垃圾邮件过滤(_F)</value>
+  </data>
+  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>应用 {0} 配置方案？现在将更改 {1} 项设置，原有的值会被保留以便恢复。</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>无法读取 ArcSealingEnabled：{0}</value>
@@ -1445,6 +1457,9 @@
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>收到的</value>
+  </data>
+  <data name="Asks for a confirmation" xml:space="preserve">
+    <value>需要确认</value>
   </data>
   <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
     <value>AsyncQueueStallThreshold (120)</value>
@@ -2108,6 +2123,9 @@
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>关闭收件人列表</value>
+  </data>
+  <data name="Closes a listener" xml:space="preserve">
+    <value>关闭一个侦听器</value>
   </data>
   <data name="Collapse the navigation" xml:space="preserve">
     <value>折叠导航</value>
@@ -3257,6 +3275,9 @@
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>每封邮件会被扫描两遍：先把磁盘上的整个文件扫描一次，然后按附件逐个扫描，每个附件都写出到临时文件夹并单独交给扫描器。第二遍能抓住扫描器自己不解码的结构中所包含的附件。如果邮件无法解析为 MIME，则跳过逐附件扫描并记录一条错误。</value>
   </data>
+  <data name="Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied." xml:space="preserve">
+    <value>每个配置方案都会设置某类服务器所需的设置。显示某个方案时，每项设置都列在此服务器当前值的旁边；在应用之前不会有任何更改。</value>
+  </data>
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>初始延迟结束前的每次重试都会从那一刻起重新开始延迟，因此按定时器而非从队列重试的发件人永远到不了窗口。默认关闭：开启后，偶尔一次重试过快的守规矩的服务器会被多延迟一会儿。</value>
   </data>
@@ -4159,6 +4180,9 @@
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>本服务器如何解析 MX、PTR、SPF、DKIM、DMARC 和黑名单查询（hMailServer.INI）。</value>
+  </data>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
+    <value>我确认上面标出的更改：它们会在此服务器上关闭侦听器、信任某个地址范围或关闭某个过滤器(_C)</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE（推送邮件）</value>
@@ -5508,6 +5532,9 @@
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>未发现问题 - 每一行邮件记录在磁盘上都有对应的文件。</value>
   </data>
+  <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
+    <value>尚未应用任何配置方案。配置方案会按此服务器的类型——小型办公室、位于过滤网关之后、出站中继、大批量发件方——设置约三十项设置，并在进行每项更改之前先显示出来。</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>SMTP 设置中未配置公共主机名。</value>
   </data>
@@ -5816,6 +5843,9 @@
   </data>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>在备份页面设置备份写入的文件夹，放在与邮件存储不同的磁盘上。</value>
+  </data>
+  <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
+    <value>在“配置方案列表”页面上将这四个方案与此服务器比较，并应用合适的一个；它所替换的值会被保留以便恢复。</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>在TCP/IP 端口页面，为提交端口 (587) 设置 STARTTLS 并使用SSL 证书页面的证书，或添加使用隐式 TLS 的端口 465。</value>
@@ -6500,6 +6530,12 @@
   <data name="Put a setting back" xml:space="preserve">
     <value>恢复设置</value>
   </data>
+  <data name="Put back a profile's changes" xml:space="preserve">
+    <value>恢复配置方案的更改</value>
+  </data>
+  <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
+    <value>恢复 {0} 配置方案所替换的值？此后被更改过的设置将保持不变，而该方案开启的过滤器可能会再次关闭。</value>
+  </data>
   <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
     <value>将邮件 {0} 放回 {1} 的邮箱?</value>
   </data>
@@ -6788,6 +6824,9 @@
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>投递时被拒绝</value>
+  </data>
+  <data name="Refused: {0}" xml:space="preserve">
+    <value>已拒绝：{0}</value>
   </data>
   <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
     <value>拒绝更为严格，但在端点无法访问期间，任何地方都无法更改任何密码，包括管理员密码。</value>
@@ -8061,6 +8100,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>设置  -  {0}</value>
   </data>
+  <data name="Setting profiles" xml:space="preserve">
+    <value>配置方案列表</value>
+  </data>
   <data name="Settings" xml:space="preserve">
     <value>设置</value>
   </data>
@@ -9213,6 +9255,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>私钥的公开部分与证书的公钥完全相同 - 这一对是配套的。</value>
   </data>
+  <data name="The profile" xml:space="preserve">
+    <value>配置方案</value>
+  </data>
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
     <value>公开语料库位于 https://api.pwnedpasswords.com/range/。自行运行镜像的组织可在此填写其地址：这五个字符会附加到路径末尾，或放在写有 {prefix} 的位置。未加密的 http 仅接受发往 localhost、127.0.0.1 或 ::1 的地址。</value>
   </data>
@@ -9478,6 +9523,18 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>无法在浏览器中打开 Wiki。</value>
   </data>
+  <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
+    <value>{0} 配置方案已应用。它所替换的值已保留，可以恢复。</value>
+  </data>
+  <data name="The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced." xml:space="preserve">
+    <value>{0} 配置方案已应用，并于 {1} 被恢复；当前设置即它所替换的设置。</value>
+  </data>
+  <data name="The {0} profile was applied on {1}." xml:space="preserve">
+    <value>{0} 配置方案已于 {1} 应用。</value>
+  </data>
+  <data name="The {0} profile was applied on {1}; its way back was discarded and its settings kept." xml:space="preserve">
+    <value>{0} 配置方案已于 {1} 应用；其恢复记录已被放弃，设置予以保留。</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>{0} 服务器已在“协议”页关闭，因此此端口未被监听。该行仍会保留。重新开启该协议不会自行启动监听器 - 端口列表和已启用的协议都只在服务启动时读取一次 - 因此启用后请重启服务。</value>
   </data>
@@ -9597,6 +9654,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
     <value>此服务器没有设置级别：它早于架构 6088，此处每项设置都是服务器或域自己的字段。</value>
   </data>
+  <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
+    <value>此服务器有 {0} 个账户，因此正在使用中：配置方案是为新服务器提供的，但仍可将四个方案中的任何一个与此服务器比较。</value>
+  </data>
+  <data name="This server now" xml:space="preserve">
+    <value>此服务器当前值</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>本服务器只对入站邮件检查 SPF；发布记录是给其他所有人看的 - 它告诉接收服务器哪些机器被允许发送声称来自以下域的邮件:</value>
   </data>
@@ -9650,6 +9713,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbird autoconfig + Outlook autodiscover</value>
+  </data>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
+    <value>请先勾选确认：此配置方案会在这里关闭侦听器、信任某个地址范围或关闭某个过滤器。</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>时间</value>
@@ -9741,6 +9807,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
     <value>信任其 X-Forwarded-Proto: https 的代理（地址，逗号分隔；loopback 始终信任）</value>
   </data>
+  <data name="Trusts an address range" xml:space="preserve">
+    <value>信任某个地址范围</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>重新关闭调试日志</value>
   </data>
@@ -9767,6 +9836,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>关闭此项会在所有 TLS 版本上停止会话票据: TLS 1.2 及更早的客户端回退到永不离开本进程的服务器端会话缓存，而 TLS 1.3 客户端根本不会收到票据。适用于策略为“任何从长期密钥派生的东西都不上线路”的管理员。唯一的代价是恢复效率 - 每个客户端仍然可以用完整握手连接。</value>
+  </data>
+  <data name="Turns a filter off" xml:space="preserve">
+    <value>关闭某个过滤器</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>两种绑定方法，差别比看起来更重要: 一种把密码发送给目录，另一种根本不把密码放到线路上。</value>
@@ -10106,6 +10178,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="What is sent" xml:space="preserve">
     <value>发送什么</value>
+  </data>
+  <data name="What it cannot do for you" xml:space="preserve">
+    <value>它无法替您完成的事项</value>
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>用途</value>
@@ -10455,6 +10530,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="_Apply now" xml:space="preserve">
     <value>立即应用(_A)</value>
   </data>
+  <data name="_Apply this profile" xml:space="preserve">
+    <value>应用此配置方案(_A)</value>
+  </data>
   <data name="_Bind address" xml:space="preserve">
     <value>绑定地址(_B)</value>
   </data>
@@ -10641,6 +10719,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="_Job title" xml:space="preserve">
     <value>职务 (_A)</value>
   </data>
+  <data name="_Keep its settings, forget the way back" xml:space="preserve">
+    <value>保留其设置，放弃恢复记录(_K)</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>保留原始邮件(_K)</value>
   </data>
@@ -10766,6 +10847,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>恢复(_P)</value>
+  </data>
+  <data name="_Put back what it changed" xml:space="preserve">
+    <value>恢复它所更改的内容(_P)</value>
   </data>
   <data name="_Put the message back" xml:space="preserve">
     <value>放回邮件(_P)</value>
@@ -11943,6 +12027,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0}不提供加密，因此{1}以明文经过网络。</value>
   </data>
+  <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
+    <value>此服务器上其 {1} 项设置中将有 {0} 项发生更改。</value>
+  </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>此账户的一次性恢复代码中有 {0} 个未使用。</value>
   </data>
@@ -12221,6 +12308,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}：{1} 不包含任何 PEM 证书块，因此它没有可用的 CA 证书（服务器错误 6140）。请以 PEM（Base64）格式导出该 CA 证书。</value>
+  </data>
+  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
+    <value>{0}：已恢复 {1} 项，{2} 项保持原样。</value>
+  </data>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
+    <value>{0}：已设置 {1} 项，{2} 项未变，{3} 项已跳过。</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1}关闭了反病毒，因此{2}以未扫描的状态投递，无论此处如何设置。该开关在收取账户上，而不在本页上。{3}</value>

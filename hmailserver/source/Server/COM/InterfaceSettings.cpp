@@ -16,6 +16,7 @@
 #include "../Common/Application/Application.h"
 #include "../Common/Application/ACLManager.h"
 #include "../Common/Application/SettingsDiff.h"
+#include "../Common/Application/Profiles.h"
 #include "../Common/Util/Unicode.h"
 #include "../Common/Util/ReputationWatch.h"
 #include "../Common/Application/IniSettingStore.h"
@@ -5243,6 +5244,159 @@ STDMETHODIMP InterfaceSettings::GetChangedFromDefault(BSTR *Json)
       // reading the Deck cannot be told different things about the same server.
       *Json = WideFromUtf8(HM::SettingsDiff::Json()).AllocSysString();
 
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// The setting profiles (Common/Application/Profiles, docs/Profiles.md): the same
+// documents GET, POST .../apply, .../revert and .../discard under
+// /api/v1/settings/profiles answer, made by the same functions, so that the Control
+// Panel and the Deck cannot be told different things about the same profile. A
+// refusal - a way back held, nothing to revert, an entry that needs the
+// confirmation or would be refused - is raised as an error with the server's
+// sentence, which the Control Panel shows as it is.
+STDMETHODIMP InterfaceSettings::GetProfiles(BSTR *Json)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      if (!GetIsServerAdmin())
+         return GetAccessDenied();
+
+      *Json = WideFromUtf8(HM::Profiles::ListJson()).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::GetProfile(BSTR Name, BSTR *Json)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      if (!GetIsServerAdmin())
+         return GetAccessDenied();
+
+      HM::AnsiString json;
+      if (!HM::Profiles::DiffJson(HM::String(Name), json))
+         return COMError::GenerateError(HM::Formatter::Format("There is no profile named {0}. The profiles are office, gateway, relay and sender.", HM::String(Name)));
+
+      *Json = WideFromUtf8(json).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::ApplyProfile(BSTR Name, VARIANT_BOOL Confirmed, BSTR *Json)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      // Installs the actor the apply and every setting it writes are recorded under.
+      if (!GetIsServerAdmin())
+         return GetAccessDenied();
+
+      HM::AnsiString json;
+      HM::String sentence;
+      const HM::Profiles::Outcome outcome = HM::Profiles::Apply(HM::String(Name), Confirmed == VARIANT_TRUE, json, sentence);
+      if (outcome != HM::Profiles::OutcomeDone)
+         return COMError::GenerateError(sentence);
+
+      *Json = WideFromUtf8(json).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::RevertProfile(BSTR *Json)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      if (!GetIsServerAdmin())
+         return GetAccessDenied();
+
+      HM::AnsiString json;
+      HM::String sentence;
+      if (HM::Profiles::Revert(json, sentence) != HM::Profiles::OutcomeDone)
+         return COMError::GenerateError(sentence);
+
+      *Json = WideFromUtf8(json).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::DiscardProfileSnapshot()
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!GetIsServerAdmin())
+         return GetAccessDenied();
+
+      HM::AnsiString json;
+      HM::String sentence;
+      if (HM::Profiles::Discard(json, sentence) != HM::Profiles::OutcomeDone)
+         return COMError::GenerateError(sentence);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_AppliedProfile(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!pVal)
+         return COMError::GenerateGenericMessage();
+
+      *pVal = HM::Profiles::AppliedProfile().AllocSysString();
       return S_OK;
    }
    catch (...)

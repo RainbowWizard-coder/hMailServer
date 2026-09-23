@@ -271,14 +271,16 @@ namespace HM
       }
 
       // The container's bootstrap variables, which the entrypoint reads and the
-      // verb does not: never a misspelt setting variable.
+      // verb does not: never a misspelt setting variable. HM_PROFILE and
+      // HM_PROFILE_CONFIRM name a setting profile the entrypoint applies once, with
+      // hmailserver --apply-profile (docs/Profiles.md).
       bool IsBootstrapVariable(const String &name)
       {
          static const TCHAR *const names[] =
          {
             _T("HM_DB_TYPE"), _T("HM_DB_HOST"), _T("HM_DB_PORT"), _T("HM_DB_NAME"), _T("HM_DB_USER"),
             _T("HM_DB_PASSWORD"), _T("HM_DB_PASSWORD_FILE"), _T("HM_ADMIN_PASSWORD"), _T("HM_ADMIN_PASSWORD_FILE"),
-            _T("HM_INI"), _T("HM_CREATE_DATABASE"), _T("HM_UPGRADE_DATABASE"),
+            _T("HM_INI"), _T("HM_CREATE_DATABASE"), _T("HM_UPGRADE_DATABASE"), _T("HM_PROFILE"), _T("HM_PROFILE_CONFIRM"),
          };
 
          for (const TCHAR *candidate : names)

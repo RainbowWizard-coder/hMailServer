@@ -33,8 +33,11 @@ Nine rules, in the shape of build/check-authz-choke-point.py:
               MailboxMove, which is the other shape: a change that IS rows, so
               many of them and so plainly one act that recording each would
               bury it. It writes them with no actor on the thread and records
-              the move once, naming both addresses. Every one of these calls
-              must be there.
+              the move once, naming both addresses; and by Profiles, the same
+              shape the other way round: a profile applied or reverted is thirty
+              settings changed as one act, each recorded by the settings
+              chokepoint and the act recorded once with its counts. Every one of
+              these calls must be there.
 
   installed   The actor - who is making the change - is installed at one place
               per interface: RestApiServer::ProcessRequest_ for REST and the
@@ -147,6 +150,11 @@ ALLOWED = {
       "Common/Util/RestApiAccountRecovery.cpp",     # a recovery address set or cleared, and a set of recovery codes made
       "Common/Util/RestApiDirectory.cpp",           # somebody's directory opt-out set or cleared by another hand
       "Common/Util/RestApiAddressBooks.cpp",        # DELETE /api/v1/accounts/{address}/address-books/{id}/shares/{target}
+      # A setting profile applied, reverted or its way back discarded - from REST,
+      # COM and hmailserver --apply-profile alike, which all reach Profiles: thirty
+      # settings changed as one act, recorded once with the counts beside the row
+      # the settings chokepoint writes for each (docs/Profiles.md).
+      "Common/Application/Profiles.cpp",
       # Maintenance mode ended by a stop of the servers - a service stop or a
       # reinitialise - rather than by DELETE /api/v1/server/drain: the "left"
       # that pairs the operator's "entered", recorded by the server under an

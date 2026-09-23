@@ -730,3 +730,20 @@ path under `/run/secrets/`; the file beside the image carries the examples
 commented out. `build/check-environment-names.py` holds every name the
 entrypoint, the chart, the Compose file and this README mention to a setting.
 
+### A setting profile at the first start
+
+`HM_PROFILE` names one of the four setting profiles -
+`office`, `gateway`, `relay` or `sender` (`hmailserver/docs/Profiles.md`) - and the
+entrypoint applies it with `hmailserver --apply-profile NAME --once` after the
+environment's settings are stored: every entry checked, the values it changes
+saved as the way back, and each written through the setter the REST settings
+route runs, one line each in the log. `--once` does nothing on a database a
+profile has been applied to before, so a restart - or a start after an
+administrator reverted the profile in the Deck - leaves the settings alone. A
+setting the environment manages is skipped and said to be. A profile that closes
+a listener (relay and sender close IMAP and POP3), trusts an address range or
+turns a filter off (gateway) asks for a confirmation, which `HM_PROFILE_CONFIRM=yes`
+gives; without it nothing is applied and the container does not start, with the
+entries named. Like the environment verb, this has been compiled and not yet run
+in a container.
+

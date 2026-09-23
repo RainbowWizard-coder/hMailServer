@@ -232,6 +232,33 @@ ANSWERS = {
     ("GET", "/api/v1/settings/antispam"): {"use_spf": True, "spam_mark_threshold": 5},
     ("PUT", "/api/v1/settings/antispam"): {"use_spf": False},
     ("POST", "/api/v1/settings/breach-check/test"): {"reachable": True, "status": 200, "entries": 812, "padded": True, "milliseconds": 41},
+    # The setting profiles (docs/Profiles.md): the list, one diff, an apply with
+    # the confirmation, the way back and forgetting it.
+    ("GET", "/api/v1/settings/profiles"): {
+        "profiles": [{"name": "office", "title": "A small office server", "entries": 33, "changes": 12,
+                      "confirmation_needed": 0, "skipped": 0, "refused": 0},
+                     {"name": "relay", "title": "An outbound relay", "entries": 25, "changes": 15,
+                      "confirmation_needed": 2, "skipped": 0, "refused": 0}],
+        "applied": {"profile": "office", "title": "A small office server", "applied": 1789000000, "state": "applied", "changed": 1789000000},
+        "snapshot": {"readable": True, "profile": "office", "applied": 1789000000, "entries": 12}},
+    ("GET", "/api/v1/settings/profiles/office"): {
+        "name": "office", "title": "A small office server", "steps": [],
+        "entries": [{"store": "database", "name": "usespf", "value": "1", "current": "0", "changes": True, "confirm": False,
+                     "caution": None, "environment": None, "refused": None},
+                    {"store": "ini", "name": "QuarantineEnabled", "value": "1", "current": "0", "changes": True, "confirm": False,
+                     "caution": None, "environment": "HM_SETTING_QuarantineEnabled", "refused": None}],
+        "changes": 1, "unchanged": 0, "skipped": 1, "refused": 0, "confirmation_needed": [], "applicable": True, "blocked": None},
+    ("POST", "/api/v1/settings/profiles/relay/apply"): {
+        "profile": "relay", "applied": 1789000100, "entries": [], "set": 15, "unchanged": 10, "skipped": 0, "failed": 0,
+        "waiting": {"reinitialize": 0, "restart": 2}, "message": "The relay profile: 15 set, 10 unchanged, 0 skipped."},
+    ("POST", "/api/v1/settings/profiles/revert"): {
+        "profile": "relay", "reverted": 1789000200, "set": 14, "unchanged": 0, "skipped": 1, "failed": 0,
+        "entries": [{"store": "database", "name": "MaxOutboundConnsPerDestination", "before": "40", "after": "40",
+                     "result": "left", "reason": "changed since the profile set it"}],
+        "message": "The relay profile is reverted: 14 settings put back, 1 left as they were."},
+    ("POST", "/api/v1/settings/profiles/discard"): {
+        "profile": "office", "discarded": 1789000300, "entries": 12,
+        "message": "The way back from the office profile is discarded; its settings are kept, and another profile may be applied."},
     ("GET", "/api/v1/settings/bounces"): {"processing_enabled": False, "hard_bounce_threshold": 1,
                                           "suppression_action": "refuse"},
     ("PUT", "/api/v1/settings/bounces"): {"processing_enabled": True, "hard_bounce_threshold": 1,
@@ -595,6 +622,14 @@ ANSWERS[("POST", "/api/v1/reputation/check")] = dict(
 
 # Answers that are refusals, by (method, path): the status code and the body.
 REFUSALS = {
+    # A profile that closes a listener, applied without --confirm: the server's
+    # refusal, which names what asks for the confirmation.
+    ("POST", "/api/v1/settings/profiles/sender/apply"): (409, {
+        "error": "Applying the sender profile here changes 2 entries that ask for a confirmation.",
+        "confirmation": True,
+        "confirmation_needed": [{"store": "database", "name": "protocolimap", "caution": "closes_listener", "current": "1", "value": "0"},
+                                {"store": "database", "name": "protocolpop3", "caution": "closes_listener", "current": "1", "value": "0"}],
+        "refused": [], "snapshot": None}),
     ("POST", "/api/v1/domains/example.net/dkim/rotation/switch"): (409, {
         "error": "The next key's record has not resolved for the propagation period yet.",
         "reason": "propagation",
@@ -863,6 +898,16 @@ CASES = [
      "POST", "/api/v1/settings/breach-check/test", {"url": "https://mirror.example/range/"}, ["812 entries", "padded"]),
     ("settings breach-test, configured endpoint", ["settings", "breach-test"],
      "POST", "/api/v1/settings/breach-check/test", {}, ["reachable"]),
+    ("settings profiles", ["settings", "profiles"], "GET", "/api/v1/settings/profiles", None,
+     ["A small office server", "An outbound relay", "last applied: office (applied)", "revert-profile puts it back"]),
+    ("settings profile", ["settings", "profile", "office"], "GET", "/api/v1/settings/profiles/office", None,
+     ["usespf", "set by the environment (HM_SETTING_QuarantineEnabled)", "1 would change"]),
+    ("settings apply-profile with --confirm", ["settings", "apply-profile", "relay", "--confirm"],
+     "POST", "/api/v1/settings/profiles/relay/apply", {"confirm": True}, ["15 set, 10 unchanged"]),
+    ("settings revert-profile", ["settings", "revert-profile"], "POST", "/api/v1/settings/profiles/revert", {},
+     ["14 settings put back", "MaxOutboundConnsPerDestination: left - changed since the profile set it"]),
+    ("settings discard-profile", ["settings", "discard-profile"], "POST", "/api/v1/settings/profiles/discard", {},
+     ["its settings are kept"]),
     ("complaints of a domain", ["complaint", "list", "--domain", "example.com"],
      "GET", "/api/v1/domains/example.com/complaints", None, ["reader@provider.test", "abuse", "SomeGenerator/1.0"]),
     ("complaints of one sender", ["complaint", "list", "--domain", "example.com", "--search", "anna"],
@@ -1113,6 +1158,13 @@ def run_python_refusals(url):
           and "propagation period" in completed.stderr and "example.net: propagating" in completed.stdout,
           "hmctl dkim switch refused with 409 should print the status and the reason, said: %s%s"
           % (completed.stdout, completed.stderr))
+
+    # A profile that closes a listener, applied without --confirm: refused, with
+    # nothing sent but the one request, and the entries and the flag named.
+    completed = run(["settings", "apply-profile", "sender"])
+    check(completed.returncode != 0 and "protocolimap" in completed.stderr and "--confirm" in completed.stderr,
+          "hmctl settings apply-profile refused for want of --confirm should name the entries and the flag, "
+          "exited %d and said: %s%s" % (completed.returncode, completed.stdout, completed.stderr))
 
     completed = run(["dkim", "rotate"])
     check(completed.returncode != 0 and "domain" in (completed.stderr + completed.stdout),

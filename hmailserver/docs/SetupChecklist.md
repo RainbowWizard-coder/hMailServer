@@ -1,11 +1,12 @@
 # The first-hour checklist
 
 What a new server still needs before it is a mail server anybody can use, judged
-by the server itself rather than by whoever is reading the documentation. Eight
+by the server itself rather than by whoever is reading the documentation. Nine
 items, in the order a new installation meets them:
 
 | Key | Item | Done when |
 |---|---|---|
+| `profile` | A profile for this server | a setting profile has been applied ([Profiles.md](Profiles.md)); asked for on a young server - fewer than ten accounts, the sample domain's not counted - and not needed on one past that, where a profile that closes a listener or turns a filter off is not something to suggest in a list of things left to do |
 | `domain` | A domain | at least one domain exists and is active |
 | `account` | An account | at least one account exists in any domain |
 | `submission` | TLS on the submission port | every SMTP listener other than port 25 has STARTTLS or implicit TLS and a certificate that exists |
@@ -77,6 +78,11 @@ count.
 
 | Code | Arguments | Sentence |
 |---|---|---|
+| `profile_none` | | No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made. |
+| `profile_in_service` | accounts | This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one. (not_needed) |
+| `profile_applied` | profile, date | The {0} profile was applied on {1}. |
+| `profile_kept` | profile, date | The {0} profile was applied on {1}; its way back was discarded and its settings kept. |
+| `profile_reverted` | profile, date | The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced. (not_needed) |
 | `domain_none` | | No domain has been added yet. |
 | `domain_none_active` | total | {0} domains, none of them active. |
 | `domain_count` | active, total | Active domains: {0} of {1}. |
@@ -113,7 +119,7 @@ not asked to wait for all of them.
 is the route; `InterfaceUtilities::GetSetupChecklist` the COM method; the Deck's
 view is `renderChecklist` in `installation/WebAdmin/index.html`; the Control
 Panel's items are `ExternalSetupChecks.FirstHourItems`. The regression fixture is
-`test/RegressionTests/API/RestApiSetupChecklist.cs`: the eight items in order,
+`test/RegressionTests/API/RestApiSetupChecklist.cs`: the nine items in order,
 the records looked up in the suite's own zone for two domains, the skipped lookup
 saying so, the submission port judged with a certificate that exists, and the
 backup destination judged on disk.

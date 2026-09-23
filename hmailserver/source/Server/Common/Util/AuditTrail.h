@@ -43,7 +43,10 @@
 //             Account.UnlockMailbox, and POST /api/v1/settings/logon-failures/clear
 //             and Settings.ClearLogonFailureList. And a restore asked for:
 //             Backup.StartRestore and POST /api/v1/backup/restore, each on the
-//             thread that knows who asked.
+//             thread that knows who asked. And a setting profile applied,
+//             reverted or its way back discarded (Profiles), recorded once with
+//             its counts beside the row the settings chokepoint writes for each
+//             setting it changed.
 //
 // WHAT A RESTORE RECORDS. The request, and not what it replaces. The work runs
 // on the maintenance work queue, which no actor is ever installed on, so every

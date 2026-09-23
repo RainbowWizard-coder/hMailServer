@@ -557,6 +557,12 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="A password is stored - leave blank to keep it" xml:space="preserve">
     <value>Bir parola saklanıyor - korumak için boş bırakın</value>
   </data>
+  <data name="A profile for this server" xml:space="preserve">
+    <value>Bu sunucu için bir profil</value>
+  </data>
+  <data name="A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back." xml:space="preserve">
+    <value>Bir profil, bir sunucu türünün gerektirdiği otuz kadar ayarı - hangilerini, hangi değere ve neden - belirler, bir şey değişmeden önce bu sunucuyla farkı gösterir ve geri alınabilmesi için yerine koyduğu şeyi saklar.</value>
+  </data>
   <data name="A quota can be set on the domain and overridden per account." xml:space="preserve">
     <value>Kota etki alanı üzerinde ayarlanabilir ve hesap bazında geçersiz kılınabilir.</value>
   </data>
@@ -1398,11 +1404,17 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
     <value>Yalnızca geri dönüş işleme açıkken geçerlidir. Bir rapor ancak bu sunucunun o alıcıya gerçekten teslim ettiği bir iletiyi adlandırıyorsa, dışarıdan kimlik doğrulamasız geldiyse ve kaydedildiği yerde SPF ile DMARC denetimlerinden geçtiyse sayılır - ancak aynı iletiyi alan herkes, görünür başka bir alıcı için sahte bir rapor oluşturabilir. Kapatıldığında raporlar hiç okunmaz; teslim sırasındaki retler sayılmaya devam eder.</value>
   </data>
+  <data name="Apply a profile" xml:space="preserve">
+    <value>Bir profil uygula</value>
+  </data>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Dizin eşitlemesini uygula</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Sunucunun spam _filtrelemesini bu hesaba uygula</value>
+  </data>
+  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>{0} profili uygulansın mı? {1} ayar şimdi değişir ve önceki değerleri geri alınabilmeleri için saklanır.</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled okunamadı: {0}</value>
@@ -1445,6 +1457,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>Gelen</value>
+  </data>
+  <data name="Asks for a confirmation" xml:space="preserve">
+    <value>Onay ister</value>
   </data>
   <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
     <value>AsyncQueueStallThreshold (120)</value>
@@ -2108,6 +2123,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Alıcı listesini kapat</value>
+  </data>
+  <data name="Closes a listener" xml:space="preserve">
+    <value>Bir dinleyiciyi kapatır</value>
   </data>
   <data name="Collapse the navigation" xml:space="preserve">
     <value>Gezintiyi daralt</value>
@@ -3257,6 +3275,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>Her ileti iki kez taranır: önce diskteki dosyanın tamamı olarak, sonra her ek için bir kez; her ek geçici klasöre yazılıp tarayıcıya tek başına verilir. İkinci geçiş, tarayıcının kendi başına çözmediği bir yapının içindeki eki yakalayan geçiştir. İleti MIME olarak ayrıştırılamazsa ek başına geçiş atlanır ve bir hata günlüğe yazılır.</value>
   </data>
+  <data name="Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied." xml:space="preserve">
+    <value>Her profil, bir sunucu türünün gerektirdiği ayarları belirler. Bir profil gösterildiğinde her ayar, bu sunucunun şu anki değerinin yanında listelenir; uygulanana kadar hiçbir şey değişmez.</value>
+  </data>
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>İlk gecikme dolmadan yapılan her yeniden deneme gecikmeyi o andan itibaren yeniden başlatır; böylece kuyruktan değil zamanlayıcıyla yeniden deneyen bir gönderen pencereye asla ulaşamaz. Varsayılan olarak kapalı: bir kez fazla hızlı yeniden deneyen iyi huylu bir sunucu bu açıkken biraz daha geciktirilir.</value>
   </data>
@@ -4159,6 +4180,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Bu sunucunun MX, PTR, SPF, DKIM, DMARC ve kara liste aramalarını nasıl çözdüğü (hMailServer.INI).</value>
+  </data>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
+    <value>Yukarıda işaretli değişiklikleri _onaylıyorum: bu sunucuda bir dinleyiciyi kapatır, bir adres aralığına güvenir ya da bir filtreyi kapatırlar.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (anlık posta)</value>
@@ -5508,6 +5532,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>Sorun bulunamadı - her ileti satırının dosyası diskte.</value>
   </data>
+  <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
+    <value>Hiçbir profil uygulanmadı. Bir profil, bu sunucunun türüne göre - küçük bir ofis, filtreleyen bir ağ geçidinin arkasında, giden bir aktarıcı, yüksek hacimli bir gönderici - otuz kadar ayar belirler ve her değişikliği yapmadan önce gösterir.</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>SMTP ayarlarında genel bir ana bilgisayar adı yapılandırılmamış.</value>
   </data>
@@ -5816,6 +5843,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>Yedekleme sayfasında yedeğin yazılacağı klasörü, ileti deposunun bulunduğu diskten farklı bir diskte ayarlayın.</value>
+  </data>
+  <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
+    <value>Ayar profilleri sayfasında dördünü bu sunucuyla karşılaştırın ve uyanı uygulayın; yerine koyduğu şey, geri alınabilmesi için saklanır.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>TCP/IP portları sayfasında gönderim bağlantı noktasına (587) SSL sertifikaları sayfasından bir sertifikayla STARTTLS verin veya örtük TLS ile 465 numaralı bağlantı noktasını ekleyin.</value>
@@ -6500,6 +6530,12 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Put a setting back" xml:space="preserve">
     <value>Bir ayarı geri al</value>
   </data>
+  <data name="Put back a profile's changes" xml:space="preserve">
+    <value>Bir profilin değişikliklerini geri al</value>
+  </data>
+  <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
+    <value>{0} profilinin yerine koyduğu değerler geri alınsın mı? O zamandan beri değişen bir ayar olduğu gibi bırakılır ve profilin açtığı bir filtre yeniden kapanabilir.</value>
+  </data>
   <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
     <value>İleti {0} {1} posta kutusuna geri konsun mu?</value>
   </data>
@@ -6788,6 +6824,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Teslim sırasında reddedildi</value>
+  </data>
+  <data name="Refused: {0}" xml:space="preserve">
+    <value>Reddedildi: {0}</value>
   </data>
   <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
     <value>Reddetmek daha katıdır, ancak uç noktaya ulaşılamadığı sürece hiçbir yerde hiçbir parola değiştirilemez; yönetici parolası da buna dahildir.</value>
@@ -8061,6 +8100,9 @@ Devam edilsin mi?</value>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Ayar  -  {0}</value>
   </data>
+  <data name="Setting profiles" xml:space="preserve">
+    <value>Ayar profilleri</value>
+  </data>
   <data name="Settings" xml:space="preserve">
     <value>Ayarlar</value>
   </data>
@@ -9213,6 +9255,9 @@ Yine de eklensin mi?</value>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>Özel anahtarın ortak yarısı sertifikanın ortak anahtarıyla aynı - çift birbirine ait.</value>
   </data>
+  <data name="The profile" xml:space="preserve">
+    <value>Profil</value>
+  </data>
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
     <value>Herkese açık derlem https://api.pwnedpasswords.com/range/ adresindedir. Kendi yansısını çalıştıran bir kuruluş onu burada belirtir: beş karakter yola eklenir veya {prefix} yazan yere konur. Şifrelenmemiş http yalnızca localhost, 127.0.0.1 veya ::1 için kabul edilir.</value>
   </data>
@@ -9478,6 +9523,18 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Wiki bir tarayıcıda açılamadı.</value>
   </data>
+  <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
+    <value>{0} profili uygulandı. Yerine koyduğu şeyler saklanıyor ve geri alınabilir.</value>
+  </data>
+  <data name="The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced." xml:space="preserve">
+    <value>{0} profili uygulandı, ardından {1} tarihinde geri alındı; ayarlar onun yerine koyduklarıdır.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}." xml:space="preserve">
+    <value>{0} profili {1} tarihinde uygulandı.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}; its way back was discarded and its settings kept." xml:space="preserve">
+    <value>{0} profili {1} tarihinde uygulandı; geri dönüş yolu atıldı ve ayarları korundu.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>{0} sunucusu Protokoller sayfasında kapalı; bu yüzden bu port dinlenmiyor. Satır tutuluyor. Protokolü yeniden açmak dinleyiciyi kendi başına başlatmaz - port listesi ve etkin protokollerin ikisi de hizmet başlarken bir kez okunur - bu yüzden etkinleştirdikten sonra hizmeti yeniden başlatın.</value>
   </data>
@@ -9597,6 +9654,12 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
     <value>Bu sunucuda ayar düzeyleri yok: şema 6088'den eski ve buradaki her ayar sunucunun ya da etki alanının kendi alanıdır.</value>
   </data>
+  <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
+    <value>Bu sunucuda {0} hesap var, yani kullanımda: profil yeni bir sunucuya önerilir ve dördünden herhangi biri yine de bununla karşılaştırılabilir.</value>
+  </data>
+  <data name="This server now" xml:space="preserve">
+    <value>Bu sunucu şu anda</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Bu sunucu gelen postada SPF'yi yalnızca DENETLER; kaydı yayımlamak herkes içindir - alıcı sunuculara hangi makinelerin şu adına posta göndermesine izin verildiğini söyler:</value>
   </data>
@@ -9650,6 +9713,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbird otomatik yapılandırması + Outlook otomatik bulma</value>
+  </data>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
+    <value>Önce onay kutusunu işaretleyin: bu profil burada bir dinleyiciyi kapatır, bir adres aralığına güvenir ya da bir filtreyi kapatır.</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>Zaman</value>
@@ -9741,6 +9807,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
     <value>X-Forwarded-Proto: https değerine inanılan güvenilir proxy'ler (adresler, virgülle ayrılmış; loopback her zaman)</value>
   </data>
+  <data name="Trusts an address range" xml:space="preserve">
+    <value>Bir adres aralığına güvenir</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Hata ayıklama günlüğünü yeniden kapat</value>
   </data>
@@ -9767,6 +9836,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Bunu kapatmak her TLS sürümünde oturum biletlerini durdurur: TLS 1.2 ve daha eski istemciler bu süreci hiç terk etmeyen sunucu tarafı oturum önbelleğine geri döner ve TLS 1.3 istemcilerine hiç bilet gönderilmez. İlkesi "uzun ömürlü bir anahtardan türetilen hiçbir şey asla hatta çıkmaz" olan yönetici için. Tek bedeli sürdürme verimliliğidir - her istemci yine de tam el sıkışmayla bağlanabilir.</value>
+  </data>
+  <data name="Turns a filter off" xml:space="preserve">
+    <value>Bir filtreyi kapatır</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>İki bağlama yöntemi ve fark göründüğünden önemli: biri parolayı dizine gönderir, diğeri onu hiç hatta koymaz.</value>
@@ -10106,6 +10178,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="What is sent" xml:space="preserve">
     <value>Ne gönderilir</value>
+  </data>
+  <data name="What it cannot do for you" xml:space="preserve">
+    <value>Sizin yerinize yapamadıkları</value>
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>Ne için olduğu</value>
@@ -10455,6 +10530,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="_Apply now" xml:space="preserve">
     <value>Şimdi _uygula</value>
   </data>
+  <data name="_Apply this profile" xml:space="preserve">
+    <value>Bu profili _uygula</value>
+  </data>
   <data name="_Bind address" xml:space="preserve">
     <value>_Bağlama adresi</value>
   </data>
@@ -10641,6 +10719,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="_Job title" xml:space="preserve">
     <value>_Unvan</value>
   </data>
+  <data name="_Keep its settings, forget the way back" xml:space="preserve">
+    <value>Ayarları _koru, geri dönüş yolunu unut</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>Özgün iletiyi _koru</value>
   </data>
@@ -10766,6 +10847,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>_Geri al</value>
+  </data>
+  <data name="_Put back what it changed" xml:space="preserve">
+    <value>_Değiştirdiklerini geri al</value>
   </data>
   <data name="_Put the message back" xml:space="preserve">
     <value>İletiyi geri koy (_c)</value>
@@ -11943,6 +12027,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0} hiçbir şifreleme yok; bu yüzden {1} kullanılan parolalar ağdan düz metin olarak geçer.</value>
   </data>
+  <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
+    <value>{1} ayarından {0} tanesi bu sunucuda değişirdi.</value>
+  </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>Hesabın tek kullanımlık kurtarma kodlarından {0} tanesi kullanılmamış.</value>
   </data>
@@ -12221,6 +12308,12 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} hiçbir PEM sertifika bloğu içermiyor; bu yüzden kullanılabilir bir CA sertifikası tutmuyor (sunucu hatası 6140). CA sertifikasını PEM (Base64) biçiminde dışa aktarın.</value>
+  </data>
+  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
+    <value>{0}: {1} geri alındı, {2} olduğu gibi bırakıldı.</value>
+  </data>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
+    <value>{0}: {1} ayarlandı, {2} değişmedi, {3} atlandı.</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1} virüsten koruma kapalı; bu yüzden {2} topladığı posta, burada ne ayarlanırsa ayarlansın taranmadan teslim ediliyor. Anahtar bu sayfada değil, toplama hesabının üzerindedir.{3}</value>

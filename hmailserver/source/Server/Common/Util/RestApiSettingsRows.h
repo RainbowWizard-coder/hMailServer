@@ -57,6 +57,14 @@ namespace HM
          bool readOnly;
          /// <summary>The row's words, comma separated, for KindWords.</summary>
          String words;
+         /// <summary>
+         /// When a value written through the row reaches the running server: "now",
+         /// "reinitialize" or "restart" - the key's mark in the baseline for a row kept
+         /// in the settings store, the row's own effect otherwise (a row the server
+         /// reads when it starts is "restart"; one stored and read by nothing is
+         /// "now", since nothing waits for it). What a profile's diff answers.
+         /// </summary>
+         AnsiString applies;
       };
 
       /// <summary>

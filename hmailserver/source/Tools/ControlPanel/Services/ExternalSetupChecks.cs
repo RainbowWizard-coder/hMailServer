@@ -501,7 +501,7 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>
       /// The first-hour items the server judges itself (Common/Util/SetupChecklist.h):
-      /// a domain, an account, TLS on the submission port, SPF, DMARC, a backup
+      /// a setting profile on a young server, a domain, an account, TLS on the submission port, SPF, DMARC, a backup
       /// destination and a second factor on the administrator password. Read over
       /// COM as Utilities.GetSetupChecklist without DNS lookups - the SPF and DMARC
       /// records are looked up here, off the window thread, by the same probes the
@@ -555,6 +555,16 @@ namespace hMailServer.ControlPanel.Services
       {
          switch (key)
          {
+            // The first item on a young server (docs/Profiles.md): the profile that
+            // sets the settings the rest of the first hour is spent finding.
+            case "profile":
+               return new SetupItem
+               {
+                  Title = L("A profile for this server"),
+                  Purpose = L("A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back."),
+                  Action = L("On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back."),
+                  Page = "profiles"
+               };
             case "domain":
                return new SetupItem
                {
@@ -624,6 +634,11 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       private static readonly Dictionary<string, string> FirstHourTexts = new()
       {
+         ["profile_none"] = N("No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made."),
+         ["profile_in_service"] = N("This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one."),
+         ["profile_applied"] = N("The {0} profile was applied on {1}."),
+         ["profile_kept"] = N("The {0} profile was applied on {1}; its way back was discarded and its settings kept."),
+         ["profile_reverted"] = N("The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced."),
          ["domain_none"] = N("No domain has been added yet."),
          ["domain_none_active"] = N("{0} domains, none of them active."),
          ["domain_count"] = N("Active domains: {0} of {1}."),

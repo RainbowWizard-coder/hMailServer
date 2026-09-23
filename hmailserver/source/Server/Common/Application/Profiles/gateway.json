@@ -1,0 +1,34 @@
+{
+  "name": "gateway",
+  "order": 2,
+  "title": "Behind a filtering gateway",
+  "summary": "Inbound mail arrives from a filtering gateway - a hosted service or an appliance in front of this server - that has already judged it against the real sender. The tests that judge the connecting address are switched off, because that address is now the gateway's and every sender would fail them; the tests that judge the message itself stay on, and people who sign in here directly are still held to the auto-ban and the sender check.",
+  "steps": [
+    "Put the gateway's addresses in SMTPXClientTrustedIPs, so that the gateway can pass the real client's address with XCLIENT: until then XCLIENT is honoured from nobody.",
+    "Add the gateway's addresses as an IP range that does not run the spam tests, and switch off each DNS block list on the anti-spam pages: a block list is a list entry, not a setting, and asking it about the gateway's address tells nothing.",
+    "Name the ARC sealer the gateway signs as in arc_trusted_sealers, so that a message the gateway rewrote is judged by what the gateway saw.",
+    "On the listener the gateway delivers to, leave TLS optional unless the gateway offers it: a port's security is the port's, not a setting.",
+    "A backup-MX callout to the primary is a remote domain policy (callout), which a profile does not make."
+  ],
+  "entries": [
+    { "store": "database", "name": "usespf", "value": 0, "caution": "turns_filter_off", "why": "the connecting address is the gateway's, so every sender's SPF would fail here; the gateway checked it against the real one" },
+    { "store": "database", "name": "usegreylisting", "value": 0, "caution": "turns_filter_off", "why": "the gateway has filtered and retries on its own schedule, so greylisting it only delays mail" },
+    { "store": "database", "name": "ascheckhostinhelo", "value": 0, "caution": "turns_filter_off", "why": "the HELO name is the gateway's, not the sender's" },
+    { "store": "database", "name": "ascheckptr", "value": 0, "caution": "turns_filter_off", "why": "the PTR record is the gateway's, not the sender's" },
+    { "store": "database", "name": "ASDMARCEnabled", "value": 0, "caution": "turns_filter_off", "why": "DMARC's SPF half fails behind a gateway; the gateway enforces DMARC against the real sender" },
+    { "store": "database", "name": "ASDKIMVerificationEnabled", "value": 1, "why": "a signature still verifies through a gateway that leaves the message as it was" },
+    { "store": "database", "name": "ASArcFilteringEnabled", "value": 1, "caution": "trusts_addresses", "why": "a gateway that rewrites a message seals what it saw, and the seal of a sealer named in arc_trusted_sealers is trusted" },
+    { "store": "ini", "name": "SMTPXClientEnabled", "value": 1, "caution": "trusts_addresses", "why": "the gateway can pass the real client's address with XCLIENT, honoured only from the addresses in SMTPXClientTrustedIPs" },
+    { "store": "ini", "name": "ReceivedSpfHeaderEnabled", "value": 0, "why": "a Received-SPF header here would record the gateway's address as every sender's" },
+    { "store": "ini", "name": "MaxSubmissionsPerIPPerMinute", "value": 0, "why": "every inbound message comes from the gateway's few addresses, and a per-address ceiling would throttle all of it" },
+    { "store": "ini", "name": "SmtpTarpitCount", "value": 0, "why": "the gateway delivers messages with many recipients, which the recipient tarpit would slow" },
+    { "store": "ini", "name": "RejectFullMailboxAtRcpt", "value": 1, "why": "the gateway is told at RCPT that a mailbox is full and returns the message itself, rather than this server bouncing to a sender it cannot check" },
+    { "store": "database", "name": "usemxchecks", "value": 1, "why": "the sender's domain is part of the message, not of the connection, and is still checked" },
+    { "store": "database", "name": "antispamaddheaderreason", "value": 1, "why": "the tests that still run say which of them scored, so a message the gateway passed can be traced" },
+    { "store": "ini", "name": "QuarantineEnabled", "value": 1, "why": "what the content tests still judge spam is held for release rather than lost" },
+    { "store": "database", "name": "AutoBanOnLogonFailureEnabled", "value": 1, "why": "people sign in here directly, not through the gateway, and a guessing address is still shut out" },
+    { "store": "database", "name": "authallowplaintext", "value": 0, "why": "a password is never taken over a connection without TLS" },
+    { "store": "ini", "name": "SmtpAuthenticatedSenderCheck", "value": 1, "why": "a signed-in person sends as their own address, an alias of it, or a mailbox that granted them Send-As" },
+    { "store": "database", "name": "enableattachmentblocking", "value": 1, "why": "an attachment on the blocked list is taken off here too, whatever the gateway let through" }
+  ]
+}

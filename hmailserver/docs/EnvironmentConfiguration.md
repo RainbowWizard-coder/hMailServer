@@ -144,7 +144,9 @@ checks, in the same words).
 **The entrypoint** runs it after `--create-database` and `--upgrade-database` and
 before the server, whenever there is anything for it to do: an `HM_` variable other
 than the ones it reads itself (the database, the administrator password, the ini
-path, the two switches) - which includes a misspelt prefix, so that the verb can
+path, the two switches, and `HM_PROFILE` and `HM_PROFILE_CONFIRM`, the setting
+profile it applies once after this verb, [Profiles.md](Profiles.md)) - which
+includes a misspelt prefix, so that the verb can
 refuse it - or the file `.hmailserver-environment` in the data directory, which the
 verb keeps there while the environment manages anything, so that the first start
 without the variables gives those settings back. Otherwise the database is not
@@ -299,6 +301,7 @@ of the names every setting has:
 | `HM_ADMIN_PASSWORD`, `HM_ADMIN_PASSWORD_FILE` | `[Security] AdministratorPassword`, written as a hash by `--set-admin-password` |
 | `HM_INI` | where the file is |
 | `HM_CREATE_DATABASE`, `HM_UPGRADE_DATABASE` | whether the entrypoint runs `--create-database` and `--upgrade-database` |
+| `HM_PROFILE`, `HM_PROFILE_CONFIRM` | added with the setting profiles, and not settings either: the profile the entrypoint applies with `--apply-profile NAME --once` after the environment's settings, and whether it confirms an entry that closes a listener, trusts an address range or turns a filter off ([Profiles.md](Profiles.md)) |
 
 An alias set to the empty string is unset, as the entrypoint always read it; an
 `HM_SETTING_` or `HM_PROPERTY_` set to the empty string stores the empty string.

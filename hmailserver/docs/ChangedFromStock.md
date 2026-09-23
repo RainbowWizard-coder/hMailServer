@@ -48,13 +48,15 @@ Panel could disagree.
   "considered": 391,
   "settings": [
     { "store": "ini", "name": "LogLevel", "value": "5", "default": "9",
-      "secret": false, "known": true, "overridden": false, "environment": null }
+      "secret": false, "known": true, "overridden": false, "environment": null,
+      "profile": null }
   ],
   "environment": [
     { "variable": "HM_PROPERTY_maxmessagesize", "store": "database",
       "name": "maxmessagesize", "source": "variable" }
   ],
-  "from_file": []
+  "from_file": [],
+  "profile": { "name": "office", "state": "applied", "applied": 1790191344 }
 }
 ```
 
@@ -70,8 +72,9 @@ Panel could disagree.
   `overridden` — and **`default`** what this version ships with. For all but a
   handful the stored value is also the one in force; the exceptions are the few
   the loader clamps, below.
-* **`secret`**, **`known`**, **`overridden`** and **`environment`** are below, and
-  so are the **`environment`** and **`from_file`** lists beside `settings`.
+* **`secret`**, **`known`**, **`overridden`**, **`environment`** and **`profile`** are
+  below, and so are the **`environment`** and **`from_file`** lists and the
+  **`profile`** object beside `settings`.
 
 ## What "default" means
 
@@ -197,6 +200,21 @@ fields, because this document is what it already asks for over COM. The
 **`from_file`** list names, as `{store, name}`, every setting whose value is withheld
 because a file supplied it, now or before; the Control Panel reads it so as not to
 show such a value in a field.
+
+## A value a profile set
+
+A setting profile ([Profiles.md](Profiles.md)) sets thirty or so settings at once,
+and a list of what has been changed from stock would otherwise say nothing about
+why a dozen of them moved on the same afternoon. So an entry's **`profile`** names
+the profile that set it - while that profile is applied (or its way back was
+discarded and its settings kept), and only while the setting still holds the value
+the profile wrote: a value somebody changed since is theirs, whatever set it
+first, and is listed with `profile` null. The document's own **`profile`** is the
+last profile applied, `{name, state, applied}` with state `applied`, `reverted` or
+`kept`, or null on a server no profile was ever applied to. A value a profile set
+that is the shipped default is not listed at all, as any value at its default is
+not - the profile's diff (`GET /api/v1/settings/profiles/{name}`) is where every
+one of its entries is, changed or not.
 
 ## Which values these are
 

@@ -543,6 +543,14 @@ namespace HM
          // GET /api/v1/settings/environment: the settings the server's environment
          // sets, by name and source, never a value (docs/EnvironmentConfiguration.md).
          RouteSettingsEnvironment,
+         // The setting profiles (RestApiProfiles.cpp, docs/Profiles.md): the four
+         // listed, one profile's diff against this server, applying one, and
+         // putting back or forgetting the way back of the last one applied.
+         RouteSettingsProfileList,
+         RouteSettingsProfileGet,
+         RouteSettingsProfileApply,
+         RouteSettingsProfileRevert,
+         RouteSettingsProfileDiscard,
          // GET /api/v1/server/settings/pending: the [Settings] keys saved and not
          // yet running, with both values (docs/SettingsApply.md).
          RouteServerSettingsPending,
@@ -1799,6 +1807,11 @@ namespace HM
       // removing it.
       HttpResponse HandleSampleDomain_(const Route &route);
       static AnsiString OpenApiSampleDomainPaths_();
+
+      // The setting profiles (RestApiProfiles.cpp): the list, a diff, an apply, the
+      // way back and discarding it.
+      HttpResponse HandleSettingsProfiles_(const Route &route, const AnsiString &requestBody);
+      static AnsiString OpenApiProfilesPaths_();
       HttpResponse HandleListRules_(__int64 accountId, __int64 domainId = 0);
       HttpResponse HandleListLogs_();
       HttpResponse HandleLogTail_(const AnsiString &name, const AnsiString &query);

@@ -645,6 +645,19 @@ What neither client does
   of the document - a group's key and its `<key>_environment` mark, and a
   `[Settings]` key the ini list's `environment` map names - since the value is
   the deployment's and not the configuration's.
+* **A profile is applied from either, and from the server's own verb.** `hmctl
+  settings profiles` lists the four setting profiles ([Profiles.md](Profiles.md))
+  with how many of each one's settings would change here; `hmctl settings profile
+  office` is the diff, every setting beside the value the server holds; `hmctl
+  settings apply-profile office` applies it, with `--confirm` where an entry closes
+  a listener, trusts an address range or turns a filter off, which the server
+  refuses without it; `revert-profile` puts back what the last one changed and
+  `discard-profile` keeps its settings and forgets the way back. Before the REST
+  listener is on, `sudo -u hmailserver hmailserver --apply-profile office` (and
+  `hMailServer.exe --apply-profile office` on Windows) applies it from the command
+  line, `--confirm` as above and `--once` to do nothing on a server a profile was
+  applied to before, which is what the container's `HM_PROFILE` and the installer
+  run; it exits 3 when a `--confirm` is needed and 2 for a name that is no profile.
 * **Neither invents a field.** A field you did not give is one the server
   decides; the two clients were made to send the same request for the same
   command, and `build/check-cli.py` fails if they stop doing so.

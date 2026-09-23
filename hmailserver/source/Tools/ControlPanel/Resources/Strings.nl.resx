@@ -557,6 +557,12 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="A password is stored - leave blank to keep it" xml:space="preserve">
     <value>Er is een wachtwoord opgeslagen - laat leeg om het te behouden</value>
   </data>
+  <data name="A profile for this server" xml:space="preserve">
+    <value>Een profiel voor deze server</value>
+  </data>
+  <data name="A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back." xml:space="preserve">
+    <value>Een profiel stelt de ongeveer dertig instellingen in die een soort server nodig heeft - welke, op welke waarde en waarom -, toont het verschil met deze server voordat er iets verandert, en bewaart wat het vervangt zodat het teruggezet kan worden.</value>
+  </data>
   <data name="A quota can be set on the domain and overridden per account." xml:space="preserve">
     <value>Een quotum kan op het domein worden ingesteld en per account worden overschreven.</value>
   </data>
@@ -1398,11 +1404,17 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
     <value>Geldt alleen zolang bounceverwerking aan staat. Een rapport telt alleen als het een bericht noemt dat deze server echt aan die ontvanger heeft afgeleverd, het zonder authenticatie van buiten binnenkwam en SPF en DMARC doorstond waar die worden vastgelegd - maar iedereen die hetzelfde bericht ontving, kan er een vervalsen voor een andere zichtbare ontvanger. Uitgeschakeld worden rapporten helemaal niet gelezen; weigeringen tijdens de aflevering worden nog steeds geteld.</value>
   </data>
+  <data name="Apply a profile" xml:space="preserve">
+    <value>Een profiel toepassen</value>
+  </data>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Directorysynchronisatie toepassen</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>De spam_filtering van de server op dit account toepassen</value>
+  </data>
+  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>Het profiel {0} toepassen? {1} instellingen veranderen nu, en wat ze hadden wordt bewaard zodat het teruggezet kan worden.</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled kon niet worden gelezen: {0}</value>
@@ -1445,6 +1457,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>Inkomend</value>
+  </data>
+  <data name="Asks for a confirmation" xml:space="preserve">
+    <value>Vraagt om een bevestiging</value>
   </data>
   <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
     <value>AsyncQueueStallThreshold (120)</value>
@@ -2108,6 +2123,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>De ontvangerslijst sluiten</value>
+  </data>
+  <data name="Closes a listener" xml:space="preserve">
+    <value>Sluit een listener</value>
   </data>
   <data name="Collapse the navigation" xml:space="preserve">
     <value>Navigatie samenvouwen</value>
@@ -3257,6 +3275,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>Elk bericht wordt tweemaal gescand: één keer als het hele bestand op schijf, en daarna één keer per bijlage, die elk apart naar de tijdelijke map worden weggeschreven en afzonderlijk aan de scanner worden aangeboden. Die tweede doorloop is wat een bijlage vangt die in een structuur zit die de scanner zelf niet decodeert. Kan het bericht niet als MIME worden ontleed, dan wordt de doorloop per bijlage overgeslagen en wordt er een fout gelogd.</value>
   </data>
+  <data name="Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied." xml:space="preserve">
+    <value>Elk profiel stelt de instellingen in die een soort server nodig heeft. Wie er een toont, ziet elke instelling naast de waarde die deze server nu heeft; er verandert niets tot het wordt toegepast.</value>
+  </data>
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Elke nieuwe poging voordat de initiële vertraging is verstreken, start de vertraging opnieuw vanaf dat moment, zodat een afzender die op een timer in plaats van vanuit een wachtrij opnieuw probeert het venster nooit bereikt. Standaard uit: een nette server die één keer te snel opnieuw probeert, wordt hiermee iets langer opgehouden.</value>
   </data>
@@ -4159,6 +4180,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Hoe deze server MX-, PTR-, SPF-, DKIM-, DMARC- en blokkadelijstopzoekingen uitvoert (hMailServer.INI).</value>
+  </data>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
+    <value>Ik _bevestig de hierboven gemarkeerde wijzigingen: ze sluiten een listener, vertrouwen een adresbereik of zetten een filter uit op deze server.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (push-mail)</value>
@@ -5508,6 +5532,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>Geen problemen gevonden - elke berichtrij heeft zijn bestand op schijf.</value>
   </data>
+  <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
+    <value>Er is geen profiel toegepast. Een profiel stelt ongeveer dertig instellingen in voor het soort server dat dit is - een klein kantoor, achter een filterende gateway, een uitgaand relay, een verzender van grote volumes - en toont elke wijziging voordat die wordt gedaan.</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>Er is geen openbare hostnaam geconfigureerd in de SMTP-instellingen.</value>
   </data>
@@ -5816,6 +5843,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>Stel op de pagina Back-up de map in waarnaar de back-up wordt geschreven, op een andere schijf dan die van de berichtenopslag.</value>
+  </data>
+  <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
+    <value>Vergelijk op de pagina Instellingsprofielen de vier met deze server en pas het passende toe; wat het vervangt wordt bewaard zodat het teruggezet kan worden.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Geef op de pagina TCP/IP-poorten de submission-poort (587) STARTTLS met een certificaat van de pagina SSL-certificaten, of voeg poort 465 met impliciete TLS toe.</value>
@@ -6500,6 +6530,12 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Put a setting back" xml:space="preserve">
     <value>Een instelling terugzetten</value>
   </data>
+  <data name="Put back a profile's changes" xml:space="preserve">
+    <value>De wijzigingen van een profiel terugzetten</value>
+  </data>
+  <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
+    <value>De waarden terugzetten die het profiel {0} heeft vervangen? Een instelling die sindsdien is gewijzigd blijft zoals ze is, en een filter dat het profiel aanzette kan weer uit gaan.</value>
+  </data>
   <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
     <value>Bericht {0} terugzetten in de mailbox van {1}?</value>
   </data>
@@ -6788,6 +6824,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Geweigerd tijdens aflevering</value>
+  </data>
+  <data name="Refused: {0}" xml:space="preserve">
+    <value>Geweigerd: {0}</value>
   </data>
   <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
     <value>Weigeren is strenger, maar zolang het eindpunt onbereikbaar is, kan nergens een wachtwoord worden gewijzigd, ook het beheerderswachtwoord niet.</value>
@@ -8061,6 +8100,9 @@ Doorgaan?</value>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Instelling  -  {0}</value>
   </data>
+  <data name="Setting profiles" xml:space="preserve">
+    <value>Instellingsprofielen</value>
+  </data>
   <data name="Settings" xml:space="preserve">
     <value>Instellingen</value>
   </data>
@@ -9213,6 +9255,9 @@ Toch toevoegen?</value>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>De openbare helft van de privésleutel is identiek aan de openbare sleutel van het certificaat - het paar hoort bij elkaar.</value>
   </data>
+  <data name="The profile" xml:space="preserve">
+    <value>Het profiel</value>
+  </data>
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
     <value>De openbare verzameling staat op https://api.pwnedpasswords.com/range/. Een organisatie met een eigen spiegel vult die hier in: de vijf tekens worden aan het pad toegevoegd, of ingevuld waar {prefix} staat. Onversleuteld http wordt alleen geaccepteerd naar localhost, 127.0.0.1 of ::1.</value>
   </data>
@@ -9478,6 +9523,18 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>De wiki kon niet in een browser worden geopend.</value>
   </data>
+  <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
+    <value>Het profiel {0} is toegepast. Wat het verving is bewaard en kan worden teruggezet.</value>
+  </data>
+  <data name="The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced." xml:space="preserve">
+    <value>Het profiel {0} is toegepast en op {1} teruggedraaid; de instellingen zijn die welke het had vervangen.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}." xml:space="preserve">
+    <value>Het profiel {0} is toegepast op {1}.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}; its way back was discarded and its settings kept." xml:space="preserve">
+    <value>Het profiel {0} is toegepast op {1}; de weg terug is weggegooid en de instellingen zijn behouden.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>De {0}-server staat uit op de pagina Protocollen, dus er wordt niet op deze poort geluisterd. De rij blijft bewaard. Het protocol weer aanzetten start de listener niet vanzelf - de poortenlijst en de ingeschakelde protocollen worden allebei één keer gelezen, wanneer de service start - dus herstart de service nadat u het hebt ingeschakeld.</value>
   </data>
@@ -9597,6 +9654,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
     <value>Deze server heeft geen instellingsniveaus: hij is ouder dan schema 6088, en elke instelling hier is een eigen veld van de server of het domein.</value>
   </data>
+  <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
+    <value>Deze server heeft {0} accounts en is dus in gebruik: een profiel wordt aangeboden aan een nieuwe server, en elk van de vier kan nog steeds met deze worden vergeleken.</value>
+  </data>
+  <data name="This server now" xml:space="preserve">
+    <value>Deze server nu</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Deze server CONTROLEERT SPF alleen op inkomende mail; het record publiceren is voor alle anderen - het vertelt ontvangende servers welke machines mail mogen versturen die beweert te komen van</value>
   </data>
@@ -9650,6 +9713,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbird autoconfig + Outlook autodiscover</value>
+  </data>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
+    <value>Vink eerst de bevestiging aan: dit profiel sluit hier een listener, vertrouwt een adresbereik of zet een filter uit.</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>Tijd</value>
@@ -9741,6 +9807,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
     <value>Vertrouwde proxy's waarvan X-Forwarded-Proto: https wordt geloofd (adressen, door komma's gescheiden; loopback altijd)</value>
   </data>
+  <data name="Trusts an address range" xml:space="preserve">
+    <value>Vertrouwt een adresbereik</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Debuglogging weer uitzetten</value>
   </data>
@@ -9767,6 +9836,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Dit uitzetten stopt sessietickets op elke TLS-versie: clients met TLS 1.2 en ouder vallen terug op de sessiecache aan de serverkant, die dit proces nooit verlaat, en clients met TLS 1.3 krijgen helemaal geen ticket. Voor een beheerder wiens beleid is dat er nooit iets dat van een langlevende sleutel is afgeleid over de lijn gaat. De enige prijs is de efficiëntie van hervatting - elke client kan nog steeds verbinding maken met een volledige handshake.</value>
+  </data>
+  <data name="Turns a filter off" xml:space="preserve">
+    <value>Zet een filter uit</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Twee bindmethoden, en het verschil telt zwaarder dan het lijkt: de ene stuurt het wachtwoord naar de directory, de andere zet het helemaal nooit op de lijn.</value>
@@ -10106,6 +10178,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="What is sent" xml:space="preserve">
     <value>Wat er wordt verzonden</value>
+  </data>
+  <data name="What it cannot do for you" xml:space="preserve">
+    <value>Wat het niet voor u kan doen</value>
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>Waarvoor het is</value>
@@ -10455,6 +10530,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Apply now" xml:space="preserve">
     <value>Nu _toepassen</value>
   </data>
+  <data name="_Apply this profile" xml:space="preserve">
+    <value>Dit profiel _toepassen</value>
+  </data>
   <data name="_Bind address" xml:space="preserve">
     <value>_Bindadres</value>
   </data>
@@ -10641,6 +10719,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Job title" xml:space="preserve">
     <value>_Functie</value>
   </data>
+  <data name="_Keep its settings, forget the way back" xml:space="preserve">
+    <value>Instellingen _houden, de weg terug vergeten</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Oorspronkelijk bericht behouden</value>
   </data>
@@ -10766,6 +10847,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>_Terugzetten</value>
+  </data>
+  <data name="_Put back what it changed" xml:space="preserve">
+    <value>Terug_zetten wat het veranderde</value>
   </data>
   <data name="_Put the message back" xml:space="preserve">
     <value>Bericht teru_gzetten</value>
@@ -11943,6 +12027,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0} geen versleuteling beschikbaar, dus de wachtwoorden die op {1} worden gebruikt, gaan in klare tekst over het netwerk.</value>
   </data>
+  <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
+    <value>{0} van de {1} instellingen zouden op deze server veranderen.</value>
+  </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} van de eenmalige herstelcodes van het account zijn ongebruikt.</value>
   </data>
@@ -12221,6 +12308,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} bevat geen PEM-certificaatblok, dus het bevat geen bruikbaar CA-certificaat (serverfout 6140). Exporteer het CA-certificaat in PEM-indeling (Base64).</value>
+  </data>
+  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
+    <value>{0}: {1} teruggezet, {2} gelaten zoals ze waren.</value>
+  </data>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
+    <value>{0}: {1} ingesteld, {2} ongewijzigd, {3} overgeslagen.</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1} antivirus uitgeschakeld, dus mail die door {2} opgehaald, wordt ongescand bezorgd, wat hier ook is ingesteld. De schakelaar staat op het ophaalaccount, niet op deze pagina.{3}</value>

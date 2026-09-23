@@ -557,6 +557,12 @@ Salvare comunque questa password debole?</value>
   <data name="A password is stored - leave blank to keep it" xml:space="preserve">
     <value>Una password è memorizzata - lascia vuoto per conservarla</value>
   </data>
+  <data name="A profile for this server" xml:space="preserve">
+    <value>Un profilo per questo server</value>
+  </data>
+  <data name="A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back." xml:space="preserve">
+    <value>Un profilo imposta la trentina di impostazioni di cui ha bisogno un tipo di server - quali, con quale valore e perché -, mostra la differenza da questo server prima che cambi qualcosa e conserva ciò che sostituisce per poterlo ripristinare.</value>
+  </data>
   <data name="A quota can be set on the domain and overridden per account." xml:space="preserve">
     <value>Una quota può essere impostata sul dominio e sovrascritta per account.</value>
   </data>
@@ -1398,11 +1404,17 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
     <value>Vale solo mentre l'elaborazione dei rimbalzi è attiva. Un rapporto viene contato solo se nomina un messaggio che questo server ha davvero consegnato a quel destinatario, è arrivato dall'esterno senza autenticazione e ha superato SPF e DMARC dove sono registrati - ma chiunque abbia ricevuto lo stesso messaggio potrebbe falsificarne uno per un altro destinatario visibile. Disattivandolo i rapporti non vengono più letti; i rifiuti incontrati durante la consegna vengono comunque contati.</value>
   </data>
+  <data name="Apply a profile" xml:space="preserve">
+    <value>Applica un profilo</value>
+  </data>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Applica la sincronizzazione della directory</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Applica il _filtro antispam del server a questo account</value>
+  </data>
+  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>Applicare il profilo {0}? {1} impostazioni cambiano ora, e i valori che avevano vengono conservati per poterli ripristinare.</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>Impossibile leggere ArcSealingEnabled: {0}</value>
@@ -1445,6 +1457,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>In arrivo</value>
+  </data>
+  <data name="Asks for a confirmation" xml:space="preserve">
+    <value>Chiede una conferma</value>
   </data>
   <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
     <value>AsyncQueueStallThreshold (120)</value>
@@ -2108,6 +2123,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Chiudi l'elenco dei destinatari</value>
+  </data>
+  <data name="Closes a listener" xml:space="preserve">
+    <value>Chiude un listener</value>
   </data>
   <data name="Collapse the navigation" xml:space="preserve">
     <value>Comprimi la navigazione</value>
@@ -3257,6 +3275,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>Ogni messaggio viene scansionato due volte: una volta come file intero sul disco, e poi una volta per allegato, ciascuno scritto nella cartella temporanea e passato allo scanner da solo. La seconda passata è quella che intercetta un allegato dentro una struttura che lo scanner non decodifica da sé. Se il messaggio non può essere analizzato come MIME, la passata per allegato viene saltata e viene registrato un errore.</value>
   </data>
+  <data name="Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied." xml:space="preserve">
+    <value>Ogni profilo imposta le impostazioni di cui ha bisogno un tipo di server. Mostrarne uno elenca ogni impostazione accanto al valore che questo server ha ora; nulla cambia finché non viene applicato.</value>
+  </data>
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Ogni nuovo tentativo prima che sia trascorso il ritardo iniziale fa ripartire il ritardo da quel momento, così un mittente che ritenta con un timer anziché da una coda non raggiunge mai la finestra. Disattivato per impostazione predefinita: un server ben educato che ritenta una volta troppo in fretta viene ritardato un po' di più con questa opzione attiva.</value>
   </data>
@@ -4159,6 +4180,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Come questo server risolve le ricerche MX, PTR, SPF, DKIM, DMARC e di blacklist (hMailServer.INI).</value>
+  </data>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
+    <value>_Confermo le modifiche segnate sopra: chiudono un listener, si fidano di un intervallo di indirizzi o disattivano un filtro su questo server.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (posta push)</value>
@@ -5508,6 +5532,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>Nessun problema rilevato - ogni riga di messaggio ha il proprio file su disco.</value>
   </data>
+  <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
+    <value>Non è stato applicato alcun profilo. Un profilo imposta circa trenta impostazioni per il tipo di server che è questo - un piccolo ufficio, dietro un gateway di filtraggio, un relay in uscita, un mittente ad alto volume - e mostra ogni modifica prima di farla.</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>Nelle impostazioni SMTP non è configurato alcun nome host pubblico.</value>
   </data>
@@ -5816,6 +5843,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>Nella pagina Backup, imposta la cartella in cui viene scritto il backup, su un disco diverso da quello dell'archivio dei messaggi.</value>
+  </data>
+  <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
+    <value>Nella pagina Profili di impostazioni, confronta i quattro con questo server e applica quello adatto; ciò che sostituisce viene conservato per poterlo ripristinare.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Nella pagina Porte TCP/IP, assegna alla porta di invio (587) STARTTLS con un certificato della pagina Certificati SSL, oppure aggiungi la porta 465 con TLS implicito.</value>
@@ -6500,6 +6530,12 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Put a setting back" xml:space="preserve">
     <value>Ripristina un'impostazione</value>
   </data>
+  <data name="Put back a profile's changes" xml:space="preserve">
+    <value>Ripristina le modifiche di un profilo</value>
+  </data>
+  <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
+    <value>Ripristinare i valori sostituiti dal profilo {0}? Un'impostazione cambiata nel frattempo resta com'è, e un filtro attivato dal profilo potrebbe essere di nuovo disattivato.</value>
+  </data>
   <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
     <value>Rimettere il messaggio {0} nella casella di {1}?</value>
   </data>
@@ -6788,6 +6824,9 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Rifiutato durante la consegna</value>
+  </data>
+  <data name="Refused: {0}" xml:space="preserve">
+    <value>Rifiutato: {0}</value>
   </data>
   <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
     <value>Rifiutare è più rigoroso, ma finché l'endpoint non è raggiungibile nessuna password può essere cambiata da nessuna parte, nemmeno la password di amministratore.</value>
@@ -8061,6 +8100,9 @@ Continuare?</value>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Impostazione  -  {0}</value>
   </data>
+  <data name="Setting profiles" xml:space="preserve">
+    <value>Profili di impostazioni</value>
+  </data>
   <data name="Settings" xml:space="preserve">
     <value>Impostazioni</value>
   </data>
@@ -9213,6 +9255,9 @@ Aggiungerlo comunque?</value>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>La metà pubblica della chiave privata è identica alla chiave pubblica del certificato - i due elementi formano davvero una coppia.</value>
   </data>
+  <data name="The profile" xml:space="preserve">
+    <value>Il profilo</value>
+  </data>
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
     <value>Il corpus pubblico è https://api.pwnedpasswords.com/range/. Un'organizzazione che gestisce un proprio mirror lo indica qui: i cinque caratteri vengono aggiunti al percorso, o inseriti dove è scritto {prefix}. L'http in chiaro è accettato solo verso localhost, 127.0.0.1 o ::1.</value>
   </data>
@@ -9478,6 +9523,18 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Impossibile aprire il wiki in un browser.</value>
   </data>
+  <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
+    <value>Il profilo {0} è applicato. Ciò che ha sostituito è conservato e può essere ripristinato.</value>
+  </data>
+  <data name="The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced." xml:space="preserve">
+    <value>Il profilo {0} è stato applicato e poi annullato il {1}; le impostazioni sono quelle che aveva sostituito.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}." xml:space="preserve">
+    <value>Il profilo {0} è stato applicato il {1}.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}; its way back was discarded and its settings kept." xml:space="preserve">
+    <value>Il profilo {0} è stato applicato il {1}; il suo ritorno è stato scartato e le sue impostazioni mantenute.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>Il server {0} è disattivato nella pagina Protocolli, quindi questa porta non è in ascolto. La riga viene conservata. Riattivare il protocollo non avvia da solo il listener - l'elenco delle porte e i protocolli attivi vengono entrambi letti una sola volta, all'avvio del servizio - quindi riavviare il servizio dopo averlo attivato.</value>
   </data>
@@ -9597,6 +9654,12 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
     <value>Questo server non ha livelli di impostazioni: è precedente allo schema 6088, e ogni impostazione qui è un campo proprio del server o del dominio.</value>
   </data>
+  <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
+    <value>Questo server ha {0} account, quindi è in servizio: un profilo viene proposto a un server nuovo, e ciascuno dei quattro può comunque essere confrontato con questo.</value>
+  </data>
+  <data name="This server now" xml:space="preserve">
+    <value>Questo server ora</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Questo server si limita a VERIFICARE l'SPF sulla posta in entrata; pubblicare il record serve a tutti gli altri - dice ai server riceventi quali macchine sono autorizzate a inviare posta che dichiara di provenire da </value>
   </data>
@@ -9650,6 +9713,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbird autoconfig + Outlook autodiscover</value>
+  </data>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
+    <value>Spunta prima la conferma: questo profilo chiude un listener, si fida di un intervallo di indirizzi o disattiva un filtro qui.</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>Ora</value>
@@ -9741,6 +9807,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
     <value>Proxy attendibili il cui X-Forwarded-Proto: https viene creduto (indirizzi separati da virgole; loopback sempre)</value>
   </data>
+  <data name="Trusts an address range" xml:space="preserve">
+    <value>Si fida di un intervallo di indirizzi</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Disattiva di nuovo il registro di debug</value>
   </data>
@@ -9767,6 +9836,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Disattivarlo ferma i ticket di sessione su ogni versione di TLS: i client TLS 1.2 e precedenti ripiegano sulla cache di sessione lato server, che non lascia mai questo processo, e ai client TLS 1.3 non viene inviato alcun ticket. È pensato per l'amministratore il cui criterio è che nulla di derivato da una chiave a lunga durata finisca mai in rete. L'unico costo è l'efficienza della ripresa - ogni client può comunque connettersi con un handshake completo.</value>
+  </data>
+  <data name="Turns a filter off" xml:space="preserve">
+    <value>Disattiva un filtro</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Due metodi di bind, e la differenza conta più di quanto sembri: uno invia la password alla directory, l'altro non la mette mai in rete.</value>
@@ -10106,6 +10178,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="What is sent" xml:space="preserve">
     <value>Cosa viene inviato</value>
+  </data>
+  <data name="What it cannot do for you" xml:space="preserve">
+    <value>Cosa non può fare per te</value>
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>A cosa serve</value>
@@ -10455,6 +10530,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="_Apply now" xml:space="preserve">
     <value>_Applica ora</value>
   </data>
+  <data name="_Apply this profile" xml:space="preserve">
+    <value>_Applica questo profilo</value>
+  </data>
   <data name="_Bind address" xml:space="preserve">
     <value>Indirizzo di _binding</value>
   </data>
@@ -10641,6 +10719,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="_Job title" xml:space="preserve">
     <value>_Qualifica</value>
   </data>
+  <data name="_Keep its settings, forget the way back" xml:space="preserve">
+    <value>_Mantieni le impostazioni, dimentica il ritorno</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Conserva il messaggio originale</value>
   </data>
@@ -10766,6 +10847,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>Ri_pristina</value>
+  </data>
+  <data name="_Put back what it changed" xml:space="preserve">
+    <value>_Ripristina ciò che ha cambiato</value>
   </data>
   <data name="_Put the message back" xml:space="preserve">
     <value>Rimetti il messaggio (_j)</value>
@@ -11943,6 +12027,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0} nessuna cifratura disponibile, quindi le password usate su {1} la rete in chiaro.</value>
   </data>
+  <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
+    <value>{0} delle sue {1} impostazioni cambierebbero su questo server.</value>
+  </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} dei codici di recupero monouso dell'account non sono stati usati.</value>
   </data>
@@ -12221,6 +12308,12 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} non contiene alcun blocco di certificato PEM, quindi non contiene alcun certificato CA utilizzabile (errore del server 6140). Esporta il certificato CA in formato PEM (Base64).</value>
+  </data>
+  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
+    <value>{0}: {1} ripristinate, {2} lasciate com'erano.</value>
+  </data>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
+    <value>{0}: {1} impostate, {2} invariate, {3} saltate.</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1} antivirus disattivato, quindi la posta raccolta da {2} consegnata senza scansione qualunque cosa sia impostata qui. L'interruttore è sull'account di raccolta, non su questa pagina.{3}</value>

@@ -2274,6 +2274,12 @@ namespace HM
             return BuildResponse_(200, SettingLevelsRest::TableJson());
          case RouteSettingsEnvironment:
             return HandleSettingsEnvironment_();
+         case RouteSettingsProfileList:
+         case RouteSettingsProfileGet:
+         case RouteSettingsProfileApply:
+         case RouteSettingsProfileRevert:
+         case RouteSettingsProfileDiscard:
+            return HandleSettingsProfiles_(route, GetRequestBody_(request));
          case RouteServerSettingsPending:
             return HandleServerSettingsPending_();
          case RouteIniSettingGet:
@@ -5773,6 +5779,46 @@ namespace HM
          return;
       }
 
+      // The setting profiles (docs/Profiles.md). revert and discard are the two
+      // words no profile may be named (build/generate-profiles.py refuses them), so
+      // they are matched first and a profile's name is anything else of one segment.
+      const AnsiString profilesPath = "/api/v1/settings/profiles";
+      if (path == profilesPath)
+      {
+         if (method == "GET")
+            route.kind = RouteSettingsProfileList;
+         return;
+      }
+
+      if (path == profilesPath + "/revert" || path == profilesPath + "/discard")
+      {
+         if (method == "POST")
+            route.kind = path.EndsWith("/revert") ? RouteSettingsProfileRevert : RouteSettingsProfileDiscard;
+         return;
+      }
+
+      if (path.StartsWith(profilesPath + "/"))
+      {
+         AnsiString rest = path.Mid(profilesPath.GetLength() + 1);
+         const AnsiString applySuffix = "/apply";
+         bool apply = false;
+         if (rest.EndsWith(applySuffix))
+         {
+            rest = rest.Left(rest.GetLength() - applySuffix.GetLength());
+            apply = true;
+         }
+
+         if (!rest.IsEmpty() && rest.GetLength() <= 40 && rest.Find("/") < 0)
+         {
+            route.identifier = rest;
+            if (apply && method == "POST")
+               route.kind = RouteSettingsProfileApply;
+            else if (!apply && method == "GET")
+               route.kind = RouteSettingsProfileGet;
+         }
+         return;
+      }
+
       // One [Settings] key of hMailServer.ini, named in the path as it is
       // spelled in the file. The name is not decoded: the characters a key
       // cannot hold - = [ ] and a line break - are refused by the handler with
@@ -6436,6 +6482,11 @@ namespace HM
       // account, and in replace mode empties its folders first.
       case RouteBackupMailboxRestore:
       case RouteAuditRevert:
+      // A profile applied, its way back put back, or the way back forgotten: each
+      // writes settings, or the record that decides whether they can be put back.
+      case RouteSettingsProfileApply:
+      case RouteSettingsProfileRevert:
+      case RouteSettingsProfileDiscard:
       case RouteSettingsPut:
       case RouteSettingsAntiSpamPut:
       case RouteSettingsAntiVirusPut:
@@ -6786,6 +6837,11 @@ namespace HM
       // The names of the settings the environment sets and where each value came
       // from - never a value - is a fact of the configuration a reader may read.
       case RouteSettingsEnvironment:
+      // The profiles, and one profile's diff against this server: the values of the
+      // settings it names, none of them a secret (build/generate-profiles.py refuses
+      // a profile that names one), as the settings groups answer them.
+      case RouteSettingsProfileList:
+      case RouteSettingsProfileGet:
       case RouteSettingsAntiSpamGet:
       case RouteSettingsAntiVirusGet:
       case RouteSettingsLoggingGet:
@@ -7204,6 +7260,11 @@ namespace HM
       // certificate may also change the port it is bound to, and pretending
       // otherwise would be a menu rather than a boundary.
       case RouteSettingsPut:
+      // A profile writes settings - thirty of them at once - and its way back writes
+      // them again; forgetting the way back decides that they stay.
+      case RouteSettingsProfileApply:
+      case RouteSettingsProfileRevert:
+      case RouteSettingsProfileDiscard:
       case RouteSettingsAntiSpamPut:
       case RouteSettingsAntiVirusPut:
       case RouteSettingsLoggingPut:
@@ -7928,6 +7989,12 @@ namespace HM
       case RouteSettingsEnvironment:
       case RouteSettingsChanged:
       case RouteServerSettingsPending:
+      // A profile is the whole server's settings.
+      case RouteSettingsProfileList:
+      case RouteSettingsProfileGet:
+      case RouteSettingsProfileApply:
+      case RouteSettingsProfileRevert:
+      case RouteSettingsProfileDiscard:
       case RouteSettingsPut:
       case RouteSettingsAntiSpamGet:
       case RouteSettingsAntiSpamPut:
@@ -16485,6 +16552,7 @@ namespace HM
       openApiJson += OpenApiAccountReviewPaths_();
       openApiJson += OpenApiSetupChecklistPaths_();
       openApiJson += OpenApiSampleDomainPaths_();
+      openApiJson += OpenApiProfilesPaths_();
       openApiJson += OpenApiAccountRulesPaths_();
       openApiJson += OpenApiDomainRulesPaths_();
       openApiJson += OpenApiOperatorPaths_();

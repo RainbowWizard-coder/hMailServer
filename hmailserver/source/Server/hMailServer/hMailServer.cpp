@@ -18,6 +18,7 @@
 // registration installs is read from here, and nothing else on that path loads it.
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/EnvironmentSettings.h"
+#include "../Common/Application/Profiles.h"
 #include "../Common/Util/ClassTester.h"
 #include "../Common/Util/SystemInformation.h"
 #include "../Common/Util/CrashOracle.h"
@@ -324,6 +325,30 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       }
    }
 
+   // --apply-profile NAME [--confirm] [--once]: the one verb that takes a value, so
+   // it is found anywhere on the line rather than as its last token. The name is
+   // the token after it; --confirm and --once may stand anywhere.
+   bool profileVerb = false;
+   bool profileConfirmed = false;
+   bool profileOnce = false;
+   String profileName;
+   for (size_t index = 0; index < vecParams.size(); index++)
+   {
+      if (vecParams[index].CompareNoCase(_T("--apply-profile")) == 0)
+      {
+         profileVerb = true;
+         for (size_t next = index + 1; next < vecParams.size() && profileName.IsEmpty(); next++)
+         {
+            if (!vecParams[next].IsEmpty())
+               profileName = vecParams[next];
+         }
+      }
+      else if (vecParams[index].CompareNoCase(_T("--confirm")) == 0)
+         profileConfirmed = true;
+      else if (vecParams[index].CompareNoCase(_T("--once")) == 0)
+         profileOnce = true;
+   }
+
    _AtlModule.InitializeCom();
 
    // Register app id so that client can create instances
@@ -510,6 +535,36 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       }
 
       iRet = HM::EnvironmentSettings::RunCommand();
+   }
+   else if (profileVerb)
+   {
+      // A setting profile applied (Common/Application/Profiles; docs/Profiles.md), as
+      // `hmailserver --apply-profile` applies it on Linux: the diff, the way back, then
+      // the writes, one line each. The installer's last page runs it for a new
+      // installation before the service starts, with --once so that a second run of
+      // the installer leaves a server that has had a profile alone. The lines go
+      // where --apply-environment's go.
+      if (GetStdHandle(STD_OUTPUT_HANDLE) == NULL && AttachConsole(ATTACH_PARENT_PROCESS))
+      {
+         HANDLE console = CreateFile(_T("CONOUT$"), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+         if (console != INVALID_HANDLE_VALUE)
+         {
+            SetStdHandle(STD_OUTPUT_HANDLE, console);
+            SetStdHandle(STD_ERROR_HANDLE, console);
+         }
+      }
+
+      if (profileName.IsEmpty() || profileName.Left(2) == _T("--"))
+      {
+         HANDLE error = GetStdHandle(STD_ERROR_HANDLE);
+         const char *usage = "--apply-profile needs the profile's name: office, gateway, relay or sender. Add --confirm to apply an entry that closes a listener, trusts an address range or turns a filter off, and --once to leave a server a profile was applied to before as it is.\r\n";
+         DWORD written = 0;
+         if (error && error != INVALID_HANDLE_VALUE)
+            WriteFile(error, usage, (DWORD) strlen(usage), &written, NULL);
+         iRet = 2;
+      }
+      else
+         iRet = HM::Profiles::RunCommand(profileName, profileConfirmed, profileOnce);
    }
    else if (sLastParam.CompareNoCase(_T("RunAsService")) == 0)
    {

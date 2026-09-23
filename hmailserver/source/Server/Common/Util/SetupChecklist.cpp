@@ -14,8 +14,13 @@
 //                     "text": "Active domains: 1 of 1."}]},
 //      ...]}
 //
-// The items, in the order a new server meets them: domain, account, submission,
-// spf, dkim, dmarc, backup, second_factor. An item's state is the worst of its
+// The items, in the order a new server meets them: profile, domain, account,
+// submission, spf, dkim, dmarc, backup, second_factor. The profile item is first
+// because a profile sets thirty of the settings the rest of the first hour is
+// spent finding (Application/Profiles.h, docs/Profiles.md); it asks for one on a
+// young server - fewer than ten accounts, the sample domain's not counted - that
+// no profile has been applied to, and says which was applied, and what became of
+// it, once one has been. An item's state is the worst of its
 // findings' - action_needed over cannot_tell over done over not_needed - and an
 // item with no finding at all cannot be told, which never happens by design and
 // is the honest answer if it ever does.
@@ -26,6 +31,11 @@
 // to; a client with a catalogue renders the same code in its own language and
 // a script switches on the code. The arguments are strings whatever they count.
 //
+//   profile_none             No profile has been applied. (a young server)
+//   profile_in_service       This server holds {0} accounts ... (not a young one)
+//   profile_applied          The {0} profile was applied on {1}.
+//   profile_kept             ... applied on {1}; its way back was discarded.
+//   profile_reverted         ... applied and then reverted on {1}.
 //   domain_none              No domain has been added yet.
 //   domain_none_active       {0} domains, none of them active.
 //   domain_count             Active domains: {0} of {1}.
@@ -88,6 +98,7 @@
 #include "Unicode.h"
 #include "../Application/Configuration.h"
 #include "../Application/IniFileSettings.h"
+#include "../Application/Profiles.h"
 #include "../Application/SampleDomain.h"
 #include "../BO/Domain.h"
 #include "../BO/Domains.h"
@@ -157,6 +168,11 @@ namespace HM
       {
          static const struct { const char *code; const char *text; } texts[] =
          {
+            { "profile_none", "No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." },
+            { "profile_in_service", "This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." },
+            { "profile_applied", "The {0} profile was applied on {1}." },
+            { "profile_kept", "The {0} profile was applied on {1}; its way back was discarded and its settings kept." },
+            { "profile_reverted", "The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced." },
             { "domain_none", "No domain has been added yet." },
             { "domain_none_active", "{0} domains, none of them active." },
             { "domain_count", "Active domains: {0} of {1}." },
@@ -347,6 +363,31 @@ namespace HM
          Add(item, StateActionNeeded, "record_missing", args);
       }
 
+      // A server with fewer accounts than this, the sample domain's not counted, is
+      // young: the checklist asks it to choose a profile. Past it the server is in
+      // service, and a profile that closes a listener or turns a filter off is not
+      // something to suggest in a list of things left to do.
+      constexpr long long YoungAccountLimit = 10;
+
+      AnsiString
+      UtcDate(__int64 seconds)
+      {
+         struct tm parts;
+         memset(&parts, 0, sizeof(parts));
+#ifdef HM_PLATFORM_POSIX
+         time_t value = (time_t) seconds;
+         if (::gmtime_r(&value, &parts) == nullptr)
+            return AnsiString();
+#else
+         __time64_t value = seconds;
+         if (_gmtime64_s(&parts, &value) != 0)
+            return AnsiString();
+#endif
+         AnsiString text;
+         text.Format("%04d-%02d-%02d", parts.tm_year + 1900, parts.tm_mon + 1, parts.tm_mday);
+         return text;
+      }
+
       // Every account on the server, less the sample domain's three when the
       // sample is there. excludeDomainId is 0 when it is not, and the statement
       // is then the one this has always asked.
@@ -418,6 +459,33 @@ namespace HM
 
       std::vector<Item> items;
 
+      const long long accounts = CountAccounts(sampleDomainId);
+
+      Item profileItem;
+      profileItem.key = "profile";
+      {
+         String profile;
+         __int64 applied = 0;
+         String state;
+         __int64 changed = 0;
+         Profiles::ReadApplied(profile, applied, state, changed);
+
+         if (profile.IsEmpty())
+         {
+            if (accounts < YoungAccountLimit)
+               Add(profileItem, StateActionNeeded, "profile_none");
+            else
+               Add(profileItem, StateNotNeeded, "profile_in_service", { Number(accounts) });
+         }
+         else if (state == _T("reverted"))
+            Add(profileItem, StateNotNeeded, "profile_reverted", { Utf8(profile), UtcDate(changed) });
+         else if (state == _T("kept"))
+            Add(profileItem, StateDone, "profile_kept", { Utf8(profile), UtcDate(applied) });
+         else
+            Add(profileItem, StateDone, "profile_applied", { Utf8(profile), UtcDate(applied) });
+      }
+      items.push_back(profileItem);
+
       Item domainItem;
       domainItem.key = "domain";
       if (total == 0)
@@ -436,7 +504,6 @@ namespace HM
 
       Item accountItem;
       accountItem.key = "account";
-      const long long accounts = CountAccounts(sampleDomainId);
       if (accounts == 0)
          Add(accountItem, StateActionNeeded, "account_none");
       else

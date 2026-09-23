@@ -858,6 +858,15 @@ namespace hMailServer.ControlPanel.Services
                N("Housekeeping, tuning, and the settings that still have no better home."),
                "Housekeeping|Backup|Tuning|Advanced|Scripting|INI",
 
+               // The setting profiles (docs/Profiles.md): which profile is in effect,
+               // each one's diff against this server, apply and the way back. Beside
+               // the backup, because both are about the server's configuration as a
+               // whole rather than one feature's.
+               Page("profiles", N("Setting profiles"),
+                  N("A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back."),
+                  aliases: "Profile|Profiles|Server profile|Small office|Office server|Filtering gateway|Behind a gateway|Outbound relay|Relay server|High-volume sender|Bulk sender|Newsletter server|Recommended settings|Starting settings|Presets|Baseline|Kind of server",
+                  seeAlso: "hardening|backup"),
+
                Page("backup", N("Backup & restore"),
                   N("Back up or restore the configuration, the domains and the messages."),
                   aliases: "Backup|Restore|Export|Import|Disaster recovery|Copy to another server|Migrate",

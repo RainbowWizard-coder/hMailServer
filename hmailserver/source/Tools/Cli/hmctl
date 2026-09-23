@@ -853,7 +853,87 @@ def reputation_command(client, arguments):
     return EXIT_OK
 
 
+def profiles_command(client, arguments):
+    """The setting profiles (docs/Profiles.md): the four, one's diff against this
+    server, applying one - with --confirm where an entry closes a listener, trusts
+    an address range or turns a filter off, which the server refuses without it -
+    and the way back. The server decides everything; this prints what it said."""
+    if arguments.verb == "profiles":
+        answer = client.request("GET", "/api/v1/settings/profiles") or {}
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        render(answer.get("profiles", []), False, ["name", "title", "entries", "changes", "confirmation_needed", "skipped"])
+        applied = answer.get("applied")
+        if isinstance(applied, dict):
+            print("")
+            print("last applied: %s (%s)" % (applied.get("profile"), applied.get("state")))
+        snapshot = answer.get("snapshot")
+        if isinstance(snapshot, dict) and snapshot.get("profile"):
+            print("the way back from %s is held: hmctl settings revert-profile puts it back" % snapshot.get("profile"))
+        return EXIT_OK
+
+    if arguments.verb == "profile":
+        answer = client.request("GET", "/api/v1/settings/profiles/%s" % urllib.parse.quote(arguments.name, safe="")) or {}
+        if arguments.json:
+            render(answer, True)
+            return EXIT_OK
+        print("%s - %s" % (answer.get("name"), answer.get("title")))
+        rows = []
+        for entry in answer.get("entries", []):
+            note = []
+            if entry.get("confirm"):
+                note.append("asks for --confirm: " + str(entry.get("caution", "")).replace("_", " "))
+            if entry.get("environment"):
+                note.append("set by the environment (%s)" % entry.get("environment"))
+            if entry.get("refused"):
+                note.append("refused: " + entry.get("refused"))
+            rows.append({"store": entry.get("store"), "name": entry.get("name"), "now": entry.get("current"),
+                         "profile": entry.get("value"), "changes": entry.get("changes"), "note": "; ".join(note)})
+        render(rows, False, ["store", "name", "now", "profile", "changes", "note"])
+        print("")
+        print("%s would change, %s unchanged, %s skipped, %s refused" % (
+            answer.get("changes"), answer.get("unchanged"), answer.get("skipped"), answer.get("refused")))
+        if answer.get("blocked"):
+            print(answer.get("blocked"))
+        return EXIT_OK
+
+    if arguments.verb == "apply-profile":
+        body = {"confirm": True} if arguments.confirm else {}
+        try:
+            answer = client.request("POST", "/api/v1/settings/profiles/%s/apply" % urllib.parse.quote(arguments.name, safe=""), body=body) or {}
+        except ApiError as refused:
+            detail = refused.body if isinstance(refused.body, dict) else {}
+            if refused.status == 409 and detail.get("confirmation"):
+                names = ", ".join(str(e.get("name")) for e in detail.get("confirmation_needed", []))
+                raise ApiError(409, "%s Entries: %s. Run it again with --confirm." % (refused.message, names), refused.body)
+            raise
+        if arguments.json:
+            render(answer, True)
+        else:
+            print(answer.get("message", ""))
+        return EXIT_OK if not answer.get("failed") else EXIT_ERROR
+
+    if arguments.verb == "revert-profile":
+        answer = client.request("POST", "/api/v1/settings/profiles/revert", body={}) or {}
+        if arguments.json:
+            render(answer, True)
+        else:
+            print(answer.get("message", ""))
+            for entry in answer.get("entries", []):
+                if entry.get("result") != "restored":
+                    print("  %s: %s - %s" % (entry.get("name"), entry.get("result"), entry.get("reason") or ""))
+        return EXIT_OK if not answer.get("failed") else EXIT_ERROR
+
+    answer = client.request("POST", "/api/v1/settings/profiles/discard", body={}) or {}
+    render(answer, True) if arguments.json else print(answer.get("message", ""))
+    return EXIT_OK
+
+
 def settings_command(client, arguments):
+    if arguments.verb in ("profiles", "profile", "apply-profile", "revert-profile", "discard-profile"):
+        return profiles_command(client, arguments)
+
     if arguments.verb == "breach-test":
         # The password breach check's endpoint, asked for the prefix 00000, which is
         # no password's; nothing is changed. Exit 1 when it could not be used, so a
@@ -2704,6 +2784,26 @@ def build_parser():
                                             help="ask the password breach check's endpoint for a range, changing nothing")
     breach_test.add_argument("--endpoint", metavar="URL", help="the endpoint to test; the configured breach_check_url when left out")
     breach_test.set_defaults(group=None, name=None)
+    # The setting profiles (docs/Profiles.md).
+    profiles_parser = settings_verbs.add_parser("profiles", parents=[common],
+                                                help="the four setting profiles, how much of each would change here, and the one applied")
+    profiles_parser.set_defaults(group=None, name=None)
+    profile_parser = settings_verbs.add_parser("profile", parents=[common],
+                                               help="one profile's diff: every setting beside the value this server holds")
+    profile_parser.add_argument("name", help="office, gateway, relay or sender")
+    profile_parser.set_defaults(group=None)
+    apply_profile_parser = settings_verbs.add_parser("apply-profile", parents=[common],
+                                                     help="apply a profile; what it replaces is kept so that it can be put back")
+    apply_profile_parser.add_argument("name", help="office, gateway, relay or sender")
+    apply_profile_parser.add_argument("--confirm", action="store_true",
+                                      help="apply an entry that closes a listener, trusts an address range or turns a filter off; refused without it")
+    apply_profile_parser.set_defaults(group=None)
+    revert_profile_parser = settings_verbs.add_parser("revert-profile", parents=[common],
+                                                      help="put back what the last profile changed")
+    revert_profile_parser.set_defaults(group=None, name=None)
+    discard_profile_parser = settings_verbs.add_parser("discard-profile", parents=[common],
+                                                       help="keep the last profile's settings and forget the way back")
+    discard_profile_parser.set_defaults(group=None, name=None)
 
     ini = commands.add_parser("ini", help="the server settings that were hMailServer.ini's [Settings] keys, stored in the database")
     ini.set_defaults(handler=ini_command)

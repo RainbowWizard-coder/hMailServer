@@ -557,6 +557,12 @@ Přesto toto slabé heslo uložit?</value>
   <data name="A password is stored - leave blank to keep it" xml:space="preserve">
     <value>Heslo je uloženo – ponechte prázdné, chcete-li je zachovat</value>
   </data>
+  <data name="A profile for this server" xml:space="preserve">
+    <value>Profil pro tento server</value>
+  </data>
+  <data name="A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back." xml:space="preserve">
+    <value>Profil nastaví zhruba třicet nastavení, která potřebuje určitý druh serveru - která, na jakou hodnotu a proč -, ukáže rozdíl oproti tomuto serveru dříve, než se cokoli změní, a uschová, co nahrazuje, aby to šlo vrátit.</value>
+  </data>
   <data name="A quota can be set on the domain and overridden per account." xml:space="preserve">
     <value>Kvótu lze nastavit na doméně a přepsat u jednotlivého účtu.</value>
   </data>
@@ -1398,11 +1404,17 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
     <value>Platí jen při zapnutém zpracování nedoručenek. Zpráva se započítá jen tehdy, když uvádí zprávu, kterou tento server tomuto příjemci skutečně doručil, přišla zvenku bez ověření a prošla kontrolou SPF a DMARC, kde se zaznamenávají - kdokoli ale, kdo dostal tutéž zprávu, může padělat jinou pro dalšího viditelného příjemce. Po vypnutí se zprávy vůbec nečtou; odmítnutí při doručování se počítají dál.</value>
   </data>
+  <data name="Apply a profile" xml:space="preserve">
+    <value>Použít profil</value>
+  </data>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Použít synchronizaci adresáře</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Uplatnit na tento účet _filtrování spamu na serveru</value>
+  </data>
+  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>Použít profil {0}? Nyní se změní nastavení: {1}; jejich dosavadní hodnoty se uschovají, aby je šlo vrátit.</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled nelze přečíst: {0}</value>
@@ -1445,6 +1457,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>Příchozí</value>
+  </data>
+  <data name="Asks for a confirmation" xml:space="preserve">
+    <value>Vyžaduje potvrzení</value>
   </data>
   <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
     <value>AsyncQueueStallThreshold (120)</value>
@@ -2108,6 +2123,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Zavřít seznam příjemců</value>
+  </data>
+  <data name="Closes a listener" xml:space="preserve">
+    <value>Zavře naslouchací službu</value>
   </data>
   <data name="Collapse the navigation" xml:space="preserve">
     <value>Sbalit navigaci</value>
@@ -3257,6 +3275,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>Každá zpráva se skenuje dvakrát: jednou jako celý soubor na disku a pak jednou na každou přílohu, každá se zapíše do dočasné složky a předá skeneru samostatně. Druhý průchod je to, co zachytí přílohu uvnitř struktury, kterou skener sám nedekóduje. Pokud zprávu nelze zpracovat jako MIME, průchod po přílohách se přeskočí a zaloguje se chyba.</value>
   </data>
+  <data name="Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied." xml:space="preserve">
+    <value>Každý profil nastaví to, co potřebuje určitý druh serveru. Zobrazení profilu vypíše každé nastavení vedle hodnoty, kterou má tento server nyní; nic se nezmění, dokud se nepoužije.</value>
+  </data>
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Každý pokus před uplynutím počátečního zpoždění spustí zpoždění znovu od toho okamžiku, takže odesílatel, který opakuje podle časovače místo z fronty, okno nikdy nedosáhne. Výchozí vypnuto: slušný server, který jednou zkusí znovu příliš rychle, je se zapnutím zdržen o něco déle.</value>
   </data>
@@ -4159,6 +4180,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Jak tento server řeší dotazy MX, PTR, SPF, DKIM, DMARC a blacklistů (hMailServer.INI).</value>
+  </data>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
+    <value>Po_tvrzuji změny označené výše: zavírají naslouchací službu, důvěřují rozsahu adres nebo vypínají filtr na tomto serveru.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (push pošta)</value>
@@ -5508,6 +5532,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>Nebyly nalezeny žádné problémy – každý řádek zprávy má svůj soubor na disku.</value>
   </data>
+  <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
+    <value>Nebyl použit žádný profil. Profil nastaví zhruba třicet nastavení podle druhu serveru - malá kancelář, za filtrující bránou, odchozí relay, hromadný odesílatel - a každou změnu ukáže dříve, než ji provede.</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>V nastavení SMTP není nastaven žádný veřejný název hostitele.</value>
   </data>
@@ -5816,6 +5843,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>Na stránce Zálohování nastavte složku, do níž se záloha zapisuje, na jiném disku, než na kterém je úložiště zpráv.</value>
+  </data>
+  <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
+    <value>Na stránce Profily nastavení porovnejte čtyři profily s tímto serverem a použijte ten vhodný; co nahradí, se uschová, aby to šlo vrátit.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Na stránce Porty TCP/IP dejte portu pro odesílání (587) STARTTLS s certifikátem ze stránky Certifikáty SSL, nebo přidejte port 465 s implicitním TLS.</value>
@@ -6500,6 +6530,12 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Put a setting back" xml:space="preserve">
     <value>Vrátit nastavení</value>
   </data>
+  <data name="Put back a profile's changes" xml:space="preserve">
+    <value>Vrátit změny profilu</value>
+  </data>
+  <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
+    <value>Vrátit hodnoty, které profil {0} nahradil? Nastavení změněné mezitím zůstane, jak je, a filtr, který profil zapnul, může být opět vypnut.</value>
+  </data>
   <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
     <value>Vrátit zprávu {0} do schránky {1}?</value>
   </data>
@@ -6788,6 +6824,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Odmítnuto při doručování</value>
+  </data>
+  <data name="Refused: {0}" xml:space="preserve">
+    <value>Odmítnuto: {0}</value>
   </data>
   <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
     <value>Odmítnutí je přísnější, ale dokud je koncový bod nedostupný, nelze nikde změnit žádné heslo, ani heslo správce.</value>
@@ -8061,6 +8100,9 @@ Pokračovat?</value>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Nastavení  -  {0}</value>
   </data>
+  <data name="Setting profiles" xml:space="preserve">
+    <value>Profily nastavení</value>
+  </data>
   <data name="Settings" xml:space="preserve">
     <value>Nastavení</value>
   </data>
@@ -9213,6 +9255,9 @@ Přesto přidat?</value>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>Veřejná polovina soukromého klíče je totožná s veřejným klíčem certifikátu - dvojice patří k sobě.</value>
   </data>
+  <data name="The profile" xml:space="preserve">
+    <value>Profil</value>
+  </data>
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
     <value>Veřejná databáze je https://api.pwnedpasswords.com/range/. Organizace, která provozuje vlastní zrcadlo, ho uvede zde: pět znaků se připojí k cestě, nebo se vloží tam, kde je napsáno {prefix}. Prosté http se přijímá jen na localhost, 127.0.0.1 nebo ::1.</value>
   </data>
@@ -9478,6 +9523,18 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Wiki se nepodařilo otevřít v prohlížeči.</value>
   </data>
+  <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
+    <value>Profil {0} je použit. Co nahradil, je uschováno a lze to vrátit.</value>
+  </data>
+  <data name="The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced." xml:space="preserve">
+    <value>Profil {0} byl použit a {1} vrácen; nastavení jsou ta, která nahradil.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}." xml:space="preserve">
+    <value>Profil {0} byl použit {1}.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}; its way back was discarded and its settings kept." xml:space="preserve">
+    <value>Profil {0} byl použit {1}; jeho cesta zpět byla zahozena a jeho nastavení ponechána.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>Server {0} je na stránce Protokoly vypnutý, takže na tomto portu se nenaslouchá. Řádek je zachován. Opětovné zapnutí protokolu listener samo nespustí - seznam portů i povolené protokoly se čtou jednou, při startu služby - takže po zapnutí službu restartujte.</value>
   </data>
@@ -9597,6 +9654,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
     <value>Tento server nemá úrovně nastavení: je starší než schéma 6088 a každé nastavení zde je vlastní pole serveru nebo domény.</value>
   </data>
+  <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
+    <value>Tento server má {0} účtů, je tedy v provozu: profil se nabízí novému serveru a kterýkoli ze čtyř lze s tímto stále porovnat.</value>
+  </data>
+  <data name="This server now" xml:space="preserve">
+    <value>Tento server nyní</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Tento server SPF na příchozí poště jen KONTROLUJE; publikování záznamu je pro všechny ostatní - říká přijímajícím serverům, které počítače smějí posílat poštu tvářící se, že je od</value>
   </data>
@@ -9650,6 +9713,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Autoconfig Thunderbirdu + autodiscover Outlooku</value>
+  </data>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
+    <value>Nejprve zaškrtněte potvrzení: tento profil zde zavírá naslouchací službu, důvěřuje rozsahu adres nebo vypíná filtr.</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>Čas</value>
@@ -9741,6 +9807,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
     <value>Důvěryhodné proxy, jejichž X-Forwarded-Proto: https se přijímá (adresy oddělené čárkami; loopback vždy)</value>
   </data>
+  <data name="Trusts an address range" xml:space="preserve">
+    <value>Důvěřuje rozsahu adres</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Ladicí logování zase vypnout</value>
   </data>
@@ -9767,6 +9836,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Vypnutí tohoto zastaví lístky relací u každé verze TLS: klienti TLS 1.2 a starší se vrátí k serverové cache relací, která tento proces nikdy neopustí, a klientům TLS 1.3 se žádný lístek nepošle. Pro správce, jehož politika říká, že nic odvozeného z dlouhodobého klíče nikdy nejde po drátě. Jedinou cenou je efektivita obnovení - každý klient se stále může připojit plným handshakem.</value>
+  </data>
+  <data name="Turns a filter off" xml:space="preserve">
+    <value>Vypíná filtr</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Dvě metody bind a rozdíl je důležitější, než vypadá: jedna posílá heslo do adresáře, druhá ho na drát vůbec nedává.</value>
@@ -10106,6 +10178,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="What is sent" xml:space="preserve">
     <value>Co se odesílá</value>
+  </data>
+  <data name="What it cannot do for you" xml:space="preserve">
+    <value>Co za vás udělat nemůže</value>
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>K čemu slouží</value>
@@ -10455,6 +10530,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Apply now" xml:space="preserve">
     <value>_Použít nyní</value>
   </data>
+  <data name="_Apply this profile" xml:space="preserve">
+    <value>_Použít tento profil</value>
+  </data>
   <data name="_Bind address" xml:space="preserve">
     <value>_Adresa pro navázání</value>
   </data>
@@ -10641,6 +10719,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Job title" xml:space="preserve">
     <value>_Pracovní pozice</value>
   </data>
+  <data name="_Keep its settings, forget the way back" xml:space="preserve">
+    <value>Po_nechat nastavení, zapomenout cestu zpět</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>Ponechat původní _zprávu</value>
   </data>
@@ -10766,6 +10847,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>_Vrátit</value>
+  </data>
+  <data name="_Put back what it changed" xml:space="preserve">
+    <value>_Vrátit, co změnil</value>
   </data>
   <data name="_Put the message back" xml:space="preserve">
     <value>Vrátit zprávu (_f)</value>
@@ -11943,6 +12027,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0} k dispozici žádné šifrování, takže hesla použitá na {1} síť v otevřeném textu.</value>
   </data>
+  <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
+    <value>Na tomto serveru by se změnilo {0} z jeho {1} nastavení.</value>
+  </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} z jednorázových kódů pro obnovu u tohoto účtu je nepoužitých.</value>
   </data>
@@ -12221,6 +12308,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} neobsahuje žádný blok certifikátu PEM, takže nenese žádný použitelný certifikát CA (chyba serveru 6140). Exportujte certifikát CA ve formátu PEM (Base64).</value>
+  </data>
+  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
+    <value>{0}: vráceno {1}, ponecháno {2}.</value>
+  </data>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
+    <value>{0}: nastaveno {1}, beze změny {2}, přeskočeno {3}.</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1} antivirus vypnutý, takže pošta vyzvednutá z {2} se doručuje neskenovaná bez ohledu na to, co je nastaveno zde. Přepínač je na účtu pro stahování, ne na této stránce.{3}</value>

@@ -1052,6 +1052,18 @@ interface IInterfaceSettings : IDispatch{
    [propget, id(181), helpstring("The [Settings] keys saved since what applies them last happened - marked reinitialize or restart, with a stored value that is not the one the server is running on - one per line, as IniSettingNames lists names. Recomputed at every read, so a value put back is not listed; empty when nothing waits. GET /api/v1/server/settings/pending answers the same keys with both values. Server administrators only.")] HRESULT PendingIniSettings([out, retval] BSTR *pVal);
    [propget, id(182), helpstring("Every [Settings] key this build reads with its mark - now, reinitialize or restart - as one JSON object from name to mark, the applies map GET /api/v1/settings/ini answers: what a client reads once to label every field on a page, rather than asking IniSettingApplies once per field. Server administrators only.")] HRESULT IniSettingAppliesAll([out, retval] BSTR *pVal);
 
+
+   // The setting profiles (docs/Profiles.md): the four listed, one profile's diff
+   // against this server, applying one after a snapshot of what it changes, and
+   // the way back. The same documents the REST routes under
+   // /api/v1/settings/profiles answer, made by the same code (Profiles).
+   [id(183), helpstring("The four setting profiles this server ships - office, gateway, relay and sender - as the JSON document GET /api/v1/settings/profiles answers: each with its title, paragraph and entry count, how many entries applying it here would change and how many of those ask for a confirmation, and the profile last applied and the way back from it. Server administrators only.")] HRESULT GetProfiles([out, retval] BSTR *Json);
+   [id(184), helpstring("One profile's diff against this server, as the JSON document GET /api/v1/settings/profiles/{name} answers: every entry with the value the server holds now, whether applying would change it, the route it is written through, when the change takes effect, why it is there, and whether it closes a listener, trusts an address range or turns a filter off. Raises an error for a name that is no profile. Server administrators only.")] HRESULT GetProfile([in] BSTR Name, [out, retval] BSTR *Json);
+   [id(185), helpstring("Applies a profile: every entry checked first, the values it changes saved as the way back, then each written through the setter its REST settings row runs. Confirmed must be true where an entry that closes a listener, trusts an address range or turns a filter off would change something; without it nothing is applied and the error names those entries. Refused, with the sentence, while a way back from an earlier profile is held, and when an entry would be refused by its setting. Returns the JSON document the REST apply answers: what each entry did, and how many wait for a reinitialise or a restart. Server administrators only.")] HRESULT ApplyProfile([in] BSTR Name, [in] VARIANT_BOOL Confirmed, [out, retval] BSTR *Json);
+   [id(186), helpstring("Puts back the value each setting had before the last profile was applied - a setting changed since is left as it is - and clears the way back. Returns the JSON document the REST revert answers. Raises an error when there is nothing to revert. Server administrators only.")] HRESULT RevertProfile([out, retval] BSTR *Json);
+   [id(187), helpstring("Forgets the way back from the last profile applied, keeping its settings, so that another profile may be applied. Raises an error when there is none. Server administrators only.")] HRESULT DiscardProfileSnapshot();
+   [propget, id(188), helpstring("The name of the profile whose settings are in effect - applied, and not reverted - or empty.")] HRESULT AppliedProfile([out, retval] BSTR *pVal);
+
 };
 
 

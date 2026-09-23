@@ -11,6 +11,14 @@ var
   rdoUseInternal : TRadioButton;
   rdoUseExternal : TRadioButton;
 
+  // The setting profile a new installation starts in (docs/Profiles.md): offered
+  // on the last page before the installation, for a new installation only - one
+  // with no database yet - and applied after the database is made, before the
+  // service starts, with hMailServer.exe --apply-profile NAME --once --confirm.
+  g_pageProfile: TInputOptionWizardPage;
+  g_bNewDatabase: Boolean;
+  g_bNewDatabaseKnown: Boolean;
+
 // The NT-service specific parts of the scrit below is taken
 // from the innosetup extension knowledgebase.
 // Author: Silvio Iaccarino silvio.iaccarino(at)de.adp.com
@@ -472,6 +480,77 @@ begin
 	end;
 end;
 
+// Whether this installation makes a new database: asked once, of the settings file
+// as it was before the installation touched it - an upgrade has a database type
+// there, a new installation has none. A profile is offered to a new server only:
+// applied to a server already in service, it could close a listener or turn a
+// filter off that somebody depends on, and the Control Deck and the Control Panel
+// show that server the diff first.
+function IsNewDatabase(): Boolean;
+begin
+   if not g_bNewDatabaseKnown then
+   begin
+      g_bNewDatabase := (GetCurrentDatabaseType() = '');
+      g_bNewDatabaseKnown := true;
+   end;
+   Result := g_bNewDatabase;
+end;
+
+// The profile chosen: on the page, or with /profile=NAME for a silent installation
+// - which is itself the explicit choice, as the page is. Empty for none.
+function GetChosenProfile(): String;
+var
+   szProfile: String;
+begin
+   Result := '';
+
+   if (IsComponentSelected('server') = false) or (IsNewDatabase() = false) then
+      Exit;
+
+   if WizardSilent() then
+   begin
+      szProfile := Lowercase(Trim(ExpandConstant('{param:profile|}')));
+      if (szProfile = 'office') or (szProfile = 'gateway') or (szProfile = 'relay') or (szProfile = 'sender') then
+         Result := szProfile;
+      Exit;
+   end;
+
+   if g_pageProfile = nil then
+      Exit;
+
+   case g_pageProfile.SelectedValueIndex of
+      1: Result := 'office';
+      2: Result := 'gateway';
+      3: Result := 'relay';
+      4: Result := 'sender';
+   end;
+end;
+
+// Runs the verb for the profile chosen. A profile that cannot be applied is said,
+// and the installation still succeeds: the server works with the shipped settings,
+// and the profile can be applied from the Control Deck's checklist or the Control
+// Panel's Profiles page, where the diff shows what it would change.
+procedure ApplyChosenProfile();
+var
+   szProfile: String;
+   ResultCode: Integer;
+begin
+   szProfile := GetChosenProfile();
+   if szProfile = '' then
+      Exit;
+
+   if (Exec(ExpandConstant('{app}\Bin\hMailServer.exe'), '--apply-profile ' + szProfile + ' --once --confirm', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
+   begin
+      SuppressibleMsgBox('The ' + szProfile + ' profile could not be applied: hMailServer.exe did not start.' + #13#10 + SysErrorMessage(ResultCode) + #13#10#13#10 +
+             'hMailServer is installed with the settings this version ships with. Apply the profile from the Control Deck''s checklist or the Control Panel''s Profiles page.', mbInformation, MB_OK, IDOK);
+   end
+   else if (ResultCode <> 0) then
+   begin
+      SuppressibleMsgBox('The ' + szProfile + ' profile was not applied (hMailServer.exe --apply-profile returned ' + IntToStr(ResultCode) + ').' + #13#10#13#10 +
+             'hMailServer is installed with the settings this version ships with, and the error log says why. Apply the profile from the Control Deck''s checklist or the Control Panel''s Profiles page, which show what it would change first.', mbInformation, MB_OK, IDOK);
+   end;
+end;
+
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
    Result := false;
@@ -503,6 +582,13 @@ begin
 		      Result := true;
 	   end;
 	
+     // The profile page: a new installation of the server only.
+     if (PageID = g_pageProfile.ID) then
+     begin
+       if (IsComponentSelected('server') = false) or (IsNewDatabase() = false) then
+          Result := true;
+     end;
+
      if (PageID = g_pageDBType.ID) then
      begin
        if (GetCurrentDatabaseType() <> '') then
@@ -611,6 +697,19 @@ begin
 
    g_pageAccessKey.Add('Password:', True);
    g_pageAccessKey.Add('Confirm password:', True);
+
+   // The last question before the installation: the kind of server this is. One
+   // sentence each, naming the listener a profile closes and the filters it turns
+   // off, because choosing one here is the confirmation the server asks for.
+   g_pageProfile := CreateInputOptionPage(g_pageAccessKey.ID, 'Server profile', 'What kind of server is this?',
+      'A profile sets about thirty settings for one kind of server, each with its reason, and keeps what it replaced so that it can be put back. ' +
+      'Every profile and its changes can be seen, applied or put back later from the Control Deck and the Control Panel.', True, False);
+   g_pageProfile.Add('None - keep the settings this version ships with');
+   g_pageProfile.Add('A small office server - spam filtering, greylisting and the auto-ban on, spam held in the quarantine, passwords held to a policy');
+   g_pageProfile.Add('Behind a filtering gateway - turns off the address tests the gateway already made (SPF, greylisting, HELO, PTR, DMARC) and accepts XCLIENT from the addresses you will list');
+   g_pageProfile.Add('An outbound relay - closes IMAP and POP3, suppresses addresses that bounce, and keeps three months of delivery trace');
+   g_pageProfile.Add('A high-volume sender - the relay, with more deliveries at once, per-destination ceilings and the feedback loops read; closes IMAP and POP3');
+   g_pageProfile.SelectedValueIndex := 0;
 
 end;
 
@@ -994,6 +1093,13 @@ begin
                SuppressibleMsgBox('The hMailServer database could not be created or upgraded (exit code ' + IntToStr(ResultCode) + ').' #13#13
                       'The hMailServer service may not work until the database has been upgraded. Run DBSetupQuick.exe from the hMailServer Bin folder to retry.', mbError, MB_OK, IDOK);
                Result := false;
+            end
+            else
+            begin
+               // The database is there and at this build's schema: the profile the
+               // last page chose, before the service starts and reads the settings.
+               ProgressPage.SetText('Applying the server profile...', '');
+               ApplyChosenProfile();
             end;
          end
          else
@@ -1223,6 +1329,10 @@ begin
 
 	if CurStep = ssInstall then
 	begin
+	   // Whether the database is new, asked of the settings file before the
+	   // installation writes one (IsNewDatabase).
+	   IsNewDatabase();
+
 	   // Move hMailServer.ini before files are copied
 	   MoveIni();
 	end;

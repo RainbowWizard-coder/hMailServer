@@ -8,6 +8,7 @@
 #include "../Util/Crypt.h"
 #include "../Util/AuditTrail.h"
 #include "EnvironmentSettings.h"
+#include "Profiles.h"
 
 #include <algorithm>
 
@@ -102,9 +103,10 @@ namespace HM
    PropertySet::GetProperty_(const String & sPropertyName)
    {
       // A reader asking which property it holds (ReadRecorder). The environment's
-      // records are the server's bookkeeping, read beside a setting rather than as
-      // one, and are never a name a row holds.
-      if (recorder_ && sPropertyName != EnvironmentSettings::MarkerName() && sPropertyName != EnvironmentSettings::SecretMarkerName())
+      // records and a profile's are the server's bookkeeping, read beside a setting
+      // rather than as one, and are never a name a row holds.
+      if (recorder_ && sPropertyName != EnvironmentSettings::MarkerName() && sPropertyName != EnvironmentSettings::SecretMarkerName() &&
+          sPropertyName != Profiles::SnapshotName() && sPropertyName != Profiles::AppliedName())
       {
          if (std::find(recorder_->names_.begin(), recorder_->names_.end(), sPropertyName) == recorder_->names_.end())
             recorder_->names_.push_back(sPropertyName);
@@ -396,8 +398,14 @@ namespace HM
          // runs under, which a restore onto another server does not bring with it,
          // and a server that never runs --apply-environment would otherwise refuse
          // changes to those settings for ever (docs/EnvironmentConfiguration.md).
+         // And a profile's way back and the record of which profile was applied
+         // (docs/Profiles.md): this server's history with a profile, not the
+         // configuration an archive carries - a snapshot restored onto the values it
+         // was not taken of would put back values that were never there.
          if (String(oProperty->GetName()).CompareNoCase(EnvironmentSettings::MarkerName()) == 0 ||
-             String(oProperty->GetName()).CompareNoCase(EnvironmentSettings::SecretMarkerName()) == 0)
+             String(oProperty->GetName()).CompareNoCase(EnvironmentSettings::SecretMarkerName()) == 0 ||
+             String(oProperty->GetName()).CompareNoCase(Profiles::SnapshotName()) == 0 ||
+             String(oProperty->GetName()).CompareNoCase(Profiles::AppliedName()) == 0)
          {
             iterProperty++;
             continue;
@@ -432,9 +440,12 @@ namespace HM
          if (sName.CompareNoCase(PROPERTY_BACKUPENCRYPTIONPASSPHRASE) == 0)
             continue;
 
-         // The environment's records are this server's deployment, not the archive's.
+         // The environment's records are this server's deployment, not the archive's,
+         // and a profile's records are this server's history.
          if (sName.CompareNoCase(EnvironmentSettings::MarkerName()) == 0 ||
-             sName.CompareNoCase(EnvironmentSettings::SecretMarkerName()) == 0)
+             sName.CompareNoCase(EnvironmentSettings::SecretMarkerName()) == 0 ||
+             sName.CompareNoCase(Profiles::SnapshotName()) == 0 ||
+             sName.CompareNoCase(Profiles::AppliedName()) == 0)
             continue;
 
          String sStringValue = pPropertyNode->GetAttrValue(_T("StringValue"));

@@ -808,6 +808,7 @@
     <Compile Include="API\RestApiAuditTrail.cs" />
     <Compile Include="API\RestApiAlerts.cs" />
     <Compile Include="API\RestApiSetupChecklist.cs" />
+    <Compile Include="API\RestApiProfiles.cs" />
     <Compile Include="API\RestApiSampleDomain.cs" />
     <Compile Include="API\RestApiAccountRules.cs" />
     <Compile Include="API\RestApiOperator.cs" />

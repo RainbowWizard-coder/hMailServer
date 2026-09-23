@@ -557,6 +557,12 @@ Save this weak password anyway?</value>
   <data name="A password is stored - leave blank to keep it" xml:space="preserve">
     <value>A password is stored - leave blank to keep it</value>
   </data>
+  <data name="A profile for this server" xml:space="preserve">
+    <value>A profile for this server</value>
+  </data>
+  <data name="A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back." xml:space="preserve">
+    <value>A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back.</value>
+  </data>
   <data name="A quota can be set on the domain and overridden per account." xml:space="preserve">
     <value>A quota can be set on the domain and overridden per account.</value>
   </data>
@@ -1398,11 +1404,17 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted." xml:space="preserve">
     <value>Applies only while bounce processing is on. A report is counted only when it names a message this server really delivered to that recipient, arrived unauthenticated from outside, and passed SPF and DMARC where those are recorded - but anyone who received the same message could forge one for another visible recipient. Turning this off stops reports being read at all; refusals met while delivering are still counted.</value>
   </data>
+  <data name="Apply a profile" xml:space="preserve">
+    <value>Apply a profile</value>
+  </data>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Apply directory synchronisation</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Apply the server's spam _filtering to this account</value>
+  </data>
+  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back.</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled could not be read: {0}</value>
@@ -1445,6 +1457,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   </data>
   <data name="Arriving" xml:space="preserve">
     <value>Arriving</value>
+  </data>
+  <data name="Asks for a confirmation" xml:space="preserve">
+    <value>Asks for a confirmation</value>
   </data>
   <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
     <value>AsyncQueueStallThreshold (120)</value>
@@ -2108,6 +2123,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Close the recipient list</value>
+  </data>
+  <data name="Closes a listener" xml:space="preserve">
+    <value>Closes a listener</value>
   </data>
   <data name="Collapse the navigation" xml:space="preserve">
     <value>Collapse the navigation</value>
@@ -3257,6 +3275,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged." xml:space="preserve">
     <value>Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged.</value>
   </data>
+  <data name="Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied." xml:space="preserve">
+    <value>Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied.</value>
+  </data>
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on.</value>
   </data>
@@ -4159,6 +4180,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI).</value>
+  </data>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
+    <value>I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (push mail)</value>
@@ -5508,6 +5532,9 @@ Nothing already there is removed.</value>
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>No problems found - every message row has its file on disk.</value>
   </data>
+  <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
+    <value>No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made.</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>No public host name is configured in the SMTP settings.</value>
   </data>
@@ -5816,6 +5843,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on.</value>
+  </data>
+  <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
+    <value>On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS.</value>
@@ -6500,6 +6530,12 @@ No new connections will be accepted and no mail will be delivered until it is re
   <data name="Put a setting back" xml:space="preserve">
     <value>Put a setting back</value>
   </data>
+  <data name="Put back a profile's changes" xml:space="preserve">
+    <value>Put back a profile's changes</value>
+  </data>
+  <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
+    <value>Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again.</value>
+  </data>
   <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
     <value>Put message {0} back into the mailbox of {1}?</value>
   </data>
@@ -6788,6 +6824,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   </data>
   <data name="Refused while delivering" xml:space="preserve">
     <value>Refused while delivering</value>
+  </data>
+  <data name="Refused: {0}" xml:space="preserve">
+    <value>Refused: {0}</value>
   </data>
   <data name="Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included." xml:space="preserve">
     <value>Refusing is stricter, but while the endpoint cannot be reached no password can be changed anywhere, the administrator password included.</value>
@@ -8061,6 +8100,9 @@ Continue?</value>
   <data name="Setting  -  {0}" xml:space="preserve">
     <value>Setting  -  {0}</value>
   </data>
+  <data name="Setting profiles" xml:space="preserve">
+    <value>Setting profiles</value>
+  </data>
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>
   </data>
@@ -9213,6 +9255,9 @@ Add it anyway?</value>
   <data name="The private key's public half is identical to the certificate's public key - the pair belongs together." xml:space="preserve">
     <value>The private key's public half is identical to the certificate's public key - the pair belongs together.</value>
   </data>
+  <data name="The profile" xml:space="preserve">
+    <value>The profile</value>
+  </data>
   <data name="The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1." xml:space="preserve">
     <value>The public corpus is https://api.pwnedpasswords.com/range/. An organisation that runs its own mirror names it here: the five characters are appended to the path, or put where {prefix} is written. Plain http is accepted only to localhost, 127.0.0.1 or ::1.</value>
   </data>
@@ -9478,6 +9523,18 @@ It will keep trying as you use the application.</value>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>The wiki could not be opened in a browser.</value>
   </data>
+  <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
+    <value>The {0} profile is applied. What it replaced is kept, and can be put back.</value>
+  </data>
+  <data name="The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced." xml:space="preserve">
+    <value>The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}." xml:space="preserve">
+    <value>The {0} profile was applied on {1}.</value>
+  </data>
+  <data name="The {0} profile was applied on {1}; its way back was discarded and its settings kept." xml:space="preserve">
+    <value>The {0} profile was applied on {1}; its way back was discarded and its settings kept.</value>
+  </data>
   <data name="The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it." xml:space="preserve">
     <value>The {0} server is switched off on the Protocols page, so this port is not listened on. The row is kept. Switching the protocol back on does not start the listener on its own - the port list and the enabled protocols are both read once, when the service starts - so restart the service after enabling it.</value>
   </data>
@@ -9597,6 +9654,12 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
     <value>This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field.</value>
   </data>
+  <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
+    <value>This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one.</value>
+  </data>
+  <data name="This server now" xml:space="preserve">
+    <value>This server now</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from </value>
   </data>
@@ -9650,6 +9713,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbird autoconfig + Outlook autodiscover</value>
+  </data>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
+    <value>Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here.</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>Time</value>
@@ -9741,6 +9807,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)" xml:space="preserve">
     <value>Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)</value>
   </data>
+  <data name="Trusts an address range" xml:space="preserve">
+    <value>Trusts an address range</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Turn debug logging off again</value>
   </data>
@@ -9767,6 +9836,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake.</value>
+  </data>
+  <data name="Turns a filter off" xml:space="preserve">
+    <value>Turns a filter off</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all.</value>
@@ -10106,6 +10178,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="What is sent" xml:space="preserve">
     <value>What is sent</value>
+  </data>
+  <data name="What it cannot do for you" xml:space="preserve">
+    <value>What it cannot do for you</value>
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>What it is for</value>
@@ -10455,6 +10530,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="_Apply now" xml:space="preserve">
     <value>_Apply now</value>
   </data>
+  <data name="_Apply this profile" xml:space="preserve">
+    <value>_Apply this profile</value>
+  </data>
   <data name="_Bind address" xml:space="preserve">
     <value>_Bind address</value>
   </data>
@@ -10641,6 +10719,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="_Job title" xml:space="preserve">
     <value>_Job title</value>
   </data>
+  <data name="_Keep its settings, forget the way back" xml:space="preserve">
+    <value>_Keep its settings, forget the way back</value>
+  </data>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Keep original message</value>
   </data>
@@ -10766,6 +10847,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="_Put back" xml:space="preserve">
     <value>_Put back</value>
+  </data>
+  <data name="_Put back what it changed" xml:space="preserve">
+    <value>_Put back what it changed</value>
   </data>
   <data name="_Put the message back" xml:space="preserve">
     <value>_Put the message back</value>
@@ -11943,6 +12027,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
     <value>{0} no encryption available, so passwords used on {1} the network in the clear.</value>
   </data>
+  <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
+    <value>{0} of its {1} settings would change on this server.</value>
+  </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} of the account's one-time recovery codes are unused.</value>
   </data>
@@ -12221,6 +12308,12 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format.</value>
+  </data>
+  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
+    <value>{0}: {1} put back, {2} left as they were.</value>
+  </data>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
+    <value>{0}: {1} set, {2} unchanged, {3} skipped.</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}</value>

@@ -302,6 +302,8 @@ EXIT 0
     <ClCompile Include="..\Common\Application\PropertySet.cpp" />
     <ClCompile Include="..\Common\Application\SettingsDiff.cpp" />
     <ClCompile Include="..\Common\Application\EnvironmentSettings.cpp" />
+    <ClCompile Include="..\Common\Application\Profiles.cpp" />
+    <ClCompile Include="..\Common\Application\ProfilesData.cpp" />
     <ClCompile Include="..\Common\Application\Reinitializator.cpp" />
     <ClCompile Include="..\Common\Application\ArchiveRetentionTask.cpp" />
     <ClCompile Include="..\Common\Application\MailboxRetentionTask.cpp" />
@@ -727,6 +729,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiReputation.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSampleDomain.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSetupChecklist.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiProfiles.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOperator.cpp" />
     <ClCompile Include="..\Common\Util\WebServicesServer.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOpenPgp.cpp" />
@@ -1206,6 +1209,8 @@ EXIT 0
     <ClInclude Include="..\Common\Application\SettingsDefaults.h" />
     <ClInclude Include="..\Common\Application\SettingsDiff.h" />
     <ClInclude Include="..\Common\Application\EnvironmentSettings.h" />
+    <ClInclude Include="..\Common\Application\Profiles.h" />
+    <ClInclude Include="..\Common\Application\ProfilesData.h" />
     <ClInclude Include="..\Common\Application\Reinitializator.h" />
     <ClInclude Include="..\Common\Application\ArchiveRetentionTask.h" />
     <ClInclude Include="..\Common\Application\MailboxRetentionTask.h" />

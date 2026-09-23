@@ -257,6 +257,7 @@ namespace hMailServer.ControlPanel
          pageFactories_["dns"] = () => new FeatureSettingsView(FeatureSettingsView.Section.Dns);
          pageFactories_["webservices"] = () => new FeatureSettingsView(FeatureSettingsView.Section.WebServices);
          pageFactories_["backup"] = () => new BackupView();
+         pageFactories_["profiles"] = () => new ProfilesView();
          pageFactories_["mxquery"] = () => new MxQueryView();
          pageFactories_["sendout"] = () => new SendoutView();
          pageFactories_["diagnostics"] = () => new DiagnosticsView();

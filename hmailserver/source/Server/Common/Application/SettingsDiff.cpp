@@ -12,6 +12,7 @@
 #include "IniSettingsBaseline.h"
 #include "SettingsDefaults.h"
 #include "EnvironmentSettings.h"
+#include "Profiles.h"
 #include "../Util/Unicode.h"
 
 #ifdef _DEBUG
@@ -336,6 +337,20 @@ namespace HM
       considered = Considered(unknownNames);
    }
 
+   namespace
+   {
+      // The profile a value came from: the one applied, when it set this setting and
+      // the setting still holds what it wrote. A value somebody changed since is
+      // theirs, whatever set it first.
+      AnsiString ProfileSource(const SettingsDiff::Entry &entry)
+      {
+         String profile;
+         if (entry.secret || !Profiles::SourceOf(entry.store, entry.name, entry.value, profile))
+            return "null";
+         return "\"" + JsonText(profile) + "\"";
+      }
+   }
+
    AnsiString
    SettingsDiff::Json()
    {
@@ -361,7 +376,8 @@ namespace HM
                  JsonBool("secret", entry.secret) + "," +
                  JsonBool("known", entry.known) + "," +
                  JsonBool("overridden", entry.overridden) + ",\"environment\":" +
-                 (entry.environment.IsEmpty() ? AnsiString("null") : AnsiString("\"") + (entry.environmentFile ? "file" : "variable") + "\"") + "}";
+                 (entry.environment.IsEmpty() ? AnsiString("null") : AnsiString("\"") + (entry.environmentFile ? "file" : "variable") + "\"") +
+                 ",\"profile\":" + ProfileSource(entry) + "}";
       }
 
       // Every setting the environment sets, whether or not it differs from stock:
@@ -414,7 +430,25 @@ namespace HM
                  JsonField("name", withheld[i].second) + "}";
       }
 
-      json += "]}";
+      // The profile last applied and what became of it (docs/Profiles.md): the
+      // source beside each value it set, above, and here which it was.
+      String profile;
+      __int64 applied = 0;
+      String state;
+      __int64 changed = 0;
+      Profiles::ReadApplied(profile, applied, state, changed);
+
+      json += "],\"profile\":";
+      if (profile.IsEmpty())
+         json += "null";
+      else
+      {
+         AnsiString when;
+         when.Format("%I64d", applied);
+         json += "{" + JsonField("name", profile) + "," + JsonField("state", state) + ",\"applied\":" + when + "}";
+      }
+
+      json += "}";
       return json;
    }
 

@@ -73,6 +73,12 @@ services:
       # HM_SETTING_MaxSubmissionsPerIPPerMinute: "30"
       # HM_PROPERTY_maxmessagesize: "20480"
       # HM_PROPERTY_smtprelayerpassword_FILE: /run/secrets/relay_password
+      # A setting profile, applied once at the first start (docs/Profiles.md):
+      # office, gateway, relay or sender. One that closes a listener, trusts an
+      # address range or turns a filter off - relay and sender close IMAP and POP3,
+      # gateway turns the address tests off - needs HM_PROFILE_CONFIRM: "yes".
+      # HM_PROFILE: office
+      # HM_PROFILE_CONFIRM: "yes"
     secrets:
       - db_password
       - admin_password
