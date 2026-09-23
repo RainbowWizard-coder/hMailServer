@@ -10,6 +10,7 @@
 
 #include "../Common/BO/Message.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Util/ServerStatus.h"
 
 
 
@@ -45,6 +46,11 @@ namespace HM
          PersistentMessage::UnlockObject(message_);
          return;
       }
+
+      // Counted here, once the delivery is really starting, and not where the
+      // manager handed the task out: the un-started task above was never
+      // processed, and the status counters should not say it was.
+      ServerStatus::Instance()->OnMessageProcessed();
 
       // Do our delivery work.
       SMTPDeliverer::DeliverMessage(message_);

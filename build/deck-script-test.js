@@ -1257,6 +1257,7 @@ const state = {
    directory: {},
    assignments: [{ address: 'anna@example.com', role: 'helpdesk', domains: '' }],
    status: { version: '6.3.3', state: 3, processedMessages: 1234, spamMessages: 56, virusesRemoved: 7, sessions: { smtp: 3, imap: 12, pop3: 1 } },
+   drain: { draining: false, since: '', sessions: 0, deliveries: 0, drained: false },
    domains: [
       domainRecord('example.com', true, 'postmaster@example.com'),
       domainRecord(HOSTILE, false, ''),
@@ -2976,6 +2977,21 @@ function answer(method, path, headers, raw) {
    }
 
    if (path === '/api/v1/update' && method === 'GET') { return json(200, state.update); }
+   // Maintenance mode: the same document for all three, 409 for a change the
+   // state does not allow, as the server answers.
+   if (path === '/api/v1/server/drain') {
+      if (method === 'GET') { return json(200, state.drain); }
+      if (method === 'POST') {
+         if (state.drain.draining) { return json(409, { error: 'already draining' }); }
+         Object.assign(state.drain, { draining: true, since: '2026-09-23 10:15:02', sessions: 1, deliveries: 0, drained: false });
+         return json(200, state.drain);
+      }
+      if (method === 'DELETE') {
+         if (!state.drain.draining) { return json(409, { error: 'not draining' }); }
+         Object.assign(state.drain, { draining: false, since: '', sessions: 0, deliveries: 0, drained: false });
+         return json(200, state.drain);
+      }
+   }
    if (/^\/api\/v1\/update\/(check|download|install)$/.test(path) && method === 'POST') {
       const verb = segment(path, 4);
       if (verb === 'check') {
@@ -5994,6 +6010,36 @@ async function main() {
       check('and what the helper was handed is on the page afterwards',
          called(before, 'POST', '/api/v1/update/install').length === 1 &&
          content().textContent.indexOf('handed to the update helper') >= 0, paths(before));
+
+      // ---- maintenance mode, beside the update
+      check('the update view reads the drain state', called(before, 'GET', '/api/v1/server/drain').length >= 1, paths(before));
+      check('and says the listeners are open, with a Drain button and no Resume',
+         content().textContent.indexOf('Not draining: the listeners are open.') >= 0 &&
+         content().querySelectorAll('button[data-act="updrain"]').length === 1 &&
+         content().querySelectorAll('button[data-act="upresume"]').length === 0, content().textContent.slice(0, 400));
+      before = requests.length;
+      confirmAnswer = false;
+      click(act('updrain'));
+      await flush();
+      check('draining asks first, naming the four listeners, and sends nothing on no',
+         confirmations[confirmations.length - 1].indexOf('SMTP, IMAP, POP3 and ManageSieve') >= 0 &&
+         called(before, 'POST', '/api/v1/server/drain').length === 0, confirmations[confirmations.length - 1]);
+      confirmAnswer = true;
+      before = requests.length;
+      click(act('updrain'));
+      await flush();
+      check('on yes it enters the drain and re-reads the state',
+         called(before, 'POST', '/api/v1/server/drain').length === 1 &&
+         content().textContent.indexOf('Draining since 2026-09-23 10:15:02: 1 session(s) and 0 delivery(ies) in flight.') >= 0 &&
+         content().querySelectorAll('button[data-act="upresume"]').length === 1 &&
+         content().querySelectorAll('button[data-act="updrain"]').length === 0, paths(before) + ' ' + content().textContent.slice(0, 400));
+      before = requests.length;
+      click(act('upresume'));
+      await flush();
+      check('Resume leaves the drain without asking and the view says the listeners are open again',
+         called(before, 'DELETE', '/api/v1/server/drain').length === 1 &&
+         content().textContent.indexOf('Not draining: the listeners are open.') >= 0 &&
+         content().querySelectorAll('button[data-act="updrain"]').length === 1, paths(before));
 
       // ---- the DNS records
       const rotationWas = state.rotations['second.example'];

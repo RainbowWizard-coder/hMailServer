@@ -119,6 +119,7 @@ namespace HM
 
    TCPServer::TCPServer(boost::asio::io_context& io_context, const IPAddress &ipaddress, int port, SessionType sessionType, std::shared_ptr<SSLCertificate> certificate, std::shared_ptr<TCPConnectionFactory> connectionFactory, ConnectionSecurity connection_security,
       ClientCertificatePolicy client_certificate_policy, const String &client_certificate_ca_file) :
+      strand_(boost::asio::make_strand(io_context)),
       acceptor_(io_context),
       context_(boost::asio::ssl::context::sslv23),
       io_context_(io_context),
@@ -201,6 +202,12 @@ namespace HM
 
          ErrorManager::Instance()->ReportError(ErrorManager::High, 4316, "TCPServer::Run()", sErrorMessage);
 
+         // Closed again, so that is_open() does not answer true for a port that
+         // is not bound: RestartAccept reads it as "already listening", and a
+         // drain left with this port taken would otherwise never try it again.
+         boost::system::error_code closeError;
+         acceptor_.close(closeError);
+
          return false;
       }
 
@@ -216,6 +223,9 @@ namespace HM
                                           msg, error.code().value(), String(ipaddress_.ToString()), port_);
 
          ErrorManager::Instance()->ReportError(ErrorManager::High, 4317, "TCPServer::Run()", sErrorMessage);
+
+         boost::system::error_code closeError;
+         acceptor_.close(closeError);
 
          return false;
       }
@@ -360,9 +370,13 @@ namespace HM
          // (handshake whenever the client issues STARTTLS).
          pNewConnection->SetInboundClientCertificatePolicy(client_certificate_policy_);
 
+         // Bound to the strand: the completion runs where the drain's close and
+         // reopen run, so the re-posted accept and a close can never be on two
+         // workers at once. See GetStrand.
          acceptor_.async_accept(pNewConnection->GetSocket(),
-            std::bind(&TCPServer::HandleAccept, this, pNewConnection,
-            std::placeholders::_1));
+            boost::asio::bind_executor(strand_,
+               std::bind(&TCPServer::HandleAccept, this, pNewConnection,
+               std::placeholders::_1)));
       }
    }
    

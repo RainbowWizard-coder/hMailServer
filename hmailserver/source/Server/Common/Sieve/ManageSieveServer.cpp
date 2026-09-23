@@ -369,30 +369,25 @@ namespace HM
    ManageSieveServer::ManageSieveServer() :
       listen_socket_(INVALID_SOCKET),
       running_(false),
-      warned_tls_required_without_certificate_(false)
+      warned_tls_required_without_certificate_(false),
+      port_(0),
+      accepting_(false),
+      sessions_(0)
    {
-   }
-
-   ManageSieveServer::~ManageSieveServer()
-   {
-      Stop();
    }
 
    bool
-   ManageSieveServer::Start(const String &bind_address, int port)
+   ManageSieveServer::OpenListenSocket_()
    {
-      if (running_)
-         return true;
-
-      AnsiString narrowBindAddress = bind_address;
+      AnsiString narrowBindAddress = bind_address_;
 
       sockaddr_in address = {};
       address.sin_family = AF_INET;
-      address.sin_port = htons(static_cast<unsigned short>(port));
+      address.sin_port = htons(static_cast<unsigned short>(port_));
 
       if (inet_pton(AF_INET, narrowBindAddress.c_str(), &address.sin_addr) != 1)
       {
-         LOG_APPLICATION("ManageSieveServer: Invalid bind address: " + bind_address);
+         LOG_APPLICATION("ManageSieveServer: Invalid bind address: " + bind_address_);
          return false;
       }
 
@@ -407,7 +402,7 @@ namespace HM
           listen(listen_socket_, 5) == SOCKET_ERROR)
       {
          String message;
-         message.Format(_T("ManageSieveServer: Failed to bind to %s:%d."), bind_address.c_str(), port);
+         message.Format(_T("ManageSieveServer: Failed to bind to %s:%d."), bind_address_.c_str(), port_);
          LOG_APPLICATION(message);
 
          closesocket(listen_socket_);
@@ -415,11 +410,80 @@ namespace HM
          return false;
       }
 
+      return true;
+   }
+
+   bool
+   ManageSieveServer::StopAccepting()
+   {
+      if (!running_)
+         return true;
+
+      if (!accepting_.exchange(false))
+         return true;
+
+      // The listening socket is interrupted here and released by the worker
+      // when it parks (Run_), which is after the session it may be serving has
+      // ended: on Windows Interrupt closes it outright, and on POSIX it shuts
+      // it down, which stops the port answering and makes the worker's accept
+      // return, and the close follows on the worker so that no thread closes
+      // a descriptor another is blocked in.
+      std::lock_guard<std::mutex> lock(accept_mutex_);
+      AcceptLoop::Interrupt(listen_socket_);
+      return true;
+   }
+
+   bool
+   ManageSieveServer::StartAccepting()
+   {
+      if (!running_)
+         return true;
+
+      {
+         std::lock_guard<std::mutex> lock(accept_mutex_);
+
+         if (accepting_)
+            return true;
+
+         // The worker releases the interrupted socket when it parks; if it has
+         // not parked yet (a session was still being served), release it here
+         // and give it the new one under the lock.
+         AcceptLoop::Release(listen_socket_);
+
+         if (!OpenListenSocket_())
+            return false;
+
+         accepting_ = true;
+      }
+
+      accept_changed_.notify_all();
+      return true;
+   }
+
+   ManageSieveServer::~ManageSieveServer()
+   {
+      Stop();
+   }
+
+   bool
+   ManageSieveServer::Start(const String &bind_address, int port)
+   {
+      if (running_)
+         return true;
+
+      bind_address_ = bind_address;
+      port_ = port;
+
+      if (!OpenListenSocket_())
+         return false;
+
       // Before the worker thread exists, so the thread only ever reads a context
       // that is already fully built. A failure here is not a failure to start: the
       // listener runs without STARTTLS, exactly as it always has.
       bool tlsAvailable = InitializeTls_(bind_address, port);
 
+      accepting_ = true;
+      sessions_ = 0;
       running_ = true;
       worker_ = std::thread(&ManageSieveServer::Run_, this);
 
@@ -438,10 +502,17 @@ namespace HM
          return;
 
       running_ = false;
+      accepting_ = false;
 
       // Wakes the worker out of accept(); the descriptor is released once the
-      // worker has been joined. AcceptLoop.h says why the two are separate.
-      AcceptLoop::Interrupt(listen_socket_);
+      // worker has been joined. AcceptLoop.h says why the two are separate. A
+      // worker parked by a drain is waiting on the condition instead, and is
+      // woken through it.
+      {
+         std::lock_guard<std::mutex> lock(accept_mutex_);
+         AcceptLoop::Interrupt(listen_socket_);
+      }
+      accept_changed_.notify_all();
 
       if (worker_.joinable())
          worker_.join();
@@ -591,6 +662,21 @@ namespace HM
    {
       for (;;)
       {
+         // Parked while a drain has the door closed: the interrupted socket is
+         // released here, by the thread that was blocked in it, and the worker
+         // waits for StartAccepting to open a new one or for Stop. The socket
+         // is read under the lock each time round, because a drain replaces it.
+         SOCKET listenSocket = INVALID_SOCKET;
+         {
+            std::unique_lock<std::mutex> lock(accept_mutex_);
+            if (!accepting_ && running_)
+               AcceptLoop::Release(listen_socket_);
+            accept_changed_.wait(lock, [this]() { return !running_ || accepting_; });
+            if (!running_)
+               return;
+            listenSocket = listen_socket_;
+         }
+
          // Keep the peer address: failed authentications have to be reported to
          // the same per-IP auto-ban accounting the other protocols use, and the
          // ban that accounting creates has to be enforced right here.
@@ -604,7 +690,7 @@ namespace HM
          int addressLength = sizeof(clientAddress);
 #endif
 
-         SOCKET clientSocket = accept(listen_socket_, (sockaddr*) &clientAddress, &addressLength);
+         SOCKET clientSocket = accept(listenSocket, (sockaddr*) &clientAddress, &addressLength);
 
          if (clientSocket == INVALID_SOCKET)
          {
@@ -613,6 +699,22 @@ namespace HM
 
             continue;
          }
+
+         // A connection that slipped in between the drain clearing the flag and
+         // the socket being interrupted: refused now, not served.
+         if (!accepting_)
+         {
+            closesocket(clientSocket);
+            continue;
+         }
+
+         // Counted from here to the close below, which is what a drain waits on.
+         struct SessionCount
+         {
+            explicit SessionCount(std::atomic<int> &count) : count_(count) { count_++; }
+            ~SessionCount() { count_--; }
+            std::atomic<int> &count_;
+         } counted(sessions_);
 
          Connection connection(clientSocket);
 

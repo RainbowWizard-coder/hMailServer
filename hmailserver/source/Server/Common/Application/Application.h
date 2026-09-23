@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "../Util/Event.h"
 
 namespace HM
@@ -94,6 +96,12 @@ namespace HM
       bool IsDraining() const;
       DrainStatus GetDrainStatus();
 
+      // Called from the stop's drain wait about once a second while it waits,
+      // so that the service host can tell the service controller the stop is
+      // still making progress (a checkpoint) rather than letting its wait hint
+      // run out. Empty by default; hMailServer.cpp sets it before a stop.
+      void SetStopProgressCallback(std::function<void()> callback) { stop_progress_ = callback; }
+
       std::shared_ptr<SMTPDeliveryManager> GetSMTPDeliveryManager() {return smtp_delivery_manager_;} 
       std::shared_ptr<ExternalFetchManager> GetExternalFetchManager() {return external_fetch_manager_;} 
 
@@ -136,9 +144,14 @@ namespace HM
       void CreateSessionWorkQueues_();
       void RemoveSessionWorkQueues_();
 
-      // The first half of a drain and of a stop: the listeners closed and the
-      // delivery queue paused. Idempotent; both halves are.
-      void CloseTheDoors_();
+      // The first half of a drain and of a stop: the SMTP, IMAP, POP3 and
+      // ManageSieve listeners closed and the delivery queue paused. Idempotent;
+      // both halves are. False when a listener is not known to be closed (the
+      // io threads did not answer), which the caller says rather than logging
+      // "listeners closed" over a door that may be open.
+      bool CloseTheDoors_();
+
+      std::function<void()> stop_progress_;
 
       // Serialises the three state transitions that close or reopen the doors -
       // EnterDrain, LeaveDrain and the head of StopServers - so that a stop and

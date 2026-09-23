@@ -579,13 +579,18 @@ expect_rc 4
 expect_output "unit must be the server's own unit"
 expect_no_call "systemctl"
 
-setup refused-unknown-key
+# A key this script does not know is said and skipped, not refused: an AppImage
+# host keeps the script it was given while the swap refreshes the image, so a
+# newer server must be able to write a key an older script has never seen. The
+# apply goes on exactly as ok-deb does.
+setup tolerated-unknown-key
 write_request
 echo "helper=/tmp/evil" >> "${REQUEST}"
 run_helper
-expect_rc 4
-expect_output "names a key this program does not know: helper"
-expect_no_call "systemctl"
+expect_rc 0
+expect_output "ignoring a key this program does not know: helper"
+expect_call "systemctl stop hmailserver.service"
+expect_call "systemctl start hmailserver.service"
 
 setup refused-outcome-elsewhere
 write_request

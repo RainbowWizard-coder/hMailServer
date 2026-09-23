@@ -514,9 +514,10 @@ namespace HM
       request += "outcome=" + AnsiString(outcome) + "\n";
       request += "log=" + AnsiString(directory) + "/apply-" + AnsiString(snapshot.available_version) + ".log\n";
       request += "wait=" + AnsiString(Formatter::Format(_T("{0}"), IniFileSettings::Instance()->GetUpdateServiceWaitSeconds())) + "\n";
-      // Told for the journal: the helper just stops the unit, and the stop
-      // drains as it always does, with the doors already closed by now.
-      request += "drain=1\n";
+      // No key says that the server has drained: the helper's stop drains as it
+      // always does, with the doors already closed by now, and the server's own
+      // log says so. A key the helper does not know would have been a refused
+      // request on an AppImage host, whose script the swap does not refresh.
       std::string readyUrl = ReadyUrl_();
       if (!readyUrl.empty())
          request += "ready_url=" + AnsiString(readyUrl.c_str()) + "\n";

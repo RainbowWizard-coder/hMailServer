@@ -213,6 +213,54 @@ namespace HM
       // it within microseconds while the io_context is running, and never once
       // it has been stopped - in which case the acceptors are closed anyway.
       const int ACCEPTOR_REQUEST_WAIT_MILLISECONDS = 10000;
+
+      // One count per listener. Each listener's request runs on that listener's
+      // own strand - the strand its accept completions run on, so a close and a
+      // re-armed accept can never be on two workers at once - and counts itself
+      // down when it has run; the caller waits for the count to reach zero, or
+      // for the bound to pass. The failures a reopen collects are written from
+      // several strands at once, hence the lock around them.
+      class ListenerRequests
+      {
+      public:
+         explicit ListenerRequests(size_t count) :
+            remaining_(count)
+         {
+         }
+
+         void Done()
+         {
+            boost::lock_guard<boost::mutex> guard(mutex_);
+            if (remaining_ > 0)
+               remaining_--;
+            if (remaining_ == 0)
+               all_done_.notify_all();
+         }
+
+         void Failed(const String &listener)
+         {
+            boost::lock_guard<boost::mutex> guard(mutex_);
+            failures_.push_back(listener);
+         }
+
+         bool WaitForAll(int milliseconds)
+         {
+            boost::unique_lock<boost::mutex> lock(mutex_);
+            return all_done_.wait_for(lock, boost::chrono::milliseconds(milliseconds), [this]() { return remaining_ == 0; });
+         }
+
+         std::vector<String> Failures()
+         {
+            boost::lock_guard<boost::mutex> guard(mutex_);
+            return failures_;
+         }
+
+      private:
+         boost::mutex mutex_;
+         boost::condition_variable all_done_;
+         size_t remaining_;
+         std::vector<String> failures_;
+      };
    }
 
    bool
@@ -221,23 +269,29 @@ namespace HM
       if (!accepting_.exchange(false))
          return true;
 
-      std::shared_ptr<Event> done = std::make_shared<Event>();
-
-      // dispatch, not post: run inline if the caller is already on an io
-      // thread, so that a wait on this thread can never be for this thread.
-      boost::asio::dispatch(io_context_, [this, done]()
+      std::vector<std::shared_ptr<TCPServer> > servers;
       {
+         boost::lock_guard<boost::mutex> guard(tcp_servers_mutex_);
+         servers = tcp_servers_;
+      }
+
+      std::shared_ptr<ListenerRequests> requests = std::make_shared<ListenerRequests>(servers.size());
+
+      // dispatch, not post: run inline if the caller is already on that strand,
+      // so that a wait on this thread can never be for this thread.
+      for (auto server = servers.begin(); server != servers.end(); ++server)
+      {
+         std::shared_ptr<TCPServer> listener = *server;
+         boost::asio::dispatch(listener->GetStrand(), [listener, requests]()
          {
-            boost::lock_guard<boost::mutex> guard(tcp_servers_mutex_);
-            for (auto server = tcp_servers_.begin(); server != tcp_servers_.end(); ++server)
-               (*server)->StopAccept();
-         }
-         done->Set();
-      });
+            listener->StopAccept();
+            requests->Done();
+         });
+      }
 
-      if (!done->WaitFor(boost::chrono::milliseconds(ACCEPTOR_REQUEST_WAIT_MILLISECONDS)))
+      if (!requests->WaitForAll(ACCEPTOR_REQUEST_WAIT_MILLISECONDS))
       {
-         LOG_APPLICATION("Drain: the TCP/IP threads did not close the listeners within ten seconds; they are no longer running, so nothing is being accepted anyway.");
+         LOG_APPLICATION("Drain: the TCP/IP threads did not close every listener within ten seconds, so the listeners are NOT known to be closed; they are only ever this slow once the io threads have stopped.");
          return false;
       }
 
@@ -252,29 +306,36 @@ namespace HM
       if (accepting_.exchange(true))
          return true;
 
-      std::shared_ptr<Event> done = std::make_shared<Event>();
-      std::shared_ptr<std::vector<String> > failures = std::make_shared<std::vector<String> >();
-
-      boost::asio::dispatch(io_context_, [this, done, failures]()
+      std::vector<std::shared_ptr<TCPServer> > servers;
       {
+         boost::lock_guard<boost::mutex> guard(tcp_servers_mutex_);
+         servers = tcp_servers_;
+      }
+
+      std::shared_ptr<ListenerRequests> requests = std::make_shared<ListenerRequests>(servers.size());
+
+      for (auto server = servers.begin(); server != servers.end(); ++server)
+      {
+         std::shared_ptr<TCPServer> listener = *server;
+         boost::asio::dispatch(listener->GetStrand(), [listener, requests]()
          {
-            boost::lock_guard<boost::mutex> guard(tcp_servers_mutex_);
-            for (auto server = tcp_servers_.begin(); server != tcp_servers_.end(); ++server)
-            {
-               if (!(*server)->RestartAccept())
-                  failures->push_back(Formatter::Format("{0}:{1}", String((*server)->GetAddress().ToString()), (*server)->GetPort()));
-            }
-         }
-         done->Set();
-      });
+            if (!listener->RestartAccept())
+               requests->Failed(Formatter::Format("{0}:{1}", String(listener->GetAddress().ToString()), listener->GetPort()));
+            requests->Done();
+         });
+      }
 
-      if (!done->WaitFor(boost::chrono::milliseconds(ACCEPTOR_REQUEST_WAIT_MILLISECONDS)))
+      if (!requests->WaitForAll(ACCEPTOR_REQUEST_WAIT_MILLISECONDS))
       {
-         LOG_APPLICATION("Drain: the TCP/IP threads did not reopen the listeners within ten seconds; they are no longer running.");
+         // Not reopened, and said so: the flag goes back to closed, so that the
+         // next attempt is an attempt and not a no-op, and the caller keeps the
+         // state at Draining rather than declaring Running over closed ports.
+         accepting_ = false;
+         LOG_APPLICATION("Drain: the TCP/IP threads did not reopen the listeners within ten seconds; the listeners are not open and the drain has not been left.");
          return false;
       }
 
-      notReopened = *failures;
+      notReopened = requests->Failures();
       return true;
    }
 

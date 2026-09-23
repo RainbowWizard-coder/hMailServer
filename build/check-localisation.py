@@ -314,11 +314,22 @@ def elem(text):
 
 
 def write_resx(path, items, comment):
+   # Written the way the file was read: a catalogue that carried a UTF-8 byte
+   # order mark keeps it. read() strips the mark on the way in (utf-8-sig), and
+   # writing plain utf-8 on the way out silently dropped it from sixteen
+   # catalogues on 23 September 2026 - one byte of churn per file that every
+   # later diff would have carried.
+   had_bom = False
+   try:
+      with open(path, "rb") as handle:
+         had_bom = handle.read(3) == b"\xef\xbb\xbf"
+   except OSError:
+      pass
    lines = [RESX_HEAD.replace("{comment}", comment)]
    for name, value in items:
       lines.append(f'  <data name="{attr(name)}" xml:space="preserve">\n    <value>{elem(value)}</value>\n  </data>\n')
    lines.append("</root>\n")
-   with open(path, "w", encoding="utf-8", newline="\n") as handle:
+   with open(path, "w", encoding="utf-8-sig" if had_bom else "utf-8", newline="\n") as handle:
       handle.write("".join(lines))
 
 

@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
 #include <thread>
 #include <string>
 
@@ -69,6 +72,29 @@ namespace HM
 
       bool Start(const String &bind_address, int port);
       void Stop();
+
+      // The listener's half of a drain (Application::CloseTheDoors_ and
+      // LeaveDrain), because this listener is not one of IOService's acceptors
+      // and would otherwise keep accepting through it. StopAccepting closes the
+      // listening socket - a connection attempted from then on is refused at
+      // the socket - and parks the worker once the session it may be serving
+      // has ended; StartAccepting opens the socket again on the same address
+      // and port and wakes the worker. The worker itself is never stopped or
+      // joined by either, so a session in flight finishes at its own pace.
+      // StartAccepting is false when the port could not be bound again, which
+      // the caller reports; the listener then stays closed.
+      bool StopAccepting();
+      bool StartAccepting();
+      bool IsAccepting() const { return accepting_; }
+
+      // Sessions being served right now: 0 or 1, since the worker serves one
+      // connection at a time. Counted into a drain's wait with the mailbox
+      // protocols' sessions.
+      int GetNumberOfSessions() const { return sessions_; }
+
+      // The address and port Start was given, for a report that names them.
+      String GetBindAddress() const { return bind_address_; }
+      int GetPort() const { return port_; }
 
    private:
       // Failed AUTHENTICATE attempts allowed on one connection before it is
@@ -251,5 +277,22 @@ namespace HM
       // thread exists and cleared by Stop() after it has been joined, so the
       // worker never sees it change.
       std::shared_ptr<boost::asio::ssl::context> tls_context_;
+
+      // socket(), bind() and listen() on bind_address_:port_, into
+      // listen_socket_. Start's first act, and StartAccepting's.
+      bool OpenListenSocket_();
+
+      String bind_address_;
+      int port_;
+
+      // Whether the worker may accept. Cleared by StopAccepting and set by
+      // StartAccepting and Start; the worker waits on accept_changed_ while it
+      // is clear, and Stop wakes it too. listen_socket_ is read and written
+      // under accept_mutex_ from here on, because the worker and a drain now
+      // both touch it while the worker runs.
+      std::atomic<bool> accepting_;
+      std::atomic<int> sessions_;
+      std::mutex accept_mutex_;
+      std::condition_variable accept_changed_;
    };
 }

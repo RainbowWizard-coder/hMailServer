@@ -68,6 +68,7 @@
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/PersistentDomain.h"
 #include "../Persistence/SchemaUpgrader.h"
+#include "../Util/AuditTrail.h"
 #include "RemoveExpiredRecords.h"
 #include "ScheduledMailTask.h"
 #include "../Util/AutoBanFirewall.h"
@@ -1094,7 +1095,29 @@ namespace HM
          // Now the listeners close and the queue pauses before anything is
          // waited for - and a drain that was entered earlier has done this.
          if (!wasDraining)
-            CloseTheDoors_();
+         {
+            if (!CloseTheDoors_())
+               LOG_APPLICATION("Drain: the listeners are NOT known to be closed (the io threads did not answer); stopping anyway.");
+         }
+         else
+         {
+            // Maintenance mode ends here, whoever stops the servers - a service
+            // stop, or a reinitialise from SIGHUP, the Control Panel, the REST
+            // route, a backup restore or an ACME deployment - and it says so,
+            // on the audit trail as well: the operator who entered it recorded
+            // "entered", and a "left" with no actor of theirs is the honest
+            // record of a drain that a restart ended.
+            LOG_APPLICATION("Drain: ended by a stop of the servers (a service stop or a reinitialise); the listeners were already closed.");
+
+            AuditTrail::Actor actor;
+            actor.present = true;
+            actor.name = _T("server");
+            actor.kind = _T("system");
+            actor.interface_name = _T("server");
+            AuditScope scope(actor);
+            AuditTrail::Instance()->RecordEvent(_T("server"), _T("drain"), _T("left"),
+               _T("Ended by a stop of the servers - a service stop or a reinitialise - with the listeners already closed."));
+         }
       }
 
       // Graceful drain: give the sessions and the deliveries in flight a bounded
@@ -1114,11 +1137,17 @@ namespace HM
             LOG_APPLICATION(Formatter::Format("Drain: listeners closed; {0} session(s) and {1} delivery(ies) in flight; up to {2} seconds.", inFlight.sessions, inFlight.deliveries, drainSeconds));
 
             ULONGLONG deadline = ::GetTickCount64() + (ULONGLONG)drainSeconds * 1000;
+            int polls = 0;
             while (::GetTickCount64() < deadline)
             {
                inFlight = GetDrainStatus();
                if (inFlight.sessions <= 0 && inFlight.deliveries <= 0)
                   break;
+
+               // About once a second: the service controller's checkpoint, so
+               // that a stop honouring a long window is seen to be progressing.
+               if (stop_progress_ && (++polls % 5) == 0)
+                  stop_progress_();
 
                Sleep(200);
             }
@@ -1211,14 +1240,23 @@ namespace HM
 
    }
 
-   void
+   bool
    Application::CloseTheDoors_()
    {
-      if (io_service_)
-         io_service_->StopAccepting();
+      bool closed = true;
+
+      if (io_service_ && !io_service_->StopAccepting())
+         closed = false;
+
+      // The ManageSieve listener is its own accept loop, not one of IOService's
+      // acceptors, and kept accepting through the drain until 23 September 2026.
+      if (manage_sieve_server_ && !manage_sieve_server_->StopAccepting())
+         closed = false;
 
       if (smtp_delivery_manager_)
          smtp_delivery_manager_->Pause();
+
+      return closed;
    }
 
    bool
@@ -1242,7 +1280,11 @@ namespace HM
 
       status.sessions = SessionManager::Instance()->GetNumberOfConnections();
 
-      // A copy of the pointer: StopServers resets the member on another thread.
+      // Copies of the pointers: StopServers resets the members on another thread.
+      std::shared_ptr<ManageSieveServer> manageSieve = manage_sieve_server_;
+      if (manageSieve)
+         status.sessions += manageSieve->GetNumberOfSessions();
+
       std::shared_ptr<SMTPDeliveryManager> deliveryManager = smtp_delivery_manager_;
       status.deliveries = deliveryManager ? deliveryManager->GetDeliveriesInFlight() : 0;
 
@@ -1264,10 +1306,12 @@ namespace HM
       ServerStatus::Instance()->SetState(ServerStatus::StateDraining);
       drain_since_ = Time::GetCurrentDateTime();
 
-      CloseTheDoors_();
+      const bool closed = CloseTheDoors_();
 
       DrainStatus inFlight = GetDrainStatus();
-      LOG_APPLICATION(Formatter::Format("Drain: listeners closed; {0} session(s) and {1} delivery(ies) in flight; until the drain is left.", inFlight.sessions, inFlight.deliveries));
+      LOG_APPLICATION(Formatter::Format("Drain: {0}; {1} session(s) and {2} delivery(ies) in flight; until the drain is left.",
+         closed ? String("listeners closed") : String("the listeners are NOT known to be closed (the io threads did not answer)"),
+         inFlight.sessions, inFlight.deliveries));
 
       return "";
    }
@@ -1281,13 +1325,25 @@ namespace HM
       if (ServerStatus::Instance()->GetState() != ServerStatus::StateDraining)
          return "not draining";
 
-      // The queue before the doors, so that a message that became due during
-      // the drain is on its way by the time a client can connect again.
+      // The doors before the queue: a listener that cannot be reopened keeps
+      // the state at Draining, and a resumed queue under a drain would be a
+      // drain in name only.
+      if (io_service_ && !io_service_->StartAccepting(notReopened))
+      {
+         // The io threads did not answer, so nothing is known to be open. The
+         // flag is back to closed (StartAccepting did that), the state stays
+         // Draining, and the caller answers 500 with the reason: a Running
+         // declared over closed ports would be a state nobody could repair
+         // without a restart, and a 200 would be a lie.
+         LOG_APPLICATION("Drain: not left - the listeners could not be reopened; the state stays draining.");
+         return "the listeners could not be reopened";
+      }
+
+      if (manage_sieve_server_ && !manage_sieve_server_->StartAccepting())
+         notReopened.push_back(Formatter::Format("{0}:{1} (ManageSieve)", manage_sieve_server_->GetBindAddress(), manage_sieve_server_->GetPort()));
+
       if (smtp_delivery_manager_)
          smtp_delivery_manager_->Resume();
-
-      if (io_service_)
-         io_service_->StartAccepting(notReopened);
 
       drain_since_ = "";
       ServerStatus::Instance()->SetState(ServerStatus::StateRunning);

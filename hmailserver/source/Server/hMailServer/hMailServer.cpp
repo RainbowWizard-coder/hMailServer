@@ -208,8 +208,8 @@ HM::ChMailServerModule _AtlModule;
 // the administrator password DBUpdater asks for. ADO is here, so all four
 // backends. The process is a Windows-subsystem one with no console of its own:
 // the parent's is attached when there is one, so a prompt sees the lines, and
-// the exit code (0 done or nothing to do, 1 failed, 2 not configured) says the
-// rest to a script that has no console either.
+// the exit code (0 done or nothing to do, 1 failed, 2 not configured, 3 the
+// service is running) says the rest to a script that has no console either.
 static int UpgradeDatabaseFromCommandLine()
 {
    if (AttachConsole(ATTACH_PARENT_PROCESS))
@@ -218,6 +218,36 @@ static int UpgradeDatabaseFromCommandLine()
       freopen_s(&out, "CONOUT$", "w", stdout);
       FILE *err = nullptr;
       freopen_s(&err, "CONOUT$", "w", stderr);
+   }
+
+   // Refused while the service is running against the same database: a running
+   // server plus this walker is two walkers on one schema (SchemaUpgrader locks
+   // the version row against a second node, but a server that holds the old
+   // schema in memory would go on running against a new one). Asked of the
+   // service controller, not assumed; a service that is not installed, or that
+   // cannot be queried, is not running.
+   {
+      bool serviceRunning = false;
+      SC_HANDLE manager = OpenSCManager(NULL, NULL, GENERIC_READ);
+      if (manager != NULL)
+      {
+         SC_HANDLE service = OpenService(manager, _T("hMailServer"), SERVICE_QUERY_STATUS);
+         if (service != NULL)
+         {
+            SERVICE_STATUS status;
+            memset(&status, 0, sizeof(status));
+            if (QueryServiceStatus(service, &status))
+               serviceRunning = status.dwCurrentState != SERVICE_STOPPED;
+            CloseServiceHandle(service);
+         }
+         CloseServiceHandle(manager);
+      }
+
+      if (serviceRunning)
+      {
+         std::fprintf(stderr, "The hMailServer service is running. Stop it first (Stop-Service hMailServer), then run this again; a server running against a schema this walk changes under it would not know. Nothing was changed.\n");
+         return 3;
+      }
    }
 
    HM::IniFileSettings::Instance()->LoadSettings();
@@ -547,9 +577,29 @@ TerminateServer()
    // treated as fatal either way - that is a defect whenever it happens.
    HM::CrashOracle::NotifyShutdownStarted();
 
+   // The stop now waits up to ShutdownDrainSeconds for the sessions and the
+   // deliveries in flight, with the listeners closed. The service controller has
+   // to be told how long that may take - a wait hint of zero, which this status
+   // carried until 23 September 2026, is the controller's default, after which
+   // Stop-Service, services.msc and a Windows shutdown report error 1053 while
+   // the drain is still honouring its window - and told, about once a second,
+   // that the stop is still progressing (the checkpoint), which the drain's
+   // wait loop does through the callback. The thirty seconds on top is the
+   // installer's own margin for the same wait.
+   ServiceStatus.dwWaitHint = (HM::IniFileSettings::Instance()->GetShutdownDrainSeconds() + 30) * 1000;
+   ServiceStatus.dwCheckPoint++;
    ReportServiceStatus(SERVICE_STOP_PENDING, 0);
 
+   HM::Application::Instance()->SetStopProgressCallback([]()
+   {
+      ServiceStatus.dwCheckPoint++;
+      if (ServiceStatusHandle != 0)
+         SetServiceStatus(ServiceStatusHandle, &ServiceStatus);
+   });
+
    HM::Application::Instance()->StopServers();
+
+   HM::Application::Instance()->SetStopProgressCallback(std::function<void()>());
 
    HM::Application::Instance()->ExitInstance();
 

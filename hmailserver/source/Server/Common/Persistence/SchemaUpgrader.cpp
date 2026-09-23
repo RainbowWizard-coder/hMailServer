@@ -178,6 +178,64 @@ namespace HM
             return outcome;
          }
 
+         // Two walkers on one database - two nodes of a warm-standby pair both
+         // starting with UpgradeOnStart, or a node and the command line - are
+         // serialised on the version row: the second blocks on the lock until
+         // the first commits, and then finds the step done and moves on. On the
+         // three backends with row locks the read is locked for the length of
+         // the transaction; Compact is one file with one writer and has nothing
+         // to lock against.
+         String lockStatement;
+         switch (type)
+         {
+         case DatabaseSettings::TypePGServer:
+         case DatabaseSettings::TypeMYSQLServer:
+            lockStatement = _T("select value from hm_dbversion for update");
+            break;
+         case DatabaseSettings::TypeMSSQLServer:
+            lockStatement = _T("select value from hm_dbversion with (updlock, holdlock)");
+            break;
+         default:
+            break;
+         }
+
+         if (!lockStatement.IsEmpty())
+         {
+            std::shared_ptr<DALRecordset> locked = connection->CreateRecordset();
+            if (!locked || !locked->Open(connection, SQLCommand(lockStatement)))
+            {
+               String rollbackError;
+               connection->RollbackTransaction(rollbackError);
+
+               outcome.failed_step = step;
+               outcome.error = _T("The version row could not be locked for the step.");
+               outcome.version = ReadSchemaVersion(connection);
+               return outcome;
+            }
+
+            const int lockedVersion = locked->IsEOF() ? 0 : (int) locked->GetLongValue("value");
+            if (lockedVersion != current)
+            {
+               // Another walker did this step while this one waited for the lock.
+               String rollbackError;
+               connection->RollbackTransaction(rollbackError);
+
+               report(Formatter::Format(_T("{0} -> {1}: already applied by another process; the database is at {2}."), current, next, lockedVersion));
+
+               if (lockedVersion <= current)
+               {
+                  outcome.failed_step = step;
+                  outcome.error = Formatter::Format(_T("The version row read {0} under the lock, which is not past {1}. Stopping rather than looping."), lockedVersion, current);
+                  outcome.version = lockedVersion;
+                  return outcome;
+               }
+
+               current = lockedVersion;
+               outcome.version = current;
+               continue;
+            }
+         }
+
          PrerequisiteList prerequisiteList;
          bool applied = prerequisiteList.Ensure(connection, next, error) &&
                         runner.ExecuteScript(connection, path, error);

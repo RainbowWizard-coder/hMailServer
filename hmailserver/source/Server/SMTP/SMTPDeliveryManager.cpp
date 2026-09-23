@@ -106,10 +106,11 @@ namespace HM
                continue;
             }
 
+            // Counted as processed by the task when it starts the delivery, not
+            // here: a task that a pause un-starts (DeliveryTask::DoWork) was
+            // handed out and never processed.
             std::shared_ptr<DeliveryTask> pDeliveryTask = std::shared_ptr<DeliveryTask>(new DeliveryTask(pMessage));
             WorkQueueManager::Instance()->AddTask(queue_id_, pDeliveryTask);
-
-            ServerStatus::Instance()->OnMessageProcessed();
          }
 
          deliver_messages_.WaitFor(boost::chrono::minutes(1));

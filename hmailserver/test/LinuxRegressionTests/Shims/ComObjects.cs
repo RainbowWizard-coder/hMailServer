@@ -29,6 +29,11 @@ namespace hMailServer
       public Settings Settings { get; } = new Settings();
       public Utilities Utilities { get; } = new Utilities();
       public Status Status { get; } = new Status();
+
+      // What the Windows interop exposes as Application.ServerState: the same
+      // number the status route answers, so a fixture reads it the same way on
+      // both benches (DrainAndUpgrade reads 5, hStateDraining, through it).
+      public eServerState ServerState => Status.State;
       public Domains Domains { get; } = new Domains();
       public Rules Rules { get; } = new Rules();
       public Links Links { get; } = new Links();

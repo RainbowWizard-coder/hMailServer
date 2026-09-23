@@ -178,14 +178,17 @@ cleanly.
 ## 5. Planned failover (maintenance)
 
 1. **Drain A:** `POST /api/v1/server/drain` on A (`manage_server`; the Deck's
-   session or the administrator password). A closes its SMTP, IMAP and POP3
-   listeners - a new connection is refused at the socket, which every MTA retries
-   on its own - pauses its delivery queue, and reports `/readyz` = 503
-   `draining`, so the load balancer stops sending it anything. The sessions and
-   deliveries in flight finish at their own pace; A's REST and metrics listeners
-   stay up throughout, so you can watch: `GET /api/v1/server/drain` until
-   `drained` is true. Nothing is cut, and nothing is accepted only to be cut,
-   which is what a plain stop with `ShutdownDrainSeconds` used to do.
+   session - its update view has a **Drain** button - or the administrator
+   password). A closes its SMTP, IMAP, POP3 and ManageSieve listeners - a new
+   connection is refused at the socket, which every MTA retries on its own -
+   pauses its delivery queue, and reports `/readyz` = 503 `draining`, so the
+   load balancer stops sending it anything. The sessions and deliveries in
+   flight finish at their own pace; A's REST, metrics and web-services listeners
+   stay up throughout (the Deck, the webmail, CalDAV and CardDAV keep answering;
+   see [Upgrading.md](Upgrading.md#an-upgrade-without-a-window) for what a
+   person sees), so you can watch: `GET /api/v1/server/drain` until `drained` is
+   true. Nothing is cut, and nothing is accepted only to be cut, which is what a
+   plain stop with `ShutdownDrainSeconds` used to do.
 2. **Stop A:** stop the hMailServer service on A. It finds the doors already
    closed and, with `ShutdownDrainSeconds` set, waits up to the window for anything
    still in flight - nothing, if `drained` was true - before shutting down. A
@@ -197,7 +200,11 @@ cleanly.
    schema, B refuses to start (`HM5011`) unless its `hMailServer.ini` says
    `[Database] UpgradeOnStart=1`, in which case B applies the chain at its own
    start - see [Upgrading.md](Upgrading.md#an-upgrade-without-a-window). Take the
-   database backup before this step, not after.
+   database backup before this step, not after. **One node at a time:** start B
+   and let it finish the chain before A's binaries are replaced and A is
+   started again; A then reads the new version and does nothing. Two nodes that
+   start together are serialised on the version row and the second finds each
+   step done, but a warm-standby pair should never need that.
 6. **Confirm:** send a test message through the VIP and confirm delivery; check
    `/healthz` reports `database: up` and `state: running`.
 

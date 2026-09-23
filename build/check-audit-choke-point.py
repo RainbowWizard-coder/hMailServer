@@ -147,6 +147,11 @@ ALLOWED = {
       "Common/Util/RestApiAccountRecovery.cpp",     # a recovery address set or cleared, and a set of recovery codes made
       "Common/Util/RestApiDirectory.cpp",           # somebody's directory opt-out set or cleared by another hand
       "Common/Util/RestApiAddressBooks.cpp",        # DELETE /api/v1/accounts/{address}/address-books/{id}/shares/{target}
+      # Maintenance mode ended by a stop of the servers - a service stop or a
+      # reinitialise - rather than by DELETE /api/v1/server/drain: the "left"
+      # that pairs the operator's "entered", recorded by the server under an
+      # actor of its own, because no request thread carries one there.
+      "Common/Application/Application.cpp",
    },
    "AuditTrail::SetActor(": {
       "Common/Util/AuditTrail.cpp",                 # AuditScope itself
@@ -254,6 +259,9 @@ REQUIRED = [
    ("Common/Util/RestApiServer.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("server"), _T("drain"), _T("left"),',
     "leaving maintenance mode over REST is no longer recorded - the half that says who put the server back"),
+   ("Common/Application/Application.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("server"), _T("drain"), _T("left"),',
+    "maintenance mode ended by a stop or a reinitialise is no longer recorded - an operator who drained a node would find it accepting again with an 'entered' and no 'left'"),
    ("COM/InterfaceBackup.cpp",
     'HM::AuditTrail::Instance()->RecordEvent(_T("backup"), backup_->GetBackupFile(), _T("restore started"),',
     "a restore started over COM is no longer recorded - the restore itself runs on the maintenance work queue with no actor on it, so the request is the only half that can be"),

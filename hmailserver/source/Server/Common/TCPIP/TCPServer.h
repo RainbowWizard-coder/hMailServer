@@ -46,6 +46,15 @@ namespace HM
       int GetPort() const { return port_; }
       const IPAddress &GetAddress() const { return ipaddress_; }
 
+      // Everything that touches acceptor_ after Run runs on this strand: the
+      // accept completion (HandleAccept, which re-posts the accept), and the
+      // close and reopen a drain dispatches. The io_context has as many threads
+      // as GetTCPIPThreads says, so "on the io thread" was never one thread -
+      // a close on one worker while another was re-arming the accept was a
+      // race on the acceptor's state. IOService dispatches StopAccept and
+      // RestartAccept onto this strand and nowhere else.
+      boost::asio::strand<boost::asio::io_context::executor_type> &GetStrand() { return strand_; }
+
    private:
       
       std::string GetPassword() const;
@@ -62,6 +71,10 @@ namespace HM
       bool InitInboundClientCertificateVerification_();
 
       std::shared_ptr<TCPConnectionFactory> connectionFactory_;
+
+      // Declared before acceptor_ so that it is constructed first; both are
+      // built from the io_context.
+      boost::asio::strand<boost::asio::io_context::executor_type> strand_;
 
       boost::asio::ip::tcp::acceptor acceptor_;
       boost::asio::ssl::context context_;

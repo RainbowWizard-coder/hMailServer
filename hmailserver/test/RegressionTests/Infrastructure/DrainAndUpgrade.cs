@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
@@ -26,6 +27,12 @@ namespace RegressionTests.Infrastructure
    ///    doors before it waits; and the delivery pause that lets a session in
    ///    flight finish and starts no other. Each with its negative control.
    ///
+   ///    The message a drain must hold is queued over the webmail's send route
+   ///    (POST /api/v1/me/messages), which writes into the delivery queue in
+   ///    process: the one way to hand the queue a message while the SMTP listener
+   ///    is closed, the path a person in the webmail takes during a drain, and the
+   ///    same call on the Windows bench and the Linux one.
+   ///
    ///    What is deliberately NOT here: [Database] UpgradeOnStart end to end. It
    ///    would need a second database at an older schema, and on this bench the
    ///    only way to make one in-process - Database.CreateInternalDatabase - writes
@@ -36,7 +43,8 @@ namespace RegressionTests.Infrastructure
    ///    where it was and naming the step.
    ///
    ///    The listener is the fixture's own, on the first port of the range this
-   ///    row was allocated (9866-9875); the metrics listener takes the second. The
+   ///    row was allocated (9866-9875); the metrics listener takes the second and
+   ///    the ManageSieve listener, for the one test that opens it, the third. The
    ///    service is the bench's, so every test that drains or stops it puts it back
    ///    Running in its own finally as well as in the teardown, which reinitialises
    ///    whatever a failure left.
@@ -46,7 +54,9 @@ namespace RegressionTests.Infrastructure
    {
       private static int RestPort = 9866;
       private const int MetricsPort = 9867;
+      private const int ManageSievePort = 9868;
       private const string AdminPassword = "testar";
+      private const string UserPassword = "test";
 
       // hStateDraining in hMailServer.idl. Compared as the number so that the
       // fixture builds against an interop generated before the enum gained it.
@@ -60,7 +70,7 @@ namespace RegressionTests.Infrastructure
       [SetUp]
       public void StartListeners()
       {
-         _account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "drain-user@example.test", "test");
+         _account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "drain-user@example.test", UserPassword);
 
          IniFileSetting.Write("MetricsServerPort", MetricsPort.ToString());
          RestPort = RestListener.Start(RestPort);
@@ -76,11 +86,13 @@ namespace RegressionTests.Infrastructure
          try
          {
             // Whatever a failed test left: a drain, a stopped server, a drain
-            // window, a delivery-thread ceiling, a route, queued messages.
+            // window, a delivery-thread ceiling, a ManageSieve listener, a route,
+            // queued messages.
             try { Admin("DELETE", "/api/v1/server/drain", null); } catch (Exception e) when (!ExceptionPolicy.IsFatal(e)) { }
             try { if ((int) _application.ServerState != StateRunning) _application.Start(); } catch (Exception e) when (!ExceptionPolicy.IsFatal(e)) { }
 
             IniFileSetting.Write("ShutdownDrainSeconds", "0");
+            IniFileSetting.Write("ManageSieveServerPort", "0");
             _settings.MaxDeliveryThreads = 50;
             DeleteRoutes_();
             TestSetup.DeleteMessagesInQueue();
@@ -232,15 +244,19 @@ namespace RegressionTests.Infrastructure
          }
       }
 
-      /// <summary>Queues one message for the remote domain over COM: the one way to hand the queue a message while the SMTP listener is closed.</summary>
-      private void QueueMessage_(string body)
+      /// <summary>
+      ///    Queues one message for the remote domain the way the webmail sends:
+      ///    POST /api/v1/me/messages with the account's own credential, which
+      ///    writes the message into the delivery queue in process. The REST
+      ///    listener stays up through a drain, so this is the one way to hand the
+      ///    queue a message while the SMTP listener is closed - and what a person
+      ///    in the webmail does during one.
+      /// </summary>
+      private void QueueMessage_(string subject)
       {
-         var message = new hMailServer.Message();
-         message.FromAddress = _account.Address;
-         message.AddRecipient("", "test@" + RemoteDomain);
-         message.Subject = body;
-         message.Body = body;
-         message.Save();
+         string json = "{\"to\":\"test@" + RemoteDomain + "\",\"subject\":\"" + subject + "\",\"text\":\"" + subject + "\"}";
+         (int status, string body) sent = RestRequest.Send("127.0.0.1", RestPort, "POST", "/api/v1/me/messages", Basic(_account.Address, UserPassword), json);
+         Assert.AreEqual(201, sent.status, "The webmail's send was refused. Body: " + sent.body);
       }
 
       private int QueuedForTheRemote_()
@@ -259,6 +275,73 @@ namespace RegressionTests.Infrastructure
          Match match = Regex.Match(json, "\"" + key + "\"\\s*:\\s*\"?([^\",}]*)\"?");
          Assert.IsTrue(match.Success, "No '" + key + "' in: " + json);
          return match.Groups[1].Value;
+      }
+
+      /// <summary>The audit rows for the drain, oldest first by their id - the route answers newest first.</summary>
+      private List<JsonElement> DrainAuditRows_()
+      {
+         (int status, string body) trail = Admin("GET", "/api/v1/audit?limit=200", null);
+         Assert.AreEqual(200, trail.status, trail.body);
+
+         using (JsonDocument document = JsonDocument.Parse(trail.body))
+         {
+            return document.RootElement.GetProperty("entries").EnumerateArray()
+               .Where(e => e.GetProperty("object_type").GetString() == "server" && e.GetProperty("object").GetString() == "drain")
+               .Select(e => e.Clone())
+               .OrderBy(e => e.GetProperty("id").GetInt64())
+               .ToList();
+         }
+      }
+
+      /// <summary>
+      ///    A raw ManageSieve session: the greeting read to its OK line. The
+      ///    listener is a blocking accept loop of its own, which is why the drain
+      ///    has to close it separately and why this fixture opens it.
+      /// </summary>
+      private sealed class ManageSieveSession : IDisposable
+      {
+         private readonly TcpClient _client = new TcpClient();
+         private NetworkStream _stream;
+         private readonly StringBuilder _received = new StringBuilder();
+
+         public string Connect()
+         {
+            _client.Connect("127.0.0.1", ManageSievePort);
+            _client.ReceiveTimeout = 5000;
+            _stream = _client.GetStream();
+            return ReadUntilOk_();
+         }
+
+         public string Send(string line)
+         {
+            byte[] bytes = Encoding.ASCII.GetBytes(line + "\r\n");
+            _stream.Write(bytes, 0, bytes.Length);
+            return ReadUntilOk_();
+         }
+
+         private string ReadUntilOk_()
+         {
+            _received.Clear();
+            byte[] buffer = new byte[4096];
+            DateTime deadline = DateTime.UtcNow.AddSeconds(5);
+            while (DateTime.UtcNow < deadline)
+            {
+               int read = _stream.Read(buffer, 0, buffer.Length);
+               if (read <= 0)
+                  break;
+               _received.Append(Encoding.ASCII.GetString(buffer, 0, read));
+               string text = _received.ToString();
+               if (text.Split(new[] { "\r\n" }, StringSplitOptions.None).Any(l => l.StartsWith("OK", StringComparison.Ordinal)))
+                  return text;
+            }
+            return _received.ToString();
+         }
+
+         public void Dispose()
+         {
+            try { _stream?.Dispose(); } catch (Exception e) when (!ExceptionPolicy.IsFatal(e)) { }
+            _client.Dispose();
+         }
       }
 
       // ---- maintenance mode ----------------------------------------------------
@@ -337,21 +420,64 @@ namespace RegressionTests.Infrastructure
 
          // A session works end to end again, which a refused port could not show.
          var again = new ImapClientSimulator();
-         Assert.IsTrue(again.ConnectAndLogon(_account.Address, "test"), "An IMAP logon after the drain failed.");
+         Assert.IsTrue(again.ConnectAndLogon(_account.Address, UserPassword), "An IMAP logon after the drain failed.");
          again.Disconnect();
 
          // Both halves are on the audit trail, in the actor's name.
-         (int status, string body) trail = Admin("GET", "/api/v1/audit?limit=200", null);
-         Assert.AreEqual(200, trail.status, trail.body);
-         using (JsonDocument document = JsonDocument.Parse(trail.body))
+         List<JsonElement> rows = DrainAuditRows_();
+         Assert.IsTrue(rows.Any(e => e.GetProperty("action").GetString() == "entered"), "No 'entered' event on the audit trail.");
+         Assert.IsTrue(rows.Any(e => e.GetProperty("action").GetString() == "left"), "No 'left' event on the audit trail.");
+         JsonElement enteredRow = rows.Last(e => e.GetProperty("action").GetString() == "entered");
+         StringAssert.Contains("1 session(s)", enteredRow.GetProperty("detail").GetString());
+         Assert.AreEqual("administrator", enteredRow.GetProperty("actor").GetString(), "The operator who entered the drain is not the actor.");
+      }
+
+      [Test]
+      [Description("The ManageSieve listener - an accept loop of its own, not one of the shared acceptors - is closed by the drain too: a new connection is refused while the session already open is counted and answers NOOP, and it accepts again once the drain is left.")]
+      public void MaintenanceModeClosesManageSieveToo()
+      {
+         IniFileSetting.Write("ManageSieveServerPort", ManageSievePort.ToString());
+         _application.Reinitialize();
+
+         try
          {
-            List<JsonElement> rows = document.RootElement.GetProperty("entries").EnumerateArray()
-               .Where(e => e.GetProperty("object_type").GetString() == "server" && e.GetProperty("object").GetString() == "drain")
-               .Select(e => e.Clone()).ToList();
-            Assert.IsTrue(rows.Any(e => e.GetProperty("action").GetString() == "entered"), "No 'entered' event on the audit trail: " + trail.body);
-            Assert.IsTrue(rows.Any(e => e.GetProperty("action").GetString() == "left"), "No 'left' event on the audit trail: " + trail.body);
-            JsonElement enteredRow = rows.Last(e => e.GetProperty("action").GetString() == "entered");
-            StringAssert.Contains("1 session(s)", enteredRow.GetProperty("detail").GetString());
+            // The negative control: open, and a session's greeting ends in OK.
+            AssertAccepted_(ManageSievePort, "Before the drain");
+
+            using (var sieve = new ManageSieveSession())
+            {
+               StringAssert.Contains("OK", sieve.Connect());
+
+               (int status, string body) entered = Admin("POST", "/api/v1/server/drain", "{}");
+               Assert.AreEqual(200, entered.status, entered.body);
+               JsonElement answer = JsonDocument.Parse(entered.body).RootElement;
+               Assert.AreEqual(1, answer.GetProperty("sessions").GetInt32(), "The open ManageSieve session is counted: " + entered.body);
+
+               try
+               {
+                  AssertRefused_(ManageSievePort, "During the drain");
+                  StringAssert.StartsWith("OK", sieve.Send("NOOP").TrimStart(), "The open ManageSieve session stopped answering during the drain.");
+                  Assert.IsFalse(Drain_().GetProperty("drained").GetBoolean(), "The ManageSieve session is open, so the drain is not complete.");
+               }
+               finally
+               {
+                  (int status, string body) left = Admin("DELETE", "/api/v1/server/drain", null);
+                  Assert.AreEqual(200, left.status, left.body);
+                  Assert.IsFalse(JsonDocument.Parse(left.body).RootElement.TryGetProperty("not_reopened", out JsonElement _), "The ManageSieve port did not reopen: " + left.body);
+               }
+            }
+
+            AssertAccepted_(ManageSievePort, "After the drain");
+            using (var again = new ManageSieveSession())
+               StringAssert.Contains("OK", again.Connect());
+
+            // And the count goes back down once the session has ended.
+            Assert.IsTrue(WaitFor_(() => Drain_().GetProperty("sessions").GetInt32() == 0, 10), "The ended ManageSieve session is still counted: " + Admin("GET", "/api/v1/server/drain", null).body);
+         }
+         finally
+         {
+            IniFileSetting.Write("ManageSieveServerPort", "0");
+            _application.Reinitialize();
          }
       }
 
@@ -390,7 +516,52 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
-      [Description("A message queued for a remote while draining is not delivered until the drain is left, and is delivered within seconds of that.")]
+      [Description("A port taken by something else while the listeners were closed is named in not_reopened when the drain is left - the rest reopen and delivery resumes - and a restart takes it back.")]
+      public void APortTakenDuringTheDrainIsNamedWhenTheDrainIsLeft()
+      {
+         Assert.AreEqual(200, Admin("POST", "/api/v1/server/drain", "{}").status);
+
+         // The IMAP port is free now, so something else can bind it - as a
+         // program started during the maintenance would. On the wildcard address
+         // the bench's acceptors bind: Windows lets a wildcard bind coexist with
+         // a loopback one, so a squatter on 127.0.0.1 alone would not be in the
+         // server's way.
+         var squatter = new TcpListener(IPAddress.Any, TestPorts.Imap);
+         squatter.Start();
+
+         try
+         {
+            (int status, string body) left = Admin("DELETE", "/api/v1/server/drain", null);
+            Assert.AreEqual(200, left.status, "The other ports reopen, so the drain is left: " + left.body);
+            JsonElement answer = JsonDocument.Parse(left.body).RootElement;
+            Assert.IsFalse(answer.GetProperty("draining").GetBoolean(), left.body);
+            Assert.IsTrue(answer.TryGetProperty("not_reopened", out JsonElement notReopened), "The taken port is not named: " + left.body);
+            Assert.IsTrue(notReopened.EnumerateArray().Any(p => (p.GetString() ?? "").EndsWith(":" + TestPorts.Imap)), "The IMAP port is not the one named: " + left.body);
+
+            // The rest are open, and the failure is on the error log by name.
+            AssertAccepted_(TestPorts.Smtp, "After the drain with one port taken");
+            AssertAccepted_(TestPorts.Pop3, "After the drain with one port taken");
+            Assert.AreEqual(409, Admin("DELETE", "/api/v1/server/drain", null).status, "The drain was left, so a second DELETE is 409.");
+            Assert.IsTrue(WaitFor_(() => LogHandler.ReadErrorLog().Contains("7150"), 10), "HM7150 is not on the error log.");
+         }
+         finally
+         {
+            squatter.Stop();
+
+            // The bind failures this test provoked (HM4316 for the acceptor, HM7150
+            // for the drain) are this test's, not a fault: cleared, or the next
+            // test's setup would refuse to run.
+            LogHandler.ReadAndDeleteErrorLog();
+
+            // A restart tries every port again - the negative control.
+            _application.Reinitialize();
+         }
+
+         AssertAccepted_(TestPorts.Imap, "After the restart");
+      }
+
+      [Test]
+      [Description("A message queued from the webmail while draining is not delivered until the drain is left, and is delivered within seconds of that.")]
       public void AQueuedMessageWaitsForTheDrainToEnd()
       {
          int port = TestSetup.GetNextFreePort();
@@ -403,6 +574,7 @@ namespace RegressionTests.Infrastructure
             Assert.AreEqual(200, Admin("POST", "/api/v1/server/drain", "{}").status);
             try
             {
+               // The webmail's send is accepted during the drain: its listener is up.
                QueueMessage_("Held for the drain");
 
                // Not started: no session at the simulator, the message in the
@@ -487,7 +659,7 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
-      [Description("A stop after a completed drain does not wait again: with a drain window set and nothing in flight, it returns at once.")]
+      [Description("A stop after a completed drain does not wait again: with a drain window set and nothing in flight, it returns at once - and the stop records the 'left' the operator's 'entered' was waiting for, as the server.")]
       public void AStopAfterACompletedDrainDoesNotWaitAgain()
       {
          IniFileSetting.Write("ShutdownDrainSeconds", "5");
@@ -495,6 +667,8 @@ namespace RegressionTests.Infrastructure
 
          try
          {
+            int leftBefore = DrainAuditRows_().Count(e => e.GetProperty("action").GetString() == "left");
+
             Assert.AreEqual(200, Admin("POST", "/api/v1/server/drain", "{}").status);
             Assert.IsTrue(WaitFor_(() => Drain_().GetProperty("drained").GetBoolean(), 10), "The drain did not complete with nothing open.");
 
@@ -503,7 +677,19 @@ namespace RegressionTests.Infrastructure
             timer.Stop();
 
             Assert.Less(timer.ElapsedMilliseconds, 2500, "A stop after a completed drain waited for the window again.");
-            StringAssert.Contains("Graceful shutdown: already drained; stopping now.", LogHandler.ReadCurrentDefaultLog());
+            string log = LogHandler.ReadCurrentDefaultLog();
+            StringAssert.Contains("Graceful shutdown: already drained; stopping now.", log);
+            StringAssert.Contains("Drain: ended by a stop of the servers", log);
+
+            // The 'left' a stop records, as the server: the operator's 'entered'
+            // is not left without its other half by a restart.
+            _application.Start();
+            List<JsonElement> lefts = DrainAuditRows_().Where(e => e.GetProperty("action").GetString() == "left").ToList();
+            Assert.AreEqual(leftBefore + 1, lefts.Count, "The stop did not record a 'left'.");
+            JsonElement byTheStop = lefts.Last();
+            Assert.AreEqual("server", byTheStop.GetProperty("actor").GetString(), "The 'left' a stop records is not the server's own.");
+            Assert.AreEqual("system", byTheStop.GetProperty("actor_type").GetString());
+            StringAssert.Contains("Ended by a stop", byTheStop.GetProperty("detail").GetString());
          }
          finally
          {

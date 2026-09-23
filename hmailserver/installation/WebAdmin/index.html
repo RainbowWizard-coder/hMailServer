@@ -1221,6 +1221,8 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="upcheck")updateAct("check");
   else if(d.act==="updownload")updateAct("download");
   else if(d.act==="upinstall")updateAct("install");
+  else if(d.act==="updrain")drainAct(true);
+  else if(d.act==="upresume")drainAct(false);
   else if(d.act==="dnscopy")navigator.clipboard.writeText($("#dnsPre").textContent).then(()=>toast(t("Copied to clipboard")));
   else if(d.act==="fldshow"){foldersFor=$("#fldAddress").value.trim();foldersPick=0;permEditing=null;render();}
   else if(d.act==="permsave")savePermission();
@@ -4334,6 +4336,9 @@ const UPDATE_STATES={0:K("Not checked since the service started"),1:K("Up to dat
 async function renderUpdate(){
   const v=await api("/api/v1/update");
   const state=Number(v.state)||0;
+  // Maintenance mode beside the update, because the update is what it is for:
+  // a reader sees the state, a server administrator has the two buttons.
+  const drain=may("view_configuration")?await api("/api/v1/server/drain"):null;
   const badge=state===1?"good":state===5?"bad":state===2||state===3?"info":"warn";
   const installer=v.installer||{};
   const downloaded=v.downloaded||{};
@@ -4346,6 +4351,12 @@ async function renderUpdate(){
     <p class="note">${escHtml(operation("/api/v1/update","get").description||"")}</p>
     <p class="note">${t("The server drains first: the listeners close and the delivery queue pauses while the sessions and deliveries in flight finish, then the service stops, installs and starts again.")}</p>
     <p><span class="badge ${badge}">${escHtml(t(UPDATE_STATES[state]||v.stateName||String(state)))}</span> ${v.releaseUrl?'<a href="'+escHtml(v.releaseUrl)+'" target="_blank" rel="noopener">'+t("Release notes")+'</a>':""}</p>
+    ${drain?`<h3 style="margin-top:14px">${t("Maintenance mode")}</h3>
+    <p class="note" id="drainState">${drain.draining?escHtml(tf("Draining since {0}: {1} session(s) and {2} delivery(ies) in flight.",drain.since||"",String(drain.sessions||0),String(drain.deliveries||0))):t("Not draining: the listeners are open.")}</p>
+    <div class="row" style="gap:8px">
+      ${may("manage_server")&&!drain.draining?`<button class="btn ghost" data-act="updrain">${t("Drain")}</button>`:""}
+      ${may("manage_server")&&drain.draining?`<button class="btn" data-act="upresume">${t("Resume")}</button>`:""}
+    </div>`:""}
     <div class="tablewrap"><table><tbody>${rows.map(r=>"<tr><td>"+escHtml(r[0])+"</td><td>"+escHtml(String(r[1]))+"</td></tr>").join("")}</tbody></table></div>
     ${apply?'<h3 style="margin-top:14px">'+t("The last install")+'</h3><div class="tablewrap"><table><tbody>'+apply+'</tbody></table></div>':""}
     <div class="row" style="margin-top:14px;gap:8px">
@@ -4355,6 +4366,15 @@ async function renderUpdate(){
     </div>
     <div class="err" id="err_update" style="margin-top:10px"></div>
     </div></div>`;
+}
+async function drainAct(enter){
+  setErr("err_update","");
+  if(enter&&!confirm(t("Close the SMTP, IMAP, POP3 and ManageSieve listeners and pause delivery? The sessions and deliveries in flight finish; the Deck, the webmail and the DAV services stay up. Resume reopens the listeners.")))return;
+  try{
+    await api("/api/v1/server/drain",enter?{method:"POST",body:"{}"}:{method:"DELETE"});
+    toast(enter?t("Draining"):t("Running"));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_update",e.message);}
 }
 async function updateAct(verb){
   setErr("err_update","");

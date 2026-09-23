@@ -109,17 +109,26 @@ section, because the difference matters when you plan.
 **The sequence.** Whether the live update runs it (`POST /api/v1/update/install`,
 `Status.InstallUpdate`, or the unattended window) or you do:
 
-1. **Drain.** The SMTP, IMAP and POP3 listeners are closed and the delivery queue
-   is paused. A connection attempted from now on is *refused at the socket* - not
-   accepted and then cut - which every MTA on the internet treats as "try again
-   later" and retries on its own schedule, so no mail is lost and no sender sees a
-   bounce. The sessions already open finish at their own pace; a delivery already
-   talking to a remote finishes, and a queued message not yet started stays in the
-   queue, unlocked. `/readyz` answers `503 not ready: draining`; the metrics
-   listener, the REST API and the web services stay up, so the Deck, a load
-   balancer's probe and the update helper can all still see the server. The
-   application log says `Drain: listeners closed; N session(s) and M
+1. **Drain.** The SMTP, IMAP, POP3 and ManageSieve listeners are closed and the
+   delivery queue is paused. A connection attempted from now on is *refused at the
+   socket* - not accepted and then cut - which every MTA on the internet treats as
+   "try again later" and retries on its own schedule, so no mail is lost and no
+   sender sees a bounce. The sessions already open finish at their own pace; a
+   delivery already talking to a remote finishes, and a queued message not yet
+   started stays in the queue, unlocked. `/readyz` answers `503 not ready:
+   draining`; the metrics listener, the REST API and the web services stay up, so
+   the Deck, a load balancer's probe and the update helper can all still see the
+   server. The application log says `Drain: listeners closed; N session(s) and M
    delivery(ies) in flight; ...`.
+
+   What a person sees, from the code: a mail client's IMAP, POP3 and SMTP
+   submission are refused and retried by the client, and so is a Sieve client on
+   ManageSieve; the **webmail keeps working** - it reads mail over the REST
+   listener in-process, and its send (`POST /api/v1/me/messages`) writes the
+   message into the delivery queue rather than opening an SMTP session, so a
+   message sent from it during the drain is accepted and waits, unlocked, in the
+   queue until the drain ends; **CalDAV and CardDAV** are served by the web-services
+   listener and keep answering; the Deck and every `/api/v1` route keep answering.
 2. **Stop.** The service stop finds the doors already closed and waits up to
    `ShutdownDrainSeconds` for what is still in flight (nothing, usually, by now:
    *a stop after a drain does not wait again for what has already drained*), then
@@ -142,7 +151,13 @@ section, because the difference matters when you plan.
    in the file, not the settings store, by necessity: it has to be read before the
    database is at a version this build can open. It is off by default. Nothing is
    backed up first - *Take a backup* above is the rule, and this is the step that
-   makes it matter.
+   makes it matter. **One node at a time:** set it on the node you start first; a
+   second node that starts against the same database reads the new version and
+   does nothing. Two nodes that do start together are serialised on the version
+   row - each step locks it (`select ... for update` on PostgreSQL and MySQL,
+   `with (updlock, holdlock)` on SQL Server) for the length of its transaction,
+   so the second blocks, then finds the step done and moves on - but that is the
+   net, not the plan.
 5. **Start.** `/readyz` answers 200 again once the database probe agrees, and the
    load balancer routes to the node again.
 
@@ -169,11 +184,20 @@ reason; so does `DELETE` when nothing is draining. `drained` is true once nothin
 is in flight, which is when a stop would be instantaneous. If a port cannot be
 reopened on `DELETE` - something else took it while the listeners were closed -
 the answer names it in `not_reopened`, the error log carries `HM7150`, and the rest
-are open; a restart tries every port again. The state shows as `draining` in
-`/healthz`, `hmailserver_state`, the Deck's dashboard, the Control Panel's status
-page and `Application.ServerState` (`hStateDraining`, 5). A live update refuses to
-apply while somebody else's drain is in progress ("already draining"): leave it,
-or wait for it to end, and apply again.
+are open; a restart tries every port again. If none could be reopened because the
+io threads did not answer, the state stays `draining` and `DELETE` answers `500`
+with the same document and `error: the listeners could not be reopened`, so that
+a `running` is never declared over closed ports; try again, or restart. The state
+shows as `draining` in `/healthz`, `hmailserver_state`, the Deck's dashboard and
+its update view (which carries **Drain** and **Resume** buttons), the Control
+Panel's status page and `Application.ServerState` (`hStateDraining`, 5). A live
+update refuses to apply while somebody else's drain is in progress ("already
+draining"): leave it, or wait for it to end, and apply again. **A reinitialise
+ends maintenance mode**: SIGHUP, the Control Panel's Reinitialize, `POST
+/api/v1/server/reinitialize`, a backup restore and an ACME deployment all stop
+and restart the servers in place, and the restarted servers accept again; the
+server records the `left` event itself (actor `server`), so the trail pairs your
+`entered` with what ended it.
 
 **On Windows, `hMailServer.exe --upgrade-database`** now runs the same chain from
 the command line, for all four backends, without DBUpdater's window or the
