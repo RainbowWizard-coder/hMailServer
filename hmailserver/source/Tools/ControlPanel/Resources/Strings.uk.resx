@@ -671,6 +671,9 @@
   <data name="A virus scanner that stops responding. ClamAV is contacted after the message is accepted, so a wedged clamd shows up as accepted-but-never-delivered. Each socket operation is bounded by ClamMinTimeout / ClamMaxTimeout - a deadline on one read or write, armed afresh each time, so a large message streamed in chunks can take longer than ClamMaxTimeout in total." xml:space="preserve">
     <value>Антивірусний сканер, який перестає відповідати. Звернення до ClamAV відбувається після прийняття повідомлення, тож заклинений clamd виглядає як «прийнято, але ніколи не доставлено». Кожна операція із сокетом обмежується ClamMinTimeout / ClamMaxTimeout — це граничний час на одне читання або записування, який відлічується заново щоразу, тож велике повідомлення, передане частинами, може загалом тривати довше за ClamMaxTimeout.</value>
   </data>
+  <data name="A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced." xml:space="preserve">
+    <value>Збережений шлях назад від профілю неможливо прочитати, тож його не можна повернути. Відкиньте його, щоб застосувати профіль; журнал аудиту називає кожне значення, яке замінив профіль.</value>
+  </data>
   <data name="ACL (shared folder permissions)" xml:space="preserve">
     <value>ACL (дозволи спільної папки)</value>
   </data>
@@ -1413,8 +1416,8 @@
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>_Застосовувати серверне фільтрування спаму до цього облікового запису</value>
   </data>
-  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
-    <value>Застосувати профіль {0}? Зараз зміняться параметри: {1}; їхні попередні значення збережуться, щоб їх можна було повернути.</value>
+  <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>Застосувати профіль {0}? Зміняться параметри: {1}; їхні попередні значення збережуться, щоб їх можна було повернути.</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>Не вдалося прочитати ArcSealingEnabled: {0}</value>
@@ -4181,8 +4184,8 @@
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Як цей сервер розв'язує запити MX, PTR, SPF, DKIM, DMARC і чорних списків (hMailServer.INI).</value>
   </data>
-  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
-    <value>Я п_ідтверджую позначені вище зміни: вони закривають службу прослуховування, довіряють діапазону адрес або вимикають фільтр на цьому сервері.</value>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept on this server - and what a shorter window deletes, a revert does not bring back." xml:space="preserve">
+    <value>Я п_ідтверджую позначені вище зміни: вони закривають службу прослуховування, довіряють діапазону адрес, вимикають фільтр або перевірку чи скорочують строк зберігання даних на цьому сервері - і те, що видалить коротший строк, повернення не відновить.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (push-пошта)</value>
@@ -4435,8 +4438,17 @@
   <data name="Keep seen/unseen state" xml:space="preserve">
     <value>Зберігати стан прочитано/непрочитано</value>
   </data>
+  <data name="Keep the _shipped settings" xml:space="preserve">
+    <value>Залишити пос_тачені параметри</value>
+  </data>
   <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
     <value>Залиште запис селектора «{0}», що виводиться, опублікованим до {1} для пошти, підписаної ним, яка ще в дорозі.</value>
+  </data>
+  <data name="Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later." xml:space="preserve">
+    <value>Залишити параметри, з якими постачається ця версія, і не застосовувати профіль? Контрольний список перестане питати; будь-який профіль можна застосувати й пізніше.</value>
+  </data>
+  <data name="Keep the shipped settings" xml:space="preserve">
+    <value>Залишити постачені параметри</value>
   </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>Щоб зберігати кілька поколінь повідомлень, потрібне стискання: без «Стискати файли призначення (zip)» кожне резервне копіювання записує файли повідомлень у ту саму папку DataBackup, перезаписуючи файли попереднього запуску, тож зберігання може утримувати покоління лише невеликих архівів параметрів і доменів.</value>
@@ -8137,6 +8149,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Sho_w me around" xml:space="preserve">
     <value>Е_кскурсія сервером</value>
   </data>
+  <data name="Shortens how long data is kept" xml:space="preserve">
+    <value>Скорочує строк зберігання даних</value>
+  </data>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Найкоротший рядок пошуку, на який відповідає індекс (3-64; коротші рядки відкочуються до сканування)</value>
   </data>
@@ -9460,6 +9475,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>Параметри, що обмежують кожен етап</value>
   </data>
+  <data name="The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server." xml:space="preserve">
+    <value>Параметри, з якими постачається ця версія, обрано {0}, і профіль не застосовувався; будь-який із чотирьох і далі можна порівняти з цим сервером.</value>
+  </data>
+  <data name="The shipped settings are kept; no profile is applied." xml:space="preserve">
+    <value>Постачені параметри збережено; профіль не застосовано.</value>
+  </data>
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>Єдине значення AEAD-ONLY (без урахування регістру) - це іменоване попереднє налаштування, а не рядок шифрів OpenSSL: лише набори AEAD з досконалою прямою секретністю (ECDHE або DHE з AES-GCM або ChaCha20-Poly1305), з виключенням усіх наборів у режимі CBC - родини оракула доповнення Lucky13 - і статичного обміну ключами RSA. Ціна: клієнти TLS 1.2, що говорять лише наборами CBC, не зможуть підключитися, а TLS 1.0/1.1 залишаються зовсім без придатного шифру, тому не вмикайте ці протоколи разом із ним. TLS 1.3 не зачіпається - його набори є AEAD за побудовою і налаштовуються окремо нижче. Ім'я попереднього налаштування з помилкою відхиляється і повідомляється, а не мовчки ігнорується.</value>
   </data>
@@ -9522,6 +9543,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Не вдалося відкрити вікі у браузері.</value>
+  </data>
+  <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again." xml:space="preserve">
+    <value>Профіль {0} не вдалося застосувати повністю {1}: частину його параметрів не записано. Поверніть записане або збережіть його й застосуйте профіль знову.</value>
   </data>
   <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
     <value>Профіль {0} застосовано. Те, що він замінив, збережено і може бути повернуто.</value>
@@ -9714,8 +9738,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Автоконфігурація Thunderbird + автовиявлення Outlook</value>
   </data>
-  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
-    <value>Спершу позначте підтвердження: цей профіль тут закриває службу прослуховування, довіряє діапазону адрес або вимикає фільтр.</value>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept here." xml:space="preserve">
+    <value>Спочатку позначте підтвердження: цей профіль тут закриває службу прослуховування, довіряє діапазону адрес, вимикає фільтр або перевірку чи скорочує строк зберігання даних.</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>Час</value>
@@ -9837,8 +9861,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Вимкнення цього зупиняє квитки сесій для всіх версій TLS: клієнти TLS 1.2 і старші відкочуються до серверного кешу сесій, який ніколи не покидає цей процес, а клієнтам TLS 1.3 квиток не надсилається взагалі. Для адміністратора, чия політика в тому, що ніщо, похідне від довгоживучого ключа, ніколи не виходить у мережу. Єдина ціна - ефективність поновлення: будь-який клієнт усе ще може підключитися з повним рукостисканням.</value>
   </data>
-  <data name="Turns a filter off" xml:space="preserve">
-    <value>Вимикає фільтр</value>
+  <data name="Turns a filter or a check off" xml:space="preserve">
+    <value>Вимикає фільтр або перевірку</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Два методи прив'язки, і різниця важливіша, ніж здається: один надсилає пароль у каталог, інший узагалі ніколи не випускає його в мережу.</value>
@@ -12309,11 +12333,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} не містить блоку сертифіката PEM, тому в ньому немає придатного сертифіката ЦС (помилка сервера 6140). Експортуйте сертифікат ЦС у форматі PEM (Base64).</value>
   </data>
-  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
-    <value>{0}: повернуто {1}, залишено як було {2}.</value>
+  <data name="{0}: {1} put back, {2} left as they were; {3} wait for a reinitialise and {4} for a restart." xml:space="preserve">
+    <value>{0}: повернуто {1}, залишено як було {2}; повторної ініціалізації чекають {3}, перезапуску {4}.</value>
   </data>
-  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
-    <value>{0}: задано {1}, без змін {2}, пропущено {3}.</value>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart." xml:space="preserve">
+    <value>{0}: встановлено {1}, без змін {2}, пропущено {3}; повторної ініціалізації чекають {4}, перезапуску {5}.</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1} антивірус вимкнено, тому пошта, зібрана {2} доставляється без сканування, хай що тут задано. Перемикач на обліковому записі збирання, а не на цій сторінці.{3}</value>

@@ -639,6 +639,8 @@ namespace hMailServer.ControlPanel.Services
          ["profile_applied"] = N("The {0} profile was applied on {1}."),
          ["profile_kept"] = N("The {0} profile was applied on {1}; its way back was discarded and its settings kept."),
          ["profile_reverted"] = N("The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced."),
+         ["profile_declined"] = N("The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server."),
+         ["profile_failed"] = N("The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again."),
          ["domain_none"] = N("No domain has been added yet."),
          ["domain_none_active"] = N("{0} domains, none of them active."),
          ["domain_count"] = N("Active domains: {0} of {1}."),

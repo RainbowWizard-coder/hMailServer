@@ -301,7 +301,7 @@ of the names every setting has:
 | `HM_ADMIN_PASSWORD`, `HM_ADMIN_PASSWORD_FILE` | `[Security] AdministratorPassword`, written as a hash by `--set-admin-password` |
 | `HM_INI` | where the file is |
 | `HM_CREATE_DATABASE`, `HM_UPGRADE_DATABASE` | whether the entrypoint runs `--create-database` and `--upgrade-database` |
-| `HM_PROFILE`, `HM_PROFILE_CONFIRM` | added with the setting profiles, and not settings either: the profile the entrypoint applies with `--apply-profile NAME --once` after the environment's settings, and whether it confirms an entry that closes a listener, trusts an address range or turns a filter off ([Profiles.md](Profiles.md)) |
+| `HM_PROFILE`, `HM_PROFILE_CONFIRM` | added with the setting profiles, and not settings either: the profile the entrypoint applies with `--apply-profile NAME --once` after the environment's settings and before the server starts - `none` to record that no profile is wanted - and whether it confirms an entry that closes a listener, trusts an address range, turns a filter or a check off or weakens it, or shortens a window of days ([Profiles.md](Profiles.md)) |
 
 An alias set to the empty string is unset, as the entrypoint always read it; an
 `HM_SETTING_` or `HM_PROPERTY_` set to the empty string stores the empty string.

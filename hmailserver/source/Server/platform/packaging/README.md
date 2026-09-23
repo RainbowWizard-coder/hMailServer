@@ -735,15 +735,20 @@ entrypoint, the chart, the Compose file and this README mention to a setting.
 `HM_PROFILE` names one of the four setting profiles -
 `office`, `gateway`, `relay` or `sender` (`hmailserver/docs/Profiles.md`) - and the
 entrypoint applies it with `hmailserver --apply-profile NAME --once` after the
-environment's settings are stored: every entry checked, the values it changes
-saved as the way back, and each written through the setter the REST settings
-route runs, one line each in the log. `--once` does nothing on a database a
-profile has been applied to before, so a restart - or a start after an
-administrator reverted the profile in the Deck - leaves the settings alone. A
-setting the environment manages is skipped and said to be. A profile that closes
-a listener (relay and sender close IMAP and POP3), trusts an address range or
-turns a filter off (gateway) asks for a confirmation, which `HM_PROFILE_CONFIRM=yes`
-gives; without it nothing is applied and the container does not start, with the
-entries named. Like the environment verb, this has been compiled and not yet run
-in a container.
+environment's settings are stored and before the server starts: every entry
+checked, the values it changes saved as the way back, and each written through the
+setter the REST settings route runs, one line each in the log. `HM_PROFILE=none`
+records that no profile is wanted, so the checklist stops asking. `--once` does
+nothing on a database something was recorded for before, so a restart - or a start
+after an administrator reverted the profile in the Deck - leaves the settings
+alone; an apply that failed part way is tried again at the next start, which is
+refused while the way back it left is held, and says so. A setting the environment
+manages is skipped and said to be. A profile that closes a listener (relay and
+sender close IMAP and POP3), trusts an address range (gateway trusts XCLIENT and
+ARC), turns a filter or a check off or weakens it (gateway turns greylisting off),
+or shortens a window of days in force asks for a confirmation, which
+`HM_PROFILE_CONFIRM=yes` gives; without it nothing is applied and the container does
+not start, with the entries named. The entrypoint's `HM_PROFILE` and the POSIX verb
+have been written and read; neither has been compiled for Linux or run in a
+container.
 

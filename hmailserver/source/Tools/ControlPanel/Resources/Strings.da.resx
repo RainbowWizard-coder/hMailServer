@@ -671,6 +671,9 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="A virus scanner that stops responding. ClamAV is contacted after the message is accepted, so a wedged clamd shows up as accepted-but-never-delivered. Each socket operation is bounded by ClamMinTimeout / ClamMaxTimeout - a deadline on one read or write, armed afresh each time, so a large message streamed in chunks can take longer than ClamMaxTimeout in total." xml:space="preserve">
     <value>En virusscanner, der holder op med at svare. ClamAV kontaktes, efter at meddelelsen er accepteret, så en fastlåst clamd viser sig som accepteret-men-aldrig-leveret. Hver socket-handling er begrænset af ClamMinTimeout / ClamMaxTimeout – en frist for én læsning eller skrivning, som armeres på ny hver gang, så en stor meddelelse, der streames i bidder, kan tage længere tid end ClamMaxTimeout i alt.</value>
   </data>
+  <data name="A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced." xml:space="preserve">
+    <value>En vej tilbage fra en profil er gemt og kan ikke læses, så den kan ikke sættes tilbage. Kassér den for at anvende en profil; revisionssporet nævner hver værdi, profilen erstattede.</value>
+  </data>
   <data name="ACL (shared folder permissions)" xml:space="preserve">
     <value>ACL (tilladelser for delte mapper)</value>
   </data>
@@ -1413,8 +1416,8 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Anvend serverens spam_filtrering på denne konto</value>
   </data>
-  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
-    <value>Anvend profilen {0}? {1} indstillinger ændres nu, og det, de havde, gemmes, så det kan sættes tilbage.</value>
+  <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>Anvend profilen {0}? {1} indstillinger ændres, og det, de havde, gemmes, så det kan sættes tilbage.</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled kunne ikke læses: {0}</value>
@@ -4181,8 +4184,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Hvordan denne server slår MX, PTR, SPF, DKIM, DMARC og sortlister op (hMailServer.INI).</value>
   </data>
-  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
-    <value>Jeg be_kræfter ændringerne markeret ovenfor: de lukker en lytter, stoler på et adresseområde eller slår et filter fra på denne server.</value>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept on this server - and what a shorter window deletes, a revert does not bring back." xml:space="preserve">
+    <value>Jeg be_kræfter ændringerne markeret ovenfor: de lukker en lytter, stoler på et adresseområde, slår et filter eller en kontrol fra eller forkorter, hvor længe data gemmes på denne server - og hvad et kortere vindue sletter, bringer en tilbagesætning ikke tilbage.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (push-mail)</value>
@@ -4435,8 +4438,17 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Keep seen/unseen state" xml:space="preserve">
     <value>Behold set/ulæst-tilstand</value>
   </data>
+  <data name="Keep the _shipped settings" xml:space="preserve">
+    <value>Behold de _leverede indstillinger</value>
+  </data>
   <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
     <value>Lad posten for den selector, der udfases, "{0}", være udgivet indtil {1}, til post, der er signeret med den og stadig er undervejs.</value>
+  </data>
+  <data name="Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later." xml:space="preserve">
+    <value>Behold de indstillinger, denne version leveres med, og anvend ingen profil? Tjeklisten holder op med at spørge; enhver profil kan stadig anvendes senere.</value>
+  </data>
+  <data name="Keep the shipped settings" xml:space="preserve">
+    <value>Behold de leverede indstillinger</value>
   </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>At beholde flere generationer af meddelelser kræver komprimering: uden 'Komprimér destinationsfiler (zip)' skriver hver sikkerhedskopiering sine meddelelsesfiler til den samme DataBackup-mappe og overskriver den forrige kørsels, så opbevaringen kan kun beholde generationer af de små arkiver med indstillinger og domæner.</value>
@@ -8137,6 +8149,9 @@ Genstart den nu?</value>
   <data name="Sho_w me around" xml:space="preserve">
     <value>V_is mig rundt</value>
   </data>
+  <data name="Shortens how long data is kept" xml:space="preserve">
+    <value>Forkorter, hvor længe data gemmes</value>
+  </data>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Korteste søgestreng, indekset svarer på (3-64; kortere strenge falder tilbage til scanningen)</value>
   </data>
@@ -9460,6 +9475,12 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>De indstillinger, der begrænser hvert trin</value>
   </data>
+  <data name="The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server." xml:space="preserve">
+    <value>Indstillingerne, denne version leveres med, blev valgt {0}, og ingen profil blev anvendt; enhver af de fire kan stadig sammenlignes med denne server.</value>
+  </data>
+  <data name="The shipped settings are kept; no profile is applied." xml:space="preserve">
+    <value>De leverede indstillinger beholdes; ingen profil er anvendt.</value>
+  </data>
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>Den enkeltstående værdi AEAD-ONLY (uden forskel på store og små bogstaver) er en navngivet forudindstilling snarere end en OpenSSL-cipher-streng: kun forward-secret AEAD-suiter (ECDHE eller DHE med AES-GCM eller ChaCha20-Poly1305), med udelukkelse af alle suiter i CBC-tilstand - Lucky13-familien af padding-oracle-angreb - og statisk RSA-nøgleudveksling. Prisen: TLS 1.2-klienter, der kun taler CBC-suiter, kan ikke forbinde, og TLS 1.0/1.1 står tilbage uden nogen brugbar cipher overhovedet, så aktivér ikke de protokoller sammen med den. TLS 1.3 påvirkes ikke - dens suiter er AEAD af konstruktion og konfigureres separat nedenfor. Et forkert stavet forudindstillingsnavn afvises og rapporteres, ikke ignoreres stille.</value>
   </data>
@@ -9522,6 +9543,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Wikien kunne ikke åbnes i en browser.</value>
+  </data>
+  <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again." xml:space="preserve">
+    <value>Profilen {0} kunne ikke anvendes fuldt ud {1}: nogle af dens indstillinger blev ikke skrevet. Sæt det, den skrev, tilbage, eller behold det, og anvend den igen.</value>
   </data>
   <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
     <value>Profilen {0} er anvendt. Det, den erstattede, er gemt og kan sættes tilbage.</value>
@@ -9714,8 +9738,8 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbird autoconfig + Outlook autodiscover</value>
   </data>
-  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
-    <value>Sæt først kryds i bekræftelsen: denne profil lukker en lytter, stoler på et adresseområde eller slår et filter fra her.</value>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept here." xml:space="preserve">
+    <value>Sæt først kryds ved bekræftelsen: denne profil lukker en lytter, stoler på et adresseområde, slår et filter eller en kontrol fra eller forkorter, hvor længe data gemmes her.</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>Tid</value>
@@ -9837,8 +9861,8 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Slås dette fra, stopper session tickets på alle TLS-versioner: TLS 1.2 og ældre klienter falder tilbage til serversidens sessionscache, som aldrig forlader denne proces, og TLS 1.3-klienter får slet ingen ticket. For en administrator, hvis politik er, at intet afledt af en langlivet nøgle nogensinde går over ledningen. Den eneste omkostning er effektiviteten ved genoptagelse - enhver klient kan stadig forbinde med et fuldt handshake.</value>
   </data>
-  <data name="Turns a filter off" xml:space="preserve">
-    <value>Slår et filter fra</value>
+  <data name="Turns a filter or a check off" xml:space="preserve">
+    <value>Slår et filter eller en kontrol fra</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>To bindingsmetoder, og forskellen betyder mere, end det ser ud: den ene sender adgangskoden til kataloget, den anden sætter den aldrig på ledningen overhovedet.</value>
@@ -12309,11 +12333,11 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} indeholder ingen PEM-certifikatblok, så den rummer intet brugbart CA-certifikat (serverfejl 6140). Eksportér CA-certifikatet i PEM-format (Base64).</value>
   </data>
-  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
-    <value>{0}: {1} sat tilbage, {2} ladet være som de var.</value>
+  <data name="{0}: {1} put back, {2} left as they were; {3} wait for a reinitialise and {4} for a restart." xml:space="preserve">
+    <value>{0}: {1} sat tilbage, {2} ladet være som de var; {3} venter på en geninitialisering og {4} på en genstart.</value>
   </data>
-  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
-    <value>{0}: {1} sat, {2} uændrede, {3} sprunget over.</value>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart." xml:space="preserve">
+    <value>{0}: {1} sat, {2} uændret, {3} sprunget over; {4} venter på en geninitialisering og {5} på en genstart.</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1} antivirus slået fra, så post, der afhentes af {2}, leveres uscannet, uanset hvad der er sat her. Kontakten sidder på afhentningskontoen, ikke på denne side.{3}</value>

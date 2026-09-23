@@ -36,6 +36,8 @@
 //   profile_applied          The {0} profile was applied on {1}.
 //   profile_kept             ... applied on {1}; its way back was discarded.
 //   profile_reverted         ... applied and then reverted on {1}.
+//   profile_declined         The shipped settings were chosen on {0}.
+//   profile_failed           The {0} profile could not be applied in full on {1}.
 //   domain_none              No domain has been added yet.
 //   domain_none_active       {0} domains, none of them active.
 //   domain_count             Active domains: {0} of {1}.
@@ -107,6 +109,7 @@
 #include "../BO/TCPIPPort.h"
 #include "../BO/TCPIPPorts.h"
 #include "../SQL/DALRecordset.h"
+#include "../SQL/DatabaseConnectionManager.h"
 #include "../SQL/SQLCommand.h"
 #include "../TCPIP/DNSResolver.h"
 
@@ -173,6 +176,8 @@ namespace HM
             { "profile_applied", "The {0} profile was applied on {1}." },
             { "profile_kept", "The {0} profile was applied on {1}; its way back was discarded and its settings kept." },
             { "profile_reverted", "The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced." },
+            { "profile_declined", "The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server." },
+            { "profile_failed", "The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again." },
             { "domain_none", "No domain has been added yet." },
             { "domain_none_active", "{0} domains, none of them active." },
             { "domain_count", "Active domains: {0} of {1}." },
@@ -392,8 +397,11 @@ namespace HM
       // sample is there. excludeDomainId is 0 when it is not, and the statement
       // is then the one this has always asked.
       long long
-      CountAccounts(__int64 excludeDomainId)
+      CountAccounts(__int64 excludeDomainId, bool *counted = nullptr)
       {
+         if (counted)
+            *counted = false;
+
          SQLCommand command(excludeDomainId == 0
             ? _T("select count(*) as accountcount from hm_accounts")
             : _T("select count(*) as accountcount from hm_accounts where accountdomainid <> @DOMAINID"));
@@ -401,9 +409,13 @@ namespace HM
          if (excludeDomainId != 0)
             command.AddParameter("@DOMAINID", excludeDomainId);
 
-         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+         std::shared_ptr<DatabaseConnectionManager> database = Application::Instance()->GetDBManager();
+         std::shared_ptr<DALRecordset> recordset = database ? database->OpenRecordset(command) : std::shared_ptr<DALRecordset>();
          if (!recordset || recordset->IsEOF())
             return 0;
+
+         if (counted)
+            *counted = true;
          return recordset->GetInt64Value("accountcount");
       }
 
@@ -470,13 +482,17 @@ namespace HM
          __int64 changed = 0;
          Profiles::ReadApplied(profile, applied, state, changed);
 
-         if (profile.IsEmpty())
+         if (profile.IsEmpty() && state == _T("declined"))
+            Add(profileItem, StateNotNeeded, "profile_declined", { UtcDate(changed) });
+         else if (profile.IsEmpty())
          {
             if (accounts < YoungAccountLimit)
                Add(profileItem, StateActionNeeded, "profile_none");
             else
                Add(profileItem, StateNotNeeded, "profile_in_service", { Number(accounts) });
          }
+         else if (state == _T("failed"))
+            Add(profileItem, StateActionNeeded, "profile_failed", { Utf8(profile), UtcDate(applied) });
          else if (state == _T("reverted"))
             Add(profileItem, StateNotNeeded, "profile_reverted", { Utf8(profile), UtcDate(changed) });
          else if (state == _T("kept"))
@@ -657,5 +673,12 @@ namespace HM
       }
       json += "]}";
       return json;
+   }
+
+   bool
+   SetupChecklist::IsYoungServer(long long &accounts, bool &counted)
+   {
+      accounts = CountAccounts(SampleDomain::PresentDomainId(), &counted);
+      return counted && accounts < YoungAccountLimit;
    }
 }

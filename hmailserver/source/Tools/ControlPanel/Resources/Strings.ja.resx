@@ -671,6 +671,9 @@
   <data name="A virus scanner that stops responding. ClamAV is contacted after the message is accepted, so a wedged clamd shows up as accepted-but-never-delivered. Each socket operation is bounded by ClamMinTimeout / ClamMaxTimeout - a deadline on one read or write, armed afresh each time, so a large message streamed in chunks can take longer than ClamMaxTimeout in total." xml:space="preserve">
     <value>ウイルス スキャナーが応答しなくなった場合です。ClamAV にはメッセージを受け入れた後で接続するため、clamd が固まると「受け入れられたのに決して配信されない」という形で現れます。各ソケット操作は ClamMinTimeout / ClamMaxTimeout によって制限されます。これは 1 回の読み取りまたは書き込みに対する期限で、毎回あらためて設定されるため、分割して送られる大きなメッセージは、合計では ClamMaxTimeout より長くかかることがあります。</value>
   </data>
+  <data name="A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced." xml:space="preserve">
+    <value>プロファイルの元に戻す手段が保存されていますが読み取れないため、元に戻せません。プロファイルを適用するには破棄してください。監査証跡に、プロファイルが置き換えた各値が記録されています。</value>
+  </data>
   <data name="ACL (shared folder permissions)" xml:space="preserve">
     <value>ACL (共有フォルダーのアクセス許可)</value>
   </data>
@@ -1413,8 +1416,8 @@
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>このアカウントにサーバーのスパム フィルタリングを適用する(_F)</value>
   </data>
-  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
-    <value>プロファイル {0} を適用しますか? {1} 個の設定がいま変わり、元の値は戻せるよう保存されます。</value>
+  <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>プロファイル {0} を適用しますか? {1} 個の設定が変わり、元の値は戻せるよう保存されます。</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled を読み取れませんでした: {0}</value>
@@ -4181,8 +4184,8 @@
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>このサーバーが MX、PTR、SPF、DKIM、DMARC、ブラックリストの参照をどう解決するか (hMailServer.INI)。</value>
   </data>
-  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
-    <value>上で印の付いた変更を確認します: これらはこのサーバーでリスナーを閉じる、アドレス範囲を信頼する、またはフィルターをオフにします(_C)</value>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept on this server - and what a shorter window deletes, a revert does not bring back." xml:space="preserve">
+    <value>上で印の付いた変更を確認します: これらはこのサーバーでリスナーを閉じる、アドレス範囲を信頼する、フィルターやチェックをオフにする、またはデータの保持期間を短くします。短くなった期間で削除されたものは、元に戻しても戻りません(_C)</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (プッシュ メール)</value>
@@ -4435,8 +4438,17 @@
   <data name="Keep seen/unseen state" xml:space="preserve">
     <value>既読/未読の状態を保持する</value>
   </data>
+  <data name="Keep the _shipped settings" xml:space="preserve">
+    <value>出荷時の設定を保持(_S)</value>
+  </data>
   <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
     <value>廃止中のセレクター「{0}」のレコードは、そのセレクターで署名されてまだ配送途中のメールのために、{1} まで公開したままにしてください。</value>
+  </data>
+  <data name="Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later." xml:space="preserve">
+    <value>このバージョンの出荷時の設定を保持し、プロファイルを適用しませんか? チェックリストは尋ねなくなります。どのプロファイルも後から適用できます。</value>
+  </data>
+  <data name="Keep the shipped settings" xml:space="preserve">
+    <value>出荷時の設定を保持</value>
   </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>メッセージを複数世代保持するには圧縮が必要です。「宛先ファイルを圧縮する (zip)」がないと、すべてのバックアップがメッセージ ファイルを同じ DataBackup フォルダーに書き込み、前回の実行分を上書きするため、保持機能は小さな設定とドメインのアーカイブの世代しか保持できません。</value>
@@ -8137,6 +8149,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Sho_w me around" xml:space="preserve">
     <value>サーバーの案内(_W)</value>
   </data>
+  <data name="Shortens how long data is kept" xml:space="preserve">
+    <value>データの保持期間を短くする</value>
+  </data>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>インデックスが応答する最短の検索文字列 (3～64。これより短い文字列はスキャンにフォールバック)</value>
   </data>
@@ -9460,6 +9475,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>各ステージを制限する設定</value>
   </data>
+  <data name="The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server." xml:space="preserve">
+    <value>このバージョンの出荷時の設定が {0} に選ばれ、プロファイルは適用されていません。4 つのどれでも、このサーバーと比較できます。</value>
+  </data>
+  <data name="The shipped settings are kept; no profile is applied." xml:space="preserve">
+    <value>出荷時の設定を保持しました。プロファイルは適用されていません。</value>
+  </data>
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>単一の値 AEAD-ONLY (大文字小文字を区別しない) は OpenSSL の暗号スイート文字列ではなく、名前付きプリセットです。前方秘匿性のある AEAD スイートのみ (AES-GCM または ChaCha20-Poly1305 を使う ECDHE または DHE) で、すべての CBC モード スイート (Lucky13 パディング オラクル系) と静的 RSA 鍵交換を除外します。代償として、CBC スイートしか話せない TLS 1.2 クライアントは接続できず、TLS 1.0/1.1 には使える暗号がまったく残らないため、これらのプロトコルを同時に有効にしないでください。TLS 1.3 は影響を受けません。そのスイートは構造上 AEAD であり、下で別途設定します。プリセット名のスペル ミスは黙って無視されず、拒否されて報告されます。</value>
   </data>
@@ -9522,6 +9543,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Wiki をブラウザーで開けませんでした。</value>
+  </data>
+  <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again." xml:space="preserve">
+    <value>プロファイル {0} を {1} に完全には適用できませんでした: 一部の設定が書き込まれていません。書き込まれたものを元に戻すか保持してから、もう一度適用してください。</value>
   </data>
   <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
     <value>プロファイル {0} が適用されています。置き換えたものは保存されており、元に戻せます。</value>
@@ -9714,8 +9738,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbird autoconfig + Outlook autodiscover</value>
   </data>
-  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
-    <value>先に確認にチェックを入れてください: このプロファイルはここでリスナーを閉じる、アドレス範囲を信頼する、またはフィルターをオフにします。</value>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept here." xml:space="preserve">
+    <value>先に確認のチェックを入れてください: このプロファイルはここでリスナーを閉じる、アドレス範囲を信頼する、フィルターやチェックをオフにする、またはデータの保持期間を短くします。</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>時刻</value>
@@ -9837,8 +9861,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>これをオフにすると、すべての TLS バージョンでセッション チケットが停止します。TLS 1.2 以前のクライアントは、このプロセスから決して出ないサーバー側セッション キャッシュにフォールバックし、TLS 1.3 クライアントにはチケットがまったく送られません。長期の鍵から派生したものは何もネットワークに流さない、というポリシーの管理者向けです。唯一の代償は再開の効率で、どのクライアントもフル ハンドシェイクで接続できます。</value>
   </data>
-  <data name="Turns a filter off" xml:space="preserve">
-    <value>フィルターをオフにする</value>
+  <data name="Turns a filter or a check off" xml:space="preserve">
+    <value>フィルターまたはチェックをオフにする</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>2 つのバインド方式があり、その違いは見た目以上に重要です。一方はパスワードをディレクトリに送信し、もう一方はパスワードをネットワークにまったく流しません。</value>
@@ -12309,11 +12333,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} には PEM 証明書ブロックが含まれていないため、使用できる CA 証明書がありません (サーバー エラー 6140)。CA 証明書を PEM (Base64) 形式でエクスポートしてください。</value>
   </data>
-  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
-    <value>{0}: {1} 個を元に戻し、{2} 個はそのままにしました。</value>
+  <data name="{0}: {1} put back, {2} left as they were; {3} wait for a reinitialise and {4} for a restart." xml:space="preserve">
+    <value>{0}: {1} 個を元に戻し、{2} 個はそのままにしました。{3} 個は再初期化まで、{4} 個は再起動まで待ちます。</value>
   </data>
-  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
-    <value>{0}: {1} 個を設定、{2} 個は変更なし、{3} 個はスキップ。</value>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart." xml:space="preserve">
+    <value>{0}: {1} 個を設定、{2} 個は変更なし、{3} 個をスキップ。{4} 個は再初期化まで、{5} 個は再起動まで待ちます。</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1}ウイルス対策が無効になっているため、{2}収集したメールは、ここでの設定にかかわらずスキャンされずに配信されます。このスイッチはこのページではなく、取り込みアカウント側にあります。{3}</value>

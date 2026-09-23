@@ -24,6 +24,10 @@ namespace HM
       String GetStringValue() const {return string_value_; }
       void SetStringValue(const String &NewVal);
 
+      // The row written first, and the value taken only when the database took it:
+      // false, with the value as it was, when the write failed.
+      bool TrySetStringValue(const String &NewVal);
+
       bool GetBoolValue() const {return long_value_ ? true : false; }
       void SetBoolValue(bool NewVal);
 

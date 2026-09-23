@@ -244,6 +244,23 @@ namespace HM
    }
 
    bool
+   PropertySet::WriteBookkeeping(const String &sPropertyName, const String &sValue)
+   {
+      if (!Contains(sPropertyName))
+      {
+         std::shared_ptr<Property> oProperty = std::shared_ptr<Property>(new Property(sPropertyName, 0, String()));
+         if (!oProperty->TrySetStringValue(sValue))
+            return false;
+
+         items_[sPropertyName] = oProperty;
+         return true;
+      }
+
+      std::shared_ptr<Property> pProperty = GetProperty_(sPropertyName);
+      return pProperty->TrySetStringValue(sValue);
+   }
+
+   bool
    PropertySet::Contains(const String &sPropertyName) const
    {
       return items_.find(sPropertyName) != items_.end();

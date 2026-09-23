@@ -17,17 +17,19 @@ namespace hMailServer.ControlPanel.Views
 {
    /// <summary>
    /// The setting profiles (hmailserver/docs/Profiles.md): the profile in effect,
-   /// each profile's diff against this server, and apply, put back and discard -
-   /// over Settings.GetProfiles, GetProfile, ApplyProfile, RevertProfile and
-   /// DiscardProfileSnapshot, the same documents the Deck reads over
-   /// /api/v1/settings/profiles, made by the same code on the server.
+   /// each profile's diff against this server, and apply, put back, discard and
+   /// keeping the shipped settings - over Settings.GetProfiles, GetProfile,
+   /// ApplyProfile, RevertProfile, DiscardProfileSnapshot and DeclineProfiles, the
+   /// same documents the Deck reads over /api/v1/settings/profiles, made by the same
+   /// code on the server.
    ///
    /// The page decides nothing. The server answers each entry with the value it
    /// holds now, whether applying would change it and whether that change closes a
-   /// listener, trusts an address range or turns a filter off; the apply is sent
-   /// with the confirmation only when the box under the diff is ticked, and the
-   /// server refuses it without one where one is needed. The profiles' titles,
-   /// paragraphs and reasons are the server's own English.
+   /// listener, trusts an address range, turns a filter or a check off, or shortens
+   /// how long data is kept; the apply is sent with the confirmation only when the
+   /// box under the diff is ticked, and always with the diff's token, so that the
+   /// server refuses it when the settings moved since the diff was drawn. The
+   /// profiles' titles, paragraphs, reasons and notes are the server's own English.
    /// </summary>
    public class ProfilesView : UserControl, IPageLifecycle
    {
@@ -49,7 +51,7 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBlock steps_ = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0) };
       private readonly CheckBox confirm_ = new()
       {
-         Content = L("I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server."),
+         Content = L("I _confirm the changes marked above: they close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept on this server - and what a shorter window deletes, a revert does not bring back."),
          Margin = new Thickness(0, 8, 0, 0),
          Visibility = Visibility.Collapsed
       };
@@ -57,8 +59,14 @@ namespace hMailServer.ControlPanel.Views
       private Wpf.Ui.Controls.Button apply_;
       private Wpf.Ui.Controls.Button revert_;
       private Wpf.Ui.Controls.Button discard_;
+      private Wpf.Ui.Controls.Button decline_;
 
       private string snapshotProfile_ = "";
+      // A way back is held, readable or not: one that cannot be read can only be
+      // discarded, and discarding it is the only way to apply a profile again.
+      private bool snapshotHeld_;
+      private bool snapshotReadable_;
+      private string diffToken_ = "";
       private int changes_;
       private bool needsConfirmation_;
       private bool loading_;
@@ -117,7 +125,8 @@ namespace hMailServer.ControlPanel.Views
       {
          "closes_listener" => L("Closes a listener"),
          "trusts_addresses" => L("Trusts an address range"),
-         "turns_filter_off" => L("Turns a filter off"),
+         "turns_filter_off" => L("Turns a filter or a check off"),
+         "purges" => L("Shortens how long data is kept"),
          _ => caution
       };
 
@@ -161,8 +170,14 @@ namespace hMailServer.ControlPanel.Views
             profiles_.SelectedItem = choices.Find(c => c.Name == previous) ?? (choices.Count > 0 ? choices[0] : null);
 
             snapshotProfile_ = "";
+            snapshotHeld_ = false;
+            snapshotReadable_ = false;
             if (root.TryGetProperty("snapshot", out JsonElement snapshot) && snapshot.ValueKind == JsonValueKind.Object)
+            {
+               snapshotHeld_ = true;
                snapshotProfile_ = Text_(snapshot, "profile");
+               snapshotReadable_ = !(snapshot.TryGetProperty("readable", out JsonElement readable) && readable.ValueKind == JsonValueKind.False) && snapshotProfile_.Length > 0;
+            }
 
             ShowApplied_(root);
          }
@@ -182,14 +197,21 @@ namespace hMailServer.ControlPanel.Views
       private void ShowApplied_(JsonElement root)
       {
          string text;
-         if (!root.TryGetProperty("applied", out JsonElement applied) || applied.ValueKind != JsonValueKind.Object)
+         bool hasRecord = root.TryGetProperty("applied", out JsonElement applied) && applied.ValueKind == JsonValueKind.Object;
+         string state = hasRecord ? Text_(applied, "state") : "";
+         if (snapshotHeld_ && !snapshotReadable_)
+            text = L("A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced.");
+         else if (!hasRecord)
             text = L("No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made.");
          else
          {
             string name = Text_(applied, "profile");
-            string state = Text_(applied, "state");
-            if (!string.IsNullOrEmpty(snapshotProfile_))
+            if (snapshotReadable_ && state != "failed")
                text = F("The {0} profile is applied. What it replaced is kept, and can be put back.", snapshotProfile_);
+            else if (state == "declined")
+               text = F("The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server.", Date_(applied, "changed"));
+            else if (state == "failed")
+               text = F("The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again.", name, Date_(applied, "applied"));
             else if (state == "reverted")
                text = F("The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced.", name, Date_(applied, "changed"));
             else if (state == "kept")
@@ -201,9 +223,11 @@ namespace hMailServer.ControlPanel.Views
          applied_.Text = text;
          applied_.Visibility = Visibility.Visible;
 
-         bool held = !string.IsNullOrEmpty(snapshotProfile_);
-         revert_.IsEnabled = held;
-         discard_.IsEnabled = held;
+         revert_.IsEnabled = snapshotHeld_ && snapshotReadable_;
+         discard_.IsEnabled = snapshotHeld_;
+         // Keeping the shipped settings: while no profile is in effect and no way back
+         // is held.
+         decline_.IsEnabled = !snapshotHeld_ && (!hasRecord || state == "reverted" || state == "failed");
       }
 
       private void ShowDiff_()
@@ -219,6 +243,7 @@ namespace hMailServer.ControlPanel.Views
          apply_.IsEnabled = false;
          changes_ = 0;
          needsConfirmation_ = false;
+         diffToken_ = "";
 
          if (profiles_.SelectedItem is not ProfileChoice choice)
             return;
@@ -255,6 +280,9 @@ namespace hMailServer.ControlPanel.Views
                string refused = Text_(entry, "refused");
                if (refused.Length > 0)
                   notes.Add(F("Refused: {0}", refused));
+               string note = Text_(entry, "note");
+               if (note.Length > 0)
+                  notes.Add(note);
 
                rows.Add(new RowView
                {
@@ -276,6 +304,7 @@ namespace hMailServer.ControlPanel.Views
             steps_.Text = stepLines.Count > 0 ? L("What it cannot do for you") + "\n" + string.Join("\n", stepLines) : "";
 
             changes_ = Number_(root, "changes");
+            diffToken_ = Text_(root, "diff_token");
             needsConfirmation_ = root.TryGetProperty("confirmation_needed", out JsonElement needed) && needed.ValueKind == JsonValueKind.Array && needed.GetArrayLength() > 0;
             confirm_.Visibility = needsConfirmation_ ? Visibility.Visible : Visibility.Collapsed;
 
@@ -300,14 +329,14 @@ namespace hMailServer.ControlPanel.Views
          bool confirmed = confirm_.IsChecked == true;
          if (needsConfirmation_ && !confirmed)
          {
-            Status_(StatusLevel.Warning, L("Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here."));
+            Status_(StatusLevel.Warning, L("Tick the confirmation first: this profile closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept here."));
             return;
          }
 
          // YesNo, No on Enter, like every other confirmation that changes what the
          // server does.
          if (MessageBox.Show(
-               F("Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back.", choice.Name, changes_),
+               F("Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back.", choice.Name, changes_),
                L("Apply a profile"), MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
              != MessageBoxResult.Yes)
          {
@@ -320,7 +349,9 @@ namespace hMailServer.ControlPanel.Views
             string resultJson;
             try
             {
-               resultJson = (string)settings.ApplyProfile(choice.Name, confirmed);
+               // The token names the diff drawn below: the server refuses the apply
+               // when the settings moved since, and the page draws the diff again.
+               resultJson = (string)settings.ApplyProfile(choice.Name, confirmed, diffToken_);
             }
             finally
             {
@@ -330,11 +361,21 @@ namespace hMailServer.ControlPanel.Views
             using JsonDocument document = JsonDocument.Parse(resultJson);
             JsonElement root = document.RootElement;
             Reload(choice.Name);
-            Status_(StatusLevel.Good, F("{0}: {1} set, {2} unchanged, {3} skipped.", choice.Name, Number_(root, "set"), Number_(root, "unchanged"), Number_(root, "skipped")));
+            int reinitialize = 0, restart = 0;
+            if (root.TryGetProperty("waiting", out JsonElement waiting) && waiting.ValueKind == JsonValueKind.Object)
+            {
+               reinitialize = Number_(waiting, "reinitialize");
+               restart = Number_(waiting, "restart");
+            }
+            Status_(StatusLevel.Good, F("{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart.", choice.Name, Number_(root, "set"), Number_(root, "unchanged"), Number_(root, "skipped"), reinitialize, restart));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            Status_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
+            // A refusal - the diff moved since it was drawn, among others - is said,
+            // and the diff drawn again as the server answers it now.
+            string message = ServerSession.DescribeComError(ex);
+            Reload(choice.Name);
+            Status_(StatusLevel.Critical, message);
          }
       }
 
@@ -368,7 +409,13 @@ namespace hMailServer.ControlPanel.Views
             using JsonDocument document = JsonDocument.Parse(resultJson);
             JsonElement root = document.RootElement;
             Reload(null);
-            Status_(StatusLevel.Good, F("{0}: {1} put back, {2} left as they were.", name, Number_(root, "set"), Number_(root, "skipped")));
+            int reinitialize = 0, restart = 0;
+            if (root.TryGetProperty("waiting", out JsonElement waiting) && waiting.ValueKind == JsonValueKind.Object)
+            {
+               reinitialize = Number_(waiting, "reinitialize");
+               restart = Number_(waiting, "restart");
+            }
+            Status_(StatusLevel.Good, F("{0}: {1} put back, {2} left as they were; {3} wait for a reinitialise and {4} for a restart.", name, Number_(root, "set"), Number_(root, "skipped"), reinitialize, restart));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -391,6 +438,37 @@ namespace hMailServer.ControlPanel.Views
             }
 
             Reload(null);
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            Status_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
+         }
+      }
+
+      private void DeclineProfiles()
+      {
+         if (MessageBox.Show(
+               L("Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later."),
+               L("Keep the shipped settings"), MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
+             != MessageBoxResult.Yes)
+         {
+            return;
+         }
+
+         try
+         {
+            dynamic settings = ServerSession.Current.Application.Settings;
+            try
+            {
+               settings.DeclineProfiles();
+            }
+            finally
+            {
+               ServerSession.Release((object)settings);
+            }
+
+            Reload(null);
+            Status_(StatusLevel.Good, L("The shipped settings are kept; no profile is applied."));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -425,6 +503,8 @@ namespace hMailServer.ControlPanel.Views
          actions.Children.Add(revert_);
          discard_ = MakeButton(L("_Keep its settings, forget the way back"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => DiscardWayBack());
          actions.Children.Add(discard_);
+         decline_ = MakeButton(L("Keep the _shipped settings"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => DeclineProfiles());
+         actions.Children.Add(decline_);
          actions.Children.Add(MakeButton(L("Re_fresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload(null)));
          Grid.SetRow(actions, 2);
          root.Children.Add(actions);

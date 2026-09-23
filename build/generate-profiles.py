@@ -10,10 +10,11 @@ database: hmailserver/source/Server/Common/Application/Profiles/<name>.json,
 a name, the place it is listed in (order), a title, a paragraph, the steps it
 cannot take for an administrator,
 and a list of entries - {store, name, value, why}, with a caution where the
-entry closes a listener, trusts an address range or turns a filter off. One
-profile may include another (the high-volume sender is the relay and more):
-the included entries come first, in their order, an entry of the same setting
-replacing the included one in its place.
+entry closes a listener, trusts an address range, turns a filter or a check off
+or weakens it, or shortens how long something is kept. One profile may include
+another (the high-volume sender is the relay and more): the included entries
+come first, in their order, an entry of the same setting replacing the included
+one in its place.
 
 This reads them and writes two things:
 
@@ -34,28 +35,43 @@ and refuses, with the file and a sentence, before writing anything:
     (EnvironmentManagedSettings, EnvironmentSecretSettings, ProfileSnapshot,
     ProfileApplied, SampleDomainId, the VAPID public key);
   * what a profile never sets: a port (a listener's, or a daemon's), a
-    directory or a file (a path is the installation's), a database value (the
-    [Database] section is not a setting, and the [Settings] keys about the
-    database connection are refused as well), and a password, a secret, a token,
-    a pepper, a passphrase or a private key;
+    directory or a file (a path is the installation's), an address the server
+    binds to, a command it runs or an address it calls (a *BindAddress, a
+    *Command, a *Url), a database value (the [Database] section is not a
+    setting, and the [Settings] keys about the database connection are refused
+    as well), and a password, a secret, a token, a pepper, a passphrase or a
+    private key;
   * a value its setting would refuse: a whole number for a key the server reads
     as one and for a property kept in the number column, text for the text
-    column, no line break and at most 4000 characters; and, for a property a
-    REST settings row keeps whose check is written as a range
-    (v.number < A || v.number > B), a number outside it. The rest of a row's
-    check is held by the server itself, which refuses to apply a profile any
-    entry of which its row refuses, and by the regression test that asks the
-    server about every entry of every profile shipped (RestApiProfiles.cs);
-  * a caution that is missing or wrong: switching one of the three protocol
-    listeners off must say closes_listener, switching one of the filters off
-    turns_filter_off, and trusting an address range or a peer's word
-    trusts_addresses - and an entry that does none of those carries no caution.
-    The server asks for an explicit confirmation before it applies such an entry
-    to a server where it would change something;
+    column, no line break and at most 4000 characters; and, for a setting a
+    REST settings row keeps - a property, or a [Settings] key the row names -
+    whose check is written as a range (v.number < A || v.number > B, or
+    v.number < A alone), a number outside it. The rest of a row's check is held
+    by the server itself, which refuses to apply a profile any entry of which
+    its row refuses, and by the regression test that asks the server about
+    every entry of every profile shipped (RestApiProfiles.cs);
+  * a caution that is missing or wrong. Switching one of the three protocol
+    listeners off must say closes_listener; switching a filter or a check off,
+    setting a throttle or a limit whose 0 is off to 0, switching on what weakens
+    a check (AUTH PLAIN), or raising a spam threshold past the value this
+    version ships, turns_filter_off; trusting an address range or a peer's word,
+    trusts_addresses; a window of days - a retention, an expiry, the
+    recover-deleted window - purges, whatever its value, because the server
+    asks for the confirmation where the new window is shorter than the one in
+    force, and the next sweep deletes what the shorter one no longer keeps. An
+    entry that does none of those carries no caution. A window whose 0 this
+    script does not know (keep for ever, or keep nothing) is refused until
+    PURGES says which. The server asks for an explicit confirmation before it
+    applies a cautioned entry to a server where it would change something;
+  * an entry that opens a listener, trusts an address range or weakens a check
+    in a profile whose summary does not say so, by the words SUBJECTS gives for
+    the setting: a paragraph an administrator chooses a profile by must not
+    leave out what the profile takes away;
   * a profile whose name is not its file's, is not lower case, or is one of the
-    two words its routes use (revert, discard); a title, a paragraph or a reason
-    missing or not one line; the same setting twice; an include that names no
-    profile or goes round in a circle.
+    words its routes and the command line use (revert, discard, decline, none);
+    a title, a paragraph or a reason missing or not one line; a reason that is
+    more than one sentence (a full stop inside it or at its end); the same
+    setting twice; an include that names no profile or goes round in a circle.
 
 Usage: generate-profiles.py [--check] [--profiles DIR] [--print]
   --check        exits 1 when the committed ProfilesData.cpp or the document's
@@ -99,18 +115,21 @@ BEGIN = "<!-- The four profiles: generated by build/generate-profiles.py from Co
 END = "<!-- End of the generated section. -->"
 
 NAME = re.compile(r"^[a-z][a-z0-9-]{1,30}$")
-RESERVED = {"revert", "discard"}
+# The words the routes and the command line use beside a profile's name:
+# POST /api/v1/settings/profiles/revert, /discard and /decline, and
+# --apply-profile none, which records that no profile is wanted.
+RESERVED = {"revert", "discard", "decline", "none"}
 STORES = ("ini", "database")
-CAUTIONS = ("closes_listener", "trusts_addresses", "turns_filter_off")
+CAUTIONS = ("closes_listener", "trusts_addresses", "turns_filter_off", "purges")
 
 # The records the server keeps for itself, which are nobody's setting.
 KEPT = {"environmentmanagedsettings", "environmentsecretsettings", "profilesnapshot", "profileapplied",
         "sampledomainid", "webpushvapidpublickey"}
 
-# A listener switched off closes it.
+# A listener switched off closes it; switched on, it opens one.
 LISTENERS = {("database", "protocolsmtp"), ("database", "protocolimap"), ("database", "protocolpop3")}
 
-# A filter switched off lets through what it stopped.
+# A filter or a check switched off lets through what it stopped.
 FILTERS = {
     ("database", "usespf"), ("database", "usemxchecks"), ("database", "ascheckhostinhelo"), ("database", "ascheckptr"),
     ("database", "asdkimverificationenabled"), ("database", "asdmarcenabled"), ("database", "usegreylisting"),
@@ -121,8 +140,27 @@ FILTERS = {
     ("database", "rejectmultircptnullsender"),
     ("ini", "dnssecvalidationenabled"), ("ini", "daneenforcementenabled"), ("ini", "mtastsenabled"),
     ("ini", "dkimenforcesignatureexpiry"), ("ini", "quarantineenabled"), ("ini", "smtpauthenticatedsendercheck"),
-    ("ini", "oauth2requiretls"),
+    ("ini", "oauth2requiretls"), ("ini", "passwordpolicyrejectcommon"),
 }
+
+# A throttle or a limit whose 0 is off: set to 0, it lets through what it held.
+# Read in the code, not guessed: SMTPConnection's MAIL FROM (the submission
+# ceiling), the tarpit row (0 is off), AccountLockout::RecordFailure,
+# PasswordPolicy::Evaluate, AccountLogon::RegisterFailedLogin (no ban at 0
+# attempts, and a disconnect without a ban at 0 minutes) and the spam
+# thresholds, which refuse or mark nothing at 0.
+THRESHOLDS = {
+    ("ini", "maxsubmissionsperipperminute"), ("ini", "smtptarpitcount"), ("ini", "accountlockoutthreshold"),
+    ("ini", "passwordpolicyminimumlength"), ("database", "maxinvalidlogonattempts"), ("database", "autobanminutes"),
+    ("database", "spammarkthreshold"), ("database", "spamdeletethreshold"),
+}
+
+# A spam threshold raised past the value this version ships judges less mail
+# spam: a weaker filter, however it is spelled.
+CEILINGS = {("database", "spammarkthreshold"): 5, ("database", "spamdeletethreshold"): 20}
+
+# A switch that, on, weakens a check: AUTH PLAIN offered and taken.
+WEAKENED_WHEN_ON = {("database", "authallowplaintext")}
 
 # A switch that, on, takes a peer's word for who is connecting or what a
 # message is.
@@ -134,10 +172,58 @@ TRUST_LISTS = {("ini", "smtpxclienttrustedips"), ("ini", "smtpproxyprotocoltrust
                ("ini", "webservicestrustedproxies"), ("ini", "autobanneverban"), ("ini", "authuserreplacementip"),
                ("database", "asarctrustedsealers"), ("database", "countryblockingexemptranges")}
 
+# A window of days, and what its 0 means, read at each sweep: RecoverableStore
+# keeps nothing at 0; MessageTrace, DomainReports::Sweep, ComplaintTracker and
+# PersistentBounce::ExpireSuppressions keep for ever at 0. A shorter window
+# deletes, at the next sweep, what it no longer keeps.
+PURGES = {
+    ("database", "recoverdeleteddays"): "nothing",
+    ("ini", "messagetraceretentiondays"): "forever",
+    ("database", "domainreportretentiondays"): "forever",
+    ("database", "complaintretentiondays"): "forever",
+    ("database", "bouncesuppressionexpirydays"): "forever",
+}
+# A name that reads as a window of days: one PURGES does not list is refused
+# until it is looked up and listed, because the confirmation depends on its 0.
+WINDOW = re.compile(r"(retentiondays|expirydays|deletedays|historydays|retentionrecords)$|^recoverdeleteddays$|backupmaxagedays$")
+
+# What a summary names, for an entry it has to name: any one of the words, in
+# any case. An entry that opens a listener, trusts an address range or weakens
+# a check - everything above but a window - must be named in its profile's
+# summary, and one whose setting has no words here is refused until it has.
+SUBJECTS = {
+    ("database", "protocolsmtp"): ["SMTP"], ("database", "protocolimap"): ["IMAP"], ("database", "protocolpop3"): ["POP3"],
+    ("database", "usespf"): ["SPF"], ("database", "usemxchecks"): ["MX"], ("database", "ascheckhostinhelo"): ["HELO"],
+    ("database", "ascheckptr"): ["PTR"], ("database", "asdkimverificationenabled"): ["DKIM"],
+    ("database", "asdmarcenabled"): ["DMARC"], ("database", "usegreylisting"): ["greylisting"],
+    ("database", "spamassassinenabled"): ["SpamAssassin"], ("database", "clamavenabled"): ["virus", "ClamAV"],
+    ("database", "avclamwinenable"): ["virus", "ClamWin"], ("database", "usecustomvirusscanner"): ["virus"],
+    ("database", "enableattachmentblocking"): ["attachment"], ("database", "autobanonlogonfailureenabled"): ["auto-ban"],
+    ("database", "breachcheckenabled"): ["breach"], ("database", "disconnectinvalidclients"): ["invalid command", "disconnect"],
+    ("database", "verifyremotesslcertificate"): ["certificate"], ("database", "rejectmultircptnullsender"): ["null sender"],
+    ("ini", "dnssecvalidationenabled"): ["DNSSEC"], ("ini", "daneenforcementenabled"): ["DANE"],
+    ("ini", "mtastsenabled"): ["MTA-STS"], ("ini", "dkimenforcesignatureexpiry"): ["expir"],
+    ("ini", "quarantineenabled"): ["quarantine"], ("ini", "smtpauthenticatedsendercheck"): ["sender check", "sends only as"],
+    ("ini", "oauth2requiretls"): ["OAuth"], ("ini", "passwordpolicyrejectcommon"): ["password"],
+    ("ini", "maxsubmissionsperipperminute"): ["submission"], ("ini", "smtptarpitcount"): ["tarpit"],
+    ("ini", "accountlockoutthreshold"): ["lockout", "locked"], ("ini", "passwordpolicyminimumlength"): ["password"],
+    ("database", "maxinvalidlogonattempts"): ["auto-ban"], ("database", "autobanminutes"): ["auto-ban"],
+    ("database", "spammarkthreshold"): ["threshold", "spam"], ("database", "spamdeletethreshold"): ["threshold", "spam"],
+    ("database", "authallowplaintext"): ["PLAIN"],
+    ("ini", "smtpxclientenabled"): ["XCLIENT"], ("ini", "smtpproxyprotocolenabled"): ["PROXY"],
+    ("database", "asarcfilteringenabled"): ["ARC"], ("database", "readerfetchprivatehosts"): ["private"],
+    ("ini", "smtpxclienttrustedips"): ["XCLIENT"], ("ini", "smtpproxyprotocoltrustedips"): ["PROXY"],
+    ("ini", "webservicestrustedproxies"): ["proxy", "proxies"], ("ini", "autobanneverban"): ["auto-ban"],
+    ("ini", "authuserreplacementip"): ["replacement"], ("database", "asarctrustedsealers"): ["ARC"],
+    ("database", "countryblockingexemptranges"): ["country"],
+}
+
 SECRET_FRAGMENTS = ("password", "secret", "token", "pepper", "passphrase", "privatekey")
 PATH_SUFFIXES = ("dir", "directory", "folder", "file", "path", "db", "exec", "executable")
 # A path whose name ends in none of those: where a backup is written.
 PATHS = {"backupdestination"}
+# What the server binds to, runs or calls: the installation's, as a path is.
+ENDPOINT_SUFFIXES = ("bindaddress", "command", "url")
 
 
 def read(path):
@@ -173,9 +259,11 @@ def properties():
 
 
 def row_ranges():
-    """{property lower name: (row key, low, high)} for the REST settings rows whose
-    getter reads one property through a configuration getter and whose check is
-    written as a range. Best effort: a row this cannot read is left to the server."""
+    """{(store, lower name): (row key, low, high or None)} for the REST settings
+    rows whose check is written as a range - v.number < A || v.number > B, or
+    v.number < A alone - and that keep one setting: a [Settings] key the row names
+    as its ini_key, or a property its getter reads through a configuration getter.
+    Best effort: a row this cannot read is left to the server."""
     constants = dict(re.findall(r'#define\s+(PROPERTY_[A-Z0-9_]+)\s+_T\("([^"]+)"\)', read(CONSTANTS)))
 
     getters = {}
@@ -197,16 +285,29 @@ def row_ranges():
         if 0 <= table_end < end:
             end = table_end
         body = text[match.end():end]
+
+        both = re.search(r"v\.number\s*<\s*(-?\d+)\s*\|\|\s*v\.number\s*>\s*(-?\d+)", body)
+        low_only = re.search(r"v\.number\s*<\s*(-?\d+)\s*\?", body)
+        if both:
+            bounds = (int(both.group(1)), int(both.group(2)))
+        elif low_only:
+            bounds = (int(low_only.group(1)), None)
+        else:
+            continue
+
+        ini_key = re.search(r'_T\("([A-Za-z0-9]+)"\)\s*\}\s*,?\s*$', body.rstrip())
+        if ini_key:
+            ranges[("ini", ini_key.group(1).lower())] = (match.group(1), bounds[0], bounds[1])
+            continue
+
         getter = re.search(r"ROW_(?:NUMBER|FLAG)\([^;]*?->\s*(Get\w+)\(|ROW_(?:NUMBER|FLAG)\(\w+\(\)\.(Get\w+)\(", body)
-        bounds = re.search(r"v\.number\s*<\s*(-?\d+)\s*\|\|\s*v\.number\s*>\s*(-?\d+)", body)
-        if not getter or not bounds:
+        if not getter:
             continue
         name = getter.group(1) or getter.group(2)
         owners = getters.get(name)
         if not owners or len(owners) != 1:
             continue
-        prop = next(iter(owners)).lower()
-        ranges[prop] = (match.group(1), int(bounds.group(1)), int(bounds.group(2)))
+        ranges[("database", next(iter(owners)).lower())] = (match.group(1), bounds[0], bounds[1])
     return ranges
 
 
@@ -237,12 +338,16 @@ def refusal_of_name(store, name, ini, others, props):
         return "%s is a port, and a profile never sets a port" % name, None
     if lower in PATHS or any(lower.endswith(suffix) for suffix in PATH_SUFFIXES):
         return "%s is a directory, a file or a path, and a profile never sets one: a path is the installation's" % name, None
+    if any(lower.endswith(suffix) for suffix in ENDPOINT_SUFFIXES):
+        return "%s is an address the server binds to, a command it runs or an address it calls, and a profile never sets one: each is the installation's" % name, None
     if lower.startswith("database") or lower.startswith("db"):
         return "%s is about the database connection, and a profile never sets a database value" % name, None
     if not (lower.startswith("passwordpolicy") or lower.startswith("passwordhash")):
         for fragment in SECRET_FRAGMENTS:
             if fragment in lower:
                 return "%s holds a secret, and a profile never sets a password, a secret or a key" % name, None
+    if WINDOW.search(lower) and (store, lower) not in PURGES:
+        return "%s reads as a window of days, and build/generate-profiles.py does not know whether its 0 keeps for ever or keeps nothing: look it up where it is swept and add it to PURGES" % name, None
     return None, spelling
 
 
@@ -257,17 +362,40 @@ def text_of(value):
     return None
 
 
+def number_of(text):
+    try:
+        return int(text)
+    except (TypeError, ValueError):
+        return None
+
+
 def expected_caution(store, lower, text):
     key = (store, lower)
+    if key in PURGES:
+        return "purges"
     if key in LISTENERS and text == "0":
         return "closes_listener"
     if key in FILTERS and text == "0":
+        return "turns_filter_off"
+    if key in THRESHOLDS and text == "0":
+        return "turns_filter_off"
+    if key in CEILINGS and number_of(text) is not None and number_of(text) > CEILINGS[key]:
+        return "turns_filter_off"
+    if key in WEAKENED_WHEN_ON and text == "1":
         return "turns_filter_off"
     if key in TRUST_SWITCHES and text == "1":
         return "trusts_addresses"
     if key in TRUST_LISTS and text.strip() != "":
         return "trusts_addresses"
     return None
+
+
+def must_be_in_summary(store, lower, text, caution):
+    """True for an entry the summary has to name: it opens a listener, trusts an
+    address range or weakens a check."""
+    if caution in ("closes_listener", "trusts_addresses", "turns_filter_off"):
+        return True
+    return (store, lower) in LISTENERS and text == "1"
 
 
 def load(directory):
@@ -302,6 +430,12 @@ def ascii_only(text):
     return all(32 <= ord(c) < 127 for c in text)
 
 
+def one_sentence(text):
+    """A reason is one sentence: no full stop inside it or at its end."""
+    stripped = text.rstrip()
+    return not stripped.endswith(".") and ". " not in stripped
+
+
 def validate(documents):
     """The profiles with their includes resolved: [(name, document, entries)], and the problems."""
     ini, others = ini_keys()
@@ -317,7 +451,7 @@ def validate(documents):
         if not isinstance(name, str) or not NAME.match(name):
             problems.append("%s: a profile's name is lower-case letters, digits and hyphens, two to thirty-one of them" % where)
         elif name in RESERVED:
-            problems.append("%s: %s is a word the profile routes use (POST /api/v1/settings/profiles/%s), and cannot be a profile's name" % (where, name, name))
+            problems.append("%s: %s is a word the profile routes and the command line use, and cannot be a profile's name" % (where, name))
         for field, limit in (("title", 80), ("summary", 1200)):
             value = document.get(field)
             if not one_line(value, limit) or not ascii_only(value):
@@ -380,13 +514,17 @@ def validate(documents):
                 if kind == "String" and number is not None:
                     problems.append("%s: %s is kept in the text column, and the value is a number; write it as text" % (here, setting))
                     continue
-                if lower in ranges and number is not None:
-                    key, low, high = ranges[lower]
-                    if number < low or number > high:
+            if (store, lower) in ranges and number is not None:
+                key, low, high = ranges[(store, lower)]
+                if number < low or (high is not None and number > high):
+                    if high is None:
+                        problems.append("%s: %d is below %d, which the REST settings row %s refuses" % (here, number, low, key))
+                    else:
                         problems.append("%s: %d is outside %d to %d, which the REST settings row %s refuses" % (here, number, low, high, key))
-                        continue
-            if not one_line(entry.get("why"), 240) or not ascii_only(entry.get("why")) or entry.get("why").rstrip().endswith("."):
-                problems.append("%s: why is one clause of plain text, at most 240 characters, with no full stop" % here)
+                    continue
+            why = entry.get("why")
+            if not one_line(why, 240) or not ascii_only(why) or not one_sentence(why):
+                problems.append("%s: why is one sentence of plain text on one line, at most 240 characters, with no full stop inside it or at its end" % here)
             caution = entry.get("caution")
             if caution is not None and caution not in CAUTIONS:
                 problems.append("%s: caution is one of %s, not %r" % (here, ", ".join(CAUTIONS), caution))
@@ -398,6 +536,15 @@ def validate(documents):
                                     (here, CAUTION_WORDS[wanted], wanted))
                 else:
                     problems.append("%s: carries the caution %s, which this entry does not earn" % (here, caution))
+                continue
+            if must_be_in_summary(store, lower, text, caution):
+                words = SUBJECTS.get((store, lower))
+                summary = document.get("summary") if isinstance(document.get("summary"), str) else ""
+                if not words:
+                    problems.append("%s: opens a listener, trusts an address range or weakens a check, and SUBJECTS gives no words its profile's summary would name it by" % here)
+                elif not any(word.lower() in summary.lower() for word in words):
+                    problems.append("%s: %s, and the profile's summary does not say so - it names none of %s" %
+                                    (here, CAUTION_WORDS.get(caution) or "opens a listener", ", ".join(words)))
 
         seen = set()
         for entry in entries:
@@ -443,6 +590,23 @@ def validate(documents):
                     merged.append(dict(entry, _from=member))
         resolved.append((file_name, document, merged))
 
+    # An included entry the summary must name is named in the including
+    # profile's summary as well: the paragraph a person chooses by is that one.
+    for file_name, document, merged in resolved:
+        summary = document.get("summary") if isinstance(document.get("summary"), str) else ""
+        for entry in merged:
+            if entry.get("_from") == file_name:
+                continue
+            store = entry.get("store")
+            lower = str(entry.get("name", "")).lower()
+            text = text_of(entry.get("value"))
+            if text is None or not must_be_in_summary(store, lower, text, entry.get("caution")):
+                continue
+            words = SUBJECTS.get((store, lower)) or []
+            if words and not any(word.lower() in summary.lower() for word in words):
+                problems.append("%s.json: %s, included from %s, %s, and this profile's summary names none of %s" %
+                                (file_name, entry.get("name"), entry.get("_from"), CAUTION_WORDS.get(entry.get("caution")) or "opens a listener", ", ".join(words)))
+
     return resolved, problems
 
 
@@ -463,7 +627,10 @@ def identifier(name):
 
 
 CAUTION_CPP = {None: "CautionNone", "closes_listener": "CautionClosesListener",
-               "trusts_addresses": "CautionTrustsAddresses", "turns_filter_off": "CautionTurnsFilterOff"}
+               "trusts_addresses": "CautionTrustsAddresses", "turns_filter_off": "CautionTurnsFilterOff",
+               "purges": "CautionPurges"}
+
+ZERO_CPP = {None: "ZeroNotAWindow", "forever": "ZeroKeepsForever", "nothing": "ZeroKeepsNothing"}
 
 
 def unit(resolved):
@@ -491,10 +658,11 @@ def unit(resolved):
         out.append("         const Entry %sEntries[] =" % ident)
         out.append("         {")
         for entry in entries:
-            out.append("            { %s, %s, %s, %s, %s }," % (
+            key = (entry["store"], entry["name"].lower())
+            out.append("            { %s, %s, %s, %s, %s, %s }," % (
                 "StoreIni" if entry["store"] == "ini" else "StoreDatabase",
                 cpp_string(entry["name"]), cpp_string(text_of(entry["value"])), cpp_string(entry["why"]),
-                CAUTION_CPP[entry.get("caution")]))
+                CAUTION_CPP[entry.get("caution")], ZERO_CPP[PURGES.get(key)]))
         out.append("         };")
         out.append("")
         steps = document.get("steps") or []
@@ -524,7 +692,8 @@ def unit(resolved):
 
 
 CAUTION_WORDS = {None: "", "closes_listener": "closes a listener", "trusts_addresses": "trusts an address range",
-                 "turns_filter_off": "turns a filter off"}
+                 "turns_filter_off": "turns a filter or a check off, or weakens it",
+                 "purges": "shortens how long something is kept, where the window in force is longer"}
 
 
 def markdown_cell(text):
@@ -543,7 +712,7 @@ def section(resolved):
         else:
             out.append("%d entries." % len(entries))
         out.append("")
-        out.append("| Store | Setting | Value | Why | Asks for a confirmation |")
+        out.append("| Store | Setting | Value | Why | Asks for a confirmation where it |")
         out.append("|---|---|---|---|---|")
         for entry in entries:
             from_include = entry.get("_from") != name

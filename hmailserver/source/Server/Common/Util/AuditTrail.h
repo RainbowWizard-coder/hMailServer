@@ -44,7 +44,7 @@
 //             and Settings.ClearLogonFailureList. And a restore asked for:
 //             Backup.StartRestore and POST /api/v1/backup/restore, each on the
 //             thread that knows who asked. And a setting profile applied,
-//             reverted or its way back discarded (Profiles), recorded once with
+//             reverted, its way back discarded or none wanted (Profiles), recorded once with
 //             its counts beside the row the settings chokepoint writes for each
 //             setting it changed.
 //

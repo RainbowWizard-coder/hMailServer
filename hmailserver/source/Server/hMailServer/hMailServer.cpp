@@ -212,6 +212,52 @@ HM::ChMailServerModule _AtlModule;
 // the parent's is attached when there is one, so a prompt sees the lines, and
 // the exit code (0 done or nothing to do, 1 failed, 2 not configured, 3 the
 // service is running) says the rest to a script that has no console either.
+// Whether the hMailServer service is anything but stopped: asked of the service
+// controller, not assumed. A service that is not installed, or that cannot be
+// queried, is not running.
+static bool HMailServerServiceIsRunning()
+{
+   bool running = false;
+   SC_HANDLE manager = OpenSCManager(NULL, NULL, GENERIC_READ);
+   if (manager != NULL)
+   {
+      SC_HANDLE service = OpenService(manager, _T("hMailServer"), SERVICE_QUERY_STATUS);
+      if (service != NULL)
+      {
+         SERVICE_STATUS status;
+         memset(&status, 0, sizeof(status));
+         if (QueryServiceStatus(service, &status))
+            running = status.dwCurrentState != SERVICE_STOPPED;
+         CloseServiceHandle(service);
+      }
+      CloseServiceHandle(manager);
+   }
+   return running;
+}
+
+// The lines of a verb go to the handles the caller gave - a script's or a test's
+// redirected output - or, when there are none, to the console the caller has.
+static void AttachVerbOutput()
+{
+   if (GetStdHandle(STD_OUTPUT_HANDLE) == NULL && AttachConsole(ATTACH_PARENT_PROCESS))
+   {
+      HANDLE console = CreateFile(_T("CONOUT$"), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+      if (console != INVALID_HANDLE_VALUE)
+      {
+         SetStdHandle(STD_OUTPUT_HANDLE, console);
+         SetStdHandle(STD_ERROR_HANDLE, console);
+      }
+   }
+}
+
+static void WriteVerbError(const char *text)
+{
+   HANDLE error = GetStdHandle(STD_ERROR_HANDLE);
+   DWORD written = 0;
+   if (error && error != INVALID_HANDLE_VALUE)
+      WriteFile(error, text, (DWORD) strlen(text), &written, NULL);
+}
+
 static int UpgradeDatabaseFromCommandLine()
 {
    if (AttachConsole(ATTACH_PARENT_PROCESS))
@@ -325,12 +371,15 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       }
    }
 
-   // --apply-profile NAME [--confirm] [--once]: the one verb that takes a value, so
-   // it is found anywhere on the line rather than as its last token. The name is
-   // the token after it; --confirm and --once may stand anywhere.
+   // --apply-profile NAME [--confirm] [--once] [--if-new]: the one verb that takes a
+   // value, so it is found anywhere on the line rather than as its last token. The
+   // name is the token after it; the switches may stand anywhere. --revert-profile
+   // takes none.
    bool profileVerb = false;
+   bool profileRevert = false;
    bool profileConfirmed = false;
    bool profileOnce = false;
+   bool profileIfNew = false;
    String profileName;
    for (size_t index = 0; index < vecParams.size(); index++)
    {
@@ -343,10 +392,14 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
                profileName = vecParams[next];
          }
       }
+      else if (vecParams[index].CompareNoCase(_T("--revert-profile")) == 0)
+         profileRevert = true;
       else if (vecParams[index].CompareNoCase(_T("--confirm")) == 0)
          profileConfirmed = true;
       else if (vecParams[index].CompareNoCase(_T("--once")) == 0)
          profileOnce = true;
+      else if (vecParams[index].CompareNoCase(_T("--if-new")) == 0)
+         profileIfNew = true;
    }
 
    _AtlModule.InitializeCom();
@@ -536,35 +589,37 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
 
       iRet = HM::EnvironmentSettings::RunCommand();
    }
-   else if (profileVerb)
+   else if (profileVerb || profileRevert)
    {
-      // A setting profile applied (Common/Application/Profiles; docs/Profiles.md), as
-      // `hmailserver --apply-profile` applies it on Linux: the diff, the way back, then
-      // the writes, one line each. The installer's last page runs it for a new
-      // installation before the service starts, with --once so that a second run of
-      // the installer leaves a server that has had a profile alone. The lines go
-      // where --apply-environment's go.
-      if (GetStdHandle(STD_OUTPUT_HANDLE) == NULL && AttachConsole(ATTACH_PARENT_PROCESS))
-      {
-         HANDLE console = CreateFile(_T("CONOUT$"), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-         if (console != INVALID_HANDLE_VALUE)
-         {
-            SetStdHandle(STD_OUTPUT_HANDLE, console);
-            SetStdHandle(STD_ERROR_HANDLE, console);
-         }
-      }
+      // A setting profile applied or put back (Common/Application/Profiles;
+      // docs/Profiles.md), as `hmailserver --apply-profile` and `--revert-profile`
+      // do it on Linux: the diff, the way back, then the writes, one line each. The
+      // installer's last page runs it for a new installation, with the service
+      // stopped, --once so that a second run of the installer leaves a server that
+      // has had a profile alone, and --if-new so that a database already in service
+      // is never changed without its diff. The lines go where --apply-environment's
+      // go.
+      //
+      // Refused while the service runs, as --upgrade-database is: a running server
+      // holds the settings it loaded and would not see these until a reinitialise,
+      // and it is changed through REST, COM, the Deck or the Control Panel, which
+      // show the diff first. Exit 4.
+      AttachVerbOutput();
 
-      if (profileName.IsEmpty() || profileName.Left(2) == _T("--"))
+      if (HMailServerServiceIsRunning())
       {
-         HANDLE error = GetStdHandle(STD_ERROR_HANDLE);
-         const char *usage = "--apply-profile needs the profile's name: office, gateway, relay or sender. Add --confirm to apply an entry that closes a listener, trusts an address range or turns a filter off, and --once to leave a server a profile was applied to before as it is.\r\n";
-         DWORD written = 0;
-         if (error && error != INVALID_HANDLE_VALUE)
-            WriteFile(error, usage, (DWORD) strlen(usage), &written, NULL);
+         WriteVerbError("The hMailServer service is running. A running server is changed through the Control Deck, the Control Panel, REST or COM, which show the diff first; stop the service (Stop-Service hMailServer) to use the command line. Nothing was changed.\r\n");
+         iRet = 4;
+      }
+      else if (profileRevert)
+         iRet = HM::Profiles::RunRevertCommand();
+      else if (profileName.IsEmpty() || profileName.Left(2) == _T("--"))
+      {
+         WriteVerbError("--apply-profile needs the profile's name: office, gateway, relay or sender, or none to record that no profile is wanted. Add --confirm to apply an entry that closes a listener, trusts an address range, turns a filter or a check off or weakens it, or shortens a window of days; --once to leave a server something was recorded for as it is; and --if-new to leave a server in service as it is.\r\n");
          iRet = 2;
       }
       else
-         iRet = HM::Profiles::RunCommand(profileName, profileConfirmed, profileOnce);
+         iRet = HM::Profiles::RunCommand(profileName, profileConfirmed, profileOnce, profileIfNew);
    }
    else if (sLastParam.CompareNoCase(_T("RunAsService")) == 0)
    {

@@ -2279,6 +2279,7 @@ namespace HM
          case RouteSettingsProfileApply:
          case RouteSettingsProfileRevert:
          case RouteSettingsProfileDiscard:
+         case RouteSettingsProfileDecline:
             return HandleSettingsProfiles_(route, GetRequestBody_(request));
          case RouteServerSettingsPending:
             return HandleServerSettingsPending_();
@@ -5779,7 +5780,7 @@ namespace HM
          return;
       }
 
-      // The setting profiles (docs/Profiles.md). revert and discard are the two
+      // The setting profiles (docs/Profiles.md). revert, discard and decline are
       // words no profile may be named (build/generate-profiles.py refuses them), so
       // they are matched first and a profile's name is anything else of one segment.
       const AnsiString profilesPath = "/api/v1/settings/profiles";
@@ -5790,10 +5791,11 @@ namespace HM
          return;
       }
 
-      if (path == profilesPath + "/revert" || path == profilesPath + "/discard")
+      if (path == profilesPath + "/revert" || path == profilesPath + "/discard" || path == profilesPath + "/decline")
       {
          if (method == "POST")
-            route.kind = path.EndsWith("/revert") ? RouteSettingsProfileRevert : RouteSettingsProfileDiscard;
+            route.kind = path.EndsWith("/revert") ? RouteSettingsProfileRevert
+                       : path.EndsWith("/discard") ? RouteSettingsProfileDiscard : RouteSettingsProfileDecline;
          return;
       }
 
@@ -6487,6 +6489,7 @@ namespace HM
       case RouteSettingsProfileApply:
       case RouteSettingsProfileRevert:
       case RouteSettingsProfileDiscard:
+      case RouteSettingsProfileDecline:
       case RouteSettingsPut:
       case RouteSettingsAntiSpamPut:
       case RouteSettingsAntiVirusPut:
@@ -7265,6 +7268,7 @@ namespace HM
       case RouteSettingsProfileApply:
       case RouteSettingsProfileRevert:
       case RouteSettingsProfileDiscard:
+      case RouteSettingsProfileDecline:
       case RouteSettingsAntiSpamPut:
       case RouteSettingsAntiVirusPut:
       case RouteSettingsLoggingPut:
@@ -7995,6 +7999,7 @@ namespace HM
       case RouteSettingsProfileApply:
       case RouteSettingsProfileRevert:
       case RouteSettingsProfileDiscard:
+      case RouteSettingsProfileDecline:
       case RouteSettingsPut:
       case RouteSettingsAntiSpamGet:
       case RouteSettingsAntiSpamPut:

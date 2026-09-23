@@ -18,7 +18,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
 | desktop pages read | 68 |
-| REST routes (path and method) | 512, 224 of them writes |
+| REST routes (path and method) | 513, 225 of them writes |
 | Deck views | 37 |
 
 ## Missing over REST, by interface
@@ -703,6 +703,7 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Settings | `ApplyDirectorySync` | DirectorySyncView | `PUT /api/v1/accounts/{address}/directory`<br>`POST /api/v1/settings/profiles/{name}/apply` |
 | Settings | `ApplyProfile` | ProfilesView | `POST /api/v1/settings/profiles/{name}/apply` |
 | Settings | `ClearLogonFailureList` | ServerSettingsView | `POST /api/v1/remote-domains/verification-cache/clear`<br>`POST /api/v1/settings/logon-failures/clear` |
+| Settings | `DeclineProfiles` | ProfilesView | `POST /api/v1/settings/profiles/decline` |
 | Settings | `DisableAdministratorTOTP` | AdministratorTwoFactorDialog | - |
 | Settings | `DiscardProfileSnapshot` | ProfilesView | `POST /api/v1/settings/profiles/discard` |
 | Settings | `EnrolAdministratorTOTP` | AdministratorTwoFactorDialog | - |
@@ -1014,9 +1015,10 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/settings/logon-failures/clear` | - | - | - |
 | `PUT /api/v1/settings/messages/{name}` | ServerMessage | `domain`, `keys`, `read`, `text` | yes |
 | `PUT /api/v1/settings/openpgp` | Settings | `key_maximum_bytes`, `keys_per_account`, `keyserver_url`, `lookup_keyserver`, `lookup_timeout`, `lookup_wkd`, `portal_enabled`, `protected_message_days`, `require_address_in_user_id`, `web_key_directory_enabled`, `zero_access_allowed` | yes |
+| `POST /api/v1/settings/profiles/decline` | ? | `manage_settings`, `profile_declined` | yes |
 | `POST /api/v1/settings/profiles/discard` | ? | `manage_settings` | yes |
 | `POST /api/v1/settings/profiles/revert` | ? | `manage_settings` | yes |
-| `POST /api/v1/settings/profiles/{name}/apply` | ? | `confirm`, `confirmation_needed`, `hm_settings`, `manage_settings` | yes |
+| `POST /api/v1/settings/profiles/{name}/apply` | ? | `confirm`, `confirmation_needed`, `diff_token`, `hm_settings`, `manage_settings` | yes |
 | `PUT /api/v1/settings/push` | ? | `enabled`, `max_attempts`, `max_devices_per_account`, `subject`, `time_to_live_seconds`, `vapid_private_key` | yes |
 | `POST /api/v1/settings/push/vapid` | ? | `vapid_public_key` | yes |
 | `PUT /api/v1/settings/scripting` | Scripting | `enabled`, `language` | yes |
@@ -1041,7 +1043,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | View | Routes called |
 |---|---|
 | `dash` | `GET /api/v1/status` |
-| `checklist` | `GET /api/v1/settings/profiles`, `POST /api/v1/settings/profiles/discard`, `POST /api/v1/settings/profiles/revert`, `GET /api/v1/settings/profiles/{}`, `POST /api/v1/settings/profiles/{}/apply`, `GET /api/v1/setup/checklist`, `DELETE /api/v1/setup/sample-domain`, `GET /api/v1/setup/sample-domain`, `POST /api/v1/setup/sample-domain` |
+| `checklist` | `GET /api/v1/settings/profiles`, `POST /api/v1/settings/profiles/decline`, `POST /api/v1/settings/profiles/discard`, `POST /api/v1/settings/profiles/revert`, `GET /api/v1/settings/profiles/{}`, `POST /api/v1/settings/profiles/{}/apply`, `GET /api/v1/setup/checklist`, `DELETE /api/v1/setup/sample-domain`, `GET /api/v1/setup/sample-domain`, `POST /api/v1/setup/sample-domain` |
 | `domains` | `DELETE /api/v1/accounts/{}`, `GET /api/v1/accounts/{}`, `PUT /api/v1/accounts/{}`, `GET /api/v1/accounts/{}/directory`, `PUT /api/v1/accounts/{}/directory`, `GET /api/v1/accounts/{}/move`, `POST /api/v1/accounts/{}/move`, `PUT /api/v1/accounts/{}/openpgp`, `DELETE /api/v1/accounts/{}/openpgp/{}`, `POST /api/v1/accounts/{}/password`, `DELETE /api/v1/accounts/{}/push`, `DELETE /api/v1/accounts/{}/recovery`, `DELETE /api/v1/accounts/{}/recovery/codes`, `POST /api/v1/accounts/{}/unlock`, `POST /api/v1/addresses/erase`, `DELETE /api/v1/aliases/{}`, `GET /api/v1/domains`, `POST /api/v1/domains`, `DELETE /api/v1/domains/{}`, `GET /api/v1/domains/{}`, `PUT /api/v1/domains/{}`, `GET /api/v1/domains/{}/accounts`, `POST /api/v1/domains/{}/accounts`, `GET /api/v1/domains/{}/aliases`, `POST /api/v1/domains/{}/aliases`, `GET /api/v1/domains/{}/complaints?limit={}&offset={}`, `GET /api/v1/domains/{}/dmarc-reports/{}`, `GET /api/v1/domains/{}/domain-aliases`, `POST /api/v1/domains/{}/domain-aliases`, `DELETE /api/v1/domains/{}/domain-aliases/{}`, `GET /api/v1/domains/{}/lists`, `POST /api/v1/domains/{}/lists`, `GET /api/v1/domains/{}/openpgp`, `GET /api/v1/domains/{}/sender-list`, `POST /api/v1/domains/{}/sender-list`, `DELETE /api/v1/domains/{}/sender-list/{}`, `GET /api/v1/domains/{}/spam-traps`, `POST /api/v1/domains/{}/spam-traps`, `GET /api/v1/domains/{}/spam-traps/hits?limit=10`, `POST /api/v1/domains/{}/suppressions`, `DELETE /api/v1/domains/{}/suppressions/{}`, `DELETE /api/v1/lists/{}`, `PUT /api/v1/lists/{}`, `GET /api/v1/lists/{}/members`, `GET /api/v1/openapi.json`, `DELETE /api/v1/spam-traps/{}` |
 | `groups` | `GET /api/v1/groups`, `POST /api/v1/groups`, `DELETE /api/v1/groups/{}`, `PUT /api/v1/groups/{}`, `GET /api/v1/groups/{}/members`, `POST /api/v1/groups/{}/members`, `DELETE /api/v1/groups/{}/members/{}`, `GET /api/v1/openapi.json` |
 | `ipranges` | `GET /api/v1/ipranges`, `POST /api/v1/ipranges`, `DELETE /api/v1/ipranges/{}`, `PUT /api/v1/ipranges/{}`, `GET /api/v1/openapi.json` |

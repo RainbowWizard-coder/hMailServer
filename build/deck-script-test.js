@@ -1287,6 +1287,8 @@ const state = {
    profileApplies: [],
    profileReverts: 0,
    profileDiscards: 0,
+   profileDeclines: 0,
+   profileDeclined: false,
    profileSnapshot: null,
    profileDiffs: {
       office: {
@@ -1300,7 +1302,7 @@ const state = {
             { store: 'ini', name: 'QuarantineEnabled', value: '1', current: '0', stored: false, changes: true, why: 'spam is held',
               caution: null, confirm: false, route: 'PUT /api/v1/settings/ini/QuarantineEnabled', applies: 'now', levels: null, environment: 'HM_SETTING_QuarantineEnabled', refused: null }
          ],
-         changes: 1, unchanged: 1, skipped: 1, refused: 0, confirmation_needed: [], applicable: true, blocked: null, applied: null, snapshot: null
+         changes: 1, unchanged: 1, skipped: 1, refused: 0, confirmation_needed: [], diff_token: 'tok-office', applicable: true, blocked: null, applied: null, snapshot: null
       },
       gateway: {
          name: 'gateway', title: 'Behind a filtering gateway', summary: 'Behind a gateway.', includes: null, steps: [],
@@ -1308,9 +1310,17 @@ const state = {
             { store: 'database', name: 'usegreylisting', value: '0', current: '1', stored: true, changes: true, why: 'the gateway has filtered',
               caution: 'turns_filter_off', confirm: true, route: 'PUT /api/v1/settings/antispam greylisting_enabled', applies: 'now', levels: null, environment: null, refused: null },
             { store: 'ini', name: 'SMTPXClientEnabled', value: '1', current: '1', stored: true, changes: false, why: 'the gateway passes the client',
-              caution: 'trusts_addresses', confirm: false, route: 'PUT /api/v1/settings/ini/SMTPXClientEnabled', applies: 'now', levels: null, environment: null, refused: null }
+              caution: 'trusts_addresses', confirm: false, route: 'PUT /api/v1/settings/ini/SMTPXClientEnabled', applies: 'now', levels: null, environment: null, refused: null },
+            // A window of days the profile would shorten: marked, with the server's
+            // note that a revert does not bring back what the sweep deletes.
+            { store: 'ini', name: 'MessageTraceRetentionDays', value: '90', current: '365', stored: true, changes: true, why: 'three months of the trace',
+              caution: 'purges', confirm: true, note: 'The next sweep deletes what the shorter window no longer keeps; a revert puts the number back, not what was deleted.',
+              route: 'PUT /api/v1/settings/ini/MessageTraceRetentionDays', applies: 'now', levels: null, environment: null, refused: null }
          ],
-         changes: 1, unchanged: 1, skipped: 0, refused: 0, confirmation_needed: ['usegreylisting'], applicable: true, blocked: null, applied: null, snapshot: null
+         changes: 2, unchanged: 1, skipped: 0, refused: 0,
+         confirmation_needed: [{ store: 'database', name: 'usegreylisting', caution: 'turns_filter_off', current: '1', value: '0' },
+            { store: 'ini', name: 'MessageTraceRetentionDays', caution: 'purges', current: '365', value: '90' }],
+         diff_token: 'tok-gateway', applicable: true, blocked: null, applied: null, snapshot: null
       }
    },
    // The sample domain, which the checklist view draws beside the eight items.
@@ -2372,16 +2382,23 @@ function answer(method, path, headers, raw) {
       const names = ['office', 'gateway'];
       return json(200, { profiles: names.map((n) => { const d = state.profileDiffs[n];
          return { name: n, title: d.title, summary: d.summary, includes: null, entries: d.entries.length, changes: d.changes,
-            confirmation_needed: d.confirmation_needed.length, skipped: d.skipped, refused: 0 }; }),
-         applied: state.profileSnapshot ? { profile: state.profileSnapshot.profile, title: '', applied: 1789000000, state: 'applied', changed: 1789000000 } : null,
+            confirmations: d.confirmation_needed.length, skipped: d.skipped, refused: 0 }; }),
+         applied: state.profileSnapshot && state.profileSnapshot.profile ? { profile: state.profileSnapshot.profile, title: '', applied: 1789000000, state: 'applied', changed: 1789000000 }
+            : state.profileDeclined ? { profile: '', title: '', applied: 1789000000, state: 'declined', changed: 1789000000 } : null,
          snapshot: state.profileSnapshot });
+   }
+   if (path === '/api/v1/settings/profiles/decline' && method === 'POST') {
+      if (state.profileSnapshot) { return json(409, { error: 'A way back from a profile is held.' }); }
+      state.profileDeclines += 1;
+      state.profileDeclined = true;
+      return json(200, { declined: 1789000100, message: 'Recorded.' });
    }
    if (path === '/api/v1/settings/profiles/revert' && method === 'POST') {
       if (!state.profileSnapshot) { return json(409, { error: 'There is nothing to revert.' }); }
       state.profileReverts += 1;
       const profile = state.profileSnapshot.profile;
       state.profileSnapshot = null;
-      return json(200, { profile, reverted: 1789000100, entries: [], set: 2, unchanged: 0, skipped: 1, failed: 0, waiting: { reinitialize: 0, restart: 0 }, message: 'reverted' });
+      return json(200, { profile, reverted: 1789000100, entries: [], set: 2, unchanged: 0, skipped: 1, failed: 0, waiting: { reinitialize: 0, restart: 2 }, message: 'reverted' });
    }
    if (path === '/api/v1/settings/profiles/discard' && method === 'POST') {
       if (!state.profileSnapshot) { return json(409, { error: 'There is no way back to discard.' }); }
@@ -2394,14 +2411,18 @@ function answer(method, path, headers, raw) {
       const diff = state.profileDiffs[name];
       if (!diff) { return json(404, { error: 'There is no profile named ' + name + '.' }); }
       state.profileApplies.push({ name, body: parsed });
-      if (state.profileSnapshot) { return json(409, { error: 'A way back is held.', confirmation: false, confirmation_needed: [], refused: [], snapshot: state.profileSnapshot }); }
+      if (parsed && parsed.confirm === true && !parsed.diff_token) { return json(400, { error: 'a confirmation confirms a diff: send the diff_token' }); }
+      if (state.profileSnapshot) { return json(409, { error: 'A way back is held.', confirmation: false, stale: false, confirmation_needed: [], refused: [], snapshot: state.profileSnapshot }); }
+      if (parsed && parsed.diff_token && parsed.diff_token !== diff.diff_token) {
+         return json(409, { error: 'The settings changed since the diff of the ' + name + ' profile was read. Look at the diff again.', confirmation: false, stale: true, confirmation_needed: [], refused: [] });
+      }
       if (diff.confirmation_needed.length && !(parsed && parsed.confirm === true)) {
-         return json(409, { error: 'Applying the ' + name + ' profile here changes one entry that asks for a confirmation.', confirmation: true,
-            confirmation_needed: diff.confirmation_needed.map((n) => ({ name: n })), refused: [] });
+         return json(409, { error: 'Applying the ' + name + ' profile here changes one entry that asks for a confirmation.', confirmation: true, stale: false,
+            confirmation_needed: diff.confirmation_needed, refused: [] });
       }
       state.profileSnapshot = { readable: true, profile: name, applied: 1789000050, entries: diff.changes };
       return json(200, { profile: name, applied: 1789000050, entries: [], set: diff.changes, unchanged: diff.unchanged, skipped: diff.skipped, failed: 0,
-         waiting: { reinitialize: 0, restart: 0 }, message: 'applied' });
+         waiting: { reinitialize: 1, restart: 0 }, message: 'applied' });
    }
    if (/^\/api\/v1\/settings\/profiles\/[a-z-]+$/.test(path) && method === 'GET') {
       const diff = state.profileDiffs[segment(path, 5)];
@@ -6591,10 +6612,18 @@ async function main() {
    await flush();
    check('an entry that turns a filter off is marked, and a confirmation box is drawn',
       called(before, 'GET', '/api/v1/settings/profiles/gateway').length === 1 &&
-      content().querySelector('tr.profilerow[data-name="usegreylisting"]').textContent.indexOf('Turns a filter off') >= 0 &&
+      content().querySelector('tr.profilerow[data-name="usegreylisting"]').textContent.indexOf('Turns a filter or a check off') >= 0 &&
       content().querySelector('tr.profilerow[data-name="SMTPXClientEnabled"]').textContent.indexOf('Trusts an address range') < 0 &&
       document.getElementById('profileConfirm') !== null,
       $('#profilesCard').textContent);
+   check('a window of days the profile would shorten is marked, with the server\'s note that a revert does not bring back what is deleted, and the box says so',
+      content().querySelector('tr.profilerow[data-name="MessageTraceRetentionDays"]').textContent.indexOf('Shortens how long data is kept') >= 0 &&
+      content().querySelector('tr.profilerow[data-name="MessageTraceRetentionDays"]').textContent.indexOf('a revert puts the number back, not what was deleted') >= 0 &&
+      $('#profilesCard').textContent.indexOf('what a shorter window deletes, a revert does not bring back') >= 0,
+      content().querySelector('tr.profilerow[data-name="MessageTraceRetentionDays"]').textContent);
+   check('the apply button carries the diff\'s token',
+      content().querySelector('button[data-act="profileapply"]').attributes['data-token'] === 'tok-gateway',
+      JSON.stringify(content().querySelector('button[data-act="profileapply"]').attributes));
 
    before = requests.length;
    click(act('profileapply', { name: 'gateway' }));
@@ -6611,19 +6640,35 @@ async function main() {
    await flush();
    check('Apply asks first, naming how many settings change, and no sends nothing',
       called(before, 'POST', '/api/v1/settings/profiles/gateway/apply').length === 0 &&
-      confirmations[confirmations.length - 1].indexOf('Apply the gateway profile? 1 settings change now') >= 0,
+      confirmations[confirmations.length - 1].indexOf('Apply the gateway profile? 2 settings change, and what they held is kept') >= 0,
       confirmations[confirmations.length - 1]);
    confirmAnswer = true;
+
+   // The settings moved between the diff and the apply: the server refuses the
+   // stale token, the page says why and draws the diff again with the new one.
+   state.profileDiffs.gateway.diff_token = 'tok-gateway-2';
+   setChecked('profileConfirm', true);
+   before = requests.length;
+   click(act('profileapply', { name: 'gateway' }));
+   await flush();
+   check('an apply from a diff the server no longer answers is refused, the page says so and draws the diff again',
+      called(before, 'POST', '/api/v1/settings/profiles/gateway/apply').length === 1 &&
+      state.profileApplies[state.profileApplies.length - 1].body.diff_token === 'tok-gateway' &&
+      state.profileSnapshot === null &&
+      document.getElementById('err_profiles').textContent.indexOf('The settings changed since the diff') >= 0 &&
+      called(before, 'GET', '/api/v1/settings/profiles/gateway').length >= 1 &&
+      content().querySelector('button[data-act="profileapply"]').attributes['data-token'] === 'tok-gateway-2',
+      document.getElementById('err_profiles').textContent + ' | ' + paths(before));
 
    setChecked('profileConfirm', true);
    before = requests.length;
    click(act('profileapply', { name: 'gateway' }));
    await flush();
    const applied = state.profileApplies[state.profileApplies.length - 1];
-   check('yes applies it with the confirmation on the body, says what it did, and offers the way back',
+   check('yes applies it with the confirmation and the diff\'s token on the body, says what it did and what waits, and offers the way back',
       called(before, 'POST', '/api/v1/settings/profiles/gateway/apply').length === 1 &&
-      applied && applied.body && applied.body.confirm === true &&
-      toastText() === 'gateway: 1 set, 1 unchanged, 0 skipped.' &&
+      applied && applied.body && applied.body.confirm === true && applied.body.diff_token === 'tok-gateway-2' &&
+      toastText() === 'gateway: 2 set, 1 unchanged, 0 skipped; 1 wait for a reinitialise and 0 for a restart.' &&
       content().querySelector('button[data-act="profilerevert"]') !== null &&
       $('#profilesCard').textContent.indexOf('The gateway profile is applied. What it replaced is kept, and can be put back.') >= 0,
       toastText() + ' | ' + paths(before));
@@ -6646,7 +6691,7 @@ async function main() {
    await flush();
    check('yes puts it back, says how many, and the way back is gone',
       called(before, 'POST', '/api/v1/settings/profiles/revert').length === 1 && state.profileReverts === 1 &&
-      toastText() === 'gateway: 2 put back, 1 left as they were.' &&
+      toastText() === 'gateway: 2 put back, 1 left as they were; 0 wait for a reinitialise and 2 for a restart.' &&
       content().querySelector('button[data-act="profilerevert"]') === null,
       toastText() + ' | ' + paths(before));
 
@@ -6661,6 +6706,64 @@ async function main() {
       called(before, 'POST', '/api/v1/settings/profiles/discard').length === 1 && state.profileDiscards === 1 &&
       content().querySelector('button[data-act="profilediscard"]') === null,
       paths(before));
+
+   // A way back that cannot be read can only be discarded, and the page offers that.
+   state.profileSnapshot = { readable: false };
+   click(act('checklistagain'));
+   await flush();
+   check('a way back that cannot be read is said to be, with a Discard and no Put back',
+      $('#profilesCard').textContent.indexOf('is held and cannot be read') >= 0 &&
+      content().querySelector('button[data-act="profilediscard"]') !== null &&
+      content().querySelector('button[data-act="profilerevert"]') === null &&
+      content().querySelector('button[data-act="profiledecline"]') === null,
+      $('#profilesCard').textContent);
+   before = requests.length;
+   click(act('profilediscard'));
+   await flush();
+   check('Discard the way back sends the discard, and the page offers the profiles again',
+      called(before, 'POST', '/api/v1/settings/profiles/discard').length === 1 && state.profileDiscards === 2 &&
+      content().querySelector('button[data-act="profilediscard"]') === null,
+      paths(before));
+
+   // Keeping the shipped settings: asked first, recorded, and no longer offered.
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('profiledecline'));
+   await flush();
+   check('Keep the shipped settings asks first, and no sends nothing',
+      called(before, 'POST', '/api/v1/settings/profiles/decline').length === 0 &&
+      confirmations[confirmations.length - 1].indexOf('Keep the settings this version ships with, and apply no profile?') >= 0,
+      confirmations[confirmations.length - 1]);
+   confirmAnswer = true;
+   before = requests.length;
+   click(act('profiledecline'));
+   await flush();
+   check('yes records the choice, says so, and the button is gone',
+      called(before, 'POST', '/api/v1/settings/profiles/decline').length === 1 && state.profileDeclines === 1 &&
+      toastText() === 'The shipped settings are kept; no profile is applied.' &&
+      content().querySelector('button[data-act="profiledecline"]') === null,
+      toastText() + ' | ' + paths(before));
+   state.profileDeclined = false;
+
+   // The two codes a profile's record adds, in this page's own words.
+   const profileItem = state.checklist.items[0];
+   const profileItemBefore = clone(profileItem);
+   profileItem.state = 'action_needed';
+   profileItem.findings = [{ state: 'action_needed', code: 'profile_failed', args: ['office', '2026-09-23'], text: 'the server sentence the page does not use' }];
+   click(act('checklistagain'));
+   await flush();
+   check('a profile that could not be applied in full is drawn from this page\'s own words',
+      content().querySelector('.checkitem[data-key="profile"]').textContent.indexOf('The office profile could not be applied in full on 2026-09-23') >= 0 &&
+      content().querySelector('.checkitem[data-key="profile"]').textContent.indexOf('the server sentence the page does not use') < 0,
+      content().querySelector('.checkitem[data-key="profile"]').textContent);
+   profileItem.state = 'not_needed';
+   profileItem.findings = [{ state: 'not_needed', code: 'profile_declined', args: ['2026-09-23'], text: 'the server sentence the page does not use' }];
+   click(act('checklistagain'));
+   await flush();
+   check('the shipped settings chosen are drawn from this page\'s own words',
+      content().querySelector('.checkitem[data-key="profile"]').textContent.indexOf('The settings this version ships with were chosen on 2026-09-23') >= 0,
+      content().querySelector('.checkitem[data-key="profile"]').textContent);
+   state.checklist.items[0] = profileItemBefore;
 
    state.checklist = {
       generated: 1789000200, dns_looked_up: true, done: 0, action_needed: 5, cannot_tell: 0, not_needed: 3,

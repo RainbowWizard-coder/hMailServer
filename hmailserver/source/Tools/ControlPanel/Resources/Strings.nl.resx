@@ -671,6 +671,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="A virus scanner that stops responding. ClamAV is contacted after the message is accepted, so a wedged clamd shows up as accepted-but-never-delivered. Each socket operation is bounded by ClamMinTimeout / ClamMaxTimeout - a deadline on one read or write, armed afresh each time, so a large message streamed in chunks can take longer than ClamMaxTimeout in total." xml:space="preserve">
     <value>Een virusscanner die niet meer reageert. ClamAV wordt benaderd nadat het bericht is geaccepteerd, dus een vastgelopen clamd toont zich als geaccepteerd-maar-nooit-bezorgd. Elke socketbewerking wordt begrensd door ClamMinTimeout / ClamMaxTimeout - een deadline op één lees- of schrijfbewerking, telkens opnieuw gezet, zodat een groot bericht dat in stukken wordt gestreamd in totaal langer kan duren dan ClamMaxTimeout.</value>
   </data>
+  <data name="A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced." xml:space="preserve">
+    <value>Er wordt een weg terug van een profiel bewaard die niet te lezen is, dus die kan niet worden teruggezet. Gooi hem weg om een profiel toe te passen; het auditspoor noemt elke waarde die het profiel verving.</value>
+  </data>
   <data name="ACL (shared folder permissions)" xml:space="preserve">
     <value>ACL (rechten op gedeelde mappen)</value>
   </data>
@@ -1413,8 +1416,8 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>De spam_filtering van de server op dit account toepassen</value>
   </data>
-  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
-    <value>Het profiel {0} toepassen? {1} instellingen veranderen nu, en wat ze hadden wordt bewaard zodat het teruggezet kan worden.</value>
+  <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>Het profiel {0} toepassen? {1} instellingen veranderen, en wat ze hadden wordt bewaard zodat het teruggezet kan worden.</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled kon niet worden gelezen: {0}</value>
@@ -4181,8 +4184,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Hoe deze server MX-, PTR-, SPF-, DKIM-, DMARC- en blokkadelijstopzoekingen uitvoert (hMailServer.INI).</value>
   </data>
-  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
-    <value>Ik _bevestig de hierboven gemarkeerde wijzigingen: ze sluiten een listener, vertrouwen een adresbereik of zetten een filter uit op deze server.</value>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept on this server - and what a shorter window deletes, a revert does not bring back." xml:space="preserve">
+    <value>Ik _bevestig de hierboven gemarkeerde wijzigingen: ze sluiten een listener, vertrouwen een adresbereik, zetten een filter of een controle uit, of verkorten hoe lang gegevens op deze server worden bewaard - en wat een kortere termijn verwijdert, brengt terugzetten niet terug.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (push-mail)</value>
@@ -4435,8 +4438,17 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Keep seen/unseen state" xml:space="preserve">
     <value>De status gelezen/ongelezen behouden</value>
   </data>
+  <data name="Keep the _shipped settings" xml:space="preserve">
+    <value>De _geleverde instellingen houden</value>
+  </data>
   <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
     <value>Houd het record van de selector die wordt uitgefaseerd, "{0}", gepubliceerd tot {1}, voor e-mail die ermee is ondertekend en nog onderweg is.</value>
+  </data>
+  <data name="Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later." xml:space="preserve">
+    <value>De instellingen houden waarmee deze versie wordt geleverd, en geen profiel toepassen? De checklist vraagt er niet meer om; elk profiel kan later nog worden toegepast.</value>
+  </data>
+  <data name="Keep the shipped settings" xml:space="preserve">
+    <value>De geleverde instellingen houden</value>
   </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>Meerdere generaties berichten bewaren vereist compressie: zonder 'Doelbestanden comprimeren (zip)' schrijft elke back-up zijn berichtbestanden naar dezelfde DataBackup-map en overschrijft daarmee die van de vorige run, zodat de bewaring alleen generaties van de kleine archieven met instellingen en domeinen kan bewaren.</value>
@@ -8137,6 +8149,9 @@ Nu opnieuw starten?</value>
   <data name="Sho_w me around" xml:space="preserve">
     <value>Rond_leiding</value>
   </data>
+  <data name="Shortens how long data is kept" xml:space="preserve">
+    <value>Verkort hoe lang gegevens worden bewaard</value>
+  </data>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Kortste zoekterm die de index beantwoordt (3-64; kortere termen vallen terug op de scan)</value>
   </data>
@@ -9460,6 +9475,12 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>De instellingen die elke fase begrenzen</value>
   </data>
+  <data name="The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server." xml:space="preserve">
+    <value>De instellingen waarmee deze versie wordt geleverd, zijn op {0} gekozen en er is geen profiel toegepast; elk van de vier kan nog met deze server worden vergeleken.</value>
+  </data>
+  <data name="The shipped settings are kept; no profile is applied." xml:space="preserve">
+    <value>De geleverde instellingen blijven; er is geen profiel toegepast.</value>
+  </data>
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>De enkele waarde AEAD-ONLY (niet hoofdlettergevoelig) is een benoemde voorinstelling en geen OpenSSL-cipherstring: alleen forward-secret AEAD-suites (ECDHE of DHE met AES-GCM of ChaCha20-Poly1305), met uitsluiting van elke suite in CBC-modus - de Lucky13-familie van padding-orakels - en van statische RSA-sleuteluitwisseling. De prijs: TLS 1.2-clients die alleen CBC-suites spreken kunnen geen verbinding maken, en voor TLS 1.0/1.1 blijft er helemaal geen bruikbare cipher over, dus schakel die protocollen er niet naast in. TLS 1.3 blijft ongemoeid - zijn suites zijn per definitie AEAD en worden hieronder apart ingesteld. Een verkeerd gespelde naam van de voorinstelling wordt geweigerd en gemeld, niet stilzwijgend genegeerd.</value>
   </data>
@@ -9522,6 +9543,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>De wiki kon niet in een browser worden geopend.</value>
+  </data>
+  <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again." xml:space="preserve">
+    <value>Het profiel {0} kon op {1} niet volledig worden toegepast: sommige instellingen zijn niet geschreven. Zet terug wat het schreef, of houd het, en pas het opnieuw toe.</value>
   </data>
   <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
     <value>Het profiel {0} is toegepast. Wat het verving is bewaard en kan worden teruggezet.</value>
@@ -9714,8 +9738,8 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbird autoconfig + Outlook autodiscover</value>
   </data>
-  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
-    <value>Vink eerst de bevestiging aan: dit profiel sluit hier een listener, vertrouwt een adresbereik of zet een filter uit.</value>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept here." xml:space="preserve">
+    <value>Vink eerst de bevestiging aan: dit profiel sluit hier een listener, vertrouwt een adresbereik, zet een filter of een controle uit, of verkort hoe lang gegevens worden bewaard.</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>Tijd</value>
@@ -9837,8 +9861,8 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Dit uitzetten stopt sessietickets op elke TLS-versie: clients met TLS 1.2 en ouder vallen terug op de sessiecache aan de serverkant, die dit proces nooit verlaat, en clients met TLS 1.3 krijgen helemaal geen ticket. Voor een beheerder wiens beleid is dat er nooit iets dat van een langlevende sleutel is afgeleid over de lijn gaat. De enige prijs is de efficiëntie van hervatting - elke client kan nog steeds verbinding maken met een volledige handshake.</value>
   </data>
-  <data name="Turns a filter off" xml:space="preserve">
-    <value>Zet een filter uit</value>
+  <data name="Turns a filter or a check off" xml:space="preserve">
+    <value>Zet een filter of een controle uit</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Twee bindmethoden, en het verschil telt zwaarder dan het lijkt: de ene stuurt het wachtwoord naar de directory, de andere zet het helemaal nooit op de lijn.</value>
@@ -12309,11 +12333,11 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} bevat geen PEM-certificaatblok, dus het bevat geen bruikbaar CA-certificaat (serverfout 6140). Exporteer het CA-certificaat in PEM-indeling (Base64).</value>
   </data>
-  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
-    <value>{0}: {1} teruggezet, {2} gelaten zoals ze waren.</value>
+  <data name="{0}: {1} put back, {2} left as they were; {3} wait for a reinitialise and {4} for a restart." xml:space="preserve">
+    <value>{0}: {1} teruggezet, {2} gelaten zoals ze waren; {3} wachten op een herinitialisatie en {4} op een herstart.</value>
   </data>
-  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
-    <value>{0}: {1} ingesteld, {2} ongewijzigd, {3} overgeslagen.</value>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart." xml:space="preserve">
+    <value>{0}: {1} ingesteld, {2} ongewijzigd, {3} overgeslagen; {4} wachten op een herinitialisatie en {5} op een herstart.</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1} antivirus uitgeschakeld, dus mail die door {2} opgehaald, wordt ongescand bezorgd, wat hier ook is ingesteld. De schakelaar staat op het ophaalaccount, niet op deze pagina.{3}</value>

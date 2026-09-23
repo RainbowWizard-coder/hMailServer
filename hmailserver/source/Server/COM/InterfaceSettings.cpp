@@ -17,6 +17,7 @@
 #include "../Common/Application/ACLManager.h"
 #include "../Common/Application/SettingsDiff.h"
 #include "../Common/Application/Profiles.h"
+#include "../Common/Util/JsonDocument.h"
 #include "../Common/Util/Unicode.h"
 #include "../Common/Util/ReputationWatch.h"
 #include "../Common/Application/IniSettingStore.h"
@@ -5307,7 +5308,42 @@ STDMETHODIMP InterfaceSettings::GetProfile(BSTR Name, BSTR *Json)
    }
 }
 
-STDMETHODIMP InterfaceSettings::ApplyProfile(BSTR Name, VARIANT_BOOL Confirmed, BSTR *Json)
+namespace
+{
+   // A write that failed part way: COM has no body beside its error, so the
+   // entries that were written - and the one that was not - go into the sentence,
+   // which is what REST answers in its 500's body.
+   HM::String ProfileReportLines_(const HM::AnsiString &json)
+   {
+      HM::JsonValue document;
+      std::string error;
+      if (!HM::JsonValue::Parse(std::string(json.c_str()), document, error) || !document.IsObject())
+         return HM::String();
+
+      const HM::JsonValue *entries = document.Get("entries");
+      if (!entries || !entries->IsArray())
+         return HM::String();
+
+      std::vector<HM::String> lines;
+      for (const HM::JsonValue &entry : entries->Items())
+      {
+         const std::string result = entry.GetString("result");
+         if (result == "unchanged")
+            continue;
+
+         HM::AnsiString line = HM::AnsiString(entry.GetString("name").c_str()) + " " + HM::AnsiString(result.c_str());
+         if (!entry.GetString("reason").empty() && result != "set" && result != "restored")
+            line += " (" + HM::AnsiString(entry.GetString("reason").c_str()) + ")";
+         lines.push_back(WideFromUtf8(line));
+      }
+
+      if (lines.empty())
+         return HM::String();
+      return _T(" What each setting did: ") + HM::StringParser::JoinVector(lines, _T("; ")) + _T(".");
+   }
+}
+
+STDMETHODIMP InterfaceSettings::ApplyProfile(BSTR Name, VARIANT_BOOL Confirmed, BSTR DiffToken, BSTR *Json)
 {
    try
    {
@@ -5321,9 +5357,16 @@ STDMETHODIMP InterfaceSettings::ApplyProfile(BSTR Name, VARIANT_BOOL Confirmed, 
       if (!GetIsServerAdmin())
          return GetAccessDenied();
 
+      // A confirmation is of the diff the caller showed, as over REST.
+      const HM::String token = DiffToken ? HM::String(DiffToken) : HM::String();
+      if (Confirmed == VARIANT_TRUE && token.IsEmpty())
+         return COMError::GenerateError(_T("A confirmation confirms a diff: pass the diff_token GetProfile answered as DiffToken beside Confirmed."));
+
       HM::AnsiString json;
       HM::String sentence;
-      const HM::Profiles::Outcome outcome = HM::Profiles::Apply(HM::String(Name), Confirmed == VARIANT_TRUE, json, sentence);
+      const HM::Profiles::Outcome outcome = HM::Profiles::Apply(HM::String(Name), Confirmed == VARIANT_TRUE, token, json, sentence);
+      if (outcome == HM::Profiles::OutcomeFailed)
+         return COMError::GenerateError(sentence + ProfileReportLines_(json));
       if (outcome != HM::Profiles::OutcomeDone)
          return COMError::GenerateError(sentence);
 
@@ -5351,7 +5394,10 @@ STDMETHODIMP InterfaceSettings::RevertProfile(BSTR *Json)
 
       HM::AnsiString json;
       HM::String sentence;
-      if (HM::Profiles::Revert(json, sentence) != HM::Profiles::OutcomeDone)
+      const HM::Profiles::Outcome outcome = HM::Profiles::Revert(json, sentence);
+      if (outcome == HM::Profiles::OutcomeFailed)
+         return COMError::GenerateError(sentence + ProfileReportLines_(json));
+      if (outcome != HM::Profiles::OutcomeDone)
          return COMError::GenerateError(sentence);
 
       *Json = WideFromUtf8(json).AllocSysString();
@@ -5378,6 +5424,33 @@ STDMETHODIMP InterfaceSettings::DiscardProfileSnapshot()
       if (HM::Profiles::Discard(json, sentence) != HM::Profiles::OutcomeDone)
          return COMError::GenerateError(sentence);
 
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::DeclineProfiles(BSTR *Json)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!Json)
+         return COMError::GenerateGenericMessage();
+
+      if (!GetIsServerAdmin())
+         return GetAccessDenied();
+
+      HM::AnsiString json;
+      HM::String sentence;
+      if (HM::Profiles::Decline(json, sentence) != HM::Profiles::OutcomeDone)
+         return COMError::GenerateError(sentence);
+
+      *Json = WideFromUtf8(json).AllocSysString();
       return S_OK;
    }
    catch (...)

@@ -16,13 +16,21 @@
 //                    still to hold before it writes the old one over it. Empty
 //                    when there is nothing to go back to.
 //   ProfileApplied   {"profile":"office","applied":<unix>,"state":"applied"|
-//                       "reverted"|"kept","changed":<unix>}
-//                    the last profile applied, and what became of it. Empty on a
-//                    server no profile was ever applied to - which is what
-//                    --apply-profile --once asks.
+//                       "reverted"|"kept"|"failed"|"declined","changed":<unix>,
+//                       "set":["i:<key>","d:<property>",...]}
+//                    the last profile applied, what became of it, and the settings
+//                    its apply wrote. profile is empty, and state declined, when
+//                    no profile is wanted. Empty on a server nothing was recorded
+//                    for - which is what --apply-profile --once asks.
 //
 // Both fit hm_settings.settingstring's 4000 characters: an apply whose way back
-// would not is refused before anything is written.
+// would not is refused before anything is written. Both are READ FROM THE
+// DATABASE whenever they decide anything - not from the property set this process
+// loaded - because hmailserver --apply-profile writes them from another process,
+// and a server that decided from its own copy would take a way back the command
+// line saved for none, and write another over it. Both are WRITTEN through
+// PropertySet::WriteBookkeeping, which says when the database did not take one:
+// a way back that was not stored is no way back, and nothing is applied then.
 
 #include "StdAfx.h"
 #include "Profiles.h"
@@ -36,8 +44,13 @@
 #include "IniSettingsBaseline.h"
 #include "PropertySet.h"
 #include "SettingsDefaults.h"
+#include "../SQL/DatabaseConnectionManager.h"
+#include "../SQL/DALRecordset.h"
+#include "../SQL/SQLCommand.h"
 #include "../Util/AuditTrail.h"
+#include "../Util/Hashing/HashCreator.h"
 #include "../Util/JsonDocument.h"
+#include "../Util/SetupChecklist.h"
 #include "../Util/Unicode.h"
 #include "../Util/RestApiSettingsRows.h"
 
@@ -55,13 +68,17 @@ namespace HM
 {
    namespace
    {
-      // One apply, revert or discard at a time: each reads the records, decides, and
-      // writes them, and two at once would each decide on what the other is about
-      // to replace.
+      // One apply, revert, discard or decline at a time: each reads the records,
+      // decides, and writes them, and two at once would each decide on what the
+      // other is about to replace.
       std::mutex profiles_mutex;
 
       // The widest value hm_settings.settingstring holds.
       const int MaximumRecord = 4000;
+
+      // The error codes of this unit (7300-7309).
+      const int ErrorSnapshotUnreadable = 7300;
+      const int ErrorRecordNotWritten = 7301;
 
       AnsiString Utf8(const String &text)
       {
@@ -215,6 +232,11 @@ namespace HM
          return ini ? "ini" : "database";
       }
 
+      String StoreKey(bool ini, const String &name)
+      {
+         return String(ini ? _T("i:") : _T("d:")) + name;
+      }
+
       const char *CautionWord(ProfilesData::Caution caution)
       {
          switch (caution)
@@ -222,6 +244,7 @@ namespace HM
          case ProfilesData::CautionClosesListener: return "closes_listener";
          case ProfilesData::CautionTrustsAddresses: return "trusts_addresses";
          case ProfilesData::CautionTurnsFilterOff: return "turns_filter_off";
+         case ProfilesData::CautionPurges: return "purges";
          default: return nullptr;
          }
       }
@@ -232,7 +255,8 @@ namespace HM
          {
          case ProfilesData::CautionClosesListener: return _T("closes a listener");
          case ProfilesData::CautionTrustsAddresses: return _T("trusts an address range");
-         case ProfilesData::CautionTurnsFilterOff: return _T("turns a filter off");
+         case ProfilesData::CautionTurnsFilterOff: return _T("turns a filter or a check off, or weakens it");
+         case ProfilesData::CautionPurges: return _T("shortens how long something is kept, and the next sweep deletes what it no longer keeps");
          default: return _T("");
          }
       }
@@ -259,6 +283,25 @@ namespace HM
             default: return _T("preference");
             }
          }
+         return String();
+      }
+
+      // When a value written through this route reaches the running server: the
+      // REST row's own mark, or the settings store's for a [Settings] key no row
+      // keeps.
+      String AppliesOf(bool ini, const String &name)
+      {
+         RestApiSettingsRows::Lent lent;
+         if (RestApiSettingsRows::Find(ini, name, lent))
+            return String(lent.applies);
+
+         if (ini)
+         {
+            String applies;
+            String spelling;
+            return IniFileSettings::GetApplies(name, applies, spelling) ? applies : String(_T("now"));
+         }
+
          return String();
       }
 
@@ -294,18 +337,38 @@ namespace HM
          return left == right;
       }
 
+      // For a window of days: how long a value keeps, in days, with 0 meaning what
+      // the setting says it means - for ever, or nothing.
+      long long WindowDays(ProfilesData::Zero zero, long long days)
+      {
+         if (days > 0)
+            return days;
+         return zero == ProfilesData::ZeroKeepsForever ? LLONG_MAX : 0;
+      }
+
+      // Whether writing value over current shortens the window: the next sweep
+      // deletes what the shorter window no longer keeps.
+      bool Shortens(const ProfilesData::Entry &entry, const String &current, const String &value)
+      {
+         return WindowDays(entry.zero, LeadingNumber(value)) < WindowDays(entry.zero, LeadingNumber(current));
+      }
+
       typedef std::map<String, std::pair<String, String> > StoredRows;
 
       // What the setting holds now, read as the server reads it. rows, when given, is
       // the settings store read once for a whole profile rather than once an entry.
-      void ReadCurrent(Evaluated &evaluated, const StoredRows *rows = nullptr)
+      // False when the settings store could not be read, which for a [Settings] key
+      // leaves whether it is stored - what the way back removes or restores -
+      // unknown.
+      bool ReadCurrent(Evaluated &evaluated, const StoredRows *rows = nullptr)
       {
          if (evaluated.ini)
          {
             StoredRows read;
             if (!rows)
             {
-               IniSettingStore::ReadAllRows(read);
+               if (!IniSettingStore::ReadAllRows(read))
+                  return false;
                rows = &read;
             }
 
@@ -330,7 +393,7 @@ namespace HM
                value = key ? String(key->Default) : String();
             }
             evaluated.current = value;
-            return;
+            return true;
          }
 
          std::shared_ptr<PropertySet> properties = Configuration::Instance()->GetPropertySet();
@@ -340,13 +403,14 @@ namespace HM
          if (!evaluated.stored)
          {
             evaluated.current = property ? (property->Kind == SettingsDefaults::KindString ? String(property->Value) : StringParser::IntToString((int) property->Number)) : String();
-            return;
+            return true;
          }
 
          if (property && property->Kind == SettingsDefaults::KindString)
             evaluated.current = properties->GetString(evaluated.name);
          else
             evaluated.current = StringParser::IntToString((int) properties->GetLong(evaluated.name));
+         return true;
       }
 
       Evaluated Evaluate(const ProfilesData::Entry &entry, const StoredRows &rows)
@@ -395,10 +459,7 @@ namespace HM
          else if (evaluated.ini)
          {
             evaluated.route = _T("PUT /api/v1/settings/ini/") + evaluated.name;
-
-            String applies;
-            String spelling;
-            evaluated.applies = IniFileSettings::GetApplies(evaluated.name, applies, spelling) ? applies : String(_T("now"));
+            evaluated.applies = AppliesOf(true, evaluated.name);
          }
          else if (evaluated.refused.IsEmpty())
          {
@@ -418,47 +479,88 @@ namespace HM
                evaluated.refused = RestApiSettingsRows::Check(evaluated.ini, evaluated.name, evaluated.number, evaluated.value);
          }
 
-         evaluated.confirm = entry.caution != ProfilesData::CautionNone && evaluated.changes &&
-                             evaluated.environment.IsEmpty() && evaluated.refused.IsEmpty();
+         // A caution asks for the confirmation wherever the entry would change
+         // something; a window of days only where it would shorten the one in
+         // force, because a longer window deletes nothing.
+         bool earned = entry.caution != ProfilesData::CautionNone && evaluated.changes;
+         if (entry.caution == ProfilesData::CautionPurges)
+            earned = evaluated.changes && Shortens(entry, evaluated.current, evaluated.value);
+
+         evaluated.confirm = earned && evaluated.environment.IsEmpty() && evaluated.refused.IsEmpty();
 
          return evaluated;
       }
 
-      std::vector<Evaluated> EvaluateAll(const ProfilesData::Profile &profile)
+      // Every entry of the profile, as the server stands now. False when the
+      // settings store could not be read: the diff would then say a stored key was
+      // not, and a way back taken from it would remove it.
+      bool EvaluateAll(const ProfilesData::Profile &profile, std::vector<Evaluated> &all)
       {
          StoredRows rows;
-         IniSettingStore::ReadAllRows(rows);
+         const bool read = IniSettingStore::ReadAllRows(rows);
 
-         std::vector<Evaluated> all;
+         all.clear();
          for (size_t i = 0; i < profile.entryCount; i++)
             all.push_back(Evaluate(profile.entries[i], rows));
-         return all;
+         return read;
+      }
+
+      // What the diff showed, as a token: the profile and, for every entry, the
+      // value in force, whether it would change, whether it asks for the
+      // confirmation, and what would skip or refuse it. An apply that brings a token
+      // is refused when the server no longer answers the same diff.
+      String DiffToken(const ProfilesData::Profile &profile, const std::vector<Evaluated> &all)
+      {
+         AnsiString canonical = Utf8(String(profile.name)) + "\n";
+         for (const Evaluated &evaluated : all)
+         {
+            canonical += AnsiString(StoreWord(evaluated.ini)) + "\t" + Utf8(evaluated.name) + "\t" + Utf8(evaluated.value) + "\t" +
+                         Utf8(evaluated.current) + "\t" + (evaluated.changes ? "1" : "0") + "\t" + (evaluated.confirm ? "1" : "0") + "\t" +
+                         Utf8(evaluated.environment) + "\t" + Utf8(evaluated.refused) + "\n";
+         }
+
+         HashCreator hasher(HashCreator::SHA256);
+         AnsiString hash = hasher.GenerateHashNoSalt(canonical, HashCreator::hex);
+         hash.MakeLower();
+         return String(hash.Left(16));
       }
 
       // ---- the records ---------------------------------------------------------
 
-      String ReadRecord(const TCHAR *row)
+      // The record as the database holds it now. False when it could not be read;
+      // a missing row is an empty record.
+      bool ReadRecord(const TCHAR *row, String &value)
       {
-         std::shared_ptr<PropertySet> properties = Configuration::Instance()->GetPropertySet();
-         if (!properties || !properties->Exists(row))
-            return String();
-         return properties->GetString(row);
+         value.Empty();
+
+         std::shared_ptr<DatabaseConnectionManager> database = Application::Instance()->GetDBManager();
+         if (!database)
+            return false;
+
+         SQLCommand command("select settingstring from hm_settings where settingname = @SETTINGNAME");
+         command.AddParameter("@SETTINGNAME", String(row));
+
+         std::shared_ptr<DALRecordset> recordset = database->OpenRecordset(command);
+         if (!recordset)
+            return false;
+
+         if (!recordset->IsEOF())
+            value = recordset->GetStringValue("settingstring");
+         return true;
       }
 
       // The server's own bookkeeping, written as it is: no refusal, no audit row of its
       // own (the apply or revert records itself as one event) and no change event.
+      // False, reported, when the database did not take it.
       bool WriteRecord(const TCHAR *row, const String &value)
       {
          std::shared_ptr<PropertySet> properties = Configuration::Instance()->GetPropertySet();
-         if (!properties)
-            return false;
+         if (properties && properties->WriteBookkeeping(row, value))
+            return true;
 
-         if (properties->Exists(row))
-            properties->SetBookkeeping(row, value);
-         else
-            properties->EnsureString(row, value);
-
-         return true;
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, ErrorRecordNotWritten, "Profiles::WriteRecord",
+            Formatter::Format("The setting profile's record {0} could not be written to hm_settings.", String(row)));
+         return false;
       }
 
       struct SnapshotEntry
@@ -536,33 +638,74 @@ namespace HM
          return true;
       }
 
-      String AppliedRecord(const String &profile, __int64 applied, const String &state, __int64 changed)
+      String AppliedRecord(const String &profile, __int64 applied, const String &state, __int64 changed, const std::vector<String> &set)
       {
-         const AnsiString json = "{\"profile\":" + JsonText(profile) + ",\"applied\":" + JsonNumber(applied) +
-                                 ",\"state\":" + JsonText(state) + ",\"changed\":" + JsonNumber(changed) + "}";
+         AnsiString json = "{\"profile\":" + JsonText(profile) + ",\"applied\":" + JsonNumber(applied) +
+                           ",\"state\":" + JsonText(state) + ",\"changed\":" + JsonNumber(changed) + ",\"set\":[";
+         for (size_t i = 0; i < set.size(); i++)
+         {
+            if (i > 0)
+               json += ",";
+            json += JsonText(set[i]);
+         }
+         json += "]}";
          return Wide(std::string(json.c_str()));
+      }
+
+      Profiles::Applied ParseApplied(const String &text)
+      {
+         Profiles::Applied record;
+         if (text.IsEmpty())
+            return record;
+
+         JsonValue document;
+         std::string error;
+         if (!JsonValue::Parse(std::string(Utf8(text).c_str()), document, error) || !document.IsObject())
+         {
+            // Something is recorded even if it cannot be read: --once must not take an
+            // unreadable record for none, and apply the profile a second time.
+            record.profile = _T("(unreadable)");
+            record.state = _T("applied");
+            record.readable = false;
+            return record;
+         }
+
+         record.profile = Wide(document.GetString("profile"));
+         record.state = Wide(document.GetString("state", "applied"));
+         record.applied = document.GetInt64("applied");
+         record.changed = document.GetInt64("changed", record.applied);
+
+         const JsonValue *set = document.Get("set");
+         if (set && set->IsArray())
+         {
+            for (const JsonValue &item : set->Items())
+            {
+               if (item.IsString())
+                  record.set.push_back(Wide(item.AsString()));
+            }
+         }
+         return record;
       }
 
       // ---- the answers ---------------------------------------------------------
 
-      AnsiString AppliedJson()
+      AnsiString AppliedJson(const Profiles::Applied &record)
       {
-         String profile;
-         __int64 applied = 0;
-         String state;
-         __int64 changed = 0;
-         Profiles::ReadApplied(profile, applied, state, changed);
-         if (profile.IsEmpty())
+         if (!record.Recorded())
             return "null";
 
-         const ProfilesData::Profile *definition = FindProfile(profile);
-         return "{\"profile\":" + JsonText(profile) + ",\"title\":" + JsonText(definition ? String(definition->title) : profile) +
-                ",\"applied\":" + JsonNumber(applied) + ",\"state\":" + JsonText(state) + ",\"changed\":" + JsonNumber(changed) + "}";
+         const ProfilesData::Profile *definition = FindProfile(record.profile);
+         return "{\"profile\":" + JsonText(record.profile) + ",\"title\":" + JsonText(definition ? String(definition->title) : record.profile) +
+                ",\"applied\":" + JsonNumber(record.applied) + ",\"state\":" + JsonText(record.state) + ",\"changed\":" + JsonNumber(record.changed) + "}";
       }
 
-      AnsiString SnapshotSummaryJson()
+      // The way back as the list and the diff answer it: null when none is held,
+      // {readable:false} when one is held and cannot be read - which a page offers
+      // to discard, since nothing else can be done with it.
+      AnsiString SnapshotSummaryJson(bool recordRead, const String &text)
       {
-         const String text = ReadRecord(Profiles::SnapshotName());
+         if (!recordRead)
+            return "{\"readable\":false}";
          if (text.IsEmpty())
             return "null";
 
@@ -572,6 +715,11 @@ namespace HM
 
          return "{\"readable\":true,\"profile\":" + JsonText(snapshot.profile) + ",\"applied\":" + JsonNumber(snapshot.applied) +
                 ",\"entries\":" + JsonNumber((__int64) snapshot.entries.size()) + "}";
+      }
+
+      const TCHAR *PurgeNote()
+      {
+         return _T("The next sweep deletes what the shorter window no longer keeps; a revert puts the number back, not what was deleted.");
       }
 
       AnsiString EntryJson(const Evaluated &evaluated)
@@ -588,6 +736,7 @@ namespace HM
          json += ",\"why\":" + JsonText(entry.why);
          json += ",\"caution\":" + (caution ? "\"" + AnsiString(caution) + "\"" : AnsiString("null"));
          json += ",\"confirm\":" + JsonBool(evaluated.confirm);
+         json += ",\"note\":" + (entry.caution == ProfilesData::CautionPurges && evaluated.confirm ? JsonText(PurgeNote()) : AnsiString("null"));
          json += ",\"route\":" + JsonTextOrNull(evaluated.route);
          json += ",\"applies\":" + JsonTextOrNull(evaluated.applies);
          json += ",\"levels\":" + JsonTextOrNull(evaluated.levels);
@@ -595,6 +744,15 @@ namespace HM
          json += ",\"refused\":" + JsonTextOrNull(evaluated.refused);
          json += "}";
          return json;
+      }
+
+      // An entry that asks for the confirmation, as the diff and a refused apply
+      // both list it.
+      AnsiString ConfirmationJson(const Evaluated &evaluated)
+      {
+         return "{\"store\":\"" + AnsiString(StoreWord(evaluated.ini)) + "\",\"name\":" + JsonText(evaluated.name) +
+                ",\"caution\":\"" + AnsiString(CautionWord(evaluated.entry->caution)) + "\",\"current\":" + JsonText(evaluated.current) +
+                ",\"value\":" + JsonText(evaluated.value) + "}";
       }
 
       struct Counts
@@ -732,7 +890,7 @@ namespace HM
       // the verb prints.
       struct Report
       {
-         Report() : time(0), set(0), unchanged(0), skipped(0), failed(0), waitReinitialize(0), waitRestart(0) {}
+         Report() : time(0), set(0), unchanged(0), skipped(0), failed(0), waitReinitialize(0), waitRestart(0), stale(false) {}
 
          String profile;
          __int64 time;
@@ -743,11 +901,21 @@ namespace HM
          int failed;
          int waitReinitialize;
          int waitRestart;
+         // The diff the caller brought is not the one the server answers now.
+         bool stale;
          std::vector<const Evaluated *> needConfirmation;
          std::vector<const Evaluated *> refused;
       };
 
-      Profiles::Outcome ApplyLocked(const String &name, bool confirmed, Report &report, std::vector<Evaluated> &all, String &sentence)
+      void CountWait(Report &report, const String &applies)
+      {
+         if (applies == _T("reinitialize"))
+            report.waitReinitialize++;
+         else if (applies == _T("restart"))
+            report.waitRestart++;
+      }
+
+      Profiles::Outcome ApplyLocked(const String &name, bool confirmed, const String &token, Report &report, std::vector<Evaluated> &all, String &sentence)
       {
          const ProfilesData::Profile *profile = FindProfile(name);
          if (!profile)
@@ -767,7 +935,13 @@ namespace HM
 
          // One snapshot, the latest: a second apply would replace the way back to the
          // settings before the first, which is the one thing the snapshot is for.
-         const String held = ReadRecord(Profiles::SnapshotName());
+         String held;
+         if (!ReadRecord(Profiles::SnapshotName(), held))
+         {
+            sentence = _T("The profile's records could not be read from the database, so nothing was applied.");
+            return Profiles::OutcomeFailed;
+         }
+
          if (!held.IsEmpty())
          {
             Snapshot snapshot;
@@ -779,7 +953,20 @@ namespace HM
             return Profiles::OutcomeRefused;
          }
 
-         all = EvaluateAll(*profile);
+         if (!EvaluateAll(*profile, all))
+         {
+            sentence = _T("The settings store could not be read, so whether each [Settings] key is stored - which the way back needs - is not known; nothing was applied.");
+            return Profiles::OutcomeFailed;
+         }
+
+         // The confirmation is of the diff the caller showed: when the server no
+         // longer answers the same one, what was confirmed is not what would be done.
+         if (!token.IsEmpty() && token.CompareNoCase(DiffToken(*profile, all)) != 0)
+         {
+            report.stale = true;
+            sentence = Formatter::Format("The settings changed since the diff of the {0} profile was read, so it is not the one this apply would make. Look at the diff again, and apply from it; nothing was applied.", String(profile->name));
+            return Profiles::OutcomeRefused;
+         }
 
          for (const Evaluated &evaluated : all)
          {
@@ -797,8 +984,8 @@ namespace HM
             return Profiles::OutcomeRefused;
          }
 
-         // A listener closed, an address range trusted or a filter turned off is
-         // never done silently to a server already in service.
+         // A listener closed, an address range trusted, a filter turned off or data
+         // deleted is never done silently to a server already in service.
          if (!report.needConfirmation.empty() && !confirmed)
          {
             sentence = Formatter::Format("Applying the {0} profile here {1}: {2}. Nothing was applied; apply it again with the confirmation to go ahead.",
@@ -841,13 +1028,13 @@ namespace HM
          {
             if (!WriteRecord(Profiles::SnapshotName(), Wide(std::string(SnapshotJson(snapshot).c_str()))))
             {
-               sentence = _T("The way back could not be written, so nothing was applied.");
+               sentence = _T("The way back could not be written to the database (HM7301 in the error log), so nothing was applied.");
+               report.time = 0;
                return Profiles::OutcomeFailed;
             }
          }
 
-         WriteRecord(Profiles::AppliedName(), AppliedRecord(profile->name, snapshot.applied, _T("applied"), snapshot.applied));
-
+         std::vector<String> setNames;
          for (Evaluated &evaluated : all)
          {
             Written written;
@@ -906,11 +1093,15 @@ namespace HM
             written.after = evaluated.current;
             written.result = _T("set");
             report.set++;
+            setNames.push_back(StoreKey(evaluated.ini, evaluated.name));
+            CountWait(report, evaluated.applies);
 
-            if (evaluated.applies == _T("reinitialize"))
-               report.waitReinitialize++;
-            else if (evaluated.applies == _T("restart"))
-               report.waitRestart++;
+            // Read back: a value that is not the profile's - a [SettingsOverride]
+            // forcing the key, or a setter that canonicalises - is said, and the
+            // diff answers it as changing still.
+            if (!SameValue(evaluated, evaluated.current, evaluated.value))
+               written.reason = Formatter::Format("Stored, and {0} is in force: the settings file's [SettingsOverride] or the setting's own rule decides it.",
+                  evaluated.current.IsEmpty() ? String(_T("an empty value")) : evaluated.current);
 
             // What the setter left, which is what the way back asks the setting still
             // to hold before it puts the old value back.
@@ -927,19 +1118,39 @@ namespace HM
          }
 
          // The way back as the writes left it; nothing to go back to is no way back.
-         WriteRecord(Profiles::SnapshotName(), snapshot.entries.empty() ? String() : Wide(std::string(SnapshotJson(snapshot).c_str())));
+         bool recordsWritten = true;
+         if (!WriteRecord(Profiles::SnapshotName(), snapshot.entries.empty() ? String() : Wide(std::string(SnapshotJson(snapshot).c_str()))))
+            recordsWritten = false;
+
+         // The record after the writes, so that it says what they did: failed when
+         // any write failed - which --once does not take for applied, so a container
+         // that stopped on it tries again at its next start, and is told of the way
+         // back it has to revert or discard first.
+         const String state = report.failed > 0 ? _T("failed") : _T("applied");
+         if (!WriteRecord(Profiles::AppliedName(), AppliedRecord(profile->name, snapshot.applied, state, snapshot.applied, setNames)))
+            recordsWritten = false;
 
          AuditTrail::Instance()->RecordEvent(_T("profile"), profile->name, _T("applied"),
             Formatter::Format("{0} entries: {1} set, {2} unchanged, {3} skipped because the environment sets them, {4} failed",
                (int) all.size(), report.set, report.unchanged, report.skipped, report.failed));
 
-         LOG_APPLICATION(Formatter::Format("Profile {0} applied: {1} of its {2} entries set, {3} unchanged, {4} skipped.",
-            String(profile->name), report.set, (int) all.size(), report.unchanged, report.skipped));
+         LOG_APPLICATION(Formatter::Format("Profile {0} applied: {1} of its {2} entries set, {3} unchanged, {4} skipped",
+            String(profile->name), report.set, (int) all.size(), report.unchanged, report.skipped) +
+            Formatter::Format(", {0} failed.", report.failed));
 
          if (report.failed > 0)
          {
             sentence = Formatter::Format("{0} of the {1} profile could not be written; the rest were, and the way back holds what was changed.",
                Plural(report.failed, _T("entry"), _T("entries")), String(profile->name));
+            if (!recordsWritten)
+               sentence += _T(" The profile's records could not be written either (HM7301 in the error log).");
+            return Profiles::OutcomeFailed;
+         }
+
+         if (!recordsWritten)
+         {
+            sentence = Formatter::Format("The {0} profile's settings were written, but its records could not be updated (HM7301 in the error log): the way back saved before the writes is the one held.",
+               String(profile->name));
             return Profiles::OutcomeFailed;
          }
 
@@ -966,17 +1177,35 @@ namespace HM
          return json;
       }
 
-      String WaitingSentence(const Report &report)
+      String WaitingSentence(const Report &report, const TCHAR *what)
       {
          if (report.waitReinitialize == 0 && report.waitRestart == 0)
-            return _T("Every value set is in effect now.");
+            return Formatter::Format("Every value {0} is in effect now.", String(what));
 
          std::vector<String> parts;
          if (report.waitReinitialize > 0)
             parts.push_back(Formatter::Format("{0} until the server is reinitialised (Apply now)", Plural(report.waitReinitialize, _T("waits"), _T("wait"))));
          if (report.waitRestart > 0)
             parts.push_back(Formatter::Format("{0} until the service is restarted", Plural(report.waitRestart, _T("waits"), _T("wait"))));
-         return _T("Of the values set, ") + StringParser::JoinVector(parts, _T(", and ")) + _T(".");
+         return Formatter::Format("Of the values {0}, ", String(what)) + StringParser::JoinVector(parts, _T(", and ")) + _T(".");
+      }
+
+      // The lines the command line prints for a report.
+      void PrintWritten(const Report &report, void (*print)(bool, const String &))
+      {
+         for (const Written &written : report.written)
+         {
+            const String label = written.name + _T(" (") + String(StoreWord(written.ini)) + _T(")");
+            if (written.result == _T("set") || written.result == _T("restored"))
+               print(false, Formatter::Format("{0}: {1} to {2} (was {3}){4}", label, String(written.result == _T("set") ? _T("set") : _T("put back")),
+                  written.after.IsEmpty() ? String(_T("empty")) : written.after,
+                  written.before.IsEmpty() ? String(_T("empty")) : written.before,
+                  written.reason.IsEmpty() ? String() : String(_T(" - ")) + written.reason));
+            else if (written.result == _T("unchanged"))
+               print(false, label + _T(": unchanged"));
+            else
+               print(written.result == _T("failed"), label + _T(": ") + written.result + _T(": ") + written.reason);
+         }
       }
    }
 
@@ -999,62 +1228,77 @@ namespace HM
       properties.EnsureString(AppliedName(), String());
    }
 
+   Profiles::Applied
+   Profiles::ReadAppliedRecord()
+   {
+      String text;
+      if (!ReadRecord(AppliedName(), text))
+      {
+         // Unread is not none: --once must not apply a profile a second time because
+         // the database did not answer.
+         Applied record;
+         record.profile = _T("(unreadable)");
+         record.state = _T("applied");
+         record.readable = false;
+         return record;
+      }
+
+      return ParseApplied(text);
+   }
+
    void
    Profiles::ReadApplied(String &profile, __int64 &applied, String &state, __int64 &changed)
    {
-      profile.Empty();
-      state.Empty();
-      applied = 0;
-      changed = 0;
-
-      const String text = ReadRecord(AppliedName());
-      if (text.IsEmpty())
-         return;
-
-      JsonValue document;
-      std::string error;
-      if (!JsonValue::Parse(std::string(Utf8(text).c_str()), document, error) || !document.IsObject())
-      {
-         // Something is recorded even if it cannot be read: --once must not take an
-         // unreadable record for none, and apply the profile a second time.
-         profile = _T("(unreadable)");
-         state = _T("applied");
-         return;
-      }
-
-      profile = Wide(document.GetString("profile"));
-      state = Wide(document.GetString("state", "applied"));
-      applied = document.GetInt64("applied");
-      changed = document.GetInt64("changed", applied);
+      const Applied record = ReadAppliedRecord();
+      profile = record.profile;
+      state = record.state;
+      applied = record.applied;
+      changed = record.changed;
    }
 
    String
    Profiles::AppliedProfile()
    {
-      String profile;
-      __int64 applied = 0;
-      String state;
-      __int64 changed = 0;
-      ReadApplied(profile, applied, state, changed);
-
-      if (profile.IsEmpty() || state == _T("reverted") || !FindProfile(profile))
+      const Applied record = ReadAppliedRecord();
+      if (record.profile.IsEmpty() || !FindProfile(record.profile))
          return String();
 
-      return profile;
+      // In effect: applied and not reverted, or kept. A failed apply is in effect
+      // in part, and the way back it holds says which part.
+      if (record.state == _T("applied") || record.state == _T("kept") || record.state == _T("failed"))
+         return record.profile;
+
+      return String();
    }
 
    bool
-   Profiles::SourceOf(const String &store, const String &name, const String &value, String &profile)
+   Profiles::SourceOf(const Applied &record, const String &store, const String &name, const String &value, String &profile)
    {
-      profile = AppliedProfile();
-      if (profile.IsEmpty())
+      profile.Empty();
+      if (record.profile.IsEmpty() || !(record.state == _T("applied") || record.state == _T("kept") || record.state == _T("failed")))
          return false;
 
-      const ProfilesData::Profile *definition = FindProfile(profile);
+      const ProfilesData::Profile *definition = FindProfile(record.profile);
       if (!definition)
          return false;
 
       const bool ini = store == _T("ini");
+
+      // Only a setting the apply wrote: one it found already holding the value was
+      // not set by it, whatever the value is.
+      const String key = StoreKey(ini, name);
+      bool written = false;
+      for (const String &candidate : record.set)
+      {
+         if (candidate.CompareNoCase(key) == 0)
+         {
+            written = true;
+            break;
+         }
+      }
+      if (!written)
+         return false;
+
       for (size_t i = 0; i < definition->entryCount; i++)
       {
          const ProfilesData::Entry &entry = definition->entries[i];
@@ -1064,7 +1308,11 @@ namespace HM
          Evaluated shape;
          shape.integer = ini ? (FindIniKey(name) && FindIniKey(name)->IsInteger)
                              : (FindProperty(name) && FindProperty(name)->Kind == SettingsDefaults::KindNumber);
-         return SameValue(shape, value, entry.value);
+         if (!SameValue(shape, value, entry.value))
+            return false;
+
+         profile = String(definition->name);
+         return true;
       }
 
       return false;
@@ -1073,11 +1321,16 @@ namespace HM
    AnsiString
    Profiles::ListJson()
    {
+      String snapshotText;
+      const bool snapshotRead = ReadRecord(SnapshotName(), snapshotText);
+      const Applied record = ReadAppliedRecord();
+
       AnsiString json = "{\"profiles\":[";
       for (size_t i = 0; i < ProfilesData::ProfileCount; i++)
       {
          const ProfilesData::Profile &profile = ProfilesData::Profiles[i];
-         const std::vector<Evaluated> all = EvaluateAll(profile);
+         std::vector<Evaluated> all;
+         EvaluateAll(profile, all);
          const Counts counts = Count(all);
 
          if (i > 0)
@@ -1086,11 +1339,11 @@ namespace HM
          json += ",\"includes\":" + JsonTextOrNull(profile.includes);
          json += ",\"entries\":" + JsonNumber((__int64) profile.entryCount);
          json += ",\"changes\":" + JsonNumber(counts.changes);
-         json += ",\"confirmation_needed\":" + JsonNumber(counts.confirm);
+         json += ",\"confirmations\":" + JsonNumber(counts.confirm);
          json += ",\"skipped\":" + JsonNumber(counts.skipped);
          json += ",\"refused\":" + JsonNumber(counts.refused) + "}";
       }
-      json += "],\"applied\":" + AppliedJson() + ",\"snapshot\":" + SnapshotSummaryJson() + "}";
+      json += "],\"applied\":" + AppliedJson(record) + ",\"snapshot\":" + SnapshotSummaryJson(snapshotRead, snapshotText) + "}";
       return json;
    }
 
@@ -1101,8 +1354,13 @@ namespace HM
       if (!profile)
          return false;
 
-      const std::vector<Evaluated> all = EvaluateAll(*profile);
+      std::vector<Evaluated> all;
+      const bool storeRead = EvaluateAll(*profile, all);
       const Counts counts = Count(all);
+
+      String held;
+      const bool snapshotRead = ReadRecord(SnapshotName(), held);
+      const Applied record = ReadAppliedRecord();
 
       json = "{\"name\":" + JsonText(profile->name) + ",\"title\":" + JsonText(profile->title) + ",\"summary\":" + JsonText(profile->summary);
       json += ",\"includes\":" + JsonTextOrNull(profile->includes);
@@ -1128,26 +1386,28 @@ namespace HM
          if (!first)
             json += ",";
          first = false;
-         json += JsonText(evaluated.name);
+         json += ConfirmationJson(evaluated);
       }
       json += "]";
+      json += ",\"diff_token\":" + JsonText(DiffToken(*profile, all));
 
       // Whether an apply would be taken now, and why not when it would not.
-      const String held = ReadRecord(SnapshotName());
       String blocked;
-      if (!held.IsEmpty())
+      if (!snapshotRead || !held.IsEmpty())
          blocked = _T("A way back from an earlier profile is held: revert it or discard it before applying another.");
+      else if (!storeRead)
+         blocked = _T("The settings store could not be read, so this diff cannot say which [Settings] keys are stored; an apply would be refused.");
       else if (counts.refused > 0)
          blocked = _T("An entry would be refused by the setting it writes, so the profile cannot be applied as it is.");
 
       json += ",\"applicable\":" + JsonBool(blocked.IsEmpty());
       json += ",\"blocked\":" + JsonTextOrNull(blocked);
-      json += ",\"applied\":" + AppliedJson() + ",\"snapshot\":" + SnapshotSummaryJson() + "}";
+      json += ",\"applied\":" + AppliedJson(record) + ",\"snapshot\":" + SnapshotSummaryJson(snapshotRead, held) + "}";
       return true;
    }
 
    Profiles::Outcome
-   Profiles::Apply(const String &name, bool confirmed, AnsiString &json, String &sentence)
+   Profiles::Apply(const String &name, bool confirmed, const String &token, AnsiString &json, String &sentence)
    {
       std::lock_guard<std::mutex> guard(profiles_mutex);
 
@@ -1155,30 +1415,28 @@ namespace HM
       std::vector<Evaluated> all;
       sentence.Empty();
 
-      const Outcome outcome = ApplyLocked(name, confirmed, report, all, sentence);
+      const Outcome outcome = ApplyLocked(name, confirmed, token, report, all, sentence);
 
       if (outcome == OutcomeDone || (outcome == OutcomeFailed && report.time != 0))
       {
          const String message = outcome == OutcomeDone
             ? Formatter::Format("The {0} profile: {1} set, {2} unchanged, {3} skipped. {4}", report.profile,
-                 report.set, report.unchanged, report.skipped, WaitingSentence(report))
+                 report.set, report.unchanged, report.skipped, WaitingSentence(report, _T("set")))
             : sentence;
          json = ReportJson(report, "applied", message);
          return outcome;
       }
 
       // Refused: what stops it, beside the sentence. confirmation is true when a
-      // confirmation is all that stands in the way.
-      const bool confirmationOnly = outcome == OutcomeRefused && !report.needConfirmation.empty() && report.refused.empty() && !confirmed;
-      json = "{\"confirmation\":" + JsonBool(confirmationOnly) + ",\"confirmation_needed\":[";
+      // confirmation is all that stands in the way; stale when the diff the caller
+      // brought is not the one the server answers now.
+      const bool confirmationOnly = outcome == OutcomeRefused && !report.needConfirmation.empty() && report.refused.empty() && !confirmed && !report.stale;
+      json = "{\"confirmation\":" + JsonBool(confirmationOnly) + ",\"stale\":" + JsonBool(report.stale) + ",\"confirmation_needed\":[";
       for (size_t i = 0; i < report.needConfirmation.size(); i++)
       {
-         const Evaluated &evaluated = *report.needConfirmation[i];
          if (i > 0)
             json += ",";
-         json += "{\"store\":\"" + AnsiString(StoreWord(evaluated.ini)) + "\",\"name\":" + JsonText(evaluated.name) +
-                 ",\"caution\":\"" + AnsiString(CautionWord(evaluated.entry->caution)) + "\",\"current\":" + JsonText(evaluated.current) +
-                 ",\"value\":" + JsonText(evaluated.value) + "}";
+         json += ConfirmationJson(*report.needConfirmation[i]);
       }
       json += "],\"refused\":[";
       for (size_t i = 0; i < report.refused.size(); i++)
@@ -1189,7 +1447,9 @@ namespace HM
          json += "{\"store\":\"" + AnsiString(StoreWord(evaluated.ini)) + "\",\"name\":" + JsonText(evaluated.name) +
                  ",\"reason\":" + JsonText(evaluated.refused) + "}";
       }
-      json += "],\"snapshot\":" + SnapshotSummaryJson() + "}";
+      String held;
+      const bool snapshotRead = ReadRecord(SnapshotName(), held);
+      json += "],\"snapshot\":" + SnapshotSummaryJson(snapshotRead, held) + "}";
 
       return outcome;
    }
@@ -1200,7 +1460,14 @@ namespace HM
       std::lock_guard<std::mutex> guard(profiles_mutex);
 
       sentence.Empty();
-      const String held = ReadRecord(SnapshotName());
+      String held;
+      if (!ReadRecord(SnapshotName(), held))
+      {
+         sentence = _T("The profile's records could not be read from the database, so nothing was put back.");
+         json = "{\"snapshot\":{\"readable\":false}}";
+         return OutcomeFailed;
+      }
+
       if (held.IsEmpty())
       {
          sentence = _T("There is nothing to revert: no profile has been applied since the last revert or discard.");
@@ -1211,7 +1478,7 @@ namespace HM
       Snapshot snapshot;
       if (!ParseSnapshot(held, snapshot))
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7300, "Profiles::Revert",
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, ErrorSnapshotUnreadable, "Profiles::Revert",
             _T("The way back from the last profile (the hm_settings row ProfileSnapshot) cannot be read, so it cannot be put back. Discard it and set the settings by hand; the audit trail names each value the profile replaced."));
          sentence = _T("The way back cannot be read (HM7300 in the error log), so nothing was put back. Discard it and set the settings by hand; the audit trail names each value the profile replaced.");
          json = "{\"snapshot\":{\"readable\":false}}";
@@ -1229,11 +1496,21 @@ namespace HM
          now.name = entry.name;
          now.integer = entry.ini ? (FindIniKey(entry.name) && FindIniKey(entry.name)->IsInteger)
                                  : (FindProperty(entry.name) && FindProperty(entry.name)->Kind == SettingsDefaults::KindNumber);
-         ReadCurrent(now);
 
          Written written;
          written.ini = entry.ini;
          written.name = entry.name;
+         written.applies = AppliesOf(entry.ini, entry.name);
+
+         if (!ReadCurrent(now))
+         {
+            written.result = _T("failed");
+            written.reason = Formatter::Format("The settings store could not be read, so {0} was not put back.", entry.name);
+            report.failed++;
+            report.written.push_back(written);
+            continue;
+         }
+
          written.before = now.current;
          written.after = now.current;
 
@@ -1303,12 +1580,14 @@ namespace HM
          written.after = now.current;
          written.result = _T("restored");
          report.set++;
+         CountWait(report, written.applies);
          report.written.push_back(written);
 
          LOG_APPLICATION(Formatter::Format("Profile {0} reverted: {1} ({2}) put back to {3}.", snapshot.profile, entry.name,
             String(StoreWord(entry.ini)), entry.had ? (entry.before.IsEmpty() ? String(_T("empty")) : entry.before) : String(_T("its default"))));
       }
 
+      bool recordsWritten = true;
       if (report.failed > 0)
       {
          // What failed can be tried again: the way back is kept, less what went back.
@@ -1322,34 +1601,37 @@ namespace HM
                   remaining.entries.push_back(entry);
             }
          }
-         WriteRecord(SnapshotName(), Wide(std::string(SnapshotJson(remaining).c_str())));
+         recordsWritten = WriteRecord(SnapshotName(), Wide(std::string(SnapshotJson(remaining).c_str())));
          sentence = Formatter::Format("{0} could not be put back; the rest were, and the way back now holds what is left.",
             Plural(report.failed, _T("setting"), _T("settings")));
+         if (!recordsWritten)
+            sentence += _T(" The way back could not be rewritten either (HM7301 in the error log), so it still names every setting.");
       }
       else
       {
-         String profile;
-         __int64 applied = 0;
-         String state;
-         __int64 changed = 0;
-         ReadApplied(profile, applied, state, changed);
+         const Applied record = ReadAppliedRecord();
 
-         WriteRecord(SnapshotName(), String());
-         WriteRecord(AppliedName(), AppliedRecord(snapshot.profile, applied != 0 ? applied : snapshot.applied, _T("reverted"), report.time));
+         // The record first: a revert whose record could not be written leaves the
+         // way back where it was, so that nothing claims a revert that is not
+         // recorded.
+         recordsWritten = WriteRecord(AppliedName(), AppliedRecord(snapshot.profile, record.applied != 0 ? record.applied : snapshot.applied, _T("reverted"), report.time, std::vector<String>())) &&
+                          WriteRecord(SnapshotName(), String());
+         if (!recordsWritten)
+            sentence = _T("Every setting was put back, but the profile's records could not be updated (HM7301 in the error log); discard the way back, which now names values already restored.");
       }
 
       AuditTrail::Instance()->RecordEvent(_T("profile"), snapshot.profile, _T("reverted"),
          Formatter::Format("{0} entries put back, {1} left as they were, {2} failed", report.set, report.skipped, report.failed));
 
-      LOG_APPLICATION(Formatter::Format("Profile {0} reverted: {1} put back, {2} left as they were.", snapshot.profile, report.set, report.skipped));
+      LOG_APPLICATION(Formatter::Format("Profile {0} reverted: {1} put back, {2} left as they were, {3} failed.", snapshot.profile, report.set, report.skipped, report.failed));
 
-      const String message = report.failed > 0 ? sentence
-         : Formatter::Format("The {0} profile is reverted: {1} put back, {2} left as they were.", snapshot.profile,
-              Plural(report.set, _T("setting"), _T("settings")), report.skipped);
+      const bool failed = report.failed > 0 || !recordsWritten;
+      const String message = failed ? sentence
+         : Formatter::Format("The {0} profile is reverted: {1} put back, {2} left as they were. {3}", snapshot.profile,
+              Plural(report.set, _T("setting"), _T("settings")), report.skipped, WaitingSentence(report, _T("put back")));
 
-      AnsiString body = ReportJson(report, "reverted", message);
-      json = body;
-      return report.failed > 0 ? OutcomeFailed : OutcomeDone;
+      json = ReportJson(report, "reverted", message);
+      return failed ? OutcomeFailed : OutcomeDone;
    }
 
    Profiles::Outcome
@@ -1358,7 +1640,14 @@ namespace HM
       std::lock_guard<std::mutex> guard(profiles_mutex);
 
       sentence.Empty();
-      const String held = ReadRecord(SnapshotName());
+      String held;
+      if (!ReadRecord(SnapshotName(), held))
+      {
+         sentence = _T("The profile's records could not be read from the database, so nothing was discarded.");
+         json = "{\"snapshot\":{\"readable\":false}}";
+         return OutcomeFailed;
+      }
+
       if (held.IsEmpty())
       {
          sentence = _T("There is no way back to discard: no profile has been applied since the last revert or discard.");
@@ -1368,26 +1657,84 @@ namespace HM
 
       Snapshot snapshot;
       const bool readable = ParseSnapshot(held, snapshot);
-
-      String profile;
-      __int64 applied = 0;
-      String state;
-      __int64 changed = 0;
-      ReadApplied(profile, applied, state, changed);
+      const Applied record = ReadAppliedRecord();
 
       const __int64 now = Now();
-      WriteRecord(SnapshotName(), String());
-      if (!profile.IsEmpty())
-         WriteRecord(AppliedName(), AppliedRecord(readable ? snapshot.profile : profile, applied, _T("kept"), now));
+      const String name = readable ? snapshot.profile : (record.readable ? record.profile : String());
 
-      const String name = readable ? snapshot.profile : profile;
+      if (!WriteRecord(SnapshotName(), String()))
+      {
+         sentence = _T("The way back could not be discarded: the database did not take the change (HM7301 in the error log).");
+         json = "{\"snapshot\":{\"readable\":" + JsonBool(readable) + "}}";
+         return OutcomeFailed;
+      }
+
+      if (!name.IsEmpty() && record.readable)
+         WriteRecord(AppliedName(), AppliedRecord(name, record.applied != 0 ? record.applied : snapshot.applied, _T("kept"), now, record.set));
+
       AuditTrail::Instance()->RecordEvent(_T("profile"), name.IsEmpty() ? String(_T("(unknown)")) : name, _T("discarded"),
          Formatter::Format("the way back from the profile was discarded, {0} settings kept as it set them", (int) snapshot.entries.size()));
 
-      LOG_APPLICATION(Formatter::Format("Profile {0}: the way back was discarded; the settings it set are kept.", name));
+      LOG_APPLICATION(Formatter::Format("Profile {0}: the way back was discarded; the settings it set are kept.", name.IsEmpty() ? String(_T("(unknown)")) : name));
 
-      json = "{\"profile\":" + JsonText(name) + ",\"discarded\":" + JsonNumber(now) + ",\"entries\":" + JsonNumber((__int64) snapshot.entries.size()) +
-             ",\"message\":" + JsonText(Formatter::Format("The way back from the {0} profile is discarded; its settings are kept, and another profile may be applied.", name)) + "}";
+      json = "{\"profile\":" + JsonTextOrNull(name) + ",\"discarded\":" + JsonNumber(now) + ",\"entries\":" + JsonNumber((__int64) snapshot.entries.size()) +
+             ",\"message\":" + JsonText(name.IsEmpty()
+                ? String(_T("The way back, which could not be read, is discarded; the settings are as they are, and a profile may be applied."))
+                : Formatter::Format("The way back from the {0} profile is discarded; its settings are kept, and another profile may be applied.", name)) + "}";
+      return OutcomeDone;
+   }
+
+   Profiles::Outcome
+   Profiles::Decline(AnsiString &json, String &sentence)
+   {
+      std::lock_guard<std::mutex> guard(profiles_mutex);
+
+      sentence.Empty();
+      String held;
+      if (!ReadRecord(SnapshotName(), held))
+      {
+         sentence = _T("The profile's records could not be read from the database, so nothing was recorded.");
+         json = "{}";
+         return OutcomeFailed;
+      }
+
+      if (!held.IsEmpty())
+      {
+         sentence = _T("A way back from a profile is held: revert it or discard it before recording that no profile is wanted. Nothing was recorded.");
+         json = "{}";
+         return OutcomeRefused;
+      }
+
+      const Applied record = ReadAppliedRecord();
+      if (!record.readable)
+      {
+         sentence = _T("The record of the last profile cannot be read, so it is not replaced; nothing was recorded.");
+         json = "{}";
+         return OutcomeFailed;
+      }
+
+      if (!record.profile.IsEmpty() && (record.state == _T("applied") || record.state == _T("kept")))
+      {
+         sentence = Formatter::Format("The {0} profile is in effect, so a profile was chosen; revert it first to go back to the settings this version ships with. Nothing was recorded.", record.profile);
+         json = "{}";
+         return OutcomeRefused;
+      }
+
+      const __int64 now = Now();
+      if (!WriteRecord(AppliedName(), AppliedRecord(String(), now, _T("declined"), now, std::vector<String>())))
+      {
+         sentence = _T("The choice could not be recorded: the database did not take it (HM7301 in the error log).");
+         json = "{}";
+         return OutcomeFailed;
+      }
+
+      AuditTrail::Instance()->RecordEvent(_T("profile"), _T("(none)"), _T("declined"),
+         _T("no profile is wanted: the settings this version ships with are kept"));
+
+      LOG_APPLICATION(_T("Profiles: recorded that no profile is wanted; the settings this version ships with are kept."));
+
+      json = "{\"declined\":" + JsonNumber(now) + ",\"message\":" +
+             JsonText(_T("Recorded: this server keeps the settings this version ships with, and the checklist no longer asks for a profile. Any profile can still be compared and applied.")) + "}";
       return OutcomeDone;
    }
 
@@ -1411,19 +1758,13 @@ namespace HM
    }
 
    int
-   Profiles::RunCommand(const String &name, bool confirmed, bool once)
+   Profiles::OpenForCommand_(const TCHAR *verb)
    {
-      if (!FindProfile(name))
-      {
-         Print_(true, Formatter::Format("There is no profile named {0}. The profiles are office, gateway, relay and sender; docs/Profiles.md says what each sets.", name));
-         return 2;
-      }
-
       IniFileSettings::Instance()->LoadSettings();
       if (!IniFileSettings::Instance()->GetDatabaseSettingsExists())
       {
-         Print_(true, Formatter::Format("[Database] in {0} does not name a database, so there is nothing to apply a profile to. Nothing was changed.",
-            IniFileSettings::GetInitializationFile()));
+         Print_(true, Formatter::Format("[Database] in {0} does not name a database, so there is nothing to {1}. Nothing was changed.",
+            IniFileSettings::GetInitializationFile(), String(verb)));
          return 2;
       }
 
@@ -1439,35 +1780,82 @@ namespace HM
          return 1;
       }
 
-      int result = 0;
+      return 0;
+   }
 
-      if (once)
+   int
+   Profiles::RunCommand(const String &name, bool confirmed, bool once, bool ifNew)
+   {
+      const bool none = name.CompareNoCase(_T("none")) == 0;
+      if (!none && !FindProfile(name))
       {
-         String profile;
-         __int64 applied = 0;
-         String state;
-         __int64 changed = 0;
-         ReadApplied(profile, applied, state, changed);
-         if (!profile.IsEmpty())
-         {
-            Print_(false, Formatter::Format("A profile was applied to this server before ({0}, {1}, now {2}), so --once leaves the settings as they are.",
-               profile, UtcText(applied), state));
-            Application::Instance()->ExitInstance();
-            return 0;
-         }
+         Print_(true, Formatter::Format("There is no profile named {0}. The profiles are office, gateway, relay and sender, and none records that no profile is wanted; docs/Profiles.md says what each sets.", name));
+         return 2;
       }
 
-      {
-         // The command line is an administrator of its own: the apply, and every
-         // setting it writes, go on the audit trail under this name.
-         AuditTrail::Actor actor;
-         actor.present = true;
-         actor.name = _T("hmailserver --apply-profile");
-         actor.kind = _T("system");
-         actor.interface_name = _T("command line");
-         AuditScope scope(actor);
+      const int opened = OpenForCommand_(_T("apply a profile to"));
+      if (opened != 0)
+         return opened;
 
-         AnsiString json;
+      // The command line is an administrator of its own: the apply, and every
+      // setting it writes, go on the audit trail under this name.
+      AuditTrail::Actor actor;
+      actor.present = true;
+      actor.name = _T("hmailserver --apply-profile");
+      actor.kind = _T("system");
+      actor.interface_name = _T("command line");
+      AuditScope scope(actor);
+
+      int result = 0;
+
+      do
+      {
+         if (once)
+         {
+            const Applied record = ReadAppliedRecord();
+            // A failed apply is not an applied one: the next start tries again, and
+            // is told of the way back it holds.
+            if (record.Recorded() && record.state != _T("failed"))
+            {
+               Print_(false, Formatter::Format("A choice was recorded for this server before ({0}, {1}, now {2}), so --once leaves the settings as they are.",
+                  record.profile.IsEmpty() ? String(_T("no profile")) : record.profile, UtcText(record.applied), record.state));
+               result = 0;
+               break;
+            }
+         }
+
+         if (ifNew)
+         {
+            long long accounts = 0;
+            bool counted = false;
+            if (!SetupChecklist::IsYoungServer(accounts, counted))
+            {
+               Print_(true, counted
+                  ? Formatter::Format("This server holds {0} accounts, so it is in service, and --if-new leaves it as it is: nothing was applied. Compare the profile with this server in the Control Deck or the Control Panel, which show every change first.", (int) accounts)
+                  : String(_T("The accounts could not be counted, so whether this server is new is not known, and --if-new leaves it as it is: nothing was applied.")));
+               result = 5;
+               break;
+            }
+         }
+
+         if (none)
+         {
+            AnsiString json;
+            String sentence;
+            const Outcome outcome = Decline(json, sentence);
+            if (outcome == OutcomeDone)
+            {
+               Print_(false, _T("Recorded: this server keeps the settings this version ships with, and the checklist no longer asks for a profile."));
+               result = 0;
+            }
+            else
+            {
+               Print_(true, sentence);
+               result = 1;
+            }
+            break;
+         }
+
          String sentence;
          Report report;
          std::vector<Evaluated> all;
@@ -1475,35 +1863,25 @@ namespace HM
          Outcome outcome;
          {
             std::lock_guard<std::mutex> guard(profiles_mutex);
-            outcome = ApplyLocked(name, confirmed, report, all, sentence);
+            outcome = ApplyLocked(name, confirmed, String(), report, all, sentence);
          }
 
-         for (const Written &written : report.written)
-         {
-            const String label = written.name + _T(" (") + String(StoreWord(written.ini)) + _T(")");
-            if (written.result == _T("set"))
-               Print_(false, Formatter::Format("{0}: set to {1} (was {2})", label, written.after.IsEmpty() ? String(_T("empty")) : written.after,
-                  written.before.IsEmpty() ? String(_T("empty")) : written.before));
-            else if (written.result == _T("unchanged"))
-               Print_(false, label + _T(": unchanged"));
-            else
-               Print_(written.result == _T("failed"), label + _T(": ") + written.result + _T(": ") + written.reason);
-         }
+         PrintWritten(report, &Profiles::Print_);
 
          switch (outcome)
          {
          case OutcomeDone:
-            // Written by this process, so a server already running takes them at its
-            // next reinitialise - as a value --apply-environment writes - and one that
-            // is stopped when it starts; the ones marked restart wait for the start.
-            Print_(false, Formatter::Format("The {0} profile: {1} set, {2} unchanged, {3} skipped{4}. The server takes them when it starts; one already running takes them at its next reinitialise (Apply now), and a setting marked restart at its next start.",
+            // Written by this process with the service stopped - the Windows entry
+            // point refuses while it runs, and the container runs this before the
+            // server starts - so the server takes every value when it starts.
+            Print_(false, Formatter::Format("The {0} profile: {1} set, {2} unchanged, {3} skipped{4}. The server takes them when it starts; a server already running, which the command line cannot see on Linux, takes them at its next reinitialise (Apply now), and a setting marked restart at its next start.",
                report.profile, report.set, report.unchanged, report.skipped,
                report.waitRestart > 0 ? Formatter::Format(", {0} of them marked restart", report.waitRestart) : String()));
             result = 0;
             break;
          case OutcomeRefused:
             Print_(true, sentence);
-            if (!report.needConfirmation.empty() && report.refused.empty())
+            if (!report.needConfirmation.empty() && report.refused.empty() && !report.stale)
             {
                Print_(true, _T("Run it again with --confirm to apply it."));
                result = 3;
@@ -1519,6 +1897,55 @@ namespace HM
             Print_(true, sentence);
             result = 1;
             break;
+         }
+      } while (false);
+
+      Application::Instance()->ExitInstance();
+      return result;
+   }
+
+   int
+   Profiles::RunRevertCommand()
+   {
+      const int opened = OpenForCommand_(_T("revert"));
+      if (opened != 0)
+         return opened;
+
+      int result = 0;
+      {
+         AuditTrail::Actor actor;
+         actor.present = true;
+         actor.name = _T("hmailserver --revert-profile");
+         actor.kind = _T("system");
+         actor.interface_name = _T("command line");
+         AuditScope scope(actor);
+
+         AnsiString json;
+         String sentence;
+         const Outcome outcome = Revert(json, sentence);
+
+         JsonValue document;
+         std::string error;
+         if (JsonValue::Parse(std::string(json.c_str()), document, error) && document.IsObject())
+         {
+            const JsonValue *entries = document.Get("entries");
+            if (entries && entries->IsArray())
+            {
+               for (const JsonValue &entry : entries->Items())
+               {
+                  const String line = Formatter::Format("{0} ({1}): {2}{3}", Wide(entry.GetString("name")), Wide(entry.GetString("store")),
+                     Wide(entry.GetString("result")), entry.GetString("reason").empty() ? String() : String(_T(" - ")) + Wide(entry.GetString("reason")));
+                  Print_(entry.GetString("result") == "failed", line);
+               }
+            }
+            if (outcome == OutcomeDone)
+               Print_(false, Wide(document.GetString("message")));
+         }
+
+         if (outcome != OutcomeDone)
+         {
+            Print_(true, sentence);
+            result = 1;
          }
       }
 

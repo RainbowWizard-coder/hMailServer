@@ -206,12 +206,17 @@ show such a value in a field.
 A setting profile ([Profiles.md](Profiles.md)) sets thirty or so settings at once,
 and a list of what has been changed from stock would otherwise say nothing about
 why a dozen of them moved on the same afternoon. So an entry's **`profile`** names
-the profile that set it - while that profile is applied (or its way back was
-discarded and its settings kept), and only while the setting still holds the value
-the profile wrote: a value somebody changed since is theirs, whatever set it
-first, and is listed with `profile` null. The document's own **`profile`** is the
-last profile applied, `{name, state, applied}` with state `applied`, `reverted` or
-`kept`, or null on a server no profile was ever applied to. A value a profile set
+the profile whose apply wrote it - while that profile is in effect (applied, its
+way back discarded and its settings kept, or applied in part), and only while the
+setting still holds the value the profile wrote: a value somebody changed since is
+theirs, whatever set it first, and is listed with `profile` null. A value the apply
+found already there - the entry answered `unchanged` - was not set by it and names
+no profile, and neither does a value the server's environment manages, whatever
+either equals: the record of the profile lists the settings its apply wrote, and
+the document reads that list. The document's own **`profile`** is the last profile
+applied, `{name, state, applied}` with state `applied`, `reverted`, `kept` or
+`failed`, or null on a server no profile was ever applied to, or where the shipped
+settings were chosen instead. A value a profile set
 that is the shipped default is not listed at all, as any value at its default is
 not - the profile's diff (`GET /api/v1/settings/profiles/{name}`) is where every
 one of its entries is, changed or not.

@@ -13,8 +13,9 @@ var
 
   // The setting profile a new installation starts in (docs/Profiles.md): offered
   // on the last page before the installation, for a new installation only - one
-  // with no database yet - and applied after the database is made, before the
-  // service starts, with hMailServer.exe --apply-profile NAME --once --confirm.
+  // with no database yet - and applied after the database is made, built-in or
+  // external, with the service stopped, by hMailServer.exe --apply-profile NAME
+  // --once --if-new --confirm.
   g_pageProfile: TInputOptionWizardPage;
   g_bNewDatabase: Boolean;
   g_bNewDatabaseKnown: Boolean;
@@ -497,7 +498,9 @@ begin
 end;
 
 // The profile chosen: on the page, or with /profile=NAME for a silent installation
-// - which is itself the explicit choice, as the page is. Empty for none.
+// - which is itself the explicit choice, as the page is. 'none' when the page's
+// None, or /profile=none, chose the shipped settings, which is recorded so that
+// the checklist stops asking; empty when nothing was chosen at all.
 function GetChosenProfile(): String;
 var
    szProfile: String;
@@ -510,7 +513,7 @@ begin
    if WizardSilent() then
    begin
       szProfile := Lowercase(Trim(ExpandConstant('{param:profile|}')));
-      if (szProfile = 'office') or (szProfile = 'gateway') or (szProfile = 'relay') or (szProfile = 'sender') then
+      if (szProfile = 'office') or (szProfile = 'gateway') or (szProfile = 'relay') or (szProfile = 'sender') or (szProfile = 'none') then
          Result := szProfile;
       Exit;
    end;
@@ -519,6 +522,7 @@ begin
       Exit;
 
    case g_pageProfile.SelectedValueIndex of
+      0: Result := 'none';
       1: Result := 'office';
       2: Result := 'gateway';
       3: Result := 'relay';
@@ -526,29 +530,73 @@ begin
    end;
 end;
 
-// Runs the verb for the profile chosen. A profile that cannot be applied is said,
-// and the installation still succeeds: the server works with the shipped settings,
-// and the profile can be applied from the Control Deck's checklist or the Control
-// Panel's Profiles page, where the diff shows what it would change.
+// Says that the profile was not applied, why, and where it can be applied from; the
+// installation still succeeds with the shipped settings. For none, that the choice
+// was not recorded, so the checklist will ask.
+procedure SayProfileNotApplied(szProfile: String; szWhy: String);
+begin
+   if szProfile = 'none' then
+      SuppressibleMsgBox('The choice to keep the settings this version ships with was not recorded: ' + szWhy + #13#10#13#10 +
+             'hMailServer is installed with those settings all the same; the Control Deck''s checklist will ask for a profile until one is chosen there.', mbInformation, MB_OK, IDOK)
+   else
+      SuppressibleMsgBox('The ' + szProfile + ' profile was not applied: ' + szWhy + #13#10#13#10 +
+             'hMailServer is installed with the settings this version ships with. Apply the profile from the Control Deck''s checklist or the Control Panel''s Setting profiles page, which show what it would change first.', mbInformation, MB_OK, IDOK);
+end;
+
+// Runs the verb for the profile chosen, after the database step - DBSetupQuick for
+// the built-in database, DBSetup for an external one - and before the installation
+// starts the service. The database tools reach the server over COM, which starts
+// the service, so it is stopped first: the verb refuses to change a running
+// server (exit 4), which would not see the settings until a reinitialise. --if-new
+// leaves a database already in service alone (exit 5) - DBSetup can attach one
+// that is - because a profile applied there with --confirm could close a listener
+// or turn a filter off that somebody depends on, without the diff the Control Deck
+// shows first. Every failure is said, and the installation still succeeds.
 procedure ApplyChosenProfile();
 var
    szProfile: String;
+   szWhy: String;
    ResultCode: Integer;
+   waitedMs: Integer;
 begin
    szProfile := GetChosenProfile();
    if szProfile = '' then
       Exit;
 
-   if (Exec(ExpandConstant('{app}\Bin\hMailServer.exe'), '--apply-profile ' + szProfile + ' --once --confirm', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
+   if (IsServiceRunning('hMailServer') = true) then
    begin
-      SuppressibleMsgBox('The ' + szProfile + ' profile could not be applied: hMailServer.exe did not start.' + #13#10 + SysErrorMessage(ResultCode) + #13#10#13#10 +
-             'hMailServer is installed with the settings this version ships with. Apply the profile from the Control Deck''s checklist or the Control Panel''s Profiles page.', mbInformation, MB_OK, IDOK);
-   end
-   else if (ResultCode <> 0) then
-   begin
-      SuppressibleMsgBox('The ' + szProfile + ' profile was not applied (hMailServer.exe --apply-profile returned ' + IntToStr(ResultCode) + ').' + #13#10#13#10 +
-             'hMailServer is installed with the settings this version ships with, and the error log says why. Apply the profile from the Control Deck''s checklist or the Control Panel''s Profiles page, which show what it would change first.', mbInformation, MB_OK, IDOK);
+      StopService('hMailServer');
+      waitedMs := 0;
+      while (IsServiceStopped('hMailServer') = false) and (waitedMs < 90000) do
+      begin
+         Sleep(250);
+         waitedMs := waitedMs + 250;
+      end;
+
+      if (IsServiceStopped('hMailServer') = false) then
+      begin
+         SayProfileNotApplied(szProfile, 'the hMailServer service, which the database step started, did not stop within 90 seconds, and a profile is not applied under a running server.');
+         Exit;
+      end;
    end;
+
+   if (Exec(ExpandConstant('{app}\Bin\hMailServer.exe'), '--apply-profile ' + szProfile + ' --once --if-new --confirm', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
+   begin
+      SayProfileNotApplied(szProfile, 'hMailServer.exe did not start. ' + SysErrorMessage(ResultCode));
+      Exit;
+   end;
+
+   if (ResultCode = 0) then
+      Exit;
+
+   case ResultCode of
+      2: szWhy := 'hMailServer.exe did not find the database, or did not know the profile (exit code 2).';
+      4: szWhy := 'the hMailServer service was running again when the profile was to be applied (exit code 4).';
+      5: szWhy := 'the database already holds ten accounts or more, so it is in service, and a profile is applied to it only after its diff has been seen (exit code 5).';
+   else
+      szWhy := 'hMailServer.exe --apply-profile returned ' + IntToStr(ResultCode) + ', and the error log says why.';
+   end;
+   SayProfileNotApplied(szProfile, szWhy);
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
@@ -699,14 +747,14 @@ begin
    g_pageAccessKey.Add('Confirm password:', True);
 
    // The last question before the installation: the kind of server this is. One
-   // sentence each, naming the listener a profile closes and the filters it turns
-   // off, because choosing one here is the confirmation the server asks for.
+   // sentence each, naming the listener a profile closes and the filter or the trust
+   // it changes, because choosing one here is the confirmation the server asks for.
    g_pageProfile := CreateInputOptionPage(g_pageAccessKey.ID, 'Server profile', 'What kind of server is this?',
       'A profile sets about thirty settings for one kind of server, each with its reason, and keeps what it replaced so that it can be put back. ' +
       'Every profile and its changes can be seen, applied or put back later from the Control Deck and the Control Panel.', True, False);
    g_pageProfile.Add('None - keep the settings this version ships with');
    g_pageProfile.Add('A small office server - spam filtering, greylisting and the auto-ban on, spam held in the quarantine, passwords held to a policy');
-   g_pageProfile.Add('Behind a filtering gateway - turns off the address tests the gateway already made (SPF, greylisting, HELO, PTR, DMARC) and accepts XCLIENT from the addresses you will list');
+   g_pageProfile.Add('Behind a filtering gateway - the address tests judge the real sender once the gateway is an Incoming relay, greylisting is off, and XCLIENT and ARC are trusted from the addresses and the sealer you will name');
    g_pageProfile.Add('An outbound relay - closes IMAP and POP3, suppresses addresses that bounce, and keeps three months of delivery trace');
    g_pageProfile.Add('A high-volume sender - the relay, with more deliveries at once, per-destination ceilings and the feedback loops read; closes IMAP and POP3');
    g_pageProfile.SelectedValueIndex := 0;
@@ -1097,7 +1145,7 @@ begin
             else
             begin
                // The database is there and at this build's schema: the profile the
-               // last page chose, before the service starts and reads the settings.
+               // last page chose, before the service is started below.
                ProgressPage.SetText('Applying the server profile...', '');
                ApplyChosenProfile();
             end;
@@ -1114,6 +1162,14 @@ begin
                SuppressibleMsgBox('The hMailServer database setup did not complete (exit code ' + IntToStr(ResultCode) + ').' #13#13
                       'The hMailServer service may not work until the database has been set up. Run DBSetup.exe from the hMailServer Bin folder to retry.', mbError, MB_OK, IDOK);
                Result := false;
+            end
+            else
+            begin
+               // An external database set up: the profile the last page chose, as for
+               // the built-in one - with --if-new, since DBSetup can attach a
+               // database that is already in service.
+               ProgressPage.SetText('Applying the server profile...', '');
+               ApplyChosenProfile();
             end;
          end;
 

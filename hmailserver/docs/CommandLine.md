@@ -648,16 +648,23 @@ What neither client does
 * **A profile is applied from either, and from the server's own verb.** `hmctl
   settings profiles` lists the four setting profiles ([Profiles.md](Profiles.md))
   with how many of each one's settings would change here; `hmctl settings profile
-  office` is the diff, every setting beside the value the server holds; `hmctl
-  settings apply-profile office` applies it, with `--confirm` where an entry closes
-  a listener, trusts an address range or turns a filter off, which the server
-  refuses without it; `revert-profile` puts back what the last one changed and
-  `discard-profile` keeps its settings and forgets the way back. Before the REST
-  listener is on, `sudo -u hmailserver hmailserver --apply-profile office` (and
-  `hMailServer.exe --apply-profile office` on Windows) applies it from the command
-  line, `--confirm` as above and `--once` to do nothing on a server a profile was
-  applied to before, which is what the container's `HM_PROFILE` and the installer
-  run; it exits 3 when a `--confirm` is needed and 2 for a name that is no profile.
+  office` is the diff, every setting beside the value the server holds, and prints
+  the diff's token; `hmctl settings apply-profile office` applies it, with
+  `--confirm TOKEN` where an entry closes a listener, trusts an address range,
+  turns a filter or a check off or weakens it, or shortens a window of days, which
+  the server refuses without it - the token ties the confirmation to the diff that
+  was read, and the server refuses it when the settings moved since;
+  `revert-profile` puts back what the last one changed, `discard-profile` keeps its
+  settings and forgets the way back, and `decline-profile` records that the shipped
+  settings are kept. With the server stopped, `sudo -u hmailserver hmailserver
+  --apply-profile office` (and `hMailServer.exe --apply-profile office` on Windows,
+  which refuses while the service runs, exit 4) applies it from the command line,
+  `--confirm` as above, `--once` to do nothing on a server something was recorded
+  for before, `--if-new` to leave a server of ten accounts or more as it is (exit
+  5), and `none` for the name to record that no profile is wanted - which is what
+  the container's `HM_PROFILE` and the installer run; `--revert-profile` puts the
+  last one back. It exits 3 when a `--confirm` is needed and 2 for a name that is
+  no profile.
 * **Neither invents a field.** A field you did not give is one the server
   decides; the two clients were made to send the same request for the same
   command, and `build/check-cli.py` fails if they stop doing so.

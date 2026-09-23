@@ -1269,9 +1269,10 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="checklistagain")render();
   else if(d.act==="profileshow"){profileShown_=d.name;render();}
   else if(d.act==="profilehide"){profileShown_="";render();}
-  else if(d.act==="profileapply")applyProfile(d.name,Number(d.changes)||0,d.needs==="1");
+  else if(d.act==="profileapply")applyProfile(d.name,Number(d.changes)||0,d.needs==="1",d.token||"");
   else if(d.act==="profilerevert")revertProfile(d.name);
   else if(d.act==="profilediscard")discardProfile();
+  else if(d.act==="profiledecline")declineProfiles();
   else if(d.act==="samplecreate")createSampleDomain();
   else if(d.act==="sampleremove")removeSampleDomain();
   else if(d.act==="rdnew")openRemoteDomain(0);
@@ -6640,6 +6641,8 @@ const CHECKLIST_TEXT={
   profile_applied:K("The {0} profile was applied on {1}."),
   profile_kept:K("The {0} profile was applied on {1}; its way back was discarded and its settings kept."),
   profile_reverted:K("The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced."),
+  profile_declined:K("The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server."),
+  profile_failed:K("The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again."),
   domain_none:K("No domain has been added yet."),
   domain_none_active:K("{0} domains, none of them active."),
   domain_count:K("Active domains: {0} of {1}."),
@@ -6682,29 +6685,44 @@ function checklistText(finding){
    because a profile is where the first hour starts. The page decides nothing:
    the server answers each entry with the value it holds now, whether applying
    would change it and whether that change asks for a confirmation - it closes a
-   listener, trusts an address range or turns a filter off - and refuses an apply
-   without the box ticked when one does. What an apply replaces is kept, and put
-   back from here. The profiles' titles, paragraphs and reasons are the server's
-   own English, as a finding's text is for a code the page does not know. */
+   listener, trusts an address range, turns a filter or a check off, or shortens
+   a window of data - and refuses an apply without the box ticked when one does.
+   The apply names the diff it was made from (diff_token), and the server refuses
+   it when the settings have moved since. What an apply replaces is kept, and put
+   back from here. The profiles' titles, paragraphs, reasons and notes are the
+   server's own English, as a finding's text is for a code the page does not
+   know. */
 let profileShown_="";
-const PROFILE_CAUTION={closes_listener:K("Closes a listener"),trusts_addresses:K("Trusts an address range"),turns_filter_off:K("Turns a filter off")};
+const PROFILE_CAUTION={closes_listener:K("Closes a listener"),trusts_addresses:K("Trusts an address range"),turns_filter_off:K("Turns a filter or a check off"),purges:K("Shortens how long data is kept")};
 function profileRows(diff){
   return (diff.entries||[]).map(e=>{
     const environment=e.environment?'<div class="hint muted">'+escHtml(t("Set by the environment"))+" ("+escHtml(e.environment)+")</div>":"";
     const refused=e.refused?'<div class="err">'+escHtml(tf("Refused: {0}",e.refused))+"</div>":"";
     const caution=e.caution&&e.confirm?' <span class="pill" data-level="warn"><span class="mark">●</span>'+escHtml(t(PROFILE_CAUTION[e.caution]||e.caution))+"</span>":"";
     const value=e.changes?"<b>"+escHtml(e.value)+"</b>":escHtml(e.value);
-    return `<tr class="profilerow" data-name="${escHtml(e.name)}" data-changes="${e.changes?1:0}"><td><code>${escHtml(e.name)}</code>${environment}</td><td>${escHtml(e.current)}</td><td>${value}${caution}</td><td>${escHtml(e.why)}${refused}</td></tr>`;
+    const note=e.note?'<div class="hint muted">'+escHtml(e.note)+"</div>":"";
+    return `<tr class="profilerow" data-name="${escHtml(e.name)}" data-changes="${e.changes?1:0}"><td><code>${escHtml(e.name)}</code>${environment}</td><td>${escHtml(e.current)}</td><td>${value}${caution}</td><td>${escHtml(e.why)}${note}${refused}</td></tr>`;
   }).join("");
 }
 function profilesCard(list,diff){
   if(!list)return "";
   const mayChange=may("manage_settings");
-  const snapshot=list.snapshot&&list.snapshot.profile?list.snapshot:null;
-  const held=snapshot?`<p class="note">${escHtml(tf("The {0} profile is applied. What it replaced is kept, and can be put back.",snapshot.profile))}</p>`+
+  // Any way back is held, readable or not: one that cannot be read cannot be put
+  // back, and discarding it is the only way to apply a profile again.
+  const snapshot=list.snapshot&&typeof list.snapshot==="object"?list.snapshot:null;
+  const readable=!!(snapshot&&snapshot.readable!==false&&snapshot.profile);
+  let held="";
+  if(snapshot&&readable)held=`<p class="note">${escHtml(tf("The {0} profile is applied. What it replaced is kept, and can be put back.",snapshot.profile))}</p>`+
     (mayChange?`<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">
       <button class="btn ghost sm" data-act="profilerevert" data-name="${escHtml(snapshot.profile)}">${t("Put back what it changed")}</button>
-      <button class="btn ghost sm" data-act="profilediscard">${t("Keep its settings, forget the way back")}</button></div>`:""):"";
+      <button class="btn ghost sm" data-act="profilediscard">${t("Keep its settings, forget the way back")}</button></div>`:"");
+  else if(snapshot)held=`<p class="note">${t("A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced.")}</p>`+
+    (mayChange?`<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="btn ghost sm" data-act="profilediscard">${t("Discard the way back")}</button></div>`:"");
+  // Keeping the shipped settings is a choice too: recorded, the checklist stops
+  // asking. Offered while no profile is in effect and no way back is held.
+  const decline=mayChange&&!snapshot&&(!list.applied||list.applied.state==="reverted"||list.applied.state==="failed")?`<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="btn ghost sm" data-act="profiledecline">${t("Keep the shipped settings")}</button></div>`:"";
   const profiles=(list.profiles||[]).map(p=>{
     const shown=profileShown_===p.name&&diff&&diff.name===p.name;
     let detail="";
@@ -6715,8 +6733,8 @@ function profilesCard(list,diff){
         <tbody>${profileRows(diff)}</tbody></table></div>`+
         (steps?`<p class="note"><b>${t("What it cannot do for you")}</b></p><ul class="findings">${steps}</ul>`:"")+
         (mayChange&&diff.applicable?`<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">`+
-          (needs?`<label class="row" style="gap:7px"><input type="checkbox" id="profileConfirm"> ${t("I confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server.")}</label>`:"")+
-          `<button class="btn sm" data-act="profileapply" data-name="${escHtml(p.name)}" data-changes="${Number(diff.changes)||0}" data-needs="${needs?1:0}">${t("Apply this profile")}</button></div>`:"")+
+          (needs?`<label class="row" style="gap:7px"><input type="checkbox" id="profileConfirm"> ${t("I confirm the changes marked above: they close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept on this server - and what a shorter window deletes, a revert does not bring back.")}</label>`:"")+
+          `<button class="btn sm" data-act="profileapply" data-name="${escHtml(p.name)}" data-changes="${Number(diff.changes)||0}" data-needs="${needs?1:0}" data-token="${escHtml(diff.diff_token||"")}">${t("Apply this profile")}</button></div>`:"")+
         (diff.blocked?`<p class="note">${escHtml(diff.blocked)}</p>`:"");
     }
     return `<div class="card flat profilecard" data-name="${escHtml(p.name)}">
@@ -6729,28 +6747,41 @@ function profilesCard(list,diff){
   return `<div class="card flat" id="profilesCard">
     <div class="row" style="gap:10px;align-items:center"><b>${t("Setting profiles")}</b></div>
     <p class="note">${t("Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied.")}</p>
-    ${held}${profiles}
+    ${held}${profiles}${decline}
     <div class="err" id="err_profiles"></div></div>`;
 }
-async function applyProfile(name,changes,needs){
+async function applyProfile(name,changes,needs,token){
   setErr("err_profiles","");
   const box=document.getElementById("profileConfirm");
   const confirmed=!!(box&&box.checked);
-  if(needs&&!confirmed){setErr("err_profiles",t("Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here."));return;}
-  if(!confirm(tf("Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back.",name,changes)))return;
+  if(needs&&!confirmed){setErr("err_profiles",t("Tick the confirmation first: this profile closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept here."));return;}
+  if(!confirm(tf("Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back.",name,changes)))return;
   try{
-    const answer=await api("/api/v1/settings/profiles/"+encodeURIComponent(name)+"/apply",{method:"POST",body:JSON.stringify({confirm:confirmed})});
-    toast(tf("{0}: {1} set, {2} unchanged, {3} skipped.",name,Number(answer.set)||0,Number(answer.unchanged)||0,Number(answer.skipped)||0));
+    // The token names the diff shown above: the server refuses the apply when the
+    // settings moved since, and the page shows the diff again.
+    const answer=await api("/api/v1/settings/profiles/"+encodeURIComponent(name)+"/apply",{method:"POST",body:JSON.stringify({confirm:confirmed,diff_token:token})});
+    const waiting=answer.waiting||{};
+    toast(tf("{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart.",name,Number(answer.set)||0,Number(answer.unchanged)||0,Number(answer.skipped)||0,Number(waiting.reinitialize)||0,Number(waiting.restart)||0));
     await render();
-  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_profiles",e.message);}
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_profiles",e.message);await render();setErr("err_profiles",e.message);}
 }
 async function revertProfile(name){
   setErr("err_profiles","");
   if(!confirm(tf("Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again.",name)))return;
   try{
     const answer=await api("/api/v1/settings/profiles/revert",{method:"POST",body:"{}"});
-    toast(tf("{0}: {1} put back, {2} left as they were.",name,Number(answer.set)||0,Number(answer.skipped)||0));
+    const waiting=answer.waiting||{};
+    toast(tf("{0}: {1} put back, {2} left as they were; {3} wait for a reinitialise and {4} for a restart.",name,Number(answer.set)||0,Number(answer.skipped)||0,Number(waiting.reinitialize)||0,Number(waiting.restart)||0));
     profileShown_="";
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_profiles",e.message);}
+}
+async function declineProfiles(){
+  setErr("err_profiles","");
+  if(!confirm(t("Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later.")))return;
+  try{
+    await api("/api/v1/settings/profiles/decline",{method:"POST",body:"{}"});
+    toast(t("The shipped settings are kept; no profile is applied."));
     await render();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_profiles",e.message);}
 }

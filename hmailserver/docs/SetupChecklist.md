@@ -6,7 +6,7 @@ items, in the order a new installation meets them:
 
 | Key | Item | Done when |
 |---|---|---|
-| `profile` | A profile for this server | a setting profile has been applied ([Profiles.md](Profiles.md)); asked for on a young server - fewer than ten accounts, the sample domain's not counted - and not needed on one past that, where a profile that closes a listener or turns a filter off is not something to suggest in a list of things left to do |
+| `profile` | A profile for this server | a setting profile has been applied ([Profiles.md](Profiles.md)); asked for on a young server - fewer than ten accounts, the sample domain's not counted - and not needed on one past that, where a profile that closes a listener or turns a filter off is not something to suggest in a list of things left to do, nor where the shipped settings were chosen instead; asked for again when a profile could not be written in full |
 | `domain` | A domain | at least one domain exists and is active |
 | `account` | An account | at least one account exists in any domain |
 | `submission` | TLS on the submission port | every SMTP listener other than port 25 has STARTTLS or implicit TLS and a certificate that exists |
@@ -83,6 +83,8 @@ count.
 | `profile_applied` | profile, date | The {0} profile was applied on {1}. |
 | `profile_kept` | profile, date | The {0} profile was applied on {1}; its way back was discarded and its settings kept. |
 | `profile_reverted` | profile, date | The {0} profile was applied and then reverted on {1}; the settings are the ones it replaced. (not_needed) |
+| `profile_declined` | date | The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server. (not_needed) |
+| `profile_failed` | profile, date | The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again. |
 | `domain_none` | | No domain has been added yet. |
 | `domain_none_active` | total | {0} domains, none of them active. |
 | `domain_count` | active, total | Active domains: {0} of {1}. |

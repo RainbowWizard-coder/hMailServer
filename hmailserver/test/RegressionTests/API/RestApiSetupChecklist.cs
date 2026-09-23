@@ -18,7 +18,7 @@ namespace RegressionTests.API
    /// <summary>
    ///    The first-hour checklist: GET /api/v1/setup/checklist and
    ///    Utilities.GetSetupChecklist, the same document over REST and over COM. Nine
-   ///    items - a domain, an account, TLS on the submission port, SPF, DKIM, DMARC, a
+   ///    items - a setting profile, a domain, an account, TLS on the submission port, SPF, DKIM, DMARC, a
    ///    backup destination and a second factor on the administrator password - each
    ///    done, action_needed, cannot_tell or not_needed, with findings that carry a
    ///    code, its arguments and an English sentence.

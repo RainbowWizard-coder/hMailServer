@@ -671,6 +671,9 @@ Přesto toto slabé heslo uložit?</value>
   <data name="A virus scanner that stops responding. ClamAV is contacted after the message is accepted, so a wedged clamd shows up as accepted-but-never-delivered. Each socket operation is bounded by ClamMinTimeout / ClamMaxTimeout - a deadline on one read or write, armed afresh each time, so a large message streamed in chunks can take longer than ClamMaxTimeout in total." xml:space="preserve">
     <value>Antivirový skener, který přestane odpovídat. ClamAV se kontaktuje až po přijetí zprávy, takže zaseknutý clamd se projeví jako přijato, ale nikdy nedoručeno. Každá operace se soketem je omezena hodnotami ClamMinTimeout / ClamMaxTimeout – jde o lhůtu na jedno čtení nebo zápis, nastavovanou pokaždé znovu, takže velká zpráva přenášená po částech může celkově trvat déle než ClamMaxTimeout.</value>
   </data>
+  <data name="A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced." xml:space="preserve">
+    <value>Uschovaná cesta zpět z profilu nejde přečíst, takže ji nelze vrátit. Zahoďte ji, abyste mohli použít profil; auditní záznam uvádí každou hodnotu, kterou profil nahradil.</value>
+  </data>
   <data name="ACL (shared folder permissions)" xml:space="preserve">
     <value>ACL (oprávnění sdílených složek)</value>
   </data>
@@ -1413,8 +1416,8 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Uplatnit na tento účet _filtrování spamu na serveru</value>
   </data>
-  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
-    <value>Použít profil {0}? Nyní se změní nastavení: {1}; jejich dosavadní hodnoty se uschovají, aby je šlo vrátit.</value>
+  <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>Použít profil {0}? Změní se nastavení: {1}; jejich dosavadní hodnoty se uschovají, aby je šlo vrátit.</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled nelze přečíst: {0}</value>
@@ -4181,8 +4184,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Jak tento server řeší dotazy MX, PTR, SPF, DKIM, DMARC a blacklistů (hMailServer.INI).</value>
   </data>
-  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
-    <value>Po_tvrzuji změny označené výše: zavírají naslouchací službu, důvěřují rozsahu adres nebo vypínají filtr na tomto serveru.</value>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept on this server - and what a shorter window deletes, a revert does not bring back." xml:space="preserve">
+    <value>Po_tvrzuji změny označené výše: zavírají naslouchací službu, důvěřují rozsahu adres, vypínají filtr nebo kontrolu, nebo zkracují dobu uchování dat na tomto serveru - a co kratší lhůta smaže, vrácení nevrátí.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (push pošta)</value>
@@ -4435,8 +4438,17 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Keep seen/unseen state" xml:space="preserve">
     <value>Zachovat stav přečteno/nepřečteno</value>
   </data>
+  <data name="Keep the _shipped settings" xml:space="preserve">
+    <value>Ponechat _dodaná nastavení</value>
+  </data>
   <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
     <value>Ponechte záznam vyřazovaného selektoru „{0}“ zveřejněný do {1} kvůli poště podepsané tímto klíčem, která je ještě na cestě.</value>
+  </data>
+  <data name="Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later." xml:space="preserve">
+    <value>Ponechat nastavení dodávaná s touto verzí a nepoužít žádný profil? Kontrolní seznam se přestane ptát; kterýkoli profil lze použít i později.</value>
+  </data>
+  <data name="Keep the shipped settings" xml:space="preserve">
+    <value>Ponechat dodaná nastavení</value>
   </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>Uchovávání několika generací zpráv vyžaduje kompresi: bez volby „Komprimovat cílové soubory (zip)“ zapisuje každá záloha soubory zpráv do téže složky DataBackup a přepisuje soubory z předchozího běhu, takže uchovávání může držet generace jen u malých archivů s nastavením a doménami.</value>
@@ -8137,6 +8149,9 @@ Restartovat ji nyní?</value>
   <data name="Sho_w me around" xml:space="preserve">
     <value>Pro_vést mě serverem</value>
   </data>
+  <data name="Shortens how long data is kept" xml:space="preserve">
+    <value>Zkracuje dobu uchování dat</value>
+  </data>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Nejkratší hledaný řetězec, na který index odpovídá (3–64; kratší řetězce se hledají procházením)</value>
   </data>
@@ -9460,6 +9475,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>Nastavení, která omezují každou fázi</value>
   </data>
+  <data name="The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server." xml:space="preserve">
+    <value>Nastavení dodávaná s touto verzí byla zvolena {0} a žádný profil nebyl použit; kterýkoli ze čtyř lze s tímto serverem stále porovnat.</value>
+  </data>
+  <data name="The shipped settings are kept; no profile is applied." xml:space="preserve">
+    <value>Dodaná nastavení zůstávají; žádný profil není použit.</value>
+  </data>
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>Jediná hodnota AEAD-ONLY (bez ohledu na velikost písmen) je pojmenovaná předvolba, ne řetězec šifer OpenSSL: jen sady AEAD s dopřednou utajeností (ECDHE nebo DHE s AES-GCM nebo ChaCha20-Poly1305), s vyloučením každé sady v režimu CBC - rodiny padding-oracle Lucky13 - a statické výměny klíčů RSA. Cena: klienti TLS 1.2, kteří umí jen sady CBC, se nepřipojí, a TLS 1.0/1.1 zůstanou bez jakékoli použitelné šifry, takže tyto protokoly vedle ní nepovolujte. Na TLS 1.3 to nemá vliv - jeho sady jsou AEAD z principu a konfigurují se zvlášť níže. Překlep v názvu předvolby se odmítne a nahlásí, ne potichu ignoruje.</value>
   </data>
@@ -9522,6 +9543,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Wiki se nepodařilo otevřít v prohlížeči.</value>
+  </data>
+  <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again." xml:space="preserve">
+    <value>Profil {0} se {1} nepodařilo použít celý: některá jeho nastavení nebyla zapsána. Vraťte, co zapsal, nebo to ponechte, a použijte jej znovu.</value>
   </data>
   <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
     <value>Profil {0} je použit. Co nahradil, je uschováno a lze to vrátit.</value>
@@ -9714,8 +9738,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Autoconfig Thunderbirdu + autodiscover Outlooku</value>
   </data>
-  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
-    <value>Nejprve zaškrtněte potvrzení: tento profil zde zavírá naslouchací službu, důvěřuje rozsahu adres nebo vypíná filtr.</value>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept here." xml:space="preserve">
+    <value>Nejprve zaškrtněte potvrzení: tento profil zde zavírá naslouchací službu, důvěřuje rozsahu adres, vypíná filtr nebo kontrolu, nebo zkracuje dobu uchování dat.</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>Čas</value>
@@ -9837,8 +9861,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>Vypnutí tohoto zastaví lístky relací u každé verze TLS: klienti TLS 1.2 a starší se vrátí k serverové cache relací, která tento proces nikdy neopustí, a klientům TLS 1.3 se žádný lístek nepošle. Pro správce, jehož politika říká, že nic odvozeného z dlouhodobého klíče nikdy nejde po drátě. Jedinou cenou je efektivita obnovení - každý klient se stále může připojit plným handshakem.</value>
   </data>
-  <data name="Turns a filter off" xml:space="preserve">
-    <value>Vypíná filtr</value>
+  <data name="Turns a filter or a check off" xml:space="preserve">
+    <value>Vypíná filtr nebo kontrolu</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>Dvě metody bind a rozdíl je důležitější, než vypadá: jedna posílá heslo do adresáře, druhá ho na drát vůbec nedává.</value>
@@ -12309,11 +12333,11 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} neobsahuje žádný blok certifikátu PEM, takže nenese žádný použitelný certifikát CA (chyba serveru 6140). Exportujte certifikát CA ve formátu PEM (Base64).</value>
   </data>
-  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
-    <value>{0}: vráceno {1}, ponecháno {2}.</value>
+  <data name="{0}: {1} put back, {2} left as they were; {3} wait for a reinitialise and {4} for a restart." xml:space="preserve">
+    <value>{0}: vráceno {1}, ponecháno {2}; na znovunačtení čeká {3} a na restart {4}.</value>
   </data>
-  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
-    <value>{0}: nastaveno {1}, beze změny {2}, přeskočeno {3}.</value>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart." xml:space="preserve">
+    <value>{0}: nastaveno {1}, beze změny {2}, přeskočeno {3}; na znovunačtení čeká {4} a na restart {5}.</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1} antivirus vypnutý, takže pošta vyzvednutá z {2} se doručuje neskenovaná bez ohledu na to, co je nastaveno zde. Přepínač je na účtu pro stahování, ne na této stránce.{3}</value>

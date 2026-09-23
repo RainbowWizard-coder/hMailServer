@@ -233,12 +233,13 @@ ANSWERS = {
     ("PUT", "/api/v1/settings/antispam"): {"use_spf": False},
     ("POST", "/api/v1/settings/breach-check/test"): {"reachable": True, "status": 200, "entries": 812, "padded": True, "milliseconds": 41},
     # The setting profiles (docs/Profiles.md): the list, one diff, an apply with
-    # the confirmation, the way back and forgetting it.
+    # the confirmation and the diff's token, the way back, forgetting it and
+    # keeping the shipped settings.
     ("GET", "/api/v1/settings/profiles"): {
-        "profiles": [{"name": "office", "title": "A small office server", "entries": 33, "changes": 12,
-                      "confirmation_needed": 0, "skipped": 0, "refused": 0},
-                     {"name": "relay", "title": "An outbound relay", "entries": 25, "changes": 15,
-                      "confirmation_needed": 2, "skipped": 0, "refused": 0}],
+        "profiles": [{"name": "office", "title": "A small office server", "entries": 31, "changes": 12,
+                      "confirmations": 0, "skipped": 0, "refused": 0},
+                     {"name": "relay", "title": "An outbound relay", "entries": 24, "changes": 15,
+                      "confirmations": 2, "skipped": 0, "refused": 0}],
         "applied": {"profile": "office", "title": "A small office server", "applied": 1789000000, "state": "applied", "changed": 1789000000},
         "snapshot": {"readable": True, "profile": "office", "applied": 1789000000, "entries": 12}},
     ("GET", "/api/v1/settings/profiles/office"): {
@@ -247,7 +248,8 @@ ANSWERS = {
                      "caution": None, "environment": None, "refused": None},
                     {"store": "ini", "name": "QuarantineEnabled", "value": "1", "current": "0", "changes": True, "confirm": False,
                      "caution": None, "environment": "HM_SETTING_QuarantineEnabled", "refused": None}],
-        "changes": 1, "unchanged": 0, "skipped": 1, "refused": 0, "confirmation_needed": [], "applicable": True, "blocked": None},
+        "changes": 1, "unchanged": 0, "skipped": 1, "refused": 0, "confirmation_needed": [], "diff_token": "0123456789abcdef",
+        "applicable": True, "blocked": None},
     ("POST", "/api/v1/settings/profiles/relay/apply"): {
         "profile": "relay", "applied": 1789000100, "entries": [], "set": 15, "unchanged": 10, "skipped": 0, "failed": 0,
         "waiting": {"reinitialize": 0, "restart": 2}, "message": "The relay profile: 15 set, 10 unchanged, 0 skipped."},
@@ -259,6 +261,9 @@ ANSWERS = {
     ("POST", "/api/v1/settings/profiles/discard"): {
         "profile": "office", "discarded": 1789000300, "entries": 12,
         "message": "The way back from the office profile is discarded; its settings are kept, and another profile may be applied."},
+    ("POST", "/api/v1/settings/profiles/decline"): {
+        "declined": 1789000400,
+        "message": "Recorded: this server keeps the settings this version ships with, and the checklist no longer asks for a profile."},
     ("GET", "/api/v1/settings/bounces"): {"processing_enabled": False, "hard_bounce_threshold": 1,
                                           "suppression_action": "refuse"},
     ("PUT", "/api/v1/settings/bounces"): {"processing_enabled": True, "hard_bounce_threshold": 1,
@@ -901,13 +906,15 @@ CASES = [
     ("settings profiles", ["settings", "profiles"], "GET", "/api/v1/settings/profiles", None,
      ["A small office server", "An outbound relay", "last applied: office (applied)", "revert-profile puts it back"]),
     ("settings profile", ["settings", "profile", "office"], "GET", "/api/v1/settings/profiles/office", None,
-     ["usespf", "set by the environment (HM_SETTING_QuarantineEnabled)", "1 would change"]),
-    ("settings apply-profile with --confirm", ["settings", "apply-profile", "relay", "--confirm"],
-     "POST", "/api/v1/settings/profiles/relay/apply", {"confirm": True}, ["15 set, 10 unchanged"]),
+     ["usespf", "set by the environment (HM_SETTING_QuarantineEnabled)", "1 would change", "diff token: 0123456789abcdef"]),
+    ("settings apply-profile with --confirm and the diff's token", ["settings", "apply-profile", "relay", "--confirm", "0123456789abcdef"],
+     "POST", "/api/v1/settings/profiles/relay/apply", {"confirm": True, "diff_token": "0123456789abcdef"}, ["15 set, 10 unchanged"]),
     ("settings revert-profile", ["settings", "revert-profile"], "POST", "/api/v1/settings/profiles/revert", {},
      ["14 settings put back", "MaxOutboundConnsPerDestination: left - changed since the profile set it"]),
     ("settings discard-profile", ["settings", "discard-profile"], "POST", "/api/v1/settings/profiles/discard", {},
      ["its settings are kept"]),
+    ("settings decline-profile", ["settings", "decline-profile"], "POST", "/api/v1/settings/profiles/decline", {},
+     ["keeps the settings this version ships with"]),
     ("complaints of a domain", ["complaint", "list", "--domain", "example.com"],
      "GET", "/api/v1/domains/example.com/complaints", None, ["reader@provider.test", "abuse", "SomeGenerator/1.0"]),
     ("complaints of one sender", ["complaint", "list", "--domain", "example.com", "--search", "anna"],
@@ -1162,9 +1169,17 @@ def run_python_refusals(url):
     # A profile that closes a listener, applied without --confirm: refused, with
     # nothing sent but the one request, and the entries and the flag named.
     completed = run(["settings", "apply-profile", "sender"])
-    check(completed.returncode != 0 and "protocolimap" in completed.stderr and "--confirm" in completed.stderr,
-          "hmctl settings apply-profile refused for want of --confirm should name the entries and the flag, "
+    check(completed.returncode != 0 and "protocolimap" in completed.stderr and "--confirm" in completed.stderr
+          and "diff's token" in completed.stderr,
+          "hmctl settings apply-profile refused for want of --confirm should name the entries, the flag and the token, "
           "exited %d and said: %s%s" % (completed.returncode, completed.stdout, completed.stderr))
+
+    # --confirm with no token is not a confirmation of any diff: argparse refuses
+    # it, and nothing is sent.
+    completed = run(["settings", "apply-profile", "relay", "--confirm"])
+    check(completed.returncode != 0 and "--confirm" in completed.stderr,
+          "hmctl settings apply-profile --confirm without a token should be refused, exited %d and said: %s%s"
+          % (completed.returncode, completed.stdout, completed.stderr))
 
     completed = run(["dkim", "rotate"])
     check(completed.returncode != 0 and "domain" in (completed.stderr + completed.stdout),

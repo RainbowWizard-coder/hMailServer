@@ -59,6 +59,13 @@ namespace HM
       // audit row and no change event. The row must exist.
       void SetBookkeeping(const String &sPropertyName, const String &sValue);
 
+      // The same, for a record whose loss matters - the way back a setting profile
+      // keeps (Profiles): the database written first, and the copy here changed
+      // only when it took the value. False when the write failed, which the caller
+      // must act on; nothing has changed then. A row that is not in the set yet is
+      // inserted, and added only once it is stored.
+      bool WriteBookkeeping(const String &sPropertyName, const String &sValue);
+
       // Creates the property, with the given value, when the database has no row
       // for it; does nothing at all when it has one.
       //

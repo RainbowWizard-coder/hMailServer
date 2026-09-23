@@ -855,22 +855,29 @@ def reputation_command(client, arguments):
 
 def profiles_command(client, arguments):
     """The setting profiles (docs/Profiles.md): the four, one's diff against this
-    server, applying one - with --confirm where an entry closes a listener, trusts
-    an address range or turns a filter off, which the server refuses without it -
-    and the way back. The server decides everything; this prints what it said."""
+    server, applying one - with --confirm TOKEN where an entry closes a listener,
+    trusts an address range, turns a filter or a check off, or shortens how long
+    data is kept, TOKEN being the diff's own, which ties the confirmation to the
+    diff that was read - the way back, and keeping the shipped settings. The
+    server decides everything; this prints what it said."""
     if arguments.verb == "profiles":
         answer = client.request("GET", "/api/v1/settings/profiles") or {}
         if arguments.json:
             render(answer, True)
             return EXIT_OK
-        render(answer.get("profiles", []), False, ["name", "title", "entries", "changes", "confirmation_needed", "skipped"])
+        render(answer.get("profiles", []), False, ["name", "title", "entries", "changes", "confirmations", "skipped"])
         applied = answer.get("applied")
         if isinstance(applied, dict):
             print("")
-            print("last applied: %s (%s)" % (applied.get("profile"), applied.get("state")))
+            if applied.get("state") == "declined":
+                print("the settings this version ships with were chosen; no profile is applied")
+            else:
+                print("last applied: %s (%s)" % (applied.get("profile"), applied.get("state")))
         snapshot = answer.get("snapshot")
         if isinstance(snapshot, dict) and snapshot.get("profile"):
             print("the way back from %s is held: hmctl settings revert-profile puts it back" % snapshot.get("profile"))
+        elif isinstance(snapshot, dict):
+            print("a way back is held and cannot be read: hmctl settings discard-profile discards it")
         return EXIT_OK
 
     if arguments.verb == "profile":
@@ -884,6 +891,8 @@ def profiles_command(client, arguments):
             note = []
             if entry.get("confirm"):
                 note.append("asks for --confirm: " + str(entry.get("caution", "")).replace("_", " "))
+            if entry.get("note"):
+                note.append(entry.get("note"))
             if entry.get("environment"):
                 note.append("set by the environment (%s)" % entry.get("environment"))
             if entry.get("refused"):
@@ -896,17 +905,31 @@ def profiles_command(client, arguments):
             answer.get("changes"), answer.get("unchanged"), answer.get("skipped"), answer.get("refused")))
         if answer.get("blocked"):
             print(answer.get("blocked"))
+        if answer.get("diff_token"):
+            print("diff token: %s" % answer.get("diff_token"))
+            if answer.get("confirmation_needed"):
+                print("to apply it with the confirmation: hmctl settings apply-profile %s --confirm %s" % (answer.get("name"), answer.get("diff_token")))
         return EXIT_OK
 
     if arguments.verb == "apply-profile":
-        body = {"confirm": True} if arguments.confirm else {}
+        # --confirm takes the diff's token, which hmctl settings profile NAME prints:
+        # the confirmation is of that diff, and the server refuses it when the
+        # settings moved since. --token ties an apply that needs no confirmation to
+        # the diff the same way.
+        body = {}
+        if arguments.confirm:
+            body = {"confirm": True, "diff_token": arguments.confirm}
+        elif arguments.token:
+            body = {"diff_token": arguments.token}
         try:
             answer = client.request("POST", "/api/v1/settings/profiles/%s/apply" % urllib.parse.quote(arguments.name, safe=""), body=body) or {}
         except ApiError as refused:
             detail = refused.body if isinstance(refused.body, dict) else {}
             if refused.status == 409 and detail.get("confirmation"):
                 names = ", ".join(str(e.get("name")) for e in detail.get("confirmation_needed", []))
-                raise ApiError(409, "%s Entries: %s. Run it again with --confirm." % (refused.message, names), refused.body)
+                raise ApiError(409, "%s Entries: %s. Read the diff with hmctl settings profile %s and run it again with --confirm and the diff's token." % (refused.message, names, arguments.name), refused.body)
+            if refused.status == 409 and detail.get("stale"):
+                raise ApiError(409, "%s Read it again with hmctl settings profile %s." % (refused.message, arguments.name), refused.body)
             raise
         if arguments.json:
             render(answer, True)
@@ -925,13 +948,18 @@ def profiles_command(client, arguments):
                     print("  %s: %s - %s" % (entry.get("name"), entry.get("result"), entry.get("reason") or ""))
         return EXIT_OK if not answer.get("failed") else EXIT_ERROR
 
+    if arguments.verb == "decline-profile":
+        answer = client.request("POST", "/api/v1/settings/profiles/decline", body={}) or {}
+        render(answer, True) if arguments.json else print(answer.get("message", ""))
+        return EXIT_OK
+
     answer = client.request("POST", "/api/v1/settings/profiles/discard", body={}) or {}
     render(answer, True) if arguments.json else print(answer.get("message", ""))
     return EXIT_OK
 
 
 def settings_command(client, arguments):
-    if arguments.verb in ("profiles", "profile", "apply-profile", "revert-profile", "discard-profile"):
+    if arguments.verb in ("profiles", "profile", "apply-profile", "revert-profile", "discard-profile", "decline-profile"):
         return profiles_command(client, arguments)
 
     if arguments.verb == "breach-test":
@@ -2795,8 +2823,10 @@ def build_parser():
     apply_profile_parser = settings_verbs.add_parser("apply-profile", parents=[common],
                                                      help="apply a profile; what it replaces is kept so that it can be put back")
     apply_profile_parser.add_argument("name", help="office, gateway, relay or sender")
-    apply_profile_parser.add_argument("--confirm", action="store_true",
-                                      help="apply an entry that closes a listener, trusts an address range or turns a filter off; refused without it")
+    apply_profile_parser.add_argument("--confirm", metavar="TOKEN",
+                                      help="apply an entry that closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept, confirming the diff whose token hmctl settings profile NAME printed; refused without it")
+    apply_profile_parser.add_argument("--token", metavar="TOKEN",
+                                      help="the diff's token, for an apply that needs no confirmation: refused when the settings moved since the diff was read")
     apply_profile_parser.set_defaults(group=None)
     revert_profile_parser = settings_verbs.add_parser("revert-profile", parents=[common],
                                                       help="put back what the last profile changed")
@@ -2804,6 +2834,9 @@ def build_parser():
     discard_profile_parser = settings_verbs.add_parser("discard-profile", parents=[common],
                                                        help="keep the last profile's settings and forget the way back")
     discard_profile_parser.set_defaults(group=None, name=None)
+    decline_profile_parser = settings_verbs.add_parser("decline-profile", parents=[common],
+                                                       help="keep the settings this version ships with: record that no profile is wanted")
+    decline_profile_parser.set_defaults(group=None, name=None)
 
     ini = commands.add_parser("ini", help="the server settings that were hMailServer.ini's [Settings] keys, stored in the database")
     ini.set_defaults(handler=ini_command)

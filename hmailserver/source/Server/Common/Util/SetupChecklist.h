@@ -39,5 +39,12 @@ namespace HM
       // record items say which hosts to look up and leave the lookup to the
       // caller, which is what the Control Panel does off its window thread.
       static AnsiString Json(bool lookUpDns);
+
+      // Whether the server is young - fewer accounts than the checklist's limit,
+      // ten, the sample domain's not counted - which is when the checklist asks
+      // for a profile and when hmailserver --apply-profile --if-new applies one.
+      // counted is false, and the answer false, when the accounts could not be
+      // counted: an unanswered question is not a young server.
+      static bool IsYoungServer(long long &accounts, bool &counted);
    };
 }

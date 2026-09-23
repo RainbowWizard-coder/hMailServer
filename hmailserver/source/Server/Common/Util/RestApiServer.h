@@ -544,13 +544,15 @@ namespace HM
          // sets, by name and source, never a value (docs/EnvironmentConfiguration.md).
          RouteSettingsEnvironment,
          // The setting profiles (RestApiProfiles.cpp, docs/Profiles.md): the four
-         // listed, one profile's diff against this server, applying one, and
-         // putting back or forgetting the way back of the last one applied.
+         // listed, one profile's diff against this server, applying one,
+         // putting back or forgetting the way back of the last one applied, and
+         // recording that none is wanted.
          RouteSettingsProfileList,
          RouteSettingsProfileGet,
          RouteSettingsProfileApply,
          RouteSettingsProfileRevert,
          RouteSettingsProfileDiscard,
+         RouteSettingsProfileDecline,
          // GET /api/v1/server/settings/pending: the [Settings] keys saved and not
          // yet running, with both values (docs/SettingsApply.md).
          RouteServerSettingsPending,

@@ -48,6 +48,16 @@ namespace HM
       WriteStringSetting_(NewVal);
    }
 
+   bool
+   Property::TrySetStringValue(const String &NewVal)
+   {
+      if (!WriteStringSetting_(NewVal))
+         return false;
+
+      string_value_ = NewVal;
+      return true;
+   }
+
    void
    Property::SetBoolValue(bool NewVal)
    {

@@ -150,10 +150,11 @@ namespace HM
       /// differently. {"changed": n, "considered": m, "settings": [{store, name,
       /// value, default, secret, known, overridden, environment, profile}],
       /// "environment": [...], "from_file": [...], "profile": {name, state,
-      /// applied} or null}. profile beside a value names the setting profile that
-      /// set it, while the profile is applied and the setting still holds what it
-      /// wrote (docs/Profiles.md); the document's own profile is the last one
-      /// applied and what became of it.
+      /// applied} or null}. profile beside a value names the setting profile whose
+      /// apply wrote it, while the profile is in effect and the setting still holds
+      /// what it wrote - not a value the apply found already there, and not one the
+      /// environment manages (docs/Profiles.md); the document's own profile is the
+      /// last one applied and what became of it.
       /// </summary>
       static AnsiString Json();
 

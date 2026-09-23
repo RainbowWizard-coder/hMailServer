@@ -671,6 +671,9 @@
   <data name="A virus scanner that stops responding. ClamAV is contacted after the message is accepted, so a wedged clamd shows up as accepted-but-never-delivered. Each socket operation is bounded by ClamMinTimeout / ClamMaxTimeout - a deadline on one read or write, armed afresh each time, so a large message streamed in chunks can take longer than ClamMaxTimeout in total." xml:space="preserve">
     <value>停止响应的病毒扫描器。ClamAV 是在邮件被接受之后才联系的，因此卡死的 clamd 表现为“已接受但始终未投递”。每一次套接字操作都受 ClamMinTimeout / ClamMaxTimeout 限定 - 那是对单次读或写的期限，每次重新计时，因此分块传输的大邮件总耗时可能超过 ClamMaxTimeout。</value>
   </data>
+  <data name="A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced." xml:space="preserve">
+    <value>已保留某个配置方案的恢复记录，但无法读取，因此无法恢复。请放弃它以应用配置方案；审计记录列出了该方案替换的每个值。</value>
+  </data>
   <data name="ACL (shared folder permissions)" xml:space="preserve">
     <value>ACL（共享文件夹权限）</value>
   </data>
@@ -1413,8 +1416,8 @@
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>对此账户应用服务器的垃圾邮件过滤(_F)</value>
   </data>
-  <data name="Apply the {0} profile? {1} settings change now, and what they held is kept so that they can be put back." xml:space="preserve">
-    <value>应用 {0} 配置方案？现在将更改 {1} 项设置，原有的值会被保留以便恢复。</value>
+  <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
+    <value>应用 {0} 配置方案？将更改 {1} 项设置，原有的值会被保留以便恢复。</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>无法读取 ArcSealingEnabled：{0}</value>
@@ -4181,8 +4184,8 @@
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>本服务器如何解析 MX、PTR、SPF、DKIM、DMARC 和黑名单查询（hMailServer.INI）。</value>
   </data>
-  <data name="I _confirm the changes marked above: they close a listener, trust an address range or turn a filter off on this server." xml:space="preserve">
-    <value>我确认上面标出的更改：它们会在此服务器上关闭侦听器、信任某个地址范围或关闭某个过滤器(_C)</value>
+  <data name="I _confirm the changes marked above: they close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept on this server - and what a shorter window deletes, a revert does not bring back." xml:space="preserve">
+    <value>我确认上面标出的更改：它们会在此服务器上关闭侦听器、信任某个地址范围、关闭某个过滤器或检查，或缩短数据的保留时间——较短期限删除的内容，恢复也无法找回(_C)</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE（推送邮件）</value>
@@ -4435,8 +4438,17 @@
   <data name="Keep seen/unseen state" xml:space="preserve">
     <value>保留已读/未读状态</value>
   </data>
+  <data name="Keep the _shipped settings" xml:space="preserve">
+    <value>保留出厂设置(_S)</value>
+  </data>
   <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
     <value>请将正在停用的选择器“{0}”的记录保持发布到 {1}，供使用它签名、仍在途中的邮件使用。</value>
+  </data>
+  <data name="Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later." xml:space="preserve">
+    <value>保留此版本附带的设置，不应用任何配置方案？检查清单将不再询问；以后仍可应用任何配置方案。</value>
+  </data>
+  <data name="Keep the shipped settings" xml:space="preserve">
+    <value>保留出厂设置</value>
   </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>保留多代邮件需要压缩：如果没有“压缩目标文件（zip）”，每次备份都会把邮件文件写入同一个 DataBackup 文件夹，覆盖上一次运行的文件，因此保留策略只能保留较小的设置和域存档的多个版本。</value>
@@ -8137,6 +8149,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Sho_w me around" xml:space="preserve">
     <value>服务器导览(_W)</value>
   </data>
+  <data name="Shortens how long data is kept" xml:space="preserve">
+    <value>缩短数据的保留时间</value>
+  </data>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>索引可应答的最短搜索字符串 (3-64；更短的字符串回退到扫描)</value>
   </data>
@@ -9460,6 +9475,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>限制各阶段的设置</value>
   </data>
+  <data name="The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server." xml:space="preserve">
+    <value>已于 {0} 选择此版本附带的设置，未应用任何配置方案；仍可将四个方案中的任何一个与此服务器比较。</value>
+  </data>
+  <data name="The shipped settings are kept; no profile is applied." xml:space="preserve">
+    <value>已保留出厂设置；未应用任何配置方案。</value>
+  </data>
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>单一值 AEAD-ONLY (不区分大小写) 是一个具名预设而不是 OpenSSL 密码字符串: 只有前向保密的 AEAD 套件 (使用 AES-GCM 或 ChaCha20-Poly1305 的 ECDHE 或 DHE)，排除所有 CBC 模式套件 - Lucky13 填充预言机一族 - 以及静态 RSA 密钥交换。代价是: 只会 CBC 套件的 TLS 1.2 客户端无法连接，而 TLS 1.0/1.1 完全没有可用的密码，因此不要在它旁边启用这些协议。TLS 1.3 不受影响 - 其套件在设计上就是 AEAD，并在下面单独配置。拼错的预设名称会被拒绝并报告，而不是被悄悄忽略。</value>
   </data>
@@ -9522,6 +9543,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>无法在浏览器中打开 Wiki。</value>
+  </data>
+  <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again." xml:space="preserve">
+    <value>{0} 配置方案于 {1} 未能完整应用：其部分设置未写入。请恢复它写入的内容或予以保留，然后重新应用。</value>
   </data>
   <data name="The {0} profile is applied. What it replaced is kept, and can be put back." xml:space="preserve">
     <value>{0} 配置方案已应用。它所替换的值已保留，可以恢复。</value>
@@ -9714,8 +9738,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Thunderbird autoconfig + Outlook autodiscover" xml:space="preserve">
     <value>Thunderbird autoconfig + Outlook autodiscover</value>
   </data>
-  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range or turns a filter off here." xml:space="preserve">
-    <value>请先勾选确认：此配置方案会在这里关闭侦听器、信任某个地址范围或关闭某个过滤器。</value>
+  <data name="Tick the confirmation first: this profile closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept here." xml:space="preserve">
+    <value>请先勾选确认：此配置方案会在此关闭侦听器、信任某个地址范围、关闭某个过滤器或检查，或缩短数据的保留时间。</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>时间</value>
@@ -9837,8 +9861,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Turning this off stops session tickets on every TLS version: TLS 1.2 and older clients fall back to the server-side session cache, which never leaves this process, and TLS 1.3 clients are sent no ticket at all. For an administrator whose policy is that nothing derived from a long-lived key ever goes on the wire. The only cost is resumption efficiency - every client can still connect with a full handshake." xml:space="preserve">
     <value>关闭此项会在所有 TLS 版本上停止会话票据: TLS 1.2 及更早的客户端回退到永不离开本进程的服务器端会话缓存，而 TLS 1.3 客户端根本不会收到票据。适用于策略为“任何从长期密钥派生的东西都不上线路”的管理员。唯一的代价是恢复效率 - 每个客户端仍然可以用完整握手连接。</value>
   </data>
-  <data name="Turns a filter off" xml:space="preserve">
-    <value>关闭某个过滤器</value>
+  <data name="Turns a filter or a check off" xml:space="preserve">
+    <value>关闭某个过滤器或检查</value>
   </data>
   <data name="Two bind methods, and the difference matters more than it looks: one sends the password to the directory, the other never puts it on the wire at all." xml:space="preserve">
     <value>两种绑定方法，差别比看起来更重要: 一种把密码发送给目录，另一种根本不把密码放到线路上。</value>
@@ -12309,11 +12333,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}：{1} 不包含任何 PEM 证书块，因此它没有可用的 CA 证书（服务器错误 6140）。请以 PEM（Base64）格式导出该 CA 证书。</value>
   </data>
-  <data name="{0}: {1} put back, {2} left as they were." xml:space="preserve">
-    <value>{0}：已恢复 {1} 项，{2} 项保持原样。</value>
+  <data name="{0}: {1} put back, {2} left as they were; {3} wait for a reinitialise and {4} for a restart." xml:space="preserve">
+    <value>{0}：已恢复 {1} 项，{2} 项保持原样；{3} 项等待重新初始化，{4} 项等待重启。</value>
   </data>
-  <data name="{0}: {1} set, {2} unchanged, {3} skipped." xml:space="preserve">
-    <value>{0}：已设置 {1} 项，{2} 项未变，{3} 项已跳过。</value>
+  <data name="{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart." xml:space="preserve">
+    <value>{0}：已设置 {1} 项，{2} 项未变，跳过 {3} 项；{4} 项等待重新初始化，{5} 项等待重启。</value>
   </data>
   <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
     <value>{0}{1}关闭了反病毒，因此{2}以未扫描的状态投递，无论此处如何设置。该开关在收取账户上，而不在本页上。{3}</value>
