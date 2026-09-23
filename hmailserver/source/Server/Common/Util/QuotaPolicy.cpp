@@ -37,12 +37,6 @@ namespace HM
    // the rule these functions held for the domain and the server before an
    // account had a level of its own.
    int
-   QuotaPolicy::WarningPercent(std::shared_ptr<const Domain> domain)
-   {
-      return EffectiveSetting::ResolveInt(_T("quota_warning_percent"), domain, std::shared_ptr<const Account>());
-   }
-
-   int
    QuotaPolicy::WarningPercent(std::shared_ptr<const Account> account)
    {
       return EffectiveSetting::ResolveInt(_T("quota_warning_percent"), DomainOf_(account), account);
@@ -67,21 +61,9 @@ namespace HM
    }
 
    int
-   QuotaPolicy::GracePercent(std::shared_ptr<const Domain> domain)
-   {
-      return EffectiveSetting::ResolveInt(_T("quota_grace_percent"), domain, std::shared_ptr<const Account>());
-   }
-
-   int
    QuotaPolicy::GracePercent(std::shared_ptr<const Account> account)
    {
       return EffectiveSetting::ResolveInt(_T("quota_grace_percent"), DomainOf_(account), account);
-   }
-
-   int
-   QuotaPolicy::SendStopPercent(std::shared_ptr<const Domain> domain)
-   {
-      return EffectiveSetting::ResolveInt(_T("quota_send_stop_percent"), domain, std::shared_ptr<const Account>());
    }
 
    int

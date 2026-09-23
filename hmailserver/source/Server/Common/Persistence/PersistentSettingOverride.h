@@ -36,15 +36,12 @@ namespace HM
       // reissued, and a value left behind would become the next owner's.
       static bool DeleteByOwner(int scope, __int64 ownerId);
 
-      // Every value any domain or account holds for the name, for the sweeps that
-      // must keep what the longest window anywhere still needs (the recall rows)
-      // or reach the shortest (the recoverable copies). False when the database
-      // did not answer.
-      static bool ValuesOfName(const String &name, std::vector<String> &values);
-
-      // The owners (of one scope) that hold a row for the name, with the value:
-      // the quarantine digest's pass asks which accounts have an hour of their
-      // own without reading every account of every domain.
-      static bool OwnersOfName(int scope, const String &name, std::map<__int64, String> &owners);
+      // Every row any domain or account holds for the name, (scope, owner) to
+      // value: for the reads of one setting across every owner - the sweep that
+      // reaches the shortest recover-deleted window, the digest pass asking which
+      // accounts have a switch or an hour of their own, the OpenPGP portal's
+      // switch. Read through CacheContainer::GetSettingOverridesNamed, never per
+      // request. False when the database did not answer.
+      static bool RowsOfName(const String &name, std::map<std::pair<int, __int64>, String> &rows);
    };
 }

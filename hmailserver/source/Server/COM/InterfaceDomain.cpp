@@ -312,6 +312,14 @@ STDMETHODIMP InterfaceDomain::put_PlusAddressingEnabled(VARIANT_BOOL newVal)
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
    
+      // A gate (docs/SettingLevels.md): every local+tag address of every mailbox
+      // of the domain, opened at once. The server administrator's, as REST's
+      // domain route has always held it; a domain administrator writing back the
+      // value the domain already has - a dialog saving every field - is not
+      // refused, since nothing changes.
+      if (!authentication_->GetIsServerAdmin() && object_->GetUsePlusAddressing() != (newVal == VARIANT_TRUE))
+         return COMError::GenerateError("Plus addressing is the server administrator's to switch for a domain.");
+
       object_->SetUsePlusAddressing(newVal == VARIANT_TRUE);
    
       return S_OK;
@@ -3773,15 +3781,26 @@ STDMETHODIMP InterfaceDomain::put_SettingOverride(BSTR Name, BSTR newVal)
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
 
+      // Written at once, with no Save to pass through: the credential's grant
+      // must reach this domain, as a role confined to named domains is asked
+      // everywhere else it writes.
+      if (object_->GetID() > 0 && !authentication_->AllowsForDomain(HM::RolePermission::AdministerDomain, object_->GetName()))
+         return COMError::GenerateError("You do not have access to change the setting values of this domain.");
+
       const HM::String name(Name);
       const HM::EffectiveSetting::Definition *definition = HM::EffectiveSetting::Find(name);
       if (!definition)
          return COMError::GenerateError(HM::EffectiveSetting::NotThreeLevelSentence(name));
 
-      // A limit or a ceiling is the server administrator's to move, below the
-      // server as at it: a domain administrator does not lift their own.
-      if (definition->server_administrators_only && !authentication_->GetIsServerAdmin())
-         return COMError::GenerateError(HM::String(definition->name) + _T(" is the server administrator's to set for a domain."));
+      // A level held in the domain's own field is refused as that, first.
+      if (!HM::EffectiveSetting::OverlayHolds(*definition, HM::PersistentSettingOverride::ScopeDomain))
+         return COMError::GenerateError(HM::EffectiveSetting::ColumnSentence(*definition, HM::PersistentSettingOverride::ScopeDomain));
+
+      // A gate is the server administrator's to open or close for a domain; a
+      // limit anybody who administers the domain may tighten, and nobody loosen
+      // past the server's (EffectiveSetting::SetOverride says so).
+      if (definition->server_administrators_only() && !authentication_->GetIsServerAdmin())
+         return COMError::GenerateError(HM::String(definition->name) + _T(" is a capability the server grants, and the server administrator's to set for a domain."));
 
       HM::String value(newVal);
       HM::String refusal;

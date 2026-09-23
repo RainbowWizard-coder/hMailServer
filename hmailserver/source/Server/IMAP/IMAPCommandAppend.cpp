@@ -1061,8 +1061,9 @@ namespace HM
    IMAPCommandAppend::GetMaxMessageSize_(std::shared_ptr<const Domain> pDomain, std::shared_ptr<const Account> pAccount)
    {
       // The same resolution the SMTP session makes for the account that sends
-      // (Application/EffectiveSetting.h): the account's own limit, else its
-      // domain's, else the server's, the server's a ceiling over both.
+      // (Application/EffectiveSetting.h): a limit - the account's own, else its
+      // domain's, else the server's, each level held to the one above it. The
+      // account is the session's own, so no address named anywhere lifts it.
       return EffectiveSetting::ResolveInt(_T("max_message_size_kb"), pDomain, pAccount);
    }
 

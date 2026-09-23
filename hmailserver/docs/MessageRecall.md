@@ -138,6 +138,13 @@ the retention task (the one `Utilities.RunMessageRetention` runs on demand).
 A recall of a message older than that answers 404 as if it had never been
 recorded, whether or not the sweep has run yet.
 
+`recall_days` is a setting with levels and a **limit** ([SettingLevels.md](SettingLevels.md)):
+a domain, or one account, may hold a shorter window of its own - the sending
+account's own, else its domain's, else the server's - and never a longer one,
+because a recall deletes unread copies in every hosted domain, not only the
+sender's. So the server's `RecallDays` is the widest window anywhere, and it is
+what the sweep keeps rows for.
+
 The page
 --------
 

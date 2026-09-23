@@ -178,11 +178,11 @@ namespace HM
             }
             if (!found && alsoKnown && alsoKnown(member.first))
                found = true;
+            // What the entry answers about the levels - <name>_effective and
+            // <name>_source - is ignored when a caller sends the entry back, as
+            // HandleGetDomain_ says a caller may.
             if (!found && SettingLevelsRest::IsReadOnlyKey(member.first))
-            {
-               error = AnsiString(member.first.substr(0, 48).c_str()) + " is answered and never taken: it says what is in effect and where it came from";
-               return true;
-            }
+               continue;
             if (!found)
             {
                error = AnsiString("unknown field: ") + AnsiString(member.first.substr(0, 48).c_str());
@@ -936,9 +936,10 @@ namespace HM
    HttpResponse
    RestApiServer::HandleGetDomain_(const String &domainName)
    {
-      // One domain, read: the same entry the listing renders and the update
-      // answers with, so that a caller reading a domain, changing one field and
-      // sending it back sends the server what it gave. hmctl domain get and
+      // One domain, read: the entry the update answers with - the listing's
+      // entry and the settings with levels beside it - so that a caller reading
+      // a domain, changing one field and sending it back sends the server what
+      // it gave, the answered level fields ignored on the way back. hmctl domain get and
       // Get-HmDomain -Name have asked for this document since they were
       // written; until now the API had no GET under /api/v1/domains/{domain} at
       // all and both were answered "not found" for a domain that is there.
@@ -967,8 +968,11 @@ namespace HM
 
       // The eleven fields COM gates on the server administrator (put_MaxSize,
       // put_MaxMessageSize, put_MaxAccountSize, the three counts and their
-      // switches, put_MessageRetentionDays, put_PlusAddressingEnabled): a key
-      // restricted to this domain may not lift its own limits through them.
+      // switches, put_MessageRetentionDays, and put_PlusAddressingEnabled, which
+      // refuses a domain administrator a change since plus addressing became the
+      // gate docs/SettingLevels.md calls it - it did not before): a key
+      // restricted to this domain may not lift its own limits through them, or
+      // open the gate.
       if (!HoldsServerAuthority_(caller))
       {
          static const char *const serverAdministratorsOnly[] =
@@ -1004,7 +1008,7 @@ namespace HM
       // The domain's own values of the settings with levels, judged now with
       // everything else and written once the domain itself is saved.
       std::vector<SettingLevelsRest::Change> levelChanges;
-      if (!SettingLevelsRest::Read(body, PersistentSettingOverride::ScopeDomain, HoldsServerAuthority_(caller), levelChanges, error, forbidden))
+      if (!SettingLevelsRest::Read(body, PersistentSettingOverride::ScopeDomain, domain->GetID(), HoldsServerAuthority_(caller), levelChanges, error, forbidden))
          return BuildResponse_(forbidden ? 403 : 400, ErrorBody(quote, String(error)));
 
       String rotationRefusal;

@@ -528,6 +528,8 @@ InterfaceCache::Clear()
       HM::Cache<HM::Alias>::Instance()->Clear();
       HM::Cache<HM::DistributionList>::Instance()->Clear();
       HM::MessagesContainer::Instance()->Clear();
+      // The domains' and the accounts' own setting values (docs/SettingLevels.md).
+      HM::CacheContainer::Instance()->ClearSettingOverrides();
 
       return S_OK;
    }

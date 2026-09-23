@@ -6,6 +6,7 @@
 
 #include "InboxIDCache.h"
 
+#include <atomic>
 #include <map>
 #include <mutex>
 
@@ -62,8 +63,26 @@ namespace HM
       // again after a minute so that a row another node wrote is seen. Null when
       // the database did not answer: the caller treats the level as inheriting.
       std::shared_ptr<const std::map<String, String> > GetSettingOverrides(int scope, __int64 ownerId);
+
+      // Every row of one NAME, whoever holds it, (scope, owner) to value - for
+      // the reads of one setting across every owner: the digest pass, the
+      // OpenPGP portal's switch (answered to anybody, before any sign-in), plus
+      // addressing asking whether any account holds a switch of its own, the
+      // recover-deleted sweep. Kept a minute like an owner's rows, and dropped
+      // by every write, so none of those reads the database per request. Null
+      // when the database did not answer.
+      std::shared_ptr<const std::map<std::pair<int, __int64>, String> > GetSettingOverridesNamed(const String &name);
+
       void RemoveSettingOverrides(int scope, __int64 ownerId);
+
+      // Empties both: the server's stop, and every "empty the caches" (REST's
+      // cache-clear, COM's Cache.Clear) - so a row written behind the server's
+      // back is read at once rather than after the minute.
       void ClearSettingOverrides();
+
+      // How many times ClearSettingOverrides has run, so that a report made once
+      // per name (HM7311) is made again after the caches have been emptied.
+      unsigned __int64 GetSettingOverridesClears() const { return setting_overrides_clears_; }
 
       void Clear();
    private:
@@ -81,6 +100,15 @@ namespace HM
       std::mutex setting_overrides_mutex_;
       std::map<std::pair<int, __int64>, SettingOverrideEntry> setting_overrides_;
       unsigned __int64 setting_overrides_generation_;
+
+      struct SettingOverrideNamedEntry
+      {
+         std::shared_ptr<const std::map<std::pair<int, __int64>, String> > rows;
+         time_t loaded_at;
+      };
+
+      std::map<String, SettingOverrideNamedEntry> setting_overrides_named_;
+      std::atomic<unsigned __int64> setting_overrides_clears_;
 
       InboxIDCache inbox_idcache_;
    };

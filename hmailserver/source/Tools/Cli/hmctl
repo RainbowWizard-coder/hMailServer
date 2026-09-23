@@ -622,6 +622,29 @@ def resource_command(client, arguments):
     raise ApiError(0, "%s cannot %s" % (arguments.resource, verb))
 
 
+# The levels held in a field the domain or the account already had, rather than
+# in the overlay (GET /api/v1/settings/levels answers "column" for them), and the
+# value that field holds for "take the level above" - what the routes read, since
+# a null on such a field leaves it as it is. A field that is not here always
+# holds a value of its own and cannot inherit: the digest's switch and hour, the
+# two tags, the impersonation action, plus addressing and the country policy.
+COLUMN_INHERIT = {
+    "max_message_size_kb": 0,
+    "session_idle_seconds": 0,
+    "session_lifetime_seconds": 0,
+    "session_one_per_device": 0,
+    "session_bind_to_address": 0,
+    "quota_warning_percent": -1,
+    "quota_grace_percent": -1,
+    "quota_send_stop_percent": -1,
+    "message_retention_days": 0,
+}
+
+# The domain's two session switches are 0 (the server's), 1 (on) or 2 (off) in
+# its own fields, where every other level says true or false.
+SWITCH_COLUMNS = ("session_one_per_device", "session_bind_to_address")
+
+
 def level_set_command(client, arguments):
     """hmctl domain set <domain> <name> <value|inherit>, and the same for an account.
 
@@ -629,13 +652,44 @@ def level_set_command(client, arguments):
     own value of a setting that may be set below the server - the names GET
     /api/v1/settings/levels lists - or, with the word inherit, none of its own,
     so that it takes the level above. The value is read as --set reads one:
-    true, false and numbers as such, anything else as a string. The domain's route
-    requires active in every body, so it is read first and sent back as it is.
-    What is in effect afterwards, and where it came from, is what is printed.
+    true, false and numbers as such, anything else as a string. Where the level
+    is a field the domain or the account already had, inherit is sent as that
+    field's own "take the level above" (0 or -1), true and false as a domain
+    session switch's 1 and 2, and inherit is refused for a field that has none.
+    The domain's route requires active in every body, so it is read first and
+    sent back as it is. What is in effect afterwards, and where it came from, is
+    what is printed.
     """
     name = arguments.setting
     raw = arguments.value
-    value = None if raw.strip().lower() == "inherit" else parse_set([name + "=" + raw])[name]
+    inherit = raw.strip().lower() == "inherit"
+
+    # Where the level is held. A server from before the levels list answers
+    # nothing here, and every name is taken as the overlay's, as it always was.
+    storage = "overlay"
+    try:
+        levels = client.request("GET", "/api/v1/settings/levels") or {}
+        for entry in levels.get("settings", []) if isinstance(levels, dict) else []:
+            if entry.get("name") == name:
+                storage = entry.get("domain_storage" if arguments.resource == "domain" else "account_storage", "overlay")
+                break
+    except ApiError as error:
+        if error.status not in (403, 404):
+            raise
+
+    if storage == "column":
+        if inherit:
+            if name not in COLUMN_INHERIT:
+                raise ApiError(400, "%s is the %s's own field and always holds a value of its own; there is no level above "
+                               "for it to take. Set it to the value you want." % (name, arguments.resource))
+            value = COLUMN_INHERIT[name]
+        else:
+            value = parse_set([name + "=" + raw])[name]
+            if arguments.resource == "domain" and name in SWITCH_COLUMNS and isinstance(value, bool):
+                value = 1 if value else 2
+    else:
+        value = None if inherit else parse_set([name + "=" + raw])[name]
+
     if arguments.resource == "domain":
         path = "/api/v1/domains/%s" % urllib.parse.quote(arguments.id, safe="")
         current = client.request("GET", path) or {}
@@ -1660,7 +1714,11 @@ def configuration_key(section, row):
 
 
 def strip_configuration(row):
-    return dict((k, v) for k, v in row.items() if k not in NOT_CONFIGURATION and not str(k).endswith("_id"))
+    # <key>_levels is what the server says about a key - how deep it may be set
+    # (docs/SettingLevels.md) - not configuration: a document carrying it would
+    # have it applied back, and the server refuses it.
+    return dict((k, v) for k, v in row.items()
+                if k not in NOT_CONFIGURATION and not str(k).endswith("_id") and not str(k).endswith("_levels"))
 
 
 def read_configuration(client, domains=None):

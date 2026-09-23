@@ -3121,6 +3121,19 @@ async function reloadDomainLevels(){
   const one=await api("/api/v1/domains/"+encodeURIComponent(editing.name));
   levelNames(one).forEach(n=>{[n,n+"_effective",n+"_source"].forEach(k=>{if(k in one)editing.values[k]=one[k];});});
 }
+/* The account's levels read again - and only the levels: the editor's other
+   fields, which may hold what somebody has typed and not saved, are left as
+   they are. */
+async function reloadAccountLevels(){
+  const one=await api("/api/v1/accounts/"+encodeURIComponent(editing.address));
+  levelNames(one).forEach(n=>{[n,n+"_effective",n+"_source"].forEach(k=>{if(k in one)editing.values[k]=one[k];});});
+}
+/* Saving the levels redraws the levels card alone, so nothing typed elsewhere
+   in the editor and not yet saved is lost. */
+function redrawLevels(kind){
+  const card=document.getElementById(kind==="domain"?"domainLevels":"accountLevels");
+  if(card)card.innerHTML=levelsHtml(kind);
+}
 function levelsHtml(kind){
   const values=(editing&&editing.values)||{};
   const fields=levelFields(kind);
@@ -3170,12 +3183,12 @@ async function saveLevels(kind){
       await api("/api/v1/domains/"+encodeURIComponent(editing.name),{method:"PUT",body:JSON.stringify(body)});
       await reloadDomainLevels();
       toast(t("Levels saved"));
-      renderDomainEditor();
+      redrawLevels(kind);
     }else{
       await api("/api/v1/accounts/"+encodeURIComponent(editing.address),{method:"PUT",body:JSON.stringify(body)});
-      editing.values=await api("/api/v1/accounts/"+encodeURIComponent(editing.address));
+      await reloadAccountLevels();
       toast(t("Levels saved"));
-      renderAccountEditor();
+      redrawLevels(kind);
     }
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_"+kind+"levels",refusalText(e));}
 }

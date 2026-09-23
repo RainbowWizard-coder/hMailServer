@@ -378,7 +378,10 @@ namespace HM
    void
    MessageRecall::Sweep()
    {
-      const __int64 cutoff = (__int64) time(nullptr) - (__int64) EffectiveSetting::LargestAnywhere(_T("recall_days")) * DaySeconds;
+      // The server's window, which is the widest there is: recall_days is a
+      // limit, and no domain or account holds a longer one.
+      const __int64 cutoff = (__int64) time(nullptr) -
+         (__int64) EffectiveSetting::ResolveInt(_T("recall_days"), std::shared_ptr<const Domain>(), std::shared_ptr<const Account>()) * DaySeconds;
 
       SQLCommand command("delete from hm_recall where recallcreated < @CUTOFF");
       command.AddParameter("@CUTOFF", cutoff);

@@ -735,7 +735,9 @@
 //      may be set below the server - soownerid the domain or account id,
 //      soname the setting's name as REST, COM and hmctl spell it, sovalue its
 //      text - unique on (scope, owner, name), so a level holds at most one
-//      value per name and no row means the level inherits. The dedicated
+//      value per name and no row means the level inherits; a second index on
+//      soname serves the reads of one name across every owner (the digest
+//      pass, the OpenPGP portal's switch, the sweeps). The dedicated
 //      domain and account columns stay where they are and remain the storage
 //      of the levels they already held; the overlay holds only the levels
 //      that had nowhere to live. There is no foreign key, because one column

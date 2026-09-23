@@ -2453,6 +2453,9 @@ function ConvertTo-HmConfigurationRow {
     foreach ($property in ($Row.PSObject.Properties | Sort-Object Name)) {
         if ($script:NotConfiguration -contains $property.Name) { continue }
         if ($property.Name -like '*_id') { continue }
+        # <key>_levels is what the server says about a key (docs/SettingLevels.md),
+        # not configuration: applied back, the server would refuse it.
+        if ($property.Name -like '*_levels') { continue }
         $ordered[$property.Name] = $property.Value
     }
     $ordered

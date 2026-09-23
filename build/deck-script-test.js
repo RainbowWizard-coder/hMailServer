@@ -3571,11 +3571,16 @@ async function main() {
    setValue('lvl_recall_days', '5');
    setChecked('lvlown_quarantine_digest', true);
    setValue('lvl_quarantine_digest', 'true');
+   // Something typed in the editor and not saved, which saving the levels must not lose.
+   setValue('acct_forward_address', 'typed-not-saved@elsewhere.example');
    before = requests.length;
    click(act('accountlevels'));
    await flush();
    put = lastBody(before, 'PUT', '/api/v1/accounts/anna%40example.com');
    check('the account\'s own values go as a number and a boolean, alone', JSON.stringify(put) === '{"recall_days":5,"quarantine_digest":true}', JSON.stringify(put));
+   check('saving the levels redraws the levels alone: what was typed elsewhere in the editor is still there',
+      document.getElementById('acct_forward_address') !== null && document.getElementById('acct_forward_address').value === 'typed-not-saved@elsewhere.example',
+      document.getElementById('acct_forward_address') ? document.getElementById('acct_forward_address').value : 'no field');
    check('and the account is read again: its own now, over the domain\'s and the server\'s', called(before, 'GET', '/api/v1/accounts/anna%40example.com').length === 1 &&
       accountLevels().textContent.indexOf('In effect: 5, from the account') >= 0 && accountLevels().textContent.indexOf('In effect: On, from the account') >= 0 &&
       toastText() === 'Levels saved', accountLevels().textContent.slice(0, 400));

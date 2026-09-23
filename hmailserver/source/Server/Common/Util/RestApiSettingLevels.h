@@ -16,12 +16,16 @@
 // the same key, as it always has, with the column's own "take the level above"
 // (0 or -1) rather than null - a client written before this reads what it read.
 //
-// THE BODY. <name> with a value sets the level's own value, and null makes it
+// THE BODY. <name> with a value of the setting's own JSON type (a whole number,
+// true or false, a string) sets the level's own value, and null makes it
 // inherit - for the levels the overlay holds; a dedicated column keeps its key's
-// contract (null leaves it alone; its 0 or -1 inherits). <name>_effective and
-// <name>_source are refused as fields that cannot be written. Everything is read
-// and judged before anything is written, and the overlay rows are written after
-// the domain or the account itself has been saved.
+// contract (null leaves it alone; its 0 or -1 inherits). A limit looser than the
+// level above is refused (400, the sentence naming the level above and its
+// value); a gate asked for by a key confined to named domains is refused (403).
+// <name>_effective and <name>_source are answered and IGNORED when sent back, so
+// that an entry read and sent back as it is is taken. Everything is read and
+// judged before anything is written, and the overlay rows are written after the
+// domain or the account itself has been saved.
 
 #include <vector>
 
@@ -49,14 +53,15 @@ namespace HM
       bool IsOverlayKey(const std::string &key, int scope);
 
       // Whether the key is <name>_effective or <name>_source of a setting with
-      // levels: answered, never written.
+      // levels: answered, and ignored when a body carries it back.
       bool IsReadOnlyKey(const std::string &key);
 
-      // Reads and judges the overlay members of a body. False with the sentence
-      // on the first refusal, forbidden set when the refusal is the caller's
-      // authority (a setting that is the server administrator's, asked for by a
-      // credential confined to named domains). Nothing is written.
-      bool Read(const JsonValue &body, int scope, bool serverAuthority, std::vector<Change> &changes, AnsiString &error, bool &forbidden);
+      // Reads and judges the overlay members of a body for the owner (the
+      // domain's or the account's id; the level above it is what a limit is held
+      // to). False with the sentence on the first refusal, forbidden set when the
+      // refusal is the caller's authority (a gate, asked for by a credential
+      // confined to named domains). Nothing is written.
+      bool Read(const JsonValue &body, int scope, __int64 ownerId, bool serverAuthority, std::vector<Change> &changes, AnsiString &error, bool &forbidden);
 
       // Writes what Read accepted, for the owner. False with the sentence when
       // the database did not take a row.

@@ -211,7 +211,19 @@ ANSWERS = {
         {"id": 3, "recipient": "ann@example.com", "from_address": "spam@away.test",
          "subject": "Held", "reason": "virus", "received": "2026-09-15T04:00:00Z"}]},
     ("POST", "/api/v1/quarantine/3/release"): {"released": True},
-    ("GET", "/api/v1/settings"): {"welcome_smtp": "hMailServer", "max_message_size_kb": 20480},
+    # As the real route answers a key with levels: followed by <key>_levels,
+    # which is not configuration and must not reach an exported document.
+    ("GET", "/api/v1/settings"): {"welcome_smtp": "hMailServer", "max_message_size_kb": 20480,
+                                  "max_message_size_kb_levels": "account"},
+    # Where each level of the settings with levels is held (docs/SettingLevels.md):
+    # the overlay, or a field the domain already had, as the real list answers it.
+    ("GET", "/api/v1/settings/levels"): {"settings": [
+        {"name": "max_message_size_kb", "class": "limit", "domain_storage": "column", "account_storage": "overlay"},
+        {"name": "quarantine_digest", "class": "preference", "domain_storage": "column", "account_storage": "overlay"},
+        {"name": "quarantine_digest_hour", "class": "preference", "domain_storage": "column", "account_storage": "overlay"},
+        {"name": "session_bind_to_address", "class": "limit", "domain_storage": "column", "account_storage": "overlay"},
+        {"name": "recall_days", "class": "limit", "domain_storage": "overlay", "account_storage": "overlay"},
+    ]},
     ("PUT", "/api/v1/settings"): {"max_message_size_kb": 51200},
     ("GET", "/api/v1/settings/antispam"): {"use_spf": True, "spam_mark_threshold": 5},
     ("PUT", "/api/v1/settings/antispam"): {"use_spf": False},
@@ -758,6 +770,15 @@ CASES = [
     ("account set a switch", ["account", "set", "ann@example.com", "quarantine_digest", "true"],
      "PUT", "/api/v1/accounts/ann@example.com", {"quarantine_digest": True},
      ["quarantine_digest is true for ann@example.com, from the account."]),
+    # A level held in a field the domain already had: inherit is that field's own
+    # "take the level above" (a null would leave the field as it is), and a
+    # domain's session switch is 1 or 2 in its own field.
+    ("domain set a field's level to inherit", ["domain", "set", "example.com", "max_message_size_kb", "inherit"],
+     "PUT", "/api/v1/domains/example.com", {"active": True, "max_message_size_kb": 0},
+     ["max_message_size_kb is"]),
+    ("domain set a session switch off", ["domain", "set", "example.com", "session_bind_to_address", "false"],
+     "PUT", "/api/v1/domains/example.com", {"active": True, "session_bind_to_address": 2},
+     ["session_bind_to_address is"]),
     ("mailbox status", ["mailbox", "status", "ann@example.com"],
      "GET", "/api/v1/accounts/ann@example.com/move", None,
      ["ann@example.com", "anne@example.com -> ann@example.com", "complete"]),
@@ -1113,6 +1134,18 @@ def run_python_refusals(url):
     completed = run(["domain", "get", "nothing.here"])
     check(completed.returncode == 4,
           "hmctl on a 404 should exit 4, exited %d" % completed.returncode)
+
+    # inherit for a level held in a field that always holds a value of its own:
+    # refused with a sentence, and nothing is written - a null would have been
+    # read as "leave it", and the answer printed as though it had inherited.
+    with Recorder.lock:
+        Recorder.requests = []
+    completed = run(["domain", "set", "example.com", "quarantine_digest_hour", "inherit"])
+    with Recorder.lock:
+        wrote = [r for r in Recorder.requests if r["method"] != "GET"]
+    check(completed.returncode == 1 and "always holds a value of its own" in completed.stderr and not wrote,
+          "hmctl domain set ... quarantine_digest_hour inherit should refuse with a sentence and write nothing, "
+          "exited %d, wrote %r and said: %s%s" % (completed.returncode, wrote, completed.stdout, completed.stderr))
 
     # The breach check's endpoint test answers 200 whether or not the endpoint
     # could be used; hmctl turns "not reachable" into exit 1, which is what a
@@ -1641,6 +1674,9 @@ def run_config_cases(url, tmp):
         first = handle.read()
 
     check('"version": 1' in first, "the document carries no version")
+    check("_levels" not in first,
+          "the document carries a <key>_levels mark, which the server answers about a key and refuses to be sent:\n%s"
+          % first[:600])
     check("example.com" in first and "ann@example.com" in first,
           "the document holds neither the domain nor its accounts")
     check("all@example.com" in first, "the document holds no distribution list")

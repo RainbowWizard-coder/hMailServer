@@ -17,7 +17,11 @@ with the file and the function. The choke-point checkers' shape:
 
   table     The rows of EffectiveSetting.cpp's table are read: each name at most
             thirty characters (hm_settingoverrides.soname), lower-case, and
-            there once.
+            there once; each exactly one kind - a limit (with the way it
+            tightens), a gate or a preference (neither with one) - and a domain
+            field marked as capped by the server only where it is a limit's.
+            The kind decides the combine and who may set it, so the two cannot
+            disagree with it.
 
   marks     A row whose server level is a property is marked with its levels in
             build/settings-levels.txt, and one whose server level is a key of the
@@ -35,6 +39,10 @@ with the file and the function. The choke-point checkers' shape:
             written, the interfaces that report or set a level's own value, the
             resolver itself, and the few reads that are the server's by design,
             each with the reason. Anything else is refused by file and function.
+            Every branch of an #if is read for these calls - a reader that only
+            the POSIX build compiles is a reader - while the functions they are
+            in are found from the first branch, whose braces are the ones that
+            balance.
 
   resolved  Every pinned read site calls the resolver for its name, and every
             name in the table has a pinned read site: a site whose resolver call
@@ -42,12 +50,13 @@ with the file and the function. The choke-point checkers' shape:
             refused.
 
   panel     The Control Panel's list of the names (Services/SettingLevels.cs) is
-            the table's list.
+            the table's list, each with the table's type, fields and kind.
 
-The check proves its own negative control on every run, in a temporary copy of
-two source files: a new function reading a domain's digest hour straight, and the
+The check proves its own negative controls on every run, in temporary copies of
+the files it mutates: a new function reading a domain's digest hour straight, the
 plus-addressing read site with its resolver call swapped for the domain's
-column, must both be refused.
+column, the same kind of reader in the #else branch of an #if (the POSIX build's),
+and a gate given a way to tighten, must all be refused.
 
 Usage: python build/check-setting-levels.py
 Exits 1 listing what is wrong.
@@ -68,8 +77,8 @@ LEVELS_FILE = os.path.join(HERE, "settings-levels.txt")
 PANEL_LIST = os.path.join(ROOT, "hmailserver", "source", "Tools", "ControlPanel", "Services", "SettingLevels.cs")
 
 ROW = re.compile(
-    r'\{\s*"([^"]+)",\s*E::Type(\w+),\s*E::Levels(\w+),\s*E::Server(\w+),\s*"([^"]*)",\s*E::Combine(\w+),\s*(true|false),\s*'
-    r'&(\w+),\s*(&\w+|nullptr),\s*(&\w+|nullptr),\s*(true|false),\s*(true|false),\s*&(\w+)\s*\}')
+    r'\{\s*"([^"]+)",\s*E::Type(\w+),\s*E::Levels(\w+),\s*E::Server(\w+),\s*"([^"]*)",\s*E::Class(\w+),\s*E::Tight(\w+),\s*'
+    r'&(\w+),\s*(&\w+|nullptr),\s*(&\w+|nullptr),\s*(true|false),\s*(&\w+|nullptr),\s*(true|false),\s*(true|false),\s*&(\w+)\s*\}')
 
 # The getters that read ONE level of a three-level setting, by name. A getter's
 # name is the pin: Domain::GetSessionIdleSeconds and Configuration::GetSessionIdleSeconds
@@ -180,8 +189,9 @@ def read(path):
         return handle.read()
 
 
-def strip(text):
-    """Comments, string contents and preprocessor lines blanked, lengths kept."""
+def strip(text, every_branch=False):
+    """Comments, string contents and preprocessor lines blanked, lengths kept.
+    Only the first branch of each #if is kept unless every_branch is asked for."""
     out = []
     i = 0
     n = len(text)
@@ -213,6 +223,8 @@ def strip(text):
             out.append(c)
             i += 1
     code = "".join(out)
+    if every_branch:
+        return re.sub(r"(?m)^[ \t]*#.*$", lambda m: " " * len(m.group(0)), code)
     return first_branches(code)
 
 
@@ -313,11 +325,13 @@ def table_rows(text):
     for m in ROW.finditer(text):
         rows.append({
             "name": m.group(1), "type": m.group(2), "levels": LEVEL_WORDS.get(m.group(3), m.group(3)),
-            "server_kind": m.group(4), "server_key": m.group(5), "admin": m.group(7),
+            "server_kind": m.group(4), "server_key": m.group(5), "class": m.group(6), "tight": m.group(7),
+            "domain_column": m.group(10) != "nullptr", "domain_column_capped": m.group(11) == "true",
             # A level the Control Panel edits on another tab: a dedicated column,
             # which the overlay does not hold at that level.
-            "domain_field": m.group(9) != "nullptr" and m.group(11) == "false",
-            "account_field": m.group(10) != "nullptr" and m.group(12) == "false",
+            "domain_field": m.group(10) != "nullptr" and m.group(13) == "false",
+            "account_field": m.group(12) != "nullptr" and m.group(14) == "false",
+            "domain_overlay": m.group(13) == "true", "account_overlay": m.group(14) == "true",
         })
     return rows
 
@@ -345,6 +359,19 @@ def check(sources, contents):
             failures.append("%s: %s is not a lower-case name as REST spells a field" % (TABLE_FILE, name))
         if names.count(name) > 1:
             failures.append("%s: %s is in the table more than once" % (TABLE_FILE, name))
+    for row in rows:
+        if row["class"] not in ("Limit", "Gate", "Preference"):
+            failures.append("%s: %s is of no kind the header names (%s): a limit, a gate or a preference" % (TABLE_FILE, row["name"], row["class"]))
+        elif row["class"] == "Limit" and row["tight"] == "None":
+            failures.append("%s: %s is a limit and says no way it tightens: a limit is held to the level above by it" % (TABLE_FILE, row["name"]))
+        elif row["class"] != "Limit" and row["tight"] != "None":
+            failures.append("%s: %s is a %s and says it tightens %s: only a limit tightens" % (TABLE_FILE, row["name"], row["class"].lower(), row["tight"]))
+        if row["domain_column_capped"] and not (row["class"] == "Limit" and row["domain_column"]):
+            failures.append("%s: %s marks its domain field capped by the server, and only a limit's domain field is" % (TABLE_FILE, row["name"]))
+        if row["domain_column"] == row["domain_overlay"]:
+            failures.append("%s: %s holds its domain level in %s: exactly one of a field and the overlay" % (TABLE_FILE, row["name"], "both" if row["domain_overlay"] else "neither"))
+        if row["tight"] == "On" and row["type"] != "Boolean":
+            failures.append("%s: %s tightens on, and is not a switch" % (TABLE_FILE, row["name"]))
 
     # marks
     property_marks = {}
@@ -386,8 +413,9 @@ def check(sources, contents):
         if not GUARDED_CALL.search(text):
             continue
         code = strip(text)
+        every = strip(text, every_branch=True)
         spans = None
-        for m in GUARDED_CALL.finditer(code):
+        for m in GUARDED_CALL.finditer(every):
             if spans is None:
                 spans = function_spans(code)
             function = enclosing(spans, m.start())
@@ -429,7 +457,7 @@ def check(sources, contents):
     # panel
     if os.path.exists(PANEL_LIST):
         shown = os.path.relpath(PANEL_LIST, ROOT)
-        entries = re.findall(r'new SettingLevel\(\s*"([a-z_0-9]+)",\s*SettingLevelType\.(\w+),\s*(true|false),\s*(true|false),\s*(true|false)\s*\)',
+        entries = re.findall(r'new SettingLevel\(\s*"([a-z_0-9]+)",\s*SettingLevelType\.(\w+),\s*(true|false),\s*(true|false),\s*SettingLevelClass\.(\w+)\s*\)',
                              read(PANEL_LIST))
         panel = [e[0] for e in entries]
         for name in sorted(set(names) - set(panel)):
@@ -437,14 +465,14 @@ def check(sources, contents):
         for name in sorted(set(panel) - set(names)):
             failures.append("%s: the Control Panel's list has %s, which is not a row of the table" % (shown, name))
         by_name = dict((r["name"], r) for r in rows)
-        for name, kind, domain_field, account_field, admin in entries:
+        for name, kind, domain_field, account_field, klass in entries:
             row = by_name.get(name)
             if not row:
                 continue
-            expected = (row["type"], "true" if row["domain_field"] else "false", "true" if row["account_field"] else "false", row["admin"])
-            if (kind, domain_field, account_field, admin) != expected:
-                failures.append("%s: %s is %s there and %s in the table (type, domain field, account field, the server "
-                                "administrator's)" % (shown, name, (kind, domain_field, account_field, admin), expected))
+            expected = (row["type"], "true" if row["domain_field"] else "false", "true" if row["account_field"] else "false", row["class"])
+            if (kind, domain_field, account_field, klass) != expected:
+                failures.append("%s: %s is %s there and %s in the table (type, domain field, account field, kind)"
+                                % (shown, name, (kind, domain_field, account_field, klass), expected))
     else:
         failures.append("%s is missing" % os.path.relpath(PANEL_LIST, ROOT))
 
@@ -488,6 +516,30 @@ def self_test(sources):
             problems.append("self-test: the plus-addressing site reading the column straight was not refused")
         if not any("ExtractAccountAddress no longer resolves plus_addressing_enabled" in f for f in failures):
             problems.append("self-test: the plus-addressing site without its resolver call was not refused")
+
+        # A reader in the second branch of an #if, which only the POSIX build compiles.
+        rel = "Common/Util/ExternalSenderTagger.cpp"
+        copy = os.path.join(temp, "posix", rel.replace("/", os.sep))
+        os.makedirs(os.path.dirname(copy), exist_ok=True)
+        shutil.copyfile(sources[rel], copy)
+        with open(copy, "a", encoding="utf-8") as handle:
+            handle.write("\nnamespace HM\n{\n   int\n   ExternalSenderTagger::NegativeControlPosix_(std::shared_ptr<const Domain> domain)\n"
+                         "   {\n#ifdef _WIN32\n      return 0;\n#else\n      return domain->GetQuarantineDigestHour();\n#endif\n   }\n}\n")
+        mutated = dict(sources)
+        mutated[rel] = copy
+        failures, _, _ = check(mutated, {})
+        if not any("NegativeControlPosix_ reads GetQuarantineDigestHour straight" in f for f in failures):
+            problems.append("self-test: a reader in an #else branch was not refused (%r)" % failures[:3])
+
+        # A gate that says it tightens: the kind and the way it tightens disagree.
+        text = read(sources[TABLE_FILE])
+        swapped = text.replace('"zero_access_allowed", E::TypeBoolean, E::LevelsAccount, E::ServerProperty, "ZeroAccessAllowed", E::ClassGate, E::TightNone',
+                               '"zero_access_allowed", E::TypeBoolean, E::LevelsAccount, E::ServerProperty, "ZeroAccessAllowed", E::ClassGate, E::TightOn')
+        if swapped == text:
+            problems.append("self-test: zero_access_allowed's row was not found to mutate; the control proves nothing")
+        failures, _, _ = check(sources, {TABLE_FILE: swapped})
+        if not any("zero_access_allowed is a gate and says it tightens" in f for f in failures):
+            problems.append("self-test: a gate that tightens was not refused")
     finally:
         shutil.rmtree(temp, ignore_errors=True)
     return problems
@@ -504,6 +556,9 @@ def main():
         print("FAIL: %d problem(s) with the settings that may be set below the server" % len(failures))
         return 1
 
+    kinds = {}
+    for row in table_rows(read(sources[TABLE_FILE])):
+        kinds[row["class"]] = kinds.get(row["class"], 0) + 1
     counted = {"server": 0, "domain": 0, "account": 0}
     for line in read(LEVELS_FILE).splitlines():
         parts = line.split()
@@ -516,10 +571,11 @@ def main():
             ini[parts[-1]] += 1
     print("OK    %d setting(s) with levels, each resolved by EffectiveSetting at %d pinned read site(s); %d direct read(s) of a "
           "level, each where one level is meant; the marks agree - properties %d server, %d domain, %d account; ini keys %d "
-          "server, %d domain, %d account; the Control Panel's list is the table's; and the negative control (a new direct "
-          "reader, a site with its resolver call taken out) is refused"
+          "server, %d domain, %d account; kinds %d limit, %d gate, %d preference; the Control Panel's list is the table's; and "
+          "the negative controls (a new direct reader, a site with its resolver call taken out, a reader in an #else branch, a "
+          "gate that tightens) are refused"
           % (rows, len(PINNED), readers, counted["server"], counted["domain"], counted["account"],
-             ini["server"], ini["domain"], ini["account"]))
+             ini["server"], ini["domain"], ini["account"], kinds.get("Limit", 0), kinds.get("Gate", 0), kinds.get("Preference", 0)))
     return 0
 
 

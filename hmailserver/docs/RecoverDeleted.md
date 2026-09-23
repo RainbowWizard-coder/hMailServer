@@ -6,7 +6,9 @@ aside for a number of days, and they can put it back themselves, without asking 
 administrator to restore a backup.
 
 It is off by default. `recover_deleted_days` on `PUT /api/v1/settings` (0 to 365) turns
-it on for the whole server; the copies are kept for that many days.
+it on for the whole server; the copies are kept for that many days. It is a setting
+with levels and a limit ([SettingLevels.md](SettingLevels.md)): a domain or an account
+may keep its copies for fewer days than the level above, and never for more.
 
 What is kept
 ------------

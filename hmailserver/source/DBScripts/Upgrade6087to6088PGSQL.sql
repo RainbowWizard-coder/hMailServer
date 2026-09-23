@@ -9,4 +9,6 @@ create table hm_settingoverrides
 
 CREATE UNIQUE INDEX idx_hm_settingoverrides_owner ON hm_settingoverrides (soscope, soownerid, soname);
 
+CREATE INDEX idx_hm_settingoverrides_name ON hm_settingoverrides (soname);
+
 update hm_dbversion set value = 6088;

@@ -258,9 +258,13 @@ namespace HM
          return true;
       }
 
-      // The [SendingLimitsOverrides] entry for the address: the account level the
-      // file has always held, read after an overlay row.
-      bool AccountFileSendingMessages(const Account &account, String &value)
+      // The [SendingLimitsOverrides] line for the address: the server
+      // administrator's own exception for that address, and so the address's
+      // SERVER level - which the domain's and the account's own values (limits,
+      // both) may tighten and not loosen. With no overlay row anywhere it is
+      // what the address has always been held to, above the [SendingLimits]
+      // value or below it.
+      bool ServerFileSendingMessages(const Account &account, String &value)
       {
          AccountSendingLimits limits;
          if (!RateLimiter::Instance()->GetAddressLimits(account.GetAddress(), limits))
@@ -269,7 +273,7 @@ namespace HM
          return true;
       }
 
-      bool AccountFileSendingRecipients(const Account &account, String &value)
+      bool ServerFileSendingRecipients(const Account &account, String &value)
       {
          AccountSendingLimits limits;
          if (!RateLimiter::Instance()->GetAddressLimits(account.GetAddress(), limits))
@@ -362,40 +366,43 @@ namespace HM
 
       // THE TABLE. One row per name that may be set below the server. The
       // columns: name, type, levels, where the server level comes from and its
-      // key, how the levels combine, whether it is the server administrator's to
-      // set below the server, the server's answer, the domain's column (or null:
-      // the overlay), the account's column (or null), whether the overlay holds
-      // the domain level and the account level, and what the overlay takes.
+      // key, the kind of setting it is (a limit, a gate or a preference - the
+      // header says what each means, docs/SettingLevels.md why each name is the
+      // one it is) and, for a limit, which way it tightens, the server's answer
+      // and its answer for one address (or null), the domain's column (or null:
+      // the overlay) and whether the server's value has always capped it, the
+      // account's column (or null), whether the overlay holds the domain level
+      // and the account level, and what the overlay takes.
       // build/check-setting-levels.py reads this table: keep one row to a line.
       const E::Definition Table[] =
       {
-         { "max_message_size_kb", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "maxmessagesize", E::CombineCeiling, true, &ServerMaxMessageSize, &DomainMaxMessageSize, nullptr, false, true, &CheckMaxMessageSize },
-         { "quarantine_digest", E::TypeBoolean, E::LevelsAccount, E::ServerDefault, "", E::CombineOverride, false, &ServerFalse, &DomainQuarantineDigest, nullptr, false, true, &CheckDigest },
-         { "quarantine_digest_hour", E::TypeInteger, E::LevelsAccount, E::ServerDefault, "", E::CombineOverride, false, &ServerDigestHour, &DomainQuarantineDigestHour, nullptr, false, true, &CheckDigestHour },
-         { "external_tag_subject", E::TypeBoolean, E::LevelsAccount, E::ServerDefault, "", E::CombineOverride, false, &ServerFalse, &DomainExternalTagSubject, nullptr, false, true, &CheckTagSubject },
-         { "external_tag_header", E::TypeBoolean, E::LevelsAccount, E::ServerDefault, "", E::CombineOverride, false, &ServerFalse, &DomainExternalTagHeader, nullptr, false, true, &CheckTagHeader },
-         { "impersonation_action", E::TypeInteger, E::LevelsAccount, E::ServerDefault, "", E::CombineOverride, false, &ServerZero, &DomainImpersonationAction, nullptr, false, true, &CheckImpersonation },
-         { "session_idle_seconds", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "SessionIdleSeconds", E::CombineOverride, false, &ServerSessionIdle, &DomainSessionIdle, nullptr, false, true, &CheckSessionIdle },
-         { "session_lifetime_seconds", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "SessionLifetimeSeconds", E::CombineOverride, false, &ServerSessionLifetime, &DomainSessionLifetime, nullptr, false, true, &CheckSessionLifetime },
-         { "session_one_per_device", E::TypeBoolean, E::LevelsAccount, E::ServerProperty, "SessionOnePerDevice", E::CombineOverride, false, &ServerSessionOnePerDevice, &DomainSessionOnePerDevice, nullptr, false, true, &CheckOnePerDevice },
-         { "session_bind_to_address", E::TypeBoolean, E::LevelsAccount, E::ServerProperty, "SessionBindToAddress", E::CombineOverride, false, &ServerSessionBindToAddress, &DomainSessionBindToAddress, nullptr, false, true, &CheckBindToAddress },
-         { "quota_warning_percent", E::TypeInteger, E::LevelsAccount, E::ServerIniKey, "QuotaWarningPercent", E::CombineOverride, false, &ServerQuotaWarningPercent, &DomainQuotaWarningPercent, nullptr, false, true, &CheckQuotaWarning },
-         { "quota_grace_percent", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "QuotaGracePercent", E::CombineOverride, false, &ServerQuotaGracePercent, &DomainQuotaGracePercent, nullptr, false, true, &CheckQuotaGrace },
-         { "quota_send_stop_percent", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "QuotaSendStopPercent", E::CombineOverride, false, &ServerQuotaSendStopPercent, &DomainQuotaSendStopPercent, nullptr, false, true, &CheckQuotaSendStop },
-         { "plus_addressing_enabled", E::TypeBoolean, E::LevelsAccount, E::ServerDefault, "", E::CombineOverride, true, &ServerFalse, &DomainPlusAddressing, nullptr, false, true, &CheckPlusAddressing },
-         { "country_policy", E::TypeText, E::LevelsAccount, E::ServerDefault, "", E::CombineOverride, false, &ServerEmpty, &DomainCountryPolicy, nullptr, false, true, &CheckCountryPolicy },
-         { "message_retention_days", E::TypeInteger, E::LevelsAccount, E::ServerDefault, "", E::CombineOverride, true, &ServerZero, &DomainRetentionDays, &AccountRetentionDays, false, false, &CheckRetention },
-         { "recall_days", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "RecallDays", E::CombineOverride, false, &ServerRecallDays, nullptr, nullptr, true, true, &CheckRecallDays },
-         { "recover_deleted_days", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "RecoverDeletedDays", E::CombineOverride, true, &ServerRecoverDeletedDays, nullptr, nullptr, true, true, &CheckRecoverDays },
-         { "sending_max_messages", E::TypeInteger, E::LevelsAccount, E::ServerIniSection, "MaxMessagesPerAccountPerPeriod", E::CombineOverride, true, &ServerSendingMaxMessages, nullptr, &AccountFileSendingMessages, true, true, &CheckSendingMessages },
-         { "sending_max_recipients", E::TypeInteger, E::LevelsAccount, E::ServerIniSection, "MaxRecipientsPerAccountPerPeriod", E::CombineOverride, true, &ServerSendingMaxRecipients, nullptr, &AccountFileSendingRecipients, true, true, &CheckSendingRecipients },
-         { "openpgp_portal_enabled", E::TypeBoolean, E::LevelsAccount, E::ServerProperty, "OpenPGPPortalEnabled", E::CombineOverride, false, &ServerOpenPgpPortal, nullptr, nullptr, true, true, &CheckOpenPgpPortal },
-         { "zero_access_allowed", E::TypeBoolean, E::LevelsAccount, E::ServerProperty, "ZeroAccessAllowed", E::CombineOverride, false, &ServerZeroAccessAllowed, nullptr, nullptr, true, true, &CheckZeroAccess },
-         { "reader_fetch_accounts_max", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "ReaderFetchAccountsMax", E::CombineOverride, true, &ServerFetchAccountsMax, nullptr, nullptr, true, true, &CheckFetchMax },
-         { "reader_sender_addresses_max", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "ReaderSenderAddressesMax", E::CombineOverride, true, &ServerSenderAddressesMax, nullptr, nullptr, true, true, &CheckSenderMax },
-         { "reader_masked_addresses_max", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "ReaderMaskedAddressesMax", E::CombineOverride, true, &ServerMaskedAddressesMax, nullptr, nullptr, true, true, &CheckMaskedMax },
-         { "reader_offline_days_max", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "ReaderOfflineDaysMax", E::CombineOverride, true, &ServerOfflineDaysMax, nullptr, nullptr, true, true, &CheckOfflineMax },
-         { "directory_user_editable", E::TypeBoolean, E::LevelsAccount, E::ServerProperty, "DirectoryUserEditable", E::CombineOverride, false, &ServerDirectoryUserEditable, nullptr, nullptr, true, true, &CheckDirectoryEditable },
+         { "max_message_size_kb", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "maxmessagesize", E::ClassLimit, E::TightLowerZeroNone, &ServerMaxMessageSize, nullptr, &DomainMaxMessageSize, true, nullptr, false, true, &CheckMaxMessageSize },
+         { "quarantine_digest", E::TypeBoolean, E::LevelsAccount, E::ServerDefault, "", E::ClassPreference, E::TightNone, &ServerFalse, nullptr, &DomainQuarantineDigest, false, nullptr, false, true, &CheckDigest },
+         { "quarantine_digest_hour", E::TypeInteger, E::LevelsAccount, E::ServerDefault, "", E::ClassPreference, E::TightNone, &ServerDigestHour, nullptr, &DomainQuarantineDigestHour, false, nullptr, false, true, &CheckDigestHour },
+         { "external_tag_subject", E::TypeBoolean, E::LevelsAccount, E::ServerDefault, "", E::ClassPreference, E::TightNone, &ServerFalse, nullptr, &DomainExternalTagSubject, false, nullptr, false, true, &CheckTagSubject },
+         { "external_tag_header", E::TypeBoolean, E::LevelsAccount, E::ServerDefault, "", E::ClassPreference, E::TightNone, &ServerFalse, nullptr, &DomainExternalTagHeader, false, nullptr, false, true, &CheckTagHeader },
+         { "impersonation_action", E::TypeInteger, E::LevelsAccount, E::ServerDefault, "", E::ClassPreference, E::TightNone, &ServerZero, nullptr, &DomainImpersonationAction, false, nullptr, false, true, &CheckImpersonation },
+         { "session_idle_seconds", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "SessionIdleSeconds", E::ClassLimit, E::TightLower, &ServerSessionIdle, nullptr, &DomainSessionIdle, false, nullptr, false, true, &CheckSessionIdle },
+         { "session_lifetime_seconds", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "SessionLifetimeSeconds", E::ClassLimit, E::TightLower, &ServerSessionLifetime, nullptr, &DomainSessionLifetime, false, nullptr, false, true, &CheckSessionLifetime },
+         { "session_one_per_device", E::TypeBoolean, E::LevelsAccount, E::ServerProperty, "SessionOnePerDevice", E::ClassLimit, E::TightOn, &ServerSessionOnePerDevice, nullptr, &DomainSessionOnePerDevice, false, nullptr, false, true, &CheckOnePerDevice },
+         { "session_bind_to_address", E::TypeBoolean, E::LevelsAccount, E::ServerProperty, "SessionBindToAddress", E::ClassLimit, E::TightOn, &ServerSessionBindToAddress, nullptr, &DomainSessionBindToAddress, false, nullptr, false, true, &CheckBindToAddress },
+         { "quota_warning_percent", E::TypeInteger, E::LevelsAccount, E::ServerIniKey, "QuotaWarningPercent", E::ClassPreference, E::TightNone, &ServerQuotaWarningPercent, nullptr, &DomainQuotaWarningPercent, false, nullptr, false, true, &CheckQuotaWarning },
+         { "quota_grace_percent", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "QuotaGracePercent", E::ClassLimit, E::TightLower, &ServerQuotaGracePercent, nullptr, &DomainQuotaGracePercent, false, nullptr, false, true, &CheckQuotaGrace },
+         { "quota_send_stop_percent", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "QuotaSendStopPercent", E::ClassLimit, E::TightLowerZeroNone, &ServerQuotaSendStopPercent, nullptr, &DomainQuotaSendStopPercent, false, nullptr, false, true, &CheckQuotaSendStop },
+         { "plus_addressing_enabled", E::TypeBoolean, E::LevelsAccount, E::ServerDefault, "", E::ClassGate, E::TightNone, &ServerFalse, nullptr, &DomainPlusAddressing, false, nullptr, false, true, &CheckPlusAddressing },
+         { "country_policy", E::TypeText, E::LevelsAccount, E::ServerDefault, "", E::ClassPreference, E::TightNone, &ServerEmpty, nullptr, &DomainCountryPolicy, false, nullptr, false, true, &CheckCountryPolicy },
+         { "message_retention_days", E::TypeInteger, E::LevelsAccount, E::ServerDefault, "", E::ClassPreference, E::TightNone, &ServerZero, nullptr, &DomainRetentionDays, false, &AccountRetentionDays, false, false, &CheckRetention },
+         { "recall_days", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "RecallDays", E::ClassLimit, E::TightLower, &ServerRecallDays, nullptr, nullptr, false, nullptr, true, true, &CheckRecallDays },
+         { "recover_deleted_days", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "RecoverDeletedDays", E::ClassLimit, E::TightLower, &ServerRecoverDeletedDays, nullptr, nullptr, false, nullptr, true, true, &CheckRecoverDays },
+         { "sending_max_messages", E::TypeInteger, E::LevelsAccount, E::ServerIniSection, "MaxMessagesPerAccountPerPeriod", E::ClassLimit, E::TightLowerZeroNone, &ServerSendingMaxMessages, &ServerFileSendingMessages, nullptr, false, nullptr, true, true, &CheckSendingMessages },
+         { "sending_max_recipients", E::TypeInteger, E::LevelsAccount, E::ServerIniSection, "MaxRecipientsPerAccountPerPeriod", E::ClassLimit, E::TightLowerZeroNone, &ServerSendingMaxRecipients, &ServerFileSendingRecipients, nullptr, false, nullptr, true, true, &CheckSendingRecipients },
+         { "openpgp_portal_enabled", E::TypeBoolean, E::LevelsAccount, E::ServerProperty, "OpenPGPPortalEnabled", E::ClassGate, E::TightNone, &ServerOpenPgpPortal, nullptr, nullptr, false, nullptr, true, true, &CheckOpenPgpPortal },
+         { "zero_access_allowed", E::TypeBoolean, E::LevelsAccount, E::ServerProperty, "ZeroAccessAllowed", E::ClassGate, E::TightNone, &ServerZeroAccessAllowed, nullptr, nullptr, false, nullptr, true, true, &CheckZeroAccess },
+         { "reader_fetch_accounts_max", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "ReaderFetchAccountsMax", E::ClassLimit, E::TightLower, &ServerFetchAccountsMax, nullptr, nullptr, false, nullptr, true, true, &CheckFetchMax },
+         { "reader_sender_addresses_max", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "ReaderSenderAddressesMax", E::ClassLimit, E::TightLower, &ServerSenderAddressesMax, nullptr, nullptr, false, nullptr, true, true, &CheckSenderMax },
+         { "reader_masked_addresses_max", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "ReaderMaskedAddressesMax", E::ClassLimit, E::TightLower, &ServerMaskedAddressesMax, nullptr, nullptr, false, nullptr, true, true, &CheckMaskedMax },
+         { "reader_offline_days_max", E::TypeInteger, E::LevelsAccount, E::ServerProperty, "ReaderOfflineDaysMax", E::ClassLimit, E::TightLower, &ServerOfflineDaysMax, nullptr, nullptr, false, nullptr, true, true, &CheckOfflineMax },
+         { "directory_user_editable", E::TypeBoolean, E::LevelsAccount, E::ServerProperty, "DirectoryUserEditable", E::ClassGate, E::TightNone, &ServerDirectoryUserEditable, nullptr, nullptr, false, nullptr, true, true, &CheckDirectoryEditable },
       };
 
       const size_t TableCount = sizeof(Table) / sizeof(Table[0]);
@@ -420,19 +427,29 @@ namespace HM
          String refusal;
          if (!definition.canonicalise(found->second, canonical, refusal))
          {
+            // Said once per name - and again after the caches have been
+            // emptied, which is what an administrator does after putting a row
+            // right by hand, and what a test does to see the report.
             static std::mutex reported_mutex;
             static std::set<String> reported;
+            static unsigned __int64 reported_clears = 0;
 
             bool report = false;
             {
                std::lock_guard<std::mutex> guard(reported_mutex);
+               const unsigned __int64 clears = CacheContainer::Instance()->GetSettingOverridesClears();
+               if (clears != reported_clears)
+               {
+                  reported.clear();
+                  reported_clears = clears;
+               }
                report = reported.insert(String(definition.name)).second;
             }
 
             if (report)
             {
                ErrorManager::Instance()->ReportError(ErrorManager::Low, 7311, "EffectiveSetting::Resolve",
-                  Formatter::Format("hm_settingoverrides holds a value for {0} that the interfaces would refuse ({1}); that level is treated as inheriting. Said once per setting.",
+                  Formatter::Format("hm_settingoverrides holds a value for {0} that the interfaces would refuse ({1}); that level is treated as inheriting. Said once per setting, and again after the caches are emptied.",
                      String(definition.name), refusal));
             }
 
@@ -443,30 +460,107 @@ namespace HM
          return true;
       }
 
-      E::Answer ApplyCeiling(const E::Definition &definition, E::Answer answer)
+      // A limit's value, as a number that is larger the looser it is: a switch
+      // on is 0 and off 1, and a "0 is no limit" value of 0 is the largest there
+      // is. False for a value that is not the name's type.
+      bool Looseness(const E::Definition &definition, const String &value, long long &looseness)
       {
-         if (definition.combine != E::CombineCeiling || answer.source == E::SourceServer)
-            return answer;
-
-         long long ceiling = 0;
-         long long level = 0;
-         const String server = definition.server();
-
-         if (!ParseInteger(server, ceiling) || !ParseInteger(answer.value, level))
-            return answer;
-
-         // 0 at the server is no limit at all, so no ceiling. Otherwise a level
-         // below may tighten the server's value and never loosen it - what
-         // SMTPConnection::GetMaxMessageSize_ has always done with the domain's.
-         if (ceiling > 0 && level > ceiling)
+         if (definition.tight == E::TightOn)
          {
-            E::Answer server_answer;
-            server_answer.value = server;
-            server_answer.source = E::SourceServer;
-            return server_answer;
+            bool flag = false;
+            if (!ParseBoolean(value, flag))
+               return false;
+            looseness = flag ? 0 : 1;
+            return true;
+         }
+
+         long long number = 0;
+         if (!ParseInteger(value, number))
+            return false;
+
+         if (definition.tight == E::TightLowerZeroNone && number <= 0)
+            number = LLONG_MAX;
+
+         looseness = number;
+         return true;
+      }
+
+      bool IsLooser(const E::Definition &definition, const String &value, const String &above)
+      {
+         if (!definition.ceiling())
+            return false;
+
+         long long level = 0;
+         long long ceiling = 0;
+         if (!Looseness(definition, value, level) || !Looseness(definition, above, ceiling))
+            return false;
+
+         return level > ceiling;
+      }
+
+      // The level below, held to the level above when the name is a limit: the
+      // tighter of the two, and where it came from - so an account's value that
+      // its domain has since tightened past answers the domain's, from the
+      // domain. What SMTPConnection::GetMaxMessageSize_ always did between the
+      // domain's and the server's message size, for every limit and level.
+      E::Answer Held(const E::Definition &definition, const E::Answer &below, const E::Answer &above)
+      {
+         return IsLooser(definition, below.value, above.value) ? above : below;
+      }
+
+      // The server's answer for one account: its per-address value where the
+      // server holds one (the sending limits' file), the server's otherwise.
+      E::Answer ServerAnswer(const E::Definition &definition, std::shared_ptr<const Account> account)
+      {
+         E::Answer answer;
+         answer.source = E::SourceServer;
+
+         String value;
+         if (account && definition.server_for_account && definition.server_for_account(*account, value))
+            answer.value = value;
+         else
+            answer.value = definition.server();
+
+         return answer;
+      }
+
+      // The domain's and the server's levels, combined: what the domain's
+      // accounts that hold nothing of their own resolve to, and the level above
+      // an account's own value. The domain's own field of a limit that was
+      // always free of the server's value stays free of it.
+      E::Answer DomainAndServer(const E::Definition &definition, std::shared_ptr<const Domain> domain, std::shared_ptr<const Account> account)
+      {
+         E::Answer answer = ServerAnswer(definition, account);
+
+         String value;
+         if (E::DomainValue(definition, domain, value))
+         {
+            E::Answer own;
+            own.value = value;
+            own.source = E::SourceDomain;
+
+            const bool capped = definition.ceiling() && (definition.domain_overlay || definition.domain_column_capped);
+            answer = capped ? Held(definition, own, answer) : own;
          }
 
          return answer;
+      }
+
+      // How a value is said in a sentence.
+      String Shown(const E::Definition &definition, const String &value)
+      {
+         if (definition.type == E::TypeBoolean)
+         {
+            bool flag = false;
+            ParseBoolean(value, flag);
+            return flag ? _T("on") : _T("off");
+         }
+
+         long long number = 0;
+         if (definition.tight == E::TightLowerZeroNone && ParseInteger(value, number) && number <= 0)
+            return _T("0 (no limit)");
+
+         return value;
       }
 
       AnsiString JsonEscapedUtf8(const String &value)
@@ -580,24 +674,20 @@ namespace HM
       if (account && !domain)
          domain = CacheContainer::Instance()->GetDomain(account->GetDomainID());
 
-      String value;
+      // The server's, then the domain's over it, then the account's over that:
+      // a preference and a gate take the deepest level that holds a value, and
+      // a limit takes it only as far as the level above allows.
+      answer = DomainAndServer(*definition, domain, account);
 
+      String value;
       if (AccountValue(*definition, account, value))
       {
-         answer.value = value;
-         answer.source = SourceAccount;
-         return ApplyCeiling(*definition, answer);
+         Answer own;
+         own.value = value;
+         own.source = SourceAccount;
+         answer = definition->ceiling() ? Held(*definition, own, answer) : own;
       }
 
-      if (DomainValue(*definition, domain, value))
-      {
-         answer.value = value;
-         answer.source = SourceDomain;
-         return ApplyCeiling(*definition, answer);
-      }
-
-      answer.value = definition->server();
-      answer.source = SourceServer;
       return answer;
    }
 
@@ -642,6 +732,27 @@ namespace HM
       return Resolve(name, domain, account).value;
    }
 
+   int
+   EffectiveSetting::ResolveIntHeldTo(const String &name, std::shared_ptr<const Domain> domain, std::shared_ptr<const Account> account,
+                                      std::shared_ptr<const Account> signedIn)
+   {
+      Answer answer = Resolve(name, domain, account);
+
+      const Definition *definition = Find(name);
+      String own;
+      if (definition && signedIn && definition->ceiling() && AccountValue(*definition, signedIn, own) && IsLooser(*definition, answer.value, own))
+         answer.value = own;
+
+      long long number = 0;
+      if (!ParseInteger(answer.value, number))
+         return 0;
+      if (number > INT_MAX)
+         return INT_MAX;
+      if (number < INT_MIN)
+         return INT_MIN;
+      return (int) number;
+   }
+
    String
    EffectiveSetting::NotThreeLevelSentence(const String &name)
    {
@@ -649,8 +760,52 @@ namespace HM
       return shown + _T(" cannot be set for a domain or an account: it is not one of the settings that have levels, which GET /api/v1/settings/levels lists. A server setting of that name is set for the whole server only.");
    }
 
+   String
+   EffectiveSetting::ColumnSentence(const Definition &definition, int scope)
+   {
+      return String(definition.name) + (scope == PersistentSettingOverride::ScopeDomain
+         ? _T(" is held for a domain in the domain's own field of that name, which is what sets it there, and 'take the level above' is what that field holds for it.")
+         : _T(" is held for an account in the account's own field of that name, which is what sets it there, and 'take the level above' is what that field holds for it."));
+   }
+
+   EffectiveSetting::Answer
+   EffectiveSetting::Above(const Definition &definition, int scope, __int64 ownerId)
+   {
+      if (scope == PersistentSettingOverride::ScopeAccount)
+      {
+         std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(ownerId);
+         if (account)
+            return DomainAndServer(definition, CacheContainer::Instance()->GetDomain(account->GetDomainID()), account);
+      }
+
+      return ServerAnswer(definition, std::shared_ptr<const Account>());
+   }
+
    bool
-   EffectiveSetting::SetOverride(const String &name, int scope, __int64 ownerId, const String &value, String &refusal)
+   EffectiveSetting::Looser(const Definition &definition, const String &value, const String &above)
+   {
+      return IsLooser(definition, value, above);
+   }
+
+   bool
+   EffectiveSetting::HoldsToCeiling(const Definition &definition, int scope, __int64 ownerId, const String &canonical, String &refusal)
+   {
+      if (!definition.ceiling())
+         return true;
+
+      const Answer above = Above(definition, scope, ownerId);
+      if (!IsLooser(definition, canonical, above.value))
+         return true;
+
+      const bool account = scope == PersistentSettingOverride::ScopeAccount;
+      refusal = String(definition.name) + _T(" is a limit: ") + (account ? _T("an account") : _T("a domain")) +
+         _T(" may tighten the level above it and not loosen it. The level above holds ") + Shown(definition, above.value) +
+         _T(" (from the ") + String(SourceWord(above.source)) + _T("), and ") + Shown(definition, canonical) + _T(" would loosen it.");
+      return false;
+   }
+
+   bool
+   EffectiveSetting::SetOverride(const String &name, int scope, __int64 ownerId, const String &value, String &refusal, bool holdToCeiling)
    {
       const Definition *definition = Find(name);
       if (!definition)
@@ -661,9 +816,7 @@ namespace HM
 
       if (!OverlayHolds(*definition, scope))
       {
-         refusal = String(definition->name) + (scope == PersistentSettingOverride::ScopeDomain
-            ? _T(" is held for a domain in the domain's own field of that name, which is what sets it there.")
-            : _T(" is held for an account in the account's own field of that name, which is what sets it there."));
+         refusal = ColumnSentence(*definition, scope);
          return false;
       }
 
@@ -675,6 +828,12 @@ namespace HM
 
       String canonical;
       if (!definition->canonicalise(value, canonical, refusal))
+         return false;
+
+      // A limit may be tightened below the level above it and not loosened: the
+      // write is refused, saying what the level above holds and where that came
+      // from, rather than stored and quietly capped.
+      if (holdToCeiling && !HoldsToCeiling(*definition, scope, ownerId, canonical, refusal))
          return false;
 
       if (canonical.GetLength() > 4000)
@@ -704,14 +863,17 @@ namespace HM
 
       if (!OverlayHolds(*definition, scope))
       {
-         refusal = String(definition->name) + (scope == PersistentSettingOverride::ScopeDomain
-            ? _T(" is held for a domain in the domain's own field of that name; what that field holds for 'take the level above' is what clears it.")
-            : _T(" is held for an account in the account's own field of that name; what that field holds for 'take the level above' is what clears it."));
+         refusal = ColumnSentence(*definition, scope);
          return false;
       }
 
+      // The same refusal a write gives: an owner that has not been saved has no
+      // values to clear, and saying "done" would read as though it had.
       if (ownerId <= 0)
-         return true;
+      {
+         refusal = _T("The domain or the account has not been saved yet; save it first, then set its own values.");
+         return false;
+      }
 
       if (!PersistentSettingOverride::Remove(scope, ownerId, String(definition->name)))
       {
@@ -741,6 +903,29 @@ namespace HM
       case LevelsDomain: return "domain";
       case LevelsAccount: return "account";
       default: return "server";
+      }
+   }
+
+   const char *
+   EffectiveSetting::ClassWord(Class klass)
+   {
+      switch (klass)
+      {
+      case ClassLimit: return "limit";
+      case ClassGate: return "gate";
+      default: return "preference";
+      }
+   }
+
+   const char *
+   EffectiveSetting::TightWord(Tight tight)
+   {
+      switch (tight)
+      {
+      case TightLower: return "lower";
+      case TightLowerZeroNone: return "lower-zero-is-none";
+      case TightOn: return "on";
+      default: return "none";
       }
    }
 
@@ -805,9 +990,7 @@ namespace HM
             json += ",";
 
          const char *domainStorage = definition.domain_overlay ? "overlay" : (definition.domain_column ? "column" : "none");
-         const char *accountStorage = definition.account_overlay
-            ? (definition.account_column ? "overlay-then-file" : "overlay")
-            : (definition.account_column ? "column" : "none");
+         const char *accountStorage = definition.account_overlay ? "overlay" : (definition.account_column ? "column" : "none");
 
          json += "{\"name\":\"";
          json += definition.name;
@@ -823,10 +1006,18 @@ namespace HM
          json += domainStorage;
          json += "\",\"account_storage\":\"";
          json += accountStorage;
+         json += "\",\"class\":\"";
+         json += ClassWord(definition.klass);
+         json += "\",\"tighter\":\"";
+         json += TightWord(definition.tight);
          json += "\",\"combine\":\"";
-         json += definition.combine == CombineCeiling ? "ceiling" : "override";
+         json += definition.ceiling() ? "ceiling" : "override";
          json += "\",\"server_administrators_only\":";
-         json += definition.server_administrators_only ? "true" : "false";
+         json += definition.server_administrators_only() ? "true" : "false";
+         json += ",\"server_per_address\":";
+         json += definition.server_for_account ? "true" : "false";
+         json += ",\"domain_column_capped\":";
+         json += definition.domain_column && definition.ceiling() && definition.domain_column_capped ? "true" : "false";
          json += ",\"server_value\":";
          json += JsonText(definition, definition.server());
          json += "}";
@@ -877,8 +1068,12 @@ namespace HM
          const String name = node->GetAttrValue(_T("Name"));
          const String value = node->GetAttrValue(_T("Value"));
 
+         // Not held to the ceiling here: the level above may not be restored yet,
+         // or the server's value may have moved since the backup. The ceiling
+         // caps the value when it is read, as it caps any value the level above
+         // has since tightened past.
          String refusal;
-         if (!SetOverride(name, scope, ownerId, value, refusal))
+         if (!SetOverride(name, scope, ownerId, value, refusal, false))
          {
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7312, "EffectiveSetting::XMLLoad",
                Formatter::Format("The backup's value for {0} at {1} {2} was not restored: {3}",
@@ -899,15 +1094,22 @@ namespace HM
       long long largest = 0;
       ParseInteger(definition->server(), largest);
 
-      std::vector<String> values;
-      PersistentSettingOverride::ValuesOfName(String(definition->name), values);
+      // A switch the server already has on is on somewhere, whatever the rows
+      // say: nothing to read.
+      if (definition->type == TypeBoolean && largest >= 1)
+         return 1;
 
-      for (const String &stored : values)
+      std::shared_ptr<const std::map<std::pair<int, __int64>, String> > rows =
+         CacheContainer::Instance()->GetSettingOverridesNamed(String(definition->name));
+      if (!rows)
+         return (int) largest;
+
+      for (const auto &row : *rows)
       {
          String canonical;
          String refusal;
          long long number = 0;
-         if (definition->canonicalise(stored, canonical, refusal) && ParseInteger(canonical, number) && number > largest)
+         if (definition->canonicalise(row.second, canonical, refusal) && ParseInteger(canonical, number) && number > largest)
             largest = number;
       }
 
@@ -924,15 +1126,17 @@ namespace HM
       long long smallest = 0;
       ParseInteger(definition->server(), smallest);
 
-      std::vector<String> values;
-      PersistentSettingOverride::ValuesOfName(String(definition->name), values);
+      std::shared_ptr<const std::map<std::pair<int, __int64>, String> > rows =
+         CacheContainer::Instance()->GetSettingOverridesNamed(String(definition->name));
+      if (!rows)
+         return (int) smallest;
 
-      for (const String &stored : values)
+      for (const auto &row : *rows)
       {
          String canonical;
          String refusal;
          long long number = 0;
-         if (definition->canonicalise(stored, canonical, refusal) && ParseInteger(canonical, number) && number < smallest)
+         if (definition->canonicalise(row.second, canonical, refusal) && ParseInteger(canonical, number) && number < smallest)
             smallest = number;
       }
 

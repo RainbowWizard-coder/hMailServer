@@ -37,7 +37,8 @@
 namespace HM
 {
    CacheContainer::CacheContainer(void) :
-      setting_overrides_generation_(0)
+      setting_overrides_generation_(0),
+      setting_overrides_clears_(0)
    {
       // Limit the cache of each entity to 10MB each.
       Cache<Domain>::Instance()->SetMaxSize(10 * 1024 * 1024);
@@ -297,12 +298,56 @@ namespace HM
       return values;
    }
 
+   std::shared_ptr<const std::map<std::pair<int, __int64>, String> >
+   CacheContainer::GetSettingOverridesNamed(const String &name)
+   {
+      const time_t lifetime = 60;
+
+      String key = name;
+      key.ToLower();
+
+      const time_t now = time(nullptr);
+      unsigned __int64 generation = 0;
+
+      {
+         std::lock_guard<std::mutex> guard(setting_overrides_mutex_);
+
+         auto found = setting_overrides_named_.find(key);
+         if (found != setting_overrides_named_.end() && now >= found->second.loaded_at && now - found->second.loaded_at < lifetime)
+            return found->second.rows;
+
+         generation = setting_overrides_generation_;
+      }
+
+      std::shared_ptr<std::map<std::pair<int, __int64>, String> > rows(new std::map<std::pair<int, __int64>, String>());
+      if (!PersistentSettingOverride::RowsOfName(key, *rows))
+         return std::shared_ptr<const std::map<std::pair<int, __int64>, String> >();
+
+      {
+         std::lock_guard<std::mutex> guard(setting_overrides_mutex_);
+
+         if (generation == setting_overrides_generation_)
+         {
+            SettingOverrideNamedEntry entry;
+            entry.rows = rows;
+            entry.loaded_at = now;
+            setting_overrides_named_[key] = entry;
+         }
+      }
+
+      return rows;
+   }
+
    void
    CacheContainer::RemoveSettingOverrides(int scope, __int64 ownerId)
    {
       std::lock_guard<std::mutex> guard(setting_overrides_mutex_);
 
       setting_overrides_.erase(std::pair<int, __int64>(scope, ownerId));
+
+      // A write to one owner changes the rows of the name it wrote, and the
+      // name is not told here: every name's rows are read again. There are 27.
+      setting_overrides_named_.clear();
       setting_overrides_generation_++;
    }
 
@@ -312,7 +357,9 @@ namespace HM
       std::lock_guard<std::mutex> guard(setting_overrides_mutex_);
 
       setting_overrides_.clear();
+      setting_overrides_named_.clear();
       setting_overrides_generation_++;
+      setting_overrides_clears_++;
    }
 
    InboxIDCache &

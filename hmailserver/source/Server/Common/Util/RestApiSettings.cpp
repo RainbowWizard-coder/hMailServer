@@ -3310,6 +3310,9 @@ namespace HM
       Cache<Alias>::Instance()->Clear();
       Cache<DistributionList>::Instance()->Clear();
       MessagesContainer::Instance()->Clear();
+      // The domains' and the accounts' own setting values (docs/SettingLevels.md):
+      // a row written behind the server's back is read now, not after its minute.
+      CacheContainer::Instance()->ClearSettingOverrides();
       LOG_APPLICATION("RestApi: the caches were cleared.");
       return BuildResponse_(200, "{\"cleared\":true}");
    }

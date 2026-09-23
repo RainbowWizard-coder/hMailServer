@@ -51,9 +51,14 @@
 // is not in the table at all; the answer counts the addresses the Sent copy
 // names that are not on this server.
 //
-// THE BOUNDS. RecallDays (14; 1 to 365): rows older than that are swept by
-// the minute task and by the retention task, and a recall of an older
-// message answers 404 as if it had never been recorded. At most 200 rows per
+// THE BOUNDS. RecallDays (14; 1 to 365) is the server's window, and a limit
+// (docs/SettingLevels.md): a domain or an account may hold a shorter window of
+// its own and never a longer one, because a recall deletes unread copies in
+// every hosted domain, not only the sender's. So the server's RecallDays is the
+// widest window anywhere: rows older than it are swept by the minute task and
+// by the retention task, and a recall of an older message - or of one older
+// than the sender's own shorter window - answers 404 as if it had never been
+// recorded. At most 200 rows per
 // sender per rolling day are recorded - a bulk sender's rows are not what
 // this is for; past that nothing more is recorded for the day, and the
 // application log says so once per sender per day.
@@ -106,10 +111,11 @@ namespace HM
       };
 
       // The recall window for a sender, 1 to 365 days: RecallDays is a setting
-      // with levels (Application/EffectiveSetting.h, recall_days), so it is the
-      // sending account's own window where an administrator gave it one, its
-      // domain's where the domain has one, and the server's otherwise. A
-      // senderId of 0 answers the server's.
+      // with levels (Application/EffectiveSetting.h, recall_days) and a limit,
+      // so it is the sending account's own window where an administrator gave
+      // it one, its domain's where the domain has one, and the server's
+      // otherwise - never longer than the level above. A senderId of 0 answers
+      // the server's.
       static int Days(__int64 senderId);
 
       // A Message-ID as the table holds it: trimmed, the angle brackets off.
@@ -154,10 +160,9 @@ namespace HM
       // The outcome, written once.
       static bool Mark(__int64 rowId, Outcome outcome, __int64 when);
 
-      // Rows older than the longest window anywhere go: the server's RecallDays
-      // or the longest a domain or an account holds, since the rows are every
-      // sender's and a window longer than the server's must still find them.
-      // A shorter window is kept by List, which reads no row outside it.
+      // Rows older than the server's RecallDays go: it is the widest window
+      // anywhere, since a domain's or an account's own window may only be
+      // shorter. A shorter window is kept by List, which reads no row outside it.
       static void Sweep();
 
       static const char *OutcomeWord(Outcome outcome);

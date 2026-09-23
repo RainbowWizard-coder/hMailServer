@@ -229,9 +229,9 @@ never latched, so a domain's or an account's own value is in effect for the next
 message, pass or request the moment its save returns, whichever door saved it,
 with no reinitialise; the server level keeps the mark this page gives it
 (`QuotaWarningPercent`, the one key of the store with levels, is `now`). The one
-cache in the way, the overlay's rows per owner, is invalidated by every write
-through the interfaces; a row written behind the server's back is seen within
-sixty seconds.
+cache in the way, the overlay's rows, is dropped by every write through the
+interfaces and by emptying the caches; a row written behind the server's back is
+seen within sixty seconds, or at once after the caches are emptied.
 
 ## What is thinner than the row asked
 

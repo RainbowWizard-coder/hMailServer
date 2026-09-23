@@ -40,6 +40,16 @@ namespace HM
 
          return recordset->GetInt64Value("soid");
       }
+
+      bool UpdateRow(__int64 rowId, const String &value)
+      {
+         SQLStatement statement;
+         statement.SetTable("hm_settingoverrides");
+         statement.SetStatementType(SQLStatement::STUpdate);
+         statement.AddColumn("sovalue", value);
+         statement.SetWhereClause("soid = " + StringParser::IntToString(rowId));
+         return Application::Instance()->GetDBManager()->Execute(statement);
+      }
    }
 
    bool
@@ -72,20 +82,17 @@ namespace HM
 
       const __int64 existing = FindRow(scope, ownerId, name);
 
-      SQLStatement statement;
-      statement.SetTable("hm_settingoverrides");
-
       bool result = false;
 
       if (existing > 0)
       {
-         statement.SetStatementType(SQLStatement::STUpdate);
-         statement.AddColumn("sovalue", value);
-         statement.SetWhereClause("soid = " + StringParser::IntToString(existing));
-         result = Application::Instance()->GetDBManager()->Execute(statement);
+         result = UpdateRow(existing, value);
       }
       else
       {
+         SQLStatement statement;
+         statement.SetTable("hm_settingoverrides");
+
          __int64 made = 0;
          statement.SetStatementType(SQLStatement::STInsert);
          statement.SetIdentityColumn("soid");
@@ -94,6 +101,17 @@ namespace HM
          statement.AddColumn("soname", Lower(name));
          statement.AddColumn("sovalue", value);
          result = Application::Instance()->GetDBManager()->Execute(statement, &made) && made > 0;
+
+         // Two writes of the same new (scope, owner, name) at once both find no
+         // row and both insert, and the unique index refuses the second. The
+         // row the first made is then there to update, which is what the second
+         // write meant: the last value written stands, as with any other row.
+         if (!result)
+         {
+            const __int64 raced = FindRow(scope, ownerId, name);
+            if (raced > 0)
+               result = UpdateRow(raced, value);
+         }
       }
 
       // Told whether or not the write succeeded: a failed write may still have
@@ -134,11 +152,13 @@ namespace HM
    }
 
    bool
-   PersistentSettingOverride::ValuesOfName(const String &name, std::vector<String> &values)
+   PersistentSettingOverride::RowsOfName(const String &name, std::map<std::pair<int, __int64>, String> &rows)
    {
-      values.clear();
+      rows.clear();
 
-      SQLCommand command("select sovalue from hm_settingoverrides where soname = @NAME");
+      // idx_hm_settingoverrides_name: soname is not a leading column of the
+      // unique index, so this read has an index of its own.
+      SQLCommand command("select soscope, soownerid, sovalue from hm_settingoverrides where soname = @NAME");
       command.AddParameter("@NAME", Lower(name));
 
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
@@ -147,29 +167,7 @@ namespace HM
 
       while (!recordset->IsEOF())
       {
-         values.push_back(recordset->GetStringValue("sovalue"));
-         recordset->MoveNext();
-      }
-
-      return true;
-   }
-
-   bool
-   PersistentSettingOverride::OwnersOfName(int scope, const String &name, std::map<__int64, String> &owners)
-   {
-      owners.clear();
-
-      SQLCommand command("select soownerid, sovalue from hm_settingoverrides where soscope = @SCOPE and soname = @NAME");
-      command.AddParameter("@SCOPE", scope);
-      command.AddParameter("@NAME", Lower(name));
-
-      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
-      if (!recordset)
-         return false;
-
-      while (!recordset->IsEOF())
-      {
-         owners[recordset->GetInt64Value("soownerid")] = recordset->GetStringValue("sovalue");
+         rows[std::make_pair((int) recordset->GetLongValue("soscope"), recordset->GetInt64Value("soownerid"))] = recordset->GetStringValue("sovalue");
          recordset->MoveNext();
       }
 

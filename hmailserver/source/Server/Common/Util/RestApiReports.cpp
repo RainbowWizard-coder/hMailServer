@@ -36,6 +36,7 @@
 #include "MessageTrace.h"
 #include "Time.h"
 
+#include "../Application/EffectiveSetting.h"
 #include "../Application/IniFileSettings.h"
 #include "../BO/Domain.h"
 #include "../BO/Domains.h"
@@ -756,7 +757,7 @@ namespace HM
          section.enabled = context.mailboxes_ok;
          section.note = "Every mailbox with a limit, by the share of it used AS IT IS NOW; the section ignores the dates. "
                         "A mailbox holding no messages does not appear. warns_at and sending_stops_at are the points that "
-                        "apply to that mailbox (its domain's, or the server's), and state is ok, warned, stopped or over.";
+                        "apply to that mailbox (its own, its domain's, or the server's), and state is ok, warned, stopped or over.";
 
          section.table.Column("address", false);
          section.table.Column("domain", false);
@@ -782,12 +783,21 @@ namespace HM
          for (size_t i = 0; i < wanted.size() && (int) i < context.top; i++)
          {
             const Reports::MailboxRow &mailbox = wanted[i];
+
+            // The mailbox's own points: the account's own share where it holds
+            // one, its domain's, or the server's - what SMTP and the warning
+            // act on. The domain's alone for an address no longer an account.
+            std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(mailbox.address);
             std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(mailbox.domain);
 
             const __int64 quotaBytes = ((__int64) mailbox.quota_mb) * 1024 * 1024;
             const int percent = (int) (mailbox.bytes * 100 / quotaBytes);
-            const int warnsAt = QuotaPolicy::WarningPercent(domain);
-            const int stopsAt = QuotaPolicy::SendStopPercent(domain);
+            const int warnsAt = account
+               ? QuotaPolicy::WarningPercent(account)
+               : EffectiveSetting::ResolveInt(_T("quota_warning_percent"), domain, std::shared_ptr<const Account>());
+            const int stopsAt = account
+               ? QuotaPolicy::SendStopPercent(account)
+               : EffectiveSetting::ResolveInt(_T("quota_send_stop_percent"), domain, std::shared_ptr<const Account>());
 
             AnsiString state = "ok";
 

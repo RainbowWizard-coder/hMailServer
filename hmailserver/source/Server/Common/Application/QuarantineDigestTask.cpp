@@ -18,6 +18,8 @@
 #include "EffectiveSetting.h"
 
 #include <ctime>
+#include <map>
+#include <set>
 #include <vector>
 
 #ifdef _DEBUG
@@ -46,8 +48,8 @@ namespace HM
 
       struct Due
       {
-         std::shared_ptr<Account> account;
-         std::shared_ptr<Domain> domain;
+         std::shared_ptr<const Account> account;
+         std::shared_ptr<const Domain> domain;
          std::vector<QuarantinedMessage> held;
       };
 
@@ -146,26 +148,44 @@ namespace HM
 
       // The digest switch and its hour are settings with levels: an account may
       // hold its own of either, over its domain's (Application/EffectiveSetting.h).
-      // Which accounts do is asked once a pass, so that a domain with the digest
-      // off - or not at its hour - is still looked into for the accounts that say
-      // otherwise, and a domain nobody overrode costs what it always did.
-      std::map<__int64, String> ownSwitch;
-      std::map<__int64, String> ownHour;
-      PersistentSettingOverride::OwnersOfName(PersistentSettingOverride::ScopeAccount, _T("quarantine_digest"), ownSwitch);
-      PersistentSettingOverride::OwnersOfName(PersistentSettingOverride::ScopeAccount, _T("quarantine_digest_hour"), ownHour);
+      // Which accounts do is read once a pass, from the cache of one name's rows
+      // (never the database per pass), and kept by domain: for a domain that is
+      // not at its hour, or has the digest off, those accounts are the only ones
+      // that can be due, and only they are read - one account that chose another
+      // hour does not make its whole domain be read at every tick. A domain
+      // nobody overrode costs what it always did.
+      std::map<__int64, std::set<__int64> > ownByDomain;
+      std::set<__int64> domainsSwitchedOnBelow;
+      std::set<__int64> ownValues;
 
-      std::set<__int64> domainsWithOwnValues;
-      for (const auto &owner : ownSwitch)
+      const TCHAR *const digestNames[] = { _T("quarantine_digest"), _T("quarantine_digest_hour") };
+
+      for (const TCHAR *name : digestNames)
       {
-         std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(owner.first);
-         if (account)
-            domainsWithOwnValues.insert(account->GetDomainID());
-      }
-      for (const auto &owner : ownHour)
-      {
-         std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(owner.first);
-         if (account)
-            domainsWithOwnValues.insert(account->GetDomainID());
+         std::shared_ptr<const std::map<std::pair<int, __int64>, String> > rows =
+            CacheContainer::Instance()->GetSettingOverridesNamed(name);
+         if (!rows)
+            continue;
+
+         const bool isSwitch = String(name) == _T("quarantine_digest");
+
+         for (const auto &row : *rows)
+         {
+            if (row.first.first != PersistentSettingOverride::ScopeAccount)
+               continue;
+
+            std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(row.first.second);
+            if (!account)
+               continue;
+
+            ownByDomain[account->GetDomainID()].insert(account->GetID());
+            ownValues.insert(account->GetID());
+
+            String value = row.second;
+            value.Trim();
+            if (isSwitch && value == _T("1"))
+               domainsSwitchedOnBelow.insert(account->GetDomainID());
+         }
       }
 
       std::vector<Due> due;
@@ -178,7 +198,8 @@ namespace HM
             continue;
 
          const bool domainOn = EffectiveSetting::ResolveBool(_T("quarantine_digest"), domain, std::shared_ptr<const Account>());
-         const bool accountsOfTheirOwn = domainsWithOwnValues.find(domain->GetID()) != domainsWithOwnValues.end();
+         auto own = ownByDomain.find(domain->GetID());
+         const bool accountsOfTheirOwn = own != ownByDomain.end();
 
          if (!domainOn && !accountsOfTheirOwn)
             continue;
@@ -186,11 +207,16 @@ namespace HM
          // A digest with no link in it is a list of things the reader cannot act
          // on. Rather than send that, nothing is sent and the administrator is
          // told once - in the log, where an administrator who turned the digest
-         // on and saw nothing happen will look. Only once a domain actually has
-         // the digest on: a server holding spam with no digest configured has
-         // nothing to be told.
+         // on and saw nothing happen will look. Only once a domain, or an account
+         // of it, actually has the digest switched on: a server holding spam with
+         // no digest configured has nothing to be told, and nor does a domain
+         // whose only account of its own switched the digest off or chose an
+         // hour under a domain that has it off.
          if (!haveBaseUrl)
          {
+            if (!domainOn && domainsSwitchedOnBelow.find(domain->GetID()) == domainsSwitchedOnBelow.end())
+               continue;
+
             static bool complained = false;
 
             if (!complained)
@@ -205,37 +231,55 @@ namespace HM
 
          const int domainHour = EffectiveSetting::ResolveInt(_T("quarantine_digest_hour"), domain, std::shared_ptr<const Account>());
 
-         if (!force && domainHour != hour && !accountsOfTheirOwn)
+         // Every account of the domain when the domain's own digest is due now;
+         // otherwise only the accounts with a switch or an hour of their own.
+         const bool wholeDomain = domainOn && (force || domainHour == hour);
+
+         if (!wholeDomain && !accountsOfTheirOwn)
             continue;
 
-         std::shared_ptr<Accounts> accounts = domain->GetAccounts();
+         std::vector<std::shared_ptr<const Account> > candidates;
 
-         if (!accounts)
-            continue;
-
-         accounts->Refresh();
-
-         for (int j = 0; j < accounts->GetCount(); j++)
+         if (wholeDomain)
          {
-            std::shared_ptr<Account> account = accounts->GetItem(j);
+            std::shared_ptr<Accounts> accounts = domain->GetAccounts();
 
+            if (!accounts)
+               continue;
+
+            accounts->Refresh();
+
+            for (int j = 0; j < accounts->GetCount(); j++)
+               candidates.push_back(accounts->GetItem(j));
+         }
+         else
+         {
+            for (__int64 accountId : own->second)
+            {
+               std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(accountId);
+               if (account && account->GetDomainID() == domain->GetID())
+                  candidates.push_back(account);
+            }
+         }
+
+         for (const std::shared_ptr<const Account> &account : candidates)
+         {
             if (!account || !account->GetActive())
                continue;
 
             // The account's own switch and hour where it has them, its domain's
             // otherwise - read through the resolver only for the accounts the
             // overlay names; every other account's answer is its domain's.
-            const bool ownValues = ownSwitch.find(account->GetID()) != ownSwitch.end() ||
-                                   ownHour.find(account->GetID()) != ownHour.end();
+            const bool ownValue = ownValues.find(account->GetID()) != ownValues.end();
 
-            const bool accountOn = ownValues
+            const bool accountOn = ownValue
                ? EffectiveSetting::ResolveBool(_T("quarantine_digest"), domain, account)
                : domainOn;
 
             if (!accountOn)
                continue;
 
-            const int accountHour = ownValues
+            const int accountHour = ownValue
                ? EffectiveSetting::ResolveInt(_T("quarantine_digest_hour"), domain, account)
                : domainHour;
 

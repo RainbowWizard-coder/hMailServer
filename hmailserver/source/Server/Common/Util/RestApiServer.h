@@ -1716,11 +1716,13 @@ namespace HM
       // names of all the others.
       static HttpResponse HandleListDomains_(const std::vector<String> &allowedDomains);
 
-      // One domain as the listing renders it, so that what a create or an
-      // update answers is exactly what the next listing will show.
-      // withLevels: the settings with levels (RestApiSettingLevels.h), which the
-      // listing leaves out - it is one query, and each entry's 81 answers are
-      // what GET /api/v1/domains/{domain} is for.
+      // One domain as the listing renders it - its own fields are exactly what
+      // the next listing will show - and, with withLevels, the settings with
+      // levels (RestApiSettingLevels.h) as well: what a create, an update and
+      // GET /api/v1/domains/{domain} answer. The listing leaves those out - they
+      // are one query per setting per domain - so it is the entry less them.
+      // Sent back as it is, an entry with them is taken: the answered fields
+      // (<name>_effective, <name>_source) are ignored.
       static AnsiString DomainEntryJson_(const std::shared_ptr<Domain> &domain, bool withLevels = true);
 
       // That same entry for one domain by name, and a 404 when this server

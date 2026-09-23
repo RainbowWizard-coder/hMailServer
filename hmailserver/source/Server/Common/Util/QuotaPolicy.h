@@ -21,8 +21,11 @@ namespace HM
    public:
 
       // The warning threshold, as a share of the limit; 0 warns nobody.
+      // An account's: its own share, else its domain's, else the server's. There
+      // is no domain-only form: every reader of a share is reading it for an
+      // account, and a domain's answer given for an account ignored the
+      // account's own (the quota report did, until 23 September 2026).
       static int WarningPercent(std::shared_ptr<const Account> account);
-      static int WarningPercent(std::shared_ptr<const Domain> domain);
 
       // The subject and text of the warning: the domain's when it has them, the
       // QUOTA_WARNING server messages otherwise. The macros are left in place
@@ -32,12 +35,10 @@ namespace HM
       // How far past the limit incoming mail is still accepted, as a share of
       // the limit; 0 is not at all.
       static int GracePercent(std::shared_ptr<const Account> account);
-      static int GracePercent(std::shared_ptr<const Domain> domain);
 
       // The share of the limit at which the account can no longer send; 0 is
       // never.
       static int SendStopPercent(std::shared_ptr<const Account> account);
-      static int SendStopPercent(std::shared_ptr<const Domain> domain);
 
       // Whether a delivery of this many bytes is accepted into the mailbox:
       // the limit plus the grace that applies to it.

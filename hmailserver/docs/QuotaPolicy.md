@@ -16,7 +16,7 @@ The warning is the `QUOTA_WARNING` and `QUOTA_WARNING_SUBJECT` server messages, 
 
 ## The report
 
-`GET /api/v1/reports/quota` is the `mailboxes` section read as a share of each mailbox's limit rather than as a size: every mailbox with a limit and at least one message, nearest first, with `megabytes`, `quota_megabytes`, `percent`, the `warns_at` and `sending_stops_at` points that apply to that mailbox (its domain's, or the server's) and a `state` of `ok`, `warned`, `stopped` or `over`. It takes the same `domain`, `top` and `format=csv` as the other sections and, like `mailboxes`, ignores the window: it is a share now, not a history. The Deck's Reports page shows it as "Near their quota".
+`GET /api/v1/reports/quota` is the `mailboxes` section read as a share of each mailbox's limit rather than as a size: every mailbox with a limit and at least one message, nearest first, with `megabytes`, `quota_megabytes`, `percent`, the `warns_at` and `sending_stops_at` points that apply to that mailbox (its own, its domain's, or the server's - the account's own shares are settings with levels, [SettingLevels.md](SettingLevels.md)) and a `state` of `ok`, `warned`, `stopped` or `over`. It takes the same `domain`, `top` and `format=csv` as the other sections and, like `mailboxes`, ignores the window: it is a share now, not a history. The Deck's Reports page shows it as "Near their quota".
 
 ## Where it is set
 

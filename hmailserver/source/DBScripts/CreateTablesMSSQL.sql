@@ -2686,4 +2686,6 @@ ALTER TABLE hm_settingoverrides ADD CONSTRAINT hm_settingoverrides_pk PRIMARY KE
 
 CREATE UNIQUE CLUSTERED INDEX idx_hm_settingoverrides_owner ON hm_settingoverrides (soscope, soownerid, soname)
 
+CREATE NONCLUSTERED INDEX idx_hm_settingoverrides_name ON hm_settingoverrides (soname)
+
 insert into hm_dbversion values (6088)

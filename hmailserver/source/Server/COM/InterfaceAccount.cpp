@@ -2884,13 +2884,42 @@ STDMETHODIMP InterfaceAccount::put_SettingOverride(BSTR Name, BSTR newVal)
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
 
+      // Written at once, with no Save to pass through - so Save's two guards are
+      // asked here, as put_SieveScript asks them: a domain administrator whose
+      // domain holds a server administrator's mailbox does not aim a value at
+      // that mailbox alone, or clear the values it holds; and no credential
+      // writes to an account whose STORED authority it does not take in.
+      if (!authentication_->GetIsServerAdmin() && object_->GetAdminLevel() == HM::Account::ServerAdmin)
+         return COMError::GenerateError("You do not have access to change the setting values of a server administrator account. Server administrator accounts can only be updated by server administrators.");
+
+      if (authentication_->GetIsAuthenticated() && object_->GetID() > 0)
+      {
+         std::shared_ptr<HM::Account> stored = std::shared_ptr<HM::Account>(new HM::Account());
+
+         if (HM::PersistentAccount::ReadObject(stored, object_->GetID()))
+         {
+            if (!authentication_->GetIsServerAdmin() && stored->GetAdminLevel() == HM::Account::ServerAdmin)
+               return COMError::GenerateError("You do not have access to change the setting values of a server administrator account. Server administrator accounts can only be updated by server administrators.");
+
+            if (!HM::RoleManager::Encompasses(authentication_->GetGrant(), HM::RoleManager::GrantForAccount(stored)))
+               return COMError::GenerateError("You do not have access to change the setting values of this account. It holds administrative authority that this credential does not.");
+         }
+      }
+
       const HM::String name(Name);
       const HM::EffectiveSetting::Definition *definition = HM::EffectiveSetting::Find(name);
       if (!definition)
          return COMError::GenerateError(HM::EffectiveSetting::NotThreeLevelSentence(name));
 
-      if (definition->server_administrators_only && !authentication_->GetIsServerAdmin())
-         return COMError::GenerateError(HM::String(definition->name) + _T(" is the server administrator's to set for an account."));
+      // A level held in the account's own field is refused as that, first: the
+      // field has the authority it always had, and saying it is the server
+      // administrator's would be the wrong sentence.
+      if (!HM::EffectiveSetting::OverlayHolds(*definition, HM::PersistentSettingOverride::ScopeAccount))
+         return COMError::GenerateError(HM::EffectiveSetting::ColumnSentence(*definition, HM::PersistentSettingOverride::ScopeAccount));
+
+      // A gate is the server administrator's (docs/SettingLevels.md).
+      if (definition->server_administrators_only() && !authentication_->GetIsServerAdmin())
+         return COMError::GenerateError(HM::String(definition->name) + _T(" is a capability the server grants, and the server administrator's to set for an account."));
 
       HM::String value(newVal);
       HM::String refusal;

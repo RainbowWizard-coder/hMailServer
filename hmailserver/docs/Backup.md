@@ -25,7 +25,7 @@ In the archive
 
 | What | Notes |
 |---|---|
-| Domains, and their aliases, distribution lists and signatures | With each domain its allow and block list, its spam traps, and its quarantine digest switch and hour |
+| Domains, and their aliases, distribution lists and signatures | With each domain its allow and block list, its spam traps, its quarantine digest switch and hour, and its own values of the settings with levels (`hm_settingoverrides`, scope 1; see [SettingLevels.md](SettingLevels.md)) |
 | Accounts | Address, password hash, forwarding, vacation, signature, quota, admin level, TOTP secret, anti-spam thresholds |
 | Aliases and distribution lists, with their members | |
 | Routes, IP ranges, TCP/IP ports, SSL certificate *records*, incoming relays, groups | Only with **Back up settings** on |
@@ -51,6 +51,7 @@ In the archive
 | Who has written to the account before | `hm_knownsenders` | The memory the first-contact note is decided against, as of the backup. Without it a restore would announce every correspondent of every account as a first contact again — see [DomainTransforms.md](DomainTransforms.md) |
 | Calendars and their events and tasks | `hm_calendars`, `hm_calendarobjects` | Tombstones included, so a CalDAV client's next sync is answered correctly rather than being told nothing was ever deleted |
 | Safe senders and blocked senders | `hm_senderlist`, the account's own entries | With their reasons and expiries. The table also holds each domain's list and the server's, which travel with the domain and with the settings; see [SenderListsAndDigests.md](SenderListsAndDigests.md) |
+| Its own values of the settings with levels | `hm_settingoverrides`, the account's own rows | Written back under the restored account's id through the same checks a write makes, less the limit's ceiling, which caps the value when it is read; a row this build refuses is left out and named as `HM7312`. See [SettingLevels.md](SettingLevels.md) |
 | Whether the quarantine digest was stopped | `hm_digeststate` | A person who asked for the digest to stop is still opted out after a restore. The digest's position is carried too, and an entry held after the last digest went is still new if a restore onto a fresh database starts the quarantine's numbering again |
 | The administrator role it was given, and the domains it reaches | `hm_roleassignments` | The role by its name, found again on the restoring server. Put back first thing after the account's row, before its folders, and the account's admin level - which the archive also carries, and which alone would give back authority the role had narrowed away - is withheld until the assignment is written and given back only behind it, so a restore that stops part-way leaves no account wider than its role. An assignment naming a role that neither the archive nor that server has is dropped, the level stays withheld, and the backup log and the error log (`HM6129`) name the account and the missing role |
 

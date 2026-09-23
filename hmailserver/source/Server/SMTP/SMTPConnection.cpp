@@ -1024,8 +1024,17 @@ namespace HM
       sender_domain_ = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(sAccountAddress));
       sender_account_ = CacheContainer::Instance()->GetAccount(sAccountAddress);
 
-      // Check the max size
-      max_message_size_kb_ = GetMaxMessageSize_(sender_domain_, sender_account_);
+      // Check the max size. The domain level is the envelope sender's domain's,
+      // as it has always been read, with the envelope sender's own value under
+      // it. And when the session is authenticated, the SIGNED-IN account's own
+      // value holds as well: an account's own limit is a limit on the account
+      // (docs/SettingLevels.md), and naming another address - or none, <> - in
+      // MAIL FROM must not lift it, as the send-stop above and the sending
+      // quota below are keyed on the signed-in account for the same reason.
+      std::shared_ptr<const Account> signedIn;
+      if (isAuthenticated_ && !username_.IsEmpty())
+         signedIn = CacheContainer::Instance()->GetAccount(DefaultDomain::ApplyDefaultDomain(username_));
+      max_message_size_kb_ = GetMaxMessageSize_(sender_domain_, sender_account_, signedIn);
 
       // Check if estimated message size exceedes our
       // maximum message size (according to RFC1653)
@@ -5589,14 +5598,15 @@ namespace HM
 
 
    int 
-   SMTPConnection::GetMaxMessageSize_(std::shared_ptr<const Domain> pDomain, std::shared_ptr<const Account> pAccount)
+   SMTPConnection::GetMaxMessageSize_(std::shared_ptr<const Domain> pDomain, std::shared_ptr<const Account> pAccount, std::shared_ptr<const Account> pSignedIn)
    {
-      // One value, three levels (Application/EffectiveSetting.h): the sending
-      // account's own limit, else its domain's, else the server's - and the
-      // server's, when it is not 0, a ceiling neither of the two goes above,
-      // which is the rule the domain's value has always had here. A domain and
-      // an account with no value of their own resolve as they always did.
-      return EffectiveSetting::ResolveInt(_T("max_message_size_kb"), pDomain, pAccount);
+      // One value, three levels (Application/EffectiveSetting.h): a limit. The
+      // sending account's own value, else its domain's, else the server's - each
+      // level held to the one above it, which is the rule the domain's value has
+      // always had against the server's here - and, for a signed-in session,
+      // the signed-in account's own value as well. A domain and an account with
+      // no value of their own resolve as they always did.
+      return EffectiveSetting::ResolveIntHeldTo(_T("max_message_size_kb"), pDomain, pAccount, pSignedIn);
    }
 
    void 
