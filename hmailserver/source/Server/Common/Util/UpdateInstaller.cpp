@@ -10,6 +10,7 @@
 #include "SigstoreVerifier.h"
 #include "FileUtilities.h"
 #include "Unicode.h"
+#include "../Application/Application.h"
 #include "../Application/IniFileSettings.h"
 #include "../Application/ErrorManager.h"
 
@@ -458,6 +459,38 @@ namespace HM
       if (FileUtilities::Exists(outcome))
          FileUtilities::DeleteFile(outcome);
 
+      // The drain, before the helper. The listeners close and the delivery
+      // queue pauses now, so that the service stop the helper issues in a
+      // moment finds the sessions and deliveries already finishing - or
+      // finished - and spends its wait (ShutdownDrainSeconds, plus thirty on
+      // the Windows installer's side) on that tail rather than on connections
+      // accepted meanwhile. A server that is already draining is somebody
+      // else's maintenance, which this apply neither takes over nor ends: it is
+      // refused with the reason, and the operator leaves the drain or applies
+      // once it is over. A helper that could not be started leaves the drain
+      // again, so a refused apply does not leave the doors closed.
+      String drainRefusal = Application::Instance()->EnterDrain();
+      if (!drainRefusal.IsEmpty())
+      {
+         error = Formatter::Format(_T("The update was not applied: the server is {0}. Leave the drain (DELETE /api/v1/server/drain), or wait for it to end, and apply again."), drainRefusal);
+         UpdateChecker::RecordFailure(error);
+         LOG_APPLICATION(Formatter::Format(_T("Update apply refused: {0}"), error));
+         return false;
+      }
+
+      struct LeaveDrainOnFailure
+      {
+         LeaveDrainOnFailure() : keep(false) {}
+         ~LeaveDrainOnFailure()
+         {
+            if (keep)
+               return;
+            std::vector<String> notReopened;
+            Application::Instance()->LeaveDrain(notReopened);
+         }
+         bool keep;
+      } drain;
+
 #ifdef HM_PLATFORM_POSIX
       // No token here. On Windows the token is what the silent installer's
       // DBUpdater presents in place of the administrator password; the .deb and
@@ -481,6 +514,9 @@ namespace HM
       request += "outcome=" + AnsiString(outcome) + "\n";
       request += "log=" + AnsiString(directory) + "/apply-" + AnsiString(snapshot.available_version) + ".log\n";
       request += "wait=" + AnsiString(Formatter::Format(_T("{0}"), IniFileSettings::Instance()->GetUpdateServiceWaitSeconds())) + "\n";
+      // Told for the journal: the helper just stops the unit, and the stop
+      // drains as it always does, with the doors already closed by now.
+      request += "drain=1\n";
       std::string readyUrl = ReadyUrl_();
       if (!readyUrl.empty())
          request += "ready_url=" + AnsiString(readyUrl.c_str()) + "\n";
@@ -498,8 +534,9 @@ namespace HM
          return false;
       }
 
+      drain.keep = true;
       UpdateChecker::RecordInstalling();
-      LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} is being applied by hmailserver-update; the service will stop and start, and the outcome is reported when it does."),
+      LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} is being applied by hmailserver-update; the server has drained, the service will stop and start, and the outcome is reported when it does."),
          snapshot.available_version));
       return true;
 #else
@@ -553,8 +590,9 @@ namespace HM
          return false;
       }
 
+      drain.keep = true;
       UpdateChecker::RecordInstalling();
-      LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} is being applied by {1}; the service will stop and start, and the outcome is reported when it does."),
+      LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} is being applied by {1}; the server has drained, the service will stop and start, and the outcome is reported when it does."),
          snapshot.available_version, helper));
       return true;
 #endif

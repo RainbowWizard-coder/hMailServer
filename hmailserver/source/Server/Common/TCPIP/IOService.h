@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <atomic>
+#include <vector>
 #include <boost/function.hpp>
 #include "../Application/SessionManager.h"
 #include "../Threading/Task.h"
@@ -29,6 +31,28 @@ namespace HM
 
       // Session types
       bool RegisterSessionType(SessionType st);
+
+      // The listeners' half of a drain (Application::EnterDrain, and the first
+      // thing StopServers does). StopAccepting closes every SMTP, IMAP and POP3
+      // acceptor - a connection attempted from then on is refused at the socket,
+      // not accepted and cut - and remembers that it did, so that the stop in
+      // DoWork does not close them a second time. StartAccepting opens them
+      // again on the same addresses and ports: the TCPServer objects DoWork
+      // built are kept through the drain, so the port table is the one
+      // Initialize used and a port added meanwhile waits for a restart, as it
+      // always has. A port that cannot be reopened (something else took it
+      // during the drain) is named in notReopened and reported as HM4316 by the
+      // acceptor as at start; the rest are opened.
+      //
+      // Both run on the io_context's own threads - the acceptor is not
+      // thread-safe, and a close from another thread while an accept is
+      // pending is a race - and wait for that to have happened, bounded, so
+      // that a caller's next line ("listeners closed") is true when it is
+      // logged. False when the io_context did not run the request within the
+      // bound, which only happens once it has been stopped.
+      bool StopAccepting();
+      bool StartAccepting(std::vector<String> &notReopened);
+      bool IsAccepting() const { return accepting_; }
 
       boost::asio::io_context &GetIOContext();
       boost::asio::ssl::context &GetClientContext();
@@ -60,7 +84,15 @@ namespace HM
       */
       boost::asio::executor_work_guard<boost::asio::io_context::executor_type> work_guard_;
 
+      // Written by DoWork on the server work queue's thread, read and acted on
+      // by the two drain halves on the io threads: one lock for all three.
+      boost::mutex tcp_servers_mutex_;
       std::vector<std::shared_ptr<TCPServer> > tcp_servers_;
+
+      // True from construction until StopAccepting closes the listeners; back to
+      // true when StartAccepting reopens them. The stop in DoWork closes them
+      // only when this is still true.
+      std::atomic<bool> accepting_;
 
       boost::condition_variable do_work_dummy;
 

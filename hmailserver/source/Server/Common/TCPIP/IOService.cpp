@@ -36,6 +36,7 @@ namespace HM
    IOService::IOService(void) :
        Task("IOService"),
        work_guard_(boost::asio::make_work_guard(io_context_)),
+       accepting_(true),
        client_context_(boost::asio::ssl::context::sslv23)
    {
       // The floor no setting can lower, set the moment the context exists; the
@@ -139,7 +140,10 @@ namespace HM
 
          pTCPServer->Run();
 
-         tcp_servers_.push_back(pTCPServer);
+         {
+            boost::lock_guard<boost::mutex> guard(tcp_servers_mutex_);
+            tcp_servers_.push_back(pTCPServer);
+         }
       }
 
 
@@ -178,11 +182,18 @@ namespace HM
 
          io_context_.stop();
 
-         auto iterServer = tcp_servers_.begin();
-         auto iterEnd = tcp_servers_.end();
-         for (; iterServer != iterEnd; iterServer++)
+         // Once only: a drain (StopAccepting) has usually closed them already,
+         // and StopServers always calls it first now. The io_context is stopped
+         // above, so nothing else can be touching an acceptor here.
+         if (accepting_.exchange(false))
          {
-            (*iterServer)->StopAccept();
+            boost::lock_guard<boost::mutex> guard(tcp_servers_mutex_);
+            auto iterServer = tcp_servers_.begin();
+            auto iterEnd = tcp_servers_.end();
+            for (; iterServer != iterEnd; iterServer++)
+            {
+               (*iterServer)->StopAccept();
+            }
          }
 
          LOG_DEBUG("IOService::DoWork() - removing Queue IOCP Queue")
@@ -194,6 +205,77 @@ namespace HM
          return;
       }
 
+   }
+
+   namespace
+   {
+      // How long a drain half waits for the io threads to have run it. They run
+      // it within microseconds while the io_context is running, and never once
+      // it has been stopped - in which case the acceptors are closed anyway.
+      const int ACCEPTOR_REQUEST_WAIT_MILLISECONDS = 10000;
+   }
+
+   bool
+   IOService::StopAccepting()
+   {
+      if (!accepting_.exchange(false))
+         return true;
+
+      std::shared_ptr<Event> done = std::make_shared<Event>();
+
+      // dispatch, not post: run inline if the caller is already on an io
+      // thread, so that a wait on this thread can never be for this thread.
+      boost::asio::dispatch(io_context_, [this, done]()
+      {
+         {
+            boost::lock_guard<boost::mutex> guard(tcp_servers_mutex_);
+            for (auto server = tcp_servers_.begin(); server != tcp_servers_.end(); ++server)
+               (*server)->StopAccept();
+         }
+         done->Set();
+      });
+
+      if (!done->WaitFor(boost::chrono::milliseconds(ACCEPTOR_REQUEST_WAIT_MILLISECONDS)))
+      {
+         LOG_APPLICATION("Drain: the TCP/IP threads did not close the listeners within ten seconds; they are no longer running, so nothing is being accepted anyway.");
+         return false;
+      }
+
+      return true;
+   }
+
+   bool
+   IOService::StartAccepting(std::vector<String> &notReopened)
+   {
+      notReopened.clear();
+
+      if (accepting_.exchange(true))
+         return true;
+
+      std::shared_ptr<Event> done = std::make_shared<Event>();
+      std::shared_ptr<std::vector<String> > failures = std::make_shared<std::vector<String> >();
+
+      boost::asio::dispatch(io_context_, [this, done, failures]()
+      {
+         {
+            boost::lock_guard<boost::mutex> guard(tcp_servers_mutex_);
+            for (auto server = tcp_servers_.begin(); server != tcp_servers_.end(); ++server)
+            {
+               if (!(*server)->RestartAccept())
+                  failures->push_back(Formatter::Format("{0}:{1}", String((*server)->GetAddress().ToString()), (*server)->GetPort()));
+            }
+         }
+         done->Set();
+      });
+
+      if (!done->WaitFor(boost::chrono::milliseconds(ACCEPTOR_REQUEST_WAIT_MILLISECONDS)))
+      {
+         LOG_APPLICATION("Drain: the TCP/IP threads did not reopen the listeners within ten seconds; they are no longer running.");
+         return false;
+      }
+
+      notReopened = *failures;
+      return true;
    }
 
    boost::asio::ssl::context &

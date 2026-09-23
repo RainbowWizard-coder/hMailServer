@@ -1222,7 +1222,8 @@ namespace hMailServer
       hStateStopped = 1,
       hStateStarting = 2,
       hStateRunning = 3,
-      hStateStopping = 4
+      hStateStopping = 4,
+      hStateDraining = 5
    }
 
    public enum eDKIMAlgorithm

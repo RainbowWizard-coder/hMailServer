@@ -183,7 +183,10 @@ PATH_SCOPE = {
 # Trailing path segments that are verbs on the resource before them.
 VERB_SEGMENTS = {'reload', 'check', 'clear', 'retry', 'release', 'hold', 'download',
                  'run', 'install', 'reinitialize', 'evaluate', 'history', 'start', 'index',
-                 'copy', 'match', 'test', 'switch', 'retire', 'classify', 'expire'}
+                 'copy', 'match', 'test', 'switch', 'retire', 'classify', 'expire',
+                 # Maintenance mode, a verb on the server as reinitialize is:
+                 # GET reads it, POST enters it, DELETE leaves it.
+                 'drain'}
 
 UNIT_SUFFIXES = ('seconds', 'minutes', 'hours', 'days', 'secs', 'mins', 'kb', 'mb', 'ms', 'sec', 'min')
 STOP_WORDS = {'of', 'number', 'no', 'the', 'a', 'an', 'is', 'in', 'to', 'use',

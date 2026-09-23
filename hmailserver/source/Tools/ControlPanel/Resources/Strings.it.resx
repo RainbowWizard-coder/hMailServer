@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   https://www.progressiverobot.com
   Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
@@ -3190,6 +3190,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Scarica e verifica il programma di installazione non appena viene trovata una versione</value>
+  </data>
+  <data name="Draining" xml:space="preserve">
+    <value>In svuotamento</value>
   </data>
   <data name="Drop it without a report" xml:space="preserve">
     <value>Scartarlo senza rapporto</value>

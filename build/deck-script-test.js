@@ -3371,6 +3371,12 @@ async function main() {
    check('the poll reads the status again', called(beforePoll, 'GET', '/api/v1/status').length === 1, paths(beforePoll));
    check('and updates the tiles in place rather than redrawing the view', $('#kpiProcessed') === tile && tile.textContent === locale(1300), tile.textContent);
    check('a state other than running is a warning', $('#kpiState').querySelector('.badge.warn') !== null && $('#kpiState').textContent === 'Stopping', $('#kpiState').textContent);
+   // Maintenance mode is named, not numbered: the drain is the one state an
+   // operator puts the server in on purpose, and "State 5" would read as a fault.
+   state.status.state = 5;
+   fireIntervals();
+   await flush();
+   check('a draining server is named as such, as a warning', $('#kpiState').querySelector('.badge.warn') !== null && $('#kpiState').textContent === 'Draining', $('#kpiState').textContent);
    state.status.state = 3;
 
    // ---- domains
@@ -5977,6 +5983,8 @@ async function main() {
          content().textContent.indexOf('2026-09-17 09:05:02') >= 0, paths(before) + ' ' + content().textContent.slice(0, 400));
       check('and only a verified installer may be installed',
          content().querySelectorAll('button[data-act="upinstall"]').length === 1);
+      check('the view says the server drains first',
+         content().textContent.indexOf('The server drains first') >= 0, content().textContent.slice(0, 400));
 
       before = requests.length;
       click(act('upinstall'));

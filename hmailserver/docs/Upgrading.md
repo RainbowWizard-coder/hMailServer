@@ -98,6 +98,97 @@ Doing it
 5. **Send a message to yourself**, end to end, and read it back over IMAP or POP3.
    A service that starts is not the same as a server that delivers.
 
+An upgrade without a window
+---------------------------
+
+Since 23 September 2026 an upgrade no longer needs a booked window: the server
+drains before it stops, and it can bring its own schema forward when it starts.
+What a single node can and cannot promise is written down at the end of this
+section, because the difference matters when you plan.
+
+**The sequence.** Whether the live update runs it (`POST /api/v1/update/install`,
+`Status.InstallUpdate`, or the unattended window) or you do:
+
+1. **Drain.** The SMTP, IMAP and POP3 listeners are closed and the delivery queue
+   is paused. A connection attempted from now on is *refused at the socket* - not
+   accepted and then cut - which every MTA on the internet treats as "try again
+   later" and retries on its own schedule, so no mail is lost and no sender sees a
+   bounce. The sessions already open finish at their own pace; a delivery already
+   talking to a remote finishes, and a queued message not yet started stays in the
+   queue, unlocked. `/readyz` answers `503 not ready: draining`; the metrics
+   listener, the REST API and the web services stay up, so the Deck, a load
+   balancer's probe and the update helper can all still see the server. The
+   application log says `Drain: listeners closed; N session(s) and M
+   delivery(ies) in flight; ...`.
+2. **Stop.** The service stop finds the doors already closed and waits up to
+   `ShutdownDrainSeconds` for what is still in flight (nothing, usually, by now:
+   *a stop after a drain does not wait again for what has already drained*), then
+   tears the servers down. With `ShutdownDrainSeconds` at its default of `0` the
+   doors still close first, but nothing is waited for - **set it on a production
+   server** (30 is a reasonable figure; the HA runbook says the same), or a session
+   mid-DATA at the moment of the stop is cut.
+3. **Install.** The binaries are replaced. The Windows installer runs DBUpdater as
+   it always has; the `.deb` and `.rpm` run `hmailserver --upgrade-database` in
+   their post-install step; the container's entrypoint runs it at every start.
+4. **The schema step, in the service's own start.** When the database is older
+   than the binary and `[Database]` in `hMailServer.ini` carries
+   `UpgradeOnStart=1`, the service applies the upgrade chain itself as it starts -
+   the same code `hmailserver --upgrade-database` runs, one step at a time, one
+   log line per step (`Schema: 6086 -> 6087 (Upgrade6086to6087MSSQLCE.sql)`), each
+   step in a transaction where the backend has one - and then continues the start.
+   Without it, or when a step fails, the start is refused with `HM5011` as before,
+   and the message names the failing step and the version the database is at; the
+   steps before it have been applied and a second start resumes there. The key is
+   in the file, not the settings store, by necessity: it has to be read before the
+   database is at a version this build can open. It is off by default. Nothing is
+   backed up first - *Take a backup* above is the rule, and this is the step that
+   makes it matter.
+5. **Start.** `/readyz` answers 200 again once the database probe agrees, and the
+   load balancer routes to the node again.
+
+**What is refused, and for how long.** From the drain to the moment the new
+version is listening: the length of the install plus the service's start, which is
+seconds to a couple of minutes on a single node, spent as *refused connections*,
+which senders retry. That is the honest limit of a single node. A rolling restart
+with no refusal at all needs a second node (section 7 of Roadmap2, the HA runbook's
+planned failover), and the drain is what that failover now uses.
+
+**Maintenance mode without an upgrade.** The drain is a state of its own, with
+three routes, all server-wide (`manage_server` to enter and leave, `view_configuration`
+to read; refused to a domain-restricted or read-only key; recorded on the audit
+trail as `server` / `drain` / `entered` and `left`):
+
+```
+POST   /api/v1/server/drain     enter: listeners closed, queue paused, /readyz 503 "draining"
+GET    /api/v1/server/drain     {"draining":true,"since":"2026-09-23 10:15:02","sessions":1,"deliveries":0,"drained":false}
+DELETE /api/v1/server/drain     leave: listeners reopened on the same ports, queue resumed, /readyz 200
+```
+
+`POST` while draining, or when the server is not running, answers `409` with the
+reason; so does `DELETE` when nothing is draining. `drained` is true once nothing
+is in flight, which is when a stop would be instantaneous. If a port cannot be
+reopened on `DELETE` - something else took it while the listeners were closed -
+the answer names it in `not_reopened`, the error log carries `HM7150`, and the rest
+are open; a restart tries every port again. The state shows as `draining` in
+`/healthz`, `hmailserver_state`, the Deck's dashboard, the Control Panel's status
+page and `Application.ServerState` (`hStateDraining`, 5). A live update refuses to
+apply while somebody else's drain is in progress ("already draining"): leave it,
+or wait for it to end, and apply again.
+
+**On Windows, `hMailServer.exe --upgrade-database`** now runs the same chain from
+the command line, for all four backends, without DBUpdater's window or the
+administrator password; it attaches to the prompt it was started from and exits
+0 (done, or nothing to do), 1 (failed; the output names the step) or 2 (no
+`[Database]` configured). Stop the service first. On Linux the option is what it
+was; it now runs the backend's prerequisites script before the chain, as
+DBUpdater always has.
+
+**What is thinner than a window-free upgrade.** A single node refuses
+connections for the length of the install; there is no rolling restart without a
+second node; the in-process schema step does not run DBUpdater's after-the-fact
+schema probes (`SchemaVerification.cs`), which the installer's path keeps; and the
+drain's state is per process, so a warm-standby pair drains one node at a time.
+
 If the upgrade fails
 --------------------
 

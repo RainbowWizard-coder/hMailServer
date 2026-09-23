@@ -382,8 +382,11 @@ namespace HM
       // the property change that enables this device arrives from
       // PropertySet::Refresh() during Configuration::Load, long before any
       // listener exists. Logging in either window goes to file, which is where an
-      // administrator looks for startup and shutdown problems anyway.
-      if (ServerStatus::Instance()->GetState() != ServerStatus::StateRunning)
+      // administrator looks for startup and shutdown problems anyway. Draining
+      // - maintenance mode - is the server fully up with its doors closed, and
+      // may last a while, so it logs here as Running does.
+      const int state = ServerStatus::Instance()->GetState();
+      if (state != ServerStatus::StateRunning && state != ServerStatus::StateDraining)
          return DatabaseNotRunning;
 
       // Copied, not referenced. Application::CloseDatabase() resets its member;

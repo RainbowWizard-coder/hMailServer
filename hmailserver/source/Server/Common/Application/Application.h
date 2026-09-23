@@ -64,6 +64,36 @@ namespace HM
       void StopServers();
       void SubmitPendingEmail();
 
+      // Maintenance mode - a drain without a stop - and what a stop does first.
+      //
+      // EnterDrain closes the SMTP, IMAP and POP3 listeners and pauses the
+      // delivery queue, moves the state to StateDraining (so /readyz answers 503
+      // with "draining") and leaves everything else up: the sessions and
+      // deliveries in flight finish at their own pace, the metrics, REST and
+      // web-services listeners keep answering, and the process stays up. It is
+      // what POST /api/v1/server/drain does, what the live update does before
+      // it starts the helper that will stop the service, and what StopServers
+      // does first when the state is Running. LeaveDrain reopens the listeners
+      // on the same ports (a port that cannot be reopened is named in
+      // notReopened, reported as HM7150, and the rest are opened), resumes the
+      // queue and moves the state back to Running. Both answer empty on
+      // success and otherwise why not, in the words the route returns.
+      struct DrainStatus
+      {
+         DrainStatus() : draining(false), sessions(0), deliveries(0), drained(false) {}
+
+         bool draining;
+         String since;
+         int sessions;
+         int deliveries;
+         bool drained;
+      };
+
+      String EnterDrain();
+      String LeaveDrain(std::vector<String> &notReopened);
+      bool IsDraining() const;
+      DrainStatus GetDrainStatus();
+
       std::shared_ptr<SMTPDeliveryManager> GetSMTPDeliveryManager() {return smtp_delivery_manager_;} 
       std::shared_ptr<ExternalFetchManager> GetExternalFetchManager() {return external_fetch_manager_;} 
 
@@ -105,6 +135,19 @@ namespace HM
       // inside the io_context's instead of straddling it - see the definitions.
       void CreateSessionWorkQueues_();
       void RemoveSessionWorkQueues_();
+
+      // The first half of a drain and of a stop: the listeners closed and the
+      // delivery queue paused. Idempotent; both halves are.
+      void CloseTheDoors_();
+
+      // Serialises the three state transitions that close or reopen the doors -
+      // EnterDrain, LeaveDrain and the head of StopServers - so that a stop and
+      // a drain arriving together cannot both read Running and both act on it.
+      // Held only across the transition, never across the drain's wait.
+      // Recursive, because GetDrainStatus reads drain_since_ under it and is
+      // called from inside EnterDrain, which holds it.
+      boost::recursive_mutex drain_mutex_;
+      String drain_since_;
 
       String version_;
       String start_time_;

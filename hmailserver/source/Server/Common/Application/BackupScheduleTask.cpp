@@ -672,8 +672,11 @@ namespace HM
       // A backup started while the server is starting up or shutting down would race
       // the things it depends on: the connection pool is created and destroyed around
       // this window, and the maintenance work queue the run is handed to is torn down
-      // during shutdown.
-      if (ServerStatus::Instance()->GetState() != ServerStatus::StateRunning)
+      // during shutdown. Draining - maintenance mode - is neither: the pool and
+      // the queue are up, and a scheduled backup is at its most useful with the
+      // doors closed.
+      const int state = ServerStatus::Instance()->GetState();
+      if (state != ServerStatus::StateRunning && state != ServerStatus::StateDraining)
          return;
 
       DateTime now = DateTime::GetCurrentTime();

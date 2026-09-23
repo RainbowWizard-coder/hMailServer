@@ -3191,6 +3191,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Download and verify the installer as soon as a release is found</value>
   </data>
+  <data name="Draining" xml:space="preserve">
+    <value>Draining</value>
+  </data>
   <data name="Drop it without a report" xml:space="preserve">
     <value>Drop it without a report</value>
   </data>

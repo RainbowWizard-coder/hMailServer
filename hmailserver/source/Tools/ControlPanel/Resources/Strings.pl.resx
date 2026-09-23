@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   https://www.progressiverobot.com
   Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
@@ -3190,6 +3190,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Pobieraj i weryfikuj instalator, gdy tylko zostanie znalezione wydanie</value>
+  </data>
+  <data name="Draining" xml:space="preserve">
+    <value>Opróżnianie</value>
   </data>
   <data name="Drop it without a report" xml:space="preserve">
     <value>Pomiń bez raportu</value>

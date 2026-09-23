@@ -384,6 +384,7 @@
     <Compile Include="Infrastructure\MessageStoreConsistency.cs" />
     <Compile Include="Infrastructure\MessageStoreDurability.cs" />
     <Compile Include="Infrastructure\ShutdownDrain.cs" />
+    <Compile Include="Infrastructure\DrainAndUpgrade.cs" />
     <Compile Include="Sieve\SieveBodyDelivery.cs" />
     <Compile Include="Sieve\SieveSealedBody.cs" />
     <Compile Include="Sieve\SieveFlagDelivery.cs" />

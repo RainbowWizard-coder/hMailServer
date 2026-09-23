@@ -171,6 +171,9 @@ typedef
    [helpstring("Server is stopping.")]
    hStateStopping = 4,
 
+   [helpstring("Server is draining: the listeners are closed and the delivery queue is paused while the sessions and deliveries in flight finish; the process stays up.")]
+   hStateDraining = 5,
+
 
 } eServerState;
 

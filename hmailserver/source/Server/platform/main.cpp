@@ -55,10 +55,10 @@
 #include "../Common/SQL/SQLStatement.h"
 #include "../Common/SQL/SQLCommand.h"
 #include "../Common/SQL/SQLScriptRunner.h"
+#include "../Common/Persistence/SchemaUpgrader.h"
 #include "../Common/Util/CrashOracle.h"
 #include "../Common/Util/SigstoreVerifier.h"
 #include "../Common/Util/UpdateChecker.h"
-#include <dirent.h>
 
 namespace
 {
@@ -206,17 +206,6 @@ namespace
       case HM::DatabaseSettings::TypeMSSQLServer:            return "SQL Server";
       case HM::DatabaseSettings::TypeMSSQLCompactEdition:    return "SQL Server Compact";
       default:                                               return "unknown";
-      }
-   }
-
-   // The suffix the scripts carry for each backend: Upgrade6030to6031PGSQL.sql.
-   const char *ScriptSuffix(HM::DatabaseSettings::SQLDBType type)
-   {
-      switch (type)
-      {
-      case HM::DatabaseSettings::TypeMYSQLServer: return "MySQL";
-      case HM::DatabaseSettings::TypePGServer:    return "PGSQL";
-      default:                                    return "";
       }
    }
 
@@ -374,44 +363,6 @@ namespace
       return 0;
    }
 
-   // The next script in the chain: Upgrade<from>to<something><suffix>.sql. The
-   // directory is scanned rather than the number guessed, because the steps are
-   // not consecutive - the chain goes 5001, 5002, ... and jumps where a release
-   // skipped a number - and DBUpdater builds its path the same way.
-   bool FindUpgradeScript(const HM::String &directory, int from, const char *suffix, HM::String &file, int &to)
-   {
-      const HM::AnsiString narrowDirectory(directory);
-      DIR *entries = ::opendir(narrowDirectory.c_str());
-      if (!entries)
-         return false;
-
-      char prefix[64];
-      std::snprintf(prefix, sizeof(prefix), "Upgrade%dto", from);
-      const std::string wantedSuffix = std::string(suffix) + ".sql";
-
-      bool found = false;
-      struct dirent *entry;
-      while ((entry = ::readdir(entries)) != nullptr)
-      {
-         const std::string name = entry->d_name;
-         if (name.compare(0, std::strlen(prefix), prefix) != 0)
-            continue;
-         if (name.size() <= std::strlen(prefix) + wantedSuffix.size())
-            continue;
-         if (name.compare(name.size() - wantedSuffix.size(), wantedSuffix.size(), wantedSuffix) != 0)
-            continue;
-         const std::string middle = name.substr(std::strlen(prefix), name.size() - std::strlen(prefix) - wantedSuffix.size());
-         if (middle.empty() || middle.find_first_not_of("0123456789") != std::string::npos)
-            continue;
-         to = std::atoi(middle.c_str());
-         file = directory + "/" + HM::String(name.c_str());
-         found = true;
-         break;
-      }
-      ::closedir(entries);
-      return found;
-   }
-
    int UpgradeDatabase()
    {
       std::shared_ptr<HM::DatabaseSettings> withDatabase, serverOnly;
@@ -422,61 +373,37 @@ namespace
       if (!database)
          return 1;
 
-      int current = ReadSchemaVersion(database);
-      if (current == 0)
+      if (ReadSchemaVersion(database) == 0)
       {
          std::fprintf(stderr, "The database has no hm_dbversion row, so it is not an hMailServer database or was never created. --create-database makes one.\n");
          return 1;
       }
 
-      const int required = REQUIRED_DB_VERSION;
-      if (current == required)
+      // The walk itself is SchemaUpgrader's - the unit the service runs at its
+      // own start under [Database] UpgradeOnStart, and hMailServer.exe runs on
+      // Windows under this same option - so that the three cannot drift. It
+      // scans DBScripts for the next step rather than guessing the number, runs
+      // the backend's prerequisites script first as DBUpdater does, and takes
+      // each step in a transaction. This file used to carry the walk itself,
+      // without the prerequisites script that two of the PostgreSQL steps call.
+      const HM::String directory = HM::IniFileSettings::Instance()->GetDBScriptDirectory();
+      const HM::SchemaUpgrader::Outcome outcome = HM::SchemaUpgrader::Upgrade(database, directory, REQUIRED_DB_VERSION,
+         [](const HM::String &line) { std::printf("%s\n", HM::AnsiString(line).c_str()); });
+
+      if (!outcome.ok)
       {
-         std::printf("The database is at schema version %d, which is what this build needs. Nothing to do.\n", current);
-         return 0;
-      }
-      if (current > required)
-      {
-         std::fprintf(stderr, "The database is at schema version %d and this build needs %d: it was created by a NEWER hMailServer. This build will not run against it.\n", current, required);
+         std::fprintf(stderr, "%s\nStopped at %s. The database is at %d; the steps before that one have been applied, and a second run resumes there.\n",
+            HM::AnsiString(outcome.error).c_str(), HM::AnsiString(outcome.failed_step).c_str(), outcome.version);
          return 1;
       }
 
-      const HM::String directory = HM::IniFileSettings::Instance()->GetDBScriptDirectory();
-      const char *suffix = ScriptSuffix(withDatabase->GetType());
-      HM::SQLScriptRunner runner;
-      int steps = 0;
-
-      while (current < required)
+      if (outcome.steps == 0)
       {
-         HM::String script;
-         int next = 0;
-         if (!FindUpgradeScript(directory, current, suffix, script, next))
-         {
-            std::fprintf(stderr, "No upgrade script leads from schema version %d in %s. The chain is broken, or ProgramFolder does not point at the DBScripts this build shipped with.\n",
-               current, HM::AnsiString(directory).c_str());
-            return 1;
-         }
-
-         HM::String error;
-         std::printf("%d -> %d: %s\n", current, next, HM::AnsiString(script).c_str());
-         if (!runner.ExecuteScript(database, script, error))
-         {
-            std::fprintf(stderr, "The upgrade from %d to %d failed: %s\nThe database is at %d; the scripts before this one have been applied.\n",
-               current, next, HM::AnsiString(error).c_str(), ReadSchemaVersion(database));
-            return 1;
-         }
-
-         const int after = ReadSchemaVersion(database);
-         if (after <= current)
-         {
-            std::fprintf(stderr, "The script for %d -> %d ran but the version row still says %d. Stopping rather than looping.\n", current, next, after);
-            return 1;
-         }
-         current = after;
-         steps++;
+         std::printf("The database is at schema version %d, which is what this build needs. Nothing to do.\n", outcome.version);
+         return 0;
       }
 
-      std::printf("Upgraded in %d step%s; the database is at schema version %d.\n", steps, steps == 1 ? "" : "s", current);
+      std::printf("Upgraded in %d step%s; the database is at schema version %d.\n", outcome.steps, outcome.steps == 1 ? "" : "s", outcome.version);
       return 0;
    }
 

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   https://www.progressiverobot.com
   Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
@@ -3190,6 +3190,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Hent og verificér installationsprogrammet, så snart der findes en udgivelse</value>
+  </data>
+  <data name="Draining" xml:space="preserve">
+    <value>Dræner</value>
   </data>
   <data name="Drop it without a report" xml:space="preserve">
     <value>Fjern den uden rapport</value>

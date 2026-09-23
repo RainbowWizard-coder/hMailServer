@@ -20,6 +20,12 @@
 #include "../Common/Util/ClassTester.h"
 #include "../Common/Util/SystemInformation.h"
 #include "../Common/Util/CrashOracle.h"
+#include "../Common/Persistence/SchemaUpgrader.h"
+#include "../Common/SQL/DALConnection.h"
+#include "../Common/SQL/DALConnectionFactory.h"
+#include "../Common/SQL/DatabaseSettings.h"
+
+#include <cstdio>
 
 // #define VLD_START_DISABLED
 // #include "C:\Temp\vld-10\vldapi.h"
@@ -194,6 +200,60 @@ namespace HM
 }
 
 HM::ChMailServerModule _AtlModule;
+
+// hMailServer.exe --upgrade-database: the upgrade chain from the command line,
+// as `hmailserver --upgrade-database` runs it on Linux (platform/main.cpp) and
+// through the same unit, SchemaUpgrader - for an administrator who copied new
+// binaries in, or a deployment script, without DBUpdater's window and without
+// the administrator password DBUpdater asks for. ADO is here, so all four
+// backends. The process is a Windows-subsystem one with no console of its own:
+// the parent's is attached when there is one, so a prompt sees the lines, and
+// the exit code (0 done or nothing to do, 1 failed, 2 not configured) says the
+// rest to a script that has no console either.
+static int UpgradeDatabaseFromCommandLine()
+{
+   if (AttachConsole(ATTACH_PARENT_PROCESS))
+   {
+      FILE *out = nullptr;
+      freopen_s(&out, "CONOUT$", "w", stdout);
+      FILE *err = nullptr;
+      freopen_s(&err, "CONOUT$", "w", stderr);
+   }
+
+   HM::IniFileSettings::Instance()->LoadSettings();
+   if (!HM::IniFileSettings::Instance()->GetDatabaseSettingsExists())
+   {
+      std::fprintf(stderr, "[Database] in %s does not name a database. Nothing was changed.\n", HM::AnsiString(HM::IniFileSettings::GetInitializationFile()).c_str());
+      return 2;
+   }
+
+   std::shared_ptr<HM::DatabaseSettings> settings = HM::SchemaUpgrader::SettingsFromIni();
+   std::shared_ptr<HM::DALConnection> connection = HM::DALConnectionFactory::CreateConnection(settings);
+   HM::String error;
+   if (!connection || connection->Connect(error) != HM::DALConnection::Connected)
+   {
+      std::fprintf(stderr, "Could not connect to the database: %s\n", HM::AnsiString(error).c_str());
+      return 1;
+   }
+
+   const HM::SchemaUpgrader::Outcome outcome = HM::SchemaUpgrader::Upgrade(connection, HM::IniFileSettings::Instance()->GetDBScriptDirectory(), REQUIRED_DB_VERSION,
+      [](const HM::String &line) { std::printf("%s\n", HM::AnsiString(line).c_str()); });
+   connection->Disconnect();
+
+   if (!outcome.ok)
+   {
+      std::fprintf(stderr, "%s\nStopped at %s. The database is at %d; the steps before that one have been applied, and a second run resumes there.\n",
+         HM::AnsiString(outcome.error).c_str(), HM::AnsiString(outcome.failed_step).c_str(), outcome.version);
+      return 1;
+   }
+
+   if (outcome.steps == 0)
+      std::printf("The database is at schema version %d, which is what this build needs. Nothing to do.\n", outcome.version);
+   else
+      std::printf("Upgraded in %d step%s; the database is at schema version %d.\n", outcome.steps, outcome.steps == 1 ? "" : "s", outcome.version);
+
+   return 0;
+}
 
 
 extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 
@@ -388,6 +448,14 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
 
       HM::Application::Instance()->StopServers();
       HM::Application::Instance()->ExitInstance();
+   }
+   else if (sLastParam.CompareNoCase(_T("--upgrade-database")) == 0)
+   {
+      // See UpgradeDatabaseFromCommandLine. Stop the service first when it is
+      // running against the same database: the walk takes each step in a
+      // transaction on its own connection, and a running server would hold
+      // a schema it does not know.
+      iRet = UpgradeDatabaseFromCommandLine();
    }
    else if (sLastParam.CompareNoCase(_T("RunAsService")) == 0)
    {

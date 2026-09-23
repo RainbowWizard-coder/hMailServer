@@ -199,6 +199,14 @@ namespace HM
       // MySQLConnection::Connect for the client option it sets.
       bool GetDatabaseAllowUnencryptedConnection() const { return database_allow_unencrypted_connection_; }
 
+      // [Database] UpgradeOnStart: whether the service brings an older schema
+      // forward itself at its own start (Application::OnDatabaseConnected,
+      // through SchemaUpgrader) rather than refusing to start with HM5011. A
+      // file key, and the one this row adds, because it has to be read before
+      // the database is at a version this build can open - which is before the
+      // settings store in it exists. Off by default; the doc says when to set it.
+      bool GetDatabaseUpgradeOnStart() const { return database_upgrade_on_start_; }
+
       // [Database] PostgreSQLSslMode and PostgreSQLSslRootCert: libpq's sslmode and
       // sslrootcert connection parameters, from this file rather than from PGSSLMODE in
       // the service's environment. Empty leaves libpq's own default, prefer - encrypted
@@ -1045,6 +1053,7 @@ namespace HM
       int no_of_dbconnection_attempts_;
       int no_of_dbconnection_attempts_Delay;
       bool database_allow_unencrypted_connection_;
+      bool database_upgrade_on_start_;
       String database_postgresql_ssl_mode_;
       String database_postgresql_ssl_root_cert_;
       String database_connection_string_options_;

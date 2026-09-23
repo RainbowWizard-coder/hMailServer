@@ -2163,7 +2163,7 @@ async function renderDash(update){
   animateNum($("#sesSmtp"),s.sessions.smtp);
   animateNum($("#sesImap"),s.sessions.imap);
   animateNum($("#sesPop3"),s.sessions.pop3);
-  const states={0:K("Unknown"),1:K("Stopped"),2:K("Starting"),3:K("Running"),4:K("Stopping")};
+  const states={0:K("Unknown"),1:K("Stopped"),2:K("Starting"),3:K("Running"),4:K("Stopping"),5:K("Draining")};
   $("#kpiState").innerHTML=s.state===3?'<span class="badge good">'+t("Running")+'</span>':'<span class="badge warn">'+escHtml(states[s.state]?t(states[s.state]):tf("State {0}",s.state))+'</span>';
 }
 
@@ -4344,6 +4344,7 @@ async function renderUpdate(){
   const apply=applied.map(k=>"<tr><td>"+escHtml(humanise(k))+"</td><td>"+escHtml(String(v.apply[k]))+"</td></tr>").join("");
   $("#content").innerHTML=`<div class="view"><div class="card view">
     <p class="note">${escHtml(operation("/api/v1/update","get").description||"")}</p>
+    <p class="note">${t("The server drains first: the listeners close and the delivery queue pauses while the sessions and deliveries in flight finish, then the service stops, installs and starts again.")}</p>
     <p><span class="badge ${badge}">${escHtml(t(UPDATE_STATES[state]||v.stateName||String(state)))}</span> ${v.releaseUrl?'<a href="'+escHtml(v.releaseUrl)+'" target="_blank" rel="noopener">'+t("Release notes")+'</a>':""}</p>
     <div class="tablewrap"><table><tbody>${rows.map(r=>"<tr><td>"+escHtml(r[0])+"</td><td>"+escHtml(String(r[1]))+"</td></tr>").join("")}</tbody></table></div>
     ${apply?'<h3 style="margin-top:14px">'+t("The last install")+'</h3><div class="tablewrap"><table><tbody>'+apply+'</tbody></table></div>':""}

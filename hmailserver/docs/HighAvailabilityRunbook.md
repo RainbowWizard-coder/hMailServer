@@ -133,7 +133,8 @@ Probes (HTTP):
 | Path       | Meaning                                                                 | Use for                          |
 |------------|-------------------------------------------------------------------------|----------------------------------|
 | `/livez`   | Process is alive (200 whenever the listener is up).                     | Liveness restarts.               |
-| `/readyz`  | 200 only when the server is `Running` **and** the database is connected. Returns **503** while the server is stopping or draining, or if the database connection is lost. During *startup* it is not 503 but **refused**: this listener is brought up only after the state has already gone to `Running` (it is the first of the optional listeners started, ahead of the REST API and web services), so there is nothing listening until the server is ready. Both read as unhealthy to a load balancer, which is all that matters here. | **VIP / load-balancer routing.** |
+| `/readyz`  | 200 only when the server is `Running` **and** the database is connected. Returns **503** while the server is stopping (`not ready: server not in running state`), while it is **draining** (`not ready: draining` - maintenance mode, entered with `POST /api/v1/server/drain` and by the live update before it stops the service, in which the SMTP, IMAP and POP3 listeners are closed and the delivery queue paused while what is in flight finishes; this listener stays up), or if the database connection is lost. During *startup* it is not 503 but **refused**: this listener is brought up only after the state has already gone to `Running` (it is the first of the optional listeners started, ahead of the REST API and web services), so there is nothing listening until the server is ready. All three read as unhealthy to a load balancer, which is all that matters here. | **VIP / load-balancer routing.** |
+| `/api/v1/server/drain` (REST listener) | `GET` answers `{"draining","since","sessions","deliveries","drained"}`; `POST` enters the drain and `DELETE` leaves it, reopening the listeners on the same ports. `drained` is true once nothing is in flight, which is when a stop would be instantaneous. | **Planned failover, section 5.** |
 | `/healthz` | JSON: `status` (`ok`/`unavailable`), `state`, `database` (`up`/`down`) and `uptime_seconds`. 200 when running with the database up, 503 otherwise. Per-protocol session counts are not in it — they are `hmailserver_sessions` on `/metrics`, behind its credential. | Dashboards / debugging.          |
 
 **Configure the VIP/load balancer health check against `/readyz`.** Because the
@@ -176,18 +177,34 @@ cleanly.
 
 ## 5. Planned failover (maintenance)
 
-1. **Drain A:** stop the hMailServer service on A. With `ShutdownDrainSeconds`
-   set, A first reports `/readyz` = 503 (the load balancer stops sending new
-   connections) and waits up to the drain window for active SMTP/IMAP/POP
-   sessions to finish before shutting down.
-2. **Verify A is down:** `/readyz` on A is refused.
-3. **Move the VIP** to B (or let the load balancer health check do it).
-4. **Start B:** start the hMailServer service on B. Wait until `/readyz` on B
-   returns 200.
-5. **Confirm:** send a test message through the VIP and confirm delivery; check
+1. **Drain A:** `POST /api/v1/server/drain` on A (`manage_server`; the Deck's
+   session or the administrator password). A closes its SMTP, IMAP and POP3
+   listeners - a new connection is refused at the socket, which every MTA retries
+   on its own - pauses its delivery queue, and reports `/readyz` = 503
+   `draining`, so the load balancer stops sending it anything. The sessions and
+   deliveries in flight finish at their own pace; A's REST and metrics listeners
+   stay up throughout, so you can watch: `GET /api/v1/server/drain` until
+   `drained` is true. Nothing is cut, and nothing is accepted only to be cut,
+   which is what a plain stop with `ShutdownDrainSeconds` used to do.
+2. **Stop A:** stop the hMailServer service on A. It finds the doors already
+   closed and, with `ShutdownDrainSeconds` set, waits up to the window for anything
+   still in flight - nothing, if `drained` was true - before shutting down. A
+   stop after a drain does not wait again for what has already drained.
+3. **Verify A is down:** `/readyz` on A is refused.
+4. **Move the VIP** to B (or let the load balancer health check do it).
+5. **Start B:** start the hMailServer service on B. Wait until `/readyz` on B
+   returns 200. If this is an upgrade and B's binaries are newer than the shared
+   schema, B refuses to start (`HM5011`) unless its `hMailServer.ini` says
+   `[Database] UpgradeOnStart=1`, in which case B applies the chain at its own
+   start - see [Upgrading.md](Upgrading.md#an-upgrade-without-a-window). Take the
+   database backup before this step, not after.
+6. **Confirm:** send a test message through the VIP and confirm delivery; check
    `/healthz` reports `database: up` and `state: running`.
 
-Reverse the steps to fail back.
+Reverse the steps to fail back. To take A off the air for a moment without a
+failover at all - a certificate on disk to swap, a disk to grow - step 1, then
+`DELETE /api/v1/server/drain` to reopen the same ports: that is maintenance mode,
+and nothing was stopped.
 
 ---
 
@@ -255,11 +272,18 @@ configuration here does not change when a credential is added. `/metrics` closin
 with 503 rather than 401 on a non-loopback bind with no credential is
 `MetricsServer::Start` plus `BuildMetricsUnavailableResponse_`; the loopback test is
 `IsLoopbackAddress_`, which accepts the whole of `127.0.0.0/8`. The drain order —
-state to `Stopping` first, so `/readyz` is already 503, then the bounded wait, then
-the listeners come down — is `Application::StopServers`. The `/healthz` body is
+state to `Stopping` first, so `/readyz` is already 503, then, since 23 September
+2026, the doors closed (`IOService::StopAccepting`, `SMTPDeliveryManager::Pause`)
+before the bounded wait, which now waits for the deliveries in flight as well as
+the sessions, then the listeners come down — is `Application::StopServers`.
+Maintenance mode is `Application::EnterDrain` / `LeaveDrain` behind
+`RestApiServer::HandleServerDrain_`, and `StateDraining` in `ServerStatus`; the
+`draining` reason is `MetricsServer::IsReady_`. The `/healthz` body is
 `BuildHealthBody_`. The bind-address parsing and the request/response deadlines are
 in `MetricsServer::Start`, `ReadRequest_` and `Send_`.
 
 There is regression coverage for the parts that would fail silently:
-`test/RegressionTests/Infrastructure/HealthProbes.cs` and
-`test/RegressionTests/Infrastructure/MetricsSecurity.cs`.
+`test/RegressionTests/Infrastructure/HealthProbes.cs`,
+`test/RegressionTests/Infrastructure/MetricsSecurity.cs`, and for the drain
+`test/RegressionTests/Infrastructure/DrainAndUpgrade.cs` beside
+`ShutdownDrain.cs`.

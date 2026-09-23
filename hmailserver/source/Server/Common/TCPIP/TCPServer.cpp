@@ -126,7 +126,8 @@ namespace HM
       port_(port),
       connection_security_(connection_security),
       client_certificate_policy_(client_certificate_policy),
-      client_certificate_ca_file_(client_certificate_ca_file)
+      client_certificate_ca_file_(client_certificate_ca_file),
+      prepared_(false)
    {
       sessionType_ = sessionType;
       certificate_ = certificate;
@@ -261,10 +262,28 @@ namespace HM
             return;
       }
 
+      prepared_ = true;
+
       if (!InitAcceptor())
          return;
 
       StartAccept();
+   }
+
+   bool
+   TCPServer::RestartAccept()
+   {
+      if (!prepared_)
+         return false;
+
+      if (acceptor_.is_open())
+         return true;
+
+      if (!InitAcceptor())
+         return false;
+
+      StartAccept();
+      return true;
    }
 
    bool
@@ -361,16 +380,24 @@ namespace HM
    TCPServer::HandleAccept(std::shared_ptr<TCPConnection> connection,
       const boost::system::error_code &error)
    {
-      if (error.value() == 995)
+      if (error == boost::asio::error::operation_aborted)
       {
          String sMessage;
          sMessage.Format(_T("TCP - AcceptEx failed. Error code: %d, Message: %s"), error.value(), String(error.message()).c_str());
          LOG_DEBUG(sMessage);
 
          /*
-             995: The I/O operation has been aborted because of either a thread exit or an application request
-             
-             This happens when the servers are stopped. We shouldn't post any new accepts since we're shutting down.
+             The I/O operation has been aborted because of either a thread exit or
+             an application request: 995 on Windows, ECANCELED on POSIX. Compared
+             as the asio condition rather than as the Windows number, because
+             StopAccept is what causes it and StopAccept now runs during a drain
+             as well as at a stop - and on POSIX the number never matched, so the
+             fall-through below re-posted an accept on an acceptor that a drain
+             had just closed and RestartAccept was about to reopen, leaving two
+             outstanding accepts on the port for the life of the process.
+
+             Nothing new is posted: the acceptor is closed, and if it is reopened
+             RestartAccept posts the one accept it needs.
         */
 
          return;

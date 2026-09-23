@@ -194,7 +194,8 @@ namespace HM
          { "stopped",  ServerStatus::StateStopped },
          { "starting", ServerStatus::StateStarting },
          { "running",  ServerStatus::StateRunning },
-         { "stopping", ServerStatus::StateStopping }
+         { "stopping", ServerStatus::StateStopping },
+         { "draining", ServerStatus::StateDraining }
       };
 
       // Converts an hMailServer system timestamp ("YYYY-MM-DD HH:MM:SS") to a Unix
@@ -2595,7 +2596,18 @@ namespace HM
    bool
    MetricsServer::IsReady_(AnsiString &reason)
    {
-      if (ServerStatus::Instance()->GetState() != ServerStatus::StateRunning)
+      int state = ServerStatus::Instance()->GetState();
+
+      // Maintenance mode says so by name: a load balancer reads the 503 either
+      // way, and a person reading the body learns that the listeners were
+      // closed on purpose and that DELETE /api/v1/server/drain opens them.
+      if (state == ServerStatus::StateDraining)
+      {
+         reason = "draining";
+         return false;
+      }
+
+      if (state != ServerStatus::StateRunning)
       {
          reason = "server not in running state";
          return false;
@@ -2622,6 +2634,7 @@ namespace HM
          state == ServerStatus::StateRunning ? "running" :
          state == ServerStatus::StateStarting ? "starting" :
          state == ServerStatus::StateStopping ? "stopping" :
+         state == ServerStatus::StateDraining ? "draining" :
          state == ServerStatus::StateStopped ? "stopped" : "unknown";
 
       // The session counts are deliberately gone from this body.

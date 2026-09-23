@@ -30,6 +30,22 @@ namespace HM
       void Run();
       void StopAccept();
 
+      // Opens the acceptor again after StopAccept closed it - the same address,
+      // port and TLS context Run built, so a drain that is left (Application::
+      // LeaveDrain) listens exactly where it listened before. True when the
+      // port is listening on return, which includes "it never stopped". False
+      // when Run never got as far as the acceptor (a certificate that would not
+      // load, a policy the port cannot carry) or when the bind fails now; the
+      // bind failure is reported as HM4316/HM4317 by InitAcceptor as at start.
+      // Only ever called on the io_context's own thread, as StopAccept during a
+      // drain is: IOService posts both, because the acceptor is not thread-safe
+      // and a close from another thread while an accept is pending is a race.
+      bool RestartAccept();
+
+      bool IsListening() const { return acceptor_.is_open(); }
+      int GetPort() const { return port_; }
+      const IPAddress &GetAddress() const { return ipaddress_; }
+
    private:
       
       std::string GetPassword() const;
@@ -63,5 +79,11 @@ namespace HM
       // loaded once into context_, which every connection's ssl stream shares.
       ClientCertificatePolicy client_certificate_policy_;
       String client_certificate_ca_file_;
+
+      // Set by Run once the TLS context and the client-certificate policy have
+      // been accepted, which is everything RestartAccept must not redo: a
+      // context initialised twice would load the certificate twice, and a port
+      // Run refused to start must stay refused.
+      bool prepared_;
    };
 }

@@ -248,6 +248,9 @@ STDMETHODIMP InterfaceApplication::get_ServerState(eServerState *pVal)
       case HM::ServerStatus::StateStopping:
          *pVal = hStateStopping;
          break;
+      case HM::ServerStatus::StateDraining:
+         *pVal = hStateDraining;
+         break;
       case HM::ServerStatus::StateStopped:
          *pVal = hStateStopped;
          break;

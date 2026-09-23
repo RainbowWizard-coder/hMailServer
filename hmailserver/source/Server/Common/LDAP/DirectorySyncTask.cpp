@@ -118,7 +118,10 @@ namespace HM
       // accounts, against a database whose connection pool is being torn down under it.
       // The symmetric case at start-up is the same shape: the RunOnce task fires
       // promptly, and "promptly" must still mean "after the server says it is running".
-      if (ServerStatus::Instance()->GetState() != ServerStatus::StateRunning)
+      // Draining - maintenance mode, the doors closed with everything else up - is
+      // running for this purpose.
+      const int state = ServerStatus::Instance()->GetState();
+      if (state != ServerStatus::StateRunning && state != ServerStatus::StateDraining)
          return;
 
       // Re-read, because registration happened once at start-up and the ini has not

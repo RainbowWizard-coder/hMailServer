@@ -5,6 +5,7 @@
 #pragma once
 
 #include "DALConnection.h"
+#include "../Persistence/SchemaUpgrader.h"
 
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -49,6 +50,12 @@ namespace HM
       bool CommitTransaction(std::shared_ptr<DALConnection> pConnection, String &sErrorMessage);
       bool RollbackTransaction(std::shared_ptr<DALConnection> pConnection, String &sErrorMessage);
       bool ExecuteScript(const String &sFile, String &sErrorMessage);
+
+      // The upgrade chain on one of the pool's connections, for the start-up
+      // schema step ([Database] UpgradeOnStart): SchemaUpgrader::Upgrade with
+      // a connection borrowed and returned here, since the walk needs one
+      // connection for its transactions and the pool's members are private.
+      SchemaUpgrader::Outcome UpgradeSchema(int required, const String &scriptDirectory, SchemaUpgrader::Report report);
 
       bool EnsuresPrerequisites(long DBVersion, String &sErrorMessage);
    private:

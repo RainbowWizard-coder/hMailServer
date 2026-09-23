@@ -27,11 +27,17 @@
 
 namespace HM
 {
+   std::atomic<bool> SMTPDeliveryManager::paused_(false);
+
    SMTPDeliveryManager::SMTPDeliveryManager() :
       Task("SMTPDeliveryManager"),
       queue_name_("SMTP delivery queue"),
       uncache_pending_messages_(false)
    {
+      // A new manager starts unpaused: a restart is what ends a drain that a
+      // stop began.
+      paused_ = false;
+
       int iMaxNumberOfThreads = Configuration::Instance()->GetSMTPConfiguration()->GetMaxNoOfDeliveryThreads();
       queue_id_ = WorkQueueManager::Instance()->CreateWorkQueue(iMaxNumberOfThreads, queue_name_);
    }  
@@ -84,9 +90,11 @@ namespace HM
 
       while (1)
       {
-         // Deliver all pending messages
+         // Deliver all pending messages - unless a drain has paused the queue,
+         // in which case nothing is read from it: a message not yet handed out
+         // stays where it is, unlocked, for the restart or the resume.
          std::shared_ptr<Message> pMessage;
-         while (pMessage = GetNextMessage_())
+         while (!paused_ && (pMessage = GetNextMessage_()))
          {
             boost::this_thread::interruption_point();
 
@@ -191,7 +199,34 @@ namespace HM
       return pRetMessage;
    }
 
-   void 
+   void
+   SMTPDeliveryManager::Pause()
+   {
+      paused_ = true;
+   }
+
+   void
+   SMTPDeliveryManager::Resume()
+   {
+      paused_ = false;
+
+      // The list DoWork holds was read before the pause; what became due since
+      // is not in it. Re-read it and wake the loop rather than wait a minute.
+      uncache_pending_messages_ = true;
+      deliver_messages_.Set();
+   }
+
+   int
+   SMTPDeliveryManager::GetDeliveriesInFlight() const
+   {
+      std::shared_ptr<WorkQueue> queue = WorkQueueManager::Instance()->GetQueue(queue_name_);
+      if (!queue)
+         return 0;
+
+      return static_cast<int>(queue->GetRunningTasks().size()) + queue->GetQueueDepth();
+   }
+
+   void
    SMTPDeliveryManager::UncachePendingMessages()
    //---------------------------------------------------------------------------
    // DESCRIPTION:

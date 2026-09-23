@@ -184,6 +184,9 @@ namespace HM
       no_of_dbconnection_attempts_ = ReadIniSettingInteger_("Database", "ConnectionAttempts", 6);  
       no_of_dbconnection_attempts_Delay = ReadIniSettingInteger_("Database", "ConnectionAttemptsDelay", 5);  
       database_allow_unencrypted_connection_ = ReadIniSettingInteger_("Database", "AllowUnencryptedConnection", 0) == 1;
+      // A [Database] key by necessity: read before the database is open, so it
+      // cannot live in the database. See GetDatabaseUpgradeOnStart.
+      database_upgrade_on_start_ = ReadIniSettingInteger_("Database", "UpgradeOnStart", 0) == 1;
       database_postgresql_ssl_mode_ = ReadIniSettingString_("Database", "PostgreSQLSslMode", "");
       database_postgresql_ssl_root_cert_ = ReadIniSettingString_("Database", "PostgreSQLSslRootCert", "");
       database_connection_string_options_ = ReadIniSettingString_("Database", "ConnectionStringOptions", "");

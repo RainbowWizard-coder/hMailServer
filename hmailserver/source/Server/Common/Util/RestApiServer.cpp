@@ -2425,6 +2425,10 @@ namespace HM
             return HandleDownloadFetchAccount_(String(route.identifier), route.record_id);
          case RouteServerReinitialize:
             return HandleServerReinitialize_();
+         case RouteServerDrainGet:
+         case RouteServerDrainEnter:
+         case RouteServerDrainLeave:
+            return HandleServerDrain_(route.kind);
          case RouteArchiveSearch:
             return HandleArchiveSearch_(caller.domains, route.query);
          case RouteArchiveGet:
@@ -5920,6 +5924,17 @@ namespace HM
          route.kind = RouteServerReinitialize;
          return;
       }
+
+      if (path == "/api/v1/server/drain")
+      {
+         if (method == "GET")
+            route.kind = RouteServerDrainGet;
+         else if (method == "POST")
+            route.kind = RouteServerDrainEnter;
+         else if (method == "DELETE")
+            route.kind = RouteServerDrainLeave;
+         return;
+      }
       const AnsiString archivePath = "/api/v1/archive";
       if (method == "GET" && path == archivePath)
       {
@@ -6421,6 +6436,10 @@ namespace HM
       case RouteAliasDelete:
       case RouteAccountUpdate:
       case RouteServerReinitialize:
+      // Closing the listeners and pausing delivery, and opening them again:
+      // what the server does, not what it says, so never a read-only key's.
+      case RouteServerDrainEnter:
+      case RouteServerDrainLeave:
       case RouteArchiveHold:
       case RouteArchiveRelease:
       case RouteSuppressionCreate:
@@ -6696,6 +6715,9 @@ namespace HM
       case RouteSrv:
       case RouteMetricsHistory:
       case RouteUpdateGet:
+      // Whether the server is draining, since when, and what is still in
+      // flight: a fact of the server's shape, as the status above is.
+      case RouteServerDrainGet:
       case RouteDkimGet:
       case RouteDkimRotationGet:
       case RouteDomainSessionPolicyGet:
@@ -7216,6 +7238,10 @@ namespace HM
       // the index, running the scheduled sends, and installing an update: the
       // things that act on the whole process.
       case RouteServerReinitialize:
+      // Maintenance mode is the process's doors: entering and leaving it are
+      // the reinitialize's siblings.
+      case RouteServerDrainEnter:
+      case RouteServerDrainLeave:
       case RouteBackupStart:
       // Restoring is the backup's other half and acts on the whole server, so it
       // is the same permission - the one an auditor does not hold.
@@ -7950,6 +7976,9 @@ namespace HM
       case RouteReviewRelease:
       case RouteReviewDiscard:
       case RouteServerReinitialize:
+      case RouteServerDrainGet:
+      case RouteServerDrainEnter:
+      case RouteServerDrainLeave:
       case RouteUpdateGet:
       case RouteUpdateCheck:
       case RouteUpdateDownload:
@@ -10326,6 +10355,92 @@ namespace HM
       {
          LOG_APPLICATION("RestApi: Reinitialize failed: " + error);
       }
+   }
+
+   AnsiString
+   RestApiServer::DrainStatusJson_(const std::vector<String> &notReopened)
+   {
+      Application::DrainStatus status = Application::Instance()->GetDrainStatus();
+
+      AnsiString json;
+      json.Format("{\"draining\":%hs,\"since\":\"%hs\",\"sessions\":%d,\"deliveries\":%d,\"drained\":%hs",
+         status.draining ? "true" : "false",
+         JsonEscape_(Utf8_(status.since)).c_str(),
+         status.sessions,
+         status.deliveries,
+         status.drained ? "true" : "false");
+
+      // Only after a DELETE, and only when a listener stayed closed: the answer
+      // names the port, as HM7150 in the error log does.
+      if (!notReopened.empty())
+      {
+         json += ",\"not_reopened\":[";
+         for (size_t i = 0; i < notReopened.size(); i++)
+         {
+            if (i > 0)
+               json += ",";
+            json += "\"" + JsonEscape_(Utf8_(notReopened[i])) + "\"";
+         }
+         json += "]";
+      }
+
+      json += "}";
+      return json;
+   }
+
+   HttpResponse
+   RestApiServer::HandleServerDrain_(RouteKind kind)
+   {
+      // Maintenance mode. Entering closes the SMTP, IMAP and POP3 listeners and
+      // pauses the delivery queue - a new connection is refused at the socket,
+      // /readyz answers 503 with "draining", and the sessions and deliveries in
+      // flight finish at their own pace - while this listener, the metrics
+      // listener and the web services stay up; leaving reopens the listeners
+      // on the same ports and resumes the queue. Both are recorded on the audit
+      // trail on this thread, with the actor ProcessRequest_ installed, as the
+      // backup restore's request is: the drain itself changes no row, so the
+      // request is the whole of what there is to record. 409 says why the
+      // state does not allow the change ("already draining", "not draining",
+      // "not running"), which is also what the apply of a live update answers
+      // when somebody else's drain is in progress.
+      std::vector<String> notReopened;
+
+      if (kind == RouteServerDrainEnter)
+      {
+         String refusal = Application::Instance()->EnterDrain();
+         if (!refusal.IsEmpty())
+            return BuildResponse_(409, "{\"error\":\"" + JsonEscape_(Utf8_(refusal)) + "\"}");
+
+         Application::DrainStatus status = Application::Instance()->GetDrainStatus();
+         LOG_APPLICATION(Formatter::Format("RestApi: Drain entered; {0} session(s) and {1} delivery(ies) in flight.", status.sessions, status.deliveries));
+         AuditTrail::Instance()->RecordEvent(_T("server"), _T("drain"), _T("entered"),
+            Formatter::Format(_T("The listeners were closed and the delivery queue paused, with {0} session(s) and {1} delivery(ies) in flight."), status.sessions, status.deliveries));
+      }
+      else if (kind == RouteServerDrainLeave)
+      {
+         String refusal = Application::Instance()->LeaveDrain(notReopened);
+         if (!refusal.IsEmpty())
+            return BuildResponse_(409, "{\"error\":\"" + JsonEscape_(Utf8_(refusal)) + "\"}");
+
+         String detail = _T("The listeners were reopened and the delivery queue resumed.");
+         if (!notReopened.empty())
+         {
+            String list;
+            for (size_t i = 0; i < notReopened.size(); i++)
+            {
+               if (i > 0)
+                  list += _T(", ");
+               list += notReopened[i];
+            }
+            detail = Formatter::Format(_T("The delivery queue resumed; the listener(s) on {0} could not be reopened."), list);
+         }
+
+         LOG_APPLICATION("RestApi: Drain left. " + detail);
+         AuditTrail::Instance()->RecordEvent(_T("server"), _T("drain"), _T("left"),
+            detail);
+      }
+
+      return BuildResponse_(200, DrainStatusJson_(notReopened));
    }
 
    bool
@@ -16058,6 +16173,10 @@ namespace HM
          "\"paths\":{"
          "\"/api/v1/status\":{\"get\":{\"summary\":\"Server status\",\"responses\":{\"200\":{\"description\":\"Version, state, the message counters, the session counts, and build: what this build can do - script_engine, argon2id, post_quantum_key_exchange\"}}}},"
          "\"/api/v1/server/reinitialize\":{\"post\":{\"summary\":\"Restart the services in place\",\"description\":\"What the Control Panel's Reinitialize does: every service is stopped, the configuration reloaded and the services started again in the same process, so that a port, a certificate binding or a setting the document marks as taking effect on restart takes effect now. Answers before it happens, because the REST listener itself restarts: poll GET /api/v1/status until it answers again. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"202\":{\"description\":\"Reinitialising; the listeners restart in a moment\"}}}},"
+         "\"/api/v1/server/drain\":{"
+         "\"get\":{\"summary\":\"Maintenance mode: whether the server is draining and what is still in flight\",\"description\":\"draining, since (when it was entered), sessions (SMTP, IMAP and POP3 sessions open), deliveries (outbound deliveries running or waiting for a thread) and drained (draining with nothing in flight). Server-wide; view_configuration.\",\"responses\":{\"200\":{\"description\":\"The drain's state\"}}},"
+         "\"post\":{\"summary\":\"Enter maintenance mode: close the listeners and pause delivery, with the process up\",\"description\":\"The SMTP, IMAP and POP3 listeners are closed - a new connection is refused at the socket - and the delivery queue is paused; the sessions and deliveries in flight finish at their own pace, /readyz answers 503 with 'draining', and this listener, the metrics listener and the web services keep answering. This is what a stop does first, and what the live update does before it starts its helper, so the state is what an upgrade without a window looks like from outside. Server-wide; manage_server; recorded on the audit trail. 409 when already draining or not running.\",\"responses\":{\"200\":{\"description\":\"Draining; the same document GET answers\"},\"409\":{\"description\":\"already draining, or not running\"}}},"
+         "\"delete\":{\"summary\":\"Leave maintenance mode: reopen the listeners and resume delivery\",\"description\":\"The listeners are opened again on the same ports and the delivery queue resumed; /readyz answers 200 again once the database probe agrees. A port that could not be reopened - something else took it meanwhile - is named in not_reopened and as HM7150 in the error log, and the rest are open. Server-wide; manage_server; recorded on the audit trail. 409 when not draining.\",\"responses\":{\"200\":{\"description\":\"Running; the same document GET answers, plus not_reopened when a port stayed closed\"},\"409\":{\"description\":\"not draining\"}}}},"
          "\"/api/v1/me\":{\"get\":{\"summary\":\"The signed-in account's own state\",\"description\":\"HTTP Basic with the account's address and password - the same credential and the same checks as an IMAP logon, including a per-name lockout and the auto-ban. Refused for the administrator password and for API keys.\",\"responses\":{\"200\":{\"description\":\"address, domain, active, quota (limit_mb, used_bytes), vacation (enabled, active, subject, message, expires, expires_date), password_changed, second_factor, directory_linked\"},\"401\":{\"description\":\"Not an account's credentials\"},\"403\":{\"description\":\"The administrator password or an API key was presented\"}}}},"
          "\"/api/v1/me/password\":{\"post\":{\"summary\":\"Change the signed-in account's password\",\"description\":\"Body: current and new. current has to be the account password itself, not an app password. An account with a second factor sends the code in X-hMailServer-OTP; without it the answer is 401 with X-hMailServer-OTP: required. The password policy, the reuse history and the breach check apply exactly as when an administrator sets a password; a breach-check refusal carries reason (breached or breach_check_unavailable) beside error, for a page to translate.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"current\",\"new\"],\"properties\":{\"current\":{\"type\":\"string\"},\"new\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"Changed\"},\"400\":{\"description\":\"Missing fields, the policy refused the new password (the reason is in error), or it was found in the published breach corpus (reason: breached)\"},\"403\":{\"description\":\"The current password did not match\"},\"409\":{\"description\":\"A directory-linked account, or a recently used password\"},\"503\":{\"description\":\"The breach check could not reach its endpoint and breach_check_unreachable_action is refuse (reason: breach_check_unavailable); nothing changed\"}}}},"
          "\"/api/v1/me/vacation\":{\"put\":{\"summary\":\"Set the signed-in account's automatic reply\",\"description\":\"The whole state at once: enabled (required), subject, message, expires and expires_date (YYYY-MM-DD, required when expires is true).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"enabled\"],\"properties\":{\"enabled\":{\"type\":\"boolean\"},\"subject\":{\"type\":\"string\"},\"message\":{\"type\":\"string\"},\"expires\":{\"type\":\"boolean\"},\"expires_date\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The state as saved\"},\"400\":{\"description\":\"enabled missing, a field over its length, or a malformed expires_date\"}}}},"

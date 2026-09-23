@@ -38,6 +38,7 @@
 #include "MaskedAddresses.h"
 #include "../../SMTP/BounceTracker.h"
 #include "../../SMTP/DestinationBackoffTester.h"
+#include "../Persistence/SchemaUpgrader.h"
 #include "../../SMTP/DeliveryReportParser.h"
 #include "../../SMTP/ComplaintTracker.h"
 #include "DomainReports.h"
@@ -191,6 +192,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing DestinationBackoff\n"));
       DestinationBackoffTester destinationBackoffTester;
       destinationBackoffTester.Test();
+
+      // The upgrade chain walked in-process: the next script found by its
+      // shape, and - on a Compact database of the tester's own, with a chain of
+      // its own - a database at N-1 reaching N one step at a time, one at N
+      // left alone, and a failing statement leaving the version where it was
+      // and naming the step.
+      OutputDebugString(_T("hMailServer: Testing SchemaUpgrader\n"));
+      SchemaUpgraderTester schemaUpgraderTester;
+      schemaUpgraderTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing DisclaimerAdder\n"));
       DisclaimerAdderTester disclaimerAdderTester;

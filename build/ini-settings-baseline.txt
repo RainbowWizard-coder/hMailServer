@@ -49,6 +49,7 @@ Database Provider string ""
 Database Server string ""
 Database ServerFailoverPartner string ""
 Database Type string ""
+Database UpgradeOnStart integer "0"
 Database Username string ""
 
 Directories DataFolder string ""

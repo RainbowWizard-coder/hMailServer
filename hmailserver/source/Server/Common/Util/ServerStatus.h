@@ -18,7 +18,19 @@ namespace HM
          StateStopped = 1,
          StateStarting = 2,
          StateRunning = 3,
-         StateStopping = 4
+         StateStopping = 4,
+         // Maintenance mode: the listeners are closed and the delivery queue is
+         // paused while the sessions and deliveries in flight finish, and the
+         // process stays up - the metrics, REST and web-services listeners
+         // included, so /readyz (503, "draining") and the Deck keep answering.
+         // Entered by Application::EnterDrain (POST /api/v1/server/drain, and
+         // the live update before it starts its helper) and left by LeaveDrain
+         // (DELETE); a stop issued while draining goes straight on to Stopping
+         // without waiting again for what has already drained. Every place that
+         // names a state - the COM enum, /healthz, the hmailserver_state series,
+         // the Deck's dashboard and the Control Panel's status page - names this
+         // one too.
+         StateDraining = 5
       };
 
       String GetUnsortedMessageStatus()  const;

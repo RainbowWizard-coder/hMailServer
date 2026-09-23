@@ -596,6 +596,13 @@ namespace HM
          RouteFetchAccountDelete,
          RouteFetchAccountDownload,
          RouteServerReinitialize,
+         // Maintenance mode: the listeners closed and the queue paused while
+         // what is in flight finishes, with the process up. Server-wide, as the
+         // reinitialize above is; the GET is a reader's, the other two the
+         // server administrator's.
+         RouteServerDrainGet,
+         RouteServerDrainEnter,
+         RouteServerDrainLeave,
          // The anti-virus settings group, server-wide as the other groups are.
          RouteSettingsAntiVirusGet,
          RouteSettingsAntiVirusPut,
@@ -1802,6 +1809,12 @@ namespace HM
       HttpResponse HandleSettings_();
       HttpResponse HandleServerReinitialize_();
       static void ReinitializeAfterTheAnswer_();
+
+      // GET, POST and DELETE /api/v1/server/drain: the state, entering
+      // maintenance mode, leaving it. One handler, because the three answer the
+      // same document.
+      HttpResponse HandleServerDrain_(RouteKind kind);
+      static AnsiString DrainStatusJson_(const std::vector<String> &notReopened);
       static std::atomic<bool> reinitialize_pending_;
 
       // Wave 162: the write surface. Each group lives in its own translation

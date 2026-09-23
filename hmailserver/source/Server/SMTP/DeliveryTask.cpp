@@ -6,6 +6,10 @@
 
 #include "DeliveryTask.h"
 #include "SMTPDeliverer.h"
+#include "SMTPDeliveryManager.h"
+
+#include "../Common/BO/Message.h"
+#include "../Common/Persistence/PersistentMessage.h"
 
 
 
@@ -27,9 +31,21 @@ namespace HM
    {
    }
 
-   void 
+   void
    DeliveryTask::DoWork()
    {
+      // A drain pauses the delivery manager, but a task it had already handed
+      // to the queue can still reach the front of it once a thread frees up -
+      // which is exactly when the drain is waiting for that thread's delivery
+      // to finish. "A delivery already on a thread finishes; one not yet
+      // started is not started" is decided here: the message goes back
+      // unlocked, exactly as it was, for the restart or the resume to pick up.
+      if (SMTPDeliveryManager::IsDeliveryPaused())
+      {
+         PersistentMessage::UnlockObject(message_);
+         return;
+      }
+
       // Do our delivery work.
       SMTPDeliverer::DeliverMessage(message_);
    }

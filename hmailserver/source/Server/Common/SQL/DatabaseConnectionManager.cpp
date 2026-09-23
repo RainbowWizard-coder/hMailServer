@@ -723,6 +723,27 @@ namespace HM
       return result;
    }
 
+   SchemaUpgrader::Outcome
+   DatabaseConnectionManager::UpgradeSchema(int required, const String &scriptDirectory, SchemaUpgrader::Report report)
+   {
+      std::shared_ptr<DALConnection> pConnection = GetConnection_();
+
+      // GetConnection_ returns empty when the pool could not hand one out.
+      if (!pConnection)
+      {
+         SchemaUpgrader::Outcome outcome;
+         outcome.failed_step = "borrowing a connection";
+         outcome.error = "No database connection is available.";
+         return outcome;
+      }
+
+      SchemaUpgrader::Outcome outcome = SchemaUpgrader::Upgrade(pConnection, scriptDirectory, required, report);
+
+      ReleaseConnection_(pConnection);
+
+      return outcome;
+   }
+
    bool
    DatabaseConnectionManager::EnsuresPrerequisites(long DBVersion, String &sErrorMessage)
    {

@@ -299,7 +299,12 @@ Authenticode check on top. Nothing is run: applying the installer is the next pa
 **Applying it.** `Status.InstallUpdate` or `POST /api/v1/update/install` verifies
 the downloaded installer once more, fetches and verifies the running version's
 installer as a rollback image (where the feed still offers it), issues a
-single-use token for the database upgrade, and hands the installer to
+single-use token for the database upgrade, **drains the server** - closes the
+SMTP, IMAP and POP3 listeners and pauses the delivery queue, so that what is in
+flight finishes and nothing new is accepted only to be cut (`POST
+/api/v1/server/drain` does the same on its own, for maintenance; see
+[Upgrading.md](hmailserver/docs/Upgrading.md#an-upgrade-without-a-window)) - and
+hands the installer to
 `hMailServer.Updater.exe`, copied out of `Bin` into `Data\Updates` because the
 installer replaces `Bin`. The helper runs the installer silently, waits for the
 service to come back, and if it does not, reinstalls the previous version; either

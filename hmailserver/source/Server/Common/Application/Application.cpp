@@ -67,6 +67,7 @@
 #include "../Persistence/MailboxMove.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/PersistentDomain.h"
+#include "../Persistence/SchemaUpgrader.h"
 #include "RemoveExpiredRecords.h"
 #include "ScheduledMailTask.h"
 #include "../Util/AutoBanFirewall.h"
@@ -289,7 +290,37 @@ namespace HM
          return false;
       }
 
-      if (iDBVersion < Configuration::Instance()->GetRequiredDBVersion() 
+      // The schema step in the service's own start, when told to. [Database]
+      // UpgradeOnStart=1 is a file key by necessity - it has to be read before
+      // the database is at a version this build can open, which is before the
+      // settings store exists - and the one such key this row adds. With it
+      // set, an older database is brought forward here through the same code
+      // `hmailserver --upgrade-database` runs, one step at a time with one log
+      // line per step, and the start continues; without it, or when a step
+      // fails, the refusal below stands, naming the step. Nothing is backed up
+      // first: Upgrading.md says to, and this is where a restore would start.
+      const int requiredVersion = Configuration::Instance()->GetRequiredDBVersion();
+      if (iDBVersion < requiredVersion && IniFileSettings::Instance()->GetDatabaseUpgradeOnStart())
+      {
+         LOG_APPLICATION(Formatter::Format("Schema: the database is at version {0} and this build needs {1}; [Database] UpgradeOnStart is set, so the upgrade chain runs now, one step at a time.", iDBVersion, requiredVersion));
+
+         SchemaUpgrader::Outcome outcome = GetDBManager()->UpgradeSchema(requiredVersion, IniFileSettings::Instance()->GetDBScriptDirectory(),
+            [](const String &line) { LOG_APPLICATION("Schema: " + line); });
+
+         if (!outcome.ok)
+         {
+            sErrorMessage = Formatter::Format("The database is too old for this version of hMailServer, and the upgrade [Database] UpgradeOnStart asked for stopped at step {0}: {1} The database is at version {2}; the steps before that one have been applied and it will resume there. Fix the cause and start the service again, or run hMailServer Database updater (DBUpdater.exe) / hmailserver --upgrade-database. Required database version: {3}",
+               outcome.failed_step, outcome.error, outcome.version, requiredVersion);
+            last_connect_error_message_ = sErrorMessage;
+            ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5011, "Application::OnDatabaseConnected", sErrorMessage);
+            return false;
+         }
+
+         iDBVersion = outcome.version;
+         LOG_APPLICATION(Formatter::Format("Schema: upgraded in {0} step(s); the database is at version {1}.", outcome.steps, iDBVersion));
+      }
+
+      if (iDBVersion < Configuration::Instance()->GetRequiredDBVersion()
           || iDBVersion > Configuration::Instance()->GetRequiredDBVersion())
       {
          String sErrorMessage;
@@ -1037,45 +1068,74 @@ namespace HM
 
       start_time_ = "";
 
-      if (ServerStatus::Instance()->GetState() != ServerStatus::StateRunning)
+      // A stop from Running or from Draining, and from nothing else. The state
+      // moves to Stopping under the drain lock, so that a drain arriving in the
+      // same instant sees Stopping and is refused rather than both of them
+      // acting on Running.
+      bool wasDraining = false;
       {
-         LOG_DEBUG("Application::~StopServers() - E1");
-         return;
+         boost::lock_guard<boost::recursive_mutex> guard(drain_mutex_);
+
+         int state = ServerStatus::Instance()->GetState();
+         if (state != ServerStatus::StateRunning && state != ServerStatus::StateDraining)
+         {
+            LOG_DEBUG("Application::~StopServers() - E1");
+            return;
+         }
+
+         wasDraining = state == ServerStatus::StateDraining;
+         ServerStatus::Instance()->SetState(ServerStatus::StateStopping);
+         drain_since_ = "";
+
+         // The doors first. Until this row a stop kept accepting through the
+         // whole drain window and the delivery manager kept handing out queued
+         // messages, so a client that connected during the drain was accepted,
+         // counted and then cut, and an outbound session could be cut mid-DATA.
+         // Now the listeners close and the queue pauses before anything is
+         // waited for - and a drain that was entered earlier has done this.
+         if (!wasDraining)
+            CloseTheDoors_();
       }
 
-      ServerStatus::Instance()->SetState(ServerStatus::StateStopping);
-
-      // Graceful drain: give in-flight client sessions a bounded window to finish
-      // before we tear the servers down. The state is already StateStopping, so
-      // /readyz reports 503 and external load balancers stop routing new traffic
-      // (the metrics listener is intentionally kept up until the drain completes).
-      // ShutdownDrainSeconds <= 0 (the default) disables the wait entirely.
+      // Graceful drain: give the sessions and the deliveries in flight a bounded
+      // window to finish before we tear the servers down. The state is already
+      // StateStopping, so /readyz reports 503 and external load balancers stop
+      // routing new traffic (the metrics listener is intentionally kept up until
+      // the drain completes). ShutdownDrainSeconds <= 0 (the default) disables
+      // the wait entirely; the doors are closed either way. What has already
+      // drained is not waited for again: a stop after maintenance mode finds
+      // nothing in flight and goes straight on.
       int drainSeconds = IniFileSettings::Instance()->GetShutdownDrainSeconds();
       if (drainSeconds > 0)
       {
-         int activeSessions = SessionManager::Instance()->GetNumberOfConnections();
-         if (activeSessions > 0)
+         DrainStatus inFlight = GetDrainStatus();
+         if (inFlight.sessions > 0 || inFlight.deliveries > 0)
          {
-            LOG_APPLICATION(Formatter::Format("Graceful shutdown: draining {0} active session(s), up to {1}s...", activeSessions, drainSeconds));
+            LOG_APPLICATION(Formatter::Format("Drain: listeners closed; {0} session(s) and {1} delivery(ies) in flight; up to {2} seconds.", inFlight.sessions, inFlight.deliveries, drainSeconds));
 
             ULONGLONG deadline = ::GetTickCount64() + (ULONGLONG)drainSeconds * 1000;
             while (::GetTickCount64() < deadline)
             {
-               if (SessionManager::Instance()->GetNumberOfConnections() <= 0)
+               inFlight = GetDrainStatus();
+               if (inFlight.sessions <= 0 && inFlight.deliveries <= 0)
                   break;
 
                Sleep(200);
             }
 
-            int remaining = SessionManager::Instance()->GetNumberOfConnections();
-            if (remaining > 0)
+            inFlight = GetDrainStatus();
+            if (inFlight.sessions > 0 || inFlight.deliveries > 0)
             {
-               LOG_APPLICATION(Formatter::Format("Graceful shutdown: drain window elapsed with {0} session(s) still active; stopping anyway.", remaining));
+               LOG_APPLICATION(Formatter::Format("Graceful shutdown: drain window elapsed with {0} session(s) and {1} delivery(ies) still active; stopping anyway.", inFlight.sessions, inFlight.deliveries));
             }
             else
             {
-               LOG_APPLICATION("Graceful shutdown: all sessions drained.");
+               LOG_APPLICATION("Graceful shutdown: all sessions and deliveries drained.");
             }
+         }
+         else if (wasDraining)
+         {
+            LOG_APPLICATION("Graceful shutdown: already drained; stopping now.");
          }
       }
 
@@ -1149,6 +1209,110 @@ namespace HM
 
       LOG_APPLICATION("Servers stopped.")
 
+   }
+
+   void
+   Application::CloseTheDoors_()
+   {
+      if (io_service_)
+         io_service_->StopAccepting();
+
+      if (smtp_delivery_manager_)
+         smtp_delivery_manager_->Pause();
+   }
+
+   bool
+   Application::IsDraining() const
+   {
+      return ServerStatus::Instance()->GetState() == ServerStatus::StateDraining;
+   }
+
+   Application::DrainStatus
+   Application::GetDrainStatus()
+   {
+      DrainStatus status;
+      status.draining = IsDraining();
+
+      // Copied under the lock: EnterDrain and LeaveDrain write it on their
+      // threads, and a String read while it is written is a torn read.
+      {
+         boost::lock_guard<boost::recursive_mutex> guard(drain_mutex_);
+         status.since = status.draining ? drain_since_ : String();
+      }
+
+      status.sessions = SessionManager::Instance()->GetNumberOfConnections();
+
+      // A copy of the pointer: StopServers resets the member on another thread.
+      std::shared_ptr<SMTPDeliveryManager> deliveryManager = smtp_delivery_manager_;
+      status.deliveries = deliveryManager ? deliveryManager->GetDeliveriesInFlight() : 0;
+
+      status.drained = status.draining && status.sessions <= 0 && status.deliveries <= 0;
+      return status;
+   }
+
+   String
+   Application::EnterDrain()
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(drain_mutex_);
+
+      int state = ServerStatus::Instance()->GetState();
+      if (state == ServerStatus::StateDraining)
+         return "already draining";
+      if (state != ServerStatus::StateRunning)
+         return "not running";
+
+      ServerStatus::Instance()->SetState(ServerStatus::StateDraining);
+      drain_since_ = Time::GetCurrentDateTime();
+
+      CloseTheDoors_();
+
+      DrainStatus inFlight = GetDrainStatus();
+      LOG_APPLICATION(Formatter::Format("Drain: listeners closed; {0} session(s) and {1} delivery(ies) in flight; until the drain is left.", inFlight.sessions, inFlight.deliveries));
+
+      return "";
+   }
+
+   String
+   Application::LeaveDrain(std::vector<String> &notReopened)
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(drain_mutex_);
+      notReopened.clear();
+
+      if (ServerStatus::Instance()->GetState() != ServerStatus::StateDraining)
+         return "not draining";
+
+      // The queue before the doors, so that a message that became due during
+      // the drain is on its way by the time a client can connect again.
+      if (smtp_delivery_manager_)
+         smtp_delivery_manager_->Resume();
+
+      if (io_service_)
+         io_service_->StartAccepting(notReopened);
+
+      drain_since_ = "";
+      ServerStatus::Instance()->SetState(ServerStatus::StateRunning);
+
+      if (notReopened.empty())
+      {
+         LOG_APPLICATION("Drain: left; the listeners are open and delivery has resumed.");
+      }
+      else
+      {
+         String list;
+         for (size_t i = 0; i < notReopened.size(); i++)
+         {
+            if (i > 0)
+               list += _T(", ");
+            list += notReopened[i];
+         }
+
+         // High, not Critical: the server is running and the other listeners are
+         // open. The acceptor has already said which port and why (HM4316).
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 7150, "Application::LeaveDrain",
+            Formatter::Format("The drain was left, but the listener(s) on {0} could not be reopened - something else took the port while the listeners were closed; the error log names it (HM4316). The other listeners are open and delivery has resumed. A restart of the service tries every port again.", list));
+      }
+
+      return "";
    }
 
    String

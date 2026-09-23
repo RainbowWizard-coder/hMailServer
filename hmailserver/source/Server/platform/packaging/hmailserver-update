@@ -74,6 +74,10 @@
 #   wait=180                     seconds to wait for the service to come back
 #   ready_url=http://127.0.0.1:9090/readyz   (optional) the metrics listener's probe
 #   image=/opt/hmailserver/hMailServer.AppImage   (appimage only) the file to swap
+#   drain=1                      (optional) the server has already closed its
+#                                listeners and paused its queue; the stop
+#                                below finishes what is in flight. Told for
+#                                the journal - the stop is the same either way.
 #
 # Usage:
 #   hmailserver-update apply --request FILE [--updates-dir DIR] [--dry-run]
@@ -217,6 +221,7 @@ read_request()
          wait)             WAIT=$value ;;
          ready_url)        READY_URL=$value ;;
          image)            IMAGE=$value ;;
+         drain)            DRAIN=$value ;;
          *) refuse "the request names a key this program does not know: $key" ;;
       esac
    done
@@ -406,6 +411,12 @@ run()
 
 stop_unit()
 {
+   # A server that said drain=1 has already closed its listeners and paused its
+   # queue; the stop finishes the sessions and deliveries in flight, up to its
+   # ShutdownDrainSeconds, exactly as it does without the key.
+   if [ "${DRAIN:-0}" = 1 ]; then
+      say "the server has drained (its listeners are closed and its queue paused); stopping it finishes what is in flight"
+   fi
    run systemctl stop "$UNIT"
 }
 

@@ -178,6 +178,10 @@ namespace hMailServer.ControlPanel.Views
          2 => L("Starting"),
          3 => L("Running"),
          4 => L("Stopping"),
+         // Maintenance mode: the listeners closed and delivery paused while what
+         // is in flight finishes, the process up. Entered and left over REST
+         // (POST and DELETE /api/v1/server/drain) and by the live update.
+         5 => L("Draining"),
          _ => L("Unknown")
       };
 

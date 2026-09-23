@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   https://www.progressiverobot.com
   Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
@@ -3190,6 +3190,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Den Installer herunterladen und prüfen, sobald eine Version gefunden wird</value>
+  </data>
+  <data name="Draining" xml:space="preserve">
+    <value>Wird entleert</value>
   </data>
   <data name="Drop it without a report" xml:space="preserve">
     <value>Ohne Bericht verwerfen</value>

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   https://www.progressiverobot.com
   Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
@@ -3190,6 +3190,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Загружать и проверять установщик, как только найден выпуск</value>
+  </data>
+  <data name="Draining" xml:space="preserve">
+    <value>Дренаж</value>
   </data>
   <data name="Drop it without a report" xml:space="preserve">
     <value>Пропустить без отчёта</value>
