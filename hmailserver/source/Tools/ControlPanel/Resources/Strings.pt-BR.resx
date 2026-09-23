@@ -8013,6 +8013,9 @@ Continuar?</value>
   <data name="Set flags" xml:space="preserve">
     <value>Definir sinalizadores</value>
   </data>
+  <data name="Set from a file of the server's environment, so not shown. Type a new value to replace it." xml:space="preserve">
+    <value>Definido a partir de um arquivo do ambiente do servidor, por isso não é exibido. Digite um novo valor para substituí-lo.</value>
+  </data>
   <data name="Set header value" xml:space="preserve">
     <value>Definir o valor do cabeçalho</value>
   </data>

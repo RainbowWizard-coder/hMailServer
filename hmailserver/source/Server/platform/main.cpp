@@ -37,7 +37,6 @@
 #include <cstdlib>
 #include <map>
 #include <string>
-#include <boost/asio/ip/address.hpp>
 
 #include "../Common/Application/Application.h"
 #include "../Common/Application/Version.h"
@@ -166,10 +165,11 @@ namespace
          "                    stored only when every one is right; one line each,\n"
          "                    set, unchanged or refused, and never a value from a\n"
          "                    file or a secret. Exits 1 on any refusal, having\n"
-         "                    changed nothing. The settings named are refused to\n"
-         "                    every other interface until a run without them. The\n"
-         "                    container's entrypoint runs it at every start; run it\n"
-         "                    as the user the service runs as.\n"
+         "                    changed nothing. An administrator's change to a\n"
+         "                    setting named is refused over REST and COM until a\n"
+         "                    run without it. The container's entrypoint runs it\n"
+         "                    when there is anything to apply; run it as the user\n"
+         "                    the service runs as.\n"
          "  --sample-domain create\n"
          "  --sample-domain remove\n"
          "                    make a throwaway example.test - three mailboxes\n"
@@ -422,68 +422,26 @@ namespace
    }
 
    // The checks a value gets beyond what the store can hold, for the keys where a
-   // value the store takes happily is one the server cannot use. The loader reads
-   // a port with _ttoi, so "abc" and "" are 0 - the listener off - and 99999 is no
-   // port at all; the REST listener's address is parsed only when the listener
-   // starts, and a bad one is a line in the application log. Stored and reported
-   // as a success, either would leave the administrator who ran this to turn the
-   // REST listener on with no listener, no hmctl and nothing on the terminal -
-   // the situation this verb exists for. The ports are the six [Settings] keys the
-   // loader reads as port numbers (IniFileSettings::LoadSettings); the address is
-   // parsed as HttpServer::Listen parses it. Every other key is held only to what
-   // COM SetIniSetting and PUT /api/v1/settings/ini hold it to.
-   bool IsPortSetting(const HM::String &name)
-   {
-      return name.CompareNoCase(_T("RestApiPort")) == 0 ||
-             name.CompareNoCase(_T("MetricsServerPort")) == 0 ||
-             name.CompareNoCase(_T("ManageSieveServerPort")) == 0 ||
-             name.CompareNoCase(_T("WebServicesHttpPort")) == 0 ||
-             name.CompareNoCase(_T("WebServicesHttpsPort")) == 0 ||
-             name.CompareNoCase(_T("AcmeHttpPort")) == 0;
-   }
-
+   // value the store takes happily is one the server cannot use: the loader reads a
+   // port and every other whole-number key with GetPrivateProfileInt, so "abc" and
+   // "" are 0 - a port's listener off - and 99999 is no port at all; the REST
+   // listener's address is parsed only when the listener starts, and a bad one is a
+   // line in the application log. Stored and reported as a success, either would
+   // leave the administrator who ran this to turn the REST listener on with no
+   // listener, no hmctl and nothing on the terminal - the situation this verb exists
+   // for. The checks are the ones hmailserver --apply-environment makes, in its
+   // words (EnvironmentSettings::CheckIniValue), whose sentences never repeat the
+   // value; every other key is held only to what COM SetIniSetting and PUT
+   // /api/v1/settings/ini hold it to.
    bool CheckValue(const HM::String &name, const HM::String &value)
    {
-      if (!HM::IniSettingStore::IsStorableValue(value))
-      {
-         std::fprintf(stderr, "The value is longer than 4000 characters or contains a line break, so it could not be stored or read back as one setting. Nothing was changed.\n");
-         return false;
-      }
+      const HM::String problem = HM::EnvironmentSettings::CheckIniValue(name, value);
+      if (problem.IsEmpty())
+         return true;
 
-      const HM::AnsiString shown(name);
-      const HM::AnsiString narrow(value);
-      const std::string text(narrow.c_str());
-
-      if (IsPortSetting(name))
-      {
-         bool valid = !text.empty() && text.size() <= 5 && text.find_first_not_of("0123456789") == std::string::npos;
-         if (valid && std::strtol(text.c_str(), nullptr, 10) > 65535)
-            valid = false;
-
-         if (!valid)
-         {
-            std::fprintf(stderr, "%s is a TCP port: a whole number from 0, which leaves its listener off, to 65535. '%s' is not one, and the server would not listen where you meant. Nothing was changed.\n",
-               shown.c_str(), text.c_str());
-            return false;
-         }
-      }
-
-      if (name.CompareNoCase(_T("RestApiBindAddress")) == 0)
-      {
-         // localhost is the one name HttpServer::Listen takes, as 127.0.0.1.
-         boost::system::error_code error;
-         if (text != "localhost")
-            (void) boost::asio::ip::make_address(text.c_str(), error);
-
-         if (text.empty() || error)
-         {
-            std::fprintf(stderr, "RestApiBindAddress is the address the REST listener binds: an IP address such as 127.0.0.1, ::1 or 0.0.0.0, or localhost. '%s' is not one, and the listener would not start. Nothing was changed.\n",
-               text.c_str());
-            return false;
-         }
-      }
-
-      return true;
+      const HM::AnsiString sentence(problem);
+      std::fprintf(stderr, "%s Nothing was changed.\n", sentence.c_str());
+      return false;
    }
 
    // One line of standard input, for a value that is not to be on the command

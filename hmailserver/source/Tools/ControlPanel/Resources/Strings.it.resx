@@ -8013,6 +8013,9 @@ Continuare?</value>
   <data name="Set flags" xml:space="preserve">
     <value>Imposta i flag</value>
   </data>
+  <data name="Set from a file of the server's environment, so not shown. Type a new value to replace it." xml:space="preserve">
+    <value>Impostato da un file dell'ambiente del server, quindi non viene mostrato. Digitare un nuovo valore per sostituirlo.</value>
+  </data>
   <data name="Set header value" xml:space="preserve">
     <value>Imposta il valore dell'intestazione</value>
   </data>

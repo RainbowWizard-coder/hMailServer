@@ -65,8 +65,11 @@ rest:
 # every start, so the Control Deck and the REST API refuse a change to a setting
 # named here - it would last only until the pod restarted - and show it as set
 # by the environment; take it out of these values to manage it there again. A
-# value is text, as the environment has no other kind: quote a number or a
-# switch ("30", "true").
+# value is text, as the environment has no other kind; a whole number may be
+# left unquoted. A switch is 1 or 0 for a [Settings] key, which the server
+# reads as a number; true and false, yes and no, on and off are taken as well
+# for a setting whose REST settings row is a switch. Neither prefix names the
+# two [SendingLimits] keys, which stay in hMailServer.ini.
 settings: {}
 #  MaxSubmissionsPerIPPerMinute: "30"
 properties: {}

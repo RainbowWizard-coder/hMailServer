@@ -8013,6 +8013,9 @@ Pokračovat?</value>
   <data name="Set flags" xml:space="preserve">
     <value>Nastavit příznaky</value>
   </data>
+  <data name="Set from a file of the server's environment, so not shown. Type a new value to replace it." xml:space="preserve">
+    <value>Nastaveno ze souboru v prostředí serveru, proto se nezobrazuje. Chcete-li hodnotu nahradit, zadejte novou.</value>
+  </data>
   <data name="Set header value" xml:space="preserve">
     <value>Nastavit hodnotu hlavičky</value>
   </data>

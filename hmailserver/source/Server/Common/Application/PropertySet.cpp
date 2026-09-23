@@ -102,9 +102,9 @@ namespace HM
    PropertySet::GetProperty_(const String & sPropertyName)
    {
       // A reader asking which property it holds (ReadRecorder). The environment's
-      // record is the server's bookkeeping, read beside a setting rather than as
-      // one, and is never a name a row holds.
-      if (recorder_ && sPropertyName != EnvironmentSettings::MarkerName())
+      // records are the server's bookkeeping, read beside a setting rather than as
+      // one, and are never a name a row holds.
+      if (recorder_ && sPropertyName != EnvironmentSettings::MarkerName() && sPropertyName != EnvironmentSettings::SecretMarkerName())
       {
          if (std::find(recorder_->names_.begin(), recorder_->names_.end(), sPropertyName) == recorder_->names_.end())
             recorder_->names_.push_back(sPropertyName);
@@ -168,15 +168,20 @@ namespace HM
       std::shared_ptr<Property> pProperty = GetProperty_(sPropertyName);
       long previousValue = pProperty->GetLongValue();
       bool bChanged = lValue != previousValue;
+      bool withheld = false;
       if (bChanged)
+      {
          RefuseIfEnvironmentManaged_(sPropertyName);
+         withheld = IsWithheld_(sPropertyName);
+      }
       pProperty->SetLongValue(lValue);
 
       if (bChanged)
       {
          AuditTrail::Instance()->RecordSettingChange(sPropertyName,
-            StringParser::IntToString((int) previousValue), StringParser::IntToString((int) lValue));
+            StringParser::IntToString((int) previousValue), StringParser::IntToString((int) lValue), _T("updated"), withheld);
 
+         ForgetIfWithheld_(sPropertyName, withheld);
          OnPropertyChanged_(pProperty);
       }
    }
@@ -187,15 +192,20 @@ namespace HM
       std::shared_ptr<Property> pProperty = GetProperty_(sPropertyName);
       bool previousValue = pProperty->GetBoolValue();
       bool bChanged = bValue != previousValue;
+      bool withheld = false;
       if (bChanged)
+      {
          RefuseIfEnvironmentManaged_(sPropertyName);
+         withheld = IsWithheld_(sPropertyName);
+      }
       pProperty->SetBoolValue(bValue);
 
       if (bChanged)
       {
          AuditTrail::Instance()->RecordSettingChange(sPropertyName,
-            previousValue ? _T("true") : _T("false"), bValue ? _T("true") : _T("false"));
+            previousValue ? _T("true") : _T("false"), bValue ? _T("true") : _T("false"), _T("updated"), withheld);
 
+         ForgetIfWithheld_(sPropertyName, withheld);
          OnPropertyChanged_(pProperty);
       }
    }
@@ -206,16 +216,29 @@ namespace HM
       std::shared_ptr<Property> pProperty = GetProperty_(sPropertyName);
       String previousValue = pProperty->GetStringValue();
       bool bChanged = sValue != previousValue;
+      bool withheld = false;
       if (bChanged)
+      {
          RefuseIfEnvironmentManaged_(sPropertyName);
+         withheld = IsWithheld_(sPropertyName);
+      }
       pProperty->SetStringValue(sValue);
 
       if (bChanged)
       {
-         AuditTrail::Instance()->RecordSettingChange(sPropertyName, previousValue, sValue);
+         AuditTrail::Instance()->RecordSettingChange(sPropertyName, previousValue, sValue, _T("updated"), withheld);
 
+         ForgetIfWithheld_(sPropertyName, withheld);
          OnPropertyChanged_(pProperty);
       }
+   }
+
+   void
+   PropertySet::SetBookkeeping(const String &sPropertyName, const String &sValue)
+   {
+      std::shared_ptr<Property> pProperty = GetProperty_(sPropertyName);
+      if (pProperty->GetStringValue() != sValue)
+         pProperty->SetStringValue(sValue);
    }
 
    bool
@@ -312,6 +335,26 @@ namespace HM
       return false;
    }
 
+   bool
+   PropertySet::IsWithheld_(const String &sPropertyName)
+   {
+      // Asked only where the answer is used: an administrator's change, which the
+      // audit trail records. Nothing else records, and nothing else forgets.
+      if (!AuditTrail::HasActor())
+         return false;
+
+      return EnvironmentSettings::IsWithheld(EnvironmentSettings::StoreDatabase, sPropertyName);
+   }
+
+   void
+   PropertySet::ForgetIfWithheld_(const String &sPropertyName, bool withheld)
+   {
+      // The value an administrator has just written is theirs, not the file's, and
+      // is shown as any other is from now on.
+      if (withheld)
+         EnvironmentSettings::ForgetSecretOrigin(EnvironmentSettings::StoreDatabase, sPropertyName);
+   }
+
    void
    PropertySet::RefuseIfEnvironmentManaged_(const String &sPropertyName)
    {
@@ -348,12 +391,13 @@ namespace HM
             continue;
          }
 
-         // Nor the record of which settings the environment manages: it describes
-         // the deployment this database runs under, which a restore onto another
-         // server does not bring with it, and a server that never runs
-         // --apply-environment would otherwise refuse changes to those settings for
-         // ever (docs/EnvironmentConfiguration.md).
-         if (String(oProperty->GetName()).CompareNoCase(EnvironmentSettings::MarkerName()) == 0)
+         // Nor the records of which settings the environment manages and which of
+         // their values a file supplied: they describe the deployment this database
+         // runs under, which a restore onto another server does not bring with it,
+         // and a server that never runs --apply-environment would otherwise refuse
+         // changes to those settings for ever (docs/EnvironmentConfiguration.md).
+         if (String(oProperty->GetName()).CompareNoCase(EnvironmentSettings::MarkerName()) == 0 ||
+             String(oProperty->GetName()).CompareNoCase(EnvironmentSettings::SecretMarkerName()) == 0)
          {
             iterProperty++;
             continue;
@@ -388,9 +432,11 @@ namespace HM
          if (sName.CompareNoCase(PROPERTY_BACKUPENCRYPTIONPASSPHRASE) == 0)
             continue;
 
-         // The environment's record is this server's deployment, not the archive's.
-         if (sName.CompareNoCase(EnvironmentSettings::MarkerName()) == 0)
+         // The environment's records are this server's deployment, not the archive's.
+         if (sName.CompareNoCase(EnvironmentSettings::MarkerName()) == 0 ||
+             sName.CompareNoCase(EnvironmentSettings::SecretMarkerName()) == 0)
             continue;
+
          String sStringValue = pPropertyNode->GetAttrValue(_T("StringValue"));
          int iLongValue = _ttoi(pPropertyNode->GetAttrValue(_T("LongValue")));
 

@@ -131,5 +131,42 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Empty(IniFeatureStore.EnvironmentManaged());
       }
+
+      // The values a file of the environment supplied, now or before: the document's
+      // from_file list, which the pages read so as not to show such a value in a field.
+      private const string Withheld =
+         "{\"changed\":0,\"considered\":400,\"settings\":[],\"environment\":[]," +
+         "\"from_file\":[{\"store\":\"database\",\"name\":\"welcomesmtp\"},{\"store\":\"ini\",\"name\":\"ServiceAccountName\"}," +
+         "{\"store\":\"elsewhere\",\"name\":\"x\"}]}";
+
+      [Fact]
+      public void TheValuesAFileSuppliedAreReadFromTheDocumentByStoreAndName()
+      {
+         IReadOnlyList<EnvironmentSettings.Withheld> entries = EnvironmentSettings.ParseFromFile(Withheld);
+
+         Assert.Equal(2, entries.Count);
+         Assert.True(EnvironmentSettings.IsWithheld(entries, EnvironmentSettings.StoreDatabase, "WelcomeSMTP"));
+         Assert.True(EnvironmentSettings.IsWithheld(entries, EnvironmentSettings.StoreIni, "serviceaccountname"));
+         Assert.False(EnvironmentSettings.IsWithheld(entries, EnvironmentSettings.StoreIni, "welcomesmtp"));
+         Assert.Empty(EnvironmentSettings.ParseFromFile(Document));
+         Assert.Empty(EnvironmentSettings.ParseFromFile(null));
+         Assert.ThrowsAny<JsonException>(() => EnvironmentSettings.ParseFromFile("[1]"));
+         Assert.DoesNotContain("{0}", EnvironmentSettings.WithheldPlaceholder());
+      }
+
+      [Fact]
+      public void AFieldWhoseValueAFileSuppliedIsKnownByItsKeyOrItsPropertysName()
+      {
+         IniFeatureStore.ComChangedDocument = () => Withheld;
+         IniFeatureStore.LoadEnvironment();
+
+         Assert.True(IniFeatureStore.WithheldComPath("WelcomeSMTP"));
+         Assert.True(IniFeatureStore.WithheldKey("ServiceAccountName"));
+         Assert.False(IniFeatureStore.WithheldKey("WelcomeSMTP"));
+         Assert.False(IniFeatureStore.WithheldComPath("MaxMessageSize"));
+
+         IniFeatureStore.ForgetApplies();
+         Assert.False(IniFeatureStore.WithheldComPath("WelcomeSMTP"));
+      }
    }
 }

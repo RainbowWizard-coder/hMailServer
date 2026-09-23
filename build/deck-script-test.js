@@ -1654,15 +1654,17 @@ const state = {
    // shown, a name the server ships no default for, a property of the other
    // store - so that the column that says which store is exercised too - and one
    // the file's [SettingsOverride] section is forcing, which is a value nothing
-   // else on the Deck shows.
+   // else on the Deck shows - and one the server's environment sets, from a file,
+   // which the server answers masked and marked.
    changed: {
-      changed: 5, considered: 391,
+      changed: 6, considered: 391,
       settings: [
          { store: 'ini', name: 'LogLevel', value: '5', default: '9', secret: false, known: true },
          { store: 'ini', name: 'OAuth2HmacSecret', value: '(set)', default: '', secret: true, known: true },
          { store: 'ini', name: 'OurOwnScriptKey', value: 'yes', default: '', secret: false, known: false },
          { store: 'database', name: 'smtpnoofretries', value: '6', default: '4', secret: false, known: true },
-         { store: 'ini', name: 'DnsServer', value: '10.0.0.1', default: '', secret: false, known: true, overridden: true }
+         { store: 'ini', name: 'DnsServer', value: '10.0.0.1', default: '', secret: false, known: true, overridden: true },
+         { store: 'database', name: 'welcomesmtp', value: '(set)', default: '', secret: true, known: true, environment: 'file' }
       ]
    },
    // The reports. The index says what each source is and how far back it can
@@ -4926,7 +4928,9 @@ async function main() {
    click(act('setsave', { group: 'av' }));
    await flush();
    put = lastBody(before, 'PUT', '/api/v1/settings/antivirus');
-   check('saving the group never sends a key the environment sets', !!put && JSON.stringify(put) === '{"clamav_host":"scanner.example.test"}', JSON.stringify(put));
+   // What keeps a key the environment sets out of a save is that it has no
+   // control (the check above): a save sends only what was edited, and always has.
+   check('saving the group sends only the key that was edited', !!put && JSON.stringify(put) === '{"clamav_host":"scanner.example.test"}', JSON.stringify(put));
    check('the settings view reads what is pending, and says it above the groups', called(before, 'GET', '/api/v1/server/settings/pending').length === 1 &&
       !!$('#pendingBar') && $('#pendingBar').textContent.indexOf('1 saved setting(s) wait for a reinitialize.') >= 0 &&
       $('#pendingBar').textContent.indexOf('ManageSieveServerPort') >= 0 && !!act('applypending'), $('#pendingBar') ? $('#pendingBar').textContent : 'no bar');
@@ -5796,7 +5800,7 @@ async function main() {
    await goTo('changed');
    check('the Changed from stock view asks the one route that answers it',
       called(before, 'GET', '/api/v1/settings/changed').length === 1, paths(before));
-   check('and lists a row for each setting that is not what this version ships with', rows().length === 5, String(rows().length));
+   check('and lists a row for each setting that is not what this version ships with', rows().length === 6, String(rows().length));
    check('with the store, the name, the value and the shipped default beside each other',
       rows()[0].textContent.indexOf('ini') >= 0 && rows()[0].textContent.indexOf('LogLevel') >= 0 &&
       rows()[0].textContent.indexOf('5') >= 0 && rows()[0].textContent.indexOf('9') >= 0, rows()[0].textContent);
@@ -5808,8 +5812,11 @@ async function main() {
    check('the other store is named as itself', rows()[3].textContent.indexOf('database') >= 0, rows()[3].textContent);
    check('a value the file is forcing says so, because no other page of the Deck shows an override',
       rows()[4].textContent.indexOf('Forced from [SettingsOverride] in hMailServer.ini') >= 0, rows()[4].textContent);
+   check('a value the server\'s environment sets is marked with where it came from, and a file\'s is not shown',
+      !!rows()[5].querySelector('[data-environment="file"]') && rows()[5].textContent.indexOf('Set by the environment, from a file') >= 0 &&
+      rows()[5].textContent.indexOf('(set)') >= 0 && rows()[0].querySelector('[data-environment]') === null, rows()[5].textContent);
    check('and the count is given against the number of settings there are',
-      content().textContent.indexOf('5 of 391 settings') >= 0, content().textContent.slice(-200));
+      content().textContent.indexOf('6 of 391 settings') >= 0, content().textContent.slice(-200));
    check('the page only reads: it offers nothing that would change a setting from here',
       content().querySelectorAll('button').length === 0 && content().querySelectorAll('input').length === 0,
       String(content().querySelectorAll('button').length));

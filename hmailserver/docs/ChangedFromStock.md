@@ -53,7 +53,8 @@ Panel could disagree.
   "environment": [
     { "variable": "HM_PROPERTY_maxmessagesize", "store": "database",
       "name": "maxmessagesize", "source": "variable" }
-  ]
+  ],
+  "from_file": []
 }
 ```
 
@@ -70,7 +71,7 @@ Panel could disagree.
   handful the stored value is also the one in force; the exceptions are the few
   the loader clamps, below.
 * **`secret`**, **`known`**, **`overridden`** and **`environment`** are below, and
-  so is the **`environment`** list beside `settings`.
+  so are the **`environment`** and **`from_file`** lists beside `settings`.
 
 ## What "default" means
 
@@ -182,8 +183,9 @@ A setting the server's environment sets - `HM_SETTING_<key>` or
 `HM_PROPERTY_<name>`, stored by `hmailserver --apply-environment` at every start
 ([EnvironmentConfiguration.md](EnvironmentConfiguration.md)) - that differs from
 stock is listed with its source: `environment` is `variable` or `file` (null for
-every other entry), and a value a file supplied is shown as `(set)`, as a secret's
-is, because a file is how a Secret supplies one. The deployment changed it, not an
+every other entry), and a value a file supplied is shown as `(set)` with `secret`
+true, as a secret's is, because a file is how a Secret supplies one - while the
+file sets it, and after, until an administrator writes another value. The deployment changed it, not an
 administrator, and no interface will change it back while the variable is set -
 which is what somebody reading this list needs to know before trying. `hmctl`
 prints `(set by the environment)` beside the value and the Deck says the same.
@@ -191,7 +193,10 @@ prints `(set by the environment)` beside the value and the Deck says the same.
 Beside `settings`, the document's **`environment`** list names every setting the
 environment sets, as `{variable, store, name, source}`, whether or not its value
 differs from stock - never a value. It is what the Control Panel reads to mark those
-fields, because this document is what it already asks for over COM.
+fields, because this document is what it already asks for over COM. The
+**`from_file`** list names, as `{store, name}`, every setting whose value is withheld
+because a file supplied it, now or before; the Control Panel reads it so as not to
+show such a value in a field.
 
 ## Which values these are
 

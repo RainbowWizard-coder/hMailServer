@@ -8013,6 +8013,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Set flags" xml:space="preserve">
     <value>设置标志</value>
   </data>
+  <data name="Set from a file of the server's environment, so not shown. Type a new value to replace it." xml:space="preserve">
+    <value>由服务器环境中的文件设置，因此不显示。键入新值即可替换。</value>
+  </data>
   <data name="Set header value" xml:space="preserve">
     <value>设置标头值</value>
   </data>

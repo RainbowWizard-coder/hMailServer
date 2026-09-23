@@ -16,7 +16,9 @@ namespace HM
    /// Either with _FILE after it names a file to read the value from, which is how
    /// a Kubernetes Secret mounted as a file supplies one; the file's trailing line
    /// breaks are stripped. A name that is not one of those is refused with the
-   /// nearest one named; a plain form and a _FILE form both set, or two variables
+   /// nearest one named; a prefix that looks like one of the two and is not
+   /// (HM_SETTINGS_, HM_PROPERTIES_, a prefix in small letters) is refused naming
+   /// the right one; a plain form and a _FILE form both set, or two variables
    /// naming the same setting, are refused as well. The four REST variables the
    /// container has always taken - HM_REST_PORT, HM_REST_BIND_ADDRESS,
    /// HM_REST_CERTIFICATE_FILE and HM_REST_PRIVATE_KEY_FILE - are aliases of
@@ -26,14 +28,16 @@ namespace HM
    /// THE VERB. `hmailserver --apply-environment` (and hMailServer.exe
    /// --apply-environment on Windows) reads the process's environment, opens the
    /// configuration and the database as the service does, checks every value
-   /// FIRST - a [Settings] key's against the baseline's kind and the listener
-   /// checks --set-setting makes, a property's against its kind and the check its
-   /// REST settings row makes, with that row's sentence - and only when every one
-   /// passes writes them: a [Settings] key through IniFileSettings::WriteSettingsValue,
-   /// the locked write path every save takes, and a property through the property
-   /// set. One line per variable: set, unchanged, or refused and why. A refusal
-   /// changes nothing and exits 1, so a container does not start on a setting it
-   /// was not given.
+   /// FIRST - against the setting's kind, the listener checks --set-setting makes,
+   /// and the check the setting's REST settings row makes, with that row's sentence
+   /// (a sentence that could quote a secret is replaced by one that does not) - and
+   /// only when every one passes writes them: through the REST row's setter where a
+   /// row lends one (RestApiSettingsRows), so a value is stored as REST stores it,
+   /// else a [Settings] key through IniFileSettings::WriteSettingsValue, the locked
+   /// write path every save takes, and a property through the property set. One
+   /// line per variable: set, unchanged, or refused and why. A refusal changes
+   /// nothing and exits 1, so a container does not start on a setting it was not
+   /// given.
    ///
    /// THE ENVIRONMENT WINS, EVERY START. A value the environment sets is written at
    /// every run of the verb, which the container's entrypoint makes at every start.
@@ -45,11 +49,12 @@ namespace HM
    /// show the setting as managed. The edit would last only until the next start;
    /// refusing it is what keeps it from being accepted and lost.
    ///
-   /// A SECRET STAYS ONE. Nothing a _FILE supplied, and nothing a setting whose name
-   /// says it is a secret holds, is printed by the verb, answered over REST (a
-   /// _FILE value is answered as (set), or null where the row is not text), put on
-   /// a command line or written to a log: the verb's lines carry the variable's
-   /// name and never its value.
+   /// A SECRET STAYS ONE. A value a _FILE supplied is recorded as such - the row
+   /// EnvironmentSecretSettings, names only - and stays withheld after the variable
+   /// is gone, until an administrator writes another value: never printed by the
+   /// verb, answered by the settings routes and the changed document as (set) or
+   /// null, and recorded by the audit trail as (changed). A setting whose name says
+   /// it is a secret is treated the same way wherever this row prints or answers.
    /// </summary>
    class EnvironmentSettings
    {
@@ -110,7 +115,7 @@ namespace HM
       /// <summary>
       /// The whole verb: the process's environment read, the configuration and the
       /// database opened as the service opens them, every variable checked, then
-      /// written and the marker rewritten, the lines printed. 0 when everything was
+      /// written and the records rewritten, the lines printed. 0 when everything was
       /// set or unchanged (and when nothing was named), 1 on any refusal or when the
       /// database could not be opened, 2 when the configuration names no database.
       /// </summary>
@@ -133,6 +138,24 @@ namespace HM
       static void ReadManaged(std::vector<Entry> &entries);
 
       /// <summary>
+      /// The settings whose value came from a file of the environment and has not
+      /// been rewritten since, by anybody but the environment itself: the record
+      /// EnvironmentSecretSettings. Each entry's source is SourceFile.
+      /// </summary>
+      static void ReadSecretOrigins(std::vector<Entry> &entries);
+
+      /// <summary>Whether one setting's value came from a file, and is still withheld.</summary>
+      static bool IsSecretOrigin(Store store, const String &name);
+
+      /// <summary>
+      /// Called by the store chokepoints after an administrator wrote a new value to a
+      /// setting whose value came from a file: the new value is the administrator's,
+      /// not the file's, and is shown as any other is. Writes the record without an
+      /// audit row of its own and without being refused.
+      /// </summary>
+      static void ForgetSecretOrigin(Store store, const String &name);
+
+      /// <summary>
       /// One line in the application log at every start and reinitialise naming the
       /// settings the environment sets, which no interface will change; nothing when
       /// there are none.
@@ -141,6 +164,12 @@ namespace HM
 
       /// <summary>Whether the environment manages one setting, and the entry when it does.</summary>
       static bool IsManaged(Store store, const String &name, Entry &entry);
+
+      /// <summary>
+      /// Whether the value of one setting is withheld from every answer: a file of
+      /// the environment supplied it, now or before, and nobody has written another.
+      /// </summary>
+      static bool IsWithheld(Store store, const String &name);
 
       /// <summary>
       /// The same, read straight from the database rather than from a loaded
@@ -160,8 +189,7 @@ namespace HM
       /// The chokepoints' check. Throws Refusal when an audit actor is installed on
       /// this thread (an administrator's change through COM or REST) and the setting
       /// is managed. The caller calls it only for a change that moves the value: a
-      /// write of the value already held changes nothing and is let through, which
-      /// is what lets a page or a document that sends back what it read be saved.
+      /// write of the value already held changes nothing and is let through.
       /// </summary>
       static void RefuseAdministratorChange(Store store, const String &name);
 
@@ -177,11 +205,28 @@ namespace HM
       /// </summary>
       static const TCHAR *MarkerName();
 
+      /// <summary>The hm_settings row the settings whose value came from a file are kept in; as MarkerName.</summary>
+      static const TCHAR *SecretMarkerName();
+
+      /// <summary>
+      /// The file --apply-environment keeps in the data directory while the
+      /// environment manages anything - so that the container's entrypoint, which
+      /// otherwise runs the verb only when a variable names a setting, runs it on a
+      /// start without them and the settings are given back.
+      /// </summary>
+      static String MarkerFile();
+
+      /// <summary>
+      /// The sentence a value the settings store cannot hold is refused with, by the
+      /// REST ini route, --set-setting and --apply-environment alike.
+      /// </summary>
+      static const char *NotStorableSentence();
+
       /// <summary>
       /// A [Settings] key's value checked as --set-setting and --apply-environment
-      /// both check one: storable at all (the REST ini route's sentence), a port a
-      /// port, RestApiBindAddress an address HttpServer::Listen takes. Empty when
-      /// the value is acceptable; the sentence never repeats the value.
+      /// both check one: storable at all, a whole number where the server reads one,
+      /// a port a port, RestApiBindAddress an address HttpServer::Listen takes.
+      /// Empty when the value is acceptable; the sentence never repeats the value.
       /// </summary>
       static String CheckIniValue(const String &name, const String &value);
 
@@ -192,7 +237,7 @@ namespace HM
       /// </summary>
       struct Request
       {
-         Request() : store(StoreIni), source(SourceVariable), legacy(false) {}
+         Request() : store(StoreIni), source(SourceVariable), legacy(false), number(0), isNumber(false), lent(false) {}
 
          String variable;     // as found in the environment
          String canonical;    // as the marker records it: the setting's spelling, or the alias
@@ -202,6 +247,9 @@ namespace HM
          bool legacy;
          String value;        // the value to store - never printed
          String problem;      // why it is refused; empty when it is not
+         long number;         // the value as a number, where the setting takes one
+         bool isNumber;
+         bool lent;           // written through its REST row's setter
       };
 
       static void Resolve(const std::vector<Variable> &variables, std::vector<Request> &requests);
@@ -212,12 +260,15 @@ namespace HM
    private:
 
       static bool ResolveVariableName_(const String &variable, Request &request, String &base);
+      static bool MisspeltPrefix_(const String &variable, String &problem);
       static void ResolveSettingName_(const String &base, Request &request);
       static bool ReadValueFile_(const String &path, String &value, String &problem);
       static void ParseMarker_(const String &marker, std::vector<Entry> &entries, std::vector<String> &unresolved);
-      static bool IsSecret_(const Request &request);
-      static String CheckValue_(Request &request, long &number, bool &isNumber);
+      static void ReadRecord_(const TCHAR *row, std::vector<Entry> &entries, bool report);
+      static bool IsSecret_(const Request &request, const std::vector<Entry> &secrets);
+      static String CheckValue_(Request &request, const std::vector<Entry> &secrets);
       static int Apply_(std::vector<Request> &requests);
+      static bool WriteRecord_(const TCHAR *row, const String &value, String &problem);
       static void Print_(bool error, const String &line);
    };
 }

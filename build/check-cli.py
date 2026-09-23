@@ -356,19 +356,25 @@ ANSWERS = {
     # and both clients exported an empty ini section against every real server
     # while this check passed. check_ini_route_shape() below reads the route's
     # source so that the fake cannot drift from it again.
+    # RestApiPort is set by the server's environment, from a variable: listed
+    # with its value, since nothing withholds it, and named in the environment
+    # map - which is what keeps it out of both clients' exports.
     ("GET", "/api/v1/settings/ini"): {
-        "names": ["DisableAUTHList", "OAuth2HmacSecret"],
+        "names": ["DisableAUTHList", "OAuth2HmacSecret", "RestApiPort"],
         "settings": [{"name": "DisableAUTHList", "value": "0", "secret": False},
-                     {"name": "OAuth2HmacSecret", "value": "(set)", "secret": True}]},
+                     {"name": "OAuth2HmacSecret", "value": "(set)", "secret": True},
+                     {"name": "RestApiPort", "value": "8045", "secret": False}],
+        "environment": {"RestApiPort": "variable"}},
     ("PUT", "/api/v1/settings/ini/DisableAUTHList"): {"name": "DisableAUTHList", "value": "1", "present": True},
     # What this server has changed from stock: the shape SettingsDiff::Json
     # writes, which GET /api/v1/settings/changed answers and COM's
     # Settings.GetChangedFromDefault answers from the same function. A plain ini
     # key, a secret named and not shown, a name the server ships no default for,
-    # a property of the other store, and one the file's [SettingsOverride]
-    # section is forcing over what is stored.
+    # a property of the other store, one the file's [SettingsOverride]
+    # section is forcing over what is stored, and one the server's environment
+    # sets.
     ("GET", "/api/v1/settings/changed"): {
-        "changed": 5, "considered": 391,
+        "changed": 6, "considered": 391,
         "settings": [
             {"store": "ini", "name": "LogLevel", "value": "5", "default": "9", "secret": False, "known": True,
              "overridden": False},
@@ -380,7 +386,12 @@ ANSWERS = {
              "overridden": True},
             {"store": "database", "name": "smtpnoofretries", "value": "6", "default": "4", "secret": False, "known": True,
              "overridden": False},
-        ]},
+            {"store": "database", "name": "maxmessagesize", "value": "30720", "default": "20480", "secret": False, "known": True,
+             "overridden": False, "environment": "variable"},
+        ],
+        "environment": [{"variable": "HM_PROPERTY_maxmessagesize", "store": "database", "name": "maxmessagesize",
+                         "source": "variable"}],
+        "from_file": []},
     ("GET", "/api/v1/logs"): {"logs": [{"name": "hmailserver_2026-09-15.log", "size": 91234}]},
     ("GET", "/api/v1/logs/hmailserver_2026-09-15.log"): {"lines": ["\"SMTPD\" 1 \"04:00:00.001\" \"127.0.0.1\" \"EHLO\""]},
     ("GET", "/api/v1/backup"): {"state": "idle", "last_backup": "2026-09-14T02:00:00Z"},
@@ -884,7 +895,9 @@ CASES = [
     ("ini set", ["ini", "set", "DisableAUTHList", "1"],
      "PUT", "/api/v1/settings/ini/DisableAUTHList", {"value": "1"}, []),
     ("config changed", ["config", "changed"], "GET", "/api/v1/settings/changed", None,
-     ["LogLevel", "9", "database", "smtpnoofretries", "5 of 391 settings"]),
+     ["LogLevel", "9", "database", "smtpnoofretries", "6 of 391 settings"]),
+    ("config changed says which values the server's environment sets", ["config", "changed"],
+     "GET", "/api/v1/settings/changed", None, ["maxmessagesize", "30720 (set by the environment)"]),
     ("config changed says when the file is forcing a value, which nothing else shows", ["config", "changed"],
      "GET", "/api/v1/settings/changed", None, ["DnsServer", "forced from [SettingsOverride]"]),
     ("config changed names a secret and never its value", ["config", "changed"],
@@ -892,7 +905,7 @@ CASES = [
     ("config changed says when it has no default rather than showing an empty column", ["config", "changed"],
      "GET", "/api/v1/settings/changed", None, ["OurOwnScriptKey", "(none: this server does not read it)"]),
     ("config changed --json is the server's own document", ["config", "changed", "--json"],
-     "GET", "/api/v1/settings/changed", None, ['"considered": 391', '"changed": 5']),
+     "GET", "/api/v1/settings/changed", None, ['"considered": 391', '"changed": 6']),
     ("log list", ["log", "list"], "GET", "/api/v1/logs", None, ["hmailserver_2026-09-15.log"]),
     ("log tail", ["log", "tail", "hmailserver_2026-09-15.log", "--lines", "5"],
      "GET", "/api/v1/logs/hmailserver_2026-09-15.log", None, ["SMTPD"]),
@@ -1494,6 +1507,9 @@ def run_powershell_config_cases(url, tmp, verbose):
           "the module's document holds no ini keys: %r" % (ini,))
     check(isinstance(ini, dict) and "OAuth2HmacSecret" not in ini,
           "the module's document carries a secret the server had masked: %r" % (ini,))
+    check(isinstance(ini, dict) and "RestApiPort" not in ini,
+          "the module's document carries a [Settings] key the server's environment sets - the deployment's, "
+          "which the server refuses to be sent: %r" % (ini,))
 
     # The same document, read by the other client: one vocabulary, one file.
     completed = subprocess.run(
@@ -1684,6 +1700,10 @@ def run_config_cases(url, tmp):
     check("_environment" not in first and "host_name" not in first,
           "the document carries a key the server's environment sets, or its <key>_environment mark - the deployment's, which the server refuses to be sent:\n%s"
           % first[:600])
+    exported_ini = json.loads(first).get("sections", {}).get("ini", {})
+    check(exported_ini.get("DisableAUTHList") == "0" and "RestApiPort" not in exported_ini,
+          "the document's ini section must hold the ordinary key and not the one the server's environment sets "
+          "(the route's environment map names it): %r" % (exported_ini,))
     check("example.com" in first and "ann@example.com" in first,
           "the document holds neither the domain nor its accounts")
     check("all@example.com" in first, "the document holds no distribution list")
@@ -2327,7 +2347,7 @@ def check_ini_route_shape():
     body = source[start:end]
     answer = ANSWERS[("GET", "/api/v1/settings/ini")]
     for key in answer:
-        check('\\"%s\\":[' % key in body,
+        check('\\"%s\\":[' % key in body or '\\"%s\\":{' % key in body,
               "the fake's GET /api/v1/settings/ini answers %r, which IniList in RestApiSettings.cpp does not write" % key)
     for key in answer["settings"][0]:
         check('\\"%s\\":' % key in body,

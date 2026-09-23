@@ -150,11 +150,41 @@ fi
 # unchanged, or refused and why - never a value from a file or a secret), and
 # records which names the environment manages, so that the Deck and the REST API
 # refuse a change the next start would undo; a run without a variable gives its
-# setting back. Every run, and every run first, so that the environment wins:
-# it needs the database at this build's schema, so it follows the create and
-# upgrade steps above. A refusal stops the container, as a database the server
-# could not start on would.
-hmailserver --config "$INI" --apply-environment
+# setting back. It needs the database at this build's schema, so it follows the
+# create and upgrade steps above, and a refusal stops the container, as a
+# database the server could not start on would.
+#
+# Run when there is anything for it to do: a variable of this family other than
+# the ones this script reads itself - which includes a misspelt prefix such as
+# HM_SETTINGS_, which the verb refuses by name rather than leave a setting
+# silently unset - or the file it keeps in the data directory while the
+# environment manages anything, so that the first start without the variables
+# gives those settings back. Otherwise the database is not opened here, as it was
+# not before settings came from the environment, and a database that is a moment
+# late does not stop a container that has nothing to apply.
+applies_environment() {
+   local name data
+   # compgen -e: the names of the exported variables, one per line, and never a
+   # value - a value with a line break in it cannot pass for a name here.
+   for name in $(compgen -e); do
+      case "$(printf '%s' "$name" | tr '[:lower:]' '[:upper:]')" in
+         HM_DB_TYPE|HM_DB_HOST|HM_DB_PORT|HM_DB_NAME|HM_DB_USER|HM_DB_PASSWORD|HM_DB_PASSWORD_FILE) ;;
+         HM_ADMIN_PASSWORD|HM_ADMIN_PASSWORD_FILE|HM_INI|HM_CREATE_DATABASE|HM_UPGRADE_DATABASE) ;;
+         HM_*) return 0 ;;
+      esac
+   done
+
+   data="$(sed -n 's/^[[:space:]]*DataFolder[[:space:]]*=[[:space:]]*//p' "$INI" 2>/dev/null | head -n 1 | tr -d '\r')"
+   case "$data" in
+      /*) ;;
+      *) data=/var/lib/hmailserver ;;
+   esac
+   [ -e "$data/.hmailserver-environment" ]
+}
+
+if applies_environment; then
+   hmailserver --config "$INI" --apply-environment
+fi
 
 if [ "${1:-}" = "hmailserver" ] && ! printf '%s\n' "$@" | grep -q -- '--config'; then
    shift

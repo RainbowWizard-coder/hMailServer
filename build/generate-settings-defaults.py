@@ -88,6 +88,14 @@ QUALIFIED = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*::([A-Za-z_][A-Za-z0-9_]*)$")
 # How the server reads a property, which is the only thing that says WHICH of the
 # two columns it uses: hm_settings has both and the row does not say.
 ACCESS = re.compile(r"\b(?:Get|Set)(Long|Bool|String)\s*\(\s*(PROPERTY_[A-Z0-9_]+|_T\(\"[^\"]*\"\))\s*[,)]")
+# And the wrappers that read or write one property as TEXT by the name their
+# caller hands them: Configuration's GetSignInString and SetSignInString, its
+# GetImportOAuthString and SetImportOAuthString, and OidcSignIn.cpp's Setting(),
+# which is GetSignInString. Until 23 September 2026 the fifteen single sign-on,
+# passkey and mail-import rows they read were 'either' - "nothing in this build
+# reads it" - and hmailserver --apply-environment refused them on that word,
+# the client secrets among them (docs/EnvironmentConfiguration.md).
+STRING_ACCESS = re.compile(r"\b(?:(?:Get|Set)(?:SignIn|ImportOAuth)String|Setting)\s*\(\s*(PROPERTY_[A-Z0-9_]+)\s*[,)]")
 
 
 class Unresolved(Exception):
@@ -247,7 +255,8 @@ def kinds():
     found = {}
     names = dict(DEFINE.findall(read(CONSTANTS)))
     for path in server_sources():
-        for match in ACCESS.finditer(read(path)):
+        source = read(path)
+        for match in ACCESS.finditer(source):
             token = match.group(2)
             key = names.get(token)
             if key is None:
@@ -257,6 +266,12 @@ def kinds():
                 continue
             kind = "string" if match.group(1) == "String" else "number"
             if found.setdefault(key.lower(), kind) != kind:
+                found[key.lower()] = "either"
+        for match in STRING_ACCESS.finditer(source):
+            key = names.get(match.group(1))
+            if key is None:
+                continue
+            if found.setdefault(key.lower(), "string") != "string":
                 found[key.lower()] = "either"
     return found
 
@@ -333,9 +348,11 @@ def generate():
         "//",
         "//   KindString   GetString: the number column is nobody's and stays 0",
         "//   KindNumber   GetLong or GetBool: the string column is nobody's and stays empty",
-        "//   KindEither   nothing in this build reads it, so neither column can be ruled",
-        "//                out; a caller compares both. A handful of rows a create script",
-        "//                still seeds for a feature that has gone.",
+        "//   KindEither   no read names one column only, so neither can be ruled out; a",
+        "//                caller compares both. A handful of rows a create script still",
+        "//                seeds for a feature that has gone, which nothing reads, and",
+        "//                backupencryptionpassphrase, read both ways: the text is the",
+        "//                passphrase and the number whether one is set.",
         "//",
         "// Levels is the deepest level the property may be set at - the whole server",
         "// only, a domain, or an account as well - from build/settings-levels.txt. A",

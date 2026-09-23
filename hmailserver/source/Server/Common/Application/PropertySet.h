@@ -54,6 +54,11 @@ namespace HM
       void SetBool(const String &sPropertyName, bool lValue);
       void SetString(const String &sPropertyName, const String &lValue);
 
+      // The server's own bookkeeping row - the records --apply-environment keeps
+      // (EnvironmentSettings) - written as it is: not a setting, so no refusal, no
+      // audit row and no change event. The row must exist.
+      void SetBookkeeping(const String &sPropertyName, const String &sValue);
+
       // Creates the property, with the given value, when the database has no row
       // for it; does nothing at all when it has one.
       //
@@ -108,6 +113,12 @@ namespace HM
       // EnvironmentSettings::RefuseAdministratorChange. Called only for a change
       // that moves the value.
       static void RefuseIfEnvironmentManaged_(const String &sPropertyName);
+
+      // Whether the value being replaced is one a file of the environment supplied,
+      // which the audit trail records as changed and never as a value; and, after
+      // an administrator's change, the new value is theirs and is shown again.
+      static bool IsWithheld_(const String &sPropertyName);
+      static void ForgetIfWithheld_(const String &sPropertyName, bool withheld);
 
       static thread_local ReadRecorder *recorder_;
 

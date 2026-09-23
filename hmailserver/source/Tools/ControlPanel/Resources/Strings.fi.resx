@@ -8013,6 +8013,9 @@ Jatketaanko?</value>
   <data name="Set flags" xml:space="preserve">
     <value>Aseta liput</value>
   </data>
+  <data name="Set from a file of the server's environment, so not shown. Type a new value to replace it." xml:space="preserve">
+    <value>Asetettu palvelimen ympäristön tiedostosta, joten sitä ei näytetä. Korvaa se kirjoittamalla uusi arvo.</value>
+  </data>
   <data name="Set header value" xml:space="preserve">
     <value>Aseta otsakkeen arvo</value>
   </data>

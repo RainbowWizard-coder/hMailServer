@@ -8013,6 +8013,9 @@ Devam edilsin mi?</value>
   <data name="Set flags" xml:space="preserve">
     <value>Bayrakları ayarla</value>
   </data>
+  <data name="Set from a file of the server's environment, so not shown. Type a new value to replace it." xml:space="preserve">
+    <value>Sunucunun ortamındaki bir dosyadan ayarlandığı için gösterilmez. Değiştirmek için yeni bir değer yazın.</value>
+  </data>
   <data name="Set header value" xml:space="preserve">
     <value>Başlık değerini ayarla</value>
   </data>

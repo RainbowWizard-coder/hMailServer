@@ -1762,6 +1762,13 @@ def read_configuration(client, domains=None):
                 if error.status in (403, 404):
                     continue
                 raise
+            # The keys the server's environment sets, whatever it sets them from:
+            # the route's environment map, {key: "variable" | "file"}. As in the
+            # groups (strip_environment), such a value is the deployment's, stored
+            # again at every start, and applied to a server whose environment sets
+            # it the PUT would be refused (409) - so it is not in the document.
+            environment = answer.get("environment") if isinstance(answer, dict) else None
+            managed = set(str(k).lower() for k in (environment or {}))
             values = {}
             for row in ini_rows(answer):
                 if "name" not in row or "value" not in row:
@@ -1770,6 +1777,8 @@ def read_configuration(client, domains=None):
                 # the document: a document is for a repository, and one that carried
                 # the placeholder would write "(set)" over the real secret on apply.
                 if row.get("secret"):
+                    continue
+                if str(row["name"]).lower() in managed:
                     continue
                 values[str(row["name"])] = row.get("value")
             document["sections"]["ini"] = dict(sorted(values.items()))

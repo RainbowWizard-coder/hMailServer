@@ -175,8 +175,11 @@ namespace HM
       // comment and build/check-audit-choke-point.py. A setting's action is
       // "updated", or "deleted" for a [Settings] key returned to its default.
       void RecordStatement(const SQLCommand &command, bool succeeded);
+      // withheld: the value is secret although its name does not say so - a file of
+      // the server's environment supplied it (EnvironmentSettings::IsWithheld) - and
+      // is recorded as changed, as a secret name's is.
       void RecordSettingChange(const String &name, const String &oldValue, const String &newValue,
-                               const String &action = String(_T("updated")));
+                               const String &action = String(_T("updated")), bool withheld = false);
 
       // An administrative change that lands in no audited table and no
       // setting, and so passes neither chokepoint: an account unlocked, a

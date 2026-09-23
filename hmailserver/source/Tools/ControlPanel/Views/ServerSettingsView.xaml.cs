@@ -120,9 +120,44 @@ namespace hMailServer.ControlPanel.Views
             {
                Label = CaptionOnRow ? Label : null,
                Hint = Blurb,
-               Content = HeldByEnvironment(BuildEditor(value)),
+               Content = HeldByEnvironment(IsWithheld ? WithheldEditor() : BuildEditor(value)),
                Applies = EnvironmentCaption ?? AppliesCaption
             };
+
+         /// <summary>
+         /// Whether this row's value came from a file of the server's environment -
+         /// a Secret's - which the server withholds from every answer until an
+         /// administrator writes another (Services/EnvironmentSettings.ParseFromFile).
+         /// A password row never shows its value anyway, and a row that persists
+         /// nothing has none.
+         /// </summary>
+         private bool IsWithheld
+         {
+            get
+            {
+               if (this is INotPersisted || this is SectionIniNumber || this is ComPassword || string.IsNullOrEmpty(Path))
+                  return false;
+
+               return this is IIniSetting ? IniFeatureStore.WithheldKey(Path) : IniFeatureStore.WithheldComPath(Path);
+            }
+         }
+
+         /// <summary>
+         /// The editor of a withheld row: an empty box that says why it is empty. A
+         /// save writes nothing from it unless something was typed
+         /// (<see cref="WithheldEntry"/>), so the value the file supplied is neither
+         /// shown nor overwritten with a blank.
+         /// </summary>
+         private FrameworkElement WithheldEditor()
+            => withheld_ = TextEditor("", EnvironmentSettings.WithheldPlaceholder());
+
+         private TextBox withheld_;
+
+         /// <summary>
+         /// Null for a row that is not withheld; otherwise what was typed over the
+         /// withheld value, empty when nothing was - and then nothing is written.
+         /// </summary>
+         protected string WithheldEntry => withheld_ == null ? null : (withheld_.Text ?? "").Trim();
 
          /// <summary>
          /// A setting the server's environment sets is shown and not edited: the
@@ -171,6 +206,19 @@ namespace hMailServer.ControlPanel.Views
                : null;
 
          public abstract object ReadEditor();
+
+         /// <summary>
+         /// A withheld [Settings] row's save: what was typed over it, as typed, and
+         /// nothing when nothing was.
+         /// </summary>
+         protected bool SaveWithheld(IniFeatureStore store, string key)
+         {
+            if (store == null || !store.IsAvailable || string.IsNullOrEmpty(WithheldEntry))
+               return false;
+
+            store.Write(key, WithheldEntry);
+            return true;
+         }
 
          // Give the interactive editor control a stable AutomationId so
          // UI-automation can address it reliably.
@@ -369,6 +417,25 @@ namespace hMailServer.ControlPanel.Views
 
          public virtual void Write(object owner, string property)
          {
+            // A withheld row writes what was typed over it, as the setting's own type,
+            // and nothing when nothing was.
+            if (WithheldEntry != null)
+            {
+               if (WithheldEntry.Length == 0)
+                  return;
+
+               object typed = WithheldEntry;
+               if (this is ComBool)
+                  typed = WithheldEntry == "1" || string.Equals(WithheldEntry, "true", StringComparison.OrdinalIgnoreCase); // no-loc
+               else if (this is ComCombo)
+                  typed = int.Parse(WithheldEntry, System.Globalization.CultureInfo.InvariantCulture);
+               else if (this is ComText text && text.Numeric)
+                  typed = (int)(long.Parse(WithheldEntry, System.Globalization.CultureInfo.InvariantCulture) * text.Divisor);
+
+               SetProperty(owner, property, typed);
+               return;
+            }
+
             object value = ReadEditor();
             if (value is long n)
                SetProperty(owner, property, (int)n);
@@ -499,6 +566,9 @@ namespace hMailServer.ControlPanel.Views
 
          public bool SaveToIni()
          {
+            if (WithheldEntry != null)
+               return SaveWithheld(IniStore, Path);
+
             if (IniStore == null || !IniStore.IsAvailable || box_ == null)
                return false;
 
@@ -554,6 +624,9 @@ namespace hMailServer.ControlPanel.Views
          /// instead of the COM write path.</summary>
          public bool SaveToIni()
          {
+            if (WithheldEntry != null)
+               return SaveWithheld(IniStore, Path);
+
             if (IniStore == null || !IniStore.IsAvailable || number_ == null)
                return false;
 
@@ -639,6 +712,9 @@ namespace hMailServer.ControlPanel.Views
 
          public bool SaveToIni()
          {
+            if (WithheldEntry != null)
+               return SaveWithheld(IniStore, Path);
+
             if (IniStore == null || !IniStore.IsAvailable || box_ == null)
                return false;
 

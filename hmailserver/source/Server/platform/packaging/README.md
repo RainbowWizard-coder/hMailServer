@@ -688,19 +688,27 @@ every change to either.
 
 ### Every setting from the environment
 
-Beyond the sixteen variables the entrypoint has always read, every setting has a
-name in the environment (`hmailserver/docs/EnvironmentConfiguration.md`):
-`HM_SETTING_<key>` for a `[Settings]` key of `build/ini-settings-baseline.txt`,
-`HM_PROPERTY_<name>` for an `hm_settings` row of `SettingsDefaults.h`, and `_FILE`
-after either for a value read from a file - a Secret. The entrypoint stores them
-with `hmailserver --apply-environment` at every start, after the create and
-upgrade steps: every value is checked first, nothing is stored when one is
-refused, and the container does not start - `docker compose logs` or `kubectl
-logs` says which variable and why, and never prints a value a file supplied.
-`HM_REST_PORT` and the other three REST variables are aliases of
-`HM_SETTING_RestApiPort` and its three neighbours. The environment wins at every
-start, so the Control Deck and the REST API refuse a change to a setting it names
-(409), and show it as set by the environment, until a start without the variable.
+Beyond the sixteen variables the entrypoint has always read, every `[Settings]`
+key and every `hm_settings` row this build reads has a name in the environment
+(`hmailserver/docs/EnvironmentConfiguration.md`): `HM_SETTING_<key>` for a
+`[Settings]` key of `build/ini-settings-baseline.txt`, `HM_PROPERTY_<name>` for an
+`hm_settings` row of `SettingsDefaults.h`, and `_FILE` after either for a value
+read from a file - a Secret. The entrypoint stores them with `hmailserver
+--apply-environment` after the create and upgrade steps, whenever an `HM_`
+variable other than its own is set or the data directory holds the
+`.hmailserver-environment` file the verb keeps while it manages anything: every
+value is checked first, nothing is stored when one is refused (a misspelt prefix
+such as `HM_SETTINGS_` included), and the container does not start - `docker
+compose logs` or `kubectl logs` says which variable and why, and never prints a
+value a file supplied. `HM_REST_PORT` and the other three REST variables are
+aliases of `HM_SETTING_RestApiPort` and its three neighbours. The environment wins
+at every start, so the Control Deck and the REST API refuse a change to a setting
+it names (409), and show it as set by the environment, until a start without the
+variable; a value a file supplied stays withheld from every answer until an
+administrator writes another. A switch is `1` or `0` for a `[Settings]` key; an
+unquoted whole number in the chart's values is rendered as the number it is. The
+entrypoint and the chart have been checked by reading and the POSIX verb by
+compiling; none of the three has yet been run in a container.
 
 With Helm, the values' `settings:` and `properties:` maps render into the
 environment, and `settingsFrom:` mounts a Secret's key as a file and names it

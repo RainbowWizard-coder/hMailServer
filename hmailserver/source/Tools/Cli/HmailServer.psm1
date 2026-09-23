@@ -2532,12 +2532,23 @@ function Export-HmConfiguration {
 
     $ini = [ordered] @{}
     try {
-        foreach ($row in (Get-HmIniSetting | Sort-Object name)) {
+        # The whole answer, not only its rows: its environment map names every key
+        # the server's environment sets, whatever from. As in the groups
+        # (ConvertTo-HmConfigurationRow), such a value is the deployment's, stored
+        # again at every start, and applied to a server whose environment sets it
+        # the PUT would be refused (409) - so it is not in the document.
+        $answer = Invoke-HmApi -Method GET -Path '/api/v1/settings/ini'
+        $managed = @{}
+        if ($answer -and $answer.PSObject.Properties.Name -contains 'environment' -and $answer.environment) {
+            foreach ($key in $answer.environment.PSObject.Properties.Name) { $managed[$key.ToLowerInvariant()] = $true }
+        }
+        foreach ($row in (Get-HmCollection -Answer $answer -Key 'settings' | Sort-Object name)) {
             if ($row.PSObject.Properties.Name -notcontains 'name') { continue }
             if ($row.PSObject.Properties.Name -notcontains 'value') { continue }
             # A secret is listed as "(set)", never as its value, and stays out of
             # the document: applied, the placeholder would overwrite the secret.
             if ($row.PSObject.Properties.Name -contains 'secret' -and $row.secret) { continue }
+            if ($managed.ContainsKey(([string] $row.name).ToLowerInvariant())) { continue }
             $ini[[string] $row.name] = $row.value
         }
     }

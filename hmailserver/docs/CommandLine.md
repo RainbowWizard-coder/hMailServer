@@ -628,18 +628,23 @@ What neither client does
   secret is refused with its value on the command line, where the shell's
   history, the process list and sudo's log would keep it: give the name alone,
   `sudo hmailserver --set-setting SRSSecret`, and the value on standard input,
-  typed at a prompt that does not echo it or piped in. A port must be a number
-  from 0 to 65535 and `RestApiBindAddress` an IP address or `localhost`. On
+  typed at a prompt that does not echo it or piped in. A key the server reads as
+  a whole number must be one, a port a number from 0 to 65535 and
+  `RestApiBindAddress` an IP address or `localhost` - the checks
+  `--apply-environment` makes, in its words, which never repeat the value. On
   Windows the Control Panel does this over COM.
-* **It does not set what the environment sets.** In a container every setting
-  can come from the environment - `HM_SETTING_<key>`, `HM_PROPERTY_<name>`, and
-  `_FILE` after either for a Secret - stored by `hmailserver --apply-environment`
-  at every start ([EnvironmentConfiguration.md](EnvironmentConfiguration.md)).
-  The server refuses a change to such a setting (409) until a start without the
-  variable; `hmctl config changed` prints `(set by the environment)` beside it,
-  and `hmctl config export` and `Export-HmConfiguration` leave it and its
-  `<key>_environment` mark out of the document, since the value is the
-  deployment's and not the configuration's.
+* **It does not set what the environment sets.** In a container every
+  `[Settings]` key and every `hm_settings` row this build reads can come from the
+  environment - `HM_SETTING_<key>`, `HM_PROPERTY_<name>`, and `_FILE` after either
+  for a Secret - stored by `hmailserver --apply-environment`, which the image's
+  entrypoint runs whenever there is anything to apply
+  ([EnvironmentConfiguration.md](EnvironmentConfiguration.md)). The server
+  refuses a change to such a setting (409) until a start without the variable;
+  `hmctl config changed` prints `(set by the environment)` beside it, and
+  `hmctl config export` and `Export-HmConfiguration` leave every such setting out
+  of the document - a group's key and its `<key>_environment` mark, and a
+  `[Settings]` key the ini list's `environment` map names - since the value is
+  the deployment's and not the configuration's.
 * **Neither invents a field.** A field you did not give is one the server
   decides; the two clients were made to send the same request for the same
   command, and `build/check-cli.py` fails if they stop doing so.

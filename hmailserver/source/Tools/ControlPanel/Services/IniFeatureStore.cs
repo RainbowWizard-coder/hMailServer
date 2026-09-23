@@ -76,6 +76,10 @@ namespace hMailServer.ControlPanel.Services
       // document is refused to - and then no field is marked.
       private static IReadOnlyList<EnvironmentSettings.Entry> environment_;
 
+      // The settings whose value a file of the environment supplied, from the same
+      // read: their value is not shown in a field (EnvironmentSettings.ParseFromFile).
+      private static IReadOnlyList<EnvironmentSettings.Withheld> fromFile_;
+
       /// <summary>
       /// Raised after every write through <see cref="Write"/>, on the thread that
       /// wrote. The window listens, so its pending bar follows every page's save
@@ -187,6 +191,7 @@ namespace hMailServer.ControlPanel.Services
             lastPending_ = null;
             writesSinceRead_ = int.MaxValue;
             environment_ = null;
+            fromFile_ = null;
          }
       }
 
@@ -204,17 +209,41 @@ namespace hMailServer.ControlPanel.Services
             return;
 
          IReadOnlyList<EnvironmentSettings.Entry> entries;
+         IReadOnlyList<EnvironmentSettings.Withheld> fromFile;
          try
          {
-            entries = EnvironmentSettings.Parse(ask());
+            string document = ask();
+            entries = EnvironmentSettings.Parse(document);
+            fromFile = EnvironmentSettings.ParseFromFile(document);
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
             entries = null;
+            fromFile = null;
          }
 
          lock (appliesLock_)
+         {
             environment_ = entries;
+            fromFile_ = fromFile;
+         }
+      }
+
+      /// <summary>
+      /// Whether this [Settings] key's value came from a file of the server's
+      /// environment and is not shown; false when nothing is known. Never a COM call.
+      /// </summary>
+      public static bool WithheldKey(string key)
+      {
+         lock (appliesLock_)
+            return EnvironmentSettings.IsWithheld(fromFile_, EnvironmentSettings.StoreIni, key);
+      }
+
+      /// <summary>The same for the hm_settings row a COM settings path names.</summary>
+      public static bool WithheldComPath(string comPath)
+      {
+         lock (appliesLock_)
+            return EnvironmentSettings.IsWithheld(fromFile_, EnvironmentSettings.StoreDatabase, EnvironmentSettings.PropertyOf(comPath));
       }
 
       /// <summary>Every setting the environment sets, as the last read found them; empty when nothing is known.</summary>

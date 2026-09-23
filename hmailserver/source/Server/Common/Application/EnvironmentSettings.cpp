@@ -3,9 +3,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 // Every setting from the environment: the naming rule, --apply-environment, and
-// the marker that makes an administrator's change to a setting the environment
-// manages a refusal rather than an edit lost at the next start. See the header,
-// and docs/EnvironmentConfiguration.md for what an operator reads.
+// the records that make an administrator's change to a setting the environment
+// manages a refusal rather than an edit lost at the next start, and keep a value
+// a file supplied withheld. See the header, and docs/EnvironmentConfiguration.md
+// for what an operator reads.
 
 #include "StdAfx.h"
 #include "EnvironmentSettings.h"
@@ -20,6 +21,7 @@
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
 #include "../Util/AuditTrail.h"
+#include "../Util/FileUtilities.h"
 #include "../Util/Unicode.h"
 #include "../Util/RestApiSettingsRows.h"
 
@@ -27,6 +29,8 @@
 #include <climits>
 #include <cstdio>
 #include <mutex>
+#include <set>
+#include <sys/stat.h>
 #include <boost/asio/ip/address.hpp>
 
 #ifdef HM_PLATFORM_POSIX
@@ -125,8 +129,10 @@ namespace HM
          return true;
       }
 
-      // A switch written as a word, which is how an environment says one. The
-      // number column holds 0 or 1 for it either way.
+      // A switch written as a word, which is how an environment says one. Taken
+      // only where the setting is a switch - its REST row is one - so that
+      // maxmessagesize=off is refused as the whole number it is not, rather than
+      // stored as 0, which is "no limit".
       bool ParseSwitchWord(const String &text, long &number)
       {
          String word = text;
@@ -204,6 +210,14 @@ namespace HM
          return nullptr;
       }
 
+      // A property the environment may name: one this build reads by one column,
+      // or backupencryptionpassphrase - read both ways - whose write-only REST row
+      // names it, and whose setter keeps the two columns together.
+      bool Nameable(const SettingsDefaults::Setting &property)
+      {
+         return property.Kind != SettingsDefaults::KindEither || RestApiSettingsRows::DeclaresProperty(property.Name);
+      }
+
       size_t Distance(const String &left, const String &right)
       {
          String a = left;
@@ -243,7 +257,7 @@ namespace HM
          std::vector<String> properties;
          for (size_t i = 0; i < SettingsDefaults::SettingsCount; i++)
          {
-            if (SettingsDefaults::Settings[i].Kind != SettingsDefaults::KindEither)
+            if (Nameable(SettingsDefaults::Settings[i]))
                properties.push_back(SettingsDefaults::Settings[i].Name);
          }
 
@@ -256,8 +270,34 @@ namespace HM
          return Formatter::Format("the [Settings] key {0}, which HM_SETTING_{0} sets", key);
       }
 
-      // The marker's text as it was last reported unresolvable, so that HM7290 is
-      // said once per value rather than at every read.
+      // The container's bootstrap variables, which the entrypoint reads and the
+      // verb does not: never a misspelt setting variable.
+      bool IsBootstrapVariable(const String &name)
+      {
+         static const TCHAR *const names[] =
+         {
+            _T("HM_DB_TYPE"), _T("HM_DB_HOST"), _T("HM_DB_PORT"), _T("HM_DB_NAME"), _T("HM_DB_USER"),
+            _T("HM_DB_PASSWORD"), _T("HM_DB_PASSWORD_FILE"), _T("HM_ADMIN_PASSWORD"), _T("HM_ADMIN_PASSWORD_FILE"),
+            _T("HM_INI"), _T("HM_CREATE_DATABASE"), _T("HM_UPGRADE_DATABASE"),
+         };
+
+         for (const TCHAR *candidate : names)
+         {
+            if (name.CompareNoCase(candidate) == 0)
+               return true;
+         }
+
+         return false;
+      }
+
+      String Serialise(const std::set<String> &variables)
+      {
+         std::vector<String> sorted(variables.begin(), variables.end());
+         return StringParser::JoinVector(sorted, _T(","));
+      }
+
+      // The records' text as last reported unresolvable, so that HM7290 is said
+      // once per value rather than at every read.
       std::mutex reported_mutex;
       String reported_marker;
    }
@@ -266,6 +306,24 @@ namespace HM
    EnvironmentSettings::MarkerName()
    {
       return _T("EnvironmentManagedSettings");
+   }
+
+   const TCHAR *
+   EnvironmentSettings::SecretMarkerName()
+   {
+      return _T("EnvironmentSecretSettings");
+   }
+
+   const char *
+   EnvironmentSettings::NotStorableSentence()
+   {
+      return "The value is longer than 4000 characters or contains a line break, so it could not be stored or read back as one setting.";
+   }
+
+   String
+   EnvironmentSettings::MarkerFile()
+   {
+      return FileUtilities::Combine(IniFileSettings::Instance()->GetDataDirectory(), _T(".hmailserver-environment"));
    }
 
    const char *
@@ -386,6 +444,41 @@ namespace HM
       return true;
    }
 
+   bool
+   EnvironmentSettings::MisspeltPrefix_(const String &variable, String &problem)
+   {
+      // A variable of the container's own family - HM_ in any case - that is none of
+      // the bootstrap variables, no alias and no setting prefix, and whose first part
+      // is one of the two prefixes misspelt or in small letters: HM_SETTINGS_,
+      // HM_SETING_, HM_PROPERTIES_, hm_setting_. Left alone it would set nothing and
+      // say nothing, and the container would start on a setting it was not given.
+      if (variable.GetLength() < 4 || variable.Left(3).CompareNoCase(_T("HM_")) != 0 || IsBootstrapVariable(variable))
+         return false;
+
+      const String rest = variable.Mid(3);
+      const int underscore = rest.Find(_T('_'));
+      if (underscore <= 0)
+         return false;
+
+      const String segment = rest.Left(underscore);
+      const String name = rest.Mid(underscore + 1);
+      String upper = segment;
+      upper.MakeUpper();
+
+      const TCHAR *meant = nullptr;
+      if (upper == _T("SETTING") || upper == _T("SETTINGS") || Distance(upper, _T("SETTING")) <= 2)
+         meant = SettingPrefix;
+      else if (upper == _T("PROPERTY") || upper == _T("PROPERTIES") || Distance(upper, _T("PROPERTY")) <= 2)
+         meant = PropertyPrefix;
+
+      if (!meant)
+         return false;
+
+      problem = Formatter::Format("{0} is not a setting variable: HM_{1}_ is not a prefix the server reads. A [Settings] key is named HM_SETTING_<key> and an hm_settings row HM_PROPERTY_<name>, in capitals; did you mean {2}{3}?",
+         variable, segment, String(meant), name);
+      return true;
+   }
+
    void
    EnvironmentSettings::ResolveSettingName_(const String &base, Request &request)
    {
@@ -397,9 +490,9 @@ namespace HM
          return;
       }
 
-      if (base.CompareNoCase(MarkerName()) == 0)
+      if (base.CompareNoCase(MarkerName()) == 0 || base.CompareNoCase(SecretMarkerName()) == 0)
       {
-         request.problem = Formatter::Format("{0} is where the server records which settings the environment manages. It is not a setting, and --apply-environment writes it itself.", base);
+         request.problem = Formatter::Format("{0} is where the server records what its environment set: it is not a setting, and --apply-environment writes it itself.", base);
          return;
       }
 
@@ -413,7 +506,7 @@ namespace HM
          }
 
          const SettingsDefaults::Setting *property = FindProperty(base);
-         if (property && property->Kind != SettingsDefaults::KindEither)
+         if (property && Nameable(*property))
          {
             request.problem = Formatter::Format("{0} is not a [Settings] key: {1} is an hm_settings property, which HM_PROPERTY_{1} sets.", base, String(property->Name));
             return;
@@ -426,7 +519,12 @@ namespace HM
       const SettingsDefaults::Setting *property = FindProperty(base);
       if (property)
       {
-         if (property->Kind == SettingsDefaults::KindEither)
+         // Five rows a create script still seeds for a feature that has gone, which
+         // nothing reads - antispamenabled, groupcachettl, relaymode, sendstatistics
+         // and smtpnooftries. The one other row no read names by one column,
+         // backupencryptionpassphrase, is nameable: its REST row's setter writes
+         // both columns.
+         if (!Nameable(*property))
          {
             request.problem = Formatter::Format("{0} is an hm_settings row that nothing in this build reads, so storing it would change nothing.", String(property->Name));
             return;
@@ -455,16 +553,45 @@ namespace HM
          return false;
       }
 
+      // A regular file, and nothing else - asked before the file is opened, because
+      // a directory opens on Linux and reads as nothing, and the setting would be
+      // stored empty. That is exactly what a Secret mounted at the wrong path, or a
+      // bind mount whose host path is missing (Docker makes it an empty directory),
+      // looks like. stat() follows a symbolic link, so a projected Secret's file,
+      // which is one, is taken.
 #ifdef HM_PLATFORM_POSIX
-      FILE *file = std::fopen(Utf8(path).c_str(), "rb");
+      const AnsiString narrow = Utf8(path);
+      struct stat information;
+      const bool found = ::stat(narrow.c_str(), &information) == 0;
+      const bool regular = found && S_ISREG(information.st_mode);
+#else
+      struct _stat64 information;
+      const bool found = _wstat64(path.c_str(), &information) == 0;
+      const bool regular = found && (information.st_mode & _S_IFMT) == _S_IFREG;
+#endif
+
+      // The path is not a secret - it is where a Secret is mounted - and saying it
+      // is what lets somebody find the mount that is missing.
+      if (!found)
+      {
+         problem = Formatter::Format("names {0}, which cannot be read.", path);
+         return false;
+      }
+
+      if (!regular)
+      {
+         problem = Formatter::Format("names {0}, which is not a file - a directory, perhaps the folder a Secret is mounted in rather than the file inside it, or a mount whose source is missing.", path);
+         return false;
+      }
+
+#ifdef HM_PLATFORM_POSIX
+      FILE *file = std::fopen(narrow.c_str(), "rb");
 #else
       FILE *file = nullptr;
       if (_wfopen_s(&file, path.c_str(), L"rb") != 0)
          file = nullptr;
 #endif
 
-      // The path is not a secret - it is where a Secret is mounted - and saying it
-      // is what lets somebody find the mount that is missing.
       if (!file)
       {
          problem = Formatter::Format("names {0}, which cannot be read.", path);
@@ -480,10 +607,22 @@ namespace HM
          if (bytes.size() > MaximumFileBytes)
             break;
       }
+
+      // A read that stopped on an error is a value cut short, and is refused rather
+      // than stored as far as it got.
+      const bool failed = std::ferror(file) != 0;
       std::fclose(file);
+
+      if (failed)
+      {
+         std::fill(bytes.begin(), bytes.end(), '\0');
+         problem = Formatter::Format("names {0}, which could not be read to its end.", path);
+         return false;
+      }
 
       if (bytes.size() > MaximumFileBytes)
       {
+         std::fill(bytes.begin(), bytes.end(), '\0');
          problem = Formatter::Format("names {0}, which is larger than 64 KB; no setting holds that much.", path);
          return false;
       }
@@ -499,8 +638,11 @@ namespace HM
       while (!bytes.empty() && (bytes[bytes.size() - 1] == '\n' || bytes[bytes.size() - 1] == '\r'))
          bytes.erase(bytes.size() - 1);
 
-      if (!IsValidUtf8(bytes))
+      // A NUL would end the text where it stands, and the setting would be stored
+      // cut short as though that were the value.
+      if (bytes.find('\0') != std::string::npos || !IsValidUtf8(bytes))
       {
+         std::fill(bytes.begin(), bytes.end(), '\0');
          problem = Formatter::Format("names {0}, which is not UTF-8 text.", path);
          return false;
       }
@@ -524,7 +666,15 @@ namespace HM
 
          String base;
          if (!ResolveVariableName_(variable.name, request, base))
+         {
+            String problem;
+            if (MisspeltPrefix_(variable.name, problem))
+            {
+               request.problem = problem;
+               requests.push_back(request);
+            }
             continue;
+         }
 
          // An empty alias is an unset one, as the entrypoint always read it
          // ([ -z "${HM_REST_PORT:-}" ] || ...). An empty HM_SETTING_ or HM_PROPERTY_
@@ -559,6 +709,8 @@ namespace HM
                                    (request.source == SourceFile ? String(FileSuffix) : String());
          }
 
+         // The file is read only for a variable nothing has refused yet - which is
+         // also why no refusal above can quote what the file holds.
          if (request.problem.IsEmpty())
          {
             if (request.source == SourceFile)
@@ -589,7 +741,7 @@ namespace HM
          std::vector<size_t> same;
          for (size_t j = 0; j < requests.size(); j++)
          {
-            if (requests[j].store == requests[i].store && requests[j].name.CompareNoCase(requests[i].name) == 0)
+            if (!requests[j].name.IsEmpty() && requests[j].store == requests[i].store && requests[j].name.CompareNoCase(requests[i].name) == 0)
                same.push_back(j);
          }
 
@@ -620,7 +772,18 @@ namespace HM
    EnvironmentSettings::CheckIniValue(const String &name, const String &value)
    {
       if (!IniSettingStore::IsStorableValue(value))
-         return _T("The value is longer than 4000 characters or contains a line break, so it could not be stored or read back as one setting.");
+         return String(NotStorableSentence());
+
+      String trimmed = value;
+      trimmed.Trim();
+
+      const IniSettingsBaseline::Setting *key = FindIniKey(name);
+
+      // A key the loader reads as a whole number (GetPrivateProfileInt, which would
+      // read a word as 0 and "30s" as 30) takes digits.
+      long number = 0;
+      if (key && key->IsInteger && !ParseWholeNumber(trimmed, number))
+         return Formatter::Format("{0} is read as a whole number, and the value given is not one.", String(key->Name));
 
       const bool port =
          name.CompareNoCase(_T("RestApiPort")) == 0 ||
@@ -630,12 +793,8 @@ namespace HM
          name.CompareNoCase(_T("WebServicesHttpsPort")) == 0 ||
          name.CompareNoCase(_T("AcmeHttpPort")) == 0;
 
-      String trimmed = value;
-      trimmed.Trim();
-
       if (port)
       {
-         long number = 0;
          if (!ParseWholeNumber(trimmed, number) || number < 0 || number > 65535 || trimmed.GetAt(0) == '-')
             return Formatter::Format("{0} is a TCP port: a whole number from 0, which leaves its listener off, to 65535, and the value given is not one.", name);
       }
@@ -656,70 +815,139 @@ namespace HM
    }
 
    bool
-   EnvironmentSettings::IsSecret_(const Request &request)
+   EnvironmentSettings::IsSecret_(const Request &request, const std::vector<Entry> &secrets)
    {
-      return request.source == SourceFile || IniSettingStore::IsSecretName(request.name);
+      if (request.source == SourceFile || IniSettingStore::IsSecretName(request.name))
+         return true;
+
+      for (const Entry &entry : secrets)
+      {
+         if (entry.store == request.store && entry.name.CompareNoCase(request.name) == 0)
+            return true;
+      }
+
+      return false;
    }
 
    String
-   EnvironmentSettings::CheckValue_(Request &request, long &number, bool &isNumber)
+   EnvironmentSettings::CheckValue_(Request &request, const std::vector<Entry> &secrets)
    {
-      number = 0;
-      isNumber = false;
+      request.number = 0;
+      request.isNumber = false;
+      request.lent = false;
 
-      if (request.store == StoreIni)
+      const bool ini = request.store == StoreIni;
+
+      RestApiSettingsRows::Lent lent;
+      const bool lends = RestApiSettingsRows::Find(ini, request.name, lent);
+
+      // A property REST answers read-only is the server's own - derived or kept -
+      // and is not set from the environment; the VAPID public key above all, which
+      // has to be the private key's own or every push is rejected.
+      if (!ini && !lends && lent.readOnly)
       {
+         if (request.name.CompareNoCase(_T("WebPushVapidPublicKey")) == 0)
+            return _T("WebPushVapidPublicKey is derived from the private key, which HM_PROPERTY_WebPushVapidPrivateKey sets: the server makes the public half itself, so that the two can never disagree.");
+
+         return Formatter::Format("{0} is answered read-only over REST: the server derives it or keeps it itself, so it is not set from the environment.", request.name);
+      }
+
+      String trimmed = request.value;
+      trimmed.Trim();
+
+      if (ini)
+      {
+         // A key a settings row keeps as a switch takes the words a switch is said
+         // with, stored as the 1 or 0 the loader reads.
+         long word = 0;
+         if (lends && lent.kind == RestApiSettingsRows::KindSwitch && ParseSwitchWord(trimmed, word))
+            request.value = word ? _T("1") : _T("0");
+
          String problem = CheckIniValue(request.name, request.value);
          if (!problem.IsEmpty())
             return problem;
 
-         const IniSettingsBaseline::Setting *key = FindIniKey(request.name);
-         if (key && key->IsInteger)
+         if (lends)
          {
-            String trimmed = request.value;
-            trimmed.Trim();
-
-            long parsed = 0;
-            if (!ParseWholeNumber(trimmed, parsed))
+            String value = request.value;
+            value.Trim();
+            long number = 0;
+            if (lent.kind != RestApiSettingsRows::KindText && !ParseWholeNumber(value, number))
                return Formatter::Format("{0} is read as a whole number, and the value given is not one.", request.name);
+
+            request.number = number;
+            request.isNumber = lent.kind != RestApiSettingsRows::KindText;
+            request.value = value;
+            request.lent = true;
          }
-
-         return String();
       }
-
-      const SettingsDefaults::Setting *property = FindProperty(request.name);
-      if (!property)
-         return Formatter::Format("{0} is not an hm_settings property this build reads.", request.name);
-
-      if (property->Kind == SettingsDefaults::KindNumber)
+      else
       {
-         String trimmed = request.value;
-         trimmed.Trim();
+         const SettingsDefaults::Setting *property = FindProperty(request.name);
+         if (!property)
+            return Formatter::Format("{0} is not an hm_settings property this build reads.", request.name);
 
-         // A whole number, a switch as a word, or - for a property whose REST row is
-         // one of words - one of that row's words, which is what the route takes.
-         String words;
-         if (!ParseWholeNumber(trimmed, number) && !ParseSwitchWord(trimmed, number) &&
-             !RestApiSettingsRows::WordValue(request.name, trimmed, number, words))
+         // How the value is read: the REST row's way where one lends itself, the
+         // property's column otherwise.
+         const bool text = lends ? lent.kind == RestApiSettingsRows::KindText : property->Kind == SettingsDefaults::KindString;
+
+         if (text)
          {
-            if (!words.IsEmpty())
-               return Formatter::Format("{0} is one of {1}, or the number one of them stands for, and the value given is neither.", request.name, words);
+            if (request.value.GetLength() > MaximumPropertyText)
+               return Formatter::Format("{0} holds at most 4000 characters, and the value given is longer.", request.name);
+         }
+         else
+         {
+            long number = 0;
+            bool parsed = ParseWholeNumber(trimmed, number);
 
-            return Formatter::Format("{0} holds a number - a whole number, or 1 and 0 for a switch, which true and false also say - and the value given is not one.", request.name);
+            // Words only where the row takes words: a switch's true and false, and a
+            // row of words' own words.
+            if (!parsed && lends && lent.kind == RestApiSettingsRows::KindSwitch)
+               parsed = ParseSwitchWord(trimmed, number);
+
+            String words;
+            if (!parsed && lends && lent.kind == RestApiSettingsRows::KindWords)
+               parsed = RestApiSettingsRows::WordValue(false, request.name, trimmed, number, words);
+
+            if (!parsed)
+            {
+               if (lends && lent.kind == RestApiSettingsRows::KindWords)
+                  return Formatter::Format("{0} is one of {1}, or the number one of them stands for, and the value given is neither.", request.name, lent.words);
+
+               if (lends && lent.kind == RestApiSettingsRows::KindSwitch)
+                  return Formatter::Format("{0} is a switch: 1 or 0, which true and false, yes and no, on and off also say, and the value given is none of them.", request.name);
+
+               return Formatter::Format("{0} holds a whole number, and the value given is not one.", request.name);
+            }
+
+            request.number = number;
+            request.isNumber = true;
          }
 
-         isNumber = true;
+         request.lent = lends;
       }
-      else if (request.value.GetLength() > MaximumPropertyText)
-         return Formatter::Format("{0} holds at most 4000 characters, and the value given is longer.", request.name);
 
-      // The check the property's REST settings row makes, in that row's sentence:
-      // a value the server would refuse over REST is refused here the same way.
-      return RestApiSettingsRows::CheckPropertyValue(request.name, isNumber, number, request.value);
+      if (!lends)
+         return String();
+
+      // The check the setting's REST settings row makes, in that row's sentence: a
+      // value the server would refuse over REST is refused here the same way. A
+      // sentence a row writes may quote the value it refused, so for a value from a
+      // file or of a secret it is not printed: a fixed one says which check it was.
+      const String refused = RestApiSettingsRows::Check(ini, request.name, request.number, request.value);
+      if (refused.IsEmpty())
+         return String();
+
+      if (IsSecret_(request, secrets))
+         return Formatter::Format("{0} does not take the value {1} gives it: the check {2} makes of {3} refused it, and its sentence is not shown here because it may quote the value.",
+            request.name, request.variable, String(lent.path.IsEmpty() ? AnsiString("PUT /api/v1/settings") : "PUT " + lent.path), String(lent.key));
+
+      return refused;
    }
 
    // ---------------------------------------------------------------------
-   // The marker.
+   // The records.
    // ---------------------------------------------------------------------
 
    void
@@ -762,22 +990,22 @@ namespace HM
    }
 
    void
-   EnvironmentSettings::ReadManaged(std::vector<Entry> &entries)
+   EnvironmentSettings::ReadRecord_(const TCHAR *row, std::vector<Entry> &entries, bool report)
    {
       entries.clear();
 
       std::shared_ptr<PropertySet> properties = Configuration::Instance()->GetPropertySet();
-      if (!properties || !properties->Exists(MarkerName()))
+      if (!properties || !properties->Exists(row))
          return;
 
-      const String marker = properties->GetString(MarkerName());
+      const String marker = properties->GetString(row);
       if (marker.IsEmpty())
          return;
 
       std::vector<String> unresolved;
       ParseMarker_(marker, entries, unresolved);
 
-      if (unresolved.empty())
+      if (unresolved.empty() || !report)
          return;
 
       std::lock_guard<std::mutex> guard(reported_mutex);
@@ -787,7 +1015,63 @@ namespace HM
 
       ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7290, "EnvironmentSettings::ReadManaged",
          Formatter::Format("The record of the settings this server's environment manages ({0}) names {1}, which this build does not read; it is ignored, and the setting can be changed here. The next hmailserver --apply-environment rewrites the record.",
-            String(MarkerName()), StringParser::JoinVector(unresolved, _T(", "))));
+            String(row), StringParser::JoinVector(unresolved, _T(", "))));
+   }
+
+   void
+   EnvironmentSettings::ReadManaged(std::vector<Entry> &entries)
+   {
+      ReadRecord_(MarkerName(), entries, true);
+   }
+
+   void
+   EnvironmentSettings::ReadSecretOrigins(std::vector<Entry> &entries)
+   {
+      ReadRecord_(SecretMarkerName(), entries, false);
+
+      for (Entry &entry : entries)
+         entry.source = SourceFile;
+   }
+
+   bool
+   EnvironmentSettings::IsSecretOrigin(Store store, const String &name)
+   {
+      std::vector<Entry> entries;
+      ReadSecretOrigins(entries);
+
+      for (const Entry &entry : entries)
+      {
+         if (entry.store == store && entry.name.CompareNoCase(name) == 0)
+            return true;
+      }
+
+      return false;
+   }
+
+   void
+   EnvironmentSettings::ForgetSecretOrigin(Store store, const String &name)
+   {
+      std::shared_ptr<PropertySet> properties = Configuration::Instance()->GetPropertySet();
+      if (!properties || !properties->Exists(SecretMarkerName()))
+         return;
+
+      std::vector<Entry> entries;
+      ReadSecretOrigins(entries);
+
+      std::set<String> kept;
+      bool found = false;
+      for (const Entry &entry : entries)
+      {
+         if (entry.store == store && entry.name.CompareNoCase(name) == 0)
+         {
+            found = true;
+            continue;
+         }
+         kept.insert(entry.variable);
+      }
+
+      if (found)
+         properties->SetBookkeeping(SecretMarkerName(), Serialise(kept));
    }
 
    bool
@@ -808,6 +1092,16 @@ namespace HM
       return false;
    }
 
+   bool
+   EnvironmentSettings::IsWithheld(Store store, const String &name)
+   {
+      Entry entry;
+      if (IsManaged(store, name, entry) && entry.source == SourceFile)
+         return true;
+
+      return IsSecretOrigin(store, name);
+   }
+
    void
    EnvironmentSettings::AnnounceManaged()
    {
@@ -821,7 +1115,7 @@ namespace HM
       for (const Entry &entry : entries)
          names.push_back(entry.name + _T(" (") + entry.variable + _T(")"));
 
-      LOG_APPLICATION(Formatter::Format("Settings set by this server's environment, which hmailserver --apply-environment writes at every start and every other interface refuses to change: {0}.",
+      LOG_APPLICATION(Formatter::Format("Settings set by this server's environment, which hmailserver --apply-environment writes at every start and an administrator's change to which is refused: {0}.",
          StringParser::JoinVector(names, _T(", "))));
    }
 
@@ -929,8 +1223,8 @@ namespace HM
 
       // The whole of a start short of the listeners, as --sample-domain makes it:
       // the configuration file, the database at this build's schema, the settings
-      // store reconciled and the configuration loaded - which is what a property's
-      // REST check needs to find its row, and what the store's writes need.
+      // store reconciled and the configuration loaded - which is what a setting's
+      // REST row needs to be found, and what the store's writes need.
       String error;
       if (!Application::Instance()->InitInstance(error))
       {
@@ -942,19 +1236,48 @@ namespace HM
          return 1;
       }
 
-      int result = 1;
-      try
-      {
-         result = Apply_(requests);
-      }
-      catch (...)
-      {
-         Print_(true, _T("The settings could not be applied: an unexpected error stopped the run; see the error log. What was printed as set before this line is stored."));
-         result = 1;
-      }
+      const int result = Apply_(requests);
 
       Application::Instance()->ExitInstance();
       return result;
+   }
+
+   bool
+   EnvironmentSettings::WriteRecord_(const TCHAR *row, const String &value, String &problem)
+   {
+      std::shared_ptr<PropertySet> properties = Configuration::Instance()->GetPropertySet();
+      if (!properties)
+      {
+         problem = _T("the configuration is not loaded");
+         return false;
+      }
+
+      const bool exists = properties->Exists(row);
+
+      if (value.IsEmpty())
+      {
+         if (!exists)
+            return true;
+
+         // Nothing to record: no row at all, which is how a server that has never
+         // been given its settings by an environment has always looked.
+         SQLCommand command("delete from hm_settings where settingname = @SETTINGNAME");
+         command.AddParameter("@SETTINGNAME", String(row));
+         if (!Application::Instance()->GetDBManager()->Execute(command))
+         {
+            problem = Formatter::Format("{0} could not be removed", String(row));
+            return false;
+         }
+
+         return true;
+      }
+
+      if (exists)
+         properties->SetBookkeeping(row, value);
+      else
+         properties->EnsureString(row, value);
+
+      return true;
    }
 
    int
@@ -967,19 +1290,21 @@ namespace HM
          return 1;
       }
 
+      // What the last run left: the settings the environment managed, and the ones
+      // whose value came from a file and has not been rewritten since - which stay
+      // withheld whatever this run does with them (IsSecret_).
+      std::vector<Entry> previous;
+      ReadManaged(previous);
+
+      std::vector<Entry> secrets;
+      ReadSecretOrigins(secrets);
+
       // Every value checked before anything is written. The configuration being
-      // loaded is what lets a property's REST row be found.
-      std::vector<long> numbers(requests.size(), 0);
-      std::vector<bool> isNumber(requests.size(), false);
-
-      for (size_t i = 0; i < requests.size(); i++)
+      // loaded is what lets a setting's REST row be found.
+      for (Request &request : requests)
       {
-         if (!requests[i].problem.IsEmpty())
-            continue;
-
-         bool number = false;
-         requests[i].problem = CheckValue_(requests[i], numbers[i], number);
-         isNumber[i] = number;
+         if (request.problem.IsEmpty())
+            request.problem = CheckValue_(request, secrets);
       }
 
       // The file, where a [Settings] key's copy is written as well as the store: the
@@ -988,7 +1313,7 @@ namespace HM
       {
          bool anyIni = false;
          for (const Request &request : requests)
-            anyIni = anyIni || (request.store == StoreIni && request.problem.IsEmpty());
+            anyIni = anyIni || (request.store == StoreIni && request.problem.IsEmpty() && !request.name.IsEmpty());
 
          if (anyIni)
          {
@@ -1006,6 +1331,53 @@ namespace HM
                      request.problem = Formatter::Format("{0} is not writable by this user, and a [Settings] value is written there as well as into the database.", file);
                }
             }
+         }
+      }
+
+      // The two records this run writes, worked out - and their length checked -
+      // before anything is stored: a record the column cannot hold would leave the
+      // settings stored and the old record, and so the old refusals, in force.
+      std::set<String> managed;
+      for (const Request &request : requests)
+      {
+         if (!request.canonical.IsEmpty())
+            managed.insert(request.canonical);
+      }
+
+      std::set<String> secretNames;
+      for (const Entry &entry : secrets)
+         secretNames.insert(String(entry.store == StoreIni ? SettingPrefix : PropertyPrefix) + entry.name);
+      for (const Request &request : requests)
+      {
+         if (request.name.IsEmpty())
+            continue;
+
+         const String plain = String(request.store == StoreIni ? SettingPrefix : PropertyPrefix) + request.name;
+         for (auto held = secretNames.begin(); held != secretNames.end(); )
+         {
+            if (held->CompareNoCase(plain) == 0)
+               held = secretNames.erase(held);
+            else
+               held++;
+         }
+
+         // A value this run takes from a file is the file's until an administrator
+         // writes another; one it takes from a variable is the variable's, and is no
+         // longer withheld.
+         if (request.source == SourceFile)
+            secretNames.insert(plain);
+      }
+
+      const String marker = Serialise(managed);
+      const String secretMarker = Serialise(secretNames);
+
+      if (marker.GetLength() > MaximumPropertyText || secretMarker.GetLength() > MaximumPropertyText)
+      {
+         for (Request &request : requests)
+         {
+            if (request.problem.IsEmpty())
+               request.problem = Formatter::Format("the record of the {0} settings the environment names would be longer than the 4000 characters {1} holds; name fewer settings in the environment.",
+                  (int) managed.size(), String(MarkerName()));
          }
       }
 
@@ -1028,203 +1400,238 @@ namespace HM
          return 1;
       }
 
-      // What the last run managed, for the one thing its record decides here: a
-      // value that came from a file then is not printed as the value it replaced.
-      std::vector<Entry> previous;
-      {
-         std::vector<String> unresolved;
-         if (properties->Exists(MarkerName()))
-            ParseMarker_(properties->GetString(MarkerName()), previous, unresolved);
-      }
-
-      auto previouslyFromFile = [&previous](Store store, const String &name)
-      {
-         for (const Entry &entry : previous)
-         {
-            if (entry.store == store && entry.name.CompareNoCase(name) == 0)
-               return entry.source == SourceFile;
-         }
-         return false;
-      };
-
-      std::map<String, std::pair<String, String> > rows;
-      IniSettingStore::ReadAllRows(rows);
-
       int set = 0;
       int unchanged = 0;
       int failed = 0;
-      std::vector<String> lines;
       std::vector<size_t> database;
+      String stoppedAt;
 
-      for (size_t i = 0; i < requests.size(); i++)
+      // Each line is printed when its write is done, so that what the log says was
+      // stored is what was stored, whatever stops the run after it.
+      try
       {
-         Request &request = requests[i];
-         const bool secret = IsSecret_(request) || previouslyFromFile(request.store, request.name);
+         std::map<String, std::pair<String, String> > rows;
+         IniSettingStore::ReadAllRows(rows);
 
-         String before;
-         bool had = false;
-         bool same = false;
-
-         if (request.store == StoreIni)
+         for (size_t i = 0; i < requests.size(); i++)
          {
-            String value = request.value;
-            value.Trim();
+            Request &request = requests[i];
+            stoppedAt = request.variable;
 
-            if (IniSettingStore::IsFileOnlyName(request.name))
+            const bool secret = IsSecret_(request, secrets);
+
+            String before;
+            bool had = false;
+            bool same = false;
+
+            if (request.store == StoreIni)
             {
-               before = IniFileSettings::Instance()->GetSettingsValue(request.name);
-               had = !before.IsEmpty();
+               String value = request.value;
+               value.Trim();
+
+               const bool fileOnly = IniSettingStore::IsFileOnlyName(request.name);
+               if (fileOnly)
+               {
+                  before = IniFileSettings::Instance()->GetSettingsValue(request.name);
+                  had = !before.IsEmpty();
+               }
+               else
+               {
+                  auto row = rows.find(request.name);
+                  had = row != rows.end();
+                  before = had ? (*row).second.first : String();
+               }
+
+               if (request.lent)
+               {
+                  // Through the row's setter, as PUT /api/v1/settings/... stores it.
+                  String refusal;
+                  if (!RestApiSettingsRows::Apply(true, request.name, request.number, value, refusal))
+                  {
+                     failed++;
+                     Print_(true, request.variable + _T(": failed: ") + (secret ? String(_T("the setter refused the value")) : refusal) + _T("."));
+                     continue;
+                  }
+
+                  std::map<String, std::pair<String, String> > after;
+                  IniSettingStore::ReadAllRows(after);
+                  auto now = after.find(request.name);
+                  same = had && now != after.end() && (*now).second.first == before;
+               }
+               else
+               {
+                  same = had && before == value;
+
+                  if (!same && !IniFileSettings::Instance()->WriteSettingsValue(request.name, value))
+                  {
+                     failed++;
+                     Print_(true, request.variable + _T(": failed: the database could not be written, so ") + request.name + _T(" was not stored."));
+                     continue;
+                  }
+               }
             }
             else
             {
-               auto row = rows.find(request.name);
-               had = row != rows.end();
-               before = had ? (*row).second.first : String();
+               had = properties->Exists(request.name);
+               const SettingsDefaults::Setting *property = FindProperty(request.name);
+
+               const String beforeText = had ? properties->GetString(request.name) : String();
+               const long beforeNumber = had ? properties->GetLong(request.name) : 0;
+               before = request.isNumber ? (had ? StringParser::IntToString((int) beforeNumber) : String()) : beforeText;
+
+               if (request.lent)
+               {
+                  // A row the database does not have yet is made with its shipped
+                  // value first - a write of a name the set does not hold reports
+                  // HM5015 - and the value then goes through the row's setter, which
+                  // derives, canonicalises and pairs as REST's does.
+                  if (!had && property)
+                  {
+                     if (property->Kind == SettingsDefaults::KindString || property->Kind == SettingsDefaults::KindEither)
+                        properties->EnsureString(request.name, property->Value);
+                     else
+                        properties->EnsureLong(request.name, property->Number);
+                  }
+
+                  String refusal;
+                  if (!RestApiSettingsRows::Apply(false, request.name, request.number, request.value, refusal))
+                  {
+                     failed++;
+                     Print_(true, request.variable + _T(": failed: ") + (secret ? String(_T("the setter refused the value")) : refusal) + _T("."));
+                     continue;
+                  }
+
+                  same = had && properties->GetString(request.name) == beforeText && properties->GetLong(request.name) == beforeNumber;
+               }
+               else if (request.isNumber)
+               {
+                  same = had && beforeNumber == request.number;
+                  if (!same)
+                  {
+                     if (had)
+                        properties->SetLong(request.name, request.number);
+                     else
+                        properties->EnsureLong(request.name, request.number);
+                  }
+               }
+               else
+               {
+                  same = had && beforeText == request.value;
+                  if (!same)
+                  {
+                     if (had)
+                        properties->SetString(request.name, request.value);
+                     else
+                        properties->EnsureString(request.name, request.value);
+                  }
+               }
+
+               database.push_back(i);
             }
 
-            same = had && before == value;
-
-            if (!same && !IniFileSettings::Instance()->WriteSettingsValue(request.name, value))
+            if (same)
             {
-               failed++;
-               lines.push_back(request.variable + _T(": failed: the database could not be written, so ") + request.name + _T(" was not stored."));
+               unchanged++;
+               Print_(false, request.variable + _T(": unchanged"));
                continue;
             }
-         }
-         else
-         {
-            had = properties->Exists(request.name);
 
-            // A row the database does not have yet is made with the value, as
-            // Configuration::Load makes a missing one with its default: a read or a
-            // write of a name the set does not hold reports HM5015 first.
-            if (isNumber[i])
-            {
-               before = had ? StringParser::IntToString((int) properties->GetLong(request.name)) : String();
-               same = had && properties->GetLong(request.name) == numbers[i];
-               if (!same)
-               {
-                  if (had)
-                     properties->SetLong(request.name, numbers[i]);
-                  else
-                     properties->EnsureLong(request.name, numbers[i]);
-               }
-            }
+            set++;
+
+            // The log says which value the environment overrode - never a secret's, a
+            // file's, or one a file supplied before and nobody has rewritten.
+            if (secret)
+               Print_(false, request.variable + _T(": set (") + request.name + (request.source == SourceFile ? _T(", from a file") : _T("")) + _T("; the value is not shown)"));
+            else if (had)
+               Print_(false, request.variable + _T(": set (") + request.name + _T(" was ") + (before.IsEmpty() ? String(_T("empty")) : before) + _T(")"));
             else
-            {
-               before = had ? properties->GetString(request.name) : String();
-               same = had && before == request.value;
-               if (!same)
-               {
-                  if (had)
-                     properties->SetString(request.name, request.value);
-                  else
-                     properties->EnsureString(request.name, request.value);
-               }
-            }
-
-            database.push_back(i);
+               Print_(false, request.variable + _T(": set (") + request.name + _T(" had no stored value)"));
          }
 
-         if (same)
+         stoppedAt.Empty();
+
+         // The property writes, read back: PropertySet's setters do not say whether the
+         // row took, so a fresh read of the table does - the value the setter left,
+         // both columns, and the two records below with them.
+         String problem;
+         if (!WriteRecord_(MarkerName(), marker, problem))
          {
-            unchanged++;
-            lines.push_back(request.variable + _T(": unchanged"));
-            continue;
+            failed++;
+            Print_(true, Formatter::Format("The record of what the environment manages was not written ({0}); the settings above are stored, and the other interfaces will not refuse a change to them.", problem));
          }
 
-         set++;
+         if (!WriteRecord_(SecretMarkerName(), secretMarker, problem))
+         {
+            failed++;
+            Print_(true, Formatter::Format("The record of the settings whose value came from a file was not written ({0}); such a value may be shown once the environment no longer sets it.", problem));
+         }
 
-         // The log says which value the environment overrode - never a secret's, a
-         // file's, or one a file supplied before.
-         if (secret)
-            lines.push_back(request.variable + _T(": set (") + request.name + (request.source == SourceFile ? _T(", from a file") : _T("")) + _T("; the value is not shown)"));
-         else if (had)
-            lines.push_back(request.variable + _T(": set (") + request.name + _T(" was ") + (before.IsEmpty() ? String(_T("empty")) : before) + _T(")"));
-         else
-            lines.push_back(request.variable + _T(": set (") + request.name + _T(" had no stored value)"));
-      }
-
-      // The property writes, read back: PropertySet's setters do not say whether the
-      // row took, so a fresh read of the table does.
-      if (!database.empty())
-      {
          PropertySet stored;
          stored.Refresh();
 
          for (size_t i : database)
          {
             const Request &request = requests[i];
-            bool took = stored.Exists(request.name) &&
-               (isNumber[i] ? stored.GetLong(request.name) == numbers[i] : stored.GetString(request.name) == request.value);
+            const bool took = stored.Exists(request.name) &&
+               stored.GetString(request.name) == properties->GetString(request.name) &&
+               stored.GetLong(request.name) == properties->GetLong(request.name);
 
             if (!took)
             {
                failed++;
-               lines.push_back(request.variable + _T(": failed: ") + request.name + _T(" did not read back as it was written; see the error log."));
+               Print_(true, request.variable + _T(": failed: ") + request.name + _T(" did not read back as it was written; see the error log."));
             }
          }
-      }
 
-      // The record of what the environment manages: this run's variables, and so
-      // none that are no longer set.
-      std::vector<String> managed;
-      for (const Request &request : requests)
-         managed.push_back(request.canonical);
-      std::sort(managed.begin(), managed.end());
-      const String marker = StringParser::JoinVector(managed, _T(","));
+         const bool markerTook = marker.IsEmpty() ? !stored.Exists(MarkerName()) : stored.Exists(MarkerName()) && stored.GetString(MarkerName()) == marker;
+         const bool secretTook = secretMarker.IsEmpty() ? !stored.Exists(SecretMarkerName()) : stored.Exists(SecretMarkerName()) && stored.GetString(SecretMarkerName()) == secretMarker;
+         if (!markerTook || !secretTook)
+         {
+            failed++;
+            Print_(true, Formatter::Format("The records {0} and {1} did not read back as they were written: the other interfaces may not refuse a change to a setting named here, or may show a value a file supplied.",
+               String(MarkerName()), String(SecretMarkerName())));
+         }
 
-      String previousMarker;
-      if (properties->Exists(MarkerName()))
-         previousMarker = properties->GetString(MarkerName());
-
-      if (marker.GetLength() > MaximumPropertyText)
-      {
-         failed++;
-         lines.push_back(Formatter::Format("The record of what the environment manages would be {0} characters, and {1} holds 4000: the settings are stored, and the Control Panel, the Deck and the REST API will not know which of them the environment manages.",
-            marker.GetLength(), String(MarkerName())));
-      }
-      else if (marker != previousMarker || (marker.IsEmpty() && properties->Exists(MarkerName())))
-      {
+         // The file the entrypoint looks for, so that a start with no variable still
+         // runs this and gives the settings back.
+         const String file = MarkerFile();
          if (marker.IsEmpty())
          {
-            // Nothing managed: no row at all, which is how a server that has never
-            // been given its settings by an environment has always looked.
-            SQLCommand command("delete from hm_settings where settingname = @SETTINGNAME");
-            command.AddParameter("@SETTINGNAME", String(MarkerName()));
-            if (!Application::Instance()->GetDBManager()->Execute(command))
+            if (FileUtilities::Exists(file) && !FileUtilities::DeleteFile(file))
             {
                failed++;
-               lines.push_back(Formatter::Format("The record of what the environment manages ({0}) could not be removed; the settings it names stay refused to the other interfaces until the next run.", String(MarkerName())));
+               Print_(true, Formatter::Format("{0} could not be removed; the entrypoint will go on running --apply-environment at every start, which does no harm.", file));
             }
          }
-         else
+         else if (!FileUtilities::WriteToFile(file, AnsiString("Written by hmailserver --apply-environment: settings of this server are set by its environment. While this file is here the container's entrypoint runs --apply-environment at every start, so that a start without the variables gives the settings back.\n")))
          {
-            if (!properties->Exists(MarkerName()))
-               properties->EnsureString(MarkerName(), marker);
-            else
-               properties->SetString(MarkerName(), marker);
+            failed++;
+            Print_(true, Formatter::Format("{0} could not be written: a start without these variables would not give the settings back.", file));
          }
-
-         // Names the last run managed and this one does not are the administrator's
-         // again, and saying so is the only notice anybody gets of it.
-         std::vector<String> released;
-         for (const Entry &entry : previous)
-         {
-            bool still = false;
-            for (const Request &request : requests)
-               still = still || (request.store == entry.store && request.name.CompareNoCase(entry.name) == 0);
-            if (!still)
-               released.push_back(entry.name);
-         }
-
-         if (!released.empty())
-            lines.push_back(Formatter::Format("No longer set by the environment, and the administrator's to change again: {0}.",
-               StringParser::JoinVector(released, _T(", "))));
+      }
+      catch (...)
+      {
+         Print_(true, Formatter::Format("The run stopped{0}: an unexpected error, which the error log names. The lines above say what was stored; the record of what the environment manages was not updated.",
+            stoppedAt.IsEmpty() ? String() : Formatter::Format(" at {0}", stoppedAt)));
+         return 1;
       }
 
-      for (const String &line : lines)
-         Print_(false, line);
+      // Names the last run managed and this one does not are the administrator's
+      // again, and saying so is the only notice anybody gets of it. A value a file
+      // supplied stays withheld until an administrator writes another.
+      std::vector<String> released;
+      for (const Entry &entry : previous)
+      {
+         bool still = false;
+         for (const Request &request : requests)
+            still = still || (request.store == entry.store && request.name.CompareNoCase(entry.name) == 0);
+         if (!still)
+            released.push_back(entry.name);
+      }
+
+      if (!released.empty())
+         Print_(false, Formatter::Format("No longer set by the environment, and the administrator's to change again: {0}.",
+            StringParser::JoinVector(released, _T(", "))));
 
       if (requests.empty())
       {

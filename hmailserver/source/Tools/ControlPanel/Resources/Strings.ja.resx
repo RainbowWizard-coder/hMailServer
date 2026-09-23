@@ -8013,6 +8013,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Set flags" xml:space="preserve">
     <value>フラグを設定</value>
   </data>
+  <data name="Set from a file of the server's environment, so not shown. Type a new value to replace it." xml:space="preserve">
+    <value>サーバーの環境のファイルから設定されているため、表示されません。置き換えるには新しい値を入力してください。</value>
+  </data>
   <data name="Set header value" xml:space="preserve">
     <value>ヘッダー値を設定</value>
   </data>

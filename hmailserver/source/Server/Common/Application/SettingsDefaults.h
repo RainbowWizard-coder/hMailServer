@@ -14,9 +14,11 @@
 //
 //   KindString   GetString: the number column is nobody's and stays 0
 //   KindNumber   GetLong or GetBool: the string column is nobody's and stays empty
-//   KindEither   nothing in this build reads it, so neither column can be ruled
-//                out; a caller compares both. A handful of rows a create script
-//                still seeds for a feature that has gone.
+//   KindEither   no read names one column only, so neither can be ruled out; a
+//                caller compares both. A handful of rows a create script still
+//                seeds for a feature that has gone, which nothing reads, and
+//                backupencryptionpassphrase, read both ways: the text is the
+//                passphrase and the number whether one is set.
 //
 // Levels is the deepest level the property may be set at - the whole server
 // only, a domain, or an account as well - from build/settings-levels.txt. A
@@ -178,14 +180,14 @@ namespace HM
          { _T("IMAPHierarchyDelimiter"), _T("."), 0, KindString, LevelServer },
          { _T("ImapMasterUser"), _T(""), 0, KindString, LevelServer },
          { _T("imappublicfoldername"), _T("#Public"), 0, KindString, LevelServer },
-         { _T("ImportOAuthGoogleAuthorizeUrl"), _T("https://accounts.google.com/o/oauth2/v2/auth"), 0, KindEither, LevelServer },
-         { _T("ImportOAuthGoogleClientId"), _T(""), 0, KindEither, LevelServer },
-         { _T("ImportOAuthGoogleClientSecret"), _T(""), 0, KindEither, LevelServer },
-         { _T("ImportOAuthGoogleTokenUrl"), _T("https://oauth2.googleapis.com/token"), 0, KindEither, LevelServer },
-         { _T("ImportOAuthMsAuthorizeUrl"), _T("https://login.microsoftonline.com/common/oauth2/v2.0/authorize"), 0, KindEither, LevelServer },
-         { _T("ImportOAuthMsClientId"), _T(""), 0, KindEither, LevelServer },
-         { _T("ImportOAuthMsClientSecret"), _T(""), 0, KindEither, LevelServer },
-         { _T("ImportOAuthMsTokenUrl"), _T("https://login.microsoftonline.com/common/oauth2/v2.0/token"), 0, KindEither, LevelServer },
+         { _T("ImportOAuthGoogleAuthorizeUrl"), _T("https://accounts.google.com/o/oauth2/v2/auth"), 0, KindString, LevelServer },
+         { _T("ImportOAuthGoogleClientId"), _T(""), 0, KindString, LevelServer },
+         { _T("ImportOAuthGoogleClientSecret"), _T(""), 0, KindString, LevelServer },
+         { _T("ImportOAuthGoogleTokenUrl"), _T("https://oauth2.googleapis.com/token"), 0, KindString, LevelServer },
+         { _T("ImportOAuthMsAuthorizeUrl"), _T("https://login.microsoftonline.com/common/oauth2/v2.0/authorize"), 0, KindString, LevelServer },
+         { _T("ImportOAuthMsClientId"), _T(""), 0, KindString, LevelServer },
+         { _T("ImportOAuthMsClientSecret"), _T(""), 0, KindString, LevelServer },
+         { _T("ImportOAuthMsTokenUrl"), _T("https://login.microsoftonline.com/common/oauth2/v2.0/token"), 0, KindString, LevelServer },
          { _T("ImportOAuthRedirectBaseUrl"), _T(""), 0, KindString, LevelServer },
          { _T("IPv6Preferred"), _T(""), 0, KindNumber, LevelServer },
          { _T("logdevice"), _T(""), 0, KindNumber, LevelServer },
@@ -206,13 +208,13 @@ namespace HM
          { _T("maxsmtprecipientsinbatch"), _T(""), 100, KindNumber, LevelServer },
          { _T("MessageIndexing"), _T(""), 0, KindNumber, LevelServer },
          { _T("mirroremailaddress"), _T(""), 0, KindString, LevelServer },
-         { _T("OidcAdministrators"), _T(""), 0, KindEither, LevelServer },
+         { _T("OidcAdministrators"), _T(""), 0, KindString, LevelServer },
          { _T("OidcAutoProvision"), _T(""), 0, KindNumber, LevelServer },
-         { _T("OidcClientId"), _T(""), 0, KindEither, LevelServer },
-         { _T("OidcClientSecret"), _T(""), 0, KindEither, LevelServer },
-         { _T("OidcIssuer"), _T(""), 0, KindEither, LevelServer },
-         { _T("OidcRedirectBaseUrl"), _T(""), 0, KindEither, LevelServer },
-         { _T("OidcScopes"), _T("openid email"), 0, KindEither, LevelServer },
+         { _T("OidcClientId"), _T(""), 0, KindString, LevelServer },
+         { _T("OidcClientSecret"), _T(""), 0, KindString, LevelServer },
+         { _T("OidcIssuer"), _T(""), 0, KindString, LevelServer },
+         { _T("OidcRedirectBaseUrl"), _T(""), 0, KindString, LevelServer },
+         { _T("OidcScopes"), _T("openid email"), 0, KindString, LevelServer },
          { _T("OpenPGPKeyMaximumBytes"), _T(""), 65536, KindNumber, LevelServer },
          { _T("OpenPGPKeyserverUrl"), _T("https://keys.openpgp.org"), 0, KindString, LevelServer },
          { _T("OpenPGPKeysPerAccount"), _T(""), 8, KindNumber, LevelServer },
@@ -224,7 +226,7 @@ namespace HM
          { _T("OpenPGPWebKeyDirectoryEnabled"), _T(""), 0, KindNumber, LevelServer },
          { _T("OutboundBackoffMaxMinutes"), _T(""), 60, KindNumber, LevelServer },
          { _T("OutboundBackoffMinutes"), _T(""), 2, KindNumber, LevelServer },
-         { _T("PasskeyRelyingParty"), _T(""), 0, KindEither, LevelServer },
+         { _T("PasskeyRelyingParty"), _T(""), 0, KindString, LevelServer },
          { _T("PasskeysEnabled"), _T(""), 1, KindNumber, LevelServer },
          { _T("ProtectedMessageDays"), _T(""), 30, KindNumber, LevelServer },
          { _T("protocolimap"), _T(""), 1, KindNumber, LevelServer },

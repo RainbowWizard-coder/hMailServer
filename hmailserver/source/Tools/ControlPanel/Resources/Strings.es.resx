@@ -8013,6 +8013,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Set flags" xml:space="preserve">
     <value>Establecer marcas</value>
   </data>
+  <data name="Set from a file of the server's environment, so not shown. Type a new value to replace it." xml:space="preserve">
+    <value>Establecido desde un archivo del entorno del servidor, por lo que no se muestra. Escriba un valor nuevo para sustituirlo.</value>
+  </data>
   <data name="Set header value" xml:space="preserve">
     <value>Establecer el valor de una cabecera</value>
   </data>

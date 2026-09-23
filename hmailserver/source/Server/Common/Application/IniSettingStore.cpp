@@ -261,14 +261,31 @@ namespace HM
       return !value.IsEmpty();
    }
 
+   bool
+   IniSettingStore::IsWithheld_(const String &name)
+   {
+      // Asked only for an administrator's change, the one the audit trail records
+      // and the one that makes a value a file supplied the administrator's.
+      if (!AuditTrail::HasActor())
+         return false;
+
+      return EnvironmentSettings::IsWithheld(EnvironmentSettings::StoreIni, name);
+   }
+
    void
-   IniSettingStore::RecordChange_(const String &name, bool wasStored, const String &previousValue, bool isStored, const String &value)
+   IniSettingStore::RecordChange_(const String &name, bool wasStored, const String &previousValue, bool isStored, const String &value, bool withheld)
    {
       if (!wasStored && !isStored)
          return;
 
       if (wasStored && isStored && previousValue.Compare(value) == 0)
          return;
+
+      // A value a file of the environment supplied is recorded as changed, as a
+      // secret's is, and the value now stored - written, or the default - is the
+      // administrator's, shown as any other from here on.
+      if (withheld)
+         EnvironmentSettings::ForgetSecretOrigin(EnvironmentSettings::StoreIni, name);
 
       // A side with no row is the setting at its default, which is what an
       // administrator reading the trail needs to be told - not an empty string,
@@ -278,7 +295,8 @@ namespace HM
       AuditTrail::Instance()->RecordSettingChange(name,
          wasStored ? previousValue : notStored,
          isStored ? value : notStored,
-         isStored ? String(_T("updated")) : String(_T("deleted")));
+         isStored ? String(_T("updated")) : String(_T("deleted")),
+         withheld);
    }
 
    void
@@ -770,12 +788,14 @@ namespace HM
          if (!hadValue || previousFileValue != value)
             EnvironmentSettings::RefuseAdministratorChange(EnvironmentSettings::StoreIni, name);
 
+         const bool withheld = IsWithheld_(name);
+
          if (!WriteIniValue_(_T("Settings"), name, value))
             return false;
 
          DeleteRow_(name);
 
-         RecordChange_(name, hadValue, previousFileValue, true, value);
+         RecordChange_(name, hadValue, previousFileValue, true, value, withheld);
          return true;
       }
 
@@ -802,6 +822,8 @@ namespace HM
       if (!wasStored || previousValue != value)
          EnvironmentSettings::RefuseAdministratorChange(EnvironmentSettings::StoreIni, name);
 
+      const bool withheld = IsWithheld_(name);
+
       bool stored = existing == rows.end()
          ? InsertRow_(name, value, value)
          : UpdateRow_(name, value, value);
@@ -811,7 +833,7 @@ namespace HM
 
       // Recorded as soon as the store has the value, which is the moment the change
       // is real: a file write that fails below does not undo it, and says so.
-      RecordChange_(name, wasStored, previousValue, true, value);
+      RecordChange_(name, wasStored, previousValue, true, value, withheld);
 
       // The cache second, and a failure here does not fail the write: the value is
       // stored and is what the server will use. Said out loud rather than swallowed,
@@ -845,6 +867,8 @@ namespace HM
       // Returning a key the environment manages to its default is a change the
       // next start would undo, and is refused to an administrator as a write is.
       EnvironmentSettings::RefuseAdministratorChange(EnvironmentSettings::StoreIni, name);
+
+      const bool withheld = IsWithheld_(name);
 
       // THE LINE FIRST, and this is the one place where the order is the opposite of
       // WriteSetting's - for the same reason the order is what it is there, which is
@@ -892,7 +916,7 @@ namespace HM
          return false;
       }
 
-      RecordChange_(name, wasStored, previousValue, false, String());
+      RecordChange_(name, wasStored, previousValue, false, String(), withheld);
 
       return true;
    }

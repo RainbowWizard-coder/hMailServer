@@ -19,6 +19,7 @@
 #include "../Common/Util/Unicode.h"
 #include "../Common/Util/ReputationWatch.h"
 #include "../Common/Application/IniSettingStore.h"
+#include "../Common/Application/EnvironmentSettings.h"
 #include "../Common/Application/Logger.h"
 #include "../Common/Util/MessageOrigin.h"
 #include "../Common/Util/Parsing/StringParser.h"
@@ -2940,7 +2941,16 @@ STDMETHODIMP InterfaceSettings::GetIniSetting(BSTR Name, BSTR *pVal)
       if (!HM::IniSettingStore::IsStorableName(name))
          return COMError::GenerateError("The setting name is empty, longer than 100 characters, surrounded by whitespace, or contains one of = [ ] or a line break.");
 
-      *pVal = HM::IniFileSettings::Instance()->GetSettingsValue(name).AllocSysString();
+      HM::String value = HM::IniFileSettings::Instance()->GetSettingsValue(name);
+
+      // A value a file of the server's environment supplied - a Secret's - is
+      // answered as GET /api/v1/settings/ini/{name} answers it: (set), or empty
+      // when it is empty, until an administrator writes another
+      // (docs/EnvironmentConfiguration.md).
+      if (HM::EnvironmentSettings::IsWithheld(HM::EnvironmentSettings::StoreIni, name) && !value.IsEmpty())
+         value = _T("(set)");
+
+      *pVal = value.AllocSysString();
 
       return S_OK;
    }

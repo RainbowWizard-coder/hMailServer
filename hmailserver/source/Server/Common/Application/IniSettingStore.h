@@ -365,8 +365,17 @@ namespace HM
       /// stored, or a removal of a key that had no row - which is the same rule
       /// PropertySet applies, for the same reason: a settings page that writes
       /// every field it shows would otherwise bury the one that changed.
+      /// withheld: the value replaced came from a file of the server's environment
+      /// (EnvironmentSettings::IsWithheld), so the change is recorded as a secret's
+      /// is, and the value is the administrator's from here on.
       /// </summary>
-      static void RecordChange_(const String &name, bool wasStored, const String &previousValue, bool isStored, const String &value);
+      static void RecordChange_(const String &name, bool wasStored, const String &previousValue, bool isStored, const String &value, bool withheld);
+
+      /// <summary>
+      /// Whether an administrator's change replaces a value a file of the server's
+      /// environment supplied; false when no administrator is making it.
+      /// </summary>
+      static bool IsWithheld_(const String &name);
 
       /// <summary>
       /// Writes one key into a section of the ini. Returns false when the write did

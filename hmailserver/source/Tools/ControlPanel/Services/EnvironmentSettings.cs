@@ -90,6 +90,66 @@ namespace hMailServer.ControlPanel.Services
          return entries;
       }
 
+      /// <summary>One setting whose value a file of the environment supplied: never its value.</summary>
+      public sealed class Withheld
+      {
+         public string Store { get; init; }
+         public string Name { get; init; }
+      }
+
+      /// <summary>
+      /// The from_file array of Settings.GetChangedFromDefault's document: every
+      /// setting whose value a file of the server's environment supplied - now, or
+      /// before and not rewritten since - which the server withholds from every
+      /// answer and this program does not show in a field. Empty for null, blank, or
+      /// a document from a server older than the array; a JsonException for text
+      /// that is not a JSON object.
+      /// </summary>
+      public static IReadOnlyList<Withheld> ParseFromFile(string changedDocument)
+      {
+         var entries = new List<Withheld>();
+         if (string.IsNullOrWhiteSpace(changedDocument))
+            return entries;
+
+         using JsonDocument document = JsonDocument.Parse(changedDocument);
+         if (document.RootElement.ValueKind != JsonValueKind.Object)
+            throw new JsonException("The document is not a JSON object."); // no-loc
+
+         if (!document.RootElement.TryGetProperty("from_file", out JsonElement list) || list.ValueKind != JsonValueKind.Array) // no-loc
+            return entries;
+
+         foreach (JsonElement item in list.EnumerateArray())
+         {
+            if (item.ValueKind != JsonValueKind.Object)
+               continue;
+
+            string Text(string member)
+               => item.TryGetProperty(member, out JsonElement value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+
+            string name = Text("name");       // no-loc
+            string store = Text("store");     // no-loc
+            if (string.IsNullOrEmpty(name) || (store != StoreIni && store != StoreDatabase))
+               continue;
+
+            entries.Add(new Withheld { Store = store, Name = name });
+         }
+
+         return entries;
+      }
+
+      /// <summary>Whether a setting is one of the withheld ones, matched without case.</summary>
+      public static bool IsWithheld(IReadOnlyList<Withheld> entries, string store, string name)
+         => entries != null && !string.IsNullOrEmpty(name) &&
+            entries.Any(e => e.Store == store && string.Equals(e.Name, name, StringComparison.OrdinalIgnoreCase));
+
+      /// <summary>
+      /// What an empty field says when the value it would show came from a file of
+      /// the server's environment: the field is left empty, and a save writes nothing
+      /// unless something is typed.
+      /// </summary>
+      public static string WithheldPlaceholder()
+         => L("Set from a file of the server's environment, so not shown. Type a new value to replace it.");
+
       /// <summary>
       /// The mark beside a field the environment sets: "Set by the environment", or
       /// "... from a file" for a value a Secret supplied. Null for anything else, so

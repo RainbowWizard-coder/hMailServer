@@ -5,12 +5,14 @@
 
 """Every setting name the environment's documents mention is a setting.
 
-Every setting has a name in the environment (docs/EnvironmentConfiguration.md):
-HM_SETTING_<key> for a [Settings] key - one of build/ini-settings-baseline.txt -
-and HM_PROPERTY_<name> for an hm_settings row - one SettingsDefaults.h lists and
-this build reads - either with _FILE after it for a value read from a file. The
-server refuses any other name when it is run (hmailserver --apply-environment),
-with the nearest one named; but a name written into the container's
+Every [Settings] key and every hm_settings row this build reads has a name in
+the environment (docs/EnvironmentConfiguration.md): HM_SETTING_<key> for a
+[Settings] key - one of build/ini-settings-baseline.txt - and HM_PROPERTY_<name>
+for an hm_settings row - one SettingsDefaults.h lists with a column this build
+reads it by, or one it reads both ways whose write-only REST settings row names
+it (backupencryptionpassphrase) - either with _FILE after it for a value read
+from a file. The server refuses any other name when it is run (hmailserver
+--apply-environment), with the nearest one named; but a name written into the container's
 entrypoint, the Helm chart, the Compose file or the documents is one somebody
 copies, and a misspelled example is a container that does not start. So this
 reads them, and fails on any that is not a setting:
@@ -25,19 +27,24 @@ reads them, and fails on any that is not a setting:
   hmailserver/docs/EnvironmentConfiguration.md
   hmailserver/docs/ChangedFromStock.md
 
-And it holds three things the naming rule rests on:
+And it holds four things the naming rule rests on:
 
   * no [Settings] key and no property ends in _FILE, so the suffix is never
     part of a name (Common/Application/EnvironmentSettings.cpp relies on it);
   * the four aliases the container has always taken - HM_REST_PORT and the
     other three, in EnvironmentSettings.cpp's table - name [Settings] keys, and
     the entrypoint's comment names each of them;
-  * the marker row, EnvironmentManagedSettings, is not a property a variable
-    could name, and fits the 30 characters of hm_settings.settingname.
+  * the two record rows, EnvironmentManagedSettings and
+    EnvironmentSecretSettings, are not properties a variable could name, and fit
+    the 30 characters of hm_settings.settingname;
+  * every write-only REST settings row (RestApiSettings.cpp) names the property
+    it writes, which is how --apply-environment finds the setter and the check
+    that a value it cannot read back must go through.
 
-It proves its own negative control on every run: a copy of the document with a
+It proves its own negative controls on every run: a copy of the document with a
 made-up HM_SETTING_ name, and one with a made-up HM_PROPERTY_ name, must both be
-refused, and a values file with a made-up key under settings: as well.
+refused, and a values file with a made-up key under settings: as well, and one
+with a made-up property in a settingsFrom entry.
 
 Usage: python build/check-environment-names.py
 """
@@ -52,6 +59,8 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 BASELINE = os.path.join(ROOT, 'build', 'ini-settings-baseline.txt')
 DEFAULTS = os.path.join(ROOT, 'hmailserver', 'source', 'Server', 'Common', 'Application', 'SettingsDefaults.h')
 IMPLEMENTATION = os.path.join(ROOT, 'hmailserver', 'source', 'Server', 'Common', 'Application', 'EnvironmentSettings.cpp')
+CONSTANTS = os.path.join(ROOT, 'hmailserver', 'source', 'Server', 'Common', 'Application', 'Constants.h')
+ROWS = os.path.join(ROOT, 'hmailserver', 'source', 'Server', 'Common', 'Util', 'RestApiSettings.cpp')
 PACKAGING = os.path.join(ROOT, 'hmailserver', 'source', 'Server', 'platform', 'packaging')
 ENTRYPOINT = os.path.join(PACKAGING, 'docker', 'docker-entrypoint.sh')
 VALUES = os.path.join(PACKAGING, 'helm', 'hmailserver', 'values.yaml')
@@ -74,6 +83,10 @@ VARIABLE = re.compile(r'\bHM_(SETTING|PROPERTY)_([A-Za-z0-9_]+)')
 ROW = re.compile(r'\{\s*_T\("([^"]+)"\)\s*,\s*_T\("(?:[^"\\]|\\.)*"\)\s*,\s*-?\d+\s*,\s*(Kind\w+)\s*,\s*Level\w+\s*\}')
 ALIAS = re.compile(r'\{\s*_T\("(HM_REST_[A-Z_]+)"\)\s*,\s*_T\("([A-Za-z0-9]+)"\)\s*\}')
 MARKER = re.compile(r'EnvironmentSettings::MarkerName\(\)\s*\{\s*return\s+_T\("([^"]+)"\)')
+SECRET_MARKER = re.compile(r'EnvironmentSettings::SecretMarkerName\(\)\s*\{\s*return\s+_T\("([^"]+)"\)')
+CONSTANT = re.compile(r'#define\s+(PROPERTY_[A-Z0-9_]+)\s+_T\("([^"]+)"\)')
+REST_ROW = re.compile(r'\n\s*\{\s*"([a-z0-9_]+)",\s*Kind\w+,\s*(ReadWrite|ReadOnly|WriteOnly),')
+ROW_PROPERTY = re.compile(r'\bnullptr,\s*(PROPERTY_[A-Z0-9_]+)\s*\}')
 MAP_KEY = re.compile(r'^\s*#?\s{0,4}([A-Za-z][A-Za-z0-9_]*):')
 FROM_NAME = re.compile(r'^\s*#?\s*(?:-\s*)?(setting|property):\s*([A-Za-z0-9_]+)\s*$')
 
@@ -91,12 +104,36 @@ def baseline_keys():
     return keys
 
 
+def write_only_rows():
+    """Each write-only REST settings row: (key, the property constant it names or
+    None). A row runs from its opening line to the next row's, or to the end of
+    its table."""
+    text = read(ROWS)
+    starts = list(REST_ROW.finditer(text))
+    rows = []
+    for index, match in enumerate(starts):
+        if match.group(2) != 'WriteOnly':
+            continue
+        end = starts[index + 1].start() if index + 1 < len(starts) else len(text)
+        table_end = text.find('};', match.end())
+        if 0 <= table_end < end:
+            end = table_end
+        named = ROW_PROPERTY.search(text, match.end(), end)
+        rows.append((match.group(1), named.group(1) if named else None))
+    return rows
+
+
 def properties():
     """The properties a variable may name: the rows SettingsDefaults.h lists with
-    a kind this build reads (KindEither is a row nothing reads)."""
+    a column this build reads them by, and a row it reads both ways (KindEither)
+    whose write-only REST settings row names it - the row's setter keeps its two
+    columns together. The other KindEither rows are ones a create script still
+    seeds and nothing reads."""
+    constants = dict(CONSTANT.findall(read(CONSTANTS)))
+    declared = set(constants.get(constant, '').lower() for _, constant in write_only_rows() if constant)
     names = set()
     for name, kind in ROW.findall(read(DEFAULTS)):
-        if kind != 'KindEither':
+        if kind != 'KindEither' or name.lower() in declared:
             names.add(name)
     return names
 
@@ -187,15 +224,27 @@ def check_rule(keys, props):
         if variable not in entrypoint:
             problems.append('docker-entrypoint.sh does not name the alias %s' % variable)
 
-    marker = MARKER.search(implementation)
-    if not marker:
-        problems.append('EnvironmentSettings.cpp: MarkerName() could not be read')
-    else:
+    for pattern, what in ((MARKER, 'MarkerName()'), (SECRET_MARKER, 'SecretMarkerName()')):
+        marker = pattern.search(implementation)
+        if not marker:
+            problems.append('EnvironmentSettings.cpp: %s could not be read' % what)
+            continue
         name = marker.group(1)
         if len(name) > 30:
-            problems.append('the marker row %s is longer than the 30 characters hm_settings.settingname holds' % name)
+            problems.append('the record row %s is longer than the 30 characters hm_settings.settingname holds' % name)
         if name.lower() in set(p.lower() for p in props):
-            problems.append('the marker row %s is a property SettingsDefaults.h lists, so HM_PROPERTY_%s would name it' % (name, name))
+            problems.append('the record row %s is a property SettingsDefaults.h lists, so HM_PROPERTY_%s would name it' % (name, name))
+
+    constants = dict(CONSTANT.findall(read(CONSTANTS)))
+    rows = write_only_rows()
+    if not rows:
+        problems.append('RestApiSettings.cpp: no write-only settings row could be read')
+    for key, constant in rows:
+        if not constant:
+            problems.append('RestApiSettings.cpp: the write-only row %s names no property after its ini key (nullptr, PROPERTY_...), so '
+                            '--apply-environment cannot find its setter and check, and REST cannot mark it as set by the environment' % key)
+        elif constant not in constants:
+            problems.append('RestApiSettings.cpp: the write-only row %s names %s, which Constants.h does not define' % (key, constant))
     return problems
 
 
@@ -218,6 +267,12 @@ def negative_controls(keys, props):
             handle.write(values.replace('settings: {}', 'settings:\n  NoSuchSettingAnywhere: "1"', 1))
         if not check_files([copy], keys, props):
             failures.append('a made-up key under settings: in a copy of values.yaml was not refused')
+
+        with io.open(copy, 'w', encoding='utf-8') as handle:
+            handle.write(values.replace('settingsFrom: []',
+                                        'settingsFrom:\n  - secretName: made-up\n    key: made-up\n    property: nosuchpropertyanywhere', 1))
+        if not check_files([copy], keys, props):
+            failures.append('a made-up property in a settingsFrom entry in a copy of values.yaml was not refused')
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
     return failures
@@ -242,7 +297,8 @@ def main():
         return 1
 
     print('check-environment-names: every HM_SETTING_ and HM_PROPERTY_ name in the entrypoint, the chart, the Compose file and the documents is a setting '
-          '(%d [Settings] keys, %d properties); the negative controls - a made-up name in a copy of the document and in a copy of the values - are refused.'
+          '(%d [Settings] keys, %d properties), and every write-only settings row names its property; the negative controls - a made-up name in a copy of '
+          'the document, and in a copy of the values under settings: and in a settingsFrom entry - are refused.'
           % (len(keys), len(props)))
     return 0
 

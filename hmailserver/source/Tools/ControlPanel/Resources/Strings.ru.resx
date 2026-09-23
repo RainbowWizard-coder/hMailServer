@@ -8013,6 +8013,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Set flags" xml:space="preserve">
     <value>Установить флаги</value>
   </data>
+  <data name="Set from a file of the server's environment, so not shown. Type a new value to replace it." xml:space="preserve">
+    <value>Задано из файла в окружении сервера, поэтому не показывается. Введите новое значение, чтобы заменить его.</value>
+  </data>
   <data name="Set header value" xml:space="preserve">
     <value>Задать значение заголовка</value>
   </data>

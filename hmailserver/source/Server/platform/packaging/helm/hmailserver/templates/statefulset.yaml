@@ -70,13 +70,24 @@ spec:
             {{- end }}
             {{- /* Every other setting: HM_SETTING_<key> and HM_PROPERTY_<name>, which
                    the entrypoint stores with --apply-environment at every start. */}}
+            {{- /* A number left unquoted in the values reaches the template as a
+                   float, which toString writes as 1.048576e+07; a whole one is
+                   written as the whole number it is. */}}
             {{- range $key, $value := .Values.settings }}
             - name: {{ printf "HM_SETTING_%s" $key | quote }}
+              {{- if and (kindIs "float64" $value) (eq $value (float64 (int64 $value))) }}
+              value: {{ int64 $value | toString | quote }}
+              {{- else }}
               value: {{ $value | toString | quote }}
+              {{- end }}
             {{- end }}
             {{- range $name, $value := .Values.properties }}
             - name: {{ printf "HM_PROPERTY_%s" $name | quote }}
+              {{- if and (kindIs "float64" $value) (eq $value (float64 (int64 $value))) }}
+              value: {{ int64 $value | toString | quote }}
+              {{- else }}
               value: {{ $value | toString | quote }}
+              {{- end }}
             {{- end }}
             {{- range $index, $from := .Values.settingsFrom }}
             {{- if $from.setting }}

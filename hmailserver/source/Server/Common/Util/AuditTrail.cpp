@@ -597,14 +597,14 @@ namespace HM
    }
 
    void
-   AuditTrail::RecordSettingChange(const String &name, const String &oldValue, const String &newValue, const String &action)
+   AuditTrail::RecordSettingChange(const String &name, const String &oldValue, const String &newValue, const String &action, bool withheld)
    {
       if (!actor_.present || writing_)
          return;
 
       String detail;
 
-      if (IsSecretName(name))
+      if (withheld || IsSecretName(name))
       {
          detail = name + _T(": (changed)");
       }

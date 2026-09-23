@@ -299,9 +299,14 @@ namespace HM
       ReadDatabaseSettings(entries, unknownNames);
 
       // Which of them the server's environment sets, and from where. A value a file
-      // supplied is a Secret's and is shown as a secret's is.
+      // supplied is a Secret's and is shown as a secret's is - while the file sets
+      // it, and after, until an administrator writes another
+      // (EnvironmentSettings::ReadSecretOrigins).
       std::vector<EnvironmentSettings::Entry> managed;
       EnvironmentSettings::ReadManaged(managed);
+
+      std::vector<EnvironmentSettings::Entry> fromFile;
+      EnvironmentSettings::ReadSecretOrigins(fromFile);
 
       for (Entry &entry : entries)
       {
@@ -314,9 +319,17 @@ namespace HM
 
             entry.environment = environment.variable;
             entry.environmentFile = environment.source == EnvironmentSettings::SourceFile;
-            if (entry.environmentFile)
-               entry.value = Masked(entry.value, true);
             break;
+         }
+
+         bool withheld = entry.environmentFile;
+         for (const EnvironmentSettings::Entry &origin : fromFile)
+            withheld = withheld || (origin.store == store && origin.name.CompareNoCase(entry.name) == 0);
+
+         if (withheld && !entry.secret)
+         {
+            entry.secret = true;
+            entry.value = Masked(entry.value, true);
          }
       }
 
@@ -367,6 +380,38 @@ namespace HM
                  JsonField("store", managed[i].store == EnvironmentSettings::StoreIni ? StoreIni : StoreDatabase) + "," +
                  JsonField("name", managed[i].name) + "," +
                  JsonField("source", String(EnvironmentSettings::SourceWord(managed[i].source))) + "}";
+      }
+
+      // Every setting whose value is withheld because a file supplied it - the ones
+      // the environment sets from a file now, and the ones it did and nobody has
+      // written since - whether or not it differs from stock: the Control Panel
+      // reads it so as not to show such a value in a field. Names, never values.
+      std::vector<std::pair<EnvironmentSettings::Store, String> > withheld;
+      for (const EnvironmentSettings::Entry &entry : managed)
+      {
+         if (entry.source == EnvironmentSettings::SourceFile)
+            withheld.push_back(std::make_pair(entry.store, entry.name));
+      }
+
+      std::vector<EnvironmentSettings::Entry> fromFile;
+      EnvironmentSettings::ReadSecretOrigins(fromFile);
+      for (const EnvironmentSettings::Entry &origin : fromFile)
+      {
+         bool listed = false;
+         for (const auto &name : withheld)
+            listed = listed || (name.first == origin.store && name.second.CompareNoCase(origin.name) == 0);
+         if (!listed)
+            withheld.push_back(std::make_pair(origin.store, origin.name));
+      }
+
+      json += "],\"from_file\":[";
+      for (size_t i = 0; i < withheld.size(); i++)
+      {
+         if (i > 0)
+            json += ",";
+
+         json += "{" + JsonField("store", withheld[i].first == EnvironmentSettings::StoreIni ? StoreIni : StoreDatabase) + "," +
+                 JsonField("name", withheld[i].second) + "}";
       }
 
       json += "]}";
