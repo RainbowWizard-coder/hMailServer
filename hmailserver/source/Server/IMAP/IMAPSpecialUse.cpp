@@ -238,7 +238,15 @@ namespace HM
       if (depth > (size_t) IMAPFolder::MaxFolderDepth)
          return;
 
-      for (std::shared_ptr<IMAPFolder> folder : folders->GetVector())
+      // A locked copy, never GetVector(): this walk runs on a LIST (FolderListCreator
+      // ::Create_ resolves the designations for every line) while other sessions of
+      // the same account CREATE and DELETE folders in the shared tree, and a
+      // push_back that reallocates the vector, or an erase that destroys a
+      // subfolder collection, under a range-for over the live reference is a read
+      // of freed memory - the heap-corruption abort of 15, 22 and 23 September
+      // 2026 in ConcurrentListAndFolderChurnListsEveryExistingFolder, whose
+      // minidump put this frame under the corrupting LIST.
+      for (std::shared_ptr<IMAPFolder> folder : folders->GetSnapshot())
       {
          if (!folder)
             continue;
