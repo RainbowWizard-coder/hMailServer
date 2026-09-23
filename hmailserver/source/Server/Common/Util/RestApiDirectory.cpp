@@ -336,7 +336,7 @@ namespace HM
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
       const bool enabled = DirectoryStore::Enabled();
-      const bool editable = DirectoryStore::UserEditable();
+      const bool editable = DirectoryStore::UserEditable(account);
 
       if (kind == RouteMeDirectory)
       {

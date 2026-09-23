@@ -17,6 +17,7 @@
 #include "Unicode.h"
 #include "../BO/Account.h"
 #include "../Application/Configuration.h"
+#include "../Application/EffectiveSetting.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -87,7 +88,9 @@ namespace HM
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
-      const int ceiling = Configuration::Instance()->GetReaderMaskedAddressesMax();
+      // A setting with levels: the account's own ceiling, its domain's, or the
+      // server's (docs/SettingLevels.md).
+      const int ceiling = EffectiveSetting::ResolveInt(_T("reader_masked_addresses_max"), std::shared_ptr<const Domain>(), account);
       if (ceiling <= 0)
          return BuildResponse_(403, "{\"error\":\"masked addresses are not offered on this server\"}");
 

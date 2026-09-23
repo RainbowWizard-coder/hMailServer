@@ -114,7 +114,20 @@ namespace HM
       // when the ini file's timestamp changes; the timestamp is checked by stat'ing
       // the file, at most once every couple of seconds. So: cheap per call, but not
       // free, and it does touch the file system.
+      //
+      // The two counts are settings with levels (Application/EffectiveSetting.h,
+      // sending_max_messages and sending_max_recipients): an account's or its
+      // domain's own value in the database wins over the file's, the address's
+      // [SendingLimitsOverrides] entry is read as the account's own after an
+      // overlay row, and [SendingLimits] is the server's. The period is the
+      // file's, as it always was: the entry's hours, or [SendingLimits]'.
       AccountSendingLimits GetAccountLimits(const String &accountAddress);
+
+      // [SendingLimits] alone: the server level of the two counts.
+      AccountSendingLimits GetServerLimits();
+
+      // The [SendingLimitsOverrides] entry for the address, when there is one.
+      bool GetAddressLimits(const String &accountAddress, AccountSendingLimits &limits);
 
       // Records one message for the account. Call at MAIL FROM, once the
       // authenticated account is known.

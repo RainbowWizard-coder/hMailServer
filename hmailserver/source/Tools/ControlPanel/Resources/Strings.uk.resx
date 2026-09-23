@@ -212,6 +212,9 @@
   <data name="(could not be read from the server)" xml:space="preserve">
     <value>(не вдалося прочитати з сервера)</value>
   </data>
+  <data name="(empty)" xml:space="preserve">
+    <value>(порожньо)</value>
+  </data>
   <data name="(group #{0})" xml:space="preserve">
     <value>(група №{0})</value>
   </data>
@@ -649,6 +652,12 @@
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>За адресою {0} діє запис v=TLSRPTv1 із rua={1} — це інша поштова скринька для звітів, ніж указана вище, що припустимо, доки вона існує і її читають. Опубліковано: {2}</value>
+  </data>
+  <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
+    <value>Власне значення цього облікового запису має перевагу над значеннями його домену й сервера. Позначте параметр, щоб надати обліковому запису власне значення, зніміть позначку, щоб узяти значення домену, і збережіть рівні: вони записуються одразу, а не кнопкою «Зберегти» діалогу.</value>
+  </data>
+  <data name="A value this domain holds of its own wins over the server's for every account of it that holds none. Tick a setting to give the domain a value of its own, untick it to take the server's, and save the levels: they are written at once, not with the dialog's Save. A setting kept in a field of its own is edited on that field's tab and shown here with what is in effect." xml:space="preserve">
+    <value>Власне значення цього домену має перевагу над значенням сервера для кожного його облікового запису, який не має свого. Позначте параметр, щоб надати домену власне значення, зніміть позначку, щоб узяти значення сервера, і збережіть рівні: вони записуються одразу, а не кнопкою «Зберегти» діалогу. Параметр, що зберігається у власному полі, редагується на вкладці цього поля й показаний тут із чинним значенням.</value>
   </data>
   <data name="A version older than 6.2.17; upgrade, because that is the version that added these lines." xml:space="preserve">
     <value>Версія, старіша за 6.2.17; оновіться, бо саме ця версія додала ці рядки.</value>
@@ -3275,6 +3284,9 @@
   <data name="Edit {0}" xml:space="preserve">
     <value>Редагувати {0}</value>
   </data>
+  <data name="Edited on this dialog's other tabs." xml:space="preserve">
+    <value>Редагується на інших вкладках цього діалогу.</value>
+  </data>
   <data name="Editing" xml:space="preserve">
     <value>Редагування</value>
   </data>
@@ -4244,6 +4256,15 @@
   <data name="In a row" xml:space="preserve">
     <value>Поспіль</value>
   </data>
+  <data name="In effect: {0}, from the account" xml:space="preserve">
+    <value>Чинне: {0}, від облікового запису</value>
+  </data>
+  <data name="In effect: {0}, from the domain" xml:space="preserve">
+    <value>Чинне: {0}, від домену</value>
+  </data>
+  <data name="In effect: {0}, from the server" xml:space="preserve">
+    <value>Чинне: {0}, від сервера</value>
+  </data>
   <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
     <value>Діє з наступного повідомлення. Якщо вимкнено, нічого не класифікується, не підраховується й не заноситься до списку, а список не застосовується; записи, що вже в ньому є, залишаються, і щогодинне очищення й далі завершує їхній термін. Якщо базу даних не вдається прочитати, пошта надсилається так, наче адреси немає у списку, і раз на годину про це повідомляється в журналі помилок.</value>
   </data>
@@ -4527,6 +4548,9 @@
   </data>
   <data name="Lets sending servers pin your certificate through DNSSEC, so nobody can strip or spoof TLS on mail coming to you." xml:space="preserve">
     <value>Дозволяє серверам-відправникам закріпити ваш сертифікат через DNSSEC, щоб ніхто не міг зняти чи підробити TLS для пошти, яка надходить до вас.</value>
+  </data>
+  <data name="Levels" xml:space="preserve">
+    <value>Рівні</value>
   </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>Обмежити кількість _списків розсилки</value>
@@ -6048,6 +6072,9 @@
   <data name="Overwrite account signature" xml:space="preserve">
     <value>Перезаписати підпис облікового запису</value>
   </data>
+  <data name="Own value of {0}" xml:space="preserve">
+    <value>Власне значення {0}</value>
+  </data>
   <data name="PBKDF2 (default)" xml:space="preserve">
     <value>PBKDF2 (типово)</value>
   </data>
@@ -7386,8 +7413,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Збере_гти дозволи</value>
   </data>
+  <data name="Save _levels now" xml:space="preserve">
+    <value>Зберегти _рівні зараз</value>
+  </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>Зберегти _парольну фразу</value>
+  </data>
+  <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
+    <value>Збережіть і відкрийте знову: власне значення рівня належить тому, що існує.</value>
   </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>_Зберегти параметри</value>
@@ -7463,6 +7496,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
     <value>Збережено. Сервер підхопить вибір протягом двох секунд; зміна розкладу потребує перезапуску служби.</value>
+  </data>
+  <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
+    <value>Збережено. Чинне значення показано поруч із кожним параметром.</value>
   </data>
   <data name="Saving this does not move the service: it is read when the service is REGISTERED, so it takes effect only after the command in the status line below has been run. Clearing it does not move the service back to LocalSystem either - on an already-registered service an empty value means &quot;leave the account as it is&quot;. To return to LocalSystem, set this to LocalSystem explicitly and re-register." xml:space="preserve">
     <value>Збереження цього не переміщує службу: воно читається, коли службу РЕЄСТРУЮТЬ, тому набирає чинності лише після виконання команди в рядку стану нижче. Очищення також не повертає службу на LocalSystem - для вже зареєстрованої служби порожнє значення означає «залишити обліковий запис як є». Щоб повернутися до LocalSystem, задайте LocalSystem явно і перереєструйте.</value>
@@ -9546,6 +9582,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>Цей сервер не виконує ротацію ключів DKIM; він старіший за цю Панель керування.</value>
   </data>
+  <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
+    <value>Цей сервер не має рівнів параметрів: він старіший за схему 6088, і кожен параметр тут є власним полем сервера або домену.</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Цей сервер лише ПЕРЕВІРЯЄ SPF на вхідній пошті; публікація запису - для всіх інших: вона повідомляє серверам-отримувачам, яким комп'ютерам дозволено надсилати пошту від імені</value>
   </data>
@@ -10868,6 +10907,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="a symbol" xml:space="preserve">
     <value>спеціальний символ</value>
+  </data>
+  <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
+    <value>потрібне власне значення, або зніміть позначку, щоб узяти рівень вище.</value>
   </data>
   <data name="accepted but never delivered" xml:space="preserve">
     <value>прийнято, але так і не доставлено</value>

@@ -1117,6 +1117,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="memberdel")deleteGroupMember(Number(d.account),d.address);
   else if(d.act==="accountedit")openAccount(d.address,d.domain);
   else if(d.act==="accountsave")saveAccount();
+  else if(d.act==="accountlevels")saveLevels("account");
   else if(d.act==="accountmove")moveAccount();
   else if(d.act==="recoveryclear")clearRecovery();
   else if(d.act==="recoverycodesclear")clearRecoveryCodes();
@@ -1149,6 +1150,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="domainnew")createDomain();
   else if(d.act==="domainedit")openDomain(d.name);
   else if(d.act==="domainsave")saveDomain();
+  else if(d.act==="domainlevels")saveLevels("domain");
   else if(d.act==="domaindel")deleteDomain(d.name);
   else if(d.act==="daliasadd")addDomainAlias();
   else if(d.act==="daliasdel")deleteDomainAlias(d.name);
@@ -2340,6 +2342,11 @@ async function openDomain(name){
   const existing=cache.domains.filter(d=>d.name===name)[0];
   if(!existing)return;
   editing={kind:"domain",name:name,values:JSON.parse(JSON.stringify(existing)),aliases:[],aliasError:"",senders:[],senderError:"",traps:[],trapHits:[],trapError:"",rotation:null,rotationError:""};
+  // The settings with levels are not in the listing: the domain itself answers
+  // them. Its own try: a server from before them answers none, and the editor
+  // opens all the same.
+  try{await reloadDomainLevels();}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}}
   try{await reloadDomainAliases();}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.aliasError=e.message;}
   // The domain's own allow and block list, read with the domain rather than
@@ -2429,6 +2436,7 @@ function renderDomainEditor(){
   // that were never real.
   cards.splice(digestAt>=0?digestAt+3:cards.length,0,`<div class="sect"><h2>${t("Spam traps")}</h2><div class="card flat" id="domainTraps">${domainTrapsHtml()}</div></div>`);
   cards.push(`<div class="sect"><h2>${t("DKIM key rotation")}</h2><div class="card flat" id="dkimRotation">${rotationHtml()}</div></div>`);
+  cards.push(`<div class="sect"><h2>${t("Setting levels")}</h2><div class="card flat" id="domainLevels">${levelsHtml("domain")}</div></div>`);
   $("#content").innerHTML=`<div class="view">
     <button class="btn ghost sm" data-act="cancel">${t("‹ All domains")}</button>
     <div class="sect"><h2>${tf("Domain {0}",escHtml(editing.name))}</h2>
@@ -2465,6 +2473,8 @@ async function saveDomain(){
     const fresh=cache.domains.filter(d=>d.name===newName)[0]||cache.domains.filter(d=>d.name===oldName)[0];
     if(!fresh){editing=null;toast(t("Domain saved"));await render();return;}
     editing.name=fresh.name;editing.values=JSON.parse(JSON.stringify(fresh));
+    // A field saved above can change what is in effect below it.
+    try{await reloadDomainLevels();}catch(e){if(e.message==="auth")throw e;}
     // A policy saved above can change what the rotation is waiting for.
     try{await reloadRotation();editing.rotationError="";}catch(e){if(e.message==="auth")throw e;editing.rotationError=e.message;}
     toast(fresh.name!==oldName?tf("Domain renamed to {0}",fresh.name):t("Domain saved"));
@@ -2870,6 +2880,7 @@ function renderAccountEditor(){
     ${zeroAccessCardHtml()}
     ${directoryCardHtml()}
     ${may("manage_accounts")?moveCardHtml():""}
+    <div class="sect"><h2>${t("Setting levels")}</h2><div class="card flat" id="accountLevels">${levelsHtml("account")}</div></div>
     <div class="sect"><div class="row">
       <button class="btn" data-act="accountsave">${t("Save account")}</button>
       <button class="btn ghost" data-act="accounts" data-domain="${escHtml(editing.domain)}">${t("Cancel")}</button>
@@ -3080,6 +3091,93 @@ async function saveAccount(){
     toast(t("Account saved"));
     renderAccountEditor();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_accountedit",refusalText(e));}
+}
+
+/* ---------- One value, three levels ----------
+   The settings a domain or an account may hold its own value of
+   (docs/SettingLevels.md), as the domain's and the account's GET answers them:
+   every such setting carries <name>_effective, the value in effect there, and
+   <name>_source - server, domain or account - which is the only honest answer
+   to "why is this account not doing what the domain says". Where the level is
+   held in the overlay the answer carries <name> too, the level's own value or
+   null when it takes the level above; a setting kept in a field of its own is
+   edited in that field above and shown here with what is in effect. Save
+   levels sends only what changed - a value, or null to take the level above -
+   on the same PUT the editor saves with (the domain's with active, which that
+   route requires), reads the record again and redraws from it. The list is
+   the server's: whatever names the answer carries, and nothing else. */
+const LEVEL_SOURCES={server:K("In effect: {0}, from the server"),domain:K("In effect: {0}, from the domain"),account:K("In effect: {0}, from the account")};
+function levelNames(values){
+  return Object.keys(values||{}).filter(k=>/_source$/.test(k)).map(k=>k.slice(0,-7)).filter(n=>(n+"_effective") in values);
+}
+function levelShown(v){
+  if(v===true)return t("On");
+  if(v===false)return t("Off");
+  if(v===null||v===undefined||v==="")return t("(empty)");
+  return String(v);
+}
+function levelFields(kind){return kind==="domain"?domainProps():accountProps();}
+async function reloadDomainLevels(){
+  const one=await api("/api/v1/domains/"+encodeURIComponent(editing.name));
+  levelNames(one).forEach(n=>{[n,n+"_effective",n+"_source"].forEach(k=>{if(k in one)editing.values[k]=one[k];});});
+}
+function levelsHtml(kind){
+  const values=(editing&&editing.values)||{};
+  const fields=levelFields(kind);
+  const names=levelNames(values);
+  if(!names.length)return '<p class="note">'+t("This server answers no setting levels for this record.")+'</p>';
+  const rows=names.map(n=>{
+    const eff=values[n+"_effective"], src=values[n+"_source"];
+    const said=LEVEL_SOURCES[src]?tf(LEVEL_SOURCES[src],levelShown(eff)):"";
+    if(n in fields)return `<div class="row erow"><code style="flex:1">${escHtml(n)}</code><span class="muted">${escHtml(said)}</span> <span class="note">${t("Edited above.")}</span></div>`;
+    const own=values[n], has=own!==null&&own!==undefined;
+    const control=typeof eff==="boolean"
+      ?`<select id="lvl_${escHtml(n)}" aria-label="${escHtml(n)}"><option value="true"${has&&own===true?" selected":""}>${t("On")}</option><option value="false"${has&&own===false?" selected":""}>${t("Off")}</option></select>`
+      :`<input id="lvl_${escHtml(n)}" aria-label="${escHtml(n)}" value="${has?escHtml(String(own)):""}" style="width:180px">`;
+    return `<div class="row erow"><label style="flex:1"><input type="checkbox" id="lvlown_${escHtml(n)}"${has?" checked":""}> <code>${escHtml(n)}</code></label>${control} <span class="muted">${escHtml(said)}</span></div>`;
+  }).join("");
+  const note=kind==="domain"
+    ?t("What each of these settings is for the accounts of this domain that hold no value of their own, and where it came from. Tick one to give the domain a value of its own; untick it to take the server's. A setting kept in a field above is edited there.")
+    :t("What each of these settings is for this account, and where it came from. Tick one to give the account a value of its own; untick it to take its domain's. A setting kept in a field above is edited there.");
+  return `<p class="note">${note}</p>${rows}
+    <div class="row" style="margin-top:14px"><button class="btn sm" data-act="${kind}levels">${t("Save levels")}</button><div class="err" id="err_${kind}levels"></div></div>`;
+}
+async function saveLevels(kind){
+  setErr("err_"+kind+"levels","");
+  const values=editing.values||{}, fields=levelFields(kind), body={};
+  try{
+    levelNames(values).forEach(n=>{
+      if(n in fields)return;
+      const box=document.getElementById("lvlown_"+n), control=document.getElementById("lvl_"+n);
+      if(!box||!control)return;
+      const had=values[n]!==null&&values[n]!==undefined;
+      if(!box.checked){if(had)body[n]=null;return;}
+      const eff=values[n+"_effective"];
+      let v=control.value;
+      if(typeof eff==="boolean")v=v==="true";
+      else if(typeof eff==="number"){
+        const raw=String(v).trim(), num=Number(raw);
+        if(raw===""||!isFinite(num)||Math.floor(num)!==num)throw new Error(tf("{0} must be a whole number.",n));
+        v=num;
+      }
+      if(!had||v!==values[n])body[n]=v;
+    });
+  }catch(e){setErr("err_"+kind+"levels",e.message);return;}
+  if(!Object.keys(body).length){toast(t("Nothing changed"));return;}
+  try{
+    if(kind==="domain"){
+      body.active=!!values.active;
+      await api("/api/v1/domains/"+encodeURIComponent(editing.name),{method:"PUT",body:JSON.stringify(body)});
+      await reloadDomainLevels();
+      toast(t("Levels saved"));
+      renderDomainEditor();
+    }else{
+      await api("/api/v1/accounts/"+encodeURIComponent(editing.address),{method:"PUT",body:JSON.stringify(body)});
+      editing.values=await api("/api/v1/accounts/"+encodeURIComponent(editing.address));
+      toast(t("Levels saved"));
+      renderAccountEditor();
+    }
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_"+kind+"levels",refusalText(e));}
 }
 
 /* ---------- Aliases ----------

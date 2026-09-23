@@ -32,6 +32,8 @@
 #include "../../IMAP/IMAPSpecialUse.h"
 #include "../../IMAP/MessagesContainer.h"
 
+#include "EffectiveSetting.h"
+
 #include <map>
 #include <set>
 #include <ctime>
@@ -45,20 +47,6 @@ namespace HM
 {
    namespace
    {
-      // The policy that applies to an account: its own when it has one, else the
-      // domain's. 0 means none; -1 on the account means keep forever whatever the
-      // domain says.
-      int EffectiveRetentionDays_(int domainDays, int accountDays)
-      {
-         if (accountDays < 0)
-            return 0;
-
-         if (accountDays > 0)
-            return accountDays;
-
-         return domainDays > 0 ? domainDays : 0;
-      }
-
       // "YYYY-MM-DD HH:MM:SS", local time, days ago - the format and the clock the
       // stored messagecreatetime uses (Time::GetCurrentDateTime), so the comparison
       // is between like and like.
@@ -386,7 +374,11 @@ namespace HM
 
             // The administrator's policy first, then the account holder's own
             // choices - which reach only the folders they name.
-            const int days = EffectiveRetentionDays_(domain->GetMessageRetentionDays(), account->GetMessageRetentionDays());
+            // The policy that applies to the account: its own when it has one,
+            // else the domain's. 0 means none; -1 on the account means keep for
+            // ever whatever the domain says. A setting with levels, both held in
+            // their own columns (Application/EffectiveSetting.h).
+            const int days = EffectiveSetting::ResolveInt(_T("message_retention_days"), domain, account);
             if (days > 0)
                deleted += SweepAccount_(account, days);
 

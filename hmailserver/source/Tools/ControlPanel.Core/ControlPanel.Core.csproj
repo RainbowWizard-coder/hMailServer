@@ -62,6 +62,10 @@
          an abandoned tour is never recorded as finished. PaletteSearch offers
          the tours as rows, which is why they are in this project and not only
          in the application. -->
+    <!-- One value, three levels: the settings a domain or an account may hold its
+         own value of, and the words for what is in effect and where it came from.
+         Plain data, held to the server's table by build/check-setting-levels.py. -->
+    <Compile Include="..\ControlPanel\Services\SettingLevels.cs" />
     <Compile Include="..\ControlPanel\Services\Tour.cs" />
     <Compile Include="..\ControlPanel\Services\TourSession.cs" />
     <Compile Include="..\ControlPanel\Services\TourProgress.cs" />

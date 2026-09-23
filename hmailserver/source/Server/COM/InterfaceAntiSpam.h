@@ -102,6 +102,7 @@ public:
    STDMETHOD(get_BlockedSenders)(/*[out, retval]*/ IInterfaceBlockedSenders **pVal);
    STDMETHOD(get_SenderList)(/*[out, retval]*/ IInterfaceSenderListEntries **pVal);
    STDMETHOD(SendQuarantineDigests)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(SendQuarantineDigestsAtHour)(/*[in]*/ long Hour, /*[out, retval]*/ long *pVal);
 
    STDMETHOD(get_UseSPF)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_UseSPF)(/*[in]*/ VARIANT_BOOL newVal);  

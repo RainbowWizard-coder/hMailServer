@@ -48,6 +48,8 @@
 #include "FileUtilities.h"
 #include "../Application/Application.h"
 #include "../Application/Configuration.h"
+#include "../Application/EffectiveSetting.h"
+#include "../Cache/CacheContainer.h"
 #include "../BO/Account.h"
 #include "../BO/Message.h"
 #include "../BO/MessageRecipients.h"
@@ -125,9 +127,9 @@ namespace HM
       // switch, and the public address the links need. The body of the
       // refusal, or empty when the feature is offered; the route answers it
       // through BuildResponse_ so that it carries the API's own headers.
-      AnsiString NotOffered()
+      AnsiString NotOffered(std::shared_ptr<const Account> account)
       {
-         if (!Configuration::Instance()->GetOpenPGPPortalEnabled())
+         if (!EffectiveSetting::ResolveBool(_T("openpgp_portal_enabled"), std::shared_ptr<const Domain>(), account))
             return Refused(403, "OpenPGP is switched off in the webmail on this server, and a password-protected message is made with it", "openpgp_unavailable");
          if (ProtectedMessages::BaseUrl().IsEmpty())
             return Refused(403, "a password-protected message is not offered on this server: no public address is set for its links (confidential_base_url)", "protected_unavailable");
@@ -157,7 +159,8 @@ namespace HM
 
       const __int64 now = (__int64) time(nullptr);
       const __int64 held = ProtectedMessages::HeldBytes(account->GetID());
-      const bool available = Configuration::Instance()->GetOpenPGPPortalEnabled() && !ProtectedMessages::BaseUrl().IsEmpty();
+      const bool available = EffectiveSetting::ResolveBool(_T("openpgp_portal_enabled"), std::shared_ptr<const Domain>(), account) &&
+                             !ProtectedMessages::BaseUrl().IsEmpty();
       AnsiString body;
       body.Format("{\"available\":%hs,\"days\":%d,\"limits\":{\"message_bytes\":%I64d,\"account_bytes\":%I64d,\"live\":%d,\"reply_bytes\":%I64d},\"used_bytes\":%I64d,\"items\":[",
                   available ? "true" : "false", ProtectedMessages::DefaultDays(), ProtectedMessages::MessageMaximum, ProtectedMessages::AccountMaximum,
@@ -183,7 +186,7 @@ namespace HM
       HttpResponse failure;
       if (RefuseAppPasswordCaller_(caller, "sending a password-protected message", failure))
          return failure;
-      const AnsiString notOffered = NotOffered();
+      const AnsiString notOffered = NotOffered(account);
       if (!notOffered.IsEmpty())
          return BuildResponse_(403, notOffered);
 
@@ -284,7 +287,7 @@ namespace HM
       HttpResponse failure;
       if (RefuseAppPasswordCaller_(caller, "sending a password-protected message", failure))
          return failure;
-      const AnsiString notOffered = NotOffered();
+      const AnsiString notOffered = NotOffered(account);
       if (!notOffered.IsEmpty())
          return BuildResponse_(403, notOffered);
       if (body.IsEmpty())
@@ -447,7 +450,8 @@ namespace HM
       ProtectedMessages::Entry entry;
       if (!ProtectedMessages::IsToken(token) || !ProtectedMessages::FindByToken(token, entry) || !entry.complete)
          return BuildResponse_(404, Refused(404, "there is no password-protected message at this address, or it has been removed", "not_found"));
-      if (!Configuration::Instance()->GetOpenPGPPortalEnabled())
+      // The sender's switch: the message was made with the sender's OpenPGP.
+      if (!EffectiveSetting::ResolveBool(_T("openpgp_portal_enabled"), std::shared_ptr<const Domain>(), CacheContainer::Instance()->GetAccount(entry.account_id)))
          return BuildResponse_(403, Refused(403, "OpenPGP is switched off in the webmail on this server, so a password-protected message cannot be read here", "openpgp_unavailable"));
 
       const __int64 now = (__int64) time(nullptr);
@@ -487,7 +491,7 @@ namespace HM
       ProtectedMessages::Entry original;
       if (!ProtectedMessages::IsToken(token) || !ProtectedMessages::FindByToken(token, original) || !original.complete)
          return BuildResponse_(404, Refused(404, "there is no password-protected message at this address, or it has been removed", "not_found"));
-      if (!Configuration::Instance()->GetOpenPGPPortalEnabled())
+      if (!EffectiveSetting::ResolveBool(_T("openpgp_portal_enabled"), std::shared_ptr<const Domain>(), CacheContainer::Instance()->GetAccount(original.account_id)))
          return BuildResponse_(403, Refused(403, "OpenPGP is switched off in the webmail on this server, so a reply cannot be filed here", "openpgp_unavailable"));
 
       const __int64 now = (__int64) time(nullptr);

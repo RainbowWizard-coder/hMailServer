@@ -622,6 +622,36 @@ def resource_command(client, arguments):
     raise ApiError(0, "%s cannot %s" % (arguments.resource, verb))
 
 
+def level_set_command(client, arguments):
+    """hmctl domain set <domain> <name> <value|inherit>, and the same for an account.
+
+    One value, three levels (docs/SettingLevels.md): the domain's or the account's
+    own value of a setting that may be set below the server - the names GET
+    /api/v1/settings/levels lists - or, with the word inherit, none of its own,
+    so that it takes the level above. The value is read as --set reads one:
+    true, false and numbers as such, anything else as a string. The domain's route
+    requires active in every body, so it is read first and sent back as it is.
+    What is in effect afterwards, and where it came from, is what is printed.
+    """
+    name = arguments.setting
+    raw = arguments.value
+    value = None if raw.strip().lower() == "inherit" else parse_set([name + "=" + raw])[name]
+    if arguments.resource == "domain":
+        path = "/api/v1/domains/%s" % urllib.parse.quote(arguments.id, safe="")
+        current = client.request("GET", path) or {}
+        answer = client.request("PUT", path, body={"active": bool(current.get("active", True)), name: value}) or {}
+    else:
+        path = "/api/v1/accounts/%s" % urllib.parse.quote(arguments.id, safe="@")
+        answer = client.request("PUT", path, body={name: value}) or {}
+    if arguments.json:
+        render(answer, True)
+        return EXIT_OK
+    effective = answer.get(name + "_effective")
+    source = answer.get(name + "_source", "")
+    print("%s is %s for %s, from the %s." % (name, json.dumps(effective), arguments.id, source or "server"))
+    return EXIT_OK
+
+
 def status_command(client, arguments):
     render(client.request("GET", "/api/v1/status"), arguments.json)
     return EXIT_OK
@@ -2502,11 +2532,13 @@ def build_parser():
     status = commands.add_parser("status", parents=[common], help="what the server says about itself")
     status.set_defaults(handler=status_command)
 
+    resource_verbs = {}
     for name in sorted(RESOURCES):
         resource = RESOURCES[name]
         sub = commands.add_parser(name, help=resource["help"])
         sub.set_defaults(handler=resource_command, resource=name)
         verbs = sub.add_subparsers(dest="verb")
+        resource_verbs[name] = verbs
         for verb in resource["verbs"]:
             verb_parser = verbs.add_parser(verb, parents=[common])
             if verb in ("get", "update", "delete"):
@@ -2522,6 +2554,17 @@ def build_parser():
                                          help="the %s these belong to" % resource["parent"])
             if verb == "list" and resource.get("search"):
                 verb_parser.add_argument("--search", help="only the addresses containing this")
+
+    # One value, three levels: a domain's or an account's own value of a setting
+    # that may be set below the server, or inherit to take the level above.
+    for name, what in (("domain", "the domain's name"), ("account", "the account's address")):
+        level = resource_verbs[name].add_parser(
+            "set", parents=[common],
+            help="its own value of a setting that may be set below the server, or inherit (GET /api/v1/settings/levels lists them)")
+        level.add_argument("id", help=what)
+        level.add_argument("setting", help="the setting's name, as REST spells it: recall_days, max_message_size_kb, ...")
+        level.add_argument("value", help="the value (true, false and numbers are read as such), or inherit")
+        level.set_defaults(handler=level_set_command)
 
     queue = commands.add_parser("queue", help="the delivery queue")
     queue.set_defaults(handler=queue_command)

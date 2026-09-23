@@ -1321,6 +1321,11 @@ namespace DBUpdater
                          "update hm_domains set domainprotectedpersons = domainprotectedpersons where 1 = 0"),
          new SchemaProbe(6087, "hm_domains.domainprotectedpartners",
                          "update hm_domains set domainprotectedpartners = domainprotectedpartners where 1 = 0"),
+         // Upgrade6087to6088* - one value, three levels: the overlay of a
+         // domain's or an account's own value for a setting, probed through the
+         // column the resolver reads (the value a row holds).
+         new SchemaProbe(6088, "hm_settingoverrides.sovalue",
+                         "update hm_settingoverrides set sovalue = sovalue where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

@@ -324,7 +324,7 @@ namespace HM
 
       bool SendEHLOKeywords_();
 
-      int GetMaxMessageSize_(std::shared_ptr<const Domain> pDomain);
+      int GetMaxMessageSize_(std::shared_ptr<const Domain> pDomain, std::shared_ptr<const Account> pAccount);
 
       bool ReadDomainAddressFromHelo_(const String &sRequest);
 

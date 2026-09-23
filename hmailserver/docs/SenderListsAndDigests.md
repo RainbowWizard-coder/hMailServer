@@ -227,7 +227,7 @@ Three settings, all in the database (`hm_settings` and `hm_domains`); none is in
 |---|---|---|
 | **The address the links point at** — `QuarantineDigestBaseUrl`, such as `https://mail.example.com` | Control Panel → Quarantine → **Digest settings**; COM `Settings.QuarantineDigestBaseUrl` | empty — **no digest is sent** |
 | **How long a link lives** — `QuarantineDigestLinkHours`, 1 to 720 | the same | 72 |
-| **Send a digest** and **the hour** (0–23, local time) — per domain | Control Panel → Domain → **Quarantine digest** tab; Deck → domain editor; REST `quarantine_digest`, `quarantine_digest_hour` on the domain; COM `Domain.QuarantineDigest`, `Domain.QuarantineDigestHour` | off; 7 |
+| **Send a digest** and **the hour** (0–23, local time) — per domain, and per account over it | Control Panel → Domain → **Quarantine digest** tab; Deck → domain editor; REST `quarantine_digest`, `quarantine_digest_hour` on the domain; COM `Domain.QuarantineDigest`, `Domain.QuarantineDigestHour`. An account's own switch or hour, over its domain's: Control Panel → Account → **Levels**; Deck → account editor; REST the same two names on the account (null takes the domain's); COM `Account.SettingOverride` ([SettingLevels.md](SettingLevels.md)) | off; 7 |
 
 The quarantine itself (`QuarantineEnabled`) has to be on: with nothing held there
 is nothing to list. The address must be an absolute `http://` or `https://` URL
@@ -245,10 +245,17 @@ one storm on a server that is also taking the morning's real mail. At most five
 hundred digests go in any one run. A restart does not send anybody a second
 digest.
 
+An account with a switch or an hour of its own is sent at its own hour, and its
+domain's other accounts at the domain's; a domain with the digest off is still
+looked into for its accounts that switched it on for themselves.
+
 To send now — for a new setup, or to see what one looks like — call
 `AntiSpam.SendQuarantineDigests()` over COM. It ignores the hour and the
 twenty-hour rule and nothing else: an account that opted out, a missing address
 and an empty digest still send nothing. It returns how many were sent.
+`AntiSpam.SendQuarantineDigestsAtHour(hour)` runs the pass as the scheduler would
+in that hour - each account at its own hour, nothing spread, the twenty-hour
+rule not asked.
 
 ### The links
 
@@ -283,7 +290,8 @@ What this does not do
   "senders, domains and URLs"; only senders and domains are here.
 * An administrator cannot make a domain or server block override an account's
   own safe senders. **Blocked senders** is that mechanism.
-* The digest hour is per domain, not per account, and the digest is not HTML.
+* The digest is not HTML. (The hour, per domain until 23 September 2026, may now
+  be an account's own as well.)
 * The Control Panel and the webmail do not edit an entry's expiry.
 * The `/held/…` pages are not rate-limited beyond what 256-bit tokens make
   unnecessary.

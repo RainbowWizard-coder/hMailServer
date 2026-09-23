@@ -84,6 +84,8 @@ drop table if exists hm_protectedmessages;
 
 drop table if exists hm_recall;
 
+drop table if exists hm_settingoverrides;
+
 drop table if exists hm_accounts;
 
 drop table if exists hm_aliases;
@@ -2526,4 +2528,17 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0);
 
-insert into hm_dbversion values (6087);
+create table hm_settingoverrides
+(
+	soid bigint auto_increment not null, primary key(`soid`), unique(`soid`),
+	soscope int not null,
+	soownerid bigint not null,
+	soname varchar(30) not null,
+	sovalue varchar(4000) not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_settingoverrides_owner ON hm_settingoverrides (soscope, soownerid, soname);
+
+ALTER TABLE hm_settingoverrides ENGINE=InnoDB;
+
+insert into hm_dbversion values (6088);

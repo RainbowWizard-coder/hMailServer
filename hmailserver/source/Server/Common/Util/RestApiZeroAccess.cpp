@@ -45,6 +45,7 @@
 #include "OpenPgpRing.h"
 #include "../Application/Application.h"
 #include "../Application/Configuration.h"
+#include "../Application/EffectiveSetting.h"
 #include "../Application/Logger.h"
 #include "../BO/Account.h"
 #include "../Cache/CacheContainer.h"
@@ -113,7 +114,7 @@ namespace HM
    RestApiServer::ZeroAccessJson_(std::shared_ptr<const Account> account)
    {
       AnsiString json = "{\"allowed\":";
-      json += ZeroAccess::Allowed() ? "true" : "false";
+      json += ZeroAccess::Allowed(account) ? "true" : "false";
       ZeroAccess::Row row;
       if (account->GetZeroAccess())
       {
@@ -154,11 +155,11 @@ namespace HM
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
-      if (!ZeroAccess::Allowed())
+      if (!ZeroAccess::Allowed(account))
          return BuildResponse_(403, "{\"error\":\"zero-access mailboxes are not allowed on this server; an administrator turns them on with the ZeroAccessAllowed setting\",\"code\":\"zero_access_not_allowed\"}");
 
-      if (!Configuration::Instance()->GetOpenPGPPortalEnabled())
-         return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail on this server\",\"code\":\"openpgp_unavailable\"}");
+      if (!EffectiveSetting::ResolveBool(_T("openpgp_portal_enabled"), std::shared_ptr<const Domain>(), account))
+         return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail for this account\",\"code\":\"openpgp_unavailable\"}");
 
       HttpResponse refusal;
       if (RefuseAppPasswordCaller_(caller, "switching the mailbox to zero access", refusal))

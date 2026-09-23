@@ -9,7 +9,9 @@
 #include "ServerStatus.h"
 #include "Time.h"
 #include "../Application/Configuration.h"
+#include "../Application/EffectiveSetting.h"
 #include "../BO/Domain.h"
+#include "../BO/Account.h"
 #include "../Cache/CacheContainer.h"
 #include "../TCPIP/IPAddress.h"
 #include "../TCPIP/ProxyProtocol.h"
@@ -567,10 +569,21 @@ namespace HM
       if (!domain)
          return true;
 
+      // The policy is a setting with levels (Application/EffectiveSetting.h):
+      // the account's own where an administrator gave it one - an empty one
+      // judging nothing for that account - and its domain's otherwise. The
+      // account is the one the name signs in as, with the default domain
+      // added to a bare name as the sign-in adds it.
+      std::shared_ptr<const Account> account;
+      if (at >= 0)
+         account = CacheContainer::Instance()->GetAccount(username);
+      else
+         account = CacheContainer::Instance()->GetAccount(username + _T("@") + domainName);
+
       Policy policy;
       String error;
 
-      if (!ParsePolicy(domain->GetCountryPolicy(), policy, error))
+      if (!ParsePolicy(EffectiveSetting::ResolveText(_T("country_policy"), domain, account), policy, error))
          return true;
 
       if (policy.mode == ModeOff)

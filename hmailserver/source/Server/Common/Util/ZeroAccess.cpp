@@ -15,6 +15,7 @@
 #include "Encoding/Base64.h"
 #include "../Application/Application.h"
 #include "../Application/Configuration.h"
+#include "../Application/EffectiveSetting.h"
 #include "../Application/ErrorManager.h"
 #include "../Application/Logger.h"
 #include "../BO/Account.h"
@@ -214,9 +215,11 @@ namespace HM
    }
 
    bool
-   ZeroAccess::Allowed()
+   ZeroAccess::Allowed(std::shared_ptr<const Account> account)
    {
-      return Configuration::Instance()->GetZeroAccessAllowed();
+      // A setting with levels (Application/EffectiveSetting.h): the account's
+      // own where an administrator gave it one, its domain's, the server's.
+      return EffectiveSetting::ResolveBool(_T("zero_access_allowed"), std::shared_ptr<const Domain>(), account);
    }
 
    bool

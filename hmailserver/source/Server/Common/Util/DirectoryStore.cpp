@@ -33,6 +33,7 @@
 #include "../SQL/DALRecordset.h"
 #include "../Application/Application.h"
 #include "../Application/Configuration.h"
+#include "../Application/EffectiveSetting.h"
 #include "../Application/Constants.h"
 #include "Encoding/Base64.h"
 
@@ -155,9 +156,9 @@ namespace HM
    }
 
    bool
-   DirectoryStore::UserEditable()
+   DirectoryStore::UserEditable(std::shared_ptr<const Account> account)
    {
-      return Configuration::Instance()->GetDirectoryUserEditable();
+      return EffectiveSetting::ResolveBool(_T("directory_user_editable"), std::shared_ptr<const Domain>(), account);
    }
 
    String

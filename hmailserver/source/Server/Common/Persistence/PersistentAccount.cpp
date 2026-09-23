@@ -9,6 +9,7 @@
 
 
 #include "PersistentAccount.h"
+#include "PersistentSettingOverride.h"
 #include "../Util/StorePath.h"
 #include "PersistentACLPermission.h"
 #include "PersistentSenderListEntry.h"
@@ -167,6 +168,14 @@ namespace HM
       // copying the mail of whichever account is given the number next.
       if (!PersistentJournalRule::DeleteByAccount(iID))
          orphans.push_back(_T("the journaling rules naming it"));
+
+      // Its own values of the settings with levels (hm_settingoverrides, scope
+      // account). No foreign key reaches them - one column names a domain or an
+      // account by the scope beside it - and account ids are reissued, so a value
+      // left behind would become the next account's: a mailbox created tomorrow
+      // with somebody else's sending limit, digest hour or recall window.
+      if (!PersistentSettingOverride::DeleteByOwner(PersistentSettingOverride::ScopeAccount, iID))
+         orphans.push_back(_T("its own setting values"));
 
       if (!orphans.empty())
       {

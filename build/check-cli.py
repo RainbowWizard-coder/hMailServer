@@ -139,7 +139,10 @@ ANSWERS = {
     ]},
     ("GET", "/api/v1/domains/example.com"): {"name": "example.com", "active": True, "plus_addressing_enabled": True},
     ("POST", "/api/v1/domains"): {"name": "new.example", "active": True},
-    ("PUT", "/api/v1/domains/example.com"): {"name": "example.com", "active": False},
+    # With the settings with levels a real update answers (docs/SettingLevels.md):
+    # recall_days, the domain's own 30 now, in effect for its accounts.
+    ("PUT", "/api/v1/domains/example.com"): {"name": "example.com", "active": False,
+                                             "recall_days": 30, "recall_days_effective": 30, "recall_days_source": "domain"},
     ("DELETE", "/api/v1/domains/example.net"): None,
     # The listing as the real route answers it (AccountListEntryJson_ in
     # RestApiRoutes.cpp): a bare array, each entry address and active and then
@@ -188,7 +191,10 @@ ANSWERS = {
                                                                    "only the administrator password or a key issued for "
                                                                    "every domain can"}),
     ("GET", "/api/v1/accounts/ann@example.com"): {"address": "ann@example.com", "active": True, "vacation_message": ""},
-    ("PUT", "/api/v1/accounts/ann@example.com"): {"address": "ann@example.com", "active": False},
+    ("PUT", "/api/v1/accounts/ann@example.com"): {"address": "ann@example.com", "active": False,
+                                                  "recall_days": None, "recall_days_effective": 14, "recall_days_source": "server",
+                                                  "quarantine_digest": True, "quarantine_digest_effective": True,
+                                                  "quarantine_digest_source": "account"},
     ("DELETE", "/api/v1/accounts/bob@example.com"): None,
     ("GET", "/api/v1/domains/example.com/aliases"): {"aliases": [
         {"name": "sales@example.com", "value": "ann@example.com", "active": True}]},
@@ -741,6 +747,17 @@ CASES = [
     ("account update by address", ["account", "update", "ann@example.com", "--set", "active=false"],
      "PUT", "/api/v1/accounts/ann@example.com", {"active": False}, []),
     ("account delete by address", ["account", "delete", "bob@example.com"], "DELETE", "/api/v1/accounts/bob@example.com", None, ["deleted"]),
+    # One value, three levels: the domain's route requires active, so it is read
+    # and sent back as it is; inherit is null; true is a boolean.
+    ("domain set a level", ["domain", "set", "example.com", "recall_days", "30"],
+     "PUT", "/api/v1/domains/example.com", {"active": True, "recall_days": 30},
+     ["recall_days is 30 for example.com, from the domain."]),
+    ("account set a level to inherit", ["account", "set", "ann@example.com", "recall_days", "inherit"],
+     "PUT", "/api/v1/accounts/ann@example.com", {"recall_days": None},
+     ["recall_days is 14 for ann@example.com, from the server."]),
+    ("account set a switch", ["account", "set", "ann@example.com", "quarantine_digest", "true"],
+     "PUT", "/api/v1/accounts/ann@example.com", {"quarantine_digest": True},
+     ["quarantine_digest is true for ann@example.com, from the account."]),
     ("mailbox status", ["mailbox", "status", "ann@example.com"],
      "GET", "/api/v1/accounts/ann@example.com/move", None,
      ["ann@example.com", "anne@example.com -> ann@example.com", "complete"]),

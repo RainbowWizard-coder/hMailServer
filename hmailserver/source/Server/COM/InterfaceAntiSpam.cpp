@@ -708,6 +708,30 @@ STDMETHODIMP InterfaceAntiSpam::SendQuarantineDigests(long *pVal)
    }
 }
 
+STDMETHODIMP InterfaceAntiSpam::SendQuarantineDigestsAtHour(long Hour, long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      // The pass the scheduler would make in that hour, less the spread and
+      // the twenty-hour rule: the digest switch and its hour are settings with
+      // levels (docs/SettingLevels.md), and this is how an account's own hour
+      // is shown to be the one that decides - see QuarantineDigestTask.
+      *pVal = (long) HM::QuarantineDigestTask::RunPassAtHour((int) Hour);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 STDMETHODIMP InterfaceAntiSpam::get_UseSPF(VARIANT_BOOL *pVal)
 {
    try

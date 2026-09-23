@@ -51,8 +51,12 @@ namespace HM
          __int64 deleted = 0;   // seconds since 1970, UTC
       };
 
-      // The days a deleted message is kept; 0 keeps none.
-      static int Days();
+      // The days a deleted message of this account is kept; 0 keeps none.
+      // RecoverDeletedDays is a setting with levels (Application/EffectiveSetting.h,
+      // recover_deleted_days): the account's own where an administrator gave it
+      // one, its domain's, or the server's. An accountId of 0 answers the
+      // server's.
+      static int Days(__int64 accountId);
 
       // Called just before a message is deleted: keeps a copy when the delete is
       // inside a Scope, the store is on and the message is in an account's folder.
@@ -68,8 +72,9 @@ namespace HM
       // Deleted for good, before the window ends.
       static bool Purge(__int64 accountId, __int64 id);
 
-      // Ends what is older than the window - everything, when the store is off -
-      // and removes the directories of accounts that are gone. The number ended.
+      // Ends what is older than its account's window - everything of an account
+      // whose window is 0 - and removes the directories of accounts that are
+      // gone. The number ended.
       static int Sweep();
    };
 }

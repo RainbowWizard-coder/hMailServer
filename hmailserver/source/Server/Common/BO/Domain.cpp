@@ -12,6 +12,8 @@
 #include "DistributionLists.h"
 #include "DomainAliases.h"
 #include "SenderListEntries.h"
+#include "../Application/EffectiveSetting.h"
+#include "../Persistence/PersistentSettingOverride.h"
 #include "SpamTrap.h"
 #include "SpamTraps.h"
 #include "JournalRule.h"
@@ -299,6 +301,13 @@ namespace HM
       if (!journalRules->XMLStore(pNode, iBackupOptions))
          return false;
 
+      // The domain's own values of the settings with levels (hm_settingoverrides,
+      // scope domain): the levels its dedicated columns above do not hold. A
+      // restore deletes the domain and its rows with it, so the archive is where
+      // they come back from.
+      if (!EffectiveSetting::XMLStore(pNode, PersistentSettingOverride::ScopeDomain, id_))
+         return false;
+
       return true;
    }
 
@@ -548,6 +557,11 @@ namespace HM
       if (!journalRules->Refresh())
          return false;
       if (!journalRules->XMLLoad(pNode, iRestoreOptions))
+         return false;
+
+      // Under the domain's new id. A row this build refuses is left out and
+      // said, and the restore carries on (EffectiveSetting::XMLLoad).
+      if (!EffectiveSetting::XMLLoad(pNode, PersistentSettingOverride::ScopeDomain, id_))
          return false;
 
       return true;

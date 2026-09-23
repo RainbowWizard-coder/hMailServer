@@ -74,6 +74,7 @@
 #include "ZeroAccess.h"
 #include "../Application/Application.h"
 #include "../Application/Configuration.h"
+#include "../Application/EffectiveSetting.h"
 #include "../Application/Logger.h"
 #include "../BO/Account.h"
 #include "../Util/Parsing/StringParser.h"
@@ -303,8 +304,8 @@ namespace HM
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
-      if (!Configuration::Instance()->GetOpenPGPPortalEnabled())
-         return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail on this server\",\"code\":\"openpgp_unavailable\"}");
+      if (!EffectiveSetting::ResolveBool(_T("openpgp_portal_enabled"), std::shared_ptr<const Domain>(), account))
+         return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail for this account\",\"code\":\"openpgp_unavailable\"}");
 
       std::vector<OpenPgpRing::Row> own;
       std::vector<OpenPgpRing::Row> correspondents;
@@ -343,8 +344,8 @@ namespace HM
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
-      if (!Configuration::Instance()->GetOpenPGPPortalEnabled())
-         return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail on this server\",\"code\":\"openpgp_unavailable\"}");
+      if (!EffectiveSetting::ResolveBool(_T("openpgp_portal_enabled"), std::shared_ptr<const Domain>(), account))
+         return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail for this account\",\"code\":\"openpgp_unavailable\"}");
 
       HttpResponse refusal;
       if (RefuseAppPasswordCaller_(caller, own ? "storing an OpenPGP key of your own" : "storing a correspondent's OpenPGP key", refusal))
@@ -407,8 +408,8 @@ namespace HM
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
-      if (!Configuration::Instance()->GetOpenPGPPortalEnabled())
-         return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail on this server\",\"code\":\"openpgp_unavailable\"}");
+      if (!EffectiveSetting::ResolveBool(_T("openpgp_portal_enabled"), std::shared_ptr<const Domain>(), account))
+         return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail for this account\",\"code\":\"openpgp_unavailable\"}");
 
       HttpResponse refusal;
       if (RefuseAppPasswordCaller_(caller, own ? "removing an OpenPGP key of your own" : "forgetting a correspondent's OpenPGP key", refusal))
@@ -438,8 +439,8 @@ namespace HM
       if (!caller.account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
-      if (!Configuration::Instance()->GetOpenPGPPortalEnabled())
-         return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail on this server\",\"code\":\"openpgp_unavailable\"}");
+      if (!EffectiveSetting::ResolveBool(_T("openpgp_portal_enabled"), std::shared_ptr<const Domain>(), caller.account))
+         return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail for this account\",\"code\":\"openpgp_unavailable\"}");
 
       String address = WideOf(QueryParameter_(query, "address"));
       address.Trim();
@@ -517,8 +518,8 @@ namespace HM
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
-      if (!Configuration::Instance()->GetOpenPGPPortalEnabled())
-         return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail on this server\",\"code\":\"openpgp_unavailable\"}");
+      if (!EffectiveSetting::ResolveBool(_T("openpgp_portal_enabled"), std::shared_ptr<const Domain>(), account))
+         return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail for this account\",\"code\":\"openpgp_unavailable\"}");
 
       HttpResponse refusal;
       if (RefuseAppPasswordCaller_(caller, verifiedRoute ? "marking an OpenPGP key verified" : "accepting a changed OpenPGP key", refusal))
@@ -578,7 +579,11 @@ namespace HM
       // The one switch, here as well as on the routes: an installation that has
       // turned OpenPGP off in the webmail is not serving a hundred kilobytes of
       // cryptography to anybody who asks for it.
-      if (!Configuration::Instance()->GetOpenPGPPortalEnabled())
+      // OpenPGP in the webmail is a setting with levels
+      // (Application/EffectiveSetting.h): the module is served while the
+      // server offers it or any domain or account has been given it, and each
+      // key route answers for its own caller.
+      if (EffectiveSetting::LargestAnywhere(_T("openpgp_portal_enabled")) <= 0)
          return BuildResponse_(404, "{\"error\":\"not found\"}");
 
       HttpResponse response;

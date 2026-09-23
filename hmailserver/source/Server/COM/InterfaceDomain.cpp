@@ -37,6 +37,8 @@
 #include "../Common/Util/Unicode.h"
 #include "../Common/Util/RestrictedDelivery.h"
 #include "../Common/Util/ImpersonationCheck.h"
+#include "../Common/Application/EffectiveSetting.h"
+#include "../Common/Persistence/PersistentSettingOverride.h"
 
 #include <ctime>
 
@@ -3721,6 +3723,123 @@ STDMETHODIMP InterfaceDomain::get_Rules(IInterfaceRules **pVal)
          *pVal = pItem;
       }
 
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// One value, three levels (Common/Application/EffectiveSetting.h,
+// docs/SettingLevels.md): the domain's own value of a setting that may be set
+// below the server, what is in effect for its accounts that hold none of their
+// own, and where that came from. The same names, values and refusals as the
+// domain's fields on GET and PUT /api/v1/domains/{domain}.
+STDMETHODIMP InterfaceDomain::get_SettingOverride(BSTR Name, BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      const HM::EffectiveSetting::Definition *definition = HM::EffectiveSetting::Find(HM::String(Name));
+      if (!definition)
+         return COMError::GenerateError(HM::EffectiveSetting::NotThreeLevelSentence(HM::String(Name)));
+
+      HM::String value;
+      if (!HM::EffectiveSetting::DomainValue(*definition, object_, value))
+         value.Empty();
+
+      *pVal = value.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::put_SettingOverride(BSTR Name, BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      const HM::String name(Name);
+      const HM::EffectiveSetting::Definition *definition = HM::EffectiveSetting::Find(name);
+      if (!definition)
+         return COMError::GenerateError(HM::EffectiveSetting::NotThreeLevelSentence(name));
+
+      // A limit or a ceiling is the server administrator's to move, below the
+      // server as at it: a domain administrator does not lift their own.
+      if (definition->server_administrators_only && !authentication_->GetIsServerAdmin())
+         return COMError::GenerateError(HM::String(definition->name) + _T(" is the server administrator's to set for a domain."));
+
+      HM::String value(newVal);
+      HM::String refusal;
+
+      const bool done = value.IsEmpty()
+         ? HM::EffectiveSetting::ClearOverride(name, HM::PersistentSettingOverride::ScopeDomain, object_->GetID(), refusal)
+         : HM::EffectiveSetting::SetOverride(name, HM::PersistentSettingOverride::ScopeDomain, object_->GetID(), value, refusal);
+
+      if (!done)
+         return COMError::GenerateError(refusal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_EffectiveSetting(BSTR Name, BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      const HM::String name(Name);
+      if (!HM::EffectiveSetting::Find(name))
+         return COMError::GenerateError(HM::EffectiveSetting::NotThreeLevelSentence(name));
+
+      *pVal = HM::EffectiveSetting::Resolve(name, object_, std::shared_ptr<const HM::Account>()).value.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDomain::get_EffectiveSettingSource(BSTR Name, BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      const HM::String name(Name);
+      if (!HM::EffectiveSetting::Find(name))
+         return COMError::GenerateError(HM::EffectiveSetting::NotThreeLevelSentence(name));
+
+      const HM::EffectiveSetting::Answer answer = HM::EffectiveSetting::Resolve(name, object_, std::shared_ptr<const HM::Account>());
+      *pVal = HM::String(HM::EffectiveSetting::SourceWord(answer.source)).AllocSysString();
       return S_OK;
    }
    catch (...)

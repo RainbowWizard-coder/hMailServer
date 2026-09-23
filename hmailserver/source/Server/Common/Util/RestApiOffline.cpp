@@ -47,6 +47,7 @@
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "../Application/Configuration.h"
+#include "../Application/EffectiveSetting.h"
 #include "../BO/Account.h"
 #include "../BO/IMAPFolder.h"
 #include "../BO/IMAPFolders.h"
@@ -74,9 +75,11 @@ namespace HM
       // The reader's choice, held within the administrator's ceiling. A
       // preference above a ceiling that was lowered later counts as the
       // ceiling; one that is not a number counts as nothing.
-      int EffectiveDays(const String &preference, int &ceiling)
+      int EffectiveDays(std::shared_ptr<const Account> account, const String &preference, int &ceiling)
       {
-         ceiling = Configuration::Instance()->GetReaderOfflineDaysMax();
+         // The ceiling is a setting with levels: the account's own, its
+         // domain's, or the server's (docs/SettingLevels.md).
+         ceiling = EffectiveSetting::ResolveInt(_T("reader_offline_days_max"), std::shared_ptr<const Domain>(), account);
          if (ceiling < 0)
             ceiling = 0;
          if (ceiling > OfflineDaysCeiling)
@@ -225,7 +228,7 @@ namespace HM
          return BuildResponse_(500, "{\"error\":\"the choice could not be read\"}");
 
       int ceiling = 0;
-      int days = EffectiveDays(preference, ceiling);
+      int days = EffectiveDays(account, preference, ceiling);
 
       if (kind == RouteMeOffline)
          return BuildResponse_(200, WindowJson(ceiling, days));

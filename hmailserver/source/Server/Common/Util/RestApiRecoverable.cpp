@@ -58,7 +58,7 @@ namespace HM
             body += ",\"from\":\"" + JsonEscape_(Utf8_(entry.from)) + "\"}";
          }
          AnsiString tail;
-         tail.Format("],\"days\":%d}", RecoverableStore::Days());
+         tail.Format("],\"days\":%d}", RecoverableStore::Days(account->GetID()));
          return BuildResponse_(200, body + tail);
       }
 

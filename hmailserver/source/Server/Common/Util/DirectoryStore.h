@@ -79,7 +79,10 @@ namespace HM
    public:
       // The two switches.
       static bool Enabled();
-      static bool UserEditable();
+      // Whether this account's person may set their own entry: DirectoryUserEditable
+      // is a setting with levels (docs/SettingLevels.md), the account's own, its
+      // domain's, or the server's.
+      static bool UserEditable(std::shared_ptr<const Account> account);
 
       // The columns' widths, which both surfaces hold to.
       static const int MaximumTitleLength = 100;

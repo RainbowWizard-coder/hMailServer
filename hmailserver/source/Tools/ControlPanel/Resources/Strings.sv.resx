@@ -212,6 +212,9 @@ Spara det här svaga lösenordet ändå?</value>
   <data name="(could not be read from the server)" xml:space="preserve">
     <value>(kunde inte läsas från servern)</value>
   </data>
+  <data name="(empty)" xml:space="preserve">
+    <value>(tomt)</value>
+  </data>
   <data name="(group #{0})" xml:space="preserve">
     <value>(grupp nr {0})</value>
   </data>
@@ -649,6 +652,12 @@ Spara det här svaga lösenordet ändå?</value>
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>En v=TLSRPTv1-post är i drift på {0} med rua={1} - en annan rapportbrevlåda än den ovan, vilket är helt okej så länge den finns och läses. Publicerat: {2}</value>
+  </data>
+  <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
+    <value>Ett eget värde på det här kontot går före domänens och serverns. Markera en inställning för att ge kontot ett eget värde, avmarkera den för att ta domänens, och spara nivåerna: de skrivs direkt, inte med dialogrutans Spara.</value>
+  </data>
+  <data name="A value this domain holds of its own wins over the server's for every account of it that holds none. Tick a setting to give the domain a value of its own, untick it to take the server's, and save the levels: they are written at once, not with the dialog's Save. A setting kept in a field of its own is edited on that field's tab and shown here with what is in effect." xml:space="preserve">
+    <value>Ett eget värde på den här domänen går före serverns för varje konto i domänen som inte har något eget. Markera en inställning för att ge domänen ett eget värde, avmarkera den för att ta serverns, och spara nivåerna: de skrivs direkt, inte med dialogrutans Spara. En inställning som har ett eget fält redigeras på det fältets flik och visas här med det som gäller.</value>
   </data>
   <data name="A version older than 6.2.17; upgrade, because that is the version that added these lines." xml:space="preserve">
     <value>En version äldre än 6.2.17; uppgradera, eftersom det är den version som lade till de här raderna.</value>
@@ -3275,6 +3284,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Edit {0}" xml:space="preserve">
     <value>Redigera {0}</value>
   </data>
+  <data name="Edited on this dialog's other tabs." xml:space="preserve">
+    <value>Redigeras på dialogrutans andra flikar.</value>
+  </data>
   <data name="Editing" xml:space="preserve">
     <value>Redigerar</value>
   </data>
@@ -4244,6 +4256,15 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="In a row" xml:space="preserve">
     <value>I följd</value>
   </data>
+  <data name="In effect: {0}, from the account" xml:space="preserve">
+    <value>Gäller: {0}, från kontot</value>
+  </data>
+  <data name="In effect: {0}, from the domain" xml:space="preserve">
+    <value>Gäller: {0}, från domänen</value>
+  </data>
+  <data name="In effect: {0}, from the server" xml:space="preserve">
+    <value>Gäller: {0}, från servern</value>
+  </data>
   <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
     <value>Gäller från nästa meddelande. Avstängd klassificeras, räknas eller listas inget och listan tillämpas inte; posterna som redan finns ligger kvar, och den timvisa rensningen låter dem fortfarande upphöra. En databas som inte går att läsa skickar e-posten som om adressen inte vore listad, och säger det i felloggen en gång i timmen.</value>
   </data>
@@ -4527,6 +4548,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Lets sending servers pin your certificate through DNSSEC, so nobody can strip or spoof TLS on mail coming to you." xml:space="preserve">
     <value>Låter sändande servrar fästa ditt certifikat genom DNSSEC, så att ingen kan avlägsna eller förfalska TLS på post som kommer till dig.</value>
+  </data>
+  <data name="Levels" xml:space="preserve">
+    <value>Nivåer</value>
   </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>Begränsa antalet distributio_nslistor</value>
@@ -6048,6 +6072,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Overwrite account signature" xml:space="preserve">
     <value>Skriv över kontots signatur</value>
   </data>
+  <data name="Own value of {0}" xml:space="preserve">
+    <value>Eget värde för {0}</value>
+  </data>
   <data name="PBKDF2 (default)" xml:space="preserve">
     <value>PBKDF2 (standard)</value>
   </data>
@@ -7386,8 +7413,14 @@ Fortsätt?</value>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Spara _behörigheter</value>
   </data>
+  <data name="Save _levels now" xml:space="preserve">
+    <value>Spara _nivåerna nu</value>
+  </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>Spara lösen_fras</value>
+  </data>
+  <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
+    <value>Spara och öppna igen: en nivås eget värde hör till något som finns.</value>
   </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>S_para inställningar</value>
@@ -7463,6 +7496,9 @@ Fortsätt?</value>
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
     <value>Sparat. Servern plockar upp valet inom två sekunder; en ändring av schemat kräver en omstart av tjänsten.</value>
+  </data>
+  <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
+    <value>Sparat. Det som gäller visas bredvid varje inställning.</value>
   </data>
   <data name="Saving this does not move the service: it is read when the service is REGISTERED, so it takes effect only after the command in the status line below has been run. Clearing it does not move the service back to LocalSystem either - on an already-registered service an empty value means &quot;leave the account as it is&quot;. To return to LocalSystem, set this to LocalSystem explicitly and re-register." xml:space="preserve">
     <value>Att spara detta flyttar inte tjänsten: det läses när tjänsten REGISTRERAS, så det träder i kraft först efter att kommandot på statusraden nedan har körts. Att tömma det flyttar inte heller tillbaka tjänsten till LocalSystem - på en redan registrerad tjänst betyder ett tomt värde "lämna kontot som det är". För att gå tillbaka till LocalSystem, sätt detta uttryckligen till LocalSystem och registrera om.</value>
@@ -9546,6 +9582,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>Den här servern roterar inte DKIM-nycklar; den är äldre än den här Kontrollpanel.</value>
   </data>
+  <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
+    <value>Den här servern har inga inställningsnivåer: den är äldre än schema 6088, och varje inställning här är ett eget fält för servern eller domänen.</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Den här servern KONTROLLERAR bara SPF på inkommande post; att publicera posten är för alla andra - den talar om för mottagande servrar vilka maskiner som får skicka post som påstår sig komma från </value>
   </data>
@@ -10868,6 +10907,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="a symbol" xml:space="preserve">
     <value>ett specialtecken</value>
+  </data>
+  <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
+    <value>ett eget värde behövs, eller avmarkera den för att ta nivån ovanför.</value>
   </data>
   <data name="accepted but never delivered" xml:space="preserve">
     <value>accepterat men aldrig levererat</value>

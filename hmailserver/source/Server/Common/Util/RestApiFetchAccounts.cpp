@@ -49,6 +49,7 @@
 #include "../Persistence/PersistentFetchAccount.h"
 #include "../../ExternalFetcher/ExternalFetchManager.h"
 #include "../Application/Configuration.h"
+#include "../Application/EffectiveSetting.h"
 #include "HttpsClient.h"
 #include "ReaderOAuth.h"
 #include "Parsing/StringParser.h"
@@ -736,7 +737,9 @@ namespace HM
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
-      const int ceiling = Configuration::Instance()->GetReaderFetchAccountsMax();
+      // ReaderFetchAccountsMax is a setting with levels: the account's own
+      // ceiling, its domain's, or the server's (docs/SettingLevels.md).
+      const int ceiling = EffectiveSetting::ResolveInt(_T("reader_fetch_accounts_max"), std::shared_ptr<const Domain>(), account);
       if (ceiling <= 0)
          return BuildResponse_(403, "{\"error\":\"adding other accounts is not offered on this server\"}");
 
@@ -824,7 +827,9 @@ namespace HM
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
-      const int ceiling = Configuration::Instance()->GetReaderFetchAccountsMax();
+      // ReaderFetchAccountsMax is a setting with levels: the account's own
+      // ceiling, its domain's, or the server's (docs/SettingLevels.md).
+      const int ceiling = EffectiveSetting::ResolveInt(_T("reader_fetch_accounts_max"), std::shared_ptr<const Domain>(), account);
       if (ceiling <= 0)
          return BuildResponse_(403, "{\"error\":\"adding other accounts is not offered on this server\"}");
 
@@ -947,7 +952,7 @@ namespace HM
          return back(again);
       }
 
-      if ((int) fetchAccounts.GetSnapshot().size() >= Configuration::Instance()->GetReaderFetchAccountsMax())
+      if ((int) fetchAccounts.GetSnapshot().size() >= EffectiveSetting::ResolveInt(_T("reader_fetch_accounts_max"), std::shared_ptr<const Domain>(), account))
          return back("?import_error=" + HttpsClient::FormEncode("this account collects from as many other accounts as it may"));
 
       std::shared_ptr<FetchAccount> fetchAccount = std::shared_ptr<FetchAccount>(new FetchAccount());

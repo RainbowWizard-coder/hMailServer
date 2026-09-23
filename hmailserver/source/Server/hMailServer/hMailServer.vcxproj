@@ -247,6 +247,7 @@ EXIT 0
     <ClCompile Include="..\Common\BO\BlockedSenders.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentBlockedSender.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentSenderListEntry.cpp" />
+    <ClCompile Include="..\Common\Persistence\PersistentSettingOverride.cpp" />
     <ClCompile Include="..\Common\BO\SenderListEntry.cpp" />
     <ClCompile Include="..\Common\BO\SenderListEntries.cpp" />
     <ClCompile Include="..\Common\BO\SpamTrap.cpp" />
@@ -290,6 +291,7 @@ EXIT 0
     <ClCompile Include="..\Common\Application\FolderManager.cpp" />
     <ClCompile Include="..\Common\Application\IniFileSettings.cpp" />
     <ClCompile Include="..\Common\Application\IniSettingStore.cpp" />
+    <ClCompile Include="..\Common\Application\EffectiveSetting.cpp" />
     <ClCompile Include="..\Common\Application\Logger.cpp" />
     <ClCompile Include="..\Common\Application\NcsaLogFormatter.cpp" />
     <ClCompile Include="..\Common\Application\SqlLogDevice.cpp" />
@@ -635,6 +637,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\SetupChecklist.cpp" />
     <ClCompile Include="..\Common\Util\AuditRevert.cpp" />
     <ClCompile Include="..\Common\Util\QuotaPolicy.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiSettingLevels.cpp" />
     <ClCompile Include="..\Common\Util\PersonExport.cpp" />
     <ClCompile Include="..\Common\Util\ContactCard.cpp" />
     <ClCompile Include="..\Common\Application\DomainSamples.cpp" />
@@ -1144,6 +1147,7 @@ EXIT 0
     <ClInclude Include="..\Common\BO\BlockedSenders.h" />
     <ClInclude Include="..\Common\Persistence\PersistentBlockedSender.h" />
     <ClInclude Include="..\Common\Persistence\PersistentSenderListEntry.h" />
+    <ClInclude Include="..\Common\Persistence\PersistentSettingOverride.h" />
     <ClInclude Include="..\Common\BO\SenderListEntry.h" />
     <ClInclude Include="..\Common\BO\SenderListEntries.h" />
     <ClInclude Include="..\Common\BO\SpamTrap.h" />
@@ -1189,6 +1193,7 @@ EXIT 0
     <ClInclude Include="..\Common\Application\IniFileSettings.h" />
     <ClInclude Include="..\Common\Application\IniSettingsBaseline.h" />
     <ClInclude Include="..\Common\Application\IniSettingStore.h" />
+    <ClInclude Include="..\Common\Application\EffectiveSetting.h" />
     <ClInclude Include="..\Common\Application\Logger.h" />
     <ClInclude Include="..\Common\Application\NcsaLogFormatter.h" />
     <ClInclude Include="..\Common\Application\SqlLogDevice.h" />
@@ -1593,6 +1598,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\SetupChecklist.h" />
     <ClInclude Include="..\Common\Util\AuditRevert.h" />
     <ClInclude Include="..\Common\Util\QuotaPolicy.h" />
+    <ClInclude Include="..\Common\Util\RestApiSettingLevels.h" />
     <ClInclude Include="..\Common\Util\PersonExport.h" />
     <ClInclude Include="..\Common\Util\ContactCard.h" />
     <ClInclude Include="..\Common\Util\ContactGroups.h" />

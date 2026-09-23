@@ -212,6 +212,9 @@
   <data name="(could not be read from the server)" xml:space="preserve">
     <value>(サーバーから読み取れませんでした)</value>
   </data>
+  <data name="(empty)" xml:space="preserve">
+    <value>(空)</value>
+  </data>
   <data name="(group #{0})" xml:space="preserve">
     <value>(グループ #{0})</value>
   </data>
@@ -649,6 +652,12 @@
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>v=TLSRPTv1 のレコードが rua={1} で {0} に公開されています。上に示したものとは別のレポート用メールボックスですが、それが実在して読まれているのであれば問題ありません。公開されている値: {2}</value>
+  </data>
+  <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
+    <value>このアカウント独自の値は、ドメインとサーバーの値より優先されます。設定にチェックを入れるとアカウント独自の値を持たせ、外すとドメインの値を使います。そのあとレベルを保存してください。ダイアログの保存ではなく、その場で書き込まれます。</value>
+  </data>
+  <data name="A value this domain holds of its own wins over the server's for every account of it that holds none. Tick a setting to give the domain a value of its own, untick it to take the server's, and save the levels: they are written at once, not with the dialog's Save. A setting kept in a field of its own is edited on that field's tab and shown here with what is in effect." xml:space="preserve">
+    <value>このドメイン独自の値は、独自の値を持たないドメイン内の各アカウントについて、サーバーの値より優先されます。設定にチェックを入れるとドメイン独自の値を持たせ、外すとサーバーの値を使います。そのあとレベルを保存してください。ダイアログの保存ではなく、その場で書き込まれます。専用のフィールドを持つ設定はそのフィールドのタブで編集し、ここには有効な値とともに表示します。</value>
   </data>
   <data name="A version older than 6.2.17; upgrade, because that is the version that added these lines." xml:space="preserve">
     <value>6.2.17 より古いバージョンです。これらの行が追加されたのが 6.2.17 なので、アップグレードしてください。</value>
@@ -3275,6 +3284,9 @@
   <data name="Edit {0}" xml:space="preserve">
     <value>{0} を編集</value>
   </data>
+  <data name="Edited on this dialog's other tabs." xml:space="preserve">
+    <value>このダイアログのほかのタブで編集します。</value>
+  </data>
   <data name="Editing" xml:space="preserve">
     <value>編集中</value>
   </data>
@@ -4244,6 +4256,15 @@
   <data name="In a row" xml:space="preserve">
     <value>連続</value>
   </data>
+  <data name="In effect: {0}, from the account" xml:space="preserve">
+    <value>有効: {0} (アカウントから)</value>
+  </data>
+  <data name="In effect: {0}, from the domain" xml:space="preserve">
+    <value>有効: {0} (ドメインから)</value>
+  </data>
+  <data name="In effect: {0}, from the server" xml:space="preserve">
+    <value>有効: {0} (サーバーから)</value>
+  </data>
   <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
     <value>次のメッセージから有効です。オフにすると、分類もカウントもリスト登録も行われず、リストは適用されません。すでに登録されているエントリーは残り、1 時間ごとの整理で引き続き期限切れになります。データベースを読めない場合は、アドレスがリストにないものとしてメールを送信し、そのことをエラー ログに 1 時間に 1 回記録します。</value>
   </data>
@@ -4527,6 +4548,9 @@
   </data>
   <data name="Lets sending servers pin your certificate through DNSSEC, so nobody can strip or spoof TLS on mail coming to you." xml:space="preserve">
     <value>送信側サーバーが DNSSEC を通じてあなたの証明書をピン留めできるようにし、あなた宛てのメールで誰も TLS を剥がしたり偽装したりできないようにします。</value>
+  </data>
+  <data name="Levels" xml:space="preserve">
+    <value>レベル</value>
   </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>配布リストの数を制限する(_N)</value>
@@ -6048,6 +6072,9 @@
   <data name="Overwrite account signature" xml:space="preserve">
     <value>アカウントの署名を上書きする</value>
   </data>
+  <data name="Own value of {0}" xml:space="preserve">
+    <value>{0} の独自の値</value>
+  </data>
   <data name="PBKDF2 (default)" xml:space="preserve">
     <value>PBKDF2 (既定)</value>
   </data>
@@ -7386,8 +7413,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>権限を保存(_V)</value>
   </data>
+  <data name="Save _levels now" xml:space="preserve">
+    <value>レベルを今すぐ保存(_L)</value>
+  </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>パスフレーズを保存(_P)</value>
+  </data>
+  <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
+    <value>保存してから開き直してください。レベル独自の値は、存在するものに属します。</value>
   </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>設定を保存(_E)</value>
@@ -7463,6 +7496,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
     <value>保存しました。サーバーは 2 秒以内に選択を取り込みます。スケジュールの変更にはサービスの再起動が必要です。</value>
+  </data>
+  <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
+    <value>保存しました。有効な値が各設定の横に表示されます。</value>
   </data>
   <data name="Saving this does not move the service: it is read when the service is REGISTERED, so it takes effect only after the command in the status line below has been run. Clearing it does not move the service back to LocalSystem either - on an already-registered service an empty value means &quot;leave the account as it is&quot;. To return to LocalSystem, set this to LocalSystem explicitly and re-register." xml:space="preserve">
     <value>これを保存してもサービスは移動しません。サービスの登録時に読み取られるため、下のステータス行のコマンドを実行して初めて有効になります。クリアしてもサービスは LocalSystem に戻りません。既に登録済みのサービスでは、空の値は「アカウントをそのままにする」ことを意味します。LocalSystem に戻すには、これを明示的に LocalSystem に設定して再登録してください。</value>
@@ -9546,6 +9582,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>このサーバーは DKIM 鍵をローテーションしません。このコントロールパネルより古いサーバーです。</value>
   </data>
+  <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
+    <value>このサーバーには設定レベルがありません。スキーマ 6088 より古く、ここにある設定はすべてサーバーまたはドメイン自身のフィールドです。</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>このサーバーは受信メールの SPF をチェックするだけです。レコードの公開はそれ以外の全員のためのものです。受信側サーバーに、どのマシンが次のドメインを名乗るメールを送信できるかを伝えます:</value>
   </data>
@@ -10868,6 +10907,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="a symbol" xml:space="preserve">
     <value>記号</value>
+  </data>
+  <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
+    <value>独自の値が必要です。上のレベルの値を使う場合はチェックを外してください。</value>
   </data>
   <data name="accepted but never delivered" xml:space="preserve">
     <value>受け入れられたが配信されていない</value>

@@ -12,6 +12,7 @@
 
 #include "../Application/Application.h"
 #include "../Application/ErrorManager.h"
+#include "../Application/EffectiveSetting.h"
 #include "../Application/Logger.h"
 #include "../Application/ObjectCache.h"
 #include "../AntiSpam/DMARC/DMARC.h"
@@ -1311,7 +1312,10 @@ namespace HM
       if (!account || !domain || !message)
          return Clean;
 
-      const int action = domain->GetImpersonationAction();
+      // The action is a setting with levels: the recipient account's own where
+      // an administrator gave it one, its domain's otherwise
+      // (Application/EffectiveSetting.h). The two lists stay the domain's.
+      const int action = EffectiveSetting::ResolveInt(_T("impersonation_action"), domain, account);
       if (action == Off)
          return Clean;
 

@@ -282,6 +282,12 @@ END_COM_MAP()
    STDMETHOD(get_SpamTraps)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(AddSpamTrap)(/*[in]*/ BSTR Address);
    STDMETHOD(RemoveSpamTrap)(/*[in]*/ BSTR Address, /*[out, retval]*/ VARIANT_BOOL *Removed);
+
+   // One value, three levels. See Common/Application/EffectiveSetting.h.
+   STDMETHOD(get_SettingOverride)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_SettingOverride)(/*[in]*/ BSTR Name, /*[in]*/ BSTR newVal);
+   STDMETHOD(get_EffectiveSetting)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(get_EffectiveSettingSource)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);
 private:
    
    std::shared_ptr<HM::COMAuthentication> authentication_;

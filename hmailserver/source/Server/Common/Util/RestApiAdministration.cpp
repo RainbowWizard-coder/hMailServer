@@ -44,6 +44,8 @@
 #include "CountryBlocking.h"
 #include "RestrictedDelivery.h"
 #include "ImpersonationCheck.h"
+#include "RestApiSettingLevels.h"
+#include "../Persistence/PersistentSettingOverride.h"
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "../BO/Domains.h"
@@ -160,7 +162,8 @@ namespace HM
          return true;
       }
 
-      bool UnknownKey(const JsonValue &object, const char *const *known, size_t knownCount, AnsiString &error)
+      bool UnknownKey(const JsonValue &object, const char *const *known, size_t knownCount, AnsiString &error,
+                      bool (*alsoKnown)(const std::string &) = nullptr)
       {
          for (const std::pair<std::string, JsonValue> &member : object.Members())
          {
@@ -173,6 +176,13 @@ namespace HM
                   break;
                }
             }
+            if (!found && alsoKnown && alsoKnown(member.first))
+               found = true;
+            if (!found && SettingLevelsRest::IsReadOnlyKey(member.first))
+            {
+               error = AnsiString(member.first.substr(0, 48).c_str()) + " is answered and never taken: it says what is in effect and where it came from";
+               return true;
+            }
             if (!found)
             {
                error = AnsiString("unknown field: ") + AnsiString(member.first.substr(0, 48).c_str());
@@ -180,6 +190,14 @@ namespace HM
             }
          }
          return false;
+      }
+
+      // A setting with levels whose domain level the overlay holds
+      // (RestApiSettingLevels.h): a member the domain route takes beside its own
+      // fields, read and written apart from them.
+      bool DomainOverlayKey(const std::string &key)
+      {
+         return SettingLevelsRest::IsOverlayKey(key, PersistentSettingOverride::ScopeDomain);
       }
 
       const char *ConnectionSecurityWord(ConnectionSecurity security)
@@ -303,7 +321,7 @@ namespace HM
       {
          forbidden = false;
 
-         if (UnknownKey(body, DomainKeys, sizeof(DomainKeys) / sizeof(DomainKeys[0]), error))
+         if (UnknownKey(body, DomainKeys, sizeof(DomainKeys) / sizeof(DomainKeys[0]), error, &DomainOverlayKey))
             return false;
 
          String name = domain->GetName(), postmaster = domain->GetPostmaster();
@@ -790,7 +808,7 @@ namespace HM
    // ------------------------------------------------------------------------
 
    AnsiString
-   RestApiServer::DomainEntryJson_(const std::shared_ptr<Domain> &domain)
+   RestApiServer::DomainEntryJson_(const std::shared_ptr<Domain> &domain, bool withLevels)
    {
       Quote quote = [](const String &value) { return JsonEscape_(Utf8_(value)); };
 
@@ -904,6 +922,13 @@ namespace HM
       entry += impersonation;
       text("protected_persons", domain->GetProtectedPersons());
       text("protected_partners", domain->GetProtectedPartners());
+
+      // The settings with levels: what is in effect for the domain's accounts
+      // that hold none of their own, and where it came from, and the domain's
+      // own value where the overlay holds it (RestApiSettingLevels.h).
+      if (withLevels)
+         entry += SettingLevelsRest::EntryFields(domain, std::shared_ptr<const Account>());
+
       entry += "}";
       return entry;
    }
@@ -976,6 +1001,12 @@ namespace HM
       if (!ApplyDomainBody(body, domain, caller.domains, error, renamed, forbidden))
          return BuildResponse_(forbidden ? 403 : 400, ErrorBody(quote, String(error)));
 
+      // The domain's own values of the settings with levels, judged now with
+      // everything else and written once the domain itself is saved.
+      std::vector<SettingLevelsRest::Change> levelChanges;
+      if (!SettingLevelsRest::Read(body, PersistentSettingOverride::ScopeDomain, HoldsServerAuthority_(caller), levelChanges, error, forbidden))
+         return BuildResponse_(forbidden ? 403 : 400, ErrorBody(quote, String(error)));
+
       String rotationRefusal;
       if (DkimRotation::RefusesKeyChange(*stored, *domain, rotationRefusal))
       {
@@ -992,6 +1023,12 @@ namespace HM
             return BuildResponse_(400, ErrorBody(quote, saveError));
          }
          return BuildResponse_(500, "{\"error\":\"failed to save domain\"}");
+      }
+
+      if (!SettingLevelsRest::Apply(levelChanges, PersistentSettingOverride::ScopeDomain, domain->GetID(), error))
+      {
+         LOG_APPLICATION("RestApi: Domain " + domain->GetName() + " was saved, and one of its own setting values was not: " + String(error));
+         return BuildResponse_(500, ErrorBody(quote, String("the domain was saved, and one of its own setting values was not: ") + String(error)));
       }
 
       if (renamed)

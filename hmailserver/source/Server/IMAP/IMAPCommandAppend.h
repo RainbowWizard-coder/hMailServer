@@ -68,7 +68,7 @@ namespace HM
 
       static bool StripUtf8LiteralWrapper_(String &command);
 
-      int GetMaxMessageSize_(std::shared_ptr<const Domain> pDomain);
+      int GetMaxMessageSize_(std::shared_ptr<const Domain> pDomain, std::shared_ptr<const Account> pAccount);
 
       String current_tag_;
       String flags_to_set_;

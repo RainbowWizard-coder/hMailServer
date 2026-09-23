@@ -265,7 +265,7 @@ namespace HM
       if (rows.empty())
       {
          AnsiString json;
-         json.Format("{\"error\":\"no message with that Message-ID was sent from this account to an account on this server within the last %d days, or it was not recorded\"}", MessageRecall::Days());
+         json.Format("{\"error\":\"no message with that Message-ID was sent from this account to an account on this server within the last %d days, or it was not recorded\"}", MessageRecall::Days(account->GetID()));
          return BuildResponse_(404, json);
       }
 

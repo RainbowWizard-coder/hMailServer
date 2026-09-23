@@ -80,6 +80,17 @@ hand:
             line and a bootstrap line marked now are fed to the line parser and
             must be refused.
 
+  levels    And a sixth field, the deepest level the key may be set at (one
+            value, three levels - docs/SettingLevels.md): server (the whole
+            server only), domain (a domain may hold its own value) or account (an
+            account may as well). A line without one fails with that sentence,
+            and a bootstrap key is always server. The header carries it as each
+            row's Levels, and build/check-setting-levels.py holds every key marked
+            domain or account to a row of Application/EffectiveSetting's table
+            and every row of that table back to its mark. The negative control
+            feeds the parser a line without the mark and a bootstrap line marked
+            account.
+
 Exits 1 listing what is missing.
 """
 import json
@@ -245,6 +256,15 @@ def control_panel_text():
 
 MARKS = ("now", "reinitialize", "restart")
 
+LEVELS = ("server", "domain", "account")
+
+LEVELS_SENTENCE = (
+   "Every line ends, after its applies mark, with the deepest level the key may be "
+   "set at: server (the whole server only), domain (a domain may hold its own value, "
+   "which wins over the server's) or account (an account may as well, which wins over "
+   "both). A key marked domain or account is resolved by Application/EffectiveSetting "
+   "under the name its table gives it; say why in hmailserver/docs/SettingLevels.md.")
+
 MARK_SENTENCE = (
    "Every line ends with when a change to the key reaches the running server: "
    "now (a save applies it - every reader asks for the value when it uses it, or a "
@@ -257,44 +277,55 @@ MARK_SENTENCE = (
 
 
 def parse_line(line):
-   """One baseline line, as (section, key, kind, default, mark), or a problem.
+   """One baseline line, as (section, key, kind, default, mark, levels), or a problem.
 
-   Five fields - section, key, kind, default, applies - with the default JSON
-   encoded, so that an empty one is a token rather than a missing column and one
-   that ever holds a space, a quote or a character outside ASCII survives the
-   round trip. The default is everything between the kind and the last word, so
-   a default with a space in it still parses; the last word is the mark.
+   Six fields - section, key, kind, default, applies, levels - with the default
+   JSON encoded, so that an empty one is a token rather than a missing column and
+   one that ever holds a space, a quote or a character outside ASCII survives the
+   round trip. The default is everything between the kind and the last two words,
+   so a default with a space in it still parses; the last two words are the marks.
 
-   Answers (None, sentence) for a line this check must refuse: one with no mark
-   or a mark that is not one of the three, and a bootstrap key marked anything
-   but restart - a reload never re-reads those sections, so any other mark on
-   one would be a promise the server does not keep."""
+   Answers (None, sentence) for a line this check must refuse: one with no applies
+   mark or a mark that is not one of the three, one with no levels mark or a word
+   that is not one, a bootstrap key marked anything but restart - a reload never
+   re-reads those sections, so any other mark on one would be a promise the server
+   does not keep - and a bootstrap key marked anything but server, since no domain
+   and no account can hold a key that is read before the database is open."""
    parts = line.split(None, 3)
    if len(parts) != 4:
-      return None, "  `%s` is not section, key, kind, default and applies. %s" % (line, MARK_SENTENCE)
+      return None, "  `%s` is not section, key, kind, default, applies and levels. %s" % (line, MARK_SENTENCE)
    section, key, kind, rest = parts
-   pieces = rest.rsplit(None, 1)
-   mark = pieces[1] if len(pieces) == 2 else ""
-   if mark not in MARKS:
+   pieces = rest.rsplit(None, 2)
+   if len(pieces) == 3 and pieces[1] in MARKS and pieces[2] in LEVELS:
+      text, mark, levels = pieces
+   elif pieces and pieces[-1] in MARKS:
+      return None, "  [%s] %s has no levels mark. %s" % (section, key, LEVELS_SENTENCE)
+   elif len(pieces) >= 2 and pieces[-2] in MARKS:
+      return None, "  [%s] %s has a levels mark that is not one of server, domain or account. %s" % (section, key, LEVELS_SENTENCE)
+   else:
       return None, "  [%s] %s has no applies mark. %s" % (section, key, MARK_SENTENCE)
    try:
-      value = json.loads(pieces[0])
+      value = json.loads(text)
    except ValueError:
-      return None, "  [%s] %s has a default that is not JSON: %s" % (section, key, pieces[0])
+      return None, "  [%s] %s has a default that is not JSON: %s" % (section, key, text)
    if section in BOOTSTRAP and mark != "restart":
       return None, ("  [%s] %s is marked %s, and a key in [%s] is read before the database is "
                     "open and never by a reload, so it can only be restart." % (section, key, mark, section))
-   return (section, key, kind, value, mark), None
+   if section in BOOTSTRAP and levels != "server":
+      return None, ("  [%s] %s is marked %s, and a key in [%s] is read before the database is "
+                    "open, so no domain or account can hold one: it can only be server." % (section, key, levels, section))
+   return (section, key, kind, value, mark, levels), None
 
 
 def read_baseline():
    """The committed baseline, as ({(section, key): (kind, default)},
-   {(section, key): mark}, [problems])."""
+   {(section, key): mark}, {(section, key): levels}, [problems])."""
    pairs = {}
    marks = {}
+   levels = {}
    problems = []
    if not os.path.exists(BASELINE):
-      return None, {}, []
+      return None, {}, {}, []
    for line in read(BASELINE).splitlines():
       line = line.strip()
       if not line or line.startswith("#"):
@@ -307,45 +338,62 @@ def read_baseline():
          # a key the server reads that the baseline does not list.
          parts = line.split(None, 3)
          if len(parts) == 4:
+            text = parts[3]
+            words = text.rsplit(None, 2)
+            if len(words) == 3 and words[2] in LEVELS and words[1] in MARKS:
+               text = words[0]
+               marks[(parts[0], parts[1])] = words[1]
+            elif len(words) >= 2 and words[-1] in MARKS:
+               text = text.rsplit(None, 1)[0]
+               marks[(parts[0], parts[1])] = words[-1]
             try:
-               pairs[(parts[0], parts[1])] = (parts[2], json.loads(parts[3].rsplit(None, 1)[0] if parts[3].rsplit(None, 1)[-1] in MARKS else parts[3]))
+               pairs[(parts[0], parts[1])] = (parts[2], json.loads(text))
             except ValueError:
                pass
          continue
-      section, key, kind, value, mark = parsed
+      section, key, kind, value, mark, level = parsed
       pairs[(section, key)] = (kind, value)
       marks[(section, key)] = mark
-   return pairs, marks, problems
+      levels[(section, key)] = level
+   return pairs, marks, levels, problems
 
 
 def self_test():
    """The negative control, run on every run: a line with no mark, a line with a
-   word that is not a mark, and a bootstrap line marked now are refused - each
-   with its sentence - and a well-formed line is not."""
+   word that is not a mark, a line with no levels mark, a line whose levels word
+   is not one, a bootstrap line marked now and a bootstrap line marked account are
+   refused - each with its sentence - and a well-formed line is not."""
    failures = []
-   good, problem = parse_line('Settings MaxSubmissionsPerIPPerMinute integer "0" now')
-   if problem or good[4] != "now" or good[3] != "0":
+   good, problem = parse_line('Settings MaxSubmissionsPerIPPerMinute integer "0" now server')
+   if problem or good[4] != "now" or good[3] != "0" or good[5] != "server":
       failures.append("  self-test: a well-formed line was refused: %s" % problem)
-   spaced, problem = parse_line('Settings Example string "a b" reinitialize')
-   if problem or spaced[3] != "a b" or spaced[4] != "reinitialize":
+   spaced, problem = parse_line('Settings Example string "a b" reinitialize account')
+   if problem or spaced[3] != "a b" or spaced[4] != "reinitialize" or spaced[5] != "account":
       failures.append("  self-test: a default holding a space was misread: %s" % problem)
    for line, expected in (('Settings MaxSubmissionsPerIPPerMinute integer "0"', "has no applies mark"),
                           ('Settings MaxSubmissionsPerIPPerMinute integer "0" soon', "has no applies mark"),
-                          ('Database Server string "" now', "can only be restart")):
+                          ('Settings MaxSubmissionsPerIPPerMinute integer "0" now', "has no levels mark"),
+                          ('Settings Example string "a b" now', "has no levels mark"),
+                          ('Settings MaxSubmissionsPerIPPerMinute integer "0" now mailbox', "not one of server, domain or account"),
+                          ('Database Server string "" now server', "can only be restart"),
+                          ('Database Server string "" restart account', "it can only be server")):
       parsed, problem = parse_line(line)
       if parsed is not None or not problem or expected not in problem:
          failures.append("  self-test: `%s` was not refused with the sentence (%r)" % (line, problem))
       elif expected == "has no applies mark" and MARK_SENTENCE not in problem:
          failures.append("  self-test: `%s` was refused without saying what the three marks mean" % line)
+      elif expected in ("has no levels mark", "not one of server, domain or account") and LEVELS_SENTENCE not in problem:
+         failures.append("  self-test: `%s` was refused without saying what the three levels mean" % line)
    return failures
 
 
-def write_baseline(pairs, marks):
+def write_baseline(pairs, marks, levels):
    """Rewrites the baseline, keeping the explanation at the top of the file and
-   the mark every line already has: the mark is a judgement about the code that
-   reads a key, not something the source says, so regenerating the list must not
-   lose it. A bootstrap key is restart whatever; a [Settings] key the file has no
-   mark for is written without one, and the check then fails asking for it."""
+   the marks every line already has: the marks are a judgement about the code
+   that reads a key, not something the source says, so regenerating the list must
+   not lose them. A bootstrap key is restart and server whatever; a [Settings] key
+   the file has no mark for is written without one, and the check then fails
+   asking for it."""
    header = []
    if os.path.exists(BASELINE):
       for line in read(BASELINE).splitlines():
@@ -364,9 +412,12 @@ def write_baseline(pairs, marks):
          section = this_section
       kind, value = pairs[(this_section, key)]
       mark = "restart" if this_section in BOOTSTRAP else marks.get((this_section, key), "")
+      level = "server" if this_section in BOOTSTRAP else levels.get((this_section, key), "")
       line = "%s %s %s %s" % (this_section, key, kind, json.dumps(value))
       if mark:
          line += " " + mark
+         if level:
+            line += " " + level
       lines.append(line)
 
    with open(BASELINE, "w", encoding="utf-8", newline="\r\n") as handle:
@@ -374,12 +425,14 @@ def write_baseline(pairs, marks):
 
    print("Wrote %s: %d key(s)." % (os.path.basename(BASELINE), len(pairs)))
 
-   write_baseline_header(pairs, marks)
+   write_baseline_header(pairs, marks, levels)
 
 
-HEADER_ROW = re.compile(r'\{\s*_T\("((?:[^"\\]|\\.)*)"\),\s*_T\("((?:[^"\\]|\\.)*)"\),\s*(true|false),\s*Applies(Now|Reinitialize|Restart)\s*\}')
+HEADER_ROW = re.compile(r'\{\s*_T\("((?:[^"\\]|\\.)*)"\),\s*_T\("((?:[^"\\]|\\.)*)"\),\s*(true|false),\s*Applies(Now|Reinitialize|Restart),\s*Level(Server|Domain|Account)\s*\}')
 
 HEADER_MARK = {"now": "AppliesNow", "reinitialize": "AppliesReinitialize", "restart": "AppliesRestart"}
+
+HEADER_LEVEL = {"server": "LevelServer", "domain": "LevelDomain", "account": "LevelAccount"}
 
 
 def cpp_literal(value):
@@ -420,6 +473,10 @@ def baseline_header_text(settings):
       "//   IniFileSettings, whose reload keeps the running value of every key that is",
       "//   not AppliesNow until what applies it has happened, and which answers",
       "//   `applies` and the pending list from Applies (docs/SettingsApply.md).",
+      "//",
+      "//   The REST ini route, which answers `levels` from Levels: the deepest level",
+      "//   the key may be set at. A key marked LevelDomain or LevelAccount is resolved",
+      "//   by Application/EffectiveSetting at every read (docs/SettingLevels.md).",
       "",
       "#pragma once",
       "",
@@ -436,21 +493,32 @@ def baseline_header_text(settings):
       "         AppliesRestart",
       "      };",
       "",
+      "      // The deepest level the key may be set at: the whole server only, a",
+      "      // domain, or an account as well.",
+      "      enum LevelMark",
+      "      {",
+      "         LevelServer,",
+      "         LevelDomain,",
+      "         LevelAccount",
+      "      };",
+      "",
       "      struct Setting",
       "      {",
       "         const TCHAR *Name;",
       "         const TCHAR *Default;",
       "         bool IsInteger;",
       "         ApplyMark Applies;",
+      "         LevelMark Levels;",
       "      };",
       "",
       "      static const Setting Settings[] =",
       "      {",
    ]
-   for key, kind, value, mark in settings:
-      lines.append('         { _T("%s"), _T("%s"), %s, %s },'
+   for key, kind, value, mark, level in settings:
+      lines.append('         { _T("%s"), _T("%s"), %s, %s, %s },'
                    % (cpp_literal(key), cpp_literal(value), "true" if kind == "integer" else "false",
-                      HEADER_MARK.get(mark, "AppliesNow /* UNMARKED */")))
+                      HEADER_MARK.get(mark, "AppliesNow /* UNMARKED */"),
+                      HEADER_LEVEL.get(level, "LevelServer /* UNMARKED */")))
    lines += [
       "      };",
       "",
@@ -461,27 +529,28 @@ def baseline_header_text(settings):
    return "\n".join(lines) + "\n"
 
 
-def baseline_settings(pairs, marks):
-   """The [Settings] rows of a baseline, as (key, kind, default, mark), sorted by key."""
-   return sorted((key, pairs[(section, key)][0], pairs[(section, key)][1], marks.get((section, key), ""))
+def baseline_settings(pairs, marks, levels):
+   """The [Settings] rows of a baseline, as (key, kind, default, mark, levels), sorted by key."""
+   return sorted((key, pairs[(section, key)][0], pairs[(section, key)][1], marks.get((section, key), ""),
+                  levels.get((section, key), ""))
                  for (section, key) in pairs if section == "Settings")
 
 
-def write_baseline_header(pairs, marks):
-   settings = baseline_settings(pairs, marks)
+def write_baseline_header(pairs, marks, levels):
+   settings = baseline_settings(pairs, marks, levels)
    with open(BASELINE_HEADER, "w", encoding="utf-8", newline="\r\n") as handle:
       handle.write(baseline_header_text(settings))
    print("Wrote %s: %d [Settings] key(s)." % (os.path.basename(BASELINE_HEADER), len(settings)))
 
 
-def check_baseline_header(baseline, marks):
+def check_baseline_header(baseline, marks, levels):
    """The keys the header carries, against the baseline's [Settings] keys."""
-   expected = baseline_settings(baseline, marks)
+   expected = baseline_settings(baseline, marks, levels)
    if not os.path.exists(BASELINE_HEADER):
       return ["  %s is missing; run python3 build/check-ini-coverage.py --write-baseline"
               % os.path.relpath(BASELINE_HEADER, ROOT)]
-   found = [(name, "integer" if integer == "true" else "string", value, mark.lower())
-            for name, value, integer, mark in HEADER_ROW.findall(read(BASELINE_HEADER))]
+   found = [(name, "integer" if integer == "true" else "string", value, mark.lower(), level.lower())
+            for name, value, integer, mark, level in HEADER_ROW.findall(read(BASELINE_HEADER))]
    if found == expected:
       return []
    problems = []
@@ -520,11 +589,11 @@ def main():
                   "default, or teach reads_of() to work this one out." % (section, key, text))
          print("FAIL: nothing was written.")
          return 1
-      _, existing_marks, _ = read_baseline()
-      write_baseline(present, existing_marks or {})
+      _, existing_marks, existing_levels, _ = read_baseline()
+      write_baseline(present, existing_marks or {}, existing_levels or {})
       return 0
 
-   baseline, marks, mark_problems = read_baseline()
+   baseline, marks, levels, mark_problems = read_baseline()
    frozen = []
 
    # The negative control first: if the parser has stopped refusing an unmarked
@@ -543,6 +612,7 @@ def main():
                     "a setting goes in the database" % os.path.basename(BASELINE))
       baseline = present
       marks = {}
+      levels = {}
 
    for section, key in sorted(set(present) - set(baseline)):
       if section == "Settings":
@@ -587,7 +657,7 @@ def main():
             "build/check-ini-coverage.py --write-baseline in the same commit as the change."
             % (section, key, now_kind, now_value, os.path.basename(BASELINE), was_kind, was_value))
 
-   frozen.extend(check_baseline_header(baseline, marks))
+   frozen.extend(check_baseline_header(baseline, marks, levels))
 
    settings = sorted(by_section.get("Settings", ()))
    if not settings:
@@ -634,11 +704,14 @@ def main():
       return 1
 
    counted = dict((mark, sum(1 for m in marks.values() if m == mark)) for mark in MARKS)
+   leveled = dict((level, sum(1 for l in levels.values() if l == level)) for level in LEVELS)
    print("OK    all %d [Settings] keys have a Control Panel editor (%d exempt), the %d key(s) "
          "in the baseline are exactly the keys the server reads with exactly the defaults it "
          "reads them with, each marked when it applies (%d now, %d reinitialize, %d restart; "
-         "an unmarked line is refused), and every section is read through IniFileSettings"
-         % (len(settings), len(EXEMPT), len(baseline), counted["now"], counted["reinitialize"], counted["restart"]))
+         "an unmarked line is refused) and how deep it may be set (%d server, %d domain, "
+         "%d account; an unmarked line is refused), and every section is read through IniFileSettings"
+         % (len(settings), len(EXEMPT), len(baseline), counted["now"], counted["reinitialize"], counted["restart"],
+            leveled["server"], leveled["domain"], leveled["account"]))
    return 0
 
 

@@ -11,6 +11,7 @@
 
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Util/QuotaPolicy.h"
+#include "../Common/Application/EffectiveSetting.h"
 #include <set>
 #include "../Common/BO/Rules.h"
 #include "RuleApplier.h"
@@ -1024,7 +1025,7 @@ namespace HM
       sender_account_ = CacheContainer::Instance()->GetAccount(sAccountAddress);
 
       // Check the max size
-      max_message_size_kb_ = GetMaxMessageSize_(sender_domain_);
+      max_message_size_kb_ = GetMaxMessageSize_(sender_domain_, sender_account_);
 
       // Check if estimated message size exceedes our
       // maximum message size (according to RFC1653)
@@ -5588,21 +5589,14 @@ namespace HM
 
 
    int 
-   SMTPConnection::GetMaxMessageSize_(std::shared_ptr<const Domain> pDomain)
+   SMTPConnection::GetMaxMessageSize_(std::shared_ptr<const Domain> pDomain, std::shared_ptr<const Account> pAccount)
    {
-      int iMaxMessageSizeKB = smtpconf_->GetMaxMessageSize();
-      
-      if (pDomain)
-      {
-         int iDomainMaxSizeKB = pDomain->GetMaxMessageSize(); 
-         if (iDomainMaxSizeKB > 0)
-         {
-            if (iMaxMessageSizeKB == 0 || iMaxMessageSizeKB > iDomainMaxSizeKB)
-               iMaxMessageSizeKB = iDomainMaxSizeKB;
-         }
-      }
-
-      return iMaxMessageSizeKB;
+      // One value, three levels (Application/EffectiveSetting.h): the sending
+      // account's own limit, else its domain's, else the server's - and the
+      // server's, when it is not 0, a ceiling neither of the two goes above,
+      // which is the rule the domain's value has always had here. A domain and
+      // an account with no value of their own resolve as they always did.
+      return EffectiveSetting::ResolveInt(_T("max_message_size_kb"), pDomain, pAccount);
    }
 
    void 

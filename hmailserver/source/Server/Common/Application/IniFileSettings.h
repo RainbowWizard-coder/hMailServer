@@ -400,6 +400,13 @@ namespace HM
       /// </summary>
       static bool GetApplies(const String &name, String &applies, String &spelling);
 
+      /// <summary>
+      /// The key's levels mark - "server", "domain" or "account", the deepest
+      /// level it may be set at (docs/SettingLevels.md) - from the baseline.
+      /// False for a name the loader does not read, as GetApplies is.
+      /// </summary>
+      static bool GetLevels(const String &name, String &levels);
+
       /// <summary>What COM and REST both say for a name GetApplies does not know.</summary>
       static const char *NoApplyMarkSentence();
 

@@ -740,6 +740,35 @@ function domainRecord(name, active, postmaster) {
       impersonation_action: 0, protected_persons: '', protected_partners: '' };
 }
 
+/* One value, three levels, as SettingLevelsRest::EntryFields answers two of the
+   settings: recall_days, whose domain and account levels the overlay holds (null
+   is "take the level above"), and quarantine_digest, whose domain level is the
+   domain's own field and whose account level the overlay holds. Every such
+   setting carries <name>_effective and <name>_source. */
+const LEVEL_SERVER_RECALL_DAYS = 14;
+const LEVEL_KEYS_DOMAIN = ['recall_days'];
+const LEVEL_KEYS_ACCOUNT = ['recall_days', 'quarantine_digest'];
+function levelAnswer(domainName, address) {
+   const record = state.domains.find((d) => d.name === domainName) || {};
+   const d = state.levels.domains[domainName] || {};
+   const a = address ? (state.levels.accounts[address] || {}) : {};
+   const out = {};
+   const own = address ? a.recall_days : d.recall_days;
+   out.recall_days = own === undefined ? null : own;
+   out.recall_days_effective = address && a.recall_days !== undefined ? a.recall_days : d.recall_days !== undefined ? d.recall_days : LEVEL_SERVER_RECALL_DAYS;
+   out.recall_days_source = address && a.recall_days !== undefined ? 'account' : d.recall_days !== undefined ? 'domain' : 'server';
+   if (address) { out.quarantine_digest = a.quarantine_digest === undefined ? null : a.quarantine_digest; }
+   out.quarantine_digest_effective = address && a.quarantine_digest !== undefined ? a.quarantine_digest : !!record.quarantine_digest;
+   out.quarantine_digest_source = address && a.quarantine_digest !== undefined ? 'account' : 'domain';
+   return out;
+}
+function storeLevels(place, parsed, keys) {
+   keys.forEach((key) => {
+      if (!(key in parsed)) { return; }
+      if (parsed[key] === null) { delete place[key]; } else { place[key] = parsed[key]; }
+   });
+}
+
 const SUPPRESSIONS_POST = 'Body: address (required), note (kept as the entry\'s diagnostic) and expires_days (0, the default, for an entry that stays until it is removed; at most 3650). An address this server hosts is refused.';
 // An entry as BounceTracker::SuppressionsJson emits it, and a count row as CountsJson does.
 function suppressionRecord(address, source, category, status) {
@@ -1288,6 +1317,9 @@ const state = {
       [HOSTILE]: rotationDoc(HOSTILE, null, null),
       'second.example': rotationDoc('second.example', null, null)
    },
+   // One value, three levels (docs/SettingLevels.md): the overlay's rows,
+   // domain by domain and account by account.
+   levels: { domains: {}, accounts: {} },
    domainAliases: {
       'example.com': [{ id: 1, name: 'example.net' }],
       [HOSTILE]: [],
@@ -1769,14 +1801,21 @@ function answer(method, path, headers, raw) {
       const name = segment(path, 4);
       const at = state.domains.findIndex((d) => d.name === name);
       if (at < 0) { return json(404, { error: 'domain not found' }); }
+      if (method === 'GET') { return json(200, Object.assign({}, state.domains[at], levelAnswer(name, null))); }
       if (method === 'PUT') {
          if (!('active' in parsed) || parsed.active === null) { return json(400, { error: 'active is required' }); }
          for (const key of Object.keys(parsed)) {
-            if (DOMAIN_KEYS.indexOf(key) < 0) { return json(400, { error: 'unknown field: ' + key }); }
+            if (DOMAIN_KEYS.indexOf(key) < 0 && LEVEL_KEYS_DOMAIN.indexOf(key) < 0) { return json(400, { error: 'unknown field: ' + key }); }
+         }
+         if ('recall_days' in parsed && parsed.recall_days !== null && (parsed.recall_days < 1 || parsed.recall_days > 365)) {
+            return json(400, { error: 'recall_days must be between 1 and 365.' });
          }
          const record = state.domains[at];
+         state.levels.domains[name] = state.levels.domains[name] || {};
+         storeLevels(state.levels.domains[name], parsed, LEVEL_KEYS_DOMAIN);
          Object.keys(parsed).forEach((key) => {
             if (key === 'relay_password') { secrets.relay_password = parsed[key]; return; }
+            if (LEVEL_KEYS_DOMAIN.indexOf(key) >= 0) { return; }
             record[key] = parsed[key];
          });
          if (record.name !== name) {
@@ -2077,16 +2116,19 @@ function answer(method, path, headers, raw) {
       }
       if (!domain) { return json(404, { error: 'account not found' }); }
       const record = state.accounts[domain].filter((a) => a.address === address)[0];
-      if (method === 'GET') { return json(200, record); }
+      if (method === 'GET') { return json(200, Object.assign({}, record, levelAnswer(domain, address))); }
       if (method === 'PUT') {
          // As HandleUpdateAccount_ reads it: nothing to update refused, an
          // unknown field refused by name, the password kept aside.
          if (!Object.keys(parsed).length) { return json(400, { error: 'nothing to update' }); }
          for (const key of Object.keys(parsed)) {
-            if (!(key in ACCOUNT_PROPS)) { return json(400, { error: 'unknown field: ' + key }); }
+            if (!(key in ACCOUNT_PROPS) && LEVEL_KEYS_ACCOUNT.indexOf(key) < 0) { return json(400, { error: 'unknown field: ' + key }); }
          }
+         state.levels.accounts[address] = state.levels.accounts[address] || {};
+         storeLevels(state.levels.accounts[address], parsed, LEVEL_KEYS_ACCOUNT);
          Object.keys(parsed).forEach((key) => {
             if (key === 'password') { secrets.account_password = parsed[key]; return; }
+            if (LEVEL_KEYS_ACCOUNT.indexOf(key) >= 0) { return; }
             record[key] = parsed[key];
          });
          return json(200, record);
@@ -3517,6 +3559,36 @@ async function main() {
    click(act('accountsave'));
    await flush();
    check('saving with nothing changed sends nothing', called(before, 'PUT', /accounts/).length === 0 && toastText() === 'Nothing changed', toastText());
+
+   // ---- one value, three levels: the account's
+   const accountLevels = () => document.getElementById('accountLevels');
+   check('the account editor says what is in effect for the account and where it came from',
+      accountLevels() !== null && accountLevels().textContent.indexOf('In effect: 14, from the server') >= 0 &&
+      accountLevels().textContent.indexOf('In effect: Off, from the domain') >= 0 &&
+      document.getElementById('lvlown_recall_days').checked === false && document.getElementById('lvl_quarantine_digest').tagName === 'SELECT',
+      accountLevels() ? accountLevels().textContent.slice(0, 300) : 'no card');
+   setChecked('lvlown_recall_days', true);
+   setValue('lvl_recall_days', '5');
+   setChecked('lvlown_quarantine_digest', true);
+   setValue('lvl_quarantine_digest', 'true');
+   before = requests.length;
+   click(act('accountlevels'));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/accounts/anna%40example.com');
+   check('the account\'s own values go as a number and a boolean, alone', JSON.stringify(put) === '{"recall_days":5,"quarantine_digest":true}', JSON.stringify(put));
+   check('and the account is read again: its own now, over the domain\'s and the server\'s', called(before, 'GET', '/api/v1/accounts/anna%40example.com').length === 1 &&
+      accountLevels().textContent.indexOf('In effect: 5, from the account') >= 0 && accountLevels().textContent.indexOf('In effect: On, from the account') >= 0 &&
+      toastText() === 'Levels saved', accountLevels().textContent.slice(0, 400));
+   setChecked('lvlown_recall_days', false);
+   before = requests.length;
+   click(act('accountlevels'));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/accounts/anna%40example.com');
+   check('unticking sends null, and the account takes the level above again', JSON.stringify(put) === '{"recall_days":null}' &&
+      accountLevels().textContent.indexOf('In effect: 14, from the server') >= 0, JSON.stringify(put));
+   setChecked('lvlown_quarantine_digest', false);
+   click(act('accountlevels'));
+   await flush();
    setChecked('acct_forward_enabled', true);
    setValue('acct_forward_address', 'anna@elsewhere.example');
    setValue('acct_message_retention_days', '90');
@@ -4228,6 +4300,38 @@ async function main() {
    click(act('domainsave'));
    await flush();
    check('saving a domain with nothing changed sends nothing', called(before, 'PUT', /domains/).length === 0 && toastText() === 'Nothing changed', toastText());
+
+   // ---- one value, three levels: the domain's
+   const levelsBox = () => document.getElementById('domainLevels');
+   check('the domain editor reads the domain itself for its levels, and says what is in effect and where it came from',
+      levelsBox() !== null && levelsBox().textContent.indexOf('recall_days') >= 0 &&
+      levelsBox().textContent.indexOf('In effect: 14, from the server') >= 0 &&
+      document.getElementById('lvlown_recall_days').checked === false,
+      levelsBox() ? levelsBox().textContent.slice(0, 300) : 'no card');
+   check('a setting the domain keeps in a field of its own is shown with what is in effect and left to that field',
+      levelsBox().textContent.indexOf('quarantine_digest') >= 0 && levelsBox().textContent.indexOf('In effect: Off, from the domain') >= 0 &&
+      levelsBox().textContent.indexOf('Edited above.') >= 0 && document.getElementById('lvlown_quarantine_digest') === null,
+      levelsBox().textContent.slice(0, 400));
+   before = requests.length;
+   click(act('domainlevels'));
+   await flush();
+   check('saving the levels with nothing changed sends nothing', called(before, 'PUT', /domains/).length === 0 && toastText() === 'Nothing changed', toastText());
+   setChecked('lvlown_recall_days', true);
+   setValue('lvl_recall_days', 'a month');
+   before = requests.length;
+   click(act('domainlevels'));
+   await flush();
+   check('a level that is not a whole number is refused by the page and nothing is sent', called(before, 'PUT', /domains/).length === 0 &&
+      document.getElementById('err_domainlevels').textContent === 'recall_days must be a whole number.', document.getElementById('err_domainlevels').textContent);
+   setValue('lvl_recall_days', '30');
+   before = requests.length;
+   click(act('domainlevels'));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/domains/example.com');
+   check('a level of the domain\'s own goes as a number, with active, which the route requires', JSON.stringify(put) === '{"recall_days":30,"active":true}', JSON.stringify(put));
+   check('then the domain is read again and says the value is the domain\'s now', called(before, 'GET', '/api/v1/domains/example.com').length === 1 &&
+      levelsBox().textContent.indexOf('In effect: 30, from the domain') >= 0 && document.getElementById('lvlown_recall_days').checked === true &&
+      document.getElementById('lvl_recall_days').value === '30' && toastText() === 'Levels saved', levelsBox().textContent.slice(0, 300));
    setValue('dom_max_size_mb', '500');
    setChecked('dom_use_greylisting', true);
    before = requests.length;

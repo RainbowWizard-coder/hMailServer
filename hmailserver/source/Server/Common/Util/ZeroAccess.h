@@ -118,8 +118,11 @@ namespace HM
          __int64 enabled_at;
       };
 
-      // Whether the administrator allows the opt-in at all.
-      static bool Allowed();
+      // Whether the administrator allows this account the opt-in at all:
+      // ZeroAccessAllowed is a setting with levels (docs/SettingLevels.md), so
+      // a domain or an account may be allowed it on a server that does not
+      // allow it everywhere, and the other way round.
+      static bool Allowed(std::shared_ptr<const Account> account);
 
       // The account's row, if it has one.
       static bool Get(__int64 accountId, Row &row);

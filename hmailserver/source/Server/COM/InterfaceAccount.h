@@ -151,6 +151,12 @@ public:
    STDMETHOD(get_ZeroAccess)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(get_RestrictedDelivery)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_RestrictedDelivery)(/*[in]*/ long newVal);
+
+   // One value, three levels. See Common/Application/EffectiveSetting.h.
+   STDMETHOD(get_SettingOverride)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_SettingOverride)(/*[in]*/ BSTR Name, /*[in]*/ BSTR newVal);
+   STDMETHOD(get_EffectiveSetting)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(get_EffectiveSettingSource)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);
    STDMETHOD(get_OpenPGPKeys)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(get_VacationMessageAbortSpamFlagged)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_VacationMessageAbortSpamFlagged)(/*[in]*/ VARIANT_BOOL newVal);

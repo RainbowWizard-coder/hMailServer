@@ -27,6 +27,8 @@
 #include "../Common/Util/Unicode.h"
 #include "../Common/Util/OpenPgpKeyStore.h"
 #include "../Common/Util/DirectoryStore.h"
+#include "../Common/Application/EffectiveSetting.h"
+#include "../Common/Persistence/PersistentSettingOverride.h"
 #include "../Common/Util/Encoding/Base64.h"
 #include "../Common/Util/MessageExport.h"
 #include "../Common/Util/Crypt.h"
@@ -2833,6 +2835,114 @@ STDMETHODIMP InterfaceAccount::get_DirectoryPhotoType(BSTR *pVal)
 
       EnsureDirectory_();
       *pVal = directory_.photoType.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// One value, three levels (Common/Application/EffectiveSetting.h,
+// docs/SettingLevels.md): the account's own value of a setting that may be set
+// below the server, what is in effect for it, and where that came from. The
+// same names, values and refusals as the account's fields on GET and PUT
+// /api/v1/accounts/{address}.
+STDMETHODIMP InterfaceAccount::get_SettingOverride(BSTR Name, BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      const HM::EffectiveSetting::Definition *definition = HM::EffectiveSetting::Find(HM::String(Name));
+      if (!definition)
+         return COMError::GenerateError(HM::EffectiveSetting::NotThreeLevelSentence(HM::String(Name)));
+
+      HM::String value;
+      if (!HM::EffectiveSetting::AccountValue(*definition, object_, value))
+         value.Empty();
+
+      *pVal = value.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::put_SettingOverride(BSTR Name, BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      // The administrator's decision, as the domain's is: the account holder
+      // does not set their own limits.
+      if (!authentication_->GetIsDomainAdmin())
+         return authentication_->GetAccessDenied();
+
+      const HM::String name(Name);
+      const HM::EffectiveSetting::Definition *definition = HM::EffectiveSetting::Find(name);
+      if (!definition)
+         return COMError::GenerateError(HM::EffectiveSetting::NotThreeLevelSentence(name));
+
+      if (definition->server_administrators_only && !authentication_->GetIsServerAdmin())
+         return COMError::GenerateError(HM::String(definition->name) + _T(" is the server administrator's to set for an account."));
+
+      HM::String value(newVal);
+      HM::String refusal;
+
+      const bool done = value.IsEmpty()
+         ? HM::EffectiveSetting::ClearOverride(name, HM::PersistentSettingOverride::ScopeAccount, object_->GetID(), refusal)
+         : HM::EffectiveSetting::SetOverride(name, HM::PersistentSettingOverride::ScopeAccount, object_->GetID(), value, refusal);
+
+      if (!done)
+         return COMError::GenerateError(refusal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_EffectiveSetting(BSTR Name, BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      const HM::String name(Name);
+      if (!HM::EffectiveSetting::Find(name))
+         return COMError::GenerateError(HM::EffectiveSetting::NotThreeLevelSentence(name));
+
+      *pVal = HM::EffectiveSetting::Resolve(name, std::shared_ptr<const HM::Domain>(), object_).value.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::get_EffectiveSettingSource(BSTR Name, BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      const HM::String name(Name);
+      if (!HM::EffectiveSetting::Find(name))
+         return COMError::GenerateError(HM::EffectiveSetting::NotThreeLevelSentence(name));
+
+      const HM::EffectiveSetting::Answer answer = HM::EffectiveSetting::Resolve(name, std::shared_ptr<const HM::Domain>(), object_);
+      *pVal = HM::String(HM::EffectiveSetting::SourceWord(answer.source)).AllocSysString();
       return S_OK;
    }
    catch (...)

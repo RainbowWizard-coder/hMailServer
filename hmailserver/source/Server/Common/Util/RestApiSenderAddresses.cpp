@@ -20,6 +20,7 @@
 #include "Parsing/StringParser.h"
 #include "../BO/Account.h"
 #include "../Application/Configuration.h"
+#include "../Application/EffectiveSetting.h"
 #include "../Cache/CacheContainer.h"
 
 #ifdef _DEBUG
@@ -80,7 +81,9 @@ namespace HM
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
-      const int ceiling = Configuration::Instance()->GetReaderSenderAddressesMax();
+      // A setting with levels: the account's own ceiling, its domain's, or the
+      // server's (docs/SettingLevels.md).
+      const int ceiling = EffectiveSetting::ResolveInt(_T("reader_sender_addresses_max"), std::shared_ptr<const Domain>(), account);
       if (ceiling <= 0)
          return BuildResponse_(403, "{\"error\":\"sending as an address elsewhere is not offered on this server\"}");
 

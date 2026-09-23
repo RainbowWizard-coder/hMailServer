@@ -9,6 +9,7 @@
 #include "../Application/Application.h"
 #include "../Application/Configuration.h"
 #include "../Application/IniFileSettings.h"
+#include "../Application/EffectiveSetting.h"
 #include "../BO/Account.h"
 #include "../BO/IMAPFolder.h"
 #include "../BO/IMAPFolders.h"
@@ -86,16 +87,22 @@ namespace HM
    }
 
    int
-   RecoverableStore::Days()
+   RecoverableStore::Days(__int64 accountId)
    {
-      const int days = Configuration::Instance()->GetRecoverDeletedDays();
+      std::shared_ptr<const Account> account;
+      if (accountId > 0)
+         account = CacheContainer::Instance()->GetAccount(accountId);
+
+      // The server's value is clamped to 0-365 by the resolver as it always
+      // was here; a domain's or an account's is refused outside it when set.
+      const int days = EffectiveSetting::ResolveInt(_T("recover_deleted_days"), std::shared_ptr<const Domain>(), account);
       return days < 0 ? 0 : (days > 365 ? 365 : days);
    }
 
    void
    RecoverableStore::Keep(std::shared_ptr<Message> message)
    {
-      if (scopes <= 0 || !message || message->GetAccountID() <= 0 || message->GetFolderID() <= 0 || Days() <= 0)
+      if (scopes <= 0 || !message || message->GetAccountID() <= 0 || message->GetFolderID() <= 0 || Days(message->GetAccountID()) <= 0)
          return;
 
       std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(message->GetAccountID());
@@ -278,20 +285,35 @@ namespace HM
    int
    RecoverableStore::Sweep()
    {
-      const __int64 cutoff = (__int64) time(nullptr) - (__int64) Days() * 24 * 60 * 60;
+      // The window is each account's own (recover_deleted_days has levels), so
+      // the rows are read from the shortest window anywhere - the server's, or
+      // the shortest a domain or an account holds - and each is ended against
+      // its own account's. With no window of a domain's or an account's own
+      // this is the server's window for every row, as it always was.
+      const __int64 now = (__int64) time(nullptr);
+      const __int64 cutoff = now - (__int64) EffectiveSetting::SmallestAnywhere(_T("recover_deleted_days")) * 24 * 60 * 60;
 
       // No recordset is the database not answering, and a sweep that cannot
       // read the rows must not act on the files: nothing below runs.
-      SQLCommand command("select rcid, rcaccountid from hm_recoverable where rcdeleted <= @CUTOFF");
+      SQLCommand command("select rcid, rcaccountid, rcdeleted from hm_recoverable where rcdeleted <= @CUTOFF");
       command.AddParameter("@CUTOFF", cutoff);
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
       if (!recordset)
          return 0;
 
+      std::map<__int64, __int64> accountCutoffs;
       std::vector<std::pair<__int64, __int64> > expired;
       while (!recordset->IsEOF())
       {
-         expired.push_back(std::make_pair(recordset->GetInt64Value("rcaccountid"), recordset->GetInt64Value("rcid")));
+         const __int64 accountId = recordset->GetInt64Value("rcaccountid");
+
+         auto known = accountCutoffs.find(accountId);
+         if (known == accountCutoffs.end())
+            known = accountCutoffs.insert(std::make_pair(accountId, now - (__int64) Days(accountId) * 24 * 60 * 60)).first;
+
+         if (recordset->GetInt64Value("rcdeleted") <= known->second)
+            expired.push_back(std::make_pair(accountId, recordset->GetInt64Value("rcid")));
+
          recordset->MoveNext();
       }
 

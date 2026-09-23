@@ -9,6 +9,7 @@
 #include "MessageOrigin.h"
 
 #include "../Application/ErrorManager.h"
+#include "../Application/EffectiveSetting.h"
 #include "../BO/Account.h"
 #include "../BO/Domain.h"
 #include "../BO/Message.h"
@@ -56,8 +57,11 @@ namespace HM
       if (!account || !domain || !message)
          return false;
 
-      const bool wantSubject = domain->GetExternalTagSubject();
-      const bool wantHeader = domain->GetExternalTagHeader();
+      // The two tags are settings with levels: the recipient account's own
+      // switch where an administrator gave it one, its domain's otherwise
+      // (Application/EffectiveSetting.h). The tag's text stays the domain's.
+      const bool wantSubject = EffectiveSetting::ResolveBool(_T("external_tag_subject"), domain, account);
+      const bool wantHeader = EffectiveSetting::ResolveBool(_T("external_tag_header"), domain, account);
       const bool wantFirstContact = domain->GetFirstContactTip();
 
       if (!wantSubject && !wantHeader && !wantFirstContact)

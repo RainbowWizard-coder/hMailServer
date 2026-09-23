@@ -71,6 +71,8 @@ if exists (select * from sysobjects where id = object_id('hm_settings') and obje
 
 if exists (select * from sysobjects where id = object_id('hm_senderlist') and objectproperty(id, 'isusertable') = 1) drop table hm_senderlist
 
+if exists (select * from sysobjects where id = object_id('hm_settingoverrides') and objectproperty(id, 'isusertable') = 1) drop table hm_settingoverrides
+
 if exists (select * from sysobjects where id = object_id('hm_digeststate') and objectproperty(id, 'isusertable') = 1) drop table hm_digeststate
 
 if exists (select * from sysobjects where id = object_id('hm_digesttokens') and objectproperty(id, 'isusertable') = 1) drop table hm_digesttokens
@@ -2671,4 +2673,17 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0)
 
-insert into hm_dbversion values (6087)
+create table hm_settingoverrides
+(
+	soid bigint identity(1,1) not null,
+	soscope int not null,
+	soownerid bigint not null,
+	soname nvarchar(30) not null,
+	sovalue nvarchar(4000) not null
+)
+
+ALTER TABLE hm_settingoverrides ADD CONSTRAINT hm_settingoverrides_pk PRIMARY KEY NONCLUSTERED (soid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_settingoverrides_owner ON hm_settingoverrides (soscope, soownerid, soname)
+
+insert into hm_dbversion values (6088)

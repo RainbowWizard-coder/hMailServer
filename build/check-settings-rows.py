@@ -28,6 +28,15 @@ any comparison of that column with a longer parameter, so a longer name has no
 row, cannot be given one, and fails every read. Three names of batch 13 were 32
 and 35 characters on 17 September 2026 and the server logged errors at start.
 
+And every name carries a LEVELS MARK in build/settings-levels.txt - server,
+domain or account, the deepest level the setting may be set at (one value, three
+levels, docs/SettingLevels.md) - and SettingsDefaults.h carries it as the row's
+Levels. A name without one is refused: a setting added without anybody deciding
+whether a domain or an account may hold its own value is the setting the next
+"why is this account not doing what the domain says" is about. The check proves
+its own negative control on every run: a list missing a name, and a mark that is
+not one of the three, are fed to it and must be refused.
+
 Usage: python build/check-settings-rows.py
 """
 import io
@@ -43,12 +52,57 @@ CONSTANTS = os.path.join(APPLICATION, 'Constants.h')
 SCRIPTS = os.path.join(ROOT, 'hmailserver', 'source', 'DBScripts')
 
 SETTING = re.compile(r'\{\s*_T\("([^"]+)"\)\s*,\s*_T\(')
+# A row with its levels mark, as the generator writes it.
+SETTING_LEVEL = re.compile(r'\{\s*_T\("([^"]+)"\)\s*,\s*_T\("(?:[^"\\]|\\.)*"\)\s*,\s*-?\d+\s*,\s*Kind\w+\s*,\s*Level(Server|Domain|Account)\s*\}')
+LEVELS_FILE = os.path.join(ROOT, 'build', 'settings-levels.txt')
+LEVELS = ('server', 'domain', 'account')
 CONSTANT = re.compile(r'#define\s+(PROPERTY_\w+)\s+_T\("([^"]+)"\)')
 ENSURE = re.compile(r'\bEnsure(?:Long|String)\s*\(\s*(?:(PROPERTY_\w+)|_T\("([^"]+)"\))')
 
 
 def read(path):
     return io.open(path, encoding='utf-8-sig', errors='replace').read()
+
+
+def levels_problems(names, text, header):
+    """The names without a levels mark, the marks that are not one of the three,
+    and the rows of the header whose Levels is not the list's. Empty when all is
+    well. text is build/settings-levels.txt, header is SettingsDefaults.h."""
+    problems = []
+    marks = {}
+    for number, line in enumerate(text.splitlines(), 1):
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        parts = line.split()
+        if len(parts) != 2 or parts[1] not in LEVELS:
+            problems.append('build/settings-levels.txt line %d: `%s` is not a name and one of server, domain or account' % (number, line))
+            continue
+        marks[parts[0]] = parts[1]
+    for name in names:
+        if name not in marks:
+            problems.append('%s: named in SettingsDefaults.h and given no levels mark in build/settings-levels.txt - say whether '
+                            'it is set for the whole server only (server), per domain (domain) or per account as well (account)' % name)
+    in_header = dict((name, level.lower()) for name, level in SETTING_LEVEL.findall(header))
+    for name in names:
+        if name in marks and in_header.get(name) != marks[name]:
+            problems.append('%s: SettingsDefaults.h carries Levels %s and build/settings-levels.txt says %s; run '
+                            'python3 build/generate-settings-defaults.py' % (name, in_header.get(name, 'none'), marks[name]))
+    return problems
+
+
+def self_test():
+    """The negative control: a list that misses a name, and a mark that is not
+    one of the three, must each be refused."""
+    failures = []
+    header = '{ _T("RecallDays"), _T(""), 14, KindNumber, LevelAccount },'
+    if levels_problems(['RecallDays'], 'RecallDays account\n', header):
+        failures.append('self-test: a well-formed list was refused')
+    if not any('no levels mark' in p for p in levels_problems(['RecallDays'], '# nothing\n', header)):
+        failures.append('self-test: a name with no levels mark was not refused')
+    if not any('is not a name and one of' in p for p in levels_problems(['RecallDays'], 'RecallDays mailbox\n', header)):
+        failures.append('self-test: a mark that is not one of the three was not refused')
+    return failures
 
 
 def main():
@@ -86,8 +140,25 @@ def main():
         print('FAIL: %d of %d database setting(s) have no row on a database made before them' % (len(missing), len(names)))
         return 1
 
-    print('OK    %d database setting(s): each has its row created at start-up (%d) or inserted by a database script' %
-          (len(names), len(ensured)))
+    failures = self_test()
+    if failures:
+        for failure in failures:
+            print(failure)
+        print('FAIL: the levels check no longer refuses what it must')
+        return 1
+
+    problems = levels_problems(names, read(LEVELS_FILE) if os.path.exists(LEVELS_FILE) else '', read(DEFAULTS))
+    if problems:
+        for problem in problems:
+            print(problem)
+        print('FAIL: %d database setting(s) without the levels mark that says how deep they may be set' % len(problems))
+        return 1
+
+    marked = read(LEVELS_FILE)
+    counted = dict((level, len(re.findall(r'^\S+ %s\s*$' % level, marked, re.M))) for level in LEVELS)
+    print('OK    %d database setting(s): each has its row created at start-up (%d) or inserted by a database script, '
+          'and each its levels mark (%d server, %d domain, %d account; a name without one is refused)' %
+          (len(names), len(ensured), counted['server'], counted['domain'], counted['account']))
     return 0
 
 

@@ -7,6 +7,8 @@
 
 #include "Unicode.h"
 #include "../Application/Configuration.h"
+#include "../Application/EffectiveSetting.h"
+#include "../BO/Account.h"
 #include "../BO/Domain.h"
 #include "../Cache/CacheContainer.h"
 #include "../Util/Parsing/StringParser.h"
@@ -90,39 +92,53 @@ namespace HM
    }
 
    void
-   SessionPolicies::Resolve_(SessionPolicy &policy)
+   SessionPolicies::ApplyAccount_(SessionPolicy &policy, std::shared_ptr<const Account> account)
    {
-      // The domain first where it has an answer, then the server, then the
-      // ceiling that has always applied. A stored value outside the acceptable
-      // range is treated as unset rather than honoured: the interfaces refuse
-      // such a number, so one in the database was put there by hand, and
-      // honouring it would let a typed zero-too-many lock a domain out.
-      int idle = 0;
-      if (policy.domain_idle_seconds > 0 && policy.domain_idle_seconds <= MaximumSeconds)
-         idle = policy.domain_idle_seconds;
-      else if (policy.server_idle_seconds > 0 && policy.server_idle_seconds <= MaximumSeconds)
-         idle = policy.server_idle_seconds;
+      if (!account)
+         return;
 
-      policy.idle_seconds = idle > 0 ? idle : DefaultIdleSeconds;
+      policy.has_account = true;
+      policy.account_address = account->GetAddress();
 
-      int lifetime = 0;
-      if (policy.domain_lifetime_seconds > 0 && policy.domain_lifetime_seconds <= MaximumSeconds)
-         lifetime = policy.domain_lifetime_seconds;
-      else if (policy.server_lifetime_seconds > 0 && policy.server_lifetime_seconds <= MaximumSeconds)
-         lifetime = policy.server_lifetime_seconds;
+      const EffectiveSetting::Definition *idle = EffectiveSetting::Find(_T("session_idle_seconds"));
+      const EffectiveSetting::Definition *lifetime = EffectiveSetting::Find(_T("session_lifetime_seconds"));
+      const EffectiveSetting::Definition *onePerDevice = EffectiveSetting::Find(_T("session_one_per_device"));
+      const EffectiveSetting::Definition *bindToAddress = EffectiveSetting::Find(_T("session_bind_to_address"));
 
-      policy.lifetime_seconds = lifetime > 0 ? lifetime : DefaultLifetimeSeconds;
+      if (idle)
+         EffectiveSetting::AccountValue(*idle, account, policy.account_idle_seconds);
+      if (lifetime)
+         EffectiveSetting::AccountValue(*lifetime, account, policy.account_lifetime_seconds);
+      if (onePerDevice)
+         EffectiveSetting::AccountValue(*onePerDevice, account, policy.account_one_per_device);
+      if (bindToAddress)
+         EffectiveSetting::AccountValue(*bindToAddress, account, policy.account_bind_to_address);
+   }
 
+   void
+   SessionPolicies::Resolve_(SessionPolicy &policy, std::shared_ptr<const Domain> domain, std::shared_ptr<const Account> account)
+   {
+      // The account's own value where it has one, then its domain's, then the
+      // server's, then the ceiling that has always applied - one resolution,
+      // Application/EffectiveSetting's, and the rule this function held for the
+      // domain and the server before an account had a level of its own. A
+      // stored value outside the acceptable range is treated as unset rather
+      // than honoured: the interfaces refuse such a number, so one in the
+      // database was put there by hand, and honouring it would let a typed
+      // zero-too-many lock a domain out.
+      //
       // A lifetime shorter than the idle period is not refused - both are real
       // ceilings and the shorter one simply wins - but it is worth knowing that
       // the idle period then never fires.
-      policy.one_per_device = policy.domain_one_per_device == SwitchOn ? true :
-                              policy.domain_one_per_device == SwitchOff ? false :
-                              policy.server_one_per_device;
+      policy.idle_seconds = EffectiveSetting::ResolveInt(_T("session_idle_seconds"), domain, account);
+      policy.lifetime_seconds = EffectiveSetting::ResolveInt(_T("session_lifetime_seconds"), domain, account);
+      policy.one_per_device = EffectiveSetting::ResolveBool(_T("session_one_per_device"), domain, account);
+      policy.bind_to_address = EffectiveSetting::ResolveBool(_T("session_bind_to_address"), domain, account);
 
-      policy.bind_to_address = policy.domain_bind_to_address == SwitchOn ? true :
-                               policy.domain_bind_to_address == SwitchOff ? false :
-                               policy.server_bind_to_address;
+      if (policy.idle_seconds <= 0)
+         policy.idle_seconds = DefaultIdleSeconds;
+      if (policy.lifetime_seconds <= 0)
+         policy.lifetime_seconds = DefaultLifetimeSeconds;
    }
 
    SessionPolicy
@@ -131,7 +147,7 @@ namespace HM
       SessionPolicy policy;
 
       ReadServer_(policy);
-      Resolve_(policy);
+      Resolve_(policy, std::shared_ptr<const Domain>(), std::shared_ptr<const Account>());
 
       return policy;
    }
@@ -143,10 +159,14 @@ namespace HM
 
       ReadServer_(policy);
 
+      std::shared_ptr<const Domain> domain;
       if (!domainName.IsEmpty())
-         ApplyDomain_(policy, CacheContainer::Instance()->GetDomain(domainName));
+      {
+         domain = CacheContainer::Instance()->GetDomain(domainName);
+         ApplyDomain_(policy, domain);
+      }
 
-      Resolve_(policy);
+      Resolve_(policy, domain, std::shared_ptr<const Account>());
 
       return policy;
    }
@@ -154,7 +174,30 @@ namespace HM
    SessionPolicy
    SessionPolicies::ForAddress(const String &address)
    {
-      return ForDomain(StringParser::ExtractDomain(address));
+      std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(address);
+      if (!account)
+         return ForDomain(StringParser::ExtractDomain(address));
+
+      return ForAccount(account);
+   }
+
+   SessionPolicy
+   SessionPolicies::ForAccount(std::shared_ptr<const Account> account)
+   {
+      if (!account)
+         return ServerWide();
+
+      SessionPolicy policy;
+
+      ReadServer_(policy);
+
+      std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(account->GetDomainID());
+      ApplyDomain_(policy, domain);
+      ApplyAccount_(policy, account);
+
+      Resolve_(policy, domain, account);
+
+      return policy;
    }
 
    String
@@ -203,6 +246,26 @@ namespace HM
             policy.domain_one_per_device, policy.domain_bind_to_address);
 
          json += domainPart;
+      }
+
+      // The account's own values, where the policy was asked for an account:
+      // null is "its domain's" (docs/SettingLevels.md).
+      if (policy.has_account)
+      {
+         auto own = [](const String &value, bool flag) -> AnsiString
+         {
+            if (value.IsEmpty())
+               return "null";
+            if (flag)
+               return value == _T("1") ? "true" : "false";
+            return AnsiString(value);
+         };
+
+         json += ",\"account\":\"" + JsonEscape(Utf8Of(policy.account_address)) + "\"";
+         json += ",\"account_policy\":{\"idle_seconds\":" + own(policy.account_idle_seconds, false) +
+                 ",\"lifetime_seconds\":" + own(policy.account_lifetime_seconds, false) +
+                 ",\"one_per_device\":" + own(policy.account_one_per_device, true) +
+                 ",\"bind_to_address\":" + own(policy.account_bind_to_address, true) + "}";
       }
 
       json += "}";

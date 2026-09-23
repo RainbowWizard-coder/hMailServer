@@ -63,6 +63,8 @@ select hm_drop_table('hm_protectedmessages');
 
 select hm_drop_table('hm_recall');
 
+select hm_drop_table('hm_settingoverrides');
+
 select hm_drop_table('hm_dmarcreportrecords');
 
 select hm_drop_table('hm_dmarcreports');
@@ -2380,4 +2382,15 @@ ALTER TABLE hm_recoverycodes ADD CONSTRAINT fk_hm_recoverycodes_account FOREIGN 
 
 insert into hm_alertrules (alertrulecondition, alertruleenabled, alertrulethreshold, alertruleactions, alertruleaddress, alertrulewebhook, alertrulesecret, alertrulecooldown, alertruledigest) values ('account.password-reset', 1, 0, 1, '', '', '', 0, 0);
 
-insert into hm_dbversion values (6087);
+create table hm_settingoverrides
+(
+	soid bigserial not null primary key,
+	soscope int not null,
+	soownerid bigint not null,
+	soname varchar(30) not null,
+	sovalue varchar(4000) not null
+);
+
+CREATE UNIQUE INDEX idx_hm_settingoverrides_owner ON hm_settingoverrides (soscope, soownerid, soname);
+
+insert into hm_dbversion values (6088);

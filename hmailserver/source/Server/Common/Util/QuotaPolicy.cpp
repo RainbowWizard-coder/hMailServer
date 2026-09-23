@@ -11,6 +11,7 @@
 #include "../BO/ServerMessages.h"
 #include "../Application/Configuration.h"
 #include "../Application/IniFileSettings.h"
+#include "../Application/EffectiveSetting.h"
 #include "../Cache/CacheContainer.h"
 #include "../Cache/AccountSizeCache.h"
 
@@ -30,19 +31,21 @@ namespace HM
       return CacheContainer::Instance()->GetDomain(account->GetDomainID());
    }
 
+   // The three shares are settings with levels (Application/EffectiveSetting.h):
+   // the account's own value where an administrator gave it one, the domain's
+   // where it holds one (its -1 is "the server's"), the server's otherwise -
+   // the rule these functions held for the domain and the server before an
+   // account had a level of its own.
    int
    QuotaPolicy::WarningPercent(std::shared_ptr<const Domain> domain)
    {
-      if (domain && domain->GetQuotaWarningPercent() >= 0)
-         return domain->GetQuotaWarningPercent();
-
-      return IniFileSettings::Instance()->GetQuotaWarningPercent();
+      return EffectiveSetting::ResolveInt(_T("quota_warning_percent"), domain, std::shared_ptr<const Account>());
    }
 
    int
    QuotaPolicy::WarningPercent(std::shared_ptr<const Account> account)
    {
-      return WarningPercent(DomainOf_(account));
+      return EffectiveSetting::ResolveInt(_T("quota_warning_percent"), DomainOf_(account), account);
    }
 
    void
@@ -66,31 +69,25 @@ namespace HM
    int
    QuotaPolicy::GracePercent(std::shared_ptr<const Domain> domain)
    {
-      if (domain && domain->GetQuotaGracePercent() >= 0)
-         return domain->GetQuotaGracePercent();
-
-      return Configuration::Instance()->GetQuotaGracePercent();
+      return EffectiveSetting::ResolveInt(_T("quota_grace_percent"), domain, std::shared_ptr<const Account>());
    }
 
    int
    QuotaPolicy::GracePercent(std::shared_ptr<const Account> account)
    {
-      return GracePercent(DomainOf_(account));
+      return EffectiveSetting::ResolveInt(_T("quota_grace_percent"), DomainOf_(account), account);
    }
 
    int
    QuotaPolicy::SendStopPercent(std::shared_ptr<const Domain> domain)
    {
-      if (domain && domain->GetQuotaSendStopPercent() >= 0)
-         return domain->GetQuotaSendStopPercent();
-
-      return Configuration::Instance()->GetQuotaSendStopPercent();
+      return EffectiveSetting::ResolveInt(_T("quota_send_stop_percent"), domain, std::shared_ptr<const Account>());
    }
 
    int
    QuotaPolicy::SendStopPercent(std::shared_ptr<const Account> account)
    {
-      return SendStopPercent(DomainOf_(account));
+      return EffectiveSetting::ResolveInt(_T("quota_send_stop_percent"), DomainOf_(account), account);
    }
 
    bool

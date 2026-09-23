@@ -7,6 +7,7 @@
 #include "MessageRecall.h"
 #include "../Application/Application.h"
 #include "../Application/Configuration.h"
+#include "../Application/EffectiveSetting.h"
 #include "../Application/ErrorManager.h"
 #include "../Application/Logger.h"
 #include "../BO/Account.h"
@@ -130,9 +131,13 @@ namespace HM
    }
 
    int
-   MessageRecall::Days()
+   MessageRecall::Days(__int64 senderId)
    {
-      return Configuration::Instance()->GetRecallDays();
+      std::shared_ptr<const Account> sender;
+      if (senderId > 0)
+         sender = CacheContainer::Instance()->GetAccount(senderId);
+
+      return EffectiveSetting::ResolveInt(_T("recall_days"), std::shared_ptr<const Domain>(), sender);
    }
 
    String
@@ -343,7 +348,7 @@ namespace HM
       SQLCommand command(AnsiString("select ") + Columns + " from hm_recall where recallsenderid = @SENDERID and recallmsgid = @MSGID and recallcreated >= @SINCE order by recallid");
       command.AddParameter("@SENDERID", senderId);
       command.AddParameter("@MSGID", messageId);
-      command.AddParameter("@SINCE", now - (__int64) Days() * DaySeconds);
+      command.AddParameter("@SINCE", now - (__int64) Days(senderId) * DaySeconds);
       return Select(command, rows);
    }
 
@@ -373,7 +378,7 @@ namespace HM
    void
    MessageRecall::Sweep()
    {
-      const __int64 cutoff = (__int64) time(nullptr) - (__int64) Days() * DaySeconds;
+      const __int64 cutoff = (__int64) time(nullptr) - (__int64) EffectiveSetting::LargestAnywhere(_T("recall_days")) * DaySeconds;
 
       SQLCommand command("delete from hm_recall where recallcreated < @CUTOFF");
       command.AddParameter("@CUTOFF", cutoff);

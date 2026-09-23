@@ -729,4 +729,18 @@
 //      only - the tagger's own decision, shared. Every domain an upgrade finds
 //      has the action off and both lists empty, so an upgraded server delivers
 //      exactly as it did.
-#define REQUIRED_DB_VERSION            6087
+// 6088 adds hm_settingoverrides (Application/EffectiveSetting.h,
+//      docs/SettingLevels.md): one value, three levels. A row is a domain's
+//      (soscope 1) or an account's (soscope 2) own value for one setting that
+//      may be set below the server - soownerid the domain or account id,
+//      soname the setting's name as REST, COM and hmctl spell it, sovalue its
+//      text - unique on (scope, owner, name), so a level holds at most one
+//      value per name and no row means the level inherits. The dedicated
+//      domain and account columns stay where they are and remain the storage
+//      of the levels they already held; the overlay holds only the levels
+//      that had nowhere to live. There is no foreign key, because one column
+//      names a domain or an account by the scope beside it: the rows go with
+//      their domain or account in PersistentDomain::DeleteObject and
+//      PersistentAccount::DeleteObject, as the sender lists' do. An upgrade
+//      finds the table empty, and every setting resolves exactly as it did.
+#define REQUIRED_DB_VERSION            6088

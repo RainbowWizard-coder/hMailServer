@@ -212,6 +212,9 @@
   <data name="(could not be read from the server)" xml:space="preserve">
     <value>(no pudo leerse del servidor)</value>
   </data>
+  <data name="(empty)" xml:space="preserve">
+    <value>(vacío)</value>
+  </data>
   <data name="(group #{0})" xml:space="preserve">
     <value>(grupo n.º {0})</value>
   </data>
@@ -649,6 +652,12 @@
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>Hay un registro v=TLSRPTv1 activo en {0} con rua={1} - un buzón de informes distinto del de arriba, lo cual está bien mientras exista y se lea. Publicado: {2}</value>
+  </data>
+  <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
+    <value>Un valor propio de esta cuenta prevalece sobre el de su dominio y el del servidor. Marque un ajuste para dar a la cuenta un valor propio, desmárquelo para tomar el de su dominio y guarde los niveles: se escriben de inmediato, no con el botón Guardar del cuadro de diálogo.</value>
+  </data>
+  <data name="A value this domain holds of its own wins over the server's for every account of it that holds none. Tick a setting to give the domain a value of its own, untick it to take the server's, and save the levels: they are written at once, not with the dialog's Save. A setting kept in a field of its own is edited on that field's tab and shown here with what is in effect." xml:space="preserve">
+    <value>Un valor propio de este dominio prevalece sobre el del servidor para cada cuenta del dominio que no tenga uno. Marque un ajuste para dar al dominio un valor propio, desmárquelo para tomar el del servidor y guarde los niveles: se escriben de inmediato, no con el botón Guardar del cuadro de diálogo. Un ajuste guardado en un campo propio se edita en la pestaña de ese campo y se muestra aquí con el valor vigente.</value>
   </data>
   <data name="A version older than 6.2.17; upgrade, because that is the version that added these lines." xml:space="preserve">
     <value>Una versión anterior a 6.2.17; actualice, porque esa es la versión que añadió estas líneas.</value>
@@ -3275,6 +3284,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Edit {0}" xml:space="preserve">
     <value>Editar {0}</value>
   </data>
+  <data name="Edited on this dialog's other tabs." xml:space="preserve">
+    <value>Se edita en las otras pestañas de este cuadro de diálogo.</value>
+  </data>
   <data name="Editing" xml:space="preserve">
     <value>Edición</value>
   </data>
@@ -4244,6 +4256,15 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="In a row" xml:space="preserve">
     <value>Seguidos</value>
   </data>
+  <data name="In effect: {0}, from the account" xml:space="preserve">
+    <value>Vigente: {0}, de la cuenta</value>
+  </data>
+  <data name="In effect: {0}, from the domain" xml:space="preserve">
+    <value>Vigente: {0}, del dominio</value>
+  </data>
+  <data name="In effect: {0}, from the server" xml:space="preserve">
+    <value>Vigente: {0}, del servidor</value>
+  </data>
   <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
     <value>En vigor para el próximo mensaje. Desactivado, no se clasifica, cuenta ni añade nada y la lista no se aplica; las entradas que ya tiene se quedan, y el barrido de cada hora las sigue haciendo caducar. Una base de datos que no se puede leer envía el correo como si la dirección no estuviera en la lista, y lo indica en el registro de errores una vez por hora.</value>
   </data>
@@ -4527,6 +4548,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Lets sending servers pin your certificate through DNSSEC, so nobody can strip or spoof TLS on mail coming to you." xml:space="preserve">
     <value>Permite que los servidores emisores fijen su certificado a través de DNSSEC, de modo que nadie pueda eliminar ni falsificar TLS en el correo que le llega.</value>
+  </data>
+  <data name="Levels" xml:space="preserve">
+    <value>Niveles</value>
   </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>Limitar el _número de listas de distribución</value>
@@ -6048,6 +6072,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="Overwrite account signature" xml:space="preserve">
     <value>Sobrescribir la firma de la cuenta</value>
   </data>
+  <data name="Own value of {0}" xml:space="preserve">
+    <value>Valor propio de {0}</value>
+  </data>
   <data name="PBKDF2 (default)" xml:space="preserve">
     <value>PBKDF2 (por defecto)</value>
   </data>
@@ -7386,8 +7413,14 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>_Guardar permisos</value>
   </data>
+  <data name="Save _levels now" xml:space="preserve">
+    <value>Guardar _niveles ahora</value>
+  </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>Guardar la _frase de contraseña</value>
+  </data>
+  <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
+    <value>Guárdelo y vuelva a abrirlo: el valor propio de un nivel pertenece a algo que existe.</value>
   </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>Guardar los aj_ustes</value>
@@ -7463,6 +7496,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
     <value>Guardado. El servidor recoge la selección en menos de dos segundos; un cambio en la programación necesita reiniciar el servicio.</value>
+  </data>
+  <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
+    <value>Guardado. El valor vigente se muestra junto a cada ajuste.</value>
   </data>
   <data name="Saving this does not move the service: it is read when the service is REGISTERED, so it takes effect only after the command in the status line below has been run. Clearing it does not move the service back to LocalSystem either - on an already-registered service an empty value means &quot;leave the account as it is&quot;. To return to LocalSystem, set this to LocalSystem explicitly and re-register." xml:space="preserve">
     <value>Guardar esto no cambia la cuenta con la que se ejecuta el servicio: se lee cuando el servicio se REGISTRA, así que solo surte efecto después de ejecutar el comando de la línea de estado de abajo. Vaciarlo tampoco devuelve el servicio a LocalSystem - en un servicio ya registrado, un valor vacío significa "deje la cuenta como está". Para volver a LocalSystem, ponga aquí LocalSystem de forma explícita y vuelva a registrar el servicio.</value>
@@ -9546,6 +9582,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>Este servidor no rota claves DKIM; es más antiguo que este Control Panel.</value>
   </data>
+  <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
+    <value>Este servidor no tiene niveles de ajustes: es anterior al esquema 6088, y cada ajuste aquí es un campo propio del servidor o del dominio.</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Este servidor solo COMPRUEBA SPF en el correo entrante; publicar el registro es para todos los demás - dice a los servidores receptores qué máquinas pueden enviar correo que dice venir de </value>
   </data>
@@ -10868,6 +10907,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="a symbol" xml:space="preserve">
     <value>un símbolo</value>
+  </data>
+  <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
+    <value>se necesita un valor propio, o desmárquelo para tomar el nivel superior.</value>
   </data>
   <data name="accepted but never delivered" xml:space="preserve">
     <value>aceptado pero nunca entregado</value>

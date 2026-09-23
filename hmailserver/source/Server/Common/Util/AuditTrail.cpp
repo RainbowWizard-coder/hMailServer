@@ -140,6 +140,12 @@ namespace HM
          // its own, and an administrator is the actor when they upload one for
          // somebody. Only public keys are ever stored, so a row holds no secret.
          { L"hm_pgpkeys",                     L"OpenPGP key" },
+         // A domain's or an account's own value of a setting that may be set
+         // below the server (docs/SettingLevels.md): the same change a server
+         // setting's is, made for one domain or one account, so it is recorded
+         // as a row with its name, owner and value. A cascade from a domain or
+         // an account deleted by an administrator is recorded under that actor.
+         { L"hm_settingoverrides",            L"setting level" },
       };
 
       // A column or setting whose value must never reach the table. Matched as a

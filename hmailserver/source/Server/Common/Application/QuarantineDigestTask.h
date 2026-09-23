@@ -50,7 +50,17 @@ namespace HM
       // omission and the rule that there is nothing to say.
       static int RunPass(bool force);
 
+      // One pass as the scheduler would run it in the given hour of the day,
+      // 0 to 23: the hour decides who is due - the digest switch and the hour
+      // are settings with levels, an account's own over its domain's
+      // (docs/SettingLevels.md) - and, as a forced pass, nothing is spread and
+      // the twenty-hour rule is not asked. What a test needs to prove that an
+      // account with an hour of its own is sent at its hour and its domain's
+      // accounts at theirs, without waiting for either.
+      static int RunPassAtHour(int hour);
+
    private:
       static int TicksLeftInHour_(int minute);
+      static int RunPass_(bool force, int atHour);
    };
 }

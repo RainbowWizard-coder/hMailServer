@@ -305,6 +305,9 @@ namespace HM
          RouteBackupMailboxRestore,
          RouteBackupMailboxRestoreStatus,
          RouteSettingsGet,
+         // One value, three levels (RestApiSettingLevels.h): the settings a
+         // domain or an account may hold its own value of.
+         RouteSettingLevels,
          RouteArchiveSearch,
          RouteArchiveGet,
          RouteArchiveHold,
@@ -1715,7 +1718,10 @@ namespace HM
 
       // One domain as the listing renders it, so that what a create or an
       // update answers is exactly what the next listing will show.
-      static AnsiString DomainEntryJson_(const std::shared_ptr<Domain> &domain);
+      // withLevels: the settings with levels (RestApiSettingLevels.h), which the
+      // listing leaves out - it is one query, and each entry's 81 answers are
+      // what GET /api/v1/domains/{domain} is for.
+      static AnsiString DomainEntryJson_(const std::shared_ptr<Domain> &domain, bool withLevels = true);
 
       // That same entry for one domain by name, and a 404 when this server
       // hosts no such domain.
@@ -1950,6 +1956,7 @@ namespace HM
       HttpResponse HandleUpdateList_(const String &address, const std::vector<String> &callerDomains, const AnsiString &requestBody);
       static AnsiString ListEntryJson_(const std::shared_ptr<DistributionList> &list);
       static AnsiString OpenApiAdministrationPaths_();
+      static AnsiString OpenApiSettingLevelsPaths_();
 
       // Who a distribution list delivers to now - its rows and what its
       // membership query answers at the moment of the call

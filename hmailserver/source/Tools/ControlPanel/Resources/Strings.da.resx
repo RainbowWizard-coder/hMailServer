@@ -212,6 +212,9 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="(could not be read from the server)" xml:space="preserve">
     <value>(kunne ikke læses fra serveren)</value>
   </data>
+  <data name="(empty)" xml:space="preserve">
+    <value>(tom)</value>
+  </data>
   <data name="(group #{0})" xml:space="preserve">
     <value>(gruppe nr. {0})</value>
   </data>
@@ -649,6 +652,12 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>En v=TLSRPTv1-post er aktiv på {0} med rua={1} – en anden rapportpostkasse end den ovenfor, hvilket er i orden, så længe den findes og bliver læst. Offentliggjort: {2}</value>
+  </data>
+  <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
+    <value>En egen værdi på denne konto går forud for domænets og serverens. Markér en indstilling for at give kontoen en egen værdi, fjern markeringen for at bruge domænets, og gem niveauerne: de skrives med det samme, ikke med dialogens Gem.</value>
+  </data>
+  <data name="A value this domain holds of its own wins over the server's for every account of it that holds none. Tick a setting to give the domain a value of its own, untick it to take the server's, and save the levels: they are written at once, not with the dialog's Save. A setting kept in a field of its own is edited on that field's tab and shown here with what is in effect." xml:space="preserve">
+    <value>En egen værdi på dette domæne går forud for serverens for hver konto i domænet, der ikke har sin egen. Markér en indstilling for at give domænet en egen værdi, fjern markeringen for at bruge serverens, og gem niveauerne: de skrives med det samme, ikke med dialogens Gem. En indstilling med sit eget felt redigeres på feltets fane og vises her med det, der gælder.</value>
   </data>
   <data name="A version older than 6.2.17; upgrade, because that is the version that added these lines." xml:space="preserve">
     <value>En version ældre end 6.2.17; opgradér, for det er den version, der tilføjede disse linjer.</value>
@@ -3275,6 +3284,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Edit {0}" xml:space="preserve">
     <value>Redigér {0}</value>
   </data>
+  <data name="Edited on this dialog's other tabs." xml:space="preserve">
+    <value>Redigeres på dialogens andre faner.</value>
+  </data>
   <data name="Editing" xml:space="preserve">
     <value>Redigerer</value>
   </data>
@@ -4244,6 +4256,15 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="In a row" xml:space="preserve">
     <value>I træk</value>
   </data>
+  <data name="In effect: {0}, from the account" xml:space="preserve">
+    <value>Gælder: {0}, fra kontoen</value>
+  </data>
+  <data name="In effect: {0}, from the domain" xml:space="preserve">
+    <value>Gælder: {0}, fra domænet</value>
+  </data>
+  <data name="In effect: {0}, from the server" xml:space="preserve">
+    <value>Gælder: {0}, fra serveren</value>
+  </data>
   <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
     <value>Gælder fra næste besked. Slået fra klassificeres, tælles eller listes intet, og listen anvendes ikke; posterne på den bliver, og den timevise oprydning lader dem stadig udløbe. En database, der ikke kan læses, sender posten, som om adressen ikke var listet, og siger det i fejlloggen én gang i timen.</value>
   </data>
@@ -4527,6 +4548,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Lets sending servers pin your certificate through DNSSEC, so nobody can strip or spoof TLS on mail coming to you." xml:space="preserve">
     <value>Lader afsendende servere fastlåse dit certifikat gennem DNSSEC, så ingen kan fjerne eller forfalske TLS på post til dig.</value>
+  </data>
+  <data name="Levels" xml:space="preserve">
+    <value>Niveauer</value>
   </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>Begræns a_ntallet af distributionslister</value>
@@ -6048,6 +6072,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Overwrite account signature" xml:space="preserve">
     <value>Overskriv kontoens signatur</value>
   </data>
+  <data name="Own value of {0}" xml:space="preserve">
+    <value>Egen værdi for {0}</value>
+  </data>
   <data name="PBKDF2 (default)" xml:space="preserve">
     <value>PBKDF2 (standard)</value>
   </data>
@@ -7386,8 +7413,14 @@ Vil du fortsætte?</value>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>_Gem tilladelser</value>
   </data>
+  <data name="Save _levels now" xml:space="preserve">
+    <value>Gem _niveauer nu</value>
+  </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>Gem _adgangssætning</value>
+  </data>
+  <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
+    <value>Gem og åbn igen: et niveaus egen værdi hører til noget, der findes.</value>
   </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>_Gem indstillinger</value>
@@ -7463,6 +7496,9 @@ Vil du fortsætte?</value>
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
     <value>Gemt. Serveren opfanger valget inden for to sekunder; en ændring af tidsplanen kræver genstart af tjenesten.</value>
+  </data>
+  <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
+    <value>Gemt. Det, der gælder, vises ved siden af hver indstilling.</value>
   </data>
   <data name="Saving this does not move the service: it is read when the service is REGISTERED, so it takes effect only after the command in the status line below has been run. Clearing it does not move the service back to LocalSystem either - on an already-registered service an empty value means &quot;leave the account as it is&quot;. To return to LocalSystem, set this to LocalSystem explicitly and re-register." xml:space="preserve">
     <value>At gemme dette flytter ikke tjenesten: det læses, når tjenesten REGISTRERES, så det får først virkning, når kommandoen i statuslinjen nedenfor er kørt. At rydde det flytter heller ikke tjenesten tilbage til LocalSystem - på en allerede registreret tjeneste betyder en tom værdi "lad kontoen være, som den er". For at vende tilbage til LocalSystem skal du sætte dette eksplicit til LocalSystem og genregistrere.</value>
@@ -9546,6 +9582,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>Denne server roterer ikke DKIM-nøgler; den er ældre end dette Control Panel.</value>
   </data>
+  <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
+    <value>Denne server har ingen indstillingsniveauer: den er ældre end skema 6088, og hver indstilling her er et eget felt for serveren eller domænet.</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Denne server KONTROLLERER kun SPF på indgående post; at publicere posten er for alle andre - den fortæller modtagende servere, hvilke maskiner der må sende post, der hævder at være fra</value>
   </data>
@@ -10868,6 +10907,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="a symbol" xml:space="preserve">
     <value>et symbol</value>
+  </data>
+  <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
+    <value>der kræves en egen værdi, eller fjern markeringen for at bruge niveauet ovenover.</value>
   </data>
   <data name="accepted but never delivered" xml:space="preserve">
     <value>accepteret, men aldrig leveret</value>

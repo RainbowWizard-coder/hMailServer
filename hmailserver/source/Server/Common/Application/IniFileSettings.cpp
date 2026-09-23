@@ -1222,6 +1222,29 @@ namespace HM
       return true;
    }
 
+   bool
+   IniFileSettings::GetLevels(const String &name, String &levels)
+   {
+      const IniSettingsBaseline::Setting *setting = FindBaselineSetting(name);
+      if (!setting)
+         return false;
+
+      switch (setting->Levels)
+      {
+      case IniSettingsBaseline::LevelAccount:
+         levels = _T("account");
+         break;
+      case IniSettingsBaseline::LevelDomain:
+         levels = _T("domain");
+         break;
+      default:
+         levels = _T("server");
+         break;
+      }
+
+      return true;
+   }
+
    void
    IniFileSettings::GetAllApplies(std::vector<std::pair<String, String> > &marks)
    {

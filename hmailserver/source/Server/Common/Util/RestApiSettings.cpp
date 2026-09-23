@@ -45,6 +45,7 @@
 
 #include "StdAfx.h"
 #include "RestApiServer.h"
+#include "../Application/EffectiveSetting.h"
 #include "HttpsClient.h"
 #include "CountryBlocking.h"
 #include "ContentPolicy.h"
@@ -2083,6 +2084,21 @@ namespace
    // GET: the group as one flat object, in table order.
    // ---------------------------------------------------------------------
 
+   // The setting with levels a group's row is the server level of, or null: a
+   // row whose key is the setting's name, and the OpenPGP group's switch, which
+   // is named for its group (docs/SettingLevels.md).
+   const EffectiveSetting::Definition *LevelsOf(const Group &group, const char *key)
+   {
+      if (AnsiString(group.name) == "openpgp" && AnsiString(key) == "portal_enabled")
+         return EffectiveSetting::Find(_T("openpgp_portal_enabled"));
+
+      const EffectiveSetting::Definition *definition = EffectiveSetting::Find(String(key));
+      if (!definition || AnsiString(definition->name) != AnsiString(key))
+         return nullptr;
+
+      return definition;
+   }
+
    AnsiString GroupJson(const Group &group, const Bridge &bridge)
    {
       AnsiString json = "{";
@@ -2130,6 +2146,19 @@ namespace
                   json += "null";
             }
             break;
+         }
+
+         // The server level of a setting a domain or an account may hold its
+         // own value of says so: <key>_levels, the deepest level it may be set
+         // at. Answered, never taken.
+         const EffectiveSetting::Definition *levels = LevelsOf(group, row.key);
+         if (levels)
+         {
+            json += ",\"";
+            json += row.key;
+            json += "_levels\":\"";
+            json += EffectiveSetting::LevelsWord(levels->levels);
+            json += "\"";
          }
       }
 
@@ -2259,7 +2288,19 @@ namespace
 
          const Row *row = FindRow(group, key);
          if (!row)
+         {
+            // <key>_levels is answered beside a setting with levels, and is
+            // what the setting is, not a value of it.
+            const std::string suffix = "_levels";
+            if (key.size() > suffix.size() && key.compare(key.size() - suffix.size(), suffix.size(), suffix) == 0)
+            {
+               const Row *base = FindRow(group, key.substr(0, key.size() - suffix.size()));
+               if (base && LevelsOf(group, base->key))
+                  return Refusal(bridge, 400, Named(key, "is read-only: it says how deep the setting may be set, which is the server's to know"));
+            }
+
             return Refusal(bridge, 400, Named(key, "is not a setting in this group"));
+         }
 
          if (row->access == ReadOnly)
             return Refusal(bridge, 400, Named(key, "is read-only"));
@@ -2424,6 +2465,19 @@ namespace
          if (!applies.IsEmpty())
             properties += ",\"x-applies\":\"" + applies + "\"";
 
+         // A setting a domain or an account may hold its own value of: the
+         // deepest level, as x-levels, and the name it has below the server
+         // where that is not the key (docs/SettingLevels.md).
+         const EffectiveSetting::Definition *levels = LevelsOf(group, row.key);
+         if (levels)
+         {
+            properties += ",\"x-levels\":\"";
+            properties += EffectiveSetting::LevelsWord(levels->levels);
+            properties += "\",\"x-level-name\":\"";
+            properties += levels->name;
+            properties += "\"";
+         }
+
          properties += "}";
       }
 
@@ -2438,7 +2492,7 @@ namespace
 
       path += "\"get\":{\"summary\":\"";
       path += getSummary;
-      path += "\",\"description\":\"Every key the PUT lists, as the server holds it now; the write-only ones are left out. Server-wide; refused for domain-restricted keys.\","
+      path += "\",\"description\":\"Every key the PUT lists, as the server holds it now; the write-only ones are left out. A key a domain or an account may hold its own value of (x-levels in the PUT's schema) is followed by <key>_levels, the deepest level it may be set at - domain or account - which is answered and never taken; GET /api/v1/settings/levels lists those settings and docs/SettingLevels.md says how the levels resolve. Server-wide; refused for domain-restricted keys.\","
               "\"responses\":{\"200\":{\"description\":\"The group as one flat object\"}}},";
 
       path += "\"put\":{\"summary\":\"";
@@ -2549,6 +2603,12 @@ namespace
          json += ",\"applies_refused\":\"" + bridge.escape(IniFileSettings::NoApplyMarkSentence()) + "\"";
       json += ",\"pending\":";
       json += Ini()->IsPending(name) ? "true" : "false";
+      // The deepest level the key may be set at (docs/SettingLevels.md): a key
+      // marked domain or account is resolved per domain and account, under the
+      // name GET /api/v1/settings/levels gives it. Null where applies is.
+      String levels;
+      json += ",\"levels\":";
+      json += IniFileSettings::GetLevels(name, levels) ? "\"" + AnsiString(levels) + "\"" : AnsiString("null");
       json += "}";
       return json;
    }

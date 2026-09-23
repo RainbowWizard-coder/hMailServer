@@ -212,6 +212,9 @@
   <data name="(could not be read from the server)" xml:space="preserve">
     <value>（无法从服务器读取）</value>
   </data>
+  <data name="(empty)" xml:space="preserve">
+    <value>（空）</value>
+  </data>
   <data name="(group #{0})" xml:space="preserve">
     <value>（组 #{0}）</value>
   </data>
@@ -649,6 +652,12 @@
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>{0} 上有一条 v=TLSRPTv1 记录处于生效状态，rua={1} - 与上面的报告邮箱不同，只要它确实存在并且有人查看，这就没有问题。发布时间：{2}</value>
+  </data>
+  <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
+    <value>此账户自己的值优先于其域和服务器的值。勾选一项设置可为账户指定自己的值，取消勾选则采用其域的值，然后保存级别：它们会立即写入，而不是随对话框的保存一起写入。</value>
+  </data>
+  <data name="A value this domain holds of its own wins over the server's for every account of it that holds none. Tick a setting to give the domain a value of its own, untick it to take the server's, and save the levels: they are written at once, not with the dialog's Save. A setting kept in a field of its own is edited on that field's tab and shown here with what is in effect." xml:space="preserve">
+    <value>对于没有自己值的每个账户，此域自己的值优先于服务器的值。勾选一项设置可为域指定自己的值，取消勾选则采用服务器的值，然后保存级别：它们会立即写入，而不是随对话框的保存一起写入。保存在专用字段中的设置在该字段的选项卡上编辑，此处显示其生效值。</value>
   </data>
   <data name="A version older than 6.2.17; upgrade, because that is the version that added these lines." xml:space="preserve">
     <value>早于 6.2.17 的版本；请升级，因为正是该版本添加了这些行。</value>
@@ -3275,6 +3284,9 @@
   <data name="Edit {0}" xml:space="preserve">
     <value>编辑 {0}</value>
   </data>
+  <data name="Edited on this dialog's other tabs." xml:space="preserve">
+    <value>在此对话框的其他选项卡上编辑。</value>
+  </data>
   <data name="Editing" xml:space="preserve">
     <value>编辑中</value>
   </data>
@@ -4244,6 +4256,15 @@
   <data name="In a row" xml:space="preserve">
     <value>连续</value>
   </data>
+  <data name="In effect: {0}, from the account" xml:space="preserve">
+    <value>生效：{0}，来自账户</value>
+  </data>
+  <data name="In effect: {0}, from the domain" xml:space="preserve">
+    <value>生效：{0}，来自域</value>
+  </data>
+  <data name="In effect: {0}, from the server" xml:space="preserve">
+    <value>生效：{0}，来自服务器</value>
+  </data>
   <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
     <value>从下一封邮件起生效。关闭后不进行分类、计数或加入列表，列表也不生效；已在列表中的条目会保留，每小时的清理仍会让它们过期。无法读取数据库时，会按地址不在列表中发送邮件，并每小时在错误日志中记录一次。</value>
   </data>
@@ -4527,6 +4548,9 @@
   </data>
   <data name="Lets sending servers pin your certificate through DNSSEC, so nobody can strip or spoof TLS on mail coming to you." xml:space="preserve">
     <value>让发送服务器通过 DNSSEC 固定您的证书，这样没有人能剥离或伪造发给您的邮件上的 TLS。</value>
+  </data>
+  <data name="Levels" xml:space="preserve">
+    <value>级别</value>
   </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>限制分发列表数量(_N)</value>
@@ -6048,6 +6072,9 @@
   <data name="Overwrite account signature" xml:space="preserve">
     <value>覆盖账户签名</value>
   </data>
+  <data name="Own value of {0}" xml:space="preserve">
+    <value>{0} 的自有值</value>
+  </data>
   <data name="PBKDF2 (default)" xml:space="preserve">
     <value>PBKDF2（默认）</value>
   </data>
@@ -7386,8 +7413,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>保存权限(_V)</value>
   </data>
+  <data name="Save _levels now" xml:space="preserve">
+    <value>立即保存级别(_L)</value>
+  </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>保存密码短语(_P)</value>
+  </data>
+  <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
+    <value>请先保存再重新打开：级别自己的值属于已存在的对象。</value>
   </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>保存设置(_E)</value>
@@ -7463,6 +7496,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
     <value>已保存。服务器会在两秒内读取所选内容；计划的更改需要重启服务。</value>
+  </data>
+  <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
+    <value>已保存。每项设置旁显示其生效值。</value>
   </data>
   <data name="Saving this does not move the service: it is read when the service is REGISTERED, so it takes effect only after the command in the status line below has been run. Clearing it does not move the service back to LocalSystem either - on an already-registered service an empty value means &quot;leave the account as it is&quot;. To return to LocalSystem, set this to LocalSystem explicitly and re-register." xml:space="preserve">
     <value>保存此项不会移动服务: 它在服务被注册时读取，因此只有在运行下方状态行中的命令之后才会生效。清空它也不会把服务移回 LocalSystem - 对已注册的服务来说，空值意味着“保持账户不变”。要恢复为 LocalSystem，请明确将此项设为 LocalSystem 并重新注册。</value>
@@ -9546,6 +9582,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>此服务器不轮换 DKIM 密钥；它比此控制面板旧。</value>
   </data>
+  <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
+    <value>此服务器没有设置级别：它早于架构 6088，此处每项设置都是服务器或域自己的字段。</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>本服务器只对入站邮件检查 SPF；发布记录是给其他所有人看的 - 它告诉接收服务器哪些机器被允许发送声称来自以下域的邮件:</value>
   </data>
@@ -10868,6 +10907,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="a symbol" xml:space="preserve">
     <value>一个符号</value>
+  </data>
+  <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
+    <value>需要一个自己的值，或者取消勾选以采用上一级的值。</value>
   </data>
   <data name="accepted but never delivered" xml:space="preserve">
     <value>已接受但从未投递</value>

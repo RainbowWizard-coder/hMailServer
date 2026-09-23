@@ -105,8 +105,12 @@ namespace HM
          int outcome;
       };
 
-      // The RecallDays setting, 1 to 365.
-      static int Days();
+      // The recall window for a sender, 1 to 365 days: RecallDays is a setting
+      // with levels (Application/EffectiveSetting.h, recall_days), so it is the
+      // sending account's own window where an administrator gave it one, its
+      // domain's where the domain has one, and the server's otherwise. A
+      // senderId of 0 answers the server's.
+      static int Days(__int64 senderId);
 
       // A Message-ID as the table holds it: trimmed, the angle brackets off.
       // Empty when there is nothing left or it is longer than the maximum.
@@ -150,7 +154,10 @@ namespace HM
       // The outcome, written once.
       static bool Mark(__int64 rowId, Outcome outcome, __int64 when);
 
-      // Rows older than RecallDays go.
+      // Rows older than the longest window anywhere go: the server's RecallDays
+      // or the longest a domain or an account holds, since the rows are every
+      // sender's and a window longer than the server's must still find them.
+      // A shorter window is kept by List, which reads no row outside it.
       static void Sweep();
 
       static const char *OutcomeWord(Outcome outcome);

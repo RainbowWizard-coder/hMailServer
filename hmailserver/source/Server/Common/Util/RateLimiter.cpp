@@ -17,6 +17,11 @@
 #include "IniFile.h"
 #endif
 
+#include "../Application/EffectiveSetting.h"
+#include "../BO/Account.h"
+#include "../BO/Domain.h"
+#include "../Cache/CacheContainer.h"
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -1277,20 +1282,82 @@ namespace HM
       {
          MaybeRefreshSettings_();
 
-         String key = NormalizeAccountKey_(accountAddress);
+         AccountSendingLimits limits;
 
-         boost::lock_guard<boost::mutex> guard(settings_mutex_);
+         {
+            String key = NormalizeAccountKey_(accountAddress);
 
-         auto it = overrides_.find(key);
-         if (it != overrides_.end())
-            return it->second;
+            boost::lock_guard<boost::mutex> guard(settings_mutex_);
 
-         return global_limits_;
+            auto it = overrides_.find(key);
+            limits = it != overrides_.end() ? it->second : global_limits_;
+         }
+
+         // The two counts through the one resolver, with the lock released - the
+         // resolver reads the file's values back through GetServerLimits and
+         // GetAddressLimits. With no row in the database for the account or its
+         // domain it answers the entry's counts, or [SendingLimits]', which is
+         // what the lookup above found: the limits are as they always were.
+         std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(accountAddress);
+         if (account)
+         {
+            limits.max_messages = EffectiveSetting::ResolveInt(_T("sending_max_messages"), std::shared_ptr<const Domain>(), account);
+            limits.max_recipients = EffectiveSetting::ResolveInt(_T("sending_max_recipients"), std::shared_ptr<const Domain>(), account);
+
+            if (limits.max_messages < 0)
+               limits.max_messages = 0;
+            if (limits.max_recipients < 0)
+               limits.max_recipients = 0;
+         }
+
+         return limits;
       }
       catch (...)
       {
          ReportSwallowedException_("GetAccountLimits");
          return AccountSendingLimits();
+      }
+   }
+
+   AccountSendingLimits
+   RateLimiter::GetServerLimits()
+   {
+      try
+      {
+         MaybeRefreshSettings_();
+
+         boost::lock_guard<boost::mutex> guard(settings_mutex_);
+         return global_limits_;
+      }
+      catch (...)
+      {
+         ReportSwallowedException_("GetServerLimits");
+         return AccountSendingLimits();
+      }
+   }
+
+   bool
+   RateLimiter::GetAddressLimits(const String &accountAddress, AccountSendingLimits &limits)
+   {
+      try
+      {
+         MaybeRefreshSettings_();
+
+         String key = NormalizeAccountKey_(accountAddress);
+
+         boost::lock_guard<boost::mutex> guard(settings_mutex_);
+
+         auto it = overrides_.find(key);
+         if (it == overrides_.end())
+            return false;
+
+         limits = it->second;
+         return true;
+      }
+      catch (...)
+      {
+         ReportSwallowedException_("GetAddressLimits");
+         return false;
       }
    }
 }

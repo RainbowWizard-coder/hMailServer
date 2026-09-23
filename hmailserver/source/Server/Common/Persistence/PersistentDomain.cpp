@@ -5,6 +5,7 @@
 #include "stdafx.h"
 
 #include "PersistentDomain.h"
+#include "PersistentSettingOverride.h"
 #include "../Util/StorePath.h"
 #include "PersistentAccount.h"
 #include "PersistentMessage.h"
@@ -501,6 +502,18 @@ namespace HM
          {
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6995, "PersistentDomain::DeleteObject",
                Formatter::Format("Domain {0} is being deleted but its journaling rules could not be, and will be left behind referring to a domain that no longer exists.",
+                  iDomainID));
+         }
+
+         // The domain's own values of the settings with levels
+         // (hm_settingoverrides, scope domain). Its accounts' rows went with the
+         // accounts above. Domain ids are reissued, and a value left behind would
+         // become the next domain's; reported rather than fatal, as the lists
+         // above are.
+         if (!PersistentSettingOverride::DeleteByOwner(PersistentSettingOverride::ScopeDomain, iDomainID))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7310, "PersistentDomain::DeleteObject",
+               Formatter::Format("Domain {0} is being deleted but its own setting values could not be, and will be left behind referring to a domain that no longer exists.",
                   iDomainID));
          }
 

@@ -14,6 +14,7 @@
 #include "../Common/BO/IMAPFolders.h"
 #include "../Common/BO/Message.h"
 #include "../Common/Cache/CacheContainer.h"
+#include "../Common/Application/EffectiveSetting.h"
 #include "../Common/Persistence/PersistentMessage.h"
 #include "../Common/Tracking/ChangeNotification.h"
 #include "../Common/Tracking/NotificationServer.h"
@@ -326,7 +327,7 @@ namespace HM
       bytes_left_to_receive_ = (size_t) declaredSize;
 
       std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(pConnection->GetAccount()->GetDomainID());
-      size_t maxMessageSizeKB = GetMaxMessageSize_(domain);
+      size_t maxMessageSizeKB = GetMaxMessageSize_(domain, pConnection->GetAccount());
 
       if (maxMessageSizeKB > 0 &&
           bytes_left_to_receive_ / 1024 > maxMessageSizeKB)
@@ -1057,21 +1058,12 @@ namespace HM
    }
 
    int
-   IMAPCommandAppend::GetMaxMessageSize_(std::shared_ptr<const Domain> pDomain)
+   IMAPCommandAppend::GetMaxMessageSize_(std::shared_ptr<const Domain> pDomain, std::shared_ptr<const Account> pAccount)
    {
-      int iMaxMessageSizeKB = Configuration::Instance()->GetSMTPConfiguration()->GetMaxMessageSize();
-
-      if (pDomain)
-      {
-         int iDomainMaxSizeKB = pDomain->GetMaxMessageSize();
-         if (iDomainMaxSizeKB > 0)
-         {
-            if (iMaxMessageSizeKB == 0 || iMaxMessageSizeKB > iDomainMaxSizeKB)
-               iMaxMessageSizeKB = iDomainMaxSizeKB;
-         }
-      }
-
-      return iMaxMessageSizeKB;
+      // The same resolution the SMTP session makes for the account that sends
+      // (Application/EffectiveSetting.h): the account's own limit, else its
+      // domain's, else the server's, the server's a ceiling over both.
+      return EffectiveSetting::ResolveInt(_T("max_message_size_kb"), pDomain, pAccount);
    }
 
    // static
@@ -1083,19 +1075,8 @@ namespace HM
       // number the enforcement would not honour is worse than advertising none.
       const __int64 absoluteMaxMessageBytes = (__int64) 2 * 1024 * 1024 * 1024; // 2 GB
 
-      int maxMessageSizeKB = Configuration::Instance()->GetSMTPConfiguration()->GetMaxMessageSize();
-
-      if (pAccount)
-      {
-         std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(pAccount->GetDomainID());
-         if (domain)
-         {
-            int domainMaxSizeKB = domain->GetMaxMessageSize();
-            if (domainMaxSizeKB > 0 &&
-                (maxMessageSizeKB == 0 || maxMessageSizeKB > domainMaxSizeKB))
-               maxMessageSizeKB = domainMaxSizeKB;
-         }
-      }
+      const int maxMessageSizeKB = EffectiveSetting::ResolveInt(_T("max_message_size_kb"),
+         pAccount ? CacheContainer::Instance()->GetDomain(pAccount->GetDomainID()) : std::shared_ptr<const Domain>(), pAccount);
 
       __int64 limitBytes = (__int64) maxMessageSizeKB * 1024;
 

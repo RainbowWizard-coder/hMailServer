@@ -35,10 +35,13 @@
 // makes the upgrade safe: nobody is locked out of anything, and nobody is
 // given a session that outlives the one they had.
 //
-// A domain's value wins over the server's where it is set. The domain of a
-// session is the domain of the account that signed in; the administrator's own
-// session belongs to no domain and is governed by the server-wide values
-// alone.
+// A domain's value wins over the server's where it is set, and an account's
+// own value - schema 6088's overlay, docs/SettingLevels.md - over its domain's.
+// The four are settings with levels (session_idle_seconds, session_lifetime_seconds,
+// session_one_per_device, session_bind_to_address), resolved by
+// Application/EffectiveSetting; the domain of a session is the domain of the
+// account that signed in, and the administrator's own session belongs to no
+// domain and is governed by the server-wide values alone.
 //
 // The seconds are seconds and not minutes on purpose: a value under a minute
 // is no use to an administrator but is exactly what a regression test needs to
@@ -51,6 +54,7 @@
 namespace HM
 {
    class Domain;
+   class Account;
 
    struct SessionPolicy
    {
@@ -58,7 +62,7 @@ namespace HM
          : idle_seconds(0), lifetime_seconds(0), one_per_device(false), bind_to_address(false),
            server_idle_seconds(0), server_lifetime_seconds(0), server_one_per_device(false), server_bind_to_address(false),
            domain_idle_seconds(0), domain_lifetime_seconds(0), domain_one_per_device(0), domain_bind_to_address(0),
-           has_domain(false)
+           has_domain(false), has_account(false)
       {
       }
 
@@ -87,6 +91,15 @@ namespace HM
 
       bool has_domain;
       String domain_name;
+
+      // The account's own values, as the overlay holds them: empty is "take its
+      // domain's". Only for a policy asked for an account.
+      bool has_account;
+      String account_address;
+      String account_idle_seconds;
+      String account_lifetime_seconds;
+      String account_one_per_device;
+      String account_bind_to_address;
    };
 
    class SessionPolicies
@@ -116,8 +129,13 @@ namespace HM
       // answers ServerWide() as well, because there is no domain row to read.
       static SessionPolicy ForDomain(const String &domainName);
 
-      // The policy for an account, by its address: the domain part decides.
+      // The policy for an account, by its address: the account's own values,
+      // then its domain's, then the server's. An address that is no account
+      // answers its domain's policy, as it always did.
       static SessionPolicy ForAddress(const String &address);
+
+      // The same for an account at hand; ForAddress's answer for its address.
+      static SessionPolicy ForAccount(std::shared_ptr<const Account> account);
 
       // The refusal sentence for a value that is not acceptable, or an empty
       // string. Shared by REST, COM and the command line so that all three
@@ -133,6 +151,7 @@ namespace HM
    private:
       static void ReadServer_(SessionPolicy &policy);
       static void ApplyDomain_(SessionPolicy &policy, std::shared_ptr<const Domain> domain);
-      static void Resolve_(SessionPolicy &policy);
+      static void ApplyAccount_(SessionPolicy &policy, std::shared_ptr<const Account> account);
+      static void Resolve_(SessionPolicy &policy, std::shared_ptr<const Domain> domain, std::shared_ptr<const Account> account);
    };
 }

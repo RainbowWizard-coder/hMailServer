@@ -213,6 +213,7 @@ namespace hMailServer.ControlPanel.Views
          tabs.Items.Add(new TabItem { Header = L("Quarantine digest"), Content = BuildQuarantineDigest() });
          tabs.Items.Add(new TabItem { Header = L("Reports received"), Content = BuildReportsReceived() });
          tabs.Items.Add(new TabItem { Header = L("Restricted delivery"), Content = BuildRestrictedDelivery() });
+         tabs.Items.Add(new TabItem { Header = L("Levels"), Content = BuildLevels() });
          DialogFields.FillTabs(tabs);
 
          var body = new StackPanel();
@@ -355,6 +356,18 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Note(L("The DMARC aggregate reports and the TLS-RPT reports that the receivers of this domain's mail send back are read from one address of the domain's, and the Control Deck charts who sends as the domain and with what result. Publish the address as rua=mailto: in the domain's _dmarc and _smtp._tls TXT records. Make the account or alias at it yourself; the server does not, and with no address named nothing is read.")));
          panel.Children.Add(Label(L("Report _mailbox (one address in a domain this server hosts; empty reads nothing)"), reportMailbox_));
          return DialogFields.Scroll(panel);
+      }
+
+      /// <summary>
+      ///    One value, three levels (docs/SettingLevels.md): the settings this
+      ///    domain may hold its own value of, with what is in effect for its
+      ///    accounts and where that came from. Written by the panel itself, at once.
+      /// </summary>
+      private ScrollViewer BuildLevels()
+      {
+         var levels = new SettingLevelsPanel(domainName_, null, false);
+         levels.Reload();
+         return DialogFields.Scroll(levels);
       }
 
       private ScrollViewer BuildRestrictedDelivery()

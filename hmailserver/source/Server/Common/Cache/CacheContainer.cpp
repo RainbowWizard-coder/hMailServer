@@ -25,6 +25,7 @@
 #include "../Persistence/PersistentDistributionList.h"
 #include "../Persistence/PersistentGroup.h"
 #include "../Persistence/PersistentServerMessage.h"
+#include "../Persistence/PersistentSettingOverride.h"
 
 #include "CacheReaderWithDbFallback.h"
 
@@ -35,7 +36,8 @@
 
 namespace HM
 {
-   CacheContainer::CacheContainer(void)
+   CacheContainer::CacheContainer(void) :
+      setting_overrides_generation_(0)
    {
       // Limit the cache of each entity to 10MB each.
       Cache<Domain>::Instance()->SetMaxSize(10 * 1024 * 1024);
@@ -58,6 +60,10 @@ namespace HM
                Cache<Account>::Instance()->Clear();
                Cache<Alias>::Instance()->Clear();
                Cache<DistributionList>::Instance()->Clear();
+
+               // And the settings overlay: a restart may be onto another
+               // database, whose owners are not these.
+               ClearSettingOverrides();
 
                // Same reasoning, for the same reason, on the set of accounts owed a
                // password-hash upgrade: it holds account ids, and the database
@@ -240,6 +246,73 @@ namespace HM
          Cache<Alias>::Instance()->SetTTL(pProperty->GetLongValue());
       else if (sPropName == PROPERTY_DISTRIBUTIONLISTCACHETTL)
          Cache<DistributionList>::Instance()->SetTTL(pProperty->GetLongValue());      
+   }
+
+   std::shared_ptr<const std::map<String, String> >
+   CacheContainer::GetSettingOverrides(int scope, __int64 ownerId)
+   {
+      // A minute, after which a row written by another node - or by a script
+      // straight into the table - is read. Every write this server makes is told
+      // to the cache at once and does not wait for it.
+      const time_t lifetime = 60;
+
+      if (ownerId <= 0)
+         return std::shared_ptr<const std::map<String, String> >(new std::map<String, String>());
+
+      const std::pair<int, __int64> key(scope, ownerId);
+      const time_t now = time(nullptr);
+      unsigned __int64 generation = 0;
+
+      {
+         std::lock_guard<std::mutex> guard(setting_overrides_mutex_);
+
+         auto found = setting_overrides_.find(key);
+         if (found != setting_overrides_.end() && now >= found->second.loaded_at && now - found->second.loaded_at < lifetime)
+            return found->second.values;
+
+         generation = setting_overrides_generation_;
+      }
+
+      std::shared_ptr<std::map<String, String> > values(new std::map<String, String>());
+      if (!PersistentSettingOverride::ReadOwner(scope, ownerId, *values))
+         return std::shared_ptr<const std::map<String, String> >();
+
+      {
+         std::lock_guard<std::mutex> guard(setting_overrides_mutex_);
+
+         if (generation == setting_overrides_generation_)
+         {
+            // A bound on the map, not a policy: an installation with more owners
+            // than this starts again from empty rather than growing for ever.
+            if (setting_overrides_.size() >= 50000)
+               setting_overrides_.clear();
+
+            SettingOverrideEntry entry;
+            entry.values = values;
+            entry.loaded_at = now;
+            setting_overrides_[key] = entry;
+         }
+      }
+
+      return values;
+   }
+
+   void
+   CacheContainer::RemoveSettingOverrides(int scope, __int64 ownerId)
+   {
+      std::lock_guard<std::mutex> guard(setting_overrides_mutex_);
+
+      setting_overrides_.erase(std::pair<int, __int64>(scope, ownerId));
+      setting_overrides_generation_++;
+   }
+
+   void
+   CacheContainer::ClearSettingOverrides()
+   {
+      std::lock_guard<std::mutex> guard(setting_overrides_mutex_);
+
+      setting_overrides_.clear();
+      setting_overrides_generation_++;
    }
 
    InboxIDCache &

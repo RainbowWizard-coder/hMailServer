@@ -13,6 +13,8 @@
 #include "FetchAccounts.h"
 #include "AppPasswords.h"
 #include "SenderListEntries.h"
+#include "../Application/EffectiveSetting.h"
+#include "../Persistence/PersistentSettingOverride.h"
 
 #include "../Application/AccountStores.h"
 
@@ -412,6 +414,13 @@ namespace HM
       if (!senderList->XMLStore(pNode, iBackupOptions))
          return false;
 
+      // The account's own values of the settings with levels (hm_settingoverrides,
+      // scope account), for the same reason as the list above: no foreign key,
+      // deleted with the account, so a restore that did not carry them would
+      // destroy them.
+      if (!EffectiveSetting::XMLStore(pNode, PersistentSettingOverride::ScopeAccount, id_))
+         return false;
+
       // The stores that have no business object: the address book, the webmail's
       // settings, the scheduled messages, the files sent as links, the S/MIME keys,
       // the password history and the calendar. Each of those tables cascades from
@@ -568,6 +577,10 @@ namespace HM
       if (!senderList->Refresh())
          return false;
       if (!senderList->XMLLoad(pAccountNode, iRestoreOptions))
+         return false;
+
+      // Under the account's new id; a row this build refuses is left out and said.
+      if (!EffectiveSetting::XMLLoad(pAccountNode, PersistentSettingOverride::ScopeAccount, id_))
          return false;
 
       // Should we restore messages as well?

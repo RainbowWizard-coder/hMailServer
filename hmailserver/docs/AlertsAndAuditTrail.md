@@ -67,6 +67,7 @@ The configuration tables recorded, and the object type each is recorded as:
 | `hm_senderlist` | `sender list entry` |
 | `hm_spamtraps` | `spam trap` |
 | `hm_roles`, `hm_roleassignments` | `role`, `role assignment` |
+| `hm_settingoverrides` | `setting level` - a domain's or an account's own value of a setting with levels ([SettingLevels.md](SettingLevels.md)), named by the setting, with its scope (1 a domain, 2 an account), owner id and value in the detail |
 
 The archive index is mostly traffic, and is listed for the two writes of it
 that only an administrator makes: placing or releasing a legal hold

@@ -45,6 +45,7 @@
 #include "../BO/SenderListEntries.h"
 #include "../BO/SenderListEntry.h"
 #include "../Cache/CacheContainer.h"
+#include "../Application/EffectiveSetting.h"
 #include "../Persistence/PersistentSenderListEntry.h"
 #include "../Util/Time.h"
 #include "../Util/VariantDateTime.h"
@@ -500,8 +501,10 @@ namespace HM
 
       std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(account->GetDomainID());
 
-      const bool available = domain && domain->GetQuarantineDigest() && !QuarantineDigest::BaseUrl().IsEmpty();
-      const int hour = domain ? domain->GetQuarantineDigestHour() : 0;
+      // The switch and the hour as they apply to this account: its own where an
+      // administrator gave it one, its domain's otherwise (Application/EffectiveSetting.h).
+      const bool available = domain && EffectiveSetting::ResolveBool(_T("quarantine_digest"), domain, account) && !QuarantineDigest::BaseUrl().IsEmpty();
+      const int hour = domain ? EffectiveSetting::ResolveInt(_T("quarantine_digest_hour"), domain, account) : 0;
 
       QuarantineDigest::State state;
 

@@ -220,6 +220,19 @@ in `ScopeReinitialize`) reconciles the file against the table, re-reads
 the overrides; a `restart` key keeps what the process started with. A start takes
 everything.
 
+**A value with levels applies on save at every level.** From schema 6088 some
+settings may be set for a domain and an account as well as for the server
+([SettingLevels.md](SettingLevels.md)): the account's own value, else its domain's,
+else the server's. The resolver that answers that is asked when the value is
+used - at `MAIL FROM`, when a digest pass runs, when a session is checked - and
+never latched, so a domain's or an account's own value is in effect for the next
+message, pass or request the moment its save returns, whichever door saved it,
+with no reinitialise; the server level keeps the mark this page gives it
+(`QuotaWarningPercent`, the one key of the store with levels, is `now`). The one
+cache in the way, the overlay's rows per owner, is invalidated by every write
+through the interfaces; a row written behind the server's back is seen within
+sixty seconds.
+
 ## What is thinner than the row asked
 
 * **Twenty-eight keys still need a reinitialise, and two `[Settings]` keys a

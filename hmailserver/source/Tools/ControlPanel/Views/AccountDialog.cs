@@ -193,6 +193,7 @@ namespace hMailServer.ControlPanel.Views
          tabs.Items.Add(new TabItem { Header = L("Folders"), Content = BuildFolders() });
          tabs.Items.Add(new TabItem { Header = L("Windows directory"), Content = BuildDirectory() });
          tabs.Items.Add(new TabItem { Header = L("Directory entry"), Content = BuildDirectoryEntry() });
+         tabs.Items.Add(new TabItem { Header = L("Levels"), Content = BuildLevels() });
          DialogFields.FillTabs(tabs);
 
          var body = new StackPanel();
@@ -600,6 +601,19 @@ namespace hMailServer.ControlPanel.Views
             adUser_.Text = user.SamAccountName;
             isAd_.IsChecked = true;
          }
+      }
+
+      /// <summary>
+      ///    One value, three levels (docs/SettingLevels.md): the settings this
+      ///    account may hold its own value of, with what is in effect for it and
+      ///    where that came from - the server, its domain or itself. Written by the
+      ///    panel itself, at once.
+      /// </summary>
+      private ScrollViewer BuildLevels()
+      {
+         var levels = new SettingLevelsPanel(domainName_, address_, true);
+         levels.Reload();
+         return DialogFields.Scroll(levels);
       }
 
       private FrameworkElement BuildExternal()

@@ -41,6 +41,12 @@ PasswordBreachCheck::DefaultUrl, are named constants - and the resolution FAILS
 rather than guesses, because a default nobody can work out would be reported as
 a difference on every server in the world.
 
+Each row also carries its LEVELS MARK - the deepest level the property may be
+set at, server, domain or account (docs/SettingLevels.md) - read from
+build/settings-levels.txt, which lists every property here by name. A property
+the list does not mark, or a mark that is not one of the three, is refused and
+nothing is written; so is a line of the list that names no property here.
+
 The names this build READS are written out beside the defaults, because an
 installation upgraded from an old schema holds rows no create script ever made:
 twelve of them (useordb, usespamhaus, tarpitcount, filters, imapport ...) were
@@ -66,6 +72,9 @@ SCRIPTS = os.path.join(ROOT, "hmailserver", "source", "DBScripts")
 CONFIGURATION = os.path.join(SERVER, "Common", "Application", "Configuration.cpp")
 CONSTANTS = os.path.join(SERVER, "Common", "Application", "Constants.h")
 OUT = os.path.join(SERVER, "Common", "Application", "SettingsDefaults.h")
+LEVELS_FILE = os.path.join(ROOT, "build", "settings-levels.txt")
+LEVELS = ("server", "domain", "account")
+LEVEL_WORD = {"server": "LevelServer", "domain": "LevelDomain", "account": "LevelAccount"}
 
 CREATE_SCRIPTS = ["CreateTablesMSSQL.sql", "CreateTablesMySQL.sql", "CreateTablesPGSQL.sql"]
 
@@ -256,6 +265,27 @@ def cpp_literal(value):
     return value.replace("\\", "\\\\").replace('"', '\\"').replace("\r", "\\r").replace("\n", "\\n")
 
 
+def read_levels():
+    """build/settings-levels.txt as {name: mark}, and the lines it cannot read."""
+    marks = {}
+    problems = []
+    if not os.path.exists(LEVELS_FILE):
+        return marks, ["build/settings-levels.txt is missing: every property needs its levels mark"]
+    for number, line in enumerate(read(LEVELS_FILE).splitlines(), 1):
+        text = line.strip()
+        if not text or text.startswith("#"):
+            continue
+        parts = text.split()
+        if len(parts) != 2 or parts[1] not in LEVELS:
+            problems.append("build/settings-levels.txt line %d is not `name server|domain|account`: %s" % (number, text))
+            continue
+        if parts[0] in marks:
+            problems.append("build/settings-levels.txt marks %s twice" % parts[0])
+            continue
+        marks[parts[0]] = parts[1]
+    return marks, problems
+
+
 def generate():
     seeded, problems = from_create_scripts()
     ensured, more = from_configuration()
@@ -271,6 +301,20 @@ def generate():
     # wins: it is what a fresh database actually gets.
     for key, value in ensured.items():
         rows.setdefault(key, value)
+
+    # The levels marks: one for every row, and none for a row there is not.
+    marks, problems = read_levels()
+    for key in sorted(rows, key=lambda k: k.lower()):
+        if key not in marks:
+            problems.append("%s has no levels mark in build/settings-levels.txt: say whether it is set for the whole "
+                            "server only (server), per domain (domain) or per account as well (account)" % key)
+    for key in sorted(set(marks) - set(rows)):
+        problems.append("build/settings-levels.txt marks %s, which no create script seeds and "
+                        "Configuration::EnsureSettingDefaults_ does not ensure" % key)
+    if problems:
+        for problem in problems:
+            print("  " + problem)
+        raise SystemExit("FAIL: %d problem(s); nothing was written." % len(problems))
 
     lines = [
         "// https://www.progressiverobot.com",
@@ -292,6 +336,11 @@ def generate():
         "//   KindEither   nothing in this build reads it, so neither column can be ruled",
         "//                out; a caller compares both. A handful of rows a create script",
         "//                still seeds for a feature that has gone.",
+        "//",
+        "// Levels is the deepest level the property may be set at - the whole server",
+        "// only, a domain, or an account as well - from build/settings-levels.txt. A",
+        "// property marked LevelDomain or LevelAccount is resolved by",
+        "// Application/EffectiveSetting at every read (docs/SettingLevels.md).",
         "//",
         "// PropertyNames is every hm_settings name this build has a constant for. An",
         "// installation upgraded from an old schema holds rows no create script ever",
@@ -315,12 +364,20 @@ def generate():
         "         KindNumber = 2",
         "      };",
         "",
+        "      enum LevelMark",
+        "      {",
+        "         LevelServer = 0,",
+        "         LevelDomain = 1,",
+        "         LevelAccount = 2",
+        "      };",
+        "",
         "      struct Setting",
         "      {",
         "         const TCHAR *Name;",
         "         const TCHAR *Value;",
         "         long Number;",
         "         SettingKind Kind;",
+        "         LevelMark Levels;",
         "      };",
         "",
         "      static const Setting Settings[] =",
@@ -330,8 +387,8 @@ def generate():
     for key in sorted(rows, key=lambda k: k.lower()):
         value, number = rows[key]
         kind = {"string": "KindString", "number": "KindNumber"}.get(read_as.get(key.lower()), "KindEither")
-        lines.append('         { _T("%s"), _T("%s"), %d, %s },'
-                     % (cpp_literal(key), cpp_literal(value), number, kind))
+        lines.append('         { _T("%s"), _T("%s"), %d, %s, %s },'
+                     % (cpp_literal(key), cpp_literal(value), number, kind, LEVEL_WORD[marks[key]]))
     lines += [
         "      };",
         "",

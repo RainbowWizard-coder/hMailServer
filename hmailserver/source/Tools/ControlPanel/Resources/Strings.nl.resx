@@ -212,6 +212,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="(could not be read from the server)" xml:space="preserve">
     <value>(kon niet van de server worden gelezen)</value>
   </data>
+  <data name="(empty)" xml:space="preserve">
+    <value>(leeg)</value>
+  </data>
   <data name="(group #{0})" xml:space="preserve">
     <value>(groep #{0})</value>
   </data>
@@ -649,6 +652,12 @@ Dit zwakke wachtwoord toch opslaan?</value>
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>Een v=TLSRPTv1-record staat live op {0} met rua={1} - een ander rapportpostvak dan hierboven, wat prima is zolang het bestaat en wordt gelezen. Gepubliceerd: {2}</value>
+  </data>
+  <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
+    <value>Een eigen waarde van dit account gaat voor op die van zijn domein en die van de server. Vink een instelling aan om het account een eigen waarde te geven, vink haar uit om die van het domein over te nemen, en sla de niveaus op: ze worden meteen geschreven, niet met Opslaan van het venster.</value>
+  </data>
+  <data name="A value this domain holds of its own wins over the server's for every account of it that holds none. Tick a setting to give the domain a value of its own, untick it to take the server's, and save the levels: they are written at once, not with the dialog's Save. A setting kept in a field of its own is edited on that field's tab and shown here with what is in effect." xml:space="preserve">
+    <value>Een eigen waarde van dit domein gaat voor op die van de server, voor elk account van het domein dat er zelf geen heeft. Vink een instelling aan om het domein een eigen waarde te geven, vink haar uit om die van de server over te nemen, en sla de niveaus op: ze worden meteen geschreven, niet met Opslaan van het venster. Een instelling met een eigen veld wordt op het tabblad van dat veld bewerkt en hier getoond met wat van kracht is.</value>
   </data>
   <data name="A version older than 6.2.17; upgrade, because that is the version that added these lines." xml:space="preserve">
     <value>Een versie ouder dan 6.2.17; upgrade, want dat is de versie die deze regels toevoegde.</value>
@@ -3275,6 +3284,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Edit {0}" xml:space="preserve">
     <value>{0} bewerken</value>
   </data>
+  <data name="Edited on this dialog's other tabs." xml:space="preserve">
+    <value>Wordt bewerkt op de andere tabbladen van dit venster.</value>
+  </data>
   <data name="Editing" xml:space="preserve">
     <value>Bewerken</value>
   </data>
@@ -4244,6 +4256,15 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="In a row" xml:space="preserve">
     <value>Op rij</value>
   </data>
+  <data name="In effect: {0}, from the account" xml:space="preserve">
+    <value>Van kracht: {0}, van het account</value>
+  </data>
+  <data name="In effect: {0}, from the domain" xml:space="preserve">
+    <value>Van kracht: {0}, van het domein</value>
+  </data>
+  <data name="In effect: {0}, from the server" xml:space="preserve">
+    <value>Van kracht: {0}, van de server</value>
+  </data>
   <data name="In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour." xml:space="preserve">
     <value>Van kracht voor het volgende bericht. Uitgeschakeld wordt niets ingedeeld, geteld of op de lijst gezet en wordt de lijst niet toegepast; de vermeldingen die er al op staan blijven, en de opschoning van elk uur laat ze nog steeds verlopen. Een database die niet te lezen is, verzendt de mail alsof het adres niet op de lijst staat en meldt dat eens per uur in het foutenlogboek.</value>
   </data>
@@ -4527,6 +4548,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Lets sending servers pin your certificate through DNSSEC, so nobody can strip or spoof TLS on mail coming to you." xml:space="preserve">
     <value>Laat verzendende servers uw certificaat vastleggen via DNSSEC, zodat niemand TLS kan verwijderen of vervalsen op mail die naar u onderweg is.</value>
+  </data>
+  <data name="Levels" xml:space="preserve">
+    <value>Niveaus</value>
   </data>
   <data name="Limit _number of distribution lists" xml:space="preserve">
     <value>Aa_ntal distributielijsten beperken</value>
@@ -6048,6 +6072,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Overwrite account signature" xml:space="preserve">
     <value>Accounthandtekening overschrijven</value>
   </data>
+  <data name="Own value of {0}" xml:space="preserve">
+    <value>Eigen waarde van {0}</value>
+  </data>
   <data name="PBKDF2 (default)" xml:space="preserve">
     <value>PBKDF2 (standaard)</value>
   </data>
@@ -7386,8 +7413,14 @@ Doorgaan?</value>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Rechten _opslaan</value>
   </data>
+  <data name="Save _levels now" xml:space="preserve">
+    <value>_Niveaus nu opslaan</value>
+  </data>
   <data name="Save _passphrase" xml:space="preserve">
     <value>Wachtwoordzin o_pslaan</value>
+  </data>
+  <data name="Save it and reopen it: a level's own value belongs to something that exists." xml:space="preserve">
+    <value>Sla het op en open het opnieuw: de eigen waarde van een niveau hoort bij iets dat bestaat.</value>
   </data>
   <data name="Save s_ettings" xml:space="preserve">
     <value>Instellingen _opslaan</value>
@@ -7463,6 +7496,9 @@ Doorgaan?</value>
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
     <value>Opgeslagen. De server pikt de selectie binnen twee seconden op; een wijziging aan het schema vereist een herstart van de service.</value>
+  </data>
+  <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
+    <value>Opgeslagen. Wat van kracht is, staat naast elke instelling.</value>
   </data>
   <data name="Saving this does not move the service: it is read when the service is REGISTERED, so it takes effect only after the command in the status line below has been run. Clearing it does not move the service back to LocalSystem either - on an already-registered service an empty value means &quot;leave the account as it is&quot;. To return to LocalSystem, set this to LocalSystem explicitly and re-register." xml:space="preserve">
     <value>Dit opslaan verplaatst de service niet: de waarde wordt gelezen wanneer de service wordt GEREGISTREERD, dus hij wordt pas van kracht nadat het commando in de statusregel hieronder is uitgevoerd. Hem wissen zet de service evenmin terug naar LocalSystem - bij een al geregistreerde service betekent een lege waarde "laat het account zoals het is". Om terug te keren naar LocalSystem, stelt u dit expliciet in op LocalSystem en registreert u opnieuw.</value>
@@ -9546,6 +9582,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="This server does not rotate DKIM keys; it is older than this Control Panel." xml:space="preserve">
     <value>Deze server roteert geen DKIM-sleutels; hij is ouder dan dit Control Panel.</value>
   </data>
+  <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
+    <value>Deze server heeft geen instellingsniveaus: hij is ouder dan schema 6088, en elke instelling hier is een eigen veld van de server of het domein.</value>
+  </data>
   <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
     <value>Deze server CONTROLEERT SPF alleen op inkomende mail; het record publiceren is voor alle anderen - het vertelt ontvangende servers welke machines mail mogen versturen die beweert te komen van</value>
   </data>
@@ -10868,6 +10907,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="a symbol" xml:space="preserve">
     <value>een speciaal teken</value>
+  </data>
+  <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
+    <value>een eigen waarde is nodig, of vink haar uit om het niveau erboven over te nemen.</value>
   </data>
   <data name="accepted but never delivered" xml:space="preserve">
     <value>geaccepteerd maar nooit bezorgd</value>

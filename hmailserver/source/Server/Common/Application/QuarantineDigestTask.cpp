@@ -13,6 +13,9 @@
 #include "../BO/Accounts.h"
 #include "../BO/Domain.h"
 #include "../BO/Domains.h"
+#include "../Cache/CacheContainer.h"
+#include "../Persistence/PersistentSettingOverride.h"
+#include "EffectiveSetting.h"
 
 #include <ctime>
 #include <vector>
@@ -98,11 +101,30 @@ namespace HM
    int
    QuarantineDigestTask::RunPass(bool force)
    {
+      return RunPass_(force, -1);
+   }
+
+   int
+   QuarantineDigestTask::RunPassAtHour(int hour)
+   {
+      if (hour < 0 || hour > 23)
+         return 0;
+
+      return RunPass_(false, hour);
+   }
+
+   int
+   QuarantineDigestTask::RunPass_(bool force, int atHour)
+   {
       // Nothing to hold, nothing to list. Checked first because it is the
       // shipped default, and because it makes the whole pass free on a server
       // that refuses spam rather than holding it.
       if (!QuarantineStore::GetEnabled())
          return 0;
+
+      // A pass told its hour is a forced pass in everything but the hour: it
+      // spreads nothing and does not ask the twenty-hour rule.
+      const bool spread = !force && atHour < 0;
 
       const bool haveBaseUrl = !QuarantineDigest::BaseUrl().IsEmpty();
 
@@ -117,8 +139,34 @@ namespace HM
          return 0;
 #endif
 
+      const int hour = atHour >= 0 ? atHour : local.tm_hour;
+
       Domains domains;
       domains.Refresh();
+
+      // The digest switch and its hour are settings with levels: an account may
+      // hold its own of either, over its domain's (Application/EffectiveSetting.h).
+      // Which accounts do is asked once a pass, so that a domain with the digest
+      // off - or not at its hour - is still looked into for the accounts that say
+      // otherwise, and a domain nobody overrode costs what it always did.
+      std::map<__int64, String> ownSwitch;
+      std::map<__int64, String> ownHour;
+      PersistentSettingOverride::OwnersOfName(PersistentSettingOverride::ScopeAccount, _T("quarantine_digest"), ownSwitch);
+      PersistentSettingOverride::OwnersOfName(PersistentSettingOverride::ScopeAccount, _T("quarantine_digest_hour"), ownHour);
+
+      std::set<__int64> domainsWithOwnValues;
+      for (const auto &owner : ownSwitch)
+      {
+         std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(owner.first);
+         if (account)
+            domainsWithOwnValues.insert(account->GetDomainID());
+      }
+      for (const auto &owner : ownHour)
+      {
+         std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(owner.first);
+         if (account)
+            domainsWithOwnValues.insert(account->GetDomainID());
+      }
 
       std::vector<Due> due;
 
@@ -129,7 +177,10 @@ namespace HM
          if (!domain || !domain->GetIsActive())
             continue;
 
-         if (!domain->GetQuarantineDigest())
+         const bool domainOn = EffectiveSetting::ResolveBool(_T("quarantine_digest"), domain, std::shared_ptr<const Account>());
+         const bool accountsOfTheirOwn = domainsWithOwnValues.find(domain->GetID()) != domainsWithOwnValues.end();
+
+         if (!domainOn && !accountsOfTheirOwn)
             continue;
 
          // A digest with no link in it is a list of things the reader cannot act
@@ -145,14 +196,16 @@ namespace HM
             if (!complained)
             {
                complained = true;
-               LOG_APPLICATION(Formatter::Format("QuarantineDigest: {0} has the quarantine digest switched on, but QuarantineDigestBaseUrl is not set, so the release links would point nowhere. No digest will be sent until it is.",
+               LOG_APPLICATION(Formatter::Format("QuarantineDigest: {0}, or an account of it, has the quarantine digest switched on, but QuarantineDigestBaseUrl is not set, so the release links would point nowhere. No digest will be sent until it is.",
                   domain->GetName()));
             }
 
             return 0;
          }
 
-         if (!force && domain->GetQuarantineDigestHour() != local.tm_hour)
+         const int domainHour = EffectiveSetting::ResolveInt(_T("quarantine_digest_hour"), domain, std::shared_ptr<const Account>());
+
+         if (!force && domainHour != hour && !accountsOfTheirOwn)
             continue;
 
          std::shared_ptr<Accounts> accounts = domain->GetAccounts();
@@ -169,6 +222,26 @@ namespace HM
             if (!account || !account->GetActive())
                continue;
 
+            // The account's own switch and hour where it has them, its domain's
+            // otherwise - read through the resolver only for the accounts the
+            // overlay names; every other account's answer is its domain's.
+            const bool ownValues = ownSwitch.find(account->GetID()) != ownSwitch.end() ||
+                                   ownHour.find(account->GetID()) != ownHour.end();
+
+            const bool accountOn = ownValues
+               ? EffectiveSetting::ResolveBool(_T("quarantine_digest"), domain, account)
+               : domainOn;
+
+            if (!accountOn)
+               continue;
+
+            const int accountHour = ownValues
+               ? EffectiveSetting::ResolveInt(_T("quarantine_digest_hour"), domain, account)
+               : domainHour;
+
+            if (!force && accountHour != hour)
+               continue;
+
             QuarantineDigest::State state;
 
             // A state row that could not be read is a state this pass does not
@@ -181,7 +254,7 @@ namespace HM
             if (state.opted_out)
                continue;
 
-            if (!force && SentWithinHours_(state.last_sent, 20))
+            if (spread && SentWithinHours_(state.last_sent, 20))
                continue;
 
             Due entry;
@@ -205,7 +278,7 @@ namespace HM
       // administrator pressing send, or a test, is not spreading anything.
       int batch = (int) due.size();
 
-      if (!force)
+      if (spread)
       {
          const int ticks = TicksLeftInHour_(local.tm_min);
          batch = ((int) due.size() + ticks - 1) / ticks;
