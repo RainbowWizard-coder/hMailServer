@@ -72,7 +72,7 @@ namespace HM
 
       struct Entry
       {
-         Entry() : secret(false), known(true), overridden(false) {}
+         Entry() : secret(false), known(true), overridden(false), environmentFile(false) {}
 
          /// <summary>"ini" or "database": which store holds it.</summary>
          String store;
@@ -113,6 +113,16 @@ namespace HM
          /// a row or a line of its own, and is listed all the same.
          /// </summary>
          bool overridden;
+         /// <summary>
+         /// The variable the server's environment sets this setting from, empty when
+         /// it does not (docs/EnvironmentConfiguration.md): an environment-managed
+         /// value that differs from stock is listed with its source, because the
+         /// environment put it there and a change made anywhere else is refused.
+         /// environmentFile says the value came from a file - a Secret's - and it is
+         /// then shown as (set), as a secret's value is.
+         /// </summary>
+         String environment;
+         bool environmentFile;
       };
 
       /// <summary>

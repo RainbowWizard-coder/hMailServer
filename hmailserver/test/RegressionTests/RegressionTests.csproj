@@ -331,6 +331,7 @@
     <Compile Include="IMAP\AppendInternalDate.cs" />
     <Compile Include="Infrastructure\PerDomainMetrics.cs" />
     <Compile Include="Infrastructure\MetricsReadiness.cs" />
+    <Compile Include="Installation\EnvironmentConfiguration.cs" />
     <Compile Include="Installation\InstallerPackaging.cs" />
     <Compile Include="API\ComPropertyValidation.cs" />
     <Compile Include="API\MessageHeaderObjects.cs" />

@@ -72,6 +72,9 @@
     <!-- The words for when a saved setting reaches the running server, which
          IniFeatureStore's pending list is read through (docs/SettingsApply.md). -->
     <Compile Include="..\ControlPanel\Services\SettingApplies.cs" />
+    <!-- The settings the server's environment sets, which IniFeatureStore reads with
+         the marks (docs/EnvironmentConfiguration.md). -->
+    <Compile Include="..\ControlPanel\Services\EnvironmentSettings.cs" />
     <Compile Include="..\ControlPanel\Services\ProfileApi.cs" />
     <!-- Matching a configured port row against the machine's open ports. Both ways
          of getting it wrong cost something: a live port reported as down sends

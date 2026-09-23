@@ -48,7 +48,11 @@ Panel could disagree.
   "considered": 391,
   "settings": [
     { "store": "ini", "name": "LogLevel", "value": "5", "default": "9",
-      "secret": false, "known": true, "overridden": false }
+      "secret": false, "known": true, "overridden": false, "environment": null }
+  ],
+  "environment": [
+    { "variable": "HM_PROPERTY_maxmessagesize", "store": "database",
+      "name": "maxmessagesize", "source": "variable" }
   ]
 }
 ```
@@ -65,7 +69,8 @@ Panel could disagree.
   `overridden` — and **`default`** what this version ships with. For all but a
   handful the stored value is also the one in force; the exceptions are the few
   the loader clamps, below.
-* **`secret`**, **`known`** and **`overridden`** are below.
+* **`secret`**, **`known`**, **`overridden`** and **`environment`** are below, and
+  so is the **`environment`** list beside `settings`.
 
 ## What "default" means
 
@@ -170,6 +175,23 @@ words.
 A key the section forces to the *shipped* value is not listed, for the same
 reason a stored shipped value is not: the server is behaving as stock for it. The
 error log still names it at every start.
+
+## A value the environment sets
+
+A setting the server's environment sets - `HM_SETTING_<key>` or
+`HM_PROPERTY_<name>`, stored by `hmailserver --apply-environment` at every start
+([EnvironmentConfiguration.md](EnvironmentConfiguration.md)) - that differs from
+stock is listed with its source: `environment` is `variable` or `file` (null for
+every other entry), and a value a file supplied is shown as `(set)`, as a secret's
+is, because a file is how a Secret supplies one. The deployment changed it, not an
+administrator, and no interface will change it back while the variable is set -
+which is what somebody reading this list needs to know before trying. `hmctl`
+prints `(set by the environment)` beside the value and the Deck says the same.
+
+Beside `settings`, the document's **`environment`** list names every setting the
+environment sets, as `{variable, store, name, source}`, whether or not its value
+differs from stock - never a value. It is what the Control Panel reads to mark those
+fields, because this document is what it already asks for over COM.
 
 ## Which values these are
 

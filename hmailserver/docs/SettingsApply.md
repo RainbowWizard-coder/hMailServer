@@ -243,8 +243,11 @@ seen within sixty seconds, or at once after the caches are emptied.
   (Apply now) or a start takes it; an override of a `restart` key waits for a
   start.
 * **A value stored by another process** - another node on the same database,
-  `hmailserver --set-setting` while the service runs - reaches this server at the
-  next save here, a reinitialise or a restart. Nothing watches the table.
+  `hmailserver --set-setting` or `--apply-environment` while the service runs -
+  reaches this server at the next save here, a reinitialise or a restart. Nothing
+  watches the table. (A container runs `--apply-environment` before its server
+  starts, so there every value is in effect from the start -
+  [EnvironmentConfiguration.md](EnvironmentConfiguration.md).)
 * **The pending list covers the `[Settings]` keys only.** A `[Database]` row's
   restart is said by its mark, not listed.
 * **The Deck marks the ini-backed rows of its settings groups** (the two tarpit

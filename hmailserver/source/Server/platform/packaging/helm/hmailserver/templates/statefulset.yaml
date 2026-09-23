@@ -68,6 +68,24 @@ spec:
               value: /certs/tls.key
             {{- end }}
             {{- end }}
+            {{- /* Every other setting: HM_SETTING_<key> and HM_PROPERTY_<name>, which
+                   the entrypoint stores with --apply-environment at every start. */}}
+            {{- range $key, $value := .Values.settings }}
+            - name: {{ printf "HM_SETTING_%s" $key | quote }}
+              value: {{ $value | toString | quote }}
+            {{- end }}
+            {{- range $name, $value := .Values.properties }}
+            - name: {{ printf "HM_PROPERTY_%s" $name | quote }}
+              value: {{ $value | toString | quote }}
+            {{- end }}
+            {{- range $index, $from := .Values.settingsFrom }}
+            {{- if $from.setting }}
+            - name: {{ printf "HM_SETTING_%s_FILE" $from.setting | quote }}
+            {{- else }}
+            - name: {{ printf "HM_PROPERTY_%s_FILE" (required "each settingsFrom entry names a setting or a property" $from.property) | quote }}
+            {{- end }}
+              value: {{ printf "/run/secrets/hmailserver-settings/%d" $index | quote }}
+            {{- end }}
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -128,6 +146,11 @@ spec:
               mountPath: /certs
               readOnly: true
             {{- end }}
+            {{- if .Values.settingsFrom }}
+            - name: settings-from
+              mountPath: /run/secrets/hmailserver-settings
+              readOnly: true
+            {{- end }}
       volumes:
         - name: secrets
           secret:
@@ -141,6 +164,20 @@ spec:
         - name: rest-tls
           secret:
             secretName: {{ .Values.rest.tlsSecretName }}
+        {{- end }}
+        {{- if .Values.settingsFrom }}
+        # One file per settingsFrom entry, named by its place in the list, which
+        # is the path its _FILE variable above gives.
+        - name: settings-from
+          projected:
+            sources:
+              {{- range $index, $from := .Values.settingsFrom }}
+              - secret:
+                  name: {{ required "each settingsFrom entry names a secretName" $from.secretName }}
+                  items:
+                    - key: {{ required "each settingsFrom entry names a key" $from.key }}
+                      path: {{ printf "%d" $index | quote }}
+              {{- end }}
         {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

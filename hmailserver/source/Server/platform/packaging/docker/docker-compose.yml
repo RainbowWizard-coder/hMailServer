@@ -17,9 +17,11 @@
 #
 # The image is the tag's own, from GHCR; pin the version you deployed. Every
 # variable the entrypoint reads is listed in docker-entrypoint.sh beside this
-# file; the packaged hMailServer.ini is the configuration, kept in the hm-etc
-# volume and rewritten from the environment on every start where a variable is
-# set.
+# file. The packaged hMailServer.ini holds the database connection and the
+# administrator password, kept in the hm-etc volume and rewritten from the
+# environment on every start where a variable is set; every other setting is in
+# the database, which the environment's HM_SETTING_* and HM_PROPERTY_* variables
+# are stored into on every start.
 name: hmailserver
 
 services:
@@ -62,9 +64,19 @@ services:
       HM_REST_BIND_ADDRESS: 0.0.0.0
       HM_REST_CERTIFICATE_FILE: /certs/rest.pem
       HM_REST_PRIVATE_KEY_FILE: /certs/rest.key
+      # Every other setting, from the environment (docs/EnvironmentConfiguration.md):
+      # HM_SETTING_<key> for a [Settings] key, HM_PROPERTY_<name> for an
+      # hm_settings row, and _FILE after either to read the value from a secret.
+      # Stored at every start, checked first - a wrong one keeps the container
+      # from starting, and `docker compose logs hmailserver` says why - and
+      # refused to the Control Deck and the REST API while it is set here.
+      # HM_SETTING_MaxSubmissionsPerIPPerMinute: "30"
+      # HM_PROPERTY_maxmessagesize: "20480"
+      # HM_PROPERTY_smtprelayerpassword_FILE: /run/secrets/relay_password
     secrets:
       - db_password
       - admin_password
+      # - relay_password
     ports:
       - "25:25"       # SMTP
       - "587:587"     # submission
@@ -88,6 +100,8 @@ secrets:
     file: ./secrets/db_password
   admin_password:
     file: ./secrets/admin_password
+  # relay_password:
+  #   file: ./secrets/relay_password
 
 volumes:
   hm-db:

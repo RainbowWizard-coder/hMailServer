@@ -120,9 +120,44 @@ namespace hMailServer.ControlPanel.Views
             {
                Label = CaptionOnRow ? Label : null,
                Hint = Blurb,
-               Content = BuildEditor(value),
-               Applies = AppliesCaption
+               Content = HeldByEnvironment(BuildEditor(value)),
+               Applies = EnvironmentCaption ?? AppliesCaption
             };
+
+         /// <summary>
+         /// A setting the server's environment sets is shown and not edited: the
+         /// server refuses the change, which the next start would undo
+         /// (Services/EnvironmentSettings). Its mark takes the applies mark's place
+         /// (CreateRow), and the editor, disabled, keeps the value it read - which a
+         /// save writing it back unchanged leaves alone.
+         /// </summary>
+         private FrameworkElement HeldByEnvironment(FrameworkElement editor)
+         {
+            if (EnvironmentCaption != null)
+               editor.IsEnabled = false;
+            return editor;
+         }
+
+         /// <summary>
+         /// "Set by the environment" when the server's environment sets this row's
+         /// setting: a row kept in the settings store by its key, a COM row by its
+         /// property's name. Nothing for a line of live state, a [Database] row, or a
+         /// setting the environment does not set.
+         /// </summary>
+         protected virtual string EnvironmentCaption
+         {
+            get
+            {
+               if (this is INotPersisted || this is SectionIniNumber)
+                  return null;
+
+               string source = this is IIniSetting
+                  ? IniFeatureStore.EnvironmentForKey(Path)
+                  : IniFeatureStore.EnvironmentForComPath(Path);
+
+               return EnvironmentSettings.Caption(source);
+            }
+         }
 
          /// <summary>
          /// When a save of this row reaches the running server, for a row kept in
@@ -3070,7 +3105,16 @@ namespace hMailServer.ControlPanel.Views
          // it at the top of the page rather than on a line under the fold of a
          // long tab, where it was before.
          ShowState_(ServerSettingsPageState.Clean);
-         ShowNotice_(ServerSettingsPageStatus.ReadSentence(failedReads_, diag_), StatusLevel.Critical);
+
+         // And the settings the server's environment sets, every one by its
+         // variable: a field is marked where this program can tie it to its setting,
+         // and this sentence names them all, so none of them is a surprise at save.
+         string readSentence = ServerSettingsPageStatus.ReadSentence(failedReads_, diag_);
+         string environmentSentence = EnvironmentSettings.Notice(IniFeatureStore.EnvironmentManaged());
+         if (!string.IsNullOrEmpty(readSentence))
+            ShowNotice_(string.IsNullOrEmpty(environmentSentence) ? readSentence : readSentence + " " + environmentSentence, StatusLevel.Critical);
+         else
+            ShowNotice_(environmentSentence, StatusLevel.Information);
 
          afterBuildUi_?.Invoke();
 

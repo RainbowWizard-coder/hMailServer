@@ -133,6 +133,18 @@ namespace hMailServer.ControlPanel.Views
             // section, which the mark does not cover.
             string applies = InSettingsSection ? SettingApplies.Caption(IniFeatureStore.AppliesFor(Key)) : null;
 
+            // A key the server's environment sets is shown and not edited: the
+            // server refuses the change, which the next start would undo
+            // (Services/EnvironmentSettings). Its mark takes the applies mark's place,
+            // and the editor keeps the value it read, which a save does not write
+            // because it has not changed.
+            string environment = InSettingsSection ? EnvironmentSettings.Caption(IniFeatureStore.EnvironmentForKey(Key)) : null;
+            if (environment != null)
+            {
+               content.IsEnabled = false;
+               applies = environment;
+            }
+
             return new FieldRow { Label = caption, Hint = hint, Content = content, Applies = applies };
          }
 

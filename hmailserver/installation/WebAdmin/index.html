@@ -2093,6 +2093,16 @@ function appliesBadge(mark){
   if(!mark||!Object.prototype.hasOwnProperty.call(APPLIES_WORDS,mark))return "";
   return '<span class="badge '+(mark==="now"?"good":"warn")+'" data-applies="'+escHtml(mark)+'">'+t(APPLIES_WORDS[mark])+'</span>';
 }
+/* A setting this server's environment sets (docs/EnvironmentConfiguration.md):
+   the group's GET answers <key>_environment, variable or file, beside it, and
+   the server refuses a change to it, which the next start would undo. So the
+   field is shown with the mark and no control - readForm then never sends it -
+   and a value a file supplied arrives as (set), or null, and is shown so. */
+const ENVIRONMENT_WORDS={variable:K("Set by the environment"),file:K("Set by the environment, from a file")};
+function environmentBadge(source){
+  if(!source||!Object.prototype.hasOwnProperty.call(ENVIRONMENT_WORDS,source))return "";
+  return ' <span class="badge info" data-environment="'+escHtml(source)+'">'+t(ENVIRONMENT_WORDS[source])+'</span>';
+}
 function formHtml(prefix,props,values,opts){
   opts=opts||{};
   const required=opts.required||[];
@@ -2100,6 +2110,8 @@ function formHtml(prefix,props,values,opts){
     if(opts.skip&&opts.skip.indexOf(key)>=0)return "";
     const prop=props[key];
     const value=values?values[key]:undefined;
+    const environment=values?values[key+"_environment"]:undefined;
+    const managed=!!environmentBadge(environment);
     const caption=humanise(key);
     // A hint this page wrote is a key and comes back in the reader's language;
     // a sentence from the server's document is not one and comes back as it is.
@@ -2112,12 +2124,16 @@ function formHtml(prefix,props,values,opts){
                 (prop.readOnly?'<span class="badge info">'+t("read-only")+'</span> ':"")+
                 (isPassword(key,prop)?'<span class="badge info">'+t("write-only")+'</span> ':"")+
                 (restart?'<span class="badge warn">'+t("restart")+'</span>':"")+
-                appliesBadge(applies);
+                appliesBadge(applies)+
+                environmentBadge(environment);
     const search=(key+" "+caption+" "+description).toLowerCase();
+    const control=managed
+      ?'<code class="ro">'+escHtml(value===undefined||value===null||value===""?"—":String(value))+'</code>'
+      :controlHtml(prefix,key,prop,value,opts);
     return '<div class="fr" data-k="'+escHtml(search)+'">'+
              '<div class="lab"><b>'+escHtml(caption)+'</b><code>'+escHtml(key)+'</code> '+flags+
                (description?'<div class="hint">'+escHtml(description)+'</div>':"")+'</div>'+
-             '<div class="ctl">'+controlHtml(prefix,key,prop,value,opts)+'</div>'+
+             '<div class="ctl">'+control+'</div>'+
            '</div>';
   }).join("");
 }
@@ -4761,6 +4777,7 @@ async function renderSettings(){
         '<span class="badge info">'+t("write-only")+'</span>','<span class="badge warn">'+t("restart")+'</span>','<span class="badge info">'+t("read-only")+'</span>')}</p>
       <p class="note">${tf("A field kept in the server's settings store carries one of three marks instead, the server's own for its key: {0} - the save is in effect when it returns; {1} - it waits for a reinitialize, which Apply now above does when one waits; {2} - it waits for the service to be restarted.",
         appliesBadge("now"),appliesBadge("reinitialize"),appliesBadge("restart"))}</p>
+      <p class="note">${tf("A key marked {0} is set by this server's environment, which stores it again at every start: it is shown and not sent. Change the variable and restart to change it.",environmentBadge("variable"))}</p>
       <input id="setFilter" placeholder="${t("Filter settings by name or description")}" style="width:100%">
     </div>
     ${cards}</div>`;
@@ -6527,7 +6544,7 @@ async function renderChanged(){
   const considered=Number(answer.considered)||0;
   const rows=settings.map(s=>`
     <tr><td>${escHtml(s.store||"")}</td><td>${escHtml(s.name||"")}</td>
-        <td>${escHtml(s.value||"")}${s.overridden?' <span class="note">'+t("Forced from [SettingsOverride] in hMailServer.ini")+'</span>':''}</td>
+        <td>${escHtml(s.value||"")}${s.overridden?' <span class="note">'+t("Forced from [SettingsOverride] in hMailServer.ini")+'</span>':''}${environmentBadge(s.environment)}</td>
         <td>${s.known===false?'<span class="note">'+t("This server has no default for it")+'</span>':escHtml(s.default||"")}</td></tr>`).join("");
   $("#content").innerHTML=`<div class="card view">
     <p class="note">${t("Every setting whose value is not the one this version of the server ships with. It is the first thing to look at when a server behaves oddly, and the first thing to put in a support message. A setting whose value is a secret is named here and never shown.")}</p>

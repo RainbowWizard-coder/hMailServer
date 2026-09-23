@@ -17,6 +17,7 @@
 // For the LoadSettings call in the /Register branch: the service account the
 // registration installs is read from here, and nothing else on that path loads it.
 #include "../Common/Application/IniFileSettings.h"
+#include "../Common/Application/EnvironmentSettings.h"
 #include "../Common/Util/ClassTester.h"
 #include "../Common/Util/SystemInformation.h"
 #include "../Common/Util/CrashOracle.h"
@@ -486,6 +487,29 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       // transaction on its own connection, and a running server would hold
       // a schema it does not know.
       iRet = UpgradeDatabaseFromCommandLine();
+   }
+   else if (sLastParam.CompareNoCase(_T("--apply-environment")) == 0)
+   {
+      // Every HM_SETTING_* and HM_PROPERTY_* variable of this process's
+      // environment stored, as `hmailserver --apply-environment` stores them on
+      // Linux, through the same unit (Common/Application/EnvironmentSettings;
+      // docs/EnvironmentConfiguration.md). Not refused while the service runs,
+      // as the upgrade is: it changes settings, not the schema, and the service
+      // takes them at its next reinitialise or start, which the last line says.
+      // The lines go to the handles the caller gave - a script's or a test's
+      // redirected output - or, when there are none, to the console the caller
+      // has, as the upgrade's do.
+      if (GetStdHandle(STD_OUTPUT_HANDLE) == NULL && AttachConsole(ATTACH_PARENT_PROCESS))
+      {
+         HANDLE console = CreateFile(_T("CONOUT$"), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+         if (console != INVALID_HANDLE_VALUE)
+         {
+            SetStdHandle(STD_OUTPUT_HANDLE, console);
+            SetStdHandle(STD_ERROR_HANDLE, console);
+         }
+      }
+
+      iRet = HM::EnvironmentSettings::RunCommand();
    }
    else if (sLastParam.CompareNoCase(_T("RunAsService")) == 0)
    {

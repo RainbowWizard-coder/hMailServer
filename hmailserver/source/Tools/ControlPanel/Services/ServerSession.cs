@@ -159,6 +159,11 @@ namespace hMailServer.ControlPanel.Services
          IniFeatureStore.ForgetApplies();
          IniFeatureStore.ComAllApplies = () => (string)session.Application.Settings.IniSettingAppliesAll;
          IniFeatureStore.ComPendingSettings = () => (string)session.Application.Settings.PendingIniSettings;
+
+         // Which settings the server's environment sets, from the document the
+         // Changed from stock page reads (docs/EnvironmentConfiguration.md): the
+         // fields show it and are not edited, because the server refuses the change.
+         IniFeatureStore.ComChangedDocument = () => (string)session.Application.Settings.GetChangedFromDefault();
       }
 
       /// <summary>

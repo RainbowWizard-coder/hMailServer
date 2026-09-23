@@ -1721,6 +1721,16 @@ def strip_configuration(row):
                 if k not in NOT_CONFIGURATION and not str(k).endswith("_id") and not str(k).endswith("_levels"))
 
 
+def strip_environment(row):
+    # <key>_environment says the server's environment sets <key>
+    # (docs/EnvironmentConfiguration.md). Neither is the configuration's: the
+    # value is the deployment's, stored again at every start, and a value a file
+    # supplied is answered as (set) or null - applied back, either would be
+    # refused (409, 400). Both are left out of the document.
+    managed = set(str(k)[:-len("_environment")] for k in row if str(k).endswith("_environment"))
+    return dict((k, v) for k, v in row.items() if k not in managed and not str(k).endswith("_environment"))
+
+
 def read_configuration(client, domains=None):
     """The live configuration as a document. Deterministic: sorted throughout,
     no time of day in it, nothing the server allocates - so two exports of an
@@ -1741,7 +1751,7 @@ def read_configuration(client, domains=None):
                         continue
                     raise
                 if isinstance(answer, dict):
-                    groups[group] = dict(sorted(strip_configuration(answer).items()))
+                    groups[group] = dict(sorted(strip_configuration(strip_environment(answer)).items()))
             document["sections"]["settings"] = groups
             continue
 
@@ -1950,9 +1960,16 @@ def config_changed(client, arguments):
         # afternoon gets lost.
         if entry.get("overridden"):
             entry["value"] = "%s (forced from [SettingsOverride])" % entry.get("value", "")
+        # A value the server's environment sets (docs/EnvironmentConfiguration.md):
+        # changed from stock by the deployment, stored again at every start, and
+        # refused to every interface - so said beside it, with where it came from.
+        if entry.get("environment") in ("variable", "file"):
+            entry["value"] = "%s (set by the environment%s)" % (
+                entry.get("value", ""), ", from a file" if entry.get("environment") == "file" else "")
         entry.pop("known", None)
         entry.pop("secret", None)
         entry.pop("overridden", None)
+        entry.pop("environment", None)
         shown.append(entry)
 
     render(shown, False, ["store", "name", "value", "default"])

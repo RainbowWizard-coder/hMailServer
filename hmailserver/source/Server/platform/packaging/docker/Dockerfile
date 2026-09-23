@@ -18,10 +18,13 @@
 #
 # The database is not in the image and never will be: point HM_DB_* at a
 # PostgreSQL or MariaDB server. On first start the entrypoint writes the
-# [Database] section from those variables, the REST listener from HM_REST_*, the
-# administrator password as a hash through the server's own --set-admin-password,
-# creates the database if it does not exist, upgrades it if it is behind, and
-# then runs the server in the foreground. On Linux the REST API is the
+# [Database] section from those variables, the administrator password as a hash
+# through the server's own --set-admin-password, creates the database if it does
+# not exist, upgrades it if it is behind, stores every setting the environment
+# names - the REST listener from HM_REST_*, and any other setting from
+# HM_SETTING_<key> or HM_PROPERTY_<name>, or their _FILE forms for a secret -
+# through the server's own --apply-environment, and then runs the server in the
+# foreground. On Linux the REST API is the
 # administration (there is no Control Panel and no COM), and the server requires
 # TLS on it unless it is bound to loopback - which inside a container is the
 # container's own loopback - so a reachable API means a certificate and key

@@ -8001,6 +8001,15 @@ Fortsätt?</value>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Satt men inte bekräftad: {0}. Tills kontoinnehavaren följer länken som skickades dit används den till ingenting.</value>
   </data>
+  <data name="Set by the environment" xml:space="preserve">
+    <value>Satt av miljön</value>
+  </data>
+  <data name="Set by the environment, from a file" xml:space="preserve">
+    <value>Satt av miljön, från en fil</value>
+  </data>
+  <data name="Set by this server's environment, which stores them again at every start, so a change made here is refused: {0}. Change the variable and restart to change one." xml:space="preserve">
+    <value>Satta av serverns miljö, som sparar dem igen vid varje start, så en ändring som görs här avvisas: {0}. Ändra variabeln och starta om för att ändra en av dem.</value>
+  </data>
   <data name="Set flags" xml:space="preserve">
     <value>Sätta flaggor</value>
   </data>

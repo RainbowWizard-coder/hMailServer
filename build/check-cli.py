@@ -212,9 +212,13 @@ ANSWERS = {
          "subject": "Held", "reason": "virus", "received": "2026-09-15T04:00:00Z"}]},
     ("POST", "/api/v1/quarantine/3/release"): {"released": True},
     # As the real route answers a key with levels: followed by <key>_levels,
-    # which is not configuration and must not reach an exported document.
+    # which is not configuration and must not reach an exported document. And a
+    # key the server's environment sets, from a file: answered as (set) and
+    # followed by <key>_environment (docs/EnvironmentConfiguration.md) - the
+    # deployment's, not the configuration's, so neither reaches a document.
     ("GET", "/api/v1/settings"): {"welcome_smtp": "hMailServer", "max_message_size_kb": 20480,
-                                  "max_message_size_kb_levels": "account"},
+                                  "max_message_size_kb_levels": "account",
+                                  "host_name": "(set)", "host_name_environment": "file"},
     # Where each level of the settings with levels is held (docs/SettingLevels.md):
     # the overlay, or a field the domain already had, as the real list answers it.
     ("GET", "/api/v1/settings/levels"): {"settings": [
@@ -1676,6 +1680,9 @@ def run_config_cases(url, tmp):
     check('"version": 1' in first, "the document carries no version")
     check("_levels" not in first,
           "the document carries a <key>_levels mark, which the server answers about a key and refuses to be sent:\n%s"
+          % first[:600])
+    check("_environment" not in first and "host_name" not in first,
+          "the document carries a key the server's environment sets, or its <key>_environment mark - the deployment's, which the server refuses to be sent:\n%s"
           % first[:600])
     check("example.com" in first and "ann@example.com" in first,
           "the document holds neither the domain nor its accounts")

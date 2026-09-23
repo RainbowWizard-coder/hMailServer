@@ -11,6 +11,7 @@
 #include "PropertySet.h"
 #include "IniSettingsBaseline.h"
 #include "SettingsDefaults.h"
+#include "EnvironmentSettings.h"
 #include "../Util/Unicode.h"
 
 #ifdef _DEBUG
@@ -297,6 +298,28 @@ namespace HM
       ReadIniSettings(entries, unknownNames);
       ReadDatabaseSettings(entries, unknownNames);
 
+      // Which of them the server's environment sets, and from where. A value a file
+      // supplied is a Secret's and is shown as a secret's is.
+      std::vector<EnvironmentSettings::Entry> managed;
+      EnvironmentSettings::ReadManaged(managed);
+
+      for (Entry &entry : entries)
+      {
+         const EnvironmentSettings::Store store = entry.store == StoreIni ? EnvironmentSettings::StoreIni : EnvironmentSettings::StoreDatabase;
+
+         for (const EnvironmentSettings::Entry &environment : managed)
+         {
+            if (environment.store != store || environment.name.CompareNoCase(entry.name) != 0)
+               continue;
+
+            entry.environment = environment.variable;
+            entry.environmentFile = environment.source == EnvironmentSettings::SourceFile;
+            if (entry.environmentFile)
+               entry.value = Masked(entry.value, true);
+            break;
+         }
+      }
+
       considered = Considered(unknownNames);
    }
 
@@ -324,7 +347,26 @@ namespace HM
                  JsonField("default", entry.shipped) + "," +
                  JsonBool("secret", entry.secret) + "," +
                  JsonBool("known", entry.known) + "," +
-                 JsonBool("overridden", entry.overridden) + "}";
+                 JsonBool("overridden", entry.overridden) + ",\"environment\":" +
+                 (entry.environment.IsEmpty() ? AnsiString("null") : AnsiString("\"") + (entry.environmentFile ? "file" : "variable") + "\"") + "}";
+      }
+
+      // Every setting the environment sets, whether or not it differs from stock:
+      // what the Control Panel reads to mark those fields, since this document is
+      // what it already asks for over COM. Names and sources, never values.
+      std::vector<EnvironmentSettings::Entry> managed;
+      EnvironmentSettings::ReadManaged(managed);
+
+      json += "],\"environment\":[";
+      for (size_t i = 0; i < managed.size(); i++)
+      {
+         if (i > 0)
+            json += ",";
+
+         json += "{" + JsonField("variable", managed[i].variable) + "," +
+                 JsonField("store", managed[i].store == EnvironmentSettings::StoreIni ? StoreIni : StoreDatabase) + "," +
+                 JsonField("name", managed[i].name) + "," +
+                 JsonField("source", String(EnvironmentSettings::SourceWord(managed[i].source))) + "}";
       }
 
       json += "]}";

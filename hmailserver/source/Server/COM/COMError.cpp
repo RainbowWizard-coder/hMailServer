@@ -5,6 +5,9 @@
 #include "stdafx.h"
 
 #include "./COMError.h"
+#include "../Common/Application/EnvironmentSettings.h"
+
+#include <exception>
 
 COMError::COMError(void)
 {
@@ -17,6 +20,29 @@ COMError::~COMError(void)
 HRESULT
 COMError::GenerateGenericMessage()
 {
+   // Called from the catch (...) that ends every COM method. One exception has a
+   // sentence of its own and is not an error at all: an administrator's change to
+   // a setting this server's environment manages, refused at the store every
+   // setter writes through (EnvironmentSettings::Refusal) - so every setter
+   // refuses it in the same words, with no setter of its own changed. Asked of
+   // the exception being handled, if there is one; a call from outside a handler
+   // has none and gets the generic sentence as before.
+   std::exception_ptr current = std::current_exception();
+   if (current)
+   {
+      try
+      {
+         std::rethrow_exception(current);
+      }
+      catch (const HM::EnvironmentSettings::Refusal &refusal)
+      {
+         return GenerateError(refusal.Sentence());
+      }
+      catch (...)
+      {
+      }
+   }
+
    return GenerateError("An error occurred processing the request.");
 }
 

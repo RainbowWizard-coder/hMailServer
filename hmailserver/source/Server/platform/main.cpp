@@ -43,6 +43,7 @@
 #include "../Common/Application/Version.h"
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/IniSettingStore.h"
+#include "../Common/Application/EnvironmentSettings.h"
 #include "../Common/Application/SampleDomain.h"
 #include "../Common/Application/Logger.h"
 #include "../Common/Util/Utilities.h"
@@ -156,6 +157,19 @@ namespace
          "                    must be 0-65535 and RestApiBindAddress an IP address\n"
          "                    or localhost. Run it as root, as --set-admin-password\n"
          "                    is: the file is root's.\n"
+         "  --apply-environment\n"
+         "                    store every setting the environment names -\n"
+         "                    HM_SETTING_<key> for a [Settings] key, HM_PROPERTY_<name>\n"
+         "                    for an hm_settings row, either with _FILE to read the\n"
+         "                    value from a file (a Kubernetes Secret), and the\n"
+         "                    container's HM_REST_* variables - checked first and\n"
+         "                    stored only when every one is right; one line each,\n"
+         "                    set, unchanged or refused, and never a value from a\n"
+         "                    file or a secret. Exits 1 on any refusal, having\n"
+         "                    changed nothing. The settings named are refused to\n"
+         "                    every other interface until a run without them. The\n"
+         "                    container's entrypoint runs it at every start; run it\n"
+         "                    as the user the service runs as.\n"
          "  --sample-domain create\n"
          "  --sample-domain remove\n"
          "                    make a throwaway example.test - three mailboxes\n"
@@ -744,6 +758,18 @@ namespace
                   iniFile.c_str(), shown.c_str(), forcedShown.c_str());
             }
 
+            // The other thing that would: a key the environment sets is written back
+            // by the next --apply-environment, which the container runs at every start
+            // (docs/EnvironmentConfiguration.md). The REST API and COM refuse such a
+            // change; this is the operator's own command line, so it is stored and
+            // said.
+            HM::EnvironmentSettings::Entry environment;
+            if (HM::EnvironmentSettings::IsManagedInDatabase(HM::EnvironmentSettings::StoreIni, name, environment))
+            {
+               std::printf("Note: %s sets %s from this server's environment, and hmailserver --apply-environment writes it back at every start; the value stored now lasts until the next one. Change the variable instead.\n",
+                  HM::AnsiString(environment.variable).c_str(), shown.c_str());
+            }
+
             result = 0;
          }
          else
@@ -894,6 +920,7 @@ int main(int argc, char *argv[])
    bool set_password = false;
    bool create_database = false;
    bool upgrade_database = false;
+   bool apply_environment = false;
 
    for (int index = 1; index < argc; index++)
    {
@@ -928,6 +955,11 @@ int main(int argc, char *argv[])
       if (argument == "--upgrade-database")
       {
          upgrade_database = true;
+         continue;
+      }
+      if (argument == "--apply-environment")
+      {
+         apply_environment = true;
          continue;
       }
       if (argument == "--set-setting")
@@ -1050,6 +1082,12 @@ int main(int argc, char *argv[])
 
    if (!set_setting.empty())
       return SetSetting(set_setting);
+
+   // Every setting from the environment (Common/Application/EnvironmentSettings,
+   // docs/EnvironmentConfiguration.md): what the container's entrypoint runs after
+   // the create and upgrade steps, at every start.
+   if (apply_environment)
+      return HM::EnvironmentSettings::RunCommand();
 
    if (!sample_domain.empty())
       return SampleDomainCommand(sample_domain);

@@ -540,6 +540,9 @@ namespace HM
          RouteIniSettingPut,
          RouteIniSettingDelete,
          RouteSettingsChanged,
+         // GET /api/v1/settings/environment: the settings the server's environment
+         // sets, by name and source, never a value (docs/EnvironmentConfiguration.md).
+         RouteSettingsEnvironment,
          // GET /api/v1/server/settings/pending: the [Settings] keys saved and not
          // yet running, with both values (docs/SettingsApply.md).
          RouteServerSettingsPending,
@@ -1861,6 +1864,8 @@ namespace HM
       // not the one this version ships with (RestApiSettings.cpp), which is what
       // Settings.GetChangedFromDefault answers over COM, from the same function.
       HttpResponse HandleSettingsChanged_();
+      // The settings the server's environment sets (RestApiSettings.cpp).
+      HttpResponse HandleSettingsEnvironment_();
       HttpResponse HandleLogonFailuresClear_();
       // Wave E: the scripting and backup groups, the server messages and the
       // Sieve evaluation (RestApiSettings.cpp).

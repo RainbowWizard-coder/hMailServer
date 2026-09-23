@@ -148,6 +148,7 @@ namespace hMailServer.ControlPanel.Services
          "ControlPanelDesign.md",
          "DkimKeyRotation.md",
          "DmarcReports.md",
+         "EnvironmentConfiguration.md",
          "Fuzzing.md",
          "Help.md",
          "HighAvailabilityRunbook.md",

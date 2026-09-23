@@ -11,6 +11,7 @@
 
 #include "AuditTrail.h"
 #include "../Application/RoleManager.h"
+#include "../Application/EnvironmentSettings.h"
 #include "DavSupport.h"
 #include "HttpServer.h"
 #include "HttpCompression.h"
@@ -2271,6 +2272,8 @@ namespace HM
             return HandleSettingsChanged_();
          case RouteSettingLevels:
             return BuildResponse_(200, SettingLevelsRest::TableJson());
+         case RouteSettingsEnvironment:
+            return HandleSettingsEnvironment_();
          case RouteServerSettingsPending:
             return HandleServerSettingsPending_();
          case RouteIniSettingGet:
@@ -2916,6 +2919,17 @@ namespace HM
          // leaves /W3 asking whether the function does, and answering that with
          // an unreachable return is worse than this.
          return BuildResponse_(404, "{\"error\":\"not found\"}");
+      }
+      catch (const EnvironmentSettings::Refusal &refusal)
+      {
+         // An administrator's change to a setting the server's environment sets,
+         // refused at the store every route writes through - the audit trail's
+         // put-back, the branding routes, anything a route's own check did not
+         // answer first. Not an error: the change would be undone at the next start
+         // (docs/EnvironmentConfiguration.md).
+         AnsiString sentence;
+         Unicode::WideToMultiByte(refusal.Sentence(), sentence);
+         return BuildResponse_(409, "{\"error\":\"" + JsonEscape_(sentence) + "\"}");
       }
       catch (...)
       {
@@ -5753,6 +5767,12 @@ namespace HM
          return;
       }
 
+      if (method == "GET" && path == "/api/v1/settings/environment")
+      {
+         route.kind = RouteSettingsEnvironment;
+         return;
+      }
+
       // One [Settings] key of hMailServer.ini, named in the path as it is
       // spelled in the file. The name is not decoded: the characters a key
       // cannot hold - = [ ] and a line break - are refused by the handler with
@@ -6763,6 +6783,9 @@ namespace HM
       case RouteRuleList:
       case RouteSettingsGet:
       case RouteSettingLevels:
+      // The names of the settings the environment sets and where each value came
+      // from - never a value - is a fact of the configuration a reader may read.
+      case RouteSettingsEnvironment:
       case RouteSettingsAntiSpamGet:
       case RouteSettingsAntiVirusGet:
       case RouteSettingsLoggingGet:
@@ -7902,6 +7925,7 @@ namespace HM
       case RouteDomainReportsExpire:
       case RouteSettingsGet:
       case RouteSettingLevels:
+      case RouteSettingsEnvironment:
       case RouteSettingsChanged:
       case RouteServerSettingsPending:
       case RouteSettingsPut:

@@ -839,9 +839,15 @@ const SETTING_GROUPS = {
          clamav_host: { type: 'string', description: 'The ClamAV daemon\'s host.' },
          clamav_port: { type: 'integer', description: 'The ClamAV daemon\'s port, 1 to 65535.' },
          action: { type: 'string', description: 'What is done with a message a scanner flags.', enum: ['delete_email', 'delete_attachments'] },
-         maximum_message_size_kb: { type: 'integer', description: 'Messages larger than this, in KB, are not scanned; 0 scans every size.' }
+         maximum_message_size_kb: { type: 'integer', description: 'Messages larger than this, in KB, are not scanned; 0 scans every size.' },
+         custom_scanner_executable: { type: 'string', description: 'The scanner a custom scan runs.' }
       },
-      values: { clamav_enabled: false, clamav_host: 'localhost', clamav_port: 3310, action: 'delete_attachments', maximum_message_size_kb: 0 }
+      // Two keys the server's environment sets (docs/EnvironmentConfiguration.md),
+      // as the group's GET answers them: <key>_environment beside each, and a
+      // value a file supplied answered as (set).
+      values: { clamav_enabled: false, clamav_host: 'localhost', clamav_port: 3310, clamav_port_environment: 'variable',
+         action: 'delete_attachments', maximum_message_size_kb: 0,
+         custom_scanner_executable: '(set)', custom_scanner_executable_environment: 'file' }
    },
    // The three groups the Settings view gained on 14 September: the scripting
    // switch and language, the cache's switch, ceilings, lives and counters
@@ -4901,6 +4907,26 @@ async function main() {
    check('a key kept in the settings store carries its mark', !!tarpitRow.querySelector('[data-applies="now"]') &&
       tarpitRow.textContent.indexOf('Applies on save') >= 0 && tarpitRow.textContent.indexOf('restart') < 0, tarpitRow.textContent);
    check('and a key without one carries none', document.getElementById('set_srv_hostname').closest('.fr').querySelector('[data-applies]') === null);
+   // A key the server's environment sets: the mark and the value, and no
+   // control - the server refuses a change to it, which the next start would undo.
+   const portRow = $$('.fr').filter((r) => r.querySelector('[data-environment]') && r.textContent.indexOf('clamav_port') >= 0)[0];
+   check('a key the environment sets is marked, shown with its value, and has no control', !!portRow &&
+      document.getElementById('set_av_clamav_port') === null && portRow.querySelector('[data-environment="variable"]') !== null &&
+      portRow.textContent.indexOf('Set by the environment') >= 0 && portRow.textContent.indexOf('3310') >= 0,
+      portRow ? portRow.textContent : 'no row');
+   const fileRow = $$('.fr').filter((r) => r.querySelector('[data-environment="file"]'))[0];
+   check('one a file supplied says so and shows no value', !!fileRow && document.getElementById('set_av_custom_scanner_executable') === null &&
+      fileRow.textContent.indexOf('Set by the environment, from a file') >= 0 && fileRow.textContent.indexOf('(set)') >= 0,
+      fileRow ? fileRow.textContent : 'no row');
+   check('the mark is no field of its own', $$('.fr').filter((r) => r.textContent.indexOf('clamav_port_environment') >= 0).length === 0);
+   check('the note under the banner names the mark', $$('.note [data-environment]').length === 1 &&
+      $('#content').textContent.indexOf("is set by this server's environment") >= 0);
+   setValue('set_av_clamav_host', 'scanner.example.test');
+   before = requests.length;
+   click(act('setsave', { group: 'av' }));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/settings/antivirus');
+   check('saving the group never sends a key the environment sets', !!put && JSON.stringify(put) === '{"clamav_host":"scanner.example.test"}', JSON.stringify(put));
    check('the settings view reads what is pending, and says it above the groups', called(before, 'GET', '/api/v1/server/settings/pending').length === 1 &&
       !!$('#pendingBar') && $('#pendingBar').textContent.indexOf('1 saved setting(s) wait for a reinitialize.') >= 0 &&
       $('#pendingBar').textContent.indexOf('ManageSieveServerPort') >= 0 && !!act('applypending'), $('#pendingBar') ? $('#pendingBar').textContent : 'no bar');

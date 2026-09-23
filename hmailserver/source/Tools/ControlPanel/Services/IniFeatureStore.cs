@@ -64,6 +64,19 @@ namespace hMailServer.ControlPanel.Services
       public static Func<string> ComPendingSettings;
 
       /// <summary>
+      /// Settings.GetChangedFromDefault over COM, read for its environment array: the
+      /// settings the server's environment sets (Services/EnvironmentSettings,
+      /// docs/EnvironmentConfiguration.md). Null in the tests and before a session
+      /// exists.
+      /// </summary>
+      public static Func<string> ComChangedDocument;
+
+      // The settings the environment sets, as the last read found them; null when
+      // nothing is known - no read yet, a read that failed, or a credential the
+      // document is refused to - and then no field is marked.
+      private static IReadOnlyList<EnvironmentSettings.Entry> environment_;
+
+      /// <summary>
       /// Raised after every write through <see cref="Write"/>, on the thread that
       /// wrote. The window listens, so its pending bar follows every page's save
       /// without each page having to tell it - once per save, not once per field
@@ -95,6 +108,8 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public static void LoadMarks()
       {
+         LoadEnvironment();
+
          Func<string> ask = ComAllApplies;
          if (ask == null)
             return;
@@ -171,8 +186,54 @@ namespace hMailServer.ControlPanel.Services
             serverMarks_ = null;
             lastPending_ = null;
             writesSinceRead_ = int.MaxValue;
+            environment_ = null;
          }
       }
+
+      /// <summary>
+      /// Reads which settings the server's environment sets, with the marks, when a
+      /// page is opened: one call, which a page's own save does not repeat. A failure -
+      /// the document is the server administrator's, and a domain administrator is
+      /// refused it - leaves nothing known, and no field is marked; the server still
+      /// refuses a change to a managed setting, with its own sentence.
+      /// </summary>
+      public static void LoadEnvironment()
+      {
+         Func<string> ask = ComChangedDocument;
+         if (ask == null)
+            return;
+
+         IReadOnlyList<EnvironmentSettings.Entry> entries;
+         try
+         {
+            entries = EnvironmentSettings.Parse(ask());
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            entries = null;
+         }
+
+         lock (appliesLock_)
+            environment_ = entries;
+      }
+
+      /// <summary>Every setting the environment sets, as the last read found them; empty when nothing is known.</summary>
+      public static IReadOnlyList<EnvironmentSettings.Entry> EnvironmentManaged()
+      {
+         lock (appliesLock_)
+            return environment_ ?? Array.Empty<EnvironmentSettings.Entry>();
+      }
+
+      /// <summary>"variable" or "file" when the environment sets this [Settings] key; null otherwise. Never a COM call.</summary>
+      public static string EnvironmentForKey(string key)
+         => EnvironmentSettings.Find(EnvironmentManaged(), EnvironmentSettings.StoreIni, key)?.Source;
+
+      /// <summary>
+      /// "variable" or "file" when the environment sets the hm_settings row a COM
+      /// settings path names (Services/EnvironmentSettings.PropertyOf); null otherwise.
+      /// </summary>
+      public static string EnvironmentForComPath(string comPath)
+         => EnvironmentSettings.Find(EnvironmentManaged(), EnvironmentSettings.StoreDatabase, EnvironmentSettings.PropertyOf(comPath))?.Source;
 
       /// <summary>
       /// The keys saved and not yet running, as the server lists them now - one COM

@@ -12,6 +12,7 @@
 #include "../SQL/DALRecordset.h"
 #include "../Util/XMLite.h"
 #include "../Util/AuditTrail.h"
+#include "EnvironmentSettings.h"
 
 // The Win32 profile API - GetPrivateProfileString and the three calls beside
 // it - lives in kernel32 and has no POSIX equivalent, so the POSIX build
@@ -763,6 +764,12 @@ namespace HM
          String previousFileValue;
          bool hadValue = ReadFileValue_(name, previousFileValue);
 
+         // An administrator's change to a key the environment manages is refused
+         // before anything is written (EnvironmentSettings); the value it already
+         // has is let through.
+         if (!hadValue || previousFileValue != value)
+            EnvironmentSettings::RefuseAdministratorChange(EnvironmentSettings::StoreIni, name);
+
          if (!WriteIniValue_(_T("Settings"), name, value))
             return false;
 
@@ -788,6 +795,12 @@ namespace HM
 
       bool wasStored = existing != rows.end();
       String previousValue = wasStored ? (*existing).second.first : String();
+
+      // As above: the environment's keys are refused to an administrator, here at
+      // the store every door writes through - WriteSettingsValue and the audit
+      // trail's revert alike - unless the value is the one already stored.
+      if (!wasStored || previousValue != value)
+         EnvironmentSettings::RefuseAdministratorChange(EnvironmentSettings::StoreIni, name);
 
       bool stored = existing == rows.end()
          ? InsertRow_(name, value, value)
@@ -828,6 +841,10 @@ namespace HM
    {
       if (!IsStorableName(name))
          return false;
+
+      // Returning a key the environment manages to its default is a change the
+      // next start would undo, and is refused to an administrator as a write is.
+      EnvironmentSettings::RefuseAdministratorChange(EnvironmentSettings::StoreIni, name);
 
       // THE LINE FIRST, and this is the one place where the order is the opposite of
       // WriteSetting's - for the same reason the order is what it is there, which is

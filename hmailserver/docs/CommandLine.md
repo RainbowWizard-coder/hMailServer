@@ -631,6 +631,15 @@ What neither client does
   typed at a prompt that does not echo it or piped in. A port must be a number
   from 0 to 65535 and `RestApiBindAddress` an IP address or `localhost`. On
   Windows the Control Panel does this over COM.
+* **It does not set what the environment sets.** In a container every setting
+  can come from the environment - `HM_SETTING_<key>`, `HM_PROPERTY_<name>`, and
+  `_FILE` after either for a Secret - stored by `hmailserver --apply-environment`
+  at every start ([EnvironmentConfiguration.md](EnvironmentConfiguration.md)).
+  The server refuses a change to such a setting (409) until a start without the
+  variable; `hmctl config changed` prints `(set by the environment)` beside it,
+  and `hmctl config export` and `Export-HmConfiguration` leave it and its
+  `<key>_environment` mark out of the document, since the value is the
+  deployment's and not the configuration's.
 * **Neither invents a field.** A field you did not give is one the server
   decides; the two clients were made to send the same request for the same
   command, and `build/check-cli.py` fails if they stop doing so.

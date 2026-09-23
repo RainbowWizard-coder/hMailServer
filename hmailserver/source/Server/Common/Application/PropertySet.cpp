@@ -7,6 +7,9 @@
 #include "Property.h"
 #include "../Util/Crypt.h"
 #include "../Util/AuditTrail.h"
+#include "EnvironmentSettings.h"
+
+#include <algorithm>
 
 
 #ifdef _DEBUG
@@ -20,6 +23,19 @@ using namespace std;
 
 namespace HM
 {
+   thread_local PropertySet::ReadRecorder *PropertySet::recorder_ = nullptr;
+
+   PropertySet::ReadRecorder::ReadRecorder() :
+      previous_(PropertySet::recorder_)
+   {
+      PropertySet::recorder_ = this;
+   }
+
+   PropertySet::ReadRecorder::~ReadRecorder()
+   {
+      PropertySet::recorder_ = previous_;
+   }
+
    PropertySet::PropertySet(void)
    {
    }
@@ -85,6 +101,15 @@ namespace HM
    std::shared_ptr<Property>
    PropertySet::GetProperty_(const String & sPropertyName)
    {
+      // A reader asking which property it holds (ReadRecorder). The environment's
+      // record is the server's bookkeeping, read beside a setting rather than as
+      // one, and is never a name a row holds.
+      if (recorder_ && sPropertyName != EnvironmentSettings::MarkerName())
+      {
+         if (std::find(recorder_->names_.begin(), recorder_->names_.end(), sPropertyName) == recorder_->names_.end())
+            recorder_->names_.push_back(sPropertyName);
+      }
+
       auto iterProperty = items_.find(sPropertyName);
    
       if (iterProperty != items_.end())
@@ -143,6 +168,8 @@ namespace HM
       std::shared_ptr<Property> pProperty = GetProperty_(sPropertyName);
       long previousValue = pProperty->GetLongValue();
       bool bChanged = lValue != previousValue;
+      if (bChanged)
+         RefuseIfEnvironmentManaged_(sPropertyName);
       pProperty->SetLongValue(lValue);
 
       if (bChanged)
@@ -160,6 +187,8 @@ namespace HM
       std::shared_ptr<Property> pProperty = GetProperty_(sPropertyName);
       bool previousValue = pProperty->GetBoolValue();
       bool bChanged = bValue != previousValue;
+      if (bChanged)
+         RefuseIfEnvironmentManaged_(sPropertyName);
       pProperty->SetBoolValue(bValue);
 
       if (bChanged)
@@ -177,6 +206,8 @@ namespace HM
       std::shared_ptr<Property> pProperty = GetProperty_(sPropertyName);
       String previousValue = pProperty->GetStringValue();
       bool bChanged = sValue != previousValue;
+      if (bChanged)
+         RefuseIfEnvironmentManaged_(sPropertyName);
       pProperty->SetStringValue(sValue);
 
       if (bChanged)
@@ -281,6 +312,16 @@ namespace HM
       return false;
    }
 
+   void
+   PropertySet::RefuseIfEnvironmentManaged_(const String &sPropertyName)
+   {
+      // Throws EnvironmentSettings::Refusal for an administrator's change, before
+      // anything is written; lets everything else through - --apply-environment
+      // itself, a restore, the server's own bookkeeping - since none of those has
+      // an audit actor on the thread.
+      EnvironmentSettings::RefuseAdministratorChange(EnvironmentSettings::StoreDatabase, sPropertyName);
+   }
+
    bool
    PropertySet::XMLStore(XNode *pBackupNode)
    {
@@ -302,6 +343,17 @@ namespace HM
          // leave the next backup encrypted under a passphrase nobody was told
          // about. Whoever restores enters the passphrase they hold.
          if (String(oProperty->GetName()).CompareNoCase(PROPERTY_BACKUPENCRYPTIONPASSPHRASE) == 0)
+         {
+            iterProperty++;
+            continue;
+         }
+
+         // Nor the record of which settings the environment manages: it describes
+         // the deployment this database runs under, which a restore onto another
+         // server does not bring with it, and a server that never runs
+         // --apply-environment would otherwise refuse changes to those settings for
+         // ever (docs/EnvironmentConfiguration.md).
+         if (String(oProperty->GetName()).CompareNoCase(EnvironmentSettings::MarkerName()) == 0)
          {
             iterProperty++;
             continue;
@@ -334,6 +386,10 @@ namespace HM
          // written by something else, and it does not get to set what this
          // server's backups are encrypted with.
          if (sName.CompareNoCase(PROPERTY_BACKUPENCRYPTIONPASSPHRASE) == 0)
+            continue;
+
+         // The environment's record is this server's deployment, not the archive's.
+         if (sName.CompareNoCase(EnvironmentSettings::MarkerName()) == 0)
             continue;
          String sStringValue = pPropertyNode->GetAttrValue(_T("StringValue"));
          int iLongValue = _ttoi(pPropertyNode->GetAttrValue(_T("LongValue")));

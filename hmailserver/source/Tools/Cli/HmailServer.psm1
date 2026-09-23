@@ -2449,6 +2449,13 @@ function Remove-HmRotationOwned {
 
 function ConvertTo-HmConfigurationRow {
     param([Parameter(Mandatory = $true)] $Row)
+    # <key>_environment says the server's environment sets <key>
+    # (docs/EnvironmentConfiguration.md): the value is the deployment's, stored
+    # again at every start, and one a file supplied is answered as (set) or null.
+    # Neither the key nor the mark is configuration; applied back, both would be
+    # refused.
+    $managed = @($Row.PSObject.Properties | Where-Object { $_.Name -like '*_environment' } |
+        ForEach-Object { $_.Name.Substring(0, $_.Name.Length - '_environment'.Length) })
     $ordered = [ordered] @{}
     foreach ($property in ($Row.PSObject.Properties | Sort-Object Name)) {
         if ($script:NotConfiguration -contains $property.Name) { continue }
@@ -2456,6 +2463,8 @@ function ConvertTo-HmConfigurationRow {
         # <key>_levels is what the server says about a key (docs/SettingLevels.md),
         # not configuration: applied back, the server would refuse it.
         if ($property.Name -like '*_levels') { continue }
+        if ($property.Name -like '*_environment') { continue }
+        if ($managed -contains $property.Name) { continue }
         $ordered[$property.Name] = $property.Value
     }
     $ordered

@@ -8001,6 +8001,15 @@ Doorgaan?</value>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Ingesteld maar niet bevestigd: {0}. Zolang de accounthouder de koppeling die ernaartoe is gestuurd niet volgt, wordt het voor niets gebruikt.</value>
   </data>
+  <data name="Set by the environment" xml:space="preserve">
+    <value>Ingesteld door de omgeving</value>
+  </data>
+  <data name="Set by the environment, from a file" xml:space="preserve">
+    <value>Ingesteld door de omgeving, uit een bestand</value>
+  </data>
+  <data name="Set by this server's environment, which stores them again at every start, so a change made here is refused: {0}. Change the variable and restart to change one." xml:space="preserve">
+    <value>Ingesteld door de omgeving van deze server, die ze bij elke start opnieuw opslaat, dus een wijziging hier wordt geweigerd: {0}. Wijzig de variabele en herstart om er een te veranderen.</value>
+  </data>
   <data name="Set flags" xml:space="preserve">
     <value>Vlaggen instellen</value>
   </data>

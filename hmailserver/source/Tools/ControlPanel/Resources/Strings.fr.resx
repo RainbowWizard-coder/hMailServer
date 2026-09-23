@@ -8001,6 +8001,15 @@ Continuer ?</value>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Définie mais non confirmée : {0}. Tant que le titulaire ne suit pas le lien qui y a été envoyé, elle ne sert à rien.</value>
   </data>
+  <data name="Set by the environment" xml:space="preserve">
+    <value>Défini par l'environnement</value>
+  </data>
+  <data name="Set by the environment, from a file" xml:space="preserve">
+    <value>Défini par l'environnement, depuis un fichier</value>
+  </data>
+  <data name="Set by this server's environment, which stores them again at every start, so a change made here is refused: {0}. Change the variable and restart to change one." xml:space="preserve">
+    <value>Définis par l'environnement de ce serveur, qui les enregistre à nouveau à chaque démarrage, si bien qu'une modification faite ici est refusée : {0}. Modifiez la variable et redémarrez pour en changer un.</value>
+  </data>
   <data name="Set flags" xml:space="preserve">
     <value>Définir les indicateurs</value>
   </data>

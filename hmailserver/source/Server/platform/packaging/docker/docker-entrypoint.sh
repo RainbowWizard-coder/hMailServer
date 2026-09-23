@@ -15,17 +15,43 @@
 #                                   holds a PBKDF2 hash and never the password.
 #                                   Without it the REST API refuses to start, and
 #                                   on Linux the REST API is the administration.
+#   HM_SETTING_<key>             -> any [Settings] key the server reads (the
+#                                   keys of build/ini-settings-baseline.txt,
+#                                   matched without case), for example
+#                                   HM_SETTING_MaxSubmissionsPerIPPerMinute=30
+#   HM_PROPERTY_<name>           -> any hm_settings row the server reads (the
+#                                   names of SettingsDefaults.h), for example
+#                                   HM_PROPERTY_maxmessagesize=20480
+#   HM_SETTING_<key>_FILE,
+#   HM_PROPERTY_<name>_FILE      -> the same, the value read from the file named
+#                                   (a Kubernetes Secret or a Compose secret
+#                                   mounted as a file; its trailing line break
+#                                   is not part of the value). Setting both the
+#                                   plain form and the _FILE form is refused.
+#                                   All of these are stored in the database - the
+#                                   settings store - by the server's own
+#                                   --apply-environment once the database is
+#                                   there, checked first, and none stored when any
+#                                   is refused: the container then does not
+#                                   start, and the log says which and why. The
+#                                   environment wins at EVERY start, so a change
+#                                   made in the Deck or over the REST API to a
+#                                   setting named here would be undone at the
+#                                   next one - the server refuses it instead
+#                                   (409), until a start without the variable.
 #   HM_REST_PORT, HM_REST_BIND_ADDRESS, HM_REST_CERTIFICATE_FILE,
 #   HM_REST_PRIVATE_KEY_FILE     -> RestApiPort, RestApiBindAddress,
-#                                   RestApiCertificateFile, RestApiPrivateKeyFile,
-#                                   stored with the server's own --set-setting
-#                                   once the database is there (store_setting).
-#                                   The packaged file has the port at 0 (off) and
-#                                   the bind at 127.0.0.1, which inside a container
-#                                   is the container's own loopback; to reach the
-#                                   API from outside, bind 0.0.0.0 with a
-#                                   certificate and key (the server requires TLS
-#                                   off loopback), or run with host networking.
+#                                   RestApiCertificateFile, RestApiPrivateKeyFile:
+#                                   the names these four always had, now aliases
+#                                   of HM_SETTING_RestApiPort and the other three
+#                                   (the last two are paths the server reads, not
+#                                   _FILE forms). The packaged file has the port
+#                                   at 0 (off) and the bind at 127.0.0.1, which
+#                                   inside a container is the container's own
+#                                   loopback; to reach the API from outside, bind
+#                                   0.0.0.0 with a certificate and key (the server
+#                                   requires TLS off loopback), or run with host
+#                                   networking.
 #   HM_DB_PASSWORD_FILE, HM_ADMIN_PASSWORD_FILE
 #                                -> the same two secrets read from a file (a Docker
 #                                   or Compose secret) instead of the environment
@@ -62,21 +88,6 @@ needs_writable_ini() {
       echo "$INI is not writable by $(id -un); $1 cannot be written from the environment" >&2
       exit 1
    fi
-}
-
-# store_setting NAME VALUE: one of the server's settings, stored the way the
-# REST API stores one. From schema 6042 the database is the settings store and
-# the [Settings] section of hMailServer.ini is the server's copy of it, so a line
-# written into that section is taken only while the store has no row for it - at
-# the first start - and a value changed on any later start (a new HM_REST_PORT, a
-# certificate named by a helm upgrade) is named in the error log as HM5804 and
-# put back. That is what this entrypoint used to do. hmailserver --set-setting
-# writes the row and the file's line together and keeps the file's owner and
-# mode; it needs the database at this build's schema, so it runs after the
-# create and upgrade steps below.
-store_setting() {
-   needs_writable_ini "$1"
-   hmailserver --config "$INI" --set-setting "$1=$2"
 }
 
 write_database_section() {
@@ -130,12 +141,20 @@ if [ "${HM_UPGRADE_DATABASE:-1}" != 0 ]; then
    hmailserver --config "$INI" --upgrade-database
 fi
 
-# Each prints what it stored; a failure stops the container, as a database the
-# server could not start on would.
-[ -z "${HM_REST_PORT:-}" ] || store_setting RestApiPort "$HM_REST_PORT"
-[ -z "${HM_REST_BIND_ADDRESS:-}" ] || store_setting RestApiBindAddress "$HM_REST_BIND_ADDRESS"
-[ -z "${HM_REST_CERTIFICATE_FILE:-}" ] || store_setting RestApiCertificateFile "$HM_REST_CERTIFICATE_FILE"
-[ -z "${HM_REST_PRIVATE_KEY_FILE:-}" ] || store_setting RestApiPrivateKeyFile "$HM_REST_PRIVATE_KEY_FILE"
+# Every setting the environment names - HM_SETTING_*, HM_PROPERTY_*, their _FILE
+# forms and the four HM_REST_* - stored in the database, which is the settings
+# store: from schema 6042 the [Settings] section of hMailServer.ini is the
+# server's copy of it, so a line written there is taken only at the first start
+# and a changed one is named as HM5804 and put back. The server's own verb checks
+# every value before it stores any, prints one line per variable (set,
+# unchanged, or refused and why - never a value from a file or a secret), and
+# records which names the environment manages, so that the Deck and the REST API
+# refuse a change the next start would undo; a run without a variable gives its
+# setting back. Every run, and every run first, so that the environment wins:
+# it needs the database at this build's schema, so it follows the create and
+# upgrade steps above. A refusal stops the container, as a database the server
+# could not start on would.
+hmailserver --config "$INI" --apply-environment
 
 if [ "${1:-}" = "hmailserver" ] && ! printf '%s\n' "$@" | grep -q -- '--config'; then
    shift

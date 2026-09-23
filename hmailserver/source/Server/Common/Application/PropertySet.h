@@ -8,10 +8,38 @@ namespace HM
 {
    class DALRecordset;
    class Property;
-      
+
    class PropertySet
    {
    public:
+
+      /// <summary>
+      /// Records, for as long as it lives, the name of every property read on this
+      /// thread through GetLong, GetBool or GetString. It is how the REST settings
+      /// rows are known by the hm_settings names they hold without a hand-kept
+      /// table beside them (docs/EnvironmentConfiguration.md): a row's getter is the
+      /// same code COM's getter runs, so the name it reads is the name the row is.
+      /// Nests; the innermost recorder is the one written to.
+      /// </summary>
+      class ReadRecorder
+      {
+      public:
+         ReadRecorder();
+         ~ReadRecorder();
+
+         /// <summary>Each name read, once, in the order first read.</summary>
+         const std::vector<String> &Names() const { return names_; }
+
+      private:
+         ReadRecorder(const ReadRecorder &);
+         ReadRecorder &operator=(const ReadRecorder &);
+
+         friend class PropertySet;
+
+         std::vector<String> names_;
+         ReadRecorder *previous_;
+      };
+
       PropertySet(void);
       ~PropertySet(void);
 
@@ -74,6 +102,15 @@ namespace HM
       std::shared_ptr<Property> GetProperty_(const String &sPropertyName);
 
       bool IsCryptedProperty_(const String &sPropertyName);
+
+      // An administrator's change to a property the environment manages is refused
+      // here, the chokepoint every interface writes through: see
+      // EnvironmentSettings::RefuseAdministratorChange. Called only for a change
+      // that moves the value.
+      static void RefuseIfEnvironmentManaged_(const String &sPropertyName);
+
+      static thread_local ReadRecorder *recorder_;
+
       std::map<String, std::shared_ptr<Property> > items_;
    };
 }

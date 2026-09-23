@@ -686,3 +686,39 @@ workflow `.github/workflows/packaging.yml` lints and renders the chart with a
 real install's values, checks its refusals, and resolves the Compose file, on
 every change to either.
 
+### Every setting from the environment
+
+Beyond the sixteen variables the entrypoint has always read, every setting has a
+name in the environment (`hmailserver/docs/EnvironmentConfiguration.md`):
+`HM_SETTING_<key>` for a `[Settings]` key of `build/ini-settings-baseline.txt`,
+`HM_PROPERTY_<name>` for an `hm_settings` row of `SettingsDefaults.h`, and `_FILE`
+after either for a value read from a file - a Secret. The entrypoint stores them
+with `hmailserver --apply-environment` at every start, after the create and
+upgrade steps: every value is checked first, nothing is stored when one is
+refused, and the container does not start - `docker compose logs` or `kubectl
+logs` says which variable and why, and never prints a value a file supplied.
+`HM_REST_PORT` and the other three REST variables are aliases of
+`HM_SETTING_RestApiPort` and its three neighbours. The environment wins at every
+start, so the Control Deck and the REST API refuse a change to a setting it names
+(409), and show it as set by the environment, until a start without the variable.
+
+With Helm, the values' `settings:` and `properties:` maps render into the
+environment, and `settingsFrom:` mounts a Secret's key as a file and names it
+through `_FILE`:
+
+```yaml
+settings:
+  MaxSubmissionsPerIPPerMinute: "30"
+properties:
+  maxmessagesize: "20480"
+settingsFrom:
+  - secretName: mail-relay
+    key: password
+    property: smtprelayerpassword
+```
+
+With Compose, the same variables go under `environment:`, and a `_FILE` names a
+path under `/run/secrets/`; the file beside the image carries the examples
+commented out. `build/check-environment-names.py` holds every name the
+entrypoint, the chart, the Compose file and this README mention to a setting.
+

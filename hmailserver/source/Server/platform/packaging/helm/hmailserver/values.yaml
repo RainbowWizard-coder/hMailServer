@@ -55,6 +55,35 @@ rest:
   bindAddress: 0.0.0.0
   tlsSecretName: ""
 
+# Every other setting, from the environment (docs/EnvironmentConfiguration.md).
+# settings are [Settings] keys, by the name build/ini-settings-baseline.txt gives
+# them, rendered as HM_SETTING_<key>; properties are hm_settings rows, by the
+# name SettingsDefaults.h gives them, rendered as HM_PROPERTY_<name>. The
+# entrypoint stores them at every start with the server's own
+# --apply-environment, checks every one first, and does not start the server
+# when one is wrong (kubectl logs says which, and why). The environment wins at
+# every start, so the Control Deck and the REST API refuse a change to a setting
+# named here - it would last only until the pod restarted - and show it as set
+# by the environment; take it out of these values to manage it there again. A
+# value is text, as the environment has no other kind: quote a number or a
+# switch ("30", "true").
+settings: {}
+#  MaxSubmissionsPerIPPerMinute: "30"
+properties: {}
+#  maxmessagesize: "20480"
+#  hostname: mail.example.com
+
+# Settings whose value is a secret, from the keys of Secrets you made: each key
+# is mounted as a file under /run/secrets/hmailserver-settings and named to the
+# entrypoint through HM_SETTING_<key>_FILE or HM_PROPERTY_<name>_FILE, so the
+# value is in no environment variable, no rendered manifest and no log line.
+# Each entry names the Secret, its key, and either a setting (a [Settings] key)
+# or a property (an hm_settings row).
+settingsFrom: []
+#  - secretName: mail-relay
+#    key: password
+#    property: smtprelayerpassword
+
 service:
   # LoadBalancer is what a mail server needs: the SMTP, IMAP and POP3 ports on
   # an address the world reaches. ClusterIP for a server behind something else.

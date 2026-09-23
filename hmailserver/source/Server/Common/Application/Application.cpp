@@ -52,6 +52,7 @@
 #include "../Threading/WorkQueue.h"
 #include "../Tracking/NotificationServer.h"
 #include "SessionManager.h"
+#include "EnvironmentSettings.h"
 
 #include "../../SMTP/GreyListCleanerTask.h"
 #include "../../SMTP/TlsRptReporterTask.h"
@@ -220,6 +221,10 @@ namespace HM
          return false;
 
       LOG_DEBUG("Application::InitInstance - Configuration loaded.");
+
+      // Which settings the environment sets, said where an operator reads the
+      // start: no interface will change them (docs/EnvironmentConfiguration.md).
+      EnvironmentSettings::AnnounceManaged();
 
       // The firewall is made to match the auto-ban ranges before a listener is
       // open: a rule for a ban that expired while the service was down is removed

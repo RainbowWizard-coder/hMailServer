@@ -8001,6 +8001,15 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Definida pero sin confirmar: {0}. Hasta que el titular siga el enlace que se le envió, no se usa para nada.</value>
   </data>
+  <data name="Set by the environment" xml:space="preserve">
+    <value>Definido por el entorno</value>
+  </data>
+  <data name="Set by the environment, from a file" xml:space="preserve">
+    <value>Definido por el entorno, desde un archivo</value>
+  </data>
+  <data name="Set by this server's environment, which stores them again at every start, so a change made here is refused: {0}. Change the variable and restart to change one." xml:space="preserve">
+    <value>Definidos por el entorno de este servidor, que los vuelve a guardar en cada inicio, por lo que un cambio hecho aquí se rechaza: {0}. Cambie la variable y reinicie para cambiar uno.</value>
+  </data>
   <data name="Set flags" xml:space="preserve">
     <value>Establecer marcas</value>
   </data>

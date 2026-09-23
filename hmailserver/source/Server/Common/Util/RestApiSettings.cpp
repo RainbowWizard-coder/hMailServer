@@ -62,6 +62,9 @@
 #include "../Application/IniSettingStore.h"
 #include "../Application/IniSettingsBaseline.h"
 #include "../Application/SettingsDiff.h"
+#include "../Application/EnvironmentSettings.h"
+#include "../Application/PropertySet.h"
+#include "RestApiSettingsRows.h"
 #include "../Application/Backup.h"
 #include "../BO/ServerMessages.h"
 #include "../BO/ServerMessage.h"
@@ -89,6 +92,7 @@
 #include "../Application/MessageIndexer.h"
 
 #include <climits>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -2081,6 +2085,79 @@ namespace
    }
 
    // ---------------------------------------------------------------------
+   // The settings the environment manages (docs/EnvironmentConfiguration.md).
+   // ---------------------------------------------------------------------
+
+   // What --apply-environment last recorded, read once per request.
+   struct Managed
+   {
+      std::vector<EnvironmentSettings::Entry> entries;
+
+      Managed()
+      {
+         EnvironmentSettings::ReadManaged(entries);
+      }
+
+      const EnvironmentSettings::Entry *Find(EnvironmentSettings::Store store, const String &name) const
+      {
+         for (const EnvironmentSettings::Entry &entry : entries)
+         {
+            if (entry.store == store && entry.name.CompareNoCase(name) == 0)
+               return &entry;
+         }
+         return nullptr;
+      }
+   };
+
+   // A row's value, and the hm_settings names its getter read to produce it. The
+   // getter is the code COM's getter runs, so the one name it reads is the name
+   // the row holds - which is how a row is known to be a setting the environment
+   // manages without a table of names kept beside the rows.
+   Value ReadRow(const Row &row, std::vector<String> &read)
+   {
+      PropertySet::ReadRecorder recorder;
+      Value value = row.get();
+      read = recorder.Names();
+      return value;
+   }
+
+   // The entry a row's value is set by, or null: the key a row kept in the
+   // settings store names, or the one property its getter reads. A row whose
+   // getter reads more than one property is not one setting and is tied to none
+   // here; a change to it that would move a managed property is still refused by
+   // the store as it is written. (A row that is one bit of a property - each TLS
+   // option is a bit of tlsoptions - reads that property alone, and is managed
+   // with it.)
+   const EnvironmentSettings::Entry *EnvironmentOf(const Row &row, const std::vector<String> &read, const Managed &managed)
+   {
+      if (managed.entries.empty())
+         return nullptr;
+
+      if (row.ini_key)
+         return managed.Find(EnvironmentSettings::StoreIni, row.ini_key);
+
+      if (read.size() == 1)
+         return managed.Find(EnvironmentSettings::StoreDatabase, read[0]);
+
+      return nullptr;
+   }
+
+   bool SameValue(const Row &row, const Value &left, const Value &right)
+   {
+      switch (row.kind)
+      {
+      case KindString:
+         return left.text == right.text;
+      case KindBoolean:
+         return left.flag == right.flag;
+      case KindInteger:
+      case KindEnum:
+         return left.number == right.number;
+      }
+      return false;
+   }
+
+   // ---------------------------------------------------------------------
    // GET: the group as one flat object, in table order.
    // ---------------------------------------------------------------------
 
@@ -2104,13 +2181,21 @@ namespace
       AnsiString json = "{";
       bool first = true;
 
+      const Managed managed;
+
       for (size_t i = 0; i < group.count; i++)
       {
          const Row &row = group.rows[i];
          if (row.access == WriteOnly)
             continue;
 
-         Value value = row.get();
+         std::vector<String> read;
+         Value value = ReadRow(row, read);
+
+         // A value the environment supplied from a file is a Secret's, and is not
+         // answered over REST: (set) for text that has one, null otherwise.
+         const EnvironmentSettings::Entry *environment = EnvironmentOf(row, read, managed);
+         const bool masked = environment && environment->source == EnvironmentSettings::SourceFile;
 
          if (!first)
             json += ",";
@@ -2120,7 +2205,14 @@ namespace
          json += row.key;
          json += "\":";
 
-         switch (row.kind)
+         if (masked)
+         {
+            if (row.kind == KindString)
+               json += value.text.IsEmpty() ? "\"\"" : "\"(set)\"";
+            else
+               json += "null";
+         }
+         else switch (row.kind)
          {
          case KindString:
             json += "\"" + bridge.escape(Utf8(value.text)) + "\"";
@@ -2158,6 +2250,18 @@ namespace
             json += row.key;
             json += "_levels\":\"";
             json += EffectiveSetting::LevelsWord(levels->levels);
+            json += "\"";
+         }
+
+         // A key the environment sets says so, and where the value came from:
+         // <key>_environment, variable or file. Answered, never taken - a PUT that
+         // would change the key is refused with 409 (docs/EnvironmentConfiguration.md).
+         if (environment)
+         {
+            json += ",\"";
+            json += row.key;
+            json += "_environment\":\"";
+            json += EnvironmentSettings::SourceWord(environment->source);
             json += "\"";
          }
       }
@@ -2299,6 +2403,13 @@ namespace
                   return Refusal(bridge, 400, Named(key, "is read-only: it says how deep the setting may be set, which is the server's to know"));
             }
 
+            // <key>_environment is answered beside a key the environment sets, and
+            // says where the value came from; it is not a value either.
+            const std::string environmentSuffix = "_environment";
+            if (key.size() > environmentSuffix.size() && key.compare(key.size() - environmentSuffix.size(), environmentSuffix.size(), environmentSuffix) == 0 &&
+                FindRow(group, key.substr(0, key.size() - environmentSuffix.size())))
+               return Refusal(bridge, 400, Named(key, "is read-only: it says the server's environment sets the key, which only the environment changes"));
+
             return Refusal(bridge, 400, Named(key, "is not a setting in this group"));
          }
 
@@ -2313,6 +2424,34 @@ namespace
             return Refusal(bridge, 400, problem);
 
          changes.push_back(change);
+      }
+
+      // A key the environment sets is refused when the body would change it, before
+      // anything is applied: the next start writes the environment's value back, so
+      // the change would be accepted and lost. The value it already has is taken, so
+      // that a group read and sent back whole - the Deck's form, a configuration
+      // document - is saved. A write-only row has no value to read here; the store
+      // refuses it as it is written (EnvironmentSettings::Refusal, below).
+      {
+         const Managed managed;
+         if (!managed.entries.empty())
+         {
+            for (size_t i = 0; i < changes.size(); i++)
+            {
+               const Row &row = *changes[i].row;
+               if (!row.get)
+                  continue;
+
+               std::vector<String> read;
+               const Value current = ReadRow(row, read);
+               const EnvironmentSettings::Entry *environment = EnvironmentOf(row, read, managed);
+               if (!environment || SameValue(row, current, changes[i].value))
+                  continue;
+
+               LOG_APPLICATION("RestApi: Refused to change " + String(group.name) + " setting " + String(row.key) + ": the environment sets it (" + environment->variable + ").");
+               return Refusal(bridge, 409, Utf8(EnvironmentSettings::RefusalSentence(String(row.key), *environment)));
+            }
+         }
       }
 
       for (size_t i = 0; i < changes.size(); i++)
@@ -2342,7 +2481,23 @@ namespace
             if ((pass == 0) != checked)
                continue;
 
-            Outcome outcome = row.set(changes[i].value);
+            Outcome outcome;
+            try
+            {
+               outcome = row.set(changes[i].value);
+            }
+            catch (const EnvironmentSettings::Refusal &refusal)
+            {
+               // The store's own refusal, for a row the check above could not read
+               // (a write-only one). Said honestly: what was applied before it stays.
+               AnsiString sentence = Utf8(refusal.Sentence());
+               if (!applied.IsEmpty())
+                  sentence += " The keys before it in this request were applied: " + Utf8(applied) + ".";
+
+               LOG_APPLICATION("RestApi: Refused to change " + String(group.name) + " setting " + String(row.key) + ": the environment sets it.");
+               return Refusal(bridge, 409, sentence);
+            }
+
             if (outcome.status != 0)
             {
                LOG_APPLICATION("RestApi: Failed to change " + String(group.name) + " setting " + String(row.key) + ": " + outcome.message);
@@ -2492,7 +2647,7 @@ namespace
 
       path += "\"get\":{\"summary\":\"";
       path += getSummary;
-      path += "\",\"description\":\"Every key the PUT lists, as the server holds it now; the write-only ones are left out. A key a domain or an account may hold its own value of (x-levels in the PUT's schema) is followed by <key>_levels, the deepest level it may be set at - domain or account - which is answered and never taken; GET /api/v1/settings/levels lists those settings and docs/SettingLevels.md says how the levels resolve. Server-wide; refused for domain-restricted keys.\","
+      path += "\",\"description\":\"Every key the PUT lists, as the server holds it now; the write-only ones are left out. A key a domain or an account may hold its own value of (x-levels in the PUT's schema) is followed by <key>_levels, the deepest level it may be set at - domain or account - which is answered and never taken; GET /api/v1/settings/levels lists those settings and docs/SettingLevels.md says how the levels resolve. A key the server's environment sets (hmailserver --apply-environment; GET /api/v1/settings/environment lists them, docs/EnvironmentConfiguration.md) is followed by <key>_environment, variable or file - where the value came from - which is answered and never taken, and a value a file supplied is answered as (set), or null where the key is not text. Server-wide; refused for domain-restricted keys.\","
               "\"responses\":{\"200\":{\"description\":\"The group as one flat object\"}}},";
 
       path += "\"put\":{\"summary\":\"";
@@ -2500,12 +2655,14 @@ namespace
       path += "\",\"description\":\"Body: any subset of the writable keys below, applied through the setters the Control Panel uses. "
               "Everything is checked before anything is applied: an unknown key, a value of the wrong type, a read-only key, or a value the setting refuses is a 400 whose error names the key or carries the setting's own sentence, and nothing changes. "
               "A change takes effect at once unless the key's description says it waits for a restart; the response always shows the stored value. "
+              "A key the server's environment sets (<key>_environment in the GET) is refused with 409 when the body would change it, before anything is applied, because the next start writes the environment's value back; the value it already has is taken, so a group read and sent back whole is saved. "
               "Answers the whole group as GET emits it. Server-wide; refused for domain-restricted and read-only keys.\","
               "\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{";
       path += OpenApiProperties(group, bridge);
       path += "}}}}},"
               "\"responses\":{\"200\":{\"description\":\"The whole group after the change\"},"
               "\"400\":{\"description\":\"Refused, and nothing applied: error names the key or carries the setting's own sentence\"},"
+              "\"409\":{\"description\":\"A key the server's environment sets would change; error says which variable sets it. Nothing applied - except for a write-only key, whose value cannot be read beforehand and which the store refuses as it is written: then error names the keys before it that were applied\"},"
               "\"500\":{\"description\":\"A value was accepted and could not be written\"}}}}";
 
       return path;
@@ -2593,8 +2750,17 @@ namespace
    // remembered, so a value put back is not pending.
    AnsiString IniSettingJson(const String &name, const Bridge &bridge)
    {
+      // A key the environment sets answers managed true and where the value came
+      // from, and a value a file supplied is a Secret's: (set), never the value.
+      const Managed managed;
+      const EnvironmentSettings::Entry *environment = managed.Find(EnvironmentSettings::StoreIni, name);
+
+      String value = Ini()->GetSettingsValue(name);
+      if (environment && environment->source == EnvironmentSettings::SourceFile && !value.IsEmpty())
+         value = _T("(set)");
+
       AnsiString json = "{\"name\":\"" + bridge.escape(Utf8(name)) + "\",\"value\":\"";
-      json += bridge.escape(Utf8(Ini()->GetSettingsValue(name)));
+      json += bridge.escape(Utf8(value));
       json += "\",\"present\":";
       json += IniHas(name) ? "true" : "false";
       const AnsiString applies = IniAppliesJson(name);
@@ -2609,6 +2775,10 @@ namespace
       String levels;
       json += ",\"levels\":";
       json += IniFileSettings::GetLevels(name, levels) ? "\"" + AnsiString(levels) + "\"" : AnsiString("null");
+      json += ",\"managed\":";
+      json += environment ? "true" : "false";
+      json += ",\"environment\":";
+      json += environment ? "\"" + AnsiString(EnvironmentSettings::SourceWord(environment->source)) + "\"" : AnsiString("null");
       json += "}";
       return json;
    }
@@ -2667,11 +2837,18 @@ namespace
          json += "\"" + bridge.escape(Utf8(names[i])) + "\"";
       }
 
+      // A key whose value a file of the environment supplied is listed as a secret
+      // is: (set), and secret true, so that an export leaves it out as it leaves a
+      // password out (docs/EnvironmentConfiguration.md).
+      const Managed managed;
+
       json += "],\"settings\":[";
       for (size_t i = 0; i < names.size(); i++)
       {
          const String &name = names[i];
-         bool secret = IniSettingStore::IsSecretName(name);
+         const EnvironmentSettings::Entry *environment = managed.Find(EnvironmentSettings::StoreIni, name);
+         bool secret = IniSettingStore::IsSecretName(name) ||
+                       (environment && environment->source == EnvironmentSettings::SourceFile);
 
          String value = Ini()->GetSettingsValue(name);
          if (secret && !value.IsEmpty())
@@ -2708,7 +2885,22 @@ namespace
             json += ",";
          json += "\"" + bridge.escape(Utf8(pending[i].name)) + "\"";
       }
-      json += "]}";
+
+      // The keys the server's environment sets, each with where its value came
+      // from - beside the entries rather than in them, whose {name, value, secret}
+      // is the shape the export clients read.
+      json += "],\"environment\":{";
+      bool firstManaged = true;
+      for (const EnvironmentSettings::Entry &entry : managed.entries)
+      {
+         if (entry.store != EnvironmentSettings::StoreIni)
+            continue;
+         if (!firstManaged)
+            json += ",";
+         firstManaged = false;
+         json += "\"" + bridge.escape(Utf8(entry.name)) + "\":\"" + EnvironmentSettings::SourceWord(entry.source) + "\"";
+      }
+      json += "}}";
       return bridge.respond(200, json, "");
    }
 
@@ -2719,11 +2911,17 @@ namespace
    {
       std::vector<IniFileSettings::PendingSetting> pending = Ini()->GetPendingSettings();
 
+      // A key a file of the environment supplied is a Secret's, and is shown as a
+      // secret is (docs/EnvironmentConfiguration.md).
+      const Managed managed;
+
       AnsiString json = "[";
       for (size_t i = 0; i < pending.size(); i++)
       {
          const IniFileSettings::PendingSetting &entry = pending[i];
-         const bool secret = IniSettingStore::IsSecretName(entry.name);
+         const EnvironmentSettings::Entry *environment = managed.Find(EnvironmentSettings::StoreIni, entry.name);
+         const bool secret = IniSettingStore::IsSecretName(entry.name) ||
+                             (environment && environment->source == EnvironmentSettings::SourceFile);
 
          String stored = entry.stored;
          String running = entry.running;
@@ -2778,6 +2976,18 @@ namespace
       if (!IniSettingStore::IsStorableValue(value))
          return Refusal(bridge, 400, IniValueRefusal);
 
+      // A key the environment sets: refused unless the value is the one it has,
+      // since the next start would write the environment's back. The store refuses
+      // it too; this answers first, and the same way.
+      {
+         const Managed managed;
+         const EnvironmentSettings::Entry *environment = managed.Find(EnvironmentSettings::StoreIni, name);
+         String trimmed = value;
+         trimmed.Trim();
+         if (environment && Ini()->GetSettingsValue(name) != trimmed)
+            return Refusal(bridge, 409, Utf8(EnvironmentSettings::RefusalSentence(name, *environment)));
+      }
+
       if (!Ini()->WriteSettingsValue(name, value))
          return Refusal(bridge, 500, IniWriteRefusal);
 
@@ -2791,6 +3001,13 @@ namespace
       String name;
       if (!IniName(raw, name))
          return Refusal(bridge, 400, IniNameRefusal);
+
+      {
+         const Managed managed;
+         const EnvironmentSettings::Entry *environment = managed.Find(EnvironmentSettings::StoreIni, name);
+         if (environment)
+            return Refusal(bridge, 409, Utf8(EnvironmentSettings::RefusalSentence(name, *environment)));
+      }
 
       if (!Ini()->RemoveSettingsValue(name))
          return Refusal(bridge, 500, IniRemoveRefusal);
@@ -3014,15 +3231,18 @@ namespace
    const char *BreachCheckTestPath =
       ",\"/api/v1/settings/breach-check/test\":{\"post\":{\"summary\":\"Ask the password breach check endpoint for a range\",\"description\":\"What Settings.TestBreachCheckEndpoint does over COM: the endpoint - url in the body, or breach_check_url when the body has none - is asked for the prefix 00000, which belongs to no password, with the padding header and the timeout a real check uses, and the answer is reported: reachable, the HTTP status, how many entries came back, whether any was padding, and how long it took. The body of the answer is never returned. A url the check would not accept is a 400 with the reason. Nothing is changed. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"required\":false,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"url\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{reachable: true, status, entries, padded, milliseconds}, or {reachable: false, status (0 when no answer arrived), error, milliseconds}\"},\"400\":{\"description\":\"The body is not a JSON object, url is not a string, or the url is not one the check accepts (the reason is in error)\"}}}}";
 
+   const char *EnvironmentPath =
+      ",\"/api/v1/settings/environment\":{\"get\":{\"summary\":\"The settings this server's environment sets\",\"description\":\"Every setting the last hmailserver --apply-environment wrote (docs/EnvironmentConfiguration.md): HM_SETTING_<key> for a [Settings] key, HM_PROPERTY_<name> for an hm_settings row, either with _FILE to read the value from a file, and the four HM_REST_* variables the container has always taken. Each is {variable, store, name, source}: the variable as the server recorded it, ini or database, the setting's own name, and variable or file for where the value came from. NEVER a value - a file's is a Secret's, and the rest are read where the setting is read. The environment wins at every start, so the settings routes answer <key>_environment (and managed on the ini route) beside each of these and refuse a change to one with 409; an --apply-environment run with the variable unset takes it off this list, and the setting is the administrator's again. As this server last loaded the record: a run against a running server reaches this list, as its values reach the server, at the next reinitialise or start. Server-wide; a read-only key may read it, a key restricted to named domains may not.\",\"responses\":{\"200\":{\"description\":\"{settings: [{variable, store, name, source}]}\"}}}}";
+
    const char *ChangedFromStockPath =
-      ",\"/api/v1/settings/changed\":{\"get\":{\"summary\":\"What this server has changed from stock\",\"description\":\"Every setting whose value is not the one this version of the server ships with, with the shipped value beside it - the same document Settings.GetChangedFromDefault answers over COM, built by the same function. It is the first thing to look at when a server behaves oddly and the first thing to put in a support message: a server holds several hundred settings across its two stores and an administrator has usually changed twenty, and until this route there was no way to be told which twenty. changed is how many are listed and considered is how many settings the two stores hold altogether, so that a count of 3 reads as 3 of 391. Each entry is {store, name, value, default, secret, known, overridden}. store is ini for the keys that were the [Settings] section of hMailServer.ini (hm_inisettings since schema 6042), whose shipped value is the third argument of the read in the server's own source, and database for hm_settings, whose shipped value is what this version's create script puts in a new database. DEFAULT MEANS what the server behaves as though the setting has when nothing is stored for it, not what a fresh installation's files happen to contain: hMailServer.ini ships with lines the packaging wrote, every one adopted into the store at the first start, and a line holding the shipped value is not a change to anything and is not listed - which is what keeps this list short enough to read. A line the installer wrote with a value that is NOT the shipped one is listed, and should be. A setting whose name says its value is a secret (a password, a shared secret, a token, the pepper; not a key FILE, which is a path) is listed with value (set) when it has one and empty when it has none, and secret true, by the same rule GET /api/v1/settings/ini uses; GET /api/v1/settings/ini/{name} reads such a value when it is wanted. overridden is true where the [SettingsOverride] section of hMailServer.ini is forcing the value over whatever is stored - the deliberate door for a database that is unreachable or holds a value the server will not start on, which no other page and no backup shows, and a key forced that way is listed even when neither store holds a row for it. A row of hm_settings that this build does not read is not listed at all: an installation upgraded from an old schema holds a dozen that upgrade scripts inserted for features that have gone, and a row nothing reads cannot explain anything the server is doing. known is false for a setting this build ships no default for - a key stored for a script of the administrator's own, or one the server reads by name where it is used rather than through the loader - which is a difference from stock all the same, since stock has no such value at all. The values are this server process's: a setting stored since it started is listed as stored - a save applies most [Settings] keys at once, and GET /api/v1/server/settings/pending lists the ones that wait for a reinitialise or a restart - and one stored by another process (hmailserver --set-setting, another node on the same database) is listed as this server last loaded it until its next save, a reinitialise or a restart. Administrator password only: an api key of any scope is refused with a 401 and an account holding an administrative role with a 403, for the same reason the ini list is - the settings include the server's secrets and the commands it runs, and AutoBanCommand is a command this server runs as the service account.\",\"responses\":{\"200\":{\"description\":\"{changed, considered, settings: [{store, name, value, default, secret, known, overridden}]}\"}}}}";
+      ",\"/api/v1/settings/changed\":{\"get\":{\"summary\":\"What this server has changed from stock\",\"description\":\"Every setting whose value is not the one this version of the server ships with, with the shipped value beside it - the same document Settings.GetChangedFromDefault answers over COM, built by the same function. It is the first thing to look at when a server behaves oddly and the first thing to put in a support message: a server holds several hundred settings across its two stores and an administrator has usually changed twenty, and until this route there was no way to be told which twenty. changed is how many are listed and considered is how many settings the two stores hold altogether, so that a count of 3 reads as 3 of 391. Each entry is {store, name, value, default, secret, known, overridden, environment}; environment is variable or file where the server's environment sets the setting (hmailserver --apply-environment, docs/EnvironmentConfiguration.md) and null otherwise, and a value a file supplied is listed as (set), as a secret's is. Beside settings, environment lists every setting the environment sets, as {variable, store, name, source}, whether or not its value differs from stock. store is ini for the keys that were the [Settings] section of hMailServer.ini (hm_inisettings since schema 6042), whose shipped value is the third argument of the read in the server's own source, and database for hm_settings, whose shipped value is what this version's create script puts in a new database. DEFAULT MEANS what the server behaves as though the setting has when nothing is stored for it, not what a fresh installation's files happen to contain: hMailServer.ini ships with lines the packaging wrote, every one adopted into the store at the first start, and a line holding the shipped value is not a change to anything and is not listed - which is what keeps this list short enough to read. A line the installer wrote with a value that is NOT the shipped one is listed, and should be. A setting whose name says its value is a secret (a password, a shared secret, a token, the pepper; not a key FILE, which is a path) is listed with value (set) when it has one and empty when it has none, and secret true, by the same rule GET /api/v1/settings/ini uses; GET /api/v1/settings/ini/{name} reads such a value when it is wanted. overridden is true where the [SettingsOverride] section of hMailServer.ini is forcing the value over whatever is stored - the deliberate door for a database that is unreachable or holds a value the server will not start on, which no other page and no backup shows, and a key forced that way is listed even when neither store holds a row for it. A row of hm_settings that this build does not read is not listed at all: an installation upgraded from an old schema holds a dozen that upgrade scripts inserted for features that have gone, and a row nothing reads cannot explain anything the server is doing. known is false for a setting this build ships no default for - a key stored for a script of the administrator's own, or one the server reads by name where it is used rather than through the loader - which is a difference from stock all the same, since stock has no such value at all. The values are this server process's: a setting stored since it started is listed as stored - a save applies most [Settings] keys at once, and GET /api/v1/server/settings/pending lists the ones that wait for a reinitialise or a restart - and one stored by another process (hmailserver --set-setting, another node on the same database) is listed as this server last loaded it until its next save, a reinitialise or a restart. Administrator password only: an api key of any scope is refused with a 401 and an account holding an administrative role with a 403, for the same reason the ini list is - the settings include the server's secrets and the commands it runs, and AutoBanCommand is a command this server runs as the service account.\",\"responses\":{\"200\":{\"description\":\"{changed, considered, settings: [{store, name, value, default, secret, known, overridden, environment}], environment: [{variable, store, name, source}]}\"}}}}";
 
    const char *IniAndLogonFailurePaths =
-      ",\"/api/v1/settings/ini\":{\"get\":{\"summary\":\"The server settings that were the [Settings] section of hMailServer.ini\",\"description\":\"names: every name in the settings store or in the [Settings] section of the file, sorted by name with case - what Settings.IniSettingNames lists over COM; PasswordPepper, which the store never holds, is among them when the file has it. settings: the same names as {name, value, secret}, with the value GET /api/v1/settings/ini/{name} answers - the stored value, or the [SettingsOverride] value where the file forces one, as this server process last loaded or wrote it. Every stored name is listed, whether this build reads it or not: a setting a script of the administrator's own reads is stored and exported like any other. applies maps every [Settings] key this build reads, stored or not, to when a change to it reaches the running server: now (a save applies it - most keys), reinitialize (it waits for POST /api/v1/server/reinitialize) or restart (it waits for the service to start again), the key's mark in build/ini-settings-baseline.txt; a name it does not map has no mark, as Settings.IniSettingApplies refuses it. pending names the keys saved since what applies them last happened; GET /api/v1/server/settings/pending lists them with both values. A save reloads the store, so a value stored by another process (hmailserver --set-setting, another node on the same database) is listed as this server last loaded it until the next save here, a reinitialise or a restart. A setting whose name says its value is a secret (a password, a shared secret, a token, the pepper; not a key FILE, which is a path) is listed with value (set) when it has one and empty when it has none, and secret true: this list is what a configuration export is built from, and GET /api/v1/settings/ini/{name} reads such a value when it is wanted. Since schema 6042 the database (hm_inisettings) is the store and the section in the file is the server's copy of it. Administrator password only: an api key of any scope is refused, since the settings include the server's secrets and the commands it runs.\",\"responses\":{\"200\":{\"description\":\"{names: [...], settings: [{name, value, secret}], applies: {name: now|reinitialize|restart}, pending: [name, ...]}\"}}}},"
+      ",\"/api/v1/settings/ini\":{\"get\":{\"summary\":\"The server settings that were the [Settings] section of hMailServer.ini\",\"description\":\"names: every name in the settings store or in the [Settings] section of the file, sorted by name with case - what Settings.IniSettingNames lists over COM; PasswordPepper, which the store never holds, is among them when the file has it. settings: the same names as {name, value, secret}, with the value GET /api/v1/settings/ini/{name} answers - the stored value, or the [SettingsOverride] value where the file forces one, as this server process last loaded or wrote it. Every stored name is listed, whether this build reads it or not: a setting a script of the administrator's own reads is stored and exported like any other. applies maps every [Settings] key this build reads, stored or not, to when a change to it reaches the running server: now (a save applies it - most keys), reinitialize (it waits for POST /api/v1/server/reinitialize) or restart (it waits for the service to start again), the key's mark in build/ini-settings-baseline.txt; a name it does not map has no mark, as Settings.IniSettingApplies refuses it. pending names the keys saved since what applies them last happened; GET /api/v1/server/settings/pending lists them with both values. environment maps each key the server's environment sets (docs/EnvironmentConfiguration.md) to where its value came from, variable or file; a key a file set is listed as a secret is, (set) and secret true. A save reloads the store, so a value stored by another process (hmailserver --set-setting, another node on the same database) is listed as this server last loaded it until the next save here, a reinitialise or a restart. A setting whose name says its value is a secret (a password, a shared secret, a token, the pepper; not a key FILE, which is a path) is listed with value (set) when it has one and empty when it has none, and secret true: this list is what a configuration export is built from, and GET /api/v1/settings/ini/{name} reads such a value when it is wanted. Since schema 6042 the database (hm_inisettings) is the store and the section in the file is the server's copy of it. Administrator password only: an api key of any scope is refused, since the settings include the server's secrets and the commands it runs.\",\"responses\":{\"200\":{\"description\":\"{names: [...], settings: [{name, value, secret}], applies: {name: now|reinitialize|restart}, pending: [name, ...], environment: {name: variable|file}}\"}}}},"
       "\"/api/v1/settings/ini/{name}\":{"
-      "\"get\":{\"summary\":\"One server setting, by the name it has in [Settings]\",\"description\":\"name, value, present, applies and pending. An absent key answers 200 with an empty value and present false, as Settings.GetIniSetting answers an empty string: a setting the store does not hold is at its default, not an error. The value is the stored value, or the [SettingsOverride] value where the file forces one, as this server process last loaded or wrote it. applies says when a change reaches the running server - now, reinitialize or restart, as Settings.IniSettingApplies answers; for a name this build does not read through its loader it is null, and applies_refused carries the sentence Settings.IniSettingApplies refuses the name with - and pending is true while a stored reinitialize or restart value is not yet the running one, so the value is then not the value in use. A value stored by another process (hmailserver --set-setting, another node) shows after the next save here, a reinitialise or a restart. It is given secret or not - this is the one place a secret is read, deliberately and by name; the list masks it. A name the store could not hold - empty, over 100 characters, surrounded by whitespace, or containing = [ ] or a line break - is a 400 with that sentence. The name is taken from the path as spelled, and matched without case. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"{name, value, present, applies, pending}, and applies_refused when applies is null\"},\"400\":{\"description\":\"The name cannot be a key\"}}},"
-      "\"put\":{\"summary\":\"Store one server setting\",\"description\":\"Body: value (a string of at most 4000 characters with no line break; surrounding whitespace is trimmed). Stored in the database, which is the settings store since schema 6042, and then written into the [Settings] section of hMailServer.ini as the server's copy - what Settings.SetIniSetting does over COM. Then published: the server rebuilds its settings from the store, so a key whose applies is now is in effect when this answers, and one marked reinitialize or restart answers pending true until POST /api/v1/server/reinitialize or a restart of the service takes it. Editing the file instead sets nothing: the stored value is used, the edit is named in the error log as HM5804 and the line is put back at the next start or reinitialise, which is where the file is reconciled with the store - a save reads the store back and leaves the file to them. Answers as GET does. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"value\"],\"properties\":{\"value\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{name, value, present: true, applies, pending}\"},\"400\":{\"description\":\"The name cannot be a key, the value cannot be stored, or the body has no string value\"},\"500\":{\"description\":\"The database could not be written, so nothing was stored and nothing changed (for PasswordPepper, which is kept in the file only, the file could not be written). A value that was stored but whose line could not then be written into the file is a 200: the setting is stored, and the error log names it (HM5806)\"}}},"
-      "\"delete\":{\"summary\":\"Remove one server setting, returning it to its default\",\"description\":\"The line is removed from the file and the row is dropped from the store, returning the setting to its default - not the same as writing an empty value, and since schema 6042 the only way a setting is returned to its default: a line deleted from the file by hand is written back from the stored row. Then published, as PUT is: a key whose applies is now is at its default when this answers, and one marked reinitialize or restart answers pending true until POST /api/v1/server/reinitialize or a restart of the service takes it. Removing a key that is not there is a 200. Answers as GET does, with present false. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"200\":{\"description\":\"{name, value: empty, present: false, applies, pending}\"},\"400\":{\"description\":\"The name cannot be a key\"},\"500\":{\"description\":\"The line could not be removed from the file, or the row could not be dropped; the setting is still set. When the row is what failed the error log says so (HM5806) and the next start writes the line back\"}}}},"
+      "\"get\":{\"summary\":\"One server setting, by the name it has in [Settings]\",\"description\":\"name, value, present, applies, pending, levels, managed and environment - managed true, and environment variable or file, for a key the server's environment sets (docs/EnvironmentConfiguration.md), whose value is answered as (set) when a file supplied it. An absent key answers 200 with an empty value and present false, as Settings.GetIniSetting answers an empty string: a setting the store does not hold is at its default, not an error. The value is the stored value, or the [SettingsOverride] value where the file forces one, as this server process last loaded or wrote it. applies says when a change reaches the running server - now, reinitialize or restart, as Settings.IniSettingApplies answers; for a name this build does not read through its loader it is null, and applies_refused carries the sentence Settings.IniSettingApplies refuses the name with - and pending is true while a stored reinitialize or restart value is not yet the running one, so the value is then not the value in use. A value stored by another process (hmailserver --set-setting, another node) shows after the next save here, a reinitialise or a restart. It is given secret or not - this is the one place a secret is read, deliberately and by name; the list masks it. A name the store could not hold - empty, over 100 characters, surrounded by whitespace, or containing = [ ] or a line break - is a 400 with that sentence. The name is taken from the path as spelled, and matched without case. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"{name, value, present, applies, pending}, and applies_refused when applies is null\"},\"400\":{\"description\":\"The name cannot be a key\"}}},"
+      "\"put\":{\"summary\":\"Store one server setting\",\"description\":\"Body: value (a string of at most 4000 characters with no line break; surrounding whitespace is trimmed). Stored in the database, which is the settings store since schema 6042, and then written into the [Settings] section of hMailServer.ini as the server's copy - what Settings.SetIniSetting does over COM. Then published: the server rebuilds its settings from the store, so a key whose applies is now is in effect when this answers, and one marked reinitialize or restart answers pending true until POST /api/v1/server/reinitialize or a restart of the service takes it. Editing the file instead sets nothing: the stored value is used, the edit is named in the error log as HM5804 and the line is put back at the next start or reinitialise, which is where the file is reconciled with the store - a save reads the store back and leaves the file to them. Answers as GET does. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"value\"],\"properties\":{\"value\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{name, value, present: true, applies, pending, levels, managed, environment}\"},\"400\":{\"description\":\"The name cannot be a key, the value cannot be stored, or the body has no string value\"},\"409\":{\"description\":\"The server's environment sets the key (managed true) and the value is not the one it has: the next start would write the environment's back, so nothing is stored\"},\"500\":{\"description\":\"The database could not be written, so nothing was stored and nothing changed (for PasswordPepper, which is kept in the file only, the file could not be written). A value that was stored but whose line could not then be written into the file is a 200: the setting is stored, and the error log names it (HM5806)\"}}},"
+      "\"delete\":{\"summary\":\"Remove one server setting, returning it to its default\",\"description\":\"The line is removed from the file and the row is dropped from the store, returning the setting to its default - not the same as writing an empty value, and since schema 6042 the only way a setting is returned to its default: a line deleted from the file by hand is written back from the stored row. Then published, as PUT is: a key whose applies is now is at its default when this answers, and one marked reinitialize or restart answers pending true until POST /api/v1/server/reinitialize or a restart of the service takes it. Removing a key that is not there is a 200. Answers as GET does, with present false. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"200\":{\"description\":\"{name, value: empty, present: false, applies, pending, levels, managed, environment}\"},\"400\":{\"description\":\"The name cannot be a key\"},\"409\":{\"description\":\"The server's environment sets the key (managed true): the next start would write it back, so nothing is removed\"},\"500\":{\"description\":\"The line could not be removed from the file, or the row could not be dropped; the setting is still set. When the row is what failed the error log says so (HM5806) and the next start writes the line back\"}}}},"
       "\"/api/v1/settings/logon-failures/clear\":{\"post\":{\"summary\":\"Forget every recorded logon failure\",\"description\":\"What Settings.ClearLogonFailureList does over COM: the failures the auto-ban counts are deleted, so that an address that was one failure from a ban starts again at none. It does not lift a ban already placed; that is an IP range, deleted through /api/v1/ipranges. Server-wide, and there is no per-domain form of it: the table behind it records the ADDRESS a failure came from and the time, and holds no account and no domain, so clearing it resets the counter for every domain on the server. Refused for domain-restricted and read-only keys, and to a credential whose role is confined to named domains - a help desk included, although the unlock permission is what classifies this route. A confined help desk lifts one person's lockout with POST /api/v1/accounts/{address}/unlock, which is scoped to that account's domain. On the audit trail as object type logon failures, action cleared.\",\"responses\":{\"200\":{\"description\":\"{cleared: true}\"},\"500\":{\"description\":\"The list could not be cleared\"}}}}";
 }
 
@@ -3054,6 +3274,7 @@ namespace HM
       paths += OpenApiReadOnlyPath(DirectoriesGroup, "The directories the server runs in",
          "What Settings.Directories reports over COM, and the hMailServer.ini the settings came from. Facts about the installation, set when it was made; nothing here is written. Server-wide; refused for domain-restricted keys.", bridge);
       paths += ChangedFromStockPath;
+      paths += EnvironmentPath;
       paths += IniAndLogonFailurePaths;
       paths += OpenApiPath(ComplaintGroup, "The feedback loop settings", "Change the feedback loop settings", bridge);
       paths += OpenApiPath(ScriptingGroup, "The event-handler scripting settings", "Change the scripting settings", bridge);
@@ -3185,6 +3406,30 @@ namespace HM
    {
       Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
       return IniDelete(name, bridge);
+   }
+
+   HttpResponse
+   RestApiServer::HandleSettingsEnvironment_()
+   {
+      // The names and where each value came from, never a value: the route a
+      // reader key may read, so it carries nothing the settings routes withhold.
+      std::vector<EnvironmentSettings::Entry> entries;
+      EnvironmentSettings::ReadManaged(entries);
+
+      AnsiString json = "{\"settings\":[";
+      for (size_t i = 0; i < entries.size(); i++)
+      {
+         const EnvironmentSettings::Entry &entry = entries[i];
+         if (i > 0)
+            json += ",";
+         json += "{\"variable\":\"" + JsonEscape_(Utf8(entry.variable)) + "\"";
+         json += ",\"store\":\"" + AnsiString(entry.store == EnvironmentSettings::StoreIni ? "ini" : "database") + "\"";
+         json += ",\"name\":\"" + JsonEscape_(Utf8(entry.name)) + "\"";
+         json += ",\"source\":\"" + AnsiString(EnvironmentSettings::SourceWord(entry.source)) + "\"}";
+      }
+      json += "]}";
+
+      return BuildResponse_(200, json, "");
    }
 
    HttpResponse
@@ -3492,5 +3737,200 @@ namespace HM
       LOG_APPLICATION("RestApi: the logon-failure list was cleared.");
 
       return BuildResponse_(200, "{\"cleared\":true}");
+   }
+}
+
+namespace
+{
+   using namespace HM;
+
+   // Every group a setting can be written through. The directories are facts of
+   // the installation and have no writable row.
+   const Group *const WritableGroups[] =
+   {
+      &ServerGroup, &AntiSpamGroup, &AntiVirusGroup, &LoggingGroup, &ComplaintGroup, &ScriptingGroup,
+      &BackupGroup, &CacheGroup, &IndexingGroup, &BounceGroup, &PushGroup, &OpenPgpGroup
+   };
+
+   // Which row holds which property, found once per process by reading every
+   // row's value with a recorder installed (RestApiSettingsRows.h). Keyed by the
+   // property's name in lower case; null where more than one row reads the name,
+   // where the row that reads it reads another as well, or where the row's value
+   // is not the property's own value as stored.
+   std::mutex property_rows_mutex;
+   bool property_rows_built = false;
+   std::map<String, const Row *> property_rows;
+
+   // Whether the row answers the property as the property is stored: the same
+   // text, the same number, or a switch that is on when the number is not 0.
+   bool Faithful(const Row &row, const Value &value, const String &name, PropertySet &properties)
+   {
+      if (!properties.Exists(name))
+         return false;
+
+      switch (row.kind)
+      {
+      case KindString:
+         return value.text == properties.GetString(name);
+      case KindBoolean:
+         return value.flag == (properties.GetLong(name) != 0);
+      case KindInteger:
+      case KindEnum:
+         return value.number == properties.GetLong(name);
+      }
+
+      return false;
+   }
+
+   void BuildPropertyRows()
+   {
+      std::shared_ptr<PropertySet> properties = Configuration::Instance()->GetPropertySet();
+      if (!properties || !ConfigurationLoaded())
+         return;
+
+      for (const Group *group : WritableGroups)
+      {
+         for (size_t i = 0; i < group->count; i++)
+         {
+            const Row &row = group->rows[i];
+            if (row.access != ReadWrite || row.ini_key || !row.get || !row.set)
+               continue;
+
+            std::vector<String> read;
+            Value value;
+            try
+            {
+               value = ReadRow(row, read);
+            }
+            catch (...)
+            {
+               continue;
+            }
+
+            if (read.size() != 1)
+            {
+               for (const String &name : read)
+               {
+                  String key = name;
+                  key.MakeLower();
+                  property_rows[key] = nullptr;
+               }
+               continue;
+            }
+
+            String key = read[0];
+            key.MakeLower();
+
+            auto existing = property_rows.find(key);
+            if (existing != property_rows.end())
+            {
+               (*existing).second = nullptr;
+               continue;
+            }
+
+            property_rows[key] = Faithful(row, value, read[0], *properties) ? &row : nullptr;
+         }
+      }
+   }
+
+   const Row *PropertyRow(const String &property)
+   {
+      std::lock_guard<std::mutex> guard(property_rows_mutex);
+
+      if (!property_rows_built)
+      {
+         BuildPropertyRows();
+         property_rows_built = true;
+      }
+
+      String key = property;
+      key.MakeLower();
+
+      auto found = property_rows.find(key);
+      return found == property_rows.end() ? nullptr : (*found).second;
+   }
+
+   String Wide(const AnsiString &text)
+   {
+      String wide;
+      Unicode::MultiByteToWide(text, wide);
+      return wide;
+   }
+}
+
+namespace HM
+{
+   namespace RestApiSettingsRows
+   {
+      String
+      CheckPropertyValue(const String &property, bool isNumber, long number, const String &text)
+      {
+         const Row *row = PropertyRow(property);
+         if (!row)
+            return String();
+
+         Value value;
+         switch (row->kind)
+         {
+         case KindString:
+            if (isNumber)
+               return String();
+            value.text = text;
+            break;
+
+         case KindInteger:
+            if (!isNumber)
+               return String();
+            value.number = number;
+            break;
+
+         case KindBoolean:
+            if (!isNumber)
+               return String();
+            if (number != 0 && number != 1)
+               return Wide(Named(std::string(row->key), "must be true or false"));
+            value.flag = number != 0;
+            break;
+
+         case KindEnum:
+            if (!isNumber)
+               return String();
+            if (!WordFor(*row, number))
+               return Wide(Named(std::string(row->key), "must be one of ") + WordList(*row));
+            value.number = number;
+            break;
+         }
+
+         // The row's own check, in its own sentence: the value the REST route
+         // would refuse is refused in the same words.
+         if (row->check)
+            return row->check(value);
+
+         return String();
+      }
+
+      bool
+      WordValue(const String &property, const String &word, long &number, String &words)
+      {
+         words.Empty();
+
+         const Row *row = PropertyRow(property);
+         if (!row || row->kind != KindEnum)
+            return false;
+
+         words = Wide(WordList(*row));
+
+         const AnsiString narrow = Utf8(word);
+         for (const Word *candidate = row->words; candidate && candidate->word; candidate++)
+         {
+            if (narrow == candidate->word)
+            {
+               number = candidate->value;
+               return true;
+            }
+         }
+
+         return false;
+      }
    }
 }

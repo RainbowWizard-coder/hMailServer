@@ -301,6 +301,7 @@ EXIT 0
     <ClCompile Include="..\Common\Application\Property.cpp" />
     <ClCompile Include="..\Common\Application\PropertySet.cpp" />
     <ClCompile Include="..\Common\Application\SettingsDiff.cpp" />
+    <ClCompile Include="..\Common\Application\EnvironmentSettings.cpp" />
     <ClCompile Include="..\Common\Application\Reinitializator.cpp" />
     <ClCompile Include="..\Common\Application\ArchiveRetentionTask.cpp" />
     <ClCompile Include="..\Common\Application\MailboxRetentionTask.cpp" />
@@ -1204,6 +1205,7 @@ EXIT 0
     <ClInclude Include="..\Common\Application\PropertySet.h" />
     <ClInclude Include="..\Common\Application\SettingsDefaults.h" />
     <ClInclude Include="..\Common\Application\SettingsDiff.h" />
+    <ClInclude Include="..\Common\Application\EnvironmentSettings.h" />
     <ClInclude Include="..\Common\Application\Reinitializator.h" />
     <ClInclude Include="..\Common\Application\ArchiveRetentionTask.h" />
     <ClInclude Include="..\Common\Application\MailboxRetentionTask.h" />
@@ -1599,6 +1601,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\AuditRevert.h" />
     <ClInclude Include="..\Common\Util\QuotaPolicy.h" />
     <ClInclude Include="..\Common\Util\RestApiSettingLevels.h" />
+    <ClInclude Include="..\Common\Util\RestApiSettingsRows.h" />
     <ClInclude Include="..\Common\Util\PersonExport.h" />
     <ClInclude Include="..\Common\Util\ContactCard.h" />
     <ClInclude Include="..\Common\Util\ContactGroups.h" />
