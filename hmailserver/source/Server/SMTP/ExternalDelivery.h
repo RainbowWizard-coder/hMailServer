@@ -28,7 +28,7 @@ namespace HM
 
 
 
-      void DeliverToSingleDomain_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, std::shared_ptr<ServerInfo> serverInfo);
+      void DeliverToSingleDomain_(std::vector<std::shared_ptr<MessageRecipient> > &batch, std::shared_ptr<ServerInfo> serverInfo);
       void DeliverToSingleServer_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, std::shared_ptr<ServerInfo> serverInfo);
 
       bool ResolveRecipientServers_(std::shared_ptr<ServerInfo> &serverInfo, std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, std::vector<HostNameAndIpAddress> &saMailServers);
@@ -78,7 +78,11 @@ namespace HM
       // Function not called anywhere else to matter
       bool GetRetryOptions_(std::map<String,DeliveryFailure> &mapFailedDueToNonFatalError, long &lNoOfRetries, long &lMinutesBetween);
 
-      IPAddress GetLocalAddress_(const IPAddress &remote);
+      // The source address for a connection to remote, or the unspecified
+      // address when none is to be bound. logSkippedBind false leaves out the
+      // line saying a bind of the other family was skipped - for the IP
+      // warm-up's question before the connection, whose own asking says it.
+      IPAddress GetLocalAddress_(const IPAddress &remote, bool logSkippedBind = true);
 
       const String &_sendersIP;
       const std::shared_ptr<Message> original_message_;
@@ -93,5 +97,43 @@ namespace HM
       // the longest of those deferrals in minutes. See DeferBatchWithoutCounting_.
       std::set<String> shaping_deferred_;
       int shaping_deferral_minutes_;
+
+      // What the IP warm-up held in this pass (SMTP/IpWarmup.h): the
+      // recipients, and what the log line and the report say about why.
+      // DeliverToSingleDomain_ knows why and not when; RescheduleDelivery_
+      // knows when, once it has chosen the path, and says both
+      // (ReportWarmupHolds_).
+      struct WarmupHold
+      {
+         WarmupHold() : day(0), ceiling(0), held_by_others(false) {}
+
+         std::vector<String> addresses;   // the recipients held
+         String address;                  // the source address in warm-up
+         int day;                         // the warm-up day
+         String plan;                     // the plan's name
+         int ceiling;                     // the day's ceiling at the provider
+         String provider;                 // the provider's name for a sentence
+         bool held_by_others;             // the room is held by deliveries in flight, not sent
+      };
+
+      std::vector<WarmupHold> warmup_holds_;
+
+      // The longest of this pass's warm-up holds, in minutes. A pass past its
+      // retry span whose warm-up hold is longer than the retry interval is
+      // counted at the hold's own length, not at the interval (see
+      // RescheduleDelivery_); nothing else of the shaping row's is.
+      int warmup_hold_minutes_;
+
+      // "Delivery deferred by this server's IP warm-up: ..." - why, not when.
+      static String WarmupHoldSentence_(const WarmupHold &hold);
+
+      // When the next try is, from its minutes and whether it is counted:
+      // after midnight UTC when that is where it lands, at the retry interval
+      // when a counted try comes back inside the day.
+      static String WarmupNextAttempt_(long minutes, bool counted);
+
+      // Logs each hold with its next attempt and gives the held recipients'
+      // pending failures the text a report would carry. Clears the holds.
+      void ReportWarmupHolds_(std::map<String,DeliveryFailure> &mapFailedDueToNonFatalError, const String &nextAttempt);
    };
 }

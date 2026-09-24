@@ -154,6 +154,7 @@ namespace hMailServer.ControlPanel.Services
          "Help.md",
          "HighAvailabilityRunbook.md",
          "ImpersonationProtection.md",
+         "IpWarmup.md",
          "MailboxMove.md",
          "MailingLists.md",
          "MessageRecall.md",

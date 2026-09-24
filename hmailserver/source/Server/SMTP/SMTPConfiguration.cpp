@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "SMTPConfiguration.h"
 #include "SMTPDeliveryManager.h"
+#include "IpWarmup.h"
 
 #include "../Common/Application/Property.h"
 
@@ -373,6 +374,13 @@ namespace HM
       if (!remote_domain_policies_->XMLStore(pBackupNode, iOptions))
          return false;
 
+      // The IP warm-up's schedules, for the same reason: a restore onto new
+      // hardware, or a move to another database, that left them behind would
+      // put a warming address back on the wire with no ceiling at all. The
+      // day's counts are traffic and stay behind (SMTP/IpWarmup.h).
+      if (!IpWarmup::Instance()->XMLStore(pBackupNode))
+         return false;
+
       return true;
    }
 
@@ -395,6 +403,9 @@ namespace HM
 
       remote_domain_policies_->Refresh();
       if (!remote_domain_policies_->XMLLoad(pBackupNode, iRestoreOptions))
+         return false;
+
+      if (!IpWarmup::Instance()->XMLLoad(pBackupNode))
          return false;
 
       return true;

@@ -45,6 +45,7 @@
 #include "Version.h"
 
 #include "../../SMTP/SMTPDeliveryManager.h"
+#include "../../SMTP/IpWarmup.h"
 #include "../../IMAP/IMAPConfiguration.h"
 #include "../../ExternalFetcher/ExternalFetchManager.h"
 
@@ -1669,6 +1670,11 @@ namespace HM
       // key under the kid the last one used, and a key remembered across it
       // would refuse every token the new issuer signs for the hour.
       JwksKeySet::Instance()->Clear();
+
+      // The IP warm-up's cached schedules and counts (SMTP/IpWarmup.h) are
+      // read again from the tables: a restore may have put other rows there,
+      // and a count read back is how a restart is proved not to reset a day.
+      IpWarmup::Instance()->Forget();
 
       String sErrorMessage;
       if (!InitInstance(sErrorMessage))

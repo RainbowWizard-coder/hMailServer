@@ -2181,6 +2181,12 @@ namespace HM
          case RouteSandboxHeldRelease:
          case RouteSandboxHeldDiscard:
             return HandleSandboxHeld_(caller, route);
+         case RouteWarmupList:
+         case RouteWarmupCreate:
+         case RouteWarmupUpdate:
+         case RouteWarmupDelete:
+         case RouteWarmupHistory:
+            return HandleWarmup_(route.kind, route.record_id, GetRequestBody_(request));
 
          case RouteTlsa:
             return HandleTlsa_();
@@ -4962,7 +4968,44 @@ namespace HM
             route.kind = RouteSandboxHeldRelease;
          else if (!release && method == "DELETE")
             route.kind = RouteSandboxHeldDiscard;
+         return;
+      }
 
+      // The IP warm-up (RestApiWarmup.cpp): the schedules with today's counts
+      // and a new one at the collection's path, one changed or removed at
+      // /{id}, and one schedule's days at /{id}/history.
+      const AnsiString warmupPath = "/api/v1/warmup";
+
+      if (path == warmupPath)
+      {
+         if (method == "GET")
+            route.kind = RouteWarmupList;
+         else if (method == "POST")
+            route.kind = RouteWarmupCreate;
+         return;
+      }
+
+      if (path.StartsWith(warmupPath + "/"))
+      {
+         const AnsiString rest = path.Mid(warmupPath.GetLength() + 1);
+         const AnsiString historyTail = "/history";
+         __int64 warmupId = 0;
+
+         if (method == "GET" && rest.EndsWith(historyTail))
+         {
+            if (ParseQueueId(rest.Mid(0, rest.GetLength() - historyTail.GetLength()), warmupId))
+            {
+               route.kind = RouteWarmupHistory;
+               route.record_id = warmupId;
+            }
+            return;
+         }
+
+         if ((method == "PUT" || method == "DELETE") && rest.Find("/") < 0 && ParseQueueId(rest, warmupId))
+         {
+            route.kind = method == "PUT" ? RouteWarmupUpdate : RouteWarmupDelete;
+            route.record_id = warmupId;
+         }
          return;
       }
 
@@ -6831,6 +6874,11 @@ namespace HM
       // one: the queue's own two writes, on its held part.
       case RouteSandboxHeldRelease:
       case RouteSandboxHeldDiscard:
+      // A warm-up schedule added, changed or removed decides how much the
+      // queue sends from an address today.
+      case RouteWarmupCreate:
+      case RouteWarmupUpdate:
+      case RouteWarmupDelete:
       case RouteQuarantineRelease:
       case RouteQuarantineDelete:
       case RouteIpRangeCreate:
@@ -7538,15 +7586,23 @@ namespace HM
       case RouteQueueShaping:
       // What is held for a sandbox's verdict: the queue's held part again.
       case RouteSandboxHeldList:
+      // The IP warm-up's schedules and what each has sent today, and one
+      // schedule's days: how much the queue may send from an address, read.
+      case RouteWarmupList:
+      case RouteWarmupHistory:
          return RolePermission::ViewQueue;
 
       // Retrying a queued message, or dropping it; releasing a held one back
       // into the queue, or discarding it; clearing a destination's back-off so
       // the queue delivers to it now; delivering a message a sandbox has not
-      // answered for, or discarding it.
+      // answered for, or discarding it; a warm-up schedule added, changed or
+      // removed, which decides how much the queue sends from an address.
       case RouteQueueRetry:
       case RouteQueueDelete:
       case RouteQueueShapingClear:
+      case RouteWarmupCreate:
+      case RouteWarmupUpdate:
+      case RouteWarmupDelete:
       case RouteReviewRelease:
       case RouteReviewDiscard:
       case RouteSandboxHeldRelease:
@@ -8366,9 +8422,13 @@ namespace HM
       // GET /api/v1/queue lists the sender and every recipient of all of them -
       // so there is no honest way to narrow it to a domain. Refused outright
       // rather than narrowed wrongly.
+      // The IP warm-up is the queue's too: a schedule is about one of the
+      // server's own addresses, which every domain's mail leaves from.
       if (route.kind == RouteQueueList || route.kind == RouteQueueRetry || route.kind == RouteQueueDelete ||
           route.kind == RouteQueueShaping || route.kind == RouteQueueShapingClear ||
-          route.kind == RouteSandboxHeldList || route.kind == RouteSandboxHeldRelease || route.kind == RouteSandboxHeldDiscard)
+          route.kind == RouteSandboxHeldList || route.kind == RouteSandboxHeldRelease || route.kind == RouteSandboxHeldDiscard ||
+          route.kind == RouteWarmupList || route.kind == RouteWarmupCreate || route.kind == RouteWarmupUpdate ||
+          route.kind == RouteWarmupDelete || route.kind == RouteWarmupHistory)
       {
          refusalReason = "this credential is restricted to named domains, and the delivery queue is server-wide";
          return AuthorizationForbidden;
@@ -17453,6 +17513,7 @@ namespace HM
       openApiJson += OpenApiCertificatesPaths_();
       openApiJson += OpenApiRoutesPaths_();
       openApiJson += OpenApiRemoteDomainsPaths_();
+      openApiJson += OpenApiWarmupPaths_();
       openApiJson += OpenApiFetchAccountsPaths_();
       openApiJson += OpenApiReaderFetchAccountsPaths_();
       openApiJson += OpenApiReaderFetchImportPaths_();

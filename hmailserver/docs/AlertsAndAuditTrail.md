@@ -59,6 +59,7 @@ The configuration tables recorded, and the object type each is recorded as:
 | `hm_rules`, `hm_rule_criterias`, `hm_rule_actions` | `rule`, `rule criterion`, `rule action` |
 | `hm_securityranges`, `hm_tcpipports`, `hm_sslcertificates` | `ip range`, `tcp/ip port`, `ssl certificate` |
 | `hm_incoming_relays`, `hm_remotedomainpolicies` | `incoming relay`, `remote domain policy` |
+| `hm_warmup` | `warm-up schedule` - an IP warm-up schedule ([IpWarmup.md](IpWarmup.md)); its daily counts, `hm_warmupcounts`, are the queue's own writes and are not recorded |
 | `hm_dnsbl`, `hm_surblservers` | `dns blacklist`, `surbl server` |
 | `hm_whitelist`, `hm_greylisting_whiteaddresses` | `white list address`, `greylisting white address` |
 | `hm_blocked_attachments`, `hm_blocked_senders` | `blocked attachment`, `blocked sender` |

@@ -75,6 +75,9 @@ select hm_drop_table('hm_sandboxverdicts');
 
 select hm_drop_table('hm_sandboxholds');
 select hm_drop_table('hm_listarchive');
+select hm_drop_table('hm_warmupcounts');
+
+select hm_drop_table('hm_warmup');
 
 select hm_drop_table('hm_dmarcreportrecords');
 
@@ -2624,4 +2627,33 @@ insert into hm_servermessages (smname, smtext) values ('LIST_UNSUBSCRIBED_SUBJEC
 
 insert into hm_servermessages (smname, smtext) values ('LIST_UNSUBSCRIBED', E'%MACRO_ADDRESS% has been taken off the list %MACRO_LIST%. It will not be sent the list''s mail any more.\r\n\r\nhMailServer\r\n');
 
-insert into hm_dbversion values (6092);
+create table hm_warmup
+(
+	warmupid serial not null primary key,
+	warmupaddress varchar(64) not null,
+	warmupstarted bigint not null,
+	warmupplan int not null,
+	warmupenabled int not null
+);
+
+CREATE UNIQUE INDEX idx_hm_warmup_address ON hm_warmup (warmupaddress);
+
+create table hm_warmupcounts
+(
+	wcid serial not null primary key,
+	wcwarmupid int not null,
+	wcday bigint not null,
+	wcprovider varchar(32) not null,
+	wcsent int not null,
+	wcdeferred int not null,
+	wcceiling int not null,
+	wcplanday int not null
+);
+
+CREATE UNIQUE INDEX idx_hm_warmupcounts_day ON hm_warmupcounts (wcwarmupid, wcday, wcprovider);
+
+CREATE INDEX idx_hm_warmupcounts_date ON hm_warmupcounts (wcday);
+
+ALTER TABLE hm_warmupcounts ADD CONSTRAINT fk_hm_warmupcounts_warmup FOREIGN KEY (wcwarmupid) REFERENCES hm_warmup (warmupid) ON DELETE CASCADE;
+
+insert into hm_dbversion values (6093);

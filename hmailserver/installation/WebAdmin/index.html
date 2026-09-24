@@ -1203,6 +1203,10 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="shresume")resumeDestination(d.id);
   else if(d.act==="sbrelease")sandboxAct(d.id,true);
   else if(d.act==="sbdiscard")sandboxAct(d.id,false);
+  else if(d.act==="warmnew")openWarmup(0);
+  else if(d.act==="warmedit")openWarmup(Number(d.id));
+  else if(d.act==="warmsave")saveWarmup();
+  else if(d.act==="warmdel")deleteWarmup(Number(d.id));
   else if(d.act==="log")showLog(d.name,d.lines);
   else if(d.act==="sessrefresh")render();
   else if(d.act==="follow")followSession(Number(d.id));
@@ -4043,8 +4047,16 @@ async function renderQueue(){
      sandbox's verdict on its attachments (/api/v1/sandbox/held): listed by
      the queue too, marked held, and drawn in a box of its own with the two
      decisions an administrator can make, since the queue's Retry and Delete
-     do not reach a held message. */
-  const [q,shaping,sandbox]=await Promise.all([api("/api/v1/queue"),api("/api/v1/queue/shaping"),api("/api/v1/sandbox/held?limit=1000")]);
+     do not reach a held message. And the IP warm-up's
+     schedules (docs/IpWarmup.md) from /api/v1/warmup: per schedule the day it
+     is on and, per provider, today's recipients sent against the ceiling and
+     deferred over it; Edit and Add open a small editor in this view. The
+     queue is drawn whether or not the warm-up can be read: a listing the
+     server could not answer is said in the box, and the rest stands. */
+  if(editing&&editing.kind==="warmup"){renderWarmupEditor();return;}
+  const [q,shaping,sandbox,warmup]=await Promise.all([api("/api/v1/queue"),api("/api/v1/queue/shaping"),api("/api/v1/sandbox/held?limit=1000"),
+    api("/api/v1/warmup").catch(e=>{if(e.message==="auth")throw e;return null;})]);
+  cache.warmup=(warmup&&warmup.schedules)||[];
   const rows=(q.messages||[]).filter(x=>!x.held).map(x=>`
     <tr><td>${escHtml(x.id)}</td><td>${escHtml(x.from||"—")}</td><td>${escHtml(x.recipients||"—")}</td><td>${escHtml(x.next_try||"—")}</td>
         <td style="text-align:right;white-space:nowrap">
@@ -4087,6 +4099,11 @@ async function renderQueue(){
       <p class="note">${t("A message with an attachment of a submitted type waits here - in no mailbox and not in the quarantine - until the sandbox has answered for each file: clean is delivered, malicious is quarantined. Release delivers it now without the verdict; Discard deletes it and tells nobody.")}</p>
       ${held||'<div class="empty">'+t("Nothing is held for a sandbox.")+'</div>'}
       ${heldTotal>heldShown?'<div class="hint">'+escHtml(tf("{0} of {1} held messages are shown, oldest first.",heldShown,heldTotal))+'</div>':""}
+    </div></div>
+    <div class="sect"><h2>${t("Warm-up")}</h2><div class="card flat" id="warmupBox">
+      <p class="note">${t("A schedule holds a new outbound address to a daily ceiling of recipients at each large provider, rising day by day. The queue sends up to the ceiling and holds the rest: once the day's ceiling is reached, usually until the next UTC day; while deliveries in progress hold the room, a few minutes. The log says when each is tried again. The counts are today's.")}</p>
+      ${warmup?(cache.warmup.map(warmupEntry).join("")||'<div class="empty">'+t("No outbound address is being warmed up.")+'</div>'):'<div class="err" id="err_warmup">'+t("The warm-up schedules could not be read; the rest of the page is shown.")+'</div>'}
+      ${may("manage_queue")?`<div class="row" style="margin-top:12px"><button class="btn" data-act="warmnew">${t("Add a schedule")}</button></div>`:""}
     </div></div></div>`;
 }
 async function sandboxAct(id,release){
@@ -4096,6 +4113,78 @@ async function sandboxAct(id,release){
     toast(release?t("Released to the delivery queue"):t("Discarded"));
     renderQueue();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_sandbox_"+id,e.message);}
+}
+/* One warm-up schedule in the queue view: its address, plan and day, a
+   warning when SMTPDeliveryBindToIP does not bind the address as a delivery
+   reads it, and one line per provider - sent of the ceiling, and what was
+   deferred over it. */
+const WARMUP_PROVIDERS={google:"Google",microsoft:"Microsoft",yahoo:"Yahoo",apple:"Apple",proton:"Proton"};
+const warmupPlanName=p=>p==="gentle"?t("Gentle"):p==="fast"?t("Fast"):t("Standard");
+function warmupEntry(s){
+  const lines=(s.providers||[]).map(p=>{
+    const name=WARMUP_PROVIDERS[p.provider]||t("Other providers");
+    const ceiling=p.ceiling===null||p.ceiling===undefined?t("no ceiling"):String(p.ceiling);
+    return `<div class="hint" data-provider="${escHtml(p.provider)}"><b>${escHtml(name)}</b>: ${escHtml(String(p.sent||0))} / ${escHtml(ceiling)}${p.deferred?" · "+escHtml(tf("{0} deferred",p.deferred)):""}</div>`;
+  }).join("");
+  return `<div class="row" style="justify-content:space-between;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)">
+      <div style="flex:1;min-width:0"><b style="word-break:break-all">${escHtml(s.address||"")}</b> <span class="badge info">${escHtml(warmupPlanName(s.plan))}</span>${s.enabled?"":' <span class="badge warn">'+t("Disabled")+'</span>'}
+        <div class="hint">${s.complete?t("The warm-up is complete: nothing is held or counted."):escHtml(tf("Day {0} of {1}",s.day,s.last_day))} · ${escHtml(tf("day 1 was {0}",s.started||""))}</div>
+        ${s.in_bind_setting?"":'<div class="hint" data-warn="bind">'+t("SMTPDeliveryBindToIP does not bind this address - a delivery binds only the first entry of each family: unless a global rule binds it, no delivery leaves from it and nothing is counted.")+'</div>'}
+        ${lines}</div>
+      ${may("manage_queue")?`<button class="btn ghost sm" data-act="warmedit" data-id="${escHtml(String(s.id))}">${t("Edit")}</button>`:""}</div>`;
+}
+function openWarmup(id){
+  const existing=(cache.warmup||[]).filter(s=>Number(s.id)===Number(id))[0];
+  editing={kind:"warmup",id:existing?Number(existing.id):0,
+    values:existing?{address:existing.address,plan:existing.plan,started:existing.started,enabled:!!existing.enabled}:{address:"",plan:"standard",started:"",enabled:true}};
+  renderWarmupEditor();
+}
+function renderWarmupEditor(){
+  const v=editing.values;
+  const field=(caption,hint,control)=>`<div class="fr"><div class="lab"><b>${caption}</b>${hint?'<div class="hint">'+hint+'</div>':""}</div><div class="ctl">${control}</div></div>`;
+  $("#content").innerHTML=`<div class="view">
+    <button class="btn ghost sm" data-act="cancel">${t("‹ Delivery queue")}</button>
+    <div class="sect"><h2>${editing.id?escHtml(tf("Edit the warm-up of {0}",v.address)):t("New warm-up schedule")}</h2>
+      <div class="card flat"><div class="form">
+        ${field(t("Outbound address"),t("The IPv4 or IPv6 address mail leaves from. It must be configured on this host and named by SMTPDeliveryBindToIP or a rule; the server cannot check the first."),`<input id="warm_address" value="${escHtml(v.address||"")}"${editing.id?" readonly":""}>`)}
+        ${field(t("Plan"),t("Standard rises over 30 days; gentle has half of each ceiling over 60; fast has twice each over 15. Every other provider gets five times the ceiling."),
+          `<select id="warm_plan"><option value="standard">${t("Standard")}</option><option value="gentle">${t("Gentle")}</option><option value="fast">${t("Fast")}</option></select>`)}
+        ${field(t("Day 1"),t("The UTC date the warm-up began, YYYY-MM-DD: today or earlier. Empty is today."),`<input id="warm_started" value="${escHtml(v.started||"")}">`)}
+        ${field(t("Enabled"),"",`<input type="checkbox" id="warm_enabled"${v.enabled?" checked":""}>`)}
+      </div></div></div>
+    <div class="sect"><div class="row">
+      <button class="btn" data-act="warmsave">${t("Save schedule")}</button>
+      ${editing.id?`<button class="btn danger" data-act="warmdel" data-id="${escHtml(String(editing.id))}">${t("Delete")}</button>`:""}
+      <button class="btn ghost" data-act="cancel">${t("Cancel")}</button>
+      <div class="err" id="err_warmedit"></div>
+    </div></div></div>`;
+  $("#warm_plan").value=v.plan||"standard";
+}
+async function saveWarmup(){
+  setErr("err_warmedit","");
+  const address=$("#warm_address").value.trim();
+  if(!address){setErr("err_warmedit",t("An outbound address is required."));return;}
+  /* A PUT leaves the address out - the server refuses a change to it - and
+     says Day 1 always: an emptied field is today, as the hint says, where a
+     field left out of a PUT would keep the start it had. */
+  const body={plan:$("#warm_plan").value,enabled:!!$("#warm_enabled").checked};
+  if(!editing.id)body.address=address;
+  const started=$("#warm_started").value.trim();
+  if(started)body.started=started;
+  else if(editing.id)body.started=new Date().toISOString().slice(0,10);
+  try{
+    if(editing.id)await api("/api/v1/warmup/"+editing.id,{method:"PUT",body:JSON.stringify(body)});
+    else await api("/api/v1/warmup",{method:"POST",body:JSON.stringify(body)});
+    editing=null;toast(t("Warm-up schedule saved"));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_warmedit",e.message);}
+}
+async function deleteWarmup(id){
+  if(!confirm(tf("Delete the warm-up schedule for {0}? Its counts go with it, and the address is no longer held.",editing.values.address)))return;
+  setErr("err_warmedit","");
+  try{
+    await api("/api/v1/warmup/"+id,{method:"DELETE"});
+    editing=null;toast(t("Warm-up schedule deleted"));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_warmedit",e.message);}
 }
 async function resumeDestination(destination){
   if(!confirm(tf("Resume deliveries to {0} now? The next slow-down reply opens a new window.",destination)))return;

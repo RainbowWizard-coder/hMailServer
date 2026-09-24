@@ -43,6 +43,7 @@
 #include "ListArchive.h"
 #include "../../SMTP/BounceTracker.h"
 #include "../../SMTP/DestinationBackoffTester.h"
+#include "../../SMTP/WarmupPlanTester.h"
 #include "../Persistence/SchemaUpgrader.h"
 #include "../../SMTP/DeliveryReportParser.h"
 #include "../../SMTP/ComplaintTracker.h"
@@ -197,6 +198,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing DestinationBackoff\n"));
       DestinationBackoffTester destinationBackoffTester;
       destinationBackoffTester.Test();
+
+      // The IP warm-up's arithmetic: the three plans' ceilings on sample days,
+      // the day a schedule is on, the dates and addresses the routes accept,
+      // and which provider a list of mail hosts is.
+      OutputDebugString(_T("hMailServer: Testing WarmupPlan\n"));
+      WarmupPlanTester warmupPlanTester;
+      warmupPlanTester.Test();
 
       // The upgrade chain walked in-process: the next script found by its
       // shape, and - on a Compact database of the tester's own, with a chain of

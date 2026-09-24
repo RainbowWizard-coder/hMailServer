@@ -29,6 +29,7 @@ In the archive
 | Accounts | Address, password hash, forwarding, vacation, signature, quota, admin level, TOTP secret, anti-spam thresholds |
 | Aliases and distribution lists, with their members | |
 | Routes, IP ranges, TCP/IP ports, SSL certificate *records*, incoming relays, groups | Only with **Back up settings** on |
+| IP warm-up schedules | Only with **Back up settings** on: the address, the start as a date, the plan and the switch. A restore changes a schedule the server already has for the address to the archive's, keeping its counts; removes one the archive does not name; and adds the rest with none. See [IpWarmup.md](IpWarmup.md) |
 | Anti-spam and anti-virus lists | DNS black lists, SURBL servers, white list, blocked senders, the server's allow and block list, blocked attachments, greylisting white list |
 | Public folders, and the permissions on them | |
 | The server settings that were the `[Settings]` section of `hMailServer.ini` | The rows of `hm_inisettings`, which is the settings store since schema 6042; the section in the file is the server's copy of them, and is not what the archive reads. Carried as name and value with **Back up settings** on, so a row this build does not know still comes back. **Not `PasswordPepper`** - see *Not in the archive* |
@@ -81,6 +82,7 @@ Not in the archive, deliberately
 | What the last reputation check found (`hm_reputationchecks`) | An operational record about this machine's own addresses, rewritten by the next check, which runs within a day of the restore. What it checks - the three `ReputationWatch` settings - is in `hm_settings`, which the archive does carry. |
 | Quarantine, message trace, the send API's record of sends (`hm_apisends`), metric history, the archive index | Server-wide operational records rather than an account's data. Back the database up if you need them. The send record is keyed on queue ids, which a restore does not keep, so a restored server's API keys list no sends ([SendApi.md](SendApi.md)) |
 | The journal of mailbox moves (`hm_mailboxmoves`) | A record of what this installation did to its own store, not part of a mailbox. A restore is not a moment in a move: the account comes back at the address the archive holds, so a carried row would describe a move this store has no trace of. The audit trail is the record a person reads - see [MailboxMove.md](MailboxMove.md) |
+| The IP warm-up's daily counts (`hm_warmupcounts`) | Traffic: how many recipients each warming address sent to each provider on each day. The schedules themselves are carried; a schedule restored onto another server, or moved with the database to another backend, starts its day at zero there, so its first day there may send up to that day's ceiling again. See [IpWarmup.md](IpWarmup.md) |
 | The links in quarantine digests already sent (`hm_digesttokens`) | Each is good once and expires within `QuarantineDigestLinkHours`, and names a quarantine entry the archive does not hold. The next digest issues new ones |
 
 

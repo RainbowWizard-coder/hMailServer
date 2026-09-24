@@ -100,6 +100,10 @@ drop table if exists hm_sandboxholds;
 
 drop table if exists hm_listarchive;
 
+drop table if exists hm_warmupcounts;
+
+drop table if exists hm_warmup;
+
 drop table if exists hm_accounts;
 
 drop table if exists hm_aliases;
@@ -2789,4 +2793,37 @@ insert into hm_servermessages (smname, smtext) values ('LIST_UNSUBSCRIBED_SUBJEC
 
 insert into hm_servermessages (smname, smtext) values ('LIST_UNSUBSCRIBED', '%MACRO_ADDRESS% has been taken off the list %MACRO_LIST%. It will not be sent the list''s mail any more.\r\n\r\nhMailServer\r\n');
 
-insert into hm_dbversion values (6092);
+create table hm_warmup
+(
+	warmupid int auto_increment not null, primary key(`warmupid`), unique(`warmupid`),
+	warmupaddress varchar(64) not null,
+	warmupstarted bigint not null,
+	warmupplan int not null,
+	warmupenabled int not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_warmup_address ON hm_warmup (warmupaddress);
+
+ALTER TABLE hm_warmup ENGINE=InnoDB;
+
+create table hm_warmupcounts
+(
+	wcid int auto_increment not null, primary key(`wcid`), unique(`wcid`),
+	wcwarmupid int not null,
+	wcday bigint not null,
+	wcprovider varchar(32) not null,
+	wcsent int not null,
+	wcdeferred int not null,
+	wcceiling int not null,
+	wcplanday int not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_warmupcounts_day ON hm_warmupcounts (wcwarmupid, wcday, wcprovider);
+
+CREATE INDEX idx_hm_warmupcounts_date ON hm_warmupcounts (wcday);
+
+ALTER TABLE hm_warmupcounts ENGINE=InnoDB;
+
+ALTER TABLE hm_warmupcounts ADD CONSTRAINT fk_hm_warmupcounts_warmup FOREIGN KEY (wcwarmupid) REFERENCES hm_warmup (warmupid) ON DELETE CASCADE;
+
+insert into hm_dbversion values (6093);

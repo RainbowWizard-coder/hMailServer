@@ -883,4 +883,21 @@
 //      subjects). Every list an upgrade finds is unmanaged and every member
 //      confirmed, receiving each message, so an upgraded server distributes
 //      exactly as it did.
-#define REQUIRED_DB_VERSION            6092
+
+// 6093 adds hm_warmup and hm_warmupcounts (SMTP/IpWarmup.h,
+//      docs/IpWarmup.md): the IP warm-up. A hm_warmup row is a schedule for
+//      one outbound address - warmupaddress, the local IPv4 or IPv6 address a
+//      delivery binds, written as IPAddress::ToString writes it and unique;
+//      warmupstarted, the UTC day number (seconds since the epoch divided by
+//      86,400) of its day 1; warmupplan, 0 standard, 1 gentle, 2 fast; and
+//      warmupenabled. A hm_warmupcounts row is one schedule's count for one
+//      UTC day and one provider (google, microsoft, yahoo, apple, proton or
+//      other): wcsent, the recipients delivered from the address that day,
+//      wcdeferred, the recipients held over the day's ceiling, once per
+//      pass, and wcceiling and wcplanday, the ceiling and the warm-up day in
+//      force when the row was last written, so that the history says what
+//      applied then after a plan or a start has changed; unique on
+//      (schedule, day, provider), and removed with its schedule by the
+//      foreign key. Nothing is counted until an administrator makes a
+//      schedule, so an upgraded server delivers exactly as it did.
+#define REQUIRED_DB_VERSION            6093

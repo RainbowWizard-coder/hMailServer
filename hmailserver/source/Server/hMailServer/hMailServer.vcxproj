@@ -664,6 +664,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiFetchAccounts.cpp" />
     <ClCompile Include="..\Common\Util\RemoteDomainThrottle.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRemoteDomains.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiWarmup.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRoutes.cpp" />
     <ClCompile Include="..\Common\Util\RestApiMailbox.cpp" />
     <ClCompile Include="..\Common\Util\RestApiMailboxMove.cpp" />
@@ -1052,6 +1053,9 @@ EXIT 0
     <ClCompile Include="..\SMTP\ExternalDelivery.cpp" />
     <ClCompile Include="..\SMTP\DestinationBackoff.cpp" />
     <ClCompile Include="..\SMTP\DestinationBackoffTester.cpp" />
+    <ClCompile Include="..\SMTP\IpWarmup.cpp" />
+    <ClCompile Include="..\SMTP\OutboundProviders.cpp" />
+    <ClCompile Include="..\SMTP\WarmupPlanTester.cpp" />
     <ClCompile Include="..\SMTP\TlsPolicy.cpp" />
     <ClCompile Include="..\SMTP\GreyListCleanerTask.cpp" />
     <ClCompile Include="..\SMTP\DmarcRptReporterTask.cpp" />
@@ -1861,6 +1865,9 @@ EXIT 0
     <ClInclude Include="..\SMTP\ExternalDelivery.h" />
     <ClInclude Include="..\SMTP\DestinationBackoff.h" />
     <ClInclude Include="..\SMTP\DestinationBackoffTester.h" />
+    <ClInclude Include="..\SMTP\IpWarmup.h" />
+    <ClInclude Include="..\SMTP\OutboundProviders.h" />
+    <ClInclude Include="..\SMTP\WarmupPlanTester.h" />
     <ClInclude Include="..\SMTP\ExternalDeliveryServerResult.h" />
     <ClInclude Include="..\SMTP\RecipientCallout.h" />
     <ClInclude Include="..\SMTP\TlsPolicy.h" />

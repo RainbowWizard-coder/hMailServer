@@ -458,6 +458,8 @@ const requests = [];
 let signedIn = false;
 let otpRequired = false;
 let nextRefusal = null;
+// GET /api/v1/warmup answers 500 once when set: the queue page must stand.
+let warmupFails = false;
 // A refusal with a status and a body of its own, for the ones that carry a
 // reason word beside the sentence: the breach check's 400 and 503.
 let nextRefusalAnswer = null;
@@ -1581,6 +1583,23 @@ const state = {
            files: [{ filename: 'invoice.exe', size: 1234, sha256: 'ab12', submission: 'job-7', state: 'submitted', verdict: '', score: 0, detail: '', errors: 0 }] },
          { queue_id: 78, from: 'stranger@far.example', recipients: 'bob@example.com', created: '2026-09-24 09:01:00', held: 1790000060, held_seconds: 12, decision: 'pending',
            files: [{ filename: 'report.docm', size: 5678, sha256: 'cd34', submission: '', state: 'not_submitted', verdict: '', score: 0, detail: '', errors: 2 }] }
+      ]
+   },
+   // The IP warm-up, beside the queue: one schedule on day 1 of the standard
+   // plan, Google at its ceiling with one recipient held over it, in the shape
+   // GET /api/v1/warmup answers.
+   warmup: {
+      today: '2026-09-24',
+      schedules: [
+         { id: 7, address: '192.0.2.10', plan: 'standard', started: '2026-09-24', enabled: true, day: 1, last_day: 30, complete: false, in_bind_setting: false,
+           providers: [
+              { provider: 'google', sent: 50, deferred: 1, ceiling: 50 },
+              { provider: 'microsoft', sent: 3, deferred: 0, ceiling: 50 },
+              { provider: 'yahoo', sent: 0, deferred: 0, ceiling: 50 },
+              { provider: 'apple', sent: 0, deferred: 0, ceiling: 50 },
+              { provider: 'proton', sent: 0, deferred: 0, ceiling: 50 },
+              { provider: 'other', sent: 12, deferred: 0, ceiling: 250 }
+           ] }
       ]
    },
    tlsa: { records: [{ record: '_25._tcp.mail.example.com. IN TLSA 3 1 1 0123abcd' }, { record: '_465._tcp.mail.example.com. IN TLSA 3 1 1 0123abcd' }] },
@@ -2757,6 +2776,29 @@ function answer(method, path, headers, raw) {
       if (at < 0) { return json(404, { error: 'no back-off is open for that destination' }); }
       state.shaping.backoffs.splice(at, 1);
       return json(200, { cleared: true });
+   }
+   // The IP warm-up's schedules: the listing, a new one, one changed or removed.
+   if (path === '/api/v1/warmup' && method === 'GET') {
+      if (warmupFails) { warmupFails = false; return json(500, { error: 'the warm-up schedules could not be read; see the error log' }); }
+      return json(200, state.warmup);
+   }
+   if (path === '/api/v1/warmup' && method === 'POST') {
+      const address = String(parsed.address || '').trim();
+      if (!address) { return json(400, { error: 'address is required: the outbound IPv4 or IPv6 address the schedule is for' }); }
+      if (state.warmup.schedules.some((s) => s.address === address)) { return json(409, { error: 'a warm-up schedule for that address exists: change it (PUT), or delete it first' }); }
+      const entry = { id: nextId++, address, plan: parsed.plan || 'standard', started: parsed.started || state.warmup.today, enabled: parsed.enabled !== false,
+         day: 1, last_day: 30, complete: false, in_bind_setting: true,
+         providers: ['google', 'microsoft', 'yahoo', 'apple', 'proton', 'other'].map((p) => ({ provider: p, sent: 0, deferred: 0, ceiling: p === 'other' ? 250 : 50 })) };
+      state.warmup.schedules.push(entry);
+      return json(201, entry);
+   }
+   if (/^\/api\/v1\/warmup\/\d+$/.test(path) && (method === 'PUT' || method === 'DELETE')) {
+      const id = Number(segment(path, 4));
+      const at = state.warmup.schedules.findIndex((s) => s.id === id);
+      if (at < 0) { return json(404, { error: 'warm-up schedule not found' }); }
+      if (method === 'DELETE') { state.warmup.schedules.splice(at, 1); return json(200, { deleted: true }); }
+      Object.assign(state.warmup.schedules[at], parsed);
+      return json(200, state.warmup.schedules[at]);
    }
    if (/^\/api\/v1\/queue\/\d+\/retry$/.test(path) && method === 'POST') { return json(200, { rescheduled: true }); }
    if (/^\/api\/v1\/queue\/\d+$/.test(path) && method === 'DELETE') {
@@ -5465,6 +5507,89 @@ async function main() {
       called(before, 'GET', '/api/v1/sandbox/held?limit=1000').length === 1, paths(before));
    check('and with nothing held the box says so', content().textContent.indexOf('Nothing is held for a sandbox.') >= 0 &&
       content().querySelectorAll('button[data-act="sbrelease"]').length === 0 && toastText() === 'Released to the delivery queue', toastText());
+   // ---- the IP warm-up, beside the queue
+   const warmBox = () => document.getElementById('warmupBox');
+   check('the warm-up schedules are read with the queue', called(0, 'GET', '/api/v1/warmup').length >= 1);
+   check('a schedule is drawn with its address, plan and day, and each provider with what it sent of its ceiling and what was deferred',
+      warmBox() !== null && warmBox().textContent.indexOf('192.0.2.10') >= 0 && warmBox().textContent.indexOf('Standard') >= 0 &&
+      warmBox().textContent.indexOf('Day 1 of 30') >= 0 && warmBox().textContent.indexOf('Google: 50 / 50 · 1 deferred') >= 0 &&
+      warmBox().textContent.indexOf('Microsoft: 3 / 50') >= 0 && warmBox().textContent.indexOf('Other providers: 12 / 250') >= 0,
+      warmBox() ? warmBox().textContent : 'no box');
+   check('an address SMTPDeliveryBindToIP does not bind is said to count nothing',
+      warmBox().textContent.indexOf('SMTPDeliveryBindToIP does not bind this address') >= 0 &&
+      warmBox().querySelectorAll('[data-warn="bind"]').length === 1, warmBox().textContent);
+   click(act('warmedit', { id: 7 }));
+   await flush();
+   check('Edit opens the small editor on the schedule',
+      $('#warm_address').value === '192.0.2.10' && $('#warm_plan').value === 'standard' && $('#warm_started').value === '2026-09-24' &&
+      $('#warm_enabled').checked === true, [$('#warm_address').value, $('#warm_plan').value, $('#warm_started').value].join(' '));
+   setValue('warm_plan', 'gentle');
+   setChecked('warm_enabled', false);
+   before = requests.length;
+   click(act('warmsave'));
+   await flush();
+   const warmPut = lastBody(before, 'PUT', '/api/v1/warmup/7');
+   check('Save sends the schedule to its PUT route without the address, which a PUT may not change, and the queue is drawn again',
+      warmPut !== null && warmPut.plan === 'gentle' && warmPut.enabled === false && !('address' in warmPut) && warmPut.started === '2026-09-24' &&
+      called(before, 'GET', '/api/v1/warmup').length === 1 && toastText() === 'Warm-up schedule saved', paths(before) + ' ' + JSON.stringify(warmPut));
+   check('and the box shows the change', warmBox().textContent.indexOf('Gentle') >= 0 && warmBox().textContent.indexOf('Disabled') >= 0, warmBox().textContent);
+   click(act('warmedit', { id: 7 }));
+   await flush();
+   check('on Edit the address is shown and cannot be typed over', $('#warm_address').attributes.readonly !== undefined, JSON.stringify($('#warm_address').attributes));
+   setValue('warm_started', '');
+   before = requests.length;
+   click(act('warmsave'));
+   await flush();
+   const emptiedPut = lastBody(before, 'PUT', '/api/v1/warmup/7');
+   check('an emptied Day 1 on Edit is sent as today\'s UTC date, as the hint says, not left out to keep the old start',
+      emptiedPut !== null && emptiedPut.started === new Date().toISOString().slice(0, 10), JSON.stringify(emptiedPut));
+   click(act('warmnew'));
+   await flush();
+   before = requests.length;
+   click(act('warmsave'));
+   await flush();
+   check('Add with no address is refused in the page and sends nothing',
+      document.getElementById('err_warmedit').textContent === 'An outbound address is required.' && called(before, 'POST', '/api/v1/warmup').length === 0);
+   setValue('warm_address', '192.0.2.10');
+   click(act('warmsave'));
+   await flush();
+   check('a second schedule for an address is the server\'s refusal, shown in the editor',
+      document.getElementById('err_warmedit').textContent.indexOf('exists') >= 0, document.getElementById('err_warmedit').textContent);
+   setValue('warm_address', '2001:db8::25');
+   before = requests.length;
+   click(act('warmsave'));
+   await flush();
+   const warmPost = lastBody(before, 'POST', '/api/v1/warmup');
+   check('Add posts the new schedule, with no start when none was typed',
+      warmPost !== null && warmPost.address === '2001:db8::25' && warmPost.plan === 'standard' && !('started' in warmPost) && warmPost.enabled === true,
+      JSON.stringify(warmPost));
+   check('and the new schedule is drawn in the box', warmBox().textContent.indexOf('2001:db8::25') >= 0, warmBox().textContent);
+   check('an address the setting binds carries no warning: one schedule of the two has it',
+      warmBox().querySelectorAll('[data-warn="bind"]').length === 1, String(warmBox().querySelectorAll('[data-warn="bind"]').length));
+   click(act('warmedit', { id: 7 }));
+   await flush();
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('warmdel', { id: 7 }));
+   await flush();
+   check('Delete asks first, naming the address, and no sends nothing',
+      confirmations[confirmations.length - 1].indexOf('192.0.2.10') >= 0 && called(before, 'DELETE', /warmup/).length === 0);
+   confirmAnswer = true;
+   before = requests.length;
+   click(act('warmdel', { id: 7 }));
+   await flush();
+   check('yes deletes the schedule and returns to the queue without it',
+      called(before, 'DELETE', '/api/v1/warmup/7').length === 1 && warmBox() !== null && warmBox().textContent.indexOf('192.0.2.10') < 0 &&
+      toastText() === 'Warm-up schedule deleted', paths(before));
+
+   // A warm-up listing the server could not answer takes nothing else with it.
+   warmupFails = true;
+   await goTo('dash');
+   await goTo('queue');
+   check('a failed warm-up listing leaves the queue drawn and says so in the box',
+      rows().length >= 1 && document.getElementById('err_warmup') !== null &&
+      document.getElementById('err_warmup').textContent === 'The warm-up schedules could not be read; the rest of the page is shown.' &&
+      content().textContent.indexOf('No destination has asked this server to slow down.') >= 0, content().textContent.slice(0, 300));
 
 
    // ---- DANE / TLSA
@@ -8275,6 +8400,11 @@ async function main() {
    check('an auditor reaching every domain is shown the audit trail, the reports and the remote domains',
       !$('#nav button[data-view="audit"]').hidden && !$('#nav button[data-view="reports"]').hidden &&
       !$('#nav button[data-view="remotedomains"]').hidden && !$('#nav button[data-view="groups"]').hidden);
+   await goTo('queue');
+   check('an auditor, who reads the queue and may not manage it, sees the warm-up and is offered neither Edit nor Add',
+      document.getElementById('warmupBox') !== null && document.getElementById('warmupBox').textContent.indexOf('2001:db8::25') >= 0 &&
+      content().querySelectorAll('button[data-act="warmedit"]').length === 0 && content().querySelectorAll('button[data-act="warmnew"]').length === 0,
+      content().textContent.slice(0, 300));
    /* And not the one page whose route answers to the administrator password and
       to nothing else. An auditor holds view_configuration, so a view that named
       that permission would be put in front of it and refused on the first click

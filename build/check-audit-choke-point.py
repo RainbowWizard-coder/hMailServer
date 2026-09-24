@@ -492,6 +492,7 @@ NOT_AUDITED = {
    "hm_sandboxholds": "the files of a message held for a sandbox's verdict, written by the delivery thread and the sandbox's poller with no actor and ended with the hold; traffic. An administrator releasing or discarding a held message over REST is recorded through AuditTrail::RecordEvent, naming the message, since a release delivers mail the server was waiting to judge.",
    "hm_sandboxverdicts": "the verdicts a sandbox gave, by SHA-256, written by the sandbox's poller with no actor and swept when they expire; traffic.",
    "hm_listarchive": "a managed list's archive: one row per message the list distributed, written by the delivery path and ended by the list's retention or the list's deletion; traffic. The list's settings are hm_distributionlists columns, which are audited.",
+   "hm_warmupcounts": "the IP warm-up's daily counts per schedule and provider, written by the delivery queue as it sends and defers; traffic. The schedules themselves, hm_warmup, are audited.",
    "hm_digeststate": "when each account last had a quarantine digest and whether it opted out, written by the digest task and by the "
                      "account itself in the webmail; the domain's switch and hour are hm_domains columns, which are audited.",
    "hm_digesttokens": "the digest's one-use release links, written by the digest task and spent by whoever follows one; traffic, and "

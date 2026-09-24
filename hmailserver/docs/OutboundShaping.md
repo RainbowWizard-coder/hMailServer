@@ -48,12 +48,21 @@ this order, before any connection is opened:
    destination slot and released with it.
 6. The server-wide **`MaxOutboundPerDestinationPerMinute`**, the fixed
    per-destination rate that predates all of this.
-7. DNS, MTA-STS, DANE, and the connection attempts.
+7. DNS and MTA-STS; then the **IP warm-up**'s daily ceiling for the address
+   the batch will leave from and the provider its first host belongs to
+   ([IpWarmup.md](IpWarmup.md)), which holds the recipients over the ceiling,
+   usually until the next UTC day; then DANE and the connection attempts,
+   where a later host that would be reached from another warming address is
+   skipped.
 
 Every one of 2 to 6 is a deferral this server chose, with `4.4.5` ("mail system
 congestion") and a sentence naming the rule, and none of them is counted (see
-below). The **target** every check is keyed by is what the batch is delivered
-to: the recipient domain of an MX delivery, or the host of a route or a relay,
+below); the warm-up's hold in 7 is one too, and follows the same rule, with one
+addition that is the warm-up's alone: a pass in which it held a recipient for
+longer than the retry interval keeps the hold's length when it is counted past
+the span, so that its counted tries land on new days (see *The hold is
+bounded*, below, and IpWarmup.md). Nothing changes for the deferrals 2 to 6.
+The **target** every check is keyed by is what the batch is delivered to: the recipient domain of an MX delivery, or the host of a route or a relay,
 or its address when the route names an IP literal; lower-cased. A provider's
 MX hosts share its limits, so the domain is the right grain; a smart host is
 one destination whatever it relays for. (Until 23 September
@@ -228,6 +237,15 @@ from then on, whatever deferred it, and the log says so:
     deferral is counted, so that the message is not held for ever.
 
 At one try that is the bounce, with the shaping reason in the report.
+
+A counted try comes back at the retry interval, as any counted try does,
+whatever held it - a back-off window longer than the interval included. The
+one exception is the IP warm-up's ([IpWarmup.md](IpWarmup.md)): a pass in which
+it held a recipient for longer than the retry interval comes back at the
+hold's own length, and the log says so, because at the interval its tries
+would come back inside a day whose ceiling cannot reopen and be spent there.
+A pass the deferrals above alone held is counted at the interval exactly as
+before.
 
 **And a held pass is a first pass only once.** DKIM/ARC signing, the mirror
 copy and a rule's policy notice used to be gated on the tries counter alone,

@@ -252,6 +252,14 @@ namespace HM
          RouteSandboxHeldList,
          RouteSandboxHeldRelease,
          RouteSandboxHeldDiscard,
+         // The IP warm-up (SMTP/IpWarmup.h, RestApiWarmup.cpp): the schedules
+         // with today's counts, one added, changed or removed, and one
+         // schedule's days. Server-wide, under the queue's permissions.
+         RouteWarmupList,
+         RouteWarmupCreate,
+         RouteWarmupUpdate,
+         RouteWarmupDelete,
+         RouteWarmupHistory,
          RouteTlsa,
          RouteSrv,
          RouteMetricsHistory,
@@ -1937,6 +1945,11 @@ namespace HM
       static HttpResponse HandleQueueDelete_(__int64 messageId);
       static HttpResponse HandleQueueShaping_();
       static HttpResponse HandleQueueShapingClear_(const String &destination);
+
+      // The IP warm-up's schedules and counts (RestApiWarmup.cpp).
+      static HttpResponse HandleWarmup_(RouteKind kind, __int64 id, const AnsiString &requestBody);
+      static AnsiString OpenApiWarmupPaths_();
+
       static HttpResponse HandleTlsa_();
 
       // Ready-to-publish client-discovery SRV records (RFC 6186 / RFC 8314,

@@ -37,6 +37,8 @@
 #include "../Common/Cache/CacheContainer.h"
 
 #include "DestinationBackoff.h"
+#include "IpWarmup.h"
+#include "OutboundProviders.h"
 #include "ServerTargetResolver.h"
 #include "SMTPConfiguration.h"
 #include "SMTPClientConnection.h"
@@ -105,6 +107,64 @@ namespace HM
          bool active_;
          bool slowed_down_;
       };
+
+      // What a delivery reserved of its source address's warm-up room for the
+      // day (SMTP/IpWarmup.h), settled when the attempts are over: what was
+      // delivered is added to the day's sent, and the whole reservation is let
+      // go - so a recipient that was not delivered is not counted, and a
+      // refused connection, a remote deferral or a refusal at RCPT TO leave the
+      // day's count where it was. On the stack around the connection attempts,
+      // as the back-off probe is, so that no path out of DeliverToSingleDomain_
+      // keeps a reservation.
+      class WarmupReservation
+      {
+      public:
+         WarmupReservation() : active_(false), schedule_id_(0), day_(0), provider_(OutboundProviders::Other), reserved_(0) {}
+         ~WarmupReservation()
+         {
+            if (!active_)
+               return;
+
+            try
+            {
+               int delivered = 0;
+               for (std::shared_ptr<MessageRecipient> recipient : recipients_)
+               {
+                  if (recipient->GetDeliveryResult() == MessageRecipient::ResultOK)
+                     delivered++;
+               }
+
+               IpWarmup::Instance()->Settle(schedule_id_, day_, provider_, reserved_, delivered);
+            }
+            catch (...)
+            {
+               // A destructor does not throw; what was reserved stays held in
+               // memory until the next reinitialise.
+            }
+         }
+
+         void Begin(__int64 scheduleId, __int64 day, OutboundProviders::Provider provider, int reserved,
+                    const std::vector<std::shared_ptr<MessageRecipient> > &recipients)
+         {
+            schedule_id_ = scheduleId;
+            day_ = day;
+            provider_ = provider;
+            reserved_ = reserved;
+            recipients_ = recipients;
+            active_ = true;
+         }
+
+      private:
+         WarmupReservation(const WarmupReservation &);
+         WarmupReservation &operator=(const WarmupReservation &);
+
+         bool active_;
+         __int64 schedule_id_;
+         __int64 day_;
+         OutboundProviders::Provider provider_;
+         int reserved_;
+         std::vector<std::shared_ptr<MessageRecipient> > recipients_;
+      };
    }
 
    ExternalDelivery::ExternalDelivery(const String &sSendersIP, std::shared_ptr<Message> message, const RuleResult &globalRuleResult) :
@@ -115,7 +175,8 @@ namespace HM
       quick_retries_Minutes(0),
       queue_randomness_minutes_(0),
       mxtries_factor_(0),
-      shaping_deferral_minutes_(0)
+      shaping_deferral_minutes_(0),
+      warmup_hold_minutes_(0)
    {
 
    }
@@ -193,12 +254,19 @@ namespace HM
    }
 
    void
-   ExternalDelivery::DeliverToSingleDomain_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, std::shared_ptr<ServerInfo> serverInfo)
+   ExternalDelivery::DeliverToSingleDomain_(std::vector<std::shared_ptr<MessageRecipient> > &batch, std::shared_ptr<ServerInfo> serverInfo)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
    // Deliveres the message to external accounts (recipients not on this server).
    //---------------------------------------------------------------------------()
    {
+      // The recipients this function delivers to: the batch's own pointers,
+      // copied, so that the IP warm-up below can take the ones over the day's
+      // ceiling out of the connection attempts while the caller's batch -
+      // which CollectDeliveryResult_ reads afterwards - still holds every one.
+      // A result set on a recipient here is set on the caller's too.
+      std::vector<std::shared_ptr<MessageRecipient> > vecRecipients(batch);
+
       String sFirstRecipientAddress = vecRecipients[0]->GetAddress();
       if (sFirstRecipientAddress.IsEmpty())
       {
@@ -504,6 +572,105 @@ namespace HM
          }
       }
 
+      // The IP warm-up (SMTP/IpWarmup.h, docs/IpWarmup.md). Judged here, once
+      // the hosts are known and the source address the first of them will be
+      // connected from is known, since that address is what a schedule is
+      // about; the provider is the one that first host belongs to, never the
+      // recipient's domain's, so a company on Google Workspace is Google, and
+      // never a backup host's further down the list. A delivery with no bind
+      // address, from an address with no enabled schedule, or to a provider
+      // with no ceiling today is untouched. Otherwise the batch's recipients
+      // are reserved of today's room up to the ceiling before any connection,
+      // and the ones over it are held as every shaping deferral is, counted as
+      // deferred: to the first minutes of the next UTC day when the day's
+      // ceiling is what was reached, a few minutes when the room is held by
+      // other deliveries in flight that may give it back. When the attempts
+      // are over the reservation is settled (WarmupReservation): what was
+      // delivered is sent, the rest is let go. When and whether the held ones
+      // are tried again is RescheduleDelivery_'s to say (ReportWarmupHolds_).
+      WarmupReservation warmupReservation;
+
+      // The schedule the batch was judged against, or 0: a later host that
+      // would be reached from another scheduled address is not tried for it.
+      __int64 warmupScheduleJudged = 0;
+
+      {
+         HostNameAndIpAddress firstHost = mail_servers[0];
+
+         IPAddress firstRemote;
+         firstRemote.TryParse(AnsiString(firstHost.GetIpAddress()), false);
+
+         const IPAddress bindAddress = GetLocalAddress_(firstRemote, false);
+         IpWarmup::Schedule schedule;
+
+         if (!bindAddress.IsAny() && IpWarmup::Instance()->FindEnabled(String(bindAddress.ToString()), schedule))
+         {
+            warmupScheduleJudged = schedule.id;
+
+            const OutboundProviders::Provider provider = OutboundProviders::ClassifyHost(firstHost.GetHostName());
+            const __int64 now = (__int64) time(nullptr);
+            const __int64 today = IpWarmup::DayOf(now);
+            const int warmupDay = IpWarmup::WarmupDay(schedule.started, today);
+            const int ceiling = IpWarmup::Ceiling(schedule.plan, warmupDay, provider);
+
+            if (ceiling >= 0)
+            {
+               const int wanted = (int) vecRecipients.size();
+               int sentBefore = 0;
+               bool heldByOthers = false;
+
+               // -1 when the count could not be read or started: reported, and
+               // the delivery goes as though there were no schedule.
+               const int reserved = IpWarmup::Instance()->Reserve(schedule.id, today, provider, wanted, ceiling, warmupDay, sentBefore, heldByOthers);
+
+               if (reserved >= 0 && reserved < wanted)
+               {
+                  std::vector<std::shared_ptr<MessageRecipient> > overflow(vecRecipients.begin() + reserved, vecRecipients.end());
+                  vecRecipients.erase(vecRecipients.begin() + reserved, vecRecipients.end());
+
+                  IpWarmup::Instance()->AddDeferred(schedule.id, today, provider, (int) overflow.size());
+
+                  // The day's ceiling reached: until the first minutes of the
+                  // next UTC day, when the count starts again, spread by the
+                  // message's id as the other shaping deferrals are, so a held
+                  // backlog does not come back as one pass in the same minute.
+                  // Room held by deliveries in flight: those minutes alone,
+                  // since they may give it back long before midnight.
+                  const int untilMidnight = (int) (((today + 1) * IpWarmup::DaySeconds - now + 59) / 60);
+                  const int deferMinutes = heldByOthers ? SpreadMinutes_() : untilMidnight + SpreadMinutes_();
+
+                  WarmupHold hold;
+                  hold.address = String(bindAddress.ToString());
+                  hold.day = warmupDay;
+                  hold.plan = IpWarmup::PlanName(schedule.plan);
+                  hold.ceiling = ceiling;
+                  hold.provider = OutboundProviders::DisplayName(provider);
+                  hold.held_by_others = heldByOthers;
+
+                  for (std::shared_ptr<MessageRecipient> recipient : overflow)
+                     hold.addresses.push_back(recipient->GetAddress());
+
+                  // Why, and not when: RescheduleDelivery_ adds the next attempt
+                  // once it knows which path the message takes.
+                  String errorMessage = _T("   Error Type: SMTP\r\n   Error Description: ") + WarmupHoldSentence_(hold) + _T("\r\n\r\n");
+
+                  warmup_holds_.push_back(hold);
+
+                  if (deferMinutes > warmup_hold_minutes_)
+                     warmup_hold_minutes_ = deferMinutes;
+
+                  DeferBatchWithoutCounting_(overflow, deferMinutes, errorMessage);
+
+                  if (vecRecipients.empty())
+                     return;
+               }
+
+               if (reserved > 0)
+                  warmupReservation.Begin(schedule.id, today, provider, reserved, vecRecipients);
+            }
+         }
+      }
+
       // A policy that asks for DANE asks for the TLSA lookup whatever the global
       // switch says and whatever kind of target this is: the administrator has
       // named the proof they want, and answering "DANE is off in the ini" by
@@ -647,6 +814,39 @@ namespace HM
 
             TlsRptStore::Instance()->RecordFailure(recipientDomain, "tlsa", "dane required by local policy", "validation-failure", hostAndIp.GetHostName());
             continue;
+         }
+
+         // The IP warm-up, for this host: the batch was judged against the
+         // address its first host is reached from, and a host of the other
+         // family is reached from whatever address the settings give that
+         // family. When that is another address in warm-up - or one in warm-up
+         // when the first host's address had none - this batch has reserved
+         // nothing of its day, and delivering from it would be uncounted and
+         // past its ceiling. The host is skipped, and the next one tried.
+         {
+            IPAddress hostRemote;
+            hostRemote.TryParse(AnsiString(hostAndIp.GetIpAddress()), false);
+
+            const IPAddress hostLocal = GetLocalAddress_(hostRemote, false);
+            IpWarmup::Schedule hostSchedule;
+
+            if (!hostLocal.IsAny() &&
+                IpWarmup::Instance()->FindEnabled(String(hostLocal.ToString()), hostSchedule) &&
+                hostSchedule.id != warmupScheduleJudged)
+            {
+               const int hostCeiling = IpWarmup::Ceiling(hostSchedule.plan,
+                  IpWarmup::WarmupDay(hostSchedule.started, IpWarmup::DayOf((__int64) time(nullptr))),
+                  OutboundProviders::ClassifyHost(hostAndIp.GetHostName()));
+
+               if (hostCeiling >= 0)
+               {
+                  LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Skipping " + hostAndIp.GetHostName() + " (" + hostAndIp.GetIpAddress() + "): it would be reached from " + hostSchedule.address + ", an address in IP warm-up that this batch was not counted against.");
+
+                  skippedReason = _T("every host left would be reached from an address in IP warm-up that the batch was not counted against");
+                  skippedDescription = _T("Delivery deferred: every mail host left would be reached from an address in IP warm-up that this delivery was not counted against.");
+                  continue;
+               }
+            }
          }
 
          attemptedHosts++;
@@ -1222,13 +1422,15 @@ namespace HM
    }
 
    IPAddress
-   ExternalDelivery::GetLocalAddress_(const IPAddress &remote)
+   ExternalDelivery::GetLocalAddress_(const IPAddress &remote, bool logSkippedBind)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
    // Determines what local IP address to use when delivering to this host: a
    // rule's bind-to-address action first, else SMTPDeliveryBindToIP, and of
    // either only an address of the remote's family. See
    // SMTPConfiguration::OutboundBindAddress for why the other family is skipped.
+   // The IP warm-up asks the same question before the first connection, with
+   // logSkippedBind false, so that the connection's own line is the only one.
    //---------------------------------------------------------------------------()
    {
       std::shared_ptr<SMTPConfiguration> pSMTPConfig = Configuration::Instance()->GetSMTPConfiguration();
@@ -1245,7 +1447,7 @@ namespace HM
 
       // Said where the administrator will look for it: a bind that was asked for
       // and not applied is otherwise a setting that silently did nothing.
-      if (chosen.IsAny())
+      if (chosen.IsAny() && logSkippedBind)
       {
          LOG_TCPIP(Formatter::Format("Not binding to {0} for the connection to {1}: the two addresses are of different families, so the system chooses the source address.",
             configured, String(remote.ToString())));
@@ -1439,6 +1641,7 @@ namespace HM
          // so return now since no need for retry at this time
 
          // For now we unlock message here but might be best to do @ ETRN time..
+         ReportWarmupHolds_(mapFailedDueToNonFatalError, _T("The message is held for ETRN."));
          PersistentMessage::UnlockObject(original_message_);
 
          LOG_APPLICATION("SMTPDeliverer - Route Message: HOLD for later delivery..");
@@ -1468,12 +1671,38 @@ namespace HM
          if (spanMinutes > 0 && ageSeconds > spanMinutes * 60)
          {
             LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Deferred by this server's own shaping, but it has been queued for " + StringParser::IntToString((int) (ageSeconds / 60)) + " minute(s), longer than the " + StringParser::IntToString((int) spanMinutes) + " minute(s) its retry schedule spans. This deferral is counted, so that the message is not held for ever.");
+
+            // Counted, but at the deferral's own length when the IP warm-up
+            // held a recipient in this pass for longer than the retry
+            // interval - to the next UTC day, above all. Counted at the retry
+            // interval instead, the tries would come inside a day whose
+            // ceiling cannot reopen, each one held again and spent, and the
+            // message would be returned within hours of midnight with the next
+            // day's room unused; this way each counted try lands on a new day,
+            // and the retries are spent over as many days. A pass that only
+            // the shaping row's deferrals held - a back-off window, a ceiling,
+            // a rate, the tenant share - takes the counted path below exactly
+            // as it did, whatever their length: this branch is theirs as well,
+            // and the rule is the warm-up's alone.
+            if (iCurNoOfRetries < iMaxNoOfRetries && warmup_hold_minutes_ > lMinutesBewteen)
+            {
+               LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Scheduling it for later delivery in " + StringParser::IntToString(shaping_deferral_minutes_) + " minute(s), the deferral's own length, since the IP warm-up's hold is longer than the retry interval; the attempt is counted against the retry limit.");
+
+               ReportWarmupHolds_(mapFailedDueToNonFatalError, WarmupNextAttempt_(shaping_deferral_minutes_, true));
+
+               PersistentMessage::SetNextTryTime(original_message_->GetID(), true, shaping_deferral_minutes_);
+               PersistentMessage::UnlockObject(original_message_);
+
+               return true; // Do not delete e-mail now
+            }
          }
          else
          {
             const long shapingMinutes = shaping_deferral_minutes_ > 0 ? shaping_deferral_minutes_ : 1;
 
             LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Delivery deferred by this server's own shaping, not by a remote server. Scheduling it for later delivery in " + StringParser::IntToString((int) shapingMinutes) + " minute(s); the attempt is not counted against the retry limit.");
+
+            ReportWarmupHolds_(mapFailedDueToNonFatalError, WarmupNextAttempt_(shapingMinutes, false));
 
             // The first-pass mark travels in the same statement, and onto the
             // cached object, so the next pass neither mirrors nor seals nor
@@ -1496,6 +1725,7 @@ namespace HM
          if (iCurNoOfRetries < quick_retries_) 
          {
             LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Message could not be delivered. Greylisting? Scheduling it for quick retry " + StringParser::IntToString(iCurNoOfRetries + 1) + " of " + StringParser::IntToString(quick_retries_) + " in " + StringParser::IntToString(quick_retries_Minutes + iRandomAdjust) + " minutes.");
+            ReportWarmupHolds_(mapFailedDueToNonFatalError, WarmupNextAttempt_(quick_retries_Minutes + iRandomAdjust, true));
             PersistentMessage::SetNextTryTime(original_message_->GetID(), true, quick_retries_Minutes + iRandomAdjust);
          
             // Unlock the message now so that a future delivery thread can pick it up.
@@ -1512,6 +1742,7 @@ namespace HM
             // all equally distant. The cast names the overload Windows already selects,
             // and a retry interval in minutes cannot overflow a 32-bit int.
             LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Message could not be delivered. Scheduling it for later delivery in " + StringParser::IntToString((int) (lMinutesBewteen + iRandomAdjust)) + " minutes.");
+            ReportWarmupHolds_(mapFailedDueToNonFatalError, WarmupNextAttempt_(lMinutesBewteen + iRandomAdjust, true));
             PersistentMessage::SetNextTryTime(original_message_->GetID(), true, lMinutesBewteen + iRandomAdjust);
          
             // Unlock the message now so that a future delivery thread can pick it up.
@@ -1527,6 +1758,9 @@ namespace HM
 
          // We are finished trying. Let's give up!
          LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Message could not be delivered. Returning error log to sender.");
+
+         // What the IP warm-up held says so in the report, with no next attempt.
+         ReportWarmupHolds_(mapFailedDueToNonFatalError, _T("No further attempt is made: the message's retries are spent."));
 
          // Delivery failed the last time.
          //
@@ -1598,6 +1832,76 @@ namespace HM
 
         return false;
       }
+   }
+
+   String
+   ExternalDelivery::WarmupHoldSentence_(const WarmupHold &hold)
+   {
+      String sentence;
+
+      if (hold.held_by_others)
+      {
+         sentence.Format(_T("Delivery deferred by this server's IP warm-up: the address %s is on day %d of its %s schedule, which allows %d recipient(s) a day at %s, and the rest of today's allowance is held by deliveries from this address still in progress."),
+            hold.address.c_str(), hold.day, hold.plan.c_str(), hold.ceiling, hold.provider.c_str());
+      }
+      else
+      {
+         sentence.Format(_T("Delivery deferred by this server's IP warm-up: the address %s is on day %d of its %s schedule, which allows %d recipient(s) a day at %s, and today's have been sent."),
+            hold.address.c_str(), hold.day, hold.plan.c_str(), hold.ceiling, hold.provider.c_str());
+      }
+
+      return sentence;
+   }
+
+   String
+   ExternalDelivery::WarmupNextAttempt_(long minutes, bool counted)
+   {
+      // Said from where the next try lands, which is known only once the
+      // path is: after midnight UTC when it is on the next day, at the retry
+      // interval when a counted try comes back inside this one.
+      const __int64 now = (__int64) time(nullptr);
+      const bool nextDay = IpWarmup::DayOf(now + (__int64) minutes * 60) > IpWarmup::DayOf(now);
+
+      String sentence;
+
+      if (nextDay)
+         sentence.Format(_T("Next attempt after midnight UTC, in %d minute(s)"), (int) minutes);
+      else if (counted)
+         sentence.Format(_T("Next attempt in %d minute(s), at the retry interval"), (int) minutes);
+      else
+         sentence.Format(_T("Next attempt in %d minute(s)"), (int) minutes);
+
+      sentence += counted ? _T("; the attempt is counted against the retry limit.") : _T("; the attempt is not counted against the retry limit.");
+
+      return sentence;
+   }
+
+   void
+   ExternalDelivery::ReportWarmupHolds_(std::map<String,DeliveryFailure> &mapFailedDueToNonFatalError, const String &nextAttempt)
+   {
+      for (const WarmupHold &hold : warmup_holds_)
+      {
+         String facts;
+         facts.Format(_T("day %d of its %s schedule allows %d recipient(s) a day at %s, and "), hold.day, hold.plan.c_str(), hold.ceiling, hold.provider.c_str());
+         facts += hold.held_by_others ? _T("the rest of today's allowance is held by deliveries from this address still in progress.") : _T("today's have been sent.");
+
+         LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": " +
+            StringParser::IntToString((int) hold.addresses.size()) + " recipient(s) held by the IP warm-up of " + hold.address + ": " + facts + " " + nextAttempt);
+
+         // The text a report would carry, which a pass's own path decides:
+         // why, from the hold, and when, from here.
+         const String text = _T("   Error Type: SMTP\r\n   Error Description: ") + WarmupHoldSentence_(hold) + _T(" ") + nextAttempt + _T("\r\n\r\n");
+
+         for (const String &address : hold.addresses)
+         {
+            auto existing = mapFailedDueToNonFatalError.find(address);
+
+            if (existing != mapFailedDueToNonFatalError.end())
+               existing->second = DeliveryFailure(address, _T("4.4.5"), text);
+         }
+      }
+
+      warmup_holds_.clear();
    }
 
    /// Returns the retry options for a list of address.

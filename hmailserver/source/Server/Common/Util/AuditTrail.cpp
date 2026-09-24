@@ -116,6 +116,10 @@ namespace HM
          { L"hm_alertrules",                  L"alert rule" },
          { L"hm_acl",                         L"folder permission" },
          { L"hm_remotedomainpolicies",        L"remote domain policy" },
+         // An IP warm-up schedule: how much the queue may send from one of the
+         // server's addresses, day by day. Its daily counts are the queue's own
+         // writes and are not recorded (hm_warmupcounts, NOT_AUDITED).
+         { L"hm_warmup",                      L"warm-up schedule" },
          { L"hm_archiveindex",                L"archive entry" },
          // Who may administer what. A role given to an account is the most
          // consequential administrative change there is, and a custom role's

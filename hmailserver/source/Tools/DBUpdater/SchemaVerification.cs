@@ -1520,6 +1520,36 @@ namespace DBUpdater
                          "update hm_listarchive set laarchived = laarchived where 1 = 0"),
          new SchemaProbe(6092, "hm_listarchive.fk_hm_listarchive_list",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_listarchive_list' and constraint_type = 'FOREIGN KEY')"),
+         // Upgrade6092to6093* - the IP warm-up: the schedules and their daily
+         // counts, every column of both, since the delivery reads them all. The
+         // two identity columns cannot be assigned, so they are named in the
+         // WHERE clause, which resolves them just the same.
+         new SchemaProbe(6093, "hm_warmup.warmupid",
+                         "update hm_warmup set warmupaddress = warmupaddress where warmupid = warmupid and 1 = 0"),
+         new SchemaProbe(6093, "hm_warmup.warmupaddress",
+                         "update hm_warmup set warmupaddress = warmupaddress where 1 = 0"),
+         new SchemaProbe(6093, "hm_warmup.warmupstarted",
+                         "update hm_warmup set warmupstarted = warmupstarted where 1 = 0"),
+         new SchemaProbe(6093, "hm_warmup.warmupplan",
+                         "update hm_warmup set warmupplan = warmupplan where 1 = 0"),
+         new SchemaProbe(6093, "hm_warmup.warmupenabled",
+                         "update hm_warmup set warmupenabled = warmupenabled where 1 = 0"),
+         new SchemaProbe(6093, "hm_warmupcounts.wcid",
+                         "update hm_warmupcounts set wcsent = wcsent where wcid = wcid and 1 = 0"),
+         new SchemaProbe(6093, "hm_warmupcounts.wcwarmupid",
+                         "update hm_warmupcounts set wcwarmupid = wcwarmupid where 1 = 0"),
+         new SchemaProbe(6093, "hm_warmupcounts.wcday",
+                         "update hm_warmupcounts set wcday = wcday where 1 = 0"),
+         new SchemaProbe(6093, "hm_warmupcounts.wcprovider",
+                         "update hm_warmupcounts set wcprovider = wcprovider where 1 = 0"),
+         new SchemaProbe(6093, "hm_warmupcounts.wcsent",
+                         "update hm_warmupcounts set wcsent = wcsent where 1 = 0"),
+         new SchemaProbe(6093, "hm_warmupcounts.wcdeferred",
+                         "update hm_warmupcounts set wcdeferred = wcdeferred where 1 = 0"),
+         new SchemaProbe(6093, "hm_warmupcounts.wcceiling",
+                         "update hm_warmupcounts set wcceiling = wcceiling where 1 = 0"),
+         new SchemaProbe(6093, "hm_warmupcounts.wcplanday",
+                         "update hm_warmupcounts set wcplanday = wcplanday where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

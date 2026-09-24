@@ -83,6 +83,9 @@ if exists (select * from sysobjects where id = object_id('hm_sandboxverdicts') a
 
 if exists (select * from sysobjects where id = object_id('hm_sandboxholds') and objectproperty(id, 'isusertable') = 1) drop table hm_sandboxholds
 if exists (select * from sysobjects where id = object_id('hm_listarchive') and objectproperty(id, 'isusertable') = 1) drop table hm_listarchive
+if exists (select * from sysobjects where id = object_id('hm_warmupcounts') and objectproperty(id, 'isusertable') = 1) drop table hm_warmupcounts
+
+if exists (select * from sysobjects where id = object_id('hm_warmup') and objectproperty(id, 'isusertable') = 1) drop table hm_warmup
 
 if exists (select * from sysobjects where id = object_id('hm_digeststate') and objectproperty(id, 'isusertable') = 1) drop table hm_digeststate
 
@@ -2931,4 +2934,37 @@ insert into hm_servermessages (smname, smtext) values ('LIST_UNSUBSCRIBED_SUBJEC
 
 insert into hm_servermessages (smname, smtext) values ('LIST_UNSUBSCRIBED', '%MACRO_ADDRESS% has been taken off the list %MACRO_LIST%. It will not be sent the list''s mail any more.' + NCHAR(13) + NCHAR(10) + '' + NCHAR(13) + NCHAR(10) + 'hMailServer' + NCHAR(13) + NCHAR(10))
 
-insert into hm_dbversion values (6092)
+create table hm_warmup
+(
+	warmupid int identity(1,1) not null,
+	warmupaddress nvarchar(64) not null,
+	warmupstarted bigint not null,
+	warmupplan int not null,
+	warmupenabled int not null
+)
+
+ALTER TABLE hm_warmup ADD CONSTRAINT hm_warmup_pk PRIMARY KEY NONCLUSTERED (warmupid)
+
+CREATE UNIQUE INDEX idx_hm_warmup_address ON hm_warmup (warmupaddress)
+
+create table hm_warmupcounts
+(
+	wcid int identity(1,1) not null,
+	wcwarmupid int not null,
+	wcday bigint not null,
+	wcprovider nvarchar(32) not null,
+	wcsent int not null,
+	wcdeferred int not null,
+	wcceiling int not null,
+	wcplanday int not null
+)
+
+ALTER TABLE hm_warmupcounts ADD CONSTRAINT hm_warmupcounts_pk PRIMARY KEY NONCLUSTERED (wcid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_warmupcounts_day ON hm_warmupcounts (wcwarmupid, wcday, wcprovider)
+
+CREATE NONCLUSTERED INDEX idx_hm_warmupcounts_date ON hm_warmupcounts (wcday)
+
+ALTER TABLE hm_warmupcounts ADD CONSTRAINT fk_hm_warmupcounts_warmup FOREIGN KEY (wcwarmupid) REFERENCES hm_warmup (warmupid) ON DELETE CASCADE
+
+insert into hm_dbversion values (6093)
