@@ -278,7 +278,8 @@ on to everything the account holds nothing of - and caps the account's own limit
 * **The maximum message size is the sending account's**, at `MAIL FROM` - the
   envelope sender's domain's and account's, and the signed-in account's own value
   as well - and at IMAP `APPEND`, because the domain's has always been the sending
-  domain's; the EHLO `SIZE` advertisement and the webmail's own send stay the
+  domain's; the EHLO `SIZE` advertisement, the webmail's own send and the send
+  API, which shares the webmail's check ([SendApi.md](SendApi.md)), stay the
   server's.
 * **The session policies are the browser sessions'** (the webmail, the portal, the
   Deck), as they always were; IMAP, POP3 and SMTP sessions have none.

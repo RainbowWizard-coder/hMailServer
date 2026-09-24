@@ -730,6 +730,8 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiSampleDomain.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSetupChecklist.cpp" />
     <ClCompile Include="..\Common\Util\RestApiProfiles.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiSend.cpp" />
+    <ClCompile Include="..\Common\Util\ApiSends.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOperator.cpp" />
     <ClCompile Include="..\Common\Util\WebServicesServer.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOpenPgp.cpp" />
@@ -1585,6 +1587,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\GeoIpDatabase.h" />
     <ClInclude Include="..\Common\Util\Totp.h" />
     <ClInclude Include="..\Common\Util\MessageTrace.h" />
+    <ClInclude Include="..\Common\Util\ApiSends.h" />
     <ClInclude Include="..\Common\Util\PasswordHistory.h" />
     <ClInclude Include="..\Common\Util\PasswordPolicy.h" />
     <ClInclude Include="..\Common\Util\PasswordBreachCheck.h" />

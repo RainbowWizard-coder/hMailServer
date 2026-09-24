@@ -1511,7 +1511,8 @@ const state = {
       them reads undefined and shows nothing. */
    apikeys: [
       { id: 'a1b2c3d4e5f60718', label: 'the monitor', scope: 'readonly', role: '', domains: '', expires: '', allowed_from: '10.0.0.0/8', expired: false },
-      { id: '0718f6e5d4c3b2a1', label: 'the old importer', scope: 'full', role: 'helpdesk', domains: 'example.com', expires: '2026-01-01 00:00:00', allowed_from: '', expired: true }
+      { id: '0718f6e5d4c3b2a1', label: 'the old importer', scope: 'full', role: 'helpdesk', domains: 'example.com', expires: '2026-01-01 00:00:00', allowed_from: '', expired: true,
+        send_from: '*@example.com', send_per_minute: 10, send_per_day: 500 }
    ],
    // The administrator's own passkeys. created and last_used are seconds since
    // 1970, as the route answers them; the second has never been used.
@@ -3072,7 +3073,8 @@ function answer(method, path, headers, raw) {
       if (!parsed || !parsed.label) { return json(400, { error: 'label is required' }); }
       nextId += 1;
       const made = { id: 'k' + nextId, label: parsed.label, scope: parsed.scope || 'full', role: parsed.role || '',
-         domains: parsed.domains || '', expires: parsed.expires || '', allowed_from: parsed.allowed_from || '', expired: false };
+         domains: parsed.domains || '', expires: parsed.expires || '', allowed_from: parsed.allowed_from || '', expired: false,
+         send_from: parsed.send_from || '', send_per_minute: parsed.send_per_minute || 0, send_per_day: parsed.send_per_day || 0 };
       state.apikeys.push(made);
       // The token, once. What the server keeps is a hash of it.
       return json(201, Object.assign({ key: 'hmapi_' + nextId + 'shown-this-once-only' }, made));
@@ -6084,6 +6086,21 @@ async function main() {
          rows()[1].textContent.indexOf('anywhere') >= 0, rows().map((r) => r.textContent).join(' | '));
       check('the form says what the route makes of it',
          content().textContent.indexOf('token is returned once') >= 0, content().textContent.slice(0, 400));
+      check('a key that sends shows its sender and its own ceilings, and a key that does not says so',
+         rows()[1].textContent.indexOf('*@example.com') >= 0 && rows()[1].textContent.indexOf('10 a minute, 500 a day') >= 0 &&
+         rows()[0].textContent.indexOf('does not send') >= 0, rows().map((r) => r.textContent).join(' | '));
+
+      before = requests.length;
+      setValue('key_label', 'the mailer');
+      setValue('key_send_from', 'noreply@example.com');
+      setValue('key_send_minute', 'two');
+      click(act('keynew'));
+      await flush();
+      check('a sending ceiling that is not a whole number is refused here and never sent',
+         called(before, 'POST', '/api/v1/apikeys').length === 0 && $('#err_keys').textContent.indexOf('whole numbers') >= 0,
+         $('#err_keys').textContent + ' ' + paths(before));
+      setValue('key_send_from', '');
+      setValue('key_send_minute', '');
 
       before = requests.length;
       setValue('key_label', '  ');
@@ -6106,10 +6123,33 @@ async function main() {
          posted !== null && posted.label === 'the reporting job' && posted.scope === 'readonly' &&
          posted.domains === 'example.com, second.example' && posted.expires === '2027-01-01' && posted.allowed_from === '192.0.2.0/24',
          JSON.stringify(posted));
+      check('and a key made without a sender sends no send_from and no ceilings',
+         posted !== null && !('send_from' in posted) && !('send_per_minute' in posted) && !('send_per_day' in posted),
+         JSON.stringify(posted));
+
+      before = requests.length;
+      setValue('key_label', 'the mailer');
+      setValue('key_scope', 'full');
+      setValue('key_domains', '');
+      setValue('key_expires', '');
+      setValue('key_allowed', '');
+      setValue('key_send_from', 'noreply@example.com');
+      setValue('key_send_minute', '2');
+      setValue('key_send_day', '100');
+      click(act('keynew'));
+      await flush();
+      posted = lastBody(before, 'POST', '/api/v1/apikeys');
+      check('a key that sends carries its sender, and its two ceilings as numbers',
+         posted !== null && posted.label === 'the mailer' && posted.send_from === 'noreply@example.com' &&
+         posted.send_per_minute === 2 && posted.send_per_day === 100,
+         JSON.stringify(posted));
+      check('and the list shows what it sends as',
+         rows().some((r) => r.textContent.indexOf('noreply@example.com') >= 0 && r.textContent.indexOf('2 a minute, 100 a day') >= 0),
+         rows().map((r) => r.textContent).join(' | '));
       check('and the token is shown once, with the warning that it will not be again',
          $('#keyToken') !== null && $('#keyToken').textContent.indexOf('hmapi_') === 0 &&
          content().textContent.indexOf('not shown again') >= 0, $('#keyToken') && $('#keyToken').textContent);
-      check('the new key is in the list', rows().length === 3, String(rows().length));
+      check('the new keys are in the list', rows().length === 4, String(rows().length));
 
       click(act('keycopy'));
       await flush();
@@ -6124,7 +6164,7 @@ async function main() {
       await flush();
       check('revoking asks with the label in the question and revokes by id',
          confirmations[confirmations.length - 1].indexOf('the monitor') >= 0 &&
-         called(before, 'DELETE', '/api/v1/apikeys/a1b2c3d4e5f60718').length === 1 && rows().length === 2,
+         called(before, 'DELETE', '/api/v1/apikeys/a1b2c3d4e5f60718').length === 1 && rows().length === 3,
          confirmations[confirmations.length - 1] + ' ' + paths(before));
 
       // ---- the quarantine

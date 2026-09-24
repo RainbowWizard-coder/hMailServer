@@ -65,6 +65,8 @@ select hm_drop_table('hm_recall');
 
 select hm_drop_table('hm_settingoverrides');
 
+select hm_drop_table('hm_apisends');
+
 select hm_drop_table('hm_dmarcreportrecords');
 
 select hm_drop_table('hm_dmarcreports');
@@ -1949,7 +1951,7 @@ ALTER TABLE hm_roleassignments ADD CONSTRAINT fk_hm_roleassignments_account FORE
 
 ALTER TABLE hm_roleassignments ADD CONSTRAINT fk_hm_roleassignments_role FOREIGN KEY (raroleid) REFERENCES hm_roles (roleid);
 
-insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('serveradmin', 'Every permission, in every domain.', 1, 'administer_server,administer_domain,view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_queue,manage_quarantine,manage_archive,manage_settings,manage_domains,manage_server,manage_roles');
+insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('serveradmin', 'Every permission, in every domain.', 1, 'administer_server,administer_domain,view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_queue,manage_quarantine,manage_archive,manage_settings,manage_domains,manage_server,manage_roles,send_through_api');
 
 insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('domainadmin', 'The accounts, mailboxes and quarantine of named domains.', 1, 'administer_domain,view_configuration,view_accounts,view_mailbox,view_quarantine,view_message_trace,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_quarantine');
 
@@ -2395,4 +2397,19 @@ CREATE UNIQUE INDEX idx_hm_settingoverrides_owner ON hm_settingoverrides (soscop
 
 CREATE INDEX idx_hm_settingoverrides_name ON hm_settingoverrides (soname);
 
-insert into hm_dbversion values (6088);
+create table hm_apisends
+(
+	apsid bigserial not null primary key,
+	apskeyid varchar(32) not null,
+	apsqueueid bigint not null,
+	apsmessageid varchar(255) not null,
+	apssender varchar(255) not null,
+	apsrecipients varchar(4000) not null,
+	apscreated timestamp not null
+);
+
+CREATE INDEX idx_hm_apisends_key ON hm_apisends (apskeyid, apsid);
+
+CREATE INDEX idx_hm_apisends_created ON hm_apisends (apscreated);
+
+insert into hm_dbversion values (6089);

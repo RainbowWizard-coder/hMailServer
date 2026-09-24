@@ -131,7 +131,7 @@ ALLOWED = {
     # The server's by design, before any account is known or as it always was -
     # docs/SettingLevels.md says so for each.
     "SMTP/SMTPConnection.cpp": (["SMTPConnection::SendEHLOKeywords_"], "the SIZE the EHLO advertises is the server's: no sender is known yet"),
-    "Common/Util/RestApiServer.cpp": (["RestApiServer::HandleMeMessageSend_"], "the webmail's send has always checked the server's limit alone; unchanged, and said"),
+    "Common/Util/RestApiServer.cpp": (["RestApiServer::CheckComposedMessage_"], "the webmail's send has always checked the server's limit alone, and the send API shares its check (docs/SendApi.md); unchanged, and said"),
 }
 
 # Every read site that resolves, and the names it must resolve.

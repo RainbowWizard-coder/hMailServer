@@ -92,6 +92,15 @@ namespace HM
       ManageServer,          // restart, reinitialise, back up, install an update, run a script
       ManageRoles,           // roles, their assignments, and the API keys
 
+      // Sending mail as an application: POST /api/v1/send (docs/SendApi.md).
+      // Held by an API key's role, and used only together with the key's own
+      // sender (SendFrom in the key store) - a key sends when its role holds
+      // this AND it names a sender, and never as anybody else. The server
+      // administrator holds it, as it holds everything; no other built-in role
+      // does, and a custom role may be given it. Appended, not inserted: the
+      // token is what hm_roles stores, and the position is the bit.
+      SendThroughApi,
+
       Count
    };
 
@@ -108,7 +117,7 @@ namespace HM
       // administrative authority at all.
       String name;
 
-      // A bit per RolePermission. RolePermission::Count is 22, so a 64-bit
+      // A bit per RolePermission. RolePermission::Count is 23, so a 64-bit
       // word is the whole set with room to spare; a static assertion in the
       // .cpp holds that true.
       unsigned __int64 permissions;

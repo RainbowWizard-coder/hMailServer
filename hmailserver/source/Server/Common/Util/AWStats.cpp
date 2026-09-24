@@ -29,13 +29,13 @@ namespace HM
    }
 
    void
-   AWStats::LogDeliveryFailure(const String &senderIP, const String &sFromAddress, const String &sToAddress, int iErrorCode, __int64 queueID)
+   AWStats::LogDeliveryFailure(const String &senderIP, const String &sFromAddress, const String &sToAddress, int iErrorCode, __int64 queueID, const String &detail)
    {
       // Recorded BEFORE the AWStats guard, because the two are separate features
       // that happen to observe the same events: an administrator who wants a
       // queryable trace should not have to switch on a web-statistics journal to
       // get one, and vice versa.
-      MessageTrace::Record(queueID, MessageTrace::EventFailed, sFromAddress, sToAddress, senderIP, iErrorCode, _T(""));
+      MessageTrace::Record(queueID, MessageTrace::EventFailed, sFromAddress, sToAddress, senderIP, iErrorCode, detail);
 
       if (!enabled_)
          return;

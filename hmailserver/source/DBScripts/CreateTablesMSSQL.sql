@@ -73,6 +73,8 @@ if exists (select * from sysobjects where id = object_id('hm_senderlist') and ob
 
 if exists (select * from sysobjects where id = object_id('hm_settingoverrides') and objectproperty(id, 'isusertable') = 1) drop table hm_settingoverrides
 
+if exists (select * from sysobjects where id = object_id('hm_apisends') and objectproperty(id, 'isusertable') = 1) drop table hm_apisends
+
 if exists (select * from sysobjects where id = object_id('hm_digeststate') and objectproperty(id, 'isusertable') = 1) drop table hm_digeststate
 
 if exists (select * from sysobjects where id = object_id('hm_digesttokens') and objectproperty(id, 'isusertable') = 1) drop table hm_digesttokens
@@ -2194,7 +2196,7 @@ ALTER TABLE hm_roleassignments ADD CONSTRAINT fk_hm_roleassignments_account FORE
 
 ALTER TABLE hm_roleassignments ADD CONSTRAINT fk_hm_roleassignments_role FOREIGN KEY (raroleid) REFERENCES hm_roles (roleid)
 
-insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('serveradmin', 'Every permission, in every domain.', 1, 'administer_server,administer_domain,view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_queue,manage_quarantine,manage_archive,manage_settings,manage_domains,manage_server,manage_roles')
+insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('serveradmin', 'Every permission, in every domain.', 1, 'administer_server,administer_domain,view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_queue,manage_quarantine,manage_archive,manage_settings,manage_domains,manage_server,manage_roles,send_through_api')
 
 insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('domainadmin', 'The accounts, mailboxes and quarantine of named domains.', 1, 'administer_domain,view_configuration,view_accounts,view_mailbox,view_quarantine,view_message_trace,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_quarantine')
 
@@ -2688,4 +2690,21 @@ CREATE UNIQUE CLUSTERED INDEX idx_hm_settingoverrides_owner ON hm_settingoverrid
 
 CREATE NONCLUSTERED INDEX idx_hm_settingoverrides_name ON hm_settingoverrides (soname)
 
-insert into hm_dbversion values (6088)
+create table hm_apisends
+(
+	apsid bigint identity(1,1) not null,
+	apskeyid nvarchar(32) not null,
+	apsqueueid bigint not null,
+	apsmessageid nvarchar(255) not null,
+	apssender nvarchar(255) not null,
+	apsrecipients nvarchar(4000) not null,
+	apscreated datetime not null
+)
+
+ALTER TABLE hm_apisends ADD CONSTRAINT hm_apisends_pk PRIMARY KEY NONCLUSTERED (apsid)
+
+CREATE CLUSTERED INDEX idx_hm_apisends_key ON hm_apisends (apskeyid, apsid)
+
+CREATE NONCLUSTERED INDEX idx_hm_apisends_created ON hm_apisends (apscreated)
+
+insert into hm_dbversion values (6089)

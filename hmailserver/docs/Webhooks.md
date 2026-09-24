@@ -100,6 +100,14 @@ be retried is not a bounce — the message is still in the queue. A recipient
 refused at `RCPT TO` is not a bounce either: the sending server was told at the
 time, and this server sent nothing.
 
+An application that sends through the **send API** ([SendApi.md](SendApi.md))
+can have what became of its messages pushed instead of asking for it: a
+subscription confined to its sender (`"addresses": "orders@example.com"`) hears
+`message.delivered` and `message.bounced` for each recipient outside this server
+it sent to, since such an event belongs to the sender's address. The send API's
+own `GET /api/v1/send/{queue_id}` answers the same question when asked, and also
+says `deferred` - an attempt that will be retried - which no event here carries.
+
 Every event is raised by the path that owns it, never by anything that polls a
 table. Raising writes one queue row per matching subscription and returns;
 nothing is POSTed from the thread that noticed. That is the same deferral the

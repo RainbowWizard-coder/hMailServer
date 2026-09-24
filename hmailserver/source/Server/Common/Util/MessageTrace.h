@@ -63,6 +63,29 @@ namespace HM
       // and delivered anyway - with the action in the detail. See BounceTracker.
       static const wchar_t *EventSuppressed;
 
+      // A delivery attempt to a recipient that failed and will be tried again:
+      // the remote answered 4xx, did not answer, or this server's own shaping
+      // held the attempt back (ExternalDelivery::CollectDeliveryResult_). One
+      // per recipient per attempt, so a message retried three times and then
+      // delivered reads deferred, deferred, deferred, delivered. Not counted by
+      // the reports, which count delivered and failed.
+      static const wchar_t *EventDeferred;
+
+      // THE DETAIL OF A VERDICT. A failed or a deferred delivery to a remote
+      // server carries "[<enhanced status>] <what was said>" in its detail: the
+      // RFC 3463 code the server settled on - the remote's own when its reply
+      // had one - and the remote's reply as it came, or the server's own
+      // sentence where the remote said nothing (no answer, a dropped
+      // connection). A person reads the two together in the trace; the send
+      // API (docs/SendApi.md) reads them back apart with SplitDetail. A detail
+      // without the bracket - every other event's - is all reason and no status.
+      static String DeliveryDetail(const String &enhancedStatus, const String &reply);
+      static void SplitDetail(const String &detail, String &enhancedStatus, String &reply);
+
+      // The three-digit code a remote reply starts with, when it starts with one
+      // of the class given (4 or 5), else fallback.
+      static int ReplyCode(const String &reply, int replyClass, int fallback);
+
       static bool GetEnabled();
 
       // Records one event. Never throws and never blocks a delivery: a trace that

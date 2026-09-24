@@ -4027,6 +4027,7 @@ async function renderApiKeys(){
         <td>${escHtml(k.domains||t("every domain"))}</td>
         <td>${escHtml(k.expires||"—")}</td>
         <td>${escHtml(k.allowed_from||t("anywhere"))}</td>
+        <td>${k.send_from?escHtml(k.send_from)+(k.send_per_minute||k.send_per_day?'<br><span class="note">'+escHtml(tf("{0} a minute, {1} a day",k.send_per_minute||0,k.send_per_day||0))+'</span>':""):t("does not send")}</td>
         <td style="text-align:right;white-space:nowrap"><button class="btn danger sm" data-act="keyrevoke" data-id="${escHtml(k.id)}" data-label="${escHtml(k.label||"")}">${t("Revoke")}</button></td></tr>`).join("");
   const token=apiKeyToken?`<div class="card" style="margin-bottom:14px"><h3>${t("Your new key")}</h3>
       <p class="note">${t("Copy it now: the server keeps only a hash, and it is not shown again.")}</p>
@@ -4042,13 +4043,16 @@ async function renderApiKeys(){
         <input id="key_domains" placeholder="${t("Domains, comma-separated (empty: all)")}" style="flex:2 1 220px">
         <input id="key_expires" placeholder="${t("Expires (YYYY-MM-DD, optional)")}" style="flex:1 1 180px">
         <input id="key_allowed" placeholder="${t("Allowed from (addresses or CIDR, optional)")}" style="flex:2 1 220px">
+        <input id="key_send_from" placeholder="${t("Sends as (address or *@domain, optional)")}" style="flex:2 1 220px">
+        <input id="key_send_minute" inputmode="numeric" placeholder="${t("Sends a minute (0: the server's limits)")}" style="flex:1 1 180px">
+        <input id="key_send_day" inputmode="numeric" placeholder="${t("Sends a day (0: the server's limits)")}" style="flex:1 1 180px">
         <button class="btn" data-act="keynew">${t("Make the key")}</button>
       </div>
       <div class="err" id="err_keys" style="margin-top:10px"></div>
     </div>
     <div class="card view" style="margin-top:14px">
-      <div class="tablewrap"><table><thead><tr><th>${t("Label")}</th><th>${t("Scope or role")}</th><th>${t("Domains")}</th><th>${t("Expires")}</th><th>${t("Allowed from")}</th><th></th></tr></thead>
-      <tbody>${rows||'<tr><td colspan="6" class="empty">'+t("No API keys. Make one above for a program that should reach this server without the administrator password.")+'</td></tr>'}</tbody></table></div>
+      <div class="tablewrap"><table><thead><tr><th>${t("Label")}</th><th>${t("Scope or role")}</th><th>${t("Domains")}</th><th>${t("Expires")}</th><th>${t("Allowed from")}</th><th>${t("Sends as")}</th><th></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="7" class="empty">'+t("No API keys. Make one above for a program that should reach this server without the administrator password.")+'</td></tr>'}</tbody></table></div>
     </div></div>`;
 }
 async function createApiKey(){
@@ -4058,7 +4062,16 @@ async function createApiKey(){
   if($("#key_domains").value.trim())body.domains=$("#key_domains").value.trim();
   if($("#key_expires").value.trim())body.expires=$("#key_expires").value.trim();
   if($("#key_allowed").value.trim())body.allowed_from=$("#key_allowed").value.trim();
+  if($("#key_send_from").value.trim())body.send_from=$("#key_send_from").value.trim();
   if(!body.label){setErr("err_keys",t("Give the key a label."));return;}
+  // The key's own sending ceilings (docs/SendApi.md): whole numbers, sent as
+  // numbers, and only beside a sender - the route refuses them without one.
+  for(const [field,name] of [["key_send_minute","send_per_minute"],["key_send_day","send_per_day"]]){
+    const text=$("#"+field).value.trim();
+    if(!text)continue;
+    if(!/^[0-9]{1,9}$/.test(text)){setErr("err_keys",t("The sends a minute and a day are whole numbers."));return;}
+    body[name]=Number(text);
+  }
   try{
     const made=await api("/api/v1/apikeys",{method:"POST",body:JSON.stringify(body)});
     apiKeyToken=made.key||made.token||"";

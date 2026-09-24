@@ -127,8 +127,12 @@ namespace RegressionTests.API
             Assert.IsFalse(Permissions(byName["auditor"]).Any(p => !p.StartsWith("view_")),
                "An auditor holds a permission that is not a read: " + byName["auditor"].GetProperty("permissions").GetString());
 
-            Assert.AreEqual(22, document.RootElement.GetProperty("permissions").GetArrayLength());
-            Assert.AreEqual(22, Permissions(byName["serveradmin"]).Length);
+            // Twenty-three since 24 September 2026: send_through_api, the send API's
+            // (docs/SendApi.md), appended to the vocabulary and held by serveradmin.
+            Assert.AreEqual(23, document.RootElement.GetProperty("permissions").GetArrayLength());
+            Assert.AreEqual(23, Permissions(byName["serveradmin"]).Length);
+            CollectionAssert.Contains(Permissions(byName["serveradmin"]), "send_through_api");
+            CollectionAssert.DoesNotContain(Permissions(byName["auditor"]), "send_through_api", "An auditor sends nothing.");
          }
       }
 

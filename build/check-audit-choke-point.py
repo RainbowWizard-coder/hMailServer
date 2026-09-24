@@ -386,6 +386,7 @@ NOT_AUDITED = {
    "hm_messageindexterms": "the full-text index; traffic.",
    "hm_messageindexstate": "the full-text index's progress; traffic.",
    "hm_messagetrace": "where each message went; traffic.",
+   "hm_apisends": "what each API key sent through the send API (docs/SendApi.md), written by POST /api/v1/send once the message is queued; traffic, as the trace it is answered from is. The key it names is made and revoked by the administrator password's key routes, which are not table writes either.",
    "hm_webhookqueue": "the outbound webhook delivery queue, written by the paths that raise an event and by the delivery pass. "
                        "Traffic, and the server's own writes - there is no actor on an SMTP thread, so a listed table would record every "
                        "accepted message as a change nobody made. The subscriptions the rows belong to (hm_webhooks) ARE recorded.",

@@ -726,6 +726,63 @@ namespace HM
          return id > 0;
       }
 
+      // A key's SendFrom as text: an address, or *@domain for any address of
+      // the domain - trimmed, lower-cased, and false for anything else. What
+      // the key routes store and what the store is read back as; whether the
+      // domain is one this server hosts is asked where a key is made and where
+      // one sends (RestApiServer::NormaliseSendFrom_, RestApiSend.cpp), not on
+      // every authentication.
+      bool SendFromSyntax(const String &value, String &normalised)
+      {
+         String candidate = value;
+         candidate.Trim();
+         candidate.MakeLower();
+
+         if (candidate.StartsWith(_T("*@")))
+         {
+            const String domainName = candidate.Mid(2);
+            if (domainName.IsEmpty() || !StringParser::IsValidDomainName(domainName))
+               return false;
+         }
+         else if (!StringParser::IsValidEmailAddress(candidate))
+            return false;
+
+         normalised = candidate;
+         return true;
+      }
+
+      // SendFrom read back from the key store: the value when it is one of the
+      // two forms, and empty - the key cannot send - when it is not.
+      String ReadStoredSendFrom(const String &value)
+      {
+         String normalised;
+         return SendFromSyntax(value, normalised) ? normalised : String();
+      }
+
+      // SendPerMinute and SendPerDay read back from the key store. Empty is 0,
+      // the server's ceilings only; a whole number is itself; anything else is
+      // 1, the narrowest ceiling there is, so that a mistyped value can never
+      // read as "no ceiling of the key's own".
+      int ReadStoredSendCount(const String &value)
+      {
+         String text = value;
+         text.Trim();
+
+         if (text.IsEmpty())
+            return 0;
+
+         if (text.GetLength() > 9)
+            return 1;
+
+         for (int i = 0; i < text.GetLength(); i++)
+         {
+            if (text[i] < '0' || text[i] > '9')
+               return 1;
+         }
+
+         return _ttoi(text.c_str());
+      }
+
    }
 
    namespace
@@ -1372,6 +1429,11 @@ namespace HM
       caller.identity = AnsiString("key:") + AnsiString(matched->id);
       caller.read_only = matched->read_only;
       caller.domains = matched->domains;
+      caller.key_id = matched->id;
+      caller.key_label = matched->label;
+      caller.send_from = matched->send_from;
+      caller.send_per_minute = matched->send_per_minute;
+      caller.send_per_day = matched->send_per_day;
 
       // The key's role: its Role= line when it has one, and otherwise the
       // Scope it has carried since August 2026 - full is the server
@@ -2224,6 +2286,12 @@ namespace HM
          case RouteMessageTraceAddress:
          case RouteMessageTraceQueue:
             return HandleMessageTrace_(caller, route.kind, route.identifier);
+         case RouteSendCreate:
+            return HandleSendCreate_(caller, GetRequestBody_(request));
+         case RouteSendList:
+            return HandleSendList_(caller, route.query);
+         case RouteSendGet:
+            return HandleSendGet_(caller, route.identifier);
          case RouteLogTail:
             return HandleLogTail_(route.identifier, route.query);
          case RouteLogSessions:
@@ -3017,6 +3085,37 @@ namespace HM
                route.kind = RouteApiKeyRevoke;
                route.identifier = id;
             }
+         }
+
+         return;
+      }
+
+      // The send API (RestApiSend.cpp): POST and GET /api/v1/send, and GET
+      // /api/v1/send/{queue_id}. Every segment after /send/ is the send route's
+      // to judge, a malformed id included, so that it is answered with the same
+      // 404 as an id this key never sent rather than with whatever a generic
+      // unknown path is answered with for the key's role.
+      const AnsiString sendPath = "/api/v1/send";
+
+      if (path == sendPath)
+      {
+         if (method == "POST")
+            route.kind = RouteSendCreate;
+         else if (method == "GET")
+            route.kind = RouteSendList;
+
+         return;
+      }
+
+      if (path.StartsWith(sendPath + "/"))
+      {
+         AnsiString idPart = path.Mid(sendPath.GetLength() + 1);
+
+         if (method == "GET" && !idPart.IsEmpty() && idPart.Find("/") < 0)
+         {
+            route.kind = RouteSendGet;
+            route.identifier = idPart;
+            ParseQueueId(idPart, route.message_id);
          }
 
          return;
@@ -6655,6 +6754,8 @@ namespace HM
       // again. Nothing this API does changes more in one call.
       case RouteSampleDomainCreate:
       case RouteSampleDomainRemove:
+      // A message sent: a queue row, a file, and mail that leaves the server.
+      case RouteSendCreate:
          return true;
 
       default:
@@ -6742,6 +6843,15 @@ namespace HM
       case RoutePasskeyOptions:
       case RoutePasskeyCreate:
       case RoutePasskeyDelete:
+      // What an API key sent through the send API, and one of those sends: the
+      // key's own record, read by the key and by nothing else - the other way
+      // round from the passkeys, which answer every credential but a key. There
+      // is no permission to ask for, because there is nobody else's to reach:
+      // the listing is filtered to the key that asks, and a send another key
+      // made is the same 404 as one nobody made. The server-wide view of the
+      // same deliveries is the message trace, which is permissioned.
+      case RouteSendList:
+      case RouteSendGet:
          return true;
 
       default:
@@ -6795,6 +6905,13 @@ namespace HM
       case RouteRoleAssign:
       case RouteRoleUnassign:
          return RolePermission::ManageRoles;
+
+      // A message an application sends under its key's own sender. Only an API
+      // key reaches the route (Authorize_ refuses every other credential before
+      // this is asked), and the key must name a sender as well - the permission
+      // alone sends nothing.
+      case RouteSendCreate:
+         return RolePermission::SendThroughApi;
 
       // Reading the server's shape: its state, its settings, its listeners,
       // its certificates and its rules, the roles that exist and who holds
@@ -7694,10 +7811,35 @@ namespace HM
             return AuthorizationAllowed;
          }
 
+         if (route.kind == RouteSendList || route.kind == RouteSendGet)
+         {
+            // A key's own sends, to that key. Whatever its role now holds: a
+            // key whose send_through_api was taken away may still ask what
+            // became of what it sent while it held it, and a key that never
+            // sent reads an empty list.
+            if (caller.result == AuthenticatedWithApiKey)
+               return AuthorizationAllowed;
+
+            refusalReason = "the sends made through the send api are read by the api key that made them; the server-wide view of the same deliveries is the message trace";
+            return AuthorizationForbidden;
+         }
+
          if (caller.result == AuthenticatedAsAccount || caller.result == AuthenticatedAsAdministrator)
             return AuthorizationAllowed;
 
          refusalReason = "a browser session, and the passkeys the credential holding it has, answer to an account's password or to the administrator password, not to an api key";
+         return AuthorizationForbidden;
+      }
+
+      // The send API sends as an application, under the sender its key names,
+      // and answers to that key alone: not to the administrator password, which
+      // names no sender, and not to an account, whose own send is POST
+      // /api/v1/me/messages (a person is not an application, and the webmail's
+      // send keeps a Sent copy, which this one does not). Decided here, before
+      // the administrator password's allow-everything below.
+      if (route.kind == RouteSendCreate && caller.result != AuthenticatedWithApiKey)
+      {
+         refusalReason = "POST /api/v1/send answers to an api key that names a sender, not to the administrator password or an account; a person sends with POST /api/v1/me/messages";
          return AuthorizationForbidden;
       }
 
@@ -7829,6 +7971,26 @@ namespace HM
                ? AnsiString("this api key is read-only")
                : AnsiString(roleRefusal);
 
+            return AuthorizationForbidden;
+         }
+      }
+
+      // The send's second half: the permission lets a key send, and the key's
+      // own sender says as whom. A key with the permission and no sender - an
+      // administrator's full key, which holds every permission - sends nothing;
+      // and a key confined to named domains sends only as one of them, whatever
+      // its SendFrom was hand-edited to say.
+      if (route.kind == RouteSendCreate)
+      {
+         if (caller.send_from.IsEmpty())
+         {
+            refusalReason = "this api key names no sender (send_from), so it cannot send; issue a key with send_from set";
+            return AuthorizationForbidden;
+         }
+
+         if (!IsDomainAllowed_(caller.domains, StringParser::ExtractDomain(caller.send_from)))
+         {
+            refusalReason = "this credential is not permitted for its sender's domain";
             return AuthorizationForbidden;
          }
       }
@@ -8484,6 +8646,17 @@ namespace HM
             // would turn a typo into write access over every domain.
             current.read_only = value.CompareNoCase(ApiKeyScopeFull) != 0;
          }
+         else if (name.CompareNoCase(_T("SendFrom")) == 0)
+         {
+            // The send API's sender. A value that is neither an address nor
+            // *@domain leaves the key unable to send, never able to send as
+            // anybody: hand-editing the store must not widen a key.
+            current.send_from = ReadStoredSendFrom(value);
+         }
+         else if (name.CompareNoCase(_T("SendPerMinute")) == 0)
+            current.send_per_minute = ReadStoredSendCount(value);
+         else if (name.CompareNoCase(_T("SendPerDay")) == 0)
+            current.send_per_day = ReadStoredSendCount(value);
          else if (name.CompareNoCase(_T("Domains")) == 0)
          {
             // Normalised on the way in - trimmed, lower-cased, empty items
@@ -8564,6 +8737,46 @@ namespace HM
       return peer_address.WithinRange(lower, upper);
    }
 
+   int
+   RestApiServer::NormaliseSendFrom_(const String &requested, String &normalised, AnsiString &problem)
+   {
+      if (!SendFromSyntax(requested, normalised))
+      {
+         problem = "{\"error\":\"send_from must be an address, or *@domain for any address of a domain\"}";
+         return 400;
+      }
+
+      // A domain this server hosts, and not merely one it has heard of: a key
+      // that sent as somebody else's domain would be this server forging their
+      // mail, relayed under this server's name. A domain alias is not one - the
+      // key names the domain itself.
+      const String domainName = StringParser::ExtractDomain(normalised);
+      if (!CacheContainer::Instance()->GetDomain(domainName))
+      {
+         problem = "{\"error\":\"send_from must be at a domain this server hosts, and " + JsonEscape_(Utf8_(domainName)) + " is not one of them\"}";
+         return 400;
+      }
+
+      return 0;
+   }
+
+   bool
+   RestApiServer::SendFromAllows_(const String &sendFrom, const String &address)
+   {
+      if (sendFrom.IsEmpty() || address.IsEmpty())
+         return false;
+
+      // *@domain: any address whose domain is the pattern's - compared whole, so
+      // that *@example.com is not example.com.evil or sub.example.com.
+      if (sendFrom.Left(2) == _T("*@"))
+      {
+         const int at = address.ReverseFind(_T("@"));
+         return at > 0 && address.Mid(at + 1).CompareNoCase(sendFrom.Mid(2)) == 0;
+      }
+
+      return address.CompareNoCase(sendFrom) == 0;
+   }
+
    HttpResponse
    RestApiServer::HandleListApiKeys_()
    {
@@ -8583,7 +8796,8 @@ namespace HM
          // narrow.
          AnsiString item;
          item.Format("{\"id\":\"%hs\",\"label\":\"%hs\",\"scope\":\"%hs\",\"role\":\"%hs\",\"domains\":\"%hs\","
-                     "\"expires\":\"%hs\",\"allowed_from\":\"%hs\",\"expired\":%hs}",
+                     "\"expires\":\"%hs\",\"allowed_from\":\"%hs\",\"expired\":%hs,"
+                     "\"send_from\":\"%hs\",\"send_per_minute\":%d,\"send_per_day\":%d}",
             JsonEscape_(Utf8_(key.id)).c_str(),
             JsonEscape_(Utf8_(key.label)).c_str(),
             key.read_only ? ApiKeyScopeReadOnlyNarrow : ApiKeyScopeFullNarrow,
@@ -8591,7 +8805,10 @@ namespace HM
             JsonEscape_(Utf8_(StringParser::JoinVector(key.domains, _T(",")))).c_str(),
             JsonEscape_(Utf8_(key.expires)).c_str(),
             JsonEscape_(Utf8_(key.allowed_from)).c_str(),
-            IsExpired_(key.expires) ? "true" : "false");
+            IsExpired_(key.expires) ? "true" : "false",
+            JsonEscape_(Utf8_(key.send_from)).c_str(),
+            key.send_per_minute,
+            key.send_per_day);
 
          if (count > 0)
             items += ",";
@@ -8671,6 +8888,7 @@ namespace HM
       // that nothing the caller typed reaches the store verbatim and the value
       // LoadKeys_ reads back is the value this function decided on.
       String normalizedDomains;
+      std::vector<String> domainList;
 
       if (!domains.IsEmpty())
       {
@@ -8697,6 +8915,7 @@ namespace HM
                normalizedDomains += _T(",");
 
             normalizedDomains += domainName;
+            domainList.push_back(domainName);
          }
 
          // The caller asked for a restriction and nothing survived
@@ -8704,6 +8923,50 @@ namespace HM
          // "every domain", which is the opposite of what was asked for.
          if (normalizedDomains.IsEmpty())
             return BuildResponse_(400, "{\"error\":\"domains must be a comma-separated list of domain names\"}");
+      }
+
+      // The send API's sender and the key's own ceilings (docs/SendApi.md),
+      // checked now as the role is: a key whose sender this server could not
+      // send as would fail at its first send, and that is finding it out too
+      // late.
+      String sendFrom;
+      __int64 sendPerMinute = 0;
+      __int64 sendPerDay = 0;
+      {
+         String requestedSendFrom = JsonUtf8Value_(requestBody, "send_from");
+         requestedSendFrom.Trim();
+
+         if (!requestedSendFrom.IsEmpty())
+         {
+            AnsiString problem;
+            const int refused = NormaliseSendFrom_(requestedSendFrom, sendFrom, problem);
+            if (refused != 0)
+               return BuildResponse_(refused, problem);
+
+            // A key that may not send cannot carry a sender: a read-only key,
+            // which is the auditor and changes nothing, and a key whose role
+            // does not hold send_through_api. Asked of the grant the key will
+            // hold, which is the grant its first send will be decided on.
+            const RoleGrant grant = RoleManager::GrantForApiKey(String(role), readOnly, domainList);
+            if (!RoleManager::Allows(grant, RolePermission::SendThroughApi))
+               return BuildResponse_(400, "{\"error\":\"send_from is for a key that may send: a read-only key cannot carry one, and a key with a role needs a role that holds send_through_api\"}");
+
+            // A key confined to named domains sends as one of them, as it
+            // administers only them.
+            if (!domainList.empty() && !IsDomainAllowed_(domainList, StringParser::ExtractDomain(sendFrom)))
+               return BuildResponse_(400, "{\"error\":\"send_from must be in one of the domains the key is confined to\"}");
+         }
+
+         if (JsonWholeNumber_(requestBody, "send_per_minute", sendPerMinute) < 0 || sendPerMinute > 1000000)
+            return BuildResponse_(400, "{\"error\":\"send_per_minute is a whole number of messages, from 0 (the server's own ceilings) to 1000000\"}");
+
+         if (JsonWholeNumber_(requestBody, "send_per_day", sendPerDay) < 0 || sendPerDay > 100000000)
+            return BuildResponse_(400, "{\"error\":\"send_per_day is a whole number of messages, from 0 (the server's own ceilings) to 100000000\"}");
+
+         // A ceiling on a key that sends nothing would read as though the key
+         // sent within it.
+         if ((sendPerMinute > 0 || sendPerDay > 0) && sendFrom.IsEmpty())
+            return BuildResponse_(400, "{\"error\":\"send_per_minute and send_per_day are ceilings on a key that sends: give send_from with them\"}");
       }
 
       if (expires.IsEmpty())
@@ -8812,6 +9075,14 @@ namespace HM
          preamble += ";             with a list may only act on those domains, and is refused\r\n";
          preamble += ";             the delivery-queue endpoints outright because the queue is\r\n";
          preamble += ";             server-wide.\r\n";
+         preamble += "; SendFrom    Optional. The one sender POST /api/v1/send may use: an\r\n";
+         preamble += ";             address, or *@domain for any address of the domain.\r\n";
+         preamble += ";             Empty means the key cannot send; anything that is\r\n";
+         preamble += ";             neither form reads as empty.\r\n";
+         preamble += "; SendPerMinute, SendPerDay\r\n";
+         preamble += ";             Optional. The key's own sending ceilings; 0 or empty\r\n";
+         preamble += ";             leaves the server's. A value that is not a whole number\r\n";
+         preamble += ";             reads as 1.\r\n";
          preamble += ";\r\n";
          preamble += "; No key of any scope can create or revoke keys: that needs the\r\n";
          preamble += "; administrator password.\r\n";
@@ -8833,6 +9104,9 @@ namespace HM
          WritePrivateProfileString(section, _T("Scope"), readOnly ? ApiKeyScopeReadOnly : ApiKeyScopeFull, storeFile) != FALSE &&
          WritePrivateProfileString(section, _T("Domains"), normalizedDomains, storeFile) != FALSE &&
          WritePrivateProfileString(section, _T("Role"), String(role), storeFile) != FALSE &&
+         WritePrivateProfileString(section, _T("SendFrom"), sendFrom, storeFile) != FALSE &&
+         WritePrivateProfileString(section, _T("SendPerMinute"), StringParser::IntToString(sendPerMinute), storeFile) != FALSE &&
+         WritePrivateProfileString(section, _T("SendPerDay"), StringParser::IntToString(sendPerDay), storeFile) != FALSE &&
          WritePrivateProfileString(section, _T("Hash"), String(hash), storeFile) != FALSE;
 
       // Flush the profile cache so the very next request sees the new key.
@@ -8853,18 +9127,20 @@ namespace HM
       // full-authority is the thing an administrator will want to answer months
       // later from the log alone.
       String created;
-      created.Format(_T("RestApi: API key '%s' (%s) created. Scope: %s. Role: %s. Domains: %s."),
+      created.Format(_T("RestApi: API key '%s' (%s) created. Scope: %s. Role: %s. Domains: %s. Sends as: %s."),
          String(label).c_str(), id.c_str(),
          readOnly ? ApiKeyScopeReadOnly : ApiKeyScopeFull,
          role.IsEmpty() ? _T("(from the scope)") : String(role).c_str(),
-         normalizedDomains.IsEmpty() ? _T("(all)") : normalizedDomains.c_str());
+         normalizedDomains.IsEmpty() ? _T("(all)") : normalizedDomains.c_str(),
+         sendFrom.IsEmpty() ? _T("(nobody - it does not send)") : sendFrom.c_str());
       LOG_APPLICATION(created);
 
       // The clear-text token is returned exactly once, here. It is not stored
       // and cannot be recovered afterwards.
       AnsiString body;
       body.Format("{\"id\":\"%hs\",\"label\":\"%hs\",\"scope\":\"%hs\",\"role\":\"%hs\",\"domains\":\"%hs\","
-                  "\"expires\":\"%hs\",\"allowed_from\":\"%hs\",\"key\":\"%hs\"}",
+                  "\"expires\":\"%hs\",\"allowed_from\":\"%hs\",\"send_from\":\"%hs\",\"send_per_minute\":%I64d,"
+                  "\"send_per_day\":%I64d,\"key\":\"%hs\"}",
          JsonEscape_(Utf8_(id)).c_str(),
          JsonEscape_(label).c_str(),
          readOnly ? ApiKeyScopeReadOnlyNarrow : ApiKeyScopeFullNarrow,
@@ -8872,6 +9148,9 @@ namespace HM
          JsonEscape_(Utf8_(normalizedDomains)).c_str(),
          JsonEscape_(expires).c_str(),
          JsonEscape_(allowedFrom).c_str(),
+         JsonEscape_(Utf8_(sendFrom)).c_str(),
+         sendPerMinute,
+         sendPerDay,
          JsonEscape_(token).c_str());
 
       return BuildResponse_(201, body);
@@ -14746,58 +15025,258 @@ namespace HM
       return json.Find("\"" + key + "\"") >= 0 ? -1 : 0;
    }
 
-   namespace
+   // "a@x, Name <b@y>; c@z" -> the three addresses, and the entries as
+   // written for the header. A list is split on commas and semicolons; an
+   // entry keeps its display name for the header and gives its address to
+   // the envelope.
+   void
+   RestApiServer::SplitAddressList_(const String &list, std::vector<String> &addresses, std::vector<String> &entries)
    {
-      // "a@x, Name <b@y>; c@z" -> the three addresses, and the entries as
-      // written for the header. A list is split on commas and semicolons; an
-      // entry keeps its display name for the header and gives its address to
-      // the envelope.
-      void SplitAddressList(const String &list, std::vector<String> &addresses, std::vector<String> &entries)
+      std::vector<String> parts = StringParser::SplitString(list, _T(","));
+      std::vector<String> all;
+      for (size_t i = 0; i < parts.size(); i++)
       {
-         std::vector<String> parts = StringParser::SplitString(list, _T(","));
-         std::vector<String> all;
-         for (size_t i = 0; i < parts.size(); i++)
+         std::vector<String> inner = StringParser::SplitString(parts[i], _T(";"));
+         all.insert(all.end(), inner.begin(), inner.end());
+      }
+
+      for (size_t i = 0; i < all.size(); i++)
+      {
+         String entry = all[i];
+         entry.TrimLeft();
+         entry.TrimRight();
+         if (entry.IsEmpty())
+            continue;
+
+         // "Name <address>" gives its address to the envelope and keeps the
+         // whole entry for the header.
+         String address = entry;
+         int open = entry.Find(_T("<"));
+         int close = entry.ReverseFind(_T(">"));
+         if (open >= 0 && close > open)
+            address = entry.Mid(open + 1, close - open - 1);
+         address.TrimLeft();
+         address.TrimRight();
+         if (address.IsEmpty())
+            address = entry;
+
+         addresses.push_back(address);
+         entries.push_back(entry);
+      }
+   }
+
+   String
+   RestApiServer::JoinEntries_(const std::vector<String> &entries)
+   {
+      String joined;
+      for (size_t i = 0; i < entries.size(); i++)
+      {
+         if (i > 0)
+            joined += _T(", ");
+         joined += entries[i];
+      }
+      return joined;
+   }
+
+   bool
+   RestApiServer::ResolveSendRecipients_(std::shared_ptr<const Account> restricted, const String &from,
+                                         const std::vector<String> &recipients, std::shared_ptr<Message> message,
+                                         HttpResponse &refusal)
+   {
+      std::shared_ptr<SMTPConfiguration> smtpConfiguration = Configuration::Instance()->GetSMTPConfiguration();
+
+      int maxRecipients = smtpConfiguration->GetMaxSMTPRecipientsInBatch();
+      if (maxRecipients > 0 && (int) recipients.size() > maxRecipients)
+      {
+         AnsiString json;
+         json.Format("{\"error\":\"too many recipients; the server allows %d\"}", maxRecipients);
+         refusal = BuildResponse_(400, json);
+         return false;
+      }
+
+      // Every address is put through the two questions RCPT TO asks, as an
+      // authenticated sender: may this sender deliver there, and what does
+      // the address resolve to - so aliases, distribution lists, routes and
+      // the relay rules apply unchanged, and a refused address is named.
+      RecipientParser parser;
+      for (size_t i = 0; i < recipients.size(); i++)
+      {
+         const String &address = recipients[i];
+
+         if (!StringParser::IsValidEmailAddress(address))
          {
-            std::vector<String> inner = StringParser::SplitString(parts[i], _T(";"));
-            all.insert(all.end(), inner.begin(), inner.end());
+            refusal = BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(address)) + ": not an e-mail address\"}");
+            return false;
          }
 
-         for (size_t i = 0; i < all.size(); i++)
+         String reason;
+         bool treatSecurityAsLocal = false;
+         RecipientParser::DeliveryPossibility possibility =
+            parser.CheckDeliveryPossibility(true, from, address, reason, treatSecurityAsLocal, 0, true);
+
+         if (possibility != RecipientParser::DP_Possible)
          {
-            String entry = all[i];
-            entry.TrimLeft();
-            entry.TrimRight();
-            if (entry.IsEmpty())
-               continue;
+            if (reason.IsEmpty())
+            {
+               if (possibility == RecipientParser::DP_RecipientUnknown)
+                  reason = _T("unknown recipient");
+               else if (possibility == RecipientParser::DP_MailboxFull)
+                  reason = _T("the mailbox is full");
+               else
+                  reason = _T("delivery is not permitted");
+            }
 
-            // "Name <address>" gives its address to the envelope and keeps the
-            // whole entry for the header.
-            String address = entry;
-            int open = entry.Find(_T("<"));
-            int close = entry.ReverseFind(_T(">"));
-            if (open >= 0 && close > open)
-               address = entry.Mid(open + 1, close - open - 1);
-            address.TrimLeft();
-            address.TrimRight();
-            if (address.IsEmpty())
-               address = entry;
+            refusal = BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(address)) + ": " + JsonEscape_(Utf8_(reason)) + "\"}");
+            return false;
+         }
 
-            addresses.push_back(address);
-            entries.push_back(entry);
+         // Restricted delivery (RestrictedDelivery.h), as RCPT TO applies it to
+         // a submission by the account: judged on the account the send is
+         // judged on - the webmail's caller, whatever identity the message goes
+         // out under, since it is the caller who is restricted; the account of
+         // the send API's sender, when its sender is one - and refused here in
+         // the same sentence the SMTP session uses, where the page or the
+         // program can tell the person who typed the address, and nothing is
+         // queued.
+         if (restricted && RestrictedDelivery::Check(restricted, address, RestrictedDelivery::Outbound) == RestrictedDelivery::Refused)
+         {
+            refusal = BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(RestrictedDelivery::OutboundRefusal(address))) + "\"}");
+            return false;
+         }
+
+         // The suppression list, as RCPT TO applies it to a submission: refused
+         // here, where the page can tell the person who typed the address, and
+         // nothing is queued. The code lets the page say it in their language,
+         // and the source lets it say why - an entry an administrator added by
+         // hand is not an address that bounced.
+         {
+            String suppressionCode;
+            String suppressionText;
+            String suppressionSource;
+
+            if (BounceTracker::RefuseAtSubmission(from, address, suppressionCode, suppressionText, suppressionSource))
+            {
+               refusal = BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(address)) + ": " + JsonEscape_(Utf8_(suppressionText)) +
+                  "\",\"code\":\"recipient_suppressed\",\"address\":\"" + JsonEscape_(Utf8_(address)) +
+                  "\",\"source\":\"" + JsonEscape_(Utf8_(suppressionSource)) + "\"}");
+               return false;
+            }
+         }
+
+         bool recipientOK = false;
+         parser.CreateMessageRecipientList(address, message->GetRecipients(), recipientOK);
+         if (!recipientOK)
+         {
+            refusal = BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(address)) + ": unknown recipient\"}");
+            return false;
          }
       }
 
-      String JoinEntries(const std::vector<String> &entries)
+      if (message->GetRecipients()->GetCount() == 0)
       {
-         String joined;
-         for (size_t i = 0; i < entries.size(); i++)
-         {
-            if (i > 0)
-               joined += _T(", ");
-            joined += entries[i];
-         }
-         return joined;
+         refusal = BuildResponse_(400, "{\"error\":\"no address resolved to a recipient\"}");
+         return false;
       }
+
+      return true;
+   }
+
+   int
+   RestApiServer::WriteComposedMessage_(std::shared_ptr<Message> message, const String &fileName,
+                                        const ComposedMessage &composed, String &messageId, AnsiString &problem)
+   {
+      // The message: the sender's name and address, the lists as written,
+      // a Date and a Message-ID, the text as UTF-8. Bcc goes to the envelope
+      // and nowhere else.
+      MessageData messageData;
+      messageData.LoadFromMessage(fileName, message);
+      messageData.SetCharset(_T("utf-8"));
+      messageData.SetFrom(composed.from_header);
+      messageData.SetTo(composed.to);
+      if (!composed.cc.IsEmpty())
+         messageData.SetCC(composed.cc);
+      messageData.SetSubject(composed.subject);
+      messageData.SetBody(composed.text);
+
+      // html beside text: the message goes as multipart/alternative, the
+      // text part first, as a client with a formatting bar writes it.
+      if (!composed.html.IsEmpty())
+         messageData.SetHTMLBody(composed.html);
+
+      messageData.SetSentTime(Time::GetCurrentMimeDate());
+      messageData.GenerateMessageID();
+
+      for (const std::pair<String, String> &field : composed.fields)
+         messageData.SetFieldValue(field.first, field.second);
+
+      int attachmentStatus = AddAttachmentsFromJson_(messageData, composed.attachments_body, problem,
+                                                     composed.attachment_name_key, composed.attachment_type_key);
+      if (attachmentStatus != 0)
+         return attachmentStatus;
+
+      // Images the HTML holds as data: URLs go as cid: parts - last, after the attachments (InlineImageParts.h).
+      InlineImageParts::FromDataUrls(messageData);
+
+      // A trace field goes above every other, as each hop's does. Written into
+      // the header's list rather than through SetFieldValue, which appends.
+      if (!composed.received.IsEmpty())
+      {
+         MimeField received;
+         received.SetName("Received");
+         received.SetValue(AnsiString(composed.received).c_str());
+
+         std::vector<MimeField> &fields = messageData.GetMimeMessage()->Fields();
+         fields.insert(fields.begin(), received);
+      }
+
+      messageId = messageData.GetFieldValue(_T("Message-ID"));
+
+      if (!messageData.Write(fileName))
+      {
+         problem = "{\"error\":\"the message could not be written\"}";
+         return 500;
+      }
+
+      return 0;
+   }
+
+   bool
+   RestApiServer::CheckComposedMessage_(std::shared_ptr<Message> message, const String &fileName,
+                                        std::shared_ptr<const Account> writer, HttpResponse &refusal)
+   {
+      // The domain's signature and disclaimer, by the rules SMTP submission
+      // applies, before the size is taken and the \Sent copy made.
+      OutgoingFooters::AddToWebmailMessage(message, writer);
+
+      // The rules that block, asked here as the SMTP session asks them at the
+      // end of DATA and with the same collections (RuleApplier): the page is
+      // the sender on the line. A message queued past a reject rule would be
+      // dropped by the deliverer with "Sent" in the folder and the sender none
+      // the wiser; refused here, with the rule's text, nothing is queued or
+      // kept. Before the confidential rewrite of the webmail's send, which
+      // replaces the file with the notice: what the rule reads is the message
+      // that would go.
+      {
+         String rejection;
+         if (RuleApplier::RejectedBySubmissionRules(message, rejection))
+         {
+            FileUtilities::DeleteFile(fileName);
+            refusal = BuildResponse_(403, "{\"error\":\"" + JsonEscape_(Utf8_(rejection)) + "\",\"code\":\"policy_rejected\"}");
+            return false;
+         }
+      }
+
+      message->SetSize((int) FileUtilities::FileSize(fileName));
+
+      int maxKB = Configuration::Instance()->GetSMTPConfiguration()->GetMaxMessageSize();
+      if (maxKB > 0 && (__int64) message->GetSize() > (__int64) maxKB * 1024)
+      {
+         FileUtilities::DeleteFile(fileName);
+         refusal = BuildResponse_(413, "{\"error\":\"the message is larger than the server allows\"}");
+         return false;
+      }
+
+      return true;
    }
 
    HttpResponse
@@ -14819,9 +15298,9 @@ namespace HM
       }
 
       std::vector<String> toAddresses, toEntries, ccAddresses, ccEntries, bccAddresses, bccEntries;
-      SplitAddressList(JsonUtf8Value_(requestBody, "to"), toAddresses, toEntries);
-      SplitAddressList(JsonUtf8Value_(requestBody, "cc"), ccAddresses, ccEntries);
-      SplitAddressList(JsonUtf8Value_(requestBody, "bcc"), bccAddresses, bccEntries);
+      SplitAddressList_(JsonUtf8Value_(requestBody, "to"), toAddresses, toEntries);
+      SplitAddressList_(JsonUtf8Value_(requestBody, "cc"), ccAddresses, ccEntries);
+      SplitAddressList_(JsonUtf8Value_(requestBody, "bcc"), bccAddresses, bccEntries);
 
       // An entry that is the name of one of the account's contact groups -
       // "Family", with no address in it - becomes the group's recipients, in
@@ -14905,90 +15384,19 @@ namespace HM
             return BuildResponse_(400, problem);
       }
 
-      std::shared_ptr<SMTPConfiguration> smtpConfiguration = Configuration::Instance()->GetSMTPConfiguration();
-
-      int maxRecipients = smtpConfiguration->GetMaxSMTPRecipientsInBatch();
-      if (maxRecipients > 0 && (int) recipients.size() > maxRecipients)
-      {
-         AnsiString json;
-         json.Format("{\"error\":\"too many recipients; the server allows %d\"}", maxRecipients);
-         return BuildResponse_(400, json);
-      }
-
       std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message());
       message->SetFromAddress(from);
 
-      // Every address is put through the two questions RCPT TO asks, as an
-      // authenticated sender: may this sender deliver there, and what does
-      // the address resolve to - so aliases, distribution lists, routes and
-      // the relay rules apply unchanged, and a refused address is named.
-      RecipientParser parser;
-      for (size_t i = 0; i < recipients.size(); i++)
+      // The server's recipient ceiling and every address through what RCPT TO
+      // asks of an authenticated sender - the send API's own steps, shared
+      // (ResolveSendRecipients_). Restricted delivery is judged on the CALLER's
+      // account, whatever identity the message goes out under.
       {
-         const String &address = recipients[i];
-
-         if (!StringParser::IsValidEmailAddress(address))
-            return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(address)) + ": not an e-mail address\"}");
-
-         String reason;
-         bool treatSecurityAsLocal = false;
-         RecipientParser::DeliveryPossibility possibility =
-            parser.CheckDeliveryPossibility(true, from, address, reason, treatSecurityAsLocal, 0, true);
-
-         if (possibility != RecipientParser::DP_Possible)
-         {
-            if (reason.IsEmpty())
-            {
-               if (possibility == RecipientParser::DP_RecipientUnknown)
-                  reason = _T("unknown recipient");
-               else if (possibility == RecipientParser::DP_MailboxFull)
-                  reason = _T("the mailbox is full");
-               else
-                  reason = _T("delivery is not permitted");
-            }
-
-            return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(address)) + ": " + JsonEscape_(Utf8_(reason)) + "\"}");
-         }
-
-         // Restricted delivery (RestrictedDelivery.h), as RCPT TO applies it to
-         // a submission by the account: judged on the CALLER's account, whatever
-         // identity the message goes out under, since it is the caller who is
-         // restricted. Refused here in the same sentence the SMTP session uses,
-         // where the page can tell the person who typed the address, and
-         // nothing is queued.
-         if (RestrictedDelivery::Check(account, address, RestrictedDelivery::Outbound) == RestrictedDelivery::Refused)
-            return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(RestrictedDelivery::OutboundRefusal(address))) + "\"}");
-
-         // The suppression list, as RCPT TO applies it to a submission: refused
-         // here, where the page can tell the person who typed the address, and
-         // nothing is queued. The code lets the page say it in their language,
-         // and the source lets it say why - an entry an administrator added by
-         // hand is not an address that bounced.
-         {
-            String suppressionCode;
-            String suppressionText;
-            String suppressionSource;
-
-            if (BounceTracker::RefuseAtSubmission(from, address, suppressionCode, suppressionText, suppressionSource))
-            {
-               return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(address)) + ": " + JsonEscape_(Utf8_(suppressionText)) +
-                  "\",\"code\":\"recipient_suppressed\",\"address\":\"" + JsonEscape_(Utf8_(address)) +
-                  "\",\"source\":\"" + JsonEscape_(Utf8_(suppressionSource)) + "\"}");
-            }
-         }
-
-         bool recipientOK = false;
-         parser.CreateMessageRecipientList(address, message->GetRecipients(), recipientOK);
-         if (!recipientOK)
-            return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(address)) + ": unknown recipient\"}");
+         HttpResponse refusal;
+         if (!ResolveSendRecipients_(account, from, recipients, message, refusal))
+            return refusal;
       }
 
-      if (message->GetRecipients()->GetCount() == 0)
-         return BuildResponse_(400, "{\"error\":\"no address resolved to a recipient\"}");
-
-      // The message: the sender's name and address, the lists as written,
-      // a Date and a Message-ID, the text as UTF-8. Bcc goes to the envelope
-      // and nowhere else.
       const String fileName = PersistentMessage::GetFileName(message);
 
       // "mime": a message the page built itself - a signed or an encrypted one,
@@ -15000,89 +15408,59 @@ namespace HM
       if (!mimeEntity.IsEmpty())
       {
          AnsiString problem;
-         int refused = WriteMimeEntity_(account, fromHeader, JoinEntries(toEntries), ccEntries.empty() ? String() : JoinEntries(ccEntries), requestBody, mimeEntity, autocryptHeader, fileName, problem);
+         int refused = WriteMimeEntity_(account, fromHeader, JoinEntries_(toEntries), ccEntries.empty() ? String() : JoinEntries_(ccEntries), requestBody, mimeEntity, autocryptHeader, fileName, problem);
          if (refused != 0)
             return BuildResponse_(refused, problem);
       }
       else
       {
-
-         MessageData messageData;
-         messageData.LoadFromMessage(fileName, message);
-         messageData.SetCharset(_T("utf-8"));
-         messageData.SetFrom(fromHeader);
-         messageData.SetTo(JoinEntries(toEntries));
+         // Written by the send API's writer (WriteComposedMessage_), with the
+         // fields only the webmail's send carries after the Message-ID.
+         ComposedMessage composed;
+         composed.from_header = fromHeader;
+         composed.to = JoinEntries_(toEntries);
          if (!ccEntries.empty())
-            messageData.SetCC(JoinEntries(ccEntries));
-         messageData.SetSubject(JsonUtf8Value_(requestBody, "subject"));
-         messageData.SetBody(JsonUtf8Value_(requestBody, "text"));
-         {
-            // html beside text: the message goes as multipart/alternative, the
-            // text part first, as a client with a formatting bar writes it.
-            String html = JsonUtf8Value_(requestBody, "html");
-            if (!html.IsEmpty())
-               messageData.SetHTMLBody(html);
-         }
-         messageData.SetSentTime(Time::GetCurrentMimeDate());
-         messageData.GenerateMessageID();
+            composed.cc = JoinEntries_(ccEntries);
+         composed.subject = JsonUtf8Value_(requestBody, "subject");
+         composed.text = JsonUtf8Value_(requestBody, "text");
+         composed.html = JsonUtf8Value_(requestBody, "html");
 
          // A reply names what it answers, so the recipient's client threads it.
          String inReplyTo = JsonUtf8Value_(requestBody, "in_reply_to");
          String references = JsonUtf8Value_(requestBody, "references");
          if (!inReplyTo.IsEmpty())
-            messageData.SetFieldValue(_T("In-Reply-To"), inReplyTo);
+            composed.fields.push_back(std::make_pair(String(_T("In-Reply-To")), inReplyTo));
          if (!references.IsEmpty())
-            messageData.SetFieldValue(_T("References"), references);
+            composed.fields.push_back(std::make_pair(String(_T("References")), references));
 
          // receipt: true asks the recipient's client to say when it was read.
          if (GetJsonBoolValue_(requestBody, "receipt", false))
-            messageData.SetFieldValue(_T("Disposition-Notification-To"), fromHeader);
+            composed.fields.push_back(std::make_pair(String(_T("Disposition-Notification-To")), fromHeader));
 
          // The sender's OpenPGP key, carried on a message that is not itself
          // encrypted or signed: that is how Autocrypt gets a key to somebody
          // who has none yet, and it is the ordinary case.
          if (!autocryptHeader.IsEmpty())
-            messageData.SetFieldValue(_T("Autocrypt"), autocryptHeader);
+            composed.fields.push_back(std::make_pair(String(_T("Autocrypt")), autocryptHeader));
 
-         AnsiString attachmentError;
-         int attachmentStatus = AddAttachmentsFromJson_(messageData, requestBody, attachmentError);
-         if (attachmentStatus != 0)
-            return BuildResponse_(attachmentStatus, attachmentError);
+         composed.attachments_body = requestBody;
 
-         // Images the HTML holds as data: URLs go as cid: parts - last, after the attachments (InlineImageParts.h).
-         InlineImageParts::FromDataUrls(messageData);
-
-         if (!messageData.Write(fileName))
-            return BuildResponse_(500, "{\"error\":\"the message could not be written\"}");
+         String messageId;
+         AnsiString problem;
+         int refused = WriteComposedMessage_(message, fileName, composed, messageId, problem);
+         if (refused != 0)
+            return BuildResponse_(refused, problem);
       }
 
-      // The domain's signature and disclaimer, by the rules SMTP submission
-      // applies, before the size is taken and the \Sent copy made.
-      OutgoingFooters::AddToWebmailMessage(message, account);
-
-      // The rules that block, asked here as the SMTP session asks them at the
-      // end of DATA and with the same collections (RuleApplier): the page is
-      // the sender on the line. A message queued past a reject rule would be
-      // dropped by the deliverer with "Sent" in the folder and the sender none
-      // the wiser; refused here, with the rule's text, nothing is queued or
-      // kept. Before the confidential rewrite below, which replaces the file
-      // with the notice: what the rule reads is the message that would go.
+      // The domain's signature and disclaimer, the rules that block, and the
+      // server's maximum message size - the send API's own checks, shared
+      // (CheckComposedMessage_) - before the confidential rewrite below, which
+      // replaces the file with the notice: what the rules read is the message
+      // that would go.
       {
-         String refusal;
-         if (RuleApplier::RejectedBySubmissionRules(message, refusal))
-         {
-            FileUtilities::DeleteFile(fileName);
-            return BuildResponse_(403, "{\"error\":\"" + JsonEscape_(Utf8_(refusal)) + "\",\"code\":\"policy_rejected\"}");
-         }
-      }
-
-      message->SetSize((int) FileUtilities::FileSize(fileName));
-
-      int maxKB = smtpConfiguration->GetMaxMessageSize();
-      if (maxKB > 0 && (__int64) message->GetSize() > (__int64) maxKB * 1024)
-      {
-         FileUtilities::DeleteFile(fileName);
-         return BuildResponse_(413, "{\"error\":\"the message is larger than the server allows\"}");
+         HttpResponse refusal;
+         if (!CheckComposedMessage_(message, fileName, account, refusal))
+            return refusal;
       }
 
       // A message that expires: the full message, footers and all, is kept on
@@ -15126,7 +15504,7 @@ namespace HM
          keptPath = ConfidentialMessages::PathOf(kept);
 
          const AnsiString link = Utf8_(ConfidentialMessages::BaseUrl()) + "/confidential/" + kept.token;
-         if (!ConfidentialMessages::WriteNotice(message, fileName, fromHeader, JoinEntries(toEntries), ccEntries.empty() ? String() : JoinEntries(ccEntries),
+         if (!ConfidentialMessages::WriteNotice(message, fileName, fromHeader, JoinEntries_(toEntries), ccEntries.empty() ? String() : JoinEntries_(ccEntries),
                                                 JsonUtf8Value_(requestBody, "subject"), ConfidentialMessages::DisplayName(fromHeader), link, expires, !passcode.IsEmpty()))
          {
             ConfidentialMessages::Discard(kept);
@@ -16128,7 +16506,8 @@ namespace HM
    // its own name in a directory of its own in the temp folder, read from
    // there, and the directory removed. Returns 0, or the status to answer.
    int
-   RestApiServer::AddAttachmentsFromJson_(MessageData &messageData, const AnsiString &requestBody, AnsiString &error)
+   RestApiServer::AddAttachmentsFromJson_(MessageData &messageData, const AnsiString &requestBody, AnsiString &error,
+                                          const char *nameKey, const char *typeKey)
    {
       if (requestBody.Find("\"attachments\"") < 0)
          return 0;
@@ -16147,8 +16526,8 @@ namespace HM
             return 400;
          }
 
-         String name = SafeAttachmentName(JsonUtf8Value_(object, "name"));
-         String type = JsonUtf8Value_(object, "type");
+         String name = SafeAttachmentName(JsonUtf8Value_(object, nameKey));
+         String type = JsonUtf8Value_(object, typeKey);
          AnsiString encoded = GetJsonStringValue_(object, "data");
 
          AnsiString bytes = Base64::Decode(encoded.c_str(), encoded.GetLength());
@@ -16242,6 +16621,11 @@ namespace HM
       // A raw message into one of an account's folders, by the administrator
       // (RestApiAccountResources.cpp): the same 25 MB as the account's own import.
       if (path.StartsWith("/api/v1/accounts/") && path.Find("/folders/") > 0 && path.EndsWith("/messages"))
+         return true;
+      // An application's message with its attachments (RestApiSend.cpp): the
+      // same large cap as the webmail's send, whose writer it shares; the
+      // message itself is then held to the server's maximum message size.
+      if (path == "/api/v1/send")
          return true;
       return path == "/api/v1/me/messages" || path == "/api/v1/me/drafts";
    }
@@ -16469,8 +16853,8 @@ namespace HM
          "\"/api/v1/diagnostics/run\":{\"post\":{\"summary\":\"Run the server's diagnostic tests\",\"description\":\"What the desktop program's Diagnostics page runs over COM (Diagnostics.PerformTests): the MX records of a domain hosted here, an outbound connection on port 25 to a domain elsewhere, a connection to this server's own ports, IPv6, the data and backup directories, the IP ranges, the error logs and the installation paths. Body: local_domain (a domain hosted here) and test_domain (one to send to; example.com when absent). Each result: name, description, success and details. The tests connect out and wait for their timeouts, so the answer can take some seconds. Refused for read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"local_domain\":{\"type\":\"string\"},\"test_domain\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"local_domain, test_domain, results\"}}}},"
          "\"/api/v1/metrics/history\":{\"get\":{\"summary\":\"The history of one metric\",\"description\":\"Query parameters: metric (a name from the exporter without the hmailserver_ prefix, e.g. sessions_smtp or processed_messages_total) and range (24h, 7d or 30d - samples averaged per minute, per ten minutes or per hour). Counters are totals; a rate is the difference between two samples. Empty when MetricsHistoryDays is 0.\",\"responses\":{\"200\":{\"description\":\"The samples\"},\"400\":{\"description\":\"Unknown metric or range\"}}}},"
          "\"/api/v1/apikeys\":{"
-         "\"get\":{\"summary\":\"List API keys\",\"description\":\"Administrator password only.\",\"responses\":{\"200\":{\"description\":\"Array of keys, never the clear-text tokens\"}}},"
-         "\"post\":{\"summary\":\"Create an API key\",\"description\":\"Administrator password only. The token is returned once, at creation.\",\"responses\":{\"201\":{\"description\":\"Created\"}}}},"
+         "\"get\":{\"summary\":\"List API keys\",\"description\":\"Administrator password only. Each key: id, label, scope, role, domains, expires, allowed_from, expired, and the send API's send_from, send_per_minute and send_per_day.\",\"responses\":{\"200\":{\"description\":\"Array of keys, never the clear-text tokens\"}}},"
+         "\"post\":{\"summary\":\"Create an API key\",\"description\":\"Administrator password only. The token is returned once, at creation. Body: label (required), scope (readonly, the default, or full), role, domains, expires, allowed_from, and for the send API (docs/SendApi.md) send_from - an address of a domain this server hosts, or *@domain for any address of it; empty, the default, and the key cannot send - with send_per_minute and send_per_day (whole numbers; 0, the default, leaves the server's own ceilings). A send_from whose domain this server does not host is refused, and so is one on a key that cannot send: a read-only key, or one whose role does not hold send_through_api.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"label\"],\"properties\":{\"label\":{\"type\":\"string\"},\"scope\":{\"type\":\"string\"},\"role\":{\"type\":\"string\"},\"domains\":{\"type\":\"string\"},\"expires\":{\"type\":\"string\"},\"allowed_from\":{\"type\":\"string\"},\"send_from\":{\"type\":\"string\"},\"send_per_minute\":{\"type\":\"integer\"},\"send_per_day\":{\"type\":\"integer\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created\"},\"400\":{\"description\":\"A field is refused, with the sentence\"}}}},"
          "\"/api/v1/apikeys/{id}\":{\"delete\":{\"summary\":\"Revoke an API key\",\"description\":\"Administrator password only.\",\"responses\":{\"200\":{\"description\":\"Revoked\"}}}},"
          "\"/api/v1/ipranges\":{"
          "\"get\":{\"summary\":\"List the IP ranges\",\"description\":\"Each entry: id, name, lower, upper, priority, the permission flags, expires and expires_time (the time on the server's clock at which an expiring range is removed, as the auto-ban sets it; empty for a range that does not expire). Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of ranges with their permissions\"}}},"
@@ -16560,6 +16944,7 @@ namespace HM
       openApiJson += OpenApiSetupChecklistPaths_();
       openApiJson += OpenApiSampleDomainPaths_();
       openApiJson += OpenApiProfilesPaths_();
+      openApiJson += OpenApiSendPaths_();
       openApiJson += OpenApiAccountRulesPaths_();
       openApiJson += OpenApiDomainRulesPaths_();
       openApiJson += OpenApiOperatorPaths_();

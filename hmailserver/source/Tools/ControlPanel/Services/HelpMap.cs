@@ -168,6 +168,7 @@ namespace hMailServer.ControlPanel.Services
          "RestrictedDelivery.md",
          "SampleDomain.md",
          "SendAs.md",
+         "SendApi.md",
          "SettingLevels.md",
          "SettingsApply.md",
          "SharedAddressBooks.md",

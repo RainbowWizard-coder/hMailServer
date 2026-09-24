@@ -955,6 +955,18 @@ namespace HM
          // domain in the list's address exactly as the update and the delete
          // are.
          RouteListMembers,
+
+         // The send API (RestApiSend.cpp, docs/SendApi.md): a message an
+         // application sends under its API key's own sender, the key's own
+         // sends listed, and one of them asked about afterwards. An API key
+         // and nothing else reaches the three. The send needs send_through_api
+         // and the key's sender, and is decided with the permissions; the two
+         // reads are the key's own record of what it sent - nobody else's and
+         // nothing of the server's - so they are classified with the routes
+         // that are about the credential (IsSessionRoute_).
+         RouteSendCreate,
+         RouteSendList,
+         RouteSendGet,
          RouteOpenApi
       };
 
@@ -981,7 +993,7 @@ namespace HM
          // read_only defaults to true so that every path that fails to read a
          // Scope - a hand-written section, a truncated file, a value we do not
          // recognise - leaves the key unable to change anything.
-         ApiKeyRecord() : read_only(true) { }
+         ApiKeyRecord() : read_only(true), send_per_minute(0), send_per_day(0) { }
 
          String id;             // store section suffix; used to revoke
          String label;          // human-readable, so keys can be told apart
@@ -990,6 +1002,19 @@ namespace HM
          String allowed_from;   // empty = any source; else address, range or CIDR
          bool read_only;        // Scope: false only for the literal "full"
          std::vector<String> domains;   // empty = every domain
+
+         // The send API (docs/SendApi.md). SendFrom is the one sender the key
+         // may send as: an address of a domain this server hosts, or *@domain
+         // for any address of it; empty - every key written before September
+         // 2026 - means the key cannot send at all. SendPerMinute and
+         // SendPerDay are the key's own ceilings; 0 leaves only the server's.
+         // A value that does not read as what it should - a SendFrom that is
+         // neither form, a count that is not a whole number - fails closed: the
+         // sender reads empty and the key sends nothing, and a count reads 1,
+         // so a hand-edit cannot widen a key.
+         String send_from;
+         int send_per_minute;
+         int send_per_day;
 
          // Role: the name of a role in hm_roles. Empty - which is what every
          // key written before September 2026 has - means the Scope above
@@ -1086,6 +1111,16 @@ namespace HM
          // True when it proved itself with a ticket from the organisation's
          // identity provider (OidcSignIn.h). Same reason, same record.
          bool via_single_sign_on = false;
+
+         // Set when result is AuthenticatedWithApiKey: the key's id and label,
+         // and its sender and ceilings for the send API (ApiKeyRecord above),
+         // copied out of the store with the rest of its authority so that one
+         // request is decided from one reading of it.
+         String key_id;
+         String key_label;
+         String send_from;
+         int send_per_minute = 0;
+         int send_per_day = 0;
       };
 
       enum AuthorizationResult
@@ -1219,6 +1254,77 @@ namespace HM
       static std::shared_ptr<Message> FindOwnMessage_(std::shared_ptr<const Account> account, __int64 messageId, std::shared_ptr<IMAPFolder> &folder);
       static std::shared_ptr<IMAPFolder> FindDesignatedFolder_(std::shared_ptr<const Account> account, int designation);
       static HttpResponse HandleMeMessageSend_(const Caller &caller, const AnsiString &requestBody);
+
+      // THE SEND, SHARED. The webmail's send (HandleMeMessageSend_) and the send
+      // API (RestApiSend.cpp) put a message into the queue through the same
+      // three steps, in RestApiServer.cpp beside the first, so that the two
+      // cannot come to judge a recipient, write a message or check one
+      // differently:
+      //
+      //   ResolveSendRecipients_  the server's recipient ceiling, then every
+      //                           address through the questions RCPT TO asks of
+      //                           an authenticated sender - may this sender
+      //                           deliver there, restricted delivery (for the
+      //                           account the send is judged on, when there is
+      //                           one), the suppression list - and resolved onto
+      //                           the message as aliases, lists and routes make
+      //                           it. False with the answer to send.
+      //   WriteComposedMessage_   the message file, from a ComposedMessage.
+      //   CheckComposedMessage_   the domain's signature and disclaimer, the rules
+      //                           that block, and the server's maximum message
+      //                           size - in that order, as SMTP submission applies
+      //                           them. False with the answer to send, the file
+      //                           removed.
+      struct ComposedMessage
+      {
+         String from_header;    // the From field as written
+         String to;             // the To field: the entries, joined
+         String cc;             // the Cc field, or empty for none
+         String subject;
+         String text;           // the text part
+         String html;           // the HTML part beside it, or empty for none
+
+         // Further header fields, written in this order after the Message-ID:
+         // In-Reply-To and References for a reply, an application's X- fields.
+         std::vector<std::pair<String, String> > fields;
+
+         // A Received field written FIRST, as a hop's trace field goes, or empty.
+         String received;
+
+         // The JSON whose "attachments" array holds the files, and the member
+         // names its objects give a file's name and its type (the webmail's
+         // name and type; the send API's filename and content_type).
+         AnsiString attachments_body;
+         const char *attachment_name_key = "name";
+         const char *attachment_type_key = "type";
+      };
+      static void SplitAddressList_(const String &list, std::vector<String> &addresses, std::vector<String> &entries);
+      static String JoinEntries_(const std::vector<String> &entries);
+      static bool ResolveSendRecipients_(std::shared_ptr<const Account> restricted, const String &from,
+                                         const std::vector<String> &recipients, std::shared_ptr<Message> message,
+                                         HttpResponse &refusal);
+      static int WriteComposedMessage_(std::shared_ptr<Message> message, const String &fileName,
+                                       const ComposedMessage &composed, String &messageId, AnsiString &problem);
+      static bool CheckComposedMessage_(std::shared_ptr<Message> message, const String &fileName,
+                                        std::shared_ptr<const Account> writer, HttpResponse &refusal);
+
+      // The send API (RestApiSend.cpp, docs/SendApi.md): the send, the key's
+      // own sends, and one of them. Not static: the Received field names the
+      // listener's protocol, which is an instance's.
+      HttpResponse HandleSendCreate_(const Caller &caller, const AnsiString &requestBody);
+      HttpResponse HandleSendList_(const Caller &caller, const AnsiString &query);
+      HttpResponse HandleSendGet_(const Caller &caller, const AnsiString &identifier);
+      static AnsiString OpenApiSendPaths_();
+
+      // A key's SendFrom as the store and the key routes judge it: empty, an
+      // address, or *@domain, lower-cased, and its domain one this server
+      // hosts. 0 when it is acceptable (normalised written back), else the
+      // status to answer with the sentence in problem.
+      static int NormaliseSendFrom_(const String &requested, String &normalised, AnsiString &problem);
+
+      // True when address is one a key's SendFrom lets it send as: the address
+      // itself, or any address of the pattern's domain.
+      static bool SendFromAllows_(const String &sendFrom, const String &address);
       static String JsonUtf8Value_(const AnsiString &json, const AnsiString &key);
 
       // A member that is a whole number, zero or more: 1 when read into value,
@@ -1585,7 +1691,10 @@ namespace HM
       static AnsiString ThreadFieldsJson_(const String &fileName);
       static AnsiString ListingExtrasJson_(const String &fileName, std::shared_ptr<Message> message);
       static String FromHeader_(std::shared_ptr<const Account> account);
-      static int AddAttachmentsFromJson_(MessageData &messageData, const AnsiString &requestBody, AnsiString &error);
+      // nameKey and typeKey are the members an attachment object names its
+      // file and its type by: the webmail's name and type unless told.
+      static int AddAttachmentsFromJson_(MessageData &messageData, const AnsiString &requestBody, AnsiString &error,
+                                         const char *nameKey = "name", const char *typeKey = "type");
       static bool IsLargeRequest_(const AnsiString &method, const AnsiString &target);
       static bool ReadJsonHex4_(const AnsiString &json, int at, unsigned int &value);
       static void AppendUtf8_(AnsiString &out, unsigned int codePoint);

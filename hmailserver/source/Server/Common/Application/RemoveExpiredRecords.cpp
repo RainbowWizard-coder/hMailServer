@@ -10,6 +10,7 @@
 #include "../Util/AutoBanFirewall.h"
 #include "../Persistence/PersistentLogonFailure.h"
 #include "../AntiSpam/SpamTrapMonitor.h"
+#include "../Util/ApiSends.h"
 
 #include <ctime>
 
@@ -85,6 +86,23 @@ namespace HM
          {
             lastSpamTrapSweep = now;
             SpamTrapMonitor::SweepHits();
+         }
+      }
+
+      // The send API's record of what each key sent (Util/ApiSends.h), kept as
+      // long as the message trace it is answered from - MessageTraceRetentionDays
+      // - and swept hourly for the same reason as the record above.
+      {
+         static time_t lastApiSendsSweep = 0;
+         const time_t now = time(nullptr);
+
+         if (lastApiSendsSweep == 0 || now - lastApiSendsSweep >= 3600)
+         {
+            lastApiSendsSweep = now;
+
+            const int removed = ApiSends::DeleteExpired();
+            if (removed > 0)
+               LOG_APPLICATION(Formatter::Format(_T("RemoveExpiredRecords: {0} send API record(s) older than MessageTraceRetentionDays removed."), removed));
          }
       }
    }

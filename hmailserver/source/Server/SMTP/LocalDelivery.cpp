@@ -516,7 +516,15 @@ namespace HM
       // message without a calendar part costs the look at its header.
       Imip::FileOnDelivery(account, PersistentMessage::GetFileName(account, accountLevelMessage), accountLevelMessage->GetFlagSpam());
 
-      AWStats::LogDeliverySuccess(_sendersIP, "127.0.0.1", accountLevelMessage, account->GetAddress());
+      // Journalled under the QUEUE message, which is the message trace's
+      // correlation key (MessageTrace.h), and not under the recipient's copy:
+      // a message to several local accounts gives each a copy of its own, with
+      // an id of its own, and the delivered event of every recipient but the
+      // one that reuses the queue row was being recorded under an id nothing
+      // else about the message carries - so "what became of queue message X"
+      // (the trace's queue route, the send API) could not find it. A message to
+      // one recipient reuses the queue row, and the two ids are the same.
+      AWStats::LogDeliverySuccess(_sendersIP, "127.0.0.1", original_message_, account->GetAddress());
    }
 
    /*

@@ -745,4 +745,18 @@
 //      their domain or account in PersistentDomain::DeleteObject and
 //      PersistentAccount::DeleteObject, as the sender lists' do. An upgrade
 //      finds the table empty, and every setting resolves exactly as it did.
-#define REQUIRED_DB_VERSION            6088
+// 6089 adds hm_apisends (Util/ApiSends.h, docs/SendApi.md): the send API's
+//      record of what each API key sent through POST /api/v1/send, so that
+//      the key - and only that key - can ask afterwards what became of it.
+//      apskeyid is the key's id in the key store (hMailServerApiKeys.ini, not
+//      a table, so there is no foreign key: a revoked key's rows stay until
+//      they age out and answer nobody), apsqueueid the queue id the message
+//      was saved under - the message trace's correlation key - apsmessageid
+//      its Message-ID, apssender the envelope sender, apsrecipients the
+//      addresses the body named (to, cc and bcc, comma-separated, as many
+//      whole addresses as 4,000 characters hold) and apscreated when it was
+//      queued. Indexed on (key, id), which is the listing's order, and on the
+//      time, which is the sweep's. Kept MessageTraceRetentionDays and then
+//      removed by the hourly pass of RemoveExpiredRecords; 0 keeps them. An
+//      upgrade finds the table empty, and nothing else changes.
+#define REQUIRED_DB_VERSION            6089

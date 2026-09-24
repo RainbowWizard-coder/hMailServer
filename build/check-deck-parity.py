@@ -157,6 +157,10 @@ PATH_SCOPE = {
     'folders': ['IMAPFolder'],
     'permissions': ['IMAPFolderPermission'],
     'apikeys': [],
+    # The send API (docs/SendApi.md): an application's message, sent under its
+    # key's own sender. No COM interface is behind it and the desktop program
+    # has no page for it; it is not an administrative write of a property.
+    'send': [],
     'ini': [],
     'directories': [],
     'support-session': [],

@@ -1326,6 +1326,10 @@ namespace DBUpdater
          // column the resolver reads (the value a row holds).
          new SchemaProbe(6088, "hm_settingoverrides.sovalue",
                          "update hm_settingoverrides set sovalue = sovalue where 1 = 0"),
+         // Upgrade6088to6089* - the send API's record of what each key sent,
+         // probed through the column a key's read of its own sends filters on.
+         new SchemaProbe(6089, "hm_apisends.apskeyid",
+                         "update hm_apisends set apskeyid = apskeyid where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

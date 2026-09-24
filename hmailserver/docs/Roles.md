@@ -59,6 +59,7 @@ domains is refused them whatever it holds.
 | `manage_domains` | Which domains exist *(server-wide)* | ✅ | | | |
 | `manage_server` | Reinitialise, back up, reload scripts, clear caches, install an update, run the alert pass, the DKIM key rotation pass, the suppression list's sweep or the feedback loops' sweep, the DKIM key rotation pass or a reputation check now *(server-wide)* | ✅ | | | |
 | `manage_roles` | Roles and who holds them *(server-wide)* | ✅ | | | |
+| `send_through_api` | Sending mail as an application through `POST /api/v1/send`, as the one sender an **API key** names in its `send_from` - the permission alone sends nothing, and only a key reaches the route ([SendApi.md](SendApi.md)). A custom role may be given it, which is how a key that sends and does nothing else is made; a key reads its own sends without any permission, and nobody else's | ✅ | | | |
 
 The REST API's **key store** (`/api/v1/apikeys`) and the `[Settings]` section of
 `hMailServer.ini` (`/api/v1/settings/ini`) answer to the administrator password and to

@@ -27,6 +27,77 @@ namespace HM
    const wchar_t *MessageTrace::EventFailed = L"failed";
    const wchar_t *MessageTrace::EventQuarantined = L"quarantined";
    const wchar_t *MessageTrace::EventSuppressed = L"suppressed";
+   const wchar_t *MessageTrace::EventDeferred = L"deferred";
+
+   String
+   MessageTrace::DeliveryDetail(const String &enhancedStatus, const String &reply)
+   {
+      // One line: a reply that ran over several (a multi-line 5xx) is joined,
+      // because the detail is one column shown on one row.
+      String said = reply;
+      said.Replace(_T("\r\n"), _T(" "));
+      said.Replace(_T("\r"), _T(" "));
+      said.Replace(_T("\n"), _T(" "));
+      said.Trim();
+
+      if (enhancedStatus.IsEmpty())
+         return said;
+
+      return _T("[") + enhancedStatus + _T("] ") + said;
+   }
+
+   void
+   MessageTrace::SplitDetail(const String &detail, String &enhancedStatus, String &reply)
+   {
+      enhancedStatus = _T("");
+      reply = detail;
+
+      if (!detail.StartsWith(_T("[")))
+         return;
+
+      const int close = detail.Find(_T("]"));
+
+      // At most "5.123.123" inside the brackets, and nothing but digits and
+      // dots: any other bracketed opening is part of what was said.
+      if (close < 2 || close > 10)
+         return;
+
+      const String inside = detail.Mid(1, close - 1);
+      for (int i = 0; i < inside.GetLength(); i++)
+      {
+         const wchar_t c = inside[i];
+         if ((c < '0' || c > '9') && c != '.')
+            return;
+      }
+
+      enhancedStatus = inside;
+      reply = detail.Mid(close + 1);
+      reply.Trim();
+   }
+
+   int
+   MessageTrace::ReplyCode(const String &reply, int replyClass, int fallback)
+   {
+      String text = reply;
+      text.TrimLeft();
+
+      if (text.GetLength() < 3)
+         return fallback;
+
+      for (int i = 0; i < 3; i++)
+      {
+         if (text[i] < '0' || text[i] > '9')
+            return fallback;
+      }
+
+      if (text.GetLength() > 3 && text[3] != ' ' && text[3] != '-')
+         return fallback;
+
+      if (text[0] - '0' != replyClass)
+         return fallback;
+
+      return _ttoi(text.Mid(0, 3).c_str());
+   }
 
    bool
    MessageTrace::GetEnabled()

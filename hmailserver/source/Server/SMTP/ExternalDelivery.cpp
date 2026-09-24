@@ -24,6 +24,7 @@
 #include "../Common/TCPIP/HostNameAndIpAddress.h"
 
 #include "../Common/Util/AWStats.h"
+#include "../Common/Util/MessageTrace.h"
 #include "../Common/Util/ServerInfo.h"
 #include "../Common/Util/OutboundOAuth2TokenClient.h"
 #include "../Common/Util/Parsing/StringParser.h"
@@ -1299,13 +1300,23 @@ namespace HM
          }
          else if (recipient->GetDeliveryResult() == MessageRecipient::ResultNonFatalError)
          {
-            RememberNonFatalFailure_(mapFailedDueToNonFatalError, recipient, recipient->GetErrorMessage(),
-               // Every path that sets a non-fatal result also sets a status now.
-               // The fallback exists so that a path added later without one still
-               // produces a well-formed report - RFC 3463 X.0.0, "other undefined
-               // status", which is what "we do not know" looks like in this
-               // vocabulary and is not a claim about the recipient.
-               recipient->GetEnhancedStatusCode().IsEmpty() ? String(_T("4.0.0")) : recipient->GetEnhancedStatusCode());
+            // Every path that sets a non-fatal result also sets a status now.
+            // The fallback exists so that a path added later without one still
+            // produces a well-formed report - RFC 3463 X.0.0, "other undefined
+            // status", which is what "we do not know" looks like in this
+            // vocabulary and is not a claim about the recipient.
+            const String status = recipient->GetEnhancedStatusCode().IsEmpty() ? String(_T("4.0.0")) : recipient->GetEnhancedStatusCode();
+
+            RememberNonFatalFailure_(mapFailedDueToNonFatalError, recipient, recipient->GetErrorMessage(), status);
+
+            // The attempt, in the message trace, with the status and what the
+            // remote said - or this server's own sentence where it said nothing -
+            // so that "deferred, and why" is answerable while the message waits
+            // (MessageTrace::EventDeferred; the send API reads it).
+            const String said = recipient->GetRemoteSmtpReply().IsEmpty() ? recipient->GetErrorMessage() : recipient->GetRemoteSmtpReply();
+            MessageTrace::Record(original_message_->GetID(), MessageTrace::EventDeferred, original_message_->GetFromAddress(),
+               recipient->GetAddress(), _sendersIP, MessageTrace::ReplyCode(recipient->GetRemoteSmtpReply(), 4, 451),
+               MessageTrace::DeliveryDetail(status, said));
          }
          else if (recipient->GetDeliveryResult() == MessageRecipient::ResultFatalError)
          {
@@ -1348,7 +1359,19 @@ namespace HM
                      original_message_->GetID(), recipient->GetAddress()));
             }
 
-            AWStats::LogDeliveryFailure(_sendersIP, original_message_->GetFromAddress(), recipient->GetAddress(),  550, original_message_->GetID());
+            // The trace carries the status and the remote's reply as well as the
+            // code (MessageTrace::DeliveryDetail): "bounced, and why" is the
+            // question the send API answers from it. The code is the remote's own
+            // 5xx where its reply began with one, as the report groups failures
+            // by it, and 550 - what was always recorded here - where it did not.
+            {
+               const String status = recipient->GetEnhancedStatusCode().IsEmpty() ? String(_T("5.0.0")) : recipient->GetEnhancedStatusCode();
+               const String said = recipient->GetRemoteSmtpReply().IsEmpty() ? recipient->GetErrorMessage() : recipient->GetRemoteSmtpReply();
+
+               AWStats::LogDeliveryFailure(_sendersIP, original_message_->GetFromAddress(), recipient->GetAddress(),
+                  MessageTrace::ReplyCode(recipient->GetRemoteSmtpReply(), 5, 550), original_message_->GetID(),
+                  MessageTrace::DeliveryDetail(status, said));
+            }
             Events::FireOnDeliveryFailed(original_message_, _sendersIP, recipient->GetAddress(), recipient->GetErrorMessage());
          }
          else
@@ -1356,6 +1379,9 @@ namespace HM
             // RFC 3463 X.4.2 "Bad connection". Reached when the recipient came
             // back undefined - nothing in the session ever gave a verdict for it.
             RememberNonFatalFailure_(mapFailedDueToNonFatalError, recipient, _T("Remote server closed connection."), _T("4.4.2"));
+
+            MessageTrace::Record(original_message_->GetID(), MessageTrace::EventDeferred, original_message_->GetFromAddress(),
+               recipient->GetAddress(), _sendersIP, 451, MessageTrace::DeliveryDetail(_T("4.4.2"), _T("Remote server closed connection.")));
          }
 
       }
@@ -1517,8 +1543,13 @@ namespace HM
             const DeliveryFailure &pendingFailure = (*iterFailed).second;
             String sFailed = pendingFailure.GetText();
 
-            // Delivery has failed for the last time.
-            AWStats::LogDeliveryFailure(_sendersIP, original_message_->GetFromAddress(), sEmailAddress,  550, original_message_->GetID());
+            // Delivery has failed for the last time. The trace's detail carries
+            // the last attempt's status and what was said, as the report does.
+            {
+               const String said = pendingFailure.GetRemoteSmtpReply().IsEmpty() ? String(_T("Gave up after the last retry.")) : pendingFailure.GetRemoteSmtpReply();
+               AWStats::LogDeliveryFailure(_sendersIP, original_message_->GetFromAddress(), sEmailAddress, 550, original_message_->GetID(),
+                  MessageTrace::DeliveryDetail(pendingFailure.GetEnhancedStatusCode(), said));
+            }
             Events::FireOnDeliveryFailed(original_message_, _sendersIP, sEmailAddress, sFailed);
 
             // DSN (RFC 3461): suppress the bounce text for recipients that opted

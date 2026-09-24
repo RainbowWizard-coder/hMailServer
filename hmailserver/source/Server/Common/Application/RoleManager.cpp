@@ -69,7 +69,8 @@ namespace HM
          "manage_settings",
          "manage_domains",
          "manage_server",
-         "manage_roles"
+         "manage_roles",
+         "send_through_api"
       };
 
       static_assert(sizeof(PermissionTokens) / sizeof(PermissionTokens[0]) == static_cast<size_t>(RolePermission::Count),
