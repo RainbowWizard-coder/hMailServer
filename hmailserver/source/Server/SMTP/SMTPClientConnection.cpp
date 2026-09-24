@@ -1307,9 +1307,19 @@ namespace HM
       // No more data to send. Make sure all buffered data is flushed.
       transmission_buffer_.Flush(true);
 
-      // We're ready to receive the Message accepted-response.
-      // No \r\n on end because EnqueueWrite adds
-      EnqueueWrite_("\r\n.");
+      // We're ready to receive the Message accepted-response. The end of data is
+      // CRLF "." CRLF (RFC 5321 4.1.1.4), and a stored message already ends with
+      // its own CRLF - the receiving side keeps the body's final line ending
+      // (TransparentTransmissionBuffer::Append) - so "\r\n." was written
+      // unconditionally and every relayed message gained an empty last line: a
+      // message encrypted end to end arrived one CRLF longer than it was sent.
+      // POP3's RETR has always asked the buffer, and so does this now; the
+      // newline is still written when the file's last line has none. No \r\n on
+      // the end because EnqueueWrite adds it.
+      if (transmission_buffer_.GetLastSendEndedWithNewline())
+         EnqueueWrite_(".");
+      else
+         EnqueueWrite_("\r\n.");
 
       EnqueueRead();
 

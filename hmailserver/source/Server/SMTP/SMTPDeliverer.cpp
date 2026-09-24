@@ -6,6 +6,7 @@
 
 #include "SMTPDeliverer.h"
 
+#include "../Common/Application/Application.h"
 #include "../Common/Application/ObjectCache.h"
 
 #include "../Common/AntiVirus/AntiVirusConfiguration.h"
@@ -817,6 +818,12 @@ namespace HM
          {
             // A bounce/NDR was actually generated and queued for the sender.
             ServerStatus::Instance()->OnMessageBounced();
+
+            // And delivered now: the delivery manager re-reads the queue when it is
+            // told to or once a minute, and a report written from inside a delivery
+            // - a sandbox decision, a policy refusal - otherwise waited for that
+            // minute, as every other message this server queues itself does not.
+            Application::Instance()->SubmitPendingEmail();
 
             // The outbound webhooks, here and nowhere else, because THIS is what a
             // bounce is: a non-delivery report that was written and queued for the

@@ -547,9 +547,13 @@ namespace RegressionTests.SMTP
 
          Assert.AreEqual(10, Sent_("google"), "The day's count in the table is not the one listed.");
 
+         // The route read again: the object added before the reinitialise belongs
+         // to the configuration the reinitialise replaced, and a port saved through
+         // it reaches the database but not the routes the delivery reads.
          int secondPort = TestSetup.GetNextFreePort();
-         route.TargetSMTPPort = secondPort;
-         route.Save();
+         Route liveRoute = _application.Settings.Routes.get_ItemByName(GoogleDomain);
+         liveRoute.TargetSMTPPort = secondPort;
+         liveRoute.Save();
 
          Assert.AreEqual(40, SendToGoogle_(secondPort, 48, "After the restart"), "The reinitialised server did not read the day's count again.");
          Assert.IsTrue(WaitFor_(() => Queued_(GoogleDomain).Exists(r => !r.locked && r.tries == 0), 20), "The recipients over the ceiling are not held.");
@@ -726,8 +730,11 @@ namespace RegressionTests.SMTP
          {
             Assert.AreEqual(201, Admin("POST", "/api/v1/roles", "{\"name\":\"warmuptest-viewer\",\"permissions\":\"view_queue\"}").status);
             Assert.AreEqual(201, Admin("POST", "/api/v1/roles", "{\"name\":\"warmuptest-manager\",\"permissions\":\"view_queue,manage_queue\"}").status);
-            Assign_(viewer, "warmuptest-viewer", "");
-            Assign_(manager, "warmuptest-manager", "");
+            // "*": every domain. An account's role with no domains reaches only the
+            // account's own domain (docs/Roles.md, "Domains"), and the warm-up, like
+            // the queue, is server-wide.
+            Assign_(viewer, "warmuptest-viewer", "*");
+            Assign_(manager, "warmuptest-manager", "*");
 
             // view_queue: the reads, and not one write.
             Assert.AreEqual(200, AsAccount_(viewer, "GET", "/api/v1/warmup", null).status, "view_queue was refused the listing.");

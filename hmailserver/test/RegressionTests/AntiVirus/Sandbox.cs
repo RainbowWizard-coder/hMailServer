@@ -234,7 +234,7 @@ namespace RegressionTests.AntiVirus
                dynamic antiSpam = _settings.AntiSpam;
                ClassicAssert.GreaterOrEqual((int) antiSpam.SendQuarantineDigests(), 1);
                Pop3ClientSimulator.AssertMessageCount(_recipient.Address, Password, 1);
-               StringAssert.Contains("sandbox malicious", Pop3ClientSimulator.AssertGetFirstMessageText(_recipient.Address, Password),
+               StringAssert.Contains("sandbox malicious", Messages_(_recipient.Address)[0],
                   "The digest names the held message.");
 
                // Released by the administrator: delivered, and not submitted again.
@@ -328,7 +328,7 @@ namespace RegressionTests.AntiVirus
             SmtpClientSimulator.StaticSendRaw(Outsider, _recipient.Address, MessageWithAttachment_(Outsider, _recipient.Address, "sandbox no score", "tool.exe", same));
 
             Pop3ClientSimulator.AssertMessageCount(_recipient.Address, Password, 1, TimeSpan.FromSeconds(60));
-            string first = Pop3ClientSimulator.AssertGetFirstMessageText(_recipient.Address, Password);
+            string first = Messages_(_recipient.Address)[0];
             StringAssert.Contains("X-hMailServer-Sandbox: error on tool.exe: answered suspicious without a numeric score", first);
 
             sandbox.SetSequence("/verdict", (200, "{\"state\":\"done\",\"verdict\":\"suspicious\",\"score\":\"85\",\"detail\":\"A string score\"}"));
@@ -644,7 +644,7 @@ namespace RegressionTests.AntiVirus
                MessageWithAttachment_(_sender.Address, _recipient.Address, "sandbox internal", "build.exe", FileBytes_("internal-off")));
 
             Pop3ClientSimulator.AssertMessageCount(_recipient.Address, Password, 1);
-            StringAssert.DoesNotContain("X-hMailServer-Sandbox", Pop3ClientSimulator.AssertGetFirstMessageText(_recipient.Address, Password));
+            StringAssert.DoesNotContain("X-hMailServer-Sandbox", Messages_(_recipient.Address)[0]);
 
             // The webmail's send, through the same route the send API uses.
             (int status, string body) sent = RestRequest.Send("127.0.0.1", RestPort, "POST", "/api/v1/me/messages", Basic(_sender.Address, Password),
@@ -1118,7 +1118,7 @@ namespace RegressionTests.AntiVirus
             settings.SandboxSubmitUrl = "";
             Pop3ClientSimulator.AssertMessageCount(_recipient.Address, Password, 1, TimeSpan.FromSeconds(30));
             StringAssert.Contains("X-hMailServer-Sandbox: not examined: the sandbox was turned off, or an address emptied",
-               Pop3ClientSimulator.AssertGetFirstMessageText(_recipient.Address, Password));
+               Messages_(_recipient.Address)[0]);
 
             // And nothing more is held while an address is empty.
             SmtpClientSimulator.StaticSendRaw(Outsider, _recipient.Address,
