@@ -1157,7 +1157,7 @@ namespace RegressionTests.API
          return string.Join(",", codes);
       }
 
-      private static Rule AddScriptFunctionRule(Rules rules, string functionName)
+      private static hMailServer.Rule AddScriptFunctionRule(hMailServer.Rules rules, string functionName)
       {
          var rule = rules.Add();
          rule.Name = "Runs a script function";
