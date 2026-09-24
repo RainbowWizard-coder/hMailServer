@@ -123,7 +123,10 @@ namespace HM
       // Grouped in the database. What comes back is one row per distinct
       // (day, event, status, sender, recipient), which is what every section
       // built from the trace needs and is very much smaller than the
-      // deliveries it summarises. No ORDER BY: the ordering a report wants
+      // deliveries it summarises. Only the two events the reports count: the
+      // deferred row of every retried attempt and the suppression list's rows
+      // would add groups no section reads, and reach the row ceiling sooner on a
+      // busy server. No ORDER BY: the ordering a report wants
       // differs per section and sorting a bounded vector in memory is free,
       // whereas an ORDER BY over an aggregate is the kind of expression the
       // four backends spell differently.
@@ -131,7 +134,7 @@ namespace HM
          "select " + year + " as ryear, " + month + " as rmonth, " + day + " as rday, "
          "mtevent, mtstatuscode, mtsender, mtrecipient, count(*) as rcount "
          "from hm_messagetrace "
-         "where mtoccurred >= @FROM and mtoccurred < @TO "
+         "where mtoccurred >= @FROM and mtoccurred < @TO and mtevent in ('delivered', 'failed') "
          "group by " + year + ", " + month + ", " + day + ", mtevent, mtstatuscode, mtsender, mtrecipient");
 
       command.AddParameter("@FROM", range.from);

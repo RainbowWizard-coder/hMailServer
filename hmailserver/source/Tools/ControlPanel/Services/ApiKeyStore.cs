@@ -594,7 +594,9 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>
       /// The explanation the server writes into a new store. Kept in step with
       /// RestApiServer::HandleCreateApiKey_ so that a file created from either
-      /// side reads the same.
+      /// side reads the same - the send API's three lines included, though this
+      /// page neither shows nor writes them (docs/SendApi.md): a key made here
+      /// cannot send.
       /// </summary>
       private const string Preamble =
          "; hMailServer REST administration API keys.\r\n" + // no-loc
@@ -620,6 +622,16 @@ namespace hMailServer.ControlPanel.Services
          ";             with a list may only act on those domains, and is refused\r\n" + // no-loc
          ";             the delivery-queue endpoints outright because the queue is\r\n" + // no-loc
          ";             server-wide.\r\n" + // no-loc
+         "; SendFrom    Optional. The one sender POST /api/v1/send may use: an\r\n" + // no-loc
+         ";             address, or *@domain for any address of the domain.\r\n" + // no-loc
+         ";             Empty means the key cannot send; anything that is\r\n" + // no-loc
+         ";             neither form reads as empty.\r\n" + // no-loc
+         "; SendPerMinute, SendPerDay\r\n" + // no-loc
+         ";             Optional. The key's own sending ceilings; 0 or empty\r\n" + // no-loc
+         ";             leaves the server's. A value that is not a whole number\r\n" + // no-loc
+         ";             reads as 1. A key whose SendFrom is *@domain, or an\r\n" + // no-loc
+         ";             address that is no account's, is made with a\r\n" + // no-loc
+         ";             SendPerDay above 0, and refused a send without one.\r\n" + // no-loc
          ";\r\n" + // no-loc
          "; No key of any scope can create or revoke keys: that needs the\r\n" + // no-loc
          "; administrator password.\r\n" + // no-loc

@@ -64,11 +64,15 @@ namespace HM
       static const wchar_t *EventSuppressed;
 
       // A delivery attempt to a recipient that failed and will be tried again:
-      // the remote answered 4xx, did not answer, or this server's own shaping
-      // held the attempt back (ExternalDelivery::CollectDeliveryResult_). One
-      // per recipient per attempt, so a message retried three times and then
-      // delivered reads deferred, deferred, deferred, delivered. Not counted by
-      // the reports, which count delivered and failed.
+      // the remote answered 4xx, did not answer, or the connection dropped
+      // (ExternalDelivery::CollectDeliveryResult_). One per recipient per attempt
+      // made, so a message retried three times and then delivered reads
+      // deferred, deferred, deferred, delivered. A recipient this server's own
+      // shaping held back was not attempted and writes none: that hold is
+      // rescheduled every few minutes, uncounted, for as long as it lasts. When
+      // the retries run out the failed event that gives up carries the last
+      // reply's own code (a 4xx), or 550 where no remote replied. Not read by the
+      // reports, which count delivered and failed.
       static const wchar_t *EventDeferred;
 
       // THE DETAIL OF A VERDICT. A failed or a deferred delivery to a remote
@@ -102,11 +106,18 @@ namespace HM
       // Every event for one queue id, oldest first - the story of one message.
       static std::vector<MessageTraceEvent> GetByQueueID(__int64 queueID);
 
+      // The newest maxCount events for one queue id, oldest first: the end of the
+      // story, bounded, for a reader that wants each address's last word and must
+      // not load every attempt of a message deferred for days (the send API).
+      static std::vector<MessageTraceEvent> GetLatestByQueueID(__int64 queueID, int maxCount);
+
       static int GetCount();
 
       // Removes everything older than MessageTraceRetentionDays. 0 means never,
       // which for a record of who corresponds with whom is a decision rather than
-      // a default.
+      // a default. The expired-records task calls it every hour
+      // (RemoveExpiredRecords.cpp), beside the send API's own record; before 24
+      // September 2026 only a COM call of MessageTrace.DeleteExpired did.
       static int DeleteExpired();
 
    private:

@@ -8,33 +8,43 @@
 //
 //    POST /api/v1/send              the message; 202 {queue_id, message_id}
 //    GET  /api/v1/send              the key's own sends, newest first, paged
-//    GET  /api/v1/send/{queue_id}   one of them, and each recipient's state
+//    GET  /api/v1/send/{queue_id}   one of them, and each named address's state
 //
 // WHO. An API key and nothing else (Authorize_). The send needs the key's role
 // to hold send_through_api AND the key to name a sender (SendFrom in the key
 // store): an address of a domain this server hosts, or *@domain for any address
 // of it. The two reads are the key's own record and answer only the key that
-// sent; a send another key made is the same 404 as one nobody made.
+// sent; a send another key made is the same 404 as one nobody made. They answer
+// for the addresses the body named and never for what those resolved to
+// (ApiSends.h).
 //
 // WHAT THE SERVER DOES TO THE MESSAGE. It is written and checked by the webmail
-// send's own code (ResolveSendRecipients_, WriteComposedMessage_ and
-// CheckComposedMessage_ in RestApiServer.cpp): every recipient through what RCPT
-// TO asks of an authenticated sender, the suppression list, restricted delivery
-// when the sender is an account; the domain's signature and disclaimer, the
-// rules that block, the server's maximum message size. On top of that: a
-// Received field naming the send API and the key's label, the envelope sender
-// set to the From address, no Sent copy anywhere - an application is not a
-// person and has no Sent folder - and, when the sender is an account's address,
-// that account's sending quota consumed as an SMTP submission consumes it. The
-// message is DKIM-signed at delivery as every message of the domain is.
+// send's own code (ResolveSendRecipients_, WriteComposedMessage_,
+// CheckComposedMessage_ and ConsumeAccountQuota_ in RestApiServer.cpp): every
+// recipient through what RCPT TO asks of an authenticated sender, the
+// suppression list, restricted delivery when the sender is an account; the
+// domain's signature and disclaimer, the rules that block, the server's maximum
+// message size. On top of that: a Received field naming the send API and the
+// key's label (and neither the key's id nor the application's address), the
+// envelope sender set to the From address, no Sent copy anywhere - an
+// application is not a person and has no Sent folder - and, when the sender is
+// an account's address, that account's sending quota consumed as an SMTP
+// submission consumes it. The message is DKIM-signed at delivery as every
+// message of the domain is. A sender at a domain switched off, or an account
+// switched off, sends nothing.
 //
 // THE CEILINGS. The key's own, SendPerMinute and SendPerDay, through RateLimiter
 // - a sliding minute keyed "api-send:<key id>", and a day window keyed
 // "api-send-day:<key id>" on the per-account quota's period machinery, which is
-// persisted across a restart - and then the server's: the REST listener's
-// request budget, the recipient ceiling, the size, and the account's quota. A
-// ceiling reached is 429 with Retry-After and the sentence. A message is counted
-// only once it has passed every other check, so a refused body costs nothing.
+// persisted across a restart as that machinery persists - and then the sender
+// account's quota; besides them the server's: the REST listener's request
+// budget, the recipient ceiling, the size. A ceiling reached is 429 with
+// Retry-After and the sentence. A message is counted only once it has passed
+// every other check, so a refused body costs nothing: the ceilings come last,
+// and what each counted is given back (CountedUsage) when a later one refuses
+// or the message is not queued. A key whose sender is no account's address, or
+// *@domain, carries a day ceiling of its own (the key routes refuse to make one
+// without, and a send is refused without).
 
 #include "StdAfx.h"
 #include "RestApiServer.h"
@@ -52,6 +62,8 @@
 #include "../BO/Domain.h"
 #include "../Cache/CacheContainer.h"
 #include "../Persistence/PersistentMessage.h"
+
+#include <set>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -282,13 +294,36 @@ namespace HM
             return BuildResponse_(400, Sentence("from must be " + JsonEscape_(Utf8_(caller.send_from)) + ", the sender this key may use, and " + JsonEscape_(Utf8_(from)) + " is not"));
 
          // The key was made with a sender this server hosted; a domain removed
-         // since is not one it may send as now.
-         if (!CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(from)))
+         // since is not one it may send as now, and a domain or an account switched
+         // off sends nothing - SMTP refuses both, and a key is not a way round.
+         std::shared_ptr<const Domain> senderDomain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(from));
+         if (!senderDomain)
             return BuildResponse_(403, Sentence("this key's sender is at a domain this server no longer hosts, so it cannot send"));
+
+         if (!senderDomain->GetIsActive())
+            return BuildResponse_(403, Sentence("the domain of " + JsonEscape_(Utf8_(from)) + " is switched off, so nothing is sent as it"));
       }
 
-      // The recipients: arrays of addresses (a string is taken too, split as
-      // the webmail's lists are), each "address" or "Name <address>".
+      // The account the sender is, when it is one: its restricted delivery is
+      // judged, its quota consumed, and its name fills the domain signature.
+      std::shared_ptr<const Account> fromAccount = CacheContainer::Instance()->GetAccount(from);
+
+      if (fromAccount && !fromAccount->GetActive())
+         return BuildResponse_(403, Sentence("the account " + JsonEscape_(Utf8_(from)) + " is switched off, so nothing is sent as it"));
+
+      // A sender that is no account's address has no account's sending quota to
+      // hold it, so the key's own day ceiling must: the key routes refuse to make
+      // such a key without one, and a key edited by hand, or one whose sender's
+      // account has since been deleted, is refused here.
+      if (!fromAccount && caller.send_per_day <= 0)
+         return BuildResponse_(403, Sentence(JsonEscape_(Utf8_(from)) + " is no account's address, so it has no account's sending quota, and this key has no send_per_day of its own; a key sends as such an address only with a day ceiling"));
+
+      // The recipients: arrays of mailboxes, each item ONE "address" or "Name
+      // <address>" - read as From is read, so that a quoted display name may hold
+      // a comma or a semicolon ("Doe, John" <john@example.net>) and nothing may
+      // follow the address - and written into the header as From is written. A
+      // string is taken too, and split on commas and semicolons as the webmail's
+      // lists are.
       std::vector<String> toAddresses, toEntries, ccAddresses, ccEntries, bccAddresses, bccEntries;
       {
          struct Field { const char *name; std::vector<String> *addresses; std::vector<String> *entries; };
@@ -305,22 +340,26 @@ namespace HM
             if (!value || value->IsNull())
                continue;
 
-            std::vector<const JsonValue *> items;
-            if (value->IsArray())
-            {
-               for (const JsonValue &item : value->Items())
-                  items.push_back(&item);
-            }
-            else
-               items.push_back(value);
+            const AnsiString refusal = AnsiString(field.name) + " must be an array of addresses, each \\\"address\\\" or \\\"Name <address>\\\"";
 
-            for (const JsonValue *item : items)
+            if (!value->IsArray())
             {
                String text;
-               if (!ReadText(*item, text) || HasLineBreak(text))
-                  return BuildResponse_(400, Sentence(AnsiString(field.name) + " must be an array of addresses, each \\\"address\\\" or \\\"Name <address>\\\""));
+               if (!ReadText(*value, text) || HasLineBreak(text))
+                  return BuildResponse_(400, Sentence(refusal));
 
                SplitAddressList_(text, *field.addresses, *field.entries);
+               continue;
+            }
+
+            for (const JsonValue &item : value->Items())
+            {
+               String text, name, address;
+               if (!ReadText(item, text) || HasLineBreak(text) || !SplitMailbox(text, name, address))
+                  return BuildResponse_(400, Sentence(refusal + ", and " + JsonEscape_(Utf8_(text)) + " is not one"));
+
+               field.addresses->push_back(address);
+               field.entries->push_back(MailboxHeader(name, address));
             }
          }
       }
@@ -459,22 +498,20 @@ namespace HM
          }
       }
 
-      // The trace field of this hop: from where, which key, through what.
+      // The trace field of this hop: this server, the send API and the key's
+      // label, which is how the message says what sent it. Not the key's id - its
+      // revocation handle and its identity in the audit trail - and not the
+      // application's address: every external recipient reads this field, and
+      // neither is theirs to know. The server's log carries both.
       {
          String received;
-         received.Format(_T("from [%s] (hMailServer send API, key \"%s\" %s) by %s with %s; %s"),
-            String(caller.peer.ToString()).c_str(),
-            CommentSafe(caller.key_label).c_str(),
-            caller.key_id.c_str(),
+         received.Format(_T("by %s (hMailServer send API, key \"%s\") with %s; %s"),
             Utilities::ComputerName().c_str(),
+            CommentSafe(caller.key_label).c_str(),
             use_tls_ ? _T("HTTPS") : _T("HTTP"),
             Time::GetCurrentMimeDate().c_str());
          composed.received = received;
       }
-
-      // The account the sender is, when it is one: its restricted delivery is
-      // judged, its quota consumed, and its name fills the domain signature.
-      std::shared_ptr<const Account> fromAccount = CacheContainer::Instance()->GetAccount(from);
 
       std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message());
       message->SetFromAddress(from);
@@ -502,49 +539,42 @@ namespace HM
       }
 
       // The ceilings, last, so that only a message that would otherwise go is
-      // counted. The key's minute, then its day, then the account's own quota
-      // when the sender is an account - each refusal a 429 with when to try
-      // again and the sentence, and the file removed.
+      // counted: the key's minute, then its day, then the sender account's own
+      // quota when the sender is an account. Each records what it counted in
+      // counted, and a refusal by a later one - or a message that is then not
+      // queued - gives every earlier one back when counted goes (CountedUsage):
+      // a message refused is never a message counted.
+      CountedUsage counted;
       {
          AnsiString limitSentence;
          int retryAfter = 0;
 
-         if (caller.send_per_minute > 0 &&
-             !RateLimiter::Instance()->TryConsume(_T("api-send:") + caller.key_id, caller.send_per_minute))
-         {
-            limitSentence.Format("this key has sent its %d messages for this minute (send_per_minute); try again when the minute has passed", caller.send_per_minute);
-            retryAfter = 60;
-         }
-         else if (caller.send_per_day > 0)
-         {
-            AccountSendingLimits day;
-            day.max_messages = caller.send_per_day;
-            day.period_hours = 24;
+         const String minuteKey = _T("api-send:") + caller.key_id;
+         const String dayKey = _T("api-send-day:") + caller.key_id;
 
-            if (RateLimiter::Instance()->TryConsumeAccountMessage(_T("api-send-day:") + caller.key_id, day) != AccountQuotaResult::QuotaAllowed)
+         AccountSendingLimits day;
+         day.max_messages = caller.send_per_day;
+         day.period_hours = 24;
+
+         if (caller.send_per_minute > 0)
+         {
+            if (RateLimiter::Instance()->TryConsume(minuteKey, caller.send_per_minute))
+               counted.Event(minuteKey);
+            else
             {
-               limitSentence.Format("this key has sent its %d messages for the last 24 hours (send_per_day); try again later", caller.send_per_day);
-               retryAfter = 3600;
+               limitSentence.Format("this key has sent its %d messages for this minute (send_per_minute); try again when the minute has passed", caller.send_per_minute);
+               retryAfter = 60;
             }
          }
 
-         if (limitSentence.IsEmpty() && fromAccount)
+         if (limitSentence.IsEmpty() && caller.send_per_day > 0)
          {
-            // The account's own sending quota, as an SMTP submission from it
-            // consumes it: one message, then its recipients.
-            const AccountSendingLimits limits = RateLimiter::Instance()->GetAccountLimits(from);
-            if (limits.IsEnabled())
+            if (RateLimiter::Instance()->TryConsumeAccountMessage(dayKey, day) == AccountQuotaResult::QuotaAllowed)
+               counted.Usage(dayKey, 1, 0);
+            else
             {
-               AccountQuotaResult result = RateLimiter::Instance()->TryConsumeAccountMessage(from, limits);
-               if (result == AccountQuotaResult::QuotaAllowed)
-                  result = RateLimiter::Instance()->TryConsumeAccountRecipients(from, limits, (int) recipients.size());
-
-               if (result == AccountQuotaResult::QuotaMessageLimitReached)
-                  limitSentence = "Sending limit for this account has been reached. Please try again later.";
-               else if (result == AccountQuotaResult::QuotaRecipientLimitReached)
-                  limitSentence = "Recipient sending limit for this account has been reached. Please try again later.";
-
-               retryAfter = 3600;
+               limitSentence.Format("this key has sent its %d messages for the last 24 hours (send_per_day); try again later", caller.send_per_day);
+               retryAfter = RateLimiter::BucketSeconds(day);
             }
          }
 
@@ -552,14 +582,31 @@ namespace HM
          {
             FileUtilities::DeleteFile(fileName);
 
-            String logged;
-            logged.Format(_T("REST API: send API key '%s' (%s) was refused a message from %s: %s"),
-               caller.key_label.c_str(), caller.key_id.c_str(), from.c_str(), String(limitSentence).c_str());
-            LOG_APPLICATION(logged);
+            // Once a key a minute: a key retrying at its ceiling would otherwise
+            // write a line per request.
+            if (LogRefusalOnce_(_T("key:") + caller.key_id))
+            {
+               String logged;
+               logged.Format(_T("REST API: send API key '%s' (%s) was refused a message from %s: %s (logged once a minute while it goes on)"),
+                  caller.key_label.c_str(), caller.key_id.c_str(), from.c_str(), String(limitSentence).c_str());
+               LOG_APPLICATION(logged);
+            }
 
             AnsiString header;
             header.Format("Retry-After: %d\r\n", retryAfter);
             return BuildResponse_(429, Sentence(limitSentence), header);
+         }
+
+         // The account's own sending quota, as an SMTP submission from it
+         // consumes it: one message, then its recipients.
+         if (fromAccount)
+         {
+            HttpResponse refusal;
+            if (!ConsumeAccountQuota_(from, (int) recipients.size(), counted, refusal))
+            {
+               FileUtilities::DeleteFile(fileName);
+               return refusal;
+            }
          }
       }
 
@@ -570,6 +617,9 @@ namespace HM
          FileUtilities::DeleteFile(fileName);
          return BuildResponse_(500, Sentence("the message could not be queued"));
       }
+
+      // Queued: what the ceilings counted stays counted.
+      counted.Keep();
 
       // The key's record of it, which is what lets the key ask afterwards. The
       // message is queued either way; a record that could not be written is
@@ -591,9 +641,19 @@ namespace HM
          LOG_APPLICATION(logged);
       }
 
+      // The addresses the body named, once each - and not how many the message
+      // resolved to, which would say how many members a list has (ApiSends.h).
+      std::set<String> named;
+      for (const String &address : recipients)
+      {
+         String key = address;
+         key.MakeLower();
+         named.insert(key);
+      }
+
       AnsiString answer;
       answer.Format("{\"queue_id\":%I64d,\"message_id\":\"%hs\",\"recipients\":%d,\"recorded\":%hs}",
-         message->GetID(), JsonEscape_(Utf8_(messageId)).c_str(), message->GetRecipients()->GetCount(),
+         message->GetID(), JsonEscape_(Utf8_(messageId)).c_str(), (int) named.size(),
          recorded ? "true" : "false");
 
       return BuildResponse_(202, answer);
@@ -601,6 +661,16 @@ namespace HM
 
    namespace
    {
+      // Said in the answer whenever the trace is off, so that nobody reads a
+      // default install's "unknown" as "nothing happened".
+      AnsiString TraceNote(bool traceEnabled)
+      {
+         if (traceEnabled)
+            return "";
+
+         return "\"trace_note\":\"The message trace is off (MessageTraceEnabled, off by default): delivered, deferred with the remote's reply, bounced and refused need it on, and without it an address the queue has let go reads unknown.\",";
+      }
+
       AnsiString RecipientsJson(const std::vector<String> &recipients)
       {
          AnsiString json = "[";
@@ -674,8 +744,8 @@ namespace HM
       }
 
       AnsiString answer;
-      answer.Format("{\"page\":%d,\"size\":%d,\"total\":%d,\"trace\":%hs,\"sends\":[%hs]}",
-         page, size, total, traceEnabled ? "true" : "false", items.c_str());
+      answer.Format("{\"page\":%d,\"size\":%d,\"total\":%d,\"trace\":%hs,%hs\"sends\":[%hs]}",
+         page, size, total, traceEnabled ? "true" : "false", TraceNote(traceEnabled).c_str(), items.c_str());
 
       return BuildResponse_(200, answer);
    }
@@ -729,7 +799,7 @@ namespace HM
 
       AnsiString answer;
       answer.Format("{\"queue_id\":%I64d,\"message_id\":\"%hs\",\"sender\":\"%hs\",\"recipients\":%hs,\"created\":\"%hs\","
-                    "\"state\":\"%hs\",\"trace\":%hs,\"recipients_state\":[%hs]}",
+                    "\"state\":\"%hs\",\"trace\":%hs,%hs\"recipients_state\":[%hs]}",
          record.queue_id,
          JsonEscape_(Utf8_(record.message_id)).c_str(),
          JsonEscape_(Utf8_(record.sender)).c_str(),
@@ -737,6 +807,7 @@ namespace HM
          JsonEscape_(Utf8_(record.created)).c_str(),
          JsonEscape_(Utf8_(state)).c_str(),
          traceEnabled ? "true" : "false",
+         TraceNote(traceEnabled).c_str(),
          items.c_str());
 
       return BuildResponse_(200, answer);
@@ -748,15 +819,15 @@ namespace HM
       static const char *paths =
          ",\"/api/v1/send\":{"
          "\"post\":{\"summary\":\"Send a message as an application, under this API key's own sender\","
-         "\"description\":\"The send API (docs/SendApi.md). An API key only - not the administrator password and not an account, whose own send is POST /api/v1/me/messages - whose role holds send_through_api and which names a sender (send_from): an address of a domain this server hosts, or *@domain for any address of it; a key with the permission and no sender is refused (403). Body: from (optional; the key's own sender when it is an address, required when it is *@domain; \\\"address\\\" or \\\"Name <address>\\\", and the address must be the key's sender or of its domain - the display name is free), to, cc and bcc (arrays of \\\"address\\\" or \\\"Name <address>\\\"; at least one recipient), reply_to, subject (required, may be empty), text and html (at least one), headers (an object: X- fields other than X-hMailServer-, List-Unsubscribe, List-Unsubscribe-Post, In-Reply-To and References; any other field is 400) and attachments ([{filename, content_type, data}], data in base64, at most 20 and twelve megabytes together). A member the route does not take is 400. The message is written and checked by the webmail send's own code: every recipient through what RCPT TO asks of an authenticated sender, with the server's recipient ceiling (400 with the server's sentence), the suppression list and, when the sender is an account's address, its restricted delivery; the domain's signature and disclaimer, the rules that block (403, policy_rejected) and the server's maximum message size (413). The envelope sender is the From address; a Received field names the send API and the key's label; nothing is kept in any Sent folder; the domain's DKIM key signs it at delivery. Ceilings: the key's send_per_minute and send_per_day, and when the sender is an account's address that account's sending quota - each 429 with Retry-After and the sentence; a message is counted only once every other check has passed. 202 {queue_id, message_id, recipients, recorded}: recorded false when the message is queued and the key's record of it could not be written, so GET /api/v1/send/{queue_id} will not find it.\","
+         "\"description\":\"The send API (docs/SendApi.md). An API key only - not the administrator password and not an account, whose own send is POST /api/v1/me/messages - whose role holds send_through_api and which names a sender (send_from): an address of a domain this server hosts, or *@domain for any address of it; a key with the permission and no sender is refused (403). Body: from (optional; the key's own sender when it is an address, required when it is *@domain; \\\"address\\\" or \\\"Name <address>\\\", and the address must be the key's sender or of its domain - the display name is free), to, cc and bcc (arrays of \\\"address\\\" or \\\"Name <address>\\\", each item one mailbox, so a quoted display name may hold a comma; at least one recipient), reply_to, subject (required, may be empty), text and html (at least one), headers (an object: X- fields other than X-hMailServer-, List-Unsubscribe, List-Unsubscribe-Post, In-Reply-To and References; any other field is 400) and attachments ([{filename, content_type, data}], data in base64, at most 20 and twelve megabytes together). A member the route does not take is 400, and so is a line break in any value that becomes a header. The message is written and checked by the webmail send's own code: every recipient through what RCPT TO asks of an authenticated sender, with the server's recipient ceiling (400 with the server's sentence), the suppression list and, when the sender is an account's address, its restricted delivery; the domain's signature and disclaimer, the rules that block (403, policy_rejected) and the server's maximum message size (413). The envelope sender is the From address; a Received field names the send API and the key's label, and neither the key's id nor the application's address; nothing is kept in any Sent folder; the domain's DKIM key signs it at delivery. A sender at a domain switched off, or an account switched off, is 403, and so is a sender that is no account's address from a key with no send_per_day. Ceilings: the key's send_per_minute and send_per_day, then the sender account's sending quota when the sender is an account's address - each 429 with Retry-After and the sentence; a message is counted only once every other check has passed, and what one ceiling counted is given back when a later one refuses or the message is not queued. 202 {queue_id, message_id, recipients, recorded}: recipients is how many addresses the body named; recorded false when the message is queued and the key's record of it could not be written, so GET /api/v1/send/{queue_id} will not find it.\","
          "\"requestBody\":{\"required\":true,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"to\",\"subject\"],\"properties\":{\"from\":{\"type\":\"string\"},\"to\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"cc\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"bcc\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"reply_to\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"text\":{\"type\":\"string\"},\"html\":{\"type\":\"string\"},\"headers\":{\"type\":\"object\"},\"attachments\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"filename\":{\"type\":\"string\"},\"content_type\":{\"type\":\"string\"},\"data\":{\"type\":\"string\"}}}}}}}}},"
          "\"responses\":{\"202\":{\"description\":\"{queue_id, message_id, recipients, recorded}\"},\"400\":{\"description\":\"The body, a recipient, a header or an attachment is refused, with the sentence\"},\"401\":{\"description\":\"Not an API key that authenticates\"},\"403\":{\"description\":\"Not an API key, a key whose role does not hold send_through_api, a key that names no sender, or a rule that blocks the message\"},\"413\":{\"description\":\"Larger than the server's maximum message size\"},\"429\":{\"description\":\"A ceiling reached: Retry-After and the sentence\"}}},"
          "\"get\":{\"summary\":\"This API key's own sends, newest first\","
-         "\"description\":\"The sends this key made through POST /api/v1/send and nobody else's - an administrator's key that sent nothing reads an empty list; the server-wide view of the same deliveries is the message trace. Query parameters page (from 1) and size (1 to 200, default 50); the listing reaches back ten thousand sends. Each send: queue_id, message_id, sender, recipients (as the body named them), created and state - the send's state as GET /api/v1/send/{queue_id} answers it. trace says whether the message trace records events now (MessageTraceEnabled): with it off, a send reads queued or deferred while it is in the queue and unknown once it has left.\","
+         "\"description\":\"The sends this key made through POST /api/v1/send and nobody else's - an administrator's key that sent nothing reads an empty list; the server-wide view of the same deliveries is the message trace. Query parameters page (from 1) and size (1 to 200, default 50); the listing reaches back ten thousand sends. Each send: queue_id, message_id, sender, recipients (as the body named them), created and state - the send's state as GET /api/v1/send/{queue_id} answers it. trace says whether the message trace records events now (MessageTraceEnabled, off by default), and trace_note says what that costs when it is off: delivered, bounced and refused need it, and without it an address the queue has let go reads unknown.\","
          "\"parameters\":[{\"name\":\"page\",\"in\":\"query\",\"schema\":{\"type\":\"integer\"}},{\"name\":\"size\",\"in\":\"query\",\"schema\":{\"type\":\"integer\"}}],"
          "\"responses\":{\"200\":{\"description\":\"{page, size, total, trace, sends: [{queue_id, message_id, sender, recipients, created, state}]}\"},\"400\":{\"description\":\"page or size is not a whole number in range\"},\"403\":{\"description\":\"Not an API key\"}}}},"
          "\"/api/v1/send/{queue_id}\":{\"get\":{\"summary\":\"What became of one of this key's sends\","
-         "\"description\":\"For a send this key made; any other id - not a number, one nobody sent, one another key sent - is the same 404. {queue_id, message_id, sender, recipients, created, state, trace, recipients_state: [{address, state, when, status, code, reason}]}. A recipient's state comes from the message trace's events for the queue id and, while it waits, from the queue: queued (in the queue, not tried yet), deferred (tried and waiting; status and reason are the last attempt's, from the remote's own reply where it gave one), delivered (with when), bounced (failed for good: the remote refused it, or the retries ran out; status is the enhanced status and reason the remote's reply), refused (the suppression list stopped it) and unknown (the message has left the queue and nothing recorded what became of it at that address - the trace is off, its rows were removed, or the address resolved to others, an alias or a list, which are listed under their own addresses). The send's state is deferred or queued while any recipient waits, and otherwise bounced, refused or delivered in that order of precedence, or unknown. A forward or a list's re-send is a new queue id and is not followed.\","
+         "\"description\":\"For a send this key made; any other id - not a number, one nobody sent, one another key sent - is the same 404. {queue_id, message_id, sender, recipients, created, state, trace, trace_note (when the trace is off), recipients_state: [{address, state, when, status, code, reason}]}, one entry for each address the body named and for no other: an address that resolved to others - a list's members, an alias's target, the owner of a masked address - is answered under its own name, with their state taken together and no status, code or reply of theirs, and they are never named. A state comes from the message trace's events for the queue id (the newest 500) and, while the queue holds the address, from the queue: queued (in the queue, not tried yet), deferred (tried and waiting; status and reason are the last attempt's, from the remote's own reply where it gave one), delivered (with when), bounced (failed for good: the remote refused it, or the retries ran out; status is the enhanced status and reason the remote's reply), refused (the suppression list stopped it) and unknown, with the reason that is true of it: the queue no longer holds the address and nothing recorded what became of it - the trace is off (MessageTraceEnabled, off by default), it was refused or removed on this server without a trace event (a full mailbox, a rule, a virus scan), it resolved to other addresses, or the trace's rows for it were removed. reason is at most the first 255 characters the trace holds. The send's state is deferred or queued while any address waits, and otherwise bounced, refused or delivered in that order of precedence, or unknown. A forward or a list's re-send is a new queue id and is not followed.\","
          "\"responses\":{\"200\":{\"description\":\"The send and each recipient's state\"},\"403\":{\"description\":\"Not an API key\"},\"404\":{\"description\":\"This key has sent no message with that queue id\"}}}}";
 
       return AnsiString(paths);

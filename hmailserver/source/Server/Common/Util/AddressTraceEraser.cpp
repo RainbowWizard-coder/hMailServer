@@ -17,6 +17,7 @@
 #include "../Application/IniFileSettings.h"
 #include "../AntiSpam/QuarantineStore.h"
 #include "ContactGroups.h"
+#include "ApiSends.h"
 #include "../BO/Alias.h"
 #include "../BO/DistributionList.h"
 #include "../Cache/Cache.h"
@@ -58,6 +59,15 @@ namespace HM
       int count = DeleteAddressRows_("hm_messagetrace", "mtsender", "mtrecipient", address);
       if (count < 0)
          failedStores.push_back(_T("the message trace"));
+      else
+         removedCount += count;
+
+      // The send API's record of what each key sent (ApiSends.h): the sends the
+      // address made, and the address taken out of the recipients of the rest -
+      // the key's record of its other recipients stays.
+      count = ApiSends::EraseAddress(address);
+      if (count < 0)
+         failedStores.push_back(_T("the send API's record of sends"));
       else
          removedCount += count;
 

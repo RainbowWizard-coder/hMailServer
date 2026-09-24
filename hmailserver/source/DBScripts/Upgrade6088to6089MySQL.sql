@@ -13,6 +13,12 @@ CREATE INDEX idx_hm_apisends_key ON hm_apisends (apskeyid, apsid);
 
 CREATE INDEX idx_hm_apisends_created ON hm_apisends (apscreated);
 
+CREATE INDEX idx_hm_apisends_keycreated ON hm_apisends (apskeyid, apscreated);
+
+CREATE INDEX idx_hm_apisends_queueid ON hm_apisends (apsqueueid);
+
+CREATE INDEX idx_hm_messagetrace_queueid ON hm_messagetrace (mtqueueid);
+
 ALTER TABLE hm_apisends ENGINE=InnoDB;
 
 update hm_roles set rolepermissions = concat(rolepermissions, ',send_through_api') where rolename = 'serveradmin' and rolepermissions not like '%send_through_api%';

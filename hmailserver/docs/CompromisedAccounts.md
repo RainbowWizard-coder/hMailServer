@@ -4,7 +4,7 @@ Compromised-account detection
 A stolen password does not look like an attack from where the server stands.
 The client authenticates, the session is ordinary, the messages are well-formed,
 and the per-account sending limit - so many messages a day, whoever is sending
-them - is a ceiling most takeovers never touch before the damage is done. What
+them, by SMTP, the webmail's send or the send API - is a ceiling most takeovers never touch before the damage is done. What
 changes is the *shape* of what the account does: the account that sent six
 messages in its busiest hour sends forty in this one, to addresses it has never
 written to, at an hour it never sends at, from a network it has never signed in

@@ -8,6 +8,7 @@
 
 #include <deque>
 #include <map>
+#include <vector>
 
 namespace HM
 {
@@ -154,6 +155,26 @@ namespace HM
       // counters at all. Used for logging.
       bool GetAccountUsage(const String &accountAddress, int &messages, int &recipients);
 
+      // THE REFUNDS. A caller that consumes several ceilings in turn - the send
+      // API's key minute, its key day and the sender account's quota, or the
+      // webmail's account quota and then the queue - must not leave a message
+      // counted that a later ceiling refused or that was never saved. These give
+      // back what one consume recorded; CountedUsage below gives back everything
+      // a request recorded unless the request kept it.
+      //
+      // Refund: the newest event TryConsume recorded under key, if the bucket
+      // still holds one. RefundAccountUsage: messages and recipients recorded
+      // for the account (or any key of the per-account table), taken from the
+      // newest bucket first and from the ones before it when that one holds
+      // fewer, never below nought. Neither throws, as the consumes do not.
+      void Refund(const String &key);
+      void RefundAccountUsage(const String &accountAddress, int messages, int recipients);
+
+      // The length of one sub-bucket of the period, in seconds: the soonest the
+      // oldest counted message of a full window can leave it, which is what an
+      // honest Retry-After for a refused period is.
+      static int BucketSeconds(const AccountSendingLimits &limits);
+
       // Drops all per-account counters, including the persisted state file.
       // Administrative / self-test use only.
       void ClearAccountUsage();
@@ -277,5 +298,47 @@ namespace HM
       // Guards internal_error_reported_ only. Never held with any other lock.
       boost::mutex report_mutex_;
       bool internal_error_reported_ = false;
+   };
+
+   // What one request has counted against RateLimiter's ceilings, given back
+   // when the object goes unless the request kept it (Keep). A request that
+   // consumes several ceilings in turn records each as it passes; a later
+   // refusal, or a failure to queue what was counted, returns from the handler
+   // and this gives every earlier one back - so "a message is counted only once
+   // every other check has passed" is true of the ceilings as a whole and not
+   // only of the first to refuse.
+   class CountedUsage
+   {
+   public:
+      CountedUsage() : kept_(false) { }
+      ~CountedUsage() { if (!kept_) Refund(); }
+
+      // An event TryConsume recorded under key.
+      void Event(const String &key) { events_.push_back(key); }
+
+      // Messages and recipients TryConsumeAccountMessage/Recipients recorded
+      // under key.
+      void Usage(const String &key, int messages, int recipients);
+
+      // The request did what it counted: nothing is given back.
+      void Keep() { kept_ = true; }
+
+      // Gives back everything recorded so far, once.
+      void Refund();
+
+   private:
+      CountedUsage(const CountedUsage &);
+      CountedUsage &operator=(const CountedUsage &);
+
+      struct Counted
+      {
+         String key;
+         int messages;
+         int recipients;
+      };
+
+      bool kept_;
+      std::vector<String> events_;
+      std::vector<Counted> usage_;
    };
 }

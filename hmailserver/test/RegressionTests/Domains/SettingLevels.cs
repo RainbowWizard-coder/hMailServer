@@ -455,7 +455,7 @@ namespace RegressionTests.Domains
          ClassicAssert.AreEqual(403, As(asReader, "GET", "/api/v1/me/openpgp/keys", null).status, "The account's own portal switch, off under a domain that has it on.");
          ClassicAssert.AreEqual(2, Number(MeGet(asReader, "/api/v1/me/sender-addresses"), "max"), "And the domain's where it holds nothing of its own.");
 
-         // Answer-proved: only SMTP acts on the sending limits.
+         // Answer-proved here: the behaviour is AccountSendingLimits' (SMTP) and RestApiSend's (the webmail's send and the send API).
          AssertLevel(AccountEntry(reader), "sending_max_messages", "null", sendingMessages.ToString(), "domain", "sending_max_messages");
          AssertLevel(AccountEntry(reader), "sending_max_recipients", "null", sendingRecipients.ToString(), "domain", "sending_max_recipients");
       }

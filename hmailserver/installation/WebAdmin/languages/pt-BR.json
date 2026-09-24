@@ -1191,6 +1191,7 @@
   "The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.": "A hora do dia local em que os resumos saem, de 0 a 23. Os envios são distribuídos ao longo dessa hora em vez de saírem todos no início dela.",
   "The installer is downloaded and verified": "O instalador foi baixado e verificado",
   "The key file was kept: {0}": "O arquivo da chave foi mantido: {0}",
+  "The key sends as": "A chave envia como",
   "The last attempt failed at {0}: {1}": "A última tentativa falhou em {0}: {1}",
   "The last check failed": "A última verificação falhou",
   "The last install": "A última instalação",

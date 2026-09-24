@@ -29,8 +29,9 @@
 //   RCPT appears as a failure, and one accepted and still in the queue appears
 //   not at all. The other names the trace records ("suppressed", from the
 //   suppression list, and since September 2026 "deferred", one per attempt
-//   that will be retried) are left out, because an attempt retried is not a
-//   message lost. There is no spam or virus event in it.
+//   that will be retried) are left out of the query itself, because an attempt
+//   retried is not a message lost and its rows would only bring the row ceiling
+//   nearer. There is no spam or virus event in it.
 //
 //   hm_metricsamples (schema 6028). One row per metric per minute, SERVER-WIDE
 //   and with no domain in it at all. This is where the spam and virus counts

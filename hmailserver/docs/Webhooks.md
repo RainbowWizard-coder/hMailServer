@@ -78,8 +78,8 @@ has to decide whether an empty string means "none" or "not told".
 | `domain` | the local domain the event belongs to (see *Which domain an event belongs to*) |
 | `account` | the local address the event is about, where it has one |
 | `sender`, `recipient` | the envelope, for a message event |
-| `queue_id` | the delivery queue's id for the message, which correlates the events about one message |
-| `size` | the message's size in bytes |
+| `queue_id` | the delivery queue's id for the message, which correlates the events about one message - for every recipient of it, local ones included: until 24 September 2026 a message delivered to several local accounts gave each `message.delivered` but one the id of that account's own copy |
+| `size` | the message's size in bytes: for `message.delivered`, the queued message's, before a local recipient's copy gains its `Return-Path` and `Delivered-To` fields (since 24 September 2026; before, a local recipient's event carried its copy's size, those few bytes larger) |
 | `subject` | only where the domain and the subscription both allow it, and only on `message.received` and `message.quarantined` |
 | `status` | `250` for a delivery; the RFC 3463 enhanced status for a bounce |
 | `reason` | what the remote said, the quarantine's reason, or why an account was locked |
@@ -104,9 +104,12 @@ An application that sends through the **send API** ([SendApi.md](SendApi.md))
 can have what became of its messages pushed instead of asking for it: a
 subscription confined to its sender (`"addresses": "orders@example.com"`) hears
 `message.delivered` and `message.bounced` for each recipient outside this server
-it sent to, since such an event belongs to the sender's address. The send API's
-own `GET /api/v1/send/{queue_id}` answers the same question when asked, and also
-says `deferred` - an attempt that will be retried - which no event here carries.
+it sent to, since such an event belongs to the sender's address - with the
+message trace on or off. The send API's own `GET /api/v1/send/{queue_id}`
+answers the same question when asked, once the message trace is on
+(`MessageTraceEnabled`, off by default; without it a message that has left the
+queue reads `unknown`), and also says `deferred` - an attempt that will be
+retried - which no event here carries.
 
 Every event is raised by the path that owns it, never by anything that polls a
 table. Raising writes one queue row per matching subscription and returns;

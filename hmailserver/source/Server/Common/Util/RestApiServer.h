@@ -79,6 +79,7 @@ namespace HM
    struct DirectoryEntry;
    struct DirectoryRecord;
    class HttpCompressedCache;
+   class CountedUsage;
 
    // The cache RestApiServer.cpp holds the compressed forms of its per-request
    // documents in - the webmail's page per language, the catalogues, the
@@ -122,6 +123,13 @@ namespace HM
       // Full path of the API key store. Public so that tooling and tests can
       // locate the file without duplicating the derivation.
       static String GetApiKeyStoreFile();
+
+      // The ids of the keys in the store, for the hourly pass that removes the
+      // send API's record of a key revoked outside the key routes - by the
+      // Control Panel, or by an edit of the file (ApiSends::DeleteOrphans).
+      // False when the store's file is not there or reads empty, which that pass
+      // takes as "cannot tell" rather than as "no keys", and removes nothing on.
+      static bool StoredApiKeyIds(std::vector<String> &ids);
 
       // Files sent as links that have expired, or were never finished, or
       // whose record is gone: removed. Run by the scheduled task every minute
@@ -1307,6 +1315,19 @@ namespace HM
                                        const ComposedMessage &composed, String &messageId, AnsiString &problem);
       static bool CheckComposedMessage_(std::shared_ptr<Message> message, const String &fileName,
                                         std::shared_ptr<const Account> writer, HttpResponse &refusal);
+
+      // The sending quota of the account a send is counted against - one message
+      // and its recipients, as SMTP submission counts them at MAIL FROM and RCPT
+      // TO - recorded in counted, so that a later refusal, or a message that is
+      // never queued, gives it back. False with the 429, a Retry-After of one of
+      // the period's buckets and SMTP's own sentence when a ceiling is reached.
+      // The webmail's send counts its signed-in account; the send API its
+      // sender, when the sender is an account.
+      static bool ConsumeAccountQuota_(const String &accountAddress, int recipients, CountedUsage &counted, HttpResponse &refusal);
+
+      // True for the first refusal of who in a minute: a refusal a client can
+      // repeat as fast as it likes is logged once a minute, not once a request.
+      static bool LogRefusalOnce_(const String &who);
 
       // The send API (RestApiSend.cpp, docs/SendApi.md): the send, the key's
       // own sends, and one of them. Not static: the Received field names the

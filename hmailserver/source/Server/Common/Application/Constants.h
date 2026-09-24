@@ -755,8 +755,15 @@
 //      its Message-ID, apssender the envelope sender, apsrecipients the
 //      addresses the body named (to, cc and bcc, comma-separated, as many
 //      whole addresses as 4,000 characters hold) and apscreated when it was
-//      queued. Indexed on (key, id), which is the listing's order, and on the
-//      time, which is the sweep's. Kept MessageTraceRetentionDays and then
-//      removed by the hourly pass of RemoveExpiredRecords; 0 keeps them. An
-//      upgrade finds the table empty, and nothing else changes.
+//      queued. Indexed on (key, id), which is the listing's order, on (key,
+//      time), on the queue id, which is one send's lookup, and on the time,
+//      which is the sweep's. Kept MessageTraceRetentionDays and then removed by
+//      the hourly pass of RemoveExpiredRecords (0 keeps them), with a key's
+//      rows removed when the key is revoked. The step also indexes
+//      hm_messagetrace on mtqueueid, which no step had: one message's events
+//      are what the send API reads for every send it describes, and the trace
+//      route's queue lookup reads them too. And it adds send_through_api to
+//      the serveradmin row's permission column, which is kept in step for
+//      anybody reading the table. An upgrade finds the table empty, and
+//      nothing else changes.
 #define REQUIRED_DB_VERSION            6089

@@ -100,6 +100,8 @@
 #include "../Tracking/NotificationServer.h"
 #include "MessageUtilities.h"
 #include "OutgoingFooters.h"
+#include "RateLimiter.h"
+#include "ApiSends.h"
 #include "../Application/Application.h"
 #include "../BO/Aliases.h"
 #include "../BO/Alias.h"
@@ -738,6 +740,19 @@ namespace HM
          candidate.Trim();
          candidate.MakeLower();
 
+         // Before the address check, which lets a line break through in an
+         // unquoted local part: the value is written into the key store with
+         // WritePrivateProfileString and read back line by line, so a CR or an LF
+         // would be further lines of the section - Scope=full, Domains= - and a
+         // bracket a section of its own. Nothing an address of this server needs
+         // is among these, and the store's reader refuses them the same way.
+         for (int i = 0; i < candidate.GetLength(); i++)
+         {
+            const wchar_t c = candidate[i];
+            if (c < 0x21 || c == 0x7F || c == '[' || c == ']' || c == '=' || c == ';')
+               return false;
+         }
+
          if (candidate.StartsWith(_T("*@")))
          {
             const String domainName = candidate.Mid(2);
@@ -781,6 +796,37 @@ namespace HM
          }
 
          return _ttoi(text.c_str());
+      }
+
+      // True for the first refusal of who in a minute, and false for every other
+      // until the minute has passed: what keeps a client retrying at a ceiling
+      // from writing one log line per request. Bounded: an entry older than the
+      // minute is dropped whenever the set is asked, and the set never holds more
+      // than a thousand.
+      std::mutex refusal_log_mutex;
+      std::map<String, time_t> refusal_logged_at;
+
+      bool FirstRefusalThisMinute(const String &who)
+      {
+         const time_t now = time(nullptr);
+
+         std::lock_guard<std::mutex> guard(refusal_log_mutex);
+
+         for (auto it = refusal_logged_at.begin(); it != refusal_logged_at.end(); )
+         {
+            if (now - it->second >= 60 || now < it->second)
+               it = refusal_logged_at.erase(it);
+            else
+               ++it;
+         }
+
+         if (refusal_logged_at.find(who) != refusal_logged_at.end())
+            return false;
+
+         if (refusal_logged_at.size() < 1000)
+            refusal_logged_at[who] = now;
+
+         return true;
       }
 
    }
@@ -3091,10 +3137,12 @@ namespace HM
       }
 
       // The send API (RestApiSend.cpp): POST and GET /api/v1/send, and GET
-      // /api/v1/send/{queue_id}. Every segment after /send/ is the send route's
-      // to judge, a malformed id included, so that it is answered with the same
-      // 404 as an id this key never sent rather than with whatever a generic
-      // unknown path is answered with for the key's role.
+      // /api/v1/send/{queue_id}. A GET of anything under /send/ is the send
+      // route's to judge - a malformed id, an empty one, more segments than one -
+      // so that it is answered with the same 404 as an id this key never sent,
+      // rather than with whatever a generic unknown path is answered with for
+      // the key's role. Another method under /send/ is no route of this API and
+      // is answered as any unknown path is.
       const AnsiString sendPath = "/api/v1/send";
 
       if (path == sendPath)
@@ -3109,10 +3157,10 @@ namespace HM
 
       if (path.StartsWith(sendPath + "/"))
       {
-         AnsiString idPart = path.Mid(sendPath.GetLength() + 1);
-
-         if (method == "GET" && !idPart.IsEmpty() && idPart.Find("/") < 0)
+         if (method == "GET")
          {
+            AnsiString idPart = path.Mid(sendPath.GetLength() + 1);
+
             route.kind = RouteSendGet;
             route.identifier = idPart;
             ParseQueueId(idPart, route.message_id);
@@ -8491,6 +8539,21 @@ namespace HM
       return FileUtilities::Combine(FileUtilities::GetFilePath(iniFile), _T("hMailServerApiKeys.ini"));
    }
 
+   bool
+   RestApiServer::StoredApiKeyIds(std::vector<String> &ids)
+   {
+      ids.clear();
+
+      const String storeFile = GetApiKeyStoreFile();
+      if (!FileUtilities::Exists(storeFile) || FileUtilities::ReadCompleteTextFile(storeFile).IsEmpty())
+         return false;
+
+      for (const ApiKeyRecord &key : LoadKeys_())
+         ids.push_back(key.id);
+
+      return true;
+   }
+
    std::vector<RestApiServer::ApiKeyRecord>
    RestApiServer::LoadKeys_()
    {
@@ -8751,9 +8814,17 @@ namespace HM
       // mail, relayed under this server's name. A domain alias is not one - the
       // key names the domain itself.
       const String domainName = StringParser::ExtractDomain(normalised);
-      if (!CacheContainer::Instance()->GetDomain(domainName))
+      std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(domainName);
+      if (!domain)
       {
          problem = "{\"error\":\"send_from must be at a domain this server hosts, and " + JsonEscape_(Utf8_(domainName)) + " is not one of them\"}";
+         return 400;
+      }
+
+      // Switched off, a domain sends nothing over SMTP; a key is not a way round.
+      if (!domain->GetIsActive())
+      {
+         problem = "{\"error\":\"send_from is at " + JsonEscape_(Utf8_(domainName)) + ", which is switched off; a key sends only as a domain that is active\"}";
          return 400;
       }
 
@@ -8967,6 +9038,17 @@ namespace HM
          // sent within it.
          if ((sendPerMinute > 0 || sendPerDay > 0) && sendFrom.IsEmpty())
             return BuildResponse_(400, "{\"error\":\"send_per_minute and send_per_day are ceilings on a key that sends: give send_from with them\"}");
+
+         // A sender that is no account's address - an address with no mailbox
+         // behind it, or *@domain, which sends as addresses nobody has made - has
+         // no sending quota of an account to hold it, and a key that sends as one
+         // with no ceiling of its own would have none but the listener's request
+         // budget: a leaked key sending without end. So such a key carries a day
+         // ceiling of its own, and is refused without one. A key whose sender is
+         // an account's address is held by that account's quota as well.
+         if (!sendFrom.IsEmpty() && sendPerDay <= 0 &&
+             (sendFrom.Left(2) == _T("*@") || !CacheContainer::Instance()->GetAccount(sendFrom)))
+            return BuildResponse_(400, "{\"error\":\"send_per_day is required, above 0, for a key whose sender is *@domain or an address that is no account's: such a key has no account's sending quota to hold it\"}");
       }
 
       if (expires.IsEmpty())
@@ -9082,7 +9164,9 @@ namespace HM
          preamble += "; SendPerMinute, SendPerDay\r\n";
          preamble += ";             Optional. The key's own sending ceilings; 0 or empty\r\n";
          preamble += ";             leaves the server's. A value that is not a whole number\r\n";
-         preamble += ";             reads as 1.\r\n";
+         preamble += ";             reads as 1. A key whose SendFrom is *@domain, or an\r\n";
+         preamble += ";             address that is no account's, is made with a\r\n";
+         preamble += ";             SendPerDay above 0, and refused a send without one.\r\n";
          preamble += ";\r\n";
          preamble += "; No key of any scope can create or revoke keys: that needs the\r\n";
          preamble += "; administrator password.\r\n";
@@ -9196,6 +9280,15 @@ namespace HM
       }
 
       LOG_APPLICATION("RestApi: API key '" + label + "' (" + String(id) + ") revoked.");
+
+      // Its record of what it sent through the send API goes with it: nobody can
+      // read it any more, it names addresses (Bcc among them), and with
+      // MessageTraceRetentionDays at 0 no sweep would ever take it. A key revoked
+      // by hand in the store or by the Control Panel loses its rows at the next
+      // hourly pass (ApiSends::DeleteOrphans).
+      const int sendsRemoved = ApiSends::DeleteForKey(String(id));
+      if (sendsRemoved < 0)
+         LOG_APPLICATION("RestApi: the send API's record of what key " + String(id) + " sent could not be removed; the hourly pass will try again.");
 
       return BuildResponse_(200, "{\"revoked\":true}");
    }
@@ -15279,6 +15372,70 @@ namespace HM
       return true;
    }
 
+   bool
+   RestApiServer::LogRefusalOnce_(const String &who)
+   {
+      return FirstRefusalThisMinute(who);
+   }
+
+   bool
+   RestApiServer::ConsumeAccountQuota_(const String &accountAddress, int recipients, CountedUsage &counted, HttpResponse &refusal)
+   {
+      const AccountSendingLimits limits = RateLimiter::Instance()->GetAccountLimits(accountAddress);
+      if (!limits.IsEnabled())
+         return true;
+
+      // One message and then its recipients, as SMTPConnection counts them at MAIL
+      // FROM and at RCPT TO; each recorded as it passes, so that a refusal of the
+      // second - or anything after both - gives the first back.
+      AccountQuotaResult result = RateLimiter::Instance()->TryConsumeAccountMessage(accountAddress, limits);
+      if (result == AccountQuotaResult::QuotaAllowed)
+      {
+         // Recorded whenever the limits are on, whichever of the two counts is.
+         counted.Usage(accountAddress, 1, 0);
+
+         result = RateLimiter::Instance()->TryConsumeAccountRecipients(accountAddress, limits, recipients);
+         if (result == AccountQuotaResult::QuotaAllowed && recipients > 0)
+            counted.Usage(accountAddress, 0, recipients);
+      }
+
+      if (result == AccountQuotaResult::QuotaAllowed)
+         return true;
+
+      // SMTP's own sentences (SMTPConnection::RefuseForAccountSendingQuota_), so
+      // that an account at its ceiling is told the same thing whichever way it
+      // sent; 429 where SMTP answers 452, and the period's bucket as the soonest
+      // the oldest message counted can leave the window.
+      const AnsiString sentence = result == AccountQuotaResult::QuotaMessageLimitReached
+         ? "Sending limit for this account has been reached. Please try again later."
+         : "Recipient sending limit for this account has been reached. Please try again later.";
+
+      AnsiString header;
+      header.Format("Retry-After: %d\r\n", RateLimiter::BucketSeconds(limits));
+
+      AnsiString body = "{\"error\":\"" + sentence + "\",\"code\":\"sending_limit\"}";
+      refusal = BuildResponse_(429, body, header);
+
+      int messages = 0;
+      int counts = 0;
+      RateLimiter::Instance()->GetAccountUsage(accountAddress, messages, counts);
+
+      // One line per account per minute: a client retrying at its ceiling would
+      // otherwise write one per request, which is the flood the listener's own
+      // budget refusal is logged once per window to avoid.
+      if (FirstRefusalThisMinute(_T("quota:") + accountAddress))
+      {
+         String logged;
+         logged.Format(_T("REST API: the sending limit refused a message from %s (%s; usage %d message(s) and %d recipient(s) this period, limits %d/%d)."),
+            accountAddress.c_str(),
+            result == AccountQuotaResult::QuotaMessageLimitReached ? _T("message limit") : _T("recipient limit"),
+            messages, counts, limits.max_messages, limits.max_recipients);
+         LOG_APPLICATION(logged);
+      }
+
+      return false;
+   }
+
    HttpResponse
    RestApiServer::HandleMeMessageSend_(const Caller &caller, const AnsiString &requestBody)
    {
@@ -15463,6 +15620,21 @@ namespace HM
             return refusal;
       }
 
+      // The account's own sending quota ([SendingLimits] and the levels of
+      // sending_max_messages and sending_max_recipients), counted as an SMTP
+      // submission by the same account counts it - which the webmail's send did
+      // not do before 24 September 2026, so a person at their ceiling could go on
+      // sending from the browser. Given back below if the message is not queued.
+      CountedUsage counted;
+      {
+         HttpResponse refusal;
+         if (!ConsumeAccountQuota_(account->GetAddress(), (int) recipients.size(), counted, refusal))
+         {
+            FileUtilities::DeleteFile(fileName);
+            return refusal;
+         }
+      }
+
       // A message that expires: the full message, footers and all, is kept on
       // this server and what goes into the queue in its place is the notice
       // with the link. Done before the queue row exists, so the deliverer can
@@ -15531,6 +15703,9 @@ namespace HM
          FileUtilities::DeleteFile(fileName);
          return BuildResponse_(500, "{\"error\":\"the message could not be queued\"}");
       }
+
+      // Queued: what the quota counted stays counted.
+      counted.Keep();
 
       {
          String recipientList;
@@ -16854,7 +17029,7 @@ namespace HM
          "\"/api/v1/metrics/history\":{\"get\":{\"summary\":\"The history of one metric\",\"description\":\"Query parameters: metric (a name from the exporter without the hmailserver_ prefix, e.g. sessions_smtp or processed_messages_total) and range (24h, 7d or 30d - samples averaged per minute, per ten minutes or per hour). Counters are totals; a rate is the difference between two samples. Empty when MetricsHistoryDays is 0.\",\"responses\":{\"200\":{\"description\":\"The samples\"},\"400\":{\"description\":\"Unknown metric or range\"}}}},"
          "\"/api/v1/apikeys\":{"
          "\"get\":{\"summary\":\"List API keys\",\"description\":\"Administrator password only. Each key: id, label, scope, role, domains, expires, allowed_from, expired, and the send API's send_from, send_per_minute and send_per_day.\",\"responses\":{\"200\":{\"description\":\"Array of keys, never the clear-text tokens\"}}},"
-         "\"post\":{\"summary\":\"Create an API key\",\"description\":\"Administrator password only. The token is returned once, at creation. Body: label (required), scope (readonly, the default, or full), role, domains, expires, allowed_from, and for the send API (docs/SendApi.md) send_from - an address of a domain this server hosts, or *@domain for any address of it; empty, the default, and the key cannot send - with send_per_minute and send_per_day (whole numbers; 0, the default, leaves the server's own ceilings). A send_from whose domain this server does not host is refused, and so is one on a key that cannot send: a read-only key, or one whose role does not hold send_through_api.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"label\"],\"properties\":{\"label\":{\"type\":\"string\"},\"scope\":{\"type\":\"string\"},\"role\":{\"type\":\"string\"},\"domains\":{\"type\":\"string\"},\"expires\":{\"type\":\"string\"},\"allowed_from\":{\"type\":\"string\"},\"send_from\":{\"type\":\"string\"},\"send_per_minute\":{\"type\":\"integer\"},\"send_per_day\":{\"type\":\"integer\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created\"},\"400\":{\"description\":\"A field is refused, with the sentence\"}}}},"
+         "\"post\":{\"summary\":\"Create an API key\",\"description\":\"Administrator password only. The token is returned once, at creation. Body: label (required), scope (readonly, the default, or full), role, domains, expires, allowed_from, and for the send API (docs/SendApi.md) send_from - an address of a domain this server hosts, or *@domain for any address of it; empty, the default, and the key cannot send - with send_per_minute and send_per_day (whole numbers; 0, the default, leaves the server's own ceilings). A send_from whose domain this server does not host, or hosts switched off, is refused; so is one on a key that cannot send - a read-only key, or one whose role does not hold send_through_api - one outside the domains a confined key reaches, and a *@domain sender, or an address that is no account's, without a send_per_day above 0: such a key has no account's sending quota to hold it. A send_from may hold no control character, space, bracket, = or ;.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"label\"],\"properties\":{\"label\":{\"type\":\"string\"},\"scope\":{\"type\":\"string\"},\"role\":{\"type\":\"string\"},\"domains\":{\"type\":\"string\"},\"expires\":{\"type\":\"string\"},\"allowed_from\":{\"type\":\"string\"},\"send_from\":{\"type\":\"string\"},\"send_per_minute\":{\"type\":\"integer\"},\"send_per_day\":{\"type\":\"integer\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created\"},\"400\":{\"description\":\"A field is refused, with the sentence\"}}}},"
          "\"/api/v1/apikeys/{id}\":{\"delete\":{\"summary\":\"Revoke an API key\",\"description\":\"Administrator password only.\",\"responses\":{\"200\":{\"description\":\"Revoked\"}}}},"
          "\"/api/v1/ipranges\":{"
          "\"get\":{\"summary\":\"List the IP ranges\",\"description\":\"Each entry: id, name, lower, upper, priority, the permission flags, expires and expires_time (the time on the server's clock at which an expiring range is removed, as the auto-ban sets it; empty for a range that does not expire). Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of ranges with their permissions\"}}},"

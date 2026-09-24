@@ -1191,6 +1191,7 @@
   "The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.": "Paikallisen vuorokauden tunti, jolloin koosteet lähtevät, 0–23. Lähetykset jaetaan tunnin ajalle sen sijaan, että ne lähtisivät kaikki tunnin alussa.",
   "The installer is downloaded and verified": "Asennusohjelma on ladattu ja tarkistettu",
   "The key file was kept: {0}": "Avaintiedosto säilytettiin: {0}",
+  "The key sends as": "Avain lähettää nimellä",
   "The last attempt failed at {0}: {1}": "Viimeisin yritys epäonnistui {0}: {1}",
   "The last check failed": "Viimeisin tarkistus epäonnistui",
   "The last install": "Viimeisin asennus",

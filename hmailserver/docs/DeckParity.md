@@ -839,7 +839,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/alerts/rules/{condition}` | Rule, RuleCriteria, RuleAction | `manage_settings`, `webhook_secret` | - |
 | `POST /api/v1/alerts/run` | ? | `manage_server` | - |
 | `POST /api/v1/alerts/test` | ? | `manage_settings` | - |
-| `POST /api/v1/apikeys` | - | `address`, `allowed_from`, `domain`, `domains`, `expires`, `key`, `label`, `read`, `role`, `scope`, `send_from`, `send_per_day`, `send_per_minute`, `send_through_api` | yes |
+| `POST /api/v1/apikeys` | - | `account`, `address`, `allowed_from`, `domain`, `domains`, `expires`, `key`, `label`, `read`, `role`, `scope`, `send_from`, `send_per_day`, `send_per_minute`, `send_through_api`, `sender`, `to` | yes |
 | `POST /api/v1/archive/{id}/hold` | - | - | - |
 | `POST /api/v1/audit/{id}/revert` | ? | `manage_settings` | yes |
 | `POST /api/v1/backup` | BackupSettings, Backup | - | yes |
@@ -992,7 +992,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/rules/match` | Rule, RuleCriteria, RuleAction | `domain`, `greater_than`, `keys`, `less_than`, `match`, `match_type`, `match_value`, `not_contains`, `not_equals`, `read`, `test_value`, `text`, `type`, `value`, `wildcard` | - |
 | `PUT /api/v1/rules/{id}` | Rule, RuleCriteria, RuleAction | `abort_spam_flagged`, `accepted`, `account_number`, `action`, `actions`, `active`, `add_disclaimer`, `all_criteria`, `attachment_name`, `attachment_type`, `bind_to_address`, `body`, `card_number`, `cc`, `criteria`, `delivery_attempts`, `dlp_account_number_pattern`, `domain`, `external_recipient`, `field`, `first`, `folder`, `from`, `from_address`, `from_name`, `greater_than`, `header`, `headers`, `key`, `keys`, `less_than`, `match`, `message`, `message_size`, `move_to_folder`, `name`, `not_contains`, `not_equals`, `office_xml`, `pattern`, `policy_rejected`, `recipient`, `recipient_list`, `require_tls`, `route_id`, `script`, `script_function`, `send_using_route`, `sender`, `sensitive_content`, `set_header`, `subject`, `text`, `to`, `type`, `value`, `warn_sender`, `wildcard` | yes |
 | `POST /api/v1/scheduled/run` | - | - | - |
-| `POST /api/v1/send` | - | `account`, `address`, `attachments`, `bcc`, `cc`, `code`, `content_type`, `data`, `domain`, `field`, `filename`, `folder`, `from`, `headers`, `html`, `key`, `label`, `message`, `message_id`, `name`, `policy_rejected`, `queue_id`, `recipient`, `reply_to`, `send_from`, `send_per_day`, `send_per_minute`, `send_through_api`, `sender`, `signature`, `size`, `subject`, `text`, `to` | - |
+| `POST /api/v1/send` | - | `account`, `address`, `addresses`, `attachments`, `bcc`, `body`, `cc`, `code`, `content_type`, `data`, `domain`, `field`, `filename`, `folder`, `from`, `header`, `headers`, `html`, `key`, `label`, `mailbox`, `message`, `message_id`, `name`, `policy_rejected`, `queue_id`, `recipient`, `reply_to`, `send_from`, `send_per_day`, `send_per_minute`, `send_through_api`, `sender`, `signature`, `size`, `subject`, `text`, `to`, `value` | - |
 | `POST /api/v1/sender-list` | SenderListEntry, SenderListEntries | `address`, `blocked`, `expires`, `expires_time`, `from`, `reason`, `to`, `value` | yes |
 | `PUT /api/v1/sender-list` | SenderListEntry, SenderListEntries | `account`, `digest`, `domain`, `enabled` | yes |
 | `PUT /api/v1/sender-list/{id}` | SenderListEntry, SenderListEntries | `address`, `blocked`, `expires`, `expires_time`, `from`, `reason`, `to`, `value` | - |

@@ -1191,6 +1191,7 @@
   "The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.": "Timen i det lokale døgnet da sammendragene sendes, 0 til 23. Sendingene fordeles over timen i stedet for å gå samtidig ved timens start.",
   "The installer is downloaded and verified": "Installasjonsprogrammet er lastet ned og verifisert",
   "The key file was kept: {0}": "Nøkkelfilen ble beholdt: {0}",
+  "The key sends as": "Nøkkelen sender som",
   "The last attempt failed at {0}: {1}": "Det siste forsøket mislyktes {0}: {1}",
   "The last check failed": "Siste kontroll mislyktes",
   "The last install": "Siste installasjon",

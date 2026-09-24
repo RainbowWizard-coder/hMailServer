@@ -962,6 +962,99 @@ namespace HM
       }
    }
 
+   void
+   RateLimiter::Refund(const String &key)
+   {
+      try
+      {
+         boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+
+         auto it = buckets_.find(key);
+         if (it != buckets_.end() && !it->second.empty())
+            it->second.pop_back();
+      }
+      catch (...)
+      {
+         ReportSwallowedException_("Refund");
+      }
+   }
+
+   void
+   RateLimiter::RefundAccountUsage(const String &accountAddress, int messages, int recipients)
+   {
+      if (messages <= 0 && recipients <= 0)
+         return;
+
+      try
+      {
+         String key = NormalizeAccountKey_(accountAddress);
+         if (key.IsEmpty())
+            return;
+
+         {
+            boost::lock_guard<boost::mutex> guard(account_mutex_);
+
+            auto it = account_usage_.find(key);
+            if (it == account_usage_.end())
+               return;
+
+            // Newest first: the consume being given back added to the newest
+            // bucket, unless a bucket boundary passed since - then to the one
+            // before it, which is where the rest is taken from.
+            UsageBuckets &buckets = it->second;
+            for (auto bucket = buckets.rbegin(); bucket != buckets.rend() && (messages > 0 || recipients > 0); ++bucket)
+            {
+               const int takeMessages = messages < bucket->messages ? messages : bucket->messages;
+               const int takeRecipients = recipients < bucket->recipients ? recipients : bucket->recipients;
+
+               bucket->messages -= takeMessages;
+               bucket->recipients -= takeRecipients;
+               messages -= takeMessages;
+               recipients -= takeRecipients;
+            }
+
+            usage_dirty_ = true;
+         }
+
+         SaveUsage_(false);
+         EmitQueuedReport_();
+      }
+      catch (...)
+      {
+         ReportSwallowedException_("RefundAccountUsage");
+      }
+   }
+
+   int
+   RateLimiter::BucketSeconds(const AccountSendingLimits &limits)
+   {
+      return (int) GetBucketSeconds_(GetPeriodSeconds_(limits));
+   }
+
+   void
+   CountedUsage::Usage(const String &key, int messages, int recipients)
+   {
+      Counted counted;
+      counted.key = key;
+      counted.messages = messages;
+      counted.recipients = recipients;
+      usage_.push_back(counted);
+   }
+
+   void
+   CountedUsage::Refund()
+   {
+      // Newest first, the reverse of the order the ceilings were consumed in.
+      for (auto it = usage_.rbegin(); it != usage_.rend(); ++it)
+         RateLimiter::Instance()->RefundAccountUsage(it->key, it->messages, it->recipients);
+
+      for (auto it = events_.rbegin(); it != events_.rend(); ++it)
+         RateLimiter::Instance()->Refund(*it);
+
+      usage_.clear();
+      events_.clear();
+   }
+
    bool
    RateLimiter::GetAccountUsage(const String &accountAddress, int &messages, int &recipients)
    {

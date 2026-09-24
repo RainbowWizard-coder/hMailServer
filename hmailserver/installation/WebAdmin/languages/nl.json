@@ -1191,6 +1191,7 @@
   "The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.": "Het uur van de lokale dag waarop de overzichten vertrekken, 0 tot en met 23. De verzendingen worden over dat uur verspreid in plaats van allemaal aan het begin te vertrekken.",
   "The installer is downloaded and verified": "Het installatieprogramma is gedownload en geverifieerd",
   "The key file was kept: {0}": "Het sleutelbestand is behouden: {0}",
+  "The key sends as": "De sleutel verzendt als",
   "The last attempt failed at {0}: {1}": "De laatste poging is mislukt op {0}: {1}",
   "The last check failed": "De laatste controle is mislukt",
   "The last install": "De laatste installatie",

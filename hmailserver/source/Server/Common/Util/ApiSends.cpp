@@ -18,6 +18,7 @@
 
 #include <ctime>
 #include <map>
+#include <set>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -59,7 +60,11 @@ namespace HM
    {
       // Whole addresses, as many as the column holds. One that would not fit is
       // left out rather than cut: a cut address is somebody else's address. The
-      // queue and the trace still name it, and Describe lists it from them.
+      // key's answers name only what is kept here (Describe answers for the
+      // addresses the body named, and this is its record of them), so an address
+      // left out is one the key is not answered about. Lower-cased, as the
+      // sender is, so that an erasure's LIKE finds it on a backend that compares
+      // case (AddressTraceEraser, EraseAddress).
       String joined;
       for (const String &address : recipients)
       {
@@ -69,7 +74,7 @@ namespace HM
 
          if (!joined.IsEmpty())
             joined += _T(",");
-         joined += address;
+         joined += Lower(address);
       }
 
       SQLStatement statement;
@@ -234,44 +239,268 @@ namespace HM
       return expired;
    }
 
+   int
+   ApiSends::CountThenDelete_(const AnsiString &where, const AnsiString &parameter, const String &value)
+   {
+      // Counted first so the caller can say what went, then deleted in one
+      // statement: the DAL answers success, not affected rows.
+      SQLCommand countCommand("select count(*) as apscount from hm_apisends where " + where);
+      countCommand.AddParameter(parameter, value);
+
+      std::shared_ptr<DALRecordset> counted = Application::Instance()->GetDBManager()->OpenRecordset(countCommand);
+      if (!counted)
+         return -1;
+
+      const int count = counted->IsEOF() ? 0 : (int) counted->GetLongValue("apscount");
+      if (count == 0)
+         return 0;
+
+      SQLCommand deleteCommand("delete from hm_apisends where " + where);
+      deleteCommand.AddParameter(parameter, value);
+
+      if (!Application::Instance()->GetDBManager()->Execute(deleteCommand))
+         return -1;
+
+      return count;
+   }
+
+   int
+   ApiSends::DeleteForKey(const String &keyId)
+   {
+      if (keyId.IsEmpty())
+         return 0;
+
+      return CountThenDelete_("apskeyid = @KEYID", "@KEYID", keyId);
+   }
+
+   int
+   ApiSends::DeleteOrphans(const std::vector<String> &liveKeyIds)
+   {
+      std::set<String> live;
+      for (const String &id : liveKeyIds)
+         live.insert(Lower(id));
+
+      SQLCommand command("select distinct apskeyid from hm_apisends");
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return -1;
+
+      std::vector<String> orphans;
+      while (!recordset->IsEOF())
+      {
+         const String id = recordset->GetStringValue("apskeyid");
+         if (live.find(Lower(id)) == live.end())
+            orphans.push_back(id);
+
+         recordset->MoveNext();
+      }
+
+      int removed = 0;
+      for (const String &id : orphans)
+      {
+         const int count = DeleteForKey(id);
+         if (count < 0)
+            return -1;
+         removed += count;
+      }
+
+      return removed;
+   }
+
+   int
+   ApiSends::EraseAddress(const String &address)
+   {
+      if (address.IsEmpty())
+         return 0;
+
+      const String lowered = Lower(address);
+
+      // What the address sent. The sender is stored lower-cased (RestApiSend.cpp
+      // lower-cases from before it is recorded).
+      int changed = CountThenDelete_("apssender = @SENDER", "@SENDER", lowered);
+      if (changed < 0)
+         return -1;
+
+      // What it was sent. The recipients are a comma-separated list, so LIKE only
+      // finds the candidates and each is matched whole in memory - LIKE alone would
+      // also match inside a longer address (ann@ in joann@). Each is rewritten
+      // without the address, keeping the key's record of the others, and a row
+      // left naming nobody goes.
+      SQLCommand candidates("select apsid, apsrecipients from hm_apisends where apsrecipients like @PATTERN");
+      candidates.AddParameter("@PATTERN", _T("%") + lowered + _T("%"));
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(candidates);
+      if (!recordset)
+         return -1;
+
+      std::vector<std::pair<__int64, String> > rewrites;
+      while (!recordset->IsEOF())
+      {
+         bool found = false;
+         String kept;
+
+         for (const String &entry : StringParser::SplitString(recordset->GetStringValue("apsrecipients"), _T(",")))
+         {
+            if (entry.IsEmpty())
+               continue;
+
+            if (entry.CompareNoCase(lowered) == 0)
+            {
+               found = true;
+               continue;
+            }
+
+            if (!kept.IsEmpty())
+               kept += _T(",");
+            kept += entry;
+         }
+
+         if (found)
+            rewrites.push_back(std::make_pair(recordset->GetInt64Value("apsid"), kept));
+
+         recordset->MoveNext();
+      }
+
+      for (const std::pair<__int64, String> &rewrite : rewrites)
+      {
+         bool done = false;
+
+         if (rewrite.second.IsEmpty())
+         {
+            SQLCommand remove("delete from hm_apisends where apsid = @ID");
+            remove.AddParameter("@ID", rewrite.first);
+            done = Application::Instance()->GetDBManager()->Execute(remove);
+         }
+         else
+         {
+            SQLCommand update("update hm_apisends set apsrecipients = @RECIPIENTS where apsid = @ID");
+            update.AddParameter("@RECIPIENTS", rewrite.second);
+            update.AddParameter("@ID", rewrite.first);
+            done = Application::Instance()->GetDBManager()->Execute(update);
+         }
+
+         if (!done)
+            return -1;
+
+         changed++;
+      }
+
+      return changed;
+   }
+
+   namespace
+   {
+      // Which of two states a named address answers when several addresses it
+      // resolved to hold states of their own: one still waiting first, then the
+      // worst of what happened.
+      int Precedence(const String &state)
+      {
+         if (state.Compare(StateDeferred) == 0) return 6;
+         if (state.Compare(StateQueued) == 0) return 5;
+         if (state.Compare(StateBounced) == 0) return 4;
+         if (state.Compare(StateRefused) == 0) return 3;
+         if (state.Compare(StateDelivered) == 0) return 2;
+         return 1;
+      }
+   }
+
    String
    ApiSends::Describe(const ApiSendRecord &record, std::vector<ApiSendRecipientState> &recipients, bool &traceEnabled)
    {
       traceEnabled = MessageTrace::GetEnabled();
       recipients.clear();
 
-      // One entry per address, by position in recipients and looked up by the
-      // address in lower case: first every address the body named, in its
-      // order, then any address the trace or the queue names that the body
-      // did not - what an alias or a list resolved to.
-      std::map<String, size_t> index;
-      auto entryFor = [&recipients, &index](const String &address) -> size_t
+      // The addresses the body named, once each and in its order, and nothing
+      // else: see the top of ApiSends.h.
+      std::map<String, size_t> named;
+      for (const String &address : record.recipients)
       {
          const String key = Lower(address);
-         auto found = index.find(key);
-         if (found != index.end())
-            return found->second;
+         if (key.IsEmpty() || named.find(key) != named.end())
+            continue;
 
          ApiSendRecipientState entry;
          entry.address = address;
          recipients.push_back(entry);
-         index[key] = recipients.size() - 1;
-         return recipients.size() - 1;
-      };
+         named[key] = recipients.size() - 1;
+      }
 
-      for (const String &address : record.recipients)
-         entryFor(address);
-
-      // The trace's events for the queue id, oldest first, so that the last
-      // word on an address is the one that stands - with one exception: a
-      // refusal by the suppression list is followed by the failure the refusal
-      // reports to the sender, and the refusal is the truer name for it.
-      for (const MessageTraceEvent &traceEvent : MessageTrace::GetByQueueID(record.queue_id))
+      // The message's row while it is one of the queue's - delivering (1), held
+      // for ETRN (3) or held for review (4); a message delivered to one local
+      // account has become that account's copy (type 2) and is no longer the
+      // queue's - and how often it has been tried.
+      bool inQueue = false;
+      int tries = 0;
       {
-         if (traceEvent.recipient.IsEmpty())
+         SQLCommand command("select messagetype, messagecurnooftries from hm_messages where messageid = @MESSAGEID");
+         command.AddParameter("@MESSAGEID", record.queue_id);
+
+         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+         if (recordset && !recordset->IsEOF())
+         {
+            const int type = (int) recordset->GetLongValue("messagetype");
+            inQueue = type == (int) Message::Delivering || type == 3 || type == (int) Message::HeldForReview;
+            tries = (int) recordset->GetLongValue("messagecurnooftries");
+         }
+      }
+
+      // Each address the queue or the trace names, lower-cased, mapped to the
+      // named address it stands for: itself when the body named it, and - while
+      // the queue holds it - the original address its queue row keeps, which is
+      // what the body named when it resolved to others.
+      std::map<String, String> origin;
+      std::vector<String> waiting;
+
+      if (inQueue)
+      {
+         SQLCommand command("select recipientaddress, recipientoriginaladdress from hm_messagerecipients where recipientmessageid = @MESSAGEID");
+         command.AddParameter("@MESSAGEID", record.queue_id);
+
+         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+         while (recordset && !recordset->IsEOF())
+         {
+            const String address = Lower(recordset->GetStringValue("recipientaddress"));
+            String original = Lower(recordset->GetStringValue("recipientoriginaladdress"));
+
+            // An address the body named stands for itself, even where it was
+            // reached first through another named address - a member of a list
+            // the body also named - whose name its queue row then keeps.
+            if (original.IsEmpty() || named.find(address) != named.end())
+               original = address;
+
+            if (!address.IsEmpty() && named.find(original) != named.end())
+            {
+               origin[address] = original;
+               waiting.push_back(address);
+            }
+
+            recordset->MoveNext();
+         }
+      }
+
+      // The trace's word on each address, oldest first so that the last word
+      // stands - with one exception: a refusal by the suppression list is followed
+      // by the failure the refusal reports to the sender, and the refusal is the
+      // truer name for it. An event about an address nothing maps to a named one
+      // is left where it is.
+      std::map<String, ApiSendRecipientState> actual;
+
+      for (const MessageTraceEvent &traceEvent : MessageTrace::GetLatestByQueueID(record.queue_id, MaxEvents))
+      {
+         const String address = Lower(traceEvent.recipient);
+         if (address.IsEmpty())
             continue;
 
-         ApiSendRecipientState &state = recipients[entryFor(traceEvent.recipient)];
+         if (origin.find(address) == origin.end())
+         {
+            if (named.find(address) == named.end())
+               continue;
+
+            origin[address] = address;
+         }
+
+         ApiSendRecipientState &state = actual[address];
          const String &name = traceEvent.event_name;
 
          if (name.CompareNoCase(MessageTrace::EventSuppressed) == 0)
@@ -297,66 +526,70 @@ namespace HM
          }
       }
 
-      // What is still waiting: the message's row while it is one of the queue's
-      // - delivering (1), held for ETRN (3) or held for review (4) - and the
-      // recipients it still has. A message delivered to one local account has
-      // become that account's copy (type 2) and is no longer the queue's.
-      bool inQueue = false;
-      int tries = 0;
+      // Still in the queue and no verdict: waiting. Tried already - a deferral the
+      // trace did not record, because it was off - is deferred; not yet, queued.
+      for (const String &address : waiting)
       {
-         SQLCommand command("select messagetype, messagecurnooftries from hm_messages where messageid = @MESSAGEID");
-         command.AddParameter("@MESSAGEID", record.queue_id);
-
-         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
-         if (recordset && !recordset->IsEOF())
-         {
-            const int type = (int) recordset->GetLongValue("messagetype");
-            inQueue = type == (int) Message::Delivering || type == 3 || type == (int) Message::HeldForReview;
-            tries = (int) recordset->GetLongValue("messagecurnooftries");
-         }
-      }
-
-      if (inQueue)
-      {
-         SQLCommand command("select recipientaddress from hm_messagerecipients where recipientmessageid = @MESSAGEID");
-         command.AddParameter("@MESSAGEID", record.queue_id);
-
-         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
-         while (recordset && !recordset->IsEOF())
-         {
-            ApiSendRecipientState &state = recipients[entryFor(recordset->GetStringValue("recipientaddress"))];
-
-            // Still in the queue and no verdict: waiting. Tried already (a
-            // deferral the trace did not record, because it was off) is
-            // deferred; not tried yet is queued.
-            if (state.state.IsEmpty())
-            {
-               state.state = tries > 0 ? StateDeferred : StateQueued;
-               if (tries > 0)
-                  state.reason.Format(_T("Tried %d time(s) and waiting for the next attempt."), tries);
-            }
-
-            recordset->MoveNext();
-         }
-      }
-
-      // Whatever nothing named: unknown, and why, in the one sentence that is true.
-      for (ApiSendRecipientState &state : recipients)
-      {
+         ApiSendRecipientState &state = actual[address];
          if (!state.state.IsEmpty())
             continue;
 
+         state.state = tries > 0 ? StateDeferred : StateQueued;
+         if (tries > 0)
+            state.reason.Format(_T("Tried %d time(s) and waiting for the next attempt."), tries);
+      }
+
+      // Folded into the named addresses. An address the body named answers its own
+      // state whole; one that resolved to others answers the state they hold taken
+      // together - the one still waiting, or else the worst - with no status, code
+      // or reply of theirs, which could name them.
+      for (const auto &entry : actual)
+      {
+         if (entry.second.state.IsEmpty())
+            continue;
+
+         const String &original = origin[entry.first];
+         const size_t index = named[original];
+         ApiSendRecipientState &target = recipients[index];
+         const bool itself = entry.first.Compare(original) == 0;
+
+         if (Precedence(entry.second.state) < Precedence(target.state))
+            continue;
+
+         const String address = target.address;
+         target = entry.second;
+         target.address = address;
+
+         if (!itself)
+         {
+            target.status = _T("");
+            target.code = 0;
+            target.reason = _T("This address resolved to other addresses on this server; the state is theirs, taken together, and they are not named.");
+         }
+      }
+
+      for (size_t index = 0; index < recipients.size(); index++)
+      {
+         ApiSendRecipientState &state = recipients[index];
+
+         if (!state.state.IsEmpty())
+            continue;
+
+         // Whatever nothing named: unknown, and why, in the sentence that is true
+         // of where the message stands.
          state.state = StateUnknown;
 
-         if (inQueue)
-            state.reason = _T("This address resolved to others - an alias, a distribution list - which are listed under their own addresses.");
+         if (inQueue && !traceEnabled)
+            state.reason = _T("No longer waiting at this address. The message trace is off (MessageTraceEnabled), so nothing recorded what became of it here: it may have been delivered, bounced or refused, or it resolved to other addresses, which are not named.");
+         else if (inQueue)
+            state.reason = _T("No longer waiting at this address, and the trace names no event for it: it was refused or removed on this server without a trace event (a full mailbox, a rule, a virus scan), or it resolved to other addresses (an alias, a list), which are not named.");
          else if (!traceEnabled)
             state.reason = _T("The message has left the queue and the message trace is off (MessageTraceEnabled), so nothing recorded what became of it at this address.");
          else
-            state.reason = _T("The message has left the queue and the trace names no event for this address: it resolved to others (an alias, a list, a forward), listed under their own addresses, or the trace's rows for it have been removed.");
+            state.reason = _T("The message has left the queue and the trace names no event for this address: it was refused or removed on this server without a trace event (a full mailbox, a rule, a virus scan), it resolved to other addresses (an alias, a list, a forward), which are not named, or the trace's rows for it have been removed.");
       }
 
-      // The send's own state: the least finished of its recipients' while any
+      // The send's own state: the least finished of its addresses' while any
       // waits, and otherwise the worst of what happened.
       bool queued = false, deferred = false, delivered = false, bounced = false, refused = false;
       for (const ApiSendRecipientState &state : recipients)

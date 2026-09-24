@@ -1191,6 +1191,7 @@
   "The hour of the local day the digests go out, 0 to 23. The sends are spread across that hour rather than fired at the top of it.": "Hodina místního dne, kdy souhrny odcházejí, 0 až 23. Odesílání se rozloží do celé této hodiny, místo aby proběhlo najednou na jejím začátku.",
   "The installer is downloaded and verified": "Instalátor je stažen a ověřen",
   "The key file was kept: {0}": "Soubor klíče byl ponechán: {0}",
+  "The key sends as": "Klíč odesílá jako",
   "The last attempt failed at {0}: {1}": "Poslední pokus selhal {0}: {1}",
   "The last check failed": "Poslední kontrola selhala",
   "The last install": "Poslední instalace",

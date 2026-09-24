@@ -16,7 +16,7 @@ that source cannot answer. Everything else follows from it.
 
 | Source | Table | What it carries | What it cannot answer |
 |---|---|---|---|
-| **The message trace** | `hm_messagetrace` (schema 6020) | One row per recipient per delivery attempt: when, the event, the sender, the recipient, the source address, the SMTP status code. | It is **off by default** (`MessageTraceEnabled`), because it is a record of who corresponds with whom, retained. The reports count its `delivered` and `failed` events and no others — the `suppressed` rows of the suppression list, and the `deferred` row it has written since September 2026 for every attempt that will be retried ([SendApi.md](SendApi.md) reads them), are left out, because an attempt retried is not a message lost; there is no spam event, no virus event, and a message still in the queue is in neither. It is kept for `MessageTraceRetentionDays` (30 by default). |
+| **The message trace** | `hm_messagetrace` (schema 6020) | One row per recipient per delivery attempt: when, the event, the sender, the recipient, the source address, the SMTP status code. | It is **off by default** (`MessageTraceEnabled`), because it is a record of who corresponds with whom, retained. The reports count its `delivered` and `failed` events and no others — the `suppressed` rows of the suppression list, and the `deferred` row it has written since September 2026 for every attempt made that will be retried ([SendApi.md](SendApi.md) reads them; a recipient the server's own shaping held back is tried by nobody and writes none), are left out of the query itself, because an attempt retried is not a message lost and a row no section reads would only bring the row ceiling nearer; there is no spam event, no virus event, and a message still in the queue is in neither. It is kept for `MessageTraceRetentionDays` (30 by default) and swept by the expired-records task every hour; until 24 September 2026 nothing swept it but a call of `MessageTrace.DeleteExpired` over COM. |
 | **The metric history** | `hm_metricsamples` (schema 6028) | One sample per metric per minute, **server-wide**: processed, delivered, deferred, bounced, spam detected, viruses removed, and — since this feature — `store_bytes` and `store_messages`. | No domain. Not one of these counters has ever carried one, which is why spam and virus counts cannot be given per domain. Kept for `MetricsHistoryDays` (7 by default). |
 | **The message store** | `hm_messages` joined to `hm_accounts` | The size and the message count of every mailbox, **as it is now**. | It is a point in time, not a history. Nothing has ever recorded what a mailbox held yesterday, so "this mailbox grew by 40 MB last week" is not answerable. |
 
@@ -158,7 +158,7 @@ The decision is made in `RestApiServer::Authorize_` and nowhere else, from the t
 An administrator asking for a report must not be a way to take the server down. One report
 makes at most three grouped queries, and grouping happens **in the database**:
 
-* **the trace** — one query over `hm_messagetrace` in the window, grouped by
+* **the trace** — one query over the `delivered` and `failed` rows of `hm_messagetrace` in the window, grouped by
   `(day, event, status, sender, recipient)`. What comes back is distinct tuples, not
   deliveries: a hundred thousand messages between the same fifty correspondents is a few
   hundred rows. The read is capped at 100 000 grouped rows, and the answer sets `truncated`

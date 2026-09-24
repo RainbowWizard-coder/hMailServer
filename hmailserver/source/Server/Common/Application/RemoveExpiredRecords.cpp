@@ -11,6 +11,8 @@
 #include "../Persistence/PersistentLogonFailure.h"
 #include "../AntiSpam/SpamTrapMonitor.h"
 #include "../Util/ApiSends.h"
+#include "../Util/MessageTrace.h"
+#include "../Util/RestApiServer.h"
 
 #include <ctime>
 
@@ -89,20 +91,38 @@ namespace HM
          }
       }
 
-      // The send API's record of what each key sent (Util/ApiSends.h), kept as
-      // long as the message trace it is answered from - MessageTraceRetentionDays
-      // - and swept hourly for the same reason as the record above.
+      // The message trace, and the send API's record of what each key sent
+      // (Util/ApiSends.h), which is answered from it: each kept
+      // MessageTraceRetentionDays (0 keeps them) and swept hourly for the same
+      // reason as the record above. Until 24 September 2026 nothing swept the
+      // trace at all - MessageTrace::DeleteExpired ran only when somebody called
+      // MessageTrace.DeleteExpired over COM - so the setting promised a window it
+      // never kept. And the rows of a key revoked outside the key routes (the
+      // Control Panel's revoke, an edit of the store), which only the key could
+      // have read: when the store can be read, a key no longer in it loses them.
       {
-         static time_t lastApiSendsSweep = 0;
+         static time_t lastTraceSweep = 0;
          const time_t now = time(nullptr);
 
-         if (lastApiSendsSweep == 0 || now - lastApiSendsSweep >= 3600)
+         if (lastTraceSweep == 0 || now - lastTraceSweep >= 3600)
          {
-            lastApiSendsSweep = now;
+            lastTraceSweep = now;
+
+            const int traceRemoved = MessageTrace::DeleteExpired();
+            if (traceRemoved > 0)
+               LOG_APPLICATION(Formatter::Format(_T("RemoveExpiredRecords: {0} message trace event(s) older than MessageTraceRetentionDays removed."), traceRemoved));
 
             const int removed = ApiSends::DeleteExpired();
             if (removed > 0)
                LOG_APPLICATION(Formatter::Format(_T("RemoveExpiredRecords: {0} send API record(s) older than MessageTraceRetentionDays removed."), removed));
+
+            std::vector<String> liveKeys;
+            if (RestApiServer::StoredApiKeyIds(liveKeys))
+            {
+               const int orphans = ApiSends::DeleteOrphans(liveKeys);
+               if (orphans > 0)
+                  LOG_APPLICATION(Formatter::Format(_T("RemoveExpiredRecords: {0} send API record(s) of keys no longer in the key store removed."), orphans));
+            }
          }
       }
    }

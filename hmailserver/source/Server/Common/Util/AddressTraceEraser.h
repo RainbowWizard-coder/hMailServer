@@ -14,7 +14,8 @@ namespace HM
       messages, rules, app passwords, the mailbox directory, the Sieve tree -
       and blind, on purpose, to the places where the ADDRESS appears as data in
       somebody else's records: archive copies, quarantine rows, message-trace
-      rows, greylisting triplets, distribution-list memberships and aliases.
+      rows, the send API's record of sends (hm_apisends), greylisting triplets,
+      distribution-list memberships and aliases.
       Deleting those as a side effect of removing an account would be wrong
       twice over - an archive can be under a legal hold that outranks the
       deletion, and a list membership is the list owner's record as much as the

@@ -1312,11 +1312,19 @@ namespace HM
             // The attempt, in the message trace, with the status and what the
             // remote said - or this server's own sentence where it said nothing -
             // so that "deferred, and why" is answerable while the message waits
-            // (MessageTrace::EventDeferred; the send API reads it).
-            const String said = recipient->GetRemoteSmtpReply().IsEmpty() ? recipient->GetErrorMessage() : recipient->GetRemoteSmtpReply();
-            MessageTrace::Record(original_message_->GetID(), MessageTrace::EventDeferred, original_message_->GetFromAddress(),
-               recipient->GetAddress(), _sendersIP, MessageTrace::ReplyCode(recipient->GetRemoteSmtpReply(), 4, 451),
-               MessageTrace::DeliveryDetail(status, said));
+            // (MessageTrace::EventDeferred; the send API reads it). Only an
+            // attempt that was made: a recipient this server's own shaping held
+            // back (a back-off window, a connection ceiling, a per-minute rate)
+            // was tried by nobody, is rescheduled every few minutes without being
+            // counted, and would write a row each time for as long as the hold
+            // lasts.
+            if (shaping_deferred_.find(recipient->GetAddress()) == shaping_deferred_.end())
+            {
+               const String said = recipient->GetRemoteSmtpReply().IsEmpty() ? recipient->GetErrorMessage() : recipient->GetRemoteSmtpReply();
+               MessageTrace::Record(original_message_->GetID(), MessageTrace::EventDeferred, original_message_->GetFromAddress(),
+                  recipient->GetAddress(), _sendersIP, MessageTrace::ReplyCode(recipient->GetRemoteSmtpReply(), 4, 451),
+                  MessageTrace::DeliveryDetail(status, said));
+            }
          }
          else if (recipient->GetDeliveryResult() == MessageRecipient::ResultFatalError)
          {
@@ -1544,10 +1552,14 @@ namespace HM
             String sFailed = pendingFailure.GetText();
 
             // Delivery has failed for the last time. The trace's detail carries
-            // the last attempt's status and what was said, as the report does.
+            // the last attempt's status and what was said, as the report does,
+            // and the code is the last reply's own - a 451 the remote kept
+            // answering until the retries ran out - or 550, what was always
+            // recorded here, where no remote replied.
             {
                const String said = pendingFailure.GetRemoteSmtpReply().IsEmpty() ? String(_T("Gave up after the last retry.")) : pendingFailure.GetRemoteSmtpReply();
-               AWStats::LogDeliveryFailure(_sendersIP, original_message_->GetFromAddress(), sEmailAddress, 550, original_message_->GetID(),
+               AWStats::LogDeliveryFailure(_sendersIP, original_message_->GetFromAddress(), sEmailAddress,
+                  MessageTrace::ReplyCode(pendingFailure.GetRemoteSmtpReply(), 4, 550), original_message_->GetID(),
                   MessageTrace::DeliveryDetail(pendingFailure.GetEnhancedStatusCode(), said));
             }
             Events::FireOnDeliveryFailed(original_message_, _sendersIP, sEmailAddress, sFailed);

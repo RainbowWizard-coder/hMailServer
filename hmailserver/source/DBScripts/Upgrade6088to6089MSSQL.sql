@@ -15,6 +15,12 @@ CREATE CLUSTERED INDEX idx_hm_apisends_key ON hm_apisends (apskeyid, apsid)
 
 CREATE NONCLUSTERED INDEX idx_hm_apisends_created ON hm_apisends (apscreated)
 
+CREATE NONCLUSTERED INDEX idx_hm_apisends_keycreated ON hm_apisends (apskeyid, apscreated)
+
+CREATE NONCLUSTERED INDEX idx_hm_apisends_queueid ON hm_apisends (apsqueueid)
+
+CREATE NONCLUSTERED INDEX idx_hm_messagetrace_queueid ON hm_messagetrace (mtqueueid)
+
 update hm_roles set rolepermissions = rolepermissions + ',send_through_api' where rolename = 'serveradmin' and rolepermissions not like '%send_through_api%'
 
 update hm_dbversion set value = 6089

@@ -11,9 +11,11 @@
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DatabaseConnectionManager.h"
+#include "../SQL/DatabaseSettings.h"
 #include "Time.h"
 
 #include <ctime>
+#include <algorithm>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -228,6 +230,52 @@ namespace HM
          recordset->MoveNext();
       }
 
+      return result;
+   }
+
+   std::vector<MessageTraceEvent>
+   MessageTrace::GetLatestByQueueID(__int64 queueID, int maxCount)
+   {
+      std::vector<MessageTraceEvent> result;
+
+      if (maxCount <= 0)
+         return result;
+
+      // Newest first and bounded - TOP (n) for SQL Server and Compact, which
+      // requires the parentheses, LIMIT for the other two - then turned round, so
+      // the caller reads the story in the order it happened. Served by
+      // idx_hm_messagetrace_queueid (schema 6089).
+      String text;
+      switch (IniFileSettings::Instance()->GetDatabaseType())
+      {
+      case DatabaseSettings::TypeMSSQLServer:
+      case DatabaseSettings::TypeMSSQLCompactEdition:
+         text.Format(_T("select top (%d) * from hm_messagetrace where mtqueueid = @QUEUEID order by mtid desc"), maxCount);
+         break;
+      default:
+         text.Format(_T("select * from hm_messagetrace where mtqueueid = @QUEUEID order by mtid desc limit %d"), maxCount);
+         break;
+      }
+
+      SQLCommand command(text);
+      command.AddParameter("@QUEUEID", queueID);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+
+      if (!recordset)
+         return result;
+
+      while (!recordset->IsEOF() && (int) result.size() < maxCount)
+      {
+         MessageTraceEvent traceEvent;
+
+         if (ReadRow_(recordset, traceEvent))
+            result.push_back(traceEvent);
+
+         recordset->MoveNext();
+      }
+
+      std::reverse(result.begin(), result.end());
       return result;
    }
 
