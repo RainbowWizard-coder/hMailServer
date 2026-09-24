@@ -176,6 +176,7 @@ namespace HM
       std::shared_ptr<TCPIPPorts> tcpipPorts = Configuration::Instance()->GetTCPIPPorts();
       if (tcpipPorts)
       {
+         // owned by this call: GetTCPIPPorts() loads a new collection for every caller
          for (std::shared_ptr<TCPIPPort> port : tcpipPorts->GetVector())
             ports.insert(port->GetPortNumber());
       }
@@ -272,6 +273,7 @@ namespace HM
 
       DateTime now = DateTime::GetCurrentTime();
 
+      // owned by this call: ranges is a local collection loaded above
       for (std::shared_ptr<SecurityRange> range : ranges->GetVector())
       {
          // An auto-ban is a single address, expiring, named by the code that made

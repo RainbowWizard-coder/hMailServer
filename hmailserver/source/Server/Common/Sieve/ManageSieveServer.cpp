@@ -623,6 +623,7 @@ namespace HM
 
       const SessionType preferenceOrder[] = { STIMAP, STPOP3, STSMTP };
 
+      // owned by this call: GetTCPIPPorts() loads a new collection for every caller
       std::vector<std::shared_ptr<TCPIPPort> > portVector = ports->GetVector();
 
       for (SessionType sessionType : preferenceOrder)

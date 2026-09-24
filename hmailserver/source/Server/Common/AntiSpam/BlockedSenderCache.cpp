@@ -74,6 +74,7 @@ namespace HM
          return;
       }
 
+      // owned by this call: senders is the local collection just loaded; the cache's copy is guarded by the cache's own lock
       blockedSenderItems_ = senders.GetConstVector();
       needRefresh_ = false;
    }

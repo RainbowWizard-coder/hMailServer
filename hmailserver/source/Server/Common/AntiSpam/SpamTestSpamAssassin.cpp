@@ -115,6 +115,7 @@ namespace HM
       String spamd_user = IniFileSettings::Instance()->GetSpamAssassinUser();
       if (IniFileSettings::Instance()->GetSpamAssassinUserFromRecipient())
       {
+         // owned by this call: the recipients of the message under test, held by its session or delivery
          const std::vector<std::shared_ptr<MessageRecipient> > &recipients = pMessage->GetRecipients()->GetVector();
          if (recipients.size() == 1 && recipients[0])
             spamd_user = recipients[0]->GetAddress();

@@ -587,6 +587,7 @@ namespace HM
                continue;
 
             String recipients;
+            // owned by this call: the recipients of a message this loop read from the database
             for (std::shared_ptr<MessageRecipient> recipient : message->GetRecipients()->GetVector())
             {
                if (!recipient)

@@ -60,6 +60,7 @@ namespace HM
       oMessages.Refresh(false);
 
       // Iterate over messages to deliver.
+         // owned by this call: oMessages is a local collection loaded above
          std::vector<std::shared_ptr<Message> > vecMessages = oMessages.GetVector();
          auto iterMessage = vecMessages.begin();
       int notDeleted = 0;

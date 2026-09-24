@@ -759,6 +759,7 @@ namespace HM
       std::set<__int64> recipientAccounts;
       std::set<__int64> recipientDomains;
 
+      // owned by this call: the recipients of the message its caller holds - a session's, a delivery's or a task's own
       for (std::shared_ptr<MessageRecipient> recipient : message->GetRecipients()->GetVector())
       {
          if (!recipient)

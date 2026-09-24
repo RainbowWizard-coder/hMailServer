@@ -312,6 +312,7 @@ namespace HM
       // deliverer never selects, and gets its \Sent copy when it is released.
       std::vector<String> submitted;
       String recipientList;
+      // owned by this call: the recipients of the message this task built
       for (std::shared_ptr<MessageRecipient> recipient : message->GetRecipients()->GetVector())
       {
          if (!recipient)

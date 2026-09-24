@@ -258,6 +258,7 @@ namespace HM
       if (!recipients)
          return false;
 
+      // owned by this call: the recipients of the message being signed, held by its delivery
       for (std::shared_ptr<MessageRecipient> recipient : recipients->GetVector())
       {
          // A recipient without a local account is delivered by the external
@@ -296,6 +297,7 @@ namespace HM
       std::shared_ptr<MessageRecipients> recipients = message->GetRecipients();
       if (recipients)
       {
+         // owned by this call: the recipients of the message being signed, held by its delivery
          for (std::shared_ptr<MessageRecipient> recipient : recipients->GetVector())
          {
             if (recipient)

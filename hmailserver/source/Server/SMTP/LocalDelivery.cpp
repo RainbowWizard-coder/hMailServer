@@ -97,6 +97,7 @@ namespace HM
 
       // NOTE: Since were manipulating the messages recipient vector below, we want to do a copy.
       //       We should iterate over the copy of recipients here. Not over the original list.
+      // owned by this call: the recipients of the message this delivery holds
       std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients = original_message_->GetRecipients()->GetVector();
       auto iterRecipient = vecRecipients.begin();
 
@@ -1194,6 +1195,7 @@ namespace HM
          if (!pNewMessage)
             return pNewMessage;
 
+         // owned by this call: the recipients of the message this delivery holds
          for (std::shared_ptr<MessageRecipient> recipient : pOriginalMessage->GetRecipients()->GetVector())
          {
             if (recipient->GetAddress().CompareNoCase(pRecipientAccount->GetAddress()) == 0)

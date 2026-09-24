@@ -397,6 +397,7 @@ namespace HM
    // case, we use those.
    //---------------------------------------------------------------------------()
    {
+      // owned by this call: pPermissions is the fresh collection GetPermissionsSetOnFolder loaded for this question
       std::vector<std::shared_ptr<ACLPermission> > vecObjects = pPermissions->GetVector();
 
       // Sort the list of permissions. If a user is a member of two groups set up in

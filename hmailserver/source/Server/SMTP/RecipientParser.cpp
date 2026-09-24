@@ -475,6 +475,7 @@ namespace HM
                   return;
                }
 
+               // owned by this call: the recipient list this parser is building, read again after the recursion below appends to it
                std::vector<std::shared_ptr<MessageRecipient> > &addedRecipients = pRecipients->GetVector();
                const size_t countBeforeModerator = addedRecipients.size();
 
@@ -753,6 +754,7 @@ namespace HM
       {
          // Only members of the list can send messages. 
          // Check if the sender is a member of the list.
+         // owned by this call: DistributionList::GetMembers() loads a new collection for every caller
          std::vector<std::shared_ptr<DistributionListRecipient> > vecRecipients = pList->GetMembers()->GetVector();
          auto iterRecipient = vecRecipients.begin();
 
@@ -801,6 +803,7 @@ namespace HM
       // to ask a question with one answer would be the cost without the check.
       std::shared_ptr<DistributionListRecipients> pListMembers = pList->GetMembers();
 
+      // owned by this call: DistributionList::GetMembers() loads a new collection for every caller
       std::vector<std::shared_ptr<DistributionListRecipient> > vecRecipients = pListMembers->GetVector();
       std::vector<std::shared_ptr<DistributionListRecipient> >::const_iterator iterRecipient = vecRecipients.begin();
 
@@ -832,6 +835,7 @@ namespace HM
 
       ForgetIfNewTransaction_(pRecipients);
 
+      // owned by this call: the recipient list this parser is building
       const std::vector<std::shared_ptr<MessageRecipient> > &vecResult = pRecipients->GetVector();
 
       if (vecResult.size() != memo_added_count_)
@@ -857,6 +861,7 @@ namespace HM
          return;
 
       pRecipients->Add(pRecipient);
+      // owned by this call: the recipient list this parser is building
       memo_added_count_ = pRecipients->GetVector().size();
    }
 

@@ -48,6 +48,7 @@ namespace HM
          return;
       }
 
+      // owned by this call: all is the local collection just loaded; the cache's copy is guarded by the cache's own lock
       entries_ = all.GetConstVector();
       need_refresh_ = false;
    }

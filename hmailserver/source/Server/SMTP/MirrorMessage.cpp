@@ -89,9 +89,11 @@ namespace HM
       String deliveredToAddresses;
 
       // If the mirror address is on the recipient list, don't mirror it.
+      // owned by this call: the recipients of the message this delivery holds
       std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients = message_->GetRecipients()->GetVector();
       auto iterRecipient = vecRecipients.begin();
       
+      // owned by this call: the recipients of the message this delivery holds
       for(std::shared_ptr<MessageRecipient> recipipent : message_->GetRecipients()->GetVector())
       {
          if (recipipent->GetAddress().CompareNoCase(sMirrorAddress) == 0)
@@ -129,6 +131,7 @@ namespace HM
       // than the mirror address. The problem is that the Delivered-To address is limited to
       // 256 characters due to database limitations.
       deliveredToAddresses = deliveredToAddresses.Mid(0, 255);
+      // owned by this call: the recipients of the copy this call made
       for(std::shared_ptr<MessageRecipient> recipipent : pMsg->GetRecipients()->GetVector())
       {
          recipipent->SetOriginalAddress(deliveredToAddresses);

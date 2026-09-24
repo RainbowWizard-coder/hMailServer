@@ -233,6 +233,7 @@ namespace HM
       
       // Loop over the recipients and check if they are on the same domain.if
       
+      // owned by this call: the recipients of the message its caller holds - a session's, a delivery's or a task's own
       std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients = message->GetRecipients()->GetVector();
       auto iter = vecRecipients.begin();
       auto iterEnd = vecRecipients.end();

@@ -141,6 +141,7 @@ namespace HM
       // hears in the first week.
       bool HasExternalRecipient(std::shared_ptr<Message> message)
       {
+         // owned by this call: the recipients of the message its caller holds - a session's, a delivery's or a task's own
          std::vector<std::shared_ptr<MessageRecipient> > &recipients = message->GetRecipients()->GetVector();
 
          for (auto recipient : recipients)

@@ -41,6 +41,7 @@ namespace HM
       if (!entries.Refresh())
          return;
 
+      // owned by this call: entries is the local collection just loaded; the cache's copy is guarded by the cache's own lock
       entries_ = entries.GetConstVector();
       needRefresh_ = false;
    }

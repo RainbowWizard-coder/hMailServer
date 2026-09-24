@@ -76,6 +76,7 @@ namespace HM
       list.Refresh(account->GetID());
 
       AnsiString json = "{\"app_passwords\":[";
+      // owned by this call: list is a local collection loaded above
       const std::vector<std::shared_ptr<AppPassword> > &items = list.GetVector();
       for (size_t i = 0; i < items.size(); i++)
       {

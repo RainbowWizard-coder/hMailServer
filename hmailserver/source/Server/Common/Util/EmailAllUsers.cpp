@@ -53,6 +53,7 @@ namespace HM
       Domains oDomains;
       oDomains.Refresh();
 
+      // owned by this call: oAccounts is a local collection loaded above
       std::vector<std::shared_ptr<Account> > vecAccounts = oAccounts.GetVector();
       auto iterAccount = vecAccounts.begin();
       while (iterAccount != vecAccounts.end())

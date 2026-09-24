@@ -109,6 +109,7 @@ namespace HM
 
       if (IniFileSettings::Instance()->GetAddXOriginalRcptToHeader() && message_)
       {
+         // owned by this call: the recipients of the message its session holds
          auto recipients = message_->GetRecipients()->GetVector();
 
          std::set<String> originalLocalAddresses;

@@ -520,6 +520,7 @@ namespace HM
 
       const int minimumAcceptedHashAlgorithm = IniFileSettings::Instance()->GetMinimumAcceptedHashAlgorithm();
 
+      // owned by this call: passwords is a local collection loaded above
       for (auto password : passwords.GetVector())
       {
          if (!password->GetActive())

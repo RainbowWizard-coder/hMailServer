@@ -16796,8 +16796,7 @@ namespace HM
          }
       };
 
-      // A copy of the vector, exactly as GetClientAccessSettings_ takes one,
-      // rather than a Refresh() of the shared collection from this thread.
+      // owned by this call: GetTCPIPPorts() loads a new collection for every caller
       std::vector<std::shared_ptr<TCPIPPort>> ports = Configuration::Instance()->GetTCPIPPorts()->GetVector();
 
       for (std::shared_ptr<TCPIPPort> port : ports)

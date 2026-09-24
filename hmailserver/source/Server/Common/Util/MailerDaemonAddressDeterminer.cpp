@@ -34,6 +34,7 @@ namespace HM
       String sOriginialRecipient;
 
       std::shared_ptr<MessageRecipients> pRecipients = pOrigMessage->GetRecipients();
+      // owned by this call: the recipients of the message its caller holds - a session's, a delivery's or a task's own
       std::vector<std::shared_ptr<MessageRecipient> > & recipients = pRecipients->GetVector();
       if (recipients.size() > 0)
          sOriginialRecipient = (*recipients.begin())->GetAddress();

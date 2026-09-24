@@ -28,6 +28,7 @@ InterfaceRecipients::get_Count(long *pVal)
       if (!message_)
          return GetAccessDenied();
 
+      // owned by this call: the recipients of the message this COM object wraps, reached on its apartment's thread only
       std::vector<std::shared_ptr<HM::MessageRecipient> > vecRecipients = message_->GetRecipients()->GetVector();
    
       *pVal = (int) vecRecipients.size();
@@ -50,6 +51,7 @@ InterfaceRecipients::get_Item(long Index, IInterfaceRecipient **pVal)
       CComObject<InterfaceRecipient>* pInterfaceRecipient = new CComObject<InterfaceRecipient>();
       pInterfaceRecipient->SetAuthentication(authentication_);
    
+      // owned by this call: the recipients of the message this COM object wraps, reached on its apartment's thread only
       std::vector<std::shared_ptr<HM::MessageRecipient> > vecRecipients = message_->GetRecipients()->GetVector();
    
       if (Index >= (long) vecRecipients.size())

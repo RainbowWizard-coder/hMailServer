@@ -192,6 +192,7 @@ namespace HM
             DomainAliases aliases(domain.GetID());
             aliases.Refresh();
 
+            // owned by this call: aliases is a local collection loaded above
             for (std::shared_ptr<DomainAlias> alias : aliases.GetVector())
             {
                if (!alias || alias->GetAlias().IsEmpty())
@@ -362,6 +363,7 @@ namespace HM
 
          Domains domains;
          domains.Refresh();
+         // owned by this call: domains is a local collection loaded above
          for (std::shared_ptr<Domain> domain : domains.GetVector())
          {
             if (!domain)

@@ -678,6 +678,7 @@ namespace HM
       if (!recipients)
          return external;
 
+      // owned by this call: the recipients of the message its caller holds - a session's, a delivery's or a task's own
       for (std::shared_ptr<MessageRecipient> recipient : recipients->GetVector())
       {
          if (!recipient)

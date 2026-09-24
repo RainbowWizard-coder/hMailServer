@@ -1136,6 +1136,7 @@ namespace HM
 
       std::set<String> countedRecipientDomains;
 
+      // owned by this call: the recipients of this session's own message
       for (std::shared_ptr<MessageRecipient> recipient : current_message_->GetRecipients()->GetVector())
       {
          String recipientDomain = StringParser::ExtractDomain(recipient->GetAddress());
@@ -1194,6 +1195,7 @@ namespace HM
 
       std::set<String> raisedFor;
 
+      // owned by this call: the recipients of this session's own message
       for (std::shared_ptr<MessageRecipient> recipient : current_message_->GetRecipients()->GetVector())
       {
          const String address = recipient->GetAddress();
@@ -1776,6 +1778,7 @@ namespace HM
 
       // OK, the recipient is acceptable.
       std::shared_ptr<MessageRecipients> pRecipients = current_message_->GetRecipients();
+      // owned by this call: the recipients of this session's own message
       size_t recipientCountBefore = pRecipients->GetVector().size();
       bool recipientOK = false;
 
@@ -1805,6 +1808,7 @@ namespace HM
       // this RCPT TO command.
       if (recipientNotify != MessageRecipient::DSNNotifyDefault)
       {
+         // owned by this call: the recipients of this session's own message, read again after the parser appended to it
          std::vector<std::shared_ptr<MessageRecipient> > &vecAllRecipients = pRecipients->GetVector();
          for (size_t i = recipientCountBefore; i < vecAllRecipients.size(); i++)
             vecAllRecipients[i]->SetDSNNotify(recipientNotify);
@@ -2551,6 +2555,7 @@ namespace HM
          String archiveSubject = archiveHeader.GetUnicodeFieldValue("Subject");
          String archiveMessageId = archiveHeader.GetRawFieldValue("Message-ID");
          String archiveRecipients;
+         // owned by this call: the recipients of this session's own message
          for (std::shared_ptr<MessageRecipient> archiveRecipient : current_message_->GetRecipients()->GetVector())
          {
             if (!archiveRecipients.IsEmpty())
@@ -2618,6 +2623,7 @@ namespace HM
             std::shared_ptr<const Domain> pDomaintmp;
             bool bDomainIsLocal = false;
 
+            // owned by this call: the recipients of this session's own message
             const std::vector<std::shared_ptr<MessageRecipient> > vecRecipients = current_message_->GetRecipients()->GetVector();
             std::vector<std::shared_ptr<MessageRecipient> >::const_iterator iterRecipient = vecRecipients.begin();
             while (iterRecipient != vecRecipients.end())
@@ -2725,6 +2731,7 @@ namespace HM
             if (submitter)
             {
                std::vector<String> submitted;
+               // owned by this call: the recipients of this session's own message
                for (std::shared_ptr<MessageRecipient> recipient : current_message_->GetRecipients()->GetVector())
                {
                   if (recipient)
@@ -2752,6 +2759,7 @@ namespace HM
             if (shape.assessed)
             {
                String recipientList;
+               // owned by this call: the recipients of this session's own message
                for (std::shared_ptr<MessageRecipient> recipient : current_message_->GetRecipients()->GetVector())
                {
                   if (recipient)
@@ -3012,6 +3020,7 @@ namespace HM
          if (writer)
          {
             std::vector<String> written;
+            // owned by this call: the recipients of this session's own message
             for (std::shared_ptr<MessageRecipient> recipient : current_message_->GetRecipients()->GetVector())
             {
                if (recipient)
@@ -3111,6 +3120,7 @@ namespace HM
       if (!sender_domain_->GetFirstContactTip())
          return;
 
+      // owned by this call: the recipients of this session's own message
       for (auto recipient : current_message_->GetRecipients()->GetVector())
          PersistentKnownSender::RememberOutgoing(sender_account_->GetID(), recipient->GetAddress());
    }
@@ -3351,6 +3361,7 @@ namespace HM
       // Go through the recipients and log one row for each of them.
       String sFromAddress = current_message_->GetFromAddress();
 
+      // owned by this call: the recipients of this session's own message
       const std::vector<std::shared_ptr<MessageRecipient> > vecRecipients = current_message_->GetRecipients()->GetVector();
       std::vector<std::shared_ptr<MessageRecipient> >::const_iterator iterRecipient = vecRecipients.begin();
       while (iterRecipient != vecRecipients.end())
@@ -6139,6 +6150,7 @@ namespace HM
             return true;
       }
 
+      // owned by this call: the recipients of this session's own message
       const std::vector<std::shared_ptr<MessageRecipient> > recipients = current_message_->GetRecipients()->GetVector();
 
       for (size_t i = 0; i < recipients.size(); i++)

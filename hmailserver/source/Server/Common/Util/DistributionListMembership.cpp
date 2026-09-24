@@ -547,6 +547,7 @@ namespace HM
       unavailable = false;
 
       std::shared_ptr<const DistributionListRecipients> rows = list->GetMembers();
+      // owned by this call: DistributionList::GetMembers() loads a new collection for every caller
       const std::vector<std::shared_ptr<DistributionListRecipient> > recipients = rows->GetConstVector();
       for (const std::shared_ptr<DistributionListRecipient> &recipient : recipients)
       {
@@ -610,6 +611,7 @@ namespace HM
          return false;
 
       std::shared_ptr<const DistributionListRecipients> rows = list->GetMembers();
+      // owned by this call: DistributionList::GetMembers() loads a new collection for every caller
       const std::vector<std::shared_ptr<DistributionListRecipient> > recipients = rows->GetConstVector();
       for (const std::shared_ptr<DistributionListRecipient> &recipient : recipients)
       {

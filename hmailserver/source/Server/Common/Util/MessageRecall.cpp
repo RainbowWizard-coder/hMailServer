@@ -182,6 +182,7 @@ namespace HM
       // parser resolved them at RCPT TO: a list's members and an alias's
       // target are already there, each once.
       std::vector<__int64> recipients;
+      // owned by this call: the recipients of the message being submitted, held by its session or by the send route
       for (std::shared_ptr<MessageRecipient> recipient : message->GetRecipients()->GetVector())
       {
          if (!recipient || recipient->GetLocalAccountID() == 0)

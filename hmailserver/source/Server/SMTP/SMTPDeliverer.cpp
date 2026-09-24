@@ -837,6 +837,7 @@ namespace HM
          if (antiVirusConfig.AVNotifyReceiver())
          {
             // Notify every receiver of the email.
+            // owned by this call: the recipients of the message this delivery holds
             std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients = pMessage->GetRecipients()->GetVector();
             auto iterRecipient = vecRecipients.begin();
 
@@ -1134,6 +1135,7 @@ namespace HM
       // question and a report claiming otherwise would be false.
       std::vector<DeliveryFailure> errorMessages;
 
+      // owned by this call: the recipients of the message this delivery holds
       for (std::shared_ptr<MessageRecipient> recipient : pMessage->GetRecipients()->GetVector())
       {
          errorMessages.push_back(DeliveryFailure(recipient->GetAddress(), _T("4.7.0"),
@@ -1217,6 +1219,7 @@ namespace HM
       if (!ruleResult.GetDeleteEmail())
       {
          std::set<__int64> domainIds;
+         // owned by this call: the recipients of the message this delivery holds
          for (std::shared_ptr<MessageRecipient> recipient : pMessage->GetRecipients()->GetVector())
          {
             if (!recipient || !recipient->GetIsLocalName())
@@ -1309,6 +1312,7 @@ namespace HM
       // Go through the recipients and log one row for each of them.
       String sFromAddress = pMessage->GetFromAddress();     
 
+      // owned by this call: the recipients of the message this delivery holds
       const std::vector<std::shared_ptr<MessageRecipient> > vecRecipients = pMessage->GetRecipients()->GetVector();
       std::vector<std::shared_ptr<MessageRecipient> >::const_iterator iterRecipient = vecRecipients.begin();
       while (iterRecipient != vecRecipients.end())

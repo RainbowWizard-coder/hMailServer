@@ -278,6 +278,7 @@ namespace HM
       std::vector<String> localAddresses;
       std::set<String> distinct;
 
+      // owned by this call: the recipients of the message this delivery holds
       for (std::shared_ptr<MessageRecipient> recipient : message->GetRecipients()->GetVector())
       {
          if (recipient->GetLocalAccountID() <= 0)
@@ -451,6 +452,7 @@ namespace HM
          return;
 
       int delivered = 0;
+      // owned by this call: the recipients of the message this delivery holds
       for (std::shared_ptr<MessageRecipient> recipient : message->GetRecipients()->GetVector())
       {
          if (recipient->GetDeliveryResult() == MessageRecipient::ResultOK)

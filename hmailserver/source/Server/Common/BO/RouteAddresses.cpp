@@ -35,6 +35,13 @@ namespace HM
    void
    RouteAddresses::DeleteByAddress(const String &sAddress)
    {
+      // Under the collection's lock, as Collection::DeleteItemByDBID erases. The
+      // collection is a member of a Route in SMTPConfiguration's shared routes,
+      // which the Control Panel reaches through InterfaceRoute::get_Addresses
+      // while sessions ask GetItemByName of the same object; an erase without
+      // the lock would move elements under a reader that holds it.
+      boost::lock_guard<boost::recursive_mutex> guard(_mutex);
+
       auto iterRoute = vecObjects.begin();
 
       while (iterRoute != vecObjects.end())

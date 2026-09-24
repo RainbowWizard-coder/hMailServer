@@ -39,6 +39,13 @@ namespace HM
    bool
    IncomingRelays::IsIncomingRelay(const IPAddress &address) const
    {
+      // Under the collection's lock. This object is SMTPConfiguration's, the one
+      // every SMTP session asks, and the Control Panel and REST change it in
+      // place (Refresh, AddItem, DeleteItemByDBID, all of which lock) - so a
+      // walk without the lock is a walk of a vector another thread can swap out
+      // and free.
+      boost::lock_guard<boost::recursive_mutex> guard(_mutex);
+
       if (vecObjects.size() == 0)
       {
          // If no security ranges exist, default is deny.

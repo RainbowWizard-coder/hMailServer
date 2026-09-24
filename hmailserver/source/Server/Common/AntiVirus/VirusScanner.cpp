@@ -402,6 +402,7 @@ namespace HM
       bool changes_made = false;
       String blocked_names;
 
+      // owned by this call: the attachments of the message this scan parsed, and Attachments::GetVector hands out a copy
       for (auto attachment : pAttachments->GetVector())
       {
          // The detached signature of a signed message is not a file the sender

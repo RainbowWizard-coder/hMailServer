@@ -199,6 +199,18 @@ jobs:
           python3 build/check-role-choke-point.py
           python3 build/check-role-choke-point.py --self-test
 
+      # Collection::GetVector() hands out the live vector without its lock, and a
+      # loop over it while another thread refreshes the collection is a read of
+      # freed memory - the heap-corruption abort of September 2026 was one. Every
+      # call carries "// owned by this call" and the reason no other thread can
+      # reach that collection, or it iterates GetSnapshot(); ARCHITECTURE.md has
+      # the table. The self-test proves an unmarked call is reported and a
+      # comment, a string and Collection.h itself are not.
+      - name: Every loop over a shared collection iterates a locked copy
+        run: |
+          python3 build/check-collection-iteration.py
+          python3 build/check-collection-iteration.py --self-test
+
       # The portal's page and its script are C++ string literals, and what stood
       # behind them was a test asserting that certain substrings appeared - which
       # proves a name is spelled somewhere and nothing about what the page does.

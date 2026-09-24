@@ -99,6 +99,7 @@ namespace HM
 
          if (message->GetRecipients())
          {
+            // owned by this call: the recipients of the message its caller holds - a session's, a delivery's or a task's own
             for (auto recipient : message->GetRecipients()->GetVector())
             {
                if (!recipients.IsEmpty())

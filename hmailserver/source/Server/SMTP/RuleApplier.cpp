@@ -374,6 +374,7 @@ namespace HM
       }
 
       String recipients;
+      // owned by this call: the recipients of the message this delivery holds
       for (std::shared_ptr<MessageRecipient> recipient : pOriginalMessage->GetRecipients()->GetVector())
       {
          if (!recipient)
@@ -513,7 +514,13 @@ namespace HM
       if (!pRules)
          return false;
 
-      for (std::shared_ptr<Rule> pRule : pRules->GetVector())
+      // A locked copy, never GetVector(). The collections this is handed are
+      // ObjectCache's, shared by every session and every delivery, and an
+      // account's or a domain's is refreshed IN PLACE - GetAccountRules and
+      // GetDomainRules call Refresh() on the cached object, on whichever
+      // thread asks first after a rule was saved - so the vector a range-for
+      // over GetVector() walks can be swapped out and freed under it.
+      for (std::shared_ptr<Rule> pRule : pRules->GetSnapshot())
       {
          if (!pRule || !pRule->GetActive())
             continue;
@@ -536,7 +543,8 @@ namespace HM
       if (!pRules || !pMsgData)
          return false;
 
-      for (std::shared_ptr<Rule> pRule : pRules->GetVector())
+      // A locked copy, as HasRejectAction takes one and for its reason.
+      for (std::shared_ptr<Rule> pRule : pRules->GetSnapshot())
       {
          if (!pRule || !pRule->GetActive())
             continue;
@@ -586,6 +594,7 @@ namespace HM
       // Every domain a local recipient is in, and the sender's when it is
       // hosted here, each once - the same set the deliverer runs.
       std::set<__int64> domainIds;
+      // owned by this call: the recipients of the message being submitted, held by its session or by the send route
       for (std::shared_ptr<MessageRecipient> recipient : message->GetRecipients()->GetVector())
       {
          if (!recipient || !recipient->GetIsLocalName())
@@ -756,6 +765,7 @@ namespace HM
       else
       {
          // Copy the old reciopients.
+         // owned by this call: the recipients of the message this delivery holds
          std::vector<std::shared_ptr<MessageRecipient> >  &oldRecipients = pMsgData->GetMessage()->GetRecipients()->GetVector();
 
          for(std::shared_ptr<MessageRecipient> recipient : oldRecipients)
@@ -1030,6 +1040,7 @@ namespace HM
          case RuleCriteria::FTRecipientList:
             {
                std::shared_ptr<Message> pMessage = pMsgData->GetMessage();
+               // owned by this call: the recipients of the message this delivery holds
                std::vector<std::shared_ptr<MessageRecipient> > vecRecipients = pMessage->GetRecipients()->GetVector();
                auto iterRecipient = vecRecipients.begin();
 

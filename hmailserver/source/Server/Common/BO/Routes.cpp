@@ -36,6 +36,12 @@ namespace HM
    std::shared_ptr<Route> 
    Routes::GetItemByNameWithWildcardMatch(const String &domainName)
    {
+      // Under the collection's lock, as GetItemByName and GetItemByDBID are.
+      // This is SMTPConfiguration's collection, asked by every session and
+      // delivery, and changed in place by the Control Panel (InterfaceRoutes
+      // holds this very object) and by REST.
+      boost::lock_guard<boost::recursive_mutex> guard(_mutex);
+
       auto iter = vecObjects.begin();
       auto iterEnd = vecObjects.end();
 

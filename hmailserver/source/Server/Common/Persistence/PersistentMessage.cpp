@@ -397,6 +397,7 @@ namespace HM
    bool
    PersistentMessage::SaveRecipients_(std::shared_ptr<Message> pMessage)
    {
+      // owned by this call: the recipients of the message its owner is saving
       std::vector<std::shared_ptr<MessageRecipient> > vecRecipients = pMessage->GetRecipients()->GetVector();
       auto iterRecipient = vecRecipients.begin();
 

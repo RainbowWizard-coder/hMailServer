@@ -57,6 +57,7 @@ namespace HM
             {
                // All recipients should go into the same SMTP server
                std::vector<std::shared_ptr<MessageRecipient> > recipients;
+               // owned by this call: the recipients of the message this delivery holds
                for(std::shared_ptr<MessageRecipient> recipient : message_->GetRecipients()->GetVector())
                {
                   recipients.push_back(recipient); 
@@ -71,6 +72,7 @@ namespace HM
       // sort all recipients per domain, domain in lower case. this is done
       // so that we only need to look for routes for every domain once.
       std::map<String, std::vector<std::shared_ptr<MessageRecipient> > > sortedRecipients;
+      // owned by this call: the recipients of the message this delivery holds
       for(std::shared_ptr<MessageRecipient> recipient : message_->GetRecipients()->GetVector())
       {
          String domainName = StringParser::ExtractDomain(recipient->GetAddress()).ToLower();

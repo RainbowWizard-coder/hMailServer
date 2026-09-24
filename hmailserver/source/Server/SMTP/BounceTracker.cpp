@@ -636,6 +636,7 @@ namespace HM
       if (!message || !Enabled_())
          return;
 
+      // owned by this call: the recipients of the message this delivery holds
       const std::vector<std::shared_ptr<MessageRecipient> > &recipients = message->GetRecipients()->GetVector();
       if (recipients.empty())
          return;
@@ -789,6 +790,7 @@ namespace HM
       // alias that expands to several accounts is still one address here.
       std::vector<String> localAddresses;
       std::set<String> distinctAddresses;
+      // owned by this call: the recipients of the message this delivery holds
       for (std::shared_ptr<MessageRecipient> recipient : message->GetRecipients()->GetVector())
       {
          if (recipient->GetLocalAccountID() <= 0)
@@ -1007,6 +1009,7 @@ namespace HM
       if (!message || !ListApplies_())
          return;
 
+      // owned by this call: the recipients of the message this delivery holds, and the loop below erases from it on purpose
       std::vector<std::shared_ptr<MessageRecipient> > &recipients = message->GetRecipients()->GetVector();
       if (recipients.empty())
          return;

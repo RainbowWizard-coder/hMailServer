@@ -1235,7 +1235,11 @@ namespace HM
       std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
       if (aliases)
       {
-         for (auto alias : aliases->GetVector())
+         // A locked copy: this is ObjectCache's collection, the one every
+         // session shares. Nothing refreshes that object in place today - a
+         // reload replaces it - but a loop over a cached collection does not
+         // lean on that staying true.
+         for (auto alias : aliases->GetSnapshot())
          {
             const String name = Lower(alias->GetAlias());
             if (!name.IsEmpty() && !Contains(names, name))

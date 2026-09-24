@@ -424,6 +424,7 @@ namespace HM
          if (!pDomain->GetName().IsEmpty())
             deletedDomainNames.insert(pDomain->GetName().ToLower());
 
+         // owned by this call: the caller's own Domain - a REST local, or a COM object on its apartment's thread - never the cache's
          std::vector<std::shared_ptr<DomainAlias> > domainAliases = pDomain->GetDomainAliases()->GetVector();
          for (std::shared_ptr<DomainAlias> domainAlias : domainAliases)
          {

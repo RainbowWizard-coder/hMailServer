@@ -1518,6 +1518,7 @@ namespace HM
 
       int imapRank = -1, pop3Rank = -1, smtpRank = -1;
 
+      // owned by this call: GetTCPIPPorts() loads a new collection for every caller
       std::vector<std::shared_ptr<TCPIPPort>> ports = Configuration::Instance()->GetTCPIPPorts()->GetVector();
 
       for (std::shared_ptr<TCPIPPort> port : ports)

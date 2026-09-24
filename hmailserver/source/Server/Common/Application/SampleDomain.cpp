@@ -479,6 +479,7 @@ namespace HM
                continue;
 
             bool oursAlone = true;
+            // owned by this call: the recipients of a message this loop read from the database
             for (std::shared_ptr<MessageRecipient> recipient : recipients->GetVector())
             {
                if (!recipient || accountIds.find(recipient->GetLocalAccountID()) == accountIds.end())

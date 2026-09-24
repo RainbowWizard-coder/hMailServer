@@ -90,6 +90,7 @@ namespace HM
          return;
       }
 
+      // owned by this call: addresses is the local collection just loaded; the cache's copy is guarded by the cache's own lock
       whitelistItems_ = addresses.GetConstVector();
 
       // Cleared only here, and only after a successful load. This line was

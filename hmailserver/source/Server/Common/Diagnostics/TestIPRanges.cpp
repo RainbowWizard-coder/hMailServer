@@ -43,6 +43,7 @@ namespace HM
       int totalBanRanges = 0;
       bool localhostBanned = false;
 
+      // owned by this call: ranges is a local collection loaded above
       for(std::shared_ptr<SecurityRange> securityRange : ranges.GetVector())
       {
          if (securityRange->GetExpires())

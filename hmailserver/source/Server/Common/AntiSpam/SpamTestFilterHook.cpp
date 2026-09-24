@@ -83,6 +83,7 @@ namespace HM
 
       if (message->GetRecipients())
       {
+         // owned by this call: the recipients of the message under test, held by its session or delivery
          for (std::shared_ptr<MessageRecipient> recipient : message->GetRecipients()->GetVector())
             recipients.push_back(AnsiString(recipient->GetAddress()));
       }

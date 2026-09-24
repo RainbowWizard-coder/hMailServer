@@ -408,6 +408,7 @@ namespace HM
          // alternative a reply that never comes.
          std::shared_ptr<Accounts> accounts = std::shared_ptr<Accounts>(new Accounts(domain->GetID()));
          accounts->Refresh();
+         // owned by this call: accounts is a local collection loaded above
          for (std::shared_ptr<Account> account : accounts->GetVector())
          {
             if (account)

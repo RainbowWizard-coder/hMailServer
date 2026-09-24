@@ -105,6 +105,7 @@ namespace HM
 
          fetch_accounts_->RefreshPendingList();
 
+         // owned by this call: fetch_accounts_ is made, refreshed and walked by this thread alone; the tasks are handed accounts, not the list
          std::vector<std::shared_ptr<FetchAccount> > &vecAccounts = fetch_accounts_->GetVector();
          auto iterFA = vecAccounts.begin();
 

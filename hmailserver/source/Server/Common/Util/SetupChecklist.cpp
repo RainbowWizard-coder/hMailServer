@@ -455,6 +455,7 @@ namespace HM
 
       std::vector<std::shared_ptr<Domain>> active;
       int total = 0;
+      // owned by this call: domains is a local collection loaded above
       for (std::shared_ptr<Domain> domain : domains.GetVector())
       {
          if (!domain)
@@ -539,6 +540,7 @@ namespace HM
          certificates.Refresh();
 
          bool anySubmission = false;
+         // owned by this call: ports is a local collection loaded above
          for (std::shared_ptr<TCPIPPort> port : ports.GetVector())
          {
             if (!port || port->GetProtocol() != STSMTP || port->GetPortNumber() == 25)

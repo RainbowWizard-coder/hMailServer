@@ -307,6 +307,7 @@ namespace HM
       // needs looking up once.
       std::set<String> candidateAddresses;
 
+      // owned by this call: the recipients of the message this delivery holds
       const std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients = recipients->GetVector();
 
       for (const std::shared_ptr<MessageRecipient> &recipient : vecRecipients)
@@ -456,6 +457,7 @@ namespace HM
       if (!recipients)
          return false;
 
+      // owned by this call: the recipients of the message this delivery holds
       const std::vector<std::shared_ptr<MessageRecipient> > &recipientVector = recipients->GetVector();
 
       if (recipientVector.empty())
