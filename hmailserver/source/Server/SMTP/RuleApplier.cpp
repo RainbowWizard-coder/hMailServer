@@ -82,7 +82,18 @@ namespace HM
    {
       LOG_DEBUG(_T("Applying rules"));
 
-      if (pRules->GetCount() == 0)
+      // One locked copy, taken once, and every question below asked of it. The
+      // collection is ObjectCache's - an account's, a domain's or the global
+      // rules - and an account's or a domain's is refreshed IN PLACE by
+      // GetAccountRules/GetDomainRules on whichever thread asks first after a
+      // rule is saved, the global ones by a restore. An index walk over the
+      // live collection is memory-safe, since GetCount and GetItem each lock,
+      // but a refresh between two GetItem calls re-indexes it under the walk:
+      // a rule is skipped, so a delete or a move is missed for this message,
+      // or one runs twice, so a forward or a copy is sent twice.
+      const std::vector<std::shared_ptr<Rule> > rules = pRules->GetSnapshot();
+
+      if (rules.empty())
       {
          return;
       }
@@ -101,10 +112,8 @@ namespace HM
 
       rule_account_id_ = pRules->GetAccountID();
 
-      for (int i = 0; i < pRules->GetCount(); i++)
+      for (std::shared_ptr<Rule> pRule : rules)
       {
-         std::shared_ptr<Rule> pRule = pRules->GetItem(i);
-
          if (pRule && pRule->GetActive())
          {
             bool bContinueRuleProcessing = true;
@@ -515,11 +524,12 @@ namespace HM
          return false;
 
       // A locked copy, never GetVector(). The collections this is handed are
-      // ObjectCache's, shared by every session and every delivery, and an
-      // account's or a domain's is refreshed IN PLACE - GetAccountRules and
-      // GetDomainRules call Refresh() on the cached object, on whichever
-      // thread asks first after a rule was saved - so the vector a range-for
-      // over GetVector() walks can be swapped out and freed under it.
+      // ObjectCache's global and domain rules (RejectedBySubmissionRules),
+      // shared by every session and every delivery. A domain's is refreshed IN
+      // PLACE - GetDomainRules calls Refresh() on the cached object, on
+      // whichever thread asks first after a rule was saved - and the global
+      // ones by a restore (Configuration.cpp), so the vector a range-for over
+      // GetVector() walks can be swapped out and freed under it.
       for (std::shared_ptr<Rule> pRule : pRules->GetSnapshot())
       {
          if (!pRule || !pRule->GetActive())

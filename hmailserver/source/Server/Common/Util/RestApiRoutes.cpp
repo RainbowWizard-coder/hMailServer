@@ -1063,14 +1063,21 @@ namespace HM
          return BuildResponse_(500, "{\"error\":\"failed to save route\"}");
       }
 
-      // The scalars into the running route, then its address list brought to
-      // the body's: rows the body no longer names are deleted through the
-      // route's own collection (InterfaceRouteAddresses::DeleteByDBID), rows it
-      // adds are saved into it (Add + Save). Unchanged rows keep their ids, and
-      // there is no moment at which the route has no addresses at all.
-      CopyRouteScalars(*updated, *existing);
-
-      std::shared_ptr<RouteAddresses> routeAddresses = existing->GetAddresses();
+      // The address list brought to the body's, on the saved copy's own
+      // collection (a new one, loaded from the table, since the copy has the
+      // route's id): rows the body no longer names are deleted
+      // (InterfaceRouteAddresses::DeleteByDBID), rows it adds are saved (Add +
+      // Save). Unchanged rows keep their ids, and there is no moment at which
+      // the route has no addresses at all.
+      //
+      // Nothing is written onto the running route. It is an element of
+      // SMTPConfiguration's shared collection, and a session may be copying its
+      // domain name or walking its addresses at this moment; a string assigned
+      // under it frees the buffer being copied - the use-after-free the shared
+      // collections row was about, one level down. The collection is refreshed
+      // below instead, which swaps in new routes under its lock, and a session
+      // keeps the route it already holds.
+      std::shared_ptr<RouteAddresses> routeAddresses = updated->GetAddresses();
       int failures = 0;
 
       for (std::shared_ptr<RouteAddress> current : routeAddresses->GetSnapshot())
@@ -1097,22 +1104,32 @@ namespace HM
          if (routeAddresses->GetItemByName(address))
             continue;
 
-         if (!AddRouteAddress(existing, routeAddresses, address))
+         if (!AddRouteAddress(updated, routeAddresses, address))
          {
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6492, "RestApiServer::HandleUpdateRoute_",
-               "The address " + address + " could not be added to the route for " + existing->DomainName() +
+               "The address " + address + " could not be added to the route for " + updated->DomainName() +
                ". The route's other fields were saved.");
             failures++;
          }
       }
 
+      // What was saved, into the running configuration: a new set of routes
+      // read from the table, swapped in under the collection's lock. Done on
+      // the partial failure as well, since the fields and some of the rows
+      // were saved and delivery should use what the table holds.
+      if (!routes->Refresh())
+      {
+         LOG_APPLICATION("RestApi: Route " + updated->DomainName() + " was saved, but the routes could not be read back; "
+            "delivery goes on using the route as it was until they are next read.");
+      }
+
       if (failures > 0)
          return BuildResponse_(500, "{\"error\":\"the route was saved but its address list could not be brought up to date\"}");
 
-      LOG_APPLICATION("RestApi: Route " + existing->DomainName() + " -> " + existing->TargetSMTPHost() + ":" +
-         StringParser::IntToString((int) existing->TargetSMTPPort()) + " updated.");
+      LOG_APPLICATION("RestApi: Route " + updated->DomainName() + " -> " + updated->TargetSMTPHost() + ":" +
+         StringParser::IntToString((int) updated->TargetSMTPPort()) + " updated.");
 
-      return BuildResponse_(200, RouteEntryJson(existing, quote));
+      return BuildResponse_(200, RouteEntryJson(updated, quote));
    }
 
    HttpResponse

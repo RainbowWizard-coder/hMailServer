@@ -20,13 +20,21 @@ Whether another thread can reach a collection is not something a script can
 see, so the decision is written where the call is. The rule:
 
   Every call of GetVector() or GetConstVector() under hmailserver/source/Server
-  carries the comment "// owned by this call" - on its own line, or on the line
-  before it - saying why no other thread can touch that collection while the
-  call runs (a local loaded above, a message's own recipients, a collection a
-  getter builds new for every caller). The one exception is Collection.h, the
-  class whose vector it is. Anything else fails here with the file and the line,
-  and the fix is GetSnapshot() or the comment with its reason - never the
-  comment alone because it is shorter.
+  carries the comment "// owned by this call" and the reason no other thread
+  can touch that collection while the call runs (a local loaded above, a
+  message's own recipients, a collection a getter builds new for every
+  caller). The marker is in the comment of the call's own line, or it is the
+  comment of the line before, which then holds nothing but that comment. One
+  marker covers one call: a marked line with two calls on it fails. A call
+  inside a #define fails whatever it carries, because every use of the macro
+  would escape the check. The one exception is Collection.h, the class whose
+  vector it is. Anything else fails here with the file, the line and why, and
+  the fix is GetSnapshot() or the comment with its reason - never the comment
+  alone because it is shorter.
+
+  A marker on a forwarding accessor - a function that hands GetVector() on to
+  its own callers - is refused in review, for the reason the #define is refused
+  here: it would exempt every caller behind one line.
 
 What counts as a call: the name followed by an opening parenthesis in code, with
 comments and string and character literals blanked first, that is not the
@@ -57,37 +65,51 @@ DECLARATION_TAIL = re.compile(r"\s*\)\s*(?:const\s*)?(?:override\s*)?(?:noexcept
 KEYWORDS = {"return", "throw", "else", "do", "case", "co_return", "co_yield", "sizeof", "decltype",
             "and", "or", "not", "new", "delete", "typeid", "alignof"}
 
+UNMARKED = "unmarked"
+SHARED_MARKER = "one marker, more than one call on the line"
+IN_DEFINE = "inside a #define"
+
 
 def blank(text):
-    """Comments, string literals and character literals blanked to spaces, with
-    every newline and every length kept, so that an offset in the result is the
-    same offset in the source."""
-    out = []
+    """Two copies of text, every newline and every length kept, so that an
+    offset in either is the same offset in the source: the code, with comments
+    and string and character literals blanked to spaces; and the comments, with
+    everything that is not a comment blanked."""
+    code = []
+    comments = []
     i = 0
     n = len(text)
+
+    def spaces(chunk):
+        return re.sub(r"[^\n]", " ", chunk)
+
     while i < n:
         c = text[i]
         if text.startswith("//", i):
             j = text.find("\n", i)
             j = n if j < 0 else j
-            out.append(" " * (j - i))
+            code.append(" " * (j - i))
+            comments.append(text[i:j])
             i = j
         elif text.startswith("/*", i):
             j = text.find("*/", i + 2)
             j = n if j < 0 else j + 2
-            out.append(re.sub(r"[^\n]", " ", text[i:j]))
+            code.append(spaces(text[i:j]))
+            comments.append(text[i:j])
             i = j
         elif c == '"' or (c == "'" and not (i > 0 and text[i - 1].isalnum())):
             j = i + 1
             while j < n and text[j] != c and text[j] != "\n":
                 j += 2 if text[j] == "\\" else 1
             j = min(j, n - 1)
-            out.append(c + re.sub(r"[^\n]", " ", text[i + 1:j]) + text[j])
+            code.append(c + spaces(text[i + 1:j]) + text[j])
+            comments.append(spaces(text[i:j + 1]))
             i = j + 1
         else:
-            out.append(c)
+            code.append(c)
+            comments.append("\n" if c == "\n" else " ")
             i += 1
-    return "".join(out)
+    return "".join(code), "".join(comments)
 
 
 def is_declaration(code, match):
@@ -117,28 +139,61 @@ def is_declaration(code, match):
     return bool(word) and word.group(1) not in KEYWORDS
 
 
+def directive_lines(code_lines, raw_lines):
+    """The 1-based numbers of the lines that belong to a preprocessor directive,
+    continuation lines included."""
+    inside = set()
+    continuing = False
+    for index, line in enumerate(code_lines):
+        if continuing or line.lstrip().startswith("#"):
+            inside.add(index + 1)
+            continuing = raw_lines[index].rstrip().endswith("\\")
+        else:
+            continuing = False
+    return inside
+
+
 def check_file(rel, text):
-    """The unmarked calls in one file, as (rel, line number, source line)."""
+    """The calls in one file that break the rule, as (rel, line number, why,
+    source line), and the number of calls found."""
     if rel == EXEMPT:
         return [], 0
 
-    code = blank(text)
-    lines = text.split("\n")
-    failures = []
-    calls = 0
+    code, comments = blank(text)
+    raw_lines = text.split("\n")
+    code_lines = code.split("\n")
+    comment_lines = comments.split("\n")
+    directives = directive_lines(code_lines, raw_lines)
 
+    found = []
     for match in CALL.finditer(code):
         if is_declaration(code, match):
             continue
-        calls += 1
-        number = code.count("\n", 0, match.start()) + 1
-        here = lines[number - 1]
-        previous = lines[number - 2] if number >= 2 else ""
-        if MARKER in here or MARKER in previous:
-            continue
-        failures.append((rel, number, here.strip()))
+        found.append(code.count("\n", 0, match.start()) + 1)
 
-    return failures, calls
+    per_line = {}
+    for number in found:
+        per_line[number] = per_line.get(number, 0) + 1
+
+    failures = []
+    for number in found:
+        here = raw_lines[number - 1].strip()
+
+        if number in directives:
+            failures.append((rel, number, IN_DEFINE, here))
+            continue
+
+        marked_here = MARKER in comment_lines[number - 1]
+        marked_before = (number >= 2 and
+                         code_lines[number - 2].strip() == "" and
+                         MARKER in comment_lines[number - 2])
+
+        if not (marked_here or marked_before):
+            failures.append((rel, number, UNMARKED, here))
+        elif per_line[number] > 1:
+            failures.append((rel, number, SHARED_MARKER, here))
+
+    return failures, len(found)
 
 
 def check(root):
@@ -189,6 +244,31 @@ SELF_TEST_FILES = {
         "\n"
         "   auto b = local.GetVector();\n"
         "}\n",
+    # A marker at the end of a call's line does not cover the call on the next.
+    "SameLineThenNext.cpp":
+        "void f()\n"
+        "{\n"
+        "   auto a = local.GetVector(); // owned by this call: local is loaded above\n"
+        "   for (auto r : shared->GetVector()) {}\n"
+        "}\n",
+    # One marker does not cover two calls on the line below it.
+    "TwoOnALine.cpp":
+        "// owned by this call: one of the two\n"
+        "auto a = x.GetVector(); auto b = y.GetConstVector();\n",
+    # A marker in a string on the call's own line is not a comment.
+    "MarkerInString.cpp":
+        "Log(\"// owned by this call\"); for (auto r : shared->GetVector()) {}\n",
+    # Nor is one in a string on the line above.
+    "MarkerStringAbove.cpp":
+        "const char *s = \"// owned by this call\";\n"
+        "for (auto r : shared->GetVector()) {}\n",
+    # A call in a #define fails however it is marked, on its first line or on
+    # a continuation line.
+    "Macro.cpp":
+        "#define WALK(c) c->GetVector() // owned by this call: says who?\n"
+        "for (auto r : WALK(shared)) {}\n"
+        "#define WALK_TOO(c) \\\n"
+        "   c->GetConstVector()\n",
     # The word in comments and in literals is not a call.
     "Comments.cpp":
         "// Never walk GetVector() of a shared collection.\n"
@@ -208,9 +288,15 @@ SELF_TEST_FILES = {
 }
 
 SELF_TEST_EXPECTED = {
-    ("Unmarked.cpp", 3),
-    ("Unmarked.cpp", 5),
-    ("TooFar.cpp", 5),
+    ("Unmarked.cpp", 3): UNMARKED,
+    ("Unmarked.cpp", 5): UNMARKED,
+    ("TooFar.cpp", 5): UNMARKED,
+    ("SameLineThenNext.cpp", 4): UNMARKED,
+    ("TwoOnALine.cpp", 2): SHARED_MARKER,
+    ("MarkerInString.cpp", 1): UNMARKED,
+    ("MarkerStringAbove.cpp", 2): UNMARKED,
+    ("Macro.cpp", 1): IN_DEFINE,
+    ("Macro.cpp", 4): IN_DEFINE,
 }
 
 
@@ -224,24 +310,29 @@ def self_test():
                 handle.write(text)
 
         failures, _calls = check(root)
-        reported = {(rel, number) for rel, number, _ in failures}
+        reported = {}
+        for rel, number, why, _line in failures:
+            reported.setdefault((rel, number), set()).add(why)
 
-        for expected in sorted(SELF_TEST_EXPECTED):
-            if expected in reported:
-                print("self-test: the unmarked call at %s:%d is reported" % expected)
+        for (rel, number), why in sorted(SELF_TEST_EXPECTED.items()):
+            if why in reported.get((rel, number), set()):
+                print("self-test: %s:%d is reported, %s" % (rel, number, why))
             else:
-                print("SELF-TEST FAILED: the unmarked call at %s:%d was not reported" % expected)
+                print("SELF-TEST FAILED: %s:%d was not reported as %s (got %s)" %
+                      (rel, number, why, sorted(reported.get((rel, number), set())) or "nothing"))
                 ok = False
 
-        for unexpected in sorted(reported - SELF_TEST_EXPECTED):
-            print("SELF-TEST FAILED: %s:%d was reported and is not an unmarked call" % unexpected)
+        for key in sorted(set(reported) - set(SELF_TEST_EXPECTED)):
+            print("SELF-TEST FAILED: %s:%d was reported (%s) and should not be" % (key[0], key[1], ", ".join(sorted(reported[key]))))
             ok = False
 
         for rel, label in (("Marked.cpp", "a call marked on its line and one marked on the line before"),
+                           ("SameLineThenNext.cpp", "the call its own line's marker covers"),
                            ("Comments.cpp", "the word in a comment and in a string"),
                            ("Declares.h", "an accessor declared by a class of its own"),
                            ("Common/BO/Collection.h", "a call inside Collection.h")):
-            if any(r == rel for r, _ in reported):
+            wrongly = [key for key in reported if key[0] == rel and key not in SELF_TEST_EXPECTED]
+            if wrongly:
                 ok = False
             else:
                 print("self-test: %s is not reported" % label)
@@ -255,11 +346,12 @@ def main():
 
     failures, calls = check(ROOT)
     if failures:
-        print("Every GetVector() or GetConstVector() call outside Collection.h carries \"%s\" on its" % MARKER)
-        print("line or the line before, with the reason no other thread can reach the collection - or iterates")
-        print("GetSnapshot() instead, which is the locked copy (ARCHITECTURE.md says which is which):")
-        for rel, number, line in failures:
-            print("  %s:%d: %s" % (rel, number, line))
+        print("Every GetVector() or GetConstVector() call outside Collection.h carries \"%s\" and its reason," % MARKER)
+        print("in the comment of its own line or as the only thing on the line before, one marker to one call and")
+        print("none in a #define - or iterates GetSnapshot() instead, which is the locked copy (ARCHITECTURE.md says")
+        print("which is which):")
+        for rel, number, why, line in failures:
+            print("  %s:%d: %s: %s" % (rel, number, why, line))
         return 1
 
     print("check-collection-iteration: %d calls of GetVector() and GetConstVector() outside Collection.h, each marked as owned by its call" % calls)

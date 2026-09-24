@@ -10031,11 +10031,13 @@ namespace HM
       if (!rules)
          return BuildResponse_(200, "[]");
 
+      // A locked copy, as RuleApplier::ApplyRules takes one: the cached
+      // collection is refreshed in place after a save, and an index walk
+      // across a refresh lists a rule twice or leaves one out.
       AnsiString body = "[";
       int count = 0;
-      for (int i = 0; i < rules->GetCount(); i++)
+      for (std::shared_ptr<Rule> rule : rules->GetSnapshot())
       {
-         std::shared_ptr<Rule> rule = rules->GetItem(i);
          if (!rule)
             continue;
 

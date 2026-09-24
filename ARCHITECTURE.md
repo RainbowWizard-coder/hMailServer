@@ -250,8 +250,7 @@ default, it is `LOG_APPLICATION`.
 **Prefer deferral to bouncing, always.** A temporary failure costs a retry. A
 permanent one costs someone their mail.
 
-### A collection another thread can change is iterated as a locked copy
-
+**A collection another thread can change is iterated as a locked copy.**
 `Collection<T,P>` (`Common/BO/Collection.h`) keeps its items in one vector behind a
 mutex that `GetCount`, `GetItem`, `AddItem`, the deletes and the refresh all take.
 `GetVector()` and `GetConstVector()` hand out the vector itself and take nothing, so a
@@ -260,32 +259,74 @@ collection (a swap, and the old buffer freed), adds to it (a reallocating
 `push_back`) or erases from it is a read of freed memory. That was the
 heap-corruption abort of 15, 22 and 23 September 2026: the IMAP special-use pass
 walking an account's shared folder tree while other sessions created and deleted
-folders. `GetSnapshot()` is the locked copy, and anything another thread can reach -
-a cache, a singleton, a configuration object, a folder tree - is iterated through it
-(or by a member of the collection that holds the mutex). A collection loaded by the
-function, a message's own recipients, and a collection a getter builds new for every
-caller may keep `GetVector()`, with `// owned by this call` and the reason on the
-line or the line before. `build/check-collection-iteration.py` fails on any call
-that has neither. `Stress/SharedCollections.cs` races what a test can reach from
-outside for thirty seconds each: the cached rules, edited over REST while the send
-route walks them, and the TCP/IP ports, changed while three routes list them - not
-shared today, and raced so that a change which shares them is raced too. A race
-proves little in one green run; they run with the suite so that every run takes
-another chance at each.
+folders. An index walk - `GetCount()` and `GetItem(i)` - over such a collection is
+memory-safe, since each call locks, but a refresh between two `GetItem` calls
+re-indexes the collection under it and an item is skipped or visited twice, so it
+counts too. Anything another thread can reach - a cache, a singleton, a
+configuration object, a folder tree - is iterated through `GetSnapshot()`, the locked
+copy, taken once, or by a member of the collection that holds the mutex. The one
+deliberate exception is `DomainAliases::ApplyAliasesOnAddress`, which walks
+ObjectCache's domain aliases unlocked: that object is built and refreshed under
+ObjectCache's mutex before it is published, and a reload replaces it rather than
+changing it, so its readers read a vector nobody writes - on the path every `RCPT TO`
+and every logon takes, where a copy per call is a cost for nothing. A collection
+loaded by the function, a message's own recipients, and a collection a getter builds
+new for every caller may keep `GetVector()`, with `// owned by this call` and the
+reason as the comment on the call's line or as the whole of the line before: one
+marker to one call, none inside a `#define`, and a marker on a forwarding accessor -
+a function that hands `GetVector()` on to its callers - is refused in review, since
+it would exempt every caller. `build/check-collection-iteration.py` fails on any call
+of either that breaks this; it does not see index walks.
 
-Swept on 24 September 2026. On master there were 87 calls (and two classes of their
-own that declare an accessor of the name, and three comments that mention it):
+A locked copy protects the vector, not its elements. A session holding a route or a
+relay out of a snapshot reads its fields while whoever changes it writes them, and a
+string assigned under a reader frees the buffer the reader is copying - the same
+use-after-free, one level down. So a change to an element of a shared configuration
+collection is written onto a new object, which is saved, and the collection is then
+refreshed, swapping in new elements under its lock while readers keep the ones they
+hold. REST does that for a route (`PUT /api/v1/routes/{id}`), a DNS black list or
+SURBL server and an incoming relay. COM does not yet: the `put_*` methods of
+`InterfaceRoute`, `InterfaceIncomingRelay`, `InterfaceDNSBlackList` and
+`InterfaceSURBLServer` write the live shared object, which is Roadmap2's row "A COM
+change to a shared configuration object is written onto a copy". An element's own
+children are loaded before it is published - `PersistentRule::ReadObject` loads a
+rule's criteria and actions, and `PersistentRoute::ReadObject` a route's addresses,
+inside the refresh that builds the collection - and `Route::GetAddresses`' lazy path,
+left for a route built in memory, is locked. A reader that takes the mutex waits for
+a concurrent refresh to finish its database read, since `DBLoad_` holds the mutex
+across it; the relay check and the route lookup now do, as `GetItemByName` always has.
+
+`Stress/SharedCollections.cs` races two of these from outside for thirty seconds
+each, in the Windows suite (the Linux project lists its stress sources by name and
+does not carry it): ObjectCache's domain and account rules, created and deleted over
+REST while three accounts submit through the webmail's send route and delivery
+applies them, and SMTPConfiguration's routes, appended to, refreshed and erased from
+over REST while the send route resolves an unhosted address past forty standing
+routes. Both are survival smoke tests, not seen to catch the old code: against a build
+with `HasRejectAction` and `WouldReject` put back to `GetVector()` and `ApplyRules` to
+its index walk, the rules race passed three times in three, and the routes race has
+not been run against it. The relay lock, the route-address lock and the alias snapshot
+have no test and are proven by reading.
+
+Swept on 24 September 2026: every call of `GetVector()` and `GetConstVector()` - on
+master there were 87, and two classes of their own that declare an accessor of the
+name, and three comments that mention it - and, after the review, the two index walks
+over ObjectCache's rules. Index walks elsewhere were not swept; among those seen are
+IMAP `SELECT`/`EXAMINE` collecting the keywords of an account's cached messages and
+the REST listing and the alert check walking the shared SSL certificates.
 
 | File | Sites | Verdict | Why |
 |---|---|---|---|
-| `SMTP/RuleApplier.cpp` | `HasRejectAction`, `WouldReject` | shared: `GetSnapshot()` | ObjectCache's global, domain and account rules, shared by every session and delivery; an account's and a domain's are refreshed in place by `GetAccountRules`/`GetDomainRules` on whichever thread asks first after a save, the global ones by a restore |
+| `SMTP/RuleApplier.cpp` | `HasRejectAction`, `WouldReject` | shared: `GetSnapshot()` | ObjectCache's global and domain rules, which `RejectedBySubmissionRules` hands them for every message accepted over SMTP and every webmail send; a domain's are refreshed in place by `GetDomainRules` on whichever thread asks first after a save, the global ones by a restore |
+| | `ApplyRules` (an index walk) | shared: `GetSnapshot()`, taken once | the account, domain and global rules delivery applies; an account's and a domain's are refreshed in place by `GetAccountRules`/`GetDomainRules` |
 | | `SendPolicyNotice_`, `RejectedBySubmissionRules`, `ApplyAction_Copy`, the recipient-list criterion | owned | the recipients of the message the delivery or the submission holds |
-| `Common/Util/ImpersonationCheck.cpp` | `HostedDomains_` | shared: `GetSnapshot()` | ObjectCache's domain aliases; replaced on reload rather than refreshed today, but a cache |
+| `Common/Util/RestApiServer.cpp` | `HandleListRules_` (an index walk) | shared: `GetSnapshot()` | the same cached rules, listed |
+| `Common/Util/ImpersonationCheck.cpp` | `HostedDomains_` | cached, to a snapshot defensively | ObjectCache's domain aliases, replaced on reload and never changed, so nothing writes them today; off the hot path, unlike `ApplyAliasesOnAddress` |
 | `Common/BO/IncomingRelays.cpp` | `IsIncomingRelay` (a member, on `vecObjects`) | shared: now locked | SMTPConfiguration's relays, asked by every session and changed in place by COM and REST |
 | `Common/BO/Routes.cpp` | `GetItemByNameWithWildcardMatch` (member) | shared: now locked | SMTPConfiguration's routes; `InterfaceRoutes` holds this very object |
 | `Common/BO/RouteAddresses.cpp` | `DeleteByAddress` (member) | shared: now locked | a shared route's addresses, erased by COM while sessions ask `GetItemByName` |
 | `SMTP/SMTPConnection.cpp` | 12 | owned | the session's own message's recipients (two take the count before and after the parser appends to them) |
-| `SMTP/SMTPDeliverer.cpp`, `LocalDelivery.cpp`, `BounceTracker.cpp`, `ComplaintTracker.cpp`, `DistributionListSender.cpp`, `ServerTargetResolver.cpp`, `MirrorMessage.cpp` | 4, 2, 3, 2, 2, 2, 3 | owned | the recipients of the message the delivery holds (`BounceTracker::ApplyAtDelivery` erases through the reference on purpose; one `MirrorMessage` site is the copy it made) |
+| `SMTP/SMTPDeliverer.cpp`, `LocalDelivery.cpp`, `BounceTracker.cpp`, `ComplaintTracker.cpp`, `DistributionListSender.cpp`, `ServerTargetResolver.cpp`, `MirrorMessage.cpp` | 4, 2, 3, 2, 2, 2, 3 | owned | the recipients of the message the delivery holds (`LocalDelivery::Perform` and `BounceTracker::ApplyAtDelivery` erase through the reference on purpose; one `MirrorMessage` site is the copy it made) |
 | `SMTP/RecipientParser.cpp` | 5 | owned | three the recipient list the parser is building (two read after a recursion appended to it), two `DistributionList::GetMembers()`, which loads a new collection for every caller |
 | `SMTP/SMTPMessageHeaderCreator.cpp` | 1 | owned | the session's message |
 | `SMTP/SMTPVacationMessageCreator.cpp`, `DeliveryQueue.cpp` | 1, 1 | owned | a local collection loaded above |
@@ -300,7 +341,7 @@ own that declare an accessor of the name, and three comments that mention it):
 | `Common/Persistence/PersistentDomain.cpp` | 1 | owned | the caller's own `Domain` (a REST local, or a COM object on its apartment), never the cache's |
 | `Common/Persistence/PersistentMessage.cpp` | 1 | owned | the message its owner is saving |
 | `Common/Sieve/ManageSieveServer.cpp`, `Common/Util/AutoBanFirewall.cpp` (`ListeningPorts`), `RestApiServer.cpp` (`HandleSrv_`), `WebServicesServer.cpp` | 1 each | owned | `Configuration::GetTCPIPPorts()` loads a new collection for every caller - the configuration keeps none |
-| `Common/Util/AutoBanFirewall.cpp` (`ActiveBans_`), `SetupChecklist.cpp` (2), `EmailAllUsers.cpp`, `PasswordValidator.cpp`, `RestApiAppPasswords.cpp` | | owned | local collections |
+| `Common/Util/AutoBanFirewall.cpp` (`ActiveBans_`), `SetupChecklist.cpp`, `EmailAllUsers.cpp`, `PasswordValidator.cpp`, `RestApiAppPasswords.cpp` | 1, 2, 1, 1, 1 | owned | local collections |
 | `Common/Util/DistributionListMembership.cpp` | 2 | owned | `GetMembers()` loads new |
 | `Common/Util/CompromiseDetector.cpp`, `ContentPolicy.cpp`, `DisclaimerAdder.cpp`, `DomainReports.cpp`, `Journaling.cpp`, `MailerDaemonAddressDeterminer.cpp`, `MessageRecall.cpp`, `SignatureAdder.cpp` | 1 each | owned | a message's own recipients |
 | `ExternalFetcher/ExternalFetchManager.cpp` | 1 | owned | `fetch_accounts_` is made, refreshed and walked by the manager's thread alone; tasks get accounts, not the list |
@@ -313,11 +354,9 @@ mutex in every one; `IncomingRelays`, `Routes` and `RouteAddresses` did not and 
 do. `ACLPermissions`, `AppPasswords`, `DistributionLists`, `Domains`,
 `FetchAccountUIDs`, `GroupMembers`, `RuleActions`, `Rules` (the move and sort-order
 members, which COM calls on its own collections, never ObjectCache's) and
-`TCPIPPorts` are only ever used by the call or the COM object that loaded them.
-`DomainAliases::ApplyAliasesOnAddress` walks ObjectCache's shared object unlocked,
-and may: that object is never changed after it is published, so concurrent readers
-of it read a vector nobody writes, on a path every `RCPT TO` and logon takes.
-Nothing outside a collection reaches into its `vecObjects`.
+`TCPIPPorts` are only ever used by the call or the COM object that loaded them, and
+`DomainAliases::ApplyAliasesOnAddress` is the exception above. Nothing outside a
+collection reaches into its `vecObjects`.
 
 Tests
 -----

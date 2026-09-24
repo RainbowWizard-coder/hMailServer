@@ -149,6 +149,12 @@ namespace HM
       pRoute->SetRelayerAuthPassword(Crypt::Instance()->UnprotectSecret(pRS->GetStringValue("routeauthenticationpassword")));
       pRoute->SetConnectionSecurity((ConnectionSecurity) pRS->GetLongValue("routeconnectionsecurity"));
 
+      // The addresses now, as PersistentRule::ReadObject loads a rule's parts:
+      // a route read here is published by the Refresh that read it, and every
+      // session then asks GetAddresses of it. Loaded before that, it is never
+      // created lazily on a route other threads already hold.
+      pRoute->GetAddresses();
+
       return true;
    }
 }

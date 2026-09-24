@@ -22,7 +22,7 @@ namespace HM
 
    }
 
-   void 
+   bool
    Routes::Refresh()
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
@@ -30,7 +30,7 @@ namespace HM
    //---------------------------------------------------------------------------()
    {
       String sSQL = "select * from hm_routes order by routedomainname asc";
-      DBLoad_(sSQL);
+      return DBLoad_(sSQL);
    }
 
    std::shared_ptr<Route> 
@@ -39,7 +39,11 @@ namespace HM
       // Under the collection's lock, as GetItemByName and GetItemByDBID are.
       // This is SMTPConfiguration's collection, asked by every session and
       // delivery, and changed in place by the Control Panel (InterfaceRoutes
-      // holds this very object) and by REST.
+      // holds this very object) and by REST. The lock protects the vector, not
+      // the routes in it: REST saves a changed route as a new object and
+      // refreshes the collection, but COM's setters still write the fields of
+      // the running route (Roadmap2, "A COM change to a shared configuration
+      // object is written onto a copy").
       boost::lock_guard<boost::recursive_mutex> guard(_mutex);
 
       auto iter = vecObjects.begin();

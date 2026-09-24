@@ -17,8 +17,9 @@ namespace HM
       Routes();
       virtual ~Routes();
 
-      // Refreshes this collection from the database.
-      void Refresh();
+      // Refreshes this collection from the database. False when the read failed,
+      // and the collection is then left as it was (Collection::DBLoad_).
+      bool Refresh();
 
       std::shared_ptr<Route>  GetItemByNameWithWildcardMatch(const String &domainName);
    protected:

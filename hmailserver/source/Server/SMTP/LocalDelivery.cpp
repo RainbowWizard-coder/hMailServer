@@ -95,8 +95,9 @@ namespace HM
 
       bool messageReused = false;
 
-      // NOTE: Since were manipulating the messages recipient vector below, we want to do a copy.
-      //       We should iterate over the copy of recipients here. Not over the original list.
+      // The message's own list, through a reference and not a copy: the loop below
+      // erases every local recipient from it once it has been dealt with and leaves
+      // the external ones in it.
       // owned by this call: the recipients of the message this delivery holds
       std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients = original_message_->GetRecipients()->GetVector();
       auto iterRecipient = vecRecipients.begin();

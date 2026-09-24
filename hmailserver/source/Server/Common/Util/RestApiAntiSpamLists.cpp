@@ -311,21 +311,27 @@ namespace
       if (!ParseObjectBody(requestBody, body))
          return Refusal(bridge, 400, "the body must be a JSON object");
 
-      std::shared_ptr<TItem> item = collection->GetItemByDBID(id);
-      if (!item)
+      std::shared_ptr<TItem> live = collection->GetItemByDBID(id);
+      if (!live)
          return Refusal(bridge, 404, AnsiString(noun) + " not found");
+
+      // The fields go onto a copy, never onto the live item. That one is an
+      // element of the anti-spam configuration's shared list, which every
+      // message's test reads from its snapshot at this moment, and a host name
+      // assigned under a reader frees the buffer it is copying. The copy is
+      // saved, and the list is then read again, which swaps in new items under
+      // its lock; a test in progress keeps the item it holds. A refused body or
+      // save leaves the live item as it was.
+      std::shared_ptr<TItem> item(new TItem(*live));
 
       AnsiString error;
       if (!ReadDnsListFields(body, item, false, error))
          return Refusal(bridge, 400, error);
 
       if (!TPersistent::SaveObject(item))
-      {
-         // The fields were read onto the live item, which every message
-         // consults; a refused save must not leave them there.
-         collection->Refresh();
          return Refusal(bridge, 500, AnsiString("the ") + noun + " could not be saved; see the error log");
-      }
+
+      collection->Refresh();
 
       LOG_APPLICATION("RestApi: " + String(noun) + " " + item->GetDNSHost() + " updated.");
 
@@ -679,19 +685,25 @@ namespace
       if (!ParseObjectBody(requestBody, body))
          return Refusal(bridge, 400, "the body must be a JSON object");
 
-      std::shared_ptr<IncomingRelay> item = collection->GetItemByDBID(id);
-      if (!item)
+      std::shared_ptr<IncomingRelay> live = collection->GetItemByDBID(id);
+      if (!live)
          return Refusal(bridge, 404, "incoming relay not found");
+
+      // Onto a copy, as UpdateDnsEntry does and for its reason: the live relay
+      // is SMTPConfiguration's, and IsIncomingRelay reads its range while this
+      // runs - two addresses written one after the other would give a session
+      // half of each. The copy is saved and the list read again, which swaps in
+      // new relays under its lock.
+      std::shared_ptr<IncomingRelay> item(new IncomingRelay(*live));
 
       AnsiString error;
       if (!ReadIncomingRelayFields(body, item, false, error))
          return Refusal(bridge, 400, error);
 
       if (!PersistentIncomingRelay::SaveObject(item))
-      {
-         collection->Refresh();
          return Refusal(bridge, 500, "the incoming relay could not be saved; see the error log");
-      }
+
+      collection->Refresh();
 
       LOG_APPLICATION("RestApi: Incoming relay " + item->GetName() + " updated.");
 

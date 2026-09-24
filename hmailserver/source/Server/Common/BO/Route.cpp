@@ -37,15 +37,28 @@ namespace HM
    std::shared_ptr<RouteAddresses>
    Route::GetAddresses()
    {
-       if (!addresses_)
-       {
-          HM_ASSERT(id_);
-          addresses_ = std::shared_ptr<RouteAddresses>(new RouteAddresses(id_));
+      // A route read from the database has its addresses already: they are
+      // loaded in PersistentRoute::ReadObject, inside the Refresh that builds
+      // the collection and before the swap that publishes it, as a rule's
+      // criteria and actions are. This lazy path is for a route built in
+      // memory - a REST or COM create, a restore - and the Control Panel can
+      // save one into SMTPConfiguration's shared routes without ever asking
+      // for its addresses, after which the first two sessions to look would
+      // race here: on the shared_ptr, and on an assigned collection that is
+      // not yet loaded, which answers "not in the route list" and refuses the
+      // recipient. So it is locked, and the collection is published loaded.
+      boost::lock_guard<boost::recursive_mutex> guard(addresses_mutex_);
 
-          addresses_->Refresh();
-       }
+      if (!addresses_)
+      {
+         HM_ASSERT(id_);
+         std::shared_ptr<RouteAddresses> loaded = std::shared_ptr<RouteAddresses>(new RouteAddresses(id_));
+         loaded->Refresh();
 
-       return addresses_;
+         addresses_ = loaded;
+      }
+
+      return addresses_;
    }
 
    bool 

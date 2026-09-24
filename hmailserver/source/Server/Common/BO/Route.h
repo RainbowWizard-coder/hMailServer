@@ -82,6 +82,9 @@ namespace HM
       bool treat_sender_as_local_domain_;
 
       std::shared_ptr<RouteAddresses> addresses_;
+
+      // Guards the first GetAddresses() of a route built in memory (Route.cpp).
+      boost::recursive_mutex addresses_mutex_;
    };
 
 }
