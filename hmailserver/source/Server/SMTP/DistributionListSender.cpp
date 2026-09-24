@@ -407,6 +407,20 @@ namespace HM
       if (bounceAddress.IsEmpty())
          return;
 
+      // A managed list (Util/ListManager.h) gives every copy an envelope sender
+      // of its own, name-bounces@ or its VERP form, and must see the posting's
+      // own sender: a null one is a delivery report, which the manager never
+      // distributes. Replacing it here, for a posting that reached the list
+      // through a domain alias or a plus address, would turn a report into a
+      // posting to every member.
+      if (list->GetManaged())
+         return;
+
+      // A report is a report whatever list it reached: giving it an envelope
+      // sender would make it look like mail somebody sent.
+      if (message->GetFromAddress().IsEmpty())
+         return;
+
       if (bounceAddress.CompareNoCase(list->GetAddress().c_str()) == 0)
       {
          // A bounce address pointing at the list itself would hand every delivery

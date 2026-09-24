@@ -11,6 +11,7 @@
 
 #include "COMError.h"
 #include "../Common/Util/AuditTrail.h"
+#include "../Common/Util/ListManager.h"
 
 STDMETHODIMP InterfaceDistributionListRecipient::InterfaceSupportsErrorInfo(REFIID riid)
 {
@@ -162,3 +163,135 @@ STDMETHODIMP InterfaceDistributionListRecipient::Save()
    }
 }
 
+// ---- the list manager's view of the member (Util/ListManager.h) ---------------
+
+STDMETHODIMP InterfaceDistributionListRecipient::get_Delivery(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = (long) object_->GetDelivery();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDistributionListRecipient::put_Delivery(long newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      // Refused at the assignment, in the sentence the save would give, so a
+      // script learns of the value where it wrote it.
+      if (newVal < 0 || newVal > 2)
+         return COMError::GenerateError("Delivery must be 0 (each message), 1 (the digest) or 2 (none).");
+
+      object_->SetDelivery((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDistributionListRecipient::get_HardBounces(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = (long) object_->GetHardBounces();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDistributionListRecipient::get_SoftBounces(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = (long) object_->GetSoftBounces();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDistributionListRecipient::get_Confirmed(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = (long) object_->GetConfirmed();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceDistributionListRecipient::ResetBounces()
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!object_)
+         return GetAccessDenied();
+
+      // What the owner's reset does on the Control Deck (ListManager::
+      // ResetBounces), on this object and in the database at once: the counts
+      // and the reason go, and a member the bounces stopped - the reason says
+      // so - is sent each message again. A member who paused it by their own
+      // choice stays paused.
+      if (object_->GetID() == 0)
+      {
+         const bool stoppedByBounces = !object_->GetReason().IsEmpty();
+
+         object_->SetHardBounces(0);
+         object_->SetSoftBounces(0);
+         object_->SetSoftSince(0);
+         object_->SetReason(HM::String());
+
+         if (stoppedByBounces && object_->GetDelivery() == HM::DistributionListRecipient::DeliveryNone)
+            object_->SetDelivery(HM::DistributionListRecipient::DeliveryEach);
+
+         return S_OK;
+      }
+
+      HM::String reason;
+      if (!HM::ListManager::ResetBounces(object_, reason))
+         return COMError::GenerateError(reason);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

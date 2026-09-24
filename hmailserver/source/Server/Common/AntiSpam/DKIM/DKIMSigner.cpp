@@ -252,6 +252,46 @@ namespace HM
    }
 
    bool
+   DKIMSigner::SignAsDomain(std::shared_ptr<Message> message, const AnsiString &domainName)
+   {
+      if (!message || domainName.IsEmpty())
+         return false;
+
+      std::shared_ptr<const Domain> pDomain = CacheContainer::Instance()->GetDomain(domainName);
+      if (!pDomain || !pDomain->GetDKIMEnabled())
+         return false;
+
+      // A domain that signs but lacks its selector or its key is reported by
+      // Sign, once per message, when the message's own delivery pass reaches
+      // it; asked here for every member's copy of a posting, it would be the
+      // same line a thousand times.
+      AnsiString selector = pDomain->GetDKIMSelector();
+      AnsiString privateKeyFile = pDomain->GetDKIMPrivateKeyFile();
+      if (selector.IsEmpty() || privateKeyFile.IsEmpty())
+         return false;
+
+      Canonicalization::CanonicalizeMethod headerMethod = (Canonicalization::CanonicalizeMethod) pDomain->GetDKIMHeaderCanonicalizationMethod();
+      Canonicalization::CanonicalizeMethod bodyMethod = (Canonicalization::CanonicalizeMethod) pDomain->GetDKIMBodyCanonicalizationMethod();
+      HashCreator::HashType algorithm = (HashCreator::HashType) pDomain->GetDKIMSigningAlgorithm();
+
+      // RFC 8301 3.1, as for the author's domain: rsa-sha256, not rsa-sha1.
+      if (algorithm == HashCreator::SHA1 && !IniFileSettings::Instance()->GetDkimAcceptSha1())
+         algorithm = HashCreator::SHA256;
+
+      const String fileName = PersistentMessage::GetFileName(message);
+      AnsiString header = PersistentMessage::LoadHeader(fileName);
+
+      DKIM dkim;
+      if (!dkim.Sign(message, header, domainName, selector, privateKeyFile, algorithm, headerMethod, bodyMethod))
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5306, "DKIMSigner::SignAsDomain", "Message signing using DKIM failed.");
+         return false;
+      }
+
+      return true;
+   }
+
+   bool
    DKIMSigner::IsRelayedOnward_(std::shared_ptr<Message> message)
    {
       std::shared_ptr<MessageRecipients> recipients = message->GetRecipients();

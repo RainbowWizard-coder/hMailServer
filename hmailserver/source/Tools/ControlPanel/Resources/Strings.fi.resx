@@ -1374,6 +1374,12 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Kuka tahansa verkkotunnuksessa voi lähettää</value>
   </data>
+  <data name="Anyone the owner approves after they confirm" xml:space="preserve">
+    <value>Kuka tahansa, jonka omistaja hyväksyy vahvistuksen jälkeen</value>
+  </data>
+  <data name="Anyone who confirms by mail" xml:space="preserve">
+    <value>Kuka tahansa, joka vahvistaa sähköpostitse</value>
+  </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Kelpaa mikä tahansa merkki joka ei ole kirjain tai numero, eikä kiinteä lista välimerkkejä, jottei sääntöä voi tehdä mahdottomaksi täyttää näppäimistöasettelulla jota sinulla ei ole.</value>
   </data>
@@ -1424,6 +1430,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Otetaanko profiili {0} käyttöön? {1} asetusta muuttuu, ja niiden aiemmat arvot säilytetään, jotta ne voi palauttaa.</value>
+  </data>
+  <data name="Ar_chive" xml:space="preserve">
+    <value>A_rkisto</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled-arvoa ei voitu lukea: {0}</value>
@@ -3099,6 +3108,9 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Different" xml:space="preserve">
     <value>Poikkeava</value>
   </data>
+  <data name="Digest _hour (0-23)" xml:space="preserve">
+    <value>Koosteen tunti (_0-23)</value>
+  </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Koosteen tunti</value>
   </data>
@@ -3412,6 +3424,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Käytössä, kun "Tarkista" on vahvistanut, että julkaistu tietue sisältää tämän avaimen julkisen avaimen.</value>
+  </data>
+  <data name="Encode each member in the bounce address (_VERP)" xml:space="preserve">
+    <value>Koo_daa jokainen jäsen palautusosoitteeseen (VERP)</value>
   </data>
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>Salaa arkisto salasanalauseella (AES-256, tiedostonimet _mukaan lukien)</value>
@@ -3847,6 +3862,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Hakutilaa varten: palvelutili, jolla on lupa lukea hakemistoa. Mikä tahansa tavallinen toimialuetili voi oletuksena; muita oikeuksia se ei tarvitse.</value>
+  </data>
+  <data name="For the members" xml:space="preserve">
+    <value>Jäsenille</value>
   </data>
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>Tämän palvelimen ulkopuolella hankittuja tokeneita varten. Jätä tyhjäksi normaalikäytössä - kiinteät tokenit vanhenevat, eikä mikään täällä uusi niitä.</value>
@@ -4456,6 +4474,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Keep" xml:space="preserve">
     <value>Säilytä</value>
   </data>
+  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
+    <value>Säil_ytä arkistoituja viestejä (päivää, 0 = ikuisesti)</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Pidä harmaalistaus aktiivisena tietueiden vanhenemisikkunan aikana</value>
   </data>
@@ -4827,6 +4848,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="MX query" xml:space="preserve">
     <value>MX-kysely</value>
+  </data>
+  <data name="Ma_naged by the list manager" xml:space="preserve">
+    <value>Listanhallinnan _hoitama</value>
   </data>
   <data name="Machine-readable output for log shippers." xml:space="preserve">
     <value>Koneluettava tuloste lokien lähettäjille.</value>
@@ -5427,6 +5451,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Ei sovellussalasanoja. Luo yksi postiasiakasta kohden, jotta laitteen katoaminen kumoaa vain sen laitteen.</value>
   </data>
+  <data name="No archive" xml:space="preserve">
+    <value>Ei arkistoa</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Varmuuskopion kohdetta ei ole asetettu.</value>
   </data>
@@ -5633,6 +5660,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Yksikään virustarkistin ei voi toimia. Liitteiden esto poistaa yhä tiedostonimikuviot omalla sivullaan, mutta mikään ei katso viestin tai arkiston sisään.</value>
+  </data>
+  <data name="Nobody - the members are added here" xml:space="preserve">
+    <value>Ei ketään - jäsenet lisätään tässä</value>
   </data>
   <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
     <value>Kenellekään ei ole vielä annettu roolia. Tili ilman roolia saa oikeutensa ylläpitotasostaan, aivan kuten ennen roolien olemassaoloa.</value>
@@ -6527,6 +6557,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Välityspalvelimet, jotka saavat lähettää PROXY-otsakkeen (pilkuin erotellut osoitteet tai CIDR-alueet)</value>
   </data>
+  <data name="Public" xml:space="preserve">
+    <value>Julkinen</value>
+  </data>
   <data name="Public folder name" xml:space="preserve">
     <value>Julkisen kansion nimi</value>
   </data>
@@ -7066,6 +7099,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Replaces the envelope sender with the forwarding account's own address. That makes SPF pass at the next hop, at the cost of the original sender's address: a bounce comes back to the forwarding mailbox instead of to whoever wrote the message. SRS below does the same job without losing the return path, and while SRS is enabled this setting is not consulted at all." xml:space="preserve">
     <value>Korvaa kuoren lähettäjän edelleenlähettävän tilin omalla osoitteella. Se saa SPF:n läpäisemään seuraavassa välietapissa alkuperäisen lähettäjän osoitteen kustannuksella: palautus tulee takaisin edelleenlähettävään postilaatikkoon eikä viestin kirjoittajalle. Alla oleva SRS tekee saman työn menettämättä paluupolkua, ja kun SRS on käytössä, tätä asetusta ei kysytä lainkaan.</value>
+  </data>
+  <data name="Replies go to th_e list" xml:space="preserve">
+    <value>Vasta_ukset menevät listalle</value>
   </data>
   <data name="Reply" xml:space="preserve">
     <value>Vastaa</value>
@@ -7890,6 +7926,9 @@ Jatketaanko?</value>
   <data name="Send a _domain-wide out-of-office reply" xml:space="preserve">
     <value>Lähetä _verkkotunnuksen laajuinen poissaolovastaus</value>
   </data>
+  <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
+    <value>Lähetä päivittäinen kooste jäsenille, jotka valitsevat _sen</value>
+  </data>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Lähetä viesti palvelimen jokaiselle tilille (tai jokerimerkkiin täsmääville) - huoltoilmoituksia varten.</value>
   </data>
@@ -8511,6 +8550,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Aihe</value>
+  </data>
+  <data name="Subject _prefix" xml:space="preserve">
+    <value>Aiheen _etuliite</value>
   </data>
   <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
     <value>Aihe _kollegoille (tyhjä = sama kuin yllä)</value>
@@ -10467,6 +10509,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Kuka muutti mitä, milloin, minkä rajapinnan kautta ja mistä - jokainen hallinnollinen muutos yhtenä rivinä hajautusketjussa - ja asetus palautettuna arvoon, joka sillä oli.</value>
   </data>
+  <data name="Who may _join" xml:space="preserve">
+    <value>Kuka saa liitty_ä</value>
+  </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Kuka saa hallita mitäkin: tämän palvelimen nimetyt roolit ja tilit, joilla ne ovat.</value>
   </data>
@@ -10529,6 +10574,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>Kun salasanalause on asetettu ja pakkaus on pois päältä, viestitiedostot kopioidaan arkiston viereen eikä sen sisään, missä mikään ei salaa niitä - ja varmuuskopiointi kieltäytyy toimimasta. Kytke pakkaus päälle tai tyhjennä salasanalause.</value>
+  </data>
+  <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
+    <value>Kun listanhallinta on päällä, lista vastaa omiin osoitteisiinsa - sen -subscribe-, -unsubscribe-, -request-, -owner- ja -bounces-osoitteisiin - ja lähettää jokaiselle jäsenelle oman kopionsa, jolla on oma tapansa erota listalta. Jokaisen jäsenen toimitukset ja palautukset näkyvät Control Deckissä.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
     <value>Kun tämä on käytössä, todennetun istunnon MAIL FROM:n on oltava tilin oma osoite, siihen selviävä alias tai toinen postilaatikko, jonka omistaja on myöntänyt tilille lähetysoikeuden (p) INBOX-kansioonsa - näin jaetun postilaatikon Lähetä nimissä -oikeus myönnetään, minkä tahansa IMAP-asiakkaan ACL-editorista (SETACL) tai COM-rajapinnan kautta. Kaikki muu hylätään koodilla 550 5.7.1, ennen kuin viestistä on hyväksytty tavuakaan, joten yksi murrettu tai huolimaton tili ei enää voi lähettää kaikkien muiden nimissä. Oletuksena pois päältä, koska mikään ei ennen rajoittanut tätä ja asennus voi riippua siitä; tyhjä lähettäjä on aina sallittu. Todentamattomiin istuntoihin tämä ei vaikuta.</value>
@@ -10782,6 +10830,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Follow this message" xml:space="preserve">
     <value>_Seuraa tätä viestiä</value>
   </data>
+  <data name="_Footer" xml:space="preserve">
+    <value>Alatu_nniste</value>
+  </data>
   <data name="_Forward incoming mail" xml:space="preserve">
     <value>_Edelleenlähetä saapuva posti</value>
   </data>
@@ -10910,6 +10961,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Outside senders always get the domain's text, even when the account has its own" xml:space="preserve">
     <value>_Ulkopuoliset lähettäjät saavat aina verkkotunnuksen tekstin, vaikka tilillä olisi oma</value>
+  </data>
+  <data name="_Owner (empty = the moderator)" xml:space="preserve">
+    <value>Om_istaja (tyhjä = moderaattori)</value>
   </data>
   <data name="_Password" xml:space="preserve">
     <value>_Salasana</value>

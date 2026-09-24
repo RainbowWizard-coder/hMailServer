@@ -1374,6 +1374,12 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Odesílat může kdokoli v doméně</value>
   </data>
+  <data name="Anyone the owner approves after they confirm" xml:space="preserve">
+    <value>Kdokoli, koho vlastník schválí poté, co potvrdí</value>
+  </data>
+  <data name="Anyone who confirms by mail" xml:space="preserve">
+    <value>Kdokoli, kdo potvrdí e-mailem</value>
+  </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Počítá se cokoli, co není písmeno ani číslice, místo pevného seznamu interpunkce, takže klávesové rozložení, které nemáte, nemůže učinit pravidlo nesplnitelným.</value>
   </data>
@@ -1424,6 +1430,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Použít profil {0}? Změní se nastavení: {1}; jejich dosavadní hodnoty se uschovají, aby je šlo vrátit.</value>
+  </data>
+  <data name="Ar_chive" xml:space="preserve">
+    <value>Ar_chiv</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled nelze přečíst: {0}</value>
@@ -3099,6 +3108,9 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   <data name="Different" xml:space="preserve">
     <value>Liší se</value>
   </data>
+  <data name="Digest _hour (0-23)" xml:space="preserve">
+    <value>_Hodina souhrnu (0-23)</value>
+  </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Hodina souhrnu</value>
   </data>
@@ -3412,6 +3424,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Povoleno, jakmile „Zkontrolovat“ potvrdí, že publikovaný záznam nese veřejný klíč tohoto klíče.</value>
+  </data>
+  <data name="Encode each member in the bounce address (_VERP)" xml:space="preserve">
+    <value>Kódovat každého člena v adrese pro _nedoručenky (VERP)</value>
   </data>
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>Šif_rovat archiv heslem (AES-256, včetně názvů souborů)</value>
@@ -3847,6 +3862,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Pro režim hledání: servisní účet, který smí číst adresář. Ve výchozím stavu to smí jakýkoli běžný doménový účet; jiná práva nepotřebuje.</value>
+  </data>
+  <data name="For the members" xml:space="preserve">
+    <value>Pro členy</value>
   </data>
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>Pro tokeny získané mimo tento server. Při běžném použití nechte prázdné - pevné tokeny vyprší a nic zde je neobnoví.</value>
@@ -4456,6 +4474,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Keep" xml:space="preserve">
     <value>Ponechat</value>
   </data>
+  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
+    <value>Uchovávat archivované _zprávy po (dny, 0 = navždy)</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Ponechat greylisting aktivní během okna před vypršením záznamu</value>
   </data>
@@ -4827,6 +4848,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="MX query" xml:space="preserve">
     <value>MX dotaz</value>
+  </data>
+  <data name="Ma_naged by the list manager" xml:space="preserve">
+    <value>Sp_ravováno správcem seznamu</value>
   </data>
   <data name="Machine-readable output for log shippers." xml:space="preserve">
     <value>Strojově čitelný výstup pro nástroje sbírající logy.</value>
@@ -5427,6 +5451,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Žádná hesla aplikací. Vytvořte jedno pro každého poštovního klienta, aby ztráta zařízení odvolala jen dané zařízení.</value>
   </data>
+  <data name="No archive" xml:space="preserve">
+    <value>Žádný archiv</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Není nastaven žádný cíl zálohy.</value>
   </data>
@@ -5633,6 +5660,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Nemůže běžet žádný antivirový skener. Blokování příloh stále odstraňuje vzory názvů souborů na své vlastní stránce, ale dovnitř zprávy ani dovnitř archivu se nikdo nedívá.</value>
+  </data>
+  <data name="Nobody - the members are added here" xml:space="preserve">
+    <value>Nikdo - členové se přidávají zde</value>
   </data>
   <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
     <value>Zatím nikdo nemá přidělenou roli. Účet bez role má oprávnění dané svou úrovní správce, přesně jako před zavedením rolí.</value>
@@ -6527,6 +6557,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Proxy, které smějí posílat hlavičku PROXY (adresy nebo rozsahy CIDR oddělené čárkami)</value>
   </data>
+  <data name="Public" xml:space="preserve">
+    <value>Veřejný</value>
+  </data>
   <data name="Public folder name" xml:space="preserve">
     <value>Název veřejné složky</value>
   </data>
@@ -7066,6 +7099,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Replaces the envelope sender with the forwarding account's own address. That makes SPF pass at the next hop, at the cost of the original sender's address: a bounce comes back to the forwarding mailbox instead of to whoever wrote the message. SRS below does the same job without losing the return path, and while SRS is enabled this setting is not consulted at all." xml:space="preserve">
     <value>Nahrazuje odesílatele obálky vlastní adresou přeposílajícího účtu. Díky tomu SPF na dalším skoku projde, za cenu adresy původního odesílatele: bounce se vrátí do přeposílající schránky místo tomu, kdo zprávu napsal. SRS níže dělá totéž bez ztráty zpáteční cesty, a dokud je SRS zapnuto, toto nastavení se vůbec nebere v úvahu.</value>
+  </data>
+  <data name="Replies go to th_e list" xml:space="preserve">
+    <value>Odpovědi _jdou do seznamu</value>
   </data>
   <data name="Reply" xml:space="preserve">
     <value>Odpovědět</value>
@@ -7890,6 +7926,9 @@ Pokračovat?</value>
   <data name="Send a _domain-wide out-of-office reply" xml:space="preserve">
     <value>Odesílat odpověď o nepřítomnosti za celou _doménu</value>
   </data>
+  <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
+    <value>Posílat denní souhrn _členům, kteří si ho zvolí</value>
+  </data>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Odešlete zprávu na každý účet na serveru (nebo na ty, které odpovídají zástupnému vzoru) – pro oznámení o údržbě.</value>
   </data>
@@ -8511,6 +8550,9 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Předmět</value>
+  </data>
+  <data name="Subject _prefix" xml:space="preserve">
+    <value>Př_edpona předmětu</value>
   </data>
   <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
     <value>Předmět pro _kolegy (prázdné = stejné jako výše)</value>
@@ -10467,6 +10509,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Kdo změnil co, kdy, přes jaké rozhraní a odkud - každá administrativní změna jako jeden řádek v hašovacím řetězu - a nastavení vrácené na hodnotu, kterou mělo.</value>
   </data>
+  <data name="Who may _join" xml:space="preserve">
+    <value>Kdo se smí př_ipojit</value>
+  </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Kdo co spravuje: pojmenované role tohoto serveru a účty, které je mají.</value>
   </data>
@@ -10529,6 +10574,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>Je-li nastaveno heslo a komprese vypnutá, soubory zpráv se kopírují vedle archivu místo do něj, kde je nic nešifruje - a záloha se odmítne spustit. Zapněte kompresi, nebo heslo vymažte.</value>
+  </data>
+  <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
+    <value>Když je zapnutý správce seznamu, seznam odpovídá na vlastní adresy - adresy -subscribe, -unsubscribe, -request, -owner a -bounces - a posílá každému členovi jeho vlastní kopii, s jeho vlastním způsobem, jak ze seznamu odejít. Doručení a nedoručenky každého člena jsou vidět na stránce Control Deck.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
     <value>Se zapnutým nastavením musí být MAIL FROM v ověřené relaci vlastní adresa účtu, alias, který se na ni překládá, nebo jiná schránka, jejíž vlastník účtu udělil právo post (p) na svůj INBOX - tak se uděluje Odeslat jako pro sdílenou schránku, z editoru ACL kteréhokoli klienta IMAP (SETACL) nebo přes COM API. Cokoli jiného se odmítne s 550 5.7.1 dřív, než se přijme jediný bajt zprávy, takže jeden kompromitovaný nebo nedbalý účet už nemůže posílat jako všechny ostatní. Ve výchozím stavu vypnuto, protože dřív to nic neomezovalo a instalace na tom může záviset; prázdný odesílatel je vždy povolen. Neověřené relace to neovlivní.</value>
@@ -10782,6 +10830,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Follow this message" xml:space="preserve">
     <value>_Sledovat tuto zprávu</value>
   </data>
+  <data name="_Footer" xml:space="preserve">
+    <value>Pa_tička</value>
+  </data>
   <data name="_Forward incoming mail" xml:space="preserve">
     <value>_Přeposílat příchozí poštu</value>
   </data>
@@ -10910,6 +10961,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Outside senders always get the domain's text, even when the account has its own" xml:space="preserve">
     <value>_Vnější odesílatelé dostanou vždy text domény, i když má účet vlastní</value>
+  </data>
+  <data name="_Owner (empty = the moderator)" xml:space="preserve">
+    <value>Vlastník (_prázdné = moderátor)</value>
   </data>
   <data name="_Password" xml:space="preserve">
     <value>_Heslo</value>

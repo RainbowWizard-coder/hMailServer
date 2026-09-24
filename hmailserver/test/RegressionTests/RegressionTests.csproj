@@ -463,6 +463,7 @@
     <Compile Include="SMTP\BinaryMime.cs" />
     <Compile Include="SMTP\DistributionListModeration.cs" />
     <Compile Include="SMTP\DistributionListQueries.cs" />
+    <Compile Include="SMTP\MailingLists.cs" />
     <Compile Include="IMAP\FullTextSearch.cs" />
     <Compile Include="IMAP\AttachmentTextSearch.cs" />
     <Compile Include="IMAP\AuthorisationChokePoint.cs" />

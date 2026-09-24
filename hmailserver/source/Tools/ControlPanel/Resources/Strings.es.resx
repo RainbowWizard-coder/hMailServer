@@ -1374,6 +1374,12 @@ Los detalles completos se escribieron en:
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Cualquiera del dominio puede enviar</value>
   </data>
+  <data name="Anyone the owner approves after they confirm" xml:space="preserve">
+    <value>Cualquiera a quien el propietario apruebe después de que confirme</value>
+  </data>
+  <data name="Anyone who confirms by mail" xml:space="preserve">
+    <value>Cualquiera que confirme por correo</value>
+  </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Cuenta todo lo que no sea letra ni dígito, en vez de una lista fija de puntuación, para que una distribución de teclado que no tenga no pueda hacer la regla imposible de cumplir.</value>
   </data>
@@ -1424,6 +1430,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>¿Aplicar el perfil {0}? {1} ajustes cambian, y lo que tenían se guarda para poder restaurarlo.</value>
+  </data>
+  <data name="Ar_chive" xml:space="preserve">
+    <value>Arc_hivo</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>No pudo leerse ArcSealingEnabled: {0}</value>
@@ -3099,6 +3108,9 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   <data name="Different" xml:space="preserve">
     <value>Distinto</value>
   </data>
+  <data name="Digest _hour (0-23)" xml:space="preserve">
+    <value>Hora del resumen (_0-23)</value>
+  </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Hora del resumen</value>
   </data>
@@ -3412,6 +3424,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Se activa cuando "Comprobar" ha confirmado que el registro publicado contiene la clave pública de esta clave.</value>
+  </data>
+  <data name="Encode each member in the bounce address (_VERP)" xml:space="preserve">
+    <value>C_odificar a cada miembro en la dirección de rebote (VERP)</value>
   </data>
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>Ci_frar el archivo con una frase de contraseña (AES-256, nombres de ficheros incluidos)</value>
@@ -3847,6 +3862,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Para el modo de búsqueda: una cuenta de servicio con permiso para leer el directorio. Cualquier cuenta de dominio corriente puede, por defecto; no necesita ningún otro derecho.</value>
+  </data>
+  <data name="For the members" xml:space="preserve">
+    <value>Para los miembros</value>
   </data>
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>Para tokens obtenidos fuera de este servidor. Déjelo vacío en el uso normal - los tokens fijos caducan y nada aquí los renovará.</value>
@@ -4456,6 +4474,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Keep" xml:space="preserve">
     <value>Conservar</value>
   </data>
+  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
+    <value>Conservar los mensajes archivados durante (días, 0 = para _siempre)</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Mantener el greylisting activo durante la ventana de caducidad del registro</value>
   </data>
@@ -4827,6 +4848,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="MX query" xml:space="preserve">
     <value>Consulta MX</value>
+  </data>
+  <data name="Ma_naged by the list manager" xml:space="preserve">
+    <value>Gest_ionado por el gestor de la lista</value>
   </data>
   <data name="Machine-readable output for log shippers." xml:space="preserve">
     <value>Salida legible por máquina para expedidores de registros.</value>
@@ -5427,6 +5451,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>No hay contraseñas de aplicación. Cree una por cada cliente de correo, para que perder un dispositivo revoque solo ese dispositivo.</value>
   </data>
+  <data name="No archive" xml:space="preserve">
+    <value>Sin archivo</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>No hay destino de copia de seguridad establecido.</value>
   </data>
@@ -5633,6 +5660,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>No puede ejecutarse ningún antivirus. El bloqueo de adjuntos sigue eliminando los patrones de nombre de archivo de su propia página, pero nada mira dentro de un mensaje ni dentro de un archivo comprimido.</value>
+  </data>
+  <data name="Nobody - the members are added here" xml:space="preserve">
+    <value>Nadie - los miembros se añaden aquí</value>
   </data>
   <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
     <value>Todavía nadie tiene un rol. Una cuenta sin rol tiene los permisos que le da su nivel de administrador, igual que antes de que existieran los roles.</value>
@@ -6527,6 +6557,9 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Proxies autorizados a enviar una cabecera PROXY (direcciones o rangos CIDR separados por comas)</value>
   </data>
+  <data name="Public" xml:space="preserve">
+    <value>Público</value>
+  </data>
   <data name="Public folder name" xml:space="preserve">
     <value>Nombre de la carpeta pública</value>
   </data>
@@ -7066,6 +7099,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Replaces the envelope sender with the forwarding account's own address. That makes SPF pass at the next hop, at the cost of the original sender's address: a bounce comes back to the forwarding mailbox instead of to whoever wrote the message. SRS below does the same job without losing the return path, and while SRS is enabled this setting is not consulted at all." xml:space="preserve">
     <value>Sustituye el remitente de sobre por la dirección de la propia cuenta que reenvía. Eso hace que SPF pase en el siguiente salto, a costa de la dirección del remitente original: un rebote vuelve al buzón que reenvía en lugar de a quien escribió el mensaje. SRS, más abajo, hace el mismo trabajo sin perder la ruta de retorno, y mientras SRS está activado este ajuste no se consulta en absoluto.</value>
+  </data>
+  <data name="Replies go to th_e list" xml:space="preserve">
+    <value>Las respuestas _van a la lista</value>
   </data>
   <data name="Reply" xml:space="preserve">
     <value>Respuesta</value>
@@ -7890,6 +7926,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Send a _domain-wide out-of-office reply" xml:space="preserve">
     <value>Enviar una respuesta de ausencia para todo el _dominio</value>
   </data>
+  <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
+    <value>Enviar _un resumen diario a los miembros que lo elijan</value>
+  </data>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Enviar un mensaje a todas las cuentas del servidor (o a las que coincidan con un comodín) - para avisos de mantenimiento.</value>
   </data>
@@ -8511,6 +8550,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Asunto</value>
+  </data>
+  <data name="Subject _prefix" xml:space="preserve">
+    <value>Pr_efijo del asunto</value>
   </data>
   <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
     <value>Asunto _para compañeros (vacío = igual que arriba)</value>
@@ -10467,6 +10509,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Quién cambió qué, cuándo, por qué interfaz y desde dónde - cada cambio administrativo como una fila de una cadena de hash - y un ajuste restablecido al valor que tenía.</value>
   </data>
+  <data name="Who may _join" xml:space="preserve">
+    <value>Quié_n puede unirse</value>
+  </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Quién administra qué: los roles con nombre de este servidor y las cuentas que los tienen.</value>
   </data>
@@ -10529,6 +10574,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>Con una frase de contraseña establecida y la compresión desactivada, los ficheros de mensajes se copian junto al archivo en lugar de dentro de él, donde nada los cifra - y la copia de seguridad se niega a ejecutarse. Active la compresión o borre la frase de contraseña.</value>
+  </data>
+  <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
+    <value>Con el gestor de la lista activado, la lista responde a sus propias direcciones - sus direcciones -subscribe, -unsubscribe, -request, -owner y -bounces - y envía a cada miembro su propia copia, con su propia forma de darse de baja. La entrega y los rebotes de cada miembro se muestran en el Control Deck.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
     <value>Con esto activado, MAIL FROM en una sesión autenticada debe ser la propia dirección de la cuenta, un alias que resuelva a ella, u otro buzón cuyo propietario haya concedido a la cuenta el derecho de publicación (p) sobre su INBOX - que es la forma en que se concede el Send-As de un buzón compartido, desde el editor de ACL de cualquier cliente IMAP (SETACL) o por la API COM. Cualquier otra cosa se rechaza con 550 5.7.1 antes de que se acepte un solo byte del mensaje, así que una cuenta comprometida o descuidada ya no puede enviar como todas las demás. Desactivado por defecto porque antes nada restringía esto y una instalación puede depender de ello; el remitente nulo siempre se permite. Las sesiones no autenticadas no se ven afectadas.</value>
@@ -10782,6 +10830,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="_Follow this message" xml:space="preserve">
     <value>_Seguir este mensaje</value>
   </data>
+  <data name="_Footer" xml:space="preserve">
+    <value>Pie _de página</value>
+  </data>
   <data name="_Forward incoming mail" xml:space="preserve">
     <value>_Reenviar el correo entrante</value>
   </data>
@@ -10910,6 +10961,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="_Outside senders always get the domain's text, even when the account has its own" xml:space="preserve">
     <value>Los remitentes _externos reciben siempre el texto del dominio, aunque la cuenta tenga el suyo</value>
+  </data>
+  <data name="_Owner (empty = the moderator)" xml:space="preserve">
+    <value>_Propietario (vacío = el moderador)</value>
   </data>
   <data name="_Password" xml:space="preserve">
     <value>Con_traseña</value>

@@ -45,6 +45,7 @@
 
 #include "StdAfx.h"
 #include "RestApiServer.h"
+#include "ListManager.h"
 #include "../Application/EffectiveSetting.h"
 #include "HttpsClient.h"
 #include "CountryBlocking.h"
@@ -1040,6 +1041,33 @@ namespace
         "How many days after sending a message to other accounts on this server its sender may still recall it from the webmail - the unread copies deleted, the read ones left - and how long the rows that make that possible are kept. A recall of an older message answers 404 as if it had never been recorded. 1 to 365; 14 by default.",
         ROW_NUMBER(Config()->GetRecallDays()), ROW_SET(Config()->SetRecallDays((int) v.number)),
         [] (const Value &v) { return (v.number < 1 || v.number > 365) ? String(_T("recall_days must be between 1 and 365.")) : String(); } },
+
+      // The list manager (Util/ListManager.h, docs/MailingLists.md).
+      { "list_base_url", KindString, ReadWrite, EffectNow, nullptr,
+        "Where the links in mail from a managed list point - the address the REST listener (RestApiPort) answers on from outside, such as https://lists.example.com; the pages are /lists/confirm, /lists/unsubscribe, /lists/approve, /lists/{address}/subscribe and /lists/{address}/archive under it. Absolute, beginning with http:// or https://, in printable ASCII - a host name that is not ASCII in its punycode form. Only an https base gives the copies RFC 8058's one-click (List-Unsubscribe-Post), which that RFC requires to be HTTPS; an http base gives the links alone. Empty, the default, offers no link at all: a managed list's copies carry the mailto addresses alone, and the confirmation asks for a reply.",
+        ROW_TEXT(Config()->GetListBaseUrl()),
+        [] (const Value &v) { String url = v.text; url.Trim(); Config()->SetListBaseUrl(url); return Applied(); },
+        [] (const Value &v) -> String
+        {
+           // What the list manager would use, and nothing it would quietly
+           // drop: a value refused here is never stored to be ignored.
+           String reason;
+           if (!ListManager::IsUsableBaseUrl(v.text, reason))
+              return reason;
+           return String();
+        } },
+      { "list_hard_bounces_to_unsubscribe", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many hard bounces (a 5.x.x status) stop a member of a managed list being sent its mail. 1 by default; between 1 and 100. The member stays a member, the reason is recorded and the list's owner is told once; the owner's reset, or the member turning delivery back on, starts the count again.",
+        ROW_NUMBER(Config()->GetListHardBouncesToUnsubscribe()), ROW_SET(Config()->SetListHardBouncesToUnsubscribe((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 100) ? String(_T("list_hard_bounces_to_unsubscribe must be between 1 and 100.")) : String(); } },
+      { "list_soft_bounces_to_unsubscribe", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many soft bounces (a 4.x.x status, or a report whose status cannot be read) within list_bounce_window_days stop a member of a managed list being sent its mail. 5 by default; between 1 and 100. A delivery that succeeds does not clear the count; the window does.",
+        ROW_NUMBER(Config()->GetListSoftBouncesToUnsubscribe()), ROW_SET(Config()->SetListSoftBouncesToUnsubscribe((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 100) ? String(_T("list_soft_bounces_to_unsubscribe must be between 1 and 100.")) : String(); } },
+      { "list_bounce_window_days", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The days a managed list's soft bounces are counted within: a soft bounce more than this many days after the first of the current count starts a new count. 30 by default; between 1 and 365.",
+        ROW_NUMBER(Config()->GetListBounceWindowDays()), ROW_SET(Config()->SetListBounceWindowDays((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 365) ? String(_T("list_bounce_window_days must be between 1 and 365.")) : String(); } },
 
       // The organisation's directory (Util/DirectoryStore.h).
       { "directory_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,

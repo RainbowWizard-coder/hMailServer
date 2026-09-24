@@ -1134,6 +1134,8 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="listedit")openList(d.address,d.domain);
   else if(d.act==="listsave")saveList();
   else if(d.act==="listdel")deleteList(d.address,d.domain);
+  else if(d.act==="listreset")resetListBounces(d.address);
+  else if(d.act==="listapprove")approveListMember(d.address);
   else if(d.act==="suppressions")showSuppressions(d.domain,"",0);
   else if(d.act==="openpgp")showOpenPgp(d.domain);
   else if(d.act==="pgpnew")storeOpenPgpKey();
@@ -3314,11 +3316,31 @@ const LIST_HINTS={
   active:K("List is active."),require_auth:K("Require SMTP authentication to send to the list."),
   mode:K("Who may send to this list: public is anyone, membership the members, announcement the one sender named below, domain_members the accounts of the domain."),
   require_sender_address:K("Require sender address (empty = any)."),moderator_address:K("Moderator (empty = no moderation)."),
-  bounce_address:K("Bounce address (empty = bounces go to the poster).")
+  bounce_address:K("Bounce address (empty = bounces go to the poster)."),
+  // The list manager (docs/MailingLists.md): what the create's and the update's
+  // schemas carry for it, each with the words the desktop dialog uses.
+  managed:K("The list manager runs this list: people join and leave by mail and by page, and each member gets a copy of their own."),
+  subscribe_policy:K("Who may join: 0 nobody (you add the members), 1 anyone who confirms by mail, 2 anyone the owner then approves."),
+  archive:K("The archive: 0 none, 1 for the members, 2 public."),
+  archive_days:K("Days the archive keeps a message; 0 keeps it for ever."),
+  digest:K("Send a daily digest to the members who choose it."),
+  digest_hour:K("The hour, 0 to 23, the digest is sent at."),
+  reply_to:K("Where replies go: 0 the sender, 1 the list."),
+  subject_prefix:K("Put once at the start of every subject."),
+  footer:K("Added to the end of every message the list sends."),
+  verp:K("Send each copy from an address that names its member, so every bounce is matched to its member."),
+  owner:K("Who runs the list: requests to join and bounce notices go here. Empty is the moderator.")
 };
+// How a member of a managed list takes its mail, in the words the member's own
+// page uses.
+const LIST_DELIVERY={each:K("Each message"),digest:K("Digest"),none:K("Nothing for now")};
 function listProps(method){
   const props=properties(method==="post"?"/api/v1/domains/{domain}/lists":"/api/v1/lists/{address}",method), out={};
   Object.keys(props).forEach(k=>{out[k]=Object.assign({},props[k]);if(!out[k].description&&LIST_HINTS[k])out[k].description=LIST_HINTS[k];});
+  // The footer is lines of text: a text box keeps them, where a one-line input
+  // would flatten them on every save of the list - a server older than the
+  // schema's own mark included.
+  if(out.footer)out.footer.format="multiline";
   return out;
 }
 async function showLists(domain){
@@ -3384,10 +3406,29 @@ function renderListEditor(){
   const props=listProps("put");
   const members=(editing.values.members||[]).map(m=>'<div class="row erow"><code>'+escHtml(m)+'</code></div>').join("")||'<div class="note">'+t("No members.")+'</div>';
   const now=editing.resolved&&Array.isArray(editing.resolved.members)?editing.resolved.members:null;
-  const nowRows=now?(now.map(m=>'<div class="row erow"><code>'+escHtml(m.address)+'</code> <span class="badge '+(m.source==="query"?"good":"")+'">'+(m.source==="query"?t("From the query"):t("Kept by hand"))+'</span></div>').join("")||'<div class="note">'+t("Nobody: this list would deliver to no one.")+'</div>'):"";
+  // A managed list's row says how the member takes its mail - or that it is a
+  // request still waiting - and what its bounces have done, with the owner's
+  // two verbs beside it.
+  const managed=!!editing.values.managed;
+  const memberExtra=m=>{
+    if(!managed||m.source!=="row")return"";
+    const hard=Number(m.hard_bounces)||0,soft=Number(m.soft_bounces)||0;
+    // "left": an address the membership query answers that has left, kept
+    // out of the list's mail by its row.
+    const state=m.state==="pending"?'<span class="badge warn">'+t("Waiting for confirmation")+'</span>':
+      m.state==="awaiting_owner"?'<span class="badge warn">'+t("Waiting for approval")+'</span>':
+      m.state==="left"?'<span class="badge">'+t("Left the list")+'</span>':
+      '<span class="badge'+(m.delivery==="none"?" warn":"")+'">'+t(LIST_DELIVERY[m.delivery]||LIST_DELIVERY.each)+'</span>';
+    const bounces=hard||soft?' <span class="muted">'+escHtml(tf("{0} hard, {1} soft bounces",hard,soft))+'</span>':"";
+    const reset=m.state==="member"&&(hard||soft||m.reason)?' <button class="btn ghost sm" data-act="listreset" data-address="'+escHtml(m.address)+'">'+t("Reset bounces")+'</button>':"";
+    const approve=m.state==="awaiting_owner"?' <button class="btn sm" data-act="listapprove" data-address="'+escHtml(m.address)+'">'+t("Approve")+'</button>':"";
+    const reason=m.reason?'<div class="hint muted">'+escHtml(m.reason)+'</div>':"";
+    return " "+state+bounces+reset+approve+reason;
+  };
+  const nowRows=now?(now.map(m=>'<div class="row erow"><code>'+escHtml(m.address)+'</code> <span class="badge '+(m.source==="query"?"good":"")+'">'+(m.source==="query"?t("From the query"):t("Kept by hand"))+'</span>'+memberExtra(m)+'</div>').join("")||'<div class="note">'+t("Nobody: this list would deliver to no one.")+'</div>'):"";
   const nowProblem=editing.resolved&&editing.resolved.problem?'<div class="note warn">'+escHtml(editing.resolved.problem)+'</div>':"";
   const nowSection=now?`<div class="sect"><h2>${t("Delivers to now")}</h2>
-      <div class="card flat"><p class="note">${t("The addresses a message sent to this list would reach, worked out at this moment. Nothing is stored: the query is run again for every message.")}</p>${nowProblem}${nowRows}</div></div>`:"";
+      <div class="card flat"><p class="note">${t("The addresses a message sent to this list would reach, worked out at this moment. Nothing is stored: the query is run again for every message.")}</p>${managed?'<p class="note">'+t("For a managed list: how each member takes its mail, and what their bounces have done. Reset bounces sends a stopped member each message again.")+'</p>':""}${nowProblem}${nowRows}</div></div>`:"";
   $("#content").innerHTML=`<div class="view">
     <button class="btn ghost sm" data-act="lists" data-domain="${escHtml(editing.domain)}">${tf("‹ Lists of {0}",escHtml(editing.domain))}</button>
     <div class="sect"><h2>${tf("List {0}",escHtml(editing.address))}</h2>
@@ -3414,6 +3455,22 @@ async function saveList(){
   try{
     await api("/api/v1/lists/"+encodeURIComponent(editing.address),{method:"PUT",body:JSON.stringify(body)});
     toast(t("List saved"));await openList(editing.address,editing.domain);
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_listedit",e.message);}
+}
+// The owner's two verbs on one member of a managed list, over
+// POST /api/v1/lists/{address}/members/{member}/reset-bounces and /approve.
+async function resetListBounces(address){
+  setErr("err_listedit","");
+  try{
+    await api("/api/v1/lists/"+encodeURIComponent(editing.address)+"/members/"+encodeURIComponent(address)+"/reset-bounces",{method:"POST"});
+    toast(tf("Bounces reset: {0}",address));await openList(editing.address,editing.domain);
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_listedit",e.message);}
+}
+async function approveListMember(address){
+  setErr("err_listedit","");
+  try{
+    await api("/api/v1/lists/"+encodeURIComponent(editing.address)+"/members/"+encodeURIComponent(address)+"/approve",{method:"POST"});
+    toast(tf("Approved: {0}",address));await openList(editing.address,editing.domain);
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_listedit",e.message);}
 }
 async function deleteList(address,domain){

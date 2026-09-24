@@ -2335,9 +2335,24 @@ function answer(method, path, headers, raw) {
       const kind = membership === '' ? 'static' : membership === 'domain' ? 'domain'
          : membership.indexOf('domain:') === 0 ? 'named_domain'
          : membership.indexOf('pattern:') === 0 ? 'pattern' : 'everyone';
+      // A managed list's rows carry what the list manager knows of each
+      // member (RestApiServer::ListMemberJson_): delivery, state and bounces.
+      members.forEach((e) => { if (e.source === 'row' && list.rowDetail && list.rowDetail[e.address]) { Object.assign(e, list.rowDetail[e.address]); } });
       const answer = { address, membership, membership_kind: kind, count: members.length, members };
       if (problem) { answer.problem = problem; }
       return json(200, answer);
+   }
+   // The owner's two verbs on one member of a managed list.
+   if (/^\/api\/v1\/lists\/[^/]+\/members\/[^/]+\/(reset-bounces|approve)$/.test(path) && method === 'POST') {
+      const address = segment(path, 4);
+      const member = segment(path, 6);
+      const domain = Object.keys(state.lists).filter((d) => state.lists[d].some((l) => l.address === address))[0];
+      const list = domain ? state.lists[domain].filter((l) => l.address === address)[0] : null;
+      const detail = list && list.rowDetail ? list.rowDetail[member] : null;
+      if (!detail) { return json(404, { error: 'not a member or a request of this list' }); }
+      if (path.endsWith('/approve')) { Object.assign(detail, { confirmed: 1, state: 'member' }); }
+      else { Object.assign(detail, { hard_bounces: 0, soft_bounces: 0, reason: '', delivery: detail.delivery === 'none' ? 'each' : detail.delivery }); }
+      return json(200, Object.assign({ address: member, source: 'row' }, detail));
    }
    if (/^\/api\/v1\/lists\/[^/]+$/.test(path)) {
       const address = segment(path, 4);
@@ -4212,6 +4227,53 @@ async function main() {
    click(act('listdel', { address: 'team@example.com' }));
    await flush();
    check('yes deletes by address and the re-read list is without it', called(before, 'DELETE', '/api/v1/lists/team%40example.com').length === 1 && rows().length === 1 && rows()[0].textContent.indexOf('all@example.com') >= 0);
+
+   // A managed list (docs/MailingLists.md): each row says how the member takes
+   // its mail, or that it is a request still waiting, and what its bounces did;
+   // the owner's two verbs sit beside the rows that need them and nowhere else.
+   state.lists['example.com'].push({ address: 'club@example.com', active: true, require_auth: false, mode: 'public', require_sender_address: '', moderator_address: '', bounce_address: '', membership: '', managed: true,
+      members: ['ann@example.com', 'bea@example.com', 'cy@example.com', 'dee@example.com'],
+      rowDetail: {
+         'ann@example.com': { delivery: 'each', confirmed: 1, state: 'member', hard_bounces: 0, soft_bounces: 0, reason: '' },
+         'bea@example.com': { delivery: 'none', confirmed: 1, state: 'member', hard_bounces: 1, soft_bounces: 0, reason: '1 hard bounce(s), the last with status 5.1.1.' },
+         'cy@example.com': { delivery: 'each', confirmed: 2, state: 'awaiting_owner', hard_bounces: 0, soft_bounces: 0, reason: '' },
+         'dee@example.com': { delivery: 'none', confirmed: 3, state: 'left', hard_bounces: 1, soft_bounces: 0, reason: '' } } });
+   click(act('domains'));
+   await flush();
+   click(act('lists', { domain: 'example.com' }));
+   await flush();
+   click(act('listedit', { address: 'club@example.com', domain: 'example.com' }));
+   await flush();
+   const clubText = content().textContent;
+   check('a managed list\'s rows say how each member takes its mail, which is still a request, and what the bounces did',
+      clubText.indexOf('Each message') >= 0 && clubText.indexOf('Nothing for now') >= 0 && clubText.indexOf('Waiting for approval') >= 0 &&
+      clubText.indexOf('1 hard, 0 soft bounces') >= 0 && clubText.indexOf('5.1.1') >= 0, clubText.slice(clubText.indexOf('Delivers to now'), clubText.indexOf('Delivers to now') + 400));
+   check('an address the query answers that has left says so, and is offered no reset whatever its counts',
+      clubText.indexOf('Left the list') >= 0 && content().querySelectorAll('button[data-act="listreset"][data-address="dee@example.com"]').length === 0, clubText.slice(clubText.indexOf('dee@example.com'), clubText.indexOf('dee@example.com') + 200));
+   check('Approve is beside the request waiting for the owner and Reset bounces beside the member the bounces stopped, and neither anywhere else',
+      content().querySelectorAll('button[data-act="listapprove"]').length === 1 && content().querySelectorAll('button[data-act="listreset"]').length === 1 &&
+      !!act('listapprove', { address: 'cy@example.com' }) && !!act('listreset', { address: 'bea@example.com' }));
+   before = requests.length;
+   click(act('listapprove', { address: 'cy@example.com' }));
+   await flush();
+   check('Approve posts the approval of that member and reads who the list delivers to again',
+      called(before, 'POST', '/api/v1/lists/club%40example.com/members/cy%40example.com/approve').length === 1 &&
+      called(before, 'GET', '/api/v1/lists/club%40example.com/members').length === 1 && toastText() === 'Approved: cy@example.com', paths(before));
+   before = requests.length;
+   click(act('listreset', { address: 'bea@example.com' }));
+   await flush();
+   check('Reset bounces posts the reset of that member, and the row then offers nothing more to do',
+      called(before, 'POST', '/api/v1/lists/club%40example.com/members/bea%40example.com/reset-bounces').length === 1 &&
+      content().querySelectorAll('button[data-act="listreset"]').length === 0 && content().querySelectorAll('button[data-act="listapprove"]').length === 0, paths(before));
+   click(act('lists', { domain: 'example.com' }));
+   await flush();
+   click(act('listedit', { address: 'all@example.com', domain: 'example.com' }));
+   await flush();
+   check('an unmanaged list\'s rows say nothing of delivery and offer neither verb',
+      content().textContent.indexOf('Each message') < 0 && content().querySelectorAll('button[data-act="listreset"]').length === 0 &&
+      content().querySelectorAll('button[data-act="listapprove"]').length === 0, content().textContent.slice(0, 300));
+   click(act('lists', { domain: 'example.com' }));
+   await flush();
 
    // ---- the suppression list of a domain
    click(act('domains'));

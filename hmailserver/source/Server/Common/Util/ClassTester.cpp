@@ -39,6 +39,8 @@
 #include "WebAuthn.h"
 #include "PasskeyStore.h"
 #include "MaskedAddresses.h"
+#include "ListManager.h"
+#include "ListArchive.h"
 #include "../../SMTP/BounceTracker.h"
 #include "../../SMTP/DestinationBackoffTester.h"
 #include "../Persistence/SchemaUpgrader.h"
@@ -269,6 +271,16 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the bounce report key\n"));
       BounceKeyTester bounceKeyTester;
       bounceKeyTester.Test();
+
+      // The list manager: its address grammar, VERP both ways, the token rule
+      // and the member tag; the archive's month arithmetic.
+      OutputDebugString(_T("hMailServer: Testing ListManager\n"));
+      ListManagerTester listManagerTester;
+      listManagerTester.Test();
+
+      OutputDebugString(_T("hMailServer: Testing ListArchive\n"));
+      ListArchiveTester listArchiveTester;
+      listArchiveTester.Test();
 
       // Brand logos: the BIMI record, the DMARC policy that has to enforce, and
       // the SVG Tiny PS check a logo from a stranger's server has to pass.

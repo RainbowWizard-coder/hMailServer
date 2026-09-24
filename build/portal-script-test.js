@@ -751,6 +751,25 @@ function answerCalendar(method, path, body) {
 // be made partial or empty, or refused, by the checks.
 let subscriptionsMode = 'full';
 const subscriptionDeletes = [];
+
+// The lists on this server the reader belongs to (GET /api/v1/me/lists): one
+// with a digest and an archive, and one still waiting for the reader to
+// confirm. Emptied by the checks to see the card go.
+let myListsMode = 'full';
+function answerMyLists(method, path, body) {
+   if (method === 'GET' && path === '/api/v1/me/lists') {
+      if (myListsMode === 'empty') { return json(200, { lists: [] }); }
+      return json(200, { lists: [
+         { address: 'team@example.com', delivery: 'each', state: 'member', subscribed: 1790000000, digest: true, reason: '', archive_url: 'https://lists.example.com/lists/team@example.com/archive' },
+         { address: 'news@example.com', delivery: 'each', state: 'pending', subscribed: 1790000000, digest: false, reason: '' }
+      ] });
+   }
+   if (method === 'PUT' && path === '/api/v1/me/lists/team%40example.com') {
+      return json(200, { address: 'team@example.com', delivery: JSON.parse(body || '{}').delivery, state: 'member', subscribed: 1790000000, digest: true, reason: '' });
+   }
+   if (method === 'DELETE' && path === '/api/v1/me/lists/team%40example.com') { return json(200, { left: true }); }
+   return null;
+}
 function answerSubscriptions(method, path, body) {
    if (method === 'GET' && /^\/api\/v1\/me\/subscriptions(\?|$)/.test(path)) {
       if (subscriptionsMode === 'refused') { return json(500, { error: 'the mailbox could not be read' }); }
@@ -1384,6 +1403,7 @@ function answer(method, path, body) {
    if (!signedIn) { return json(401, { error: 'Not signed in.' }); }
    { const calendar = answerCalendar(method, path, body); if (calendar) { return calendar; } }
    { const subscriptions = answerSubscriptions(method, path, body); if (subscriptions) { return subscriptions; } }
+   { const myLists = answerMyLists(method, path, body); if (myLists) { return myLists; } }
    { const fetches = answerFetchAccounts(method, path, body); if (fetches) { return fetches; } }
    { const senders = answerSenderAddresses(method, path, body); if (senders) { return senders; } }
    { const masks = answerMaskedAddresses(method, path, body); if (masks) { return masks; } }
@@ -4461,6 +4481,44 @@ async function main() {
       check('the Subscriptions page reads the senders of the last ninety days', called(beforeSubs, 'GET', '/api/v1/me/subscriptions?days=90'),
          JSON.stringify(since(beforeSubs).map((r) => r.path)));
       check('it is a page of the settings, beside Safe senders', document.getElementById('subscriptions-section').hidden === false && document.getElementById('settings-head').hidden === false);
+
+      // Lists on this server: the managed lists the reader belongs to, how
+      // each one's mail comes, and leaving.
+      const listRows = () => walkAll(document.getElementById('mylists-rows'), (n) => n.tagName === 'TR');
+      const listRowOf = (address) => listRows().filter((r) => r.textContent.indexOf(address) >= 0)[0];
+      const choiceIn = (row) => walkAll(row, (n) => n.tagName === 'SELECT')[0];
+      check('the page reads the lists on this server the reader belongs to, and shows them',
+         called(beforeSubs, 'GET', '/api/v1/me/lists') && document.getElementById('mylists-card').hidden === false && listRows().length === 2,
+         JSON.stringify(since(beforeSubs).map((r) => r.path)));
+      check('a request still waiting says so, and its delivery cannot be chosen yet',
+         listRowOf('news@example.com').textContent.indexOf(words('Waiting for you to confirm')) >= 0 && choiceIn(listRowOf('news@example.com')).disabled === true,
+         listRowOf('news@example.com').textContent);
+      const archiveLink = walkAll(listRowOf('team@example.com'), (n) => n.tagName === 'A')[0];
+      check('a list with an archive links to it, opened apart',
+         !!archiveLink && archiveLink.getAttribute('href') === 'https://lists.example.com/lists/team@example.com/archive' && archiveLink.getAttribute('rel') === 'noopener noreferrer',
+         archiveLink ? archiveLink.getAttribute('href') : 'no link');
+      const beforeChoice = requests.length;
+      const teamChoice = choiceIn(listRowOf('team@example.com'));
+      teamChoice.value = 'digest';
+      teamChoice.dispatchEvent(makeEvent('change'));
+      await flush();
+      const chose = since(beforeChoice).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/lists/team%40example.com')[0];
+      check('choosing the digest writes it for that list alone', !!chose && JSON.parse(chose.body).delivery === 'digest', chose ? chose.body : 'no PUT');
+      confirmAnswer = false;
+      const beforeStay = requests.length;
+      buttonIn(listRowOf('team@example.com'), 'Leave the list').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('leaving asks first, and a no leaves nothing', confirms[confirms.length - 1].indexOf('team@example.com') >= 0 && !called(beforeStay, 'DELETE', '/api/v1/me/lists/team%40example.com'),
+         confirms[confirms.length - 1]);
+      confirmAnswer = true;
+      myListsMode = 'empty';
+      const beforeGo = requests.length;
+      buttonIn(listRowOf('team@example.com'), 'Leave the list').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('a yes leaves the list and reads the lists again', called(beforeGo, 'DELETE', '/api/v1/me/lists/team%40example.com') && called(beforeGo, 'GET', '/api/v1/me/lists'),
+         JSON.stringify(since(beforeGo).map((r) => r.method + ' ' + r.path)));
+      check('and a reader on no list any more sees no card', document.getElementById('mylists-card').hidden === true);
+      myListsMode = 'full';
       check('a row per sender, the most first', subsRows().length === 3 && subsRows()[0].textContent.indexOf('news@example.com') >= 0, subsRows().map((r) => r.textContent).join(' | '));
       check('a row names the sender, the list and how much came',
          rowOf('news@example.com').textContent.indexOf('Weekly News') >= 0 && rowOf('news@example.com').textContent.indexOf('weekly.example.com') >= 0 &&

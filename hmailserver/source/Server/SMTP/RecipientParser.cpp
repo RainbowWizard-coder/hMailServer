@@ -15,6 +15,7 @@
 #include "../Common/Util/QuotaPolicy.h"
 #include "../Common/Util/MaskedAddresses.h"
 #include "../Common/Util/DistributionListMembership.h"
+#include "../Common/Util/ListManager.h"
 #include "../Common/SQL/DatabaseUnavailableMarker.h"
 
 #include "../Common/BO/Domain.h"
@@ -155,6 +156,41 @@ namespace HM
             {
                sErrMsg = "Domain has been disabled.";
                return DP_RecipientUnknown;
+            }
+
+            // The addresses a managed list answers of its own (ListManager.h):
+            // name-subscribe@, -unsubscribe@, -request@, -bounces@ with its VERP
+            // form, and -owner@. Asked of the address as the RCPT gave it, before
+            // plus addressing, so that a domain whose plus character is '-' does
+            // not read name-request@ as name@ with a tag; an account, an alias or
+            // a list of exactly that address is not one of them. An address that
+            // ends in none of the five words costs a string test.
+            {
+               ListManager::Command listCommand = ListManager::CommandNone;
+               std::shared_ptr<const DistributionList> managedList;
+               String verpMember;
+
+               if (ListManager::ParseCommandAddress(primaryAddressWithoutPlusaddressing, listCommand, managedList, verpMember))
+               {
+                  if (listCommand == ListManager::CommandOwner)
+                  {
+                     // The owner's address, followed as an alias is - so an owner
+                     // that is itself a list's owner address ends at the
+                     // recursion limit rather than in a loop.
+                     const String owner = ListManager::OwnerOf(managedList);
+                     if (owner.IsEmpty())
+                     {
+                        sErrMsg = CONST_UNKNOWN_USER;
+                        return DP_RecipientUnknown;
+                     }
+
+                     recipientAddress = owner;
+                     continue;
+                  }
+
+                  bDomainIsLocal = true;
+                  return DP_Possible;
+               }
             }
 
             // Check for an account with this name.
@@ -383,8 +419,12 @@ namespace HM
          return;
       }
 
+      // The address before plus addressing, which is what the list manager's
+      // own addresses are read from (see CheckDeliveryPossibility).
+      const String addressBeforePlus = primaryAddress;
+
       // Apply plus addressing on the recipient address
-      primaryAddress = PlusAddressing::ExtractAccountAddress(primaryAddress, pDomain); 
+      primaryAddress = PlusAddressing::ExtractAccountAddress(primaryAddress, pDomain);
 
       bool bIsLocalDomain = pDomain ? true : false;
       if (bIsLocalDomain)
@@ -392,6 +432,38 @@ namespace HM
          // First check if this domain is really active.
          if (!pDomain->GetIsActive())
             return;
+
+         // An address a managed list answers of its own (ListManager.h): one
+         // recipient with no account behind it, which the list manager answers
+         // in the delivery path - or, for name-owner@, the owner, followed as an
+         // alias is.
+         {
+            ListManager::Command listCommand = ListManager::CommandNone;
+            std::shared_ptr<const DistributionList> managedList;
+            String verpMember;
+
+            if (ListManager::ParseCommandAddress(addressBeforePlus, listCommand, managedList, verpMember))
+            {
+               if (listCommand == ListManager::CommandOwner)
+               {
+                  const String owner = ListManager::OwnerOf(managedList);
+                  if (!owner.IsEmpty())
+                     CreateMessageRecipientList_(owner, sOriginalAddress, lRecurse, pRecipients, recipientOK);
+                  return;
+               }
+
+               std::shared_ptr<MessageRecipient> commandRecipient = std::shared_ptr<MessageRecipient>(new MessageRecipient);
+               commandRecipient->SetAddress(addressBeforePlus);
+               commandRecipient->SetOriginalAddress(sOriginalAddress);
+               commandRecipient->SetLocalAccountID(0);
+               commandRecipient->SetIsLocalName(true);
+
+               recipientOK = true;
+
+               AddRecipient_(pRecipients, commandRecipient);
+               return;
+            }
+         }
 
          // Check if there exists a account with this address.
          std::shared_ptr<const Account> pAccount = CacheContainer::Instance()->GetAccount(primaryAddress);
@@ -503,6 +575,25 @@ namespace HM
 
                recipientOK = true;
 
+               return;
+            }
+
+            // A managed list (ListManager.h) is one recipient of its own rather
+            // than its members: it sends each member a copy of their own from
+            // the delivery path, with that member's way out in its headers. Who
+            // may post was decided above, and a posting the mode refused has
+            // gone to the moderator, exactly as for any list.
+            if (pListADO->GetManaged())
+            {
+               std::shared_ptr<MessageRecipient> listRecipient = std::shared_ptr<MessageRecipient>(new MessageRecipient);
+               listRecipient->SetAddress(pListADO->GetAddress());
+               listRecipient->SetOriginalAddress(sOriginalAddress);
+               listRecipient->SetLocalAccountID(0);
+               listRecipient->SetIsLocalName(true);
+
+               recipientOK = true;
+
+               AddRecipient_(pRecipients, listRecipient);
                return;
             }
 
@@ -762,6 +853,11 @@ namespace HM
 
          for (; iterRecipient != vecRecipients.end(); iterRecipient++)
          {
+            // A request to join a managed list, still waiting for its own
+            // confirmation or for the owner, is not a member and may not post.
+            if (!(*iterRecipient)->GetIsMember())
+               continue;
+
             String sRecipient = (*iterRecipient)->GetAddress();
             sRecipient = pDA->ApplyAliasesOnAddress(sRecipient);
 

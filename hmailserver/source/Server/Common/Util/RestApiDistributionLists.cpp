@@ -61,13 +61,38 @@
 namespace HM
 {
    AnsiString
+   RestApiServer::ListMemberJson_(const std::shared_ptr<DistributionListRecipient> &member)
+   {
+      const char *delivery = member->GetDelivery() == DistributionListRecipient::DeliveryDigest ? "digest"
+                           : member->GetDelivery() == DistributionListRecipient::DeliveryNone ? "none" : "each";
+
+      const char *state = member->GetConfirmed() == DistributionListRecipient::Confirmed ? "member"
+                        : member->GetConfirmed() == DistributionListRecipient::AwaitingOwner ? "awaiting_owner"
+                        : member->GetConfirmed() == DistributionListRecipient::OptedOut ? "left" : "pending";
+
+      AnsiString entry;
+      entry.Format("{\"address\":\"%hs\",\"source\":\"row\",\"delivery\":\"%hs\",\"confirmed\":%d,\"state\":\"%hs\",\"subscribed\":%I64d,\"hard_bounces\":%d,\"soft_bounces\":%d,\"last_bounce\":%I64d,\"reason\":\"%hs\"}",
+         JsonEscapeUtf8(member->GetAddress()).c_str(),
+         delivery,
+         member->GetConfirmed(),
+         state,
+         member->GetSubscribed(),
+         member->GetHardBounces(),
+         member->GetSoftBounces(),
+         member->GetLastBounce(),
+         JsonEscapeUtf8(member->GetReason()).c_str());
+
+      return entry;
+   }
+
+   AnsiString
    RestApiServer::OpenApiDistributionListMembersPath_()
    {
       // Begins with a comma and does not end with one, as every piece
       // HandleOpenApi_ appends does.
       return AnsiString(
          ",\"/api/v1/lists/{address}/members\":{"
-         "\"get\":{\"summary\":\"Who a distribution list delivers to now\",\"description\":\"The list's own rows, then the accounts its membership query answers at the moment of the call, deduplicated by address. Each entry: address and source - row for a member kept by hand, query for one the membership found. Also membership (the query as stored), membership_kind (static, domain, named_domain, pattern, everyone, or unreadable for a text this build cannot parse), count, and problem when the query could not be answered - a domain it names that this server no longer hosts, or a disabled one - in which case only the rows are listed, which is exactly what a message to the list would reach. Nothing is stored: a query list has no membership table, and this is the query being run. Scoped to the domain in the address, and refused with 403 to a credential confined to domains the query reaches past - the forms that credential may not set are the forms it may not read the answer to. 503 when the accounts could not be read, rather than a short answer that would read as the membership.\",\"responses\":{\"200\":{\"description\":\"address, membership, membership_kind, count, members, problem\"},\"403\":{\"description\":\"The membership names accounts outside the domains this credential administers\"},\"404\":{\"description\":\"Unknown list\"},\"503\":{\"description\":\"The accounts could not be read\"}}}}");
+         "\"get\":{\"summary\":\"Who a distribution list delivers to now\",\"description\":\"The list's own rows, then the accounts its membership query answers at the moment of the call, deduplicated by address. Each entry: address and source - row for a member kept by hand, query for one the membership found - and for a row of a managed list what the list manager knows of it: delivery (each, digest or none), confirmed (1 a member, 0 waiting for its own confirmation, 2 waiting for the owner's approval) with state (member, pending or awaiting_owner), subscribed (Unix time), hard_bounces, soft_bounces, last_bounce (Unix time, 0 for never) and reason (why its delivery was stopped, when bounces stopped it). Also membership (the query as stored), membership_kind (static, domain, named_domain, pattern, everyone, or unreadable for a text this build cannot parse), count, and problem when the query could not be answered - a domain it names that this server no longer hosts, or a disabled one - in which case only the rows are listed, which is exactly what a message to the list would reach. Nothing is stored: a query list has no membership table, and this is the query being run. Scoped to the domain in the address, and refused with 403 to a credential confined to domains the query reaches past - the forms that credential may not set are the forms it may not read the answer to. 503 when the accounts could not be read, rather than a short answer that would read as the membership.\",\"responses\":{\"200\":{\"description\":\"address, membership, membership_kind, count, members, problem\"},\"403\":{\"description\":\"The membership names accounts outside the domains this credential administers\"},\"404\":{\"description\":\"Unknown list\"},\"503\":{\"description\":\"The accounts could not be read\"}}}}");
    }
 
    HttpResponse
@@ -146,8 +171,24 @@ namespace HM
             String lowered = member;
             lowered.ToLower();
 
+            // A managed list's row carries what the list manager knows of it
+            // (ListManager.h): its delivery, whether it is confirmed, when it
+            // joined and its bounces. An unmanaged list's row is what it always
+            // was, byte for byte.
             if (seen.insert(lowered).second)
-               append(member, "row");
+            {
+               if (!list->GetManaged())
+               {
+                  append(member, "row");
+                  continue;
+               }
+
+               if (count > 0)
+                  entries += ",";
+
+               entries += ListMemberJson_(recipient);
+               count++;
+            }
          }
       }
 

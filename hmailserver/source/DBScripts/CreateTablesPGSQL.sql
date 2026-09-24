@@ -74,6 +74,7 @@ select hm_drop_table('hm_migrations');
 select hm_drop_table('hm_sandboxverdicts');
 
 select hm_drop_table('hm_sandboxholds');
+select hm_drop_table('hm_listarchive');
 
 select hm_drop_table('hm_dmarcreportrecords');
 
@@ -386,7 +387,21 @@ create table hm_distributionlists
 	distributionlistmode smallint not null,
 	distributionlistmoderatoraddress varchar(255) not null default '',
 	distributionlistbounceaddress varchar(255) not null default '',
-	distributionlistmembership varchar(200) not null default ''
+	distributionlistmembership varchar(200) not null default '',
+	distributionlistmanaged int not null default 0,
+	distributionlistsubscribe int not null default 0,
+	distributionlistarchive int not null default 0,
+	distributionlistarchivedays int not null default 0,
+	distributionlistdigest int not null default 0,
+	distributionlistdigesthour int not null default 7,
+	distributionlistdigestlastid bigint not null default 0,
+	distributionlistdigestlasttime bigint not null default 0,
+	distributionlistreplyto int not null default 0,
+	distributionlistprefix varchar(64) not null default '',
+	distributionlistfooter varchar(2000) not null default '',
+	distributionlistverp int not null default 0,
+	distributionlistowner varchar(255) not null default '',
+	distributionlistsecret varchar(64) not null default ''
 );
 
 CREATE INDEX idx_hm_distributionlists ON hm_distributionlists (distributionlistdomainid);
@@ -395,10 +410,21 @@ create table hm_distributionlistsrecipients
 (
 	distributionlistrecipientid bigserial not null primary key,
 	distributionlistrecipientlistid int not null,
-	distributionlistrecipientaddress varchar(255)	
+	distributionlistrecipientaddress varchar(255),
+	distributionlistrecipientdelivery int not null default 0,
+	distributionlistrecipientsubscribed bigint not null default 0,
+	distributionlistrecipientconfirmed int not null default 1,
+	distributionlistrecipienttoken varchar(64) not null default '',
+	distributionlistrecipienthardbounces int not null default 0,
+	distributionlistrecipientsoftbounces int not null default 0,
+	distributionlistrecipientsoftsince bigint not null default 0,
+	distributionlistrecipientlastbounce bigint not null default 0,
+	distributionlistrecipientreason varchar(255) not null default ''
 );
 
 CREATE INDEX idx_hm_distributionlistsrecipients ON hm_distributionlistsrecipients (distributionlistrecipientlistid);
+
+CREATE INDEX idx_hm_dlrecipients_token ON hm_distributionlistsrecipients (distributionlistrecipienttoken);
 
 create table hm_messagerecipients
 (
@@ -2550,4 +2576,52 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('Sa
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('SandboxMaxFiles', '', 10);
 
-insert into hm_dbversion values (6091);
+create table hm_listarchive
+(
+	laid bigserial not null primary key,
+	lalistid int not null,
+	lamessageid varchar(255) not null,
+	lasubject varchar(255) not null,
+	lasender varchar(255) not null,
+	lasent bigint not null,
+	lasize int not null,
+	lafile varchar(255) not null,
+	lamonth varchar(7) not null,
+	laarchived int not null
+);
+
+CREATE INDEX idx_hm_listarchive_list ON hm_listarchive (lalistid, lasent);
+
+CREATE INDEX idx_hm_listarchive_month ON hm_listarchive (lalistid, lamonth);
+
+ALTER TABLE hm_listarchive ADD CONSTRAINT fk_hm_listarchive_list FOREIGN KEY (lalistid) REFERENCES hm_distributionlists (distributionlistid) ON DELETE CASCADE;
+
+insert into hm_servermessages (smname, smtext) values ('LIST_CONFIRM_SUBJECT', 'Confirm your subscription to %MACRO_LIST%');
+
+insert into hm_servermessages (smname, smtext) values ('LIST_CONFIRM', E'Somebody - probably you - asked for %MACRO_ADDRESS% to be subscribed to the list %MACRO_LIST%.\r\n\r\nTo confirm, reply to this message without changing its subject, or open this page and press the button on it:\r\n\r\n   %MACRO_LINK%\r\n\r\nIf you did not ask for this, ignore this message. Nothing happens unless you confirm, and the request lapses in a week.\r\n\r\nhMailServer\r\n');
+
+insert into hm_servermessages (smname, smtext) values ('LIST_REFUSED_SUBJECT', 'Your request to %MACRO_LIST%');
+
+insert into hm_servermessages (smname, smtext) values ('LIST_REFUSED', E'The list %MACRO_LIST% does not take subscriptions by mail or by page: its members are added by the person who runs it. Write to %MACRO_OWNER% to ask.\r\n\r\nhMailServer\r\n');
+
+insert into hm_servermessages (smname, smtext) values ('LIST_HELP_SUBJECT', 'The addresses of the list %MACRO_LIST%');
+
+insert into hm_servermessages (smname, smtext) values ('LIST_HELP', E'The list %MACRO_LIST% answers these addresses:\r\n\r\n   %MACRO_LIST%\r\n      post to the list\r\n   %MACRO_SUBSCRIBE%\r\n      join the list (you are sent a message to confirm)\r\n   %MACRO_UNSUBSCRIBE%\r\n      leave the list (write from the address you are subscribed with; you are sent a message to confirm)\r\n   %MACRO_REQUEST%\r\n      this help\r\n   %MACRO_OWNERADDRESS%\r\n      the person who runs the list\r\n\r\nEvery message from the list also carries a link at which you can leave it, or choose a daily digest, or pause it.\r\n\r\nhMailServer\r\n');
+
+insert into hm_servermessages (smname, smtext) values ('LIST_APPROVE_SUBJECT', '%MACRO_ADDRESS% asks to join %MACRO_LIST%');
+
+insert into hm_servermessages (smname, smtext) values ('LIST_APPROVE', E'%MACRO_ADDRESS% has asked to join the list %MACRO_LIST% and has confirmed that the address is theirs.\r\n\r\nTo let them in, open this page while you are signed in to this server''s webmail as %MACRO_OWNER%, and press the button on it:\r\n\r\n   %MACRO_LINK%\r\n\r\nOr approve them in the Control Deck, in the list''s member table.\r\n\r\nTo refuse, do nothing: the request lapses in a week.\r\n\r\nhMailServer\r\n');
+
+insert into hm_servermessages (smname, smtext) values ('LIST_BOUNCED_SUBJECT', 'The list %MACRO_LIST% has stopped mailing %MACRO_ADDRESS%');
+
+insert into hm_servermessages (smname, smtext) values ('LIST_BOUNCED', E'Mail from the list %MACRO_LIST% to %MACRO_ADDRESS% kept coming back, so that address is no longer sent the list''s mail. It is still a member.\r\n\r\n   %MACRO_REASON%\r\n\r\nWhen the address works again, reset its bounces in the Control Deck (the list''s member table): it is then sent the list''s mail again. The member can also turn it back on from the link in any message of the list.\r\n\r\nhMailServer\r\n');
+
+insert into hm_servermessages (smname, smtext) values ('LIST_LEAVE_SUBJECT', 'Confirm that you want to leave %MACRO_LIST%');
+
+insert into hm_servermessages (smname, smtext) values ('LIST_LEAVE', E'Somebody - probably you - asked for %MACRO_ADDRESS% to be taken off the list %MACRO_LIST%.\r\n\r\nTo leave, reply to this message without changing its subject, or open this page and press the button on it:\r\n\r\n   %MACRO_LINK%\r\n\r\nIf you did not ask for this, ignore this message: you stay on the list, and nothing changes.\r\n\r\nhMailServer\r\n');
+
+insert into hm_servermessages (smname, smtext) values ('LIST_UNSUBSCRIBED_SUBJECT', 'You have left %MACRO_LIST%');
+
+insert into hm_servermessages (smname, smtext) values ('LIST_UNSUBSCRIBED', E'%MACRO_ADDRESS% has been taken off the list %MACRO_LIST%. It will not be sent the list''s mail any more.\r\n\r\nhMailServer\r\n');
+
+insert into hm_dbversion values (6092);

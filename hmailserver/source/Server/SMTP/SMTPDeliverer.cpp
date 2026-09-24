@@ -63,6 +63,7 @@
 #include "BounceTracker.h"
 #include "ComplaintTracker.h"
 #include "../Common/Util/DomainReports.h"
+#include "../Common/Util/ListManager.h"
 #include "../Common/Util/WebhookManager.h"
 
 #ifdef _DEBUG
@@ -406,12 +407,29 @@ namespace HM
       // message is delivered unchanged either way. See DomainReports.
       DomainReports::InspectIncomingReport(pMessage);
 
+      // A managed list, and the addresses it answers of its own - subscribe,
+      // unsubscribe, request, bounces - are recipients with no account behind
+      // them. The list manager answers each here, where a list's moderation
+      // addresses have always been answered, and takes it off the message, so
+      // that neither local nor external delivery ever sees one. Returns at once
+      // when no list is managed. See ListManager.
+      //
+      // A posting the manager could not read is held rather than answered: its
+      // row stays, and it stays in the message through local delivery - so
+      // that the message is never taken for a single local recipient's copy,
+      // which would move its file away - and is set aside before anything is
+      // sent outside. The message is then tried again below.
+      std::vector<std::shared_ptr<MessageRecipient> > heldForLists;
+      ListManager::TakeListRecipients(pMessage, heldForLists);
+
       std::vector<DeliveryFailure> saErrorMessages;
 
       // Perform deliver to local recipients.
       LocalDelivery localDeliverer(sSendersIP, pMessage, globalRuleResult);
       bool messageReused = localDeliverer.Perform(saErrorMessages);
       otelDelivery.AddEvent("delivery.local");
+
+      ListManager::SetAside(pMessage, heldForLists);
 
       bool messageRescheduled = false;
 
@@ -439,6 +457,13 @@ namespace HM
          // pass, and none at all unless a complaint mailbox is named.
          ComplaintTracker::RecordDeliveryPass(pMessage);
       }
+
+      // The postings the list manager could not read: the message stays in the
+      // queue for them - with its outside recipients' deferral when it has one,
+      // or on the retry schedule of its own - and when the retries run out the
+      // sender is told, below, as for any failure.
+      if (!heldForLists.empty())
+         messageRescheduled = ListManager::HoldForRetry(pMessage, heldForLists, messageRescheduled, saErrorMessages);
 
       // If an error has occurred, now is the time to send an error
       // message back to the author of the email message.

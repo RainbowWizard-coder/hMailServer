@@ -1374,6 +1374,12 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Alle i domænet kan sende</value>
   </data>
+  <data name="Anyone the owner approves after they confirm" xml:space="preserve">
+    <value>Enhver som ejeren godkender, efter de bekræfter</value>
+  </data>
+  <data name="Anyone who confirms by mail" xml:space="preserve">
+    <value>Enhver som bekræfter via mail</value>
+  </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Alt, der ikke er et bogstav eller et ciffer, tæller med, frem for en fast liste over tegnsætning, så et tastaturlayout, du ikke har, ikke kan gøre reglen umulig at opfylde.</value>
   </data>
@@ -1424,6 +1430,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Anvend profilen {0}? {1} indstillinger ændres, og det, de havde, gemmes, så det kan sættes tilbage.</value>
+  </data>
+  <data name="Ar_chive" xml:space="preserve">
+    <value>A_rkiv</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled kunne ikke læses: {0}</value>
@@ -3099,6 +3108,9 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
   <data name="Different" xml:space="preserve">
     <value>Afvigende</value>
   </data>
+  <data name="Digest _hour (0-23)" xml:space="preserve">
+    <value>_Sammendragets time (0-23)</value>
+  </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Oversigtens time</value>
   </data>
@@ -3412,6 +3424,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Aktiveres, når "Kontrollér" har bekræftet, at den offentliggjorte post bærer denne nøgles offentlige nøgle.</value>
+  </data>
+  <data name="Encode each member in the bounce address (_VERP)" xml:space="preserve">
+    <value>K_od hvert medlem ind i returadressen (VERP)</value>
   </data>
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>K_rypter arkivet med en adgangssætning (AES-256, filnavnene inklusive)</value>
@@ -3847,6 +3862,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Til søgetilstand: en tjenestekonto, der må læse kataloget. Det må enhver almindelig domænekonto som standard; den behøver ingen andre rettigheder.</value>
+  </data>
+  <data name="For the members" xml:space="preserve">
+    <value>For medlemmerne</value>
   </data>
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>Til tokens, der er skaffet uden for denne server. Lad feltet stå tomt ved normal brug – faste tokens udløber, og intet her fornyer dem.</value>
@@ -4456,6 +4474,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Keep" xml:space="preserve">
     <value>Behold</value>
   </data>
+  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
+    <value>Behold arkiverede beskeder _i (dage, 0 = for altid)</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Hold greylisting aktiv i vinduet for udløb af poster</value>
   </data>
@@ -4827,6 +4848,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="MX query" xml:space="preserve">
     <value>MX-forespørgsel</value>
+  </data>
+  <data name="Ma_naged by the list manager" xml:space="preserve">
+    <value>Admi_nistreret af listeadministratoren</value>
   </data>
   <data name="Machine-readable output for log shippers." xml:space="preserve">
     <value>Maskinlæsbart output til log-afsendere.</value>
@@ -5427,6 +5451,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Ingen app-adgangskoder. Opret én pr. mailklient, så det kun er den enhed, der tilbagekaldes, hvis en enhed mistes.</value>
   </data>
+  <data name="No archive" xml:space="preserve">
+    <value>Intet arkiv</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Ingen sikkerhedskopidestination er angivet.</value>
   </data>
@@ -5633,6 +5660,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Ingen virusscanner kan køre. Blokering af vedhæftede filer fjerner stadig filnavnsmønstrene på sin egen side, men intet kigger ind i en meddelelse eller ind i et arkiv.</value>
+  </data>
+  <data name="Nobody - the members are added here" xml:space="preserve">
+    <value>Ingen - medlemmerne tilføjes her</value>
   </data>
   <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
     <value>Ingen har fået en rolle endnu. En konto uden rolle har de rettigheder, dens administratorniveau giver, præcis som før rollerne fandtes.</value>
@@ -6527,6 +6557,9 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Proxyer, der må sende en PROXY-header (kommaseparerede adresser eller CIDR-intervaller)</value>
   </data>
+  <data name="Public" xml:space="preserve">
+    <value>Offentligt</value>
+  </data>
   <data name="Public folder name" xml:space="preserve">
     <value>Navn på offentlig mappe</value>
   </data>
@@ -7066,6 +7099,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   </data>
   <data name="Replaces the envelope sender with the forwarding account's own address. That makes SPF pass at the next hop, at the cost of the original sender's address: a bounce comes back to the forwarding mailbox instead of to whoever wrote the message. SRS below does the same job without losing the return path, and while SRS is enabled this setting is not consulted at all." xml:space="preserve">
     <value>Erstatter konvolutafsenderen med videresendelseskontoens egen adresse. Det får SPF til at bestå ved næste hop, på bekostning af den oprindelige afsenders adresse: en bounce kommer tilbage til videresendelsespostkassen i stedet for til den, der skrev meddelelsen. SRS nedenfor gør det samme arbejde uden at miste returstien, og mens SRS er aktiveret, konsulteres denne indstilling slet ikke.</value>
+  </data>
+  <data name="Replies go to th_e list" xml:space="preserve">
+    <value>S_var går til listen</value>
   </data>
   <data name="Reply" xml:space="preserve">
     <value>Svar</value>
@@ -7890,6 +7926,9 @@ Vil du fortsætte?</value>
   <data name="Send a _domain-wide out-of-office reply" xml:space="preserve">
     <value>Send et _domænedækkende ikke-på-kontoret-svar</value>
   </data>
+  <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
+    <value>Send et dagligt sammendrag til de medlemmer, der v_ælger det</value>
+  </data>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Send en meddelelse til hver konto på serveren (eller dem, der matcher et jokertegn) - til vedligeholdelsesmeddelelser.</value>
   </data>
@@ -8511,6 +8550,9 @@ Genstart den nu?</value>
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Emne</value>
+  </data>
+  <data name="Subject _prefix" xml:space="preserve">
+    <value>Emne_præfiks</value>
   </data>
   <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
     <value>Emne til _kolleger (tomt = samme som ovenfor)</value>
@@ -10467,6 +10509,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Hvem der ændrede hvad, hvornår, over hvilken grænseflade og hvorfra - hver administrativ ændring som én række i en hashkæde - og en indstilling sat tilbage til den værdi, den havde.</value>
   </data>
+  <data name="Who may _join" xml:space="preserve">
+    <value>Hvem må _deltage</value>
+  </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Hvem må administrere hvad: de navngivne roller, denne server har, og de konti, der har dem.</value>
   </data>
@@ -10529,6 +10574,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>Med en adgangssætning sat og komprimering slået fra kopieres meddelelsesfilerne ved siden af arkivet i stedet for ind i det, hvor intet krypterer dem - og sikkerhedskopien nægter at køre. Slå komprimering til, eller ryd adgangssætningen.</value>
+  </data>
+  <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
+    <value>Når listeadministratoren er slået til, svarer listen på sine egne adresser - dens -subscribe, -unsubscribe, -request, -owner og -bounces adresser - og sender hvert medlem deres egen kopi, med deres egen måde at forlade den på. Hvert medlems levering og returmails vises i Control Deck.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
     <value>Med dette slået til skal MAIL FROM i en godkendt session være kontoens egen adresse, et alias, der slår op til den, eller en anden postkasse, hvis ejer har givet kontoen rettigheden post (p) på sin INBOX - hvilket er, hvordan Send som for en delt postkasse tildeles, fra enhver IMAP-klients ACL-editor (SETACL) eller over COM API'et. Alt andet afvises med 550 5.7.1, før en byte af meddelelsen accepteres, så én kompromitteret eller skødesløs konto ikke længere kan sende som alle andre. Slået fra som standard, fordi intet begrænsede dette før, og en installation kan afhænge af det; null-afsenderen er altid tilladt. Ugodkendte sessioner påvirkes ikke.</value>
@@ -10782,6 +10830,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Follow this message" xml:space="preserve">
     <value>_Følg denne meddelelse</value>
   </data>
+  <data name="_Footer" xml:space="preserve">
+    <value>B_undtekst</value>
+  </data>
   <data name="_Forward incoming mail" xml:space="preserve">
     <value>_Videresend indgående post</value>
   </data>
@@ -10910,6 +10961,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Outside senders always get the domain's text, even when the account has its own" xml:space="preserve">
     <value>_Udenforstående afsendere får altid domænets tekst, også når kontoen har sin egen</value>
+  </data>
+  <data name="_Owner (empty = the moderator)" xml:space="preserve">
+    <value>E_jer (tom = moderatoren)</value>
   </data>
   <data name="_Password" xml:space="preserve">
     <value>_Adgangskode</value>

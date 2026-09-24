@@ -29,6 +29,13 @@ namespace HM
 
       static bool DeleteMembers(std::shared_ptr<DistributionList> pDistList);
 
+      // The digest's own two columns (ListArchive.h), written without the rest.
+      static bool SaveDigestState(__int64 listId, __int64 lastArchiveId, __int64 sentTime);
+
+      // The list's secret (ListManager::EnsureListSecret), written only while
+      // the column is empty.
+      static bool SaveSecretIfEmpty(__int64 listId, const String &secret);
+
 
    private:
 

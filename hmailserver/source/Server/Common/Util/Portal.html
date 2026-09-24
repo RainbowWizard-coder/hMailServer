@@ -1514,6 +1514,12 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div id="subs-empty" class="hint" hidden>No mail in that time offers a way to unsubscribe.</div>
 <div id="subs-partial" class="hint" hidden></div>
 </div>
+<div class="card" id="mylists-card" hidden>
+<h2>Lists on this server</h2>
+<p class="note">The mailing lists run by this server that you are a member of. Choose how each one's mail comes to you, or leave it.</p>
+<div id="mylists-status" class="status" aria-live="polite"></div>
+<table class="list" id="mylists-table"><thead><tr><th>List</th><th>Mail</th><th></th></tr></thead><tbody id="mylists-rows"></tbody></table>
+</div>
 </section>
 <section id="masked-section" class="view page" hidden>
 <div class="card">

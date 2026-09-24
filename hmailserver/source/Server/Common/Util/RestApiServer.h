@@ -97,6 +97,7 @@ namespace HM
    class Account;
    class Domain;
    class DistributionList;
+   class DistributionListRecipient;
    class Rule;
    class SecurityRange;
    class IMAPFolder;
@@ -1005,6 +1006,20 @@ namespace HM
          RouteSendCreate,
          RouteSendList,
          RouteSendGet,
+         // The list manager (RestApiMailingLists.cpp): a managed list's archive
+         // for programs, and the owner's two verbs on one member - clearing its
+         // bounces and approving its request. Scoped to the domain in the list's
+         // address, as the members route is.
+         RouteListArchive,
+         RouteListArchiveGet,
+         RouteListMemberResetBounces,
+         RouteListMemberApprove,
+
+         // The reader's own memberships of the managed lists on this server,
+         // their delivery and leaving (RestApiMailingLists.cpp).
+         RouteMeLists,
+         RouteMeListUpdate,
+         RouteMeListLeave,
          RouteOpenApi
       };
 
@@ -2154,6 +2169,23 @@ namespace HM
       // (RestApiDistributionLists.cpp).
       HttpResponse HandleListMembers_(const String &address, const std::vector<String> &callerDomains);
       static AnsiString OpenApiDistributionListMembersPath_();
+
+      // The list manager (RestApiMailingLists.cpp, Util/ListManager.h): the
+      // archive for programs, the owner's verbs on a member, the reader's own
+      // memberships, and the four pages list mail links to - which carry no
+      // credentials: the capability is the member's token, or the list's
+      // archive being public.
+      HttpResponse HandleListArchive_(const String &address, const AnsiString &query);
+      HttpResponse HandleListArchiveGet_(const String &address, __int64 id);
+      HttpResponse HandleListMemberVerb_(RouteKind kind, const String &address, const String &member);
+      HttpResponse HandleMeLists_(const Caller &caller, RouteKind kind, const String &address, const AnsiString &requestBody);
+      static AnsiString OpenApiMailingListPaths_();
+      static AnsiString ListMemberJson_(const std::shared_ptr<DistributionListRecipient> &member);
+      HttpResponse HandleListConfirmPage_(const AnsiString &method, const AnsiString &query, const AnsiString &body, const IPAddress &peer_address);
+      HttpResponse HandleListMemberPage_(const AnsiString &method, const AnsiString &query, const AnsiString &body, const IPAddress &peer_address);
+      HttpResponse HandleListSubscribePage_(const AnsiString &method, const String &address, const AnsiString &body, const IPAddress &peer_address);
+      HttpResponse HandleListApprovePage_(const AnsiString &method, const AnsiString &query, const AnsiString &body, const AnsiString &request, const IPAddress &peer_address);
+      HttpResponse HandleListArchivePage_(const String &address, const AnsiString &query, const AnsiString &request, const IPAddress &peer_address);
       // The six small collections - DNS black lists, SURBL servers,
       // white-list addresses, blocked senders, incoming relays and the
       // greylisting white list - as resources (RestApiAntiSpamLists.cpp): one

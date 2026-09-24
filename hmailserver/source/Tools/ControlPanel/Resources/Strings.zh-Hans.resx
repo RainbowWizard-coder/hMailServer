@@ -1374,6 +1374,12 @@
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>域内任何人都可以发信</value>
   </data>
+  <data name="Anyone the owner approves after they confirm" xml:space="preserve">
+    <value>由所有者在确认后批准的任何人</value>
+  </data>
+  <data name="Anyone who confirms by mail" xml:space="preserve">
+    <value>通过邮件确认的任何人</value>
+  </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>任何非字母、非数字的字符都计入，而不是采用固定的标点列表，这样您没有的键盘布局就不会让规则无法满足。</value>
   </data>
@@ -1424,6 +1430,9 @@
   </data>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>应用 {0} 配置方案？将更改 {1} 项设置，原有的值会被保留以便恢复。</value>
+  </data>
+  <data name="Ar_chive" xml:space="preserve">
+    <value>存档(_C)</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>无法读取 ArcSealingEnabled：{0}</value>
@@ -3099,6 +3108,9 @@
   <data name="Different" xml:space="preserve">
     <value>不一致</value>
   </data>
+  <data name="Digest _hour (0-23)" xml:space="preserve">
+    <value>摘要时间(_H)(0-23)</value>
+  </data>
   <data name="Digest hour" xml:space="preserve">
     <value>摘要时刻</value>
   </data>
@@ -3412,6 +3424,9 @@
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>在“检查”确认已发布的记录带有此密钥的公钥后启用。</value>
+  </data>
+  <data name="Encode each member in the bounce address (_VERP)" xml:space="preserve">
+    <value>在退信地址中对每个成员进行编码 (_VERP)</value>
   </data>
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>用口令加密存档(_Y) (AES-256，文件名也在内)</value>
@@ -3847,6 +3862,9 @@
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>搜索模式使用：一个被允许读取目录的服务账户。默认情况下任何普通域账户都可以；它不需要其他任何权限。</value>
+  </data>
+  <data name="For the members" xml:space="preserve">
+    <value>面向成员</value>
   </data>
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>用于在本服务器之外获取的令牌。正常使用时请留空 - 固定令牌会过期，而此处不会刷新它们。</value>
@@ -4456,6 +4474,9 @@
   <data name="Keep" xml:space="preserve">
     <value>保留</value>
   </data>
+  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
+    <value>保留已存档邮件的天数(_D)（0 = 永久）</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>在记录到期窗口期间保持灰名单活动</value>
   </data>
@@ -4827,6 +4848,9 @@
   </data>
   <data name="MX query" xml:space="preserve">
     <value>MX 查询</value>
+  </data>
+  <data name="Ma_naged by the list manager" xml:space="preserve">
+    <value>由列表管理器管理(_N)</value>
   </data>
   <data name="Machine-readable output for log shippers." xml:space="preserve">
     <value>供日志传送器使用的机器可读输出。</value>
@@ -5427,6 +5451,9 @@
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>没有应用密码。请为每个邮件客户端各创建一个，这样丢失一台设备只需吊销该设备的密码。</value>
   </data>
+  <data name="No archive" xml:space="preserve">
+    <value>无存档</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>未设置备份目标。</value>
   </data>
@@ -5633,6 +5660,9 @@
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>没有任何病毒扫描器可以运行。附件拦截仍会剥除其自身页面上的文件名模式，但没有任何东西查看邮件内部或存档内部。</value>
+  </data>
+  <data name="Nobody - the members are added here" xml:space="preserve">
+    <value>无人 - 成员在此处添加</value>
   </data>
   <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
     <value>尚未向任何人授予角色。没有角色的账户拥有其管理员级别所赋予的权限，与角色出现之前完全一样。</value>
@@ -6527,6 +6557,9 @@
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>允许发送 PROXY 标头的代理（以逗号分隔的地址或 CIDR 范围）</value>
   </data>
+  <data name="Public" xml:space="preserve">
+    <value>公开</value>
+  </data>
   <data name="Public folder name" xml:space="preserve">
     <value>公用文件夹名称</value>
   </data>
@@ -7066,6 +7099,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Replaces the envelope sender with the forwarding account's own address. That makes SPF pass at the next hop, at the cost of the original sender's address: a bounce comes back to the forwarding mailbox instead of to whoever wrote the message. SRS below does the same job without losing the return path, and while SRS is enabled this setting is not consulted at all." xml:space="preserve">
     <value>把信封发件人替换为执行转发的账户自己的地址。这会让 SPF 在下一跳通过，代价是丢失原始发件人的地址：退信会回到执行转发的邮箱，而不是回到写这封邮件的人那里。下面的 SRS 能完成同样的工作而不丢失返回路径，并且在 SRS 启用期间，本设置根本不会被参考。</value>
+  </data>
+  <data name="Replies go to th_e list" xml:space="preserve">
+    <value>回复发送到列表(_E)</value>
   </data>
   <data name="Reply" xml:space="preserve">
     <value>回复</value>
@@ -7890,6 +7926,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Send a _domain-wide out-of-office reply" xml:space="preserve">
     <value>发送域范围的外出回复(_D)</value>
   </data>
+  <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
+    <value>向选择接收的成员发送每日摘要(_Y)</value>
+  </data>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>向服务器上的每个账户 (或匹配通配符的账户) 发送一封邮件 - 用于维护通告。</value>
   </data>
@@ -8511,6 +8550,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Subject" xml:space="preserve">
     <value>主题</value>
+  </data>
+  <data name="Subject _prefix" xml:space="preserve">
+    <value>主题前缀(_P)</value>
   </data>
   <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
     <value>发给同事的主题 (为空 = 与上面相同)(_C)</value>
@@ -10467,6 +10509,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>谁在何时通过哪个接口从哪里更改了什么（每项管理更改都是哈希链中的一行），以及将设置恢复为原有的值。</value>
   </data>
+  <data name="Who may _join" xml:space="preserve">
+    <value>谁可以加入(_J)</value>
+  </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>谁可以管理什么：本服务器的命名角色，以及持有这些角色的账户。</value>
   </data>
@@ -10529,6 +10574,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>设置了口令而压缩处于关闭状态时，邮件文件会被复制到存档旁边而不是存档里面，那里没有任何东西为它们加密，因此备份会拒绝运行。请打开压缩，或者清除口令。</value>
+  </data>
+  <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
+    <value>启用列表管理器后，列表会响应自己的地址 - 即 -subscribe、-unsubscribe、-request、-owner 和 -bounces 地址 - 并向每个成员发送各自专属的副本，附有各自退出的方式。每个成员的投递情况和退信都会显示在 Control Deck 中。</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
     <value>开启后，已验证会话中的 MAIL FROM 必须是账户自己的地址、解析到它的别名，或所有者已向该账户授予其 INBOX 上投递 (p) 权限的另一个邮箱 - 共享邮箱的“代表发送”就是这样授予的，可通过任何 IMAP 客户端的 ACL 编辑器 (SETACL) 或通过 COM API。其他任何情况都会在接受邮件的第一个字节之前以 550 5.7.1 拒绝，因此一个被攻陷或粗心的账户再也不能冒充所有其他账户发送。默认关闭，因为以前没有任何东西限制这一点，现有安装可能依赖它；空发件人始终允许。未验证的会话不受影响。</value>
@@ -10782,6 +10830,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="_Follow this message" xml:space="preserve">
     <value>跟踪此邮件(_F)</value>
   </data>
+  <data name="_Footer" xml:space="preserve">
+    <value>页脚(_F)</value>
+  </data>
   <data name="_Forward incoming mail" xml:space="preserve">
     <value>转发传入邮件(_F)</value>
   </data>
@@ -10910,6 +10961,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="_Outside senders always get the domain's text, even when the account has its own" xml:space="preserve">
     <value>外部发件人始终收到域的文本，即使该账户有自己的文本(_O)</value>
+  </data>
+  <data name="_Owner (empty = the moderator)" xml:space="preserve">
+    <value>所有者(_O)（留空 = 审核人）</value>
   </data>
   <data name="_Password" xml:space="preserve">
     <value>密码(_P)</value>

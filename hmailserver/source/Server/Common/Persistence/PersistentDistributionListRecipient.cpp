@@ -71,9 +71,55 @@ namespace HM
    }
 
    bool
+   PersistentDistributionListRecipient::ReadByToken(std::shared_ptr<DistributionListRecipient> pRecipient, const String &token)
+   {
+      // Every row's token is its own random value, and an empty one - a member
+      // the manager has not needed to give one yet - is never a match.
+      if (token.IsEmpty())
+         return false;
+
+      SQLCommand selectCommand(_T("select * from hm_distributionlistsrecipients where distributionlistrecipienttoken = @TOKEN"));
+      selectCommand.AddParameter("@TOKEN", token);
+
+      return ReadObject(pRecipient, selectCommand);
+   }
+
+   bool
+   PersistentDistributionListRecipient::ReadByAddress(std::shared_ptr<DistributionListRecipient> pRecipient, __int64 listId, const String &address)
+   {
+      if (address.IsEmpty())
+         return false;
+
+      // The list's rows, compared here rather than in the statement: an
+      // address is compared without regard to case, and PostgreSQL's equality
+      // is not, while the other three backends' is. A list is its members, so
+      // this reads what the expansion at RCPT TO reads anyway.
+      SQLCommand selectCommand(_T("select * from hm_distributionlistsrecipients where distributionlistrecipientlistid = @LISTID"));
+      selectCommand.AddParameter("@LISTID", listId);
+
+      std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(selectCommand);
+      if (!pRS)
+         return false;
+
+      while (!pRS->IsEOF())
+      {
+         if (pRS->GetStringValue("distributionlistrecipientaddress").CompareNoCase(address) == 0)
+            return ReadObject(pRecipient, pRS);
+
+         pRS->MoveNext();
+      }
+
+      return false;
+   }
+
+   bool
    PersistentDistributionListRecipient::ReadObject(std::shared_ptr<DistributionListRecipient> pRecipient, const SQLCommand &command)
    {
       std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(command);
+
+      // A database that did not answer is not an empty table.
+      if (!pRS)
+         return false;
 
       bool bRetVal = false;
       if (!pRS->IsEOF())
@@ -92,6 +138,16 @@ namespace HM
       pRecipient->SetID(pRS->GetLongValue("distributionlistrecipientid"));
       pRecipient->SetListID(pRS->GetLongValue("distributionlistrecipientlistid"));
       pRecipient->SetAddress(pRS->GetStringValue("distributionlistrecipientaddress"));
+
+      pRecipient->SetDelivery(pRS->GetLongValue("distributionlistrecipientdelivery"));
+      pRecipient->SetSubscribed(pRS->GetInt64Value("distributionlistrecipientsubscribed"));
+      pRecipient->SetConfirmed(pRS->GetLongValue("distributionlistrecipientconfirmed"));
+      pRecipient->SetToken(pRS->GetStringValue("distributionlistrecipienttoken"));
+      pRecipient->SetHardBounces(pRS->GetLongValue("distributionlistrecipienthardbounces"));
+      pRecipient->SetSoftBounces(pRS->GetLongValue("distributionlistrecipientsoftbounces"));
+      pRecipient->SetSoftSince(pRS->GetInt64Value("distributionlistrecipientsoftsince"));
+      pRecipient->SetLastBounce(pRS->GetInt64Value("distributionlistrecipientlastbounce"));
+      pRecipient->SetReason(pRS->GetStringValue("distributionlistrecipientreason"));
 
       return true;
    }
@@ -116,6 +172,25 @@ namespace HM
 
       oStatement.AddColumnInt64("distributionlistrecipientlistid", pRecipient->GetListID());
       oStatement.AddColumn("distributionlistrecipientaddress", pRecipient->GetAddress());
+      oStatement.AddColumn("distributionlistrecipientdelivery", pRecipient->GetDelivery());
+
+      // The rest are the list manager's (ListManager.h) and a new row alone
+      // writes them here. On an existing row each is written by the manager's
+      // own targeted update below - a counter by adding to it where it is
+      // stored - because a whole-row save from an object read before the
+      // manager's last write, a COM object in a script or the Control Panel's
+      // dialog, would put back a spent token, a bounce count or a state.
+      if (pRecipient->GetID() == 0)
+      {
+         oStatement.AddColumnInt64("distributionlistrecipientsubscribed", pRecipient->GetSubscribed());
+         oStatement.AddColumn("distributionlistrecipientconfirmed", pRecipient->GetConfirmed());
+         oStatement.AddColumn("distributionlistrecipienttoken", pRecipient->GetToken());
+         oStatement.AddColumn("distributionlistrecipienthardbounces", pRecipient->GetHardBounces());
+         oStatement.AddColumn("distributionlistrecipientsoftbounces", pRecipient->GetSoftBounces());
+         oStatement.AddColumnInt64("distributionlistrecipientsoftsince", pRecipient->GetSoftSince());
+         oStatement.AddColumnInt64("distributionlistrecipientlastbounce", pRecipient->GetLastBounce());
+         oStatement.AddColumn("distributionlistrecipientreason", pRecipient->GetReason());
+      }
 
       if (pRecipient->GetID() == 0)
       {
@@ -142,6 +217,145 @@ namespace HM
       Cache<DistributionList>::Instance()->RemoveObject(pRecipient->GetListID());
 
       return bRetVal;
+   }
+
+   bool
+   PersistentDistributionListRecipient::Reread_(std::shared_ptr<DistributionListRecipient> pRecipient)
+   {
+      // The row as stored after a targeted write, onto the caller's object.
+      std::shared_ptr<DistributionListRecipient> stored(new DistributionListRecipient);
+      if (!ReadObject(stored, (long) pRecipient->GetID()))
+         return false;
+
+      pRecipient->SetDelivery(stored->GetDelivery());
+      pRecipient->SetSubscribed(stored->GetSubscribed());
+      pRecipient->SetConfirmed(stored->GetConfirmed());
+      pRecipient->SetToken(stored->GetToken());
+      pRecipient->SetHardBounces(stored->GetHardBounces());
+      pRecipient->SetSoftBounces(stored->GetSoftBounces());
+      pRecipient->SetSoftSince(stored->GetSoftSince());
+      pRecipient->SetLastBounce(stored->GetLastBounce());
+      pRecipient->SetReason(stored->GetReason());
+      return true;
+   }
+
+   bool
+   PersistentDistributionListRecipient::SaveTokenIfEmpty(std::shared_ptr<DistributionListRecipient> pRecipient, const String &token)
+   {
+      if (pRecipient->GetID() == 0 || token.IsEmpty())
+         return false;
+
+      // Written only where there is none yet, so two delivery threads giving
+      // the same member a token keep the first, and the object then holds
+      // whichever is stored.
+      SQLCommand command("update hm_distributionlistsrecipients set distributionlistrecipienttoken = @TOKEN "
+                         "where distributionlistrecipientid = @RECIPIENTID and distributionlistrecipienttoken = ''");
+      command.AddParameter("@TOKEN", token);
+      command.AddParameter("@RECIPIENTID", pRecipient->GetID());
+
+      if (!Application::Instance()->GetDBManager()->Execute(command))
+         return false;
+
+      Cache<DistributionList>::Instance()->RemoveObject(pRecipient->GetListID());
+
+      return Reread_(pRecipient);
+   }
+
+   bool
+   PersistentDistributionListRecipient::SaveState(std::shared_ptr<DistributionListRecipient> pRecipient)
+   {
+      if (pRecipient->GetID() == 0)
+         return false;
+
+      // A request made, confirmed, approved, or an address that has left:
+      // the state, when, the token and the delivery, together.
+      SQLCommand command("update hm_distributionlistsrecipients set distributionlistrecipientconfirmed = @CONFIRMED, "
+                         "distributionlistrecipientsubscribed = @SUBSCRIBED, distributionlistrecipienttoken = @TOKEN, "
+                         "distributionlistrecipientdelivery = @DELIVERY where distributionlistrecipientid = @RECIPIENTID");
+      command.AddParameter("@CONFIRMED", pRecipient->GetConfirmed());
+      command.AddParameter("@SUBSCRIBED", pRecipient->GetSubscribed());
+      command.AddParameter("@TOKEN", pRecipient->GetToken());
+      command.AddParameter("@DELIVERY", pRecipient->GetDelivery());
+      command.AddParameter("@RECIPIENTID", pRecipient->GetID());
+
+      const bool result = Application::Instance()->GetDBManager()->Execute(command);
+
+      Cache<DistributionList>::Instance()->RemoveObject(pRecipient->GetListID());
+
+      return result;
+   }
+
+   bool
+   PersistentDistributionListRecipient::SaveDeliveryState(std::shared_ptr<DistributionListRecipient> pRecipient)
+   {
+      if (pRecipient->GetID() == 0)
+         return false;
+
+      // A delivery choice, a reset of the bounces, or the stop the bounces
+      // made: the delivery with the counts and the reason that go with it.
+      SQLCommand command("update hm_distributionlistsrecipients set distributionlistrecipientdelivery = @DELIVERY, "
+                         "distributionlistrecipienthardbounces = @HARD, distributionlistrecipientsoftbounces = @SOFT, "
+                         "distributionlistrecipientsoftsince = @SOFTSINCE, distributionlistrecipientreason = @REASON "
+                         "where distributionlistrecipientid = @RECIPIENTID");
+      command.AddParameter("@DELIVERY", pRecipient->GetDelivery());
+      command.AddParameter("@HARD", pRecipient->GetHardBounces());
+      command.AddParameter("@SOFT", pRecipient->GetSoftBounces());
+      command.AddParameter("@SOFTSINCE", pRecipient->GetSoftSince());
+      command.AddParameter("@REASON", pRecipient->GetReason());
+      command.AddParameter("@RECIPIENTID", pRecipient->GetID());
+
+      const bool result = Application::Instance()->GetDBManager()->Execute(command);
+
+      Cache<DistributionList>::Instance()->RemoveObject(pRecipient->GetListID());
+
+      return result;
+   }
+
+   bool
+   PersistentDistributionListRecipient::AddBounce(std::shared_ptr<DistributionListRecipient> pRecipient, bool hard, __int64 now, __int64 windowStart)
+   {
+      if (pRecipient->GetID() == 0)
+         return false;
+
+      // Counted where the count is stored, so two reports handled at once on
+      // two delivery threads both count. A soft bounce inside the window adds
+      // to the count; one outside it - or the first - starts a new count at
+      // one. The two statements cannot both match one row as it stands.
+      bool result = true;
+
+      if (hard)
+      {
+         SQLCommand add("update hm_distributionlistsrecipients set distributionlistrecipienthardbounces = distributionlistrecipienthardbounces + 1, "
+                        "distributionlistrecipientlastbounce = @NOW where distributionlistrecipientid = @RECIPIENTID");
+         add.AddParameter("@NOW", now);
+         add.AddParameter("@RECIPIENTID", pRecipient->GetID());
+         result = Application::Instance()->GetDBManager()->Execute(add);
+      }
+      else
+      {
+         SQLCommand add("update hm_distributionlistsrecipients set distributionlistrecipientsoftbounces = distributionlistrecipientsoftbounces + 1, "
+                        "distributionlistrecipientlastbounce = @NOW where distributionlistrecipientid = @RECIPIENTID "
+                        "and distributionlistrecipientsoftsince <> 0 and distributionlistrecipientsoftsince >= @WINDOWSTART");
+         add.AddParameter("@NOW", now);
+         add.AddParameter("@RECIPIENTID", pRecipient->GetID());
+         add.AddParameter("@WINDOWSTART", windowStart);
+
+         SQLCommand start("update hm_distributionlistsrecipients set distributionlistrecipientsoftbounces = 1, "
+                          "distributionlistrecipientsoftsince = @SINCE, distributionlistrecipientlastbounce = @NOW "
+                          "where distributionlistrecipientid = @RECIPIENTID "
+                          "and (distributionlistrecipientsoftsince = 0 or distributionlistrecipientsoftsince < @WINDOWSTART)");
+         start.AddParameter("@SINCE", now);
+         start.AddParameter("@NOW", now);
+         start.AddParameter("@RECIPIENTID", pRecipient->GetID());
+         start.AddParameter("@WINDOWSTART", windowStart);
+
+         result = Application::Instance()->GetDBManager()->Execute(add) &&
+                  Application::Instance()->GetDBManager()->Execute(start);
+      }
+
+      Cache<DistributionList>::Instance()->RemoveObject(pRecipient->GetListID());
+
+      return result && Reread_(pRecipient);
    }
 
 }

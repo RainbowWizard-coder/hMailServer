@@ -1374,6 +1374,12 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Anyone in the domain can send</value>
   </data>
+  <data name="Anyone the owner approves after they confirm" xml:space="preserve">
+    <value>Anyone the owner approves after they confirm</value>
+  </data>
+  <data name="Anyone who confirms by mail" xml:space="preserve">
+    <value>Anyone who confirms by mail</value>
+  </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable.</value>
   </data>
@@ -1424,6 +1430,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   </data>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back.</value>
+  </data>
+  <data name="Ar_chive" xml:space="preserve">
+    <value>Ar_chive</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled could not be read: {0}</value>
@@ -3099,6 +3108,9 @@ The sender was told it was accepted, so nothing will retry and there is no other
   <data name="Different" xml:space="preserve">
     <value>Different</value>
   </data>
+  <data name="Digest _hour (0-23)" xml:space="preserve">
+    <value>Digest _hour (0-23)</value>
+  </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Digest hour</value>
   </data>
@@ -3412,6 +3424,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Enabled once "Check" has confirmed the published record carries this key's public key.</value>
+  </data>
+  <data name="Encode each member in the bounce address (_VERP)" xml:space="preserve">
+    <value>Encode each member in the bounce address (_VERP)</value>
   </data>
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>Encr_ypt the archive with a passphrase (AES-256, file names included)</value>
@@ -3847,6 +3862,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights.</value>
+  </data>
+  <data name="For the members" xml:space="preserve">
+    <value>For the members</value>
   </data>
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them.</value>
@@ -4456,6 +4474,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Keep" xml:space="preserve">
     <value>Keep</value>
   </data>
+  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
+    <value>Keep archived messages for (_days, 0 = for ever)</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Keep greylisting active during the record-expiration window</value>
   </data>
@@ -4827,6 +4848,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   </data>
   <data name="MX query" xml:space="preserve">
     <value>MX query</value>
+  </data>
+  <data name="Ma_naged by the list manager" xml:space="preserve">
+    <value>Ma_naged by the list manager</value>
   </data>
   <data name="Machine-readable output for log shippers." xml:space="preserve">
     <value>Machine-readable output for log shippers.</value>
@@ -5427,6 +5451,9 @@ Nothing already there is removed.</value>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>No app passwords. Create one per mail client, so that losing a device revokes only that device.</value>
   </data>
+  <data name="No archive" xml:space="preserve">
+    <value>No archive</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>No backup destination is set.</value>
   </data>
@@ -5633,6 +5660,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive.</value>
+  </data>
+  <data name="Nobody - the members are added here" xml:space="preserve">
+    <value>Nobody - the members are added here</value>
   </data>
   <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
     <value>Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed.</value>
@@ -6527,6 +6557,9 @@ No new connections will be accepted and no mail will be delivered until it is re
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)</value>
   </data>
+  <data name="Public" xml:space="preserve">
+    <value>Public</value>
+  </data>
   <data name="Public folder name" xml:space="preserve">
     <value>Public folder name</value>
   </data>
@@ -7066,6 +7099,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   </data>
   <data name="Replaces the envelope sender with the forwarding account's own address. That makes SPF pass at the next hop, at the cost of the original sender's address: a bounce comes back to the forwarding mailbox instead of to whoever wrote the message. SRS below does the same job without losing the return path, and while SRS is enabled this setting is not consulted at all." xml:space="preserve">
     <value>Replaces the envelope sender with the forwarding account's own address. That makes SPF pass at the next hop, at the cost of the original sender's address: a bounce comes back to the forwarding mailbox instead of to whoever wrote the message. SRS below does the same job without losing the return path, and while SRS is enabled this setting is not consulted at all.</value>
+  </data>
+  <data name="Replies go to th_e list" xml:space="preserve">
+    <value>Replies go to th_e list</value>
   </data>
   <data name="Reply" xml:space="preserve">
     <value>Reply</value>
@@ -7890,6 +7926,9 @@ Continue?</value>
   <data name="Send a _domain-wide out-of-office reply" xml:space="preserve">
     <value>Send a _domain-wide out-of-office reply</value>
   </data>
+  <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
+    <value>Send a dail_y digest to the members who choose it</value>
+  </data>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements.</value>
   </data>
@@ -8511,6 +8550,9 @@ Restart it now?</value>
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Subject</value>
+  </data>
+  <data name="Subject _prefix" xml:space="preserve">
+    <value>Subject _prefix</value>
   </data>
   <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
     <value>Subject for _colleagues (empty = same as above)</value>
@@ -10467,6 +10509,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had.</value>
   </data>
+  <data name="Who may _join" xml:space="preserve">
+    <value>Who may _join</value>
+  </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Who may administer what: the named roles this server has, and the accounts that hold them.</value>
   </data>
@@ -10529,6 +10574,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase.</value>
+  </data>
+  <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
+    <value>With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
     <value>With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected.</value>
@@ -10782,6 +10830,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="_Follow this message" xml:space="preserve">
     <value>_Follow this message</value>
   </data>
+  <data name="_Footer" xml:space="preserve">
+    <value>_Footer</value>
+  </data>
   <data name="_Forward incoming mail" xml:space="preserve">
     <value>_Forward incoming mail</value>
   </data>
@@ -10910,6 +10961,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="_Outside senders always get the domain's text, even when the account has its own" xml:space="preserve">
     <value>_Outside senders always get the domain's text, even when the account has its own</value>
+  </data>
+  <data name="_Owner (empty = the moderator)" xml:space="preserve">
+    <value>_Owner (empty = the moderator)</value>
   </data>
   <data name="_Password" xml:space="preserve">
     <value>_Password</value>

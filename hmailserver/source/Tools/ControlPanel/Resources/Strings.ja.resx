@@ -1374,6 +1374,12 @@
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>ドメイン内の全員が送信できる</value>
   </data>
+  <data name="Anyone the owner approves after they confirm" xml:space="preserve">
+    <value>所有者が確認後に承認した人</value>
+  </data>
+  <data name="Anyone who confirms by mail" xml:space="preserve">
+    <value>メールで確認した人</value>
+  </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>記号の固定リストではなく、英字でも数字でもない文字がすべて対象になります。そのため、手元にないキーボード レイアウトのせいで条件を満たせなくなることはありません。</value>
   </data>
@@ -1424,6 +1430,9 @@
   </data>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>プロファイル {0} を適用しますか? {1} 個の設定が変わり、元の値は戻せるよう保存されます。</value>
+  </data>
+  <data name="Ar_chive" xml:space="preserve">
+    <value>アーカイブ(_C)</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled を読み取れませんでした: {0}</value>
@@ -3099,6 +3108,9 @@
   <data name="Different" xml:space="preserve">
     <value>不一致</value>
   </data>
+  <data name="Digest _hour (0-23)" xml:space="preserve">
+    <value>ダイジェストの時刻 (0-23)(_H)</value>
+  </data>
   <data name="Digest hour" xml:space="preserve">
     <value>ダイジェストの時刻</value>
   </data>
@@ -3412,6 +3424,9 @@
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>「確認」で、公開されているレコードにこの鍵の公開鍵が含まれることを確認すると有効になります。</value>
+  </data>
+  <data name="Encode each member in the bounce address (_VERP)" xml:space="preserve">
+    <value>各メンバーをバウンスアドレスに符号化する (_VERP)</value>
   </data>
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>パスフレーズでアーカイブを暗号化する(_Y) (AES-256、ファイル名も含む)</value>
@@ -3847,6 +3862,9 @@
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>検索モード用: ディレクトリを読み取ることを許可されたサービス アカウント。既定では通常のドメイン アカウントならどれでも読み取れ、ほかの権限は不要です。</value>
+  </data>
+  <data name="For the members" xml:space="preserve">
+    <value>メンバー向けに</value>
   </data>
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>このサーバーの外で取得したトークン用です。通常の使用では空のままにしてください。固定トークンは期限が切れ、ここにあるものは何も更新しません。</value>
@@ -4456,6 +4474,9 @@
   <data name="Keep" xml:space="preserve">
     <value>維持</value>
   </data>
+  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
+    <value>アーカイブしたメッセージの保持期間 (日数、0 = 無期限)(_D)</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>レコードの有効期限ウィンドウの間もグレイリスティングを有効のままにする</value>
   </data>
@@ -4827,6 +4848,9 @@
   </data>
   <data name="MX query" xml:space="preserve">
     <value>MX クエリ</value>
+  </data>
+  <data name="Ma_naged by the list manager" xml:space="preserve">
+    <value>リストマネージャーによる管理(_N)</value>
   </data>
   <data name="Machine-readable output for log shippers." xml:space="preserve">
     <value>ログ シッパー向けの機械可読な出力。</value>
@@ -5427,6 +5451,9 @@
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>アプリ パスワードはありません。メール クライアントごとに 1 つ作成すると、デバイスを紛失してもそのデバイスだけを失効させられます。</value>
   </data>
+  <data name="No archive" xml:space="preserve">
+    <value>アーカイブなし</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>バックアップ先が設定されていません。</value>
   </data>
@@ -5633,6 +5660,9 @@
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>実行できるウイルス スキャナーがありません。添付ファイルのブロックは、そのページのファイル名パターンを引き続き取り除きますが、メッセージの中やアーカイブの中を見るものは何もありません。</value>
+  </data>
+  <data name="Nobody - the members are added here" xml:space="preserve">
+    <value>なし - メンバーはここで追加されます</value>
   </data>
   <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
     <value>まだ誰にもロールが割り当てられていません。ロールのないアカウントは、ロールが存在しなかったときとまったく同じく、その管理者レベルが与える権限を持ちます。</value>
@@ -6527,6 +6557,9 @@
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>PROXY ヘッダーの送信を許可するプロキシ (カンマ区切りのアドレスまたは CIDR 範囲)</value>
   </data>
+  <data name="Public" xml:space="preserve">
+    <value>公開</value>
+  </data>
   <data name="Public folder name" xml:space="preserve">
     <value>公開フォルダー名</value>
   </data>
@@ -7066,6 +7099,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Replaces the envelope sender with the forwarding account's own address. That makes SPF pass at the next hop, at the cost of the original sender's address: a bounce comes back to the forwarding mailbox instead of to whoever wrote the message. SRS below does the same job without losing the return path, and while SRS is enabled this setting is not consulted at all." xml:space="preserve">
     <value>エンベロープ送信者を、転送するアカウント自身のアドレスに置き換えます。これにより次のホップで SPF は合格しますが、元の送信者のアドレスが失われます。バウンスは、メッセージを書いた本人ではなく転送元のメールボックスに返ります。下の SRS は、リターン パスを失わずに同じ役目を果たします。SRS が有効な間、この設定はまったく参照されません。</value>
+  </data>
+  <data name="Replies go to th_e list" xml:space="preserve">
+    <value>返信はリストへ送られます(_E)</value>
   </data>
   <data name="Reply" xml:space="preserve">
     <value>返信</value>
@@ -7890,6 +7926,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Send a _domain-wide out-of-office reply" xml:space="preserve">
     <value>ドメイン全体の不在応答を送信する(_D)</value>
   </data>
+  <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
+    <value>選択したメンバーへ毎日ダイジェストを送信する(_Y)</value>
+  </data>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>サーバー上のすべてのアカウント (またはワイルドカードに一致するアカウント) にメッセージを送信します。メンテナンスの告知用です。</value>
   </data>
@@ -8511,6 +8550,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Subject" xml:space="preserve">
     <value>件名</value>
+  </data>
+  <data name="Subject _prefix" xml:space="preserve">
+    <value>件名の接頭辞(_P)</value>
   </data>
   <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
     <value>同僚向けの件名 (空 = 上と同じ)(_C)</value>
@@ -10467,6 +10509,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>誰が何をいつ、どのインターフェースでどこから変更したか (すべての管理上の変更をハッシュチェーンの 1 行として)、そして設定を以前の値に戻します。</value>
   </data>
+  <data name="Who may _join" xml:space="preserve">
+    <value>参加できる人(_J)</value>
+  </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>誰が何を管理できるか。このサーバーの名前付きロールと、それを持つアカウント。</value>
   </data>
@@ -10529,6 +10574,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>パスフレーズが設定されていて圧縮が無効の場合、メッセージファイルはアーカイブの中ではなく隣にコピーされ、そこでは何も暗号化されません。そのためバックアップは実行を拒否します。圧縮を有効にするか、パスフレーズを消してください。</value>
+  </data>
+  <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
+    <value>リストマネージャーが有効な場合、リストは自分自身のアドレス - -subscribe、-unsubscribe、-request、-owner、-bounces の各アドレス - に応答し、各メンバーに自分専用のコピーを送り、それぞれ独自の退会方法を持たせます。各メンバーの配送とバウンスは Control Deck に表示されます。</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
     <value>これをオンにすると、認証済みセッションの MAIL FROM は、アカウント自身のアドレス、そのアカウントに解決されるエイリアス、または所有者がそのアカウントに INBOX への投稿 (p) 権を付与した別のメールボックスでなければなりません。共有メールボックスの代理送信はこのように、任意の IMAP クライアントの ACL エディター (SETACL) または COM API 経由で付与されます。それ以外はメッセージの 1 バイトも受け入れられる前に 550 5.7.1 で拒否されるため、侵害された、または不注意な 1 つのアカウントが他のすべてのアカウントとして送信することはできなくなります。以前はこれを制約するものがなく、それに依存する環境があり得るため、既定ではオフです。null 送信者は常に許可されます。未認証セッションには影響しません。</value>
@@ -10782,6 +10830,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_Follow this message" xml:space="preserve">
     <value>このメッセージを追跡(_F)</value>
   </data>
+  <data name="_Footer" xml:space="preserve">
+    <value>フッター(_F)</value>
+  </data>
   <data name="_Forward incoming mail" xml:space="preserve">
     <value>受信メールを転送する(_F)</value>
   </data>
@@ -10910,6 +10961,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="_Outside senders always get the domain's text, even when the account has its own" xml:space="preserve">
     <value>アカウントに独自のテキストがある場合でも、外部の送信者には常にドメインのテキストを返す(_O)</value>
+  </data>
+  <data name="_Owner (empty = the moderator)" xml:space="preserve">
+    <value>オーナー (空 = モデレーター)(_O)</value>
   </data>
   <data name="_Password" xml:space="preserve">
     <value>パスワード(_P)</value>

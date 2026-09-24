@@ -1374,6 +1374,12 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Iedereen in het domein mag verzenden</value>
   </data>
+  <data name="Anyone the owner approves after they confirm" xml:space="preserve">
+    <value>Iedereen die de eigenaar goedkeurt nadat ze bevestigen</value>
+  </data>
+  <data name="Anyone who confirms by mail" xml:space="preserve">
+    <value>Iedereen die per e-mail bevestigt</value>
+  </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Alles wat geen letter of cijfer is telt, in plaats van een vaste lijst leestekens, zodat een toetsenbordindeling die u niet hebt de regel niet onvervulbaar kan maken.</value>
   </data>
@@ -1424,6 +1430,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Het profiel {0} toepassen? {1} instellingen veranderen, en wat ze hadden wordt bewaard zodat het teruggezet kan worden.</value>
+  </data>
+  <data name="Ar_chive" xml:space="preserve">
+    <value>A_rchief</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled kon niet worden gelezen: {0}</value>
@@ -3099,6 +3108,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Different" xml:space="preserve">
     <value>Afwijkend</value>
   </data>
+  <data name="Digest _hour (0-23)" xml:space="preserve">
+    <value>_Uur van de samenvatting (0-23)</value>
+  </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Uur van het overzicht</value>
   </data>
@@ -3412,6 +3424,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Ingeschakeld zodra "Controleren" heeft bevestigd dat het gepubliceerde record de publieke sleutel van deze sleutel draagt.</value>
+  </data>
+  <data name="Encode each member in the bounce address (_VERP)" xml:space="preserve">
+    <value>Elk lid _coderen in het bounceadres (VERP)</value>
   </data>
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>Het archief met een wachtwoordzin _versleutelen (AES-256, bestandsnamen inbegrepen)</value>
@@ -3847,6 +3862,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Voor de zoekmodus: een serviceaccount dat de directory mag lezen. Elk gewoon domeinaccount mag dat standaard; verdere rechten zijn niet nodig.</value>
+  </data>
+  <data name="For the members" xml:space="preserve">
+    <value>Voor de leden</value>
   </data>
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>Voor tokens die buiten deze server zijn verkregen. Laat dit bij normaal gebruik leeg - vaste tokens verlopen en niets hier vernieuwt ze.</value>
@@ -4456,6 +4474,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Keep" xml:space="preserve">
     <value>Behouden</value>
   </data>
+  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
+    <value>_Gearchiveerde berichten bewaren gedurende (dagen, 0 = voor altijd)</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Greylisting actief houden tijdens het venster waarin het record verloopt</value>
   </data>
@@ -4827,6 +4848,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="MX query" xml:space="preserve">
     <value>MX-query</value>
+  </data>
+  <data name="Ma_naged by the list manager" xml:space="preserve">
+    <value>Be_heerd door de lijstbeheerder</value>
   </data>
   <data name="Machine-readable output for log shippers." xml:space="preserve">
     <value>Machineleesbare uitvoer voor logverzamelaars.</value>
@@ -5427,6 +5451,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Geen app-wachtwoorden. Maak er een per e-mailclient, zodat het verliezen van een apparaat alleen dat apparaat intrekt.</value>
   </data>
+  <data name="No archive" xml:space="preserve">
+    <value>Geen archief</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Er is geen back-upbestemming ingesteld.</value>
   </data>
@@ -5633,6 +5660,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Geen enkele virusscanner kan draaien. Bijlageblokkering verwijdert nog steeds de bestandsnaampatronen op zijn eigen pagina, maar niets kijkt in een bericht of in een archief.</value>
+  </data>
+  <data name="Nobody - the members are added here" xml:space="preserve">
+    <value>Niemand - de leden worden hier toegevoegd</value>
   </data>
   <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
     <value>Niemand heeft nog een rol. Een account zonder rol heeft de rechten die zijn beheerdersniveau geeft, precies als voordat er rollen waren.</value>
@@ -6527,6 +6557,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Proxy's die een PROXY-header mogen sturen (door komma's gescheiden adressen of CIDR-bereiken)</value>
   </data>
+  <data name="Public" xml:space="preserve">
+    <value>Openbaar</value>
+  </data>
   <data name="Public folder name" xml:space="preserve">
     <value>Naam van de openbare map</value>
   </data>
@@ -7066,6 +7099,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Replaces the envelope sender with the forwarding account's own address. That makes SPF pass at the next hop, at the cost of the original sender's address: a bounce comes back to the forwarding mailbox instead of to whoever wrote the message. SRS below does the same job without losing the return path, and while SRS is enabled this setting is not consulted at all." xml:space="preserve">
     <value>Vervangt de envelopafzender door het eigen adres van het doorsturende account. Daarmee slaagt SPF bij de volgende hop, ten koste van het adres van de oorspronkelijke afzender: een bounce komt terug bij het doorsturende postvak in plaats van bij degene die het bericht schreef. SRS hieronder doet hetzelfde werk zonder het retourpad te verliezen, en zolang SRS is ingeschakeld wordt deze instelling helemaal niet geraadpleegd.</value>
+  </data>
+  <data name="Replies go to th_e list" xml:space="preserve">
+    <value>Antwoorden gaan _naar de lijst</value>
   </data>
   <data name="Reply" xml:space="preserve">
     <value>Antwoorden</value>
@@ -7890,6 +7926,9 @@ Doorgaan?</value>
   <data name="Send a _domain-wide out-of-office reply" xml:space="preserve">
     <value>Een afwezigheidsantwoord voor het hele _domein verzenden</value>
   </data>
+  <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
+    <value>Een dagelijkse _samenvatting sturen naar de leden die dat kiezen</value>
+  </data>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Stuur een bericht naar elk account op de server (of naar de accounts die aan een jokerteken voldoen) - voor onderhoudsaankondigingen.</value>
   </data>
@@ -8511,6 +8550,9 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Onderwerp</value>
+  </data>
+  <data name="Subject _prefix" xml:space="preserve">
+    <value>Onderwerp-_prefix</value>
   </data>
   <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
     <value>Onderwerp voor collega'_s (leeg = gelijk aan hierboven)</value>
@@ -10467,6 +10509,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Wie wat wanneer wijzigde, via welke interface en van waar - elke beheerwijziging als één rij in een hashketen - en een instelling teruggezet naar de waarde die ze had.</value>
   </data>
+  <data name="Who may _join" xml:space="preserve">
+    <value>W_ie mag deelnemen</value>
+  </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Wie wat mag beheren: de benoemde rollen van deze server en de accounts die ze hebben.</value>
   </data>
@@ -10529,6 +10574,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>Met een ingestelde wachtwoordzin en compressie uit worden de berichtbestanden naast het archief gekopieerd in plaats van erin, waar niets ze versleutelt - en de back-up weigert te draaien. Zet compressie aan, of wis de wachtwoordzin.</value>
+  </data>
+  <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
+    <value>Als de lijstbeheerder aan staat, beantwoordt de lijst haar eigen adressen - de adressen -subscribe, -unsubscribe, -request, -owner en -bounces - en stuurt elk lid een eigen kopie, met een eigen manier om de lijst te verlaten. De aflevering en bounces van elk lid worden getoond in het Control Deck.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
     <value>Hiermee aan moet MAIL FROM in een geauthenticeerde sessie het eigen adres van het account zijn, een alias die daarnaar verwijst, of een ander postvak waarvan de eigenaar het account het post-recht (p) op zijn INBOX heeft verleend - zo wordt Send-As voor een gedeeld postvak verleend, vanuit de ACL-editor van elke IMAP-client (SETACL) of via de COM-API. Al het andere wordt geweigerd met 550 5.7.1 voordat er één byte van het bericht is geaccepteerd, zodat één gecompromitteerd of onzorgvuldig account niet langer als elk ander account kan versturen. Standaard uit, omdat hier voorheen niets aan gebonden was en een installatie daarvan kan afhangen; de lege afzender is altijd toegestaan. Niet-geauthenticeerde sessies blijven ongemoeid.</value>
@@ -10782,6 +10830,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Follow this message" xml:space="preserve">
     <value>_Dit bericht volgen</value>
   </data>
+  <data name="_Footer" xml:space="preserve">
+    <value>Voette_kst</value>
+  </data>
   <data name="_Forward incoming mail" xml:space="preserve">
     <value>_Inkomende mail doorsturen</value>
   </data>
@@ -10910,6 +10961,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Outside senders always get the domain's text, even when the account has its own" xml:space="preserve">
     <value>_Externe afzenders krijgen altijd de tekst van het domein, ook wanneer het account een eigen tekst heeft</value>
+  </data>
+  <data name="_Owner (empty = the moderator)" xml:space="preserve">
+    <value>Eigenaar (leeg = _de moderator)</value>
   </data>
   <data name="_Password" xml:space="preserve">
     <value>_Wachtwoord</value>

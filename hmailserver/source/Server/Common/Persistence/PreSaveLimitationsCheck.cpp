@@ -456,6 +456,18 @@ namespace HM
          list->SetMembership(normalised);
       }
 
+      // The list manager's fields (ListManager.h), judged here for the same
+      // reason: COM's Save and the REST routes refuse a digest hour of 25 or a
+      // prefix of 65 characters in the one sentence.
+      {
+         String reason;
+         if (!list->ValidateManager(reason))
+         {
+            resultDescription = reason;
+            return false;
+         }
+      }
+
       if (list->GetID() == 0)
       {
          // The flag, not the number. The Control Panel draws this limit as a

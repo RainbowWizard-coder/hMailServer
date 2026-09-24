@@ -1374,6 +1374,12 @@ Control Panel может читать файлы сообщений только
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Отправлять может любой в домене</value>
   </data>
+  <data name="Anyone the owner approves after they confirm" xml:space="preserve">
+    <value>Любой, кого владелец одобрит после подтверждения</value>
+  </data>
+  <data name="Anyone who confirms by mail" xml:space="preserve">
+    <value>Любой, кто подтвердит по почте</value>
+  </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Засчитывается всё, что не является буквой или цифрой, а не фиксированный перечень знаков препинания, — поэтому раскладка клавиатуры, которой у вас нет, не сделает правило невыполнимым.</value>
   </data>
@@ -1424,6 +1430,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Применить профиль {0}? Изменятся параметры: {1}; их прежние значения сохранятся, чтобы их можно было вернуть.</value>
+  </data>
+  <data name="Ar_chive" xml:space="preserve">
+    <value>Ар_хив</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>Не удалось прочитать ArcSealingEnabled: {0}</value>
@@ -3099,6 +3108,9 @@ Control Panel может читать файлы сообщений только
   <data name="Different" xml:space="preserve">
     <value>Отличается</value>
   </data>
+  <data name="Digest _hour (0-23)" xml:space="preserve">
+    <value>_Час дайджеста (0-23)</value>
+  </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Час сводки</value>
   </data>
@@ -3412,6 +3424,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Становится доступно после того, как «Проверить» подтвердит, что опубликованная запись содержит открытый ключ именно этого ключа.</value>
+  </data>
+  <data name="Encode each member in the bounce address (_VERP)" xml:space="preserve">
+    <value>Кодировать каждого участника в адресе для отказов (_VERP)</value>
   </data>
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>Ш_ифровать архив парольной фразой (AES-256, вместе с именами файлов)</value>
@@ -3847,6 +3862,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Для режима поиска: учётная запись службы, которой разрешено читать каталог. По умолчанию это может любая обычная доменная учётная запись; других прав ей не нужно.</value>
+  </data>
+  <data name="For the members" xml:space="preserve">
+    <value>Для участников</value>
   </data>
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>Для токенов, полученных вне этого сервера. В обычной работе оставьте поле пустым — у фиксированных токенов истекает срок действия, и обновить их здесь некому.</value>
@@ -4456,6 +4474,9 @@ Control Panel может читать файлы сообщений только
   <data name="Keep" xml:space="preserve">
     <value>Сохранить</value>
   </data>
+  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
+    <value>Хра_нить архивированные сообщения (дней, 0 = вечно)</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Оставлять серые списки активными в окне истечения записей</value>
   </data>
@@ -4827,6 +4848,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="MX query" xml:space="preserve">
     <value>Запрос MX</value>
+  </data>
+  <data name="Ma_naged by the list manager" xml:space="preserve">
+    <value>_Управляется менеджером списка</value>
   </data>
   <data name="Machine-readable output for log shippers." xml:space="preserve">
     <value>Машиночитаемый вывод для средств доставки журналов.</value>
@@ -5427,6 +5451,9 @@ Control Panel может читать файлы сообщений только
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Паролей приложений нет. Создавайте по одному на каждый почтовый клиент, чтобы потеря устройства отзывала доступ только у него.</value>
   </data>
+  <data name="No archive" xml:space="preserve">
+    <value>Без архива</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Место для резервной копии не задано.</value>
   </data>
@@ -5633,6 +5660,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Ни один антивирусный сканер работать не может. Блокировка вложений всё ещё удаляет файлы по шаблонам имён на своей странице, но внутрь сообщения и внутрь архива не заглядывает ничто.</value>
+  </data>
+  <data name="Nobody - the members are added here" xml:space="preserve">
+    <value>Никто - участники добавляются здесь</value>
   </data>
   <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
     <value>Роль пока никому не назначена. Учётная запись без роли имеет права, которые даёт её уровень администратора, ровно как и до появления ролей.</value>
@@ -6527,6 +6557,9 @@ Control Panel может читать файлы сообщений только
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Прокси, которым разрешено отправлять заголовок PROXY (адреса или диапазоны CIDR через запятую)</value>
   </data>
+  <data name="Public" xml:space="preserve">
+    <value>Публичный</value>
+  </data>
   <data name="Public folder name" xml:space="preserve">
     <value>Имя общей папки</value>
   </data>
@@ -7066,6 +7099,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Replaces the envelope sender with the forwarding account's own address. That makes SPF pass at the next hop, at the cost of the original sender's address: a bounce comes back to the forwarding mailbox instead of to whoever wrote the message. SRS below does the same job without losing the return path, and while SRS is enabled this setting is not consulted at all." xml:space="preserve">
     <value>Заменяет отправителя конверта собственным адресом пересылающей учётной записи. Благодаря этому SPF проходит на следующем узле — ценой адреса исходного отправителя: возврат приходит в пересылающий почтовый ящик, а не тому, кто написал сообщение. SRS ниже решает ту же задачу, не теряя обратного адреса, и пока SRS включён, этот параметр вообще не учитывается.</value>
+  </data>
+  <data name="Replies go to th_e list" xml:space="preserve">
+    <value>_Ответы идут в список</value>
   </data>
   <data name="Reply" xml:space="preserve">
     <value>Ответ</value>
@@ -7890,6 +7926,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Send a _domain-wide out-of-office reply" xml:space="preserve">
     <value>_Отправлять ответ об отсутствии для всего домена</value>
   </data>
+  <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
+    <value>Отправлять _ежедневный дайджест участникам, которые это выберут</value>
+  </data>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Отправьте сообщение всем учётным записям на сервере (или тем, что подходят под шаблон) — для объявлений об обслуживании.</value>
   </data>
@@ -8511,6 +8550,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Тема</value>
+  </data>
+  <data name="Subject _prefix" xml:space="preserve">
+    <value>П_рефикс темы</value>
   </data>
   <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
     <value>Тема для коллег (пусто — как _выше)</value>
@@ -10467,6 +10509,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Кто что изменил, когда, через какой интерфейс и откуда — каждое административное изменение как одна строка хеш-цепочки — и настройка, возвращённая к значению, которое она имела.</value>
   </data>
+  <data name="Who may _join" xml:space="preserve">
+    <value>Кто мо_жет присоединиться</value>
+  </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Кто чем управляет: именованные роли этого сервера и учётные записи, которые их имеют.</value>
   </data>
@@ -10529,6 +10574,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>Если парольная фраза задана, а сжатие выключено, файлы сообщений копируются рядом с архивом, а не внутрь него, где их ничто не шифрует - и резервное копирование откажется работать. Включите сжатие или очистите парольную фразу.</value>
+  </data>
+  <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
+    <value>Когда менеджер списка включён, список отвечает на свои собственные адреса - адреса -subscribe, -unsubscribe, -request, -owner и -bounces - и отправляет каждому участнику его собственную копию, с его собственным способом выйти из списка. Доставка и отказы каждого участника показаны в Control Deck.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
     <value>Если это включено, MAIL FROM в аутентифицированной сессии должен быть собственным адресом учётной записи, псевдонимом, который в неё разрешается, или другим почтовым ящиком, чей владелец предоставил учётной записи право отправки (p) на свой INBOX - именно так выдаётся «отправить от имени» для общего ящика, из редактора ACL любого клиента IMAP (SETACL) или через COM API. Всё остальное отклоняется с 550 5.7.1 до приёма первого байта сообщения, поэтому одна скомпрометированная или небрежная учётная запись больше не может отправлять от имени всех остальных. По умолчанию выключено, потому что раньше этого ничто не ограничивало, и установка может на это полагаться; пустой отправитель разрешён всегда. Неаутентифицированные сессии не затрагиваются.</value>
@@ -10782,6 +10830,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Follow this message" xml:space="preserve">
     <value>_Следить за этим сообщением</value>
   </data>
+  <data name="_Footer" xml:space="preserve">
+    <value>Н_ижний колонтитул</value>
+  </data>
   <data name="_Forward incoming mail" xml:space="preserve">
     <value>_Пересылать входящую почту</value>
   </data>
@@ -10910,6 +10961,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Outside senders always get the domain's text, even when the account has its own" xml:space="preserve">
     <value>_Посторонние отправители всегда получают текст домена, даже если у учётной записи есть собственный</value>
+  </data>
+  <data name="_Owner (empty = the moderator)" xml:space="preserve">
+    <value>Владелец (_пусто — модератор)</value>
   </data>
   <data name="_Password" xml:space="preserve">
     <value>П_ароль</value>

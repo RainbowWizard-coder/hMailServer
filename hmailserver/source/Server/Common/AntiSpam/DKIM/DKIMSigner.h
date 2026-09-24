@@ -19,6 +19,17 @@ namespace HM
       // when we are relaying. The two are independent - see Sign().
       void Sign(std::shared_ptr<Message> message);
 
+      // DKIM-signs the message as a hosted domain that is not its author's:
+      // a managed mailing list's copies, signed as the list's domain
+      // (Util/ListManager.h), because the list changed the posting and RFC 8058
+      // section 4 asks for a valid signature over List-Unsubscribe and
+      // List-Unsubscribe-Post before a receiver offers its one-click. Signs with
+      // the domain's primary selector and key and its own canonicalization, as
+      // Sign does for the author's domain. False, and nothing written, when the
+      // domain does not sign - DKIM off, or no selector or key - or signing
+      // failed; the message then goes as it is.
+      bool SignAsDomain(std::shared_ptr<Message> message, const AnsiString &domainName);
+
    private:
 
       // DKIM-signs the message as the author domain. Returns true if a

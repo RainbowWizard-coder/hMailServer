@@ -1374,6 +1374,12 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Każdy w domenie może wysyłać</value>
   </data>
+  <data name="Anyone the owner approves after they confirm" xml:space="preserve">
+    <value>Każdy, kogo właściciel zatwierdzi po potwierdzeniu</value>
+  </data>
+  <data name="Anyone who confirms by mail" xml:space="preserve">
+    <value>Każdy, kto potwierdzi pocztą</value>
+  </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Liczy się wszystko, co nie jest literą ani cyfrą, a nie ustalona lista znaków interpunkcyjnych - dzięki temu układ klawiatury, którego nie ma na komputerze, nie może uczynić reguły niemożliwą do spełnienia.</value>
   </data>
@@ -1424,6 +1430,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   </data>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Zastosować profil {0}? Zmieni się ustawień: {1}; ich dotychczasowe wartości zostaną zachowane, aby można je było przywrócić.</value>
+  </data>
+  <data name="Ar_chive" xml:space="preserve">
+    <value>A_rchiwum</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>Nie udało się odczytać ArcSealingEnabled: {0}</value>
@@ -3099,6 +3108,9 @@ Nadawca otrzymał informację, że została przyjęta, więc nic nie ponowi pró
   <data name="Different" xml:space="preserve">
     <value>Inny</value>
   </data>
+  <data name="Digest _hour (0-23)" xml:space="preserve">
+    <value>_Godzina podsumowania (0-23)</value>
+  </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Godzina podsumowania</value>
   </data>
@@ -3412,6 +3424,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Odblokowane, gdy „Sprawdź” potwierdzi, że opublikowany rekord zawiera klucz publiczny tego klucza.</value>
+  </data>
+  <data name="Encode each member in the bounce address (_VERP)" xml:space="preserve">
+    <value>Kodować każdego członka w adresie zwrotnym (_VERP)</value>
   </data>
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>_Szyfruj archiwum hasłem (AES-256, razem z nazwami plików)</value>
@@ -3847,6 +3862,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Dla trybu wyszukiwania: konto usługi uprawnione do czytania katalogu. Domyślnie może to każde zwykłe konto domenowe; nie potrzebuje ono żadnych innych uprawnień.</value>
+  </data>
+  <data name="For the members" xml:space="preserve">
+    <value>Dla członków</value>
   </data>
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>Dla tokenów uzyskanych poza tym serwerem. W zwykłym użyciu należy pozostawić puste - stałe tokeny wygasają, a nic tutaj ich nie odświeży.</value>
@@ -4456,6 +4474,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Keep" xml:space="preserve">
     <value>Zachowaj</value>
   </data>
+  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
+    <value>Przechowuj zarchiwizowane wiadomości przez (_dni, 0 = zawsze)</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Utrzymuj greylisting aktywny w oknie poprzedzającym wygaśnięcie wpisu</value>
   </data>
@@ -4827,6 +4848,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   </data>
   <data name="MX query" xml:space="preserve">
     <value>Zapytanie MX</value>
+  </data>
+  <data name="Ma_naged by the list manager" xml:space="preserve">
+    <value>Zarządzane przez menedżera l_isty</value>
   </data>
   <data name="Machine-readable output for log shippers." xml:space="preserve">
     <value>Wyjście czytelne maszynowo dla programów przesyłających dzienniki.</value>
@@ -5427,6 +5451,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Brak haseł aplikacji. Warto utworzyć po jednym na każdego klienta pocztowego, aby utrata urządzenia unieważniała tylko to jedno urządzenie.</value>
   </data>
+  <data name="No archive" xml:space="preserve">
+    <value>Brak archiwum</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Nie ustawiono miejsca docelowego kopii zapasowej.</value>
   </data>
@@ -5633,6 +5660,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Żaden skaner antywirusowy nie może zostać uruchomiony. Blokowanie załączników nadal usuwa pliki pasujące do wzorców nazw z własnej strony, ale nic nie zagląda do wnętrza wiadomości ani do wnętrza archiwum.</value>
+  </data>
+  <data name="Nobody - the members are added here" xml:space="preserve">
+    <value>Nikt - członkowie są dodawani tutaj</value>
   </data>
   <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
     <value>Nikt nie ma jeszcze roli. Konto bez roli ma uprawnienia wynikające z jego poziomu administratora, dokładnie jak przed wprowadzeniem ról.</value>
@@ -6527,6 +6557,9 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Serwery pośredniczące, które mogą wysyłać nagłówek PROXY (adresy lub zakresy CIDR rozdzielone przecinkami)</value>
   </data>
+  <data name="Public" xml:space="preserve">
+    <value>Publiczna</value>
+  </data>
   <data name="Public folder name" xml:space="preserve">
     <value>Nazwa folderu publicznego</value>
   </data>
@@ -7066,6 +7099,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Replaces the envelope sender with the forwarding account's own address. That makes SPF pass at the next hop, at the cost of the original sender's address: a bounce comes back to the forwarding mailbox instead of to whoever wrote the message. SRS below does the same job without losing the return path, and while SRS is enabled this setting is not consulted at all." xml:space="preserve">
     <value>Zastępuje nadawcę koperty własnym adresem konta przekazującego. Dzięki temu SPF przechodzi na następnym przeskoku, kosztem adresu pierwotnego nadawcy: zwrotka wraca do skrzynki pocztowej przekazującej, a nie do autora wiadomości. SRS poniżej wykonuje to samo zadanie bez utraty ścieżki powrotnej, a gdy SRS jest włączone, to ustawienie w ogóle nie jest brane pod uwagę.</value>
+  </data>
+  <data name="Replies go to th_e list" xml:space="preserve">
+    <value>Odpowiedzi trafiają _na listę</value>
   </data>
   <data name="Reply" xml:space="preserve">
     <value>Odpowiedz</value>
@@ -7890,6 +7926,9 @@ Kontynuować?</value>
   <data name="Send a _domain-wide out-of-office reply" xml:space="preserve">
     <value>Wysyłaj odpowiedź o nieobecności dla całej _domeny</value>
   </data>
+  <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
+    <value>Wysyłaj codzienne podsumowanie do członków, którzy _je wybiorą</value>
+  </data>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Wyślij wiadomość do każdego konta na serwerze (lub do kont pasujących do maski) - do ogłoszeń serwisowych.</value>
   </data>
@@ -8511,6 +8550,9 @@ Uruchomić ją ponownie teraz?</value>
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Temat</value>
+  </data>
+  <data name="Subject _prefix" xml:space="preserve">
+    <value>Pr_efiks tematu</value>
   </data>
   <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
     <value>Temat dla współpracowników (_pusty = jak wyżej)</value>
@@ -10467,6 +10509,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Kto zmienił co, kiedy, przez jaki interfejs i skąd - każda zmiana administracyjna jako jeden wiersz łańcucha skrótów - oraz ustawienie przywrócone do wartości, jaką miało.</value>
   </data>
+  <data name="Who may _join" xml:space="preserve">
+    <value>Kt_o może dołączyć</value>
+  </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Kto czym administruje: nazwane role tego serwera i konta, które je mają.</value>
   </data>
@@ -10529,6 +10574,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>Przy ustawionym haśle i wyłączonej kompresji pliki wiadomości są kopiowane obok archiwum zamiast do niego, gdzie nic ich nie szyfruje - i kopia zapasowa odmawia uruchomienia. Włącz kompresję albo wyczyść hasło.</value>
+  </data>
+  <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
+    <value>Gdy menedżer listy jest włączony, lista odpowiada na własne adresy - swoje adresy -subscribe, -unsubscribe, -request, -owner i -bounces - i wysyła każdemu członkowi jego własną kopię, z jego własnym sposobem rezygnacji. Dostarczanie i zwroty każdego członka są pokazywane w Control Deck.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
     <value>Gdy to jest włączone, MAIL FROM w uwierzytelnionej sesji musi być własnym adresem konta, aliasem, który się do niego rozwiązuje, albo inną skrzynką, której właściciel nadał kontu prawo wysyłania (p) do swojej skrzynki INBOX - tak właśnie nadaje się „wyślij jako” dla skrzynki współdzielonej, z edytora ACL dowolnego klienta IMAP (SETACL) albo przez COM API. Wszystko inne jest odrzucane z 550 5.7.1, zanim przyjęty zostanie choć bajt wiadomości, więc jedno przejęte lub niedbałe konto nie może już wysyłać jako wszystkie pozostałe. Domyślnie wyłączone, bo wcześniej nic tego nie ograniczało i instalacja może na tym polegać; pusty nadawca jest zawsze dozwolony. Sesje nieuwierzytelnione nie są objęte.</value>
@@ -10782,6 +10830,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Follow this message" xml:space="preserve">
     <value>_Obserwuj tę wiadomość</value>
   </data>
+  <data name="_Footer" xml:space="preserve">
+    <value>_Stopka</value>
+  </data>
   <data name="_Forward incoming mail" xml:space="preserve">
     <value>_Przekazuj pocztę przychodzącą</value>
   </data>
@@ -10910,6 +10961,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Outside senders always get the domain's text, even when the account has its own" xml:space="preserve">
     <value>_Nadawcy z zewnątrz zawsze otrzymują tekst domeny, nawet gdy konto ma własny</value>
+  </data>
+  <data name="_Owner (empty = the moderator)" xml:space="preserve">
+    <value>Właś_ciciel (puste = moderator)</value>
   </data>
   <data name="_Password" xml:space="preserve">
     <value>_Hasło</value>

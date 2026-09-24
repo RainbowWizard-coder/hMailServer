@@ -551,6 +551,11 @@ namespace HM
       const std::vector<std::shared_ptr<DistributionListRecipient> > recipients = rows->GetConstVector();
       for (const std::shared_ptr<DistributionListRecipient> &recipient : recipients)
       {
+         // A request to join a managed list (ListManager.h), still waiting for
+         // its own confirmation or for the owner's approval, is not a member.
+         if (!recipient->GetIsMember())
+            continue;
+
          const String address = recipient->GetAddress();
          if (address.IsEmpty())
             continue;
@@ -615,7 +620,7 @@ namespace HM
       const std::vector<std::shared_ptr<DistributionListRecipient> > recipients = rows->GetConstVector();
       for (const std::shared_ptr<DistributionListRecipient> &recipient : recipients)
       {
-         if (Lowered(recipient->GetAddress()) == wanted)
+         if (recipient->GetIsMember() && Lowered(recipient->GetAddress()) == wanted)
             return true;
       }
 

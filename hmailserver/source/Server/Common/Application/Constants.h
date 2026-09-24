@@ -346,6 +346,17 @@
 // to another its sender may still withdraw the unread copies, and how long
 // the rows that make that possible are kept. 1 to 365, 14 by default.
 #define PROPERTY_RECALL_DAYS                    _T("RecallDays")
+// The list manager (Util/ListManager.h, docs/MailingLists.md). The absolute
+// https base the links in list mail are written against - the confirmation
+// page, the member's own page with its RFC 8058 one-click unsubscribe, the
+// archive - and empty, the default, for none: a list then offers its mailto
+// addresses alone, because a link that leads nowhere is worse than no link.
+// And the bounce rules: how many hard bounces (1 by default) or soft bounces
+// within how many days (5 within 30) stop a member being sent the list's mail.
+#define PROPERTY_LIST_BASE_URL                  _T("ListBaseUrl")
+#define PROPERTY_LIST_HARD_BOUNCES              _T("ListHardBouncesToUnsubscribe")
+#define PROPERTY_LIST_SOFT_BOUNCES              _T("ListSoftBouncesToUnsubscribe")
+#define PROPERTY_LIST_BOUNCE_WINDOW_DAYS        _T("ListBounceWindowDays")
 // Outbound shaping (SMTP/DestinationBackoff.h, docs/OutboundShaping.md). The
 // back-off a destination's slow-down reply opens: the first window in minutes
 // (0 turns it off; 2 by default) and the most it doubles to (60). And the two
@@ -842,4 +853,34 @@
 //      gone), and a verdict row expires. The step also seeds the thirteen
 //      Sandbox* settings, with the switch off, so an upgraded server holds
 //      nothing until an administrator names a sandbox and turns it on.
-#define REQUIRED_DB_VERSION            6091
+
+// 6092 is the list manager (Util/ListManager.h, docs/MailingLists.md): a
+//      distribution list with its manager switched on answers its own
+//      addresses (name-subscribe, -unsubscribe, -request, -owner, -bounces and
+//      the VERP form name-bounces+local=domain), sends every member a copy of
+//      its own with the RFC 2369 and RFC 8058 headers filled in, keeps an
+//      archive, sends a daily digest and counts its members' bounces. It adds
+//      to hm_distributionlists the switch (distributionlistmanaged), who may
+//      join (distributionlistsubscribe: 0 closed, 1 confirm by mail, 2 the
+//      owner approves), the archive (0 none, 1 members, 2 public) and its
+//      retention in days, the digest switch and hour and where the last one
+//      stopped (distributionlistdigestlastid, distributionlistdigestlasttime),
+//      whether replies go to the list, the subject prefix (64 characters),
+//      the footer (2,000), whether the bounce address encodes the member
+//      (VERP), the owner, and the list's own secret, from which the links in a
+//      membership query member's copies are made (distributionlistsecret); to
+//      hm_distributionlistsrecipients each member's delivery (0 each message,
+//      1 the digest, 2 none), when they joined, their state (1 a member; 0
+//      awaiting their own confirmation, 2 awaiting the owner's, 3 an address
+//      the membership query answers that has left), their secret token, and
+//      their hard and soft bounces with when the soft count started, the last
+//      bounce and the reason delivery was stopped; the table hm_listarchive,
+//      one row per distributed message with its file under the data
+//      directory's Lists folder, its month and whether it was kept for the
+//      archive or only for the digest; and the seven pairs of translatable
+//      texts the manager answers with (LIST_CONFIRM, LIST_REFUSED, LIST_HELP,
+//      LIST_APPROVE, LIST_BOUNCED, LIST_LEAVE, LIST_UNSUBSCRIBED and their
+//      subjects). Every list an upgrade finds is unmanaged and every member
+//      confirmed, receiving each message, so an upgraded server distributes
+//      exactly as it did.
+#define REQUIRED_DB_VERSION            6092

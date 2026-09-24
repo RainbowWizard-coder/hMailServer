@@ -60,6 +60,14 @@ public:
    STDMETHOD(Delete)();
    STDMETHOD(Save)();
 
+   // The list manager's view of the member (Util/ListManager.h), dispids 5 to 9.
+   STDMETHOD(get_Delivery)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_Delivery)(/*[in]*/ long newVal);
+   STDMETHOD(get_HardBounces)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(get_SoftBounces)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(get_Confirmed)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(ResetBounces)();
+
 private:
 
 };

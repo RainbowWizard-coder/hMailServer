@@ -31,9 +31,16 @@ namespace HM
    //    the approval.
    //
    // Deliberately does NOT emit List-Unsubscribe-Post or an https unsubscribe URL.
-   // RFC 8058 one-click requires an HTTPS endpoint which processes a POST, and this
-   // server has none; a one-click header pointing at nothing is worse than no header
-   // at all, because receivers conclude the unsubscribe mechanism is broken.
+   // RFC 8058 one-click requires an HTTPS endpoint which processes a POST and knows
+   // who is asking, and a list that is not managed has no member to name; a
+   // one-click header pointing at nothing is worse than no header at all, because
+   // receivers conclude the unsubscribe mechanism is broken. A MANAGED list
+   // (Common/Util/ListManager.h) is one recipient of its own rather than being
+   // expanded at RCPT TO, so its postings are distributed - and given the whole
+   // RFC 2369 set with each member's own one-click link - by the list manager in
+   // the delivery path; whatever this class adds to a posting that reaches one by
+   // another route (a domain alias of it, an unmanaged list it is a member of) the
+   // manager takes off again. A moderation forward is stamped here as for any list.
    class DistributionListSender
    {
    public:

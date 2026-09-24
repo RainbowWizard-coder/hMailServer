@@ -73,6 +73,100 @@ namespace HM
       ListMode GetListMode() const {return list_mode_; }
       void SetListMode(ListMode m) {list_mode_ = m; }
 
+      // ---- the list manager (Util/ListManager.h, docs/MailingLists.md) ----
+      //
+      // Off on every list an upgrade finds and on every list made without
+      // asking for it, and then everything below is inert: the list expands
+      // to its members at RCPT TO exactly as it always has. On, the list
+      // answers its own addresses (name-subscribe@, name-unsubscribe@,
+      // name-request@, name-owner@, name-bounces@), receives a posting as one
+      // recipient of its own and sends every member a copy of their own from
+      // the delivery path.
+
+      enum SubscribePolicy
+      {
+         SubscribeClosed = 0,     // members are added by the administrator only
+         SubscribeConfirm = 1,    // anyone joins, and confirms by mail or page
+         SubscribeModerated = 2   // anyone asks, confirms, and the owner approves
+      };
+
+      enum ArchiveMode
+      {
+         ArchiveNone = 0,
+         ArchiveMembers = 1,
+         ArchivePublic = 2
+      };
+
+      bool GetManaged() const {return managed_; }
+      void SetManaged(bool newVal) {managed_ = newVal; }
+
+      int GetSubscribePolicy() const {return subscribe_policy_; }
+      void SetSubscribePolicy(int newVal) {subscribe_policy_ = newVal; }
+
+      int GetArchive() const {return archive_; }
+      void SetArchive(int newVal) {archive_ = newVal; }
+
+      // Days an archived message is kept; 0 keeps it for as long as the list
+      // exists.
+      int GetArchiveDays() const {return archive_days_; }
+      void SetArchiveDays(int newVal) {archive_days_ = newVal; }
+
+      bool GetDigest() const {return digest_; }
+      void SetDigest(bool newVal) {digest_ = newVal; }
+
+      // The local hour, 0 to 23, the daily digest goes at.
+      int GetDigestHour() const {return digest_hour_; }
+      void SetDigestHour(int newVal) {digest_hour_ = newVal; }
+
+      // Where the last digest stopped: the highest hm_listarchive id it held,
+      // and when it was sent (Unix time). Written by the digest alone.
+      __int64 GetDigestLastId() const {return digest_last_id_; }
+      void SetDigestLastId(__int64 newVal) {digest_last_id_ = newVal; }
+      __int64 GetDigestLastTime() const {return digest_last_time_; }
+      void SetDigestLastTime(__int64 newVal) {digest_last_time_ = newVal; }
+
+      // True when replies go to the list (Reply-To is the list's address),
+      // false when they go to whoever wrote the posting.
+      bool GetReplyToList() const {return reply_to_list_; }
+      void SetReplyToList(bool newVal) {reply_to_list_ = newVal; }
+
+      String GetSubjectPrefix() const {return subject_prefix_; }
+      void SetSubjectPrefix(const String &newVal) {subject_prefix_ = newVal; }
+
+      String GetFooter() const {return footer_; }
+      void SetFooter(const String &newVal) {footer_ = newVal; }
+
+      // True when each member's copy is sent from name-bounces+local=domain@,
+      // so a bounce names the member whatever the report says.
+      bool GetVerp() const {return verp_; }
+      void SetVerp(bool newVal) {verp_ = newVal; }
+
+      // The person who runs the list: approvals, bounce notices and
+      // name-owner@ go here. Empty means the moderator's address.
+      String GetOwner() const {return owner_; }
+      void SetOwner(const String &newVal) {owner_ = newVal; }
+
+      // The list's own secret: 32 random bytes as 64 hexadecimal characters,
+      // made the first time the list needs it (ListManager::EnsureListSecret)
+      // and never shown anywhere. The link in the copies sent to the accounts
+      // the membership query answers - who have no row, and so no token of
+      // their own - is an HMAC of their address under it. Written by the
+      // manager alone; a whole-list save leaves it as it is.
+      String GetSecret() const {return secret_; }
+      void SetSecret(const String &newVal) {secret_ = newVal; }
+
+      // The longest subject prefix and footer the columns hold.
+      static const int MaxSubjectPrefixLength = 64;
+      static const int MaxFooterLength = 2000;
+
+      // Judges the manager's fields: every value in its range, the texts
+      // within their columns, and an owner that is one e-mail address and
+      // neither the list itself nor one of the addresses it answers. The
+      // sentence is the one a save answers with, over COM and REST alike;
+      // COM's own assignments and REST's reading of a body refuse an
+      // out-of-range number earlier, in words of their own.
+      bool ValidateManager(String &reason) const;
+
       // True when only the single authorized address is allowed to post. RFC 2369
       // requires "List-Post: NO" for such a list rather than the list address,
       // since telling a subscriber to reply to the list would be telling them to
@@ -107,5 +201,20 @@ namespace HM
       String membership_;
 
       ListMode list_mode_;
+
+      bool managed_;
+      int subscribe_policy_;
+      int archive_;
+      int archive_days_;
+      bool digest_;
+      int digest_hour_;
+      __int64 digest_last_id_;
+      __int64 digest_last_time_;
+      bool reply_to_list_;
+      String subject_prefix_;
+      String footer_;
+      bool verp_;
+      String owner_;
+      String secret_;
    };
 }

@@ -1374,6 +1374,12 @@
   <data name="Anyone in the domain can send" xml:space="preserve">
     <value>Надсилати може будь-хто в домені</value>
   </data>
+  <data name="Anyone the owner approves after they confirm" xml:space="preserve">
+    <value>Будь-хто, кого власник схвалить після підтвердження</value>
+  </data>
+  <data name="Anyone who confirms by mail" xml:space="preserve">
+    <value>Будь-хто, хто підтвердить поштою</value>
+  </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Зараховується будь-який символ, що не є літерою чи цифрою, а не фіксований перелік розділових знаків, тож розкладка клавіатури, якої у вас немає, не зробить це правило нездійсненним.</value>
   </data>
@@ -1424,6 +1430,9 @@
   </data>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Застосувати профіль {0}? Зміняться параметри: {1}; їхні попередні значення збережуться, щоб їх можна було повернути.</value>
+  </data>
+  <data name="Ar_chive" xml:space="preserve">
+    <value>А_рхів</value>
   </data>
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>Не вдалося прочитати ArcSealingEnabled: {0}</value>
@@ -3099,6 +3108,9 @@
   <data name="Different" xml:space="preserve">
     <value>Відрізняється</value>
   </data>
+  <data name="Digest _hour (0-23)" xml:space="preserve">
+    <value>_Година дайджесту (0-23)</value>
+  </data>
   <data name="Digest hour" xml:space="preserve">
     <value>Година зведення</value>
   </data>
@@ -3412,6 +3424,9 @@
   </data>
   <data name="Enabled once &quot;Check&quot; has confirmed the published record carries this key's public key." xml:space="preserve">
     <value>Вмикається після того, як «Перевірити» підтвердить, що опублікований запис містить відкритий ключ цього ключа.</value>
+  </data>
+  <data name="Encode each member in the bounce address (_VERP)" xml:space="preserve">
+    <value>Кодувати кожного учасника в адресі для відмов (_VERP)</value>
   </data>
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>Ш_ифрувати архів парольною фразою (AES-256, разом з іменами файлів)</value>
@@ -3847,6 +3862,9 @@
   </data>
   <data name="For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights." xml:space="preserve">
     <value>Для режиму пошуку: обліковий запис служби, якому дозволено читати каталог. Будь-який звичайний доменний обліковий запис може це типово; інших прав йому не потрібно.</value>
+  </data>
+  <data name="For the members" xml:space="preserve">
+    <value>Для учасників</value>
   </data>
   <data name="For tokens obtained outside this server. Leave empty in normal use - fixed tokens expire and nothing here will refresh them." xml:space="preserve">
     <value>Для токенів, отриманих поза цим сервером. У звичайному використанні залиште порожнім - фіксовані токени спливають, і ніщо тут їх не оновить.</value>
@@ -4456,6 +4474,9 @@
   <data name="Keep" xml:space="preserve">
     <value>Залишити</value>
   </data>
+  <data name="Keep archived messages for (_days, 0 = for ever)" xml:space="preserve">
+    <value>Зберігати архівовані повідомлення (днів, 0 = _назавжди)</value>
+  </data>
   <data name="Keep greylisting active during the record-expiration window" xml:space="preserve">
     <value>Не вимикати сірий список протягом вікна закінчення терміну дії записів</value>
   </data>
@@ -4827,6 +4848,9 @@
   </data>
   <data name="MX query" xml:space="preserve">
     <value>Запит MX</value>
+  </data>
+  <data name="Ma_naged by the list manager" xml:space="preserve">
+    <value>К_ерується менеджером списку</value>
   </data>
   <data name="Machine-readable output for log shippers." xml:space="preserve">
     <value>Машиночитаний вивід для збирачів журналів.</value>
@@ -5427,6 +5451,9 @@
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Паролів програм немає. Створіть по одному на кожен поштовий клієнт, щоб втрата пристрою відкликала лише цей пристрій.</value>
   </data>
+  <data name="No archive" xml:space="preserve">
+    <value>Без архіву</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Місце для резервної копії не задано.</value>
   </data>
@@ -5633,6 +5660,9 @@
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Жоден антивірусний сканер не може працювати. Блокування вкладень і далі вилучає шаблони імен файлів на своїй сторінці, але всередину повідомлення чи архіву ніщо не заглядає.</value>
+  </data>
+  <data name="Nobody - the members are added here" xml:space="preserve">
+    <value>Ніхто - учасники додаються тут</value>
   </data>
   <data name="Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed." xml:space="preserve">
     <value>Роль ще нікому не призначено. Обліковий запис без ролі має права, які дає його рівень адміністратора, так само як і до появи ролей.</value>
@@ -6527,6 +6557,9 @@
   <data name="Proxies allowed to send a PROXY header (comma-separated addresses or CIDR ranges)" xml:space="preserve">
     <value>Проксі, яким дозволено надсилати заголовок PROXY (адреси або діапазони CIDR через кому)</value>
   </data>
+  <data name="Public" xml:space="preserve">
+    <value>Публічний</value>
+  </data>
   <data name="Public folder name" xml:space="preserve">
     <value>Назва публічної папки</value>
   </data>
@@ -7066,6 +7099,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Replaces the envelope sender with the forwarding account's own address. That makes SPF pass at the next hop, at the cost of the original sender's address: a bounce comes back to the forwarding mailbox instead of to whoever wrote the message. SRS below does the same job without losing the return path, and while SRS is enabled this setting is not consulted at all." xml:space="preserve">
     <value>Замінює відправника конверта власною адресою облікового запису, який пересилає. Це дає проходження SPF на наступному вузлі ціною адреси початкового відправника: повернення приходить до скриньки, яка пересилає, а не до того, хто написав повідомлення. SRS нижче робить те саме без втрати зворотного шляху, і доки SRS увімкнено, цей параметр узагалі не враховується.</value>
+  </data>
+  <data name="Replies go to th_e list" xml:space="preserve">
+    <value>Відповіді _йдуть у список</value>
   </data>
   <data name="Reply" xml:space="preserve">
     <value>Відповідь</value>
@@ -7890,6 +7926,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Send a _domain-wide out-of-office reply" xml:space="preserve">
     <value>Надсилати _загальнодоменну відповідь про відсутність</value>
   </data>
+  <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
+    <value>Надсилати _щоденний дайджест учасникам, які це оберуть</value>
+  </data>
   <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
     <value>Надіслати повідомлення кожному обліковому запису на сервері (або тим, що відповідають шаблону) - для оголошень про обслуговування.</value>
   </data>
@@ -8511,6 +8550,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Subject" xml:space="preserve">
     <value>Тема</value>
+  </data>
+  <data name="Subject _prefix" xml:space="preserve">
+    <value>Префікс _теми</value>
   </data>
   <data name="Subject for _colleagues (empty = same as above)" xml:space="preserve">
     <value>Тема для _колег (порожня — як вище)</value>
@@ -10467,6 +10509,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Хто що змінив, коли, через який інтерфейс і звідки — кожна адміністративна зміна як один рядок хеш-ланцюга — і налаштування, повернуте до значення, яке воно мало.</value>
   </data>
+  <data name="Who may _join" xml:space="preserve">
+    <value>Хт_о може приєднатися</value>
+  </data>
   <data name="Who may administer what: the named roles this server has, and the accounts that hold them." xml:space="preserve">
     <value>Хто чим керує: іменовані ролі цього сервера та облікові записи, які їх мають.</value>
   </data>
@@ -10529,6 +10574,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>Якщо парольну фразу задано, а стиснення вимкнено, файли повідомлень копіюються поруч з архівом, а не всередину нього, де їх ніщо не шифрує - і резервне копіювання відмовиться працювати. Увімкніть стиснення або очистіть парольну фразу.</value>
+  </data>
+  <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
+    <value>Коли менеджер списку увімкнено, список відповідає на власні адреси - адреси -subscribe, -unsubscribe, -request, -owner і -bounces - і надсилає кожному учаснику його власну копію, з його власним способом вийти зі списку. Доставку та відмови кожного учасника показано в Control Deck.</value>
   </data>
   <data name="With this on, MAIL FROM in an authenticated session must be the account's own address, an alias that resolves to it, or another mailbox whose owner has granted the account the post (p) right on their INBOX - which is how Send-As for a shared mailbox is granted, from any IMAP client's ACL editor (SETACL) or over the COM API. Anything else is refused with 550 5.7.1 before a byte of the message is accepted, so one compromised or careless account can no longer send as every other. Off by default because nothing constrained this before and an installation may depend on that; the null sender is always allowed. Unauthenticated sessions are unaffected." xml:space="preserve">
     <value>Якщо це увімкнено, MAIL FROM в автентифікованій сесії має бути власною адресою облікового запису, псевдонімом, який у нього розв'язується, або іншою поштовою скринькою, чий власник надав обліковому запису право надсилання (p) на свій INBOX - саме так надається «надіслати від імені» для спільної скриньки, з редактора ACL будь-якого клієнта IMAP (SETACL) або через COM API. Усе інше відхиляється з 550 5.7.1 до приймання першого байта повідомлення, тому один скомпрометований або недбалий обліковий запис більше не може надсилати від імені всіх інших. Типово вимкнено, бо раніше цього ніщо не обмежувало, і установка може на це покладатися; порожній відправник дозволений завжди. Неавтентифіковані сесії не зачіпаються.</value>
@@ -10782,6 +10830,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Follow this message" xml:space="preserve">
     <value>_Стежити за цим повідомленням</value>
   </data>
+  <data name="_Footer" xml:space="preserve">
+    <value>Нижній _колонтитул</value>
+  </data>
   <data name="_Forward incoming mail" xml:space="preserve">
     <value>_Пересилати вхідну пошту</value>
   </data>
@@ -10910,6 +10961,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Outside senders always get the domain's text, even when the account has its own" xml:space="preserve">
     <value>_Сторонні відправники завжди отримують текст домену, навіть коли обліковий запис має власний</value>
+  </data>
+  <data name="_Owner (empty = the moderator)" xml:space="preserve">
+    <value>Власник (_порожньо = модератор)</value>
   </data>
   <data name="_Password" xml:space="preserve">
     <value>Па_роль</value>

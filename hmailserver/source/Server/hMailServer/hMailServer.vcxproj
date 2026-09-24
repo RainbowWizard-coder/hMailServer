@@ -312,6 +312,7 @@ EXIT 0
     <ClCompile Include="..\Common\Application\MailboxRetentionTask.cpp" />
     <ClCompile Include="..\Common\Application\MetricsHistoryTask.cpp" />
     <ClCompile Include="..\Common\Application\QuarantineDigestTask.cpp" />
+    <ClCompile Include="..\Common\Application\ListDigestTask.cpp" />
     <ClCompile Include="..\Common\Application\DkimRotationTask.cpp" />
     <ClCompile Include="..\Common\Application\ReputationWatchTask.cpp" />
     <ClCompile Include="..\Common\Application\ScheduledMailTask.cpp" />
@@ -685,6 +686,9 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiRecoverable.cpp" />
     <ClCompile Include="..\Common\Util\DistributionListMembership.cpp" />
     <ClCompile Include="..\Common\Util\RestApiDistributionLists.cpp" />
+    <ClCompile Include="..\Common\Util\ListManager.cpp" />
+    <ClCompile Include="..\Common\Util\ListArchive.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiMailingLists.cpp" />
     <ClCompile Include="..\Common\Util\WebAuthn.cpp" />
     <ClCompile Include="..\Common\Util\PasskeyStore.cpp" />
     <ClCompile Include="..\Common\Util\RestApiPasskeys.cpp" />
@@ -1229,6 +1233,7 @@ EXIT 0
     <ClInclude Include="..\Common\Application\MailboxRetentionTask.h" />
     <ClInclude Include="..\Common\Application\MetricsHistoryTask.h" />
     <ClInclude Include="..\Common\Application\QuarantineDigestTask.h" />
+    <ClInclude Include="..\Common\Application\ListDigestTask.h" />
     <ClInclude Include="..\Common\Application\DkimRotationTask.h" />
     <ClInclude Include="..\Common\Application\ReputationWatchTask.h" />
     <ClInclude Include="..\Common\Application\ScheduledMailTask.h" />
@@ -1575,6 +1580,8 @@ EXIT 0
     <ClInclude Include="..\Common\Util\DirectoryStore.h" />
     <ClInclude Include="..\Common\Util\RecoverableStore.h" />
     <ClInclude Include="..\Common\Util\DistributionListMembership.h" />
+    <ClInclude Include="..\Common\Util\ListManager.h" />
+    <ClInclude Include="..\Common\Util\ListArchive.h" />
     <ClInclude Include="..\Common\Util\WebAuthn.h" />
     <ClInclude Include="..\Common\Util\PasskeyStore.h" />
     <ClInclude Include="..\Common\Util\OidcSignIn.h" />

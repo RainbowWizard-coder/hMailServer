@@ -13,6 +13,16 @@ message is sent, including the person who joined this morning and excluding the
 one whose account was switched off last night, without anybody having opened the
 Control Panel.
 
+A list people join and leave themselves - by mail and by page, with a copy of
+their own that carries their way out, an archive, a daily digest and bounce
+handling - is a distribution list with the **list manager** switched on, and is
+described in [MailingLists.md](MailingLists.md). A managed list keeps its
+membership query: the accounts it answers are sent each message. They have no
+row of their own, so they choose no delivery; they leave by the link in their
+copies, or by the list's mailto address, which answers with a link to confirm,
+and a row is then kept saying the address has left - which the query's answer
+does not get past.
+
 The five forms
 --------------
 

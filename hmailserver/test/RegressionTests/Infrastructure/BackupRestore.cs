@@ -493,7 +493,40 @@ namespace RegressionTests.Infrastructure
 
          var list = SingletonProvider<TestSetup>.Instance.AddDistributionList(domain, "list@example.test",
             listRecipients);
+
+         // The list manager's settings and a member's own delivery
+         // (docs/MailingLists.md), which the backup carries as attributes of the
+         // list and of the recipient.
+         list.Managed = true;
+         list.SubscribePolicy = 2;
+         list.Archive = 1;
+         list.ArchiveDays = 30;
+         list.Digest = true;
+         list.DigestHour = 9;
+         list.ReplyToList = true;
+         list.SubjectPrefix = "[list]";
+         list.Footer = "The list's footer.";
+         list.Verp = true;
+         list.Owner = "owner@example.test";
+         list.Save();
+
+         var member2 = list.Recipients[1];
+         member2.Delivery = 1;
+         member2.Save();
+
+         // The manager's own columns of a row, which nothing but the manager
+         // writes and COM does not: a request waiting for the owner, with
+         // bounce counts, a reason and a token of its own. Written here straight
+         // into the row, and read back after the restore.
+         _application.Database.ExecuteSQL(
+            "update hm_distributionlistsrecipients set distributionlistrecipientconfirmed = 2, " +
+            "distributionlistrecipienthardbounces = 3, distributionlistrecipientsoftbounces = 2, " +
+            "distributionlistrecipienttoken = '" + BackupListToken + "', distributionlistrecipientreason = 'Three hard bounces.' " +
+            "where distributionlistrecipientaddress = 'member3@example.test'");
       }
+
+      // The token member3 is given before the backup, and must have after it.
+      private const string BackupListToken = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
       private void SetupGroupObject()
       {
@@ -903,6 +936,33 @@ namespace RegressionTests.Infrastructure
          Assert.AreEqual("member1@example.test", list.Recipients[0].RecipientAddress);
          Assert.AreEqual("member2@example.test", list.Recipients[1].RecipientAddress);
          Assert.AreEqual("member3@example.test", list.Recipients[2].RecipientAddress);
+
+         Assert.IsTrue(list.Managed);
+         Assert.AreEqual(2, list.SubscribePolicy);
+         Assert.AreEqual(1, list.Archive);
+         Assert.AreEqual(30, list.ArchiveDays);
+         Assert.IsTrue(list.Digest);
+         Assert.AreEqual(9, list.DigestHour);
+         Assert.IsTrue(list.ReplyToList);
+         Assert.AreEqual("[list]", list.SubjectPrefix);
+         Assert.AreEqual("The list's footer.", list.Footer);
+         Assert.IsTrue(list.Verp);
+         Assert.AreEqual("owner@example.test", list.Owner);
+         Assert.AreEqual(0, list.Recipients[0].Delivery);
+         Assert.AreEqual(1, list.Recipients[1].Delivery);
+         Assert.AreEqual(1, list.Recipients[1].Confirmed);
+
+         // The row's state and counts came back as they were written - a state
+         // of 2 cannot be the default an older backup is read with, which is 1.
+         Assert.AreEqual(2, list.Recipients[2].Confirmed, "The request's state was not restored.");
+         Assert.AreEqual(3, list.Recipients[2].HardBounces);
+         Assert.AreEqual(2, list.Recipients[2].SoftBounces);
+
+         // And its token: the row the token names is the restored member3's.
+         _application.Database.ExecuteSQL(
+            "update hm_distributionlistsrecipients set distributionlistrecipienthardbounces = 99 " +
+            "where distributionlistrecipienttoken = '" + BackupListToken + "'");
+         Assert.AreEqual(99, _application.Domains[0].DistributionLists[0].Recipients[2].HardBounces, "The member's token was not restored.");
       }
 
       private void ConfirmAliasObject()

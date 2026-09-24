@@ -8,6 +8,7 @@
 #include "DistributionListRecipients.h"
 
 #include "../Persistence/PersistentDistributionListRecipient.h"
+#include "../Util/ListManager.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -20,7 +21,17 @@ namespace HM
       domain_id_(false),
       require_auth_(false),
       list_mode_(LMPublic),
-      enabled_(false)
+      enabled_(false),
+      managed_(false),
+      subscribe_policy_(SubscribeClosed),
+      archive_(ArchiveNone),
+      archive_days_(0),
+      digest_(false),
+      digest_hour_(7),
+      digest_last_id_(0),
+      digest_last_time_(0),
+      reply_to_list_(false),
+      verp_(false)
    {
       
    }
@@ -46,6 +57,26 @@ namespace HM
       pNode->AppendAttr(_T("BounceAddress"), bounce_address_);
       pNode->AppendAttr(_T("Membership"), membership_);
 
+      // The list manager's settings (ListManager.h). Its runtime state - where
+      // the last digest stopped, the archive - is not configuration and is not
+      // in the backup: a restored list starts its digest from the next posting.
+      pNode->AppendAttr(_T("Managed"), managed_ ? _T("1") : _T("0"));
+      pNode->AppendAttr(_T("SubscribePolicy"), StringParser::IntToString(subscribe_policy_));
+      pNode->AppendAttr(_T("Archive"), StringParser::IntToString(archive_));
+      pNode->AppendAttr(_T("ArchiveDays"), StringParser::IntToString(archive_days_));
+      pNode->AppendAttr(_T("Digest"), digest_ ? _T("1") : _T("0"));
+      pNode->AppendAttr(_T("DigestHour"), StringParser::IntToString(digest_hour_));
+      pNode->AppendAttr(_T("ReplyToList"), reply_to_list_ ? _T("1") : _T("0"));
+      pNode->AppendAttr(_T("SubjectPrefix"), subject_prefix_);
+      pNode->AppendAttr(_T("Footer"), footer_);
+      pNode->AppendAttr(_T("Verp"), verp_ ? _T("1") : _T("0"));
+      pNode->AppendAttr(_T("Owner"), owner_);
+
+      // The list's secret goes with it, so that the links in mail the list has
+      // already sent to the accounts its query answers still work after a
+      // restore - the backup keeps each member's token for the same reason.
+      pNode->AppendAttr(_T("Secret"), secret_);
+
       return GetMembers()->XMLStore(pNode, iOptions);
    }
 
@@ -66,6 +97,102 @@ namespace HM
       // Absent in backups taken before the membership query existed, and empty
       // is the static list every one of those was.
       membership_ = pNode->GetAttrValue(_T("Membership"));
+
+      // Absent in backups taken before the list manager existed; every one of
+      // those is an unmanaged list, which is what the empty strings read as.
+      // The digest hour is the one field whose absent value is not 0.
+      managed_ = pNode->GetAttrValue(_T("Managed")) == _T("1");
+      subscribe_policy_ = _ttoi(pNode->GetAttrValue(_T("SubscribePolicy")));
+      archive_ = _ttoi(pNode->GetAttrValue(_T("Archive")));
+      archive_days_ = _ttoi(pNode->GetAttrValue(_T("ArchiveDays")));
+      digest_ = pNode->GetAttrValue(_T("Digest")) == _T("1");
+      const String digestHour = pNode->GetAttrValue(_T("DigestHour"));
+      digest_hour_ = digestHour.IsEmpty() ? 7 : _ttoi(digestHour);
+      reply_to_list_ = pNode->GetAttrValue(_T("ReplyToList")) == _T("1");
+      subject_prefix_ = pNode->GetAttrValue(_T("SubjectPrefix"));
+      footer_ = pNode->GetAttrValue(_T("Footer"));
+      verp_ = pNode->GetAttrValue(_T("Verp")) == _T("1");
+      owner_ = pNode->GetAttrValue(_T("Owner"));
+      secret_ = pNode->GetAttrValue(_T("Secret"));
+
+      return true;
+   }
+
+   bool
+   DistributionList::ValidateManager(String &reason) const
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The manager's fields, judged whether or not the manager is on: a value a
+   // column holds is a value somebody will switch on later, and an hour of 25
+   // saved today is a digest that never goes tomorrow.
+   //---------------------------------------------------------------------------()
+   {
+      if (subscribe_policy_ < SubscribeClosed || subscribe_policy_ > SubscribeModerated)
+      {
+         reason = "The subscribe policy must be 0 (closed), 1 (confirm) or 2 (moderated).";
+         return false;
+      }
+
+      if (archive_ < ArchiveNone || archive_ > ArchivePublic)
+      {
+         reason = "The archive must be 0 (none), 1 (members) or 2 (public).";
+         return false;
+      }
+
+      if (archive_days_ < 0 || archive_days_ > 3650)
+      {
+         reason = "The archive's days must be between 0 (for ever) and 3650.";
+         return false;
+      }
+
+      if (digest_hour_ < 0 || digest_hour_ > 23)
+      {
+         reason = "The digest hour must be between 0 and 23.";
+         return false;
+      }
+
+      if (subject_prefix_.GetLength() > MaxSubjectPrefixLength)
+      {
+         reason = "The subject prefix is at most 64 characters.";
+         return false;
+      }
+
+      if (subject_prefix_.Find(_T("\r")) >= 0 || subject_prefix_.Find(_T("\n")) >= 0)
+      {
+         reason = "The subject prefix is one line.";
+         return false;
+      }
+
+      if (footer_.GetLength() > MaxFooterLength)
+      {
+         reason = "The footer is at most 2000 characters.";
+         return false;
+      }
+
+      String owner = owner_;
+      owner.Trim();
+
+      if (!owner.IsEmpty())
+      {
+         // Exactly one address: the notices are handed to RecipientParser,
+         // which would read "a@x, b@y" as two.
+         if (owner.GetLength() > 255 || !StringParser::IsValidEmailAddress(owner))
+         {
+            reason = "The owner must be one e-mail address.";
+            return false;
+         }
+
+         // The list's own address, or one of the addresses the manager
+         // answers for it, would hand every approval and every bounce notice
+         // back to the list: the owner's mail would be a posting, or a command,
+         // or a loop. Read with the manager's own grammar, so that team-lead@
+         // may own team@ - it is none of team's addresses.
+         if (!address_.IsEmpty() && ListManager::IsListOwnAddress(owner, address_))
+         {
+            reason = "The owner cannot be the list itself or one of the addresses it answers.";
+            return false;
+         }
+      }
 
       return true;
    }

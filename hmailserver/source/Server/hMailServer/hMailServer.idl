@@ -1993,6 +1993,29 @@ interface IInterfaceDistributionList : IDispatch
    [propput, id(12), helpstring("The bounce address of the list.")] HRESULT BounceAddress([in] BSTR newVal);
    [propget, id(13), helpstring("The membership query: empty for a list whose members are its recipients alone; domain for every account of the list's domain; domain:<name> for every account of that domain; pattern:<wildcard address> for the accounts matching it; everyone for every account on the server. Evaluated when a message is sent to the list, in union with the recipients.")] HRESULT Membership([out, retval] BSTR *pVal);
    [propput, id(13), helpstring("The membership query of the list.")] HRESULT Membership([in] BSTR newVal);
+   [propget, id(14), helpstring("True when the list manager runs the list: it answers name-subscribe@, name-unsubscribe@, name-request@, name-owner@ and name-bounces@, and sends each member a copy of their own. False, the default, is a distribution list as it always was.")] HRESULT Managed([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(14), helpstring("True when the list manager runs the list.")] HRESULT Managed([in] VARIANT_BOOL newVal);
+   [propget, id(15), helpstring("Who may join a managed list: 0 closed (the administrator adds members), 1 anyone who confirms by mail or page, 2 anyone the owner approves after they confirm.")] HRESULT SubscribePolicy([out, retval] long *pVal);
+   [propput, id(15), helpstring("Who may join a managed list: 0, 1 or 2.")] HRESULT SubscribePolicy([in] long newVal);
+   [propget, id(16), helpstring("The list's archive: 0 none, 1 for members, 2 public.")] HRESULT Archive([out, retval] long *pVal);
+   [propput, id(16), helpstring("The list's archive: 0, 1 or 2.")] HRESULT Archive([in] long newVal);
+   [propget, id(17), helpstring("Days an archived message is kept; 0 keeps it for as long as the list exists.")] HRESULT ArchiveDays([out, retval] long *pVal);
+   [propput, id(17), helpstring("Days an archived message is kept, 0 to 3650.")] HRESULT ArchiveDays([in] long newVal);
+   [propget, id(18), helpstring("True when the list sends a daily digest to the members who choose it.")] HRESULT Digest([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(18), helpstring("True when the list sends a daily digest.")] HRESULT Digest([in] VARIANT_BOOL newVal);
+   [propget, id(19), helpstring("The local hour, 0 to 23, the daily digest is sent at.")] HRESULT DigestHour([out, retval] long *pVal);
+   [propput, id(19), helpstring("The local hour, 0 to 23, the daily digest is sent at.")] HRESULT DigestHour([in] long newVal);
+   [propget, id(20), helpstring("True when replies go to the list (Reply-To is the list's address), false when they go to whoever wrote the posting.")] HRESULT ReplyToList([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(20), helpstring("True when replies go to the list.")] HRESULT ReplyToList([in] VARIANT_BOOL newVal);
+   [propget, id(21), helpstring("The prefix put once at the start of the subject of every message the list distributes, at most 64 characters.")] HRESULT SubjectPrefix([out, retval] BSTR *pVal);
+   [propput, id(21), helpstring("The subject prefix, at most 64 characters.")] HRESULT SubjectPrefix([in] BSTR newVal);
+   [propget, id(22), helpstring("The text appended to the text and HTML parts of every message the list distributes, at most 2000 characters; a signed or encrypted message is left as it is.")] HRESULT Footer([out, retval] BSTR *pVal);
+   [propput, id(22), helpstring("The footer, at most 2000 characters.")] HRESULT Footer([in] BSTR newVal);
+   [propget, id(23), helpstring("True when each member's copy is sent from name-bounces+local=domain@, so a bounce names the member whatever the report says.")] HRESULT Verp([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(23), helpstring("True when each member's copy encodes the member in its bounce address.")] HRESULT Verp([in] VARIANT_BOOL newVal);
+   [propget, id(24), helpstring("The person who runs the list: approvals, bounce notices and name-owner@ go here. Empty means the moderator's address.")] HRESULT Owner([out, retval] BSTR *pVal);
+   [propput, id(24), helpstring("The owner of the list.")] HRESULT Owner([in] BSTR newVal);
+   [id(25), helpstring("Sends the list's digest now to every member who takes it, whatever the hour and however recently the last one went, and answers how many were sent. Nothing is sent when nothing new has been distributed.")] HRESULT SendDigest([out, retval] long *pVal);
 };
 
 [
@@ -2028,6 +2051,12 @@ interface IInterfaceDistributionListRecipient : IDispatch
    [propput, id(2), helpstring("The email address of the recipient.")] HRESULT RecipientAddress([in] BSTR newVal);
    [id(3), helpstring("Deletes the recipient from the distribution list.")] HRESULT Delete();
    [id(4), helpstring("Saves the recipient in the database.")] HRESULT Save();
+   [propget, id(5), helpstring("How a managed list's mail comes to this member: 0 each message, 1 the daily digest, 2 none (still a member, sent nothing).")] HRESULT Delivery([out, retval] long *pVal);
+   [propput, id(5), helpstring("How a managed list's mail comes to this member: 0, 1 or 2.")] HRESULT Delivery([in] long newVal);
+   [propget, id(6), helpstring("Hard bounces counted for this member by the list manager.")] HRESULT HardBounces([out, retval] long *pVal);
+   [propget, id(7), helpstring("Soft bounces counted for this member within the window.")] HRESULT SoftBounces([out, retval] long *pVal);
+   [propget, id(8), helpstring("1 a member; 0 a request waiting for its own confirmation; 2 a request waiting for the owner's approval; 3 an address the list's membership query answers that has left, kept out of the list's mail by this row.")] HRESULT Confirmed([out, retval] long *pVal);
+   [id(9), helpstring("Clears the member's bounces and, when they had stopped its delivery, sends it each message again - never a member who paused it by their own choice. Save is not needed.")] HRESULT ResetBounces();
 };
 
 

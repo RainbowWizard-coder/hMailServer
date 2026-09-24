@@ -298,6 +298,19 @@ When the message trace is on, each recipient the list acted on at delivery is
 recorded with the event `suppressed` and the action in the detail; a refusal at
 `RCPT TO` is in the SMTP log and in AWStats as a 550.
 
+**A managed mailing list's copies** ([MailingLists.md](MailingLists.md)) are sent
+from the list's domain, so they meet this list like any of that domain's mail: a
+member whose server keeps refusing them is counted and, past the threshold, listed.
+What happens to the copies to them then is `BounceSuppressionAction`'s. With
+**refuse**, the default, they are refused at delivery, the report of that refusal
+goes to the list's bounce address, and the list counts it as a hard bounce of its
+own. With **drop** they are taken off without a report, so the list is told
+nothing and counts nothing; with **observe** they are delivered. The two keep
+separate counts - this list is the sending domain's and is emptied by hand; the
+mailing list's are the list's and are reset by its owner - and a delivery report
+addressed to a list's bounce address is read by the list manager, not by the
+register here.
+
 **Mail already in the queue** when an entry is made meets the list at its next
 delivery attempt, and is returned or dropped then. That is what the list is for,
 and it can still surprise: `observe` is the way to see it first.

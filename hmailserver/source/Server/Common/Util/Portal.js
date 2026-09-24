@@ -2015,7 +2015,7 @@
     if (head === 'away') { showPanel('away-section', 'Away and forwarding'); markNav('/away'); renderAwayAddresses(); loadScheduled(); return; }
     if (head === 'storage') { showPanel('storage-section', 'Storage'); markNav('/storage'); loadStorage(); loadFiles(); return; }
     if (head === 'senders') { showPanel('senders-section', t('Safe senders')); markNav('/senders'); loadSenderList(); loadDigestSetting(); return; }
-    if (head === 'subscriptions') { showPanel('subscriptions-section', t('Subscriptions')); markNav('/subscriptions'); loadSubscriptions(); return; }
+    if (head === 'subscriptions') { showPanel('subscriptions-section', t('Subscriptions')); markNav('/subscriptions'); loadSubscriptions(); loadMyLists(); return; }
     if (head === 'masked') { showPanel('masked-section', t('Masked addresses')); markNav('/masked'); loadMaskedAddresses(); return; }
     if (head === 'accounts') { showPanel('accounts-section', t('Other accounts')); markNav('/accounts'); renderSecondCard(); loadFetchAccounts().then(function () { importOutcome(r.params); }); loadSenderAddresses(); return; }
     if (head === 'security') { showPanel('security-section', 'Security'); markNav('/security'); loadSecurity(); return; }
@@ -10666,6 +10666,72 @@
     });
   };
   el('subs-days').addEventListener('change', function () { loadSubscriptions(); });
+  // ---- Lists on this server --------------------------------------------------
+  // The mailing lists this server runs (docs/MailingLists.md) that the reader's
+  // own address is a member of, from GET /api/v1/me/lists: how each one's mail
+  // comes - every message, the daily digest, or nothing for now - and a way to
+  // leave. The card is hidden for a reader on no list; nothing here is read from
+  // the mailbox.
+  var renderMyLists = function (lists) {
+    var rows = el('mylists-rows');
+    clear(rows);
+    lists.forEach(function (l) {
+      var tr = document.createElement('tr');
+      var who = document.createElement('td');
+      who.appendChild(node('div', l.address));
+      if (l.state === 'pending') { who.appendChild(node('div', t('Waiting for you to confirm'), 'muted')); }
+      if (l.state === 'awaiting_owner') { who.appendChild(node('div', t('Waiting for the list owner'), 'muted')); }
+      if (l.reason) { who.appendChild(node('div', l.reason, 'muted')); }
+      tr.appendChild(who);
+      var how = document.createElement('td');
+      var choice = document.createElement('select');
+      choice.setAttribute('aria-label', tf('How {0} comes to you', l.address));
+      [['each', t('Every message')], ['digest', t('A daily digest')], ['none', t('Nothing for now')]].forEach(function (o) {
+        if (o[0] === 'digest' && !l.digest && l.delivery !== 'digest') { return; }
+        var option = document.createElement('option');
+        option.value = o[0];
+        option.textContent = o[1];
+        choice.appendChild(option);
+      });
+      choice.value = l.delivery;
+      choice.disabled = l.state !== 'member';
+      choice.addEventListener('change', function () {
+        call('PUT', '/api/v1/me/lists/' + encodeURIComponent(l.address), { delivery: choice.value }).then(function (result) {
+          if (result.status !== 200) { say('mylists-status', describe(result, t('Could not change it')), false); loadMyLists(); return; }
+          say('mylists-status', t('Saved.'), true);
+        });
+      });
+      how.appendChild(choice);
+      tr.appendChild(how);
+      var actions = document.createElement('td');
+      var leave = button(t('Leave the list'));
+      leave.addEventListener('click', function () {
+        if (!window.confirm(tf('Leave {0}? Its mail stops at once.', l.address))) { return; }
+        call('DELETE', '/api/v1/me/lists/' + encodeURIComponent(l.address)).then(function (result) {
+          if (result.status !== 200) { say('mylists-status', describe(result, t('Could not change it')), false); return; }
+          say('mylists-status', tf('You have left {0}.', l.address), true);
+          loadMyLists();
+        });
+      });
+      actions.appendChild(leave);
+      if (l.archive_url && /^https?:\/\//i.test(l.archive_url)) {
+        var archive = node('a', t('Archive'), 'btn ghost sm');
+        archive.setAttribute('href', l.archive_url);
+        archive.setAttribute('target', '_blank');
+        archive.setAttribute('rel', 'noopener noreferrer');
+        actions.appendChild(archive);
+      }
+      tr.appendChild(actions);
+      rows.appendChild(tr);
+    });
+    el('mylists-card').hidden = !lists.length;
+  };
+  var loadMyLists = function () {
+    return call('GET', '/api/v1/me/lists').then(function (result) {
+      if (result.status !== 200 || !result.data) { el('mylists-card').hidden = true; return; }
+      renderMyLists(result.data.lists || []);
+    });
+  };
   // ---- Other accounts ------------------------------------------------------
   // Another mailbox collected into this one - Gmail's "check mail from other
   // accounts" - through the reader's own fetch-account routes. The server keeps

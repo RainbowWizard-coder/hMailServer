@@ -554,6 +554,18 @@ namespace HM
       // copies, and how long the rows are kept. 1 to 365.
       int GetRecallDays();
       void SetRecallDays(int days);
+      // The list manager (Common/Util/ListManager.h): the https base the links
+      // in list mail are written against (empty for none), and the bounces that
+      // stop a member's delivery - hard, soft, and the days the soft ones are
+      // counted within. The getters clamp to 1..100, 1..100 and 1..365.
+      String GetListBaseUrl() const;
+      void SetListBaseUrl(const String &url);
+      int GetListHardBouncesToUnsubscribe();
+      void SetListHardBouncesToUnsubscribe(int count);
+      int GetListSoftBouncesToUnsubscribe();
+      void SetListSoftBouncesToUnsubscribe(int count);
+      int GetListBounceWindowDays();
+      void SetListBounceWindowDays(int days);
 
       // Outbound shaping (SMTP/DestinationBackoff.h, docs/OutboundShaping.md).
       // Four rows in hm_settings; the getters clamp, so a hand-edited row

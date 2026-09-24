@@ -1213,6 +1213,74 @@ namespace HM
 
       const char *MembershipRefusal = "{\"error\":\"membership names accounts outside the domains this key administers; domain, a pattern in one of them, or nothing\"}";
 
+      // The list manager's fields of a list (ListManager.h): read from a body
+      // onto a scratch list, each untouched when the body leaves it out, and
+      // copied onto the list being saved - the save then judges them all, in
+      // the sentence COM gets (DistributionList::ValidateManager).
+      bool ReadManagerFields(const JsonValue &body, DistributionList &target, AnsiString &error)
+      {
+         bool managed = target.GetManaged(), digest = target.GetDigest(), verp = target.GetVerp();
+         long policy = target.GetSubscribePolicy(), archive = target.GetArchive(), archiveDays = target.GetArchiveDays();
+         long digestHour = target.GetDigestHour(), replyTo = target.GetReplyToList() ? 1 : 0;
+         String prefix = target.GetSubjectPrefix(), footer = target.GetFooter(), owner = target.GetOwner();
+
+         if (!ReadBool(body, "managed", managed, error) ||
+             !ReadBool(body, "digest", digest, error) ||
+             !ReadBool(body, "verp", verp, error) ||
+             !ReadInteger(body, "subscribe_policy", 0, 2, policy, error) ||
+             !ReadInteger(body, "archive", 0, 2, archive, error) ||
+             !ReadInteger(body, "archive_days", 0, 3650, archiveDays, error) ||
+             !ReadInteger(body, "digest_hour", 0, 23, digestHour, error) ||
+             !ReadInteger(body, "reply_to", 0, 1, replyTo, error) ||
+             !ReadString(body, "subject_prefix", prefix, error) ||
+             !ReadString(body, "footer", footer, error) ||
+             !ReadString(body, "owner", owner, error))
+            return false;
+
+         prefix.Trim();
+         owner.Trim();
+
+         if (prefix.GetLength() > DistributionList::MaxSubjectPrefixLength)
+         {
+            error = "subject_prefix is at most 64 characters";
+            return false;
+         }
+
+         if (footer.GetLength() > DistributionList::MaxFooterLength)
+         {
+            error = "footer is at most 2000 characters";
+            return false;
+         }
+
+         target.SetManaged(managed);
+         target.SetDigest(digest);
+         target.SetVerp(verp);
+         target.SetSubscribePolicy((int) policy);
+         target.SetArchive((int) archive);
+         target.SetArchiveDays((int) archiveDays);
+         target.SetDigestHour((int) digestHour);
+         target.SetReplyToList(replyTo == 1);
+         target.SetSubjectPrefix(prefix);
+         target.SetFooter(footer);
+         target.SetOwner(owner);
+         return true;
+      }
+
+      void CopyManagerFields(const DistributionList &source, DistributionList &target)
+      {
+         target.SetManaged(source.GetManaged());
+         target.SetSubscribePolicy(source.GetSubscribePolicy());
+         target.SetArchive(source.GetArchive());
+         target.SetArchiveDays(source.GetArchiveDays());
+         target.SetDigest(source.GetDigest());
+         target.SetDigestHour(source.GetDigestHour());
+         target.SetReplyToList(source.GetReplyToList());
+         target.SetSubjectPrefix(source.GetSubjectPrefix());
+         target.SetFooter(source.GetFooter());
+         target.SetVerp(source.GetVerp());
+         target.SetOwner(source.GetOwner());
+      }
+
       // The list an address names, through its domain, or null.
       std::shared_ptr<DistributionList> ListByAddress(const String &address)
       {
@@ -1232,7 +1300,7 @@ namespace HM
       Quote quote = [](const String &value) { return JsonEscape_(Utf8_(value)); };
 
       AnsiString entry;
-      entry.Format("{\"address\":\"%hs\",\"active\":%hs,\"require_auth\":%hs,\"mode\":\"%hs\",\"require_sender_address\":\"%hs\",\"moderator_address\":\"%hs\",\"bounce_address\":\"%hs\",\"membership\":\"%hs\",\"members\":[",
+      entry.Format("{\"address\":\"%hs\",\"active\":%hs,\"require_auth\":%hs,\"mode\":\"%hs\",\"require_sender_address\":\"%hs\",\"moderator_address\":\"%hs\",\"bounce_address\":\"%hs\",\"membership\":\"%hs\",",
          quote(list->GetAddress()).c_str(),
          list->GetActive() ? "true" : "false",
          list->GetRequireAuth() ? "true" : "false",
@@ -1241,6 +1309,23 @@ namespace HM
          quote(list->GetModeratorAddress()).c_str(),
          quote(list->GetBounceAddress()).c_str(),
          quote(list->GetMembership()).c_str());
+
+      // The list manager's fields (ListManager.h), in the words the create and
+      // the update take them in.
+      AnsiString manager;
+      manager.Format("\"managed\":%hs,\"subscribe_policy\":%d,\"archive\":%d,\"archive_days\":%d,\"digest\":%hs,\"digest_hour\":%d,\"reply_to\":%d,\"subject_prefix\":\"%hs\",\"footer\":\"%hs\",\"verp\":%hs,\"owner\":\"%hs\",\"members\":[",
+         list->GetManaged() ? "true" : "false",
+         list->GetSubscribePolicy(),
+         list->GetArchive(),
+         list->GetArchiveDays(),
+         list->GetDigest() ? "true" : "false",
+         list->GetDigestHour(),
+         list->GetReplyToList() ? 1 : 0,
+         quote(list->GetSubjectPrefix()).c_str(),
+         quote(list->GetFooter()).c_str(),
+         list->GetVerp() ? "true" : "false",
+         quote(list->GetOwner()).c_str());
+      entry += manager;
 
       // GetMembers reads the recipients again each time, so a create that has
       // just saved them answers with them.
@@ -1253,6 +1338,15 @@ namespace HM
             std::shared_ptr<DistributionListRecipient> recipient = recipients->GetItem(m);
             if (!recipient)
                continue;
+
+            // The members, and nobody else: a managed list's requests still
+            // waiting, and the addresses that left it, are rows too, and a list
+            // exported and applied to another server would otherwise make every
+            // one of them a confirmed member. They are on the members route,
+            // each with its state.
+            if (!recipient->GetIsMember())
+               continue;
+
             if (count > 0)
                entry += ",";
             entry += "\"" + quote(recipient->GetAddress()) + "\"";
@@ -1274,7 +1368,8 @@ namespace HM
 
       static const char *const keys[] =
       {
-         "address", "members", "active", "require_auth", "mode", "require_sender_address", "moderator_address", "bounce_address", "membership"
+         "address", "members", "active", "require_auth", "mode", "require_sender_address", "moderator_address", "bounce_address", "membership",
+         "managed", "subscribe_policy", "archive", "archive_days", "digest", "digest_hour", "reply_to", "subject_prefix", "footer", "verp", "owner"
       };
       AnsiString error;
       if (UnknownKey(body, keys, sizeof(keys) / sizeof(keys[0]), error))
@@ -1307,6 +1402,12 @@ namespace HM
       DistributionList::ListMode mode = DistributionList::LMPublic;
       if (!modeWord.IsEmpty() && !ParseListModeWord(modeWord, mode))
          return BuildResponse_(400, ListModeRefusal);
+
+      // The list manager's fields, at the defaults a list is made with: off,
+      // closed, no archive, no digest (at seven when it is switched on).
+      DistributionList manager;
+      if (!ReadManagerFields(body, manager, error))
+         return BuildResponse_(400, ErrorBody(quote, String(error)));
 
       // The members: an array of addresses, empty ones skipped, as the route
       // has always taken them.
@@ -1351,6 +1452,7 @@ namespace HM
       list->SetModeratorAddress(moderatorAddress);
       list->SetBounceAddress(bounceAddress);
       list->SetMembership(membership);
+      CopyManagerFields(manager, *list);
 
       String saveError;
       if (!PersistentDistributionList::SaveObject(list, saveError, PersistenceModeNormal))
@@ -1386,7 +1488,8 @@ namespace HM
 
       static const char *const keys[] =
       {
-         "active", "require_auth", "mode", "require_sender_address", "moderator_address", "bounce_address", "membership"
+         "active", "require_auth", "mode", "require_sender_address", "moderator_address", "bounce_address", "membership",
+         "managed", "subscribe_policy", "archive", "archive_days", "digest", "digest_hour", "reply_to", "subject_prefix", "footer", "verp", "owner"
       };
       AnsiString error;
       if (UnknownKey(body, keys, sizeof(keys) / sizeof(keys[0]), error))
@@ -1418,6 +1521,12 @@ namespace HM
       if (!modeWord.IsEmpty() && !ParseListModeWord(modeWord, mode))
          return BuildResponse_(400, ListModeRefusal);
 
+      // Seeded from the list, so that a field left out keeps its value.
+      DistributionList manager;
+      CopyManagerFields(*list, manager);
+      if (!ReadManagerFields(body, manager, error))
+         return BuildResponse_(400, ErrorBody(quote, String(error)));
+
       // Judged only when the body names it. Seeded from the list above, the
       // value is otherwise the query the list already has - and a key confined
       // to this domain would then be refused every change to a list whose query
@@ -1435,6 +1544,7 @@ namespace HM
       list->SetModeratorAddress(moderatorAddress);
       list->SetBounceAddress(bounceAddress);
       list->SetMembership(membership);
+      CopyManagerFields(manager, *list);
 
       // SaveObject drops the list from its cache, so the next message to it
       // reads the row just written.

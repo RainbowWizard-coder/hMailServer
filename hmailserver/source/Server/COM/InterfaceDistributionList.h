@@ -98,6 +98,31 @@ public:
    STDMETHOD(get_Membership)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(put_Membership)(/*[in]*/ BSTR newVal);
 
+   // The list manager (Util/ListManager.h), dispids 14 to 25.
+   STDMETHOD(get_Managed)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_Managed)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_SubscribePolicy)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SubscribePolicy)(/*[in]*/ long newVal);
+   STDMETHOD(get_Archive)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_Archive)(/*[in]*/ long newVal);
+   STDMETHOD(get_ArchiveDays)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_ArchiveDays)(/*[in]*/ long newVal);
+   STDMETHOD(get_Digest)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_Digest)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_DigestHour)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_DigestHour)(/*[in]*/ long newVal);
+   STDMETHOD(get_ReplyToList)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_ReplyToList)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_SubjectPrefix)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_SubjectPrefix)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_Footer)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_Footer)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_Verp)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_Verp)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_Owner)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_Owner)(/*[in]*/ BSTR newVal);
+   STDMETHOD(SendDigest)(/*[out, retval]*/ long *pVal);
+
 private:
 
 #ifdef _DEBUG

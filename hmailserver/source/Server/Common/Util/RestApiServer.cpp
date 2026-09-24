@@ -1924,6 +1924,34 @@ namespace HM
       if ((method == "GET" || method == "POST") && path == "/held/stop")
          return HandleDigestStop_(method, query, method == "POST" ? GetRequestBody_(request) : AnsiString());
 
+      // The pages a managed list's mail links to (RestApiMailingLists.cpp): the
+      // confirmation, the member's own page with its RFC 8058 one-click, the
+      // subscribe form and the archive. No credentials at any of them - the
+      // member's token is the capability, and an archive a list makes public
+      // is public - and each is held to a budget per address, as the
+      // protected-message pages are.
+      if ((method == "GET" || method == "POST") && path == "/lists/confirm")
+         return HandleListConfirmPage_(method, query, method == "POST" ? GetRequestBody_(request) : AnsiString(), peer_address);
+
+      if ((method == "GET" || method == "POST") && path == "/lists/unsubscribe")
+         return HandleListMemberPage_(method, query, method == "POST" ? GetRequestBody_(request) : AnsiString(), peer_address);
+
+      if ((method == "GET" || method == "POST") && path == "/lists/approve")
+         return HandleListApprovePage_(method, query, method == "POST" ? GetRequestBody_(request) : AnsiString(), request, peer_address);
+
+      if (path.StartsWith("/lists/") && path.Find("/", 7) > 7)
+      {
+         const int slash = path.Find("/", 7);
+         const String listAddress = String(DecodePathSegment_(path.Mid(7, slash - 7)));
+         const AnsiString tail = path.Mid(slash);
+
+         if ((method == "GET" || method == "POST") && tail == "/subscribe")
+            return HandleListSubscribePage_(method, listAddress, method == "POST" ? GetRequestBody_(request) : AnsiString(), peer_address);
+
+         if (method == "GET" && tail == "/archive")
+            return HandleListArchivePage_(listAddress, query, request, peer_address);
+      }
+
       if (method == "GET" && path == "/portal-sw.js")
          return HandlePortalServiceWorker_();
 
@@ -2202,6 +2230,13 @@ namespace HM
             return HandleUpdateList_(String(route.identifier), caller.domains, GetRequestBody_(request));
          case RouteListMembers:
             return HandleListMembers_(String(route.identifier), caller.domains);
+         case RouteListArchive:
+            return HandleListArchive_(String(route.identifier), route.query);
+         case RouteListArchiveGet:
+            return HandleListArchiveGet_(String(route.identifier), route.record_id);
+         case RouteListMemberResetBounces:
+         case RouteListMemberApprove:
+            return HandleListMemberVerb_(route.kind, String(route.identifier), String(route.name));
          case RouteDnsBlackListList:
          case RouteDnsBlackListCreate:
          case RouteDnsBlackListUpdate:
@@ -2911,6 +2946,11 @@ namespace HM
 
          case RouteMeSubscriptions:
             return HandleMeSubscriptions_(caller, route.query);
+
+         case RouteMeLists:
+         case RouteMeListUpdate:
+         case RouteMeListLeave:
+            return HandleMeLists_(caller, route.kind, String(route.identifier), GetRequestBody_(request));
 
          case RouteMeBrandLogo:
             return HandleMeBrandLogo_(route.query);
@@ -4126,6 +4166,33 @@ namespace HM
       {
          if (method == "GET")
             route.kind = RouteMeSubscriptions;
+
+         return;
+      }
+
+      // The managed lists on this server the reader is a member of
+      // (RestApiMailingLists.cpp): listed, their delivery changed, left.
+      if (path == "/api/v1/me/lists")
+      {
+         if (method == "GET")
+            route.kind = RouteMeLists;
+
+         return;
+      }
+
+      if (path.StartsWith("/api/v1/me/lists/"))
+      {
+         const AnsiString listAddress = path.Mid(AnsiString("/api/v1/me/lists/").GetLength());
+
+         if (listAddress.IsEmpty() || listAddress.Find("/") >= 0)
+            return;
+
+         route.identifier = listAddress;
+
+         if (method == "PUT")
+            route.kind = RouteMeListUpdate;
+         else if (method == "DELETE")
+            route.kind = RouteMeListLeave;
 
          return;
       }
@@ -5553,6 +5620,59 @@ namespace HM
             return;
          }
       }
+      // The list manager's routes under the list (RestApiMailingLists.cpp):
+      // /archive and /archive/<id> for programs, and the two verbs of the
+      // owner on one member - /members/<member>/reset-bounces and /approve.
+      // Every word here follows an address, which holds no slash, so none of
+      // them can be read as one.
+      if (path.StartsWith(listsPrefix))
+      {
+         const AnsiString rest = path.Mid(listsPrefix.GetLength());
+         const int slash = rest.Find("/");
+
+         if (slash > 0)
+         {
+            const AnsiString address = rest.Mid(0, slash);
+            const AnsiString tail = rest.Mid(slash);
+
+            if (method == "GET" && tail == "/archive")
+            {
+               route.kind = RouteListArchive;
+               route.identifier = address;
+               return;
+            }
+
+            __int64 archiveId = 0;
+            if (method == "GET" && tail.StartsWith("/archive/") && ParseQueueId(tail.Mid(9), archiveId))
+            {
+               route.kind = RouteListArchiveGet;
+               route.identifier = address;
+               route.record_id = archiveId;
+               return;
+            }
+
+            const AnsiString membersPrefix = "/members/";
+            if (method == "POST" && tail.StartsWith(membersPrefix))
+            {
+               const AnsiString memberTail = tail.Mid(membersPrefix.GetLength());
+               const int verb = memberTail.Find("/");
+
+               if (verb > 0)
+               {
+                  const AnsiString member = memberTail.Mid(0, verb);
+                  const AnsiString action = memberTail.Mid(verb);
+
+                  if (action == "/reset-bounces" || action == "/approve")
+                  {
+                     route.kind = action == "/approve" ? RouteListMemberApprove : RouteListMemberResetBounces;
+                     route.identifier = address;
+                     route.name = member;
+                     return;
+                  }
+               }
+            }
+         }
+      }
       // /api/v1/domains/<name>/dkim/rotation[/start|/check|/switch|/retire|/next]
       // - the domain's key rotation. Matched before the plain /dkim route below,
       // whose EndsWith these paths do not satisfy anyway, and only with a domain
@@ -6612,6 +6732,8 @@ namespace HM
       case RouteMeMaskedAddressCreate:
       case RouteMeMaskedAddressUpdate:
       case RouteMeMaskedAddressDelete:
+      case RouteMeListUpdate:
+      case RouteMeListLeave:
       case RouteMeRecoverableRestore:
       case RouteMeRecoverableDelete:
       // Setting the address a forgotten password can be reset from, removing
@@ -6716,6 +6838,8 @@ namespace HM
       case RouteListCreate:
       case RouteListDelete:
       case RouteListUpdate:
+      case RouteListMemberResetBounces:
+      case RouteListMemberApprove:
       case RouteDnsBlackListCreate:
       case RouteDnsBlackListUpdate:
       case RouteDnsBlackListDelete:
@@ -7328,6 +7452,10 @@ namespace HM
       // Who a list delivers to now: the addresses of accounts, which is what
       // the listing of accounts already carries, read rather than changed.
       case RouteListMembers:
+      // A managed list's archive: what the list sent its members, which the
+      // members all hold; read, as the members are.
+      case RouteListArchive:
+      case RouteListArchiveGet:
       case RouteFetchAccountList:
       case RouteFetchAccountGet:
       case RouteAccountAppPasswordList:
@@ -7496,6 +7624,10 @@ namespace HM
       case RouteListCreate:
       case RouteListUpdate:
       case RouteListDelete:
+      // The owner's two verbs on a member of a managed list: its bounces
+      // cleared and its delivery back on, and its request to join approved.
+      case RouteListMemberResetBounces:
+      case RouteListMemberApprove:
       case RouteDomainAliasCreate:
       case RouteDomainAliasDelete:
       case RouteFetchAccountCreate:
@@ -7915,6 +8047,11 @@ namespace HM
       // The members route names the list at its own address, as the update
       // and the delete do, so the domain it is scoped to is the one in it.
       case RouteListMembers:
+      // And so do the list manager's: the archive and the member verbs.
+      case RouteListArchive:
+      case RouteListArchiveGet:
+      case RouteListMemberResetBounces:
+      case RouteListMemberApprove:
       case RouteAliasDelete:
       // A spam trap is removed at its own address, as an alias is, so the
       // domain it belongs to is the domain in that address. Without this a
@@ -11422,6 +11559,9 @@ namespace HM
       case RouteMeMessageReceipt:
       case RouteMeMessageUnsubscribe:
       case RouteMeSubscriptions:
+      case RouteMeLists:
+      case RouteMeListUpdate:
+      case RouteMeListLeave:
       case RouteMeBrandLogo:
       case RouteMeFetchAccounts:
       case RouteMeFetchAccountCreate:
@@ -17267,10 +17407,10 @@ namespace HM
          "\"/api/v1/ipranges/{id}\":{\"put\":{\"summary\":\"Change an IP range\",\"description\":\"Body: any subset of the fields POST takes - name, lower, upper, priority, the permission flags, expires and expires_time; a field left out keeps its value, and a body that turns expiry on must carry expires_time in it. The same check as saving the range in the Control Panel; nothing changes when it is refused. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\"}}}},\"responses\":{\"200\":{\"description\":\"The range as saved, as the listing shows it\"},\"400\":{\"description\":\"A field refused (error names it); nothing changed\"},\"404\":{\"description\":\"Unknown id\"}}},"
          "\"delete\":{\"summary\":\"Delete an IP range\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}},"
          "\"/api/v1/domains/{domain}/lists\":{"
-         "\"get\":{\"summary\":\"List the distribution lists in a domain, with their members\",\"description\":\"Each entry: address, active, require_auth, mode (public, membership, announcement or domain_members), require_sender_address, moderator_address, bounce_address, membership and members. members is the addresses kept by hand; membership is the query that finds the rest among the server's accounts when a message is sent to the list, and is empty for a list whose members are its rows alone. GET /api/v1/lists/{address}/members answers what the two come to now. Scoped to the domain.\",\"responses\":{\"200\":{\"description\":\"Array of lists\"},\"404\":{\"description\":\"Unknown domain\"}}},"
-         "\"post\":{\"summary\":\"Create a distribution list\",\"description\":\"Body: address (required, in this domain), members (an array of addresses), active (default true), require_auth (default false), mode (public, membership, announcement or domain_members; default public, and any other word is refused as put_Mode refuses it), require_sender_address (the one sender an announcement list accepts), moderator_address, bounce_address and membership. membership is the list's query, evaluated when a message is sent to it and never stored: empty (the members are the rows in members, which is every list made before this existed), domain (every active account of this domain), domain:NAME (every active account of that domain, which this server has to host), pattern:WILDCARD (active accounts whose address matches it, with * for any run of characters and ? for one; the part after the @ has to name a domain this server hosts unless it is itself a wildcard) or everyone (every active account of every active domain). What it answers is in union with members and deduplicated by address, and a query list still honours require_auth, require_sender_address, mode and moderator_address. A key confined to named domains may set empty, domain, or a pattern in a domain it holds; the other forms reach accounts it does not administer and are refused. Saved as the Control Panel saves a list, with the same limitation check. Scoped to the domain.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"address\"],\"properties\":{\"address\":{\"type\":\"string\"},\"members\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"active\":{\"type\":\"boolean\"},\"require_auth\":{\"type\":\"boolean\"},\"mode\":{\"type\":\"string\",\"enum\":[\"public\",\"membership\",\"announcement\",\"domain_members\"]},\"require_sender_address\":{\"type\":\"string\"},\"moderator_address\":{\"type\":\"string\"},\"bounce_address\":{\"type\":\"string\"},\"membership\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: the list as the listing shows it\"},\"400\":{\"description\":\"Missing address, one outside the domain, a mode that is not one of the four words, a membership that is none of the five forms or that names a domain this server does not host, a field of the wrong type, an unknown field, or the save refused (the reason is in error)\"},\"403\":{\"description\":\"A membership reaching past the domains this key administers\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"A list with that address exists\"}}}},"
+         "\"get\":{\"summary\":\"List the distribution lists in a domain, with their members\",\"description\":\"Each entry: address, active, require_auth, mode (public, membership, announcement or domain_members), require_sender_address, moderator_address, bounce_address, membership and members, and the list manager's fields - managed, subscribe_policy, archive, archive_days, digest, digest_hour, reply_to, subject_prefix, footer, verp and owner (docs/MailingLists.md). members is the addresses kept by hand that are members - a managed list's requests still waiting, and the addresses that left it, are on GET /api/v1/lists/{address}/members with their state and nowhere here; membership is the query that finds the rest among the server's accounts when a message is sent to the list, and is empty for a list whose members are its rows alone. GET /api/v1/lists/{address}/members answers what the two come to now. Scoped to the domain.\",\"responses\":{\"200\":{\"description\":\"Array of lists\"},\"404\":{\"description\":\"Unknown domain\"}}},"
+         "\"post\":{\"summary\":\"Create a distribution list\",\"description\":\"Body: address (required, in this domain), members (an array of addresses), active (default true), require_auth (default false), mode (public, membership, announcement or domain_members; default public, and any other word is refused as put_Mode refuses it), require_sender_address (the one sender an announcement list accepts), moderator_address, bounce_address, membership and the list manager's fields below. membership is the list's query, evaluated when a message is sent to it and never stored: empty (the members are the rows in members, which is every list made before this existed), domain (every active account of this domain), domain:NAME (every active account of that domain, which this server has to host), pattern:WILDCARD (active accounts whose address matches it, with * for any run of characters and ? for one; the part after the @ has to name a domain this server hosts unless it is itself a wildcard) or everyone (every active account of every active domain). What it answers is in union with members and deduplicated by address, and a query list still honours require_auth, require_sender_address, mode and moderator_address. A key confined to named domains may set empty, domain, or a pattern in a domain it holds; the other forms reach accounts it does not administer and are refused. The list manager (docs/MailingLists.md): managed (default false; true makes the list answer name-subscribe@, name-unsubscribe@, name-request@, name-owner@ and name-bounces@ and send each member a copy of their own), subscribe_policy (0 closed, 1 anyone confirms by mail or page, 2 the owner approves as well), archive (0 none, 1 members, 2 public) and archive_days (0 for ever, at most 3650), digest and digest_hour (0 to 23; 7 by default), reply_to (0 the sender, 1 the list), subject_prefix (at most 64 characters, added once), footer (at most 2000, appended to the text and HTML parts), verp (each copy from name-bounces+member=domain@) and owner (empty is the moderator). A value out of range is a 400. Saved as the Control Panel saves a list, with the same limitation check. Scoped to the domain.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"address\"],\"properties\":{\"address\":{\"type\":\"string\"},\"members\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"active\":{\"type\":\"boolean\"},\"require_auth\":{\"type\":\"boolean\"},\"mode\":{\"type\":\"string\",\"enum\":[\"public\",\"membership\",\"announcement\",\"domain_members\"]},\"require_sender_address\":{\"type\":\"string\"},\"moderator_address\":{\"type\":\"string\"},\"bounce_address\":{\"type\":\"string\"},\"membership\":{\"type\":\"string\"},\"managed\":{\"type\":\"boolean\"},\"subscribe_policy\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":2},\"archive\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":2},\"archive_days\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":3650},\"digest\":{\"type\":\"boolean\"},\"digest_hour\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":23},\"reply_to\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":1},\"subject_prefix\":{\"type\":\"string\",\"maxLength\":64},\"footer\":{\"type\":\"string\",\"format\":\"multiline\",\"maxLength\":2000},\"verp\":{\"type\":\"boolean\"},\"owner\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: the list as the listing shows it\"},\"400\":{\"description\":\"Missing address, one outside the domain, a mode that is not one of the four words, a membership that is none of the five forms or that names a domain this server does not host, a field of the wrong type, an unknown field, or the save refused (the reason is in error)\"},\"403\":{\"description\":\"A membership reaching past the domains this key administers\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"A list with that address exists\"}}}},"
          "\"/api/v1/lists/{address}\":{"
-         "\"put\":{\"summary\":\"Change a distribution list\",\"description\":\"Body: any subset of active, require_auth, mode (public, membership, announcement or domain_members), require_sender_address, moderator_address, bounce_address and membership; a field left out keeps its value, and the members are not changed here. membership takes the five forms the create documents, and an empty string turns a query list back into a static one - either way its rows are untouched. Everything is checked before anything is applied. Scoped to the address's domain.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"active\":{\"type\":\"boolean\"},\"require_auth\":{\"type\":\"boolean\"},\"mode\":{\"type\":\"string\",\"enum\":[\"public\",\"membership\",\"announcement\",\"domain_members\"]},\"require_sender_address\":{\"type\":\"string\"},\"moderator_address\":{\"type\":\"string\"},\"bounce_address\":{\"type\":\"string\"},\"membership\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The list as saved, as the listing shows it\"},\"400\":{\"description\":\"A mode that is not one of the four words, a membership that is none of the five forms or that names a domain this server does not host, a field of the wrong type, an unknown field, or the save refused (the reason is in error)\"},\"403\":{\"description\":\"A membership reaching past the domains this key administers\"},\"404\":{\"description\":\"Unknown list\"}}},"
+         "\"put\":{\"summary\":\"Change a distribution list\",\"description\":\"Body: any subset of active, require_auth, mode (public, membership, announcement or domain_members), require_sender_address, moderator_address, bounce_address, membership, managed, subscribe_policy, archive, archive_days, digest, digest_hour, reply_to, subject_prefix, footer, verp and owner; a field left out keeps its value, and the members are not changed here. membership takes the five forms the create documents, and an empty string turns a query list back into a static one - either way its rows are untouched. The list manager's fields take the values the create documents. Everything is checked before anything is applied. Scoped to the address's domain.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"active\":{\"type\":\"boolean\"},\"require_auth\":{\"type\":\"boolean\"},\"mode\":{\"type\":\"string\",\"enum\":[\"public\",\"membership\",\"announcement\",\"domain_members\"]},\"require_sender_address\":{\"type\":\"string\"},\"moderator_address\":{\"type\":\"string\"},\"bounce_address\":{\"type\":\"string\"},\"membership\":{\"type\":\"string\"},\"managed\":{\"type\":\"boolean\"},\"subscribe_policy\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":2},\"archive\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":2},\"archive_days\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":3650},\"digest\":{\"type\":\"boolean\"},\"digest_hour\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":23},\"reply_to\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":1},\"subject_prefix\":{\"type\":\"string\",\"maxLength\":64},\"footer\":{\"type\":\"string\",\"format\":\"multiline\",\"maxLength\":2000},\"verp\":{\"type\":\"boolean\"},\"owner\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The list as saved, as the listing shows it\"},\"400\":{\"description\":\"A mode that is not one of the four words, a membership that is none of the five forms or that names a domain this server does not host, a field of the wrong type, an unknown field, or the save refused (the reason is in error)\"},\"403\":{\"description\":\"A membership reaching past the domains this key administers\"},\"404\":{\"description\":\"Unknown list\"}}},"
          "\"delete\":{\"summary\":\"Delete a distribution list\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown list\"}}}},"
          "\"/api/v1/domains/{domain}/dkim\":{\"get\":{\"summary\":\"The DKIM signing configuration of a domain\",\"responses\":{\"200\":{\"description\":\"enabled, selector, sign_aliases and the private key file\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
          "\"/api/v1/logs\":{\"get\":{\"summary\":\"List the log files\",\"description\":\"Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of files with size and creation time\"}}}},"
@@ -17339,6 +17479,7 @@ namespace HM
       openApiJson += OpenApiSpamTrapPaths_();
       openApiJson += OpenApiDomainPolicyListPaths_();
       openApiJson += OpenApiDistributionListMembersPath_();
+      openApiJson += OpenApiMailingListPaths_();
       openApiJson += OpenApiMailboxPaths_();
       openApiJson += OpenApiCalendarPaths_();
       openApiJson += OpenApiAccountResourcesPaths_();

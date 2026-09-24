@@ -256,6 +256,16 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_OPENPGP_LOOKUP_TIMEOUT, 10);
       property_set_->EnsureLong(PROPERTY_PROTECTED_MESSAGE_DAYS, 30);
 
+      // The list manager (Util/ListManager.h): no base URL, so a managed list
+      // offers its mailto addresses and no link until an administrator says
+      // where the pages are reached; one hard bounce, or five soft ones within
+      // thirty days, stop a member being sent the list's mail. Nothing here
+      // does anything until a list is managed.
+      property_set_->EnsureString(PROPERTY_LIST_BASE_URL, _T(""));
+      property_set_->EnsureLong(PROPERTY_LIST_HARD_BOUNCES, 1);
+      property_set_->EnsureLong(PROPERTY_LIST_SOFT_BOUNCES, 5);
+      property_set_->EnsureLong(PROPERTY_LIST_BOUNCE_WINDOW_DAYS, 30);
+
       // Outbound shaping (SMTP/DestinationBackoff.h). The back-off on, at two
       // minutes doubling to an hour: a destination that says slow down is
       // obeyed on a stock installation, which is what a mail transfer agent is
@@ -2322,6 +2332,54 @@ namespace HM
    Configuration::SetRecallDays(int days)
    {
       GetSettings()->SetLong(PROPERTY_RECALL_DAYS, ClampSetting(days, 1, 365));
+   }
+
+   String
+   Configuration::GetListBaseUrl() const
+   {
+      return GetSettings()->GetString(PROPERTY_LIST_BASE_URL);
+   }
+
+   void
+   Configuration::SetListBaseUrl(const String &url)
+   {
+      GetSettings()->SetString(PROPERTY_LIST_BASE_URL, url);
+   }
+
+   int
+   Configuration::GetListHardBouncesToUnsubscribe()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_LIST_HARD_BOUNCES), 1, 100);
+   }
+
+   void
+   Configuration::SetListHardBouncesToUnsubscribe(int count)
+   {
+      GetSettings()->SetLong(PROPERTY_LIST_HARD_BOUNCES, ClampSetting(count, 1, 100));
+   }
+
+   int
+   Configuration::GetListSoftBouncesToUnsubscribe()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_LIST_SOFT_BOUNCES), 1, 100);
+   }
+
+   void
+   Configuration::SetListSoftBouncesToUnsubscribe(int count)
+   {
+      GetSettings()->SetLong(PROPERTY_LIST_SOFT_BOUNCES, ClampSetting(count, 1, 100));
+   }
+
+   int
+   Configuration::GetListBounceWindowDays()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_LIST_BOUNCE_WINDOW_DAYS), 1, 365);
+   }
+
+   void
+   Configuration::SetListBounceWindowDays(int days)
+   {
+      GetSettings()->SetLong(PROPERTY_LIST_BOUNCE_WINDOW_DAYS, ClampSetting(days, 1, 365));
    }
 
    int

@@ -82,6 +82,7 @@
 #include "MailboxRetentionTask.h"
 #include "MetricsHistoryTask.h"
 #include "QuarantineDigestTask.h"
+#include "ListDigestTask.h"
 #include "UpdateCheckTask.h"
 #include "../Util/UpdateApplyToken.h"
 #include "../Util/UpdateChecker.h"
@@ -1051,6 +1052,18 @@ namespace HM
       quarantineDigestTask->SetReoccurance(ScheduledTask::RunInfinitely);
       quarantineDigestTask->SetMinutesBetweenRun(5);
       scheduler_->ScheduleTask(quarantineDigestTask);
+
+      // The list manager's digests and its sweep (Application/ListDigestTask.h).
+      // Every five minutes, so a list's digest goes within five minutes of its
+      // hour. On a server with no managed list both ask one short question -
+      // whether any list is managed, remembered for a minute - and do nothing
+      // more.
+      // No start-up run, for the quarantine digest's reason: a restart must not
+      // send anybody a second digest in a day.
+      std::shared_ptr<ListDigestTask> listDigestTask = std::shared_ptr<ListDigestTask>(new ListDigestTask);
+      listDigestTask->SetReoccurance(ScheduledTask::RunInfinitely);
+      listDigestTask->SetMinutesBetweenRun(5);
+      scheduler_->ScheduleTask(listDigestTask);
 
       // The update check: does the project have a newer release than this one.
       // The task no-ops until UpdateCheckEnabled=1 (Status.CheckForUpdate is the

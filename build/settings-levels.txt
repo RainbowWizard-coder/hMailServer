@@ -147,6 +147,10 @@ ImportOAuthMsClientSecret server
 ImportOAuthMsTokenUrl server
 ImportOAuthRedirectBaseUrl server
 IPv6Preferred server
+ListBaseUrl server
+ListBounceWindowDays server
+ListHardBouncesToUnsubscribe server
+ListSoftBouncesToUnsubscribe server
 logdevice server
 logformat server
 logging server
