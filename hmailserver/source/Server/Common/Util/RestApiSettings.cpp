@@ -58,6 +58,7 @@
 #include "WebPush.h"
 #include "PasswordBreachCheck.h"
 #include "CompromiseDetector.h"
+#include "../AntiVirus/Sandbox.h"
 #include "SessionPolicies.h"
 #include "../Application/IniSettingStore.h"
 #include "../Application/IniSettingsBaseline.h"
@@ -469,6 +470,14 @@ namespace
       { nullptr, 0 }
    };
 
+   // SandboxTimeoutAction: what a hold the sandbox did not answer for ends in.
+   const Word SandboxTimeoutActionWords[] =
+   {
+      { "deliver", 0 },
+      { "bounce", 1 },
+      { nullptr, 0 }
+   };
+
    // Every logging switch is one bit of PROPERTY_LOGGING, and each Configuration
    // setter rewrites the whole mask, so setting one bit at a time is what COM
    // does too (InterfaceLogging::put_LogSMTP and the rest).
@@ -640,6 +649,73 @@ namespace
         "The most deliveries one tenant may have in flight at once, where the tenant is the hosted domain of the envelope sender (an alias domain counts as its domain) and every sender this server does not host is the one tenant (external). A share of connections, never more than max_delivery_threads; the per-account sending limit is the volume control. Over it, a delivery is deferred for a minute without counting a retry. 0 is no share. 0 to 1000; 0 by default.",
         ROW_NUMBER(Config()->GetMaxOutboundConnectionsPerTenant()), ROW_SET(Config()->SetMaxOutboundConnectionsPerTenant((int) v.number)),
         [] (const Value &v) { return (v.number < 0 || v.number > 1000) ? String(_T("max_outbound_connections_per_tenant must be between 0 and 1000.")) : String(); } },
+
+      // Attachments opened somewhere safe (AntiVirus/Sandbox.h, docs/Sandbox.md).
+      // The checks are Sandbox's own, which COM asks too, so a value is refused
+      // in the same words on every surface. The switch and the two addresses
+      // are judged together as well, by GroupPut, against what the request
+      // would leave: on with an address empty is refused.
+      { "sandbox_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether a message that no signed-in user of this server submitted, with an attachment of a submitted type, is held, in no mailbox and not in the quarantine, until the sandbox has answered for each such file; a clean answer delivers it with a header, a malicious one quarantines it. Off by default. Refused on while either address is empty, in this request or already; a configuration that has it so anyway holds nothing and says so in the application log at each start.",
+        ROW_FLAG(Config()->GetSandboxEnabled()), ROW_SET(Config()->SetSandboxEnabled(v.flag)), ROW_NO_CHECK },
+      { "sandbox_submit_url", KindString, ReadWrite, EffectNow, nullptr,
+        "Where each file is POSTed as multipart/form-data with the fields file, filename, sha256 and message_id (this server's queue id), with the bearer token when one is set; the answer is a JSON object whose id (at most 1000 characters) names the submission. https, or plain http to this machine only; stored trimmed. Empty submits nothing.",
+        ROW_TEXT(Config()->GetSandboxSubmitUrl()), ROW_SET(Config()->SetSandboxSubmitUrl(v.text)),
+        [] (const Value &v) -> String { String url = v.text; url.Trim(); return Sandbox::UrlProblem(url, _T("sandbox_submit_url")); } },
+      { "sandbox_verdict_url", KindString, ReadWrite, EffectNow, nullptr,
+        "Where a file's verdict is asked for with a GET, with id=<the submission id> added, or sha256=<the file's hash> when the submit answered no id; {id} and {sha256} in the address are replaced instead when present, {id} by the hash when there is no id. The answer is a JSON object with state (pending or done), verdict (clean, malicious, suspicious or error), score (0 to 100, a number, which a suspicious verdict must carry) and detail. https, or plain http to this machine only; stored trimmed.",
+        ROW_TEXT(Config()->GetSandboxVerdictUrl()), ROW_SET(Config()->SetSandboxVerdictUrl(v.text)),
+        [] (const Value &v) -> String { String url = v.text; url.Trim(); return Sandbox::UrlProblem(url, _T("sandbox_verdict_url")); } },
+      { "sandbox_token", KindString, WriteOnly, EffectNow, nullptr,
+        "The bearer token sent to both addresses in an Authorization header: visible ASCII only, at most 2048 characters, and 248 while ProtectStoredSecretsWithDPAPI is 0, since it has to fit the store once protected. Stored protected, never emitted and left out of the backup archive; empty sends none.",
+        nullptr, ROW_SET(Config()->SetSandboxToken(v.text)),
+        [] (const Value &v) -> String { return Sandbox::TokenProblem(v.text, _T("sandbox_token")); },
+        nullptr, PROPERTY_SANDBOX_TOKEN },
+      { "sandbox_timeout_minutes", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How long a held message waits, in minutes from the moment it was held; past it the hold ends by sandbox_timeout_action whatever the sandbox is doing. 1 to 1440; 15 by default.",
+        ROW_NUMBER(Config()->GetSandboxTimeoutMinutes()), ROW_SET(Config()->SetSandboxTimeoutMinutes((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 1440) ? String(_T("sandbox_timeout_minutes must be between 1 and 1440.")) : String(); } },
+      { "sandbox_timeout_action", KindEnum, ReadWrite, EffectNow, SandboxTimeoutActionWords,
+        "What a hold ends in when the wait is over or the sandbox answers error: deliver delivers the message with a header saying so, bounce returns it to its sender with 5.7.1. deliver by default.",
+        ROW_NUMBER(Config()->GetSandboxTimeoutAction()), ROW_SET(Config()->SetSandboxTimeoutAction((int) v.number)), ROW_NO_CHECK },
+      { "sandbox_max_size_kb", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The largest attachment submitted, in KB. A larger one is not submitted and the header names it; the message is still held for any other file of a submitted type, and delivered at once only when it has none. 1 to 81920, the size of message this server parses; 20480 by default.",
+        ROW_NUMBER(Config()->GetSandboxMaxSizeKB()), ROW_SET(Config()->SetSandboxMaxSizeKB((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 81920) ? String(_T("sandbox_max_size_kb must be between 1 and 81920.")) : String(); } },
+      { "sandbox_types", KindString, ReadWrite, EffectNow, nullptr,
+        "The attachments that are submitted: file extensions (exe) and media types (application/pdf), separated by commas, stored in lower case with each once. A file matches on the extension of either of its names, trailing dots and spaces aside, or on its media type. An archive is submitted whole and not opened here; a forwarded message is opened. The executable and document set by default; empty submits nothing.",
+        ROW_TEXT(Config()->GetSandboxTypes()),
+        [] (const Value &v)
+        {
+           String canonical;
+           Sandbox::TypesProblem(v.text, _T("sandbox_types"), canonical);
+           Config()->SetSandboxTypes(canonical);
+           return Applied();
+        },
+        [] (const Value &v) -> String
+        {
+           String canonical;
+           return Sandbox::TypesProblem(v.text, _T("sandbox_types"), canonical);
+        } },
+      { "sandbox_poll_seconds", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How often the verdicts of the held messages are asked for, in seconds; a pending answer waits for the next, and so does a request that failed. 5 to 3600; 30 by default.",
+        ROW_NUMBER(Config()->GetSandboxPollSeconds()), ROW_SET(Config()->SetSandboxPollSeconds((int) v.number)),
+        [] (const Value &v) { return (v.number < 5 || v.number > 3600) ? String(_T("sandbox_poll_seconds must be between 5 and 3600.")) : String(); } },
+      { "sandbox_score_threshold", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The score at or above which a suspicious verdict is treated as malicious; below it, as clean. 0 to 100; 70 by default.",
+        ROW_NUMBER(Config()->GetSandboxScoreThreshold()), ROW_SET(Config()->SetSandboxScoreThreshold((int) v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 100) ? String(_T("sandbox_score_threshold must be between 0 and 100.")) : String(); } },
+      { "sandbox_cache_hours", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How long a clean or malicious verdict is remembered by the file's SHA-256, in hours, server-wide: the same file within it, in a message to any domain, is not submitted again, a remembered clean one is believed until it expires, and a remembered malicious one is quarantined at once. A suspicious answer is remembered as what the threshold made it then. An error is never remembered. 0 remembers nothing. 0 to 720; 24 by default.",
+        ROW_NUMBER(Config()->GetSandboxCacheHours()), ROW_SET(Config()->SetSandboxCacheHours((int) v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 720) ? String(_T("sandbox_cache_hours must be between 0 and 720.")) : String(); } },
+      { "sandbox_internal_mail", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether what this server's own signed-in users submit - over authenticated SMTP or the webmail, to anyone - is held and its files uploaded to the sandbox as mail from outside is. Off by default, so that their outgoing documents never leave for a third party unasked; a stolen account's mail to colleagues is then not examined either.",
+        ROW_FLAG(Config()->GetSandboxInternalMail()), ROW_SET(Config()->SetSandboxInternalMail(v.flag)), ROW_NO_CHECK },
+      { "sandbox_max_files", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The most files one message may send to the sandbox. A message with more to submit is not held: sandbox_timeout_action decides it at once, with a header saying why. 1 to 100; 10 by default.",
+        ROW_NUMBER(Config()->GetSandboxMaxFiles()), ROW_SET(Config()->SetSandboxMaxFiles((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 100) ? String(_T("sandbox_max_files must be between 1 and 100.")) : String(); } },
 
       // Inbound SMTP behaviour.
       { "allow_smtp_auth_plain", KindBoolean, ReadWrite, EffectNow, nullptr,
@@ -2388,6 +2464,45 @@ namespace
       Value value;
    };
 
+   // The settings whose values are judged together. The sandbox's switch may
+   // not be left on with either address empty (Sandbox::SwitchProblem), and a
+   // request may set all three at once, so each is taken from the request when
+   // it names it and from the configuration when it does not. A request that
+   // names none of the three is not judged by it.
+   String CrossRowProblem(const std::vector<Change> &changes)
+   {
+      bool named = false;
+      bool enabled = Config()->GetSandboxEnabled();
+      String submitUrl = Config()->GetSandboxSubmitUrl();
+      String verdictUrl = Config()->GetSandboxVerdictUrl();
+
+      for (const Change &change : changes)
+      {
+         const std::string key = change.row->key;
+
+         if (key == "sandbox_enabled")
+         {
+            enabled = change.value.flag;
+            named = true;
+         }
+         else if (key == "sandbox_submit_url")
+         {
+            submitUrl = change.value.text;
+            named = true;
+         }
+         else if (key == "sandbox_verdict_url")
+         {
+            verdictUrl = change.value.text;
+            named = true;
+         }
+      }
+
+      if (!named)
+         return String();
+
+      return Sandbox::SwitchProblem(enabled, submitUrl, verdictUrl, _T("sandbox_enabled"));
+   }
+
    HttpResponse Refusal(const Bridge &bridge, int status, const AnsiString &sentence)
    {
       return bridge.respond(status, "{\"error\":\"" + bridge.escape(sentence) + "\"}", "");
@@ -2582,6 +2697,16 @@ namespace
          if (!refusal.IsEmpty())
          {
             LOG_APPLICATION("RestApi: Refused to change " + String(group.name) + " setting " + String(changes[i].row->key) + ": " + refusal);
+            return Refusal(bridge, 400, Utf8(refusal));
+         }
+      }
+
+      // What no one row can judge alone, against what the request would leave.
+      {
+         String refusal = CrossRowProblem(changes);
+         if (!refusal.IsEmpty())
+         {
+            LOG_APPLICATION("RestApi: Refused to change " + String(group.name) + " settings: " + refusal);
             return Refusal(bridge, 400, Utf8(refusal));
          }
       }

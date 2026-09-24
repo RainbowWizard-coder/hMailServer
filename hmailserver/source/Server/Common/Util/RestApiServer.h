@@ -243,6 +243,14 @@ namespace HM
          // and one back-off cleared by name. Server-wide, as the queue is.
          RouteQueueShaping,
          RouteQueueShapingClear,
+         // Attachments opened somewhere safe (RestApiSandbox.cpp): the
+         // messages held for a sandbox's verdict, and an administrator's two
+         // decisions - deliver without the verdict, or discard. The queue's
+         // shape and the queue's permissions: server-wide, and refused to a
+         // credential confined to named domains.
+         RouteSandboxHeldList,
+         RouteSandboxHeldRelease,
+         RouteSandboxHeldDiscard,
          RouteTlsa,
          RouteSrv,
          RouteMetricsHistory,
@@ -1953,6 +1961,15 @@ namespace HM
       // for review, releasing or discarding one, and an account's review state.
       HttpResponse HandleAccountReview_(const Caller &caller, const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiAccountReviewPaths_();
+
+      // Attachments opened somewhere safe (RestApiSandbox.cpp): what is held
+      // for a sandbox's verdict, and delivering or discarding one of them.
+      HttpResponse HandleSandboxHeld_(const Caller &caller, const Route &route);
+      static AnsiString OpenApiSandboxPaths_();
+
+      // The held messages as GET /api/v1/queue lists them: one item each, with
+      // held "sandbox", the time held and the submission ids, and the count.
+      static AnsiString SandboxQueueItems_(int &count);
 
       HttpResponse HandleSetupChecklist_(const Route &route);
       static AnsiString OpenApiSetupChecklistPaths_();

@@ -35,6 +35,8 @@ namespace RegressionTests.Shared
       private string _body;
       private string _contentType;
       private readonly Dictionary<string, Route> _routes = new Dictionary<string, Route>(StringComparer.Ordinal);
+      private readonly Dictionary<string, Queue<Route>> _sequences = new Dictionary<string, Queue<Route>>(StringComparer.Ordinal);
+      private readonly Dictionary<string, int> _stalls = new Dictionary<string, int>(StringComparer.Ordinal);
 
       private sealed class Route
       {
@@ -134,10 +136,58 @@ namespace RegressionTests.Shared
             _routes[path] = new Route {Status = 302, Body = new byte[0], ContentType = "text/plain", Location = location};
       }
 
+      /// <summary>
+      ///    What requests for one exact path are answered with, one after another: the
+      ///    first request gets the first answer, the second the second, and every request
+      ///    after the last gets the last again. A sandbox's verdict route answering
+      ///    pending, pending and then done is what it is for. Wins over SetResponse for
+      ///    the same path; the query is not part of the path.
+      /// </summary>
+      public void SetSequence(string path, params (int status, string body)[] answers)
+      {
+         lock (_lock)
+         {
+            var queue = new Queue<Route>();
+            foreach (var answer in answers)
+               queue.Enqueue(new Route {Status = answer.status, Body = Encoding.UTF8.GetBytes(answer.body ?? ""), ContentType = "application/json"});
+            _sequences[path] = queue;
+         }
+      }
+
+      /// <summary>
+      ///    Requests for one exact path are read, recorded and then left unanswered
+      ///    for so many seconds, after which the connection is closed with no answer
+      ///    at all: a service that accepts a connection and then hangs. The endpoint
+      ///    serves one connection at a time, so nothing else is answered meanwhile
+      ///    either - which is what a stalled service looks like from outside. 0
+      ///    answers the path again.
+      /// </summary>
+      public void SetStall(string path, int seconds)
+      {
+         lock (_lock)
+         {
+            if (seconds > 0)
+               _stalls[path] = seconds;
+            else
+               _stalls.Remove(path);
+         }
+      }
+
+      /// <summary>How many requests with this method were made for one exact path.</summary>
+      public int CountRequests(string method, string path)
+      {
+         lock (_lock)
+            return _requests.Count(request => RequestMethod(request) == method && RequestPath(request) == path);
+      }
+
       public void ClearRoutes()
       {
          lock (_lock)
+         {
             _routes.Clear();
+            _sequences.Clear();
+            _stalls.Clear();
+         }
       }
 
       /// <summary>What the next requests are answered with.</summary>
@@ -236,12 +286,35 @@ namespace RegressionTests.Shared
          string contentType;
          string location = null;
          string requestPath = RequestPath(text);
+         int stall = 0;
          lock (_lock)
          {
             _requests.Add(text);
             _bodies.Add(bodyBytes2);
+            if (requestPath != null)
+               _stalls.TryGetValue(requestPath, out stall);
+         }
+
+         if (stall > 0)
+         {
+            DateTime until = DateTime.UtcNow.AddSeconds(stall);
+            while (DateTime.UtcNow < until && !_stopping)
+               Thread.Sleep(100);
+            return;
+         }
+
+         lock (_lock)
+         {
             Route route;
-            if (requestPath != null && _routes.TryGetValue(requestPath, out route))
+            Queue<Route> sequence;
+            if (requestPath != null && _sequences.TryGetValue(requestPath, out sequence) && sequence.Count > 0)
+            {
+               route = sequence.Count > 1 ? sequence.Dequeue() : sequence.Peek();
+               status = route.Status;
+               bodyBytes = route.Body;
+               contentType = route.ContentType;
+            }
+            else if (requestPath != null && _routes.TryGetValue(requestPath, out route))
             {
                status = route.Status;
                bodyBytes = route.Body;
@@ -264,6 +337,13 @@ namespace RegressionTests.Shared
          stream.Write(headBytes, 0, headBytes.Length);
          stream.Write(bodyBytes, 0, bodyBytes.Length);
          stream.Flush();
+      }
+
+      // The method of the request line.
+      private static string RequestMethod(string request)
+      {
+         int space = request.IndexOf(' ');
+         return space < 0 ? null : request.Substring(0, space);
       }
 
       // The path of the request line, without any query.

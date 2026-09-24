@@ -94,6 +94,10 @@ drop table if exists hm_migrationjobs;
 
 drop table if exists hm_migrations;
 
+drop table if exists hm_sandboxverdicts;
+
+drop table if exists hm_sandboxholds;
+
 drop table if exists hm_accounts;
 
 drop table if exists hm_aliases;
@@ -2646,4 +2650,66 @@ ALTER TABLE hm_migrationjobs ADD CONSTRAINT fk_hm_migrationjobs_migration FOREIG
 
 ALTER TABLE hm_migrationfolders ADD CONSTRAINT fk_hm_migrationfolders_job FOREIGN KEY (mfjobid) REFERENCES hm_migrationjobs (mjid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6090);
+create table hm_sandboxverdicts
+(
+	svid bigint auto_increment not null, primary key(`svid`), unique(`svid`),
+	svsha256 varchar(64) not null,
+	svverdict varchar(16) not null,
+	svscore int not null,
+	svdetail varchar(255) not null,
+	svanswered bigint not null,
+	svexpires bigint not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_sandboxverdicts_sha256 ON hm_sandboxverdicts (svsha256);
+
+create table hm_sandboxholds
+(
+	shid bigint auto_increment not null, primary key(`shid`), unique(`shid`),
+	shmessageid bigint not null,
+	shsha256 varchar(64) not null,
+	shfilename varchar(255) not null,
+	shsize bigint not null,
+	shsubmission varchar(1000) not null,
+	shheld bigint not null,
+	shstate int not null,
+	shverdict varchar(16) not null,
+	shscore int not null,
+	shdetail varchar(255) not null,
+	sherrors int not null,
+	shdecision int not null
+) DEFAULT CHARSET=utf8;
+
+CREATE INDEX idx_hm_sandboxholds_message ON hm_sandboxholds (shmessageid);
+
+ALTER TABLE hm_sandboxverdicts ENGINE=InnoDB;
+
+ALTER TABLE hm_sandboxholds ENGINE=InnoDB;
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SandboxEnabled', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SandboxSubmitUrl', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SandboxVerdictUrl', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SandboxToken', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SandboxTimeoutMinutes', '', 15);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SandboxTimeoutAction', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SandboxMaxSizeKB', '', 20480);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SandboxTypes', 'exe,dll,scr,js,jse,vbs,wsf,hta,msi,bat,cmd,ps1,jar,lnk,iso,img,docm,xlsm,pptm,doc,xls,ppt,rtf,pdf,zip,7z,rar', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SandboxPollSeconds', '', 30);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SandboxScoreThreshold', '', 70);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SandboxCacheHours', '', 24);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SandboxInternalMail', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('SandboxMaxFiles', '', 10);
+
+insert into hm_dbversion values (6091);

@@ -165,6 +165,17 @@ Delivery runs on a separate, smaller pool. The usual causes:
   (`ClientSessionCeiling`, 30 minutes by default), armed once and never re-armed.
 * **A custom virus scanner or external tool that hangs** — bounded by
   `ExternalProcessTimeout`.
+* **A message held for a sandbox's verdict.** With `SandboxEnabled` on, a message
+  none of your own signed-in users submitted, whose attachment is of a submitted
+  type, waits for the sandbox you named to open the file — up to
+  `SandboxTimeoutMinutes`, 15 by default — and while it waits it is in no
+  mailbox, not in the quarantine and not the delivery queue's to retry: its
+  Retry and Delete answer 409, naming the sandbox's routes. It is listed by
+  `GET /api/v1/sandbox/held`, by `GET /api/v1/queue` marked `held: sandbox` (the
+  `held` column of `hmctl queue list`), and in the Deck's queue page under
+  *Held for a sandbox*, where it can be delivered without the verdict or
+  discarded. The application log says when it was submitted and what the sandbox
+  answered. See [Sandbox.md](Sandbox.md).
 * **The database.** Check for errors mentioning the connection pool.
 
 Check the delivery queue in the Control Panel, and the SMTP log for the

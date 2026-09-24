@@ -1199,6 +1199,8 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="retry")retryMsg(d.id);
   else if(d.act==="delmsg")delMsg(d.id);
   else if(d.act==="shresume")resumeDestination(d.id);
+  else if(d.act==="sbrelease")sandboxAct(d.id,true);
+  else if(d.act==="sbdiscard")sandboxAct(d.id,false);
   else if(d.act==="log")showLog(d.name,d.lines);
   else if(d.act==="sessrefresh")render();
   else if(d.act==="follow")followSession(Number(d.id));
@@ -3980,9 +3982,13 @@ async function renderQueue(){
      destinations that asked this server to slow down (each with its window
      and the reply that opened it, and a Resume that clears the window now)
      and the connections open under a ceiling. Both from
-     /api/v1/queue/shaping, read with the queue. */
-  const [q,shaping]=await Promise.all([api("/api/v1/queue"),api("/api/v1/queue/shaping")]);
-  const rows=(q.messages||[]).map(x=>`
+     /api/v1/queue/shaping, read with the queue. And what is held for a
+     sandbox's verdict on its attachments (/api/v1/sandbox/held): listed by
+     the queue too, marked held, and drawn in a box of its own with the two
+     decisions an administrator can make, since the queue's Retry and Delete
+     do not reach a held message. */
+  const [q,shaping,sandbox]=await Promise.all([api("/api/v1/queue"),api("/api/v1/queue/shaping"),api("/api/v1/sandbox/held?limit=1000")]);
+  const rows=(q.messages||[]).filter(x=>!x.held).map(x=>`
     <tr><td>${escHtml(x.id)}</td><td>${escHtml(x.from||"—")}</td><td>${escHtml(x.recipients||"—")}</td><td>${escHtml(x.next_try||"—")}</td>
         <td style="text-align:right;white-space:nowrap">
           <button class="btn ghost sm" data-act="retry" data-id="${escHtml(x.id)}">${t("Retry now")}</button>
@@ -3998,6 +4004,20 @@ async function renderQueue(){
         <div class="hint"><code>${escHtml(b.reply||"")}</code>${b.host?' <span class="muted">'+escHtml(b.host)+'</span>':""}</div>
         <div class="err" id="err_shaping_${escHtml(b.destination||"")}"></div></div>
       ${may("manage_queue")?`<button class="btn ghost sm" data-act="shresume" data-id="${escHtml(b.destination||"")}">${t("Resume")}</button>`:""}</div>`).join("");
+  /* The machine words the list answers with, in the reader's language. */
+  const sbWords={not_submitted:t("not submitted yet"),submitted:t("submitted, waiting for the verdict"),answered:t("answered"),not_submittable:t("not submitted: too large or unreadable"),clean:t("clean"),malicious:t("malicious"),suspicious:t("suspicious"),error:t("error")};
+  const sbWord=w=>escHtml(sbWords[w]||w||"");
+  const file=f=>`<div class="hint"><code style="word-break:break-all">${escHtml(f.filename||"")}</code> ${sbWord(f.state)}${f.verdict?" · "+sbWord(f.verdict)+" "+escHtml(String(f.score||0)):""}${f.submission?" · "+escHtml(f.submission):""}${f.errors?" · "+escHtml(String(f.errors))+" ✗":""}</div>`;
+  const heldTotal=(sandbox&&typeof sandbox.total==="number")?sandbox.total:asList(sandbox,"messages").length;
+  const heldShown=asList(sandbox,"messages").length;
+  const held=asList(sandbox,"messages").map(m=>`
+    <div class="row" style="justify-content:space-between;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)">
+      <div style="flex:1;min-width:0"><b>${escHtml(String(m.queue_id))}</b> <span style="word-break:break-all">${escHtml(m.from||"—")} → ${escHtml(m.recipients||"—")}</span>
+        <div class="hint">${escHtml(tf("Held for {0} s; {1} file(s)",m.held_seconds||0,(m.files||[]).length))}</div>
+        ${(m.files||[]).map(file).join("")}
+        <div class="err" id="err_sandbox_${escHtml(String(m.queue_id))}"></div></div>
+      ${may("manage_queue")?`<div style="white-space:nowrap"><button class="btn ghost sm" data-act="sbrelease" data-id="${escHtml(String(m.queue_id))}">${t("Release")}</button>
+        <button class="btn danger sm" data-act="sbdiscard" data-id="${escHtml(String(m.queue_id))}">${t("Discard")}</button></div>`:""}</div>`).join("");
   $("#content").innerHTML=`<div class="view"><div class="card view">
     <div class="tablewrap"><table><thead><tr><th>${t("ID")}</th><th>${t("From")}</th><th>${t("To")}</th><th>${t("Next try")}</th><th></th></tr></thead>
     <tbody>${rows||'<tr><td colspan="5" class="empty">'+t("The delivery queue is empty. ✦")+'</td></tr>'}</tbody></table></div></div>
@@ -4005,7 +4025,20 @@ async function renderQueue(){
       <p class="note">${t("A destination that answered a slow-down reply - a 421, a rate-limit code or words to that effect - is not connected to until its window ends; then one delivery probes it, and the same answer doubles the window. Resume clears the window now.")}</p>
       ${slowed||'<div class="empty">'+t("No destination has asked this server to slow down.")+'</div>'}
       <div class="hint">${t("Connections in use when the page was drawn")} — ${t("destinations")}: ${counts(conns.destinations)||"—"}; ${t("tenants")}: ${counts(conns.tenants)||"—"}</div>
+    </div></div>
+    <div class="sect"><h2>${t("Held for a sandbox")}</h2><div class="card flat">
+      <p class="note">${t("A message with an attachment of a submitted type waits here - in no mailbox and not in the quarantine - until the sandbox has answered for each file: clean is delivered, malicious is quarantined. Release delivers it now without the verdict; Discard deletes it and tells nobody.")}</p>
+      ${held||'<div class="empty">'+t("Nothing is held for a sandbox.")+'</div>'}
+      ${heldTotal>heldShown?'<div class="hint">'+escHtml(tf("{0} of {1} held messages are shown, oldest first.",heldShown,heldTotal))+'</div>':""}
     </div></div></div>`;
+}
+async function sandboxAct(id,release){
+  if(!confirm(release?tf("Deliver message {0} now, without the sandbox's verdict?",id):tf("Discard message {0}? It is deleted and nobody is told.",id)))return;
+  try{
+    await api("/api/v1/sandbox/held/"+encodeURIComponent(id)+(release?"/release":""),{method:release?"POST":"DELETE",body:release?"{}":undefined});
+    toast(release?t("Released to the delivery queue"):t("Discarded"));
+    renderQueue();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_sandbox_"+id,e.message);}
 }
 async function resumeDestination(destination){
   if(!confirm(tf("Resume deliveries to {0} now? The next slow-down reply opens a new window.",destination)))return;

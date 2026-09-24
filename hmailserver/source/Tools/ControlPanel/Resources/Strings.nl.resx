@@ -479,6 +479,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="A domain, or an account address" xml:space="preserve">
     <value>Een domein of een accountadres</value>
   </data>
+  <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
+    <value>Een bestand van een ingediend type in een bericht van buiten wordt naar een sandbox gestuurd die u beheert of waarop u geabonneerd bent, en het bericht wacht – in geen enkele postbus en niet in quarantaine – op het oordeel: schoon wordt bezorgd, kwaadaardig gaat in quarantaine. Er wordt niets vastgehouden totdat beide adressen zijn ingesteld en dit is ingeschakeld.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Een marge voor inkomende mail: een mailbox die minder dan dit over haar limiet is, ontvangt nog, zodat iemand die een week weg is geen mail verliest omdat maandag een grote bijlage aankwam. De eigen opslag en kopieën van de eigenaar stoppen bij de limiet zelf. Elk domein kan zijn eigen waarde zetten. Geldt meteen.</value>
   </data>
@@ -1220,6 +1223,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Also block a banned address in the operating system's firewall" xml:space="preserve">
     <value>Een geband adres ook blokkeren in de firewall van het besturingssysteem</value>
   </data>
+  <data name="Also hold what this server's own signed-in users send, and upload its files" xml:space="preserve">
+    <value>Ook vasthouden wat de aangemelde gebruikers van deze server versturen, en de bestanden indienen</value>
+  </data>
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>Accounts ook als _inactief markeren wanneer hun directoryvermelding is verdwenen</value>
   </data>
@@ -1500,11 +1506,17 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Attachment name" xml:space="preserve">
     <value>Bijlagenaam</value>
   </data>
+  <data name="Attachment sandbox - a service that opens files" xml:space="preserve">
+    <value>Sandbox voor bijlagen - een dienst die bestanden opent</value>
+  </data>
   <data name="Attachment type" xml:space="preserve">
     <value>Bijlagetype</value>
   </data>
   <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
     <value>Bijlagetype op basis van de bytes (executable, pdf, zip, office, text…)</value>
+  </data>
+  <data name="Attachments opened in a sandbox" xml:space="preserve">
+    <value>Bijlagen geopend in een sandbox</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Pogingen om de database bij het opstarten te bereiken</value>
@@ -1653,6 +1665,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Verbannen voor (uren, 1 tot 8760)</value>
   </data>
+  <data name="Bearer token (leave empty to keep current)" xml:space="preserve">
+    <value>Bearer-token (leeg laten om het huidige te behouden)</value>
+  </data>
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Bearer-token voor /metrics (leeg = geen)</value>
   </data>
@@ -1712,6 +1727,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Blokgrootte bij het lezen van de berichttekst (bytes)</value>
+  </data>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>Beide adressen zijn ingesteld. Of de dienst antwoordt, is van hieruit niet te zeggen: stuur van buiten een bericht met een bijgevoegd bestand van een ingediend type en zoek het onder Vastgehouden voor een sandbox op de wachtrijpagina van de Deck, of zoek in het toepassingslogboek naar een regel dat het naar de sandbox is ingediend.</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>Beide uitzonderingen lezen de score die deze server in het bericht heeft vastgelegd, dus ze vereisen dat "Reden aan de header toevoegen" aanstaat (Antispaminstellingen). Staat dat uit, dan wordt er geen score vastgelegd, valt er niets te bewijzen en werkt geen van beide uitzonderingen - het account houdt het serverbrede gedrag. De waarde in het bestand wordt in dat geval niet vertrouwd, omdat niets een AFZENDER belet er zelf een in te zetten.</value>
@@ -3000,6 +3018,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Deliver _local → local" xml:space="preserve">
     <value>_Lokaal → lokaal bezorgen</value>
   </data>
+  <data name="Deliver it with a header saying so" xml:space="preserve">
+    <value>Bezorgen met een header die dat zegt</value>
+  </data>
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Afleveren en alleen vastleggen</value>
   </data>
@@ -3752,6 +3773,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="File missing" xml:space="preserve">
     <value>Bestand ontbreekt</value>
   </data>
+  <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
+    <value>Ingediende bestandstypen (extensies en mediatypen, gescheiden door komma's)</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>Bestandsnaampatronen die uit inkomende berichten worden verwijderd, wat een scanner ook zegt.</value>
   </data>
@@ -4046,8 +4070,14 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>Een geweigerde verbinding openhouden voordat die wordt verbroken (seconden, 0 = meteen verbreken)</value>
   </data>
+  <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
+    <value>Bijlagen vasthouden tot het oordeel van de sandbox</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Berichten vasthouden voor beoordeling in plaats van ze te weigeren</value>
+  </data>
+  <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
+    <value>Houdt een bericht van buiten met een bijgevoegd uitvoerbaar bestand of document vast totdat een sandbox het bestand heeft geopend en schoon of kwaadaardig heeft geantwoord.</value>
   </data>
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>Houdt de weigering van een fout wachtwoord even vast voordat die wordt verzonden: de eerste mislukking op een verbinding wacht dit aantal seconden, de tweede twee keer zo lang, enzovoort tot 30 seconden, en dat op SMTP, POP3 en IMAP gelijk. Een juist wachtwoord wordt nooit vertraagd. Het wachten is een timer op de verbinding en geen slapende thread, dus een vloed van mislukte aanmeldingen kost de server niets behalve de sockets waarop ze binnenkomen - dat de oude TarpitDelay tien jaar lang een lege huls was, komt doordat de naïeve versie een zelf veroorzaakte storing is.</value>
@@ -4090,6 +4120,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
     <value>Uren dat een vrijgavekoppeling bruikbaar blijft (1 tot en met 720)</value>
+  </data>
+  <data name="Hours a verdict is remembered (0 = never)" xml:space="preserve">
+    <value>Uren dat een oordeel wordt onthouden (0 = nooit)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>Uren tussen controles (1 tot 168)</value>
@@ -4506,6 +4539,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Language (VBScript or JScript)" xml:space="preserve">
     <value>Taal (VBScript of JScript)</value>
+  </data>
+  <data name="Largest attachment submitted (KB)" xml:space="preserve">
+    <value>Grootste ingediende bijlage (KB)</value>
   </data>
   <data name="Largest message in KB (0 is no limit)" xml:space="preserve">
     <value>Grootste bericht in KB (0 is geen limiet)</value>
@@ -5148,6 +5184,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Minimum timeout (seconds)" xml:space="preserve">
     <value>Minimale time-out (seconden)</value>
   </data>
+  <data name="Minutes a message waits for a verdict" xml:space="preserve">
+    <value>Minuten dat een bericht op een oordeel wacht</value>
+  </data>
   <data name="Minutes between downloads" xml:space="preserve">
     <value>Minuten tussen downloads</value>
   </data>
@@ -5186,6 +5225,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>Er wachten meer dan {0} berichten op bezorging.</value>
+  </data>
+  <data name="Most files one message may submit" xml:space="preserve">
+    <value>Maximaal aantal bestanden dat één bericht mag indienen</value>
   </data>
   <data name="Most used" xml:space="preserve">
     <value>Meest gebruikt</value>
@@ -6945,6 +6987,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Het voorbeelddomein verwijderen met alle postbussen, berichten en regels erin? Alles wat eraan is toegevoegd gaat mee.</value>
   </data>
+  <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
+    <value>Het bearer-token van de sandbox verwijderen? Verzoeken aan de sandbox worden dan zonder token verstuurd.</value>
+  </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Het geselecteerde account uit deze groep verwijderen</value>
   </data>
@@ -6956,6 +7001,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>B_ij het opslaan het opgeslagen serviceaccountwachtwoord verwijderen</value>
+  </data>
+  <data name="Remove the token" xml:space="preserve">
+    <value>Token verwijderen</value>
   </data>
   <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
     <value>Het hersteladres van dit account verwijderen? Elke herstelkoppeling die er al naartoe onderweg is, stopt met werken, en de accounthouder stelt een nieuw adres in vanuit de webmail. De eenmalige codes blijven ongemoeid.</value>
@@ -7216,6 +7264,9 @@ Doorgaan?</value>
   <data name="Retries" xml:space="preserve">
     <value>Nieuwe pogingen</value>
   </data>
+  <data name="Return it to the sender (5.7.1)" xml:space="preserve">
+    <value>Terugsturen naar de afzender (5.7.1)</value>
+  </data>
   <data name="Return value for infected" xml:space="preserve">
     <value>Retourwaarde voor geïnfecteerd</value>
   </data>
@@ -7304,6 +7355,9 @@ Doorgaan?</value>
   </data>
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>Wordt uitgevoerd als &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; wanneer een ban ontstaat en als &lt;command&gt; unban &lt;address&gt; wanneer het bereik verdwijnt, op Windows en op Linux - voor een cloudfirewall, een router of een SIEM. Zet het pad van het programma tussen aanhalingstekens als het spaties bevat; de server voegt de argumenten toe. Een exitcode ongelijk aan nul of een programma dat niet start wordt eenmaal in het foutenlogboek gemeld.</value>
+  </data>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>Beheer een sandbox, of abonneer u op een sandbox, die het kleine HTTP-contract uit docs/Sandbox.md spreekt, stel het indien- en oordeeladres in op het tabblad Sandbox van de pagina Antivirus en schakel hem in.</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>Scriptfunctie uitvoeren</value>
@@ -7464,6 +7518,9 @@ Doorgaan?</value>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Rechten _opslaan</value>
   </data>
+  <data name="Sandbox" xml:space="preserve">
+    <value>Sandbox</value>
+  </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>_Niveaus nu opslaan</value>
   </data>
@@ -7605,6 +7662,9 @@ Doorgaan?</value>
   <data name="Score applied when the engine says &quot;reject&quot;" xml:space="preserve">
     <value>Score die wordt toegepast wanneer de engine "reject" zegt</value>
   </data>
+  <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
+    <value>Score vanaf welke verdacht als kwaadaardig telt (0-100)</value>
+  </data>
   <data name="Score when not merging" xml:space="preserve">
     <value>Score wanneer er niet wordt samengevoegd</value>
   </data>
@@ -7733,6 +7793,9 @@ Doorgaan?</value>
   </data>
   <data name="Seconds between those attempts" xml:space="preserve">
     <value>Seconden tussen die pogingen</value>
+  </data>
+  <data name="Seconds between verdict checks" xml:space="preserve">
+    <value>Seconden tussen oordeelvragen</value>
   </data>
   <data name="Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)" xml:space="preserve">
     <value>Seconden dat de JWK Set wordt bewaard voordat hij opnieuw wordt opgehaald (een token dat een onbekende sleutel-id noemt, haalt hem meteen opnieuw op)</value>
@@ -8463,6 +8526,9 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Submission rate limits" xml:space="preserve">
     <value>Indieningslimieten</value>
+  </data>
+  <data name="Submit address (POST)" xml:space="preserve">
+    <value>Indienadres (POST)</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Onderdrukkingslijst</value>
@@ -9336,6 +9402,15 @@ Toch toevoegen?</value>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Dezelfde regels, categorieën en hetzelfde masker als de logbestanden krijgen, met de trace- en span-id erbij zodra er een span actief is op de thread die logde. De exporter exporteert nooit zijn eigen foutregels, anders zou een dode collector zichzelf voeden.</value>
   </data>
+  <data name="The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off." xml:space="preserve">
+    <value>De sandbox staat AAN, maar een adres is leeg, dus er wordt niets vastgehouden en niets ingediend tot beide zijn ingesteld - het toepassingslogboek meldt dit bij elke start. Stel beide adressen in, of zet hem uit.</value>
+  </data>
+  <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
+    <value>De sandbox staat uit, wat de standaard is: er wordt niets vastgehouden en niets ingediend.</value>
+  </data>
+  <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
+    <value>De sandboxinstellingen konden niet van de server worden gelezen, dus deze pagina kan niet zeggen of er een is geconfigureerd.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Het scanresultaat is alleen leesbaar op de servermachine - hMailServer.INI is hier niet gevonden. De server publiceert hetzelfde getal als het meetpunt hmailserver_messagestore_missing_files.</value>
   </data>
@@ -9504,6 +9579,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="The text templates the server returns to clients (greetings, bounce and error messages). These are a fixed set you can edit." xml:space="preserve">
     <value>De tekstsjablonen die de server aan clients teruggeeft (begroetingen, bounce- en foutmeldingen). Dit is een vaste set die u kunt bewerken.</value>
+  </data>
+  <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
+    <value>Het token is verwijderd; verzoeken aan de sandbox bevatten er nu geen.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>De configuratie voor transportbeveiliging kon niet worden gelezen.</value>
@@ -10044,6 +10122,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Value:      {0}" xml:space="preserve">
     <value>Waarde:      {0}</value>
   </data>
+  <data name="Verdict address (GET)" xml:space="preserve">
+    <value>Oordeeladres (GET)</value>
+  </data>
   <data name="Verification code from your authenticator app" xml:space="preserve">
     <value>Verificatiecode uit uw authenticator-app</value>
   </data>
@@ -10262,6 +10343,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>Wanneer het eindpunt onbereikbaar is</value>
+  </data>
+  <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
+    <value>Als het wachten eindigt of de sandbox een fout antwoordt</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Waar het naartoe gaat</value>

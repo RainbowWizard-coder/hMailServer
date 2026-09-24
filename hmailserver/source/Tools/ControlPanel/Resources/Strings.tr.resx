@@ -479,6 +479,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="A domain, or an account address" xml:space="preserve">
     <value>Bir alan adı veya hesap adresi</value>
   </data>
+  <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
+    <value>Dışarıdan gelen bir iletideki gönderilen türde bir dosya, işlettiğiniz ya da abone olduğunuz bir korumalı alana gönderilir ve ileti hiçbir posta kutusunda ve karantinada olmadan kararını bekler: temiz olan teslim edilir, kötü amaçlı olan karantinaya alınır. Her iki adres ayarlanıp bu açılana kadar hiçbir şey bekletilmez.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Gelen posta için bir pay: sınırını bundan daha az aşan bir posta kutusu almaya devam eder; böylece bir hafta uzakta olan biri pazartesi büyük bir ek geldi diye posta kaybetmez. Sahibin kendi kayıtları ve kopyaları sınırın kendisinde durur. Her alan kendi değerini belirleyebilir. Hemen geçerlidir.</value>
   </data>
@@ -1220,6 +1223,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Also block a banned address in the operating system's firewall" xml:space="preserve">
     <value>Yasaklanan adresi işletim sisteminin güvenlik duvarında da engelle</value>
   </data>
+  <data name="Also hold what this server's own signed-in users send, and upload its files" xml:space="preserve">
+    <value>Bu sunucuda oturum açmış kullanıcıların gönderdiklerini de beklet ve dosyalarını gönder</value>
+  </data>
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>Dizin girdisi ortadan kalkan hesapları ayrıca etkin değ_il olarak işaretle</value>
   </data>
@@ -1500,11 +1506,17 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Attachment name" xml:space="preserve">
     <value>Ek adı</value>
   </data>
+  <data name="Attachment sandbox - a service that opens files" xml:space="preserve">
+    <value>Ek korumalı alanı - dosyaları açan bir hizmet</value>
+  </data>
   <data name="Attachment type" xml:space="preserve">
     <value>Ek türü</value>
   </data>
   <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
     <value>Baytlarına göre ek türü (executable, pdf, zip, office, text…)</value>
+  </data>
+  <data name="Attachments opened in a sandbox" xml:space="preserve">
+    <value>Korumalı alanda açılan ekler</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Başlangıçta veritabanına ulaşma denemeleri</value>
@@ -1653,6 +1665,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Yasak süresi (saat, 1 ile 8760 arası)</value>
   </data>
+  <data name="Bearer token (leave empty to keep current)" xml:space="preserve">
+    <value>Bearer belirteci (geçerli olanı korumak için boş bırakın)</value>
+  </data>
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>/metrics için taşıyıcı belirteç (boş = yok)</value>
   </data>
@@ -1712,6 +1727,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Gövde okuma parçası boyutu (bayt)</value>
+  </data>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>Her iki adres de ayarlı. Hizmetin yanıt verip vermediği buradan anlaşılamaz: dışarıdan, gönderilen türde bir dosya eklenmiş bir ileti gönderin ve onu Deck'in kuyruk sayfasındaki Korumalı alan için bekletilenler bölümünde ya da uygulama günlüğünde korumalı alana gönderildiğini söyleyen bir satırda arayın.</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>Her iki geçersiz kılma da bu sunucunun iletiye kaydettiği puanı okur; bu yüzden "Nedeni başlığa ekle" seçeneğinin açık olması gerekir (Spam önleme ayarları). Kapalıyken hiçbir puan kaydedilmez, hiçbir şey kanıtlanamaz ve iki geçersiz kılma da işlemez - hesap sunucu geneli davranışı korur. Bu durumda dosyadaki değere güvenilmez, çünkü bir GÖNDERENİN oraya bir değer koymasını hiçbir şey engellemez.</value>
@@ -3000,6 +3018,9 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   <data name="Deliver _local → local" xml:space="preserve">
     <value>_Yerel → yerel teslim</value>
   </data>
+  <data name="Deliver it with a header saying so" xml:space="preserve">
+    <value>Bunu belirten bir üst bilgiyle teslim et</value>
+  </data>
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Teslim et ve yalnızca kaydet</value>
   </data>
@@ -3752,6 +3773,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="File missing" xml:space="preserve">
     <value>Dosya eksik</value>
   </data>
+  <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
+    <value>Gönderilen dosya türleri (uzantılar ve ortam türleri, virgülle ayrılmış)</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>Tarayıcı ne derse desin gelen iletilerden çıkarılan dosya adı desenleri.</value>
   </data>
@@ -4046,8 +4070,14 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>Reddedilen bir bağlantıyı kapatmadan önce açık tut (saniye, 0 = hemen kapat)</value>
   </data>
+  <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
+    <value>Ekleri korumalı alanın kararına kadar beklet</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>İletileri reddetmek yerine incelenmek üzere beklet</value>
+  </data>
+  <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
+    <value>Eki yürütülebilir dosya veya belge olan dışarıdan gelen bir iletiyi, bir korumalı alan dosyayı açıp temiz ya da kötü amaçlı yanıtını verene kadar bekletir.</value>
   </data>
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>Yanlış bir parolanın reddini göndermeden önce bir süre bekletir: bir bağlantıdaki ilk hata bu kadar saniye bekler, ikincisi iki katı ve böyle devam ederek 30 saniyeye kadar çıkar; SMTP, POP3 ve IMAP'te aynı biçimde. Doğru bir parola asla geciktirilmez. Bekleme, uykuya yatan bir iş parçacığı değil, bağlantı üzerindeki bir zamanlayıcıdır; bu yüzden başarısız oturum açma seli sunucuya, geldikleri soketlerden başka hiçbir şeye mal olmaz - eski TarpitDelay'in on yıl boyunca bir taslak olarak kalmasının nedeni, naif sürümün kendi kendine yol açılan bir kesinti olmasıdır.</value>
@@ -4090,6 +4120,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
     <value>Bir serbest bırakma bağlantısının kullanılabilir kaldığı saat (1 ile 720 arası)</value>
+  </data>
+  <data name="Hours a verdict is remembered (0 = never)" xml:space="preserve">
+    <value>Bir kararın hatırlandığı saat (0 = hiçbir zaman)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>Denetimler arasındaki saat sayısı (1 ile 168 arası)</value>
@@ -4506,6 +4539,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Language (VBScript or JScript)" xml:space="preserve">
     <value>Dil (VBScript veya JScript)</value>
+  </data>
+  <data name="Largest attachment submitted (KB)" xml:space="preserve">
+    <value>Gönderilen en büyük ek (KB)</value>
   </data>
   <data name="Largest message in KB (0 is no limit)" xml:space="preserve">
     <value>En büyük ileti, KB (0 sınırsız demektir)</value>
@@ -5148,6 +5184,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Minimum timeout (seconds)" xml:space="preserve">
     <value>En küçük zaman aşımı (saniye)</value>
   </data>
+  <data name="Minutes a message waits for a verdict" xml:space="preserve">
+    <value>Bir iletinin karar için beklediği dakika</value>
+  </data>
   <data name="Minutes between downloads" xml:space="preserve">
     <value>İndirmeler arasındaki dakika</value>
   </data>
@@ -5186,6 +5225,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>{0} iletiden fazlası teslim edilmeyi bekliyor.</value>
+  </data>
+  <data name="Most files one message may submit" xml:space="preserve">
+    <value>Bir iletinin gönderebileceği en fazla dosya</value>
   </data>
   <data name="Most used" xml:space="preserve">
     <value>En çok kullanılan</value>
@@ -6945,6 +6987,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Örnek etki alanı, içindeki tüm posta kutuları, iletiler ve kurallarla birlikte kaldırılsın mı? Ona eklenen her şey de gider.</value>
   </data>
+  <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
+    <value>Korumalı alanın bearer belirteci kaldırılsın mı? Korumalı alana istekler bundan sonra belirteçsiz gönderilir.</value>
+  </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Seçili hesabı bu gruptan kaldır</value>
   </data>
@@ -6956,6 +7001,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>Kaydederken saklanan hiz_met hesabı parolasını kaldır</value>
+  </data>
+  <data name="Remove the token" xml:space="preserve">
+    <value>Belirteci kaldır</value>
   </data>
   <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
     <value>Bu hesabın kurtarma adresi kaldırılsın mı? Oraya çoktan yola çıkmış her sıfırlama bağlantısı çalışmayı bırakır ve hesap sahibi web postasından yeni bir adres ayarlar. Tek kullanımlık kodlara dokunulmaz.</value>
@@ -7216,6 +7264,9 @@ Devam edilsin mi?</value>
   <data name="Retries" xml:space="preserve">
     <value>Yeniden denemeler</value>
   </data>
+  <data name="Return it to the sender (5.7.1)" xml:space="preserve">
+    <value>Gönderene geri döndür (5.7.1)</value>
+  </data>
   <data name="Return value for infected" xml:space="preserve">
     <value>Virüslü için dönüş değeri</value>
   </data>
@@ -7304,6 +7355,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>Bir yasak oluşturulduğunda &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; olarak, aralık kalktığında &lt;command&gt; unban &lt;address&gt; olarak çalıştırılır; Windows'ta da Linux'ta da aynı biçimde - bir bulut güvenlik duvarı, bir yönlendirici veya bir SIEM için. Program yolu boşluk içeriyorsa tırnak içine alın; bağımsız değişkenleri sunucu ekler. Sıfırdan farklı bir çıkış kodu veya başlatılamayan bir program hata günlüğüne bir kez bildirilir.</value>
+  </data>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>docs/Sandbox.md içindeki küçük HTTP sözleşmesini konuşan bir korumalı alan işletin ya da ona abone olun, gönderme ve karar adreslerini Virüsten koruma sayfasının Korumalı alan sekmesinde ayarlayın ve açın.</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>Betik işlevini çalıştır</value>
@@ -7464,6 +7518,9 @@ Devam edilsin mi?</value>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>İzinleri _kaydet</value>
   </data>
+  <data name="Sandbox" xml:space="preserve">
+    <value>Korumalı alan</value>
+  </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>_Düzeyleri şimdi kaydet</value>
   </data>
@@ -7605,6 +7662,9 @@ Devam edilsin mi?</value>
   <data name="Score applied when the engine says &quot;reject&quot;" xml:space="preserve">
     <value>Motor "reject" dediğinde uygulanan puan</value>
   </data>
+  <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
+    <value>Şüphelinin kötü amaçlı sayıldığı puan (0-100)</value>
+  </data>
   <data name="Score when not merging" xml:space="preserve">
     <value>Birleştirme yokken puan</value>
   </data>
@@ -7733,6 +7793,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Seconds between those attempts" xml:space="preserve">
     <value>Bu denemeler arasındaki saniye</value>
+  </data>
+  <data name="Seconds between verdict checks" xml:space="preserve">
+    <value>Karar sorguları arasındaki saniye</value>
   </data>
   <data name="Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)" xml:space="preserve">
     <value>JWK Set'i yeniden getirmeden önce tutulacak saniye (bilinmeyen bir anahtar kimliği belirten belirteç hemen yeniden getirir)</value>
@@ -8463,6 +8526,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Submission rate limits" xml:space="preserve">
     <value>Gönderim hızı sınırları</value>
+  </data>
+  <data name="Submit address (POST)" xml:space="preserve">
+    <value>Gönderme adresi (POST)</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Engelleme listesi</value>
@@ -9336,6 +9402,15 @@ Yine de eklensin mi?</value>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Günlük dosyalarının aldığı satırlar, kategoriler ve maskeyle aynı; günlüğe yazan iş parçacığında bir aralık etkinken izleme ve aralık kimliği eklenir. Dışa aktarıcı kendi başarısızlık satırlarını hiçbir zaman dışa aktarmaz; aksi hâlde ölü bir toplayıcı kendi kendini beslerdi.</value>
   </data>
+  <data name="The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off." xml:space="preserve">
+    <value>Korumalı alan AÇIK ancak bir adres boş; ikisi de ayarlanana kadar hiçbir şey bekletilmez ve gönderilmez - uygulama günlüğü bunu her başlangıçta belirtir. İki adresi de ayarlayın veya kapatın.</value>
+  </data>
+  <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
+    <value>Korumalı alan kapalı, varsayılan budur: hiçbir şey bekletilmez ve hiçbir şey gönderilmez.</value>
+  </data>
+  <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
+    <value>Korumalı alan ayarları sunucudan okunamadı, bu yüzden bu sayfa yapılandırılmış olup olmadığını söyleyemiyor.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Tarama sonucu yalnızca sunucu makinesinde okunabilir - hMailServer.INI burada bulunamadı. Sunucu aynı sayıyı hmailserver_messagestore_missing_files ölçümü olarak yayımlar.</value>
   </data>
@@ -9504,6 +9579,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="The text templates the server returns to clients (greetings, bounce and error messages). These are a fixed set you can edit." xml:space="preserve">
     <value>Sunucunun istemcilere döndürdüğü metin şablonları (karşılamalar, geri dönme ve hata iletileri). Bunlar düzenleyebileceğiniz sabit bir kümedir.</value>
+  </data>
+  <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
+    <value>Belirteç kaldırıldı; korumalı alana giden istekler artık belirteç taşımıyor.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Taşıma güvenliği yapılandırması okunamadı.</value>
@@ -10044,6 +10122,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="Value:      {0}" xml:space="preserve">
     <value>Değer:      {0}</value>
   </data>
+  <data name="Verdict address (GET)" xml:space="preserve">
+    <value>Karar adresi (GET)</value>
+  </data>
   <data name="Verification code from your authenticator app" xml:space="preserve">
     <value>Kimlik doğrulayıcı uygulamanızdaki doğrulama kodu</value>
   </data>
@@ -10262,6 +10343,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>Uç noktaya ulaşılamadığında</value>
+  </data>
+  <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
+    <value>Bekleme sona erdiğinde ya da korumalı alan hata yanıtı verdiğinde</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Nereye gider</value>

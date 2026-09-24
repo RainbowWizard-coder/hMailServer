@@ -487,6 +487,7 @@ namespace hMailServer.ControlPanel.Services
             ClientCertificatesItem(local, iniExcuse),
             OAuth2Item(ini, iniReadable, iniExcuse, local),
             AutoconfigItem(ini, iniReadable, iniExcuse),
+            SandboxItem(),
             ServiceAccountItem(ini, iniReadable, iniExcuse, local)
          };
 
@@ -1676,6 +1677,91 @@ namespace hMailServer.ControlPanel.Services
          {
             item.Add(SetupItemState.CannotTell,
                L("The listener is configured. What remains is outside the server: publish autoconfig.<domain> and autodiscover.<domain> records for each mail domain, then test from a client machine."));
+         }
+
+         item.AggregateFromFindings();
+         return item;
+      }
+
+      /// <summary>
+      /// The attachment sandbox (docs/Sandbox.md): a service outside this server
+      /// that opens a file and says what it did. The switch and the two addresses
+      /// are read over COM; whether the service answers cannot be told from here,
+      /// so a configured sandbox is "Cannot tell" with the way to find out.
+      /// </summary>
+      private SetupItem SandboxItem()
+      {
+         var item = new SetupItem
+         {
+            Title = L("Attachment sandbox - a service that opens files"),
+            Purpose = L("Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious."),
+            Action = L("Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on."),
+            Page = "antivirus"
+         };
+
+         int failuresBefore = failedReads_;
+
+         bool enabled = Read(() =>
+         {
+            dynamic settings = null;
+            try
+            {
+               settings = ServerSession.Current.Application.Settings;
+               return (bool)settings.SandboxEnabled;
+            }
+            finally
+            {
+               ServerSession.Release((object)settings);
+            }
+         });
+
+         string submitUrl = Read(() =>
+         {
+            dynamic settings = null;
+            try
+            {
+               settings = ServerSession.Current.Application.Settings;
+               return (string)settings.SandboxSubmitUrl ?? "";
+            }
+            finally
+            {
+               ServerSession.Release((object)settings);
+            }
+         });
+
+         string verdictUrl = Read(() =>
+         {
+            dynamic settings = null;
+            try
+            {
+               settings = ServerSession.Current.Application.Settings;
+               return (string)settings.SandboxVerdictUrl ?? "";
+            }
+            finally
+            {
+               ServerSession.Release((object)settings);
+            }
+         });
+
+         if (failedReads_ != failuresBefore)
+         {
+            item.Add(SetupItemState.CannotTell,
+               L("The sandbox settings could not be read from the server, so this page cannot say whether one is configured."));
+         }
+         else if (!enabled)
+         {
+            item.Add(SetupItemState.NotNeeded,
+               L("The sandbox is off, which is the default: nothing is held and nothing is submitted."));
+         }
+         else if (string.IsNullOrWhiteSpace(submitUrl) || string.IsNullOrWhiteSpace(verdictUrl))
+         {
+            item.Add(SetupItemState.ActionNeeded,
+               L("The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off."));
+         }
+         else
+         {
+            item.Add(SetupItemState.CannotTell,
+               L("Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log."));
          }
 
          item.AggregateFromFindings();

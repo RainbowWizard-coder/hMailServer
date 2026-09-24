@@ -2149,6 +2149,11 @@ namespace HM
          case RouteQueueShapingClear:
             return HandleQueueShapingClear_(String(route.identifier));
 
+         case RouteSandboxHeldList:
+         case RouteSandboxHeldRelease:
+         case RouteSandboxHeldDiscard:
+            return HandleSandboxHeld_(caller, route);
+
          case RouteTlsa:
             return HandleTlsa_();
 
@@ -4865,6 +4870,35 @@ namespace HM
          }
       }
 
+      // What is held for a sandbox's verdict (RestApiSandbox.cpp), and the
+      // two decisions an administrator can make about one: deliver it without
+      // the verdict, or discard it. Named by the queue id.
+      if (method == "GET" && path == "/api/v1/sandbox/held")
+      {
+         route.kind = RouteSandboxHeldList;
+         return;
+      }
+
+      const AnsiString sandboxHeldPrefix = "/api/v1/sandbox/held/";
+
+      if (path.StartsWith(sandboxHeldPrefix))
+      {
+         AnsiString rest = path.Mid(sandboxHeldPrefix.GetLength());
+         const bool release = rest.EndsWith("/release");
+         if (release)
+            rest = rest.Mid(0, rest.GetLength() - AnsiString("/release").GetLength());
+
+         if (!ParseQueueId(rest, route.message_id))
+            return;
+
+         if (release && method == "POST")
+            route.kind = RouteSandboxHeldRelease;
+         else if (!release && method == "DELETE")
+            route.kind = RouteSandboxHeldDiscard;
+
+         return;
+      }
+
       // /api/v1/queue/<id>/retry and /api/v1/queue/<id>
       const AnsiString queuePrefix = "/api/v1/queue/";
 
@@ -6671,6 +6705,10 @@ namespace HM
       case RouteQueueRetry:
       case RouteQueueDelete:
       case RouteQueueShapingClear:
+      // Delivering a message a sandbox has not answered for, and discarding
+      // one: the queue's own two writes, on its held part.
+      case RouteSandboxHeldRelease:
+      case RouteSandboxHeldDiscard:
       case RouteQuarantineRelease:
       case RouteQuarantineDelete:
       case RouteIpRangeCreate:
@@ -7370,16 +7408,21 @@ namespace HM
       // The destinations the queue is holding back from, and the connections
       // in use: what the queue is doing, read.
       case RouteQueueShaping:
+      // What is held for a sandbox's verdict: the queue's held part again.
+      case RouteSandboxHeldList:
          return RolePermission::ViewQueue;
 
       // Retrying a queued message, or dropping it; releasing a held one back
       // into the queue, or discarding it; clearing a destination's back-off so
-      // the queue delivers to it now.
+      // the queue delivers to it now; delivering a message a sandbox has not
+      // answered for, or discarding it.
       case RouteQueueRetry:
       case RouteQueueDelete:
       case RouteQueueShapingClear:
       case RouteReviewRelease:
       case RouteReviewDiscard:
+      case RouteSandboxHeldRelease:
+      case RouteSandboxHeldDiscard:
          return RolePermission::ManageQueue;
 
       // What was held back, and why.
@@ -8187,7 +8230,8 @@ namespace HM
       // so there is no honest way to narrow it to a domain. Refused outright
       // rather than narrowed wrongly.
       if (route.kind == RouteQueueList || route.kind == RouteQueueRetry || route.kind == RouteQueueDelete ||
-          route.kind == RouteQueueShaping || route.kind == RouteQueueShapingClear)
+          route.kind == RouteQueueShaping || route.kind == RouteQueueShapingClear ||
+          route.kind == RouteSandboxHeldList || route.kind == RouteSandboxHeldRelease || route.kind == RouteSandboxHeldDiscard)
       {
          refusalReason = "this credential is restricted to named domains, and the delivery queue is server-wide";
          return AuthorizationForbidden;
@@ -9955,10 +9999,46 @@ namespace HM
          count++;
       }
 
+      // The messages held for a sandbox's verdict are the queue's too, and are
+      // listed with it - all of them, as all queued messages are - marked held
+      // "sandbox" (RestApiSandbox.cpp). Nothing is added to an ordinary item.
+      // A reader that knows nothing of the hold and asks to retry or delete a
+      // held id is answered 409, naming the sandbox's routes, which decide it.
+      int heldCount = 0;
+      const AnsiString heldItems = SandboxQueueItems_(heldCount);
+      if (heldCount > 0)
+      {
+         if (count > 0)
+            items += ",";
+
+         items += heldItems;
+         count += heldCount;
+      }
+
       AnsiString body;
       body.Format("{\"count\":%d,\"messages\":[%hs]}", count, items.c_str());
 
       return BuildResponse_(200, body);
+   }
+
+   namespace
+   {
+      // A message held for a sandbox's verdict (messagetype 5) is listed by
+      // GET /api/v1/queue, marked held, but is not the queue's to retry or
+      // delete: the sandbox's own routes decide it, and put it on the audit
+      // trail. Said as a 409 naming them, rather than as a 404 for an id the
+      // listing just gave.
+      bool QueueMessageHeldForSandbox(__int64 messageId)
+      {
+         std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message());
+         if (!PersistentMessage::ReadObject(message, messageId))
+            return false;
+
+         return message->GetState() == Message::HeldForSandbox;
+      }
+
+      const char *const HeldForSandboxRefusal =
+         "{\"error\":\"held for the sandbox's verdict; use /api/v1/sandbox/held/{id}\"}";
    }
 
    bool
@@ -9991,7 +10071,12 @@ namespace HM
    RestApiServer::HandleQueueRetry_(__int64 messageId)
    {
       if (!QueueMessageExists_(messageId))
+      {
+         if (QueueMessageHeldForSandbox(messageId))
+            return BuildResponse_(409, HeldForSandboxRefusal);
+
          return BuildResponse_(404, "{\"error\":\"queue message not found\"}");
+      }
 
       DeliveryQueue::ResetDeliveryTime(messageId);
       DeliveryQueue::StartDelivery();
@@ -10005,7 +10090,12 @@ namespace HM
    RestApiServer::HandleQueueDelete_(__int64 messageId)
    {
       if (!QueueMessageExists_(messageId))
+      {
+         if (QueueMessageHeldForSandbox(messageId))
+            return BuildResponse_(409, HeldForSandboxRefusal);
+
          return BuildResponse_(404, "{\"error\":\"queue message not found\"}");
+      }
 
       DeliveryQueue::Remove(messageId);
 
@@ -15829,6 +15919,11 @@ namespace HM
       CompromiseDetector::Assess(account, caller.peer.ToString(), recipients, CompromiseDetector::SourceWebmail, shape);
       const bool heldForReview = shape.hold;
 
+      // Sent by the signed-in account, through this route or a caller of its
+      // code (Message::FlagSubmittedBySignedInUser): the attachment sandbox
+      // leaves it alone unless SandboxInternalMail says otherwise.
+      message->SetSubmittedBySignedInUser(true);
+
       message->SetState(heldForReview ? Message::HeldForReview : Message::Delivering);
 
       if (!PersistentMessage::SaveObject(message))
@@ -17146,9 +17241,9 @@ namespace HM
          "\"/api/v1/domains/{domain}/accounts\":{"
          "\"get\":{\"summary\":\"List accounts in a domain\",\"description\":\"Each entry: address, active, max_size_mb (0 is no limit), first_name, last_name and admin_level (user, domain or server) - the columns hmctl accounts export and Export-HmAccount write, under the names the create takes, so an entry with a password added is a create body. GET /api/v1/accounts/{address} reads the rest of an account. Scoped to the domain.\",\"responses\":{\"200\":{\"description\":\"Array of accounts\"},\"404\":{\"description\":\"Unknown domain\"}}},"
          "\"post\":{\"summary\":\"Create an account\",\"description\":\"One account, made in the domain as the Control Panel makes one: the address must be in the domain and is judged with the domain's own limits, and the password, read as UTF-8, goes through the password policy and the breach check (breach_check_enabled), as when the Control Panel sets one, before it is stored under the configured hash. hmctl accounts import and Import-HmAccount send each row of a spreadsheet here. An unknown field, or a field of the wrong type, is refused by name rather than ignored, so a password of digits alone is sent as a string. A key restricted to named domains may make a user or a domain administrator, never a server administrator. Scoped to the domain. Body: address and password (required), active (default true), first_name and last_name (at most 60 characters each), max_size_mb (megabytes; 0, the default, is none; maxSizeMB is the older spelling) and admin_level (user, domain or server; default user).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"address\",\"password\"],\"additionalProperties\":false,\"properties\":{\"address\":{\"type\":\"string\"},\"password\":{\"type\":\"string\",\"writeOnly\":true},\"active\":{\"type\":\"boolean\"},\"first_name\":{\"type\":\"string\",\"maxLength\":60},\"last_name\":{\"type\":\"string\",\"maxLength\":60},\"max_size_mb\":{\"type\":\"integer\",\"minimum\":0},\"maxSizeMB\":{\"type\":\"integer\",\"minimum\":0,\"deprecated\":true},\"admin_level\":{\"type\":\"string\",\"enum\":[\"user\",\"domain\",\"server\"]}}}}}},\"responses\":{\"201\":{\"description\":\"Created: address, created\"},\"400\":{\"description\":\"address or password missing, an unknown field, a field of the wrong type, a name longer than 60 characters, a max_size_mb that is not a whole number of megabytes, an admin_level that is not user, domain or server, an address outside the domain, a password the policy refuses or one found in the published breach corpus (reason: breached), or the save refused (the reason is in error)\"},\"403\":{\"description\":\"A domain-restricted key naming admin_level server, or a domain outside the key's own\"},\"404\":{\"description\":\"Unknown domain\"},\"409\":{\"description\":\"An account with that address exists\"},\"503\":{\"description\":\"The breach check could not reach its endpoint and breach_check_unreachable_action is refuse (reason: breach_check_unavailable); nothing changed\"}}}},"
-         "\"/api/v1/queue\":{\"get\":{\"summary\":\"List the delivery queue\",\"description\":\"Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of queued messages\"}}}},"
-         "\"/api/v1/queue/{id}/retry\":{\"post\":{\"summary\":\"Retry a queued message now\",\"responses\":{\"200\":{\"description\":\"Rescheduled\"},\"404\":{\"description\":\"Unknown id\"}}}},"
-         "\"/api/v1/queue/{id}\":{\"delete\":{\"summary\":\"Remove a message from the queue\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}},"
+         "\"/api/v1/queue\":{\"get\":{\"summary\":\"List the delivery queue\",\"description\":\"{count,messages:[{id,created,from,recipients,next_try,locked,tries}]}. A message held for a sandbox's verdict on its attachments is listed too - every one of them, as every queued message is - with held (sandbox), held_since (seconds since 1970) and submissions (the ids the sandbox answered); an ordinary item has no held member. GET /api/v1/sandbox/held has the files. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of queued messages\"}}}},"
+         "\"/api/v1/queue/{id}/retry\":{\"post\":{\"summary\":\"Retry a queued message now\",\"responses\":{\"200\":{\"description\":\"Rescheduled\"},\"404\":{\"description\":\"Unknown id\"},\"409\":{\"description\":\"Held for the sandbox's verdict: {error}, naming /api/v1/sandbox/held/{id}, whose release and discard decide it\"}}}},"
+         "\"/api/v1/queue/{id}\":{\"delete\":{\"summary\":\"Remove a message from the queue\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"},\"409\":{\"description\":\"Held for the sandbox's verdict: {error}, naming /api/v1/sandbox/held/{id}, whose release and discard decide it\"}}}},"
          "\"/api/v1/queue/shaping\":{\"get\":{\"summary\":\"The destinations that asked this server to slow down, and the outbound connections in use\",\"description\":\"backoffs: one per destination in a back-off window - destination (the recipient domain, or the host of a route), since, until, window_minutes, reply (the remote's own words, at most 200 characters), host, deferred (how many deliveries the window has held back) and probing (the window has passed and one delivery is finding out); connections: destinations and tenants, each a map of name to the sessions open right now under a ceiling - a remote domain policy's, max_outbound_connections_per_destination's or max_outbound_connections_per_tenant's. In memory, per process: a restart forgets all of it. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"backoffs and connections\"}}}},"
          "\"/api/v1/queue/shaping/{destination}\":{\"delete\":{\"summary\":\"Clear one destination's back-off, so deliveries to it resume at once\",\"description\":\"For an administrator who has fixed the cause and need not wait for the window. The next slow-down reply opens a new window from the base. Recorded on the audit trail. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Cleared\"},\"404\":{\"description\":\"No back-off is open for that destination\"}}}},"
          "\"/api/v1/quarantine\":{\"get\":{\"summary\":\"List quarantined messages\",\"description\":\"Server-wide; refused for domain-restricted keys. Bounded to the newest 1000.\",\"responses\":{\"200\":{\"description\":\"Array of quarantined messages\"}}}},"
@@ -17251,6 +17346,7 @@ namespace HM
       openApiJson += OpenApiDkimRotationPaths_();
       openApiJson += OpenApiReputationPaths_();
       openApiJson += OpenApiAccountReviewPaths_();
+      openApiJson += OpenApiSandboxPaths_();
       openApiJson += OpenApiSetupChecklistPaths_();
       openApiJson += OpenApiSampleDomainPaths_();
       openApiJson += OpenApiProfilesPaths_();

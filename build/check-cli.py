@@ -201,9 +201,13 @@ ANSWERS = {
     ("GET", "/api/v1/groups"): {"groups": [{"id": 1, "name": "support"}]},
     ("GET", "/api/v1/groups/1/members"): {"members": [{"id": 7, "account_id": 3, "address": "ann@example.com"}]},
     ("POST", "/api/v1/groups/1/members"): {"id": 8, "account_id": 4, "address": "bob@example.com"},
-    ("GET", "/api/v1/queue"): {"messages": [
-        {"id": 12, "from_address": "ann@example.com", "to_address": "far@away.test",
-         "next_try": "2026-09-15T05:00:00Z", "retry_count": 1, "size": 2048}]},
+    # The route's own shape: an ordinary item, and one held for a sandbox's
+    # verdict, which alone carries held.
+    ("GET", "/api/v1/queue"): {"count": 2, "messages": [
+        {"id": 12, "created": "2026-09-15 04:00:00", "from": "ann@example.com", "recipients": "far@away.test",
+         "next_try": "2026-09-15 05:00:00", "locked": False, "tries": 1},
+        {"id": 13, "created": "2026-09-15 04:10:00", "from": "outsider@away.test", "recipients": "ann@example.com",
+         "next_try": "", "locked": False, "tries": 0, "held": "sandbox", "held_since": 1789445400, "submissions": ["job-1"]}]},
     ("POST", "/api/v1/queue/12/retry"): {"queued": True},
     ("POST", "/api/v1/accounts/ann@example.com/export"): {"exported": 3, "folders": 2, "contacts": 1, "calendar_objects": 0, "log_lines": 4, "archive": "C:\\exports\\ann.zip"},
     ("POST", "/api/v1/addresses/erase"): {"removed": 7, "include_archive": True, "include_logs": True},
@@ -884,7 +888,7 @@ CASES = [
     ("group members", ["member", "1", "list"], "GET", "/api/v1/groups/1/members", None, ["ann@example.com"]),
     ("group member add by address", ["member", "1", "add", "bob@example.com"],
      "POST", "/api/v1/groups/1/members", {"address": "bob@example.com"}, ["bob@example.com"]),
-    ("queue list", ["queue", "list"], "GET", "/api/v1/queue", None, ["far@away.test"]),
+    ("queue list", ["queue", "list"], "GET", "/api/v1/queue", None, ["far@away.test", "outsider@away.test", "sandbox"]),
     ("queue retry", ["queue", "retry", "12"], "POST", "/api/v1/queue/12/retry", None, ["queued"]),
     ("privacy export", ["privacy", "export", "ann@example.com", "--archive", "C:\\exports\\ann.zip"],
      "POST", "/api/v1/accounts/ann@example.com/export", {"archive": "C:\\exports\\ann.zip"}, ["exported 3 message(s)", "1 contact(s)"]),
@@ -1392,7 +1396,7 @@ POWERSHELL_CASES = [
      "PUT", "/api/v1/settings/antispam", {"use_spf": False}, []),
     ("Test-HmBreachCheckEndpoint", "Test-HmBreachCheckEndpoint -Url https://mirror.example/range/ | Select-Object -ExpandProperty entries",
      "POST", "/api/v1/settings/breach-check/test", {"url": "https://mirror.example/range/"}, ["812"]),
-    ("Get-HmQueue", "Get-HmQueue | Select-Object -ExpandProperty to_address", "GET", "/api/v1/queue", None, ["far@away.test"]),
+    ("Get-HmQueue", "Get-HmQueue | Where-Object held -ne 'sandbox' | Select-Object -ExpandProperty recipients", "GET", "/api/v1/queue", None, ["far@away.test"]),
     ("Get-HmStatus", "Get-HmStatus | Select-Object -ExpandProperty version", "GET", "/api/v1/status", None, ["6.3.3"]),
     ("Get-HmReputation", "Get-HmReputation | Select-Object -ExpandProperty last_checked",
      "GET", "/api/v1/reputation", None, ["1789000000"]),

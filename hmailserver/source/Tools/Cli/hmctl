@@ -713,9 +713,12 @@ def status_command(client, arguments):
 
 def queue_command(client, arguments):
     if arguments.verb == "list":
+        # The route's own names. held is "sandbox" for a message waiting for a
+        # sandbox's verdict, which retry and delete answer 409 for: the
+        # sandbox's routes (/api/v1/sandbox/held) decide it.
         answer = client.request("GET", "/api/v1/queue")
         render(collection(answer, "messages"), arguments.json,
-               ["id", "from_address", "to_address", "next_try", "retry_count", "size"])
+               ["id", "from", "recipients", "next_try", "tries", "held"])
     elif arguments.verb == "retry":
         client.request("POST", "/api/v1/queue/%s/retry" % arguments.id)
         print("queued for delivery now.")

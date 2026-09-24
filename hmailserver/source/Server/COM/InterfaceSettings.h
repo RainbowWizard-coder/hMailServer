@@ -352,6 +352,35 @@ END_COM_MAP()
    STDMETHOD(get_AppliedProfile)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(DeclineProfiles)(/*[out, retval]*/ BSTR *Json);
 
+   // Attachments opened somewhere safe (Common/AntiVirus/Sandbox.h). Each setter
+   // refuses rather than clamps, in the sentence the REST route answers; the
+   // token has no getter, here or anywhere.
+   STDMETHOD(get_SandboxEnabled)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_SandboxEnabled)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_SandboxSubmitUrl)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_SandboxSubmitUrl)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_SandboxVerdictUrl)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_SandboxVerdictUrl)(/*[in]*/ BSTR newVal);
+   STDMETHOD(SetSandboxToken)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_SandboxTimeoutMinutes)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SandboxTimeoutMinutes)(/*[in]*/ long newVal);
+   STDMETHOD(get_SandboxTimeoutAction)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SandboxTimeoutAction)(/*[in]*/ long newVal);
+   STDMETHOD(get_SandboxMaxSizeKB)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SandboxMaxSizeKB)(/*[in]*/ long newVal);
+   STDMETHOD(get_SandboxTypes)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_SandboxTypes)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_SandboxPollSeconds)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SandboxPollSeconds)(/*[in]*/ long newVal);
+   STDMETHOD(get_SandboxScoreThreshold)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SandboxScoreThreshold)(/*[in]*/ long newVal);
+   STDMETHOD(get_SandboxCacheHours)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SandboxCacheHours)(/*[in]*/ long newVal);
+   STDMETHOD(get_SandboxInternalMail)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_SandboxInternalMail)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_SandboxMaxFiles)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SandboxMaxFiles)(/*[in]*/ long newVal);
+
    // The [Settings] section of hMailServer.INI. See the IDL for why these exist and
    // for the two things they deliberately do not do.
    STDMETHOD(GetIniSetting)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);

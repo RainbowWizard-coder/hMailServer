@@ -325,6 +325,10 @@ namespace HM
       CompromiseDetector::Assess(account, AnsiString(), submitted, CompromiseDetector::SourceWebmail, shape);
       const bool heldForReview = shape.hold;
 
+      // The account's own submission, as the send route marks it
+      // (Message::FlagSubmittedBySignedInUser).
+      message->SetSubmittedBySignedInUser(true);
+
       message->SetState(heldForReview ? Message::HeldForReview : Message::Delivering);
       if (!PersistentMessage::SaveObject(message))
       {

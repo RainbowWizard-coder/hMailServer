@@ -89,6 +89,11 @@ namespace HM
       // The three-digit code a remote reply starts with, when it starts with one
       // of the class given (4 or 5), else fallback.
       static int ReplyCode(const String &reply, int replyClass, int fallback);
+      // An attachment submitted to the sandbox, with the file and the id the
+      // sandbox answered in the detail; and a sandbox's verdict on one, with
+      // the verdict, score and detail. See AntiVirus/Sandbox.h.
+      static const wchar_t *EventSandboxSubmitted;
+      static const wchar_t *EventSandboxVerdict;
 
       static bool GetEnabled();
 

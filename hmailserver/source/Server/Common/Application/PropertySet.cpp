@@ -351,6 +351,12 @@ namespace HM
       if (sPropertyName == PROPERTY_OIDC_CLIENT_SECRET)
          return true;
 
+      // The bearer token this server submits attachments to the sandbox with
+      // (AntiVirus/Sandbox.h). The same reason once more: whoever holds it can
+      // submit files to that service, and read its verdicts, as this server.
+      if (sPropertyName == PROPERTY_SANDBOX_TOKEN)
+         return true;
+
       return false;
    }
 
@@ -410,6 +416,18 @@ namespace HM
             continue;
          }
 
+         // Nor the sandbox's bearer token (AntiVirus/Sandbox.h). It is a
+         // credential for a service outside this server that no interface ever
+         // reads back, and an archive written in the clear would be the one
+         // place it could be read; after a restore it is entered again
+         // (docs/Sandbox.md). Left out, a restore also leaves the token this
+         // server holds as it is.
+         if (String(oProperty->GetName()).CompareNoCase(PROPERTY_SANDBOX_TOKEN) == 0)
+         {
+            iterProperty++;
+            continue;
+         }
+
          // Nor the records of which settings the environment manages and which of
          // their values a file supplied: they describe the deployment this database
          // runs under, which a restore onto another server does not bring with it,
@@ -455,6 +473,11 @@ namespace HM
          // written by something else, and it does not get to set what this
          // server's backups are encrypted with.
          if (sName.CompareNoCase(PROPERTY_BACKUPENCRYPTIONPASSPHRASE) == 0)
+            continue;
+
+         // Nor the sandbox's token, which XMLStore leaves out too: the token
+         // this server holds stays until an administrator enters another.
+         if (sName.CompareNoCase(PROPERTY_SANDBOX_TOKEN) == 0)
             continue;
 
          // The environment's records are this server's deployment, not the archive's,

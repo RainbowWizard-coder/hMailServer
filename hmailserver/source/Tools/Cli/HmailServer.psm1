@@ -17,7 +17,7 @@
        Get-HmDomain
        New-HmAccount -Domain example.com -Address ann@example.com -Password (Read-Host -AsSecureString)
        Set-HmSetting -Group antispam -Property @{ use_spf = $true }
-       Get-HmQueue | Where-Object retry_count -gt 3
+       Get-HmQueue | Where-Object tries -gt 3
 
    Every function answers objects, not text, because that is what a PowerShell
    user will do something with. Nothing here formats anything.
@@ -1009,13 +1009,25 @@ function Set-HmIniSetting {
 function Get-HmQueue {
     <#
     .SYNOPSIS
-        The delivery queue.
+        The delivery queue. held is 'sandbox' for a message waiting for a
+        sandbox's verdict, and empty for every other: such a message is not the
+        queue's to retry or remove (the server answers 409), and
+        /api/v1/sandbox/held releases or discards it.
     .EXAMPLE
-        Get-HmQueue | Where-Object retry_count -gt 3 | Format-Table
+        Get-HmQueue | Where-Object tries -gt 3 | Format-Table
+    .EXAMPLE
+        Get-HmQueue | Where-Object held -ne 'sandbox' | Remove-HmQueueMessage
     #>
     [CmdletBinding()]
     param()
-    Get-HmCollection -Answer (Invoke-HmApi -Method GET -Path '/api/v1/queue') -Key 'messages'
+    Get-HmCollection -Answer (Invoke-HmApi -Method GET -Path '/api/v1/queue') -Key 'messages' | ForEach-Object {
+        # Every item carries held, so a table shows the column and a filter on
+        # it reads an empty string rather than nothing.
+        if (-not ($_.PSObject.Properties.Name -contains 'held')) {
+            $_ | Add-Member -NotePropertyName held -NotePropertyValue ''
+        }
+        $_
+    }
 }
 
 function Start-HmQueueDelivery {

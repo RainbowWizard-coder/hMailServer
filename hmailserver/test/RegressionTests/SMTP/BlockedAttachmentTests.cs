@@ -102,6 +102,45 @@ namespace RegressionTests.SMTP
 
 
       [Test]
+      [Description("A trailing dot or space on a blocked extension does not take the attachment past the list: Windows saves AUTOEXEC.dll. as AUTOEXEC.dll")]
+      public void ATrailingDotOrSpaceDoesNotTakeABlockedAttachmentPastTheList()
+      {
+         foreach (var name in new[] { "AUTOEXEC.dll.", "AUTOEXEC.dll. " })
+         {
+            var messageText = "From: Test <test@example.test>\r\n" +
+                              "MIME-Version: 1.0\r\n" +
+                              "To: test@example.test\r\n" +
+                              "Subject: trailing " + name.Length + "\r\n" +
+                              "Content-Type: multipart/mixed; boundary=\"trailing-boundary\"\r\n" +
+                              "\r\n" +
+                              "--trailing-boundary\r\n" +
+                              "Content-Type: text/plain\r\n" +
+                              "\r\n" +
+                              "Test\r\n" +
+                              "--trailing-boundary\r\n" +
+                              "Content-Type: application/octet-stream; name=\"" + name + "\"\r\n" +
+                              "Content-Transfer-Encoding: base64\r\n" +
+                              "Content-Disposition: attachment; filename=\"" + name + "\"\r\n" +
+                              "\r\n" +
+                              "TVqQAAMAAAAEAAAA\r\n" +
+                              "--trailing-boundary--\r\n";
+
+            SmtpClientSimulator.StaticSendRaw("test@example.test", "test@example.test", messageText);
+         }
+
+         ImapClientSimulator.AssertMessageCount("test@example.test", "test", "Inbox", 2);
+
+         var inbox = _account.IMAPFolders.get_ItemByName("INBOX");
+         for (var i = 0; i < inbox.Messages.Count; i++)
+         {
+            var message = inbox.Messages[i];
+            Assert.AreEqual(1, message.Attachments.Count);
+            Assert.IsTrue(message.Attachments[0].Filename.EndsWith(".txt"),
+               "The attachment was replaced by the notice, as an attachment named AUTOEXEC.dll is: " + message.Attachments[0].Filename);
+         }
+      }
+
+      [Test]
       public void TestSingleBlockedAttachment()
       {
          var attachmentName = Guid.NewGuid() + ".dll";

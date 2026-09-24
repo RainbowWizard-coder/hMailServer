@@ -9,7 +9,9 @@
 #include "../Common/Application/ObjectCache.h"
 
 #include "../Common/AntiVirus/AntiVirusConfiguration.h"
+#include "../Common/AntiVirus/Sandbox.h"
 #include "../Common/AntiVirus/VirusScanner.h"
+#include "../Common/Util/MessageTrace.h"
 
 #include "../Common/BO/MessageRecipient.h"
 #include "../Common/BO/MessageRecipients.h"
@@ -343,9 +345,21 @@ namespace HM
       otelDelivery.AddEvent("delivery.start");
 
       bool deferDelivery = false;
+      bool sandboxHeld = false;
 
-      if (!PreprocessMessage_(pMessage, globalRuleResult, preprocessingFailureReason, deferDelivery))
+      if (!PreprocessMessage_(pMessage, globalRuleResult, preprocessingFailureReason, deferDelivery, sandboxHeld))
       {
+         if (sandboxHeld)
+         {
+            // Held for a sandbox's verdict, or kept in the queue for a minute
+            // because the hold could not be recorded: either way the message is
+            // KEPT, unlocked, and nothing here may delete it. The poller puts it
+            // back in the queue when the hold is decided (Sandbox.h).
+            ForgetUnscannableHold_(messageID);
+            otelDelivery.AddEvent("delivery.held");
+            return;
+         }
+
          if (deferDelivery)
          {
             // Not an abort: the message is being KEPT for a later attempt, so
@@ -482,10 +496,11 @@ namespace HM
    // Returns true if delivery should continue. False if it should be aborted.
    //---------------------------------------------------------------------------()
    bool
-   SMTPDeliverer::PreprocessMessage_(std::shared_ptr<Message> pMessage, RuleResult &globalRuleResult, String &preprocessingFailureReason, bool &deferDelivery)
+   SMTPDeliverer::PreprocessMessage_(std::shared_ptr<Message> pMessage, RuleResult &globalRuleResult, String &preprocessingFailureReason, bool &deferDelivery, bool &sandboxHeld)
    {
       preprocessingFailureReason = "";
       deferDelivery = false;
+      sandboxHeld = false;
 
       // Create recipient list.
       String sRecipientList = pMessage->GetRecipients()->GetCommaSeperatedRecipientList();
@@ -511,6 +526,18 @@ namespace HM
          preprocessingFailureReason = deferDelivery
             ? "Message held: the virus scanner could not examine it"
             : "Message delivery cancelled during virus scanning";
+         return false;
+      }
+
+      // The sandbox, after the anti-virus scan and before the rules: a message
+      // the scanner deleted never gets here, and a held message has had no rule
+      // run on it, no signature and no mirror copy - all of that happens on the
+      // pass that delivers it.
+      if (!RunSandbox_(pMessage, sandboxHeld))
+      {
+         preprocessingFailureReason = sandboxHeld
+            ? "Message held for the sandbox's verdict on its attachments"
+            : "Message not delivered on the sandbox's verdict";
          return false;
       }
 
@@ -1201,6 +1228,107 @@ namespace HM
 
       return true;
 
+   }
+
+   bool
+   SMTPDeliverer::RunSandbox_(std::shared_ptr<Message> pMessage, bool &sandboxHeld)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Attachments opened somewhere safe. Sandbox::Examine decides; this carries
+   // out the two outcomes that need the deliverer - the quarantine, whose
+   // failure must not deliver what a sandbox called malicious, and the report
+   // to the sender.
+   //---------------------------------------------------------------------------()
+   {
+      sandboxHeld = false;
+
+      const Sandbox::Result result = Sandbox::Examine(pMessage);
+
+      switch (result.outcome)
+      {
+      case Sandbox::OutcomeHeld:
+         sandboxHeld = true;
+         return false;
+
+      case Sandbox::OutcomeQuarantine:
+      {
+         // The quarantine is the end state of a verdict: the recipients' digest
+         // lists it and a release delivers it, without a second submission
+         // (Message::FlagReleasedFromSandboxQuarantine, which the release sets
+         // for this entry because its reason is the sandbox's, and which
+         // Sandbox::Examine reads). Sandbox::Examine asks for a quarantine only
+         // while QuarantineEnabled is on; with it off, the answer is a return.
+         if (QuarantineStore::Quarantine(pMessage, result.reason, result.score))
+         {
+            Sandbox::Forget(pMessage->GetID());
+
+            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: quarantined on the sandbox's verdict. {1}",
+               pMessage->GetID(), result.reason));
+
+            MessageTrace::Record(pMessage->GetID(), MessageTrace::EventQuarantined, pMessage->GetFromAddress(),
+               pMessage->GetRecipients()->GetCommaSeperatedRecipientList().Mid(0, 255), MessageUtilities::GetSendersIP(pMessage), 0, result.reason);
+
+            return false;
+         }
+
+         // Not delivered, and not lost: back on hold with its decision kept, so
+         // the next poll puts it in the queue again and the quarantine is asked
+         // again. An administrator can discard it or release it meanwhile.
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7272, "SMTPDeliverer::RunSandbox_",
+            Formatter::Format("The sandbox called message {0} malicious and the quarantine could not store it. It is not delivered: it is held again and the quarantine is tried at the next poll. {1}",
+               pMessage->GetID(), result.reason));
+
+         Sandbox::Rehold(pMessage);
+         sandboxHeld = true;
+         return false;
+      }
+
+      case Sandbox::OutcomeBounce:
+      {
+         // RFC 3463 X.7.1, "delivery not authorized, message refused": this
+         // server's own policy refuses the message - SandboxTimeoutAction 1 for
+         // one whose attachments were not given a verdict, or a malicious one
+         // while the quarantine is off. The address was never in question.
+         //
+         // SubmitErrorLog_ declines a null sender and a mailer-daemon quietly,
+         // so for those the message is DISCARDED, and the log says so here
+         // rather than claim a return that never happened. (Its third case, an
+         // Auto-Submitted message, reports HM4404 itself.) Delivering instead
+         // would make an empty envelope sender a way past the sandbox.
+         const String fromAddress = pMessage->GetFromAddress();
+         if (fromAddress.IsEmpty() || MailerDaemonAddressDeterminer::IsMailerDaemonAddress(fromAddress))
+         {
+            LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: discarded: no sender to return it to. {1}",
+               pMessage->GetID(), result.reason));
+            return false;
+         }
+
+         LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: returned to its sender with 5.7.1. {1}",
+            pMessage->GetID(), result.reason));
+
+         std::vector<DeliveryFailure> errorMessages;
+
+         // owned by this call: the recipients of the message this delivery holds
+         for (std::shared_ptr<MessageRecipient> recipient : pMessage->GetRecipients()->GetVector())
+         {
+            if (!recipient)
+               continue;
+
+            errorMessages.push_back(DeliveryFailure(recipient->GetAddress(), _T("5.7.1"),
+               Formatter::Format("{0}\r\n   Error Type: SMTP\r\n   Error Description: Delivery failed\r\n   Additional information: {1}\r\n\r\n",
+                  recipient->GetAddress(), result.reason)));
+         }
+
+         if (!errorMessages.empty())
+            SubmitErrorLog_(pMessage, errorMessages);
+
+         return false;
+      }
+
+      case Sandbox::OutcomeContinue:
+      default:
+         return true;
+      }
    }
 
    bool 

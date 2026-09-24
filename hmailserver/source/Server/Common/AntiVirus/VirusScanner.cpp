@@ -413,12 +413,21 @@ namespace HM
          if (signedMessage && IsDetachedSignaturePart_(attachment->GetContentType()))
             continue;
 
-         // Check if attachment matches blocked file.
-         auto matching_wildcard = std::find_if(blocked_attachment_wildcards.begin(), blocked_attachment_wildcards.end(), [&attachment](std::shared_ptr<BlockedAttachment> blocked_attachment)
+         // Check if attachment matches blocked file - as it is named, and as
+         // Windows will save it. Trailing dots and white space are dropped by
+         // Win32 path normalisation and by the save dialogs of browsers and mail
+         // clients, so "invoice.exe." and "invoice.exe " are saved as
+         // invoice.exe; a list entry *.exe that looked only at the name as sent
+         // was one character away from never matching.
+         String saved_name = attachment->GetFileName();
+         saved_name.TrimRight(_T(". \t"));
+
+         auto matching_wildcard = std::find_if(blocked_attachment_wildcards.begin(), blocked_attachment_wildcards.end(), [&attachment, &saved_name](std::shared_ptr<BlockedAttachment> blocked_attachment)
             {
                String wildcard_text = blocked_attachment->GetWildcard();
 
-               return StringParser::WildcardMatchNoCase(wildcard_text, attachment->GetFileName());
+               return StringParser::WildcardMatchNoCase(wildcard_text, attachment->GetFileName()) ||
+                      StringParser::WildcardMatchNoCase(wildcard_text, saved_name);
             });
 
          if (matching_wildcard != blocked_attachment_wildcards.end())

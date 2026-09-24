@@ -479,6 +479,9 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name="A domain, or an account address" xml:space="preserve">
     <value>Et domene eller en kontoadresse</value>
   </data>
+  <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
+    <value>En fil av en innsendt type i en melding utenfra sendes til en sandkasse du driver eller abonnerer på, og meldingen venter – i ingen postkasse og ikke i karantene – på dommen: ren leveres, skadelig settes i karantene. Ingenting holdes tilbake før begge adressene er satt og dette er slått på.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>En margin for innkommende post: en postkasse som er over grensen med mindre enn dette, tar fortsatt imot, så en som er borte en uke ikke mister post fordi et stort vedlegg kom på mandag. Eierens egne lagringer og kopier stopper ved selve grensen. Hvert domene kan sette sin egen. Gjelder straks.</value>
   </data>
@@ -1220,6 +1223,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Also block a banned address in the operating system's firewall" xml:space="preserve">
     <value>Blokker også en utestengt adresse i operativsystemets brannmur</value>
   </data>
+  <data name="Also hold what this server's own signed-in users send, and upload its files" xml:space="preserve">
+    <value>Hold også tilbake det denne serverens egne innloggede brukere sender, og send inn filene</value>
+  </data>
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>Merk også kontoer som _inaktive når katalogoppføringen deres er borte</value>
   </data>
@@ -1500,11 +1506,17 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Attachment name" xml:space="preserve">
     <value>Vedleggsnavn</value>
   </data>
+  <data name="Attachment sandbox - a service that opens files" xml:space="preserve">
+    <value>Sandkasse for vedlegg – en tjeneste som åpner filer</value>
+  </data>
   <data name="Attachment type" xml:space="preserve">
     <value>Vedleggstype</value>
   </data>
   <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
     <value>Vedleggstype etter bytene (executable, pdf, zip, office, text…)</value>
+  </data>
+  <data name="Attachments opened in a sandbox" xml:space="preserve">
+    <value>Vedlegg åpnet i en sandkasse</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Forsøk på å nå databasen ved oppstart</value>
@@ -1653,6 +1665,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Utesteng i (timer, 1 til 8760)</value>
   </data>
+  <data name="Bearer token (leave empty to keep current)" xml:space="preserve">
+    <value>Bearer-token (la stå tomt for å beholde det nåværende)</value>
+  </data>
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Bearer-token for /metrics (tom = ingen)</value>
   </data>
@@ -1712,6 +1727,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Leseblokkstørrelse for meldingskropp (byte)</value>
+  </data>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>Begge adressene er satt. Om tjenesten svarer, kan ikke avgjøres herfra: send en melding utenfra med en vedlagt fil av en innsendt type, og se etter den under Holdt tilbake for en sandkasse på Deckens køside eller etter en linje i programloggen om at den ble sendt til sandkassen.</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>Begge overstyringene leser poengene denne serveren registrerte i meldingen, så de trenger at "Legg til årsak i header" er slått på (Antispam-innstillinger). Med den av registreres ingen poeng, ingenting kan bevises, og ingen av overstyringene virker - kontoen beholder den serveromfattende oppførselen. Verdien i filen stoles ikke på i det tilfellet, fordi ingenting hindrer en AVSENDER i å legge en der.</value>
@@ -3000,6 +3018,9 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   <data name="Deliver _local → local" xml:space="preserve">
     <value>Lever lo_kal → lokal</value>
   </data>
+  <data name="Deliver it with a header saying so" xml:space="preserve">
+    <value>Lever den med en header som sier det</value>
+  </data>
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Lever den og bare registrer den</value>
   </data>
@@ -3752,6 +3773,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="File missing" xml:space="preserve">
     <value>Fil mangler</value>
   </data>
+  <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
+    <value>Filtyper som sendes inn (filetternavn og medietyper, kommaseparert)</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>Filnavnmønstre som fjernes fra innkommende meldinger uansett hva en skanner sier.</value>
   </data>
@@ -4046,8 +4070,14 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>Hold en avvist forbindelse åpen før den droppes (sekunder, 0 = dropp umiddelbart)</value>
   </data>
+  <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
+    <value>Hold vedlegg tilbake til sandkassens dom</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Hold tilbake meldinger for gjennomgang i stedet for å avvise dem</value>
+  </data>
+  <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
+    <value>Holder tilbake en melding utenfra med en kjørbar fil eller et dokument vedlagt til en sandkasse har åpnet filen og svart ren eller skadelig.</value>
   </data>
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>Holder tilbake avvisningen av et feil passord en stund før den sendes: den første feilen på en forbindelse venter så mange sekunder, den andre dobbelt så lenge, og så videre opp til 30 sekunder, på SMTP, POP3 og IMAP likt. Et riktig passord forsinkes aldri. Ventingen er en tidtaker på forbindelsen, ikke en sovende tråd, så en flom av mislykkede pålogginger koster serveren ingenting annet enn socketene de kommer inn på - grunnen til at den gamle TarpitDelay var en stubb i et tiår, er at den naive versjonen er et selvpåført driftsavbrudd.</value>
@@ -4090,6 +4120,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
     <value>Timer en frigivelseslenke kan brukes (1 til 720)</value>
+  </data>
+  <data name="Hours a verdict is remembered (0 = never)" xml:space="preserve">
+    <value>Timer en dom huskes (0 = aldri)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>Timer mellom kontroller (1 til 168)</value>
@@ -4506,6 +4539,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="Language (VBScript or JScript)" xml:space="preserve">
     <value>Språk (VBScript eller JScript)</value>
+  </data>
+  <data name="Largest attachment submitted (KB)" xml:space="preserve">
+    <value>Største vedlegg som sendes inn (KB)</value>
   </data>
   <data name="Largest message in KB (0 is no limit)" xml:space="preserve">
     <value>Største melding i KB (0 er ingen grense)</value>
@@ -5148,6 +5184,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Minimum timeout (seconds)" xml:space="preserve">
     <value>Minste tidsavbrudd (sekunder)</value>
   </data>
+  <data name="Minutes a message waits for a verdict" xml:space="preserve">
+    <value>Minutter en melding venter på en dom</value>
+  </data>
   <data name="Minutes between downloads" xml:space="preserve">
     <value>Minutter mellom nedlastinger</value>
   </data>
@@ -5186,6 +5225,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>Mer enn {0} meldinger venter på levering.</value>
+  </data>
+  <data name="Most files one message may submit" xml:space="preserve">
+    <value>Flest filer én melding kan sende inn</value>
   </data>
   <data name="Most used" xml:space="preserve">
     <value>Mest brukt</value>
@@ -6945,6 +6987,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Fjerne prøvedomenet med alle postkasser, meldinger og regler i det? Alt som er lagt til, følger med.</value>
   </data>
+  <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
+    <value>Fjerne sandkassens bearer-token? Forespørsler til sandkassen sendes da uten et.</value>
+  </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Fjern den valgte kontoen fra denne gruppen</value>
   </data>
@@ -6956,6 +7001,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>F_jern det lagrede tjenestekontopassordet ved lagring</value>
+  </data>
+  <data name="Remove the token" xml:space="preserve">
+    <value>Fjern tokenet</value>
   </data>
   <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
     <value>Fjerne denne kontoens gjenopprettingsadresse? Enhver tilbakestillingslenke som allerede er på vei dit, slutter å virke, og kontoinnehaveren setter en ny adresse i nettpostkassen. Engangskodene røres ikke.</value>
@@ -7216,6 +7264,9 @@ Fortsette?</value>
   <data name="Retries" xml:space="preserve">
     <value>Nye forsøk</value>
   </data>
+  <data name="Return it to the sender (5.7.1)" xml:space="preserve">
+    <value>Returner den til avsenderen (5.7.1)</value>
+  </data>
   <data name="Return value for infected" xml:space="preserve">
     <value>Returverdi for infisert</value>
   </data>
@@ -7304,6 +7355,9 @@ Fortsette?</value>
   </data>
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>Kjøres som &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; når en utestengelse opprettes, og som &lt;command&gt; unban &lt;address&gt; når området forsvinner, på Windows som på Linux - for en skybrannmur, en ruter eller et SIEM. Sett programstien i anførselstegn hvis den inneholder mellomrom; serveren legger til argumentene. En avslutningskode ulik null eller et program som ikke starter, rapporteres én gang i feilloggen.</value>
+  </data>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>Drift eller abonner på en sandkasse som snakker den lille HTTP-kontrakten i docs/Sandbox.md, angi innsendings- og domsadressen på fanen Sandkasse på Antivirus-siden, og slå den på.</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>Kjør skriptfunksjon</value>
@@ -7464,6 +7518,9 @@ Fortsette?</value>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>L_agre tillatelser</value>
   </data>
+  <data name="Sandbox" xml:space="preserve">
+    <value>Sandkasse</value>
+  </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>Lagre _nivåene nå</value>
   </data>
@@ -7605,6 +7662,9 @@ Fortsette?</value>
   <data name="Score applied when the engine says &quot;reject&quot;" xml:space="preserve">
     <value>Poeng som brukes når motoren sier "reject"</value>
   </data>
+  <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
+    <value>Poengsum der mistenkelig regnes som skadelig (0-100)</value>
+  </data>
   <data name="Score when not merging" xml:space="preserve">
     <value>Poeng uten sammenslåing</value>
   </data>
@@ -7733,6 +7793,9 @@ Fortsette?</value>
   </data>
   <data name="Seconds between those attempts" xml:space="preserve">
     <value>Sekunder mellom disse forsøkene</value>
+  </data>
+  <data name="Seconds between verdict checks" xml:space="preserve">
+    <value>Sekunder mellom spørringer etter dom</value>
   </data>
   <data name="Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)" xml:space="preserve">
     <value>Sekunder JWK-settet beholdes før det hentes på nytt (et token som nevner en ukjent nøkkel-id, henter straks på nytt)</value>
@@ -8463,6 +8526,9 @@ Starte den på nytt nå?</value>
   </data>
   <data name="Submission rate limits" xml:space="preserve">
     <value>Hastighetsgrenser for innsending</value>
+  </data>
+  <data name="Submit address (POST)" xml:space="preserve">
+    <value>Innsendingsadresse (POST)</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Sperreliste</value>
@@ -9336,6 +9402,15 @@ Legg til likevel?</value>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>De samme linjene, kategoriene og masken som loggfilene får, med trace- og span-id vedlagt når et span er aktivt på tråden som logget. Eksportøren eksporterer aldri sine egne feillinjer, ellers ville en død collector matet seg selv.</value>
   </data>
+  <data name="The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off." xml:space="preserve">
+    <value>Sandkassen er PÅ, men en adresse er tom, så ingenting holdes tilbake og ingenting sendes inn før begge er satt - programloggen sier det ved hver oppstart. Sett begge adressene, eller slå den av.</value>
+  </data>
+  <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
+    <value>Sandkassen er slått av, som er standard: ingenting holdes tilbake og ingenting sendes inn.</value>
+  </data>
+  <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
+    <value>Sandkasseinnstillingene kunne ikke leses fra serveren, så denne siden kan ikke si om en er konfigurert.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Skanneresultatet er bare lesbart på servermaskinen - hMailServer.INI ble ikke funnet her. Serveren publiserer det samme tallet som metrikken hmailserver_messagestore_missing_files.</value>
   </data>
@@ -9504,6 +9579,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="The text templates the server returns to clients (greetings, bounce and error messages). These are a fixed set you can edit." xml:space="preserve">
     <value>Tekstmalene serveren returnerer til klienter (hilsener, avvisnings- og feilmeldinger). Dette er et fast sett du kan redigere.</value>
+  </data>
+  <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
+    <value>Tokenet er fjernet; forespørsler til sandkassen har nå ingen.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Konfigurasjonen for transportsikkerhet kunne ikke leses.</value>
@@ -10044,6 +10122,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="Value:      {0}" xml:space="preserve">
     <value>Verdi:      {0}</value>
   </data>
+  <data name="Verdict address (GET)" xml:space="preserve">
+    <value>Domsadresse (GET)</value>
+  </data>
   <data name="Verification code from your authenticator app" xml:space="preserve">
     <value>Bekreftelseskode fra autentiseringsappen din</value>
   </data>
@@ -10262,6 +10343,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>Når endepunktet ikke kan nås</value>
+  </data>
+  <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
+    <value>Når ventetiden er over eller sandkassen svarer feil</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Hvor det sendes</value>

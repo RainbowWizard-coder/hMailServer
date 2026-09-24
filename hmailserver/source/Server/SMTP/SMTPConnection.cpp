@@ -1071,7 +1071,13 @@ namespace HM
       // in-memory only for now).
       if (binarymime_requested_)
          current_message_->SetBinaryMime(true);
-      
+
+      // Submitted by a signed-in user: the mark the attachment sandbox reads
+      // (Message::FlagSubmittedBySignedInUser), set from the session's own
+      // state and never from anything in the message.
+      if (isAuthenticated_)
+         current_message_->SetSubmittedBySignedInUser(true);
+
       // 2.1.0 = originator (sender) address is valid (RFC 3463).
       SendResponse_(250, _T("2.1.0"), _T("OK")); 
    }

@@ -1556,7 +1556,10 @@ const state = {
    ],
    queue: [
       { id: 41, from: 'anna@example.com', recipients: 'far@away.example', next_try: '2026-09-14 10:00:00' },
-      { id: 42, from: 'bob@example.com', recipients: 'gone@nowhere.example', next_try: '2026-09-14 10:05:00' }
+      { id: 42, from: 'bob@example.com', recipients: 'gone@nowhere.example', next_try: '2026-09-14 10:05:00' },
+      // Held for a sandbox's verdict: the queue lists it, marked held, and the
+      // page draws it in the box of its own rather than as a row of this table.
+      { id: 77, from: 'outsider@far.example', recipients: 'anna@example.com', next_try: '', locked: false, tries: 0, held: 'sandbox', held_since: 1790000000, submissions: ['job-7'] }
    ],
    // What the queue is holding back from: one destination that asked this
    // server to slow down, and the connections open under a ceiling. The reply
@@ -1567,6 +1570,18 @@ const state = {
            reply: '421 4.7.0 [TSS04] Messages temporarily deferred due to unexpected volume', host: 'mx.slow.example', deferred: 3, probing: false }
       ],
       connections: { destinations: { 'slow.example': 1 }, tenants: { 'example.com': 2 } }
+   },
+   // What is held for a sandbox's verdict on its attachments: one message whose
+   // file is submitted and waiting, and one whose submit has failed twice - a
+   // page of two, of three held in all, so that the box says how much it shows.
+   sandbox: {
+      enabled: true, active: true, timeout_minutes: 15, timeout_action: 'deliver', poll_seconds: 30, max_files: 10, total: 3, offset: 0, count: 2,
+      messages: [
+         { queue_id: 77, from: 'outsider@far.example', recipients: 'anna@example.com', created: '2026-09-24 09:00:00', held: 1790000000, held_seconds: 42, decision: 'pending',
+           files: [{ filename: 'invoice.exe', size: 1234, sha256: 'ab12', submission: 'job-7', state: 'submitted', verdict: '', score: 0, detail: '', errors: 0 }] },
+         { queue_id: 78, from: 'stranger@far.example', recipients: 'bob@example.com', created: '2026-09-24 09:01:00', held: 1790000060, held_seconds: 12, decision: 'pending',
+           files: [{ filename: 'report.docm', size: 5678, sha256: 'cd34', submission: '', state: 'not_submitted', verdict: '', score: 0, detail: '', errors: 2 }] }
+      ]
    },
    tlsa: { records: [{ record: '_25._tcp.mail.example.com. IN TLSA 3 1 1 0123abcd' }, { record: '_465._tcp.mail.example.com. IN TLSA 3 1 1 0123abcd' }] },
    /* The eight pages the Deck gained last: what each of their routes answers,
@@ -2707,6 +2722,18 @@ function answer(method, path, headers, raw) {
       }
    }
 
+   if (path.split('?')[0] === '/api/v1/sandbox/held' && method === 'GET') { return json(200, state.sandbox); }
+   if (/^\/api\/v1\/sandbox\/held\/\d+(\/release)?$/.test(path) && (method === 'POST' || method === 'DELETE')) {
+      const id = Number(segment(path, 5));
+      const release = /\/release$/.test(path);
+      if (release !== (method === 'POST')) { return json(404, { error: 'not found' }); }
+      const at = state.sandbox.messages.findIndex((m) => m.queue_id === id);
+      if (at < 0) { return json(404, { error: 'no message with that id is held for the sandbox' }); }
+      state.sandbox.messages.splice(at, 1);
+      state.sandbox.total -= 1;
+      state.queue = state.queue.filter((m) => m.id !== id);
+      return json(200, release ? { released: true } : { discarded: true });
+   }
    if (path === '/api/v1/queue' && method === 'GET') { return json(200, { messages: state.queue }); }
    if (path === '/api/v1/queue/shaping' && method === 'GET') { return json(200, state.shaping); }
    if (/^\/api\/v1\/queue\/shaping\/[^/]+$/.test(path) && method === 'DELETE') {
@@ -5343,6 +5370,39 @@ async function main() {
       called(before, 'GET', '/api/v1/queue/shaping').length === 1 && called(before, 'GET', '/api/v1/queue').length === 1, paths(before));
    check('and with the window gone the box says so', content().textContent.indexOf('No destination has asked this server to slow down.') >= 0 &&
       content().querySelectorAll('button[data-act="shresume"]').length === 0 && toastText() === 'Back-off cleared', toastText());
+
+   // ---- held for a sandbox, beside the queue
+   check('what is held for a sandbox is read with the queue, a page of up to a thousand', called(0, 'GET', '/api/v1/sandbox/held?limit=1000').length >= 1);
+   check('a held message the queue lists is not a row of its table, where Retry and Delete would not reach it',
+      Array.from(rows()).every((r) => r.textContent.indexOf('outsider@far.example') < 0) && content().querySelectorAll('button[data-act="retry"][data-id="77"]').length === 0);
+   check('a held message is drawn with its id, its sender, how long it has waited, its file and the submission',
+      content().textContent.indexOf('outsider@far.example') >= 0 && content().textContent.indexOf('Held for 42 s; 1 file(s)') >= 0 &&
+      content().textContent.indexOf('invoice.exe') >= 0 && content().textContent.indexOf('job-7') >= 0 &&
+      content().textContent.indexOf('report.docm') >= 0 && content().textContent.indexOf('not submitted yet') >= 0, content().textContent);
+   check('the state of a file is words, not the machine word the list answers with',
+      content().textContent.indexOf('not_submitted') < 0 && content().textContent.indexOf('submitted, waiting for the verdict') >= 0, content().textContent);
+   check('a page that is not the whole list says how much of it is shown',
+      content().textContent.indexOf('2 of 3 held messages are shown, oldest first.') >= 0, content().textContent);
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('sbrelease', { id: 77 }));
+   await flush();
+   check('Release asks first, naming the message, and no sends nothing', confirmations[confirmations.length - 1].indexOf('77') >= 0 &&
+      called(before, 'POST', /sandbox\/held/).length === 0);
+   confirmAnswer = true;
+   before = requests.length;
+   click(act('sbdiscard', { id: 78 }));
+   await flush();
+   check('Discard asks, naming the message, deletes it and re-reads', confirmations[confirmations.length - 1].indexOf('78') >= 0 &&
+      called(before, 'DELETE', '/api/v1/sandbox/held/78').length === 1 && called(before, 'GET', '/api/v1/sandbox/held?limit=1000').length === 1 &&
+      content().textContent.indexOf('report.docm') < 0 && toastText() === 'Discarded', paths(before));
+   before = requests.length;
+   click(act('sbrelease', { id: 77 }));
+   await flush();
+   check('Release posts to the message\'s release route and re-reads', called(before, 'POST', '/api/v1/sandbox/held/77/release').length === 1 &&
+      called(before, 'GET', '/api/v1/sandbox/held?limit=1000').length === 1, paths(before));
+   check('and with nothing held the box says so', content().textContent.indexOf('Nothing is held for a sandbox.') >= 0 &&
+      content().querySelectorAll('button[data-act="sbrelease"]').length === 0 && toastText() === 'Released to the delivery queue', toastText());
 
 
    // ---- DANE / TLSA

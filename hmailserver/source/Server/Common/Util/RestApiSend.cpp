@@ -610,6 +610,11 @@ namespace HM
          }
       }
 
+      // Sent by a key an administrator issued, as the webmail's send is by a
+      // signed-in account (Message::FlagSubmittedBySignedInUser): the attachment
+      // sandbox leaves it alone unless SandboxInternalMail says otherwise.
+      message->SetSubmittedBySignedInUser(true);
+
       message->SetState(Message::Delivering);
 
       if (!PersistentMessage::SaveObject(message))

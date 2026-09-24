@@ -479,6 +479,9 @@ Save this weak password anyway?</value>
   <data name="A domain, or an account address" xml:space="preserve">
     <value>A domain, or an account address</value>
   </data>
+  <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
+    <value>A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once.</value>
   </data>
@@ -1220,6 +1223,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Also block a banned address in the operating system's firewall" xml:space="preserve">
     <value>Also block a banned address in the operating system's firewall</value>
   </data>
+  <data name="Also hold what this server's own signed-in users send, and upload its files" xml:space="preserve">
+    <value>Also hold what this server's own signed-in users send, and upload its files</value>
+  </data>
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>Also mark accounts _inactive when their directory entry has gone</value>
   </data>
@@ -1500,11 +1506,17 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Attachment name" xml:space="preserve">
     <value>Attachment name</value>
   </data>
+  <data name="Attachment sandbox - a service that opens files" xml:space="preserve">
+    <value>Attachment sandbox - a service that opens files</value>
+  </data>
   <data name="Attachment type" xml:space="preserve">
     <value>Attachment type</value>
   </data>
   <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
     <value>Attachment type by its bytes (executable, pdf, zip, office, text…)</value>
+  </data>
+  <data name="Attachments opened in a sandbox" xml:space="preserve">
+    <value>Attachments opened in a sandbox</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Attempts to reach the database at start-up</value>
@@ -1653,6 +1665,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Ban for (hours, 1 to 8760)</value>
   </data>
+  <data name="Bearer token (leave empty to keep current)" xml:space="preserve">
+    <value>Bearer token (leave empty to keep current)</value>
+  </data>
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Bearer token for /metrics (empty = none)</value>
   </data>
@@ -1712,6 +1727,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   </data>
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Body read chunk size (bytes)</value>
+  </data>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log.</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>Both overrides read the score this server recorded in the message, so they need "Add reason to header" switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there.</value>
@@ -3000,6 +3018,9 @@ The sender was told it was accepted, so nothing will retry and there is no other
   <data name="Deliver _local → local" xml:space="preserve">
     <value>Deliver _local → local</value>
   </data>
+  <data name="Deliver it with a header saying so" xml:space="preserve">
+    <value>Deliver it with a header saying so</value>
+  </data>
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Deliver it, and only record it</value>
   </data>
@@ -3752,6 +3773,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="File missing" xml:space="preserve">
     <value>File missing</value>
   </data>
+  <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
+    <value>File types submitted (extensions and media types, comma separated)</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>File-name patterns stripped from incoming messages regardless of what a scanner says.</value>
   </data>
@@ -4046,8 +4070,14 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>Hold a refused connection open before dropping it (seconds, 0 = drop immediately)</value>
   </data>
+  <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
+    <value>Hold attachments for the sandbox's verdict</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Hold messages for review instead of refusing them</value>
+  </data>
+  <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
+    <value>Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious.</value>
   </data>
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage.</value>
@@ -4090,6 +4120,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
     <value>Hours a release link stays usable (1 to 720)</value>
+  </data>
+  <data name="Hours a verdict is remembered (0 = never)" xml:space="preserve">
+    <value>Hours a verdict is remembered (0 = never)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>Hours between checks (1 to 168)</value>
@@ -4506,6 +4539,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   </data>
   <data name="Language (VBScript or JScript)" xml:space="preserve">
     <value>Language (VBScript or JScript)</value>
+  </data>
+  <data name="Largest attachment submitted (KB)" xml:space="preserve">
+    <value>Largest attachment submitted (KB)</value>
   </data>
   <data name="Largest message in KB (0 is no limit)" xml:space="preserve">
     <value>Largest message in KB (0 is no limit)</value>
@@ -5148,6 +5184,9 @@ Nothing already there is removed.</value>
   <data name="Minimum timeout (seconds)" xml:space="preserve">
     <value>Minimum timeout (seconds)</value>
   </data>
+  <data name="Minutes a message waits for a verdict" xml:space="preserve">
+    <value>Minutes a message waits for a verdict</value>
+  </data>
   <data name="Minutes between downloads" xml:space="preserve">
     <value>Minutes between downloads</value>
   </data>
@@ -5186,6 +5225,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>More than {0} messages are waiting to be delivered.</value>
+  </data>
+  <data name="Most files one message may submit" xml:space="preserve">
+    <value>Most files one message may submit</value>
   </data>
   <data name="Most used" xml:space="preserve">
     <value>Most used</value>
@@ -6945,6 +6987,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too.</value>
   </data>
+  <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
+    <value>Remove the sandbox's bearer token? Requests to the sandbox are then sent without one.</value>
+  </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Remove the selected account from this group</value>
   </data>
@@ -6956,6 +7001,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>Remove the stored service account pass_word when saving</value>
+  </data>
+  <data name="Remove the token" xml:space="preserve">
+    <value>Remove the token</value>
   </data>
   <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
     <value>Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone.</value>
@@ -7216,6 +7264,9 @@ Continue?</value>
   <data name="Retries" xml:space="preserve">
     <value>Retries</value>
   </data>
+  <data name="Return it to the sender (5.7.1)" xml:space="preserve">
+    <value>Return it to the sender (5.7.1)</value>
+  </data>
   <data name="Return value for infected" xml:space="preserve">
     <value>Return value for infected</value>
   </data>
@@ -7304,6 +7355,9 @@ Continue?</value>
   </data>
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log.</value>
+  </data>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on.</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>Run script function</value>
@@ -7464,6 +7518,9 @@ Continue?</value>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Sa_ve permissions</value>
   </data>
+  <data name="Sandbox" xml:space="preserve">
+    <value>Sandbox</value>
+  </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>Save _levels now</value>
   </data>
@@ -7605,6 +7662,9 @@ Continue?</value>
   <data name="Score applied when the engine says &quot;reject&quot;" xml:space="preserve">
     <value>Score applied when the engine says "reject"</value>
   </data>
+  <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
+    <value>Score at which suspicious counts as malicious (0-100)</value>
+  </data>
   <data name="Score when not merging" xml:space="preserve">
     <value>Score when not merging</value>
   </data>
@@ -7733,6 +7793,9 @@ Continue?</value>
   </data>
   <data name="Seconds between those attempts" xml:space="preserve">
     <value>Seconds between those attempts</value>
+  </data>
+  <data name="Seconds between verdict checks" xml:space="preserve">
+    <value>Seconds between verdict checks</value>
   </data>
   <data name="Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)" xml:space="preserve">
     <value>Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)</value>
@@ -8463,6 +8526,9 @@ Restart it now?</value>
   </data>
   <data name="Submission rate limits" xml:space="preserve">
     <value>Submission rate limits</value>
+  </data>
+  <data name="Submit address (POST)" xml:space="preserve">
+    <value>Submit address (POST)</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Suppression list</value>
@@ -9336,6 +9402,15 @@ Add it anyway?</value>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself.</value>
   </data>
+  <data name="The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off." xml:space="preserve">
+    <value>The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off.</value>
+  </data>
+  <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
+    <value>The sandbox is off, which is the default: nothing is held and nothing is submitted.</value>
+  </data>
+  <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
+    <value>The sandbox settings could not be read from the server, so this page cannot say whether one is configured.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric.</value>
   </data>
@@ -9504,6 +9579,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="The text templates the server returns to clients (greetings, bounce and error messages). These are a fixed set you can edit." xml:space="preserve">
     <value>The text templates the server returns to clients (greetings, bounce and error messages). These are a fixed set you can edit.</value>
+  </data>
+  <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
+    <value>The token was removed; requests to the sandbox now carry none.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>The transport security configuration could not be read.</value>
@@ -10044,6 +10122,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="Value:      {0}" xml:space="preserve">
     <value>Value:      {0}</value>
   </data>
+  <data name="Verdict address (GET)" xml:space="preserve">
+    <value>Verdict address (GET)</value>
+  </data>
   <data name="Verification code from your authenticator app" xml:space="preserve">
     <value>Verification code from your authenticator app</value>
   </data>
@@ -10262,6 +10343,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>When the endpoint cannot be reached</value>
+  </data>
+  <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
+    <value>When the wait ends or the sandbox answers error</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Where it goes</value>

@@ -24,6 +24,15 @@ namespace HM
          // the deliverer selects messagetype 1 alone, so it is never picked
          // up until it is released back to Delivering.
          HeldForReview = 4,
+         // 5 is one held for a sandbox's verdict on its attachments
+         // (AntiVirus/Sandbox.h). Kept out of the delivery queue the same way,
+         // and put back to Delivering by the sandbox's poller once a verdict,
+         // the timeout or an administrator has decided - never by the
+         // compromised-account sweep, which ends only messagetype 4. The
+         // compromised-account hold takes precedence: an account locked while
+         // its message waits here has the message moved to 4, where no
+         // sandbox decision reaches it.
+         HeldForSandbox = 5,
       };
 
       enum Flags
@@ -59,7 +68,24 @@ namespace HM
          // so those three need a mark of their own, or every held pass would
          // mirror, seal and notify again. Set in the same UPDATE that
          // reschedules an uncounted pass, so a restart cannot lose it.
-         FlagFirstPassDone = 1024
+         FlagFirstPassDone = 1024,
+
+         // Released from the quarantine by a person, from an entry the SANDBOX
+         // put there (AntiVirus/Sandbox.h): the one release the sandbox does not
+         // examine again, since the remembered malicious verdict would put it
+         // straight back. Set beside FlagReleasedFromQuarantine by
+         // QuarantineStore::Release and ReleaseTo, only when the entry's reason
+         // is the sandbox's own; every other release is examined like new mail.
+         FlagReleasedFromSandboxQuarantine = 2048,
+
+         // Submitted by a signed-in user of this server: an authenticated SMTP
+         // session, the webmail's send (and what is sent through its code - a
+         // scheduled draft, a read receipt, an unsubscribe). Set by the server
+         // when it creates the message, never read from anything a sender
+         // wrote. The sandbox leaves such a message alone unless
+         // SandboxInternalMail says otherwise, so that what the server's own
+         // users send is not uploaded to a third party by default.
+         FlagSubmittedBySignedInUser = 4096
       };
 
       Message(bool generateFileName);
@@ -160,6 +186,26 @@ namespace HM
             flags_ |= FlagReleasedFromQuarantine;
          else
             flags_ &= ~FlagReleasedFromQuarantine;
+      }
+
+      // See FlagReleasedFromSandboxQuarantine.
+      bool GetReleasedFromSandboxQuarantine() const { return (flags_ & FlagReleasedFromSandboxQuarantine) != 0; }
+      void SetReleasedFromSandboxQuarantine(bool bNewVal)
+      {
+         if (bNewVal)
+            flags_ |= FlagReleasedFromSandboxQuarantine;
+         else
+            flags_ &= ~FlagReleasedFromSandboxQuarantine;
+      }
+
+      // See FlagSubmittedBySignedInUser.
+      bool GetSubmittedBySignedInUser() const { return (flags_ & FlagSubmittedBySignedInUser) != 0; }
+      void SetSubmittedBySignedInUser(bool bNewVal)
+      {
+         if (bNewVal)
+            flags_ |= FlagSubmittedBySignedInUser;
+         else
+            flags_ &= ~FlagSubmittedBySignedInUser;
       }
 
       bool GetBinaryMime() const { return (flags_ & FlagBinaryMime) != 0; }

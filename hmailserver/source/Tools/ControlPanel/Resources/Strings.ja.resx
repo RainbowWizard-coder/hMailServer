@@ -479,6 +479,9 @@
   <data name="A domain, or an account address" xml:space="preserve">
     <value>ドメインまたはアカウントのアドレス</value>
   </data>
+  <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
+    <value>外部から届いたメッセージに含まれる送信対象の種類のファイルは、運用または契約しているサンドボックスに送信され、メッセージはどのメールボックスにも検疫にも入らないまま、その判定を待ちます。クリーンなら配信され、悪意ありなら検疫されます。両方のアドレスを設定してこれをオンにするまで、何も保留されません。</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>受信メールのための猶予です。上限をこの割合未満で超えたメールボックスはまだ受信できるので、1 週間不在の人が月曜に大きな添付ファイルが届いたためにメールを失うことはありません。所有者自身の保存やコピーは上限で止まります。ドメインごとに設定できます。すぐに適用されます。</value>
   </data>
@@ -1220,6 +1223,9 @@
   <data name="Also block a banned address in the operating system's firewall" xml:space="preserve">
     <value>BAN したアドレスを OS のファイアウォールでもブロックする</value>
   </data>
+  <data name="Also hold what this server's own signed-in users send, and upload its files" xml:space="preserve">
+    <value>このサーバーにサインインしたユーザーが送信するものも保留し、そのファイルを送信する</value>
+  </data>
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>ディレクトリのエントリがなくなったアカウントも無効としてマークする(_I)</value>
   </data>
@@ -1500,11 +1506,17 @@
   <data name="Attachment name" xml:space="preserve">
     <value>添付ファイル名</value>
   </data>
+  <data name="Attachment sandbox - a service that opens files" xml:space="preserve">
+    <value>添付ファイルのサンドボックス - ファイルを開くサービス</value>
+  </data>
   <data name="Attachment type" xml:space="preserve">
     <value>添付ファイルの種類</value>
   </data>
   <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
     <value>バイト列による添付ファイルの種類 (executable, pdf, zip, office, text…)</value>
+  </data>
+  <data name="Attachments opened in a sandbox" xml:space="preserve">
+    <value>サンドボックスで開く添付ファイル</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>起動時にデータベースへ接続を試みる回数</value>
@@ -1653,6 +1665,9 @@
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>遮断時間 (時間、1～8760)</value>
   </data>
+  <data name="Bearer token (leave empty to keep current)" xml:space="preserve">
+    <value>Bearer トークン (空のままにすると現在のものを維持)</value>
+  </data>
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>/metrics 用のベアラー トークン (空 = なし)</value>
   </data>
@@ -1712,6 +1727,9 @@
   </data>
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>本文の読み取りチャンク サイズ (バイト)</value>
+  </data>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>両方のアドレスが設定されています。サービスが応答するかどうかはここからは判断できません。外部から送信対象の種類のファイルを添付したメッセージを送信し、Deck のキューページの「サンドボックス待ちで保留」でそれを探すか、アプリケーションログでサンドボックスに送信されたことを示す行を探してください。</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>どちらの上書きも、このサーバーがメッセージに記録したスコアを読み取るため、「理由をヘッダーに追加する」(スパム対策の設定) をオンにしておく必要があります。オフの場合はスコアが記録されず、何も証明できず、どちらの上書きも働きません。アカウントはサーバー全体の動作のままです。その場合、ファイル内の値は信頼されません。送信者がそこに値を書き込むのを止めるものが何もないからです。</value>
@@ -3000,6 +3018,9 @@
   <data name="Deliver _local → local" xml:space="preserve">
     <value>ローカル → ローカルに配信する(_L)</value>
   </data>
+  <data name="Deliver it with a header saying so" xml:space="preserve">
+    <value>その旨のヘッダーを付けて配信する</value>
+  </data>
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>配信して記録だけする</value>
   </data>
@@ -3752,6 +3773,9 @@
   <data name="File missing" xml:space="preserve">
     <value>ファイルがありません</value>
   </data>
+  <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
+    <value>送信するファイルの種類 (拡張子とメディアタイプ、カンマ区切り)</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>スキャナーの判定にかかわらず、受信メッセージから取り除かれるファイル名パターン。</value>
   </data>
@@ -4046,8 +4070,14 @@
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>拒否した接続を切断するまで開いたまま保持する (秒、0 = 直ちに切断)</value>
   </data>
+  <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
+    <value>サンドボックスの判定まで添付ファイルを保留する</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>メッセージを拒否する代わりに確認のために保留する</value>
+  </data>
+  <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
+    <value>実行ファイルまたは文書が添付された外部からのメッセージを、サンドボックスがファイルを開いてクリーンまたは悪意ありと回答するまで保留します。</value>
   </data>
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>誤ったパスワードの拒否をしばらく保留してから送ります。接続での最初の失敗はこの秒数だけ待ち、2 回目はその 2 倍、というように最大 30 秒まで、SMTP、POP3、IMAP のいずれでも同様です。正しいパスワードが遅延されることはありません。待機は接続上のタイマーであり、スレッドをスリープさせるものではないため、ログオン失敗が殺到しても、サーバーが失うのはそれらが到着するソケットだけです。旧来の TarpitDelay が 10 年間スタブのままだったのは、素朴な実装が自業自得の停止を招くからです。</value>
@@ -4090,6 +4120,9 @@
   </data>
   <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
     <value>解放リンクを使える時間 (1 から 720)</value>
+  </data>
+  <data name="Hours a verdict is remembered (0 = never)" xml:space="preserve">
+    <value>判定を記憶する時間 (時間、0 = 記憶しない)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>チェックの間隔 (時間、1 から 168)</value>
@@ -4506,6 +4539,9 @@
   </data>
   <data name="Language (VBScript or JScript)" xml:space="preserve">
     <value>言語 (VBScript または JScript)</value>
+  </data>
+  <data name="Largest attachment submitted (KB)" xml:space="preserve">
+    <value>送信する添付ファイルの最大サイズ (KB)</value>
   </data>
   <data name="Largest message in KB (0 is no limit)" xml:space="preserve">
     <value>最大メッセージサイズ KB（0 は無制限）</value>
@@ -5148,6 +5184,9 @@
   <data name="Minimum timeout (seconds)" xml:space="preserve">
     <value>最小タイムアウト (秒)</value>
   </data>
+  <data name="Minutes a message waits for a verdict" xml:space="preserve">
+    <value>メッセージが判定を待つ時間 (分)</value>
+  </data>
   <data name="Minutes between downloads" xml:space="preserve">
     <value>ダウンロードの間隔 (分)</value>
   </data>
@@ -5186,6 +5225,9 @@
   </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>{0} 件を超えるメッセージが配信を待っています。</value>
+  </data>
+  <data name="Most files one message may submit" xml:space="preserve">
+    <value>1 通のメッセージが送信できる最大ファイル数</value>
   </data>
   <data name="Most used" xml:space="preserve">
     <value>よく使うもの</value>
@@ -6945,6 +6987,9 @@
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>サンプルドメインを、その中のすべてのメールボックス、メッセージ、ルールごと削除しますか。後から追加したものも一緒に削除されます。</value>
   </data>
+  <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
+    <value>サンドボックスの Bearer トークンを削除しますか? 以後、サンドボックスへの要求はトークンなしで送信されます。</value>
+  </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>選択したアカウントをこのグループから削除する</value>
   </data>
@@ -6956,6 +7001,9 @@
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>保存時に、保存済みのサービス アカウント パスワードを削除する(_W)</value>
+  </data>
+  <data name="Remove the token" xml:space="preserve">
+    <value>トークンを削除</value>
   </data>
   <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
     <value>このアカウントの回復用アドレスを削除しますか。すでに送信されたパスワード リセットのリンクはすべて無効になり、所有者はウェブメールで新しいアドレスを設定します。使い捨てコードはそのままです。</value>
@@ -7216,6 +7264,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Retries" xml:space="preserve">
     <value>再試行</value>
   </data>
+  <data name="Return it to the sender (5.7.1)" xml:space="preserve">
+    <value>送信者に返送する (5.7.1)</value>
+  </data>
   <data name="Return value for infected" xml:space="preserve">
     <value>感染時の戻り値</value>
   </data>
@@ -7304,6 +7355,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>BAN の作成時に &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; として、範囲の消滅時に &lt;command&gt; unban &lt;address&gt; として、Windows でも Linux でも同じ形で実行されます。クラウドのファイアウォール、ルーター、SIEM 向けです。プログラムのパスに空白が含まれる場合は引用符で囲んでください。引数はサーバーが付け加えます。0 以外の終了コード、または起動できないプログラムはエラーログに 1 回報告されます。</value>
+  </data>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>docs/Sandbox.md の小さな HTTP 規約に対応したサンドボックスを運用または契約し、ウイルス対策ページの [サンドボックス] タブで送信アドレスと判定アドレスを設定して、オンにしてください。</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>スクリプト関数を実行</value>
@@ -7464,6 +7518,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>権限を保存(_V)</value>
   </data>
+  <data name="Sandbox" xml:space="preserve">
+    <value>サンドボックス</value>
+  </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>レベルを今すぐ保存(_L)</value>
   </data>
@@ -7605,6 +7662,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Score applied when the engine says &quot;reject&quot;" xml:space="preserve">
     <value>エンジンが "reject" と言ったときに適用するスコア</value>
   </data>
+  <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
+    <value>疑わしいを悪意ありとみなすスコア (0-100)</value>
+  </data>
   <data name="Score when not merging" xml:space="preserve">
     <value>マージしない場合のスコア</value>
   </data>
@@ -7733,6 +7793,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Seconds between those attempts" xml:space="preserve">
     <value>試行の間隔 (秒)</value>
+  </data>
+  <data name="Seconds between verdict checks" xml:space="preserve">
+    <value>判定を確認する間隔 (秒)</value>
   </data>
   <data name="Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)" xml:space="preserve">
     <value>JWK Set を再取得するまで保持する秒数 (未知の鍵 ID を示すトークンは直ちに再取得します)</value>
@@ -8463,6 +8526,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Submission rate limits" xml:space="preserve">
     <value>送信レート制限</value>
+  </data>
+  <data name="Submit address (POST)" xml:space="preserve">
+    <value>送信アドレス (POST)</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>抑止リスト</value>
@@ -9336,6 +9402,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>ログ ファイルが受け取るのと同じ行、カテゴリ、マスクに、ログを記録したスレッドでスパンがアクティブなときはいつでもトレース ID とスパン ID が付加されます。エクスポーターは自身の失敗行を決してエクスポートしません。そうしないと、停止したコレクターが自分自身を養うことになります。</value>
   </data>
+  <data name="The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off." xml:space="preserve">
+    <value>サンドボックスはオンですが、アドレスが空です。両方が設定されるまで何も保留も送信もされません (起動のたびにアプリケーション ログに記録されます)。両方のアドレスを設定するか、オフにしてください。</value>
+  </data>
+  <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
+    <value>サンドボックスはオフです (既定)。何も保留されず、何も送信されません。</value>
+  </data>
+  <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
+    <value>サーバーからサンドボックスの設定を読み取れなかったため、このページでは設定されているかどうかを判断できません。</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>スキャン結果はサーバー マシンでのみ読み取れます。hMailServer.INI がここには見つかりませんでした。サーバーは同じ数値を hmailservermessagestore_missing_files メトリクスとして公開しています。(_M)</value>
   </data>
@@ -9504,6 +9579,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The text templates the server returns to clients (greetings, bounce and error messages). These are a fixed set you can edit." xml:space="preserve">
     <value>サーバーがクライアントに返すテキスト テンプレート (挨拶、バウンス、エラー メッセージ)。これらは編集可能な固定のセットです。</value>
+  </data>
+  <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
+    <value>トークンを削除しました。サンドボックスへの要求にはトークンが付きません。</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>トランスポート セキュリティの設定を読み取れませんでした。</value>
@@ -10044,6 +10122,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Value:      {0}" xml:space="preserve">
     <value>値:      {0}</value>
   </data>
+  <data name="Verdict address (GET)" xml:space="preserve">
+    <value>判定アドレス (GET)</value>
+  </data>
   <data name="Verification code from your authenticator app" xml:space="preserve">
     <value>認証アプリの確認コード</value>
   </data>
@@ -10262,6 +10343,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>エンドポイントに到達できない場合</value>
+  </data>
+  <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
+    <value>待機が終了したとき、またはサンドボックスがエラーを返したとき</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>送り先</value>

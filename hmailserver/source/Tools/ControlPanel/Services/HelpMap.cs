@@ -167,6 +167,7 @@ namespace hMailServer.ControlPanel.Services
          "ResponseCompression.md",
          "RestrictedDelivery.md",
          "SampleDomain.md",
+         "Sandbox.md",
          "SendAs.md",
          "SendApi.md",
          "SettingLevels.md",

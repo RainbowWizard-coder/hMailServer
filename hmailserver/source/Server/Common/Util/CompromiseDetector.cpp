@@ -557,7 +557,11 @@ namespace HM
       // (from the last unlock, when that is later) and not yet picked up, to
       // HeldForReview, and records it. A message the deliverer has locked is
       // in flight and is left alone: the update names messagelocked = 0, so
-      // the race is decided by the database.
+      // the race is decided by the database. A message waiting for a
+      // sandbox's verdict (messagetype 5, always unlocked) is moved too: this
+      // hold takes precedence, and the sandbox's poller puts back only what is
+      // still 5, so no verdict can send a locked account's mail. Released
+      // from review, it meets its sandbox rows again and is held for them.
       int HoldQueued(const CompromiseDetector::Assessment &assessment, __int64 now)
       {
          SQLCommand candidates("select acid, acmessageid from hm_accountactivity where acaccountid = @ACCOUNTID and actime > @HOURFROM and acmessageid > 0 and acheld = 0");
@@ -577,7 +581,7 @@ namespace HM
          int held = 0;
          for (const auto &row : rows)
          {
-            SQLCommand hold("update hm_messages set messagetype = 4 where messageid = @MESSAGEID and messagetype = 1 and messagelocked = 0");
+            SQLCommand hold("update hm_messages set messagetype = 4 where messageid = @MESSAGEID and messagetype in (1, 5) and messagelocked = 0");
             hold.AddParameter("@MESSAGEID", row.second);
             if (!Execute(hold))
                continue;

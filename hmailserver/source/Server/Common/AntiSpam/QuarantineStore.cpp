@@ -25,6 +25,7 @@
 #include "../../SMTP/RecipientParser.h"
 #include "../Util/Parsing/StringParser.h"
 #include "../BO/MessageData.h"
+#include "../AntiVirus/Sandbox.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -332,6 +333,13 @@ namespace HM
       // messageflags, so the deliverer reads it back.
       message->SetReleasedFromQuarantine(true);
 
+      // And, for an entry the sandbox's verdict put here, the one mark the
+      // sandbox skips a message for: its remembered malicious verdict would
+      // otherwise put it straight back. Any other release - the spam
+      // quarantine's, a rule's, a block list's - never met the sandbox, and is
+      // examined on its way back in like new mail (AntiVirus/Sandbox.h).
+      message->SetReleasedFromSandboxQuarantine(Sandbox::IsSandboxQuarantineReason(quarantined.reason));
+
       const String targetFile = PersistentMessage::GetFileName(message);
 
       if (!FileUtilities::Copy(sourceFile, targetFile, true))
@@ -507,6 +515,10 @@ namespace HM
       // and a message released from a block would otherwise go straight back
       // into the quarantine it was just taken out of.
       message->SetReleasedFromQuarantine(true);
+
+      // The sandbox's own mark, as Release sets it: only for an entry its
+      // verdict made.
+      message->SetReleasedFromSandboxQuarantine(Sandbox::IsSandboxQuarantineReason(quarantined.reason));
 
       const String targetFile = PersistentMessage::GetFileName(message);
       if (!FileUtilities::Copy(sourceFile, targetFile, true))

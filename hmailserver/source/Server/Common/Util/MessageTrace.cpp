@@ -100,6 +100,8 @@ namespace HM
 
       return _ttoi(text.Mid(0, 3).c_str());
    }
+   const wchar_t *MessageTrace::EventSandboxSubmitted = L"sandbox-submitted";
+   const wchar_t *MessageTrace::EventSandboxVerdict = L"sandbox-verdict";
 
    bool
    MessageTrace::GetEnabled()

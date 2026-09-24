@@ -1057,6 +1057,12 @@ namespace hMailServer.ControlPanel.Views
          (0, L("Delete entire e-mail")), (1, L("Delete infected attachments only"))
       };
 
+      // Settings.SandboxTimeoutAction: what a hold the sandbox did not answer for ends in.
+      private static readonly (int, string)[] SandboxTimeoutAction =
+      {
+         (0, L("Deliver it with a header saying so")), (1, L("Return it to the sender (5.7.1)"))
+      };
+
       private readonly Section section_;
       private List<TabDef> tabs_;
       private string diag_;
@@ -2027,6 +2033,57 @@ namespace hMailServer.ControlPanel.Views
             Action = () => TestCustomScanner(customExe.CurrentText)
          });
          Tab(L("Custom")).Cards.Add(custom);
+
+         // Attachments opened somewhere safe (docs/Sandbox.md). Inert until an
+         // administrator names a sandbox, which is a service outside this server,
+         // so the card says so; External setup says it too. The two addresses
+         // come BEFORE the switch, because a save writes the rows in this order
+         // and the server refuses the switch on while an address is empty:
+         // setting both and turning it on in one save has to write the addresses
+         // first. Turning it off and clearing them works the other way round,
+         // since an address emptied while the switch is on is accepted and holds
+         // nothing until the switch goes off after it.
+         var sandbox = Card(L("Attachments opened in a sandbox"),
+            L("A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on."));
+         sandbox.Settings.Add(new ComText { Path = "SandboxSubmitUrl", Label = L("Submit address (POST)") });
+         sandbox.Settings.Add(new ComText { Path = "SandboxVerdictUrl", Label = L("Verdict address (GET)") });
+         sandbox.Settings.Add(new ComBool { Path = "SandboxEnabled", Label = L("Hold attachments for the sandbox's verdict") });
+         sandbox.Settings.Add(new ComPassword { Path = "SetSandboxToken", MethodName = "SetSandboxToken", Label = L("Bearer token (leave empty to keep current)") });
+
+         // An empty box keeps the token, as it keeps the relayer password; the
+         // token is the one secret here whose absence is a state of its own (no
+         // Authorization header at all), so removing it is a button of its own.
+         sandbox.Settings.Add(new ComAction
+         {
+            ButtonText = L("Remove the token"),
+            Action = () =>
+            {
+               if (!Dialogs.Confirm(L("Remove the sandbox's bearer token? Requests to the sandbox are then sent without one."), L("Sandbox"), L("_Remove"), destructive: true))
+                  return (true, L("Nothing was changed."));
+
+               dynamic settings = ServerSession.Current.Application.Settings;
+               try
+               {
+                  settings.SetSandboxToken("");
+                  return (true, L("The token was removed; requests to the sandbox now carry none."));
+               }
+               finally
+               {
+                  ServerSession.Release((object)settings);
+               }
+            }
+         });
+
+         sandbox.Settings.Add(new ComText { Path = "SandboxTypes", Label = L("File types submitted (extensions and media types, comma separated)") });
+         sandbox.Settings.Add(new ComText { Path = "SandboxMaxSizeKB", Label = L("Largest attachment submitted (KB)"), Numeric = true });
+         sandbox.Settings.Add(new ComText { Path = "SandboxMaxFiles", Label = L("Most files one message may submit"), Numeric = true });
+         sandbox.Settings.Add(new ComText { Path = "SandboxTimeoutMinutes", Label = L("Minutes a message waits for a verdict"), Numeric = true });
+         sandbox.Settings.Add(new ComCombo { Path = "SandboxTimeoutAction", Label = L("When the wait ends or the sandbox answers error"), Options = SandboxTimeoutAction });
+         sandbox.Settings.Add(new ComText { Path = "SandboxPollSeconds", Label = L("Seconds between verdict checks"), Numeric = true });
+         sandbox.Settings.Add(new ComText { Path = "SandboxScoreThreshold", Label = L("Score at which suspicious counts as malicious (0-100)"), Numeric = true });
+         sandbox.Settings.Add(new ComText { Path = "SandboxCacheHours", Label = L("Hours a verdict is remembered (0 = never)"), Numeric = true });
+         sandbox.Settings.Add(new ComBool { Path = "SandboxInternalMail", Label = L("Also hold what this server's own signed-in users send, and upload its files") });
+         Tab(L("Sandbox")).Cards.Add(sandbox);
       }
 
       private void BuildTls()

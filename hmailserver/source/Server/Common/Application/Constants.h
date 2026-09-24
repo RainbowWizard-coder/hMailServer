@@ -360,6 +360,30 @@
 #define PROPERTY_OUTBOUND_BACKOFF_MAX_MINUTES   _T("OutboundBackoffMaxMinutes")
 #define PROPERTY_MAX_OUTBOUND_CONNS_PER_DEST    _T("MaxOutboundConnsPerDestination")
 #define PROPERTY_MAX_OUTBOUND_CONNS_PER_TENANT  _T("MaxOutboundConnsPerTenant")
+// Attachments opened somewhere safe (AntiVirus/Sandbox.h, docs/Sandbox.md). Off
+// until an administrator names a sandbox: the switch, the two addresses of the
+// HTTP service (https, or plain http to this machine), the bearer token -
+// stored protected, never emitted - how long a message waits for a verdict (15
+// minutes) and what happens when it stops waiting or the sandbox answers error
+// (0 delivered with a header, 1 returned to the sender), the largest attachment
+// submitted (20480 KB), the extensions and media types that are submitted, how
+// often the verdicts are asked for (30 seconds), the score at which suspicious
+// counts as malicious (70), how long a verdict is remembered (24 hours),
+// whether what this server's own signed-in users submit is held too (no), and
+// the most files one message may send to the sandbox (10).
+#define PROPERTY_SANDBOX_ENABLED                _T("SandboxEnabled")
+#define PROPERTY_SANDBOX_SUBMIT_URL             _T("SandboxSubmitUrl")
+#define PROPERTY_SANDBOX_VERDICT_URL            _T("SandboxVerdictUrl")
+#define PROPERTY_SANDBOX_TOKEN                  _T("SandboxToken")
+#define PROPERTY_SANDBOX_TIMEOUT_MINUTES        _T("SandboxTimeoutMinutes")
+#define PROPERTY_SANDBOX_TIMEOUT_ACTION         _T("SandboxTimeoutAction")
+#define PROPERTY_SANDBOX_MAX_SIZE_KB            _T("SandboxMaxSizeKB")
+#define PROPERTY_SANDBOX_TYPES                  _T("SandboxTypes")
+#define PROPERTY_SANDBOX_POLL_SECONDS           _T("SandboxPollSeconds")
+#define PROPERTY_SANDBOX_SCORE_THRESHOLD        _T("SandboxScoreThreshold")
+#define PROPERTY_SANDBOX_CACHE_HOURS            _T("SandboxCacheHours")
+#define PROPERTY_SANDBOX_INTERNAL_MAIL          _T("SandboxInternalMail")
+#define PROPERTY_SANDBOX_MAX_FILES              _T("SandboxMaxFiles")
 // Zero-access mailboxes (docs/ZeroAccess.md). OFF: an administrator has to
 // allow the opt-in before any account can make it, because a mailbox with this
 // on is one the administrator cannot read, search, export or recover, and a
@@ -798,4 +822,24 @@
 //      the reason (PersistentAccount::DeleteObject). An
 //      upgrade finds the three tables empty and nothing runs until a migration
 //      is created and started.
-#define REQUIRED_DB_VERSION            6090
+
+// 6091 adds hm_sandboxverdicts and hm_sandboxholds (AntiVirus/Sandbox.h,
+//      docs/Sandbox.md): attachments opened somewhere safe. A verdict row is
+//      one file's answer from the sandbox, by SHA-256 (unique): the verdict
+//      (clean or malicious - a suspicious answer is stored as whichever the
+//      score threshold made it, and an error is never stored), the score, the
+//      detail, when it was answered and when it stops being believed
+//      (SandboxCacheHours). A hold row is one submitted file of a message held
+//      for a verdict (hm_messages.messagetype 5, Message::HeldForSandbox): the
+//      queue row, the file's SHA-256, name and size, the id the sandbox's
+//      submit answered (up to 1000 characters), when the hold began, how far
+//      the file has got (to submit, submitted, answered), its verdict, score
+//      and detail, how many requests for it failed, and the message's
+//      decision - pending until the poller or an administrator decides, the
+//      same on every row of one message. Neither table has a foreign key: a
+//      hold row goes with its message (the deliverer's Forget, an
+//      administrator's discard, and the poller for a row whose message is
+//      gone), and a verdict row expires. The step also seeds the thirteen
+//      Sandbox* settings, with the switch off, so an upgraded server holds
+//      nothing until an administrator names a sandbox and turns it on.
+#define REQUIRED_DB_VERSION            6091

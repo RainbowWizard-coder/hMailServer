@@ -182,7 +182,14 @@ evidence of what walked into the traps is the last thing that may go unrecorded.
 recorded explicitly, through `AuditTrail::RecordEvent`, at the call site that makes it -
 object type `account`, the address, action `unlocked`; object type `logon failures` or
 `spam trap hits`, action `cleared` - under the same actor and with the same
-`[role: ...]` as any other row.
+`[role: ...]` as any other row. A message held for a sandbox's verdict and
+released without it, or discarded (`POST /api/v1/sandbox/held/{queue_id}/release`,
+`DELETE /api/v1/sandbox/held/{queue_id}`), is recorded the same way - object type
+`sandbox hold`, the queue id, action `released` or `discarded`, the sender, the
+recipients and the files in the detail - because the hold's rows are traffic and a
+release delivers mail the server was waiting to judge ([Sandbox.md](Sandbox.md)).
+COM's `DeliveryQueue.Remove` of such a message is the same discard, recorded the
+same way, its detail ending `(DeliveryQueue.Remove)`.
 
 A mailbox renamed, or moved to another domain, is the other shape of the same
 problem. It writes the account row, an alias, a row per distribution list

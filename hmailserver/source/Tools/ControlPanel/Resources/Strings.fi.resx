@@ -479,6 +479,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name="A domain, or an account address" xml:space="preserve">
     <value>Verkkotunnus tai tilin osoite</value>
   </data>
+  <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
+    <value>Lähetettävää tyyppiä oleva tiedosto ulkopuolelta tulevassa viestissä lähetetään hiekkalaatikkoon, jota ylläpidät tai jonka tilaat, ja viesti odottaa – ei missään postilaatikossa eikä karanteenissa – sen tuomiota: puhdas toimitetaan, haitallinen asetetaan karanteeniin. Mitään ei pidätetä, ennen kuin molemmat osoitteet on asetettu ja tämä on päällä.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Joustovara saapuvalle postille: rajansa tätä vähemmän ylittänyt postilaatikko ottaa yhä vastaan, jotta viikon poissa oleva ei menetä postia siksi, että maanantaina saapui iso liite. Omistajan omat tallennukset ja kopiot pysähtyvät itse rajaan. Jokainen toimialue voi asettaa omansa. Voimassa heti.</value>
   </data>
@@ -1220,6 +1223,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Also block a banned address in the operating system's firewall" xml:space="preserve">
     <value>Estä estetty osoite myös käyttöjärjestelmän palomuurissa</value>
   </data>
+  <data name="Also hold what this server's own signed-in users send, and upload its files" xml:space="preserve">
+    <value>Pidätä myös tämän palvelimen kirjautuneiden käyttäjien lähettämä posti ja lähetä sen tiedostot</value>
+  </data>
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>Merkitse tilit myös ei-aktiivisiksi, kun niiden _hakemistomerkintä on poistunut</value>
   </data>
@@ -1500,11 +1506,17 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Attachment name" xml:space="preserve">
     <value>Liitteen nimi</value>
   </data>
+  <data name="Attachment sandbox - a service that opens files" xml:space="preserve">
+    <value>Liitteiden hiekkalaatikko – palvelu, joka avaa tiedostoja</value>
+  </data>
   <data name="Attachment type" xml:space="preserve">
     <value>Liitteen tyyppi</value>
   </data>
   <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
     <value>Liitteen tyyppi sen tavujen perusteella (executable, pdf, zip, office, text…)</value>
+  </data>
+  <data name="Attachments opened in a sandbox" xml:space="preserve">
+    <value>Hiekkalaatikossa avatut liitteet</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Yritykset tavoittaa tietokanta käynnistyksessä</value>
@@ -1653,6 +1665,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Estä (tuntia, 1–8760)</value>
   </data>
+  <data name="Bearer token (leave empty to keep current)" xml:space="preserve">
+    <value>Bearer-tunnus (jätä tyhjäksi säilyttääksesi nykyisen)</value>
+  </data>
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Bearer-token /metrics-päätepisteelle (tyhjä = ei mitään)</value>
   </data>
@@ -1712,6 +1727,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Rungon lukulohkon koko (tavua)</value>
+  </data>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>Molemmat osoitteet on asetettu. Vastaako palvelu, ei voi päätellä täältä: lähetä ulkopuolelta viesti, jonka liitteenä on lähetettävää tyyppiä oleva tiedosto, ja etsi se kohdasta Pidätetty hiekkalaatikkoa varten Deckin jonosivulta tai sovelluslokista rivi, jonka mukaan se lähetettiin hiekkalaatikkoon.</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>Molemmat ohitukset lukevat pistemäärän, jonka tämä palvelin kirjasi viestiin, joten ne tarvitsevat "Lisää syy otsakkeeseen" -asetuksen päälle (Roskapostisuojauksen asetukset). Sen ollessa pois päältä pistemäärää ei kirjata, mitään ei voi todistaa, eikä kumpikaan ohitus toimi - tili säilyttää palvelimenlaajuisen käyttäytymisen. Tiedoston arvoon ei siinä tapauksessa luoteta, koska mikään ei estä LÄHETTÄJÄÄ laittamasta sitä sinne.</value>
@@ -3000,6 +3018,9 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Deliver _local → local" xml:space="preserve">
     <value>T_oimita paikallinen → paikallinen</value>
   </data>
+  <data name="Deliver it with a header saying so" xml:space="preserve">
+    <value>Toimita se otsakkeella, joka kertoo sen</value>
+  </data>
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Toimita ja vain kirjaa</value>
   </data>
@@ -3752,6 +3773,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="File missing" xml:space="preserve">
     <value>Tiedosto puuttuu</value>
   </data>
+  <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
+    <value>Lähetettävät tiedostotyypit (tiedostopäätteet ja mediatyypit pilkuilla erotettuina)</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>Tiedostonimikuviot, jotka poistetaan saapuvista viesteistä riippumatta siitä, mitä tarkistin sanoo.</value>
   </data>
@@ -4046,8 +4070,14 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>Pidä hylätty yhteys auki ennen sen pudottamista (sekuntia, 0 = pudota heti)</value>
   </data>
+  <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
+    <value>Pidätä liitteet hiekkalaatikon tuomioon asti</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Pidätä viestit tarkastukseen hylkäämisen sijaan</value>
+  </data>
+  <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
+    <value>Pidättää ulkopuolelta tulevan viestin, jonka liitteenä on suoritettava tiedosto tai asiakirja, kunnes hiekkalaatikko on avannut tiedoston ja vastannut puhdas tai haitallinen.</value>
   </data>
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>Pidättää väärän salasanan hylkäystä hetken ennen sen lähettämistä: yhteyden ensimmäinen epäonnistuminen odottaa näin monta sekuntia, toinen kaksi kertaa niin kauan, ja niin edelleen 30 sekuntiin asti, samoin SMTP:ssä, POP3:ssa ja IMAP:ssa. Oikeaa salasanaa ei koskaan viivytetä. Odotus on yhteyden ajastin, ei nukkuva säie, joten epäonnistuneiden kirjautumisten tulva ei maksa palvelimelle mitään muuta kuin pistokkeet, joista ne saapuvat - syy siihen, että vanha TarpitDelay oli vuosikymmenen ajan tynkä, on se, että naiivi versio on itse aiheutettu käyttökatko.</value>
@@ -4090,6 +4120,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
     <value>Tunnit, jotka vapautuslinkki pysyy käytettävänä (1–720)</value>
+  </data>
+  <data name="Hours a verdict is remembered (0 = never)" xml:space="preserve">
+    <value>Tunnit, jotka tuomio muistetaan (0 = ei koskaan)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>Tarkistusten väli tunteina (1–168)</value>
@@ -4506,6 +4539,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Language (VBScript or JScript)" xml:space="preserve">
     <value>Kieli (VBScript tai JScript)</value>
+  </data>
+  <data name="Largest attachment submitted (KB)" xml:space="preserve">
+    <value>Suurin lähetettävä liite (kt)</value>
   </data>
   <data name="Largest message in KB (0 is no limit)" xml:space="preserve">
     <value>Suurin viesti KB (0 on rajaton)</value>
@@ -5148,6 +5184,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Minimum timeout (seconds)" xml:space="preserve">
     <value>Vähimmäisaikakatkaisu (sekuntia)</value>
   </data>
+  <data name="Minutes a message waits for a verdict" xml:space="preserve">
+    <value>Minuutit, jotka viesti odottaa tuomiota</value>
+  </data>
   <data name="Minutes between downloads" xml:space="preserve">
     <value>Minuutteja latausten välillä</value>
   </data>
@@ -5186,6 +5225,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>Yli {0} viestiä odottaa toimitusta.</value>
+  </data>
+  <data name="Most files one message may submit" xml:space="preserve">
+    <value>Yhden viestin lähettämien tiedostojen enimmäismäärä</value>
   </data>
   <data name="Most used" xml:space="preserve">
     <value>Käytetyimmät</value>
@@ -6945,6 +6987,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Poistetaanko näytetoimialue kaikkine postilaatikoineen, viesteineen ja sääntöineen? Myös kaikki siihen lisätty lähtee mukana.</value>
   </data>
+  <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
+    <value>Poistetaanko hiekkalaatikon bearer-tunnus? Pyynnöt hiekkalaatikolle lähetetään sen jälkeen ilman sitä.</value>
+  </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Poista valittu tili tästä ryhmästä</value>
   </data>
@@ -6956,6 +7001,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>P_oista tallennettu palvelutilin salasana tallennettaessa</value>
+  </data>
+  <data name="Remove the token" xml:space="preserve">
+    <value>Poista tunnus</value>
   </data>
   <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
     <value>Poistetaanko tämän tilin palautusosoite? Jokainen jo matkalla oleva palautuslinkki lakkaa toimimasta, ja tilinhaltija asettaa uuden osoitteen verkkopostissa. Kertakäyttöisiin koodeihin ei kosketa.</value>
@@ -7216,6 +7264,9 @@ Jatketaanko?</value>
   <data name="Retries" xml:space="preserve">
     <value>Uudelleenyritykset</value>
   </data>
+  <data name="Return it to the sender (5.7.1)" xml:space="preserve">
+    <value>Palauta se lähettäjälle (5.7.1)</value>
+  </data>
   <data name="Return value for infected" xml:space="preserve">
     <value>Paluuarvo tartunnan saaneelle</value>
   </data>
@@ -7304,6 +7355,9 @@ Jatketaanko?</value>
   </data>
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>Ajetaan muodossa &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt;, kun esto luodaan, ja muodossa &lt;command&gt; unban &lt;address&gt;, kun alue poistuu, samalla tavalla Windowsissa ja Linuxissa - pilvipalomuuria, reititintä tai SIEM-järjestelmää varten. Laita ohjelman polku lainausmerkkeihin, jos siinä on välilyöntejä; palvelin lisää argumentit. Nollasta poikkeava paluuarvo tai ohjelma, joka ei käynnisty, raportoidaan kerran virhelokiin.</value>
+  </data>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>Ylläpidä tai tilaa hiekkalaatikko, joka puhuu tiedoston docs/Sandbox.md pientä HTTP-sopimusta, aseta sen lähetys- ja tuomio-osoite Virustorjunta-sivun Hiekkalaatikko-välilehdellä ja ota se käyttöön.</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>Aja komentosarjafunktio</value>
@@ -7464,6 +7518,9 @@ Jatketaanko?</value>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Tallenna _käyttöoikeudet</value>
   </data>
+  <data name="Sandbox" xml:space="preserve">
+    <value>Hiekkalaatikko</value>
+  </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>Tallenna _tasot nyt</value>
   </data>
@@ -7605,6 +7662,9 @@ Jatketaanko?</value>
   <data name="Score applied when the engine says &quot;reject&quot;" xml:space="preserve">
     <value>Pistemäärä, jota sovelletaan, kun moottori sanoo "reject"</value>
   </data>
+  <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
+    <value>Pisteet, joista alkaen epäilyttävä lasketaan haitalliseksi (0-100)</value>
+  </data>
   <data name="Score when not merging" xml:space="preserve">
     <value>Pistemäärä ilman yhdistämistä</value>
   </data>
@@ -7733,6 +7793,9 @@ Jatketaanko?</value>
   </data>
   <data name="Seconds between those attempts" xml:space="preserve">
     <value>Sekunteja näiden yritysten välillä</value>
+  </data>
+  <data name="Seconds between verdict checks" xml:space="preserve">
+    <value>Sekunnit tuomiokyselyjen välillä</value>
   </data>
   <data name="Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)" xml:space="preserve">
     <value>Sekunteja, jonka JWK Set säilytetään ennen uudelleennoutoa (tuntemattoman avaintunnisteen nimeävä token noutaa heti)</value>
@@ -8463,6 +8526,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Submission rate limits" xml:space="preserve">
     <value>Lähetysnopeuden rajat</value>
+  </data>
+  <data name="Submit address (POST)" xml:space="preserve">
+    <value>Lähetysosoite (POST)</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Estolista</value>
@@ -9336,6 +9402,15 @@ Lisätäänkö silti?</value>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Samat rivit, luokat ja maski, jotka lokitiedostot saavat, jäljitys- ja jänne-tunnisteet liitettyinä aina, kun lokittaneessa säikeessä on aktiivinen jänne. Viejä ei koskaan vie omia virherivejään, muuten kuollut kerääjä ruokkisi itseään.</value>
   </data>
+  <data name="The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off." xml:space="preserve">
+    <value>Hiekkalaatikko on PÄÄLLÄ, mutta osoite puuttuu, joten mitään ei pidätetä eikä lähetetä ennen kuin molemmat on asetettu - sovellusloki kertoo tästä jokaisella käynnistyskerralla. Aseta molemmat osoitteet tai poista hiekkalaatikko käytöstä.</value>
+  </data>
+  <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
+    <value>Hiekkalaatikko on pois päältä, mikä on oletus: mitään ei pidätetä eikä mitään lähetetä.</value>
+  </data>
+  <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
+    <value>Hiekkalaatikon asetuksia ei voitu lukea palvelimelta, joten tämä sivu ei voi kertoa, onko sellainen määritetty.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Tarkistuksen tulos on luettavissa vain palvelinkoneella - hMailServer.INI-tiedostoa ei löytynyt täältä. Palvelin julkaisee saman luvun mittarina hmailserver_messagestore_missing_files.</value>
   </data>
@@ -9504,6 +9579,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="The text templates the server returns to clients (greetings, bounce and error messages). These are a fixed set you can edit." xml:space="preserve">
     <value>Tekstimallit, jotka palvelin palauttaa asiakkaille (tervehdykset, palautus- ja virheilmoitukset). Ne ovat kiinteä joukko, jota voit muokata.</value>
+  </data>
+  <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
+    <value>Tunnus poistettiin; pyynnöt hiekkalaatikolle eivät nyt sisällä tunnusta.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Siirtoturvallisuuden määritystä ei voitu lukea.</value>
@@ -10044,6 +10122,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Value:      {0}" xml:space="preserve">
     <value>Arvo:      {0}</value>
   </data>
+  <data name="Verdict address (GET)" xml:space="preserve">
+    <value>Tuomio-osoite (GET)</value>
+  </data>
   <data name="Verification code from your authenticator app" xml:space="preserve">
     <value>Vahvistuskoodi todennussovelluksestasi</value>
   </data>
@@ -10262,6 +10343,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>Kun päätepisteeseen ei saada yhteyttä</value>
+  </data>
+  <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
+    <value>Kun odotus päättyy tai hiekkalaatikko vastaa virheellä</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Minne se menee</value>

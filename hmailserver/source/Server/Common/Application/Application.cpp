@@ -76,6 +76,7 @@
 #include "ScheduledMailTask.h"
 #include "../Util/AutoBanFirewall.h"
 #include "../Util/CompromiseDetector.h"
+#include "../AntiVirus/Sandbox.h"
 #include "LogRetentionTask.h"
 #include "ArchiveRetentionTask.h"
 #include "MailboxRetentionTask.h"
@@ -587,6 +588,11 @@ namespace HM
       {
          MessageIndexer::Instance()->Start();
       }
+
+      // The sandbox's poller (AntiVirus/Sandbox.h). Started whether or not the
+      // sandbox is on: a message held while it was on is put back in the queue
+      // by the poller when it is turned off, and nothing else does that.
+      Sandbox::Start();
 
       start_time_ = Time::GetCurrentDateTime();
 
@@ -1373,6 +1379,13 @@ namespace HM
             LOG_APPLICATION("Graceful shutdown: already drained; stopping now.");
          }
       }
+
+      // The sandbox's poller, before anything it reads or writes goes: it asks
+      // the database and an HTTP service, and puts held messages back in the
+      // queue. What it holds stays held and is polled again after the start.
+      // Joined, however long a request in flight takes to end (a minute at
+      // most), with the service controller's checkpoint meanwhile.
+      Sandbox::Stop(stop_progress_);
 
       if (metrics_server_)
       {

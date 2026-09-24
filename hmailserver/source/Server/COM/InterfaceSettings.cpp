@@ -35,6 +35,7 @@
 #include "../Common/BO/SSLCertificates.h"
 #include "../Common/BO/IncomingRelays.h"
 #include "../Common/AntiSpam/AntiSpamConfiguration.h"
+#include "../Common/AntiVirus/Sandbox.h"
 
 #include "../Common/Persistence/PersistentServerMessage.h"
 
@@ -5894,6 +5895,515 @@ STDMETHODIMP InterfaceSettings::put_MaxOutboundConnectionsPerTenant(long newVal)
          return COMError::GenerateError("MaxOutboundConnectionsPerTenant must be between 0 and 1000.");
 
       config_->SetMaxOutboundConnectionsPerTenant((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// Attachments opened somewhere safe (Common/AntiVirus/Sandbox.h). The checks
+// are Sandbox's own, which the REST route asks too, so a value is refused in
+// the same words; each setter refuses rather than clamps.
+
+STDMETHODIMP InterfaceSettings::get_SandboxEnabled(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSandboxEnabled() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SandboxEnabled(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      // Not on while either address is empty: a message would be held with
+      // nowhere to send its files. The Control Panel writes the addresses
+      // before the switch, so turning both on in one save works; emptying an
+      // address while the switch is on is accepted, since each property is
+      // saved alone here, and holds nothing (the log says so at each start).
+      const HM::String problem = HM::Sandbox::SwitchProblem(newVal == VARIANT_TRUE, config_->GetSandboxSubmitUrl(), config_->GetSandboxVerdictUrl(), _T("SandboxEnabled"));
+      if (!problem.IsEmpty())
+         return COMError::GenerateError(problem);
+
+      config_->SetSandboxEnabled(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SandboxSubmitUrl(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSandboxSubmitUrl().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SandboxSubmitUrl(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      HM::String url = newVal;
+      url.Trim();
+
+      const HM::String problem = HM::Sandbox::UrlProblem(url, _T("SandboxSubmitUrl"));
+      if (!problem.IsEmpty())
+         return COMError::GenerateError(problem);
+
+      config_->SetSandboxSubmitUrl(url);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SandboxVerdictUrl(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSandboxVerdictUrl().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SandboxVerdictUrl(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      HM::String url = newVal;
+      url.Trim();
+
+      const HM::String problem = HM::Sandbox::UrlProblem(url, _T("SandboxVerdictUrl"));
+      if (!problem.IsEmpty())
+         return COMError::GenerateError(problem);
+
+      config_->SetSandboxVerdictUrl(url);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::SetSandboxToken(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      const HM::String token = newVal;
+      const HM::String problem = HM::Sandbox::TokenProblem(token, _T("SandboxToken"));
+      if (!problem.IsEmpty())
+         return COMError::GenerateError(problem);
+
+      config_->SetSandboxToken(token);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SandboxTimeoutMinutes(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSandboxTimeoutMinutes();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SandboxTimeoutMinutes(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 1 || newVal > 1440)
+         return COMError::GenerateError("SandboxTimeoutMinutes must be between 1 and 1440.");
+
+      config_->SetSandboxTimeoutMinutes((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SandboxTimeoutAction(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSandboxTimeoutAction();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SandboxTimeoutAction(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 0 || newVal > 1)
+         return COMError::GenerateError("SandboxTimeoutAction is 0 (deliver with a header) or 1 (return to the sender).");
+
+      config_->SetSandboxTimeoutAction((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SandboxMaxSizeKB(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSandboxMaxSizeKB();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SandboxMaxSizeKB(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 1 || newVal > 81920)
+         return COMError::GenerateError("SandboxMaxSizeKB must be between 1 and 81920.");
+
+      config_->SetSandboxMaxSizeKB((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SandboxTypes(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSandboxTypes().AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SandboxTypes(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      HM::String canonical;
+      const HM::String problem = HM::Sandbox::TypesProblem(HM::String(newVal), _T("SandboxTypes"), canonical);
+      if (!problem.IsEmpty())
+         return COMError::GenerateError(problem);
+
+      config_->SetSandboxTypes(canonical);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SandboxPollSeconds(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSandboxPollSeconds();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SandboxPollSeconds(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 5 || newVal > 3600)
+         return COMError::GenerateError("SandboxPollSeconds must be between 5 and 3600.");
+
+      config_->SetSandboxPollSeconds((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SandboxScoreThreshold(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSandboxScoreThreshold();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SandboxScoreThreshold(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 0 || newVal > 100)
+         return COMError::GenerateError("SandboxScoreThreshold must be between 0 and 100.");
+
+      config_->SetSandboxScoreThreshold((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SandboxCacheHours(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSandboxCacheHours();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SandboxCacheHours(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 0 || newVal > 720)
+         return COMError::GenerateError("SandboxCacheHours must be between 0 and 720.");
+
+      config_->SetSandboxCacheHours((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SandboxInternalMail(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSandboxInternalMail() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SandboxInternalMail(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->SetSandboxInternalMail(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_SandboxMaxFiles(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetSandboxMaxFiles();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_SandboxMaxFiles(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 1 || newVal > 100)
+         return COMError::GenerateError("SandboxMaxFiles must be between 1 and 100.");
+
+      config_->SetSandboxMaxFiles((int) newVal);
 
       return S_OK;
    }

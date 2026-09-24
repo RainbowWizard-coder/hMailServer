@@ -776,6 +776,7 @@
     <Compile Include="Security\PasswordExpiryTests.cs" />
     <Compile Include="Security\TwoFactorAuthentication.cs" />
     <Compile Include="Security\AccountLockoutTests.cs" />
+    <Compile Include="AntiVirus\Sandbox.cs" />
     <Compile Include="AntiVirus\ScannerFailurePolicy.cs" />
     <Compile Include="AntiVirus\SealedMailSafety.cs" />
     <Compile Include="Security\AccountSendingLimits.cs" />

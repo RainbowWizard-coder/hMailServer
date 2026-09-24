@@ -268,6 +268,7 @@ EXIT 0
     <ClCompile Include="..\Common\AntiVirus\ClamAVVirusScanner.cpp" />
     <ClCompile Include="..\Common\AntiVirus\ClamWinVirusScanner.cpp" />
     <ClCompile Include="..\Common\AntiVirus\CustomVirusScanner.cpp" />
+    <ClCompile Include="..\Common\AntiVirus\Sandbox.cpp" />
     <ClCompile Include="..\Common\AntiVirus\VirusScanner.cpp" />
     <ClCompile Include="..\Common\AntiVirus\VirusScannerTester.cpp" />
     <ClCompile Include="..\Common\AntiVirus\VirusScanningResult.cpp" />
@@ -734,6 +735,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiDkimRotation.cpp" />
     <ClCompile Include="..\Common\Util\RestApiReputation.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSampleDomain.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiSandbox.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSetupChecklist.cpp" />
     <ClCompile Include="..\Common\Util\RestApiProfiles.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSend.cpp" />
@@ -1180,6 +1182,7 @@ EXIT 0
     <ClInclude Include="..\Common\AntiVirus\ClamAVVirusScanner.h" />
     <ClInclude Include="..\Common\AntiVirus\ClamWinVirusScanner.h" />
     <ClInclude Include="..\Common\AntiVirus\CustomVirusScanner.h" />
+    <ClInclude Include="..\Common\AntiVirus\Sandbox.h" />
     <ClInclude Include="..\Common\AntiVirus\VirusScanner.h" />
     <ClInclude Include="..\Common\AntiVirus\VirusScannerTester.h" />
     <ClInclude Include="..\Common\AntiVirus\VirusScanningResult.h" />

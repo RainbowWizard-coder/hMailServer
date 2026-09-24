@@ -217,6 +217,8 @@ namespace HM
       }
 
       message->SetSize((int) FileUtilities::FileSize(fileName));
+      // The account's own submission (Message::FlagSubmittedBySignedInUser).
+      message->SetSubmittedBySignedInUser(true);
       message->SetState(Message::Delivering);
       if (!PersistentMessage::SaveObject(message))
       {

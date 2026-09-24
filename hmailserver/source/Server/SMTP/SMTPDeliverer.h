@@ -30,9 +30,19 @@ namespace HM
       // now, but keep it" - a distinction that did not exist before the virus
       // scanner was given a fail-closed policy, and one worth stating plainly
       // because getting it backwards deletes mail.
-      static bool PreprocessMessage_(std::shared_ptr<Message> pMessage, RuleResult& globalRuleResult, String& preprocessingFailureReason, bool &deferDelivery);
+      //
+      // sandboxHeld is the second "keep it": the message is now held for a
+      // sandbox's verdict on its attachments (messagetype 5, unlocked), and a
+      // false return with it set must not delete anything either.
+      static bool PreprocessMessage_(std::shared_ptr<Message> pMessage, RuleResult& globalRuleResult, String& preprocessingFailureReason, bool &deferDelivery, bool &sandboxHeld);
 
       static bool RunVirusProtection_(std::shared_ptr<Message> pMessage, bool &deferDelivery);
+
+      // Attachments opened somewhere safe (Common/AntiVirus/Sandbox.h): after
+      // the anti-virus scan, before the rules. False when the message is not to
+      // be delivered now - held (sandboxHeld set), quarantined on a verdict, or
+      // returned to its sender - and true otherwise, with any header written.
+      static bool RunSandbox_(std::shared_ptr<Message> pMessage, bool &sandboxHeld);
 
       // Holds a message the scanner could not examine, or bounces it once the
       // hold budget is spent. Only reached when AVFailAction is 1.

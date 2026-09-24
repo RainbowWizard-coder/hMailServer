@@ -266,6 +266,24 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_MAX_OUTBOUND_CONNS_PER_DEST, 0);
       property_set_->EnsureLong(PROPERTY_MAX_OUTBOUND_CONNS_PER_TENANT, 0);
 
+      // Attachments opened somewhere safe (AntiVirus/Sandbox.h): OFF, with no
+      // sandbox named. Schema 6091 seeds the same thirteen rows; these are here
+      // because the poller reads SandboxPollSeconds every second, and a read of
+      // a missing property reports HM5015 every time.
+      property_set_->EnsureLong(PROPERTY_SANDBOX_ENABLED, 0);
+      property_set_->EnsureString(PROPERTY_SANDBOX_SUBMIT_URL, _T(""));
+      property_set_->EnsureString(PROPERTY_SANDBOX_VERDICT_URL, _T(""));
+      property_set_->EnsureString(PROPERTY_SANDBOX_TOKEN, _T(""));
+      property_set_->EnsureLong(PROPERTY_SANDBOX_TIMEOUT_MINUTES, 15);
+      property_set_->EnsureLong(PROPERTY_SANDBOX_TIMEOUT_ACTION, 0);
+      property_set_->EnsureLong(PROPERTY_SANDBOX_MAX_SIZE_KB, 20480);
+      property_set_->EnsureString(PROPERTY_SANDBOX_TYPES, _T("exe,dll,scr,js,jse,vbs,wsf,hta,msi,bat,cmd,ps1,jar,lnk,iso,img,docm,xlsm,pptm,doc,xls,ppt,rtf,pdf,zip,7z,rar"));
+      property_set_->EnsureLong(PROPERTY_SANDBOX_POLL_SECONDS, 30);
+      property_set_->EnsureLong(PROPERTY_SANDBOX_SCORE_THRESHOLD, 70);
+      property_set_->EnsureLong(PROPERTY_SANDBOX_CACHE_HOURS, 24);
+      property_set_->EnsureLong(PROPERTY_SANDBOX_INTERNAL_MAIL, 0);
+      property_set_->EnsureLong(PROPERTY_SANDBOX_MAX_FILES, 10);
+
       // Zero-access mailboxes: OFF. A mailbox with this on is one the
       // administrator cannot read, search, export or recover, and a lost
       // password without the recovery key is the mail lost; an installation
@@ -2357,6 +2375,168 @@ namespace HM
    Configuration::SetMaxOutboundConnectionsPerTenant(int connections)
    {
       GetSettings()->SetLong(PROPERTY_MAX_OUTBOUND_CONNS_PER_TENANT, ClampSetting(connections, 0, 1000));
+   }
+
+   bool
+   Configuration::GetSandboxEnabled()
+   {
+      return GetSettings()->GetBool(PROPERTY_SANDBOX_ENABLED);
+   }
+
+   void
+   Configuration::SetSandboxEnabled(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_SANDBOX_ENABLED, enabled);
+   }
+
+   String
+   Configuration::GetSandboxSubmitUrl()
+   {
+      return GetSettings()->GetString(PROPERTY_SANDBOX_SUBMIT_URL);
+   }
+
+   void
+   Configuration::SetSandboxSubmitUrl(const String &url)
+   {
+      // Trimmed here, in the one place every interface reaches, so that REST,
+      // COM and the Control Panel store the same text for the same address.
+      String trimmed = url;
+      trimmed.Trim();
+      GetSettings()->SetString(PROPERTY_SANDBOX_SUBMIT_URL, trimmed);
+   }
+
+   String
+   Configuration::GetSandboxVerdictUrl()
+   {
+      return GetSettings()->GetString(PROPERTY_SANDBOX_VERDICT_URL);
+   }
+
+   void
+   Configuration::SetSandboxVerdictUrl(const String &url)
+   {
+      String trimmed = url;
+      trimmed.Trim();
+      GetSettings()->SetString(PROPERTY_SANDBOX_VERDICT_URL, trimmed);
+   }
+
+   String
+   Configuration::GetSandboxToken()
+   {
+      return GetSettings()->GetString(PROPERTY_SANDBOX_TOKEN);
+   }
+
+   void
+   Configuration::SetSandboxToken(const String &token)
+   {
+      GetSettings()->SetString(PROPERTY_SANDBOX_TOKEN, token);
+   }
+
+   int
+   Configuration::GetSandboxTimeoutMinutes()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_SANDBOX_TIMEOUT_MINUTES), 1, 1440);
+   }
+
+   void
+   Configuration::SetSandboxTimeoutMinutes(int minutes)
+   {
+      GetSettings()->SetLong(PROPERTY_SANDBOX_TIMEOUT_MINUTES, ClampSetting(minutes, 1, 1440));
+   }
+
+   int
+   Configuration::GetSandboxTimeoutAction()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_SANDBOX_TIMEOUT_ACTION), 0, 1);
+   }
+
+   void
+   Configuration::SetSandboxTimeoutAction(int action)
+   {
+      GetSettings()->SetLong(PROPERTY_SANDBOX_TIMEOUT_ACTION, ClampSetting(action, 0, 1));
+   }
+
+   int
+   Configuration::GetSandboxMaxSizeKB()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_SANDBOX_MAX_SIZE_KB), 1, 81920);
+   }
+
+   void
+   Configuration::SetSandboxMaxSizeKB(int kilobytes)
+   {
+      GetSettings()->SetLong(PROPERTY_SANDBOX_MAX_SIZE_KB, ClampSetting(kilobytes, 1, 81920));
+   }
+
+   String
+   Configuration::GetSandboxTypes()
+   {
+      return GetSettings()->GetString(PROPERTY_SANDBOX_TYPES);
+   }
+
+   void
+   Configuration::SetSandboxTypes(const String &types)
+   {
+      GetSettings()->SetString(PROPERTY_SANDBOX_TYPES, types);
+   }
+
+   int
+   Configuration::GetSandboxPollSeconds()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_SANDBOX_POLL_SECONDS), 5, 3600);
+   }
+
+   void
+   Configuration::SetSandboxPollSeconds(int seconds)
+   {
+      GetSettings()->SetLong(PROPERTY_SANDBOX_POLL_SECONDS, ClampSetting(seconds, 5, 3600));
+   }
+
+   int
+   Configuration::GetSandboxScoreThreshold()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_SANDBOX_SCORE_THRESHOLD), 0, 100);
+   }
+
+   void
+   Configuration::SetSandboxScoreThreshold(int threshold)
+   {
+      GetSettings()->SetLong(PROPERTY_SANDBOX_SCORE_THRESHOLD, ClampSetting(threshold, 0, 100));
+   }
+
+   int
+   Configuration::GetSandboxCacheHours()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_SANDBOX_CACHE_HOURS), 0, 720);
+   }
+
+   void
+   Configuration::SetSandboxCacheHours(int hours)
+   {
+      GetSettings()->SetLong(PROPERTY_SANDBOX_CACHE_HOURS, ClampSetting(hours, 0, 720));
+   }
+
+   bool
+   Configuration::GetSandboxInternalMail()
+   {
+      return GetSettings()->GetBool(PROPERTY_SANDBOX_INTERNAL_MAIL);
+   }
+
+   void
+   Configuration::SetSandboxInternalMail(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_SANDBOX_INTERNAL_MAIL, enabled);
+   }
+
+   int
+   Configuration::GetSandboxMaxFiles()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_SANDBOX_MAX_FILES), 1, 100);
+   }
+
+   void
+   Configuration::SetSandboxMaxFiles(int files)
+   {
+      GetSettings()->SetLong(PROPERTY_SANDBOX_MAX_FILES, ClampSetting(files, 1, 100));
    }
 
    bool

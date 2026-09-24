@@ -479,6 +479,9 @@
   <data name="A domain, or an account address" xml:space="preserve">
     <value>Домен или адрес учётной записи</value>
   </data>
+  <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
+    <value>Файл отправляемого типа в сообщении извне отправляется в песочницу, которую вы обслуживаете или на которую подписаны, а сообщение ждёт её вердикта – ни в одном почтовом ящике и не в карантине: чистое доставляется, вредоносное помещается в карантин. Ничего не задерживается, пока не заданы оба адреса и этот параметр не включён.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Запас для входящей почты: ящик, превысивший лимит меньше чем на это, продолжает принимать, чтобы человек, уехавший на неделю, не потерял почту из-за большого вложения в понедельник. Собственные сохранения и копии владельца останавливаются на самом лимите. Каждый домен может задать свой. Действует сразу.</value>
   </data>
@@ -1220,6 +1223,9 @@ Control Panel может читать файлы сообщений только
   <data name="Also block a banned address in the operating system's firewall" xml:space="preserve">
     <value>Также блокировать забаненный адрес в межсетевом экране операционной системы</value>
   </data>
+  <data name="Also hold what this server's own signed-in users send, and upload its files" xml:space="preserve">
+    <value>Задерживать и то, что отправляют вошедшие пользователи этого сервера, и отправлять их файлы</value>
+  </data>
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>_Также помечать учётные записи неактивными, когда их запись в каталоге исчезла</value>
   </data>
@@ -1500,11 +1506,17 @@ Control Panel может читать файлы сообщений только
   <data name="Attachment name" xml:space="preserve">
     <value>Имя вложения</value>
   </data>
+  <data name="Attachment sandbox - a service that opens files" xml:space="preserve">
+    <value>Песочница для вложений – служба, которая открывает файлы</value>
+  </data>
   <data name="Attachment type" xml:space="preserve">
     <value>Тип вложения</value>
   </data>
   <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
     <value>Тип вложения по его байтам (executable, pdf, zip, office, text…)</value>
+  </data>
+  <data name="Attachments opened in a sandbox" xml:space="preserve">
+    <value>Вложения, открываемые в песочнице</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Число попыток подключиться к базе данных при запуске</value>
@@ -1653,6 +1665,9 @@ Control Panel может читать файлы сообщений только
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Блокировать на (часов, от 1 до 8760)</value>
   </data>
+  <data name="Bearer token (leave empty to keep current)" xml:space="preserve">
+    <value>Bearer-токен (оставьте пустым, чтобы сохранить текущий)</value>
+  </data>
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Токен-носитель для /metrics (пусто — без токена)</value>
   </data>
@@ -1712,6 +1727,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Размер блока чтения тела письма (байты)</value>
+  </data>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>Оба адреса заданы. Отвечает ли служба, отсюда определить нельзя: отправьте извне сообщение с вложенным файлом отправляемого типа и найдите его в разделе «Задержано для песочницы» на странице очереди в Deck или найдите в журнале приложения строку о том, что оно отправлено в песочницу.</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>Оба переопределения читают оценку, которую этот сервер записал в сообщение, поэтому им нужен включённый параметр «Добавлять причину в заголовок» («Параметры антиспама»). Если он выключен, оценка не записывается, доказать нечего и ни одно переопределение не действует — учётная запись сохраняет поведение, заданное для всего сервера. Значению в файле в этом случае не доверяют, потому что ничто не мешает ОТПРАВИТЕЛЮ вписать его туда самому.</value>
@@ -3000,6 +3018,9 @@ Control Panel может читать файлы сообщений только
   <data name="Deliver _local → local" xml:space="preserve">
     <value>_Доставка: локальный → локальный</value>
   </data>
+  <data name="Deliver it with a header saying so" xml:space="preserve">
+    <value>Доставить его с заголовком, который об этом говорит</value>
+  </data>
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Доставить и только записать</value>
   </data>
@@ -3752,6 +3773,9 @@ Control Panel может читать файлы сообщений только
   <data name="File missing" xml:space="preserve">
     <value>Файл отсутствует</value>
   </data>
+  <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
+    <value>Отправляемые типы файлов (расширения и типы медиа через запятую)</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>Шаблоны имён файлов, вложения по которым удаляются из входящих сообщений независимо от того, что скажет сканер.</value>
   </data>
@@ -4046,8 +4070,14 @@ Control Panel может читать файлы сообщений только
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>Удерживать отклонённое соединение открытым перед разрывом (секунды, 0 — разрывать сразу)</value>
   </data>
+  <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
+    <value>Задерживать вложения до вердикта песочницы</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Задерживать сообщения на проверку вместо отказа от них</value>
+  </data>
+  <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
+    <value>Задерживает сообщение извне с вложенным исполняемым файлом или документом, пока песочница не откроет файл и не ответит «чистый» или «вредоносный».</value>
   </data>
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>Задерживает отказ при неверном пароле, прежде чем отправить его: первая неудача на соединении ждёт столько секунд, вторая — вдвое дольше и так далее, до 30 секунд, одинаково на SMTP, POP3 и IMAP. Правильный пароль не задерживается никогда. Ожидание — это таймер на соединении, а не спящий поток, поэтому лавина неудачных входов не стоит серверу ничего, кроме тех сокетов, по которым она приходит: прежний TarpitDelay десять лет оставался заглушкой именно потому, что наивная реализация — это отказ в обслуживании, устроенный самому себе.</value>
@@ -4090,6 +4120,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
     <value>Сколько часов ссылка освобождения остаётся действительной (от 1 до 720)</value>
+  </data>
+  <data name="Hours a verdict is remembered (0 = never)" xml:space="preserve">
+    <value>Часы, в течение которых помнится вердикт (0 = никогда)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>Часов между проверками (от 1 до 168)</value>
@@ -4506,6 +4539,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Language (VBScript or JScript)" xml:space="preserve">
     <value>Язык (VBScript или JScript)</value>
+  </data>
+  <data name="Largest attachment submitted (KB)" xml:space="preserve">
+    <value>Наибольшее отправляемое вложение (КБ)</value>
   </data>
   <data name="Largest message in KB (0 is no limit)" xml:space="preserve">
     <value>Наибольшее сообщение в KB (0 — без ограничения)</value>
@@ -5148,6 +5184,9 @@ Control Panel может читать файлы сообщений только
   <data name="Minimum timeout (seconds)" xml:space="preserve">
     <value>Минимальный тайм-аут (секунд)</value>
   </data>
+  <data name="Minutes a message waits for a verdict" xml:space="preserve">
+    <value>Минуты ожидания вердикта сообщением</value>
+  </data>
   <data name="Minutes between downloads" xml:space="preserve">
     <value>Минут между загрузками</value>
   </data>
@@ -5186,6 +5225,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>Доставки ожидают более {0} сообщений.</value>
+  </data>
+  <data name="Most files one message may submit" xml:space="preserve">
+    <value>Наибольшее число файлов, отправляемых из одного сообщения</value>
   </data>
   <data name="Most used" xml:space="preserve">
     <value>Чаще всего используемые</value>
@@ -6945,6 +6987,9 @@ Control Panel может читать файлы сообщений только
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Удалить образцовый домен со всеми почтовыми ящиками, сообщениями и правилами в нём? Всё, что в него добавлено, тоже исчезнет.</value>
   </data>
+  <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
+    <value>Удалить bearer-токен песочницы? Тогда запросы к песочнице будут отправляться без него.</value>
+  </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Удалить выбранную учётную запись из этой группы</value>
   </data>
@@ -6956,6 +7001,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>При сохранении удалить сохранённый пароль учётной _записи службы</value>
+  </data>
+  <data name="Remove the token" xml:space="preserve">
+    <value>Удалить токен</value>
   </data>
   <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
     <value>Удалить адрес восстановления этой учётной записи? Каждая ссылка для сброса пароля, уже отправленная туда, перестаёт действовать, и владелец задаёт новый адрес в веб-почте. Одноразовые коды остаются нетронутыми.</value>
@@ -7216,6 +7264,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Retries" xml:space="preserve">
     <value>Повторные попытки</value>
   </data>
+  <data name="Return it to the sender (5.7.1)" xml:space="preserve">
+    <value>Вернуть его отправителю (5.7.1)</value>
+  </data>
   <data name="Return value for infected" xml:space="preserve">
     <value>Возвращаемое значение при заражении</value>
   </data>
@@ -7304,6 +7355,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>Запускается как &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; при создании бана и как &lt;command&gt; unban &lt;address&gt;, когда диапазон исчезает, одинаково в Windows и в Linux - для облачного межсетевого экрана, маршрутизатора или SIEM. Заключите путь к программе в кавычки, если он содержит пробелы; сервер добавляет аргументы. Ненулевой код выхода или программа, которая не запускается, сообщается один раз в журнале ошибок.</value>
+  </data>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>Разверните песочницу или подпишитесь на песочницу, поддерживающую небольшой HTTP-контракт из docs/Sandbox.md, задайте её адреса отправки и вердикта на вкладке «Песочница» страницы «Антивирус» и включите её.</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>Выполнить функцию сценария</value>
@@ -7464,6 +7518,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>_Сохранить разрешения</value>
   </data>
+  <data name="Sandbox" xml:space="preserve">
+    <value>Песочница</value>
+  </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>Сохранить _уровни сейчас</value>
   </data>
@@ -7605,6 +7662,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Score applied when the engine says &quot;reject&quot;" xml:space="preserve">
     <value>Оценка, применяемая, когда движок отвечает «reject»</value>
   </data>
+  <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
+    <value>Оценка, начиная с которой подозрительное считается вредоносным (0-100)</value>
+  </data>
   <data name="Score when not merging" xml:space="preserve">
     <value>Оценка, когда объединение выключено</value>
   </data>
@@ -7733,6 +7793,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Seconds between those attempts" xml:space="preserve">
     <value>Сколько секунд между этими попытками</value>
+  </data>
+  <data name="Seconds between verdict checks" xml:space="preserve">
+    <value>Секунды между запросами вердикта</value>
   </data>
   <data name="Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)" xml:space="preserve">
     <value>Сколько секунд хранить набор JWK до повторной загрузки (токен, называющий неизвестный идентификатор ключа, вызывает загрузку немедленно)</value>
@@ -8463,6 +8526,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Submission rate limits" xml:space="preserve">
     <value>Ограничения частоты отправки</value>
+  </data>
+  <data name="Submit address (POST)" xml:space="preserve">
+    <value>Адрес отправки (POST)</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Список подавления</value>
@@ -9336,6 +9402,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Те же строки, категории и маска, что получают файлы журналов, с прикреплёнными идентификаторами трассы и спана всякий раз, когда на записавшем потоке активен спан. Экспортёр никогда не экспортирует строки о собственных сбоях, иначе мёртвый коллектор кормил бы сам себя.</value>
   </data>
+  <data name="The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off." xml:space="preserve">
+    <value>Песочница ВКЛЮЧЕНА, но один адрес пуст, поэтому ничего не задерживается и не отправляется, пока не заданы оба - журнал приложения сообщает об этом при каждом запуске. Задайте оба адреса или выключите её.</value>
+  </data>
+  <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
+    <value>Песочница выключена, это значение по умолчанию: ничего не задерживается и ничего не отправляется.</value>
+  </data>
+  <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
+    <value>Не удалось прочитать настройки песочницы с сервера, поэтому эта страница не может сказать, настроена ли она.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Результат сканирования читается только на машине сервера - hMailServer.INI здесь не найден. Сервер публикует то же число в метрике hmailserver_messagestore_missing_files.</value>
   </data>
@@ -9504,6 +9579,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The text templates the server returns to clients (greetings, bounce and error messages). These are a fixed set you can edit." xml:space="preserve">
     <value>Текстовые шаблоны, которые сервер возвращает клиентам (приветствия, сообщения о возврате и об ошибках). Это фиксированный набор, который можно редактировать.</value>
+  </data>
+  <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
+    <value>Токен удалён; запросы к песочнице теперь отправляются без него.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Не удалось прочитать конфигурацию транспортной безопасности.</value>
@@ -10044,6 +10122,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Value:      {0}" xml:space="preserve">
     <value>Значение:      {0}</value>
   </data>
+  <data name="Verdict address (GET)" xml:space="preserve">
+    <value>Адрес вердикта (GET)</value>
+  </data>
   <data name="Verification code from your authenticator app" xml:space="preserve">
     <value>Код подтверждения из вашего приложения-аутентификатора</value>
   </data>
@@ -10262,6 +10343,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>Когда конечная точка недоступна</value>
+  </data>
+  <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
+    <value>Когда ожидание заканчивается или песочница отвечает ошибкой</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Куда уходит</value>

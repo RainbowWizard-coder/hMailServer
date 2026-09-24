@@ -479,6 +479,9 @@ Dieses schwache Passwort trotzdem speichern?</value>
   <data name="A domain, or an account address" xml:space="preserve">
     <value>Eine Domain oder eine Kontoadresse</value>
   </data>
+  <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
+    <value>Eine Datei eines übermittelten Typs in einer Nachricht von außen wird an eine Sandbox gesendet, die Sie betreiben oder abonnieren, und die Nachricht wartet – in keinem Postfach und nicht in der Quarantäne – auf deren Urteil: sauber wird zugestellt, schädlich kommt in die Quarantäne. Nichts wird zurückgehalten, bis beide Adressen gesetzt sind und dies eingeschaltet ist.</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Eine Kulanz für eingehende Post: ein Postfach, das sein Limit um weniger als dies überschreitet, empfängt weiterhin, damit jemand, der eine Woche fort ist, keine Post verliert, weil am Montag ein großer Anhang ankam. Die eigenen Speicherungen und Kopien des Inhabers enden am Limit selbst. Jede Domäne kann einen eigenen Wert setzen. Gilt sofort.</value>
   </data>
@@ -1220,6 +1223,9 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="Also block a banned address in the operating system's firewall" xml:space="preserve">
     <value>Eine gesperrte Adresse zusätzlich in der Firewall des Betriebssystems blockieren</value>
   </data>
+  <data name="Also hold what this server's own signed-in users send, and upload its files" xml:space="preserve">
+    <value>Auch zurückhalten, was die angemeldeten Benutzer dieses Servers senden, und die Dateien übermitteln</value>
+  </data>
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>Konten auch als _inaktiv markieren, wenn ihr Verzeichniseintrag verschwunden ist</value>
   </data>
@@ -1500,11 +1506,17 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   <data name="Attachment name" xml:space="preserve">
     <value>Anhangname</value>
   </data>
+  <data name="Attachment sandbox - a service that opens files" xml:space="preserve">
+    <value>Anhang-Sandbox – ein Dienst, der Dateien öffnet</value>
+  </data>
   <data name="Attachment type" xml:space="preserve">
     <value>Anhangtyp</value>
   </data>
   <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
     <value>Anhangtyp anhand seiner Bytes (executable, pdf, zip, office, text…)</value>
+  </data>
+  <data name="Attachments opened in a sandbox" xml:space="preserve">
+    <value>In einer Sandbox geöffnete Anhänge</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>Versuche, die Datenbank beim Start zu erreichen</value>
@@ -1653,6 +1665,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Sperren für (Stunden, 1 bis 8760)</value>
   </data>
+  <data name="Bearer token (leave empty to keep current)" xml:space="preserve">
+    <value>Bearer-Token (leer lassen, um das aktuelle zu behalten)</value>
+  </data>
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>Bearer-Token für /metrics (leer = keins)</value>
   </data>
@@ -1712,6 +1727,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   </data>
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>Blockgröße beim Lesen des Nachrichtentexts (Bytes)</value>
+  </data>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>Beide Adressen sind gesetzt. Ob der Dienst antwortet, lässt sich von hier aus nicht sagen: Senden Sie von außen eine Nachricht mit einer angehängten Datei eines übermittelten Typs und suchen Sie sie unter Für eine Sandbox zurückgehalten auf der Warteschlangenseite des Decks oder im Anwendungsprotokoll nach einer Zeile, dass sie an die Sandbox übermittelt wurde.</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>Beide Ausnahmen lesen die Bewertung, die dieser Server in der Nachricht festgehalten hat, sie brauchen also „X-hMailServer-Reason-Header hinzufügen" eingeschaltet (Anti-Spam-Einstellungen). Ist das aus, wird keine Bewertung festgehalten, nichts ist beweisbar, und keine der beiden Ausnahmen greift - das Konto behält das serverweite Verhalten. Dem Wert in der Datei wird in diesem Fall nicht getraut, weil nichts einen ABSENDER daran hindert, einen hineinzuschreiben.</value>
@@ -3000,6 +3018,9 @@ Dem Absender wurde gesagt, sie sei angenommen, es wird also nichts wiederholt un
   <data name="Deliver _local → local" xml:space="preserve">
     <value>_Lokal → lokal zustellen</value>
   </data>
+  <data name="Deliver it with a header saying so" xml:space="preserve">
+    <value>Mit einem Header zustellen, der das sagt</value>
+  </data>
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>Zustellen und nur protokollieren</value>
   </data>
@@ -3752,6 +3773,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="File missing" xml:space="preserve">
     <value>Datei fehlt</value>
   </data>
+  <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
+    <value>Übermittelte Dateitypen (Dateiendungen und Medientypen, durch Kommas getrennt)</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>Dateinamenmuster, die aus eingehenden Nachrichten entfernt werden, egal was ein Scanner sagt.</value>
   </data>
@@ -4046,8 +4070,14 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>Eine abgelehnte Verbindung offen halten, bevor sie getrennt wird (Sekunden, 0 = sofort trennen)</value>
   </data>
+  <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
+    <value>Anhänge bis zum Urteil der Sandbox zurückhalten</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Nachrichten zur Prüfung zurückhalten, statt sie abzulehnen</value>
+  </data>
+  <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
+    <value>Hält eine Nachricht von außen mit angehängter ausführbarer Datei oder angehängtem Dokument zurück, bis eine Sandbox die Datei geöffnet und mit sauber oder schädlich geantwortet hat.</value>
   </data>
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>Hält die Ablehnung eines falschen Passworts eine Weile zurück, bevor sie gesendet wird: der erste Fehler auf einer Verbindung wartet so viele Sekunden, der zweite doppelt so lange, und so weiter bis zu 30 Sekunden, auf SMTP, POP3 und IMAP gleichermaßen. Ein richtiges Passwort wird nie verzögert. Das Warten ist ein Timer auf der Verbindung, kein schlafender Thread, eine Flut fehlgeschlagener Anmeldungen kostet den Server also nichts als die Sockets, auf denen sie ankommen - der Grund, warum das alte TarpitDelay ein Jahrzehnt lang ein Stub war, ist, dass die naive Version ein selbstverschuldeter Ausfall ist.</value>
@@ -4090,6 +4120,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
     <value>Stunden, die ein Freigabelink gültig bleibt (1 bis 720)</value>
+  </data>
+  <data name="Hours a verdict is remembered (0 = never)" xml:space="preserve">
+    <value>Stunden, die ein Urteil gemerkt wird (0 = nie)</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>Stunden zwischen Prüfungen (1 bis 168)</value>
@@ -4506,6 +4539,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   </data>
   <data name="Language (VBScript or JScript)" xml:space="preserve">
     <value>Sprache (VBScript oder JScript)</value>
+  </data>
+  <data name="Largest attachment submitted (KB)" xml:space="preserve">
+    <value>Größter übermittelter Anhang (KB)</value>
   </data>
   <data name="Largest message in KB (0 is no limit)" xml:space="preserve">
     <value>Größte Nachricht in KB (0 ist unbegrenzt)</value>
@@ -5148,6 +5184,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Minimum timeout (seconds)" xml:space="preserve">
     <value>Minimales Timeout (Sekunden)</value>
   </data>
+  <data name="Minutes a message waits for a verdict" xml:space="preserve">
+    <value>Minuten, die eine Nachricht auf ein Urteil wartet</value>
+  </data>
   <data name="Minutes between downloads" xml:space="preserve">
     <value>Minuten zwischen Downloads</value>
   </data>
@@ -5186,6 +5225,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>Mehr als {0} Nachrichten warten auf Zustellung.</value>
+  </data>
+  <data name="Most files one message may submit" xml:space="preserve">
+    <value>Höchstzahl der Dateien, die eine Nachricht übermitteln darf</value>
   </data>
   <data name="Most used" xml:space="preserve">
     <value>Am häufigsten verwendet</value>
@@ -6945,6 +6987,9 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Die Beispieldomäne mit allen Postfächern, Nachrichten und Regeln darin entfernen? Alles, was hinzugefügt wurde, geht mit.</value>
   </data>
+  <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
+    <value>Das Bearer-Token der Sandbox entfernen? Anfragen an die Sandbox werden dann ohne gesendet.</value>
+  </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Das ausgewählte Konto aus dieser Gruppe entfernen</value>
   </data>
@@ -6956,6 +7001,9 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>Das _gespeicherte Passwort des Dienstkontos beim Speichern entfernen</value>
+  </data>
+  <data name="Remove the token" xml:space="preserve">
+    <value>Token entfernen</value>
   </data>
   <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
     <value>Die Wiederherstellungsadresse dieses Kontos entfernen? Jeder Link zum Zurücksetzen des Kennworts, der schon unterwegs dorthin ist, hört auf zu wirken, und der Kontoinhaber setzt im Webmail eine neue Adresse. Die Einmalcodes bleiben unberührt.</value>
@@ -7216,6 +7264,9 @@ Fortfahren?</value>
   <data name="Retries" xml:space="preserve">
     <value>Wiederholungen</value>
   </data>
+  <data name="Return it to the sender (5.7.1)" xml:space="preserve">
+    <value>An den Absender zurückschicken (5.7.1)</value>
+  </data>
   <data name="Return value for infected" xml:space="preserve">
     <value>Rückgabewert für infiziert</value>
   </data>
@@ -7304,6 +7355,9 @@ Fortfahren?</value>
   </data>
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>Wird als &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; ausgeführt, wenn eine Sperre entsteht, und als &lt;command&gt; unban &lt;address&gt;, wenn der Bereich verschwindet, unter Windows wie unter Linux - für eine Cloud-Firewall, einen Router oder ein SIEM. Setzen Sie den Programmpfad in Anführungszeichen, wenn er Leerzeichen enthält; der Server hängt die Argumente an. Ein Exit-Code ungleich null oder ein Programm, das nicht startet, wird einmal im Fehlerprotokoll gemeldet.</value>
+  </data>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>Betreiben oder abonnieren Sie eine Sandbox, die den kleinen HTTP-Vertrag aus docs/Sandbox.md spricht, setzen Sie ihre Übermittlungs- und Urteilsadresse auf dem Tab Sandbox der Antivirus-Seite und schalten Sie sie ein.</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>Skriptfunktion ausführen</value>
@@ -7464,6 +7518,9 @@ Fortfahren?</value>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>_Berechtigungen speichern</value>
   </data>
+  <data name="Sandbox" xml:space="preserve">
+    <value>Sandbox</value>
+  </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>_Ebenen jetzt speichern</value>
   </data>
@@ -7605,6 +7662,9 @@ Fortfahren?</value>
   <data name="Score applied when the engine says &quot;reject&quot;" xml:space="preserve">
     <value>Bewertung, die angewendet wird, wenn die Engine „reject" sagt</value>
   </data>
+  <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
+    <value>Wert, ab dem verdächtig als schädlich gilt (0-100)</value>
+  </data>
   <data name="Score when not merging" xml:space="preserve">
     <value>Bewertung, wenn nicht zusammengeführt wird</value>
   </data>
@@ -7733,6 +7793,9 @@ Fortfahren?</value>
   </data>
   <data name="Seconds between those attempts" xml:space="preserve">
     <value>Sekunden zwischen diesen Versuchen</value>
+  </data>
+  <data name="Seconds between verdict checks" xml:space="preserve">
+    <value>Sekunden zwischen Urteilsabfragen</value>
   </data>
   <data name="Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)" xml:space="preserve">
     <value>Sekunden, die das JWK Set behalten wird, bevor es neu geholt wird (ein Token, das eine unbekannte Schlüssel-ID nennt, holt es sofort neu)</value>
@@ -8463,6 +8526,9 @@ Jetzt neu starten?</value>
   </data>
   <data name="Submission rate limits" xml:space="preserve">
     <value>Einlieferungsratenbegrenzungen</value>
+  </data>
+  <data name="Submit address (POST)" xml:space="preserve">
+    <value>Übermittlungsadresse (POST)</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Sperrliste</value>
@@ -9336,6 +9402,15 @@ Trotzdem hinzufügen?</value>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Dieselben Zeilen, Kategorien und dieselbe Maske, die auch die Protokolldateien bekommen, mit angehängter Trace- und Span-Id, wann immer auf dem protokollierenden Thread ein Span aktiv ist. Der Exporter exportiert nie seine eigenen Fehlerzeilen, sonst würde sich ein toter Collector selbst füttern.</value>
   </data>
+  <data name="The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off." xml:space="preserve">
+    <value>Die Sandbox ist EIN, aber eine Adresse ist leer, daher wird nichts zurückgehalten und nichts übermittelt, bis beide gesetzt sind - das Anwendungsprotokoll sagt es bei jedem Start. Setzen Sie beide Adressen, oder schalten Sie sie aus.</value>
+  </data>
+  <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
+    <value>Die Sandbox ist aus, das ist die Voreinstellung: Nichts wird zurückgehalten und nichts übermittelt.</value>
+  </data>
+  <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
+    <value>Die Sandbox-Einstellungen konnten nicht vom Server gelesen werden, daher kann diese Seite nicht sagen, ob eine konfiguriert ist.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Das Scanergebnis ist nur auf dem Serverrechner lesbar - hMailServer.INI wurde hier nicht gefunden. Der Server veröffentlicht dieselbe Zahl als Messwert hmailserver_messagestore_missing_files.</value>
   </data>
@@ -9504,6 +9579,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="The text templates the server returns to clients (greetings, bounce and error messages). These are a fixed set you can edit." xml:space="preserve">
     <value>Die Textvorlagen, die der Server an Clients zurückgibt (Begrüßungen, Unzustellbarkeits- und Fehlermeldungen). Das ist ein fester Satz, den Sie bearbeiten können.</value>
+  </data>
+  <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
+    <value>Das Token wurde entfernt; Anfragen an die Sandbox tragen jetzt keines.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Die Konfiguration der Transportsicherheit konnte nicht gelesen werden.</value>
@@ -10044,6 +10122,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   <data name="Value:      {0}" xml:space="preserve">
     <value>Wert:      {0}</value>
   </data>
+  <data name="Verdict address (GET)" xml:space="preserve">
+    <value>Urteilsadresse (GET)</value>
+  </data>
   <data name="Verification code from your authenticator app" xml:space="preserve">
     <value>Bestätigungscode aus Ihrer Authenticator-App</value>
   </data>
@@ -10262,6 +10343,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>Wenn der Endpunkt nicht erreichbar ist</value>
+  </data>
+  <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
+    <value>Wenn die Wartezeit endet oder die Sandbox einen Fehler meldet</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Wohin es geht</value>

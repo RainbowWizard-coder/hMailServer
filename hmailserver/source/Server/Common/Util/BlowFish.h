@@ -35,9 +35,14 @@ namespace HM
       void     Blowfish_decipher (DWORD *xl, DWORD *xr) ;
 
       String ToHex_(BYTE *Buf, int iBufLen);
-      int ToByteArray_(const String &sHex, BYTE *OutArray);
+      int ToByteArray_(const String &sHex, BYTE *OutArray, int capacity);
 
    public:
+      // The longest value EncryptToString accepts, in characters: its buffer
+      // holds 255 bytes and the cipher writes whole 8-byte blocks. A longer
+      // value is refused (HM7277) and answered with an empty string.
+      static const DWORD MaxPlainLength = 248;
+
       BlowFishEncryptor () ;
       ~BlowFishEncryptor () ;
 

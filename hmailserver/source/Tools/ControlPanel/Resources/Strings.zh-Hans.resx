@@ -479,6 +479,9 @@
   <data name="A domain, or an account address" xml:space="preserve">
     <value>域或账户地址</value>
   </data>
+  <data name="A file of a submitted type in a message from outside is sent to a sandbox you run or subscribe to, and the message waits - in no mailbox and not in the quarantine - for its verdict: clean is delivered, malicious is quarantined. Nothing is held until both addresses are set and this is on." xml:space="preserve">
+    <value>来自外部的邮件中属于提交类型的文件，会被发送到您运营或订阅的沙箱，邮件则在不进入任何邮箱、也不进入隔离区的情况下等待其判定：干净的会被投递，恶意的会被隔离。在设置两个地址并打开此选项之前，不会保留任何邮件。</value>
+  </data>
   <data name="A grace for incoming mail: a mailbox over its limit by less than this still receives, so a person away for a week does not lose mail because a large attachment arrived on Monday. The owner's own saves and copies stop at the limit itself. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>来信的宽限：超出限额不到此值的邮箱仍可收信，这样外出一周的人不会因周一收到一个大附件而丢失邮件。所有者自己的保存和复制在限额处即止。每个域可各自设置。立即生效。</value>
   </data>
@@ -1220,6 +1223,9 @@
   <data name="Also block a banned address in the operating system's firewall" xml:space="preserve">
     <value>同时在操作系统的防火墙中阻止被封禁的地址</value>
   </data>
+  <data name="Also hold what this server's own signed-in users send, and upload its files" xml:space="preserve">
+    <value>同时暂扣本服务器已登录用户发送的邮件，并上传其文件</value>
+  </data>
   <data name="Also mark accounts _inactive when their directory entry has gone" xml:space="preserve">
     <value>目录条目消失时同时把账户标记为非活动(_I)</value>
   </data>
@@ -1500,11 +1506,17 @@
   <data name="Attachment name" xml:space="preserve">
     <value>附件名称</value>
   </data>
+  <data name="Attachment sandbox - a service that opens files" xml:space="preserve">
+    <value>附件沙箱 - 打开文件的服务</value>
+  </data>
   <data name="Attachment type" xml:space="preserve">
     <value>附件类型</value>
   </data>
   <data name="Attachment type by its bytes (executable, pdf, zip, office, text…)" xml:space="preserve">
     <value>按字节判断的附件类型 (executable, pdf, zip, office, text…)</value>
+  </data>
+  <data name="Attachments opened in a sandbox" xml:space="preserve">
+    <value>在沙箱中打开的附件</value>
   </data>
   <data name="Attempts to reach the database at start-up" xml:space="preserve">
     <value>启动时尝试连接数据库的次数</value>
@@ -1653,6 +1665,9 @@
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>封禁时长（小时，1 到 8760）</value>
   </data>
+  <data name="Bearer token (leave empty to keep current)" xml:space="preserve">
+    <value>Bearer 令牌（留空则保持当前令牌）</value>
+  </data>
   <data name="Bearer token for /metrics (empty = none)" xml:space="preserve">
     <value>/metrics 的持有者令牌（留空 = 无）</value>
   </data>
@@ -1712,6 +1727,9 @@
   </data>
   <data name="Body read chunk size (bytes)" xml:space="preserve">
     <value>正文读取块大小（字节）</value>
+  </data>
+  <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
+    <value>两个地址都已设置。服务是否应答无法在这里判断：请从外部发送一封附有提交类型文件的邮件，然后在 Deck 队列页面的“等待沙箱判定”中查找它，或在应用程序日志中查找表明它已提交到沙箱的行。</value>
   </data>
   <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
     <value>这两个覆盖项读取的都是本服务器记录在邮件中的分数，因此它们需要打开“把原因添加到标头”（“反垃圾邮件设置”）。关闭它就不会记录任何分数，什么也无法证明，两个覆盖项都不会起作用 - 该账户保持服务器范围的行为。在这种情况下不信任文件中的值，因为没有什么能阻止发件人自己往里面放一个。</value>
@@ -3000,6 +3018,9 @@
   <data name="Deliver _local → local" xml:space="preserve">
     <value>投递本地 → 本地(_L)</value>
   </data>
+  <data name="Deliver it with a header saying so" xml:space="preserve">
+    <value>投递并附上说明这一点的邮件头</value>
+  </data>
   <data name="Deliver it, and only record it" xml:space="preserve">
     <value>照常投递，仅作记录</value>
   </data>
@@ -3752,6 +3773,9 @@
   <data name="File missing" xml:space="preserve">
     <value>文件缺失</value>
   </data>
+  <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
+    <value>提交的文件类型（扩展名和媒体类型，用逗号分隔）</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>无论扫描器如何判定，都会从传入邮件中剥除的文件名模式。</value>
   </data>
@@ -4046,8 +4070,14 @@
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>在丢弃被拒绝的连接之前保持其打开（秒，0 = 立即丢弃）</value>
   </data>
+  <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
+    <value>保留附件直到沙箱给出判定</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>暂挂邮件等待审核，而不是拒绝</value>
+  </data>
+  <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
+    <value>保留附有可执行文件或文档的外部邮件，直到沙箱打开文件并答复干净或恶意。</value>
   </data>
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>在发送错误密码的拒绝应答之前先等待一段时间：连接上的第一次失败等待这么多秒，第二次等待两倍时间，依此类推，最多 30 秒，SMTP、POP3 和 IMAP 一视同仁。正确的密码永远不会被延迟。这个等待是连接上的定时器，而不是休眠的线程，因此大量失败登录除了它们所到达的套接字之外不会给服务器带来任何开销 - 旧的 TarpitDelay 之所以十年来一直是个空壳，就是因为朴素的实现会造成自我引发的停机。</value>
@@ -4090,6 +4120,9 @@
   </data>
   <data name="Hours a release link stays usable (1 to 720)" xml:space="preserve">
     <value>释放链接保持可用的小时数（1 到 720）</value>
+  </data>
+  <data name="Hours a verdict is remembered (0 = never)" xml:space="preserve">
+    <value>判定的记忆时长（小时，0 = 从不）</value>
   </data>
   <data name="Hours between checks (1 to 168)" xml:space="preserve">
     <value>两次检查之间的小时数（1 到 168）</value>
@@ -4506,6 +4539,9 @@
   </data>
   <data name="Language (VBScript or JScript)" xml:space="preserve">
     <value>语言（VBScript 或 JScript）</value>
+  </data>
+  <data name="Largest attachment submitted (KB)" xml:space="preserve">
+    <value>提交的最大附件（KB）</value>
   </data>
   <data name="Largest message in KB (0 is no limit)" xml:space="preserve">
     <value>最大邮件大小 KB（0 表示不限）</value>
@@ -5148,6 +5184,9 @@
   <data name="Minimum timeout (seconds)" xml:space="preserve">
     <value>最小超时（秒）</value>
   </data>
+  <data name="Minutes a message waits for a verdict" xml:space="preserve">
+    <value>邮件等待判定的分钟数</value>
+  </data>
   <data name="Minutes between downloads" xml:space="preserve">
     <value>两次下载之间的分钟数</value>
   </data>
@@ -5186,6 +5225,9 @@
   </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>有超过 {0} 封邮件正在等待投递。</value>
+  </data>
+  <data name="Most files one message may submit" xml:space="preserve">
+    <value>单封邮件最多提交的文件数</value>
   </data>
   <data name="Most used" xml:space="preserve">
     <value>最常用</value>
@@ -6945,6 +6987,9 @@
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>移除样例域及其中的所有邮箱、邮件和规则吗？之后添加到它里面的内容也会一并移除。</value>
   </data>
+  <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
+    <value>删除沙箱的 Bearer 令牌？此后发往沙箱的请求将不带令牌。</value>
+  </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>从此组中移除所选账户</value>
   </data>
@@ -6956,6 +7001,9 @@
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>保存时移除已存储的服务账户密码(_W)</value>
+  </data>
+  <data name="Remove the token" xml:space="preserve">
+    <value>删除令牌</value>
   </data>
   <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
     <value>要移除此账户的恢复地址吗？已经发往该地址的所有重置链接都会失效，所有者需在网页邮箱中设置新地址。一次性代码不受影响。</value>
@@ -7216,6 +7264,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Retries" xml:space="preserve">
     <value>重试次数</value>
   </data>
+  <data name="Return it to the sender (5.7.1)" xml:space="preserve">
+    <value>退回给发件人（5.7.1）</value>
+  </data>
   <data name="Return value for infected" xml:space="preserve">
     <value>表示已感染的返回值</value>
   </data>
@@ -7304,6 +7355,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>创建封禁时以 &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; 运行，范围消失时以 &lt;command&gt; unban &lt;address&gt; 运行，在 Windows 和 Linux 上相同，可用于云防火墙、路由器或 SIEM。程序路径含空格时请加引号；参数由服务器追加。非零退出码或无法启动的程序会在错误日志中报告一次。</value>
+  </data>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>运营或订阅一个支持 docs/Sandbox.md 中小型 HTTP 约定的沙箱，在反病毒页面的“沙箱”选项卡上设置其提交地址和判定地址，然后打开它。</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>运行脚本函数</value>
@@ -7464,6 +7518,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>保存权限(_V)</value>
   </data>
+  <data name="Sandbox" xml:space="preserve">
+    <value>沙箱</value>
+  </data>
   <data name="Save _levels now" xml:space="preserve">
     <value>立即保存级别(_L)</value>
   </data>
@@ -7605,6 +7662,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Score applied when the engine says &quot;reject&quot;" xml:space="preserve">
     <value>引擎判定为 "reject" 时应用的分数</value>
   </data>
+  <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
+    <value>可疑视为恶意的分数（0-100）</value>
+  </data>
   <data name="Score when not merging" xml:space="preserve">
     <value>不合并时的分数</value>
   </data>
@@ -7733,6 +7793,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Seconds between those attempts" xml:space="preserve">
     <value>这些尝试之间的秒数</value>
+  </data>
+  <data name="Seconds between verdict checks" xml:space="preserve">
+    <value>查询判定的间隔秒数</value>
   </data>
   <data name="Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)" xml:space="preserve">
     <value>重新获取前保留 JWK Set 的秒数 (指明未知密钥 ID 的令牌会立即重新获取)</value>
@@ -8463,6 +8526,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Submission rate limits" xml:space="preserve">
     <value>提交速率限制</value>
+  </data>
+  <data name="Submit address (POST)" xml:space="preserve">
+    <value>提交地址（POST）</value>
   </data>
   <data name="Suppression list" xml:space="preserve">
     <value>抑制列表</value>
@@ -9336,6 +9402,15 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>与日志文件所得的行、类别和掩码相同，只要记录日志的线程上有活动的跨度，就会附加跟踪 id 和跨度 id。导出器永远不会导出自己的失败行，否则一个失效的收集器会自我喂养。</value>
   </data>
+  <data name="The sandbox is ON but an address is empty, so nothing is held and nothing is submitted until both are set - the application log says so at every start. Set both addresses, or turn it off." xml:space="preserve">
+    <value>沙箱已开启，但有一个地址为空，因此在两个地址都设置之前不会暂扣或提交任何内容 - 每次启动时应用程序日志都会说明。请设置两个地址，或将其关闭。</value>
+  </data>
+  <data name="The sandbox is off, which is the default: nothing is held and nothing is submitted." xml:space="preserve">
+    <value>沙箱已关闭，这是默认设置：不保留任何邮件，也不提交任何文件。</value>
+  </data>
+  <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
+    <value>无法从服务器读取沙箱设置，因此本页面无法判断是否已配置沙箱。</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>扫描结果只能在服务器机器上读取 - 此处未找到 hMailServer.INI。服务器以 hmailserver_messagestore_missing_files 指标发布同一数字。</value>
   </data>
@@ -9504,6 +9579,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The text templates the server returns to clients (greetings, bounce and error messages). These are a fixed set you can edit." xml:space="preserve">
     <value>服务器返回给客户端的文本模板 (问候、退信和错误消息)。这是一组固定的、可编辑的模板。</value>
+  </data>
+  <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
+    <value>令牌已删除；发往沙箱的请求现在不带令牌。</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>无法读取传输安全配置。</value>
@@ -10044,6 +10122,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Value:      {0}" xml:space="preserve">
     <value>值:      {0}</value>
   </data>
+  <data name="Verdict address (GET)" xml:space="preserve">
+    <value>判定地址（GET）</value>
+  </data>
   <data name="Verification code from your authenticator app" xml:space="preserve">
     <value>来自身份验证器应用的验证码</value>
   </data>
@@ -10262,6 +10343,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>端点无法访问时</value>
+  </data>
+  <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
+    <value>等待结束或沙箱答复错误时</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>发往何处</value>

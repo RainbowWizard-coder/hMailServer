@@ -567,6 +567,40 @@ namespace HM
       int GetMaxOutboundConnectionsPerTenant();    // 0 (off) to 1000
       void SetMaxOutboundConnectionsPerTenant(int connections);
 
+      // Attachments opened somewhere safe (AntiVirus/Sandbox.h, docs/Sandbox.md).
+      // Thirteen rows in hm_settings; the getters clamp, so a hand-edited row
+      // cannot make a poll every millisecond or a hold that never ends. The
+      // setters store what they are given within the range: every interface
+      // refuses a value outside it before it gets here, in the same sentence.
+      // The two addresses are stored trimmed, whichever interface set them.
+      bool GetSandboxEnabled();
+      void SetSandboxEnabled(bool enabled);
+      String GetSandboxSubmitUrl();
+      void SetSandboxSubmitUrl(const String &url);
+      String GetSandboxVerdictUrl();
+      void SetSandboxVerdictUrl(const String &url);
+      // Protected at rest (PropertySet::IsCryptedProperty_) and never emitted.
+      String GetSandboxToken();
+      void SetSandboxToken(const String &token);
+      int GetSandboxTimeoutMinutes();              // 1 to 1440
+      void SetSandboxTimeoutMinutes(int minutes);
+      int GetSandboxTimeoutAction();               // 0 deliver with a header, 1 return to the sender
+      void SetSandboxTimeoutAction(int action);
+      int GetSandboxMaxSizeKB();                   // 1 to 81920, what MessageData can load
+      void SetSandboxMaxSizeKB(int kilobytes);
+      String GetSandboxTypes();                    // canonical: lower case, comma separated
+      void SetSandboxTypes(const String &types);
+      int GetSandboxPollSeconds();                 // 5 to 3600
+      void SetSandboxPollSeconds(int seconds);
+      int GetSandboxScoreThreshold();              // 0 to 100
+      void SetSandboxScoreThreshold(int threshold);
+      int GetSandboxCacheHours();                  // 0 (nothing remembered) to 720
+      void SetSandboxCacheHours(int hours);
+      bool GetSandboxInternalMail();
+      void SetSandboxInternalMail(bool enabled);
+      int GetSandboxMaxFiles();                    // 1 to 100: the files one message may submit
+      void SetSandboxMaxFiles(int files);
+
       // Web Push (see Common/Util/WebPush.h). Seven rows in hm_settings; the
       // getters clamp, so a hand-edited row cannot make a time to live of a year
       // or an attempt count of none.

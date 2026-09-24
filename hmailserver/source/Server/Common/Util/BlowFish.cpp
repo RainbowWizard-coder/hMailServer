@@ -170,10 +170,10 @@ namespace HM
    }
 
    int
-   BlowFishEncryptor::ToByteArray_(const String &sHex, BYTE *OutArray)
+   BlowFishEncryptor::ToByteArray_(const String &sHex, BYTE *OutArray, int capacity)
    {
       int iLen = 0;
-      for (int i = 0; i < sHex.GetLength(); i=i+2)
+      for (int i = 0; i < sHex.GetLength() && iLen < capacity; i=i+2)
       {
          String sVal = sHex.Mid(i, 2);
          
@@ -197,6 +197,23 @@ namespace HM
       DWORD InLength = sUnEncrypted.GetLength();
 
       const int bufSize = 255;
+
+      // The longest value this scheme can hold, and it is refused past it rather
+      // than written past the buffer. Encode writes the input rounded up to
+      // whole 8-byte blocks into the same 255 bytes, so 248 is the most that
+      // fits: a value of 249 to 254 characters overran the buffer by a byte, and
+      // one of 255 or more reached strncpy_s with a buffer too small for it,
+      // whose invalid-parameter handler - none is installed in this server -
+      // ends the process. An empty answer is what every caller already gets for
+      // an empty value; the error says which value length was refused.
+      if (InLength > MaxPlainLength)
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7277, "BlowFishEncryptor::EncryptToString",
+            Formatter::Format("A value of {0} characters was not encrypted with the legacy Blowfish scheme, which holds at most {1}; nothing was written in its place. A secret stored this way (ProtectStoredSecretsWithDPAPI 0, or DPAPI unavailable) has to be shorter.",
+               (int) InLength, (int) MaxPlainLength));
+         return String();
+      }
+
       BYTE *pBuffer = new BYTE[bufSize];
       memset(pBuffer, 0, bufSize);
       strncpy_s((char*)pBuffer, bufSize, Unicode::ToANSI(sUnEncrypted), InLength);
@@ -214,17 +231,23 @@ namespace HM
    BlowFishEncryptor::DecryptFromString(const String &sEncrypted)
    {
 
-      // First convert to a byte array.
+      // First convert to a byte array - one sized to the value, and never
+      // written past: a stored value longer than this scheme writes (edited by
+      // hand, or written by a version that overran its own buffer) used to be
+      // copied into 255 bytes whatever its length.
+      const int bytes = sEncrypted.GetLength() / 2 + 1;
+      const int bufSize = (bytes < 255 ? 255 : bytes) + 8;
 
-      BYTE *pBuffer = new BYTE[255];
-      memset(pBuffer, 0, 255);
+      BYTE *pBuffer = new BYTE[bufSize];
+      memset(pBuffer, 0, bufSize);
       
-      int InLength = ToByteArray_(sEncrypted, pBuffer);
+      int InLength = ToByteArray_(sEncrypted, pBuffer, bufSize - 8);
 
-      DWORD OutLen = GetOutputLength(InLength);
-      
+      // As before: a length that is not a multiple of eight has its last block
+      // read into the zeroed slack above, which is what the eight bytes are for.
       Decode(pBuffer, pBuffer, InLength);
 
+      pBuffer[bufSize - 1] = 0;
       String sRetVal = (char*) pBuffer;
 
       delete [] pBuffer;

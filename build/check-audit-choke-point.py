@@ -146,6 +146,8 @@ ALLOWED = {
       "Common/Util/RestApiSpamTraps.cpp",           # DELETE /api/v1/spam-traps/hits
       "COM/InterfaceUtilities.cpp",                 # Utilities.ClearSpamTrapHits
       "Common/Util/RestApiAccountReview.cpp",       # a held message released or discarded, an account's review choices, the compromise lock cleared
+      "Common/Util/RestApiSandbox.cpp",             # a message held for a sandbox's verdict released without it, or discarded
+      "COM/InterfaceDeliveryQueue.cpp",             # DeliveryQueue.Remove of a message held for a sandbox's verdict
       "Common/Util/SignInStore.cpp",                # a device revoked, from every interface at once
       "Common/Util/RestApiAccountRecovery.cpp",     # a recovery address set or cleared, and a set of recovery codes made
       "Common/Util/RestApiDirectory.cpp",           # somebody's directory opt-out set or cleared by another hand
@@ -237,6 +239,15 @@ REQUIRED = [
    ("Common/Util/RestApiAccountReview.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("held message"), StringParser::IntToString(held.message_id), _T("discarded"), detail);',
     "a held message discarded over REST is no longer recorded - hm_heldmessages is traffic, so the statement chokepoint does not record the delete"),
+   ("Common/Util/RestApiSandbox.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("sandbox hold"), StringParser::IntToString(held.message_id), _T("released"), detail);',
+    "a message held for a sandbox's verdict and released over REST is no longer recorded - hm_sandboxholds is traffic and the release is an update of the queue row, so the statement chokepoint records neither, and a release delivers mail the server was waiting to judge"),
+   ("Common/Util/RestApiSandbox.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("sandbox hold"), StringParser::IntToString(held.message_id), _T("discarded"), detail);',
+    "a message held for a sandbox's verdict and discarded over REST is no longer recorded - hm_sandboxholds is traffic, so the statement chokepoint does not record the delete"),
+   ("COM/InterfaceDeliveryQueue.cpp",
+    'HM::AuditTrail::Instance()->RecordEvent(_T("sandbox hold"), HM::StringParser::IntToString(held.message_id), _T("discarded"),',
+    "a message held for a sandbox's verdict and removed over COM (DeliveryQueue.Remove) is no longer recorded - hm_sandboxholds is traffic and the queue row's delete is not an audited statement, so a message the server was waiting to judge would be destroyed with no trace"),
    ("Common/Util/RestApiAccountReview.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("review-changed"), detail);',
     "an account marked exempt from the compromised-account detection, or its sensitivity changed, is no longer recorded - hm_accountreview is written by the submission thread too, so it is not an audited table"),
@@ -478,6 +489,8 @@ NOT_AUDITED = {
    "hm_pgpring": "an account's own OpenPGP keys and its correspondents' public keys, kept for it by the webmail; the secret half is encrypted where this server cannot see it.",
    "hm_zeroaccess": "a zero-access mailbox's two sealed copies of its own key and the derivation parameters, kept for it by the webmail; the person's own, written by the self-service routes, and this server can open neither copy.",
    "hm_recall": "message recall within the server: one row per local recipient of a message an account sent, written at acceptance and delivery, marked by the account's own recall and ended by the sweep; traffic.",
+   "hm_sandboxholds": "the files of a message held for a sandbox's verdict, written by the delivery thread and the sandbox's poller with no actor and ended with the hold; traffic. An administrator releasing or discarding a held message over REST is recorded through AuditTrail::RecordEvent, naming the message, since a release delivers mail the server was waiting to judge.",
+   "hm_sandboxverdicts": "the verdicts a sandbox gave, by SHA-256, written by the sandbox's poller with no actor and swept when they expire; traffic.",
    "hm_digeststate": "when each account last had a quarantine digest and whether it opted out, written by the digest task and by the "
                      "account itself in the webmail; the domain's switch and hour are hm_domains columns, which are audited.",
    "hm_digesttokens": "the digest's one-use release links, written by the digest task and spent by whoever follows one; traffic, and "
