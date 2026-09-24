@@ -67,6 +67,7 @@
 #include "../BO/Message.h"
 #include "../BO/Domain.h"
 #include "../Persistence/MailboxMove.h"
+#include "MigrationManager.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/PersistentDomain.h"
 #include "../Persistence/SchemaUpgrader.h"
@@ -685,6 +686,12 @@ namespace HM
       // visible in hm_mailboxmoves and nowhere else, so it is said here, once
       // per process, rather than waiting for somebody to go looking.
       MailboxMove::ReportInterrupted();
+
+      // Migration jobs (MigrationManager.h), last: a job reads its source over
+      // the network - this server's own IMAP listener, when the source is a
+      // domain of this server - and files into the message store, so both have
+      // to be up. A job a stop left running is queued again here.
+      MigrationManager::Instance()->Start();
 
       LOG_APPLICATION("Servers started.")
 
@@ -1313,6 +1320,11 @@ namespace HM
             RecordDrainLeftByTheServer_(_T("Ended by a stop of the servers - a service stop or a reinitialise - with the listeners already closed."));
          }
       }
+
+      // Migration jobs first: each writes its counters and its resume marks and
+      // stops between two commands, and its own connection to a source on this
+      // server is then not a session the drain below waits for.
+      MigrationManager::Instance()->Stop();
 
       // Graceful drain: give the sessions and the deliveries in flight a bounded
       // window to finish before we tear the servers down. The state is already

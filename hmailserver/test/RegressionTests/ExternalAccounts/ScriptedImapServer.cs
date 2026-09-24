@@ -147,8 +147,29 @@ namespace RegressionTests.ExternalAccounts
          VanishedUids = new List<int>();
          SelectedMailboxes = new List<string>();
          RefuseSelectOf = new List<string>();
+         ExaminedMailboxes = new List<string>();
+         ExamineAnswers = new Dictionary<string, string>();
+         RefuseFetchOf = new List<int>();
          SecondsToWaitBeforeTerminate = 60;
       }
+
+      /// <summary>A tagged answer to LOGIN in place of OK - "NO [UNAVAILABLE] Try later" - or null for OK.</summary>
+      public string LoginAnswer { get; set; }
+
+      /// <summary>The untagged NAMESPACE reply, "* NAMESPACE ...", or null to answer NAMESPACE with BAD as before.</summary>
+      public string NamespaceLine { get; set; }
+
+      /// <summary>
+      ///    A tagged answer to EXAMINE of a mailbox, by name, in place of opening it - "NO [NONEXISTENT] Unknown
+      ///    Mailbox", "NO [UNAVAILABLE] Mailbox busy". A mailbox not named here opens read-only.
+      /// </summary>
+      public Dictionary<string, string> ExamineAnswers { get; private set; }
+
+      /// <summary>The mailboxes the client asked to EXAMINE, in order, whether or not it opened.</summary>
+      public List<string> ExaminedMailboxes { get; private set; }
+
+      /// <summary>UIDs whose UID FETCH is answered with a tagged NO: a message the server will not give.</summary>
+      public List<int> RefuseFetchOf { get; private set; }
 
       /// <summary>The UIDVALIDITY announced on SELECT. Change it between sessions to say "a different mailbox".</summary>
       public int UidValidity { get; set; }
@@ -248,6 +269,12 @@ namespace RegressionTests.ExternalAccounts
                return true;
             }
 
+            if (LoginAnswer != null)
+            {
+               Send(tag + " " + LoginAnswer + "\r\n");
+               return true;
+            }
+
             Send(tag + " OK LOGIN completed\r\n");
             return true;
          }
@@ -284,6 +311,18 @@ namespace RegressionTests.ExternalAccounts
 
          if (upper.StartsWith("SELECT "))
             return HandleSelect(tag, rest);
+
+         if (upper.StartsWith("EXAMINE "))
+            return HandleExamine(tag, rest);
+
+         if (upper.StartsWith("STATUS "))
+            return HandleStatus(tag, rest);
+
+         if (upper == "NAMESPACE" && NamespaceLine != null)
+         {
+            Send(NamespaceLine + "\r\n" + tag + " OK NAMESPACE completed\r\n");
+            return true;
+         }
 
          if (upper.StartsWith("UID SEARCH"))
          {
@@ -353,11 +392,71 @@ namespace RegressionTests.ExternalAccounts
          return true;
       }
 
+      // EXAMINE: SELECT read-only, as a migration opens a folder, or the answer
+      // the test gave for it.
+      private bool HandleExamine(string tag, string rest)
+      {
+         var name = UnquoteName(rest.Substring(8).Trim());
+         ExaminedMailboxes.Add(name);
+
+         string answer;
+         if (ExamineAnswers.TryGetValue(name, out answer))
+         {
+            Send(tag + " " + answer + "\r\n");
+            return true;
+         }
+
+         var mailbox = _mailboxes.FirstOrDefault(candidate =>
+            string.Equals(candidate.Name, name, System.StringComparison.OrdinalIgnoreCase));
+
+         if (mailbox == null || !mailbox.Selectable)
+         {
+            Send(tag + " NO [NONEXISTENT] Mailbox does not exist, or cannot be selected\r\n");
+            return true;
+         }
+
+         _mailbox = mailbox;
+         _flaggedForDeletion.Clear();
+
+         Send("* " + _mailbox.Count + " EXISTS\r\n" +
+              "* 0 RECENT\r\n" +
+              "* OK [UIDVALIDITY " + UidValidity + "] UIDs valid\r\n" +
+              "* OK [UIDNEXT " + _mailbox.NextUid + "] Predicted next UID\r\n" +
+              "* FLAGS (\\Seen \\Deleted \\Flagged \\Answered \\Draft)\r\n" +
+              tag + " OK [READ-ONLY] EXAMINE completed\r\n");
+         return true;
+      }
+
+      // STATUS <mailbox> (MESSAGES): what a migration counts its total with.
+      private bool HandleStatus(string tag, string rest)
+      {
+         var open = rest.IndexOf('(');
+         var name = UnquoteName((open > 7 ? rest.Substring(7, open - 7) : rest.Substring(7)).Trim());
+
+         var mailbox = _mailboxes.FirstOrDefault(candidate =>
+            string.Equals(candidate.Name, name, System.StringComparison.OrdinalIgnoreCase));
+
+         if (mailbox == null)
+         {
+            Send(tag + " NO [NONEXISTENT] Mailbox does not exist\r\n");
+            return true;
+         }
+
+         Send("* STATUS " + QuoteName(mailbox.Name) + " (MESSAGES " + mailbox.Count + ")\r\n" + tag + " OK STATUS completed\r\n");
+         return true;
+      }
+
       private bool HandleFetch(string tag, string rest)
       {
          var uid = ParseUid(rest);
          FetchedUids.Add(uid);
          FetchedMessages.Add(_mailbox.Name + ":" + uid);
+
+         if (RefuseFetchOf.Contains(uid))
+         {
+            Send(tag + " NO Some messages could not be FETCHed (Failure)\r\n");
+            return true;
+         }
 
          var message = _mailbox.Find(uid);
 

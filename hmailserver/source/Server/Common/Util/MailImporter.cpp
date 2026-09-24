@@ -19,6 +19,18 @@
 #include "../../IMAP/IMAPConfiguration.h"
 #include "../../IMAP/IMAPFolderContainer.h"
 #include "../../IMAP/MessagesContainer.h"
+#include "../BO/Account.h"
+#include "../Mime/Mime.h"
+#include "../Sieve/SieveParser.h"
+#include "../Tracking/ChangeNotification.h"
+#include "../Tracking/NotificationServer.h"
+#include "../BO/IMAPFolder.h"
+#include "../BO/IMAPFolders.h"
+#include "../SQL/SQLCommand.h"
+#include "DiskSpace.h"
+#include "Strings/Formatter.h"
+#include "../../IMAP/IMAPCommandAppend.h"
+#include "../../IMAP/IMAPSpecialUse.h"
 
 #include "MessageUtilities.h"
 
@@ -230,7 +242,324 @@ namespace HM
       return true;
    }
 
-   bool 
+   String
+   MailImporter::JoinPath(const std::vector<String> &folderPath)
+   {
+      const String delimiter = Configuration::Instance()->GetIMAPConfiguration()->GetHierarchyDelimiter();
+
+      String path;
+      for (size_t i = 0; i < folderPath.size(); i++)
+      {
+         if (i > 0)
+            path += delimiter;
+         path += folderPath[i];
+      }
+      return path;
+   }
+
+   __int64
+   MailImporter::FolderFor(std::shared_ptr<const Account> owner, const std::vector<String> &folderPath,
+                           int designation, String &problem)
+   {
+      bool permanent = true;
+      return FolderFor(owner, folderPath, designation, problem, permanent);
+   }
+
+   __int64
+   MailImporter::FolderFor(std::shared_ptr<const Account> owner, const std::vector<String> &folderPath,
+                           int designation, String &problem, bool &permanent)
+   {
+      permanent = true;
+
+      if (!owner || folderPath.empty())
+      {
+         problem = _T("there is no account or folder to file the message into");
+         return 0;
+      }
+
+      // The check IMAP's CREATE makes, which the rule engine's
+      // MoveToIMAPFolder does not: a name no client could have made is not made
+      // here either.
+      if (!IMAPFolder::IsValidFolderName(folderPath, false))
+      {
+         problem = _T("a folder of that name cannot be made in this account");
+         return 0;
+      }
+
+      // From here a failure is the account's folders or the database, not the
+      // name: another attempt may make the folder.
+      permanent = false;
+
+      std::shared_ptr<IMAPFolders> tree = IMAPFolderContainer::Instance()->GetFoldersForAccount(owner->GetID());
+      if (!tree)
+      {
+         problem = _T("the account's folders could not be read");
+         return 0;
+      }
+
+      std::shared_ptr<IMAPFolder> folder = tree->GetFolderByFullPath(folderPath);
+      if (!folder)
+      {
+         tree->CreatePath(tree, folderPath, true);
+         folder = tree->GetFolderByFullPath(folderPath);
+
+         if (!folder)
+         {
+            problem = _T("the folder could not be made in this account");
+            return 0;
+         }
+
+         // The designation the source gave the folder, on a folder made here,
+         // when no folder of the account holds it by its own designation - one
+         // \Sent is what a client can file into; two are none.
+         const int wanted = designation & IMAPSpecialUse::DesignationMask;
+         if (wanted != IMAPSpecialUse::DesignationNone &&
+             (IMAPSpecialUse::GetExplicitDesignations(tree, folder->GetID()) & wanted) == 0)
+            folder->StoreSpecialUseFlags(wanted);
+      }
+
+      return folder->GetID();
+   }
+
+   AnsiString
+   MailImporter::MessageKey(const String &fileName)
+   {
+      AnsiString header = PersistentMessage::LoadHeader(fileName, false);
+      MimeHeader mime;
+      if (!header.IsEmpty())
+         mime.Load(header.GetBuffer(), header.GetLength(), false);
+
+      unsigned __int64 size = 0;
+      FileUtilities::FileSize64(fileName, size);
+
+      AnsiString sizeText;
+      sizeText.Format("%I64u", size);
+
+      const char *messageId = header.IsEmpty() ? nullptr : mime.GetRawFieldValue("Message-ID");
+      AnsiString id = messageId ? AnsiString(messageId) : AnsiString();
+      id.Trim();
+      if (!id.IsEmpty())
+         return "id:" + id + "|" + sizeText;
+
+      const char *date = header.IsEmpty() ? nullptr : mime.GetRawFieldValue("Date");
+      const char *subject = header.IsEmpty() ? nullptr : mime.GetRawFieldValue("Subject");
+      return "hd:" + AnsiString(date ? date : "") + "|" + AnsiString(subject ? subject : "") + "|" + sizeText;
+   }
+
+   bool
+   MailImporter::LoadWrittenKeys(std::shared_ptr<const Account> owner, const std::vector<String> &folderPath,
+                                 const String &since, WrittenKeys &written)
+   {
+      if (!owner)
+         return false;
+
+      std::set<AnsiString> &keys = written.byFolder[JoinPath(folderPath)];
+
+      std::shared_ptr<IMAPFolders> tree = IMAPFolderContainer::Instance()->GetFoldersForAccount(owner->GetID());
+      std::shared_ptr<IMAPFolder> folder = tree ? tree->GetFolderByFullPath(folderPath) : std::shared_ptr<IMAPFolder>();
+      if (!folder)
+         return true;
+
+      SQLCommand command("select messagefilename from hm_messages where messageaccountid = @ACCOUNTID and messagefolderid = @FOLDERID and messagesavedate >= @SINCE");
+      command.AddParameter("@ACCOUNTID", owner->GetID());
+      command.AddParameter("@FOLDERID", folder->GetID());
+      command.AddParameter("@SINCE", since);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return false;
+
+      while (!recordset->IsEOF())
+      {
+         // The account's own directory is where the file is only for a message
+         // that names the account (PersistentMessage::GetFileName).
+         std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message(false));
+         message->SetAccountID(owner->GetID());
+         message->SetFolderID(folder->GetID());
+         message->SetPartialFileName(recordset->GetStringValue("messagefilename"));
+
+         const AnsiString key = MessageKey(PersistentMessage::GetFileName(owner, message));
+         keys.insert(key);
+         written.anywhere.insert(key);
+
+         recordset->MoveNext();
+      }
+
+      return true;
+   }
+
+   MailImporter::ImportOutcome
+   MailImporter::ImportMessage(std::shared_ptr<const Account> owner, const std::vector<String> &folderPath,
+                               int designation, const String &messageFile, short flags,
+                               const std::vector<String> &keywords, const String &internalDate,
+                               WrittenKeys *written, bool acrossFolders, String &problem)
+   {
+      if (!owner || folderPath.empty())
+      {
+         problem = _T("there is no account or folder to file the message into");
+         return ImportFailed;
+      }
+
+      unsigned __int64 size = 0;
+      if (!FileUtilities::Exists(messageFile) || !FileUtilities::FileSize64(messageFile, size))
+      {
+         problem = _T("the message file is not where it was written");
+         return ImportFailed;
+      }
+
+      // APPEND's ceilings: the account's own limit, else its domain's, else the
+      // server's, and 2 GB whatever they say.
+      const __int64 limit = IMAPCommandAppend::GetEffectiveAppendLimitBytes(owner);
+      if (limit > 0 && (__int64) size > limit)
+      {
+         problem = Formatter::Format(_T("the message is {0} bytes, over the {1} this account may receive"), (__int64) size, limit);
+         return ImportTooLarge;
+      }
+
+      // APPEND's [UNAVAILABLE]: a volume short of room takes nothing more.
+      if (!DiskSpace::DataDirectoryHasRoomForMail())
+      {
+         problem = _T("the data directory's volume is short of room, so nothing more is stored until there is");
+         return ImportNoDiskSpace;
+      }
+
+      const String folderKey = JoinPath(folderPath);
+      AnsiString key;
+      if (written)
+      {
+         key = MessageKey(messageFile);
+
+         const std::set<AnsiString> &here = written->byFolder[folderKey];
+         if (here.find(key) != here.end())
+         {
+            problem = _T("the job copied this message into this folder already");
+            return ImportDuplicate;
+         }
+
+         if (acrossFolders && written->anywhere.find(key) != written->anywhere.end())
+         {
+            problem = _T("the job copied this message into another folder already");
+            return ImportDuplicateElsewhere;
+         }
+      }
+
+      // The quota, as APPEND asks it: filling a mailbox past its limit would
+      // leave its owner unable to receive the next message, and the limit is the
+      // administrator's to raise.
+      if (!owner->SpaceAvailable((__int64) size))
+      {
+         problem = _T("the account has no room left under its quota");
+         return ImportOverQuota;
+      }
+
+      bool permanent = true;
+      const __int64 folderId = FolderFor(owner, folderPath, designation, problem, permanent);
+      if (folderId == 0)
+         return permanent ? ImportFolderRefused : ImportFailed;
+
+      std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message());
+      message->SetAccountID(owner->GetID());
+      message->SetFolderID(folderId);
+      message->SetState(Message::Delivered);
+      message->SetSize((int) size);
+
+      // Into the account's own directory, where an APPEND of it would have
+      // written it.
+      const String destination = PersistentMessage::GetFileName(owner, message);
+      const String directory = FileUtilities::GetFilePath(destination);
+      if (!FileUtilities::Exists(directory))
+         FileUtilities::CreateDirectory(directory);
+
+      if (destination.CompareNoCase(messageFile) != 0 && !FileUtilities::Move(messageFile, destination))
+      {
+         problem = _T("the message file could not be moved into the account's directory");
+         return ImportFailed;
+      }
+
+      // The five flags a client may set. \Recent is the server's own, and
+      // SaveObject sets it on a new row as it does for a delivery.
+      const short settable = (short) (Message::FlagSeen | Message::FlagDeleted | Message::FlagFlagged |
+                                      Message::FlagAnswered | Message::FlagDraft);
+      message->SetFlags((short) (flags & settable));
+
+      // Keywords as IMAPCommandAppend keeps them: an atom that is not a system
+      // flag and that a flag may be called.
+      std::vector<String> kept;
+      for (const String &keyword : keywords)
+      {
+         if (keyword.IsEmpty() || keyword.GetAt(0) == '\\' || !SieveParser::IsValidFlagName(keyword))
+            continue;
+         kept.push_back(keyword);
+      }
+      message->SetKeywordList(kept);
+
+      MimeHeader header;
+      AnsiString headerText = PersistentMessage::LoadHeader(destination, false);
+      if (!headerText.IsEmpty())
+         header.Load(headerText.GetBuffer(), headerText.GetLength(), false);
+
+      // The sender, for the row, as Import takes it.
+      if (!headerText.IsEmpty())
+      {
+         AddresslistParser fromParser;
+         std::vector<std::shared_ptr<Address> > senders = fromParser.ParseList(header.GetUnicodeFieldValue("From"));
+         if (!senders.empty())
+            message->SetFromAddress(senders[0]->sMailboxName + _T("@") + senders[0]->sDomainName);
+      }
+
+      // The source's internal date, which is what a client shows as the date
+      // received: a mailbox migrated today must not read as having arrived
+      // today. Without one, the message's own Date header.
+      String createTime;
+      if (!internalDate.IsEmpty())
+         createTime = Time::GetInternalDateFromIMAPInternalDate(internalDate);
+
+      if (createTime.IsEmpty() && !headerText.IsEmpty())
+      {
+         const String dateHeader = header.GetUnicodeFieldValue("Date");
+         if (!dateHeader.IsEmpty())
+         {
+            DateTime dtTime = Time::GetDateTimeFromMimeHeader(dateHeader);
+            if (dtTime.GetYear() > 1980 && dtTime.GetYear() < 2100)
+               createTime = GetInternalDate_DatePlusTimeZone(dtTime);
+         }
+      }
+
+      if (createTime.IsEmpty())
+         createTime = Time::GetCurrentDateTime();
+
+      message->SetCreateTime(createTime);
+
+      if (!PersistentMessage::SaveObject(message))
+      {
+         // Moved, and not saved: the file is removed rather than left in the
+         // account's directory with no row naming it.
+         FileUtilities::DeleteFile(destination);
+         problem = _T("the message could not be saved in the database");
+         return ImportFailed;
+      }
+
+      if (written)
+      {
+         written->byFolder[folderKey].insert(key);
+         written->anywhere.insert(key);
+      }
+
+      // A session with the folder open sees it on its next command, and an
+      // IDLE session at once, as it sees a delivery.
+      MessagesContainer::Instance()->SetFolderNeedsRefresh(folderId);
+
+      if (std::shared_ptr<NotificationServer> notifications = Application::Instance()->GetNotificationServer())
+      {
+         std::shared_ptr<ChangeNotification> added =
+            std::shared_ptr<ChangeNotification>(new ChangeNotification(owner->GetID(), folderId, ChangeNotification::NotificationMessageAdded));
+         notifications->SendNotification(added);
+      }
+
+      return ImportDone;
+   }
+
+   bool
    MailImporter::ReplaceMessagePath_(__int64 messageID, const String &messagePath)
    {
       String newFullPath = messagePath;

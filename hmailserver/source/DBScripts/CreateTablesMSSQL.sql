@@ -74,6 +74,11 @@ if exists (select * from sysobjects where id = object_id('hm_senderlist') and ob
 if exists (select * from sysobjects where id = object_id('hm_settingoverrides') and objectproperty(id, 'isusertable') = 1) drop table hm_settingoverrides
 
 if exists (select * from sysobjects where id = object_id('hm_apisends') and objectproperty(id, 'isusertable') = 1) drop table hm_apisends
+if exists (select * from sysobjects where id = object_id('hm_migrationfolders') and objectproperty(id, 'isusertable') = 1) drop table hm_migrationfolders
+
+if exists (select * from sysobjects where id = object_id('hm_migrationjobs') and objectproperty(id, 'isusertable') = 1) drop table hm_migrationjobs
+
+if exists (select * from sysobjects where id = object_id('hm_migrations') and objectproperty(id, 'isusertable') = 1) drop table hm_migrations
 
 if exists (select * from sysobjects where id = object_id('hm_digeststate') and objectproperty(id, 'isusertable') = 1) drop table hm_digeststate
 
@@ -2484,6 +2489,8 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('We
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('WebhookRetentionDays', '', 7)
 
+insert into hm_settings (settingname, settingstring, settinginteger) values ('MigrationConnectionsPerHost', '', 4)
+
 ALTER TABLE hm_signins ADD CONSTRAINT fk_hm_signins_account FOREIGN KEY (siaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
 create table hm_pushsubscriptions
@@ -2713,4 +2720,74 @@ CREATE NONCLUSTERED INDEX idx_hm_apisends_queueid ON hm_apisends (apsqueueid)
 
 CREATE NONCLUSTERED INDEX idx_hm_messagetrace_queueid ON hm_messagetrace (mtqueueid)
 
-insert into hm_dbversion values (6089)
+create table hm_migrations
+(
+	migrationid bigint identity(1,1) not null,
+	migrationname nvarchar(255) not null,
+	migrationkind int not null,
+	migrationhost nvarchar(255) not null,
+	migrationport int not null,
+	migrationsecurity int not null,
+	migrationoauthprovider nvarchar(32) not null,
+	migrationdavurl nvarchar(255) not null,
+	migrationconcurrency int not null,
+	migrationmessagesperminute int not null,
+	migrationstate int not null,
+	migrationcreated bigint not null,
+	migrationstartedat bigint not null,
+	migrationfinishedat bigint not null
+)
+
+ALTER TABLE hm_migrations ADD CONSTRAINT hm_migrations_pk PRIMARY KEY (migrationid)
+
+create table hm_migrationjobs
+(
+	mjid bigint identity(1,1) not null,
+	mjmigrationid bigint not null,
+	mjsourceuser nvarchar(255) not null,
+	mjsourcesecret ntext not null,
+	mjsigninhash nvarchar(64) not null,
+	mjtargetaccountid bigint not null,
+	mjstate int not null,
+	mjphase int not null,
+	mjfolderstotal int not null,
+	mjfoldersdone int not null,
+	mjmessagestotal int not null,
+	mjmessagesdone int not null,
+	mjbytesdone bigint not null,
+	mjskipped int not null,
+	mjlasterror nvarchar(1000) not null,
+	mjattempts int not null,
+	mjnextattempt bigint not null,
+	mjstartedat bigint not null,
+	mjfinishedat bigint not null,
+	mjreport ntext not null
+)
+
+ALTER TABLE hm_migrationjobs ADD CONSTRAINT hm_migrationjobs_pk PRIMARY KEY (mjid)
+
+CREATE INDEX idx_hm_migrationjobs_migration ON hm_migrationjobs (mjmigrationid, mjid)
+
+CREATE INDEX idx_hm_migrationjobs_state ON hm_migrationjobs (mjstate)
+
+ALTER TABLE hm_migrationjobs ADD CONSTRAINT fk_hm_migrationjobs_migration FOREIGN KEY (mjmigrationid) REFERENCES hm_migrations (migrationid) ON DELETE CASCADE
+
+create table hm_migrationfolders
+(
+	mfid bigint identity(1,1) not null,
+	mfjobid bigint not null,
+	mffolder nvarchar(1024) not null,
+	mftargetfolder nvarchar(1024) not null,
+	mfuidvalidity nvarchar(64) not null,
+	mflastuid bigint not null,
+	mfmessages int not null,
+	mfdone int not null
+)
+
+ALTER TABLE hm_migrationfolders ADD CONSTRAINT hm_migrationfolders_pk PRIMARY KEY (mfid)
+
+CREATE INDEX idx_hm_migrationfolders_job ON hm_migrationfolders (mfjobid, mfid)
+
+ALTER TABLE hm_migrationfolders ADD CONSTRAINT fk_hm_migrationfolders_job FOREIGN KEY (mfjobid) REFERENCES hm_migrationjobs (mjid) ON DELETE CASCADE
+
+insert into hm_dbversion values (6090)

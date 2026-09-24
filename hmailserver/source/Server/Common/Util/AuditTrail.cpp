@@ -146,6 +146,17 @@ namespace HM
          // as a row with its name, owner and value. A cascade from a domain or
          // an account deleted by an administrator is recorded under that actor.
          { L"hm_settingoverrides",            L"setting level" },
+         // A migration, and the mailboxes it copies from another server into
+         // accounts here (Application/MigrationManager.h): who created one,
+         // started, paused, resumed or deleted it, and who added, retried or
+         // cancelled a job, over REST under that actor. The runner's own writes
+         // - a job's progress, its state as it finishes - carry no actor and are
+         // not recorded, so the cancel of a running job, which its own thread
+         // writes, is recorded by MigrationManager::CancelJob as an event; a job
+         // is named "source user -> target address" (MigrationStore), and its
+         // secret is recorded as "(changed)" by its name.
+         { L"hm_migrations",                  L"migration" },
+         { L"hm_migrationjobs",               L"migration job" },
       };
 
       // A column or setting whose value must never reach the table. Matched as a

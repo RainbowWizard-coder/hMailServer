@@ -164,6 +164,7 @@ maxpop3connections server
 maxsmtpconnections server
 maxsmtprecipientsinbatch server
 MessageIndexing server
+MigrationConnectionsPerHost server
 mirroremailaddress server
 OidcAdministrators server
 OidcAutoProvision server

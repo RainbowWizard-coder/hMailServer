@@ -1869,6 +1869,14 @@ namespace HM
       if (method == "GET" && path == "/portal/oauth/callback")
          return HandlePortalOAuthCallback_(request, query);
 
+      // A migration job's sign-in link (RestApiMigrations.cpp): opened by the
+      // owner of the mailbox being migrated, who has no credential here. The job
+      // and the link's key in the query are the whole capability, the key kept
+      // as a digest and good until the sign-in completes; the page sends the
+      // browser to the provider with the cookie the callback above checks.
+      if (method == "GET" && path == "/portal/oauth/migration")
+         return HandleMigrationSignIn_(query);
+
       // Single sign-on, the same shape for the same reason: the browser is on
       // its way to the organisation's identity provider, or coming back from
       // it, and has no session yet. Neither of these mints one - the callback
@@ -2495,6 +2503,22 @@ namespace HM
          case RouteWebhookRun:
          case RouteWebhookTest:
             return HandleWebhooks_(caller, route, GetRequestBody_(request));
+         case RouteMigrationList:
+         case RouteMigrationCreate:
+         case RouteMigrationGet:
+         case RouteMigrationDelete:
+         case RouteMigrationStart:
+         case RouteMigrationPause:
+         case RouteMigrationResume:
+         case RouteMigrationSummary:
+         case RouteMigrationJobList:
+         case RouteMigrationJobCreate:
+         case RouteMigrationJobGet:
+         case RouteMigrationJobReport:
+         case RouteMigrationJobRetry:
+         case RouteMigrationJobCancel:
+         case RouteMigrationJobSignIn:
+            return HandleMigrations_(caller, route, request);
          case RouteServerMessageList:
             return HandleServerMessageList_();
          case RouteServerMessagePut:
@@ -6283,6 +6307,83 @@ namespace HM
       }
 
 
+      // Migration jobs. The migration's id is the identifier and a job's id the
+      // record_id; the verbs are segments of their own, so an id is always a
+      // number and nothing else.
+      const AnsiString migrationsPath = "/api/v1/migrations";
+
+      if (path == migrationsPath)
+      {
+         if (method == "GET")
+            route.kind = RouteMigrationList;
+         else if (method == "POST")
+            route.kind = RouteMigrationCreate;
+
+         return;
+      }
+
+      if (path.StartsWith(migrationsPath + "/"))
+      {
+         std::vector<AnsiString> segments = StringParser::SplitString(path.Mid(migrationsPath.GetLength() + 1), "/");
+
+         auto isNumber = [](const AnsiString &segment)
+         {
+            if (segment.IsEmpty() || segment.GetLength() > 18)
+               return false;
+            for (int i = 0; i < segment.GetLength(); i++)
+            {
+               if (segment.GetAt(i) < '0' || segment.GetAt(i) > '9')
+                  return false;
+            }
+            return true;
+         };
+
+         if (segments.empty() || !isNumber(segments[0]))
+            return;
+
+         route.identifier = segments[0];
+
+         if (segments.size() == 1)
+         {
+            if (method == "GET")
+               route.kind = RouteMigrationGet;
+            else if (method == "DELETE")
+               route.kind = RouteMigrationDelete;
+         }
+         else if (segments.size() == 2)
+         {
+            if (method == "POST" && segments[1] == "start")
+               route.kind = RouteMigrationStart;
+            else if (method == "POST" && segments[1] == "pause")
+               route.kind = RouteMigrationPause;
+            else if (method == "POST" && segments[1] == "resume")
+               route.kind = RouteMigrationResume;
+            else if (method == "GET" && segments[1] == "summary.csv")
+               route.kind = RouteMigrationSummary;
+            else if (method == "GET" && segments[1] == "jobs")
+               route.kind = RouteMigrationJobList;
+            else if (method == "POST" && segments[1] == "jobs")
+               route.kind = RouteMigrationJobCreate;
+         }
+         else if (segments[1] == "jobs" && isNumber(segments[2]))
+         {
+            route.record_id = _atoi64(segments[2].c_str());
+
+            if (segments.size() == 3 && method == "GET")
+               route.kind = RouteMigrationJobGet;
+            else if (segments.size() == 4 && method == "GET" && segments[3] == "report")
+               route.kind = RouteMigrationJobReport;
+            else if (segments.size() == 4 && method == "POST" && segments[3] == "retry")
+               route.kind = RouteMigrationJobRetry;
+            else if (segments.size() == 4 && method == "POST" && segments[3] == "cancel")
+               route.kind = RouteMigrationJobCancel;
+            else if (segments.size() == 4 && method == "POST" && segments[3] == "signin")
+               route.kind = RouteMigrationJobSignIn;
+         }
+
+         return;
+      }
+
       // Outbound webhooks. The name is the identifier, as the alert rules'
       // condition is, and the deliveries and the two verbs sit under the
       // collection rather than under a name so that no subscription can ever be
@@ -6453,6 +6554,18 @@ namespace HM
       case RouteWebhookDelete:
       case RouteWebhookRun:
       case RouteWebhookTest:
+      // A migration made, started, paused, resumed or deleted; a job added,
+      // retried or cancelled; a sign-in link minted. Each writes rows, and the
+      // start sets this server copying mail into accounts.
+      case RouteMigrationCreate:
+      case RouteMigrationDelete:
+      case RouteMigrationStart:
+      case RouteMigrationPause:
+      case RouteMigrationResume:
+      case RouteMigrationJobCreate:
+      case RouteMigrationJobRetry:
+      case RouteMigrationJobCancel:
+      case RouteMigrationJobSignIn:
       case RouteMeFetchAccountCreate:
       case RouteMeFetchAccountUpdate:
       case RouteMeFetchAccountDelete:
@@ -7205,6 +7318,15 @@ namespace HM
       // keeps an auditor able to see it while the move itself stays out of
       // reach.
       case RouteMailboxMoveGet:
+      // The migrations, their jobs, a job's report and the summary: what is
+      // being copied into which accounts and how far it has got. No secret is
+      // in any of them. Reads of accounts, with the other reads of accounts.
+      case RouteMigrationList:
+      case RouteMigrationGet:
+      case RouteMigrationSummary:
+      case RouteMigrationJobList:
+      case RouteMigrationJobGet:
+      case RouteMigrationJobReport:
       // The OpenAPI document is the map every Control Deck form is drawn from,
       // not the server's state, and it holds nothing a caller could not learn
       // by reading the source. It sits with the lowest read every built-in
@@ -7380,6 +7502,19 @@ namespace HM
       // account change takes - in both domains, which HandleMailboxMove_ asks
       // about the one in the body.
       case RouteMailboxMove:
+      // A migration fills accounts with another server's mail, contacts and
+      // calendars: an account change, and so the permission every account
+      // change takes rather than a new one. The target of every job is judged
+      // against a confined credential's domains in RestApiMigrations.cpp.
+      case RouteMigrationCreate:
+      case RouteMigrationDelete:
+      case RouteMigrationStart:
+      case RouteMigrationPause:
+      case RouteMigrationResume:
+      case RouteMigrationJobCreate:
+      case RouteMigrationJobRetry:
+      case RouteMigrationJobCancel:
+      case RouteMigrationJobSignIn:
       // A domain's suppression list changed by hand: an address put on it,
       // which stops the domain's mail to that address, or taken off, which lets
       // it through again. The list is the domain's, as its own allow and block
@@ -17132,6 +17267,7 @@ namespace HM
       openApiJson += OpenApiRolesPaths_();
       openApiJson += OpenApiOpenPgpPaths_();
       openApiJson += OpenApiWebhooksPaths_();
+      openApiJson += OpenApiMigrationsPaths_();
       openApiJson += OpenApiMailboxMovePaths_();
       openApiJson += OpenApiMessageRecallPaths_();
       openApiJson += OpenApiSettingLevelsPaths_();

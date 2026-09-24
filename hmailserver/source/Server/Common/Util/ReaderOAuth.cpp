@@ -57,6 +57,9 @@ namespace HM
       struct Pending
       {
          __int64 account_id = 0;
+         __int64 migration_job_id = 0;   // a migration job's sign-in; account_id is then 0
+         AnsiString migration_link;      // the digest of the link it was begun from
+         AnsiString redeem_scope;        // the scope the code is redeemed for, when one must be named
          AnsiString provider;
          AnsiString verifier;
          AnsiString nonce;
@@ -124,9 +127,15 @@ namespace HM
 
       // A form POSTed to a token endpoint, and its JSON answer. A 200 without an
       // access token, or anything else, is a refusal with the provider's own
-      // error_description when it gave one.
-      bool PostForm(const AnsiString &url, const AnsiString &form, JsonValue &answer, AnsiString &problem)
+      // error_description when it gave one. transient, when asked for, says
+      // whether the refusal is the provider's trouble rather than the grant's:
+      // no answer at all, a 429, a 5xx, or the two OAuth errors that mean "not
+      // now" (RFC 6749 section 5.2: temporarily_unavailable, server_error).
+      bool PostForm(const AnsiString &url, const AnsiString &form, JsonValue &answer, AnsiString &problem, bool *transient = nullptr)
       {
+         if (transient)
+            *transient = false;
+
          HttpsClient::Response response;
          String error;
          std::vector<AnsiString> headers;
@@ -135,21 +144,30 @@ namespace HM
          if (!HttpsClient::Request("POST", url, headers, "application/x-www-form-urlencoded", form, response, error, 20, 256 * 1024))
          {
             problem = "the provider could not be reached: " + AnsiString(error);
+            if (transient)
+               *transient = true;
             return false;
          }
+
+         const bool busy = response.status_code == 429 || response.status_code >= 500;
 
          std::string parseError;
          std::string body(response.body.c_str(), (size_t) response.body.GetLength());
          if (!JsonValue::Parse(body, answer, parseError) || !answer.IsObject())
          {
             problem.Format("the provider answered %d, and not with JSON", response.status_code);
+            if (transient)
+               *transient = busy;
             return false;
          }
 
          if (response.status_code != 200 || answer.GetString("access_token").empty())
          {
+            const std::string code = answer.GetString("error");
             std::string reason = answer.GetString("error_description", answer.GetString("error", "no access token"));
             problem = AnsiString(("the provider refused: " + reason.substr(0, 240)).c_str());
+            if (transient)
+               *transient = busy || code == "temporarily_unavailable" || code == "server_error";
             return false;
          }
 
@@ -201,6 +219,67 @@ namespace HM
       if (base.IsEmpty())
          return "";
       return base + "/portal/oauth/callback";
+   }
+
+   namespace
+   {
+      // What BeginForMigration needs of Begin: the pending entry kept under a
+      // fresh state, and the provider's authorize address with the challenge
+      // and the scope asked for.
+      bool StartSignIn(const ReaderOAuth::Provider &provider, Pending entry, const AnsiString &scope,
+                       AnsiString &url, AnsiString &nonce, AnsiString &problem)
+      {
+         if (!ReaderOAuth::Configured(provider))
+         {
+            problem = AnsiString("signing in with ") + provider.label + " is not set up on this server";
+            return false;
+         }
+
+         AnsiString state;
+         if (!RandomText(state) || !RandomText(entry.verifier) || !RandomText(entry.nonce))
+         {
+            problem = "the random generator failed";
+            return false;
+         }
+
+         entry.provider = provider.word;
+         entry.created = time(nullptr);
+
+         {
+            boost::lock_guard<boost::mutex> guard(stateLock);
+            PruneLocked(entry.created);
+            if (pending.size() >= PendingMaximum)
+            {
+               problem = "too many sign-ins are waiting to finish; try again in a few minutes";
+               return false;
+            }
+            pending[state] = entry;
+         }
+
+         AnsiString authorize = Utf8(Setting(provider.authorize_url_property));
+         url = authorize + (authorize.Find("?") >= 0 ? "&" : "?") +
+               "response_type=code" +
+               "&client_id=" + Encoded(Utf8(Setting(provider.client_id_property))) +
+               "&redirect_uri=" + Encoded(ReaderOAuth::RedirectUri()) +
+               "&scope=" + Encoded(scope) +
+               "&state=" + state +
+               "&code_challenge=" + ReaderOAuth::Challenge(entry.verifier) +
+               "&code_challenge_method=S256" +
+               provider.extra_authorize_parameters;
+         nonce = entry.nonce;
+         return true;
+      }
+   }
+
+   bool
+   ReaderOAuth::BeginForMigration(__int64 jobId, const AnsiString &linkDigest, const Provider &provider, const AnsiString &scope,
+                                  const AnsiString &redeemScope, AnsiString &url, AnsiString &nonce, AnsiString &problem)
+   {
+      Pending entry;
+      entry.migration_job_id = jobId;
+      entry.migration_link = linkDigest;
+      entry.redeem_scope = redeemScope;
+      return StartSignIn(provider, entry, scope, url, nonce, problem);
    }
 
    bool
@@ -296,6 +375,8 @@ namespace HM
                         "&redirect_uri=" + Encoded(RedirectUri()) +
                         "&client_id=" + Encoded(Utf8(Setting(provider->client_id_property))) +
                         "&code_verifier=" + Encoded(entry.verifier);
+      if (!entry.redeem_scope.IsEmpty())
+         form += "&scope=" + Encoded(entry.redeem_scope);
       const String secret = Setting(provider->client_secret_property);
       if (!secret.IsEmpty())
          form += "&client_secret=" + Encoded(Utf8(secret));
@@ -319,6 +400,8 @@ namespace HM
       }
 
       grant.account_id = entry.account_id;
+      grant.migration_job_id = entry.migration_job_id;
+      grant.migration_link = entry.migration_link;
       grant.provider = entry.provider;
       grant.refresh_token = AnsiString(refreshToken.c_str());
       grant.mirror = entry.mirror;
@@ -394,6 +477,52 @@ namespace HM
       CachedToken &cached = tokens[fetchAccount->GetID()];
       cached.token = token;
       cached.refresh_at = now + (time_t) (lifetime * 4 / 5);
+      return true;
+   }
+
+   bool
+   ReaderOAuth::RefreshAccessToken(const Provider &provider, const AnsiString &refreshToken, const AnsiString &scope,
+                                   String &token, AnsiString &grantedScope, AnsiString &rotatedRefreshToken,
+                                   bool &transient, String &problem)
+   {
+      grantedScope = "";
+      rotatedRefreshToken = "";
+      transient = false;
+
+      if (Setting(provider.client_id_property).IsEmpty() || Setting(provider.token_url_property).IsEmpty())
+      {
+         problem = _T("signing in with this provider is not set up on this server");
+         return false;
+      }
+      if (refreshToken.IsEmpty())
+      {
+         problem = _T("the job holds no refresh token; its owner has not signed in yet");
+         return false;
+      }
+
+      AnsiString form = "grant_type=refresh_token&refresh_token=" + Encoded(refreshToken) +
+                        "&client_id=" + Encoded(Utf8(Setting(provider.client_id_property)));
+      if (!scope.IsEmpty())
+         form += "&scope=" + Encoded(scope);
+      const String secret = Setting(provider.client_secret_property);
+      if (!secret.IsEmpty())
+         form += "&client_secret=" + Encoded(Utf8(secret));
+
+      JsonValue answer;
+      AnsiString refusal;
+      if (!PostForm(Utf8(Setting(provider.token_url_property)), form, answer, refusal, &transient))
+      {
+         problem = String(refusal);
+         return false;
+      }
+
+      token = FromUtf8(answer.GetString("access_token"));
+      grantedScope = AnsiString(answer.GetString("scope").c_str());
+
+      const std::string rotated = answer.GetString("refresh_token");
+      if (!rotated.empty() && AnsiString(rotated.c_str()) != refreshToken)
+         rotatedRefreshToken = AnsiString(rotated.c_str());
+
       return true;
    }
 

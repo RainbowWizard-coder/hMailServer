@@ -122,6 +122,12 @@ PATH_SCOPE = {
     # interface and have no resource of their own.
     'domain-policy-list': ['AntiSpam'],
     'fetch-accounts': ['FetchAccount'],
+    # Migration jobs (/api/v1/migrations and its jobs): no COM interface is
+    # behind them. Scoped to a name no interface has, since an empty scope
+    # matches a method of any interface by its name - POST .../start would
+    # otherwise be StartBackup's and StartDelivery's REST equivalent.
+    'migrations': ['Migration'],
+    'jobs': ['MigrationJob'],
     'settings': ['Settings'],
     # POST /api/v1/settings/breach-check/test: Settings.TestBreachCheckEndpoint.
     'breach-check': ['Settings'],
@@ -190,7 +196,10 @@ VERB_SEGMENTS = {'reload', 'check', 'clear', 'retry', 'release', 'hold', 'downlo
                  'copy', 'match', 'test', 'switch', 'retire', 'classify', 'expire',
                  # Maintenance mode, a verb on the server as reinitialize is:
                  # GET reads it, POST enters it, DELETE leaves it.
-                 'drain'}
+                 'drain',
+                 # A migration paused and resumed, a job of it cancelled, and a
+                 # sign-in link made for one.
+                 'pause', 'resume', 'cancel', 'signin'}
 
 UNIT_SUFFIXES = ('seconds', 'minutes', 'hours', 'days', 'secs', 'mins', 'kb', 'mb', 'ms', 'sec', 'min')
 STOP_WORDS = {'of', 'number', 'no', 'the', 'a', 'an', 'is', 'in', 'to', 'use',
@@ -955,7 +964,10 @@ def read_rest(interfaces):
         corpus |= r.keys
     for fn in functions:
         corpus |= fn.keys
-    corpus -= {'error', 'id', 'ok', 'status'}
+    # host is a body key of the migrations' create alone, and a word every
+    # other description uses in its plain sense ("the host", "a host name"):
+    # read into those as a key, it pairs DNSHost with the webhooks.
+    corpus -= {'error', 'id', 'ok', 'status', 'host'}
     add_description_keys(routes, corpus)
     for route in routes.values():
         # A path parameter is not a body key: PUT /settings/messages/{name}

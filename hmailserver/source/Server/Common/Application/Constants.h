@@ -377,6 +377,12 @@
 #define PROPERTY_WEBHOOK_MAX_ATTEMPTS           _T("WebhookMaxAttempts")
 #define PROPERTY_WEBHOOK_MAX_PER_MINUTE         _T("WebhookMaxPerMinute")
 #define PROPERTY_WEBHOOK_RETENTION_DAYS         _T("WebhookRetentionDays")
+// Migration jobs (Application/MigrationManager.h): the most connections every
+// running job of every migration together holds to one source host. A
+// provider counts concurrent IMAP sessions per user and per client address,
+// and five hundred mailboxes started at once from one address is the shape
+// that gets an address throttled for the rest of the day.
+#define PROPERTY_MIGRATION_CONNECTIONS_PER_HOST _T("MigrationConnectionsPerHost")
 // The syslog sink (RFC 5424), beside the log files rather than instead of them.
 // In hm_settings rather than in hMailServer.ini because of the rule in
 // .github/CONTRIBUTING.md from 15 September 2026: a setting belongs in the
@@ -766,4 +772,30 @@
 //      the serveradmin row's permission column, which is kept in step for
 //      anybody reading the table. An upgrade finds the table empty, and
 //      nothing else changes.
-#define REQUIRED_DB_VERSION            6089
+
+// 6090 adds hm_migrations, hm_migrationjobs and hm_migrationfolders
+//      (Application/MigrationManager.h, docs/Migration.md "Five hundred
+//      mailboxes: migration jobs") and the hm_settings row
+//      MigrationConnectionsPerHost (4). A migration is a batch of jobs, one
+//      per mailbox: the source (kind 0 an IMAP server, 1 Google Workspace, 2
+//      Microsoft 365; its host, port, security, OAuth provider and DAV URL),
+//      how many of its jobs run at once and how many messages a minute each
+//      may fetch, and its state (0 new, 1 running, 2 paused, 3 finished). A
+//      job is one source mailbox copied into one account here: the source
+//      user, the password or the OAuth refresh token (protected at rest as a
+//      fetch account's is; mjsigninhash holds the SHA-256 of a per-job sign-in
+//      link's key while an OAuth job waits for its owner), the target account
+//      id, the state (0 queued, 1 running, 2 paused, 3 done, 4 failed, 5
+//      cancelled), the phase (0 mail, 1 contacts, 2 calendars, 3 report), the
+//      counters, the last error, the attempts and when the next is due, and the
+//      report as JSON. A folder row is the resume state of one source folder:
+//      its UIDVALIDITY and the highest UID dealt with, written after every 50
+//      messages and at the folder's end, so that an interrupted job goes on
+//      from its mark. The jobs cascade from their migration and the folders
+//      from their job; a job names its target account without a foreign key,
+//      because deleting an account must not delete the record of the migration
+//      that filled it - deleting the account cancels its unfinished jobs, with
+//      the reason (PersistentAccount::DeleteObject). An
+//      upgrade finds the three tables empty and nothing runs until a migration
+//      is created and started.
+#define REQUIRED_DB_VERSION            6090

@@ -924,6 +924,16 @@ namespace HM
          return back("?import_error=" + HttpsClient::FormEncode(problem));
       }
 
+      // A migration job's sign-in (RestApiMigrations.cpp): the grant is the
+      // job's, for a mailbox that is not an account here, and the answer is a
+      // page for its owner rather than the webmail's accounts page.
+      if (grant.migration_job_id > 0)
+      {
+         HttpResponse signedIn = CompleteMigrationSignIn_(grant.migration_job_id, grant.migration_link, grant.address, grant.refresh_token, grant.provider);
+         signedIn.extra_headers += headers;
+         return signedIn;
+      }
+
       const ReaderOAuth::Provider *provider = ReaderOAuth::Find(grant.provider);
       std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
       if (!provider || !PersistentAccount::ReadObject(account, grant.account_id) || account->GetID() == 0)

@@ -211,6 +211,18 @@ namespace HM
    }
 
    int
+   IMAPSpecialUse::DesignationOfName(const String &topLevelName)
+   {
+      for (size_t i = 0; i < name_mapping_count_; i++)
+      {
+         if (topLevelName.CompareNoCase(name_mappings_[i].name_) == 0)
+            return name_mappings_[i].designation_;
+      }
+
+      return DesignationNone;
+   }
+
+   int
    IMAPSpecialUse::GetExplicitDesignations(std::shared_ptr<IMAPFolders> accountFolders, __int64 excludeFolderID)
    {
       // The map is discarded; only the accumulated mask is wanted. Sharing the walk

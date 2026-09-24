@@ -2028,6 +2028,32 @@ namespace HM
       GetSettings()->SetLong(PROPERTY_WEBHOOK_RETENTION_DAYS, days);
    }
 
+   int
+   Configuration::GetMigrationConnectionsPerHost()
+   {
+      int connections = GetSettings()->GetLong(PROPERTY_MIGRATION_CONNECTIONS_PER_HOST);
+
+      // 0 would start no job at all, which is a migration switched off by a
+      // hand-edited row rather than by a person pausing it.
+      if (connections <= 0)
+         return 4;
+      if (connections > 64)
+         return 64;
+
+      return connections;
+   }
+
+   void
+   Configuration::SetMigrationConnectionsPerHost(int connections)
+   {
+      if (connections <= 0)
+         connections = 4;
+      if (connections > 64)
+         connections = 64;
+
+      GetSettings()->SetLong(PROPERTY_MIGRATION_CONNECTIONS_PER_HOST, connections);
+   }
+
    namespace
    {
       int ClampSetting(int value, int minimum, int maximum)

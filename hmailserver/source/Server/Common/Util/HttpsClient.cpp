@@ -746,7 +746,15 @@ namespace HM
       request.append(RequestTarget_(host, port, path, https, viaProxy));
       request.append(" HTTP/1.0\r\nHost: ");
       request.append(Authority_(host, port, false, https).c_str());
-      request.append("\r\nUser-Agent: hMailServer\r\nAccept: application/json\r\n");
+      request.append("\r\nUser-Agent: hMailServer\r\n");
+
+      // JSON unless the caller asks for something else: a CardDAV or CalDAV
+      // request (Application/MigrationManager.h) wants XML back, and names it.
+      bool acceptGiven = false;
+      for (const AnsiString &header : extra_headers)
+         acceptGiven = acceptGiven || header.StartsWith("Accept:");
+      if (!acceptGiven)
+         request.append("Accept: application/json\r\n");
 
       for (const AnsiString &header : extra_headers)
       {
@@ -754,7 +762,9 @@ namespace HM
          request.append("\r\n");
       }
 
-      if (method == "POST")
+      // A body is framed for any method that carries one - PROPFIND and REPORT
+      // do - and for a POST whatever it carries, as it always was.
+      if (method == "POST" || !body.IsEmpty())
       {
          AnsiString length;
          length.Format("%d", body.GetLength());

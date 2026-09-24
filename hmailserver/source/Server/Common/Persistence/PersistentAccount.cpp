@@ -38,6 +38,7 @@
 #include "../BO/IMAPFolder.h"
 #include "../BO/IMAPFolders.h"
 #include "../Application/Configuration.h"
+#include "../Application/MigrationManager.h"
 #include "../../IMAP/IMAPSpecialUse.h"
 
 #include "MailboxMove.h"
@@ -101,6 +102,14 @@ namespace HM
       // no longer exists is something nothing else in the system will ever mention
       // again.
       std::vector<String> orphans;
+
+      // The migration jobs copying into it (Application/MigrationManager.h),
+      // first: a running one is told to stop before the mailbox goes, and an
+      // unfinished one is cancelled with the reason, since a job left queued
+      // would copy somebody's mailbox into whichever account is given this
+      // number next. The row names the account by number and has no key.
+      if (!MigrationManager::Instance()->TargetDeleted(iID))
+         orphans.push_back(_T("the migration jobs copying into it"));
 
       // Delete messages connected to this account.
       if (!DeleteMessages(pAccount))

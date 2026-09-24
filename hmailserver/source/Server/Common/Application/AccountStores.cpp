@@ -487,6 +487,11 @@ namespace HM
         _T("It is a record of what this installation did to its own store, not part of the mailbox, and a restore is not a moment in a move: the account it names comes back at the address the archive holds, ")
         _T("so a carried row would describe a move that this store has no trace of and, at a stage short of complete, would name a half-move that is not there to finish. The audit trail keeps the record a person reads.") },
 
+      { _T("hm_migrationjobs"),
+        _T("A migration job (schema 6090): one mailbox of another server being copied into this account. Its account id names the TARGET, which makes it look like a per-account store, but it is not the account's data: ")
+        _T("it is the administrator's record of a migration, with the source's password or refresh token in it, and what it copied is the account's own mail, contacts and calendars, which the backup carries as it carries any. ")
+        _T("A restore is not a moment in a migration: a carried job would resume against a store that is the archive's rather than the one its marks describe. It has no foreign key to hm_accounts - the record of the migration outlives the account - and deleting the account cancels its unfinished jobs, with the reason, since account numbers are given again (PersistentAccount::DeleteObject).") },
+
       { _T("hm_recoverytokens"),
         _T("The one-shot links account recovery sends out - confirm this address, reset this password - each 32 random bytes stored as a digest, good once, and dead within the hour or the day the setting gives them. ")
         _T("Not carried, for the reason hm_digesttokens is not: a restored capability is one nobody issued, and the two it would revive are exactly the two that change who can read a mailbox. ")

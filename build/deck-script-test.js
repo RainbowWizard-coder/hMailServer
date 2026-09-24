@@ -794,6 +794,32 @@ const WEBHOOK_PROPS = {
 const WEBHOOKS_POST = 'Body: name (required), url (required), secret (required), events, domains and addresses, ' +
    'enabled (default true), include_subject (default false) and max_per_minute (0 for the server\'s WebhookMaxPerMinute).';
 
+// The migration's create schema and descriptions as RestApiMigrations.cpp
+// emits them (docs/Migration.md, "Five hundred mailboxes: migration jobs").
+const MIGRATION_PROPS = {
+   name: { type: 'string', description: 'What the migration is called here.' },
+   kind: { type: 'string', enum: ['imap', 'google', 'microsoft365'], description: 'An IMAP server with passwords; Google Workspace or Microsoft 365, each job signed in to by its owner.' },
+   host: { type: 'string', description: 'The source\'s IMAP host.' },
+   port: { type: 'integer', minimum: 1, maximum: 65535 },
+   security: { type: 'string', enum: ['tls', 'starttls_required', 'starttls_optional', 'none'] },
+   dav_url: { type: 'string', description: 'Where the source\'s CardDAV and CalDAV are, when not https://<host>/.' },
+   concurrency: { type: 'integer', minimum: 1, maximum: 32, description: 'How many of its jobs run at once.' },
+   messages_per_minute: { type: 'integer', minimum: 0, maximum: 100000, description: 'The most messages a minute each job fetches; 0 for no limit.' }
+};
+const MIGRATIONS_GET = 'Every migration - a batch of mailboxes copied from another server, a job per mailbox - with its jobs counted by state and its messages totalled. A credential confined to named domains sees only the migrations every job of which copies into one of them. Needs view_accounts.';
+const MIGRATIONS_POST = 'Body: name (required); kind (imap, google or microsoft365; default imap); host (required for imap); port (993 with tls and 143 otherwise, when not given); security (none, tls, starttls_optional, starttls_required; default tls); dav_url (where CardDAV and CalDAV are, when not https://<host>/ - an https URL, or plain http only to this machine); concurrency (1 to 32; default 4), how many of its jobs run at once, below MigrationConnectionsPerHost across every migration at one host; messages_per_minute (0 to 100000, 0 for no limit; default 0), each job waiting between fetches to keep below it. For google and microsoft365 the source is the provider\'s own IMAP server - imap.gmail.com or outlook.office365.com, 993, tls - and a host, port or security naming anything else is refused, since the owner\'s token is sent there. It is created new; POST .../jobs adds the mailboxes and POST .../start runs them. Needs manage_accounts, from a credential not confined to named domains: a migration with no jobs is no domain\'s.';
+// A migration and a job as MigrationJson and JobJson emit them, less the
+// counts the recorded server works out from the jobs on every read.
+function migrationRecord(id, name, fields) {
+   return Object.assign({ id, name, kind: 'imap', host: '', port: 993, security: 'tls', oauth_provider: '', dav_url: '', concurrency: 4,
+      messages_per_minute: 0, state: 'new', created: 1789000000, started: 0, finished: 0 }, fields || {});
+}
+function migrationJob(id, migration, sourceUser, target, fields) {
+   return Object.assign({ id, migration, source_user: sourceUser, target, state: 'queued', phase: 'mail', awaiting_signin: false, signs_in: false,
+      folders_total: 0, folders_done: 0, messages_total: 0, messages_copied: 0, bytes: 0, skipped: 0, last_error: '', attempts: 0,
+      next_attempt: 0, started: 0, finished: 0 }, fields || {});
+}
+
 function body(props, required) {
    return { content: { 'application/json': { schema: Object.assign({ type: 'object', properties: props }, required ? { required } : {}) } } };
 }
@@ -1095,6 +1121,21 @@ const spec = {
          delete: { summary: 'Delete an external (fetch) account' }
       },
       '/api/v1/accounts/{address}/fetch-accounts/{id}/download': { post: { summary: 'Collect from the remote mailbox now' } },
+      '/api/v1/migrations': {
+         get: { summary: 'The migrations', description: MIGRATIONS_GET },
+         post: { summary: 'Create a migration', description: MIGRATIONS_POST, requestBody: body(MIGRATION_PROPS, ['name']) }
+      },
+      '/api/v1/migrations/{id}': { get: { summary: 'One migration' }, delete: { summary: 'Delete a migration' } },
+      '/api/v1/migrations/{id}/start': { post: { summary: 'Start a migration' } },
+      '/api/v1/migrations/{id}/pause': { post: { summary: 'Pause a migration' } },
+      '/api/v1/migrations/{id}/resume': { post: { summary: 'Resume a migration' } },
+      '/api/v1/migrations/{id}/summary.csv': { get: { summary: 'A migration\'s jobs as CSV' } },
+      '/api/v1/migrations/{id}/jobs': { get: { summary: 'A migration\'s jobs' }, post: { summary: 'Add jobs to a migration' } },
+      '/api/v1/migrations/{id}/jobs/{job}': { get: { summary: 'One job' } },
+      '/api/v1/migrations/{id}/jobs/{job}/report': { get: { summary: 'A job\'s report' } },
+      '/api/v1/migrations/{id}/jobs/{job}/retry': { post: { summary: 'Retry a job' } },
+      '/api/v1/migrations/{id}/jobs/{job}/cancel': { post: { summary: 'Cancel a job' } },
+      '/api/v1/migrations/{id}/jobs/{job}/signin': { post: { summary: 'A new sign-in link for a job' } },
       '/api/v1/groups': {
          get: { summary: 'List the account groups', description: GROUPS_GET },
          post: { summary: 'Create a group', description: GROUPS_POST, requestBody: body({ name: { type: 'string' } }, ['name']) }
@@ -1393,6 +1434,29 @@ const state = {
    },
    fetchAccounts: {
       'anna@example.com': [Object.assign(fetchRecord(7, 'ISP POP3'), { server_address: 'pop.isp.example', port: 995, connection_security: 'tls', username: 'anna.isp', next_download_time: '2026-09-14 10:30:00' })]
+   },
+   // Two migrations: one from an IMAP server under way, with a job copying and
+   // a job that failed, and one from Google Workspace with no jobs yet.
+   migrations: [
+      migrationRecord(41, 'Old mail server', { host: 'imap.old.example', state: 'running', started: 1789000100 }),
+      migrationRecord(42, 'Google Workspace', { kind: 'google', host: 'imap.gmail.com', oauth_provider: 'google' })
+   ],
+   migrationJobs: {
+      41: [migrationJob(411, 41, 'anna@old.example', 'anna@example.com', { state: 'running', folders_total: 2, folders_done: 1, messages_total: 300, messages_copied: 120, bytes: 4800000, skipped: 2, attempts: 1, started: 1789000100 }),
+         migrationJob(412, 41, 'bert@old.example', 'carla@example.com', { state: 'failed', last_error: 'the source refused the sign-in: NO [AUTHENTICATIONFAILED] Invalid credentials', attempts: 24 })],
+      42: []
+   },
+   migrationReports: {
+      411: { job: 411, source_user: 'anna@old.example', target: 'anna@example.com', state: 'running', phase: 'mail', attempts: 1, bytes: 4800000, duration_seconds: 95,
+         messages_total: 300, messages_copied: 120, messages_skipped: 2, first_message: 1600000000, last_message: 1788990000, folders_left_out: 0,
+         folders: [
+            { source: 'INBOX', target: 'INBOX', special_use: '', source_messages: 250, copied: 100, skipped: 2, skipped_reasons: { too_large: 2 }, uidvalidity_restarts: 0, note: '' },
+            { source: 'Sent', target: 'Sent Items', special_use: '\\Sent', source_messages: 50, copied: 20, skipped: 0, skipped_reasons: {}, uidvalidity_restarts: 1,
+               note: 'the source changed its UIDVALIDITY; the folder was taken again and matched by Message-ID' }
+         ],
+         contacts: { state: 'skipped', copied: 0, skipped: 0, skipped_reasons: {}, reason: 'the source answers no CardDAV at /.well-known/carddav' },
+         calendars: { state: 'done', copied: 3, skipped: 1, skipped_reasons: { no_uid: 1 }, reason: '' },
+         errors: [{ at: 1789000160, attempt: 1, error: 'the connection to imap.old.example was closed' }] }
    },
    suppressions: {
       'example.com': [suppressionRecord('gone@remote.test', 'bounce', 'hard', '5.1.1')]
@@ -1793,7 +1857,10 @@ function clone(x) { return JSON.parse(JSON.stringify(x)); }
 function segment(path, at) { return decodeURIComponent(path.split('?')[0].split('/')[at]); }
 
 function answer(method, path, headers, raw) {
-   const parsed = raw ? JSON.parse(raw) : null;
+   // Every body the page sends is JSON but one: the CSV of a migration's
+   // jobs, which the server reads as it is.
+   let parsed = null;
+   if (raw) { try { parsed = JSON.parse(raw); } catch (notJson) { parsed = null; } }
    if (method === 'POST' && path === '/api/v1/session') {
       // A passkey, or a ticket from the identity provider, in place of the
       // password: the server judges them in Authenticate_ and mints the same
@@ -2268,6 +2335,129 @@ function answer(method, path, headers, raw) {
          return json(200, state.lists[domain][at]);
       }
       if (method === 'DELETE') { state.lists[domain].splice(at, 1); return json(200, { deleted: true }); }
+   }
+
+   if (/^\/api\/v1\/migrations(\/|$)/.test(path)) {
+      const parts = path.split('?')[0].split('/');
+      const counted = (m) => {
+         const jobs = state.migrationJobs[m.id] || [];
+         const count = (word) => jobs.filter((j) => j.state === word).length;
+         return Object.assign({}, m, {
+            jobs: { total: jobs.length, queued: count('queued'), running: count('running'), paused: count('paused'), done: count('done'),
+               failed: count('failed'), cancelled: count('cancelled'), awaiting_signin: jobs.filter((j) => j.awaiting_signin).length },
+            messages_total: jobs.reduce((n, j) => n + j.messages_total, 0), messages_copied: jobs.reduce((n, j) => n + j.messages_copied, 0),
+            bytes: jobs.reduce((n, j) => n + j.bytes, 0), skipped: jobs.reduce((n, j) => n + j.skipped, 0)
+         });
+      };
+      if (parts.length === 4 && method === 'GET') { return json(200, { migrations: state.migrations.map(counted) }); }
+      if (parts.length === 4 && method === 'POST') {
+         for (const key of Object.keys(parsed || {})) { if (!(key in MIGRATION_PROPS)) { return json(400, { error: 'unknown field: ' + key }); } }
+         if (!parsed || !String(parsed.name || '').trim()) { return json(400, { error: 'name is required' }); }
+         const kind = parsed.kind || 'imap';
+         if (kind === 'imap' && !String(parsed.host || '').trim()) { return json(400, { error: 'host is required for a migration from an IMAP server' }); }
+         const made = migrationRecord(nextId++, parsed.name, Object.assign({}, parsed, { kind, host: parsed.host || (kind === 'google' ? 'imap.gmail.com' : 'outlook.office365.com') }));
+         state.migrations.push(made);
+         state.migrationJobs[made.id] = [];
+         return json(201, counted(made));
+      }
+      const id = Number(parts[4]);
+      const m = state.migrations.filter((x) => x.id === id)[0];
+      if (!m) { return json(404, { error: 'no such migration' }); }
+      const jobs = state.migrationJobs[id] = state.migrationJobs[id] || [];
+      if (parts.length === 5 && method === 'GET') { return json(200, counted(m)); }
+      if (parts.length === 5 && method === 'DELETE') {
+         if (jobs.some((j) => j.state === 'running')) { return json(409, { error: 'a job of this migration is running: pause it first' }); }
+         state.migrations = state.migrations.filter((x) => x.id !== id);
+         delete state.migrationJobs[id];
+         return json(200, { deleted: true });
+      }
+      if (parts.length === 6 && method === 'POST' && parts[5] === 'start') {
+         if (m.state === 'running') { return json(409, { error: 'the migration is running already' }); }
+         if (m.state === 'paused') { return json(409, { error: 'the migration is paused: resume it' }); }
+         m.state = 'running';
+         return json(200, counted(m));
+      }
+      if (parts.length === 6 && method === 'POST' && parts[5] === 'pause') {
+         if (m.state !== 'running') { return json(409, { error: 'the migration is not running' }); }
+         m.state = 'paused';
+         jobs.forEach((j) => { if (j.state === 'running' || j.state === 'queued') { j.state = 'paused'; } });
+         return json(200, counted(m));
+      }
+      if (parts.length === 6 && method === 'POST' && parts[5] === 'resume') {
+         if (m.state !== 'paused') { return json(409, { error: 'the migration is not paused' }); }
+         m.state = 'running';
+         jobs.forEach((j) => { if (j.state === 'paused') { j.state = 'queued'; } });
+         return json(200, counted(m));
+      }
+      if (parts.length === 6 && method === 'GET' && parts[5] === 'summary.csv') {
+         return { status: 200, body: 'job,source_user,target,state\r\n' + jobs.map((j) => [j.id, j.source_user, j.target, j.state].join(',')).join('\r\n'), headers: { 'Content-Type': 'text/csv; charset=utf-8' } };
+      }
+      if (parts.length === 6 && parts[5] === 'jobs' && method === 'GET') { return json(200, { jobs }); }
+      if (parts.length === 6 && parts[5] === 'jobs' && method === 'POST') {
+         // The server's reading of the body: a JSON object is one job, anything
+         // else is CSV, every line checked before one job is made.
+         const wanted = [];
+         if (parsed && typeof parsed === 'object') { wanted.push({ line: 1, fields: [parsed.source_user || '', parsed.secret || '', parsed.target || ''] }); }
+         else {
+            const lines = String(raw || '').split('\n');
+            for (let n = 0; n < lines.length; n += 1) {
+               const line = lines[n].replace(/\r$/, '');
+               if (!line.trim()) { continue; }
+               const fields = [];
+               let field = '', quoted = false;
+               for (let i = 0; i < line.length; i += 1) {
+                  const c = line[i];
+                  if (quoted) { if (c === '"' && line[i + 1] === '"') { field += '"'; i += 1; } else if (c === '"') { quoted = false; } else { field += c; } }
+                  else if (c === '"' && field === '') { quoted = true; }
+                  else if (c === ',') { fields.push(field); field = ''; }
+                  else { field += c; }
+               }
+               fields.push(field);
+               if (!wanted.length && /^source_?user$/i.test(fields[0])) { continue; }
+               if (fields.length !== 3) { return json(400, { error: 'line ' + (n + 1) + ': a row is sourceuser,secret,target - three fields - and this one has ' + fields.length, line: n + 1 }); }
+               wanted.push({ line: n + 1, fields });
+            }
+         }
+         if (!wanted.length) { return json(400, { error: 'the body names no job: a JSON object, or CSV rows of sourceuser,secret,target' }); }
+         for (const one of wanted) {
+            const target = one.fields[2].trim();
+            if (!Object.keys(state.accounts).some((d) => state.accounts[d].some((a) => a.address === target))) {
+               return json(400, { error: 'line ' + one.line + ': the target ' + target + ' is not an account of this server', line: one.line });
+            }
+         }
+         const made = wanted.map((one) => {
+            const signsIn = m.kind !== 'imap';
+            const job = migrationJob(nextId++, id, one.fields[0].trim(), one.fields[2].trim(), { signs_in: signsIn, awaiting_signin: signsIn && one.fields[1] === '' });
+            jobs.push(job);
+            return job.awaiting_signin ? Object.assign({}, job, { signin_url: 'https://mail.example.com/portal/oauth/migration?job=' + job.id + '&key=' + 'ab'.repeat(32) }) : job;
+         });
+         return json(201, { created: made.length, jobs: made });
+      }
+      if (parts.length >= 7 && parts[5] === 'jobs') {
+         const job = jobs.filter((j) => j.id === Number(parts[6]))[0];
+         if (!job) { return json(404, { error: 'no such job in this migration' }); }
+         if (parts.length === 7 && method === 'GET') { return json(200, job); }
+         if (parts[7] === 'report' && method === 'GET') {
+            return json(200, state.migrationReports[job.id] || { job: job.id, source_user: job.source_user, target: job.target, state: job.state, phase: job.phase, folders: [],
+               contacts: { state: '', copied: 0, skipped: 0, skipped_reasons: {}, reason: '' }, calendars: { state: '', copied: 0, skipped: 0, skipped_reasons: {}, reason: '' }, errors: [] });
+         }
+         if (parts[7] === 'retry' && method === 'POST') {
+            if (['running', 'queued', 'done'].indexOf(job.state) >= 0) { return json(409, { error: 'the job is ' + job.state }); }
+            Object.assign(job, { state: 'queued', last_error: '', attempts: 0, next_attempt: 0 });
+            if (m.state === 'finished') { m.state = 'running'; }
+            return json(200, job);
+         }
+         if (parts[7] === 'cancel' && method === 'POST') {
+            if (job.state === 'done' || job.state === 'cancelled') { return json(409, { error: 'the job is ' + job.state + ' already' }); }
+            job.state = 'cancelled';
+            return json(200, job);
+         }
+         if (parts[7] === 'signin' && method === 'POST') {
+            if (m.kind === 'imap') { return json(409, { error: 'a migration from an IMAP server uses passwords, not sign-ins' }); }
+            job.awaiting_signin = true;
+            return json(200, { signin_url: 'https://mail.example.com/portal/oauth/migration?job=' + job.id + '&key=' + 'cd'.repeat(32) });
+         }
+      }
    }
 
    if (/^\/api\/v1\/accounts\/[^/]+\/fetch-accounts(\/\d+(\/download)?)?$/.test(path)) {
@@ -4801,6 +4991,186 @@ async function main() {
    click(act('fetchdel', { id: 7 }));
    await flush();
    check('yes deletes by id under the account and the re-read list is without it', called(before, 'DELETE', fetchList + '/7').length === 1 && rows().length === 1 && rows()[0].textContent.indexOf('ISP mailbox') >= 0);
+
+   // ---- migrations: many mailboxes from another server, a job per mailbox
+   before = requests.length;
+   await goTo('migrations');
+   const migRows = () => rows().map((r) => r.textContent);
+   check('the Migrations view reads the list and draws a row per migration', called(before, 'GET', '/api/v1/migrations').length === 1 &&
+      $('#viewTitle').textContent === 'Migrations' && rows().length === 2, paths(before) + ' ' + rows().length + ' rows');
+   check('each row names the migration, its source, its state, its progress and its jobs counted',
+      migRows()[0].indexOf('Old mail server') >= 0 && migRows()[0].indexOf('imap.old.example') >= 0 && migRows()[0].indexOf('120 of 300 messages') >= 0 &&
+      migRows()[0].indexOf('2 jobs: 0 done, 1 failed') >= 0 && rows()[0].querySelector('.badge').attributes['data-state'] === 'running' &&
+      rows()[0].querySelector('.meter i').attributes.style === 'width:40%' && migRows()[1].indexOf('0 jobs: 0 done, 0 failed') >= 0,
+      JSON.stringify(migRows()));
+   check('a running migration offers Pause and a new one Start, and neither the other',
+      !!act('migpause', { id: 41 }) && !!act('migstart', { id: 42 }) &&
+      content().querySelectorAll('button[data-act="migstart"]').filter((b) => b.attributes['data-id'] === '41').length === 0 &&
+      content().querySelectorAll('button[data-act="migpause"]').filter((b) => b.attributes['data-id'] === '42').length === 0);
+
+   before = requests.length;
+   click(act('migopen', { id: 41 }));
+   await flush();
+   check('opening a migration reads it and its jobs', called(before, 'GET', '/api/v1/migrations/41').length === 1 && called(before, 'GET', '/api/v1/migrations/41/jobs').length === 1 &&
+      rows().length === 2, paths(before));
+   check('each job shows its mailbox, its target, its state, its progress and its last error',
+      migRows()[0].indexOf('anna@old.example') >= 0 && migRows()[0].indexOf('anna@example.com') >= 0 && migRows()[0].indexOf('120 of 300 messages') >= 0 &&
+      migRows()[1].indexOf('bert@old.example') >= 0 && migRows()[1].indexOf('AUTHENTICATIONFAILED') >= 0 &&
+      rows()[1].querySelector('.badge').attributes['data-state'] === 'failed', JSON.stringify(migRows()));
+   check('a failed job offers Retry, a running one Cancel, and a running one no Retry', !!act('migretry', { id: 412 }) && !!act('migcancel', { id: 411 }) &&
+      content().querySelectorAll('button[data-act="migretry"]').filter((b) => b.attributes['data-id'] === '411').length === 0);
+   check('the summary is a download of the migration\'s CSV', $('#migSummary').attributes.href === '/api/v1/migrations/41/summary.csv');
+   check('an IMAP migration\'s jobs offer no sign-in link', content().querySelectorAll('button[data-act="migsignin"]').length === 0);
+   before = requests.length;
+   click(act('migreport', { id: 411 }));
+   await flush();
+   const migReport = $('#migReport') ? $('#migReport').textContent : '';
+   check('Report reads the job\'s report and shows each folder with what the source held, what was copied and what was skipped and why',
+      called(before, 'GET', '/api/v1/migrations/41/jobs/411/report').length === 1 && migReport.indexOf('Report of anna@old.example') >= 0 &&
+      migReport.indexOf('INBOX') >= 0 && migReport.indexOf('Sent Items') >= 0 && migReport.indexOf('too_large: 2') >= 0 &&
+      migReport.indexOf('UIDVALIDITY') >= 0, paths(before) + ' ' + migReport.slice(0, 300));
+   check('and the contacts skipped with the reason, the calendars copied, and the errors met on the way',
+      migReport.indexOf('Skipped: the source answers no CardDAV at /.well-known/carddav') >= 0 && migReport.indexOf('3 copied, 1 skipped') >= 0 &&
+      migReport.indexOf('the connection to imap.old.example was closed') >= 0 && migReport.indexOf('2026-09-10 00:29:20Z') >= 0, migReport);
+   check('a job that can be retried has a box for the mended password beside Retry, and a running one has none',
+      !!document.getElementById('migsecret_412') && document.getElementById('migsecret_412').type === 'password' && !document.getElementById('migsecret_411'));
+   setValue('migsecret_412', 'the-mended-password');
+   before = requests.length;
+   click(act('migretry', { id: 412 }));
+   await flush();
+   const retried = lastBody(before, 'POST', '/api/v1/migrations/41/jobs/412/retry');
+   check('Retry posts to the job\'s retry route with the password typed, and the re-read list shows it queued',
+      called(before, 'POST', '/api/v1/migrations/41/jobs/412/retry').length === 1 && !!retried && retried.secret === 'the-mended-password' &&
+      rows()[1].querySelector('.badge').attributes['data-state'] === 'queued' && toastText() === 'Job queued again', JSON.stringify(retried) + ' ' + toastText());
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('migcancel', { id: 411 }));
+   await flush();
+   check('Cancel asks first, saying what stays', called(before, 'POST', /\/cancel$/).length === 0 &&
+      confirmations[confirmations.length - 1] === 'Cancel this job? What it copied stays.', confirmations[confirmations.length - 1]);
+   confirmAnswer = true;
+   click(act('migcancel', { id: 411 }));
+   await flush();
+   check('yes cancels it', called(before, 'POST', '/api/v1/migrations/41/jobs/411/cancel').length === 1 &&
+      rows()[0].querySelector('.badge').attributes['data-state'] === 'cancelled' && toastText() === 'Job cancelled', toastText());
+   before = requests.length;
+   click(act('migpause', { id: 41 }));
+   await flush();
+   check('Pause posts to the migration\'s pause route and offers Resume after it', called(before, 'POST', '/api/v1/migrations/41/pause').length === 1 &&
+      !!act('migresume', { id: 41 }) && toastText() === 'Migration paused', paths(before));
+   nextRefusalAnswer = { status: 409, body: { error: 'the migration\'s jobs are still stopping' } };
+   click(act('migresume', { id: 41 }));
+   await flush();
+   check('a refused resume is the server\'s sentence beside the migration', document.getElementById('err_mig_41').textContent === 'the migration\'s jobs are still stopping');
+   before = requests.length;
+   click(act('migresume', { id: 41 }));
+   await flush();
+   check('Resume posts to the resume route and the queued jobs show it', called(before, 'POST', '/api/v1/migrations/41/resume').length === 1 &&
+      !!act('migpause', { id: 41 }) && toastText() === 'Migration resumed', paths(before));
+   click(act('migback'));
+   await flush();
+
+   // A Google Workspace migration: a job without a secret waits for its owner.
+   click(act('migopen', { id: 42 }));
+   await flush();
+   check('a migration without jobs says so and asks for them', rows().length === 1 && migRows()[0].indexOf('No jobs yet') >= 0 && !!$('#migCsv'));
+   setValue('migCsv', 'dora@old.example,,anna@example.com\n');
+   before = requests.length;
+   click(act('migjobs'));
+   await flush();
+   check('a job without a secret is added and its sign-in link is shown once, for its owner', called(before, 'POST', '/api/v1/migrations/42/jobs').length === 1 &&
+      !!$('#migLinks') && $('#migLinks').textContent.indexOf('dora@old.example') >= 0 &&
+      $('#migLinks').textContent.indexOf('/portal/oauth/migration?job=') >= 0 && migRows()[0].indexOf('Awaiting its owner') >= 0 && toastText() === '1 job(s) added',
+      toastText() + ' ' + ($('#migLinks') ? $('#migLinks').textContent : 'no links'));
+   const doraJob = state.migrationJobs[42][0].id;
+   before = requests.length;
+   click(act('migsignin', { id: doraJob }));
+   await flush();
+   check('Sign-in link asks for a new one and shows it', called(before, 'POST', '/api/v1/migrations/42/jobs/' + doraJob + '/signin').length === 1 &&
+      $('#migLinks').textContent.indexOf('cdcdcdcd') >= 0 && $('#migLinks').textContent.indexOf('abababab') < 0, paths(before));
+   click(act('migback'));
+   await flush();
+
+   // A new migration, from the schema of its create.
+   click(act('mignew'));
+   await flush();
+   const drawnMig = content().querySelectorAll('input, select, textarea').map((el) => el.id).filter((id) => id.indexOf('mig_') === 0).map((id) => id.slice(4)).sort();
+   check('New migration draws every key of the create and nothing else', JSON.stringify(drawnMig) === JSON.stringify(Object.keys(MIGRATION_PROPS).sort()), JSON.stringify(drawnMig));
+   check('a new one starts at the defaults the description states, the port left for the security to decide, the name marked required',
+      document.getElementById('mig_kind').value === 'imap' && document.getElementById('mig_port').value === '' && document.getElementById('mig_security').value === 'tls' &&
+      document.getElementById('mig_concurrency').value === '4' && document.getElementById('mig_messages_per_minute').value === '0' &&
+      document.getElementById('mig_name').closest('.fr').textContent.indexOf('required') >= 0,
+      ['kind', 'port', 'security', 'concurrency', 'messages_per_minute'].map((k) => k + '=' + document.getElementById('mig_' + k).value).join(' '));
+   setValue('mig_name', 'Staff mailboxes');
+   setValue('mig_security', 'starttls_required');
+   before = requests.length;
+   click(act('migsave'));
+   await flush();
+   check('an IMAP migration without a host is the server\'s sentence in the editor, with the edits kept', called(before, 'POST', '/api/v1/migrations').length === 1 &&
+      document.getElementById('err_migedit').textContent === 'host is required for a migration from an IMAP server' && document.getElementById('mig_name').value === 'Staff mailboxes');
+   check('with no port typed, STARTTLS is asked for on 143', (lastBody(before, 'POST', '/api/v1/migrations') || {}).port === 143,
+      JSON.stringify(lastBody(before, 'POST', '/api/v1/migrations')));
+   setValue('mig_security', 'tls');
+   setValue('mig_host', 'imap.staff.example');
+   setValue('mig_messages_per_minute', '600');
+   before = requests.length;
+   click(act('migsave'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/migrations');
+   check('saving posts the form, numbers as numbers, TLS on 993, and an empty box not at all', !!posted && posted.name === 'Staff mailboxes' && posted.kind === 'imap' &&
+      posted.host === 'imap.staff.example' && posted.port === 993 && posted.security === 'tls' && posted.concurrency === 4 && posted.messages_per_minute === 600 &&
+      !('dav_url' in posted), JSON.stringify(posted));
+   const staffId = state.migrations[state.migrations.length - 1].id;
+   check('and opens the new migration, with no jobs yet', called(before, 'GET', '/api/v1/migrations/' + staffId + '/jobs').length === 1 &&
+      content().textContent.indexOf('Staff mailboxes') >= 0 && migRows()[0].indexOf('No jobs yet') >= 0 && toastText() === 'Migration created', paths(before));
+   const csv = 'sourceuser,secret,target\r\nanna.staff@staff.example,first-secret,anna@example.com\r\n"bert, the second",second-secret,nobody@example.com\r\n';
+   setValue('migCsv', csv);
+   before = requests.length;
+   click(act('migjobs'));
+   await flush();
+   const sentCsv = called(before, 'POST', '/api/v1/migrations/' + staffId + '/jobs');
+   check('the CSV is sent as it is, not rewritten', sentCsv.length === 1 && sentCsv[0].body === csv, sentCsv.length ? JSON.stringify(sentCsv[0].body) : 'nothing sent');
+   check('a line the server refuses is its sentence, naming the line, and nothing is added',
+      document.getElementById('err_migjobs').textContent === 'line 3: the target nobody@example.com is not an account of this server' && state.migrationJobs[staffId].length === 0 &&
+      $('#migCsv').value === csv, document.getElementById('err_migjobs').textContent);
+   setValue('migCsv', csv.replace('nobody@example.com', 'carla@example.com'));
+   before = requests.length;
+   click(act('migjobs'));
+   await flush();
+   check('mended, both jobs are added and listed, with no sign-in link for an IMAP source', called(before, 'GET', '/api/v1/migrations/' + staffId + '/jobs').length === 1 &&
+      rows().length === 2 && migRows()[1].indexOf('bert, the second') >= 0 && migRows()[1].indexOf('carla@example.com') >= 0 && !$('#migLinks') &&
+      toastText() === '2 job(s) added', toastText());
+   const csvFile = $('#migCsvFile');
+   csvFile.files = [{ text: () => Promise.resolve('carla.staff@staff.example,third-secret,carla@example.com\r\n') }];
+   csvFile.dispatchEvent(makeEvent('change'));
+   await flush();
+   check('a CSV file chosen is read into the box, to be looked at before it is sent', $('#migCsv').value === 'carla.staff@staff.example,third-secret,carla@example.com\r\n' &&
+      called(before, 'POST', /\/jobs$/).length === 1, $('#migCsv').value);
+   before = requests.length;
+   click(act('migstart', { id: staffId }));
+   await flush();
+   check('Start posts to the start route', called(before, 'POST', '/api/v1/migrations/' + staffId + '/start').length === 1 && toastText() === 'Migration started', paths(before));
+   click(act('migback'));
+   await flush();
+   check('back at the list, the new migration is the third row', rows().length === 3 && migRows()[2].indexOf('Staff mailboxes') >= 0 && migRows()[2].indexOf('2 jobs: 0 done, 0 failed') >= 0,
+      JSON.stringify(migRows()));
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('migdel', { id: 42 }));
+   await flush();
+   check('deleting asks, naming it and what stays', called(before, 'DELETE', /migrations/).length === 0 &&
+      confirmations[confirmations.length - 1] === 'Delete the migration Google Workspace? What it copied stays.', confirmations[confirmations.length - 1]);
+   confirmAnswer = true;
+   nextRefusalAnswer = { status: 409, body: { error: 'a job of this migration is running: pause it first' } };
+   click(act('migdel', { id: 41 }));
+   await flush();
+   check('a delete refused while a job runs is the server\'s sentence on the row', document.getElementById('err_mig_41').textContent === 'a job of this migration is running: pause it first' &&
+      rows().length === 3);
+   before = requests.length;
+   click(act('migdel', { id: 42 }));
+   await flush();
+   check('yes deletes by id and the re-read list is without it', called(before, 'DELETE', '/api/v1/migrations/42').length === 1 && rows().length === 2 &&
+      migRows().every((r) => r.indexOf('Google Workspace') < 0) && toastText() === 'Migration deleted', paths(before));
 
    // ---- the seven small collections, one view
    before = requests.length;

@@ -383,6 +383,10 @@ namespace
    const char *WebhookMaxPerMinuteRefusal = "WebhookMaxPerMinute must be between 1 and 100000.";
    const char *WebhookRetentionDaysRefusal = "WebhookRetentionDays must be between 0 (keep everything) and 3650.";
 
+   // The migration jobs' ceiling per source host (Application/MigrationManager.h),
+   // refused out of range rather than clamped by the setter without a word.
+   const char *MigrationConnectionsPerHostRefusal = "MigrationConnectionsPerHost must be between 1 and 64.";
+
    // InterfaceSettings::put_IMAPHierarchyDelimiter's sentence, verbatim.
    const char *HierarchyDelimiterRefusal =
       "It was not possible to change the IMAP hierarchy delimiter. It has probably failed because there exists one or more IMAP folders containing the new character.";
@@ -1242,6 +1246,14 @@ namespace
         "Days of delivered and dead-lettered webhook rows to keep. 0 keeps everything, which for a per-message stream is a decision rather than a default. 0 to 3650.",
         ROW_NUMBER(Config()->GetWebhookRetentionDays()), ROW_SET(Config()->SetWebhookRetentionDays((int) v.number)),
         [] (const Value &v) { return (v.number < 0 || v.number > 3650) ? String(WebhookRetentionDaysRefusal) : String(); } },
+
+      // Migration jobs (Application/MigrationManager.h). In hm_settings, read
+      // each time the runner looks for a job to start, so a change applies to
+      // the next job started; a job already running keeps its connection.
+      { "migration_connections_per_host", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The most connections every running migration job of every migration together holds to one source host, however many jobs each migration may run at once. A provider counts sessions per client address, and five hundred mailboxes started at once from one address is how an address gets throttled for the rest of the day. 1 to 64; 4 by default.",
+        ROW_NUMBER(Config()->GetMigrationConnectionsPerHost()), ROW_SET(Config()->SetMigrationConnectionsPerHost((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 64) ? String(MigrationConnectionsPerHostRefusal) : String(); } },
 
       // The password breach check (PasswordBreachCheck). In hm_settings, read at
       // every password change. The checks are the COM setters' own, so a value

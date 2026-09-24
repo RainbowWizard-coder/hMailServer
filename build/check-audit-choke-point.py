@@ -160,6 +160,9 @@ ALLOWED = {
       # that pairs the operator's "entered", recorded by the server under an
       # actor of its own, because no request thread carries one there.
       "Common/Application/Application.cpp",
+      # A migration job cancelled while it runs: its own thread writes the row,
+      # with no actor on it, so the request records who asked.
+      "Common/Application/MigrationManager.cpp",
    },
    "AuditTrail::SetActor(": {
       "Common/Util/AuditTrail.cpp",                 # AuditScope itself
@@ -181,6 +184,9 @@ ALLOWED = {
       # pattern that what the administrator typed was converted into. The NAME
       # only: the detail is still read from the statement's own columns.
       "Common/Persistence/PersistentGreyListingWhiteAddress.cpp",
+      # hm_migrationjobs, whose row names its target account by number: a job is
+      # recorded as "source user -> target address" by the store that writes it.
+      "Common/Util/MigrationStore.cpp",
    },
 }
 
@@ -288,6 +294,9 @@ REQUIRED = [
    ("COM/COMAuthentication.cpp",
     "AuditTrail::SetActor(GetAuditActor());",
     "COM no longer says who is making a change"),
+   ("Common/Application/MigrationManager.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("migration job"), AuditName_(job), _T("cancelled"),',
+    "a running migration job cancelled over REST is no longer recorded - its own thread writes the row, with no actor on it, so the request is the only half that can be"),
    ("Common/Util/AuditTrail.h",
     "bool Verify(__int64 &firstBroken, __int64 &rowsChecked, String &reason);",
     "the chain can no longer be walked, which is the whole point of chaining it"),
@@ -390,6 +399,9 @@ NOT_AUDITED = {
    "hm_webhookqueue": "the outbound webhook delivery queue, written by the paths that raise an event and by the delivery pass. "
                        "Traffic, and the server's own writes - there is no actor on an SMTP thread, so a listed table would record every "
                        "accepted message as a change nobody made. The subscriptions the rows belong to (hm_webhooks) ARE recorded.",
+   "hm_migrationfolders": "a migration job's resume marks - a source folder's UIDVALIDITY and the highest UID copied - written by the "
+                          "job's own thread every fifty messages under no actor, and removed with the job. The migrations and their "
+                          "jobs (hm_migrations, hm_migrationjobs) ARE recorded.",
    "hm_quarantine": "held messages, written by delivery and by each account's own portal. An administrator releasing or deleting one is NOT "
                     "recorded, and docs/AlertsAndAuditTrail.md says so: both end in the same 'delete from hm_quarantine where "
                     "quarantineid = @ID', so a listed table would record a release and a delete as the same row, naming an id that "

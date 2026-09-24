@@ -82,11 +82,40 @@ namespace HM
       static bool Begin(__int64 accountId, const Provider &provider, bool mirror, int daysToKeep,
                         AnsiString &url, AnsiString &nonce, AnsiString &problem);
 
+      // A migration job's sign-in (Application/MigrationManager.h): the same
+      // flow, begun from a per-job link the owner of a mailbox being migrated
+      // opens, for a mailbox that is not an account of this server. scope is
+      // what the job needs consent for - mail, contacts and calendars at once
+      // (MigrationSources' table) - and redeemScope, when not empty, is the one
+      // resource the code is redeemed for, which Microsoft requires of a
+      // consent that spans two. linkDigest is the digest of the link the flow
+      // was begun from, carried to the end so that a flow begun from a link
+      // since replaced is refused. Complete answers the job and the digest in
+      // the grant.
+      static bool BeginForMigration(__int64 jobId, const AnsiString &linkDigest, const Provider &provider, const AnsiString &scope,
+                                    const AnsiString &redeemScope, AnsiString &url, AnsiString &nonce, AnsiString &problem);
+
+      // A bearer token for one scope from a refresh token that is not a fetch
+      // account's - a migration job's, which asks for the mail, the contacts and
+      // the calendars in turn. grantedScope is what the provider says the token
+      // carries (empty when it did not say), so a phase whose scope was not
+      // granted is skipped with that reason; rotatedRefreshToken is a
+      // replacement the provider issued, for the caller to keep. Not cached: a
+      // job asks once per phase. transient is set when the provider could not
+      // answer now - no answer at all, a 429, a 5xx, or temporarily_unavailable
+      // or server_error - which a later attempt may not meet, as against a
+      // grant it refuses, which only its owner signing in again mends.
+      static bool RefreshAccessToken(const Provider &provider, const AnsiString &refreshToken, const AnsiString &scope,
+                                     String &token, AnsiString &grantedScope, AnsiString &rotatedRefreshToken,
+                                     bool &transient, String &problem);
+
       struct Grant
       {
-         Grant() : account_id(0), mirror(false), days_to_keep(-1) {}
+         Grant() : account_id(0), migration_job_id(0), mirror(false), days_to_keep(-1) {}
 
          __int64 account_id;
+         __int64 migration_job_id;   // a migration job's sign-in, and then account_id is 0
+         AnsiString migration_link;  // the digest of the link that job's sign-in was begun from
          AnsiString provider;
          String address;
          AnsiString refresh_token;

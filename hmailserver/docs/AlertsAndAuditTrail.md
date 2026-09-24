@@ -68,6 +68,7 @@ The configuration tables recorded, and the object type each is recorded as:
 | `hm_spamtraps` | `spam trap` |
 | `hm_roles`, `hm_roleassignments` | `role`, `role assignment` |
 | `hm_settingoverrides` | `setting level` - a domain's or an account's own value of a setting with levels ([SettingLevels.md](SettingLevels.md)), named by the setting, with its scope (1 a domain, 2 an account), owner id and value in the detail |
+| `hm_migrations`, `hm_migrationjobs` | `migration`, `migration job` - a batch of mailboxes copied from another server and each mailbox of it ([Migration.md](Migration.md), *Five hundred mailboxes*), as an administrator creates, starts, pauses, resumes or deletes one, or adds, retries or cancels a job - a job named by its mailbox and its target, `anna@old.example -> anna@example.com`, and the cancel of a running job recorded as a `cancelled` event, since the job's own thread writes that row; the job's secret is recorded as changed, never by its value, and a job's own progress, written by its thread, is not recorded |
 
 The archive index is mostly traffic, and is listed for the two writes of it
 that only an administrator makes: placing or releasing a legal hold

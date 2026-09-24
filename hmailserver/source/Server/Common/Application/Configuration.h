@@ -488,6 +488,13 @@ namespace HM
       int GetWebhookRetentionDays();
       void SetWebhookRetentionDays(int days);
 
+      // Migration jobs (Application/MigrationManager.h): the most connections
+      // every running job of every migration together holds to one source
+      // host, 1 to 64. The getter clamps, so a hand-edited row cannot make it
+      // unbounded or zero, which would start nothing.
+      int GetMigrationConnectionsPerHost();
+      void SetMigrationConnectionsPerHost(int connections);
+
       // Bounces read, and the suppression list (see SMTP/BounceTracker.h). All
       // eight live in hm_settings. The getters clamp to the documented range, so a
       // hand-edited row cannot turn a threshold of 0 into "list on no bounce at all".

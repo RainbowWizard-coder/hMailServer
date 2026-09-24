@@ -296,6 +296,8 @@ EXIT 0
     <ClCompile Include="..\Common\Application\NcsaLogFormatter.cpp" />
     <ClCompile Include="..\Common\Application\SqlLogDevice.cpp" />
     <ClCompile Include="..\Common\Application\MessageIndexer.cpp" />
+    <ClCompile Include="..\Common\Application\MigrationJob.cpp" />
+    <ClCompile Include="..\Common\Application\MigrationManager.cpp" />
     <ClCompile Include="..\Common\Application\ObjectCache.cpp" />
     <ClCompile Include="..\Common\Application\OutOfMemoryHandler.cpp" />
     <ClCompile Include="..\Common\Application\Property.cpp" />
@@ -596,6 +598,9 @@ EXIT 0
     <ClCompile Include="..\Common\Util\Math.cpp" />
     <ClCompile Include="..\Common\Util\MessageAttachmentStripper.cpp" />
     <ClCompile Include="..\Common\Util\MessageUtilities.cpp" />
+    <ClCompile Include="..\Common\Util\MigrationImapClient.cpp" />
+    <ClCompile Include="..\Common\Util\MigrationSources.cpp" />
+    <ClCompile Include="..\Common\Util\MigrationStore.cpp" />
     <ClCompile Include="..\Common\Util\MiniDumpInput.cpp" />
     <ClCompile Include="..\Common\Util\Parsing\AddresslistParser.cpp" />
     <ClCompile Include="..\Common\Util\Parsing\StringParser.cpp" />
@@ -660,6 +665,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiRoutes.cpp" />
     <ClCompile Include="..\Common\Util\RestApiMailbox.cpp" />
     <ClCompile Include="..\Common\Util\RestApiMailboxMove.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiMigrations.cpp" />
     <ClCompile Include="..\Common\Util\RestApiContacts.cpp" />
     <ClCompile Include="..\Common\Util\RestApiAddressBooks.cpp" />
     <ClCompile Include="..\Common\Util\AddressBookStore.cpp" />
@@ -1204,6 +1210,8 @@ EXIT 0
     <ClInclude Include="..\Common\Application\NcsaLogFormatter.h" />
     <ClInclude Include="..\Common\Application\SqlLogDevice.h" />
     <ClInclude Include="..\Common\Application\MessageIndexer.h" />
+    <ClInclude Include="..\Common\Application\MigrationJob.h" />
+    <ClInclude Include="..\Common\Application\MigrationManager.h" />
     <ClInclude Include="..\Common\Application\ObjectCache.h" />
     <ClInclude Include="..\Common\Application\OutOfMemoryHandler.h" />
     <ClInclude Include="..\Common\Application\Property.h" />
@@ -1520,6 +1528,9 @@ EXIT 0
     <ClInclude Include="..\Common\Util\Math.h" />
     <ClInclude Include="..\Common\Util\MessageAttachmentStripper.h" />
     <ClInclude Include="..\Common\Util\MessageUtilities.h" />
+    <ClInclude Include="..\Common\Util\MigrationImapClient.h" />
+    <ClInclude Include="..\Common\Util\MigrationSources.h" />
+    <ClInclude Include="..\Common\Util\MigrationStore.h" />
     <ClInclude Include="..\Common\Util\MiniDumpInput.h" />
     <ClInclude Include="..\Common\Util\Parsing\AddresslistParser.h" />
     <ClInclude Include="..\Common\Util\Parsing\StringParser.h" />

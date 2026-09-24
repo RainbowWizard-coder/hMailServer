@@ -115,6 +115,14 @@ namespace HM
       // every folder - no row ever has id 0, so 0 excludes nothing.
       static int GetExplicitDesignations(std::shared_ptr<IMAPFolders> accountFolders, __int64 excludeFolderID);
 
+      // The designation the name table gives a top-level folder of this name,
+      // case-insensitively, or DesignationNone. For a mailbox that is not this
+      // server's own - a migration's source (Application/MigrationManager.h),
+      // whose server sent no special-use attributes - so that its "Sent Items"
+      // is filed into the account's own \Sent folder by the same table that
+      // makes a folder here \Sent by its name.
+      static int DesignationOfName(const String &topLevelName);
+
    private:
 
       // One row of the historical folder-name table: the designation a top-level

@@ -910,6 +910,28 @@ namespace HM
          RouteWebhookDeliveryList,
          RouteWebhookRun,
          RouteWebhookTest,
+         // Migration jobs (RestApiMigrations.cpp, Application/MigrationManager.h):
+         // a batch of mailboxes copied from another server. The migration id is
+         // the route's identifier and a job's id its record_id. Account
+         // routes by permission - view_accounts to read, manage_accounts to
+         // change - and a credential confined to named domains reaches a
+         // migration only when every job of it copies into one of them, which
+         // the handler judges, since no path names the domain.
+         RouteMigrationList,
+         RouteMigrationCreate,
+         RouteMigrationGet,
+         RouteMigrationDelete,
+         RouteMigrationStart,
+         RouteMigrationPause,
+         RouteMigrationResume,
+         RouteMigrationSummary,
+         RouteMigrationJobList,
+         RouteMigrationJobCreate,
+         RouteMigrationJobGet,
+         RouteMigrationJobReport,
+         RouteMigrationJobRetry,
+         RouteMigrationJobCancel,
+         RouteMigrationJobSignIn,
          // the reason the delivery queue is - the counters are the server's
          // and there is no honest way to narrow them to one domain.
 
@@ -2247,6 +2269,16 @@ namespace HM
       // RestApiWebhooks.cpp.
       HttpResponse HandleWebhooks_(const Caller &caller, const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiWebhooksPaths_();
+
+      // Migration jobs. In RestApiMigrations.cpp: the routes; the page a job's
+      // sign-in link opens, before any credential (it sends the browser to the
+      // provider with the cookie the callback checks); and the end of that
+      // sign-in, which HandlePortalOAuthCallback_ hands a migration's grant to.
+      HttpResponse HandleMigrations_(const Caller &caller, const Route &route, const AnsiString &request);
+      HttpResponse HandleMigrationSignIn_(const AnsiString &query);
+      HttpResponse CompleteMigrationSignIn_(__int64 jobId, const AnsiString &linkDigest, const String &address,
+                                            const AnsiString &refreshToken, const AnsiString &provider);
+      static AnsiString OpenApiMigrationsPaths_();
 
       // The complaints of one domain, every domain's rate, and the sweep. In
       // RestApiComplaints.cpp.

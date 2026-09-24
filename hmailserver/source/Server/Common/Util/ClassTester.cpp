@@ -33,6 +33,9 @@
 #include "../../SMTP/BounceClassifier.h"
 #include "BrandLogo.h"
 #include "ReaderOAuth.h"
+#include "MigrationImapClient.h"
+#include "MigrationSources.h"
+#include "../Application/MigrationJob.h"
 #include "WebAuthn.h"
 #include "PasskeyStore.h"
 #include "MaskedAddresses.h"
@@ -278,6 +281,20 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing ReaderOAuth\n"));
       ReaderOAuthTester readerOAuthTester;
       readerOAuthTester.Test();
+
+      // Migration jobs: the table of the three kinds of source with the hosts,
+      // endpoints and OAuth scopes each needs (the Google and Microsoft kinds
+      // are not exercised end to end on a bench that has neither provider),
+      // Graph's contacts and events as the vCards and iCalendar objects the
+      // stores take, a multistatus read for its cards, the IMAP replies the
+      // client reads, and a job's report through its own JSON and back.
+      OutputDebugString(_T("hMailServer: Testing migration jobs\n"));
+      MigrationSourcesTester migrationSourcesTester;
+      migrationSourcesTester.Test();
+      MigrationImapClientTester migrationImapClientTester;
+      migrationImapClientTester.Test();
+      MigrationJobTester migrationJobTester;
+      migrationJobTester.Test();
 
       // Passkeys: the CBOR attestation object, the COSE key inside it, the
       // authenticator data, the two signature algorithms and what each reader
