@@ -3431,6 +3431,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>Het archief met een wachtwoordzin _versleutelen (AES-256, bestandsnamen inbegrepen)</value>
   </data>
+  <data name="Encrypt mail to this domain at this server" xml:space="preserve">
+    <value>E-mail naar dit domein op deze server versleutelen</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Versleuteld</value>
   </data>
@@ -5673,6 +5676,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="None - no encryption" xml:space="preserve">
     <value>Geen - geen versleuteling</value>
   </data>
+  <data name="None - sent as it was written" xml:space="preserve">
+    <value>Geen - verzonden zoals het geschreven is</value>
+  </data>
   <data name="None of the selected accounts have an e-mail address." xml:space="preserve">
     <value>Geen van de geselecteerde accounts heeft een e-mailadres.</value>
   </data>
@@ -6104,6 +6110,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Open {0}, which owns the {1} settings" xml:space="preserve">
     <value>{0} openen, waar de {1}-instellingen zijn ondergebracht</value>
+  </data>
+  <data name="OpenPGP - to the partner's public key" xml:space="preserve">
+    <value>OpenPGP - naar de openbare sleutel van de partner</value>
   </data>
   <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
     <value>OpenTelemetry OTLP-eindpunt voor logboeken (leeg = uitgeschakeld)</value>
@@ -6885,6 +6894,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>Weigeren beantwoordt een inzending bij RCPT met de reden, en stuurt al het andere - een alias, een doorsturing, een geplande verzending - terug naar de afzender in een melding over de afleverstatus. Mail die al voor een adres in de wachtrij staat, stuit bij de volgende afleverpoging op de lijst. Afleveren en alleen vastleggen is de veilige manier om te zien wat de lijst zou doen voordat ze het doet.</value>
   </data>
+  <data name="Refuse it and tell the sender" xml:space="preserve">
+    <value>Weigeren en de afzender inlichten</value>
+  </data>
   <data name="Refuse it, with the reason" xml:space="preserve">
     <value>Weigeren, met de reden</value>
   </data>
@@ -7422,6 +7434,9 @@ Doorgaan?</value>
   <data name="Runs the server's built-in connectivity and configuration checks (outbound port 25, MX resolution, backup directory, IP configuration). The message-store consistency scan below is a separate read-only background task - the server runs it at start-up and hourly and records what it found in a recovery report." xml:space="preserve">
     <value>Voert de ingebouwde controles van de server op connectiviteit en configuratie uit (uitgaande poort 25, MX-resolutie, back-upmap, IP-configuratie). De consistentiescan van de berichtopslag hieronder is een aparte, alleen-lezen achtergrondtaak - de server voert die bij het opstarten en elk uur uit en legt in een herstelrapport vast wat hij heeft gevonden.</value>
   </data>
+  <data name="S/MIME - to the partner's certificate" xml:space="preserve">
+    <value>S/MIME - naar het certificaat van de partner</value>
+  </data>
   <data name="SAMaxTimeout (90)" xml:space="preserve">
     <value>SAMaxTimeout (90)</value>
   </data>
@@ -7946,6 +7961,9 @@ Doorgaan?</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
     <value>Tijdens dit _uur van de lokale dag versturen (0 tot en met 23; de verzendingen worden over het uur verspreid)</value>
+  </data>
+  <data name="Send it unencrypted and log it" xml:space="preserve">
+    <value>Onversleuteld verzenden en vastleggen</value>
   </data>
   <data name="Send log entries to syslog" xml:space="preserve">
     <value>Logregels naar syslog sturen</value>
@@ -9211,6 +9229,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The key file was kept: {0}" xml:space="preserve">
     <value>Het sleutelbestand is behouden: {0}</value>
   </data>
+  <data name="The key held" xml:space="preserve">
+    <value>De bewaarde sleutel</value>
+  </data>
   <data name="The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>De sleutel is versleuteld en dit paneel ontsleutelt hem bewust niet, dus of hij bij het certificaat past, blijkt pas wanneer de server het paar laadt.</value>
   </data>
@@ -9330,6 +9351,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Het overzicht noemt de opstellingen die stilzwijgend niets doen - een drempel van nul, een drempel die geen enkele ingeschakelde controle kan bereiken, een controle die nul scoort.</value>
+  </data>
+  <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
+    <value>Sleutel van de partner: een openbare OpenPGP-sleutel of PEM-certificaten (leeg gelaten blijft de bewaarde sleutel behouden)</value>
   </data>
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>De wachtwoordzin nog eens, om zeker te weten dat hij goed is ge_typt</value>
@@ -10370,6 +10394,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Wanneer een DKIM-handtekening is gemaakt, en wanneer die ophoudt er een te zijn die een verifieerder zou moeten honoreren (RFC 6376 3.5).</value>
+  </data>
+  <data name="When a message cannot be encrypted" xml:space="preserve">
+    <value>Als een bericht niet kan worden versleuteld</value>
   </data>
   <data name="When a scanner cannot run" xml:space="preserve">
     <value>Wanneer een scanner niet kan draaien</value>

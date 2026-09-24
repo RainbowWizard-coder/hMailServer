@@ -225,6 +225,28 @@ namespace hMailServer.ControlPanel.Views
       };
 
       /// <summary>
+      /// hMailServer's eRemoteEncryption: gateway encryption, the message itself
+      /// encrypted at this server to the partner's key (docs/RemoteDomains.md).
+      /// </summary>
+      private static readonly (int Value, string Label)[] RemoteEncryptionOptions =
+      {
+         (0, L("None - sent as it was written")),
+         (1, L("OpenPGP - to the partner's public key")),
+         (2, L("S/MIME - to the partner's certificate"))
+      };
+
+      /// <summary>
+      /// What happens to a message the policy says to encrypt and that cannot be.
+      /// The refusal first, because it is the default and the reason to have
+      /// the setting at all.
+      /// </summary>
+      private static readonly (int Value, string Label)[] RemoteEncryptFallbackOptions =
+      {
+         (0, L("Refuse it and tell the sender")),
+         (1, L("Send it unencrypted and log it"))
+      };
+
+      /// <summary>
       /// What this server will do when it talks to a named remote domain.
       ///
       /// Three questions an administrator asks about a partner, a customer or a
@@ -261,6 +283,16 @@ namespace hMailServer.ControlPanel.Views
             new FieldSpec { Prop = "CalloutTimeoutSeconds", Label = L("How long to wait, in seconds"), Kind = FieldKind.Number, ShowInGrid = false, Default = 10 },
             new FieldSpec { Prop = "CalloutCacheMinutes", Label = L("How long an answer is remembered, in minutes"), Kind = FieldKind.Number, ShowInGrid = false, Default = 60 },
             new FieldSpec { Prop = "CalloutMaxPerMinute", Label = L("How often one domain is asked, per minute"), Kind = FieldKind.Number, ShowInGrid = false, Default = 10 },
+            // Gateway encryption. The key is written and never read back - the
+            // server answers it empty - so the box opens empty and a key is sent
+            // only when one is pasted; what is held is shown by the summary
+            // below it, which the server writes: the fingerprint to check with
+            // the partner, the expiry, and whether a message can be encrypted
+            // to it now.
+            new FieldSpec { Prop = "Encrypt", Label = L("Encrypt mail to this domain at this server"), Kind = FieldKind.Combo, Options = RemoteEncryptionOptions, GridWidth = 110, Default = 0 },
+            new FieldSpec { Prop = "EncryptKey", Label = L("The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)"), Kind = FieldKind.Multiline, WriteOnly = true, ShowInGrid = false, Default = "" },
+            new FieldSpec { Prop = "EncryptKeySummary", Label = L("The key held"), ReadOnly = true, ShowInGrid = false },
+            new FieldSpec { Prop = "EncryptFallback", Label = L("When a message cannot be encrypted"), Kind = FieldKind.Combo, Options = RemoteEncryptFallbackOptions, ShowInGrid = false, Default = 0 },
             new FieldSpec { Prop = "Description", Label = L("Description"), Default = "" }
          }
       });

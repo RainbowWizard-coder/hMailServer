@@ -145,6 +145,25 @@ namespace RegressionTests.Shared
          "feaFfTkvAP9vpnBYjBI3tYEJqpJteokGrh4/EWyM3WNO/DUJtc62aAEAukeUO3aWgpkHejO2t5W8" +
          "4vVO3MeX4UFOng31q2kkOA0=";
 
+      /// <summary>
+      ///    Alice's key again - the same primary, so the same fingerprint - with
+      ///    her subkey's binding signed afresh by her primary to give the subkey an
+      ///    expiry, 2096-01-01: GnuPG 2.4.7's --quick-set-expire on 24 September
+      ///    2026, exported with export-minimal, so the one binding is the new one.
+      ///    The key that expires which no other fixture is; a binding tampered
+      ///    with after it was signed no longer does, because the server verifies
+      ///    a subkey's binding before it encrypts to the subkey (OpenPgpWriter.h).
+      /// </summary>
+      public const string RingOwnPublicExpiringBase64 =
+         "mDMEaq0hphYJKwYBBAHaRw8BAQdAogB/YdOhOFS5ajaz62eLUepoNXY/3nTQgUXElQCO+fy0I0Fs" +
+         "aWNlIEZpeHR1cmUgPGFsaWNlQGZpeHR1cmVzLnRlc3Q+iJAEExYKADgWIQQ8b/XjRYFz3V2z9KSh" +
+         "QmPJfeaFfQUCaq0hpgIbAwULCQgHAgYVCgkICwIEFgIDAQIeAQIXgAAKCRChQmPJfeaFfaSaAP4z" +
+         "1aPIosKBxbw2o6g4StHegDSHti6i6BaakoCP3DqqoAEAvvu1HHt590Ku50WUoHSMaO9EdiPdNpDF" +
+         "lOZv3UVyfAi4OARqrSGmEgorBgEEAZdVAQUBAQdAGQu/CHDJ97RxQz9zk4Jk8BUAvFvLbNRtnTzZ" +
+         "ll8CQzEDAQgHiH4EGBYKACYCGwwWIQQ8b/XjRYFz3V2z9KShQmPJfeaFfQUCarSjiwUJglO+mgAK" +
+         "CRChQmPJfeaFfS38AQCVWEAcdeNHmJpor2lbNVtjTxpHMYn5xO9SuovLrURqNgEAtfEVD3lVY0gQ" +
+         "dtZYq7oEanWgxpy5EN1YlyhVJfG3+Q8=";
+
       /// <summary>Bob's, RSA 3072 with an RSA subkey - a correspondent's key.</summary>
       public const string RingPeerPublicBase64 =
          "mQGNBGqtIagBDADQQirACtpvaYmaRYWH9UnVjqAkN5BvOWSu6ycCTLIq3wX41lfkzZH7L4mqYjoF" +

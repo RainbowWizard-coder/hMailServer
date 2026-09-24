@@ -59,11 +59,11 @@ namespace HM
 
    }
 
-   void
+   bool
    RemoteDomainPolicies::Refresh()
    {
       String sql = "select * from hm_remotedomainpolicies order by policydomainname asc";
-      DBLoad_(sql);
+      return DBLoad_(sql);
    }
 
    std::shared_ptr<RemoteDomainPolicy>

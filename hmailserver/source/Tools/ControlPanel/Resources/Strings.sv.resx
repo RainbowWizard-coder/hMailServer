@@ -3431,6 +3431,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>K_ryptera arkivet med en lösenfras (AES-256, filnamnen inräknade)</value>
   </data>
+  <data name="Encrypt mail to this domain at this server" xml:space="preserve">
+    <value>Kryptera e-post till den här domänen på den här servern</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Krypterad</value>
   </data>
@@ -5673,6 +5676,9 @@ Inget som redan finns där tas bort.</value>
   <data name="None - no encryption" xml:space="preserve">
     <value>Ingen - ingen kryptering</value>
   </data>
+  <data name="None - sent as it was written" xml:space="preserve">
+    <value>Ingen - skickas som det skrevs</value>
+  </data>
   <data name="None of the selected accounts have an e-mail address." xml:space="preserve">
     <value>Inget av de valda kontona har en e-postadress.</value>
   </data>
@@ -6104,6 +6110,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Open {0}, which owns the {1} settings" xml:space="preserve">
     <value>Öppna {0}, som äger inställningarna för {1}</value>
+  </data>
+  <data name="OpenPGP - to the partner's public key" xml:space="preserve">
+    <value>OpenPGP - till partnerns publika nyckel</value>
   </data>
   <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
     <value>OpenTelemetry OTLP-slutpunkt för loggar (tomt = inaktiverat)</value>
@@ -6885,6 +6894,9 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>Avvisa besvarar en inlämning vid RCPT med skälet, och returnerar allt annat - ett alias, en vidarebefordran, en schemalagd sändning - till avsändaren i ett leveransstatusmeddelande. E-post som redan köats till en adress möter listan vid nästa leveransförsök. Leverera och registrera bara är det säkra sättet att se vad listan skulle göra innan den gör det.</value>
   </data>
+  <data name="Refuse it and tell the sender" xml:space="preserve">
+    <value>Avvisa det och meddela avsändaren</value>
+  </data>
   <data name="Refuse it, with the reason" xml:space="preserve">
     <value>Avvisa, med skälet</value>
   </data>
@@ -7422,6 +7434,9 @@ Fortsätt?</value>
   <data name="Runs the server's built-in connectivity and configuration checks (outbound port 25, MX resolution, backup directory, IP configuration). The message-store consistency scan below is a separate read-only background task - the server runs it at start-up and hourly and records what it found in a recovery report." xml:space="preserve">
     <value>Kör serverns inbyggda anslutnings- och konfigurationskontroller (utgående port 25, MX-uppslagning, säkerhetskopieringskatalog, IP-konfiguration). Konsistensgenomsökningen av meddelandelagret nedan är en separat skrivskyddad bakgrundsuppgift - servern kör den vid start och varje timme och registrerar vad den hittade i en återställningsrapport.</value>
   </data>
+  <data name="S/MIME - to the partner's certificate" xml:space="preserve">
+    <value>S/MIME - till partnerns certifikat</value>
+  </data>
   <data name="SAMaxTimeout (90)" xml:space="preserve">
     <value>SAMaxTimeout (90)</value>
   </data>
@@ -7946,6 +7961,9 @@ Fortsätt?</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
     <value>Skicka under den här _timmen av det lokala dygnet (0 till 23; utskicken sprids över timmen)</value>
+  </data>
+  <data name="Send it unencrypted and log it" xml:space="preserve">
+    <value>Skicka det okrypterat och logga det</value>
   </data>
   <data name="Send log entries to syslog" xml:space="preserve">
     <value>Skicka loggposter till syslog</value>
@@ -9211,6 +9229,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The key file was kept: {0}" xml:space="preserve">
     <value>Nyckelfilen behölls: {0}</value>
   </data>
+  <data name="The key held" xml:space="preserve">
+    <value>Den sparade nyckeln</value>
+  </data>
   <data name="The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Nyckeln är krypterad och den här panelen dekrypterar den avsiktligt inte, så om den matchar certifikatet bevisas först när servern läser in paret.</value>
   </data>
@@ -9330,6 +9351,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Översikten namnger de arrangemang som tyst gör ingenting - en nolltröskel, en tröskel ingen aktiverad kontroll kan nå, en kontroll som ger noll poäng.</value>
+  </data>
+  <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
+    <value>Partnerns nyckel: en publik OpenPGP-nyckel eller PEM-certifikat (lämnas fältet tomt behålls den sparade nyckeln)</value>
   </data>
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>Lösenfrasen en gång till, för att vara säker på att den skrevs rä_tt</value>
@@ -10370,6 +10394,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>När en DKIM-signatur gjordes, och när den slutar vara en som en verifierare bör respektera (RFC 6376 3.5).</value>
+  </data>
+  <data name="When a message cannot be encrypted" xml:space="preserve">
+    <value>När ett meddelande inte kan krypteras</value>
   </data>
   <data name="When a scanner cannot run" xml:space="preserve">
     <value>När en skanner inte kan köras</value>

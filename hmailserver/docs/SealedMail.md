@@ -210,6 +210,26 @@ without it, and the log line is where to find which messages.
 * **POP3 and IMAP** stream the file as it is on disk, which is the right answer: a
   client that holds the key reads the message.
 
+## Gateway encryption to a partner domain
+
+A remote domain policy can encrypt mail to a partner at this server, to the
+partner's own key ([RemoteDomains.md](RemoteDomains.md), "Gateway encryption"). It
+asks a third question, narrower than either list above: **is this message encrypted
+end to end already?** It is answered from what the body holds, not from the label
+that says so: an `application/pkcs7-mime` (or `x-pkcs7-mime`) body whose CMS content
+type is enveloped-data or authenticated-enveloped-data - whatever its `smime-type`
+parameter says, and whether or not it has one - or a PGP/MIME message
+(`multipart/encrypted` with `protocol="application/pgp-encrypted"`) whose encrypted
+part is an OpenPGP message that begins with session key packets and then encrypted
+data. Such a message goes to the partner exactly as it arrived. A message that is
+sealed but not encrypted - a `multipart/signed` message, or opaque S/MIME
+`signed-data` however it is labelled, the bare `application/pkcs7-mime` label older
+S/MIME v2 clients gave it included - is encrypted for the partner whole, signature
+included, and the partner's gateway opens it to the same bytes, so the signature
+still verifies. So is a message only labelled encrypted whose content is readable.
+The rest of the message's journey - the copies to anybody but the partner, the
+stored copies - is untouched.
+
 ## The one line to remember
 
 A sealed message leaves this server exactly as it arrived. Everything the server would

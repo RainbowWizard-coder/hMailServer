@@ -3431,6 +3431,9 @@
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>Ш_ифрувати архів парольною фразою (AES-256, разом з іменами файлів)</value>
   </data>
+  <data name="Encrypt mail to this domain at this server" xml:space="preserve">
+    <value>Шифрувати пошту до цього домену на цьому сервері</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Зашифровано</value>
   </data>
@@ -5673,6 +5676,9 @@
   <data name="None - no encryption" xml:space="preserve">
     <value>Немає — без шифрування</value>
   </data>
+  <data name="None - sent as it was written" xml:space="preserve">
+    <value>Немає - надсилається таким, яким написано</value>
+  </data>
   <data name="None of the selected accounts have an e-mail address." xml:space="preserve">
     <value>Жоден із вибраних облікових записів не має поштової адреси.</value>
   </data>
@@ -6104,6 +6110,9 @@
   </data>
   <data name="Open {0}, which owns the {1} settings" xml:space="preserve">
     <value>Відкрити {0}, де задаються параметри {1}</value>
+  </data>
+  <data name="OpenPGP - to the partner's public key" xml:space="preserve">
+    <value>OpenPGP - на відкритий ключ партнера</value>
   </data>
   <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
     <value>Кінцева точка OpenTelemetry OTLP для журналів (порожньо = вимкнено)</value>
@@ -6885,6 +6894,9 @@
   <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>Відхилити відповідає на надсилання під час RCPT із зазначенням причини, а все інше - псевдонім, пересилання, заплановане надсилання - повертає відправникові в повідомленні про стан доставки. Пошта, що вже стоїть у черзі на адресу, зустріне список під час наступної спроби доставки. Доставити й лише записати - безпечний спосіб побачити, що зробить список, перш ніж він це зробить.</value>
   </data>
+  <data name="Refuse it and tell the sender" xml:space="preserve">
+    <value>Відхилити та повідомити відправника</value>
+  </data>
   <data name="Refuse it, with the reason" xml:space="preserve">
     <value>Відхилити із зазначенням причини</value>
   </data>
@@ -7422,6 +7434,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Runs the server's built-in connectivity and configuration checks (outbound port 25, MX resolution, backup directory, IP configuration). The message-store consistency scan below is a separate read-only background task - the server runs it at start-up and hourly and records what it found in a recovery report." xml:space="preserve">
     <value>Виконує вбудовані перевірки підключення та конфігурації сервера (вихідний порт 25, розв’язання MX, папка резервних копій, конфігурація IP). Сканування цілісності сховища повідомлень нижче — окреме фонове завдання лише для читання: сервер виконує його під час запуску та щогодини й записує знайдене у звіт про відновлення.</value>
   </data>
+  <data name="S/MIME - to the partner's certificate" xml:space="preserve">
+    <value>S/MIME - на сертифікат партнера</value>
+  </data>
   <data name="SAMaxTimeout (90)" xml:space="preserve">
     <value>SAMaxTimeout (90)</value>
   </data>
@@ -7946,6 +7961,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
     <value>Надсилати в цю _годину місцевої доби (0–23; надсилання розподіляється впродовж години)</value>
+  </data>
+  <data name="Send it unencrypted and log it" xml:space="preserve">
+    <value>Надіслати без шифрування та записати в журнал</value>
   </data>
   <data name="Send log entries to syslog" xml:space="preserve">
     <value>Надсилати записи журналу до syslog</value>
@@ -9211,6 +9229,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The key file was kept: {0}" xml:space="preserve">
     <value>Файл ключа залишено: {0}</value>
   </data>
+  <data name="The key held" xml:space="preserve">
+    <value>Збережений ключ</value>
+  </data>
   <data name="The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Ключ зашифровано, і ця панель навмисно його не розшифровує, тому відповідність сертифікату доводиться лише тоді, коли сервер завантажує пару.</value>
   </data>
@@ -9330,6 +9351,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Огляд називає ті сполучення, які мовчки нічого не роблять - нульовий поріг, поріг, недосяжний для жодної увімкненої перевірки, перевірку з нульовою оцінкою.</value>
+  </data>
+  <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
+    <value>Ключ партнера: відкритий ключ OpenPGP або сертифікати PEM (якщо залишити порожнім, збережений ключ залишиться)</value>
   </data>
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>Парольна фраза ще раз, щоб упевнитися, що її набрано _правильно</value>
@@ -10370,6 +10394,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Коли підпис DKIM було створено і коли він перестає бути тим, який перевіряльник має визнавати (RFC 6376 3.5).</value>
+  </data>
+  <data name="When a message cannot be encrypted" xml:space="preserve">
+    <value>Якщо повідомлення не можна зашифрувати</value>
   </data>
   <data name="When a scanner cannot run" xml:space="preserve">
     <value>Коли сканер не може запуститися</value>

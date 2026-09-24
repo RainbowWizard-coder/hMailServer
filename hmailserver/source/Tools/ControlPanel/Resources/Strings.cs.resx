@@ -3431,6 +3431,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>Šif_rovat archiv heslem (AES-256, včetně názvů souborů)</value>
   </data>
+  <data name="Encrypt mail to this domain at this server" xml:space="preserve">
+    <value>Šifrovat poštu do této domény na tomto serveru</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Šifrováno</value>
   </data>
@@ -5673,6 +5676,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="None - no encryption" xml:space="preserve">
     <value>Žádné – bez šifrování</value>
   </data>
+  <data name="None - sent as it was written" xml:space="preserve">
+    <value>Žádné - odešle se tak, jak byla napsána</value>
+  </data>
   <data name="None of the selected accounts have an e-mail address." xml:space="preserve">
     <value>Žádný z vybraných účtů nemá e-mailovou adresu.</value>
   </data>
@@ -6104,6 +6110,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Open {0}, which owns the {1} settings" xml:space="preserve">
     <value>Otevřít {0}, kde se spravují nastavení {1}</value>
+  </data>
+  <data name="OpenPGP - to the partner's public key" xml:space="preserve">
+    <value>OpenPGP - na veřejný klíč partnera</value>
   </data>
   <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
     <value>Koncový bod OpenTelemetry OTLP pro logy (prázdné = vypnuto)</value>
@@ -6885,6 +6894,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>Odmítnout odpoví na odeslání u RCPT s důvodem a vše ostatní - alias, přeposlání, naplánované odeslání - vrátí odesílateli ve zprávě o stavu doručení. Pošta, která už na adresu čeká ve frontě, narazí na seznam při dalším pokusu o doručení. Doručit a jen zaznamenat je bezpečný způsob, jak zjistit, co by seznam udělal, dřív než to udělá.</value>
   </data>
+  <data name="Refuse it and tell the sender" xml:space="preserve">
+    <value>Odmítnout a upozornit odesílatele</value>
+  </data>
   <data name="Refuse it, with the reason" xml:space="preserve">
     <value>Odmítnout, s uvedením důvodu</value>
   </data>
@@ -7422,6 +7434,9 @@ Pokračovat?</value>
   <data name="Runs the server's built-in connectivity and configuration checks (outbound port 25, MX resolution, backup directory, IP configuration). The message-store consistency scan below is a separate read-only background task - the server runs it at start-up and hourly and records what it found in a recovery report." xml:space="preserve">
     <value>Spustí vestavěné kontroly připojení a konfigurace serveru (odchozí port 25, překlad MX, adresář záloh, konfigurace IP). Kontrola konzistence úložiště zpráv níže je samostatná úloha na pozadí pouze pro čtení – server ji spouští při startu a každou hodinu a to, co našel, zaznamená do hlášení o obnově.</value>
   </data>
+  <data name="S/MIME - to the partner's certificate" xml:space="preserve">
+    <value>S/MIME - na certifikát partnera</value>
+  </data>
   <data name="SAMaxTimeout (90)" xml:space="preserve">
     <value>SAMaxTimeout (90)</value>
   </data>
@@ -7946,6 +7961,9 @@ Pokračovat?</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
     <value>Odesílat v této _hodině místního dne (0 až 23; odesílání se rozloží do celé hodiny)</value>
+  </data>
+  <data name="Send it unencrypted and log it" xml:space="preserve">
+    <value>Odeslat nešifrovaně a zaznamenat</value>
   </data>
   <data name="Send log entries to syslog" xml:space="preserve">
     <value>Odesílat záznamy protokolu do syslog</value>
@@ -9211,6 +9229,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The key file was kept: {0}" xml:space="preserve">
     <value>Soubor klíče byl ponechán: {0}</value>
   </data>
+  <data name="The key held" xml:space="preserve">
+    <value>Uložený klíč</value>
+  </data>
   <data name="The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Klíč je šifrovaný a tento panel ho záměrně nedešifruje, takže zda odpovídá certifikátu, se prokáže až tehdy, když server dvojici načte.</value>
   </data>
@@ -9330,6 +9351,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Přehled pojmenovává uspořádání, která potichu nic nedělají - nulový práh, práh, kterého žádná zapnutá kontrola nedosáhne, kontrolu se skóre nula.</value>
+  </data>
+  <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
+    <value>Klíč partnera: veřejný klíč OpenPGP nebo certifikáty PEM (ponecháte-li prázdné, uložený klíč zůstane)</value>
   </data>
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>Heslo ještě jednou, pro jistotu, že bylo _napsáno správně</value>
@@ -10370,6 +10394,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Kdy byl podpis DKIM vytvořen a kdy přestává být tím, který by ověřovatel měl uznávat (RFC 6376 3.5).</value>
+  </data>
+  <data name="When a message cannot be encrypted" xml:space="preserve">
+    <value>Když zprávu nelze zašifrovat</value>
   </data>
   <data name="When a scanner cannot run" xml:space="preserve">
     <value>Když skener nemůže běžet</value>

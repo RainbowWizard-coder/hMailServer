@@ -109,6 +109,14 @@ namespace RegressionTests.Shared
 
       public string MessageData { get; private set; } = "";
 
+      /// <summary>
+      ///    Every message accepted, in the order the transactions ended - one
+      ///    per DATA or BDAT LAST that was answered 250. MessageData is only the
+      ///    last of them; a test whose client opens several sessions (a
+      ///    simulator taking more than one connection) reads them all here.
+      /// </summary>
+      public List<string> Messages { get; } = new List<string>();
+
       // The message as it arrives, appended in linear time; MessageData is
       // made from it once the terminator has been seen. A 720 KB message that
       // arrived in small reads used to be re-copied and re-searched on every
@@ -429,6 +437,9 @@ namespace RegressionTests.Shared
                return false;
             }
 
+            if (last)
+               Messages.Add(MessageData);
+
             Send(last ? "250 Test Server - Queued for delivery\r\n" : "250 chunk received\r\n");
 
             if (last && SimulatedError == SimulatedErrorType.DisconnectAfterMessageAccept)
@@ -497,6 +508,7 @@ namespace RegressionTests.Shared
             {
                // remove the ending...
                MessageData = _data.ToString().Replace("\r\n.\r\n", "\r\n");
+               Messages.Add(MessageData);
 
                Send("250 Test Server - Queued for delivery\r\n");
 

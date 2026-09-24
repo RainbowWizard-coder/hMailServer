@@ -755,6 +755,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiProtectedMessages.cpp" />
     <ClCompile Include="..\Common\Util\OpenPgpWriter.cpp" />
     <ClCompile Include="..\Common\Util\ZeroAccess.cpp" />
+    <ClCompile Include="..\Common\Util\GatewayEncryption.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOpenPgpKeys.cpp" />
     <ClCompile Include="..\Common\Util\RestApiZeroAccess.cpp" />
     <ClCompile Include="..\Common\Util\RestrictedDelivery.cpp" />
@@ -1600,6 +1601,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\ProtectedMessages.h" />
     <ClInclude Include="..\Common\Util\OpenPgpWriter.h" />
     <ClInclude Include="..\Common\Util\ZeroAccess.h" />
+    <ClInclude Include="..\Common\Util\GatewayEncryption.h" />
     <ClInclude Include="..\Common\Util\RestrictedDelivery.h" />
     <ClInclude Include="..\Common\Util\ImpersonationCheck.h" />
     <ClInclude Include="..\Common\Util\MessageRecall.h" />

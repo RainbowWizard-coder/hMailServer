@@ -7,9 +7,32 @@
 
 #include "../Common/BO/RemoteDomainPolicies.h"
 #include "../Common/Persistence/PersistentRemoteDomainPolicy.h"
+#include "../Common/Util/GatewayEncryption.h"
+#include "../Common/Util/Unicode.h"
 #include "../SMTP/RecipientCallout.h"
 
 #include "COMError.h"
+
+#include <ctime>
+
+namespace
+{
+   // The key a policy holds, judged as its own method - or, while encryption is
+   // off, as what it looks like - so that the fingerprint and the expiry answer
+   // for a key kept for later as well as for one in use.
+   HM::GatewayEncryption::KeyFacts FactsOfHeldKey(std::shared_ptr<HM::RemoteDomainPolicy> policy)
+   {
+      const HM::String key = policy->GetEncryptKey();
+      HM::RemoteEncryption method = policy->GetEncrypt();
+      if (method == HM::RemoteEncryptNone)
+         method = HM::GatewayEncryption::MethodOfKey(key);
+
+      if (key.IsEmpty() || method == HM::RemoteEncryptNone)
+         return HM::GatewayEncryption::KeyFacts();
+
+      return HM::GatewayEncryption::Inspect(method, key, policy->GetDomainName(), (__int64) time(nullptr));
+   }
+}
 
 STDMETHODIMP InterfaceRemoteDomainPolicy::InterfaceSupportsErrorInfo(REFIID riid)
 {
@@ -593,6 +616,175 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_CalloutMaxPerMinute(long newVal)
    }
 }
 
+STDMETHODIMP InterfaceRemoteDomainPolicy::get_Encrypt(eRemoteEncryption *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = (eRemoteEncryption) object_->GetEncrypt();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceRemoteDomainPolicy::put_Encrypt(eRemoteEncryption newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      // As the TLS requirement: a number outside the enum is refused here,
+      // where it can be seen, rather than stored and read back as none at the
+      // next start.
+      const int value = (int) newVal;
+      if (value < (int) HM::RemoteEncryptNone || value > (int) HM::RemoteEncryptSmime)
+         return COMError::GenerateError("Invalid encryption. Use 0 (none), 1 (OpenPGP) or 2 (S/MIME).");
+
+      object_->SetEncrypt((HM::RemoteEncryption) value);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceRemoteDomainPolicy::get_EncryptKey(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      // Written, never read back, as the REST API does it: what is held is
+      // described by EncryptKeyFingerprint, EncryptKeyExpires and
+      // EncryptKeySummary. The key is public, and the backup carries it; this
+      // is so that an editor shows what the key IS rather than a block of
+      // base64 nobody can check against the partner's published fingerprint.
+      *pVal = HM::String().AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceRemoteDomainPolicy::put_EncryptKey(BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      // Judged at Save, against the method and the domain the policy has then:
+      // private-key material and an over-long paste are refused whatever the
+      // method, and a key that differs from the one the database holds must be
+      // one a message can be encrypted to. Only white space removes the key.
+      object_->SetEncryptKey(newVal);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceRemoteDomainPolicy::get_EncryptFallback(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = (long) object_->GetEncryptFallback();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceRemoteDomainPolicy::put_EncryptFallback(long newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      if (newVal != (long) HM::RemoteEncryptFallbackRefuse && newVal != (long) HM::RemoteEncryptFallbackSendUnencrypted)
+         return COMError::GenerateError("Invalid encryption fallback. Use 0 (refuse the message and tell the sender) or 1 (send it unencrypted and log it).");
+
+      object_->SetEncryptFallback((HM::RemoteEncryptFallback) newVal);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceRemoteDomainPolicy::get_EncryptKeyFingerprint(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = HM::String(FactsOfHeldKey(object_).fingerprint).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceRemoteDomainPolicy::get_EncryptKeyExpires(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = HM::String(HM::GatewayEncryption::ExpiryText(FactsOfHeldKey(object_).expires)).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceRemoteDomainPolicy::get_EncryptKeySummary(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      const HM::AnsiString summary = HM::GatewayEncryption::Summary(object_->GetEncrypt(), object_->GetEncryptKey(),
+         object_->GetDomainName(), (__int64) time(nullptr));
+
+      HM::String text;
+      HM::Unicode::MultiByteToWide(summary, text);
+
+      *pVal = text.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 STDMETHODIMP InterfaceRemoteDomainPolicy::Save()
 {
    try
@@ -610,6 +802,20 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::Save()
 
          return S_OK;
       }
+
+      // A refused save puts the policy back as the database holds it. The
+      // object a saved policy is handed out as over COM is the running record
+      // delivery reads (InterfaceRemoteDomainPolicies attaches the collection's
+      // own item), and its setters wrote into it before Save was called: left
+      // as it is, a refused key - an expired certificate, a key with nothing to
+      // encrypt to, a method with no key - would govern every message to the
+      // partner until the service restarted, refused by the fallback. A policy
+      // never saved (id 0) is in no collection, and has nothing to go back to.
+      // The general fix, a COM change written onto a copy and swapped in on
+      // save, is its own roadmap row ("A COM change to a shared configuration
+      // object is written onto a copy").
+      if (object_->GetID() != 0)
+         HM::PersistentRemoteDomainPolicy::ReadObject(object_, (long) object_->GetID());
 
       return COMError::GenerateError(errorMessage);
    }

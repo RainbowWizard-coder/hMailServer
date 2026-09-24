@@ -3431,6 +3431,9 @@
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>パスフレーズでアーカイブを暗号化する(_Y) (AES-256、ファイル名も含む)</value>
   </data>
+  <data name="Encrypt mail to this domain at this server" xml:space="preserve">
+    <value>このドメイン宛てのメールをこのサーバーで暗号化する</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>暗号化済み</value>
   </data>
@@ -5673,6 +5676,9 @@
   <data name="None - no encryption" xml:space="preserve">
     <value>なし - 暗号化なし</value>
   </data>
+  <data name="None - sent as it was written" xml:space="preserve">
+    <value>なし - 書かれたとおりに送信</value>
+  </data>
   <data name="None of the selected accounts have an e-mail address." xml:space="preserve">
     <value>選択したアカウントのいずれにもメール アドレスがありません。</value>
   </data>
@@ -6104,6 +6110,9 @@
   </data>
   <data name="Open {0}, which owns the {1} settings" xml:space="preserve">
     <value>{0} を開く — {1} の設定はそこにあります</value>
+  </data>
+  <data name="OpenPGP - to the partner's public key" xml:space="preserve">
+    <value>OpenPGP - パートナーの公開鍵で</value>
   </data>
   <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
     <value>ログ用の OpenTelemetry OTLP エンドポイント (空 = 無効)</value>
@@ -6885,6 +6894,9 @@
   <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>拒否する場合、RCPT での送信には理由を付けて応答し、それ以外 (エイリアス、転送、予約送信) は配信状態通知で送信者に返します。すでにキューにあるアドレス宛てのメールは、次の配信試行時にリストと照合されます。配信して記録だけするのは、リストが実際に動く前に何をするかを確かめる安全な方法です。</value>
   </data>
+  <data name="Refuse it and tell the sender" xml:space="preserve">
+    <value>拒否して送信者に通知する</value>
+  </data>
   <data name="Refuse it, with the reason" xml:space="preserve">
     <value>理由を付けて拒否する</value>
   </data>
@@ -7422,6 +7434,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Runs the server's built-in connectivity and configuration checks (outbound port 25, MX resolution, backup directory, IP configuration). The message-store consistency scan below is a separate read-only background task - the server runs it at start-up and hourly and records what it found in a recovery report." xml:space="preserve">
     <value>サーバーの組み込みの接続と構成のチェック (送信ポート 25、MX の名前解決、バックアップ ディレクトリ、IP 構成) を実行します。下のメッセージ ストア整合性スキャンは、これとは別の読み取り専用のバックグラウンド タスクです。サーバーは起動時と 1 時間ごとにこれを実行し、見つかった内容を復旧レポートに記録します。</value>
   </data>
+  <data name="S/MIME - to the partner's certificate" xml:space="preserve">
+    <value>S/MIME - パートナーの証明書で</value>
+  </data>
   <data name="SAMaxTimeout (90)" xml:space="preserve">
     <value>SAMaxTimeout (90)</value>
   </data>
@@ -7946,6 +7961,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
     <value>現地時刻のこの時に送る (0 から 23、送信はその 1 時間に分散)(_H)</value>
+  </data>
+  <data name="Send it unencrypted and log it" xml:space="preserve">
+    <value>暗号化せずに送信してログに記録する</value>
   </data>
   <data name="Send log entries to syslog" xml:space="preserve">
     <value>ログ項目を syslog に送信する</value>
@@ -9211,6 +9229,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The key file was kept: {0}" xml:space="preserve">
     <value>鍵ファイルは残しました: {0}</value>
   </data>
+  <data name="The key held" xml:space="preserve">
+    <value>保存済みの鍵</value>
+  </data>
   <data name="The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>鍵は暗号化されており、このパネルは意図的に復号しないため、証明書と一致するかどうかはサーバーがペアを読み込んだときにのみ証明されます。</value>
   </data>
@@ -9330,6 +9351,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>概要には、黙って何もしていない構成が挙げられます。ゼロのしきい値、有効なチェックのどれも到達できないしきい値、スコアがゼロのチェックなどです。</value>
+  </data>
+  <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
+    <value>パートナーの鍵: OpenPGP 公開鍵または PEM 証明書 (空のままにすると保存済みの鍵が維持されます)</value>
   </data>
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>入力の誤りがないことを確かめるため、もう一度パスフレーズを(_W)</value>
@@ -10370,6 +10394,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>DKIM 署名がいつ作成され、いつ検証者が尊重すべき署名ではなくなるか (RFC 6376 3.5)。</value>
+  </data>
+  <data name="When a message cannot be encrypted" xml:space="preserve">
+    <value>メッセージを暗号化できない場合</value>
   </data>
   <data name="When a scanner cannot run" xml:space="preserve">
     <value>スキャナーが実行できないとき</value>

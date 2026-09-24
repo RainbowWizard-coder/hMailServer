@@ -12,6 +12,7 @@ namespace HM
 {
    class Message;
    class MessageRecipient;
+   class RemoteDomainPolicy;
    class RuleResult;
    class ServerInfo;
    class HostNameAndIpAddress;
@@ -28,8 +29,25 @@ namespace HM
 
 
 
-      void DeliverToSingleDomain_(std::vector<std::shared_ptr<MessageRecipient> > &batch, std::shared_ptr<ServerInfo> serverInfo);
-      void DeliverToSingleServer_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, std::shared_ptr<ServerInfo> serverInfo);
+      // encryption is the remote domain policy whose gateway encryption governs
+      // every recipient of the batch, or empty when none does (Perform groups
+      // the recipients so that a batch is one such policy's or none's).
+      void DeliverToSingleDomain_(std::vector<std::shared_ptr<MessageRecipient> > &batch, std::shared_ptr<ServerInfo> serverInfo, std::shared_ptr<RemoteDomainPolicy> encryption);
+
+      // message is what goes on the wire: the queued message, or the batch's
+      // encrypted copy of it.
+      void DeliverToSingleServer_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, std::shared_ptr<ServerInfo> serverInfo, std::shared_ptr<Message> message);
+
+      // Gateway encryption for one batch (Common/Util/GatewayEncryption.h).
+      // Writes the encrypted copy to a temporary file named in copyFile, which
+      // the caller deletes when the batch is done, DKIM-signs it, and puts it in
+      // batchMessage. A message encrypted end to end already, and one the
+      // policy's fallback lets through unencrypted, leave batchMessage as it
+      // was. False when nothing is to be sent: the batch was refused (its
+      // recipients carry the permanent 5.7.10 failure) or, for a failure of
+      // this server's own, deferred (4.3.0, retried).
+      bool EncryptBatch_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, std::shared_ptr<RemoteDomainPolicy> encryption,
+                         std::shared_ptr<Message> &batchMessage, String &copyFile);
 
       bool ResolveRecipientServers_(std::shared_ptr<ServerInfo> &serverInfo, std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, std::vector<HostNameAndIpAddress> &saMailServers);
       bool RecipientWithNonFatalDeliveryErrorExists_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients);

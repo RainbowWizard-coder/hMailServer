@@ -3431,6 +3431,9 @@ Control Panel может читать файлы сообщений только
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>Ш_ифровать архив парольной фразой (AES-256, вместе с именами файлов)</value>
   </data>
+  <data name="Encrypt mail to this domain at this server" xml:space="preserve">
+    <value>Шифровать почту в этот домен на этом сервере</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Зашифровано</value>
   </data>
@@ -5673,6 +5676,9 @@ Control Panel может читать файлы сообщений только
   <data name="None - no encryption" xml:space="preserve">
     <value>Нет — без шифрования</value>
   </data>
+  <data name="None - sent as it was written" xml:space="preserve">
+    <value>Нет - отправляется в том виде, в каком написано</value>
+  </data>
   <data name="None of the selected accounts have an e-mail address." xml:space="preserve">
     <value>Ни у одной из выбранных учётных записей нет адреса электронной почты.</value>
   </data>
@@ -6104,6 +6110,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Open {0}, which owns the {1} settings" xml:space="preserve">
     <value>Открыть {0}, где находятся параметры «{1}»</value>
+  </data>
+  <data name="OpenPGP - to the partner's public key" xml:space="preserve">
+    <value>OpenPGP - на открытый ключ партнёра</value>
   </data>
   <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
     <value>Конечная точка OpenTelemetry OTLP для журналов (пусто — выключено)</value>
@@ -6885,6 +6894,9 @@ Control Panel может читать файлы сообщений только
   <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>Отклонить отвечает на отправку при RCPT с указанием причины, а всё остальное - псевдоним, пересылку, запланированную отправку - возвращает отправителю в уведомлении о состоянии доставки. Почта, уже стоящая в очереди на адрес, встретит список при следующей попытке доставки. Доставить и только записать - безопасный способ увидеть, что сделает список, прежде чем он это сделает.</value>
   </data>
+  <data name="Refuse it and tell the sender" xml:space="preserve">
+    <value>Отклонить и уведомить отправителя</value>
+  </data>
   <data name="Refuse it, with the reason" xml:space="preserve">
     <value>Отклонить с указанием причины</value>
   </data>
@@ -7422,6 +7434,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Runs the server's built-in connectivity and configuration checks (outbound port 25, MX resolution, backup directory, IP configuration). The message-store consistency scan below is a separate read-only background task - the server runs it at start-up and hourly and records what it found in a recovery report." xml:space="preserve">
     <value>Выполняет встроенные в сервер проверки связности и конфигурации (исходящий порт 25, разрешение MX, каталог резервных копий, настройка IP). Проверка целостности хранилища сообщений ниже — отдельная фоновая задача, работающая только на чтение: сервер выполняет её при запуске и ежечасно и записывает найденное в отчёт о восстановлении.</value>
   </data>
+  <data name="S/MIME - to the partner's certificate" xml:space="preserve">
+    <value>S/MIME - на сертификат партнёра</value>
+  </data>
   <data name="SAMaxTimeout (90)" xml:space="preserve">
     <value>SAMaxTimeout (90)</value>
   </data>
@@ -7946,6 +7961,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
     <value>Отправлять в этот _час местных суток (0–23; отправка распределяется по часу)</value>
+  </data>
+  <data name="Send it unencrypted and log it" xml:space="preserve">
+    <value>Отправить без шифрования и записать в журнал</value>
   </data>
   <data name="Send log entries to syslog" xml:space="preserve">
     <value>Отправлять записи журнала в syslog</value>
@@ -9211,6 +9229,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The key file was kept: {0}" xml:space="preserve">
     <value>Файл ключа сохранён: {0}</value>
   </data>
+  <data name="The key held" xml:space="preserve">
+    <value>Сохранённый ключ</value>
+  </data>
   <data name="The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>Ключ зашифрован, и эта панель намеренно его не расшифровывает, поэтому соответствие сертификату доказывается только когда сервер загружает пару.</value>
   </data>
@@ -9330,6 +9351,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>Обзор называет те сочетания, которые молча ничего не делают - нулевой порог, порог, недостижимый ни для одной включённой проверки, проверку с нулевой оценкой.</value>
+  </data>
+  <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
+    <value>Ключ партнёра: открытый ключ OpenPGP или сертификаты PEM (если оставить пустым, сохранённый ключ останется)</value>
   </data>
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>Парольная фраза ещё раз, чтобы убедиться, что она набрана _верно</value>
@@ -10370,6 +10394,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Когда подпись DKIM была создана и когда она перестаёт быть той, которую проверяющему следует признавать (RFC 6376 3.5).</value>
+  </data>
+  <data name="When a message cannot be encrypted" xml:space="preserve">
+    <value>Если сообщение нельзя зашифровать</value>
   </data>
   <data name="When a scanner cannot run" xml:space="preserve">
     <value>Когда сканер не может запуститься</value>

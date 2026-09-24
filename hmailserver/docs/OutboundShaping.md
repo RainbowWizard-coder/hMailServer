@@ -34,9 +34,10 @@ The order of the checks
 For each batch of recipients on one target, `DeliverToSingleDomain_` judges, in
 this order, before any connection is opened:
 
-1. The remote domain policy's **largest message** (`5.3.4`, permanent). First
-   because it never connects and its answer will not change: a message that
-   will never go should not wait for a window first.
+1. The remote domain policy's **largest message** (`5.3.4`, permanent),
+   measured on the queued message. First because it never connects and its
+   answer will not change: a message that will never go should not wait for a
+   window first.
 2. The destination's **back-off window** (this document). Held until the
    window ends; when the window has passed, one delivery is let through as the
    probe and any other arriving meanwhile waits a minute.
@@ -54,6 +55,16 @@ this order, before any connection is opened:
    usually until the next UTC day; then DANE and the connection attempts,
    where a later host that would be reached from another warming address is
    skipped.
+7. DNS: the MX lookup (or the route's host), MTA-STS, and - where DANE applies -
+   whether the MX set is DNSSEC-validated.
+8. **Gateway encryption**, for a batch whose domain's policy encrypts
+   ([RemoteDomains.md](RemoteDomains.md), "Gateway encryption"): the partner's
+   copy is made here, after everything above that could hold the batch back
+   without connecting, so a batch that is only going to be deferred is never
+   encrypted, signed, logged or traced as encrypted (until 24 September 2026
+   this came before step 1). The largest-message ceiling is measured again on
+   the copy, which is what is sent (`5.3.4`, permanent).
+9. The connection attempts, each host's DANE records judged in turn.
 
 Every one of 2 to 6 is a deferral this server chose, with `4.4.5` ("mail system
 congestion") and a sentence naming the rule, and none of them is counted (see

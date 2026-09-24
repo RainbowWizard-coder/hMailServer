@@ -6,9 +6,12 @@
 // public key, and nothing else. This is what a zero-access mailbox
 // (docs/ZeroAccess.md) needs at the moment of delivery - the filters have run
 // over the text, and the text is about to be written into the mailbox, and it
-// is written encrypted to the account's own key instead - and it is the whole
-// of what this server can do with OpenPGP: it never signs, never decrypts and
-// never verifies. Everything else is the page's (PortalOpenPgp.js).
+// is written encrypted to the account's own key instead - and, since the
+// gateway encryption of 24 September 2026 (GatewayEncryption.h), a message to
+// a partner domain encrypted to the partner's key. It never signs, never
+// decrypts and never verifies a message; the one signature it checks is the
+// binding of the subkey it is about to encrypt to (below). Everything else is
+// the page's (PortalOpenPgp.js).
 //
 // WHAT IS WRITTEN, packet by packet (RFC 9580, the 2024 refresh of RFC 4880)
 //
@@ -42,10 +45,23 @@
 // binding signature carries the encrypt flags and which is neither revoked nor
 // expired, else the primary itself when it is RSA and flagged to encrypt. The
 // flags, the expiry and the revocation are read from the signatures' hashed
-// subpackets; the signatures are NOT verified cryptographically, for the same
-// reason OpenPgpKey.h gives: the key is the account's own, put in the ring by
-// the account holder, and verifying its self-signatures would need every
-// signature algorithm OpenPGP has without making the key any more theirs.
+// subpackets.
+//
+// A SUBKEY'S BINDING (0x18) AND ITS REVOCATION (0x28) ARE VERIFIED, since 24
+// September 2026, against the primary key over the two key packets, as RFC
+// 9580 section 5.2.4 says: RSA, Ed25519 (the legacy EdDSA of GnuPG's keys and
+// the RFC 9580 kind) and ECDSA on the NIST curves. A binding or a revocation
+// that does not verify is ignored, as GnuPG ignores it, so a subkey somebody
+// appended under a partner's primary - the fingerprint the partner would read
+// out stays the partner's - is never chosen, and a revocation somebody
+// appended revokes nothing. Gateway encryption to a partner's key
+// (GatewayEncryption.h) is why: that key comes from outside. The zero-access
+// mailbox's own key goes through the same chooser; any key GnuPG made
+// verifies, so what changes for it is that a key whose subkey binding was
+// altered after it was signed, or whose primary is of a kind this cannot
+// check (DSA), is refused. The certifications of the user ids (0x10-0x13)
+// are still read unverified: they carry the primary's own flags and expiry,
+// and the primary is the key whose fingerprint is checked.
 //
 // WHERE THE RANDOMNESS COMES FROM, AND HOW THE TESTS SEE IT
 //
@@ -102,8 +118,10 @@ namespace HM
       };
 
       // now is the moment expiry is judged at; the caller passes the clock so
-      // that the tester can stand still.
-      static EncryptionKey ChooseEncryptionKey(const unsigned char *key, size_t length, __int64 now);
+      // that the tester can stand still. verifyBindings is false only for the
+      // tester, which writes an expiry into a binding it cannot sign again in
+      // order to test the expiry arithmetic on its own.
+      static EncryptionKey ChooseEncryptionKey(const unsigned char *key, size_t length, __int64 now, bool verifyBindings = true);
       static EncryptionKey ChooseEncryptionKeyBase64(const AnsiString &keyBase64, __int64 now);
 
       // The test hook. Empty vectors mean "draw fresh ones".

@@ -10,9 +10,9 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 
 | Measure | Count |
 |---|---|
-| COM properties the desktop program writes | 461 |
-| of them writable over REST | 453 |
-| of them reachable from a Deck view | 453 |
+| COM properties the desktop program writes | 464 |
+| of them writable over REST | 456 |
+| of them reachable from a Deck view | 456 |
 | missing over REST | 8 |
 | over REST but not reached by any Deck view | 0 |
 | assignments left out of the count | 5 |
@@ -430,6 +430,9 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `CalloutTimeoutSeconds` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
 | `Description` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`POST /api/v1/diagnostics/run` (name, scope unknown) | diagnostics, remotedomains |
 | `DomainName` | CollectionSpecs | `POST /api/v1/passkeys` (words, loose, scope unknown)<br>`POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter)<br>`POST /api/v1/roles` (words, loose, scope unknown)<br>`PUT /api/v1/roles/{name}` (words, loose, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (words, loose, scope unknown)<br>`POST /api/v1/diagnostics/run` (words, loose, scope unknown)<br>`POST /api/v1/backup/{archive}/mailboxes/{address}/restore` (words, loose, scope unknown)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown) | diagnostics, passkeys, remotedomains, roles, webhooks |
+| `Encrypt` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
+| `EncryptFallback` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
+| `EncryptKey` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
 | `MaxConnections` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
 | `MaxMessageSizeKB` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
 | `MaxMessagesPerMinute` | CollectionSpecs | `POST /api/v1/remote-domains` (setter)<br>`PUT /api/v1/remote-domains/{id}` (setter) | remotedomains |
@@ -985,13 +988,13 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/me/sender-list` | SenderListEntry, SenderListEntries | `address`, `blocked`, `expires`, `expires_time`, `from`, `reason`, `to`, `value` | - |
 | `PUT /api/v1/me/sender-list/{id}` | SenderListEntry, SenderListEntries | `address`, `blocked`, `expires`, `expires_time`, `from`, `reason`, `to`, `value` | - |
 | `PUT /api/v1/me/settings` | Settings | `forwarding`, `name`, `signature` | - |
-| `POST /api/v1/me/smime/chain` | ? | `certificates`, `chain`, `first`, `not_after`, `purpose`, `reason`, `subject` | - |
+| `POST /api/v1/me/smime/chain` | ? | `certificates`, `chain`, `encrypt`, `first`, `not_after`, `purpose`, `reason`, `subject` | - |
 | `PUT /api/v1/me/smime/own` | ? | `address`, `certificate`, `chain`, `data`, `fingerprint`, `key`, `name`, `not_after`, `salt` | - |
 | `PUT /api/v1/me/smime/recipients` | DistributionListRecipient | `address`, `certificate`, `fingerprint`, `name`, `not_after` | - |
 | `POST /api/v1/me/tasks` | ? | `calendar`, `description`, `due`, `first`, `priority`, `summary`, `tz` | - |
 | `PUT /api/v1/me/tasks/{id}` | ? | `calendar`, `description`, `due`, `first`, `priority`, `summary`, `tz` | - |
 | `PUT /api/v1/me/vacation` | ? | `enabled`, `expires`, `expires_date`, `message`, `subject` | - |
-| `PUT /api/v1/me/zero-access` | ? | `account`, `code`, `delivery`, `expires`, `fingerprint`, `from`, `headers`, `key`, `keys`, `lanes`, `mailbox`, `memory_kib`, `message`, `passes`, `passphrase`, `password`, `password_wrapped`, `read`, `recovery_wrapped`, `revoked`, `salt`, `secret`, `to`, `zero_access_not_allowed` | - |
+| `PUT /api/v1/me/zero-access` | ? | `account`, `code`, `delivery`, `encrypt`, `expires`, `fingerprint`, `from`, `headers`, `key`, `keys`, `lanes`, `mailbox`, `memory_kib`, `message`, `passes`, `passphrase`, `password`, `password_wrapped`, `read`, `recovery_wrapped`, `revoked`, `salt`, `secret`, `to`, `zero_access_not_allowed` | - |
 | `PUT /api/v1/me/zero-access/rewrap` | ? | `from`, `key`, `lanes`, `mailbox`, `memory_kib`, `passes`, `password`, `password_wrapped`, `salt` | - |
 | `POST /api/v1/migrations/{id}/jobs` | MigrationJob | `manage_accounts`, `secret`, `signin_url`, `source_user`, `target` | yes |
 | `POST /api/v1/migrations/{id}/jobs/{job}/cancel` | MigrationJob | - | - |
@@ -1012,9 +1015,9 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/protected/{token}/reply` | ? | `body`, `domain`, `from`, `key`, `message`, `password`, `postmaster`, `sender`, `to` | - |
 | `POST /api/v1/quarantine/{id}/release` | - | - | - |
 | `POST /api/v1/queue/{id}/retry` | - | - | yes |
-| `POST /api/v1/remote-domains` | RemoteDomainPolicy, RemoteDomainPolicies | `active`, `allow_automatic_replies`, `allow_forwarding`, `answered`, `callout_cache_minutes`, `callout_enabled`, `callout_host`, `callout_max_per_minute`, `callout_port`, `callout_timeout_seconds`, `certificate`, `delivery`, `description`, `domain`, `domain_name`, `keys`, `limit`, `lower`, `match`, `max_connections`, `max_message_size_kb`, `max_messages_per_minute`, `message`, `outbound_tls`, `pattern`, `require_inbound_tls`, `verified`, `wildcard` | yes |
+| `POST /api/v1/remote-domains` | RemoteDomainPolicy, RemoteDomainPolicies | `active`, `address`, `allow_automatic_replies`, `allow_forwarding`, `answered`, `callout_cache_minutes`, `callout_enabled`, `callout_host`, `callout_max_per_minute`, `callout_port`, `callout_timeout_seconds`, `certificate`, `certificates`, `data`, `delivery`, `description`, `directory`, `domain`, `domain_name`, `encrypt`, `encrypt_fallback`, `encrypt_key`, `encrypt_key_expires`, `encrypt_key_fingerprint`, `encrypt_key_problem`, `encrypt_key_set`, `encrypt_key_subject`, `encrypt_key_subkey_fingerprint`, `encrypt_key_warning`, `end`, `file`, `first`, `header`, `key`, `keys`, `kind`, `limit`, `lower`, `match`, `max_connections`, `max_message_size_kb`, `max_messages_per_minute`, `message`, `new`, `outbound_tls`, `pattern`, `read`, `require_inbound_tls`, `send_unencrypted`, `sender`, `signature`, `to`, `verified`, `wildcard`, `write` | yes |
 | `POST /api/v1/remote-domains/verification-cache/clear` | ? | `callout_cache_minutes` | yes |
-| `PUT /api/v1/remote-domains/{id}` | RemoteDomainPolicy, RemoteDomainPolicies | `active`, `allow_automatic_replies`, `allow_forwarding`, `answered`, `callout_cache_minutes`, `callout_enabled`, `callout_host`, `callout_max_per_minute`, `callout_port`, `callout_timeout_seconds`, `certificate`, `delivery`, `description`, `domain`, `domain_name`, `keys`, `limit`, `lower`, `match`, `max_connections`, `max_message_size_kb`, `max_messages_per_minute`, `message`, `outbound_tls`, `pattern`, `require_inbound_tls`, `verified`, `wildcard` | yes |
+| `PUT /api/v1/remote-domains/{id}` | RemoteDomainPolicy, RemoteDomainPolicies | `active`, `address`, `allow_automatic_replies`, `allow_forwarding`, `answered`, `callout_cache_minutes`, `callout_enabled`, `callout_host`, `callout_max_per_minute`, `callout_port`, `callout_timeout_seconds`, `certificate`, `certificates`, `data`, `delivery`, `description`, `directory`, `domain`, `domain_name`, `encrypt`, `encrypt_fallback`, `encrypt_key`, `encrypt_key_expires`, `encrypt_key_fingerprint`, `encrypt_key_problem`, `encrypt_key_set`, `encrypt_key_subject`, `encrypt_key_subkey_fingerprint`, `encrypt_key_warning`, `end`, `file`, `first`, `header`, `key`, `keys`, `kind`, `limit`, `lower`, `match`, `max_connections`, `max_message_size_kb`, `max_messages_per_minute`, `message`, `new`, `outbound_tls`, `pattern`, `read`, `require_inbound_tls`, `send_unencrypted`, `sender`, `signature`, `to`, `verified`, `wildcard`, `write` | yes |
 | `POST /api/v1/reputation/check` | Settings, Utilities | `as_of` | yes |
 | `POST /api/v1/review/{id}/release` | ? | - | - |
 | `PUT /api/v1/role-assignments/{address}` | ? | `account`, `credential`, `domain`, `domains`, `from`, `manage_roles`, `name`, `role`, `to` | yes |

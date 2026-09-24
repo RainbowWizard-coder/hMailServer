@@ -249,7 +249,12 @@ fingerprint or issuer key id is this key's own — the packet says this key made
 it. Verifying it would mean implementing every signature algorithm OpenPGP has,
 and would still not make the key the right one. **What makes a key in this
 directory the right one is that its owner or an administrator put it there**, and
-nothing more. Do not read more into a stored key than that.
+nothing more. Do not read more into a stored key than that. The one signature on a
+key the server does check is a subkey's binding, where it encrypts to the key - a
+zero-access mailbox's own key ([ZeroAccess.md](ZeroAccess.md)) and a partner's gateway
+key ([RemoteDomains.md](RemoteDomains.md)): a subkey is the part of a key a stranger
+can append without changing its fingerprint, so only one whose binding verifies
+against the primary is encrypted to.
 
 ### The address waiver
 

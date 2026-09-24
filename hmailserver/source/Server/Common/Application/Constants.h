@@ -900,4 +900,20 @@
 //      (schedule, day, provider), and removed with its schedule by the
 //      foreign key. Nothing is counted until an administrator makes a
 //      schedule, so an upgraded server delivers exactly as it did.
-#define REQUIRED_DB_VERSION            6093
+
+// 6094 adds hm_remotedomainpolicies.policyencrypt, policyencryptkey and
+//      policyencryptfallback (Util/GatewayEncryption.h, docs/RemoteDomains.md
+//      "Gateway encryption"): mail to a partner domain encrypted at this
+//      server to the partner's key, whatever the sender's client did. The
+//      method is 0 none, 1 OpenPGP (PGP/MIME to the partner's public key) or
+//      2 S/MIME (enveloped-data to the partner's certificate); the key is the
+//      partner's armoured OpenPGP public key or PEM certificates - one gateway
+//      key per partner domain, never one per recipient address - kept in the
+//      clear, since it is public, and never answered back by REST or COM,
+//      which answer its fingerprint, expiry and subject instead; the fallback
+//      is 0 refuse (the recipients fail 5.7.10 and the sender is told) or 1
+//      send unencrypted and log it. The key is judged when it is saved and
+//      again at every delivery. Every policy an upgrade finds encrypts
+//      nothing, holds no key and refuses, so an upgraded server delivers
+//      exactly as it did.
+#define REQUIRED_DB_VERSION            6094

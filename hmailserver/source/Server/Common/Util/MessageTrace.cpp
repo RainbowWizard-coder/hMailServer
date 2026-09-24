@@ -102,6 +102,8 @@ namespace HM
    }
    const wchar_t *MessageTrace::EventSandboxSubmitted = L"sandbox-submitted";
    const wchar_t *MessageTrace::EventSandboxVerdict = L"sandbox-verdict";
+   const wchar_t *MessageTrace::EventEncrypted = L"encrypted";
+   const wchar_t *MessageTrace::EventSentUnencrypted = L"unencrypted";
 
    bool
    MessageTrace::GetEnabled()

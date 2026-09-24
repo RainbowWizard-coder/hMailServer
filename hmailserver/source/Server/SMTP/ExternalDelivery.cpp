@@ -10,6 +10,7 @@
 
 #include "../Common/BO/Message.h"
 #include "../Common/BO/MessageRecipient.h"
+#include "../Common/BO/MessageRecipients.h"
 #include "../Common/BO/Routes.h"
 #include "../Common/BO/RemoteDomainPolicies.h"
 #include "../Common/BO/RemoteDomainPolicy.h"
@@ -23,7 +24,12 @@
 #include "../Common/TCPIP/IOService.h"
 #include "../Common/TCPIP/HostNameAndIpAddress.h"
 
+#include "../Common/AntiSpam/DKIM/DKIM.h"
+#include "../Common/AntiSpam/DKIM/DKIMSigner.h"
+
 #include "../Common/Util/AWStats.h"
+#include "../Common/Util/FileUtilities.h"
+#include "../Common/Util/GatewayEncryption.h"
 #include "../Common/Util/MessageTrace.h"
 #include "../Common/Util/ServerInfo.h"
 #include "../Common/Util/OutboundOAuth2TokenClient.h"
@@ -165,6 +171,92 @@ namespace HM
          int reserved_;
          std::vector<std::shared_ptr<MessageRecipient> > recipients_;
       };
+      // The encrypted copy of one batch's message, removed from the temporary
+      // directory when the batch is done, whichever way DeliverToSingleDomain_
+      // leaves: every one of its early returns, and a throw.
+      class GatewayCopyFile
+      {
+      public:
+         GatewayCopyFile() {}
+         ~GatewayCopyFile()
+         {
+            if (!path_.IsEmpty())
+               FileUtilities::DeleteFile(path_);
+         }
+
+         String &Path() { return path_; }
+
+      private:
+         GatewayCopyFile(const GatewayCopyFile &);
+         GatewayCopyFile &operator=(const GatewayCopyFile &);
+
+         String path_;
+      };
+
+      // One server's recipients, grouped by the gateway encryption that governs
+      // them: those whose domain's policy encrypts to one partner key, or those
+      // whose domain's policy encrypts nothing.
+      struct EncryptionGroup
+      {
+         std::shared_ptr<RemoteDomainPolicy> encryption;
+         std::vector<std::shared_ptr<MessageRecipient> > recipients;
+      };
+
+      // A batch is one message file on the wire, and gateway encryption rewrites
+      // that file for a partner - so the recipients of a domain whose policy
+      // encrypts must never share a batch with anybody else's, or the others
+      // would be handed a message encrypted to a key that is not theirs. That
+      // only arises where ServerTargetResolver has merged several domains onto
+      // one relay or route target; an MX delivery is one domain already. The
+      // groups keep the order the recipients came in. With no policy that
+      // encrypts - every installation until an administrator writes one - there
+      // is one group holding every recipient, and the batches are exactly the
+      // ones there always were.
+      std::vector<EncryptionGroup> GroupByEncryption_(const std::vector<std::shared_ptr<MessageRecipient> > &recipients)
+      {
+         std::vector<EncryptionGroup> groups;
+
+         std::shared_ptr<RemoteDomainPolicies> policies =
+            Configuration::Instance()->GetSMTPConfiguration()->GetRemoteDomainPolicies();
+
+         for (std::shared_ptr<MessageRecipient> recipient : recipients)
+         {
+            std::shared_ptr<RemoteDomainPolicy> encryption;
+
+            if (policies)
+            {
+               String domain = StringParser::ExtractDomain(recipient->GetAddress()).ToLower();
+               std::shared_ptr<RemoteDomainPolicy> policy = policies->GetPolicyForDomain(domain);
+
+               if (policy && policy->GetEncrypt() != RemoteEncryptNone)
+                  encryption = policy;
+            }
+
+            const __int64 wanted = encryption ? encryption->GetID() : 0;
+
+            EncryptionGroup *group = nullptr;
+            for (EncryptionGroup &existing : groups)
+            {
+               const __int64 id = existing.encryption ? existing.encryption->GetID() : 0;
+               if (id == wanted)
+               {
+                  group = &existing;
+                  break;
+               }
+            }
+
+            if (group == nullptr)
+            {
+               groups.push_back(EncryptionGroup());
+               group = &groups.back();
+               group->encryption = encryption;
+            }
+
+            group->recipients.push_back(recipient);
+         }
+
+         return groups;
+      }
    }
 
    ExternalDelivery::ExternalDelivery(const String &sSendersIP, std::shared_ptr<Message> message, const RuleResult &globalRuleResult) :
@@ -209,37 +301,45 @@ namespace HM
       for (; iterDomain != iterEnd; iterDomain++)
       {
          std::shared_ptr<ServerInfo> serverInfo = (*iterDomain).first;
-         std::vector<std::shared_ptr<MessageRecipient> > vecRecipientsOnDomain = (*iterDomain).second;
 
-         // Split up all the recipients for this server into batches of 100 or so.
-         std::vector<std::shared_ptr<MessageRecipient> > batch;
-         auto iterRecipient = vecRecipientsOnDomain.begin();
-         while (iterRecipient != vecRecipientsOnDomain.end())
+         // Grouped by the gateway encryption that governs them, so that a batch
+         // is one partner's or nobody's. See GroupByEncryption_.
+         const std::vector<EncryptionGroup> groups = GroupByEncryption_((*iterDomain).second);
+
+         for (const EncryptionGroup &group : groups)
          {
-            batch.push_back(*iterRecipient);
+            const std::vector<std::shared_ptr<MessageRecipient> > &vecRecipientsOnDomain = group.recipients;
 
-            if (batch.size() >= iMaxRecipientsInBatch ||
-               iterRecipient + 1 == vecRecipientsOnDomain.end())
+            // Split up all the recipients for this server into batches of 100 or so.
+            std::vector<std::shared_ptr<MessageRecipient> > batch;
+            auto iterRecipient = vecRecipientsOnDomain.begin();
+            while (iterRecipient != vecRecipientsOnDomain.end())
             {
-               // Each batch gets its own copy: DeliverToSingleDomain_ overwrites the
-               // host name with the MX host it selects and can clear the connection
-               // security. Reusing one object meant every batch after the first
-               // looked up the MTA-STS policy of an MX host rather than of the
-               // recipient domain (so enforcement silently stopped applying), lost
-               // MX failover, and could inherit a STARTTLS downgrade from the
-               // previous batch.
-               std::shared_ptr<ServerInfo> batchServerInfo = std::shared_ptr<ServerInfo>(new ServerInfo(*serverInfo));
+               batch.push_back(*iterRecipient);
 
-               // Deliver the message to the remote server.
-               DeliverToSingleDomain_(batch, batchServerInfo);
+               if (batch.size() >= iMaxRecipientsInBatch ||
+                  iterRecipient + 1 == vecRecipientsOnDomain.end())
+               {
+                  // Each batch gets its own copy: DeliverToSingleDomain_ overwrites the
+                  // host name with the MX host it selects and can clear the connection
+                  // security. Reusing one object meant every batch after the first
+                  // looked up the MTA-STS policy of an MX host rather than of the
+                  // recipient domain (so enforcement silently stopped applying), lost
+                  // MX failover, and could inherit a STARTTLS downgrade from the
+                  // previous batch.
+                  std::shared_ptr<ServerInfo> batchServerInfo = std::shared_ptr<ServerInfo>(new ServerInfo(*serverInfo));
 
-               // Check what status we got on the external deliveries.
-               CollectDeliveryResult_(batchServerInfo->GetHostName(), batch, saErrorMessages, mapFailedDueToNonFatalError, suppressFailureDsnAddresses);
+                  // Deliver the message to the remote server.
+                  DeliverToSingleDomain_(batch, batchServerInfo, group.encryption);
 
-               batch.clear();
+                  // Check what status we got on the external deliveries.
+                  CollectDeliveryResult_(batchServerInfo->GetHostName(), batch, saErrorMessages, mapFailedDueToNonFatalError, suppressFailureDsnAddresses);
+
+                  batch.clear();
+               }
+
+               iterRecipient++;
             }
-
-            iterRecipient++;
          }
 
       }
@@ -254,7 +354,7 @@ namespace HM
    }
 
    void
-   ExternalDelivery::DeliverToSingleDomain_(std::vector<std::shared_ptr<MessageRecipient> > &batch, std::shared_ptr<ServerInfo> serverInfo)
+   ExternalDelivery::DeliverToSingleDomain_(std::vector<std::shared_ptr<MessageRecipient> > &batch, std::shared_ptr<ServerInfo> serverInfo, std::shared_ptr<RemoteDomainPolicy> encryption)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
    // Deliveres the message to external accounts (recipients not on this server).
@@ -325,6 +425,15 @@ namespace HM
       RemoteTlsRequirement policyTls = policy ? policy->GetOutboundTlsRequirement() : RemoteTlsDefault;
       String policyName = policy ? policy->GetDomainName() : String();
 
+      // The message that goes on the wire: the queued one, or - for a batch
+      // whose domain's policy encrypts - the partner's copy, which is made
+      // further down (Common/Util/GatewayEncryption.h). The composed record
+      // above never carries the encryption - two policies cannot both encrypt
+      // one message file - and it does not need to, because the batch was
+      // grouped by it; what governs is the record that group was made for.
+      std::shared_ptr<Message> batchMessage = original_message_;
+      GatewayCopyFile gatewayCopy;
+
       // The largest message this server will offer to the remote.
       //
       // PERMANENT, unlike everything else this record can refuse: the message
@@ -332,23 +441,31 @@ namespace HM
       // before bouncing would delay the news without changing it. 5.3.4 is RFC
       // 3463's "message too big for system", which is what the remote would have
       // said itself had the administrator not already known it would.
-      if (policy && policy->GetMaxMessageSizeKB() > 0)
+      //
+      // Measured here on the queued message, before anything is spent on it;
+      // a partner's encrypted copy is larger still, and is measured again
+      // once it is made, below.
+      auto exceedsSizeCeiling = [&](__int64 messageSize) -> bool
       {
-         __int64 messageSize = original_message_->GetSize();
-         __int64 sizeLimit = (__int64) policy->GetMaxMessageSizeKB() * 1024;
+         if (!policy || policy->GetMaxMessageSizeKB() <= 0)
+            return false;
 
-         if (messageSize > sizeLimit)
-         {
-            LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Not attempted. The remote domain policy for " + policyName + " allows at most " + StringParser::IntToString((int) policy->GetMaxMessageSizeKB()) + " KB and this message is " + StringParser::IntToString((int) (messageSize / 1024)) + " KB.");
+         const __int64 sizeLimit = (__int64) policy->GetMaxMessageSizeKB() * 1024;
+         if (messageSize <= sizeLimit)
+            return false;
 
-            String errorMessage;
-            errorMessage.Format(_T("   Error Type: SMTP\r\n   Error Description: The message was not sent. The remote domain policy for %s allows at most %d KB to this destination and this message is %d KB.\r\n\r\n"),
-               policyName.c_str(), (int) policy->GetMaxMessageSizeKB(), (int) (messageSize / 1024));
+         LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": Not attempted. The remote domain policy for " + policyName + " allows at most " + StringParser::IntToString((int) policy->GetMaxMessageSizeKB()) + " KB and this message is " + StringParser::IntToString((int) (messageSize / 1024)) + " KB.");
 
-            HandleExternalDeliveryFailure_(vecRecipients, true, errorMessage, _T("5.3.4"));
-            return;
-         }
-      }
+         String errorMessage;
+         errorMessage.Format(_T("   Error Type: SMTP\r\n   Error Description: The message was not sent. The remote domain policy for %s allows at most %d KB to this destination and this message is %d KB.\r\n\r\n"),
+            policyName.c_str(), (int) policy->GetMaxMessageSizeKB(), (int) (messageSize / 1024));
+
+         HandleExternalDeliveryFailure_(vecRecipients, true, errorMessage, _T("5.3.4"));
+         return true;
+      };
+
+      if (exceedsSizeCeiling(original_message_->GetSize()))
+         return;
 
       // The destination, as the back-off and the connection ceilings name it:
       // the recipient domain of an MX delivery, the host of a route or a relay
@@ -707,6 +824,27 @@ namespace HM
             LOG_DEBUG("DANE: the MX RRset for " + recipientDomain + " is DNSSEC-validated; DANE may be applied to the " + StringParser::IntToString((int) validatedMxHosts.size()) + " host(s) it names.");
       }
 
+      // Gateway encryption (Common/Util/GatewayEncryption.h): the partner's
+      // copy is made HERE, after every decision that could hold the batch
+      // back without connecting - the back-off window, the per-minute rate,
+      // the connection and tenant ceilings, the per-destination rate, the MX
+      // lookup, MTA-STS, the IP warm-up's ceiling for the day (which takes the
+      // recipients over it out of vecRecipients first, so the copy is made for
+      // the ones that go) - so that a batch that is only going to be deferred is
+      // never read, encrypted, signed and thrown away, and the log line and
+      // the trace's "encrypted" event mean a copy that is about to be offered.
+      // Before the connection attempts, because every one of them sends it.
+      if (encryption)
+      {
+         if (!EncryptBatch_(vecRecipients, encryption, batchMessage, gatewayCopy.Path()))
+            return;
+
+         // The copy is what goes on the wire, so it is what the ceiling
+         // measures too: armour and base64 make it about a third larger.
+         if (batchMessage != original_message_ && exceedsSizeCeiling(batchMessage->GetSize()))
+            return;
+      }
+
       mxtries_factor_ = IniFileSettings::Instance()->GetMXTriesFactor();
 
       // Try to connect to one server at a time. If a fatal error
@@ -903,7 +1041,7 @@ namespace HM
          AnsiString rptPolicyType = !daneRecords.empty() ? "tlsa" : (stsEnforced ? "sts" : "no-policy-found");
          AnsiString rptPolicyString = !daneRecords.empty() ? "dane-ee tlsa records present" : (stsEnforced ? "mode: enforce" : "");
 
-         DeliverToSingleServer_(remainingRecipients, serverInfo);
+         DeliverToSingleServer_(remainingRecipients, serverInfo, batchMessage);
 
          bool retryWithoutStartTls = false;
 
@@ -928,7 +1066,7 @@ namespace HM
          {
             serverInfo->DisableConnectionSecurity();
 
-            DeliverToSingleServer_(remainingRecipients, serverInfo);
+            DeliverToSingleServer_(remainingRecipients, serverInfo, batchMessage);
          }
 
          // What the host said, read back: a reply that asks this server to
@@ -986,6 +1124,160 @@ namespace HM
          // As above: refused on security grounds, RFC 3463 X.7.0.
          HandleExternalDeliveryFailure_(vecRecipients, false, errorMessage, _T("4.7.0"));
       }
+   }
+
+   bool
+   ExternalDelivery::EncryptBatch_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients,
+                                   std::shared_ptr<RemoteDomainPolicy> encryption,
+                                   std::shared_ptr<Message> &batchMessage,
+                                   String &copyFile)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Gateway encryption for one batch: the partner's copy of the message,
+   // encrypted to the key its remote domain policy holds. See
+   // Common/Util/GatewayEncryption.h for what is written and why.
+   //---------------------------------------------------------------------------()
+   {
+      // What the policy says, read once: one batch is sealed to one key with
+      // one fallback. The record is the collection's; a REST save replaces it
+      // with a new one and this batch keeps the one it was given, while a COM
+      // save still writes into it (Roadmap2, "A COM change to a shared
+      // configuration object is written onto a copy").
+      const RemoteEncryption method = encryption->GetEncrypt();
+      const String key = encryption->GetEncryptKey();
+      const RemoteEncryptFallback fallback = encryption->GetEncryptFallback();
+      const String policyName = encryption->GetDomainName();
+      const String methodName = String(GatewayEncryption::MethodName(method));
+      const String messageId = StringParser::IntToString(original_message_->GetID());
+
+      const String candidate = FileUtilities::GetTempFileName();
+      GatewayEncryption::KeyFacts facts;
+      AnsiString problem;
+
+      const GatewayEncryption::Outcome outcome = GatewayEncryption::SealFile(method, key,
+         PersistentMessage::GetFileName(original_message_), candidate, (__int64) time(nullptr), facts, problem);
+
+      if (outcome == GatewayEncryption::AlreadyEncrypted)
+      {
+         LOG_APPLICATION("SMTPDeliverer - Message " + messageId + ": The remote domain policy for " + policyName + " asks for " + methodName +
+            " encryption, and the message is encrypted end to end already. It is sent as it is.");
+         return true;
+      }
+
+      if (outcome == GatewayEncryption::Sealed)
+      {
+         copyFile = candidate;
+
+         // The queued message's own record with the copy's file: its sender, its
+         // id for the log, its retry count. The recipients are the batch's, which
+         // is who the copy is for - and what DKIMSigner asks when it decides
+         // whether an ARC set is of use to anyone.
+         std::shared_ptr<Message> copy = std::shared_ptr<Message>(new Message(*original_message_));
+         copy->SetPartialFileName(candidate);
+
+         // The copy is base64 and armour, whatever the original was.
+         copy->SetBinaryMime(false);
+
+         for (std::shared_ptr<MessageRecipient> recipient : vecRecipients)
+            copy->GetRecipients()->Add(recipient);
+
+         // DKIM signs a file of at most DKIM::MaxFileSize (50 MB) and passes a
+         // larger one by without a word; the copy is about a third larger than
+         // the original, so an original over about 36.5 MB makes a copy that
+         // goes unsigned. Said in the log for that message, since the
+         // original's own signature was taken off the copy's header.
+         unsigned __int64 unsignedSize = 0;
+         FileUtilities::FileSize64(candidate, unsignedSize);
+         const bool overSigningCeiling = unsignedSize > (unsigned __int64) DKIM::MaxFileSize;
+
+         // Signed afresh: the original's DKIM signature covered a body the
+         // partner is not sent, and was taken off the copy's header with the ARC
+         // set. The same signer PreprocessMessage_ runs, so the same domain signs
+         // with the same key, or nothing signs because nothing would have.
+         DKIMSigner signer;
+         signer.Sign(copy);
+
+         unsigned __int64 size = 0;
+         FileUtilities::FileSize64(candidate, size);
+         copy->SetSize((int) size);
+
+         batchMessage = copy;
+
+         // Both fingerprints for OpenPGP - the primary's, which the partner
+         // publishes, and the subkey's, which is the one encrypted to.
+         const String keyName = String(GatewayEncryption::KeyName(facts));
+
+         LOG_APPLICATION("SMTPDeliverer - Message " + messageId + ": Encrypted with " + methodName + " to key " + keyName + " for " +
+            StringParser::IntToString((int) vecRecipients.size()) + " recipient(s), as the remote domain policy for " + policyName + " requires.");
+
+         if (overSigningCeiling)
+         {
+            LOG_APPLICATION("SMTPDeliverer - Message " + messageId + ": The encrypted copy for " + policyName + " is " +
+               StringParser::IntToString((int) (unsignedSize / 1024)) + " KB, over the 50 MB that DKIM signs, and goes without a DKIM signature of this server's.");
+         }
+
+         for (std::shared_ptr<MessageRecipient> recipient : vecRecipients)
+         {
+            MessageTrace::Record(original_message_->GetID(), MessageTrace::EventEncrypted, original_message_->GetFromAddress(),
+               recipient->GetAddress(), _sendersIP, 0, methodName + _T(" to key ") + keyName + _T(", remote domain policy ") + policyName);
+         }
+
+         return true;
+      }
+
+      FileUtilities::DeleteFile(candidate);
+
+      // A sentence of its own, ended here by the text around it.
+      String reason = String(problem);
+      reason.TrimRight(_T('.'));
+
+      if (outcome == GatewayEncryption::Deferred)
+      {
+         // A failure of this server's own - the message file locked by a
+         // scanner, a full temporary directory, no memory, the cryptography
+         // library - and not of the key: the next attempt may well succeed, so
+         // the batch is retried, and neither refused nor sent in the clear,
+         // whatever the fallback says. X.3.0 is RFC 3463's "other or undefined
+         // mail system status", which is what this is.
+         LOG_APPLICATION("SMTPDeliverer - Message " + messageId + ": Delivery deferred. The remote domain policy for " + policyName + " requires " + methodName +
+            " encryption and the message could not be encrypted this time: " + reason + ". It will be retried; it has NOT been sent unencrypted.");
+
+         String errorMessage;
+         errorMessage.Format(_T("   Error Type: SMTP\r\n   Error Description: Delivery deferred. The remote domain policy for %s requires %s encryption to this destination, and the message could not be encrypted this time: %s. It will be retried, and has NOT been sent unencrypted.\r\n\r\n"),
+            policyName.c_str(), methodName.c_str(), reason.c_str());
+
+         HandleExternalDeliveryFailure_(vecRecipients, false, errorMessage, _T("4.3.0"));
+         return false;
+      }
+
+      if (fallback == RemoteEncryptFallbackSendUnencrypted)
+      {
+         LOG_APPLICATION("SMTPDeliverer - Message " + messageId + ": The remote domain policy for " + policyName + " asks for " + methodName +
+            " encryption and the message could not be encrypted: " + reason + ". It is sent UNENCRYPTED, as the policy's fallback allows.");
+
+         for (std::shared_ptr<MessageRecipient> recipient : vecRecipients)
+         {
+            MessageTrace::Record(original_message_->GetID(), MessageTrace::EventSentUnencrypted, original_message_->GetFromAddress(),
+               recipient->GetAddress(), _sendersIP, 0, _T("not encrypted (") + reason + _T("), remote domain policy ") + policyName);
+         }
+
+         return true;
+      }
+
+      LOG_APPLICATION("SMTPDeliverer - Message " + messageId + ": Not sent. The remote domain policy for " + policyName + " requires " + methodName +
+         " encryption and the message could not be encrypted: " + reason + ".");
+
+      // PERMANENT, as the size ceiling is: the key the message would be
+      // encrypted to is the one the policy holds, and a retry finds the same
+      // one; a message over the in-memory ceiling is no smaller next time.
+      // The administrator's fix is a new key, and the sender learns now rather
+      // than in two days. X.7.10 is the registry's "Encryption Needed".
+      String errorMessage;
+      errorMessage.Format(_T("   Error Type: SMTP\r\n   Error Description: The message was not sent. The remote domain policy for %s requires %s encryption to this destination, and the message could not be encrypted: %s. It has NOT been sent unencrypted.\r\n\r\n"),
+         policyName.c_str(), methodName.c_str(), reason.c_str());
+
+      HandleExternalDeliveryFailure_(vecRecipients, true, errorMessage, _T("5.7.10"));
+      return false;
    }
 
    /// Resolves IP addresses for the recipient servers. This will either be a MX 
@@ -1313,7 +1605,8 @@ namespace HM
 
    void
    ExternalDelivery::DeliverToSingleServer_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients,
-                                            std::shared_ptr<ServerInfo> serverInfo)
+                                            std::shared_ptr<ServerInfo> serverInfo,
+                                            std::shared_ptr<Message> message)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
    // Connects to a remote server and delivers the message to it.
@@ -1346,7 +1639,7 @@ namespace HM
       if (!serverInfo->GetDaneRecords().empty())
          pClientConnection->SetDaneRecords(serverInfo->GetDaneRecords());
 
-      pClientConnection->SetDelivery(original_message_, vecRecipients);
+      pClientConnection->SetDelivery(message, vecRecipients);
 
       if (!serverInfo->GetUsername().IsEmpty())
       {

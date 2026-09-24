@@ -973,7 +973,10 @@ create table hm_remotedomainpolicies
 	policycalloutport int not null,
 	policycallouttimeout int not null,
 	policycalloutcacheminutes int not null,
-	policycalloutperminute int not null
+	policycalloutperminute int not null,
+	policyencrypt int not null default 0,
+	policyencryptkey text not null,
+	policyencryptfallback int not null default 0
 );
 
 CREATE INDEX idx_hm_remotedomainpolicies_domain ON hm_remotedomainpolicies (policydomainname);
@@ -2826,4 +2829,4 @@ ALTER TABLE hm_warmupcounts ENGINE=InnoDB;
 
 ALTER TABLE hm_warmupcounts ADD CONSTRAINT fk_hm_warmupcounts_warmup FOREIGN KEY (wcwarmupid) REFERENCES hm_warmup (warmupid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6093);
+insert into hm_dbversion values (6094);

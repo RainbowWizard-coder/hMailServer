@@ -75,6 +75,42 @@ namespace HM
       RemoteTlsDane = 3
    };
 
+   // Gateway encryption: the message itself, not the session, encrypted at this
+   // server to the partner's key before it leaves (Common/Util/GatewayEncryption.h,
+   // docs/RemoteDomains.md "Gateway encryption"). Persisted in
+   // hm_remotedomainpolicies.policyencrypt and given by name over the REST API
+   // (none, openpgp, smime), so the numbers must never be renumbered. Zero is
+   // what an upgraded row, a default-constructed record and a composed record
+   // hold: a policy nobody asked to encrypt never rewrites a message.
+   enum RemoteEncryption
+   {
+      RemoteEncryptNone = 0,
+
+      // PGP/MIME (RFC 3156) to the partner's OpenPGP public key.
+      RemoteEncryptOpenPgp = 1,
+
+      // S/MIME enveloped-data (RFC 8551) to the partner's X.509 certificate.
+      RemoteEncryptSmime = 2
+   };
+
+   // What happens to a message the policy says to encrypt and that cannot be:
+   // the key has expired since it was saved, the message is too large to
+   // encrypt, or the encryption failed. Persisted in policyencryptfallback.
+   // Zero is the refusal, and deliberately: an administrator who wrote "encrypt
+   // to this partner" meant that nothing goes there in the clear, and a
+   // default that sent it anyway would be the silent downgrade the TLS
+   // requirement above exists to prevent.
+   enum RemoteEncryptFallback
+   {
+      // Not sent: the recipients fail permanently with 5.7.10 and the sender
+      // gets a delivery status notification naming the policy.
+      RemoteEncryptFallbackRefuse = 0,
+
+      // Sent as it was written, and the application log and the message trace
+      // say so.
+      RemoteEncryptFallbackSendUnencrypted = 1
+   };
+
    class RemoteDomainPolicy : public BusinessObject<RemoteDomainPolicy>
    {
    public:
@@ -151,6 +187,22 @@ namespace HM
       void SetCalloutMaxPerMinute(long value) { callout_max_per_minute_ = value; }
       long GetCalloutMaxPerMinute() const { return callout_max_per_minute_; }
 
+      // Gateway encryption. The key is the partner's: an armoured OpenPGP public
+      // key, or one or more PEM certificates of which the first is encrypted to.
+      // ONE key per partner domain - which is how partner gateways (Zix, Cisco,
+      // Proofpoint, SEPPmail) publish theirs - and not one per recipient
+      // address. It is public, so it is kept in the clear and carried by the
+      // backup; the REST API and COM still never read it back, and answer its
+      // fingerprint, expiry and subject instead (GatewayEncryption::Inspect).
+      void SetEncrypt(RemoteEncryption value) { encrypt_ = value; }
+      RemoteEncryption GetEncrypt() const { return encrypt_; }
+
+      void SetEncryptKey(const String &value) { encrypt_key_ = value; }
+      String GetEncryptKey() const { return encrypt_key_; }
+
+      void SetEncryptFallback(RemoteEncryptFallback value) { encrypt_fallback_ = value; }
+      RemoteEncryptFallback GetEncryptFallback() const { return encrypt_fallback_; }
+
       bool XMLStore(XNode *parentNode, int options);
       bool XMLLoad(XNode *node, int options);
       bool XMLLoadSubItems(XNode *node, int options) { return true; }
@@ -173,5 +225,8 @@ namespace HM
       long callout_timeout_seconds_;
       long callout_cache_minutes_;
       long callout_max_per_minute_;
+      RemoteEncryption encrypt_;
+      String encrypt_key_;
+      RemoteEncryptFallback encrypt_fallback_;
    };
 }

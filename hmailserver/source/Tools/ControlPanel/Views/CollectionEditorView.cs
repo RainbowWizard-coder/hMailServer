@@ -54,6 +54,15 @@ namespace hMailServer.ControlPanel.Views
          public bool ShowInGrid = true;
          public double GridWidth = double.NaN;          // NaN => *
          public object Default;
+
+         // Shown, never written: a property the server answers about the
+         // object and does not take (a key's fingerprint and expiry, say).
+         public bool ReadOnly;
+
+         // Written, never read back: the server answers it empty, so the box
+         // opens empty, and what is left empty is not sent - which keeps what
+         // the server holds rather than replacing it with nothing.
+         public bool WriteOnly;
       }
 
       public class CollectionSpec

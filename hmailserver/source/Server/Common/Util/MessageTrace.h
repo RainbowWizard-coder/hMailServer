@@ -94,6 +94,13 @@ namespace HM
       // the verdict, score and detail. See AntiVirus/Sandbox.h.
       static const wchar_t *EventSandboxSubmitted;
       static const wchar_t *EventSandboxVerdict;
+      // A batch to a partner domain whose remote domain policy asks for gateway
+      // encryption: encrypted to the partner's key, or - when it could not be and
+      // the policy's fallback allows it - sent as it was. The detail names the
+      // method, the key's fingerprint or the reason, and the policy. See
+      // Common/Util/GatewayEncryption.h.
+      static const wchar_t *EventEncrypted;
+      static const wchar_t *EventSentUnencrypted;
 
       static bool GetEnabled();
 

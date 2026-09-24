@@ -3431,6 +3431,9 @@
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>用口令加密存档(_Y) (AES-256，文件名也在内)</value>
   </data>
+  <data name="Encrypt mail to this domain at this server" xml:space="preserve">
+    <value>在本服务器上加密发往此域的邮件</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>已加密</value>
   </data>
@@ -5673,6 +5676,9 @@
   <data name="None - no encryption" xml:space="preserve">
     <value>无 - 不加密</value>
   </data>
+  <data name="None - sent as it was written" xml:space="preserve">
+    <value>无 - 按原样发送</value>
+  </data>
   <data name="None of the selected accounts have an e-mail address." xml:space="preserve">
     <value>所选账户都没有电子邮件地址。</value>
   </data>
@@ -6104,6 +6110,9 @@
   </data>
   <data name="Open {0}, which owns the {1} settings" xml:space="preserve">
     <value>打开 {0}，它拥有 {1} 设置</value>
+  </data>
+  <data name="OpenPGP - to the partner's public key" xml:space="preserve">
+    <value>OpenPGP - 使用合作方的公钥</value>
   </data>
   <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
     <value>用于日志的 OpenTelemetry OTLP 端点（留空 = 禁用）</value>
@@ -6885,6 +6894,9 @@
   <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>“拒绝”会在 RCPT 阶段向提交的邮件说明原因并拒绝，其他情况（别名、转发、定时发送）则以投递状态通知退回给发件人。已在队列中发往该地址的邮件会在下一次投递尝试时与列表比对。“照常投递，仅作记录”是在列表真正生效前查看其效果的安全方式。</value>
   </data>
+  <data name="Refuse it and tell the sender" xml:space="preserve">
+    <value>拒绝并通知发件人</value>
+  </data>
   <data name="Refuse it, with the reason" xml:space="preserve">
     <value>拒绝，并说明原因</value>
   </data>
@@ -7422,6 +7434,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Runs the server's built-in connectivity and configuration checks (outbound port 25, MX resolution, backup directory, IP configuration). The message-store consistency scan below is a separate read-only background task - the server runs it at start-up and hourly and records what it found in a recovery report." xml:space="preserve">
     <value>运行服务器内置的连通性和配置检查（出站端口 25、MX 解析、备份目录、IP 配置）。下面的邮件存储一致性扫描是一个独立的只读后台任务 - 服务器在启动时以及每小时运行一次，并把发现的结果记录在恢复报告中。</value>
   </data>
+  <data name="S/MIME - to the partner's certificate" xml:space="preserve">
+    <value>S/MIME - 使用合作方的证书</value>
+  </data>
   <data name="SAMaxTimeout (90)" xml:space="preserve">
     <value>SAMaxTimeout (90)</value>
   </data>
@@ -7946,6 +7961,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
     <value>在本地时间的这一小时发送（0 到 23；发送会分散在这一小时内）(_H)</value>
+  </data>
+  <data name="Send it unencrypted and log it" xml:space="preserve">
+    <value>不加密发送并记录日志</value>
   </data>
   <data name="Send log entries to syslog" xml:space="preserve">
     <value>将日志条目发送到 syslog</value>
@@ -9211,6 +9229,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The key file was kept: {0}" xml:space="preserve">
     <value>已保留密钥文件：{0}</value>
   </data>
+  <data name="The key held" xml:space="preserve">
+    <value>已保存的密钥</value>
+  </data>
   <data name="The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>密钥已加密，而此面板有意不解密它，因此它是否与证书匹配只有在服务器加载这一对时才能证明。</value>
   </data>
@@ -9330,6 +9351,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>概览会指出那些悄悄不起作用的安排 - 为零的阈值、没有任何已启用检查能达到的阈值、评分为零的检查。</value>
+  </data>
+  <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
+    <value>合作方的密钥：OpenPGP 公钥或 PEM 证书（留空则保留已保存的密钥）</value>
   </data>
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>再输入一次口令，确认没有输错(_W)</value>
@@ -10370,6 +10394,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>DKIM 签名何时生成，以及何时不再是验证者应当认可的签名 (RFC 6376 3.5)。</value>
+  </data>
+  <data name="When a message cannot be encrypted" xml:space="preserve">
+    <value>当邮件无法加密时</value>
   </data>
   <data name="When a scanner cannot run" xml:space="preserve">
     <value>扫描器无法运行时</value>

@@ -139,18 +139,7 @@ namespace RegressionTests.SMTP
 
          // The sealed message is a valid OpenPGP message to the fixture key:
          // GnuPG's word, where a gpg is to be had.
-         string gpg = FindGpg();
-         if (gpg == null)
-         {
-            TestContext.WriteLine("No gpg found on this machine: the Linux CI step and build/check-portal-openpgp.js are the GnuPG proof of the writer.");
-            return;
-         }
-         string opened = DecryptWithGpg(gpg, ArmourOf(stored), OpenPgpTestSupport.RingOwnSecretArmoured, out string why);
-         if (opened == null)
-         {
-            TestContext.WriteLine("gpg is here but could not use a secret key (" + why + "): the Linux CI step and build/check-portal-openpgp.js are the GnuPG proof of the writer.");
-            return;
-         }
+         string opened = OpenWithGpg(ArmourOf(stored), OpenPgpTestSupport.RingOwnSecretArmoured);
          StringAssert.Contains(body, opened, "GnuPG's plaintext carries the body that was sent.");
          StringAssert.Contains("Subject: " + subject, opened, "The whole original message, headers and all, is inside.");
       }
@@ -428,10 +417,11 @@ namespace RegressionTests.SMTP
       [Description("A key that expires is refused as the mailbox key at the switch-on, with a sentence, because every delivery would be refused from the day it expired; the same key without the expiry is taken.")]
       public void AKeyThatExpiresIsRefusedAsTheMailboxKey()
       {
-         // No fixture key expires, and the server reads a signature's hashed
-         // subpackets without verifying the signature, so Alice's key is given
-         // a subkey expiry of a year here and nothing is re-signed.
-         string expiring = WithSubkeyExpiry(OpenPgpTestSupport.RingOwnPublicBase64, 86400 * 365);
+         // Alice's key with her subkey's binding signed again by her primary to
+         // give it an expiry (OpenPgpTestSupport.RingOwnPublicExpiringBase64):
+         // a binding merely edited would no longer verify, and the server
+         // verifies it before it encrypts to the subkey.
+         string expiring = OpenPgpTestSupport.RingOwnPublicExpiringBase64;
          (int status, string body) stored = Send("PUT", "/api/v1/me/openpgp/keys/own", _me, OwnKeyBody(expiring, false));
          Assert.AreEqual(201, stored.status, stored.body);
 
@@ -542,18 +532,7 @@ namespace RegressionTests.SMTP
          StringAssert.Contains("-----BEGIN PGP MESSAGE-----", sealedFile);
          StringAssert.DoesNotContain(text, sealedFile, "The plaintext body is in the sealed file.");
 
-         string gpg = FindGpg();
-         if (gpg == null)
-         {
-            TestContext.WriteLine("No gpg found on this machine: the Linux CI step is the GnuPG proof of the RSA path.");
-            return;
-         }
-         string opened = DecryptWithGpg(gpg, ArmourOf(sealedFile), OpenPgpTestSupport.RingPeerSecretArmoured, out string why);
-         if (opened == null)
-         {
-            TestContext.WriteLine("gpg is here but could not use the RSA secret key (" + why + "): the Linux CI step is the GnuPG proof of the RSA path.");
-            return;
-         }
+         string opened = OpenWithGpg(ArmourOf(sealedFile), OpenPgpTestSupport.RingPeerSecretArmoured);
          StringAssert.Contains(text, opened, "GnuPG's plaintext carries the body that was sent.");
       }
 
@@ -608,93 +587,6 @@ namespace RegressionTests.SMTP
          return "{\"public_key\":\"" + publicKeyBase64 + "\","
                 + "\"secret_key\":\"" + Escaped(OpenPgpTestSupport.RingOwnSecretArmoured) + "\","
                 + "\"address\":\"" + _sealed.Address + "\",\"name\":\"Sealed\",\"source\":\"generated\",\"revoked\":" + (revoked ? "true" : "false") + "}";
-      }
-
-      /// <summary>
-      ///    The public key with a key-expiry subpacket (RFC 9580 section 5.2.3.13)
-      ///    put at the front of the hashed area of its subkey's binding signature,
-      ///    the hashed length and the packet length stepped by six, nothing
-      ///    re-signed: the server reads what the hashed area says without
-      ///    verifying the signature (OpenPgpKey.h says why), so this is the key
-      ///    that expires which no fixture has. The packet is rewritten with a
-      ///    new-format header, which is legal beside the old-format ones GnuPG
-      ///    exports.
-      /// </summary>
-      private static string WithSubkeyExpiry(string publicKeyBase64, uint seconds)
-      {
-         byte[] key = Convert.FromBase64String(publicKeyBase64);
-         int offset = 0;
-         bool pastSubkey = false;
-         while (offset < key.Length)
-         {
-            int start = offset;
-            byte first = key[offset++];
-            int tag, length;
-            if ((first & 0x40) != 0)
-            {
-               tag = first & 0x3F;
-               int o1 = key[offset++];
-               if (o1 < 192)
-                  length = o1;
-               else if (o1 < 224)
-                  length = ((o1 - 192) << 8) + key[offset++] + 192;
-               else
-               {
-                  length = (key[offset] << 24) | (key[offset + 1] << 16) | (key[offset + 2] << 8) | key[offset + 3];
-                  offset += 4;
-               }
-            }
-            else
-            {
-               tag = (first >> 2) & 0x0F;
-               int lengthType = first & 3;
-               if (lengthType == 0)
-                  length = key[offset++];
-               else if (lengthType == 1)
-               {
-                  length = (key[offset] << 8) | key[offset + 1];
-                  offset += 2;
-               }
-               else
-               {
-                  length = (key[offset] << 24) | (key[offset + 1] << 16) | (key[offset + 2] << 8) | key[offset + 3];
-                  offset += 4;
-               }
-            }
-            int bodyStart = offset;
-            offset += length;
-            if (tag == 14)
-            {
-               pastSubkey = true;
-               continue;
-            }
-            if (!pastSubkey || tag != 2)
-               continue;
-
-            // The binding signature: version 4, type, two algorithms, the
-            // hashed length, then the hashed area.
-            var body = new List<byte>(new ArraySegment<byte>(key, bodyStart, length));
-            Assert.AreEqual(4, body[0], "The binding signature is not version 4.");
-            int hashed = (body[4] << 8) | body[5];
-            body.InsertRange(6, new byte[] { 5, 9, (byte) (seconds >> 24), (byte) (seconds >> 16), (byte) (seconds >> 8), (byte) seconds });
-            hashed += 6;
-            body[4] = (byte) (hashed >> 8);
-            body[5] = (byte) hashed;
-
-            var patched = new List<byte>(new ArraySegment<byte>(key, 0, start));
-            patched.Add(0xC2);
-            if (body.Count < 192)
-               patched.Add((byte) body.Count);
-            else
-            {
-               patched.Add((byte) (((body.Count - 192) >> 8) + 192));
-               patched.Add((byte) ((body.Count - 192) & 0xFF));
-            }
-            patched.AddRange(body);
-            patched.AddRange(new ArraySegment<byte>(key, offset, key.Length - offset));
-            return Convert.ToBase64String(patched.ToArray());
-         }
-         throw new InvalidOperationException("The key has no subkey binding signature to give an expiry to.");
       }
 
       /// <summary>The switch thrown as the page throws it, less the derivations.</summary>
@@ -769,10 +661,21 @@ namespace RegressionTests.SMTP
          return null;
       }
 
-      /// <summary>The armour handed to gpg with the given fixture secret key in a scratch home; null with why when gpg could not.</summary>
-      private static string DecryptWithGpg(string gpg, string armour, string secretArmoured, out string why)
+      /// <summary>
+      ///    The plaintext GnuPG makes of the armour with the given fixture secret
+      ///    key, in a scratch home. A proof that needs gpg is INCONCLUSIVE when
+      ///    there is no gpg, or it cannot import the key - the environment, not
+      ///    the server - and never passed; it FAILS when gpg imported the key and
+      ///    cannot open what the server wrote. (The gateway encryption fixture,
+      ///    SMTP/GatewayEncryption.cs, was reviewed for passing on both; this is
+      ///    the same shape, swept here with it.)
+      /// </summary>
+      private static string OpenWithGpg(string armour, string secretArmoured)
       {
-         why = "";
+         string gpg = FindGpg();
+         if (gpg == null)
+            Assert.Inconclusive("No gpg on this machine, so the sealed message was not opened: everything else in this test held. The Linux CI step and build/check-portal-openpgp.js are the GnuPG proof of the writer.");
+
          string home = Path.Combine(Path.GetTempPath(), "za-gpg-" + Guid.NewGuid().ToString("N"));
          Directory.CreateDirectory(home);
          try
@@ -782,16 +685,22 @@ namespace RegressionTests.SMTP
             string message = Path.Combine(home, "message.asc");
             File.WriteAllText(message, armour);
             string common = "--batch --yes --no-tty --pinentry-mode loopback --passphrase " + OpenPgpTestSupport.RingPassphrase + " --homedir \"" + home + "\" ";
-            RunGpg(gpg, common + "--import \"" + secret + "\"", out string importOut, out string importErr);
+
+            if (!RunGpg(gpg, common + "--import \"" + secret + "\"", out string _, out string importErr))
+               Assert.Inconclusive("gpg is here and could not import the fixture's secret key (" + importErr.Trim().Replace("\r\n", " ") + "), so the sealed message was not opened: the environment, not the server.");
+
             if (!RunGpg(gpg, common + "--decrypt \"" + message + "\"", out string decrypted, out string decryptErr))
-            {
-               why = (decryptErr + importErr).Trim().Replace("\r\n", " ");
-               return null;
-            }
+               Assert.Fail("gpg imported the fixture's secret key and could not open the sealed message: " + decryptErr.Trim().Replace("\r\n", " "));
+
             return decrypted;
          }
          finally
          {
+            // The agent gpg started for this home is stopped before the home goes.
+            string gpgconf = Path.Combine(Path.GetDirectoryName(gpg), "gpgconf.exe");
+            if (File.Exists(gpgconf))
+               RunGpg(gpgconf, "--homedir \"" + home + "\" --kill gpg-agent", out string _, out string _);
+
             try { Directory.Delete(home, true); } catch (Exception) { }
          }
       }

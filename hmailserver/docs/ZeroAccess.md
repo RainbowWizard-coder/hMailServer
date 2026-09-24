@@ -114,8 +114,9 @@ How it works
 `LocalDeliveryPreProcess_` has run the account's spam overrides, the rules, the
 forward and the Sieve script and just before the message row is saved,
 `ZeroAccess::SealFile` reads the account's copy, chooses the key to encrypt to
-(`OpenPgpWriter::ChooseEncryptionKey`: the newest living subkey flagged to encrypt,
-else an RSA primary so flagged; Curve25519 and RSA are the two kinds written to),
+(`OpenPgpWriter::ChooseEncryptionKey`: the newest living subkey flagged to encrypt
+whose binding signature verifies against the primary key, else an RSA primary so
+flagged; Curve25519 and RSA are the two kinds written to),
 writes the sealed message beside the original, overwrites the original in place, and
 gives the sealed file the original's name. A zero-access account never shares a
 delivery file with other recipients of the same message (`SharingPossible_`), since
@@ -139,7 +140,22 @@ recipient's fingerprint in its input, the RFC 3394 AES key wrap) and a version 1
 symmetrically encrypted integrity-protected data packet: AES-256 in OpenPGP CFB with
 the random prefix and its repeated octets, a literal data packet holding the message,
 and the modification detection code. Nothing is compressed. This is the whole of what
-the server does with OpenPGP: it never signs, decrypts or verifies.
+the server does with OpenPGP: it never signs or decrypts, and the one signature it
+verifies is the binding of the subkey it is about to encrypt to.
+
+**The subkey's binding is verified**, since 24 September 2026, when gateway
+encryption to a partner's key ([RemoteDomains.md](RemoteDomains.md)) began to share
+the chooser: a subkey binding (and a subkey revocation) is taken only when it
+verifies against the primary key over the two key packets (RFC 9580 section 5.2.4;
+RSA, Ed25519 and ECDSA on the NIST curves; SHA-1 only for a signature made before
+2019). Every key GnuPG or the webmail made verifies, and keeps working. What changes
+for a mailbox key is that a key whose subkey binding was altered after it was signed
+- an expiry edited in without re-signing, a subkey appended by somebody else - has no
+subkey to encrypt to and is refused at the switch-on, as is a key whose primary is of
+a kind this cannot check (DSA, a Brainpool curve). A mailbox already switched on with
+such a key has its deliveries refused (HM7070, the sender told with 4.3.0) until the
+key is replaced or the switch is thrown off; none was known to exist when the check
+arrived, since the webmail makes Ed25519 and RSA keys and GnuPG signs its own.
 
 **Proved against an implementation that is not this one.** `OpenPgpWriterTester` runs
 inside the server (`MainOperations.TestInternals`): the X25519 arithmetic against RFC

@@ -50,6 +50,10 @@
 // the key trustworthy: what makes a key in this directory the right one is that
 // an administrator or the account holder put it there. docs/OpenPGP.md says so
 // in those words, so that nobody reads more into a stored key than is there.
+// The one place the server does check a signature on a key is
+// OpenPgpWriter::ChooseEncryptionKey, which encrypts only to a subkey whose
+// binding verifies against the primary: a subkey is the part of a key a
+// stranger can append without changing its fingerprint.
 //
 // THE HASHED LOCAL PART
 //

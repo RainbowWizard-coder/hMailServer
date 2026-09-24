@@ -17,8 +17,9 @@ namespace HM
       RemoteDomainPolicies();
       virtual ~RemoteDomainPolicies();
 
-      // Reloads every policy from the database.
-      void Refresh();
+      // Reloads every policy from the database. False when the read failed,
+      // and the collection is then left as it was (Collection::DBLoad_).
+      bool Refresh();
 
       // The policy that governs a named remote domain, or an empty pointer.
       //
@@ -52,6 +53,12 @@ namespace HM
       // deferral text can say which rule refused.
       //
       // A caller that has one domain gets that domain's own record back.
+      //
+      // Gateway encryption is NOT composed, and a composed record carries none:
+      // two partners' keys cannot both encrypt one message file. ExternalDelivery
+      // groups a server's recipients by the policy that encrypts them before it
+      // makes batches, so that a batch is one partner's or nobody's, and hands
+      // that policy to the delivery beside this one.
       std::shared_ptr<RemoteDomainPolicy> GetStrictestPolicy(const std::vector<String> &domainNames) const;
 
       // Exchange's two remote-domain switches, asked of one address.

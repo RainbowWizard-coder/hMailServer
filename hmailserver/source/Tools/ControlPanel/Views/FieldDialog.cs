@@ -82,6 +82,20 @@ namespace hMailServer.ControlPanel.Views
       {
          string prop = f.Prop;
 
+         // What the server says about the object: shown, selectable to copy (a
+         // fingerprint is read out to a partner), and never sent back.
+         if (f.ReadOnly)
+         {
+            var shown = new TextBox
+            {
+               Text = Convert.ToString(current) ?? "",
+               IsReadOnly = true,
+               TextWrapping = TextWrapping.Wrap
+            };
+            Describe(shown, prop, accessibleName);
+            return DialogFields.Field(f.Label, shown);
+         }
+
          switch (f.Kind)
          {
             case CollectionEditorView.FieldKind.Bool:
@@ -129,7 +143,17 @@ namespace hMailServer.ControlPanel.Views
                      MaxLines = 10
                   };
                   Describe(box, prop, accessibleName);
-                  committers_.Add(() => { Result[prop] = box.Text; return true; });
+                  committers_.Add(() =>
+                  {
+                     // Left empty, a write-only value is not sent, so the one
+                     // the server holds stays. Only an EMPTY box: white space
+                     // is sent, and the server, which trims the value, takes
+                     // it for "remove" - as the REST API and the Deck do.
+                     if (f.WriteOnly && box.Text.Length == 0)
+                        return true;
+                     Result[prop] = box.Text;
+                     return true;
+                  });
                   return DialogFields.Field(f.Label, box);
                }
             case CollectionEditorView.FieldKind.Password:

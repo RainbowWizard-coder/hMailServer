@@ -106,6 +106,19 @@ END_COM_MAP()
    STDMETHOD(Save)();
    STDMETHOD(Delete)();
 
+   STDMETHOD(get_Encrypt)(/*[out, retval]*/ eRemoteEncryption *pVal);
+   STDMETHOD(put_Encrypt)(/*[in]*/ eRemoteEncryption newVal);
+
+   STDMETHOD(get_EncryptKey)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_EncryptKey)(/*[in]*/ BSTR newVal);
+
+   STDMETHOD(get_EncryptFallback)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_EncryptFallback)(/*[in]*/ long newVal);
+
+   STDMETHOD(get_EncryptKeyFingerprint)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(get_EncryptKeyExpires)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(get_EncryptKeySummary)(/*[out, retval]*/ BSTR *pVal);
+
 private:
 
 };

@@ -401,6 +401,7 @@
     <Compile Include="SMTP\OutboundXOAuth2.cs" />
     <Compile Include="SMTP\OutboundSize.cs" />
     <Compile Include="SMTP\RemoteDomainPolicyEnforcement.cs" />
+    <Compile Include="SMTP\GatewayEncryption.cs" />
     <Compile Include="SMTP\Journaling.cs" />
     <Compile Include="SMTP\ZeroAccess.cs" />
     <Compile Include="SMTP\RestrictedDelivery.cs" />

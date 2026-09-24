@@ -1141,7 +1141,10 @@ create table hm_remotedomainpolicies
 	policycalloutport int not null,
 	policycallouttimeout int not null,
 	policycalloutcacheminutes int not null,
-	policycalloutperminute int not null
+	policycalloutperminute int not null,
+	policyencrypt int not null DEFAULT 0,
+	policyencryptkey ntext not null DEFAULT '',
+	policyencryptfallback int not null DEFAULT 0
 )
 
 ALTER TABLE hm_remotedomainpolicies ADD CONSTRAINT hm_remotedomainpolicies_pk PRIMARY KEY NONCLUSTERED (policyid)
@@ -2967,4 +2970,4 @@ CREATE NONCLUSTERED INDEX idx_hm_warmupcounts_date ON hm_warmupcounts (wcday)
 
 ALTER TABLE hm_warmupcounts ADD CONSTRAINT fk_hm_warmupcounts_warmup FOREIGN KEY (wcwarmupid) REFERENCES hm_warmup (warmupid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6093)
+insert into hm_dbversion values (6094)

@@ -441,6 +441,23 @@ typedef
    eRTDane = 3,
 } eRemoteTlsRequirement;
 
+// Gateway encryption to a partner domain: the message itself encrypted at this
+// server to the partner's key (Common/Util/GatewayEncryption.h). The numbers
+// are the ones hm_remotedomainpolicies.policyencrypt holds; zero rewrites no
+// message, and is what every upgraded policy holds.
+typedef
+[uuid(9CB04D7C-7B8A-4D36-BA3F-42ACBCAA9E11),
+   helpstring("Remote domain gateway encryption")]
+   enum
+{
+   [helpstring("No gateway encryption: the message is sent as it was written.")]
+   eREEncryptNone = 0,
+   [helpstring("PGP/MIME to the partner's OpenPGP public key.")]
+   eREEncryptOpenPgp = 1,
+   [helpstring("S/MIME enveloped-data to the partner's certificate.")]
+   eREEncryptSmime = 2,
+} eRemoteEncryption;
+
 typedef
 [uuid(90745436-4C3F-11D9-AD17-A0BCEA20CD08),
    helpstring("Signature method")] 
@@ -2459,6 +2476,21 @@ interface IInterfaceRemoteDomainPolicy : IDispatch{
 
    [id(18), helpstring("Saves changes of the object in the database.")] HRESULT Save();
    [id(19), helpstring("Deletes the object from the database.")] HRESULT Delete();
+
+   [propget, id(20), helpstring("Gateway encryption: mail to this domain encrypted at this server to the partner's key.")] HRESULT Encrypt([out, retval] eRemoteEncryption *pVal);
+   [propput, id(20), helpstring("Gateway encryption: mail to this domain encrypted at this server to the partner's key.")] HRESULT Encrypt([in] eRemoteEncryption newVal);
+
+   [propget, id(21), helpstring("The partner's key is written, never read back: this answers empty. EncryptKeyFingerprint, EncryptKeyExpires and EncryptKeySummary say what is held.")] HRESULT EncryptKey([out, retval] BSTR *pVal);
+   [propput, id(21), helpstring("The partner's key: an armoured OpenPGP public key, or PEM certificates of which the first is encrypted to. Judged when the policy is saved: private-key material is refused whatever the method, and a changed key must be one a message can be encrypted to. White space alone removes the key.")] HRESULT EncryptKey([in] BSTR newVal);
+
+   [propget, id(22), helpstring("What happens to a message that cannot be encrypted: 0 it is refused and the sender told (5.7.10), 1 it is sent unencrypted and logged.")] HRESULT EncryptFallback([out, retval] long *pVal);
+   [propput, id(22), helpstring("What happens to a message that cannot be encrypted: 0 it is refused and the sender told (5.7.10), 1 it is sent unencrypted and logged.")] HRESULT EncryptFallback([in] long newVal);
+
+   [propget, id(23), helpstring("The fingerprint of the key held, lower-case hex: the OpenPGP primary key's, or the SHA-256 of the certificate. Empty when none is held. The OpenPGP subkey messages are encrypted to is named in EncryptKeySummary.")] HRESULT EncryptKeyFingerprint([out, retval] BSTR *pVal);
+
+   [propget, id(24), helpstring("When the key held expires, ISO 8601 in UTC, or empty when it does not.")] HRESULT EncryptKeyExpires([out, retval] BSTR *pVal);
+
+   [propget, id(25), helpstring("One sentence on the key held: what it is, its fingerprints (for OpenPGP the primary's and the subkey's messages are encrypted to), whom it names, and whether a message can be encrypted to it now.")] HRESULT EncryptKeySummary([out, retval] BSTR *pVal);
 };
 
 [

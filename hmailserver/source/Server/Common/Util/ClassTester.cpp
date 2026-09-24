@@ -29,6 +29,7 @@
 #include "../Util/SealedMessage.h"
 #include "../Util/OpenPgpKey.h"
 #include "../Util/OpenPgpWriter.h"
+#include "../Util/GatewayEncryption.h"
 #include "../AntiSpam/DKIM/DkimRotationPlan.h"
 #include "../../SMTP/BounceClassifier.h"
 #include "BrandLogo.h"
@@ -349,6 +350,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing OpenPgpWriter\n"));
       OpenPgpWriterTester openPgpWriterTester;
       openPgpWriterTester.Test();
+
+      // Gateway encryption to a partner domain: the partner's copy's header
+      // (the signatures over the old body off, the subject kept), what is
+      // encrypted end to end already, the keys refused and the ones taken, and
+      // a message sealed to an OpenPGP key and enveloped to a certificate.
+      OutputDebugString(_T("hMailServer: Testing GatewayEncryption\n"));
+      GatewayEncryptionTester gatewayEncryptionTester;
+      gatewayEncryptionTester.Test();
 
       // Complaints read, the feedback loops: the RFC 5965 parser that is handed
       // hostile input by construction, and the decisions taken on what it read -

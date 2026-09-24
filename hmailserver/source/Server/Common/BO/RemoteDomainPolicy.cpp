@@ -5,6 +5,9 @@
 #include "stdafx.h"
 #include "RemoteDomainPolicy.h"
 
+#include "../Util/Encoding/Base64.h"
+#include "../Util/Unicode.h"
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -25,7 +28,9 @@ namespace HM
       callout_port_(25),
       callout_timeout_seconds_(10),
       callout_cache_minutes_(60),
-      callout_max_per_minute_(10)
+      callout_max_per_minute_(10),
+      encrypt_(RemoteEncryptNone),
+      encrypt_fallback_(RemoteEncryptFallbackRefuse)
    {
 
    }
@@ -63,6 +68,18 @@ namespace HM
       node->AppendAttr(_T("CalloutTimeoutSeconds"), StringParser::IntToString((int) callout_timeout_seconds_));
       node->AppendAttr(_T("CalloutCacheMinutes"), StringParser::IntToString((int) callout_cache_minutes_));
       node->AppendAttr(_T("CalloutMaxPerMinute"), StringParser::IntToString((int) callout_max_per_minute_));
+
+      // The partner's key is public and the backup carries it, so that a restored
+      // policy still encrypts. Base64 of its UTF-8, because an armoured key and a
+      // PEM certificate are many lines and an XML attribute does not keep a line
+      // break as it stands.
+      AnsiString keyUtf8;
+      Unicode::WideToMultiByte(encrypt_key_, keyUtf8);
+      const String keyBase64 = String(Base64::Encode(keyUtf8.c_str(), keyUtf8.GetLength()));
+
+      node->AppendAttr(_T("Encrypt"), StringParser::IntToString((int) encrypt_));
+      node->AppendAttr(_T("EncryptKey"), keyBase64);
+      node->AppendAttr(_T("EncryptFallback"), StringParser::IntToString((int) encrypt_fallback_));
 
       return true;
    }
@@ -106,6 +123,25 @@ namespace HM
          callout_port_ = 25;
       if (callout_timeout_seconds_ <= 0)
          callout_timeout_seconds_ = 10;
+
+      // A backup written before gateway encryption existed has none of the three,
+      // and restores as a policy that encrypts nothing - which is what it was. A
+      // number this version does not know lands on the value that rewrites no
+      // message and refuses rather than sends, as the database read does.
+      int encrypt = _ttoi(node->GetAttrValue(_T("Encrypt")));
+      if (encrypt < RemoteEncryptNone || encrypt > RemoteEncryptSmime)
+         encrypt = RemoteEncryptNone;
+      encrypt_ = (RemoteEncryption) encrypt;
+
+      AnsiString keyBase64 = AnsiString(node->GetAttrValue(_T("EncryptKey")));
+      AnsiString keyUtf8 = keyBase64.IsEmpty() ? AnsiString() : Base64::Decode(keyBase64.c_str(), keyBase64.GetLength());
+      String key;
+      Unicode::MultiByteToWide(keyUtf8, key);
+      encrypt_key_ = key;
+
+      encrypt_fallback_ = _ttoi(node->GetAttrValue(_T("EncryptFallback"))) == RemoteEncryptFallbackSendUnencrypted
+         ? RemoteEncryptFallbackSendUnencrypted
+         : RemoteEncryptFallbackRefuse;
 
       return true;
    }

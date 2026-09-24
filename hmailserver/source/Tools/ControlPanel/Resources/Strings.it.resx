@@ -3431,6 +3431,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>Ci_frare l'archivio con una passphrase (AES-256, nomi dei file compresi)</value>
   </data>
+  <data name="Encrypt mail to this domain at this server" xml:space="preserve">
+    <value>Cifra la posta verso questo dominio su questo server</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Cifrata</value>
   </data>
@@ -5673,6 +5676,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="None - no encryption" xml:space="preserve">
     <value>Nessuna - nessuna cifratura</value>
   </data>
+  <data name="None - sent as it was written" xml:space="preserve">
+    <value>Nessuna - inviato così come è stato scritto</value>
+  </data>
   <data name="None of the selected accounts have an e-mail address." xml:space="preserve">
     <value>Nessuno degli account selezionati ha un indirizzo e-mail.</value>
   </data>
@@ -6104,6 +6110,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Open {0}, which owns the {1} settings" xml:space="preserve">
     <value>Apri {0}, a cui appartengono le impostazioni {1}</value>
+  </data>
+  <data name="OpenPGP - to the partner's public key" xml:space="preserve">
+    <value>OpenPGP - verso la chiave pubblica del partner</value>
   </data>
   <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
     <value>Endpoint OTLP OpenTelemetry per i registri (vuoto = disattivato)</value>
@@ -6885,6 +6894,9 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>Rifiutare risponde a un invio al RCPT con il motivo, e restituisce tutto il resto - un alias, un inoltro, un invio pianificato - al mittente in una notifica di stato della consegna. La posta già in coda verso un indirizzo incontra la lista al tentativo di consegna successivo. Consegnarlo e registrarlo soltanto è il modo sicuro per vedere cosa farebbe la lista prima che lo faccia.</value>
   </data>
+  <data name="Refuse it and tell the sender" xml:space="preserve">
+    <value>Rifiutalo e avvisa il mittente</value>
+  </data>
   <data name="Refuse it, with the reason" xml:space="preserve">
     <value>Rifiutarlo, con il motivo</value>
   </data>
@@ -7422,6 +7434,9 @@ Continuare?</value>
   <data name="Runs the server's built-in connectivity and configuration checks (outbound port 25, MX resolution, backup directory, IP configuration). The message-store consistency scan below is a separate read-only background task - the server runs it at start-up and hourly and records what it found in a recovery report." xml:space="preserve">
     <value>Esegue i controlli integrati di connettività e configurazione del server (porta 25 in uscita, risoluzione MX, directory di backup, configurazione IP). La scansione di coerenza dell'archivio dei messaggi qui sotto è un'attività in background separata e di sola lettura - il server la esegue all'avvio e ogni ora e annota ciò che ha trovato in un rapporto di recupero.</value>
   </data>
+  <data name="S/MIME - to the partner's certificate" xml:space="preserve">
+    <value>S/MIME - verso il certificato del partner</value>
+  </data>
   <data name="SAMaxTimeout (90)" xml:space="preserve">
     <value>SAMaxTimeout (90)</value>
   </data>
@@ -7946,6 +7961,9 @@ Continuare?</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
     <value>Invialo durante quest'_ora del giorno locale (da 0 a 23; gli invii sono distribuiti nell'ora)</value>
+  </data>
+  <data name="Send it unencrypted and log it" xml:space="preserve">
+    <value>Invialo non cifrato e registralo</value>
   </data>
   <data name="Send log entries to syslog" xml:space="preserve">
     <value>Invia le voci di registro a syslog</value>
@@ -9211,6 +9229,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   <data name="The key file was kept: {0}" xml:space="preserve">
     <value>Il file della chiave è stato mantenuto: {0}</value>
   </data>
+  <data name="The key held" xml:space="preserve">
+    <value>La chiave memorizzata</value>
+  </data>
   <data name="The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>La chiave è cifrata e questo pannello volutamente non la decifra, quindi la sua corrispondenza con il certificato è dimostrata solo quando il server carica la coppia.</value>
   </data>
@@ -9330,6 +9351,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>La panoramica indica le configurazioni che silenziosamente non fanno nulla - una soglia a zero, una soglia che nessun controllo attivo può raggiungere, un controllo che assegna punteggio zero.</value>
+  </data>
+  <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
+    <value>Chiave del partner: una chiave pubblica OpenPGP o certificati PEM (se lasciata vuota, la chiave memorizzata resta)</value>
   </data>
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>La passphrase di nuovo, per essere sicuri che sia stata digitata _bene</value>
@@ -10370,6 +10394,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>Quando è stata creata una firma DKIM, e quando smette di essere una firma che un verificatore dovrebbe onorare (RFC 6376 3.5).</value>
+  </data>
+  <data name="When a message cannot be encrypted" xml:space="preserve">
+    <value>Quando un messaggio non può essere cifrato</value>
   </data>
   <data name="When a scanner cannot run" xml:space="preserve">
     <value>Quando uno scanner non può essere eseguito</value>

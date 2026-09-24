@@ -31,6 +31,11 @@
 #include "../../SMTP/SMTPConfiguration.h"
 
 #include "../Util/RegularExpression.h"
+#include "../Util/GatewayEncryption.h"
+#include "../Util/Unicode.h"
+#include "PersistentRemoteDomainPolicy.h"
+
+#include <ctime>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -653,6 +658,99 @@ namespace HM
          if (existing && existing->GetID() != policy->GetID())
          {
             resultDescription = "Another remote domain policy for this domain already exists.";
+            return false;
+         }
+      }
+
+      // Gateway encryption: the partner's key.
+      //
+      // White space around it is not part of it, and white space alone is no
+      // key: the key is stored trimmed, on every surface (REST, COM, the
+      // Control Panel, the Deck), so a box holding only a stray newline
+      // removes the key everywhere alike.
+      //
+      // WHATEVER THE METHOD - encrypting or not - key text that carries
+      // private-key material anywhere in it, of either kind, is refused, and
+      // so is a paste over GatewayEncryption::MaximumKeyCharacters. A private
+      // key must never be stored, backed up or reach the audit trail (which
+      // withholds this column's value in any case: "encryptkey" is one of
+      // AuditTrail's secret names).
+      //
+      // Then the key is judged as a key - by the one reader that judges it
+      // again at every delivery (GatewayEncryption::Inspect): parseable, not
+      // expired, and one a message can be encrypted to - when the save
+      // CHANGES it: a new policy, a key that differs from the one the
+      // database holds, or a method switched on or changed. A save that
+      // changes neither does not judge it again, so that once a partner's key
+      // expires the policy's other fields - the fallback above all, which
+      // exists for exactly that day - can still be saved; the listing's
+      // encrypt_key_problem says what is wrong with the key held. The record
+      // compared with is read from the database afresh: over COM the object
+      // being saved is the running record itself (InterfaceRemoteDomainPolicy
+      // hands out the collection's own item), so the collection would compare
+      // it with itself. A key given while the policy encrypts nothing is
+      // judged as what it looks like (GatewayEncryption::MethodOfKey), so that
+      // a key kept for later is one that will work; switching encryption OFF
+      // judges nothing. A key that names no address in the partner's domain
+      // is NOT refused (a gateway's key often names the gateway); the REST API
+      // and the Control Panel show that as a warning beside the fingerprint.
+      // A restore takes the key as the backup held it, above, so that a
+      // backup of a key that has expired since still restores - and delivery
+      // then refuses it by the policy's fallback.
+      String key = policy->GetEncryptKey();
+      key.Trim();
+      policy->SetEncryptKey(key);
+
+      if (!key.IsEmpty())
+      {
+         AnsiString keyText;
+         Unicode::WideToMultiByte(key, keyText);
+
+         AnsiString problem;
+         if (!GatewayEncryption::AcceptableKeyText(keyText, problem))
+         {
+            String why = String(problem);
+            why.TrimRight(_T('.'));
+
+            resultDescription = String(_T("The partner's key was not saved: ")) + why + _T(".");
+            return false;
+         }
+      }
+
+      bool keyChanged = true;
+      bool methodChanged = true;
+
+      if (policy->GetID() > 0)
+      {
+         std::shared_ptr<RemoteDomainPolicy> stored = std::shared_ptr<RemoteDomainPolicy>(new RemoteDomainPolicy());
+         if (PersistentRemoteDomainPolicy::ReadObject(stored, (long) policy->GetID()))
+         {
+            String storedKey = stored->GetEncryptKey();
+            storedKey.Trim();
+
+            keyChanged = storedKey != key;
+            methodChanged = stored->GetEncrypt() != policy->GetEncrypt();
+         }
+      }
+
+      const RemoteEncryption method = policy->GetEncrypt();
+      const bool judge = method != RemoteEncryptNone ? (keyChanged || methodChanged) : (keyChanged && !key.IsEmpty());
+
+      if (judge)
+      {
+         const RemoteEncryption judgedAs = method != RemoteEncryptNone ? method : GatewayEncryption::MethodOfKey(key);
+
+         const GatewayEncryption::KeyFacts facts = GatewayEncryption::Inspect(judgedAs, key,
+            policy->GetDomainName(), (__int64) time(nullptr));
+
+         if (!facts.usable)
+         {
+            String why = String(facts.problem);
+            why.TrimRight(_T('.'));
+
+            resultDescription = method != RemoteEncryptNone
+               ? String(_T("The partner's key cannot be used for ")) + String(GatewayEncryption::MethodName(method)) + _T(" encryption: ") + why + _T(".")
+               : String(_T("The partner's key was not saved: it cannot be used for ")) + String(GatewayEncryption::MethodName(judgedAs)) + _T(" encryption: ") + why + _T(".");
             return false;
          }
       }

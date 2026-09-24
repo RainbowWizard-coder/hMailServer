@@ -10,6 +10,7 @@
 
 #include <openssl/bn.h>
 #include <openssl/core_names.h>
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/param_build.h>
 #include <openssl/params.h>
@@ -17,6 +18,7 @@
 #include <openssl/rsa.h>
 #include <openssl/sha.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <stdexcept>
@@ -207,7 +209,8 @@ namespace HM
       // One key packet - the primary or a subkey - as the chooser sees it.
       struct KeyPacket
       {
-         KeyPacket() : version(0), algorithm(0), created(0), expires(0), flags(0), has_flags(false), revoked(false), kdf_hash(0), kdf_cipher(0), usable(false) {}
+         KeyPacket() : version(0), algorithm(0), created(0), expires(0), flags(0), has_flags(false), revoked(false), kdf_hash(0), kdf_cipher(0), usable(false),
+                       body_start(0), body_length(0), bound(false) {}
 
          int version;
          int algorithm;
@@ -223,6 +226,15 @@ namespace HM
          int kdf_hash;
          int kdf_cipher;
          bool usable;      // the material was read and is of a kind this writer encrypts to
+
+         // Where the packet's body is in the key's bytes: a binding signature
+         // is made over it.
+         size_t body_start;
+         size_t body_length;
+
+         // A subkey only: a binding signature that verifies against the
+         // primary has been read (or verification was switched off).
+         bool bound;
       };
 
       // An MPI: two octets of bit count, then the octets. Answers the octets
@@ -250,6 +262,8 @@ namespace HM
          if (length < 6)
             return false;
 
+         key.body_start = packet.body_start;
+         key.body_length = packet.body_length;
          key.version = body[0];
          key.created = (__int64) Read32(body + 1);
          key.algorithm = body[5];
@@ -346,6 +360,418 @@ namespace HM
             else if (subpacket_type == 9 && value_length == 4)
                expiry = (__int64) Read32(value);
          }
+      }
+
+      // ---- a subkey's binding to its primary (RFC 9580 section 5.2.4)
+      //
+      // A subkey binding (0x18) and a subkey revocation (0x28) are made by the
+      // primary key over the primary's key packet, the subkey's, and the
+      // signature's own hashed area and trailer. Read for their flags and never
+      // checked until 24 September 2026, they let anybody who could touch a key
+      // on its way here - a keyserver that merges packets unchecked, a mail in
+      // transit - append a subkey of their own with a later creation time and a
+      // made-up binding under the owner's primary, and so under the fingerprint
+      // the owner would read out; or revoke the real subkey with a made-up
+      // revocation. GnuPG discards such a subkey, so a key checked there looked
+      // right.
+
+      const int AlgorithmRsaSignOnly = 3;
+      const int AlgorithmEcdsa = 19;
+      const int AlgorithmEddsaLegacy = 22;
+      const int AlgorithmEd25519 = 27;
+
+      // The curves a primary key signs on, as their OIDs appear in a key packet.
+      const unsigned char OidEd25519[] = { 0x2b, 0x06, 0x01, 0x04, 0x01, 0xda, 0x47, 0x0f, 0x01 };
+      const unsigned char OidP256[] = { 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07 };
+      const unsigned char OidP384[] = { 0x2b, 0x81, 0x04, 0x00, 0x22 };
+      const unsigned char OidP521[] = { 0x2b, 0x81, 0x04, 0x00, 0x23 };
+
+      // The hash a signature names, or null for one this does not take. SHA-1
+      // only for a signature made before 19 January 2019, as GnuPG takes it: a
+      // SHA-1 binding made since then is one a collision could have made.
+      const EVP_MD *SignatureHashOf(int id, __int64 created)
+      {
+         switch (id)
+         {
+         case 2: return created > 0 && created < 1547856000 ? EVP_sha1() : nullptr;
+         case 8: return EVP_sha256();
+         case 9: return EVP_sha384();
+         case 10: return EVP_sha512();
+         case 11: return EVP_sha224();
+         case 12: return EVP_sha3_256();
+         case 14: return EVP_sha3_512();
+         default: return nullptr;
+         }
+      }
+
+      // Owns the primary's verifying key for the length of one walk.
+      struct VerifyingKey
+      {
+         VerifyingKey() : key(nullptr) {}
+         ~VerifyingKey()
+         {
+            if (key)
+               EVP_PKEY_free(key);
+         }
+
+         EVP_PKEY *key;
+
+      private:
+         VerifyingKey(const VerifyingKey &);
+         VerifyingKey &operator=(const VerifyingKey &);
+      };
+
+      EVP_PKEY *RsaPublicKey(const std::vector<unsigned char> &n, const std::vector<unsigned char> &e)
+      {
+         if (n.empty() || e.empty())
+            return nullptr;
+
+         BIGNUM *modulus = BN_bin2bn(&n[0], (int) n.size(), nullptr);
+         BIGNUM *exponent = BN_bin2bn(&e[0], (int) e.size(), nullptr);
+         OSSL_PARAM_BLD *build = OSSL_PARAM_BLD_new();
+         OSSL_PARAM *params = nullptr;
+         EVP_PKEY_CTX *from = nullptr;
+         EVP_PKEY *key = nullptr;
+
+         if (modulus && exponent && build &&
+             OSSL_PARAM_BLD_push_BN(build, OSSL_PKEY_PARAM_RSA_N, modulus) == 1 &&
+             OSSL_PARAM_BLD_push_BN(build, OSSL_PKEY_PARAM_RSA_E, exponent) == 1)
+         {
+            params = OSSL_PARAM_BLD_to_param(build);
+            from = params ? EVP_PKEY_CTX_new_from_name(nullptr, "RSA", nullptr) : nullptr;
+            if (from && EVP_PKEY_fromdata_init(from) == 1 && EVP_PKEY_fromdata(from, &key, EVP_PKEY_PUBLIC_KEY, params) != 1)
+               key = nullptr;
+         }
+
+         if (from) EVP_PKEY_CTX_free(from);
+         if (params) OSSL_PARAM_free(params);
+         if (build) OSSL_PARAM_BLD_free(build);
+         if (modulus) BN_free(modulus);
+         if (exponent) BN_free(exponent);
+         return key;
+      }
+
+      EVP_PKEY *EcPublicKey(const char *group, const std::vector<unsigned char> &point)
+      {
+         if (point.empty())
+            return nullptr;
+
+         OSSL_PARAM_BLD *build = OSSL_PARAM_BLD_new();
+         OSSL_PARAM *params = nullptr;
+         EVP_PKEY_CTX *from = nullptr;
+         EVP_PKEY *key = nullptr;
+
+         if (build &&
+             OSSL_PARAM_BLD_push_utf8_string(build, OSSL_PKEY_PARAM_GROUP_NAME, group, 0) == 1 &&
+             OSSL_PARAM_BLD_push_octet_string(build, OSSL_PKEY_PARAM_PUB_KEY, &point[0], point.size()) == 1)
+         {
+            params = OSSL_PARAM_BLD_to_param(build);
+            from = params ? EVP_PKEY_CTX_new_from_name(nullptr, "EC", nullptr) : nullptr;
+            if (from && EVP_PKEY_fromdata_init(from) == 1 && EVP_PKEY_fromdata(from, &key, EVP_PKEY_PUBLIC_KEY, params) != 1)
+               key = nullptr;
+         }
+
+         if (from) EVP_PKEY_CTX_free(from);
+         if (params) OSSL_PARAM_free(params);
+         if (build) OSSL_PARAM_BLD_free(build);
+         return key;
+      }
+
+      // The primary key of a version 4 key packet as OpenSSL verifies with it,
+      // or null for a kind this cannot check (DSA, a Brainpool curve, v5, v6).
+      EVP_PKEY *VerifyingKeyOf(const unsigned char *body, size_t length)
+      {
+         if (length < 6 || body[0] != 4)
+            return nullptr;
+
+         const int algorithm = body[5];
+         size_t at = 6;
+
+         if (algorithm == AlgorithmRsa || algorithm == AlgorithmRsaSignOnly)
+         {
+            std::vector<unsigned char> n;
+            std::vector<unsigned char> e;
+            if (!ReadMpi(body, length, at, n) || !ReadMpi(body, length, at, e))
+               return nullptr;
+            return RsaPublicKey(n, e);
+         }
+
+         if (algorithm == AlgorithmEd25519)
+         {
+            if (at + 32 > length)
+               return nullptr;
+            return EVP_PKEY_new_raw_public_key(EVP_PKEY_ED25519, nullptr, body + at, 32);
+         }
+
+         if (algorithm != AlgorithmEddsaLegacy && algorithm != AlgorithmEcdsa)
+            return nullptr;
+
+         if (at >= length)
+            return nullptr;
+         const size_t oidLength = body[at];
+         at += 1;
+         if (oidLength == 0 || oidLength == 0xFF || at + oidLength > length)
+            return nullptr;
+         const unsigned char *oid = body + at;
+         at += oidLength;
+
+         std::vector<unsigned char> point;
+         if (!ReadMpi(body, length, at, point))
+            return nullptr;
+
+         if (algorithm == AlgorithmEddsaLegacy)
+         {
+            // The MPI of an Ed25519 point is the 0x40 prefix and 32 octets.
+            if (oidLength != sizeof(OidEd25519) || memcmp(oid, OidEd25519, oidLength) != 0 || point.size() != 33 || point[0] != 0x40)
+               return nullptr;
+            return EVP_PKEY_new_raw_public_key(EVP_PKEY_ED25519, nullptr, &point[1], 32);
+         }
+
+         const char *group = nullptr;
+         if (oidLength == sizeof(OidP256) && memcmp(oid, OidP256, oidLength) == 0)
+            group = "prime256v1";
+         else if (oidLength == sizeof(OidP384) && memcmp(oid, OidP384, oidLength) == 0)
+            group = "secp384r1";
+         else if (oidLength == sizeof(OidP521) && memcmp(oid, OidP521, oidLength) == 0)
+            group = "secp521r1";
+
+         if (!group || point[0] != 0x04)
+            return nullptr;
+         return EcPublicKey(group, point);
+      }
+
+      // A version 4 signature packet, as far as verifying it needs.
+      struct SignatureParts
+      {
+         SignatureParts() : ok(false), type(-1), algorithm(0), hash(0), created(0), hashed_end(0) {}
+
+         bool ok;
+         int type;
+         int algorithm;
+         int hash;
+         __int64 created;
+         size_t hashed_end;      // just past the hashed area: what the digest covers of the packet
+         std::vector<std::vector<unsigned char> > values;   // the MPIs, or the 64 octets of an Ed25519 signature
+      };
+
+      SignatureParts ReadSignatureParts(const unsigned char *body, size_t length)
+      {
+         SignatureParts parts;
+         if (length < 6 || body[0] != 4)
+            return parts;
+
+         parts.type = body[1];
+         parts.algorithm = body[2];
+         parts.hash = body[3];
+
+         const size_t hashedLength = Read16(body + 4);
+         if (hashedLength > length - 6)
+            return parts;
+         parts.hashed_end = 6 + hashedLength;
+
+         size_t at = 6;
+         int subpacketType = 0;
+         const unsigned char *value = nullptr;
+         size_t valueLength = 0;
+         while (NextSubpacket(body, parts.hashed_end, at, subpacketType, value, valueLength))
+         {
+            if (subpacketType == 2 && valueLength == 4)
+               parts.created = (__int64) Read32(value);
+         }
+
+         at = parts.hashed_end;
+         if (at + 2 > length)
+            return parts;
+         const size_t unhashedLength = Read16(body + at);
+         at += 2;
+         if (unhashedLength > length - at)
+            return parts;
+         at += unhashedLength;
+
+         // The left 16 bits of the digest, a quick check this does not need.
+         if (at + 2 > length)
+            return parts;
+         at += 2;
+
+         if (parts.algorithm == AlgorithmEd25519)
+         {
+            if (at + 64 != length)
+               return parts;
+            parts.values.push_back(std::vector<unsigned char>(body + at, body + at + 64));
+         }
+         else
+         {
+            while (at < length)
+            {
+               std::vector<unsigned char> mpi;
+               if (!ReadMpi(body, length, at, mpi))
+                  return parts;
+               parts.values.push_back(mpi);
+            }
+         }
+
+         parts.ok = !parts.values.empty();
+         return parts;
+      }
+
+      void AppendDerLength(size_t length, std::vector<unsigned char> &out)
+      {
+         if (length < 0x80)
+            out.push_back((unsigned char) length);
+         else if (length < 0x100)
+         {
+            out.push_back(0x81);
+            out.push_back((unsigned char) length);
+         }
+         else
+         {
+            out.push_back(0x82);
+            out.push_back((unsigned char) ((length >> 8) & 0xFF));
+            out.push_back((unsigned char) (length & 0xFF));
+         }
+      }
+
+      void AppendDerInteger(const std::vector<unsigned char> &value, std::vector<unsigned char> &out)
+      {
+         size_t first = 0;
+         while (first + 1 < value.size() && value[first] == 0)
+            first++;
+
+         std::vector<unsigned char> content;
+         if (value.empty() || (value[first] & 0x80) != 0)
+            content.push_back(0);
+         if (!value.empty())
+            content.insert(content.end(), value.begin() + first, value.end());
+
+         out.push_back(0x02);
+         AppendDerLength(content.size(), out);
+         out.insert(out.end(), content.begin(), content.end());
+      }
+
+      // The ECDSA-Sig-Value OpenSSL verifies: SEQUENCE { INTEGER r, INTEGER s }.
+      std::vector<unsigned char> EcdsaSignatureDer(const std::vector<unsigned char> &r, const std::vector<unsigned char> &s)
+      {
+         std::vector<unsigned char> integers;
+         AppendDerInteger(r, integers);
+         AppendDerInteger(s, integers);
+
+         std::vector<unsigned char> der;
+         der.push_back(0x30);
+         AppendDerLength(integers.size(), der);
+         der.insert(der.end(), integers.begin(), integers.end());
+         return der;
+      }
+
+      // The signature over a digest. EdDSA signs the digest itself as its
+      // message; RSA and ECDSA sign it as a hash of the named algorithm.
+      bool VerifyDigest(EVP_PKEY *key, const SignatureParts &parts, const EVP_MD *md, const unsigned char *digest, unsigned int digestLength)
+      {
+         const int kind = EVP_PKEY_get_base_id(key);
+         bool verified = false;
+
+         if (kind == EVP_PKEY_ED25519)
+         {
+            std::vector<unsigned char> signature;
+            if (parts.algorithm == AlgorithmEd25519 && parts.values.size() == 1 && parts.values[0].size() == 64)
+               signature = parts.values[0];
+            else if (parts.algorithm == AlgorithmEddsaLegacy && parts.values.size() == 2 &&
+                     parts.values[0].size() <= 32 && parts.values[1].size() <= 32)
+            {
+               // R and S, each an MPI whose leading zero octets are dropped.
+               signature.assign(64, 0);
+               std::copy(parts.values[0].begin(), parts.values[0].end(), signature.begin() + (32 - parts.values[0].size()));
+               std::copy(parts.values[1].begin(), parts.values[1].end(), signature.begin() + (64 - parts.values[1].size()));
+            }
+
+            if (!signature.empty())
+            {
+               EVP_MD_CTX *context = EVP_MD_CTX_new();
+               verified = context != nullptr &&
+                          EVP_DigestVerifyInit(context, nullptr, nullptr, nullptr, key) == 1 &&
+                          EVP_DigestVerify(context, &signature[0], signature.size(), digest, digestLength) == 1;
+               if (context)
+                  EVP_MD_CTX_free(context);
+            }
+         }
+         else if (kind == EVP_PKEY_RSA || kind == EVP_PKEY_EC)
+         {
+            std::vector<unsigned char> signature;
+            if (kind == EVP_PKEY_RSA && (parts.algorithm == AlgorithmRsa || parts.algorithm == AlgorithmRsaSignOnly) && parts.values.size() == 1)
+            {
+               // OpenSSL takes an RSA signature at the modulus's length, and
+               // the MPI has lost its leading zero octets.
+               const int size = EVP_PKEY_get_size(key);
+               if (size > 0 && parts.values[0].size() <= (size_t) size)
+               {
+                  signature.assign((size_t) size - parts.values[0].size(), 0);
+                  signature.insert(signature.end(), parts.values[0].begin(), parts.values[0].end());
+               }
+            }
+            else if (kind == EVP_PKEY_EC && parts.algorithm == AlgorithmEcdsa && parts.values.size() == 2)
+               signature = EcdsaSignatureDer(parts.values[0], parts.values[1]);
+
+            EVP_PKEY_CTX *context = signature.empty() ? nullptr : EVP_PKEY_CTX_new(key, nullptr);
+            if (context && EVP_PKEY_verify_init(context) == 1)
+            {
+               bool ready = true;
+               if (kind == EVP_PKEY_RSA)
+                  ready = EVP_PKEY_CTX_set_rsa_padding(context, RSA_PKCS1_PADDING) == 1 && EVP_PKEY_CTX_set_signature_md(context, md) == 1;
+               verified = ready && EVP_PKEY_verify(context, &signature[0], signature.size(), digest, digestLength) == 1;
+            }
+            if (context)
+               EVP_PKEY_CTX_free(context);
+         }
+
+         ERR_clear_error();
+         return verified;
+      }
+
+      // Whether a signature after a subkey - a binding or a revocation - was
+      // made by the primary over the primary and that subkey.
+      bool VerifySubkeySignature(EVP_PKEY *primaryKey, const unsigned char *data, const KeyPacket &primary,
+                                 const KeyPacket &subkey, const Packet &signature)
+      {
+         if (!primaryKey || primary.body_length > 0xFFFF || subkey.body_length > 0xFFFF)
+            return false;
+
+         const unsigned char *body = data + signature.body_start;
+         const SignatureParts parts = ReadSignatureParts(body, signature.body_length);
+         if (!parts.ok || (parts.type != 0x18 && parts.type != 0x28))
+            return false;
+
+         const EVP_MD *md = SignatureHashOf(parts.hash, parts.created);
+         if (!md)
+            return false;
+
+         const unsigned char primaryPrefix[3] = { 0x99, (unsigned char) ((primary.body_length >> 8) & 0xFF), (unsigned char) (primary.body_length & 0xFF) };
+         const unsigned char subkeyPrefix[3] = { 0x99, (unsigned char) ((subkey.body_length >> 8) & 0xFF), (unsigned char) (subkey.body_length & 0xFF) };
+         const size_t hashed = parts.hashed_end;
+         const unsigned char trailer[6] = { 0x04, 0xFF,
+            (unsigned char) ((hashed >> 24) & 0xFF), (unsigned char) ((hashed >> 16) & 0xFF),
+            (unsigned char) ((hashed >> 8) & 0xFF), (unsigned char) (hashed & 0xFF) };
+
+         unsigned char digest[EVP_MAX_MD_SIZE];
+         unsigned int digestLength = 0;
+         EVP_MD_CTX *hash = EVP_MD_CTX_new();
+         const bool computed = hash != nullptr &&
+            EVP_DigestInit_ex(hash, md, nullptr) == 1 &&
+            EVP_DigestUpdate(hash, primaryPrefix, sizeof(primaryPrefix)) == 1 &&
+            EVP_DigestUpdate(hash, data + primary.body_start, primary.body_length) == 1 &&
+            EVP_DigestUpdate(hash, subkeyPrefix, sizeof(subkeyPrefix)) == 1 &&
+            EVP_DigestUpdate(hash, data + subkey.body_start, subkey.body_length) == 1 &&
+            EVP_DigestUpdate(hash, body, hashed) == 1 &&
+            EVP_DigestUpdate(hash, trailer, sizeof(trailer)) == 1 &&
+            EVP_DigestFinal_ex(hash, digest, &digestLength) == 1;
+         if (hash)
+            EVP_MD_CTX_free(hash);
+
+         if (!computed)
+         {
+            ERR_clear_error();
+            return false;
+         }
+
+         return VerifyDigest(primaryKey, parts, md, digest, digestLength);
       }
 
       bool Random(std::vector<unsigned char> &out, size_t length, const std::vector<unsigned char> *fixed)
@@ -521,7 +947,7 @@ namespace HM
    }
 
    OpenPgpWriter::EncryptionKey
-   OpenPgpWriter::ChooseEncryptionKey(const unsigned char *data, size_t length, __int64 now)
+   OpenPgpWriter::ChooseEncryptionKey(const unsigned char *data, size_t length, __int64 now, bool verifyBindings)
    {
       EncryptionKey chosen;
 
@@ -537,6 +963,14 @@ namespace HM
       KeyPacket primary;
       std::vector<KeyPacket> subkeys;
       bool have_primary = false;
+
+      // The primary as OpenSSL verifies with it; null for a kind this cannot
+      // check, and then no subkey binding verifies.
+      VerifyingKey primaryKey;
+
+      // A binding that asked for encryption and did not verify: what the
+      // refusal says when nothing else could be chosen.
+      bool sawUnboundEncryptionSubkey = false;
       // Whose signatures the ones being read belong to: the primary (through
       // its user ids) or the last subkey.
       KeyPacket *current = nullptr;
@@ -562,6 +996,8 @@ namespace HM
                chosen.error = "the key's primary packet could not be read";
                return chosen;
             }
+            if (verifyBindings)
+               primaryKey.key = VerifyingKeyOf(data + packet.body_start, packet.body_length);
             have_primary = true;
             current = &primary;
             current_is_primary = true;
@@ -614,12 +1050,19 @@ namespace HM
                      primary.expires = expiry > 0 ? primary.created + expiry : 0;
                }
             }
-            else
+            else if (type == 0x18 || type == 0x28)
             {
+               // Taken only when the primary made it over this subkey.
+               const bool genuine = !verifyBindings || VerifySubkeySignature(primaryKey.key, data, primary, *current, packet);
+
                if (type == 0x28)
-                  current->revoked = true;
-               else if (type == 0x18)
                {
+                  if (genuine)
+                     current->revoked = true;
+               }
+               else if (genuine)
+               {
+                  current->bound = true;
                   if (has_flags)
                   {
                      current->has_flags = true;
@@ -628,6 +1071,8 @@ namespace HM
                   if (expiry >= 0)
                      current->expires = expiry > 0 ? current->created + expiry : 0;
                }
+               else if (has_flags && (flags & (FlagEncryptCommunications | FlagEncryptStorage)) != 0)
+                  sawUnboundEncryptionSubkey = true;
             }
          }
       }
@@ -654,7 +1099,7 @@ namespace HM
       for (size_t i = 0; i < subkeys.size(); i++)
       {
          const KeyPacket &subkey = subkeys[i];
-         if (subkey.revoked || !subkey.has_flags || (subkey.flags & (FlagEncryptCommunications | FlagEncryptStorage)) == 0)
+         if (!subkey.bound || subkey.revoked || !subkey.has_flags || (subkey.flags & (FlagEncryptCommunications | FlagEncryptStorage)) == 0)
             continue;
          if (subkey.expires && subkey.expires < now)
             continue;
@@ -671,9 +1116,14 @@ namespace HM
 
       if (!best)
       {
-         chosen.error = sawEncryptionSubkey
-            ? "the key's encryption subkey is of a kind this server does not write to: RSA and Curve25519 (cv25519) are the two it does"
-            : "the key has no subkey that may encrypt, and its primary key may not either";
+         if (sawEncryptionSubkey)
+            chosen.error = "the key's encryption subkey is of a kind this server does not write to: RSA and Curve25519 (cv25519) are the two it does";
+         else if (sawUnboundEncryptionSubkey && !primaryKey.key)
+            chosen.error = "the key's primary is of a kind whose signatures this server cannot check (it checks RSA, Ed25519 and ECDSA on the NIST curves), so no encryption subkey can be shown to be bound to it";
+         else if (sawUnboundEncryptionSubkey)
+            chosen.error = "the key's encryption subkey is not bound to it: its binding signature does not verify against the primary key (or rests on SHA-1 and was made since 2019), so the subkey may not be the key holder's at all. Export the key again from its holder, with gpg --export";
+         else
+            chosen.error = "the key has no subkey that may encrypt, and its primary key may not either";
          return chosen;
       }
 
@@ -935,21 +1385,20 @@ namespace HM
          return false;
       }
 
-      // The literal packet: binary, no name, no date.
-      std::vector<unsigned char> literal;
-      WritePacketHeader(TagLiteral, length + 6, literal);
-      literal.push_back('b');
-      literal.push_back(0);
-      literal.push_back(0); literal.push_back(0); literal.push_back(0); literal.push_back(0);
-      literal.insert(literal.end(), data, data + length);
-
       // What is encrypted: the prefix with its last two octets repeated, the
-      // literal packet, and the MDC packet over all of it.
+      // literal packet (binary, no name, no date), and the MDC packet over all
+      // of it - written into one buffer, so that the message is held once
+      // more here and not twice (the gateway encrypts messages of up to 50 MB).
       std::vector<unsigned char> plain;
+      plain.reserve(18 + 6 + 6 + length + 22);
       plain.insert(plain.end(), prefix.begin(), prefix.end());
       plain.push_back(prefix[14]);
       plain.push_back(prefix[15]);
-      plain.insert(plain.end(), literal.begin(), literal.end());
+      WritePacketHeader(TagLiteral, length + 6, plain);
+      plain.push_back('b');
+      plain.push_back(0);
+      plain.push_back(0); plain.push_back(0); plain.push_back(0); plain.push_back(0);
+      plain.insert(plain.end(), data, data + length);
       plain.push_back(0xD3);
       plain.push_back(0x14);
       unsigned char mdc[SHA_DIGEST_LENGTH] = {};
@@ -957,23 +1406,27 @@ namespace HM
       plain.insert(plain.end(), mdc, mdc + sizeof(mdc));
 
       std::vector<unsigned char> encrypted;
-      if (!CfbEncrypt(sessionKey, plain, encrypted))
+      const bool encryptedOk = CfbEncrypt(sessionKey, plain, encrypted);
+
+      // The key and the plaintext are not left in memory longer than they
+      // are needed; a best effort, and said so. The plaintext's buffer is
+      // let go of before the packets are written.
+      std::fill(sessionKey.begin(), sessionKey.end(), 0);
+      std::fill(plain.begin(), plain.end(), 0);
+      std::vector<unsigned char>().swap(plain);
+
+      if (!encryptedOk)
       {
          error = "the message could not be encrypted";
          return false;
       }
 
+      message.reserve(pkesk.size() + 6 + encrypted.size() + 1 + 6);
       WritePacketHeader(TagPkesk, pkesk.size(), message);
       message.insert(message.end(), pkesk.begin(), pkesk.end());
       WritePacketHeader(TagSeipd, encrypted.size() + 1, message);
       message.push_back(1);
       message.insert(message.end(), encrypted.begin(), encrypted.end());
-
-      // The key and the plaintext are not left in memory longer than they
-      // are needed; a best effort, and said so.
-      std::fill(sessionKey.begin(), sessionKey.end(), 0);
-      std::fill(plain.begin(), plain.end(), 0);
-      std::fill(literal.begin(), literal.end(), 0);
       return true;
    }
 
@@ -981,11 +1434,23 @@ namespace HM
    OpenPgpWriter::Armour(const std::vector<unsigned char> &message)
    {
       AnsiString out = "-----BEGIN PGP MESSAGE-----\r\n\r\n";
-      const AnsiString base64 = message.empty() ? AnsiString() : Base64::Encode((const char *) &message[0], (int) message.size());
-      for (int at = 0; at < base64.GetLength(); at += 76)
+      out.reserve(message.size() / 57 * 78 + 256);
+
+      // Encoded a block at a time, 1,024 lines of 57 octets: a multiple of
+      // three, so the blocks' base64 joined is the whole message's, and of 57,
+      // so every line is whole. The whole message's base64 is never held
+      // beside the armour.
+      const size_t block = 57 * 1024;
+      for (size_t start = 0; start < message.size(); start += block)
       {
-         out += base64.Mid(at, 76);
-         out += "\r\n";
+         const size_t count = message.size() - start < block ? message.size() - start : block;
+         const AnsiString base64 = Base64::Encode((const char *) &message[start], (int) count);
+         const size_t encoded = (size_t) base64.GetLength();
+         for (size_t at = 0; at < encoded; at += 76)
+         {
+            out.append(base64.c_str() + at, encoded - at < 76 ? encoded - at : 76);
+            out += "\r\n";
+         }
       }
       const unsigned int crc = message.empty() ? 0x00B704CEu : OpenPgpKey::ArmourChecksum(&message[0], message.size());
       const unsigned char crcOctets[3] = { (unsigned char) ((crc >> 16) & 0xFF), (unsigned char) ((crc >> 8) & 0xFF), (unsigned char) (crc & 0xFF) };
@@ -1156,6 +1621,24 @@ namespace HM
          "ukeUO3aWgpkHejO2t5W84vVO3MeX4UFOng31q2kkOA0=\n"
          "=gUJB\n"
          "-----END PGP PUBLIC KEY BLOCK-----\n";
+
+      // revsub@fixtures.test: GnuPG 2.4.7 made it on 24 September 2026 - an
+      // Ed25519 primary 10E3 6BDC D1BA ED46 3775 2D94 1458 2CAD F579 2BD6 and
+      // one cv25519 subkey 96407CDB257335C493BDCE0D51D0A08FDE566029, which
+      // "gpg --edit-key", "key 1", "revkey" then revoked. gpg --export, base64.
+      const char *RevokedSubkeyBase64 =
+         "mDMEarSd/hYJKwYBBAHaRw8BAQdAI2EvJ6+NFcgnZ47VE87sv7CWmVMx5pubKibY"
+         "udXSTqC0JVJldm9rZWQgU3Via2V5IDxyZXZzdWJAZml4dHVyZXMudGVzdD6IkwQT"
+         "FgoAOxYhBBDja9zRuu1GN3UtlBRYLK31eSvWBQJqtJ3+AhsDBQsJCAcCAiICBhUK"
+         "CQgLAgQWAgMBAh4HAheAAAoJEBRYLK31eSvWVPYBAMWVuiu72u9bgnfwPrPfhNoY"
+         "udR9G8RWVCnCUFwq7dyQAP47oEdKvgsuKid0UEOFkPaJhQw1w5Nz+T4xf8A6rKJb"
+         "Drg4BGq0nf8SCisGAQQBl1UBBQEBB0A/GFCb8Bj8NkbBJagdzAkEuvQSPmpYWVHs"
+         "8IL/o/VLNwMBCAeIeAQoFgoAIBYhBBDja9zRuu1GN3UtlBRYLK31eSvWBQJqtJ3/"
+         "Ah0AAAoJEBRYLK31eSvWLEkBAJs3raVopOpPAbFw8Ncy+vNTuIZhxsQgy1YUosgY"
+         "3afNAQDfPVI58yB65ibBJcJpBqLwbaAE52Uth+3+BU6nHmC1BYh4BBgWCgAgFiEE"
+         "EONr3NG67UY3dS2UFFgsrfV5K9YFAmq0nf8CGwwACgkQFFgsrfV5K9bTPAD6Ao8q"
+         "4gYhTNwphhWLu4BaiGDiVnkaG7D71YNfiLdIsqoA/2ZjrZPKTCS0FO6X7oaGu8MF"
+         "JbrzHkSL6rbYUEv817wB";
    }
 
    namespace
@@ -1179,10 +1662,10 @@ namespace HM
       // at the front of the hashed area of the signature that follows the
       // first packet of the given tag - the binding after the subkey (14),
       // the self-certification after the user id (13). Nothing is re-signed:
-      // the reader takes what the hashed area says without verifying it,
-      // which is the point of this manufactured key and would be the point of
-      // an attacker's, except that an attacker who can rewrite a key in the
-      // ring has the ring. Empty when the packet was not found.
+      // a changed binding no longer verifies, so the chooser refuses the
+      // subkey it binds (the tests below say so), and the expiry arithmetic
+      // is tested with verification switched off. The self-certification is
+      // read unverified. Empty when the packet was not found.
       std::vector<unsigned char> WithExpiry(const std::vector<unsigned char> &key, int afterTag, unsigned int seconds)
       {
          size_t offset = 0;
@@ -1385,8 +1868,9 @@ namespace HM
 
       // ---- an expiry, on the subkey or on the primary, is what the chooser answers
       {
-         // Neither fixture key expires, and a signature this reader does not
-         // verify can be given a key-expiry subpacket without being re-made:
+         // Neither fixture key expires, and a signature can be given a
+         // key-expiry subpacket without being re-made - the chooser, told not
+         // to verify bindings, reads it as it stands - by putting
          // six octets at the front of the hashed area (RFC 9580 section
          // 5.2.3.13: a length of 5, the type 9, four octets of seconds after
          // the key's creation), the hashed length and the packet length each
@@ -1398,21 +1882,109 @@ namespace HM
 
          const std::vector<unsigned char> subkeyExpiring = WithExpiry(aliceBytes, 14, 86400 * 365);
          Require(!subkeyExpiring.empty(), "The subkey binding signature could not be given an expiry.");
-         const OpenPgpWriter::EncryptionKey living = OpenPgpWriter::ChooseEncryptionKey(&subkeyExpiring[0], subkeyExpiring.size(), subkeyCreated + 1);
+
+         // The binding was changed after alice signed it: with the binding
+         // verified, the subkey is not hers, and nothing is left to encrypt to.
+         const OpenPgpWriter::EncryptionKey forged = OpenPgpWriter::ChooseEncryptionKey(&subkeyExpiring[0], subkeyExpiring.size(), subkeyCreated + 1);
+         Require(!forged.ok && forged.error.Find("not bound") >= 0, "A subkey whose binding was changed after it was signed was chosen.");
+
+         const OpenPgpWriter::EncryptionKey living = OpenPgpWriter::ChooseEncryptionKey(&subkeyExpiring[0], subkeyExpiring.size(), subkeyCreated + 1, false);
          Require(living.ok, (AnsiString("A subkey that expires in a year was refused today: ") + living.error).c_str());
          Require(living.expires == subkeyCreated + 86400 * 365, "The chosen key's expiry is not the subkey binding's.");
-         Require(!OpenPgpWriter::ChooseEncryptionKey(&subkeyExpiring[0], subkeyExpiring.size(), subkeyCreated + 86400 * 365 + 1).ok, "An expired subkey was chosen.");
+         Require(!OpenPgpWriter::ChooseEncryptionKey(&subkeyExpiring[0], subkeyExpiring.size(), subkeyCreated + 86400 * 365 + 1, false).ok, "An expired subkey was chosen.");
          Require(OpenPgpWriter::ChooseEncryptionKey(&aliceBytes[0], aliceBytes.size(), subkeyCreated + 1).expires == 0, "A key with no expiry anywhere reports one.");
 
          // The primary's expiry, earlier than the subkey's, is the one answered:
          // the chooser refuses the whole key once the primary has expired.
          std::vector<unsigned char> bothExpiring = WithExpiry(subkeyExpiring, 13, 86400 * 30);
          Require(!bothExpiring.empty(), "The self-certification could not be given an expiry.");
-         const OpenPgpWriter::EncryptionKey earlier = OpenPgpWriter::ChooseEncryptionKey(&bothExpiring[0], bothExpiring.size(), primaryCreated + 1);
+         const OpenPgpWriter::EncryptionKey earlier = OpenPgpWriter::ChooseEncryptionKey(&bothExpiring[0], bothExpiring.size(), primaryCreated + 1, false);
          Require(earlier.ok, (AnsiString("A key whose primary expires in a month was refused today: ") + earlier.error).c_str());
          Require(earlier.expires == primaryCreated + 86400 * 30, "The earlier of the two expiries was not the one answered.");
-         const OpenPgpWriter::EncryptionKey gone = OpenPgpWriter::ChooseEncryptionKey(&bothExpiring[0], bothExpiring.size(), primaryCreated + 86400 * 30 + 1);
+         const OpenPgpWriter::EncryptionKey gone = OpenPgpWriter::ChooseEncryptionKey(&bothExpiring[0], bothExpiring.size(), primaryCreated + 86400 * 30 + 1, false);
          Require(!gone.ok && gone.error.Find("expired") >= 0, "A key whose primary has expired was not refused by name.");
+      }
+
+      // ---- a subkey appended under the primary, with a binding that is not its own
+      {
+         size_t offset = 0;
+         Packet packet;
+         Packet subkey;
+         Packet binding;
+         bool haveSubkey = false;
+         bool haveBinding = false;
+         while (ReadPacket(&aliceBytes[0], aliceBytes.size(), offset, packet))
+         {
+            if (packet.tag == TagPublicSubkey && !haveSubkey)
+            {
+               subkey = packet;
+               haveSubkey = true;
+            }
+            else if (packet.tag == TagSignature && haveSubkey && !haveBinding)
+            {
+               binding = packet;
+               haveBinding = true;
+            }
+            offset = packet.next;
+         }
+         Require(haveSubkey && haveBinding, "The fixture key's subkey and binding did not read.");
+
+         std::vector<unsigned char> rogueBody(aliceBytes.begin() + subkey.body_start, aliceBytes.begin() + subkey.body_start + subkey.body_length);
+         const unsigned int later = Read32(&rogueBody[1]) + 86400;
+         rogueBody[1] = (unsigned char) ((later >> 24) & 0xFF);
+         rogueBody[2] = (unsigned char) ((later >> 16) & 0xFF);
+         rogueBody[3] = (unsigned char) ((later >> 8) & 0xFF);
+         rogueBody[4] = (unsigned char) (later & 0xFF);
+
+         std::vector<unsigned char> withRogue = aliceBytes;
+         OpenPgpWriter::WritePacketHeader(TagPublicSubkey, rogueBody.size(), withRogue);
+         withRogue.insert(withRogue.end(), rogueBody.begin(), rogueBody.end());
+         // alice's own binding, header and all: it follows her subkey directly.
+         Require(binding.body_start > subkey.next, "The fixture key's binding does not follow its subkey.");
+         withRogue.insert(withRogue.end(), aliceBytes.begin() + subkey.next, aliceBytes.begin() + binding.next);
+
+         const OpenPgpWriter::EncryptionKey kept = OpenPgpWriter::ChooseEncryptionKey(&withRogue[0], withRogue.size(), 1800000000);
+         Require(kept.ok && kept.fingerprint == "4a144aada87aad8cce8a0659eaa03821629d0473",
+                 "A newer subkey appended under the primary, with a binding that is not its own, was chosen over the one alice bound.");
+         const OpenPgpWriter::EncryptionKey fooled = OpenPgpWriter::ChooseEncryptionKey(&withRogue[0], withRogue.size(), 1800000000, false);
+         Require(fooled.ok && fooled.fingerprint != "4a144aada87aad8cce8a0659eaa03821629d0473",
+                 "The rogue subkey was not the newer one, so the test above proved nothing.");
+      }
+
+      // ---- a subkey revocation: the key holder's counts, somebody else's does not
+      {
+         const AnsiString decoded = Base64::Decode(RevokedSubkeyBase64, (int) strlen(RevokedSubkeyBase64));
+         const std::vector<unsigned char> revoked(decoded.c_str(), decoded.c_str() + decoded.GetLength());
+         Require(!revoked.empty(), "The revoked-subkey fixture did not decode.");
+
+         // GnuPG revoked the only encryption subkey, with a revocation its
+         // primary made: nothing is left to encrypt to.
+         const OpenPgpWriter::EncryptionKey refused = OpenPgpWriter::ChooseEncryptionKey(&revoked[0], revoked.size(), 1800000000);
+         Require(!refused.ok && refused.error.Find("no subkey that may encrypt") >= 0, "A subkey its own primary revoked was chosen.");
+
+         // That revocation, appended after alice's binding, was not made by
+         // alice's primary over alice's subkey, so it revokes nothing of hers.
+         size_t offset = 0;
+         Packet packet;
+         std::vector<unsigned char> revocation;
+         while (ReadPacket(&revoked[0], revoked.size(), offset, packet))
+         {
+            if (packet.tag == TagSignature && packet.body_length > 2 && revoked[packet.body_start + 1] == 0x28)
+            {
+               revocation.assign(revoked.begin() + offset, revoked.begin() + packet.next);
+               break;
+            }
+            offset = packet.next;
+         }
+         Require(!revocation.empty(), "The revoked-subkey fixture carries no subkey revocation.");
+
+         std::vector<unsigned char> aliceRevoked = aliceBytes;
+         aliceRevoked.insert(aliceRevoked.end(), revocation.begin(), revocation.end());
+         const OpenPgpWriter::EncryptionKey still = OpenPgpWriter::ChooseEncryptionKey(&aliceRevoked[0], aliceRevoked.size(), 1800000000);
+         Require(still.ok && still.fingerprint == "4a144aada87aad8cce8a0659eaa03821629d0473",
+                 "A revocation somebody else's primary made revoked alice's subkey.");
+         Require(!OpenPgpWriter::ChooseEncryptionKey(&aliceRevoked[0], aliceRevoked.size(), 1800000000, false).ok,
+                 "The appended revocation is not read as one at all, so the test above proved nothing.");
       }
    }
 }

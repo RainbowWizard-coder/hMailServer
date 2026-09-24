@@ -3431,6 +3431,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Encr_ypt the archive with a passphrase (AES-256, file names included)" xml:space="preserve">
     <value>Encr_ypt the archive with a passphrase (AES-256, file names included)</value>
   </data>
+  <data name="Encrypt mail to this domain at this server" xml:space="preserve">
+    <value>Encrypt mail to this domain at this server</value>
+  </data>
   <data name="Encrypted" xml:space="preserve">
     <value>Encrypted</value>
   </data>
@@ -5673,6 +5676,9 @@ Nothing already there is removed.</value>
   <data name="None - no encryption" xml:space="preserve">
     <value>None - no encryption</value>
   </data>
+  <data name="None - sent as it was written" xml:space="preserve">
+    <value>None - sent as it was written</value>
+  </data>
   <data name="None of the selected accounts have an e-mail address." xml:space="preserve">
     <value>None of the selected accounts have an e-mail address.</value>
   </data>
@@ -6104,6 +6110,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="Open {0}, which owns the {1} settings" xml:space="preserve">
     <value>Open {0}, which owns the {1} settings</value>
+  </data>
+  <data name="OpenPGP - to the partner's public key" xml:space="preserve">
+    <value>OpenPGP - to the partner's public key</value>
   </data>
   <data name="OpenTelemetry OTLP endpoint for logs (empty = disabled)" xml:space="preserve">
     <value>OpenTelemetry OTLP endpoint for logs (empty = disabled)</value>
@@ -6885,6 +6894,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
     <value>Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it.</value>
   </data>
+  <data name="Refuse it and tell the sender" xml:space="preserve">
+    <value>Refuse it and tell the sender</value>
+  </data>
   <data name="Refuse it, with the reason" xml:space="preserve">
     <value>Refuse it, with the reason</value>
   </data>
@@ -7422,6 +7434,9 @@ Continue?</value>
   <data name="Runs the server's built-in connectivity and configuration checks (outbound port 25, MX resolution, backup directory, IP configuration). The message-store consistency scan below is a separate read-only background task - the server runs it at start-up and hourly and records what it found in a recovery report." xml:space="preserve">
     <value>Runs the server's built-in connectivity and configuration checks (outbound port 25, MX resolution, backup directory, IP configuration). The message-store consistency scan below is a separate read-only background task - the server runs it at start-up and hourly and records what it found in a recovery report.</value>
   </data>
+  <data name="S/MIME - to the partner's certificate" xml:space="preserve">
+    <value>S/MIME - to the partner's certificate</value>
+  </data>
   <data name="SAMaxTimeout (90)" xml:space="preserve">
     <value>SAMaxTimeout (90)</value>
   </data>
@@ -7946,6 +7961,9 @@ Continue?</value>
   </data>
   <data name="Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)" xml:space="preserve">
     <value>Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)</value>
+  </data>
+  <data name="Send it unencrypted and log it" xml:space="preserve">
+    <value>Send it unencrypted and log it</value>
   </data>
   <data name="Send log entries to syslog" xml:space="preserve">
     <value>Send log entries to syslog</value>
@@ -9211,6 +9229,9 @@ could not be loaded. The message has probably been delivered and is no longer in
   <data name="The key file was kept: {0}" xml:space="preserve">
     <value>The key file was kept: {0}</value>
   </data>
+  <data name="The key held" xml:space="preserve">
+    <value>The key held</value>
+  </data>
   <data name="The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair." xml:space="preserve">
     <value>The key is encrypted and this panel deliberately does not decrypt it, so whether it matches the certificate is only proven when the server loads the pair.</value>
   </data>
@@ -9330,6 +9351,9 @@ could not be loaded. The message has probably been delivered and is no longer in
   </data>
   <data name="The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero." xml:space="preserve">
     <value>The overview names the arrangements that silently do nothing - a zero threshold, a threshold no enabled check can reach, a check scoring zero.</value>
+  </data>
+  <data name="The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)" xml:space="preserve">
+    <value>The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)</value>
   </data>
   <data name="The passphrase again, to be sure it _was typed right" xml:space="preserve">
     <value>The passphrase again, to be sure it _was typed right</value>
@@ -10370,6 +10394,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)." xml:space="preserve">
     <value>When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5).</value>
+  </data>
+  <data name="When a message cannot be encrypted" xml:space="preserve">
+    <value>When a message cannot be encrypted</value>
   </data>
   <data name="When a scanner cannot run" xml:space="preserve">
     <value>When a scanner cannot run</value>

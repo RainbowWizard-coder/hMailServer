@@ -24,6 +24,19 @@
 // body leaves out takes the create's default rather than keeping what was
 // stored - which is what "replace" means, and what the Deck's form sends.
 //
+// Gateway encryption rides on the same record (Common/Util/GatewayEncryption.h):
+// encrypt, encrypt_fallback and the partner's key. The key is WRITE-ONLY here,
+// one of the two exceptions to "a PUT replaces every field": the Deck's form
+// never has it to send back, so a PUT that leaves it out keeps the key held,
+// and an empty (or white-space) string removes it. The other is encrypt
+// itself, which a PUT that leaves it out keeps too, so that a client written
+// before this field existed cannot switch a partner's encryption off by not
+// knowing it. What the listing answers instead of the key is what the key
+// is - its fingerprints (for OpenPGP the primary's and the subkey's that is
+// encrypted to), its expiry, whom it names, and whether a message can be
+// encrypted to it now. An update is saved as a copy and reaches delivery by
+// the collection being read again, never by writing into the running record.
+//
 // Beside them, two the routes have no equivalent of:
 //   GET /api/v1/remote-domains/effective?domain=x   the record that GOVERNS a
 //       domain, which is not the record NAMED by it. Patterns and specificity
@@ -43,8 +56,10 @@
 #include "../Persistence/PersistenceMode.h"
 #include "../../SMTP/RecipientCallout.h"
 #include "../../SMTP/SMTPConfiguration.h"
+#include "GatewayEncryption.h"
 
 #include <cmath>
+#include <ctime>
 #include <functional>
 #include <string>
 #include <vector>
@@ -95,6 +110,49 @@ namespace HM
             return false;
 
          return true;
+      }
+
+      // The words the API uses for RemoteEncryption and RemoteEncryptFallback.
+      bool ParseEncryptionWord(const std::string &word, RemoteEncryption &method)
+      {
+         AnsiString value = word.c_str();
+
+         if (value.CompareNoCase("none") == 0)
+            method = RemoteEncryptNone;
+         else if (value.CompareNoCase("openpgp") == 0)
+            method = RemoteEncryptOpenPgp;
+         else if (value.CompareNoCase("smime") == 0)
+            method = RemoteEncryptSmime;
+         else
+            return false;
+
+         return true;
+      }
+
+      const char *FallbackWord(RemoteEncryptFallback fallback)
+      {
+         return fallback == RemoteEncryptFallbackSendUnencrypted ? "send_unencrypted" : "refuse";
+      }
+
+      bool ParseFallbackWord(const std::string &word, RemoteEncryptFallback &fallback)
+      {
+         AnsiString value = word.c_str();
+
+         if (value.CompareNoCase("refuse") == 0)
+            fallback = RemoteEncryptFallbackRefuse;
+         else if (value.CompareNoCase("send_unencrypted") == 0)
+            fallback = RemoteEncryptFallbackSendUnencrypted;
+         else
+            return false;
+
+         return true;
+      }
+
+      String WideOfUtf8(const AnsiString &utf8)
+      {
+         String value;
+         Unicode::MultiByteToWide(utf8, value);
+         return value;
       }
 
       String Utf8ToString(const std::string &utf8)
@@ -243,12 +301,46 @@ namespace HM
          entry += ",\"callout_host\":\"" + quote(policy->GetCalloutHost()) + "\"";
 
          AnsiString calloutNumbers;
-         calloutNumbers.Format(",\"callout_port\":%d,\"callout_timeout_seconds\":%d,\"callout_cache_minutes\":%d,\"callout_max_per_minute\":%d}",
+         calloutNumbers.Format(",\"callout_port\":%d,\"callout_timeout_seconds\":%d,\"callout_cache_minutes\":%d,\"callout_max_per_minute\":%d",
             (int) policy->GetCalloutPort(),
             (int) policy->GetCalloutTimeoutSeconds(),
             (int) policy->GetCalloutCacheMinutes(),
             (int) policy->GetCalloutMaxPerMinute());
          entry += calloutNumbers;
+
+         // Gateway encryption. The key itself is never answered; what it is,
+         // is. A key held while encryption is off is described as what it
+         // looks like, so that it can be checked before it is used.
+         entry += ",\"encrypt\":\"";
+         entry += GatewayEncryption::MethodWord(policy->GetEncrypt());
+         entry += "\",\"encrypt_fallback\":\"";
+         entry += FallbackWord(policy->GetEncryptFallback());
+         entry += "\"";
+
+         const String key = policy->GetEncryptKey();
+         flag("encrypt_key_set", !key.IsEmpty());
+
+         GatewayEncryption::KeyFacts facts;
+         const RemoteEncryption judged = policy->GetEncrypt() != RemoteEncryptNone
+            ? policy->GetEncrypt()
+            : GatewayEncryption::MethodOfKey(key);
+
+         if (!key.IsEmpty() && judged != RemoteEncryptNone)
+            facts = GatewayEncryption::Inspect(judged, key, policy->GetDomainName(), (__int64) time(nullptr));
+
+         AnsiString problem;
+         if (key.IsEmpty())
+            problem = policy->GetEncrypt() != RemoteEncryptNone ? AnsiString("no key is held") : AnsiString();
+         else if (!facts.usable)
+            problem = facts.problem;
+
+         entry += ",\"encrypt_key_fingerprint\":\"" + quote(String(facts.fingerprint)) + "\"";
+         entry += ",\"encrypt_key_subkey_fingerprint\":\"" + quote(String(facts.subkey_fingerprint)) + "\"";
+         entry += ",\"encrypt_key_expires\":\"" + quote(String(GatewayEncryption::ExpiryText(facts.expires))) + "\"";
+         entry += ",\"encrypt_key_subject\":\"" + quote(WideOfUtf8(facts.subject)) + "\"";
+         entry += ",\"encrypt_key_problem\":\"" + quote(WideOfUtf8(problem)) + "\"";
+         entry += ",\"encrypt_key_warning\":\"" + quote(WideOfUtf8(facts.warning)) + "\"";
+         entry += "}";
 
          return entry;
       }
@@ -272,6 +364,9 @@ namespace HM
          to.SetCalloutTimeoutSeconds(from.GetCalloutTimeoutSeconds());
          to.SetCalloutCacheMinutes(from.GetCalloutCacheMinutes());
          to.SetCalloutMaxPerMinute(from.GetCalloutMaxPerMinute());
+         to.SetEncrypt(from.GetEncrypt());
+         to.SetEncryptKey(from.GetEncryptKey());
+         to.SetEncryptFallback(from.GetEncryptFallback());
       }
 
       // The whole record from the body onto policy: what a POST creates and what
@@ -288,7 +383,12 @@ namespace HM
             "max_message_size_kb", "max_connections", "max_messages_per_minute",
             "allow_automatic_replies", "allow_forwarding",
             "callout_enabled", "callout_host", "callout_port", "callout_timeout_seconds",
-            "callout_cache_minutes", "callout_max_per_minute"
+            "callout_cache_minutes", "callout_max_per_minute",
+            "encrypt", "encrypt_key", "encrypt_fallback",
+            // What the listing answers about the key, so that an entry read and
+            // sent back is taken; they are the server's to say, and are ignored.
+            "encrypt_key_set", "encrypt_key_fingerprint", "encrypt_key_subkey_fingerprint", "encrypt_key_expires",
+            "encrypt_key_subject", "encrypt_key_problem", "encrypt_key_warning"
          };
 
          std::string unknown = FirstUnknownKey(body, knownKeys, sizeof(knownKeys) / sizeof(knownKeys[0]));
@@ -314,6 +414,16 @@ namespace HM
          long calloutCacheMinutes = 60;
          long calloutMaxPerMinute = 10;
          RemoteTlsRequirement outboundTls = RemoteTlsDefault;
+
+         // The one field besides the key that a PUT leaving it out does not
+         // reset: automation written before gateway encryption existed PUTs
+         // the whole record it knew, and must not switch a partner's
+         // encryption off - sending its mail in the clear - by not naming a
+         // field it had never heard of. A new policy's is none (the
+         // constructor's). The fallback does reset, to refuse, which is the
+         // stricter of the two.
+         RemoteEncryption encrypt = policy->GetEncrypt();
+         RemoteEncryptFallback encryptFallback = RemoteEncryptFallbackRefuse;
 
          if (!ReadString(body, "domain_name", domainName, error) ||
              !ReadString(body, "description", description, error) ||
@@ -345,6 +455,36 @@ namespace HM
                return false;
             }
          }
+
+         if (HasMember(body, "encrypt"))
+         {
+            const JsonValue *member = body.Get("encrypt");
+            if (!member->IsString() || !ParseEncryptionWord(member->AsString(), encrypt))
+            {
+               error = "encrypt must be one of none, openpgp, smime";
+               return false;
+            }
+         }
+
+         if (HasMember(body, "encrypt_fallback"))
+         {
+            const JsonValue *member = body.Get("encrypt_fallback");
+            if (!member->IsString() || !ParseFallbackWord(member->AsString(), encryptFallback))
+            {
+               error = "encrypt_fallback must be one of refuse, send_unencrypted";
+               return false;
+            }
+         }
+
+         // Write-only, and so a field a PUT that leaves it out does not reset:
+         // the key held stays. An empty string - or one of white space only -
+         // removes it. It is judged by the save, against the method and the
+         // domain above, which is where a refusal's sentence comes from; a
+         // private key is refused there whatever the method.
+         bool keyGiven = HasMember(body, "encrypt_key");
+         String encryptKey;
+         if (keyGiven && !ReadString(body, "encrypt_key", encryptKey, error))
+            return false;
 
          domainName.Trim();
          calloutHost.Trim();
@@ -380,6 +520,14 @@ namespace HM
          policy->SetCalloutTimeoutSeconds(calloutTimeoutSeconds);
          policy->SetCalloutCacheMinutes(calloutCacheMinutes);
          policy->SetCalloutMaxPerMinute(calloutMaxPerMinute);
+         policy->SetEncrypt(encrypt);
+         policy->SetEncryptFallback(encryptFallback);
+
+         if (keyGiven)
+         {
+            encryptKey.Trim();
+            policy->SetEncryptKey(encryptKey);
+         }
 
          return true;
       }
@@ -390,14 +538,14 @@ namespace HM
    {
       return
          ",\"/api/v1/remote-domains\":{"
-         "\"get\":{\"summary\":\"List the remote domain policies\",\"description\":\"What this server will do when it talks to a named remote domain, as the running server holds them. Each entry: id, domain_name (may carry a wildcard), description, active, outbound_tls (none, encrypted, verified or dane), require_inbound_tls, max_message_size_kb, max_connections, max_messages_per_minute, allow_automatic_replies, allow_forwarding, callout_enabled, callout_host, callout_port, callout_timeout_seconds, callout_cache_minutes and callout_max_per_minute. A policy is not a route: a route says where mail for a domain goes, a policy says what this server will and will not do when it gets there, and a domain may have both. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of policies\"}}},"
-         "\"post\":{\"summary\":\"Create a remote domain policy\",\"description\":\"Body: domain_name (required; a domain, or a wildcard pattern such as *.example.com - the most specific active match governs a delivery). description; active (default true); outbound_tls (default none - none leaves the delivery as it would have been, encrypted requires a successful STARTTLS, verified also requires a certificate that chains and names the host, dane requires a DNSSEC-validated TLSA record; the requirement composes with MTA-STS and DANE as the strongest of the three and can never lower what the domain itself published); require_inbound_tls (default false - mail FROM this domain on an unencrypted session is answered 530); max_message_size_kb (default 0, no limit - a larger message is never offered and is bounced 5.3.4); max_connections and max_messages_per_minute (default 0, unlimited - beyond either, delivery is deferred 4.4.5); allow_automatic_replies and allow_forwarding (default true); callout_enabled (default false), callout_host (empty means the domain's own MX hosts, skipping this server), callout_port (default 25), callout_timeout_seconds (default 10, at most 60), callout_cache_minutes (default 60) and callout_max_per_minute (default 10). Persisted and in effect for the next message, as a policy saved in the Control Panel is. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"domain_name\"],\"properties\":{\"domain_name\":{\"type\":\"string\"},\"description\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"outbound_tls\":{\"type\":\"string\",\"enum\":[\"none\",\"encrypted\",\"verified\",\"dane\"]},\"require_inbound_tls\":{\"type\":\"boolean\"},\"max_message_size_kb\":{\"type\":\"integer\"},\"max_connections\":{\"type\":\"integer\"},\"max_messages_per_minute\":{\"type\":\"integer\"},\"allow_automatic_replies\":{\"type\":\"boolean\"},\"allow_forwarding\":{\"type\":\"boolean\"},\"callout_enabled\":{\"type\":\"boolean\"},\"callout_host\":{\"type\":\"string\"},\"callout_port\":{\"type\":\"integer\"},\"callout_timeout_seconds\":{\"type\":\"integer\"},\"callout_cache_minutes\":{\"type\":\"integer\"},\"callout_max_per_minute\":{\"type\":\"integer\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: the policy as the listing shows it\"},\"400\":{\"description\":\"domain_name missing, a field of the wrong type or out of range, an unknown field, or the save refused (the reason is in error)\"},\"409\":{\"description\":\"A policy for that domain name exists\"}}}}"
+         "\"get\":{\"summary\":\"List the remote domain policies\",\"description\":\"What this server will do when it talks to a named remote domain, as the running server holds them. Each entry: id, domain_name (may carry a wildcard), description, active, outbound_tls (none, encrypted, verified or dane), require_inbound_tls, max_message_size_kb, max_connections, max_messages_per_minute, allow_automatic_replies, allow_forwarding, callout_enabled, callout_host, callout_port, callout_timeout_seconds, callout_cache_minutes, callout_max_per_minute, and the gateway encryption: encrypt (none, openpgp or smime), encrypt_fallback (refuse or send_unencrypted), encrypt_key_set, encrypt_key_fingerprint, encrypt_key_subkey_fingerprint (the OpenPGP subkey messages are encrypted to; empty for S/MIME), encrypt_key_expires, encrypt_key_subject, encrypt_key_problem (why no message can be encrypted to the key held now; empty when one can) and encrypt_key_warning. The partner's key itself is never answered. A policy is not a route: a route says where mail for a domain goes, a policy says what this server will and will not do when it gets there, and a domain may have both. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of policies\"}}},"
+         "\"post\":{\"summary\":\"Create a remote domain policy\",\"description\":\"Body: domain_name (required; a domain, or a wildcard pattern such as *.example.com - the most specific active match governs a delivery). description; active (default true); outbound_tls (default none - none leaves the delivery as it would have been, encrypted requires a successful STARTTLS, verified also requires a certificate that chains and names the host, dane requires a DNSSEC-validated TLSA record; the requirement composes with MTA-STS and DANE as the strongest of the three and can never lower what the domain itself published); require_inbound_tls (default false - mail FROM this domain on an unencrypted session is answered 530); max_message_size_kb (default 0, no limit - a larger message is never offered and is bounced 5.3.4); max_connections and max_messages_per_minute (default 0, unlimited - beyond either, delivery is deferred 4.4.5); allow_automatic_replies and allow_forwarding (default true); callout_enabled (default false), callout_host (empty means the domain's own MX hosts, skipping this server), callout_port (default 25), callout_timeout_seconds (default 10, at most 60), callout_cache_minutes (default 60) and callout_max_per_minute (default 10). encrypt (default none - openpgp encrypts mail to this domain at this server to the partner's OpenPGP public key as PGP/MIME, smime to the partner's certificate as S/MIME enveloped-data, whatever the sender's client did; the Subject and the other header fields stay readable, and a message already encrypted end to end goes as it is); encrypt_key (write-only: the partner's armoured OpenPGP public key, or PEM certificates of which the first is encrypted to - one key for the whole domain; whatever encrypt says, a paste that carries private-key material anywhere in it - a PEM PRIVATE KEY block of any kind, or an OpenPGP PRIVATE or SECRET KEY BLOCK, even beside a public key - or is over 60,000 characters is refused with a sentence and nothing is stored; and a save that gives a new key, or switches encryption on or to another method, refuses a key that cannot be read, has expired, is RSA under 2048 bits or cannot be encrypted to - an OpenPGP key only through a subkey whose binding signature verifies against its primary - while one that names no address in the domain is saved with encrypt_key_warning; a save that changes neither does not judge the key again, so an expired key does not stop the other fields being saved; a PUT that leaves it out keeps the key held, and an empty or white-space string removes it); encrypt_fallback (default refuse - a message that cannot be encrypted, because the key has expired since or the message is over 50 MB, fails permanently with 5.7.10 and the sender is told; send_unencrypted sends it as it was and logs it; a failure of this server's own - the message file locked, the temporary directory full, no memory - is retried with 4.3.0 whatever the fallback). Persisted and in effect for the next message, as a policy saved in the Control Panel is. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"domain_name\"],\"properties\":{\"domain_name\":{\"type\":\"string\"},\"description\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"outbound_tls\":{\"type\":\"string\",\"enum\":[\"none\",\"encrypted\",\"verified\",\"dane\"]},\"require_inbound_tls\":{\"type\":\"boolean\"},\"max_message_size_kb\":{\"type\":\"integer\"},\"max_connections\":{\"type\":\"integer\"},\"max_messages_per_minute\":{\"type\":\"integer\"},\"allow_automatic_replies\":{\"type\":\"boolean\"},\"allow_forwarding\":{\"type\":\"boolean\"},\"callout_enabled\":{\"type\":\"boolean\"},\"callout_host\":{\"type\":\"string\"},\"callout_port\":{\"type\":\"integer\"},\"callout_timeout_seconds\":{\"type\":\"integer\"},\"callout_cache_minutes\":{\"type\":\"integer\"},\"callout_max_per_minute\":{\"type\":\"integer\"},\"encrypt\":{\"type\":\"string\",\"enum\":[\"none\",\"openpgp\",\"smime\"]},\"encrypt_key\":{\"type\":\"string\",\"format\":\"multiline\",\"writeOnly\":true,\"description\":\"The partner's key: an armoured OpenPGP public key, or PEM certificates of which the first is encrypted to. Left out, the key held is kept; an empty or white-space string removes it.\"},\"encrypt_fallback\":{\"type\":\"string\",\"enum\":[\"refuse\",\"send_unencrypted\"]},\"encrypt_key_set\":{\"type\":\"boolean\",\"readOnly\":true,\"description\":\"Whether a key is held.\"},\"encrypt_key_fingerprint\":{\"type\":\"string\",\"readOnly\":true,\"description\":\"The fingerprint of the key held - the OpenPGP primary key's, or the SHA-256 of the certificate. Check it with the partner.\"},\"encrypt_key_subkey_fingerprint\":{\"type\":\"string\",\"readOnly\":true,\"description\":\"OpenPGP only: the fingerprint of the subkey messages are encrypted to, whose binding to the primary has been verified. Check it with the partner too (gpg --fingerprint --fingerprint prints both).\"},\"encrypt_key_expires\":{\"type\":\"string\",\"readOnly\":true,\"description\":\"When the key held expires, in UTC; empty when it does not.\"},\"encrypt_key_subject\":{\"type\":\"string\",\"readOnly\":true,\"description\":\"Whom the key held names: the OpenPGP primary user id, or the certificate's subject.\"},\"encrypt_key_problem\":{\"type\":\"string\",\"readOnly\":true,\"description\":\"Why no message can be encrypted to the key held now; empty when one can.\"},\"encrypt_key_warning\":{\"type\":\"string\",\"readOnly\":true,\"description\":\"Something to know about the key held that did not stop it being saved.\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: the policy as the listing shows it\"},\"400\":{\"description\":\"domain_name missing, a field of the wrong type or out of range, an unknown field, or the save refused (the reason is in error)\"},\"409\":{\"description\":\"A policy for that domain name exists\"}}}}"
          ",\"/api/v1/remote-domains/effective\":{"
          "\"get\":{\"summary\":\"The policy that governs a domain\",\"description\":\"Which record a delivery to ?domain=example.com will actually use. Not the same question as the record NAMED by that domain: an exact name beats any pattern, a longer pattern beats a shorter one, and an inactive record is skipped so that the next most specific active one governs - switching off one domain's entry never exempts it from a broader pattern. Answers 404 when no policy governs the domain, which means the delivery is unconstrained. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"The governing policy, as the listing shows it\"},\"400\":{\"description\":\"domain is required\"},\"404\":{\"description\":\"No policy governs that domain\"}}}}"
          ",\"/api/v1/remote-domains/verification-cache/clear\":{"
          "\"post\":{\"summary\":\"Forget every remembered recipient verification verdict\",\"description\":\"The recipient callout remembers what a domain's own server said about an address for callout_cache_minutes. This forgets all of it, so the next message asks again - what an administrator wants the moment the primary that was refusing everything is fixed. Answers the number of verdicts that were forgotten. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"cleared: how many verdicts were forgotten\"}}}}"
          ",\"/api/v1/remote-domains/{id}\":{"
-         "\"put\":{\"summary\":\"Replace a remote domain policy\",\"description\":\"The whole record, with the same fields, defaults and checks as the create. A field the body does not name takes the create's default rather than keeping what was stored. The running policy is left as it was when the body is refused. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"domain_name\"],\"properties\":{\"domain_name\":{\"type\":\"string\"},\"description\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"outbound_tls\":{\"type\":\"string\",\"enum\":[\"none\",\"encrypted\",\"verified\",\"dane\"]},\"require_inbound_tls\":{\"type\":\"boolean\"},\"max_message_size_kb\":{\"type\":\"integer\"},\"max_connections\":{\"type\":\"integer\"},\"max_messages_per_minute\":{\"type\":\"integer\"},\"allow_automatic_replies\":{\"type\":\"boolean\"},\"allow_forwarding\":{\"type\":\"boolean\"},\"callout_enabled\":{\"type\":\"boolean\"},\"callout_host\":{\"type\":\"string\"},\"callout_port\":{\"type\":\"integer\"},\"callout_timeout_seconds\":{\"type\":\"integer\"},\"callout_cache_minutes\":{\"type\":\"integer\"},\"callout_max_per_minute\":{\"type\":\"integer\"}}}}}},\"responses\":{\"200\":{\"description\":\"The policy as saved\"},\"400\":{\"description\":\"As for the create\"},\"404\":{\"description\":\"Unknown id\"},\"409\":{\"description\":\"Another policy has that domain name\"}}},"
+         "\"put\":{\"summary\":\"Replace a remote domain policy\",\"description\":\"The whole record, with the same fields, defaults and checks as the create. A field the body does not name takes the create's default rather than keeping what was stored - except encrypt_key, which is write-only, and which a body that leaves it out keeps, and encrypt, which a body that leaves it out keeps too, so that a client that predates gateway encryption cannot switch it off by not naming it. The running policy is left as it was when the body is refused. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"domain_name\"],\"properties\":{\"domain_name\":{\"type\":\"string\"},\"description\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"},\"outbound_tls\":{\"type\":\"string\",\"enum\":[\"none\",\"encrypted\",\"verified\",\"dane\"]},\"require_inbound_tls\":{\"type\":\"boolean\"},\"max_message_size_kb\":{\"type\":\"integer\"},\"max_connections\":{\"type\":\"integer\"},\"max_messages_per_minute\":{\"type\":\"integer\"},\"allow_automatic_replies\":{\"type\":\"boolean\"},\"allow_forwarding\":{\"type\":\"boolean\"},\"callout_enabled\":{\"type\":\"boolean\"},\"callout_host\":{\"type\":\"string\"},\"callout_port\":{\"type\":\"integer\"},\"callout_timeout_seconds\":{\"type\":\"integer\"},\"callout_cache_minutes\":{\"type\":\"integer\"},\"callout_max_per_minute\":{\"type\":\"integer\"},\"encrypt\":{\"type\":\"string\",\"enum\":[\"none\",\"openpgp\",\"smime\"]},\"encrypt_key\":{\"type\":\"string\",\"format\":\"multiline\",\"writeOnly\":true,\"description\":\"The partner's key: an armoured OpenPGP public key, or PEM certificates of which the first is encrypted to. Left out, the key held is kept; an empty or white-space string removes it.\"},\"encrypt_fallback\":{\"type\":\"string\",\"enum\":[\"refuse\",\"send_unencrypted\"]},\"encrypt_key_set\":{\"type\":\"boolean\",\"readOnly\":true,\"description\":\"Whether a key is held.\"},\"encrypt_key_fingerprint\":{\"type\":\"string\",\"readOnly\":true,\"description\":\"The fingerprint of the key held - the OpenPGP primary key's, or the SHA-256 of the certificate. Check it with the partner.\"},\"encrypt_key_subkey_fingerprint\":{\"type\":\"string\",\"readOnly\":true,\"description\":\"OpenPGP only: the fingerprint of the subkey messages are encrypted to, whose binding to the primary has been verified. Check it with the partner too (gpg --fingerprint --fingerprint prints both).\"},\"encrypt_key_expires\":{\"type\":\"string\",\"readOnly\":true,\"description\":\"When the key held expires, in UTC; empty when it does not.\"},\"encrypt_key_subject\":{\"type\":\"string\",\"readOnly\":true,\"description\":\"Whom the key held names: the OpenPGP primary user id, or the certificate's subject.\"},\"encrypt_key_problem\":{\"type\":\"string\",\"readOnly\":true,\"description\":\"Why no message can be encrypted to the key held now; empty when one can.\"},\"encrypt_key_warning\":{\"type\":\"string\",\"readOnly\":true,\"description\":\"Something to know about the key held that did not stop it being saved.\"}}}}}},\"responses\":{\"200\":{\"description\":\"The policy as saved\"},\"400\":{\"description\":\"As for the create\"},\"404\":{\"description\":\"Unknown id\"},\"409\":{\"description\":\"Another policy has that domain name\"}}},"
          "\"delete\":{\"summary\":\"Delete a remote domain policy\",\"description\":\"The domain is delivered to as it would have been with no policy at all. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}}";
    }
 
@@ -568,11 +716,17 @@ namespace HM
          return BuildResponse_(500, "{\"error\":\"failed to save the remote domain policy\"}");
       }
 
-      CopyPolicy(*updated, *existing);
+      // The saved copy reaches delivery by the collection being read again,
+      // as the route update does it, and never by writing into the running
+      // record: a delivery thread may be reading that record's strings - the
+      // partner's key among them, several kilobytes on the heap - and keeps
+      // the old record alive through its own pointer until it is done.
+      if (!policies->Refresh())
+         LOG_APPLICATION("RestApi: Remote domain policy for " + updated->GetDomainName() + " was saved, and the policies could not be read again from the database; the running server keeps the previous ones until they can be.");
 
-      LOG_APPLICATION("RestApi: Remote domain policy for " + existing->GetDomainName() + " updated.");
+      LOG_APPLICATION("RestApi: Remote domain policy for " + updated->GetDomainName() + " updated.");
 
-      return BuildResponse_(200, PolicyEntryJson(existing, quote));
+      return BuildResponse_(200, PolicyEntryJson(updated, quote));
    }
 
    HttpResponse

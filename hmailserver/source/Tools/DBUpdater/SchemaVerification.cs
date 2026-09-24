@@ -1550,6 +1550,16 @@ namespace DBUpdater
                          "update hm_warmupcounts set wcceiling = wcceiling where 1 = 0"),
          new SchemaProbe(6093, "hm_warmupcounts.wcplanday",
                          "update hm_warmupcounts set wcplanday = wcplanday where 1 = 0"),
+         // Upgrade6093to6094* - gateway encryption to a partner domain: the
+         // method, the partner's key and the fallback, three ALTERs on a table
+         // an installation may hold rows in, one probe each because SQL CE
+         // commits each ALTER on its own and the step could stop half way.
+         new SchemaProbe(6094, "hm_remotedomainpolicies.policyencrypt",
+                         "update hm_remotedomainpolicies set policyencrypt = policyencrypt where 1 = 0"),
+         new SchemaProbe(6094, "hm_remotedomainpolicies.policyencryptkey",
+                         "update hm_remotedomainpolicies set policyencryptkey = policyencryptkey where 1 = 0"),
+         new SchemaProbe(6094, "hm_remotedomainpolicies.policyencryptfallback",
+                         "update hm_remotedomainpolicies set policyencryptfallback = policyencryptfallback where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

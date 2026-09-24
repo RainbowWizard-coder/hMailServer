@@ -495,9 +495,14 @@ const REMOTE_DOMAIN_PROPS = {
    max_message_size_kb: { type: 'integer' }, max_connections: { type: 'integer' }, max_messages_per_minute: { type: 'integer' },
    allow_automatic_replies: { type: 'boolean' }, allow_forwarding: { type: 'boolean' },
    callout_enabled: { type: 'boolean' }, callout_host: { type: 'string' }, callout_port: { type: 'integer' },
-   callout_timeout_seconds: { type: 'integer' }, callout_cache_minutes: { type: 'integer' }, callout_max_per_minute: { type: 'integer' }
+   callout_timeout_seconds: { type: 'integer' }, callout_cache_minutes: { type: 'integer' }, callout_max_per_minute: { type: 'integer' },
+   encrypt: { type: 'string', enum: ['none', 'openpgp', 'smime'] },
+   encrypt_key: { type: 'string', format: 'multiline', writeOnly: true, description: 'The partner\'s key.' },
+   encrypt_fallback: { type: 'string', enum: ['refuse', 'send_unencrypted'] },
+   encrypt_key_fingerprint: { type: 'string', readOnly: true }, encrypt_key_expires: { type: 'string', readOnly: true },
+   encrypt_key_problem: { type: 'string', readOnly: true }
 };
-const REMOTE_DOMAINS_POST = 'Body: domain_name (required; a domain, or a wildcard pattern such as *.example.com - the most specific active match governs a delivery). description; active (default true); outbound_tls (default none); require_inbound_tls (default false); max_message_size_kb (default 0, no limit); max_connections and max_messages_per_minute (default 0, unlimited); allow_automatic_replies and allow_forwarding (default true); callout_enabled (default false), callout_host, callout_port (default 25), callout_timeout_seconds (default 10, at most 60), callout_cache_minutes (default 60) and callout_max_per_minute (default 10). Server-wide; refused for domain-restricted keys.';
+const REMOTE_DOMAINS_POST = 'Body: domain_name (required; a domain, or a wildcard pattern such as *.example.com - the most specific active match governs a delivery). description; active (default true); outbound_tls (default none); require_inbound_tls (default false); max_message_size_kb (default 0, no limit); max_connections and max_messages_per_minute (default 0, unlimited); allow_automatic_replies and allow_forwarding (default true); callout_enabled (default false), callout_host, callout_port (default 25), callout_timeout_seconds (default 10, at most 60), callout_cache_minutes (default 60) and callout_max_per_minute (default 10). encrypt (default none - openpgp encrypts mail to this domain at this server to the partner\'s OpenPGP public key as PGP/MIME, smime to the partner\'s certificate as S/MIME enveloped-data); encrypt_key (write-only: the partner\'s key; a PUT that leaves it out keeps the key held); encrypt_fallback (default refuse - a message that cannot be encrypted fails permanently with 5.7.10; send_unencrypted sends it as it was and logs it). Server-wide; refused for domain-restricted keys.';
 
 const PORT_PROPS = {
    protocol: { type: 'string', enum: ['smtp', 'pop3', 'imap'] }, address: { type: 'string' }, port: { type: 'integer' },
@@ -1710,7 +1715,23 @@ const state = {
       { id: 7, domain_name: 'bank.example', description: 'The regulated one', active: true, outbound_tls: 'verified',
         require_inbound_tls: true, max_message_size_kb: 20480, max_connections: 2, max_messages_per_minute: 30,
         allow_automatic_replies: false, allow_forwarding: true, callout_enabled: false, callout_host: '',
-        callout_port: 25, callout_timeout_seconds: 10, callout_cache_minutes: 60, callout_max_per_minute: 10 }
+        callout_port: 25, callout_timeout_seconds: 10, callout_cache_minutes: 60, callout_max_per_minute: 10,
+        encrypt: 'smime', encrypt_fallback: 'refuse', encrypt_key_set: true,
+        encrypt_key_fingerprint: 'f94894af1dea80795af02d9e52e6fad0d436dc318c18ac4c8250842714a412d5',
+        encrypt_key_expires: '2036-09-21T02:31:31Z', encrypt_key_subject: '/CN=gateway.bank.example', encrypt_key_problem: '', encrypt_key_warning: '' },
+      // A partner whose key has expired since it was saved - and, as a server
+      // that leaked it would, the key text itself, which the page must never
+      // draw, prefill or send back.
+      { id: 8, domain_name: 'lapsed.example', description: '', active: true, outbound_tls: 'none',
+        require_inbound_tls: false, max_message_size_kb: 0, max_connections: 0, max_messages_per_minute: 0,
+        allow_automatic_replies: true, allow_forwarding: true, callout_enabled: false, callout_host: '',
+        callout_port: 25, callout_timeout_seconds: 10, callout_cache_minutes: 60, callout_max_per_minute: 10,
+        encrypt: 'openpgp', encrypt_fallback: 'send_unencrypted', encrypt_key_set: true,
+        encrypt_key: 'LEAKED-KEY-MATERIAL',
+        encrypt_key_fingerprint: '3c6ff5e3458173dd5db3f4a4a14263c97de6857d',
+        encrypt_key_subkey_fingerprint: '4a144aada87aad8cce8a0659eaa03821629d0473',
+        encrypt_key_expires: '2027-09-24T00:00:00Z', encrypt_key_subject: 'Alice Fixture <alice@fixtures.test>',
+        encrypt_key_problem: 'no message can be encrypted to this key: the key expired', encrypt_key_warning: '' }
    ],
    certificates: [{ id: 2, name: 'mail.example.com', certificate_file: '/etc/ssl/mail.pem', private_key_file: '/etc/ssl/mail.key' }],
    ports: [
@@ -6222,11 +6243,19 @@ async function main() {
    // answer, sending a key the route refuses, or swallowing a refusal.
    before = requests.length;
    await goTo('remotedomains');
-   check('the remote domains view reads the policies', called(before, 'GET', '/api/v1/remote-domains').length === 1 && rows().length === 1);
+   check('the remote domains view reads the policies', called(before, 'GET', '/api/v1/remote-domains').length === 1 && rows().length === 2);
    check('a policy row shows the TLS it demands each way, its limits and whether it verifies recipients',
       rows()[0].textContent.indexOf('Verified') >= 0 && rows()[0].textContent.indexOf('20480 KB') >= 0 &&
       rows()[0].textContent.indexOf('2 connections') >= 0 && rows()[0].textContent.indexOf('30/minute') >= 0,
       rows()[0].textContent);
+   check('a policy row shows its gateway encryption and the start of the key\'s fingerprint, and never the key',
+      rows()[0].textContent.indexOf('S/MIME') >= 0 && rows()[0].textContent.indexOf('f94894af1dea8079') >= 0 &&
+      rows()[0].textContent.indexOf('cannot encrypt') < 0,
+      rows()[0].textContent);
+   check('a policy whose key cannot be encrypted to is marked so, with the reason, and a key the listing carried is drawn nowhere',
+      rows()[1].textContent.indexOf('OpenPGP') >= 0 && rows()[1].textContent.indexOf('cannot encrypt') >= 0 &&
+      rows()[1].textContent.indexOf('the key expired') >= 0 && document.body.innerHTML.indexOf('LEAKED-KEY-MATERIAL') < 0,
+      rows()[1].textContent);
    click(act('rdnew'));
    await flush();
    check('a new policy starts at the defaults the document states - it demands nothing and verifies nothing',
@@ -6235,6 +6264,10 @@ async function main() {
       document.getElementById('rd_callout_port').value === '25' && document.getElementById('rd_callout_timeout_seconds').value === '10' &&
       document.getElementById('rd_allow_forwarding').checked === true,
       'tls=' + document.getElementById('rd_outbound_tls').value + ' size=' + document.getElementById('rd_max_message_size_kb').value);
+   check('a new policy encrypts nothing, and would refuse what it could not encrypt',
+      document.getElementById('rd_encrypt').value === 'none' && document.getElementById('rd_encrypt_fallback').value === 'refuse' &&
+      document.getElementById('rd_encrypt_key').tagName === 'TEXTAREA' && document.getElementById('rd_encrypt_key').value === '',
+      'encrypt=' + document.getElementById('rd_encrypt').value + ' fallback=' + document.getElementById('rd_encrypt_fallback').value);
    check('only the domain is required', document.getElementById('rd_domain_name').closest('.fr').textContent.indexOf('required') >= 0 &&
       document.getElementById('rd_callout_host').closest('.fr').textContent.indexOf('required') < 0);
    setValue('rd_domain_name', 'partner.example');
@@ -6248,7 +6281,10 @@ async function main() {
    check('saving a new policy posts the form with the defaults filled in',
       !!posted && posted.domain_name === 'partner.example' && posted.outbound_tls === 'dane' && posted.require_inbound_tls === true &&
       posted.max_message_size_kb === 10240 && posted.callout_port === 25 && posted.allow_automatic_replies === true, JSON.stringify(posted));
-   check('and the re-read list has it', rows().length === 2 && rows()[1].textContent.indexOf('partner.example') >= 0,
+   check('an empty key box sends no key, and the read-only facts are not sent',
+      !!posted && posted.encrypt === 'none' && posted.encrypt_fallback === 'refuse' && !('encrypt_key' in posted) &&
+      !('encrypt_key_fingerprint' in posted) && !('encrypt_key_problem' in posted), JSON.stringify(posted));
+   check('and the re-read list has it', rows().length === 3 && rows()[2].textContent.indexOf('partner.example') >= 0,
       rows().map((r) => r.textContent).join(' | '));
    click(act('rdedit', { id: 7 }));
    await flush();
@@ -6261,6 +6297,20 @@ async function main() {
    put = lastBody(before, 'PUT', '/api/v1/remote-domains/7');
    check('saving an existing policy PUTs the whole record', !!put && put.outbound_tls === 'encrypted' && put.domain_name === 'bank.example' &&
       put.max_connections === 2 && put.allow_automatic_replies === false, JSON.stringify(put));
+   check('and keeps the partner\'s key it was never shown: the PUT carries the method and no key',
+      !!put && put.encrypt === 'smime' && !('encrypt_key' in put), JSON.stringify(put));
+   click(act('rdedit', { id: 8 }));
+   await flush();
+   check('editing a policy never fills the key box, even from a listing that carried the key',
+      document.getElementById('rd_encrypt_key').value === '' && document.body.innerHTML.indexOf('LEAKED-KEY-MATERIAL') < 0 &&
+      document.getElementById('rd_encrypt').value === 'openpgp',
+      'key box=' + document.getElementById('rd_encrypt_key').value.slice(0, 40));
+   before = requests.length;
+   click(act('rdsave'));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/remote-domains/8');
+   check('and saving it sends no key back', !!put && put.encrypt === 'openpgp' && put.encrypt_fallback === 'send_unencrypted' &&
+      !('encrypt_key' in put), JSON.stringify(put));
    before = requests.length;
    click(act('rdclearcache'));
    await flush();
@@ -6272,7 +6322,7 @@ async function main() {
    await flush();
    check('deleting a policy names its domain and deletes by id',
       confirmations[confirmations.length - 1].indexOf('bank.example') >= 0 &&
-      called(before, 'DELETE', '/api/v1/remote-domains/7').length === 1 && rows().length === 1);
+      called(before, 'DELETE', '/api/v1/remote-domains/7').length === 1 && rows().length === 2);
 
    // ---- certificates
    before = requests.length;

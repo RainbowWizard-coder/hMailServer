@@ -69,6 +69,9 @@ namespace HM
       statement.AddColumn("policycallouttimeout", policy->GetCalloutTimeoutSeconds());
       statement.AddColumn("policycalloutcacheminutes", policy->GetCalloutCacheMinutes());
       statement.AddColumn("policycalloutperminute", policy->GetCalloutMaxPerMinute());
+      statement.AddColumn("policyencrypt", (long) policy->GetEncrypt());
+      statement.AddColumn("policyencryptkey", policy->GetEncryptKey());
+      statement.AddColumn("policyencryptfallback", (long) policy->GetEncryptFallback());
 
       bool isNewObject = policy->GetID() == 0;
 
@@ -145,6 +148,19 @@ namespace HM
       policy->SetCalloutTimeoutSeconds(recordset->GetLongValue("policycallouttimeout"));
       policy->SetCalloutCacheMinutes(recordset->GetLongValue("policycalloutcacheminutes"));
       policy->SetCalloutMaxPerMinute(recordset->GetLongValue("policycalloutperminute"));
+
+      // As the TLS requirement above: a number this version does not know - a
+      // hand-edited row, a later version's value written back by this one - is
+      // read as the value that rewrites no message, and a fallback it does not
+      // know as the refusal, which is the one that sends nothing in the clear.
+      long encrypt = recordset->GetLongValue("policyencrypt");
+      if (encrypt < RemoteEncryptNone || encrypt > RemoteEncryptSmime)
+         encrypt = RemoteEncryptNone;
+      policy->SetEncrypt((RemoteEncryption) encrypt);
+      policy->SetEncryptKey(recordset->GetStringValue("policyencryptkey"));
+      policy->SetEncryptFallback(recordset->GetLongValue("policyencryptfallback") == RemoteEncryptFallbackSendUnencrypted
+         ? RemoteEncryptFallbackSendUnencrypted
+         : RemoteEncryptFallbackRefuse);
 
       return true;
    }

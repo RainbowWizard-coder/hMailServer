@@ -171,6 +171,12 @@ namespace HM
          L"password", L"passwd", L"secret", L"privatekey", L"private_key",
          L"apikey", L"api_key", L"token", L"totp", L"hash", L"salt", L"pepper",
          L"credential", L"keyfile", L"passphrase",
+         // A remote domain policy's gateway key (policyencryptkey). It is a
+         // public key, and the save refuses private-key material in it; it is
+         // withheld all the same, so that the table can never carry key text
+         // whatever reaches the column - the fingerprint is what the REST
+         // listing and the Control Panel show.
+         L"encryptkey",
       };
 
       // Settings whose NAME carries one of the fragments above and whose value
