@@ -49,14 +49,11 @@ this order, before any connection is opened:
    destination slot and released with it.
 6. The server-wide **`MaxOutboundPerDestinationPerMinute`**, the fixed
    per-destination rate that predates all of this.
-7. DNS and MTA-STS; then the **IP warm-up**'s daily ceiling for the address
-   the batch will leave from and the provider its first host belongs to
-   ([IpWarmup.md](IpWarmup.md)), which holds the recipients over the ceiling,
-   usually until the next UTC day; then DANE and the connection attempts,
-   where a later host that would be reached from another warming address is
-   skipped.
-7. DNS: the MX lookup (or the route's host), MTA-STS, and - where DANE applies -
-   whether the MX set is DNSSEC-validated.
+7. DNS: the MX lookup (or the route's host) and MTA-STS; then the **IP
+   warm-up**'s daily ceiling for the address the batch will leave from and the
+   provider its first host belongs to ([IpWarmup.md](IpWarmup.md)), which holds
+   the recipients over the ceiling, usually until the next UTC day; then - where
+   DANE applies - whether the MX set is DNSSEC-validated.
 8. **Gateway encryption**, for a batch whose domain's policy encrypts
    ([RemoteDomains.md](RemoteDomains.md), "Gateway encryption"): the partner's
    copy is made here, after everything above that could hold the batch back
@@ -64,7 +61,8 @@ this order, before any connection is opened:
    encrypted, signed, logged or traced as encrypted (until 24 September 2026
    this came before step 1). The largest-message ceiling is measured again on
    the copy, which is what is sent (`5.3.4`, permanent).
-9. The connection attempts, each host's DANE records judged in turn.
+9. The connection attempts, each host's DANE records judged in turn, where a
+   later host that would be reached from another warming address is skipped.
 
 Every one of 2 to 6 is a deferral this server chose, with `4.4.5` ("mail system
 congestion") and a sentence naming the rule, and none of them is counted (see

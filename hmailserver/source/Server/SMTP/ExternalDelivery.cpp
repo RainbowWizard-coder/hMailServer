@@ -171,6 +171,7 @@ namespace HM
          int reserved_;
          std::vector<std::shared_ptr<MessageRecipient> > recipients_;
       };
+
       // The encrypted copy of one batch's message, removed from the temporary
       // directory when the batch is done, whichever way DeliverToSingleDomain_
       // leaves: every one of its early returns, and a throw.
