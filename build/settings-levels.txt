@@ -233,6 +233,7 @@ SessionBindToAddress account
 SessionIdleSeconds account
 SessionLifetimeSeconds account
 SessionOnePerDevice account
+SmimeAuthorityBaseUrl server
 smtpallowincorrectlineendings server
 smtpdeliverybindtoip server
 SmtpDeliveryConnectionSecurity server

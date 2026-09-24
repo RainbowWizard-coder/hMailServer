@@ -189,6 +189,11 @@ ALLOWED = {
       # hm_migrationjobs, whose row names its target account by number: a job is
       # recorded as "source user -> target address" by the store that writes it.
       "Common/Util/MigrationStore.cpp",
+      # hm_smimeca and hm_smimeissued: a root's row is a domain id, a certificate
+      # and a key envelope, and a revocation's statement carries two numbers, so
+      # the authority names them by the domain and by the address and serial -
+      # the NAME only, the detail still read from the statement's own columns.
+      "Common/Util/OrganisationCa.cpp",
    },
 }
 

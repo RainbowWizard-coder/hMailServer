@@ -2343,6 +2343,11 @@ namespace HM
          case RouteDkimRotationCancel:
          case RouteDkimRotationRun:
             return HandleDkimRotation_(caller, route, GetRequestBody_(request));
+         case RouteSmimeCaGet:
+         case RouteSmimeCaCreate:
+         case RouteSmimeCaRotate:
+         case RouteSmimeCaRevoke:
+            return HandleDomainSmimeAuthority_(caller, route, GetRequestBody_(request));
          case RouteReputationGet:
          case RouteReputationCheck:
             return HandleReputation_(caller, route, GetRequestBody_(request));
@@ -2889,7 +2894,16 @@ namespace HM
             return HandleMeSmimeRecipientDelete_(caller, route.identifier);
 
          case RouteMeSmimeChain:
-            return HandleMeSmimeChain_(GetRequestBody_(request));
+            return HandleMeSmimeChain_(caller, GetRequestBody_(request));
+
+         case RouteMeSmimeEnroll:
+            return HandleMeSmimeEnroll_(caller, GetRequestBody_(request));
+
+         case RouteMeSmimeIssuedConfirm:
+            return HandleMeSmimeIssuedConfirm_(caller, route.record_id);
+
+         case RouteMeSmimeIssuedRevoke:
+            return HandleMeSmimeIssuedRevoke_(caller, route.record_id, route.query);
 
          case RouteMeOpenPgp:
             return HandleMeOpenPgp_(caller);
@@ -3011,6 +3025,9 @@ namespace HM
          case RouteMeDirectoryOwnPhoto:
          case RouteMeDirectoryPhoto:
             return HandleMeDirectory_(caller, route.kind, route.record_id, route.query, GetRequestBody_(request));
+
+         case RouteMeDirectorySmime:
+            return HandleMeDirectorySmime_(caller, String(route.identifier));
 
          case RouteAccountDirectoryGet:
          case RouteAccountDirectoryPut:
@@ -3601,6 +3618,40 @@ namespace HM
          return;
       }
 
+      // The domain's S/MIME authority for the account's own key
+      // (RestApiSmimeAuthority.cpp): the request signed, and a certificate it
+      // issued to the account confirmed (/confirm) or revoked, by its serial.
+      if (path == meSmimePath + "/enroll")
+      {
+         if (method == "POST")
+            route.kind = RouteMeSmimeEnroll;
+
+         return;
+      }
+
+      if (path.StartsWith(meSmimePath + "/issued/"))
+      {
+         AnsiString serialText = path.Mid(meSmimePath.GetLength() + 8);
+         const AnsiString confirmSuffix = "/confirm";
+         const bool confirm = serialText.EndsWith(confirmSuffix);
+         if (confirm)
+            serialText = serialText.Mid(0, serialText.GetLength() - confirmSuffix.GetLength());
+
+         __int64 serial = 0;
+         if (ParseQueueId(serialText, serial))
+         {
+            if (confirm && method == "POST")
+               route.kind = RouteMeSmimeIssuedConfirm;
+            else if (!confirm && method == "DELETE")
+               route.kind = RouteMeSmimeIssuedRevoke;
+
+            if (route.kind != RouteUnknown)
+               route.record_id = serial;
+         }
+
+         return;
+      }
+
       if (path.StartsWith(meSmimePath + "/"))
       {
          AnsiString rest = path.Mid(meSmimePath.GetLength() + 1);
@@ -3950,6 +4001,23 @@ namespace HM
             route.kind = RouteMeDirectory;
 
          return;
+      }
+
+      // A colleague's certificates from the domain's S/MIME authority
+      // (RestApiSmimeAuthority.cpp): the first of the directory's entry routes
+      // to name the entry by its address rather than by an account id, since
+      // the compose page knows an address and nothing else.
+      if (method == "GET" && path.StartsWith("/api/v1/me/directory/") && path.EndsWith("/smime"))
+      {
+         const AnsiString directoryPrefix = "/api/v1/me/directory/";
+         const AnsiString address = path.Mid(directoryPrefix.GetLength(), path.GetLength() - directoryPrefix.GetLength() - 6);
+
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            route.kind = RouteMeDirectorySmime;
+            route.identifier = DecodePathSegment_(address);
+            return;
+         }
       }
 
       if (path.StartsWith("/api/v1/me/directory/"))
@@ -5717,6 +5785,39 @@ namespace HM
             }
          }
       }
+      // /api/v1/domains/<name>/smime-ca[/rotate|/issued/<serial>] - the domain's
+      // S/MIME authority (RestApiSmimeAuthority.cpp), with only a domain segment
+      // that holds no slash.
+      if (path.StartsWith(domainsPrefix) && path.Find("/smime-ca") > 0)
+      {
+         const AnsiString authority = "/smime-ca";
+         AnsiString rest = path.Mid(domainsPrefix.GetLength());
+         const int at = rest.Find(authority);
+         AnsiString domainName = at > 0 ? rest.Mid(0, at) : AnsiString("");
+         AnsiString action = at > 0 ? rest.Mid(at + authority.GetLength()) : AnsiString("");
+
+         if (!domainName.IsEmpty() && domainName.Find("/") < 0)
+         {
+            __int64 serial = 0;
+            if (method == "GET" && action.IsEmpty())
+               route.kind = RouteSmimeCaGet;
+            else if (method == "POST" && action.IsEmpty())
+               route.kind = RouteSmimeCaCreate;
+            else if (method == "POST" && action == "/rotate")
+               route.kind = RouteSmimeCaRotate;
+            else if (method == "DELETE" && action.StartsWith("/issued/") && ParseQueueId(action.Mid(8), serial))
+            {
+               route.kind = RouteSmimeCaRevoke;
+               route.record_id = serial;
+            }
+
+            if (route.kind != RouteUnknown)
+            {
+               route.identifier = domainName;
+               return;
+            }
+         }
+      }
       // /api/v1/domains/<name>/dkim/rotation[/start|/check|/switch|/retire|/next]
       // - the domain's key rotation. Matched before the plain /dkim route below,
       // whose EndsWith these paths do not satisfy anyway, and only with a domain
@@ -7130,6 +7231,18 @@ namespace HM
       case RouteSendCreate:
          return true;
 
+      // The organisation CA for S/MIME: a root made or replaced, a certificate
+      // signed, confirmed or revoked. Each writes rows and changes what every
+      // client of the domain trusts. The two readings - the authority and a
+      // colleague's certificate - are not here.
+      case RouteSmimeCaCreate:
+      case RouteSmimeCaRotate:
+      case RouteSmimeCaRevoke:
+      case RouteMeSmimeEnroll:
+      case RouteMeSmimeIssuedConfirm:
+      case RouteMeSmimeIssuedRevoke:
+         return true;
+
       default:
          break;
       }
@@ -7459,6 +7572,12 @@ namespace HM
       case RouteReport:
          return RolePermission::ViewConfiguration;
 
+      // A domain's S/MIME authority read: its roots, which are public, and the
+      // certificates they issued, which name who holds one. A fact of the
+      // domain's configuration, as its DKIM rotation is.
+      case RouteSmimeCaGet:
+         return RolePermission::ViewConfiguration;
+
       // The audit trail, and the walk that verifies its chain. The one
       // permission nothing but the auditor and the server administrator
       // holds. A key of any scope is refused both before this is consulted
@@ -7770,6 +7889,15 @@ namespace HM
       // Marking an account exempt from the compromised-account detection, or
       // setting its sensitivity, is administering that account in that domain.
       case RouteAccountReviewPut:
+         return RolePermission::ManageAccounts;
+
+      // A domain's S/MIME authority created or rotated, and a certificate it
+      // issued revoked. The authority is the domain's, as its DKIM key is, and
+      // it vouches only for the domain's own accounts; administering it is
+      // administering the domain.
+      case RouteSmimeCaCreate:
+      case RouteSmimeCaRotate:
+      case RouteSmimeCaRevoke:
          return RolePermission::ManageAccounts;
 
       // Setting somebody's password, as a route of its own rather than as a
@@ -8097,6 +8225,15 @@ namespace HM
       case RouteDomainRuleCreate:
       case RouteDomainRuleUpdate:
       case RouteDomainRuleDelete:
+         return String(route.identifier);
+
+      // A domain's S/MIME authority, under the domain's name. Left out of this
+      // list a route would name no domain, and a credential confined to one
+      // domain could replace another domain's root or revoke its certificates.
+      case RouteSmimeCaGet:
+      case RouteSmimeCaCreate:
+      case RouteSmimeCaRotate:
+      case RouteSmimeCaRevoke:
          return String(route.identifier);
 
       case RouteListDelete:
@@ -11780,6 +11917,15 @@ namespace HM
       case RouteMeDraftSave:
       case RouteSessionCreate:
       case RouteSessionDelete:
+         return true;
+
+      // The domain's S/MIME authority as the account meets it: its own request
+      // signed, a certificate issued to it confirmed or revoked, and a
+      // colleague's certificate looked up by address within its own domain.
+      case RouteMeSmimeEnroll:
+      case RouteMeSmimeIssuedConfirm:
+      case RouteMeSmimeIssuedRevoke:
+      case RouteMeDirectorySmime:
          return true;
 
       default:
@@ -17382,12 +17528,12 @@ namespace HM
          "\"/api/v1/me/push/test\":{\"post\":{\"summary\":\"Send one push to a device now\",\"description\":\"Body: id, the device. Sends a notification at once, marked test, so a person can find out whether their device is reachable before they rely on it. Neither the quiet hours nor the sender list applies - this is a button being pressed, not mail arriving. A push service that answers 404 or 410 means the subscription is gone, and the device is removed. 502 carries the push service's own refusal.\",\"responses\":{\"200\":{\"description\":\"sent\"},\"400\":{\"description\":\"No device named\"},\"404\":{\"description\":\"No such device of this account\"},\"502\":{\"description\":\"The push service refused it, or the subscription is gone\"}}}},"
          "\"/api/v1/me/app-passwords\":{\"get\":{\"summary\":\"The signed-in account's app passwords\",\"description\":\"id, name, created, last_used, active - never the password.\",\"responses\":{\"200\":{\"description\":\"app_passwords\"}}},\"post\":{\"summary\":\"Make an app password\",\"description\":\"Body: name (what it is for) and password - the account's own password, proving it is the account holder asking; never an app password. An account with a second factor enrolled sends the code in X-hMailServer-OTP, and the 401 that asks for it says X-hMailServer-OTP: required. Refused (403) to a request that was itself authenticated with an app password, or by a session started with one. The answer carries the password in clear text, the only time it exists outside the caller; at most 20 per account. Logged, with the caller's address.\",\"responses\":{\"201\":{\"description\":\"id, name, created, active, password\"},\"400\":{\"description\":\"No name, no password, or twenty already\"},\"401\":{\"description\":\"The one-time code is missing or wrong\"},\"403\":{\"description\":\"The password is not the account's own, or the request came in on an app password\"}}}},"
          "\"/api/v1/me/app-passwords/{id}\":{\"delete\":{\"summary\":\"Remove an app password\",\"description\":\"Refused to a request authenticated with an app password. Logged, with the caller's address.\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"403\":{\"description\":\"The request came in on an app password\"},\"404\":{\"description\":\"No such app password of this account\"}}}},"
-         "\"/api/v1/me/smime\":{\"get\":{\"summary\":\"The account's S/MIME key store\",\"description\":\"own: the account's certificates, each with its chain and its private key as the page wrapped it (AES-256-GCM under a PBKDF2 key from the account password; this server cannot open it); recipients: the certificates of correspondents. Each carries address, name, fingerprint (SHA-256, hex), certificate (base64 DER), not_after and created (Unix seconds). limits: how many of each.\",\"responses\":{\"200\":{\"description\":\"own, recipients, limits\"}}}},"
+         "\"/api/v1/me/smime\":{\"get\":{\"summary\":\"The account's S/MIME key store\",\"description\":\"own: the account's certificates, each with its chain and its private key as the page wrapped it (AES-256-GCM under a PBKDF2 key from the account password; this server cannot open it); recipients: the certificates of correspondents. Each carries address, name, fingerprint (SHA-256, hex), certificate (base64 DER), not_after and created (Unix seconds), authority (true when the account's domain's own S/MIME authority issued it - decided by the server from the SHA-256 of the certificate's own bytes, which must also be the fingerprint the page gave, never from anything the page claims) and, for such a certificate, authority_status: valid, revoked or expired as the authority's record says now, or unknown when the domain's record no longer has it - a page encrypts to and signs with valid ones only. limits: how many of each. authority: the account's domain's S/MIME authority (docs/SmimeAuthority.md) - domain and available, and when available the root's subject, fingerprint, key_type, not_after and certificate, and issued, the certificates it issued to this account with serial, address, fingerprint, not_before, not_after, status (valid, revoked or expired), confirmed (false until its key is stored), revoked and reason.\",\"responses\":{\"200\":{\"description\":\"own, recipients, limits\"}}}},"
          "\"/api/v1/me/smime/own\":{\"put\":{\"summary\":\"Add or replace one of the account's own certificates\",\"description\":\"Body: address, name, fingerprint, certificate, chain (array of base64 DER, at most eight), key {v, kdf, iterations, salt, iv, data} as the page wraps a private key (v is 1 when absent and is kept; iterations at least 600,000), not_after. Replaced by fingerprint. At most twenty.\",\"responses\":{\"201\":{\"description\":\"added\"},\"200\":{\"description\":\"replaced\"},\"400\":{\"description\":\"a field is missing or malformed, or the limit is reached\"}}}},"
          "\"/api/v1/me/smime/own/{fingerprint}\":{\"delete\":{\"summary\":\"Remove one of the account's own certificates and its key\",\"responses\":{\"200\":{\"description\":\"removed\"},\"404\":{\"description\":\"no such certificate\"}}}},"
          "\"/api/v1/me/smime/recipients\":{\"put\":{\"summary\":\"Add or replace a correspondent's certificate\",\"description\":\"Body: address, name, fingerprint, certificate, not_after. Replaced by fingerprint. At most five hundred.\",\"responses\":{\"201\":{\"description\":\"added\"},\"200\":{\"description\":\"replaced\"},\"400\":{\"description\":\"a field is missing or malformed, or the limit is reached\"}}}},"
          "\"/api/v1/me/smime/recipients/{fingerprint}\":{\"delete\":{\"summary\":\"Remove a correspondent's certificate\",\"responses\":{\"200\":{\"description\":\"removed\"},\"404\":{\"description\":\"no such certificate\"}}}},"
-         "\"/api/v1/me/smime/chain\":{\"post\":{\"summary\":\"Does a certificate chain end at a root this machine trusts\",\"description\":\"Body: certificates (the leaf first, then its chain; base64 DER each, at most nine), purpose (sign or encrypt). OpenSSL's verdict against the system's roots - the Windows ROOT and CA stores, the distribution's bundle on Linux: trusted, error (OpenSSL's reason when not), depth, roots (how many were consulted; -1 when the platform's bundle was taken), subject, issuer, not_after.\",\"responses\":{\"200\":{\"description\":\"the verdict\"},\"400\":{\"description\":\"not a list of base64 certificates\"}}}},"
+         "\"/api/v1/me/smime/chain\":{\"post\":{\"summary\":\"Does a certificate chain end at a root this machine trusts\",\"description\":\"Body: certificates (the leaf first, then its chain; base64 DER each, at most nine), purpose (sign or encrypt). OpenSSL's verdict against the system's roots - the Windows ROOT and CA stores, the distribution's bundle on Linux - and the roots of the account's own domain's S/MIME authority, the current one and a retired one while a certificate it signed is unexpired. A chain ending at the authority is trusted only while its leaf is in the authority's record and not revoked; otherwise trusted is false and error says revoked (with the reason) or not issued by this authority. The answer: trusted, error (OpenSSL's reason, or the authority's, when not), depth, roots (how many system roots were consulted; -1 when the platform's bundle was taken), subject, issuer, not_after, and authority (true when the chain ended at a root of the domain's authority rather than one of the machine's).\",\"responses\":{\"200\":{\"description\":\"the verdict\"},\"400\":{\"description\":\"not a list of base64 certificates\"}}}},"
          "\"/portal-smime.js\":{\"get\":{\"summary\":\"The webmail's S/MIME module\",\"description\":\"Unauthenticated. DER, X.509, PKCS#8 and PKCS#12, CMS SignedData and EnvelopedData and the MIME around them, on the Web Crypto API; what build/check-portal-smime.js runs against OpenSSL.\",\"responses\":{\"200\":{\"description\":\"The script\"}}}},"
          "\"/api/v1/me/sessions\":{\"get\":{\"summary\":\"The signed-in account's browser sessions\",\"description\":\"Each: id (twelve hex digits of the token's hash), created_seconds_ago, idle_seconds, current, support, and bearer - true for a session a webmail page holds as its second account, beside another account's cookie.\",\"responses\":{\"200\":{\"description\":\"sessions\"}}},\"delete\":{\"summary\":\"End every other session\",\"description\":\"The session asking stays; a caller on a password ends them all.\",\"responses\":{\"200\":{\"description\":\"ended (how many)\"}}}},"
          "\"/api/v1/me/sessions/{id}\":{\"delete\":{\"summary\":\"End one session\",\"responses\":{\"200\":{\"description\":\"Ended\"},\"404\":{\"description\":\"No such session of this account\"}}}},"
@@ -17547,6 +17693,7 @@ namespace HM
       openApiJson += OpenApiAccountResourcesPaths_();
       openApiJson += OpenApiGroupsPaths_();
       openApiJson += OpenApiDkimRotationPaths_();
+      openApiJson += OpenApiSmimeAuthorityPaths_();
       openApiJson += OpenApiReputationPaths_();
       openApiJson += OpenApiAccountReviewPaths_();
       openApiJson += OpenApiSandboxPaths_();

@@ -357,6 +357,12 @@
 #define PROPERTY_LIST_HARD_BOUNCES              _T("ListHardBouncesToUnsubscribe")
 #define PROPERTY_LIST_SOFT_BOUNCES              _T("ListSoftBouncesToUnsubscribe")
 #define PROPERTY_LIST_BOUNCE_WINDOW_DAYS        _T("ListBounceWindowDays")
+// The organisation CA for S/MIME (Util/OrganisationCa.h, docs/SmimeAuthority.md):
+// where the web services listener is reached from the clients, such as
+// http://pki.example.com, under which every certificate a domain's authority
+// issues names its CRL (/smime-ca/<domain>/<root>.crl) and its root
+// (.cer). Empty, the default, writes neither extension into a certificate.
+#define PROPERTY_SMIME_AUTHORITY_BASE_URL       _T("SmimeAuthorityBaseUrl")
 // Outbound shaping (SMTP/DestinationBackoff.h, docs/OutboundShaping.md). The
 // back-off a destination's slow-down reply opens: the first window in minutes
 // (0 turns it off; 2 by default) and the most it doubles to (60). And the two
@@ -916,4 +922,29 @@
 //      again at every delivery. Every policy an upgrade finds encrypts
 //      nothing, holds no key and refuses, so an upgraded server delivers
 //      exactly as it did.
-#define REQUIRED_DB_VERSION            6094
+
+// 6095 adds hm_smimeca and hm_smimeissued, and hm_smimekeys.smimeauthority
+//      (Util/OrganisationCa.h, docs/SmimeAuthority.md): an organisation CA for
+//      S/MIME, one per domain. A hm_smimeca row is one of a domain's roots -
+//      cadomainid (the domain; the row goes with it by the foreign key),
+//      cacertificate (the self-signed root, base64 DER), caprivatekey (its
+//      private key, PKCS#8 protected by Crypt::ProtectSecret - an envelope
+//      only the machine that wrote it opens, and a column the audit trail
+//      withholds by its name), cacreated, caretired (0 for the domain's one
+//      current root; the time it was replaced for a root a rotation kept for
+//      the certificates it signed) and caserial (the next serial number,
+//      carried on to the new root by a rotation, so that a serial names one
+//      certificate of the domain). A hm_smimeissued row is one certificate a
+//      root signed for an account's own key, which the webmail made and this
+//      server never saw: issuedcaid (the root; the row goes with it),
+//      issuedaccountid (no foreign key: a deleted account's certificates are
+//      revoked, the account id cleared, and stay on the CRL), issuedaddress,
+//      issuedserial (unique per root), issuedfingerprint (SHA-256 of the DER,
+//      64 lowercase hex digits), issuednotbefore, issuednotafter,
+//      issuedrevoked (0, or when it was revoked), issuedreason (superseded,
+//      keyCompromise or cessationOfOperation) and issuedcertificate (base64
+//      DER). smimeauthority marks a stored certificate that this server's
+//      authority issued - set by the server from hm_smimeissued, never taken
+//      from the page. Nothing is issued until an administrator creates a
+//      domain's authority, so an upgraded server does exactly what it did.
+#define REQUIRED_DB_VERSION            6095

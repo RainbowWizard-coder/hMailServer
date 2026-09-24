@@ -722,6 +722,8 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiFiles.cpp" />
     <ClCompile Include="..\Common\Util\RestApiLanguages.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSmime.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiSmimeAuthority.cpp" />
+    <ClCompile Include="..\Common\Util\OrganisationCa.cpp" />
     <ClCompile Include="..\Common\Util\PortalLanguagesData.cpp" />
     <ClCompile Include="..\Common\Util\PortalSmimeData.cpp" />
     <ClCompile Include="..\Common\Util\PortalPageData.cpp" />
@@ -1602,6 +1604,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\OpenPgpWriter.h" />
     <ClInclude Include="..\Common\Util\ZeroAccess.h" />
     <ClInclude Include="..\Common\Util\GatewayEncryption.h" />
+    <ClInclude Include="..\Common\Util\OrganisationCa.h" />
     <ClInclude Include="..\Common\Util\RestrictedDelivery.h" />
     <ClInclude Include="..\Common\Util\ImpersonationCheck.h" />
     <ClInclude Include="..\Common\Util\MessageRecall.h" />

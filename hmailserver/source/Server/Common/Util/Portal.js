@@ -4895,7 +4895,9 @@
   // current: the account's current password, and only while the keys are not
   // wrapped under it - see loadSmime. It is in this page and nowhere else,
   // and it goes the moment it has been used or the account signs out.
-  var smimeState = { own: [], recipients: [], unlocked: {}, loaded: false, limits: {}, current: '' };
+  // authority: the account's domain's S/MIME authority as GET /api/v1/me/smime
+  // answers it - null until read, {available: false} when there is none.
+  var smimeState = { own: [], recipients: [], unlocked: {}, loaded: false, limits: {}, current: '', authority: null };
   // True when the session was started with an app password: a mailbox
   // credential, never the account's own password, so it is not what the
   // keys are wrapped under and must never become what they are wrapped under.
@@ -4913,12 +4915,18 @@
   // rather than left open over the next account's session.
   var smimeForget = function () {
     smimeSettle(false, '');
-    smimeState = { own: [], recipients: [], unlocked: {}, loaded: false, limits: {}, current: '' };
+    smimeState = { own: [], recipients: [], unlocked: {}, loaded: false, limits: {}, current: '', authority: null };
     smimeViaAppPassword = false;
     smimePassword = '';
     smimeCerts = {};
     clear(el('smime-own-rows'));
     clear(el('smime-recipient-rows'));
+    clear(el('smime-ca-rows'));
+    el('smime-ca-table').hidden = true;
+    el('smime-ca-body').hidden = true;
+    el('smime-ca-none').hidden = true;
+    el('smime-ca-keep').checked = false;
+    say('smime-ca-status', '', true);
     el('smime-own-table').hidden = true;
     el('smime-recipient-table').hidden = true;
     el('smime-own-empty').hidden = false;
@@ -4937,8 +4945,17 @@
   var smimeAddress = function (text) { var m = String(text || '').match(/<([^>]+)>/); return (m ? m[1] : String(text || '')).trim().toLowerCase(); };
   var smimeAddresses = function (text) { return String(text || '').split(/[,;]/).map(smimeAddress).filter(function (a) { return a.indexOf('@') > 0; }); };
   var smimeFromAddress = function () { var f = el('compose-from'); return (!f.hidden && f.value) ? smimeAddress(f.value) : me; };
-  var smimeOwnFor = function (address) { return smimeState.own.filter(function (o) { return o.address === address; })[0] || null; };
-  var smimeRecipientsFor = function (address) { return smimeState.recipients.filter(function (r) { return r.address === address; }); };
+  // A certificate of the domain's own authority is used only while the
+  // authority's record says it is valid (authority_status in GET
+  // /api/v1/me/smime): one revoked or expired since it was stored is neither
+  // signed with nor encrypted to, and for a colleague the address counts as
+  // having none, so that the directory is asked again. A certificate from
+  // anywhere else has no such record and is used as it is.
+  var smimeUsableEntry = function (entry) { return !entry.authority || !entry.authority_status || entry.authority_status === 'valid' || entry.authority_status === 'unknown'; };
+  // The newest usable one: the store answers them oldest first, and after a
+  // second enrolment the new certificate is the one to sign with.
+  var smimeOwnFor = function (address) { var found = smimeState.own.filter(function (o) { return o.address === address && smimeUsableEntry(o); }); return found.length ? found[found.length - 1] : null; };
+  var smimeRecipientsFor = function (address) { return smimeState.recipients.filter(function (r) { return r.address === address && smimeUsableEntry(r); }); };
   var smimeParse = function (entry) {
     if (!smimeCerts[entry.fingerprint]) { try { smimeCerts[entry.fingerprint] = smime().parseCertificate(smime().b64decode(entry.certificate)); } catch (e) { return null; } }
     return smimeCerts[entry.fingerprint];
@@ -4986,6 +5003,78 @@
   };
   ['compose-to', 'compose-cc', 'compose-bcc'].forEach(function (id) { el(id).addEventListener('input', smimeComposeHints); });
   ['compose-from', 'compose-sign', 'compose-encrypt'].forEach(function (id) { el(id).addEventListener('change', smimeComposeHints); });
+  // The domain's S/MIME authority on the Security page: offered when the
+  // domain has one, said plainly when it has none, and the certificates it
+  // issued to this account with a Revoke for each that is still valid.
+  var smimeRenderAuthority = function () {
+    var a = smimeState.authority;
+    var available = !!(a && a.available);
+    el('smime-ca-none').hidden = !a || available;
+    el('smime-ca-body').hidden = !available;
+    var rows = el('smime-ca-rows');
+    clear(rows);
+    if (!available) { el('smime-ca-table').hidden = true; return; }
+    el('smime-ca-get').textContent = tf('Get a certificate from {0}', a.domain || '');
+    var issued = a.issued || [];
+    issued.forEach(function (c) {
+      var tr = document.createElement('tr');
+      tr.appendChild(node('td', c.address));
+      tr.appendChild(node('td', smimeDate(c.not_after)));
+      tr.appendChild(node('td', c.status === 'revoked' ? t('Revoked') : (c.status === 'expired' ? t('Expired') : '')));
+      var td = document.createElement('td');
+      if (c.status === 'valid') {
+        var revoke = button(t('Revoke'));
+        revoke.addEventListener('click', function () {
+          if (!window.confirm(t('Revoke this certificate? Colleagues are no longer given it, this webmail shows mail signed with it as revoked and stops encrypting to it, and it goes on the domain\'s revocation list.'))) { return; }
+          call('DELETE', '/api/v1/me/smime/issued/' + encodeURIComponent(String(c.serial))).then(function (result) {
+            if (result.status === 200) { loadSmime(); return; }
+            say('smime-ca-status', describe(result, t('Could not revoke')), false);
+          });
+        });
+        td.appendChild(revoke);
+      }
+      tr.appendChild(td);
+      rows.appendChild(tr);
+    });
+    el('smime-ca-table').hidden = !issued.length;
+  };
+  // A colleague's certificates from the domain's authority, fetched when a
+  // message to them is to be encrypted and no usable one is stored: by
+  // address, from the directory, and every one it answers kept in the store
+  // beside the ones taken from signed mail - a person with two devices has a
+  // certificate for each, and the message is encrypted to both. The server
+  // marks each as the authority's, from the certificate's own bytes. Only for
+  // addresses of this account's own domain, which is all the route answers.
+  var smimeFromAuthority = function (addresses) {
+    var a = smimeState.authority;
+    var domain = (me.split('@')[1] || '').toLowerCase();
+    var state = smimeState;
+    var chain = Promise.resolve();
+    if (!a || !a.available || !domain) { return chain; }
+    addresses.filter(function (x) { return (x.split('@')[1] || '').toLowerCase() === domain; }).forEach(function (address) {
+      chain = chain.then(function () {
+        return call('GET', '/api/v1/me/directory/' + encodeURIComponent(address) + '/smime').then(function (result) {
+          var list = result.status === 200 && result.data && result.data.certificates ? result.data.certificates : [];
+          var stores = Promise.resolve();
+          list.forEach(function (found) {
+            stores = stores.then(function () {
+              if (state !== smimeState) { return; }
+              var parsed;
+              try { parsed = smime().parseCertificate(smime().b64decode(found.certificate)); } catch (e) { return; }
+              return call('PUT', '/api/v1/me/smime/recipients', { address: address, name: parsed.name, fingerprint: found.fingerprint, certificate: found.certificate, not_after: found.not_after }).then(function (stored) {
+                if ((stored.status !== 200 && stored.status !== 201) || state !== smimeState) { return; }
+                smimeCerts[found.fingerprint] = parsed;
+                state.recipients = state.recipients.filter(function (r) { return r.fingerprint !== found.fingerprint; });
+                state.recipients.push(stored.data || { address: address, name: parsed.name, fingerprint: found.fingerprint, certificate: found.certificate, not_after: found.not_after, authority: true, authority_status: 'valid' });
+              });
+            });
+          });
+          return stores;
+        });
+      });
+    });
+    return chain;
+  };
   var loadSmime = function () {
     if (!smime()) { return Promise.resolve(); }
     el('smime-unavailable').hidden = smimeUsable();
@@ -5007,6 +5096,8 @@
       smimeRenderRows(el('smime-recipient-rows'), state.recipients, 'recipients');
       el('smime-recipient-table').hidden = !state.recipients.length;
       el('smime-recipient-empty').hidden = !!state.recipients.length;
+      state.authority = result.data.authority || { available: false };
+      smimeRenderAuthority();
       smimeComposeHints();
       // The password typed to sign in opens the keys once, then is forgotten.
       // When it will not open them - an administrator changed the password,
@@ -5191,7 +5282,9 @@
         call('POST', '/api/v1/me/smime/chain', { certificates: certs, purpose: 'sign' }).then(function (verdict) {
           if (!current || current.id !== m.id) { return; }
           var d = verdict.data || {};
-          if (verdict.status === 200 && d.trusted) { smimeBadge(tf('Signed by {0}', who), 'good'); }
+          // The chain ended at the domain's own authority rather than at a
+          // root the machine trusts: said, since that is who vouches for it.
+          if (verdict.status === 200 && d.trusted) { smimeBadge(d.authority ? tf('Signed by {0}, certified by your organisation', who) : tf('Signed by {0}', who), 'good'); }
           else { smimeBadge(tf('Signed by {0} (certificate not trusted: {1})', who, d.error || ('HTTP ' + verdict.status)), 'warn'); }
           smimeRemember(s.signer, who);
         });
@@ -5222,7 +5315,7 @@
   // The body the form made, turned into the MIME entity the server sends as
   // it is: signed with the From address's key (unlocked first), encrypted
   // for every recipient's certificate and the sender's own.
-  var smimePrepare = function (body) {
+  var smimePrepare = function (body, looked) {
     if (!body.sign && !body.encrypt) { return Promise.resolve(body); }
     if (!smime()) { return Promise.reject(t('The S/MIME module did not load.')); }
     if (!smimeUsable()) { return Promise.reject(t('Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.')); }
@@ -5238,6 +5331,9 @@
         if (!found.length) { if (missing.indexOf(a) < 0) { missing.push(a); } return; }
         found.forEach(function (c) { if (recipients.indexOf(c) < 0) { recipients.push(c); } });
       });
+      // Once, before refusing: the domain's authority may have certified a
+      // colleague whose certificate this store has never seen.
+      if (missing.length && !looked) { return smimeFromAuthority(missing).then(function () { return smimePrepare(body, true); }); }
       if (missing.length) { return Promise.reject(tf('Encrypt: no certificate for {0}.', missing.join(', '))); }
       if (own) { var mineCert = smimeParse(own); if (mineCert && recipients.indexOf(mineCert) < 0) { recipients.push(mineCert); } }
     }
@@ -5309,6 +5405,68 @@
       loadSmime();
     }, function (e) {
       say('smime-status', tf('Could not import: {0}', e && e.message ? e.message : String(e)), false);
+    });
+  });
+  // A certificate from the domain's own authority: the key pair and the
+  // request are made here (hmSmime.makeRequest), the private key is wrapped
+  // with the password as an imported one is, the authority signs the request,
+  // and certificate, chain and wrapped key go into the same store an import
+  // fills. The password is asked before the request is sent, so that a
+  // cancelled dialogue leaves nothing issued. The certificate the authority
+  // answers is pending: storing its key here is what confirms it, and only
+  // then does it supersede the address's earlier one (unless kept). A
+  // certificate whose key could not be stored is revoked again at once, as no
+  // longer in use - nobody holds its key - and the earlier one stays valid.
+  el('smime-ca-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var a = smimeState.authority;
+    if (!a || !a.available) { return; }
+    if (!smime()) { say('smime-ca-status', t('The S/MIME module did not load.'), false); return; }
+    if (!smimeUsable()) { say('smime-ca-status', t('Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.'), false); return; }
+    var keyType = el('smime-ca-key').value === 'ec' ? 'ec' : 'rsa';
+    var keep = !!el('smime-ca-keep').checked;
+    var state = smimeState;
+    var made = null;
+    var wrapped = null;
+    say('smime-ca-status', t('Making a key and a request in this browser...'), true);
+    smime().makeRequest({ keyType: keyType, address: me, name: me }).then(function (request) {
+      made = request;
+      return smimeAsk(t('Your password protects the key'), t('It is wrapped with your password in this browser before it is stored; the server cannot open it.'), 'password');
+    }).then(function (password) {
+      return smime().wrapPrivateKey(made.pkcs8, password);
+    }).then(function (envelope) {
+      wrapped = envelope;
+      return call('POST', '/api/v1/me/smime/enroll', { csr: smime().b64encode(made.request), keep: keep });
+    }).then(function (result) {
+      if (result.status !== 201 || !result.data) { throw new Error(describe(result, t('Could not get a certificate'))); }
+      var issued = result.data;
+      var cert = smime().parseCertificate(smime().b64decode(issued.certificate));
+      var entry = { address: issued.address, name: cert.name, fingerprint: issued.fingerprint, certificate: issued.certificate, chain: issued.chain || [], key: wrapped, not_after: issued.not_after };
+      return call('PUT', '/api/v1/me/smime/own', entry).then(function (stored) {
+        if (stored.status !== 200 && stored.status !== 201) {
+          call('DELETE', '/api/v1/me/smime/issued/' + encodeURIComponent(String(issued.serial)) + '?reason=cessationOfOperation');
+          throw new Error(describe(stored, t('Could not store the key')));
+        }
+        if (state !== smimeState) { return issued.address; }
+        smimeCerts[issued.fingerprint] = cert;
+        return smime().importPrivateKey(made.pkcs8).then(function (key) {
+          if (state === smimeState) {
+            var chainCerts = (issued.chain || []).map(function (c) { try { return smime().parseCertificate(smime().b64decode(c)); } catch (e) { return null; } }).filter(Boolean);
+            state.unlocked[issued.fingerprint] = { key: key, certificate: cert, chain: chainCerts, address: issued.address, entry: entry };
+          }
+          return issued.address;
+        });
+      });
+    }).then(function (address) {
+      made = null;
+      wrapped = null;
+      el('smime-ca-keep').checked = false;
+      say('smime-ca-status', tf('A certificate for {0} was issued and stored.', address), true);
+      loadSmime();
+    }, function (e) {
+      made = null;
+      wrapped = null;
+      say('smime-ca-status', tf('Could not get a certificate: {0}', e && e.message ? e.message : String(e)), false);
     });
   });
   // ---- OpenPGP ---------------------------------------------------------------

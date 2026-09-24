@@ -28,6 +28,7 @@
 #include "../Util/CalendarStore.h"
 #include "../Util/AddressBookStore.h"
 #include "../Util/CompromiseDetector.h"
+#include "../Util/OrganisationCa.h"
 #include "PersistenceMode.h"
 
 #include "../Util/File.h"
@@ -185,6 +186,16 @@ namespace HM
       // with somebody else's sending limit, digest hour or recall window.
       if (!PersistentSettingOverride::DeleteByOwner(PersistentSettingOverride::ScopeAccount, iID))
          orphans.push_back(_T("its own setting values"));
+
+      // The certificates its domain's S/MIME authority issued to it
+      // (Util/OrganisationCa.h): revoked for cessation of operation and kept on
+      // the CRL, so that a certificate that verified yesterday now says why it
+      // does not, and the account's number taken off them - the row names the
+      // account by number with no key, and numbers are handed out again. Named
+      // on the audit trail by the address; nothing is written for an account
+      // that was issued none.
+      if (!OrganisationCa::AccountDeleted(iID, pAccount->GetAddress()))
+         orphans.push_back(_T("the S/MIME certificates issued to it, which were not all revoked"));
 
       if (!orphans.empty())
       {

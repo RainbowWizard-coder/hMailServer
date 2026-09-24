@@ -1323,9 +1323,25 @@ function rotationDoc(domain, current, retiring) {
    return doc;
 }
 
+// A domain's S/MIME authority as GET /api/v1/domains/{domain}/smime-ca answers
+// it (RestApiSmimeAuthority.cpp): none until the page creates one, then a root
+// whose facts the page draws and whose PEM it hands out.
+const SMIME_NOW = 1789430400;
+function smimeRoot(domain, id, key) {
+   return { id, subject: '/CN=' + domain + ' S/MIME Authority', fingerprint: String(id).repeat(64).slice(0, 64), key_type: key === 'rsa3072' ? 'RSA-3072' : 'P-256',
+      not_before: SMIME_NOW, not_after: SMIME_NOW + 3652 * 86400, created: SMIME_NOW, retired: 0, published: true, key_opens: true, next_serial: 3,
+      certificate: 'MIIROOT' + id, pem: '-----BEGIN CERTIFICATE-----\r\nMIIROOT' + id + '\r\n-----END CERTIFICATE-----\r\n',
+      root_path: '/smime-ca/' + domain + '/' + id + '.pem', crl_path: '/smime-ca/' + domain + '/' + id + '.crl' };
+}
+function smimeAuthorityDoc(domain) {
+   return { domain, authority: null, retired: [], issued: [], base_url: '', root_path: '/smime-ca/' + domain + '.pem', crl_path: '/smime-ca/' + domain + '.crl', root_url: '', crl_url: '' };
+}
+
 const state = {
    // What the recorded server has been asked to do, for the checks that count it.
    reputationChecks: 0,
+   // The domains' S/MIME authorities, made as the page asks for them.
+   smimeAuthorities: {},
    auditReverts: 0,
    checklistReads: 0,
    // The setting profiles the checklist view offers under its items
@@ -2089,6 +2105,38 @@ function answer(method, path, headers, raw) {
       if (!list.some((x) => x.id === id)) { return json(404, { error: 'no such entry' }); }
       state.domainSenders[domain] = list.filter((x) => x.id !== id);
       return json(200, { deleted: true });
+   }
+   // The domain's S/MIME authority, as RestApiSmimeAuthority.cpp answers it:
+   // the document for the reading, the create and the rotation, and the one
+   // certificate for a revoke.
+   if (/^\/api\/v1\/domains\/[^/]+\/smime-ca(\/rotate|\/issued\/\d+)?(\?.*)?$/.test(path)) {
+      const name = segment(path, 4);
+      if (!state.domains.find((d) => d.name === name)) { return json(404, { error: 'domain not found' }); }
+      const doc = state.smimeAuthorities[name] || (state.smimeAuthorities[name] = smimeAuthorityDoc(name));
+      const bare = path.split('?')[0];
+      const action = bare.slice(bare.indexOf('/smime-ca') + '/smime-ca'.length);
+      if (method === 'GET' && action === '') { return json(200, doc); }
+      if (method === 'POST' && (action === '' || action === '/rotate')) {
+         for (const key of Object.keys(parsed || {})) { if (key !== 'key') { return json(400, { error: 'unknown field: ' + key }); } }
+         if (action === '' && doc.authority) { return json(409, { error: 'the domain has an S/MIME authority already; rotate it to replace its root' }); }
+         if (action === '/rotate' && !doc.authority) { return json(404, { error: 'the domain has no S/MIME authority to rotate; create one first' }); }
+         if (doc.authority) { doc.retired = [Object.assign({}, doc.authority, { retired: SMIME_NOW, published: true })].concat(doc.retired); }
+         doc.authority = smimeRoot(name, doc.authority ? doc.authority.id + 1 : 1, parsed && parsed.key);
+         return json(action === '' ? 201 : 200, doc);
+      }
+      const revoke = /^\/issued\/(\d+)$/.exec(action);
+      if (method === 'DELETE' && revoke) {
+         const serial = Number(revoke[1]);
+         const reason = decodeURIComponent((/[?&]reason=([^&]*)/.exec(path) || ['', 'keyCompromise'])[1]);
+         const found = doc.issued.find((c) => c.serial === serial);
+         if (!found) { return json(404, { error: 'no such certificate' }); }
+         if (found.status === 'revoked') { return json(409, { error: 'the certificate is revoked already' }); }
+         found.status = 'revoked';
+         found.reason = reason;
+         found.revoked = SMIME_NOW;
+         return json(200, { revoked: true, serial, address: found.address, reason });
+      }
+      return json(404, { error: 'not found' });
    }
    // The key rotation, as RestApiDkimRotation.cpp answers it: the status
    // document for every route, and a 409 that carries the reason word and the
@@ -4653,6 +4701,7 @@ async function main() {
    check('the other names are listed with a Remove each', content().textContent.indexOf('example.net') >= 0 && act('daliasdel', { name: 'example.net' }) !== null);
 
    // ---- the DKIM key rotation card
+   const openedAt = before;
    const rotationBox = () => document.getElementById('dkimRotation');
    check('Edit reads the domain\'s key rotation', called(before, 'GET', '/api/v1/domains/example.com/dkim/rotation').length === 1, paths(before));
    check('the rotation card is under its own heading and says the phase', headings.indexOf('DKIM key rotation') >= 0 && rotationBox() !== null &&
@@ -4738,6 +4787,70 @@ async function main() {
    await flush();
    check('Cancel deletes the next key and the card offers rotate now again', called(before, 'DELETE', '/api/v1/domains/example.com/dkim/rotation/next').length === 1 &&
       act('dkimrotstart') !== null && toastText() === 'The next key was cancelled.', toastText());
+
+   // ---- the S/MIME authority card (RestApiSmimeAuthority.cpp)
+   const smimeBox = () => document.getElementById('smimeAuthority');
+   check('S/MIME authority: Edit reads the domain\'s authority, and a domain with none says so and offers the create with a key choice',
+      called(openedAt, 'GET', '/api/v1/domains/example.com/smime-ca').length === 1 && headings.indexOf('S/MIME authority') >= 0 && smimeBox() !== null &&
+         smimeBox().textContent.indexOf('This domain has no S/MIME authority.') >= 0 && act('smimecacreate') !== null &&
+         document.getElementById('smimeca_key') !== null && content().querySelectorAll('button[data-act="smimecarotate"]').length === 0,
+      smimeBox() ? smimeBox().textContent.slice(0, 200) : 'no card');
+   check('S/MIME authority: the card says where it is managed and that a client trusts it only once the root is installed',
+      smimeBox().textContent.indexOf('the Control Panel shows none of it') >= 0 && smimeBox().textContent.indexOf('once the root is installed on it') >= 0);
+   setValue('smimeca_key', 'rsa3072');
+   before = requests.length;
+   click(act('smimecacreate'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/domains/example.com/smime-ca');
+   check('S/MIME authority: Create posts the key chosen and draws the root from the answer', JSON.stringify(posted) === '{"key":"rsa3072"}' &&
+      toastText() === 'S/MIME authority created' && smimeBox().textContent.indexOf('/CN=example.com S/MIME Authority') >= 0 &&
+      smimeBox().textContent.indexOf('RSA-3072') >= 0 && content().querySelectorAll('button[data-act="smimecacreate"]').length === 0 && act('smimecarotate') !== null,
+      JSON.stringify(posted) + ' ' + toastText());
+   const download = document.getElementById('smimeca_download');
+   check('S/MIME authority: the root is offered as a PEM download named after the domain',
+      download !== null && download.attributes.download === 'example.com-smime-root.pem' &&
+         decodeURIComponent(String(download.attributes.href).replace('data:application/x-pem-file;charset=utf-8,', '')).indexOf('-----BEGIN CERTIFICATE-----') === 0,
+      download ? download.attributes.href : 'no download');
+   check('S/MIME authority: with no base URL the card says that no CRL distribution point is written', smimeBox().textContent.indexOf('smime_authority_base_url') >= 0);
+
+   // Certificates it issued - one of them to an address that is hostile, as a
+   // stored address can be - and a key that no longer opens on this machine.
+   state.smimeAuthorities['example.com'].issued = [
+      { serial: 2, address: 'bob@example.com', account_id: 5, authority_id: 1, fingerprint: 'b'.repeat(64), not_before: SMIME_NOW, not_after: SMIME_NOW + 365 * 86400, status: 'valid', revoked: 0, reason: '' },
+      { serial: 1, address: HOSTILE, account_id: 0, authority_id: 1, fingerprint: 'a'.repeat(64), not_before: SMIME_NOW, not_after: SMIME_NOW + 365 * 86400, status: 'revoked', revoked: SMIME_NOW, reason: 'cessationOfOperation' }];
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('smimecarotate'));
+   await flush();
+   check('S/MIME authority: rotating asks first, naming the domain, and no sends nothing', confirmations[confirmations.length - 1].indexOf('example.com') >= 0 &&
+      called(before, 'POST', /smime-ca\/rotate/).length === 0);
+   confirmAnswer = true;
+   before = requests.length;
+   click(act('smimecarotate'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/domains/example.com/smime-ca/rotate');
+   check('S/MIME authority: Rotate posts the key chosen and draws the new root, the retired one and the issued list',
+      JSON.stringify(posted) === '{"key":"p256"}' && toastText() === 'S/MIME authority rotated' && smimeBox().textContent.indexOf('Retired key') >= 0 &&
+         smimeBox().textContent.indexOf('bob@example.com') >= 0 && smimeBox().querySelectorAll('.pill').length === 2,
+      JSON.stringify(posted) + ' ' + toastText());
+   check('S/MIME authority: an address is drawn as text, however hostile, and a revoked certificate says why with no Revoke of its own',
+      smimeBox().querySelectorAll('img').length === 0 && smimeBox().textContent.indexOf(HOSTILE) >= 0 && smimeBox().textContent.indexOf('Cessation of operation') >= 0 &&
+         content().querySelectorAll('button[data-act="smimecarevoke"]').length === 1);
+   state.smimeAuthorities['example.com'].authority.key_opens = false;
+   setValue('smimeca_reason', 'superseded');
+   before = requests.length;
+   click(act('smimecarevoke', { serial: '2' }));
+   await flush();
+   check('S/MIME authority: Revoke asks, naming the serial and the address, and sends the reason chosen',
+      confirmations[confirmations.length - 1].indexOf('bob@example.com') >= 0 && confirmations[confirmations.length - 1].indexOf('2') >= 0 &&
+         called(before, 'DELETE', '/api/v1/domains/example.com/smime-ca/issued/2?reason=superseded').length === 1 && toastText() === 'Certificate 2 revoked',
+      paths(before) + ' ' + toastText());
+   check('S/MIME authority: the card is read again and draws the revocation, and a root whose key does not open here is a warning',
+      called(before, 'GET', '/api/v1/domains/example.com/smime-ca').length === 1 && smimeBox().textContent.indexOf('Superseded') >= 0 &&
+         content().querySelectorAll('button[data-act="smimecarevoke"]').length === 0 &&
+         smimeBox().textContent.indexOf('does not open on this machine') >= 0,
+      smimeBox().textContent.slice(0, 400));
+   state.smimeAuthorities['example.com'].authority.key_opens = true;
 
    setChecked('dom_dkim_rotation_enabled', true);
    setValue('dom_dkim_rotation_interval_days', '90');

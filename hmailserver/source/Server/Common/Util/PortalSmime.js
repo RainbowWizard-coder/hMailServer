@@ -631,6 +631,49 @@
     }
   }
 
+  // ---- a certificate request (PKCS#10, RFC 2986) ------------------------------
+  //
+  // For the domain's own S/MIME authority (OrganisationCa.h on the server): a
+  // key pair made here with Web Crypto - RSA-2048 unless P-256 is asked for -
+  // and a request that the authority certify it, signed by the key itself so
+  // that the authority knows whoever asks holds it. The private key never
+  // leaves this page: it comes back as PKCS#8 for wrapPrivateKey, exactly as an
+  // imported key is wrapped, and the request carries the public half, the
+  // person's name (CN) and the address (emailAddress, and an rfc822Name in the
+  // subjectAltName the extensionRequest asks for). A P-256 key signs and
+  // nothing more: this module has no EC key agreement, so neither this page
+  // nor a colleague's can encrypt to it or decrypt with it.
+  const EXTENSION_REQUEST = '1.2.840.113549.1.9.14';
+
+  async function makeRequest(options) {
+    const elliptic = !!(options && options.keyType === 'ec');
+    const address = String((options && options.address) || '').trim().toLowerCase();
+    if (address.indexOf('@') <= 0 || /[^\x21-\x7e]/.test(address)) { throw new Error('the address is not an ASCII e-mail address'); }
+    const name = String((options && options.name) || address).trim().slice(0, 64) || address;
+    const pair = elliptic
+      ? await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify'])
+      : await subtle.generateKey({ name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' }, true, ['sign', 'verify']);
+    const spki = new Uint8Array(await subtle.exportKey('spki', pair.publicKey));
+    const pkcs8 = new Uint8Array(await subtle.exportKey('pkcs8', pair.privateKey));
+    const subject = seq(
+      setOf([seq(oid(OID.cn), tlv(TAG.UTF8, utf8(name)))]),
+      setOf([seq(oid(OID.emailAddress), tlv(TAG.IA5, utf8(address)))]));
+    const alternativeNames = seq(oid(OID.subjectAltName), octet(seq(implicitPrimitive(1, utf8(address)))));
+    const attributes = seq(oid(EXTENSION_REQUEST), setOf([seq(alternativeNames)]));
+    const info = seq(derInt(0), subject, spki, implicitConstructed(0, attributes));
+    let signature;
+    let algorithm;
+    if (elliptic) {
+      signature = ecdsaRawToDer(new Uint8Array(await subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, pair.privateKey, info)));
+      algorithm = algorithmId(OID.ecdsaSha256, false);
+    } else {
+      signature = new Uint8Array(await subtle.sign({ name: 'RSASSA-PKCS1-v1_5' }, pair.privateKey, info));
+      algorithm = algorithmId(OID.sha256WithRsa, true);
+    }
+    const request = seq(info, algorithm, tlv(TAG.BITSTR, concat([new Uint8Array([0]), signature])));
+    return { request: request, pkcs8: pkcs8, keyType: elliptic ? 'ec' : 'rsa' };
+  }
+
   // ---- MIME ----------------------------------------------------------------
 
   function findHeaderEnd(bytes, from) {
@@ -1211,6 +1254,8 @@
     // certificates and keys
     parseCertificate: parseCertificate, fingerprint: fingerprint, importPrivateKey: importPrivateKey, keyMatchesCertificate: keyMatchesCertificate,
     decryptPkcs8: decryptPkcs8, importPkcs12: importPkcs12, importAny: importAny, wrapPrivateKey: wrapPrivateKey, unwrapPrivateKey: unwrapPrivateKey,
+    // a request for the domain's S/MIME authority
+    makeRequest: makeRequest,
     // MIME
     parseMime: parseMime, decodeBody: decodeBody, extractContent: extractContent, buildMime: buildMime, messageHeaders: messageHeaders, decodeHeaderValue: decodeHeaderValue, qpEncode: qpEncode,
     // CMS

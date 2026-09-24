@@ -406,6 +406,20 @@ let account = 'user@example.com';
 // The S/MIME store, per account: the rows GET /api/v1/me/smime answers with.
 // A row's wrapped key is the stub module's own shape (see smimeStub below).
 const smimeStores = {};
+// The domain's S/MIME authority as GET /api/v1/me/smime answers it, per
+// account, and what the enrolment and the directory lookup were asked.
+const smimeAuthorities = {};
+const enrolments = [];
+const authorityLookups = [];
+// What the directory answers for an address: one certificate or a list of them.
+const authorityCertificates = {};
+// Where a colleague's stored certificate stands in the authority's record, by
+// fingerprint, when a check says so (valid otherwise).
+const authorityStatuses = {};
+// The own store refusing, as the real one does at twenty certificates.
+let smimeOwnRefuse = false;
+// What POST /api/v1/me/smime/chain answers, when a check sets it.
+let smimeChainAnswer = null;
 const wrappedUnder = (password) => ({ v: 1, kdf: 'PBKDF2-SHA256', iterations: 600000, salt: 'AAAAAAAAAAAAAAAAAAAAAA==', iv: 'AAAAAAAAAAAAAAAA', data: String(password) });
 const ownKeyOf = (address, password) => ({ id: 1, address, name: 'Key of ' + address, fingerprint: 'f'.repeat(64), certificate: 'MAMCAQE=', chain: [], key: wrappedUnder(password), not_after: 2000000000, created: 1700000000 });
 // One message in the shape the S/MIME reader looks at: the headers say it is
@@ -906,6 +920,15 @@ function answerDirectory(method, path, body) {
    }
    if (path === '/api/v1/me/directory/me/photo') { return { status: directoryOwn.has_photo ? 200 : 404, headers: { 'Content-Type': 'image/png' }, body: 'PNG' }; }
    if (/^\/api\/v1\/me\/directory\/\d+\/photo$/.test(path)) { return { status: 200, headers: { 'Content-Type': 'image/png' }, body: 'PNG' }; }
+   // A colleague's certificate from the domain's S/MIME authority, by address.
+   const colleague = /^\/api\/v1\/me\/directory\/([^/?]+)\/smime$/.exec(path);
+   if (colleague) {
+      const address = decodeURIComponent(colleague[1]);
+      authorityLookups.push(address);
+      const found = [].concat(authorityCertificates[address] || []);
+      if (method !== 'GET' || !found.length) { return json(404, { error: 'no certificate from this domain\'s authority for that address' }); }
+      return json(200, { address, certificates: found, chain: ['MAMCAQM='] });
+   }
    if (method === 'GET') {
       if (!directorySwitchedOn) { return json(200, { enabled: false, editable: directoryUserEditable, domain: 'example.com', entries: [], count: 0 }); }
       const at = path.indexOf('?');
@@ -1633,13 +1656,69 @@ function answer(method, path, body) {
    if (path === '/api/v1/me/messages/707' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(BIG_ATTACHMENT)))); }
    if (path === '/api/v1/me/smime' && method === 'GET') {
       const store = smimeStores[account] || { own: [], recipients: [] };
-      return json(200, { own: store.own, recipients: store.recipients, limits: { own: 20, recipients: 500 } });
+      const authority = smimeAuthorities[account] || { domain: account.split('@')[1], available: false };
+      // A marked row says where the authority's record has it now, as the
+      // server's StoredStatuses does: the account's own from the issued list,
+      // a colleague's from what a check set.
+      const statusOf = (row) => {
+         const issued = (authority.issued || []).filter((c) => c.fingerprint === row.fingerprint)[0];
+         return issued ? issued.status : (authorityStatuses[row.fingerprint] || 'valid');
+      };
+      const marked = (rows) => rows.map((row) => row.authority ? Object.assign({}, row, { authority_status: statusOf(row) }) : row);
+      return json(200, { own: marked(store.own), recipients: marked(store.recipients), limits: { own: 20, recipients: 500 }, authority: JSON.parse(JSON.stringify(authority)) });
+   }
+   if (path === '/api/v1/me/smime/chain' && method === 'POST' && smimeChainAnswer) { return json(200, smimeChainAnswer); }
+   // The domain's S/MIME authority (RestApiSmimeAuthority.cpp): a request
+   // signed - pending until its key is stored, which is what confirms it and
+   // supersedes the address's earlier certificate unless kept - and one of
+   // the account's certificates revoked.
+   if (path === '/api/v1/me/smime/enroll' && method === 'POST') {
+      const authority = smimeAuthorities[account];
+      const wanted = JSON.parse(body || '{}');
+      enrolments.push({ account, csr: wanted.csr, keep: wanted.keep });
+      if (!authority || !authority.available) { return json(404, { error: 'this domain has no S/MIME authority' }); }
+      const serial = (authority.issued || []).length + 1;
+      const fingerprint = (serial % 16).toString(16).repeat(64);
+      const certificate = Buffer.from('CERTIFICATE-' + serial).toString('base64');
+      const supersedes = wanted.keep ? [] : (authority.issued || []).filter((c) => c.status === 'valid').map((c) => c.serial);
+      authority.issued = [{ serial, address: account, fingerprint, certificate, not_before: 1700000000, not_after: 2000000000, status: 'valid', confirmed: false, keep: !!wanted.keep, revoked: 0, reason: '' }].concat(authority.issued || []);
+      return json(201, { certificate, chain: ['MAMCAQM='], serial, fingerprint, address: account, not_before: 1700000000, not_after: 2000000000, confirmed: false, supersedes });
+   }
+   if (/^\/api\/v1\/me\/smime\/issued\/\d+(\?.*)?$/.test(path) && method === 'DELETE') {
+      const authority = smimeAuthorities[account];
+      const serial = Number(path.split('?')[0].split('/').pop());
+      const reason = /[?&]reason=([^&]+)/.test(path) ? /[?&]reason=([^&]+)/.exec(path)[1] : 'keyCompromise';
+      const found = authority && (authority.issued || []).filter((c) => c.serial === serial)[0];
+      if (!found) { return json(404, { error: 'no such certificate' }); }
+      found.status = 'revoked';
+      found.reason = reason;
+      return json(200, { revoked: true, serial, reason });
+   }
+   if (path === '/api/v1/me/smime/recipients' && method === 'PUT') {
+      const store = smimeStores[account] || (smimeStores[account] = { own: [], recipients: [] });
+      const wanted = JSON.parse(body || '{}');
+      const marked = !!authorityCertificates[wanted.address];
+      const row = Object.assign({ id: 2, created: 1700000000, authority: marked }, wanted, marked ? { authority_status: authorityStatuses[wanted.fingerprint] || 'valid' } : {});
+      store.recipients = store.recipients.filter((r) => r.fingerprint !== wanted.fingerprint);
+      store.recipients.push(row);
+      return json(201, row);
    }
    if (path === '/api/v1/me/smime/own' && method === 'PUT') {
+      if (smimeOwnRefuse) { return json(400, { error: 'at most 20 own certificates' }); }
       const store = smimeStores[account] || (smimeStores[account] = { own: [], recipients: [] });
       const wanted = JSON.parse(body || '{}');
       const at = store.own.findIndex((o) => o.fingerprint === wanted.fingerprint);
-      const row = Object.assign({ id: 1, created: 1700000000 }, wanted);
+      // The server's mark, and the confirmation of a pending certificate of
+      // the authority's: its key is in the store now.
+      const authority = smimeAuthorities[account];
+      const issued = authority && (authority.issued || []).filter((c) => c.fingerprint === wanted.fingerprint)[0];
+      if (issued && issued.confirmed === false) {
+         issued.confirmed = true;
+         if (!issued.keep) {
+            authority.issued.forEach((c) => { if (c !== issued && c.status === 'valid' && c.address === issued.address) { c.status = 'revoked'; c.reason = 'superseded'; } });
+         }
+      }
+      const row = Object.assign({ id: 1, created: 1700000000 }, wanted, issued ? { authority: true, authority_status: issued.status } : {});
       if (at >= 0) { store.own[at] = row; return json(200, row); }
       store.own.push(row);
       return json(201, row);
@@ -1890,6 +1969,9 @@ const smimeStub = {
    b64encode: (bytes) => Buffer.from(bytes).toString('base64'),
    fingerprint: async () => 'f'.repeat(64),
    importPrivateKey: async (pkcs8) => ({ type: 'rsa', pkcs8 }),
+   // The request for the domain's authority: the key type and the address
+   // are recorded in the bytes, so a check can read what the page asked for.
+   makeRequest: async (options) => ({ request: Uint8Array.from(Buffer.from('CSR:' + options.keyType + ':' + options.address)), pkcs8: Uint8Array.from([0x30, 0x03, 0x02, 0x01, 0x02]), keyType: options.keyType }),
    wrapPrivateKey: async (pkcs8, password) => wrappedUnder(password),
    unwrapPrivateKey: async (wrapped, password) => {
       if (!wrapped || String(wrapped.data) !== String(password)) { throw new Error('wrong password'); }
@@ -7449,6 +7531,218 @@ async function main() {
       smimeStores['third@example.com'].own[0].key.data === 'the-current-password',
       JSON.stringify(smimeStores['third@example.com'].own[0].key));
    check('and the dialogue is gone', document.getElementById('smime-unlock').hidden === true);
+
+   // ---- the domain's own S/MIME authority on the Security page
+   // (OrganisationCa.h): said plainly when the domain has none; offered by the
+   // domain's name when it has one; the key made on the page, the password
+   // asked before anything is sent, only the request going to the server, and
+   // what comes back stored where an imported key goes - which is also what
+   // confirms the certificate.
+   location.hash = '#/security';
+   await flush();
+   check('S/MIME authority: a domain with none is said so, and nothing is offered to get',
+      document.getElementById('smime-ca-none').hidden === false && document.getElementById('smime-ca-body').hidden === true,
+      'none hidden=' + document.getElementById('smime-ca-none').hidden + ' body hidden=' + document.getElementById('smime-ca-body').hidden);
+   smimeAuthorities['third@example.com'] = { domain: 'example.com', available: true, subject: '/CN=example.com S/MIME Authority', fingerprint: 'd'.repeat(64), key_type: 'P-256', not_after: 2100000000, certificate: 'MAMCAQM=', issued: [] };
+   const caIssued = (serial) => (smimeAuthorities['third@example.com'].issued || []).filter((c) => c.serial === serial)[0] || {};
+   location.hash = '#/settings';
+   await flush();
+   location.hash = '#/security';
+   await flush();
+   check('S/MIME authority: a domain with one is offered by name, in the reader\'s language',
+      document.getElementById('smime-ca-none').hidden === true && document.getElementById('smime-ca-body').hidden === false &&
+         document.getElementById('smime-ca-get').textContent === german['Get a certificate from {0}'].replace('{0}', 'example.com'),
+      document.getElementById('smime-ca-get').textContent);
+   document.getElementById('smime-ca-key').value = 'ec';
+   const beforeCaEnrol = requests.length;
+   document.getElementById('smime-ca-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   check('S/MIME authority: the password that wraps the new key is asked before anything is sent',
+      document.getElementById('smime-unlock').hidden === false && !called(beforeCaEnrol, 'POST', '/api/v1/me/smime/enroll'),
+      JSON.stringify(since(beforeCaEnrol).map((r) => r.method + ' ' + r.path)));
+   document.getElementById('smime-unlock-password').value = 'the-current-password';
+   document.getElementById('smime-unlock-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   const caEnrolled = since(beforeCaEnrol).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/smime/enroll').pop();
+   const caEnrolBody = caEnrolled ? JSON.parse(caEnrolled.body) : {};
+   check('S/MIME authority: the request made on the page goes to the authority for the key type chosen, and nothing of the key with it',
+      !!caEnrolled && Buffer.from(caEnrolBody.csr, 'base64').toString() === 'CSR:ec:third@example.com' && caEnrolBody.keep === false &&
+         Object.keys(caEnrolBody).sort().join(',') === 'csr,keep',
+      caEnrolled ? caEnrolled.body : 'no enrolment');
+   const caStoredOwn = since(beforeCaEnrol).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/smime/own').pop();
+   const caStoredBody = caStoredOwn ? JSON.parse(caStoredOwn.body) : {};
+   check('S/MIME authority: the certificate, its chain and the key wrapped with the password go into the account\'s own store',
+      !!caStoredOwn && caStoredBody.certificate === caIssued(1).certificate && caStoredBody.fingerprint === caIssued(1).fingerprint &&
+         caStoredBody.chain.length === 1 && caStoredBody.chain[0] === 'MAMCAQM=' && caStoredBody.key.data === 'the-current-password',
+      caStoredOwn ? caStoredOwn.body : 'nothing stored');
+   check('S/MIME authority: storing the key is what confirms the certificate; nothing else is sent for it',
+      caIssued(1).confirmed === true && !since(beforeCaEnrol).some((r) => /\/confirm$/.test(r.path)),
+      JSON.stringify(caIssued(1)) + ' ' + JSON.stringify(since(beforeCaEnrol).map((r) => r.method + ' ' + r.path)));
+   check('S/MIME authority: the outcome is said, and the certificate is listed with a Revoke',
+      document.getElementById('smime-ca-status').textContent === german['A certificate for {0} was issued and stored.'].replace('{0}', 'third@example.com') &&
+         document.getElementById('smime-ca-rows').children.length === 1 && document.getElementById('smime-ca-table').hidden === false,
+      document.getElementById('smime-ca-status').textContent + ' / ' + document.getElementById('smime-ca-rows').children.length + ' rows');
+   const caRevokeRow = document.getElementById('smime-ca-rows').children[0];
+   const caButtonsIn = (root) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (c.tagName === 'BUTTON') { out.push(c); } walk(c); } } })(root); return out; };
+   const caRevokeButton = caRevokeRow ? caButtonsIn(caRevokeRow)[0] : null;
+   // A confirm of this check's own: the page's question is recorded here, and
+   // whatever another section left in its place is put back afterwards.
+   const caConfirmed = [];
+   const caConfirmBefore = window.confirm;
+   window.confirm = (text) => { caConfirmed.push(String(text)); return true; };
+   const beforeCaRevoke = requests.length;
+   if (caRevokeButton) { caRevokeButton.dispatchEvent(makeEvent('click')); }
+   await flush();
+   window.confirm = caConfirmBefore;
+   check('S/MIME authority: Revoke asks first, saying what revoking does, then revokes that serial, and the list says so',
+      caConfirmed.length === 1 && caConfirmed[0] === german['Revoke this certificate? Colleagues are no longer given it, this webmail shows mail signed with it as revoked and stops encrypting to it, and it goes on the domain\'s revocation list.'] &&
+         called(beforeCaRevoke, 'DELETE', '/api/v1/me/smime/issued/1') &&
+         document.getElementById('smime-ca-rows').children.length === 1 &&
+         document.getElementById('smime-ca-rows').children[0].textContent.indexOf(german['Revoked']) >= 0,
+      JSON.stringify(since(beforeCaRevoke).map((r) => r.method + ' ' + r.path)) + ' asked ' + JSON.stringify(caConfirmed) + ' row ' +
+         (document.getElementById('smime-ca-rows').children[0] ? document.getElementById('smime-ca-rows').children[0].textContent : 'none'));
+
+   // A second certificate for the address and a third that replaces it: the
+   // third supersedes the second only once its key is stored, and from then on
+   // it is the third the page signs with - not the second, which the store
+   // still holds (its key opens mail sent to it), and not the revoked first.
+   const caEnrolThroughPage = async (keyType, keep) => {
+      document.getElementById('smime-ca-key').value = keyType;
+      document.getElementById('smime-ca-keep').checked = !!keep;
+      document.getElementById('smime-ca-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      document.getElementById('smime-unlock-password').value = 'the-current-password';
+      document.getElementById('smime-unlock-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+   };
+   await caEnrolThroughPage('rsa', false);
+   const caSecondValid = caIssued(2).status === 'valid' && caIssued(2).confirmed === true;
+   await caEnrolThroughPage('rsa', false);
+   check('S/MIME authority: a new certificate supersedes the one before it once its key is stored, and not before',
+      caSecondValid && caIssued(3).confirmed === true && caIssued(2).status === 'revoked' && caIssued(2).reason === 'superseded',
+      JSON.stringify(smimeAuthorities['third@example.com'].issued.map((c) => [c.serial, c.status, c.reason, c.confirmed])));
+   const caSignedWith = [];
+   window.hmSmime = Object.assign({}, smimeStub, { composeMessage: async (spec) => { caSignedWith.push(spec.sign && spec.sign.entry ? spec.sign.entry.fingerprint : null); return 'MIME-Version: 1.0\r\nContent-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256; boundary="b"\r\n\r\n--b--\r\n'; } });
+   document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+   await flush();
+   document.getElementById('compose-to').value = 'someone@example.net';
+   document.getElementById('compose-subject').value = 'Signed after a new certificate';
+   document.getElementById('compose-text').value = 'Signed with the newest.';
+   document.getElementById('compose-sign').checked = true;
+   document.getElementById('compose-encrypt').checked = false;
+   const caBeforeSigned = requests.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   fireTimers();
+   await flush();
+   check('S/MIME authority: after a second enrolment the page signs with the new certificate, not the superseded one',
+      caSignedWith.length === 1 && caSignedWith[0] === caIssued(3).fingerprint && called(caBeforeSigned, 'POST', '/api/v1/me/messages'),
+      JSON.stringify(caSignedWith) + ' expected ' + caIssued(3).fingerprint);
+   window.hmSmime = smimeStub;
+   dismissAllToasts();
+
+   // A store that refuses the key: the new certificate is revoked again at
+   // once, as no longer in use, and the one before it is still valid - the
+   // supersede waited for a store that never happened.
+   smimeOwnRefuse = true;
+   const beforeCaRefused = requests.length;
+   await caEnrolThroughPage('rsa', false);
+   smimeOwnRefuse = false;
+   const caRollback = since(beforeCaRefused).filter((r) => r.method === 'DELETE' && r.path.indexOf('/api/v1/me/smime/issued/4') === 0).pop();
+   check('S/MIME authority: a certificate whose key the store refused is revoked as no longer in use, and the one before it stays valid',
+      !!caRollback && caRollback.path === '/api/v1/me/smime/issued/4?reason=cessationOfOperation' &&
+         caIssued(4).status === 'revoked' && caIssued(4).reason === 'cessationOfOperation' && caIssued(3).status === 'valid' &&
+         document.getElementById('smime-ca-status').textContent.indexOf(german['Could not get a certificate: {0}'].split('{0}')[0]) === 0,
+      (caRollback ? caRollback.path : 'no revocation') + ' ' + JSON.stringify(smimeAuthorities['third@example.com'].issued.map((c) => [c.serial, c.status, c.reason])) +
+         ' ' + document.getElementById('smime-ca-status').textContent);
+
+   // A message to a colleague of the domain, encrypted, with no certificate of
+   // theirs stored: the directory is asked by address, EVERY certificate it
+   // answers is kept - a colleague with two devices has one for each - and the
+   // message is encrypted to all of them rather than refused.
+   const caColleague = (tag) => ({ serial: 7, fingerprint: tag.repeat(64), not_before: 1700000000, not_after: 2000000000, certificate: Buffer.from('COLLEAGUE-' + tag).toString('base64'), pem: '' });
+   authorityCertificates['colleague@example.com'] = [caColleague('c'), caColleague('b')];
+   const caComposedFor = [];
+   window.hmSmime = Object.assign({}, smimeStub, { composeMessage: async (spec) => { caComposedFor.push((spec.encrypt || []).map((c) => Buffer.from(c.raw).toString('base64'))); return 'MIME-Version: 1.0\r\nContent-Type: application/pkcs7-mime; smime-type=enveloped-data\r\n\r\nsealed\r\n'; } });
+   const caSealFor = async (to) => {
+      document.dispatchEvent(makeEvent('keydown', { key: 'c', target: document.body }));
+      await flush();
+      document.getElementById('compose-to').value = to;
+      document.getElementById('compose-subject').value = 'Sealed for a colleague';
+      document.getElementById('compose-text').value = 'Encrypted to the authority\'s certificates.';
+      document.getElementById('compose-sign').checked = false;
+      document.getElementById('compose-encrypt').checked = true;
+      document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      fireTimers();
+      await flush();
+   };
+   const caBeforeColleague = requests.length;
+   await caSealFor('colleague@example.com');
+   const caKeptColleague = since(caBeforeColleague).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/smime/recipients').map((r) => JSON.parse(r.body));
+   check('S/MIME authority: a colleague with no stored certificate is looked up by address, and every certificate answered is kept',
+      authorityLookups.indexOf('colleague@example.com') >= 0 && caKeptColleague.length === 2 &&
+         caKeptColleague.every((k) => k.address === 'colleague@example.com') &&
+         caKeptColleague.map((k) => k.fingerprint).sort().join(',') === ['b'.repeat(64), 'c'.repeat(64)].join(','),
+      JSON.stringify(since(caBeforeColleague).map((r) => r.method + ' ' + r.path)));
+   check('S/MIME authority: and the message is encrypted to both of the colleague\'s certificates rather than refused',
+      caComposedFor.length === 1 && caComposedFor[0].indexOf(caColleague('c').certificate) >= 0 && caComposedFor[0].indexOf(caColleague('b').certificate) >= 0 &&
+         called(caBeforeColleague, 'POST', '/api/v1/me/messages'),
+      JSON.stringify(caComposedFor) + ' ' + JSON.stringify(since(caBeforeColleague).map((r) => r.method + ' ' + r.path)));
+
+   // Both revoked since - the colleague enrolled again - and a new one in the
+   // directory: the page, having read its store again, neither encrypts to the
+   // revoked ones nor refuses, but asks the directory again and uses the new.
+   authorityStatuses['c'.repeat(64)] = 'revoked';
+   authorityStatuses['b'.repeat(64)] = 'revoked';
+   authorityCertificates['colleague@example.com'] = [caColleague('a')];
+   location.hash = '#/settings';
+   await flush();
+   location.hash = '#/security';
+   await flush();
+   const caLookupsBefore = authorityLookups.filter((a) => a === 'colleague@example.com').length;
+   const caBeforeRevoked = requests.length;
+   await caSealFor('colleague@example.com');
+   const caLastSealed = caComposedFor[caComposedFor.length - 1] || [];
+   check('S/MIME authority: a colleague\'s stored certificates that were revoked are not encrypted to, and the directory is asked again',
+      authorityLookups.filter((a) => a === 'colleague@example.com').length === caLookupsBefore + 1 && caComposedFor.length === 2 &&
+         caLastSealed.indexOf(caColleague('a').certificate) >= 0 && caLastSealed.indexOf(caColleague('c').certificate) < 0 &&
+         caLastSealed.indexOf(caColleague('b').certificate) < 0 && called(caBeforeRevoked, 'POST', '/api/v1/me/messages'),
+      JSON.stringify(caComposedFor) + ' ' + JSON.stringify(since(caBeforeRevoked).map((r) => r.method + ' ' + r.path)));
+
+   // An address the directory has nothing for: asked once, and the message is
+   // refused in its own words - not sent, and not asked about again in a loop.
+   const caBeforeNobody = requests.length;
+   await caSealFor('nobody@example.com');
+   check('S/MIME authority: an address with no certificate anywhere is looked up once and the message is refused, not sent',
+      authorityLookups.filter((a) => a === 'nobody@example.com').length === 1 && !called(caBeforeNobody, 'POST', '/api/v1/me/messages') &&
+         document.getElementById('compose-status').textContent === german['Encrypt: no certificate for {0}.'].replace('{0}', 'nobody@example.com'),
+      document.getElementById('compose-status').textContent + ' ' + JSON.stringify(since(caBeforeNobody).map((r) => r.method + ' ' + r.path)));
+   document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
+   await flush();
+   window.hmSmime = smimeStub;
+   dismissAllToasts();
+
+   // A signature whose chain ended at the domain's own authority says so on
+   // its badge; the chain check's authority answer is what decides it.
+   smimeChainAnswer = { trusted: true, error: '', depth: 2, roots: 0, subject: '/CN=B', issuer: '/CN=example.com S/MIME Authority', not_after: 2000000000, authority: true };
+   window.hmSmime = Object.assign({}, smimeStub, {
+      readMessage: async () => ({ layers: ['signed'], encrypted: null, content: null,
+         signed: { valid: true, error: '', signer: { raw: Uint8Array.from([0x30, 0x03, 0x02, 0x01, 0x09]), emails: ['b@example.net'], name: 'B', notAfter: new Date('2030-01-01T00:00:00Z') }, certificates: [] } })
+   });
+   location.hash = '#/m/601';
+   await flush();
+   await flush();
+   const caBadgeTexts = Array.prototype.slice.call(document.getElementById('message-badges').children).map((b) => b.textContent);
+   check('S/MIME authority: a signature the domain\'s own authority certified says so on its badge',
+      caBadgeTexts.indexOf(german['Signed by {0}, certified by your organisation'].replace('{0}', 'b@example.net')) >= 0, JSON.stringify(caBadgeTexts));
+   smimeChainAnswer = null;
+   window.hmSmime = smimeStub;
+   delete smimeAuthorities['third@example.com'];
+   delete authorityCertificates['colleague@example.com'];
+   delete authorityStatuses['c'.repeat(64)];
+   delete authorityStatuses['b'.repeat(64)];
+   dismissAllToasts();
 
    // ---- the page closing during the undo countdown does not send a sealed
    // message in the clear. Signing and encryption happen in smimePrepare on

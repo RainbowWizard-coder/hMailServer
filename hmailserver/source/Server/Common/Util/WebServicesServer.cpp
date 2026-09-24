@@ -19,6 +19,9 @@
 #include "CardDavServer.h"
 #include "CalDavServer.h"
 #include "DavSupport.h"
+#include "OrganisationCa.h"
+#include "Unicode.h"
+#include "Encoding/Base64.h"
 
 #include "../Application/ACLManager.h"
 #include "../BO/Account.h"
@@ -42,6 +45,8 @@
 #include <ws2tcpip.h>
 #endif
 
+#include <cctype>
+#include <cstdlib>
 #include <cstring>
 
 #include <openssl/ssl.h>
@@ -711,6 +716,14 @@ namespace HM
          if (method == "GET" && (path == "/.well-known/security.txt" || path == "/security.txt"))
             return HandleSecurityTxt_(host);
 
+         // A domain's S/MIME authority: its root and its CRL, for any host and
+         // over either listener - a client following an issued certificate's
+         // distribution point asks over plain HTTP, anonymously, as RFC 5280
+         // recommends, and nothing here is secret.
+         AnsiString smimeAuthorityPrefix = "/smime-ca/";
+         if (method == "GET" && path.StartsWith(smimeAuthorityPrefix))
+            return HandleSmimeAuthority_(path.Mid(smimeAuthorityPrefix.GetLength()));
+
          // The OpenPGP Web Key Directory. Both methods of
          // draft-koch-openpgp-webkey-service live under one prefix: the advanced
          // one names the domain in the path, the direct one does not. Not
@@ -1266,6 +1279,156 @@ namespace HM
       // change rarely, its own Expires is months away, and scanners fetch it
       // from many places.
       return BuildResponse_(200, "text/plain; charset=utf-8", body, "Cache-Control: public, max-age=3600\r\n");
+   }
+
+   HttpResponse
+   WebServicesServer::HandleSmimeAuthority_(const AnsiString &rest)
+   {
+      // Three forms, and every refusal the same 404, whatever was missing:
+      //
+      //   <fingerprint>.pem, .cer or .crl   one root by the SHA-256 of its DER,
+      //                                     64 lowercase hex digits - what an
+      //                                     issued certificate names, since a
+      //                                     restore and a domain's rename both
+      //                                     leave it as it is
+      //   <domain>.pem, .cer or .crl        the domain's current root, what an
+      //                                     administrator hands out
+      //   <domain>/<id>.pem, .cer or .crl   one root by its row's number, the
+      //                                     first form this server wrote into a
+      //                                     certificate, still answered for one
+      //                                     that carries it
+      //
+      // A root other than the current one is answered while it is published,
+      // which is while a certificate it signed has not expired.
+      const HttpResponse notFound = BuildResponse_(404, "text/plain", "not found");
+
+      int dot = -1;
+      for (int i = rest.GetLength() - 1; i >= 0; i--)
+      {
+         if (rest[i] == '/')
+            break;
+         if (rest[i] == '.')
+         {
+            dot = i;
+            break;
+         }
+      }
+
+      if (dot <= 0 || rest.GetLength() > 600)
+         return notFound;
+
+      const AnsiString extension = rest.Mid(dot + 1);
+      if (extension != "pem" && extension != "cer" && extension != "crl")
+         return notFound;
+
+      const AnsiString stem = rest.Mid(0, dot);
+      const __int64 now = (__int64) time(nullptr);
+      OrganisationCa::Authority authority;
+
+      if (OrganisationCa::IsFingerprint(stem))
+      {
+         if (!OrganisationCa::FindByFingerprint(stem, authority) || !OrganisationCa::IsPublished(authority, now))
+            return notFound;
+      }
+      else
+      {
+         AnsiString domainPart = stem;
+         AnsiString rootPart;
+         const int slash = stem.Find("/");
+         if (slash >= 0)
+         {
+            domainPart = stem.Mid(0, slash);
+            rootPart = stem.Mid(slash + 1);
+            if (rootPart.IsEmpty() || rootPart.GetLength() > 18)
+               return notFound;
+            for (int i = 0; i < rootPart.GetLength(); i++)
+            {
+               if (rootPart[i] < '0' || rootPart[i] > '9')
+                  return notFound;
+            }
+         }
+
+         // The domain's name as a path writes it: its UTF-8 with anything but a
+         // letter, a digit, a dot or a hyphen as %XX.
+         AnsiString decoded;
+         for (int i = 0; i < domainPart.GetLength(); i++)
+         {
+            const char c = domainPart[i];
+            if (c == '%' && i + 2 < domainPart.GetLength() &&
+                isxdigit((unsigned char) domainPart[i + 1]) && isxdigit((unsigned char) domainPart[i + 2]))
+            {
+               const char hex[3] = { domainPart[i + 1], domainPart[i + 2], 0 };
+               decoded += (char) strtol(hex, nullptr, 16);
+               i += 2;
+               continue;
+            }
+            decoded += c;
+         }
+
+         if (decoded.IsEmpty() || decoded.GetLength() > 255)
+            return notFound;
+
+         for (int i = 0; i < decoded.GetLength(); i++)
+         {
+            const unsigned char c = (unsigned char) decoded[i];
+            if (c < 0x21 || c == '/' || c == '\\')
+               return notFound;
+         }
+
+         String domainName;
+         Unicode::MultiByteToWide(decoded, domainName);
+         domainName.MakeLower();
+
+         std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(domainName);
+         if (!domain)
+            return notFound;
+
+         if (rootPart.IsEmpty())
+         {
+            if (!OrganisationCa::Current(domain->GetID(), authority))
+               return notFound;
+         }
+         else
+         {
+            const __int64 rootId = _atoi64(rootPart.c_str());
+            if (rootId <= 0 || !OrganisationCa::Find(domain->GetID(), rootId, authority) || !OrganisationCa::IsPublished(authority, now))
+               return notFound;
+         }
+      }
+
+      if (extension == "pem")
+      {
+         return BuildResponse_(200, "application/x-pem-file", OrganisationCa::Pem(authority.certificate, "CERTIFICATE"),
+                               "Cache-Control: public, max-age=3600\r\n");
+      }
+
+      if (extension == "cer")
+      {
+         AnsiString der = Base64::Decode(authority.certificate.c_str(), authority.certificate.GetLength());
+         if (der.IsEmpty())
+            return notFound;
+
+         HttpResponse response = BuildResponse_(200, "application/pkix-cert", der, "Cache-Control: public, max-age=3600\r\n");
+         response.no_compress = true;
+         return response;
+      }
+
+      // The CRL: made again when one of the root's certificates was revoked,
+      // and otherwise at most once a day, so a cache in front of this may keep
+      // it a few minutes and no longer. A root whose key does not open on this
+      // machine cannot sign one, and is the same 404 as a root that is not
+      // there; OrganisationCa has said why in the error log, once.
+      AnsiString crl;
+      String problem;
+      const int status = OrganisationCa::Crl(authority, crl, problem);
+      if (status == 404)
+         return notFound;
+      if (status != 200)
+         return BuildResponse_(503, "text/plain", Unicode::ToANSI(problem));
+
+      HttpResponse response = BuildResponse_(200, "application/pkix-crl", crl, "Cache-Control: public, max-age=300\r\n");
+      response.no_compress = true;
+      return response;
    }
 
    bool

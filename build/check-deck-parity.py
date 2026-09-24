@@ -158,6 +158,12 @@ PATH_SCOPE = {
     # the run at /api/v1/dkim/rotation/run), and its staged key (.../next).
     'rotation': ['Domain'],
     'next': ['Domain'],
+    # A domain's S/MIME authority (/api/v1/domains/{domain}/smime-ca, its
+    # rotation and the certificates it issued): no COM interface is behind it
+    # and the desktop program shows none of it. Scoped to a name no interface
+    # has, since an empty scope matches a method of any interface by its name.
+    'smime-ca': ['SmimeAuthority'],
+    'issued': ['SmimeAuthority'],
     'app-passwords': ['AppPassword'],
     'groups': ['Group'],
     'folders': ['IMAPFolder'],
@@ -199,7 +205,9 @@ VERB_SEGMENTS = {'reload', 'check', 'clear', 'retry', 'release', 'hold', 'downlo
                  'drain',
                  # A migration paused and resumed, a job of it cancelled, and a
                  # sign-in link made for one.
-                 'pause', 'resume', 'cancel', 'signin'}
+                 'pause', 'resume', 'cancel', 'signin',
+                 # A domain's S/MIME authority given a new root.
+                 'rotate'}
 
 UNIT_SUFFIXES = ('seconds', 'minutes', 'hours', 'days', 'secs', 'mins', 'kb', 'mb', 'ms', 'sec', 'min')
 STOP_WORDS = {'of', 'number', 'no', 'the', 'a', 'an', 'is', 'in', 'to', 'use',

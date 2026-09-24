@@ -372,6 +372,17 @@ The MIME layer is the S/MIME module's. Parsing an entity, decoding a body,
 pulling the text, the HTML and the attachments out of one and building one are
 done once in this page, in `PortalSmime.js`, and the OpenPGP module calls them.
 
+S/MIME, the other end-to-end format the page speaks, keeps its keys in a store
+of its own beside this ring, the private key wrapped under the account password
+in the same way. A domain may also have its **own S/MIME authority**, which
+certifies the keys its accounts make in this page, so that colleagues sign and
+encrypt to each other without anybody buying a certificate: the key is made in
+the browser and never sent, the authority only signs the request, and a
+colleague's certificate is looked up by address when a message to them is to be
+encrypted. That is [SmimeAuthority.md](SmimeAuthority.md). OpenPGP has no
+counterpart here, because its trust rests on the fingerprints people check with
+each other, not on an authority the server runs.
+
 The key page
 ------------
 

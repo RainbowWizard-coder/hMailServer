@@ -144,6 +144,16 @@ namespace HM
          // its own, and an administrator is the actor when they upload one for
          // somebody. Only public keys are ever stored, so a row holds no secret.
          { L"hm_pgpkeys",                     L"OpenPGP key" },
+         // A domain's S/MIME authority and what it issued (Util/OrganisationCa.h):
+         // a root created or rotated, a certificate signed for an account's key
+         // and a certificate revoked - by an administrator, by the account itself
+         // or by the account's deletion - each under whoever did it. The root's
+         // private key column is caprivatekey, which SecretFragments withholds as
+         // "(changed)"; a certificate is public and is recorded as far as the
+         // detail's length allows. OrganisationCa names the rows, whose columns
+         // are ids and encodings, by the domain and by the address and serial.
+         { L"hm_smimeca",                     L"S/MIME authority" },
+         { L"hm_smimeissued",                 L"S/MIME certificate" },
          // A domain's or an account's own value of a setting that may be set
          // below the server (docs/SettingLevels.md): the same change a server
          // setting's is, made for one domain or one account, so it is recorded

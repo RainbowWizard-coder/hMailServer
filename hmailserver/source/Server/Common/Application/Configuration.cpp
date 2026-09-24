@@ -266,6 +266,12 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_LIST_SOFT_BOUNCES, 5);
       property_set_->EnsureLong(PROPERTY_LIST_BOUNCE_WINDOW_DAYS, 30);
 
+      // The organisation CA for S/MIME (Util/OrganisationCa.h): no base URL, so a
+      // certificate a domain's authority issues names no CRL and no root to fetch
+      // until an administrator says where the web services listener is reached.
+      // Nothing is issued at all until an administrator creates an authority.
+      property_set_->EnsureString(PROPERTY_SMIME_AUTHORITY_BASE_URL, _T(""));
+
       // Outbound shaping (SMTP/DestinationBackoff.h). The back-off on, at two
       // minutes doubling to an hour: a destination that says slow down is
       // obeyed on a stock installation, which is what a mail transfer agent is
@@ -2344,6 +2350,18 @@ namespace HM
    Configuration::SetListBaseUrl(const String &url)
    {
       GetSettings()->SetString(PROPERTY_LIST_BASE_URL, url);
+   }
+
+   String
+   Configuration::GetSmimeAuthorityBaseUrl() const
+   {
+      return GetSettings()->GetString(PROPERTY_SMIME_AUTHORITY_BASE_URL);
+   }
+
+   void
+   Configuration::SetSmimeAuthorityBaseUrl(const String &url)
+   {
+      GetSettings()->SetString(PROPERTY_SMIME_AUTHORITY_BASE_URL, url);
    }
 
    int

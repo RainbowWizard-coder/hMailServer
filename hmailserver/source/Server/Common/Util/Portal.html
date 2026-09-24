@@ -1675,6 +1675,18 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div id="smime-status" class="status" aria-live="polite"></div>
 <table class="list" id="smime-own-table" hidden><thead><tr><th>Address</th><th>Certificate</th><th>Expires</th><th></th></tr></thead><tbody id="smime-own-rows"></tbody></table>
 <div id="smime-own-empty" class="hint">No certificate of your own yet.</div>
+<h3>From your organisation</h3>
+<p id="smime-ca-none" class="note" hidden>Your domain has no S/MIME authority: a certificate has to come from elsewhere and be imported above.</p>
+<div id="smime-ca-body" hidden>
+<p class="note">The key is made in this browser and wrapped with your password before it is stored; only the request goes to the server. A P-256 key signs, and nothing can encrypt to it - this webmail has no elliptic-curve encryption, for you or for a colleague writing to you - so choose RSA unless you only sign.</p>
+<form id="smime-ca-form" class="row">
+<select id="smime-ca-key" aria-label="Key type" style="width:auto"><option value="rsa" selected>RSA 2048: signs and encrypts</option><option value="ec">P-256: signs only</option></select>
+<label class="inline"><input id="smime-ca-keep" type="checkbox"> Keep my other certificates for this address</label>
+<button id="smime-ca-get" class="btn sm" type="submit">Get a certificate</button>
+</form>
+<div id="smime-ca-status" class="status" aria-live="polite"></div>
+<table class="list" id="smime-ca-table" hidden><thead><tr><th>Address</th><th>Expires</th><th></th><th></th></tr></thead><tbody id="smime-ca-rows"></tbody></table>
+</div>
 <h3>Correspondents' certificates</h3>
 <p class="note">Kept from the signed messages they sent, so a message to them can be encrypted.</p>
 <table class="list" id="smime-recipient-table" hidden><thead><tr><th>Address</th><th>Certificate</th><th>Expires</th><th></th></tr></thead><tbody id="smime-recipient-rows"></tbody></table>

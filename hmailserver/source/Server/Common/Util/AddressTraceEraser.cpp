@@ -18,6 +18,7 @@
 #include "../AntiSpam/QuarantineStore.h"
 #include "ContactGroups.h"
 #include "ApiSends.h"
+#include "OrganisationCa.h"
 #include "../BO/Alias.h"
 #include "../BO/DistributionList.h"
 #include "../Cache/Cache.h"
@@ -151,6 +152,17 @@ namespace HM
       count = ContactGroups::ForgetAddress(lowered);
       if (count < 0)
          failedStores.push_back(_T("the contact groups"));
+      else
+         removedCount += count;
+
+      // The certificates a domain's S/MIME authority issued for the address
+      // (OrganisationCa.h): a valid one is revoked, and the address and the
+      // certificate itself - whose subject is the person's name - are taken
+      // off the row. The serial and the revocation stay, because the root's
+      // CRL must go on listing a certificate that is still out there.
+      count = OrganisationCa::EraseAddress(lowered);
+      if (count < 0)
+         failedStores.push_back(_T("the S/MIME authority's record of certificates"));
       else
          removedCount += count;
 

@@ -292,6 +292,13 @@ namespace HM
          RouteDkimRotationRetire,
          RouteDkimRotationCancel,
          RouteDkimRotationRun,
+         // A domain's S/MIME authority (RestApiSmimeAuthority.cpp): read, made,
+         // rotated, and one certificate it issued revoked. Scoped to the key's
+         // domains; the three that act are refused to a read-only key.
+         RouteSmimeCaGet,
+         RouteSmimeCaCreate,
+         RouteSmimeCaRotate,
+         RouteSmimeCaRevoke,
          // This server's own reputation (RestApiReputation.cpp): what the last
          // check of its outbound addresses found, and a check now. Both are the
          // server's rather than a domain's.
@@ -392,6 +399,9 @@ namespace HM
          RouteMeDirectoryOwnPut,
          RouteMeDirectoryOwnPhoto,
          RouteMeDirectoryPhoto,
+         // A colleague's certificates from the domain's S/MIME authority, by
+         // address (RestApiSmimeAuthority.cpp).
+         RouteMeDirectorySmime,
 
          // The account's address books and who they are shared with
          // (RestApiAddressBooks.cpp).
@@ -449,6 +459,13 @@ namespace HM
          RouteMeSmimeRecipientPut,
          RouteMeSmimeRecipientDelete,
          RouteMeSmimeChain,
+         // The domain's S/MIME authority for the account's own key
+         // (RestApiSmimeAuthority.cpp): a request signed, a certificate it
+         // issued to the account confirmed once its key is stored, and one
+         // revoked.
+         RouteMeSmimeEnroll,
+         RouteMeSmimeIssuedConfirm,
+         RouteMeSmimeIssuedRevoke,
 
          // The account's own OpenPGP public keys and its publishing switch
          // (RestApiOpenPgp.cpp). Self-service: the roles do not reach them.
@@ -1584,8 +1601,20 @@ namespace HM
       static HttpResponse HandleMeSmimeOwnDelete_(const Caller &caller, const AnsiString &fingerprint);
       static HttpResponse HandleMeSmimeRecipientPut_(const Caller &caller, const AnsiString &requestBody);
       static HttpResponse HandleMeSmimeRecipientDelete_(const Caller &caller, const AnsiString &fingerprint);
-      static HttpResponse HandleMeSmimeChain_(const AnsiString &requestBody);
+      static HttpResponse HandleMeSmimeChain_(const Caller &caller, const AnsiString &requestBody);
       static HttpResponse HandlePortalSmimeScript_();
+
+      // The organisation CA for S/MIME (RestApiSmimeAuthority.cpp, OrganisationCa.h):
+      // a domain's authority administered, the account's own enrolment,
+      // confirmation and revocation, a colleague's certificate by address, and
+      // the authority's part of GET /api/v1/me/smime.
+      static HttpResponse HandleDomainSmimeAuthority_(const Caller &caller, const Route &route, const AnsiString &requestBody);
+      static HttpResponse HandleMeSmimeEnroll_(const Caller &caller, const AnsiString &requestBody);
+      static HttpResponse HandleMeSmimeIssuedConfirm_(const Caller &caller, __int64 serial);
+      static HttpResponse HandleMeSmimeIssuedRevoke_(const Caller &caller, __int64 serial, const AnsiString &query);
+      static HttpResponse HandleMeDirectorySmime_(const Caller &caller, const String &address);
+      static AnsiString MeSmimeAuthorityJson_(std::shared_ptr<const Account> account);
+      static AnsiString OpenApiSmimeAuthorityPaths_();
 
       // The documentation (RestApiHelp.cpp, HelpPages.h): the list, one page,
       // and the webmail's markdown renderer. All three unauthenticated, as

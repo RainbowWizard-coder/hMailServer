@@ -717,6 +717,7 @@
     <Compile Include="API\CardDav.cs" />
     <Compile Include="API\DirectoryCom.cs" />
     <Compile Include="API\RestApiDirectory.cs" />
+    <Compile Include="API\RestApiSmimeAuthority.cs" />
     <Compile Include="API\RestApiContactGroups.cs" />
     <Compile Include="API\CalDav.cs" />
     <Compile Include="API\RestApiCalendar.cs" />

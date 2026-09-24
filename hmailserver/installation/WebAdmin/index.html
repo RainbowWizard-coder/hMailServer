@@ -1174,6 +1174,9 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="dkimrotretire")rotationAct("retire");
   else if(d.act==="dkimrotcancel")rotationAct("cancel");
   else if(d.act==="dkimrotcopy")rotationCopy(d.slot,d.i);
+  else if(d.act==="smimecacreate")smimeAuthorityAct("create");
+  else if(d.act==="smimecarotate")smimeAuthorityAct("rotate");
+  else if(d.act==="smimecarevoke")smimeAuthorityAct("revoke",d.serial,d.address);
   else if(d.act==="rangenew")openRange(0);
   else if(d.act==="rangeedit")openRange(Number(d.id));
   else if(d.act==="rangedel")deleteRange(Number(d.id),d.label);
@@ -2392,7 +2395,7 @@ async function createDomain(){
 async function openDomain(name){
   const existing=cache.domains.filter(d=>d.name===name)[0];
   if(!existing)return;
-  editing={kind:"domain",name:name,values:JSON.parse(JSON.stringify(existing)),aliases:[],aliasError:"",senders:[],senderError:"",traps:[],trapHits:[],trapError:"",rotation:null,rotationError:""};
+  editing={kind:"domain",name:name,values:JSON.parse(JSON.stringify(existing)),aliases:[],aliasError:"",senders:[],senderError:"",traps:[],trapHits:[],trapError:"",rotation:null,rotationError:"",smimeCa:null,smimeCaError:""};
   // The settings with levels are not in the listing: the domain itself answers
   // them. Its own try: a server from before them answers none, and the editor
   // opens all the same.
@@ -2412,6 +2415,10 @@ async function openDomain(name){
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.trapError=e.message;}
   try{await reloadRotation();}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.rotationError=e.message;}
+  // The domain's S/MIME authority: its own try, so that a server from before it
+  // answers nothing here and the editor opens all the same.
+  try{await reloadSmimeAuthority();}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.smimeCaError=e.message;}
   renderDomainEditor();
 }
 async function reloadDomainAliases(){
@@ -2487,6 +2494,9 @@ function renderDomainEditor(){
   // that were never real.
   cards.splice(digestAt>=0?digestAt+3:cards.length,0,`<div class="sect"><h2>${t("Spam traps")}</h2><div class="card flat" id="domainTraps">${domainTrapsHtml()}</div></div>`);
   cards.push(`<div class="sect"><h2>${t("DKIM key rotation")}</h2><div class="card flat" id="dkimRotation">${rotationHtml()}</div></div>`);
+  // The domain's own S/MIME authority after its DKIM key: both are the domain
+  // vouching for its mail, and both are made and rotated here.
+  cards.push(`<div class="sect"><h2>${t("S/MIME authority")}</h2><div class="card flat" id="smimeAuthority">${smimeAuthorityHtml()}</div></div>`);
   cards.push(`<div class="sect"><h2>${t("Setting levels")}</h2><div class="card flat" id="domainLevels">${levelsHtml("domain")}</div></div>`);
   $("#content").innerHTML=`<div class="view">
     <button class="btn ghost sm" data-act="cancel">${t("‹ All domains")}</button>
@@ -2706,6 +2716,87 @@ function rotationCopy(slot,i){
   const s=editing&&editing.rotation&&editing.rotation[slot];
   const r=s&&s.records&&s.records[Number(i)];
   if(r&&r.value)navigator.clipboard.writeText(r.value).then(()=>toast(t("Copied to clipboard")));
+}
+/* ---------- S/MIME authority ----------
+   The domain's own certificate authority as GET /api/v1/domains/{domain}/smime-ca
+   answers it (RestApiSmimeAuthority.cpp, docs/SmimeAuthority.md): the current
+   root with its facts, whether its private key opens on this machine, the roots
+   a rotation retired, and the certificates it issued with their status. The
+   page creates it, rotates it, hands out the root and revokes a certificate;
+   the server decides everything and a refusal is shown in its own words. The
+   root is public, so the download is its PEM as the answer carries it. */
+const SMIME_REASONS={keyCompromise:K("Key compromise"),superseded:K("Superseded"),cessationOfOperation:K("Cessation of operation")};
+const SMIME_STATUS={valid:["good",K("Valid")],revoked:["bad",K("Revoked")],expired:["warn",K("Expired")]};
+async function reloadSmimeAuthority(){
+  editing.smimeCa=await api("/api/v1/domains/"+encodeURIComponent(editing.name)+"/smime-ca");
+}
+function smimeKeyChoiceHtml(){
+  return '<select id="smimeca_key" aria-label="'+escHtml(t("Key type"))+'"><option value="p256">'+escHtml(t("P-256 (recommended)"))+'</option>'+
+    '<option value="rsa3072">'+escHtml(t("RSA 3072"))+'</option></select>';
+}
+function smimeAuthorityHtml(){
+  const s=editing.smimeCa;
+  if(!s)return noticeHtml("bad",editing.smimeCaError||t("The authority could not be read."));
+  const intro='<p class="note">'+escHtml(t("The domain's own certificate authority certifies the keys its accounts make in the webmail, so S/MIME works inside the organisation without buying a certificate; a person's private key never comes to the server. A client outside this webmail trusts it once the root is installed on it - by group policy, device management or by hand from the download here. It is managed here and over REST; the Control Panel shows none of it."))+'</p>';
+  const a=s.authority;
+  if(!a){
+    return intro+'<div class="note">'+escHtml(t("This domain has no S/MIME authority."))+'</div>'+
+      '<div class="row" style="margin-top:14px">'+smimeKeyChoiceHtml()+
+      '<button class="btn ghost sm" data-act="smimecacreate">'+escHtml(t("Create an S/MIME authority"))+'</button>'+
+      '<div class="err" id="err_smimeca">'+escHtml(editing.smimeCaError||"")+'</div></div>';
+  }
+  const keyWarning=a.key_opens===false?noticeHtml("warn",t("The root's private key does not open on this machine - the database or a backup came from another machine. Rotate the authority before it signs again.")):"";
+  const baseNote=!s.base_url?noticeHtml("info",t("No CRL distribution point is written into its certificates: set smime_authority_base_url on the Settings page to where the web services listener is reached.")):"";
+  const facts='<div><b>'+escHtml(a.subject)+'</b> <span class="muted">'+escHtml(a.key_type||"")+'</span></div>'+
+    '<div class="hint">'+escHtml(t("Fingerprint"))+' <code style="word-break:break-all">'+escHtml(a.fingerprint)+'</code></div>'+
+    '<div class="hint">'+escHtml(t("Expires"))+' '+escHtml(auditWhen(a.not_after))+'</div>';
+  const retired=(s.retired||[]).map(r=>'<div class="hint">'+escHtml(t("Retired key"))+' <code>'+escHtml(String(r.fingerprint||"").slice(0,16))+'</code> '+
+    escHtml(t(r.published?"Published":"Not published"))+'</div>').join("");
+  const rows=(s.issued||[]).map(c=>{
+    const st=SMIME_STATUS[c.status]||SMIME_STATUS.valid;
+    return '<tr><td>'+escHtml(c.serial)+'</td><td><code>'+escHtml(c.address)+'</code></td><td>'+escHtml(auditWhen(c.not_after))+'</td>'+
+      '<td><span class="pill" data-level="'+st[0]+'"><span class="mark" aria-hidden="true">'+ROTATION_MARKS[st[0]]+'</span>'+escHtml(t(st[1]))+'</span>'+
+      (c.reason?' <span class="muted">'+escHtml(SMIME_REASONS[c.reason]?t(SMIME_REASONS[c.reason]):c.reason)+'</span>':"")+'</td>'+
+      '<td>'+(c.status==="valid"?'<button class="btn ghost sm" data-act="smimecarevoke" data-serial="'+escHtml(c.serial)+'" data-address="'+escHtml(c.address)+'">'+escHtml(t("Revoke"))+'</button>':"")+'</td></tr>';
+  }).join("");
+  const table=rows?'<div class="row" style="margin-top:18px"><select id="smimeca_reason" aria-label="'+escHtml(t("Reason"))+'">'+
+      Object.keys(SMIME_REASONS).map(k=>'<option value="'+k+'">'+escHtml(t(SMIME_REASONS[k]))+'</option>').join("")+'</select></div>'+
+    '<div class="tablewrap"><table><thead><tr><th>'+escHtml(t("Serial"))+'</th><th>'+escHtml(t("Address"))+'</th><th>'+escHtml(t("Expires"))+'</th><th>'+escHtml(t("Status"))+'</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>':"";
+  return intro+keyWarning+baseNote+facts+retired+
+    '<div class="row" style="margin-top:14px">'+
+      '<a class="btn ghost sm" id="smimeca_download" download="'+escHtml(editing.name+"-smime-root.pem")+'" href="data:application/x-pem-file;charset=utf-8,'+escHtml(encodeURIComponent(a.pem||""))+'">'+escHtml(t("Download the root"))+'</a>'+
+      smimeKeyChoiceHtml()+
+      '<button class="btn ghost sm" data-act="smimecarotate">'+escHtml(t("Rotate the authority"))+'</button>'+
+      '<div class="err" id="err_smimeca">'+escHtml(editing.smimeCaError||"")+'</div></div>'+table;
+}
+function drawSmimeAuthority(){const box=$("#smimeAuthority");if(box)box.innerHTML=smimeAuthorityHtml();}
+async function smimeAuthorityAct(kind,serial,address){
+  setErr("err_smimeca","");
+  const name=editing.name;
+  const key=($("#smimeca_key")||{value:"p256"}).value==="rsa3072"?"rsa3072":"p256";
+  try{
+    if(kind==="create"){
+      editing.smimeCa=await api("/api/v1/domains/"+encodeURIComponent(name)+"/smime-ca",{method:"POST",body:JSON.stringify({key:key})});
+      toast(t("S/MIME authority created"));
+    }else if(kind==="rotate"){
+      if(!confirm(tf("Rotate the S/MIME authority of {0}? New certificates are signed by a new root, which every client must be given; the old root stays published until its last certificate expires.",name)))return;
+      editing.smimeCa=await api("/api/v1/domains/"+encodeURIComponent(name)+"/smime-ca/rotate",{method:"POST",body:JSON.stringify({key:key})});
+      toast(t("S/MIME authority rotated"));
+    }else if(kind==="revoke"){
+      const reason=($("#smimeca_reason")||{value:"keyCompromise"}).value;
+      if(!confirm(tf("Revoke certificate {0} of {1}?",serial,address)))return;
+      await api("/api/v1/domains/"+encodeURIComponent(name)+"/smime-ca/issued/"+encodeURIComponent(serial)+"?reason="+encodeURIComponent(reason),{method:"DELETE"});
+      await reloadSmimeAuthority();
+      toast(tf("Certificate {0} revoked",serial));
+    }
+    editing.smimeCaError="";
+    drawSmimeAuthority();
+  }catch(e){
+    if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}
+    try{await reloadSmimeAuthority();}catch(_){}
+    drawSmimeAuthority();
+    setErr("err_smimeca",e.message);
+  }
 }
 async function deleteDomain(name){
   if(!confirm(tf("Delete the domain {0} with every account, alias and list in it? Their messages go with them.",name)))return;

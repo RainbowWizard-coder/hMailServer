@@ -256,6 +256,10 @@ namespace HM
       { _T("hm_smimekeys"), _T("smimekey"),          AccountStores::RoleText },
       { _T("hm_smimekeys"), _T("smimenotafter"),     AccountStores::RoleNumber },
       { _T("hm_smimekeys"), _T("smimecreated"),      AccountStores::RoleNumber },
+      // Schema 6095: 1 when this server's own S/MIME authority issued the
+      // certificate (Util/OrganisationCa.h). An archive from before it has no
+      // attribute, which restores as 0 - a mark lost, not a certificate.
+      { _T("hm_smimekeys"), _T("smimeauthority"),    AccountStores::RoleNumber },
 
       { _T("hm_pgpkeys"), _T("pgpkid"),              AccountStores::RoleIdentity },
       { _T("hm_pgpkeys"), _T("pgpkaccountid"),       AccountStores::RoleAccount },
@@ -425,6 +429,10 @@ namespace HM
         _T("Rule::XMLStore writes it, under the account; its criteria and actions with it.") },
       { _T("hm_journalrules"),
         _T("JournalRule::XMLStore writes it, under the DOMAIN (Domain::XMLStore), because the row belongs to a domain and an account rule is only one shape of it. It is carried by the address it names rather than by the account id, which the restore reissues.") },
+      { _T("hm_smimeissued"),
+        _T("The certificates a domain's S/MIME authority issued (schema 6095). OrganisationCa::XMLStore writes them under the DOMAIN, beside the roots that signed them (Domain::XMLStore), because the row belongs to its root and the root to the domain: ")
+        _T("each is carried with the address of the account it was issued to, which the restore finds the account's new id by, and an account id of 0 - a deleted account's certificate, kept on the CRL - stays 0. ")
+        _T("The roots' private keys travel as the envelopes they are stored as, which open only on the machine that protected them, so an archive restored on another machine has an authority that must be rotated before it signs again.") },
       { _T("hm_rule_criterias"),
         _T("RuleCriteria::XMLStore writes it, under its rule.") },
       { _T("hm_rule_actions"),

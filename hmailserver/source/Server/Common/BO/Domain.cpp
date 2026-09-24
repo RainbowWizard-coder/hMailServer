@@ -18,6 +18,7 @@
 #include "SpamTraps.h"
 #include "JournalRule.h"
 #include "JournalRules.h"
+#include "../Util/OrganisationCa.h"
 
 #include "../../SMTP/SMTPVacationMessageCreator.h"
 #include "../Util/RestrictedDelivery.h"
@@ -301,6 +302,15 @@ namespace HM
       if (!journalRules->XMLStore(pNode, iBackupOptions))
          return false;
 
+      // The domain's S/MIME authority (hm_smimeca and hm_smimeissued, schema
+      // 6095): its roots with their key envelopes as stored, its serial counter,
+      // and every certificate they issued. A restore deletes the domain and the
+      // foreign keys take all of it, so the archive is where it comes back from;
+      // the envelopes open only on the machine that wrote them. See
+      // OrganisationCa::XMLStore.
+      if (!OrganisationCa::XMLStore(pNode, id_))
+         return false;
+
       // The domain's own values of the settings with levels (hm_settingoverrides,
       // scope domain): the levels its dedicated columns above do not hold. A
       // restore deletes the domain and its rows with it, so the archive is where
@@ -557,6 +567,12 @@ namespace HM
       if (!journalRules->Refresh())
          return false;
       if (!journalRules->XMLLoad(pNode, iRestoreOptions))
+         return false;
+
+      // After the accounts, because each certificate finds the account it was
+      // issued to by the address the archive carries. A part that cannot be put
+      // back is said in the error log and the restore carries on.
+      if (!OrganisationCa::XMLLoad(pNode, id_))
          return false;
 
       // Under the domain's new id. A row this build refuses is left out and

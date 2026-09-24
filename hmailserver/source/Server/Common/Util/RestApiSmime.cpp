@@ -21,7 +21,19 @@
 // a root this machine trusts: POST /api/v1/me/smime/chain hands the chain to
 // OpenSSL against the system's roots - the Windows ROOT and CA stores here,
 // the distribution's bundle on Linux - for the S/MIME signing or encryption
-// purpose, and answers what it said.
+// purpose, and answers what it said. The roots of the account's own domain's
+// S/MIME authority (OrganisationCa.h), current and retired, are trusted beside
+// them, so that a colleague's certificate verifies in this webmail whether or
+// not the machine's store knows the authority; the answer's authority field
+// says when the chain ended there.
+//
+// A stored certificate carries smimeauthority, 1 when the account's domain's
+// authority issued it. The server sets it at every PUT from its own list of
+// what it issued, by the SHA-256 of the certificate's own bytes - which must
+// also be the fingerprint the page gave, since the row is found by that - so a
+// page cannot claim it. GET answers, for each marked row, where the authority's
+// record says it stands now (authority_status), so that the page stops
+// encrypting to a colleague's revoked certificate and signing with its own.
 //
 // A signed or an encrypted message must reach the recipient with its body
 // bytes exactly as signed, so POST /api/v1/me/messages takes "mime": the MIME
@@ -46,7 +58,9 @@
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DALRecordset.h"
 #include "../Util/Parsing/StringParser.h"
+#include "OrganisationCa.h"
 
+#include <openssl/evp.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <openssl/x509_vfy.h>
@@ -54,6 +68,7 @@
 
 #include <cstring>
 #include <ctime>
+#include <map>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -108,7 +123,7 @@ namespace HM
       const int WrapIterationsMinimum = 600000;
       const int WrapIterationsMaximum = 10000000;
 
-      const char *Columns = "smimeid, smimeaccountid, smimekind, smimeaddress, smimename, smimefingerprint, smimecertificate, smimechain, smimekey, smimenotafter, smimecreated";
+      const char *Columns = "smimeid, smimeaccountid, smimekind, smimeaddress, smimename, smimefingerprint, smimecertificate, smimechain, smimekey, smimenotafter, smimecreated, smimeauthority";
 
       struct KeyRow
       {
@@ -122,6 +137,7 @@ namespace HM
          AnsiString key;
          __int64 notAfter;
          __int64 created;
+         bool authority;
       };
 
       __int64 Now()
@@ -207,6 +223,7 @@ namespace HM
          row.key = AnsiString(recordset->GetStringValue("smimekey"));
          row.notAfter = recordset->GetInt64Value("smimenotafter");
          row.created = recordset->GetInt64Value("smimecreated");
+         row.authority = recordset->GetLongValue("smimeauthority") == 1;
       }
 
       void ListRows(__int64 accountId, int kind, std::vector<KeyRow> &rows)
@@ -252,18 +269,23 @@ namespace HM
 
       // The JSON of one row. An own entry carries its chain and its wrapped
       // key, which the page stored as it made them; a recipient's carries
-      // the certificate alone.
-      AnsiString RowJson(const KeyRow &row)
+      // the certificate alone. A row the domain's authority issued carries
+      // authority_status - valid, revoked, expired or unknown - as the
+      // authority's record says now.
+      AnsiString RowJson(const KeyRow &row, const AnsiString &authorityStatus)
       {
          AnsiString json;
-         json.Format("{\"id\":%I64d,\"address\":\"%hs\",\"name\":\"%hs\",\"fingerprint\":\"%hs\",\"certificate\":\"%hs\",\"not_after\":%I64d,\"created\":%I64d",
+         json.Format("{\"id\":%I64d,\"address\":\"%hs\",\"name\":\"%hs\",\"fingerprint\":\"%hs\",\"certificate\":\"%hs\",\"not_after\":%I64d,\"created\":%I64d,\"authority\":%hs",
             row.id,
             Escape(Utf8(row.address)).c_str(),
             Escape(Utf8(row.name)).c_str(),
             row.fingerprint.c_str(),
             row.certificate.c_str(),
             row.notAfter,
-            row.created);
+            row.created,
+            row.authority ? "true" : "false");
+         if (row.authority)
+            json += ",\"authority_status\":\"" + Escape(authorityStatus.IsEmpty() ? AnsiString("unknown") : authorityStatus) + "\"";
          if (row.kind == OwnKind)
          {
             json += ",\"chain\":[";
@@ -374,6 +396,49 @@ namespace HM
          return true;
       }
 
+      // The SHA-256 of a certificate's bytes as 64 lowercase hex digits, or
+      // empty when the text is not base64.
+      AnsiString FingerprintOfBase64(const AnsiString &certificate)
+      {
+         AnsiString der = Base64::Decode(certificate.c_str(), certificate.GetLength());
+         if (der.IsEmpty())
+            return AnsiString();
+
+         unsigned char digest[EVP_MAX_MD_SIZE];
+         unsigned int length = 0;
+         if (EVP_Digest(der.c_str(), der.size(), digest, &length, EVP_sha256(), nullptr) != 1 || length == 0)
+         {
+            ERR_clear_error();
+            return AnsiString();
+         }
+
+         static const char digits[] = "0123456789abcdef";
+         AnsiString hex;
+         for (unsigned int i = 0; i < length; i++)
+         {
+            hex += digits[(digest[i] >> 4) & 0x0f];
+            hex += digits[digest[i] & 0x0f];
+         }
+         return hex;
+      }
+
+      // Where a marked row stands in the authority's record, for the answer
+      // to a PUT: one row, one lookup.
+      AnsiString AuthorityStatusOf(std::shared_ptr<const Account> account, const KeyRow &row)
+      {
+         if (!row.authority)
+            return AnsiString();
+
+         OrganisationCa::Issued issued;
+         if (!OrganisationCa::IssuedByFingerprint(account->GetDomainID(), row.fingerprint, issued))
+            return AnsiString("unknown");
+         if (issued.revoked > 0)
+            return AnsiString("revoked");
+         if (issued.notAfter <= Now())
+            return AnsiString("expired");
+         return AnsiString("valid");
+      }
+
       // Adds or replaces the row for (account, kind, fingerprint). Answers
       // 201 when it is new, 200 when it replaced one.
       Answer Upsert(std::shared_ptr<const Account> account, int kind, const String &address, const String &name, const AnsiString &fingerprint, const AnsiString &certificate, const AnsiString &chain, const AnsiString &key, __int64 notAfter)
@@ -413,6 +478,14 @@ namespace HM
          statement.AddColumn("smimechain", String(chain));
          statement.AddColumn("smimekey", String(key));
          statement.AddColumnInt64("smimenotafter", notAfter);
+         // The mark that the account's domain's authority issued it: decided
+         // here, from the certificate's own bytes and what the authority
+         // recorded. The fingerprint the page gave is what the row is found by,
+         // so the mark needs the two to agree - a real issued fingerprint put
+         // beside another certificate's bytes is not marked.
+         const AnsiString actual = FingerprintOfBase64(certificate);
+         const bool issuedHere = !actual.IsEmpty() && actual == fingerprint && OrganisationCa::IssuedHere(account->GetDomainID(), actual);
+         statement.AddColumn("smimeauthority", (long) (issuedHere ? 1 : 0));
 
          __int64 id = existing.id;
          if (present)
@@ -423,10 +496,18 @@ namespace HM
          else if (!Application::Instance()->GetDBManager()->Execute(statement, &id) || id == 0)
             return Answer(500, "{\"error\":\"the certificate could not be stored\"}");
 
+         // The account's own certificate from the authority, its key now in the
+         // store: that is the confirmation the enrolment waited for (the key's
+         // first use here), and the address's earlier certificates are
+         // superseded now unless the enrolment kept them. A store that was
+         // refused above never gets here, and they stay valid.
+         if (issuedHere && kind == OwnKind)
+            OrganisationCa::ConfirmStored(account, actual);
+
          KeyRow row;
          if (!FindRow(account->GetID(), kind, fingerprint, row))
             return Answer(500, "{\"error\":\"the certificate could not be read back\"}");
-         return Answer(present ? 200 : 201, RowJson(row));
+         return Answer(present ? 200 : 201, RowJson(row, AuthorityStatusOf(account, row)));
       }
 
       Answer Remove(std::shared_ptr<const Account> account, int kind, const AnsiString &fingerprint)
@@ -490,6 +571,9 @@ namespace HM
          AnsiString subject;
          AnsiString issuer;
          __int64 notAfter;
+         // The chain ended at a root of the reader's own domain's S/MIME
+         // authority rather than at one the machine's store holds.
+         bool authority;
       };
 
       AnsiString NameText(X509 *certificate, bool subject)
@@ -501,10 +585,11 @@ namespace HM
       }
 
       // The leaf first, its chain after; the verdict OpenSSL gives for the
-      // S/MIME purpose against the system's roots.
-      ChainVerdict VerifyChain(const std::vector<std::string> &ders, bool forEncryption)
+      // S/MIME purpose against the system's roots and the anchors given - the
+      // roots of the reader's own domain's S/MIME authority.
+      ChainVerdict VerifyChain(const std::vector<std::string> &ders, bool forEncryption, const std::vector<std::string> &anchors)
       {
-         ChainVerdict verdict = { false, "", 0, 0, "", "", 0 };
+         ChainVerdict verdict = { false, "", 0, 0, "", "", 0, false };
          X509 *leaf = nullptr;
          STACK_OF(X509) *untrusted = sk_X509_new_null();
          for (size_t i = 0; i < ders.size(); i++)
@@ -549,6 +634,22 @@ namespace HM
 
          X509_STORE *store = X509_STORE_new();
          verdict.roots = LoadSystemRoots(store);
+
+         // The authority's roots, trusted beside the machine's. Kept until the
+         // verdict is in, so that the root the chain ended at can be compared
+         // with them.
+         std::vector<X509 *> authorityRoots;
+         for (size_t i = 0; i < anchors.size(); i++)
+         {
+            const unsigned char *data = (const unsigned char *) anchors[i].data();
+            X509 *root = d2i_X509(nullptr, &data, (long) anchors[i].size());
+            if (!root)
+               continue;
+            X509_STORE_add_cert(store, root);
+            authorityRoots.push_back(root);
+         }
+         ERR_clear_error();
+
          X509_STORE_CTX *context = X509_STORE_CTX_new();
          if (X509_STORE_CTX_init(context, store, leaf, untrusted) == 1)
          {
@@ -558,6 +659,13 @@ namespace HM
                verdict.trusted = true;
                STACK_OF(X509) *chain = X509_STORE_CTX_get0_chain(context);
                verdict.depth = chain ? sk_X509_num(chain) : 1;
+
+               X509 *top = chain && sk_X509_num(chain) > 0 ? sk_X509_value(chain, sk_X509_num(chain) - 1) : nullptr;
+               for (size_t i = 0; top && i < authorityRoots.size(); i++)
+               {
+                  if (X509_cmp(top, authorityRoots[i]) == 0)
+                     verdict.authority = true;
+               }
             }
             else
             {
@@ -570,6 +678,8 @@ namespace HM
 
          X509_STORE_CTX_free(context);
          X509_STORE_free(store);
+         for (size_t i = 0; i < authorityRoots.size(); i++)
+            X509_free(authorityRoots[i]);
          sk_X509_pop_free(untrusted, X509_free);
          X509_free(leaf);
          ERR_clear_error();
@@ -586,6 +696,12 @@ namespace HM
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
+      // Where every marked row stands in the authority's record, in one query:
+      // a certificate revoked or expired since it was stored is answered so,
+      // and the page neither encrypts to it nor signs with it.
+      std::map<AnsiString, AnsiString> statuses;
+      OrganisationCa::StoredStatuses(account->GetID(), account->GetDomainID(), statuses);
+
       AnsiString json = "{\"own\":[";
       std::vector<KeyRow> own;
       ListRows(account->GetID(), OwnKind, own);
@@ -593,7 +709,7 @@ namespace HM
       {
          if (i > 0)
             json += ",";
-         json += RowJson(own[i]);
+         json += RowJson(own[i], statuses[own[i].fingerprint]);
       }
       json += "],\"recipients\":[";
       std::vector<KeyRow> recipients;
@@ -602,9 +718,12 @@ namespace HM
       {
          if (i > 0)
             json += ",";
-         json += RowJson(recipients[i]);
+         json += RowJson(recipients[i], statuses[recipients[i].fingerprint]);
       }
-      json += "],\"limits\":{\"own\":" + Int64Text(OwnPerAccount) + ",\"recipients\":" + Int64Text(RecipientsPerAccount) + "}}";
+      json += "],\"limits\":{\"own\":" + Int64Text(OwnPerAccount) + ",\"recipients\":" + Int64Text(RecipientsPerAccount) + "}";
+      // The domain's S/MIME authority as the account meets it: whether there is
+      // one, its root, and the certificates it issued to this account.
+      json += ",\"authority\":" + MeSmimeAuthorityJson_(account) + "}";
       return BuildResponse_(200, json);
    }
 
@@ -693,7 +812,7 @@ namespace HM
 
    // POST /api/v1/me/smime/chain: {"certificates":[leaf, ...chain], "purpose":"sign"|"encrypt"}.
    HttpResponse
-   RestApiServer::HandleMeSmimeChain_(const AnsiString &requestBody)
+   RestApiServer::HandleMeSmimeChain_(const Caller &caller, const AnsiString &requestBody)
    {
       JsonValue document;
       std::string parseError;
@@ -721,16 +840,46 @@ namespace HM
       const JsonValue *purpose = document.Get("purpose");
       bool forEncryption = purpose && purpose->IsString() && purpose->AsString() == "encrypt";
 
-      ChainVerdict verdict = VerifyChain(ders, forEncryption);
+      // The reader's own domain's authority is trusted here whether or not the
+      // machine's store knows it: its current root, and a root a rotation
+      // retired while a certificate it signed is unexpired, so that such a
+      // certificate still verifies.
+      std::vector<std::string> anchors;
+      if (caller.account)
+         OrganisationCa::TrustAnchors(caller.account->GetDomainID(), anchors);
+
+      ChainVerdict verdict = VerifyChain(ders, forEncryption, anchors);
+
+      // And a chain that ends at the authority is only as good as the
+      // authority's own record of its leaf: revoked is revoked from the
+      // moment it is, with no CRL to fetch, and a leaf the record does not
+      // have was never issued by it - which is what a certificate made with a
+      // root's key that left this server would be.
+      if (verdict.trusted && verdict.authority && caller.account)
+      {
+         OrganisationCa::Issued issued;
+         const AnsiString leafFingerprint = FingerprintOfBase64(AnsiString(list->At(0)->AsString().c_str()));
+         if (!OrganisationCa::IssuedByFingerprint(caller.account->GetDomainID(), leafFingerprint, issued))
+         {
+            verdict.trusted = false;
+            verdict.error = "not issued by this authority";
+         }
+         else if (issued.revoked > 0)
+         {
+            verdict.trusted = false;
+            verdict.error = "revoked (" + Utf8(issued.reason) + ")";
+         }
+      }
       AnsiString json;
-      json.Format("{\"trusted\":%hs,\"error\":\"%hs\",\"depth\":%d,\"roots\":%d,\"subject\":\"%hs\",\"issuer\":\"%hs\",\"not_after\":%I64d}",
+      json.Format("{\"trusted\":%hs,\"error\":\"%hs\",\"depth\":%d,\"roots\":%d,\"subject\":\"%hs\",\"issuer\":\"%hs\",\"not_after\":%I64d,\"authority\":%hs}",
          verdict.trusted ? "true" : "false",
          JsonEscape_(verdict.error).c_str(),
          verdict.depth,
          verdict.roots,
          JsonEscape_(verdict.subject).c_str(),
          JsonEscape_(verdict.issuer).c_str(),
-         verdict.notAfter);
+         verdict.notAfter,
+         verdict.authority ? "true" : "false");
       return BuildResponse_(200, json);
    }
 

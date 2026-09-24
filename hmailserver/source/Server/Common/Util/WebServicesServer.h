@@ -27,6 +27,13 @@
 //     This server implements no CalDAV, so with no target configured that
 //     path answers 404 - never a redirect to somewhere that does not speak
 //     the protocol.
+//   - A domain's S/MIME authority (OrganisationCa.h): /smime-ca/<domain>.pem
+//     (the current root), /smime-ca/<domain>.crl (its CRL), and
+//     /smime-ca/<fingerprint>.pem, .cer and .crl for any root still
+//     published, named by the SHA-256 of its DER - the paths an issued
+//     certificate names under SmimeAuthorityBaseUrl, which a restore and a
+//     domain's rename leave as they are. Public, over plain HTTP as RFC 5280
+//     recommends for a distribution point; nothing here is secret.
 //   - ACME http-01 challenges (/.well-known/acme-challenge/<token>),
 //     served from AcmeChallengeStore so certificate issuance works
 //     while this server owns port 80.
@@ -154,6 +161,11 @@ namespace HM
       // RequestArrivedOverHttps_ gave for this request.
       static HttpResponse HandleAutodiscover_(const HttpRequest &request, bool over_https);
       static HttpResponse HandleSecurityTxt_(const AnsiString &host);
+
+      // A domain's S/MIME authority's public half (OrganisationCa.h): its root
+      // as PEM or DER and its CRL, for clients and for the distribution point
+      // an issued certificate names. rest is what followed /smime-ca/.
+      static HttpResponse HandleSmimeAuthority_(const AnsiString &rest);
 
       // The OpenPGP Web Key Directory. path is what followed
       // /.well-known/openpgpkey/ - either "policy", "hu/<hash>", or a

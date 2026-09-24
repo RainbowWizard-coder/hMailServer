@@ -176,6 +176,7 @@ namespace hMailServer.ControlPanel.Services
          "SettingsApply.md",
          "SharedAddressBooks.md",
          "Signatures.md",
+         "SmimeAuthority.md",
          "ThirdPartyBinaries.md",
          "WarmStandby.md",
          "ZeroAccess.md",

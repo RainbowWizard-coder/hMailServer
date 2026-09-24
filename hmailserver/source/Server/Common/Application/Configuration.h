@@ -560,6 +560,11 @@ namespace HM
       // counted within. The getters clamp to 1..100, 1..100 and 1..365.
       String GetListBaseUrl() const;
       void SetListBaseUrl(const String &url);
+      // The organisation CA for S/MIME (Common/Util/OrganisationCa.h): where
+      // the web services listener is reached from the clients, under which an
+      // issued certificate names its CRL and its root. Empty for none.
+      String GetSmimeAuthorityBaseUrl() const;
+      void SetSmimeAuthorityBaseUrl(const String &url);
       int GetListHardBouncesToUnsubscribe();
       void SetListHardBouncesToUnsubscribe(int count);
       int GetListSoftBouncesToUnsubscribe();

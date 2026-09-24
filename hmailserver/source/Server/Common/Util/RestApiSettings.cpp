@@ -46,6 +46,7 @@
 #include "StdAfx.h"
 #include "RestApiServer.h"
 #include "ListManager.h"
+#include "OrganisationCa.h"
 #include "../Application/EffectiveSetting.h"
 #include "HttpsClient.h"
 #include "CountryBlocking.h"
@@ -1068,6 +1069,19 @@ namespace
         "The days a managed list's soft bounces are counted within: a soft bounce more than this many days after the first of the current count starts a new count. 30 by default; between 1 and 365.",
         ROW_NUMBER(Config()->GetListBounceWindowDays()), ROW_SET(Config()->SetListBounceWindowDays((int) v.number)),
         [] (const Value &v) { return (v.number < 1 || v.number > 365) ? String(_T("list_bounce_window_days must be between 1 and 365.")) : String(); } },
+
+      // The organisation CA for S/MIME (Util/OrganisationCa.h, docs/SmimeAuthority.md).
+      { "smime_authority_base_url", KindString, ReadWrite, EffectNow, nullptr,
+        "Where the clients reach the web services listener (WebServicesHttpPort), such as http://pki.example.com: every certificate a domain's S/MIME authority issues from now on names its CRL (/smime-ca/{domain}/{root}.crl) and its root (/smime-ca/{domain}/{root}.cer) under it, which is how Outlook and Thunderbird find out that a certificate was revoked. Absolute, beginning with http:// (RFC 5280 recommends plain HTTP for a distribution point) or https://, in printable ASCII with no space, comma, quote, query or fragment, at most 200 characters. Empty, the default, writes neither into a certificate: a client that insists on checking revocation then cannot, and the webmail's own check is unaffected. A certificate already issued keeps what it was issued with.",
+        ROW_TEXT(Config()->GetSmimeAuthorityBaseUrl()),
+        [] (const Value &v) { String url = v.text; url.Trim(); Config()->SetSmimeAuthorityBaseUrl(url); return Applied(); },
+        [] (const Value &v) -> String
+        {
+           String reason;
+           if (!OrganisationCa::IsUsableBaseUrl(v.text, reason))
+              return reason;
+           return String();
+        } },
 
       // The organisation's directory (Util/DirectoryStore.h).
       { "directory_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,

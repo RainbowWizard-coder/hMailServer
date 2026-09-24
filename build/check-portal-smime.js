@@ -15,7 +15,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 
 const modulePath = process.argv[2] || path.join(__dirname, '..', 'hmailserver', 'source', 'Server', 'Common', 'Util', 'PortalSmime.js');
 const smime = require(path.resolve(modulePath));
@@ -40,6 +40,13 @@ function text(bytes) { return Buffer.from(bytes).toString('utf8'); }
 const PASSWORD = 'fixture-pass';
 // body.txt is written with LF endings; what OpenSSL signed and encrypted is its canonical CRLF form.
 const BODY_CONTENT = 'A signed message from the fixtures.\r\nSecond line, with caf\u00e9.\r\n';
+
+// Everything OpenSSL said, standard output and standard error together, and
+// whatever its exit status.
+function verdictOf(args) {
+  const run = spawnSync('openssl', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+  return (run.stdout ? run.stdout.toString('utf8') : '') + (run.stderr ? run.stderr.toString('utf8') : '') + (run.error ? String(run.error) : '');
+}
 
 function openssl(args, input) {
   try {
@@ -168,6 +175,64 @@ function openssl(args, input) {
   check(r.ok && r2.ok && /Signed and encrypted/.test(fs.readFileSync(path.join(tmp, 'page-both-content.txt'), 'binary')), 'signed then encrypted on the page: OpenSSL decrypts, then verifies' + (r2.ok ? '' : ': ' + r2.out.trim()));
   const bothBack = await smime.readMessage(smime.latin1Bytes(bothText), own);
   check(bothBack.layers.join('>') === 'encrypted>signed' && bothBack.signed.valid && bothBack.encrypted.ok, 'and the module reads it back: ' + bothBack.layers.join(' > '));
+
+  console.log('== a request for the domain\'s S/MIME authority');
+  // What the webmail sends POST /api/v1/me/smime/enroll: a PKCS#10 request for a
+  // key made on the page. OpenSSL verifies the request's self-signature, reads
+  // its subject and its subjectAltName, and signs it as the fixture CA; the key
+  // the page kept then matches the certificate, signs what OpenSSL verifies and,
+  // for RSA, opens what OpenSSL encrypted to it.
+  const caTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hm-smime-ca-'));
+  for (const keyType of ['rsa', 'ec']) {
+    const made = await smime.makeRequest({ keyType: keyType, address: 'Carol@Example.Test', name: 'Carol Example' });
+    check(made.keyType === keyType && made.pkcs8.length > 0 && made.request.length > 0, keyType + ': a key pair and a request were made');
+    const der = path.join(caTmp, 'request-' + keyType + '.der');
+    const pem = path.join(caTmp, 'request-' + keyType + '.pem');
+    fs.writeFileSync(der, Buffer.from(made.request));
+    r = openssl(['req', '-inform', 'DER', '-in', der, '-outform', 'PEM', '-out', pem]);
+    check(r.ok, keyType + ': OpenSSL reads the request as DER' + (r.ok ? '' : ': ' + r.out.trim()));
+    // OpenSSL 3 says the verdict on its standard error and may exit 0 either
+    // way, so the words are what is read.
+    let said = verdictOf(['req', '-in', pem, '-verify', '-noout']);
+    check(/verify OK/i.test(said) && !/fail|does not match/i.test(said), keyType + ': openssl req -verify accepts the request\'s self-signature: ' + said.trim());
+    r = openssl(['req', '-in', pem, '-noout', '-text']);
+    check(r.ok && /CN\s*=\s*Carol Example/.test(r.out) && /emailAddress\s*=\s*carol@example\.test/.test(r.out) && /email:carol@example\.test/.test(r.out),
+      keyType + ': the subject names the person and the lower-cased address, and the requested subjectAltName carries it');
+    check(r.ok && (keyType === 'rsa' ? /Public-Key: \(2048 bit\)/.test(r.out) : /NIST CURVE: P-256|prime256v1/.test(r.out)),
+      keyType + ': ' + (keyType === 'rsa' ? 'an RSA-2048 key' : 'a P-256 key'));
+    // A request with a byte of its signed part changed does not verify: the
+    // check above proves something.
+    const broken = Buffer.from(made.request);
+    const cn = broken.indexOf(Buffer.from('Carol'));
+    broken[cn] = 'K'.charCodeAt(0);
+    const brokenDer = path.join(caTmp, 'broken-' + keyType + '.der');
+    fs.writeFileSync(brokenDer, broken);
+    said = verdictOf(['req', '-inform', 'DER', '-in', brokenDer, '-verify', '-noout']);
+    check(!/verify OK/i.test(said) && /fail|does not match|error/i.test(said), keyType + ': a request changed after it was signed is refused by OpenSSL (negative control): ' + said.trim().split(/\r?\n/).pop());
+    const certificatePem = path.join(caTmp, 'issued-' + keyType + '.pem');
+    r = openssl(['x509', '-req', '-in', pem, '-CA', path.join(fixtures, 'ca.pem'), '-CAkey', path.join(fixtures, 'ca-key.pem'), '-days', '2', '-copy_extensions', 'copy', '-set_serial', '4242', '-out', certificatePem]);
+    check(r.ok, keyType + ': OpenSSL signs it as a CA would' + (r.ok ? '' : ': ' + r.out.trim()));
+    if (!r.ok) { continue; }
+    const issued = (await smime.importAny(new Uint8Array(fs.readFileSync(certificatePem)), '')).certificates[0];
+    const kept = await smime.importPrivateKey(made.pkcs8);
+    check(issued && issued.emails.indexOf('carol@example.test') >= 0 && smime.keyMatchesCertificate(kept, issued), keyType + ': the key the page kept matches the certificate issued for its request');
+    const wrappedKey = await smime.wrapPrivateKey(made.pkcs8, 'account-password');
+    check(Buffer.compare(Buffer.from(await smime.unwrapPrivateKey(wrappedKey, 'account-password')), Buffer.from(made.pkcs8)) === 0, keyType + ': it wraps and unwraps as an imported key does');
+    const carolSigned = await smime.composeMessage({ headers: { from: 'carol@example.test', to: 'bob@example.test', subject: 'Enrolled' }, text: 'Signed with an enrolled key.\r\n', sign: { key: kept, certificate: issued, chain: [ca] } });
+    fs.writeFileSync(path.join(caTmp, 'carol-' + keyType + '.eml'), carolSigned, 'binary');
+    r = openssl(['cms', '-verify', '-in', path.join(caTmp, 'carol-' + keyType + '.eml'), '-CAfile', path.join(fixtures, 'ca.pem'), '-out', path.join(caTmp, 'carol-' + keyType + '.txt')]);
+    check(r.ok, keyType + ': openssl cms -verify accepts a message signed with the enrolled key' + (r.ok ? '' : ': ' + r.out.trim()));
+    if (keyType === 'rsa') {
+      const toCarol = await smime.composeMessage({ headers: { from: 'bob@example.test', to: 'carol@example.test', subject: 'For Carol' }, text: 'For Carol only.\r\n', encrypt: [issued] });
+      fs.writeFileSync(path.join(caTmp, 'to-carol.eml'), toCarol, 'binary');
+      const opened = await smime.readMessage(smime.latin1Bytes(toCarol), [{ key: kept, certificate: issued }]);
+      check(opened.encrypted && opened.encrypted.ok && opened.content.text === 'For Carol only.\r\n', 'rsa: a message encrypted to the enrolled certificate opens with the key the page kept');
+    }
+  }
+  let refusedAddress = '';
+  try { await smime.makeRequest({ keyType: 'rsa', address: 'not an address', name: 'x' }); } catch (e) { refusedAddress = e.message; }
+  check(/address/.test(refusedAddress), 'a request for something that is not an ASCII address is refused on the page: ' + refusedAddress);
+  fs.rmSync(caTmp, { recursive: true, force: true });
 
   console.log('== MIME details');
   const qp = smime.qpEncode(smime.utf8('café = ok \r\nline two'));
