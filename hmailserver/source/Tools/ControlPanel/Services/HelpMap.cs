@@ -65,6 +65,7 @@ namespace hMailServer.ControlPanel.Services
             ["suppressions"] = new HelpTarget("BounceSuppression.md", "Looking at the list, and changing it"),
             ["journaling"] = new HelpTarget("Journaling.md", "Where it is edited"),
             ["audit"] = new HelpTarget("AlertsAndAuditTrail.md", "The audit trail"),
+            ["discovery"] = new HelpTarget("Discovery.md", "Where it is used"),
             ["logs"] = new HelpTarget("DiagnosingStalledMail.md", "Turn on debug logging first"),
             ["diagnostics"] = new HelpTarget("DiagnosingStalledMail.md", "What to include in a report"),
             ["mxquery"] = new HelpTarget("DiagnosingStalledMail.md", "Delivering: the message is accepted but never leaves"),

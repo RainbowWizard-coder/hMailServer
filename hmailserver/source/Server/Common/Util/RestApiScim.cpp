@@ -57,6 +57,7 @@
 #include "PasswordHistory.h"
 #include "PasswordBreachCheck.h"
 #include "SignInStore.h"
+#include "DiscoveryHolds.h"
 #include "../AntiSpam/SpamTrapMonitor.h"
 #include "../Application/RoleManager.h"
 #include "../BO/Account.h"
@@ -2184,7 +2185,8 @@ namespace
             const bool taken = moveError.Find(_T("already exists")) >= 0;
             const bool conflict = taken || !MailboxMove::InUseReason(account).IsEmpty() ||
                                   moveError.Find(_T("maximum number of accounts")) >= 0 ||
-                                  moveError.Find(_T("maximum size for the domain")) >= 0;
+                                  moveError.Find(_T("maximum size for the domain")) >= 0 ||
+                                  moveError.Find(_T("legal hold")) >= 0;
 
             return ScimRefuse(refusal, conflict ? 409 : 400, taken ? "uniqueness" : (conflict ? "" : "invalidValue"), moveError);
          }
@@ -2504,7 +2506,14 @@ namespace
          bool undone = true;
          for (const std::shared_ptr<Alias> &undo : made)
             undone = PersistentAlias::DeleteObject(undo) && undone;
-         undone = PersistentAccount::DeleteObject(user.account) && undone;
+
+         {
+            // This request's own account, made a moment ago: a hold on its
+            // domain does not keep an account nothing was ever in
+            // (DiscoveryHolds::UndoingCreation).
+            DiscoveryHolds::UndoingCreation undoing;
+            undone = PersistentAccount::DeleteObject(user.account) && undone;
+         }
 
          if (!undone)
          {
@@ -2676,6 +2685,34 @@ namespace
       // distribution list (ScimRemoveFromLists). What could not be removed
       // after the account was is named in the answer and in HM7224, since the
       // account itself is gone and a retry finds nothing to remove.
+      //
+      // Not while a legal hold covers the account (docs/Discovery.md): the
+      // account and its mail stay, and the identity provider hears 409 until
+      // the hold is released. But the person it removed has left, and a held
+      // mailbox is not one its former owner should go on reading or changing
+      // while the case lasts: the account is suspended, as a SCIM active=false
+      // suspends it, and every session and connection of it is ended, before
+      // the answer.
+      if (DiscoveryHolds::IsAccountHeld(user.account->GetID()))
+      {
+         String suspended = _T(" The account has been suspended and its sessions ended instead.");
+
+         if (user.account->GetActive())
+         {
+            user.account->SetActive(false);
+
+            String saveError;
+            if (!PersistentAccount::SaveObject(user.account, saveError, true, PersistenceModeNormal))
+               suspended = _T(" The account could not be suspended") + (saveError.IsEmpty() ? String() : String(_T(": ")) + saveError) + _T("; its sessions were ended.");
+         }
+
+         ScimEndSessions(user.account->GetID());
+
+         LOG_APPLICATION(_T("REST API: SCIM ") + scim.identity + _T(" asked to remove ") + address + _T(", which is under a legal hold, so it was kept.") + suspended);
+
+         return ScimError(409, "", DiscoveryHolds::DeleteAccountRefusal(address) + suspended);
+      }
+
       ScimEndSessions(user.account->GetID());
 
       if (!PersistentAccount::DeleteObject(user.account))

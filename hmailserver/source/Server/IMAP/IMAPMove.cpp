@@ -10,6 +10,7 @@
 #include "../Common/BO/Account.h"
 #include "../Common/BO/IMAPFolder.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Util/RecoverableStore.h"
 #include "IMAPSimpleCommandParser.h"
 #include "../Common/BO/ACLPermission.h"
 #include "../Common/Tracking/ChangeNotification.h"
@@ -105,6 +106,13 @@ namespace HM
 
       pConnection->SetDelayedChangeNotification(pNotification);
 
+      // A move that leaves the account - into a public folder, or into another
+      // account's folder - is a delete as far as the source mailbox is
+      // concerned: the copy belongs to someone else now, who may expunge it.
+      std::shared_ptr<IMAPFolder> pSourceFolder = pConnection->GetCurrentFolder();
+      if (pFolder->IsPublicFolder() || !pSourceFolder || pFolder->GetAccountID() != pSourceFolder->GetAccountID())
+         left_the_account_ = true;
+
       // Remember the message so that it can be expunged from the source folder.
       moved_message_uids_.push_back(pOldMessage->GetUID());
 
@@ -133,7 +141,24 @@ namespace HM
       };
 
       auto messages = MessagesContainer::Instance()->GetMessages(pCurFolder->GetAccountID(), pCurFolder->GetID());
-      std::vector<__int64> deleted_message_ids = messages->DeleteMessages(filter);
+
+      std::vector<__int64> deleted_message_ids;
+      if (left_the_account_)
+      {
+         // At least one message left the account: the originals are deleted
+         // as any delete is, so a legal hold on the account keeps a copy of
+         // each (RecoverableStore::Keep), and one whose copy cannot be made
+         // stays where it is.
+         deleted_message_ids = messages->DeleteMessages(filter);
+      }
+      else
+      {
+         // The originals of a move within the account, copied already: the
+         // message is still in the mailbox, so a legal hold keeps nothing of
+         // them (RecoverableStore::MoveScope).
+         RecoverableStore::MoveScope moving;
+         deleted_message_ids = messages->DeleteMessages(filter);
+      }
 
       // RFC 6851: the untagged EXPUNGE responses for the source folder - numbered by this
       // session's view, or as one VANISHED under QRESYNC (RFC 6851 3.3).

@@ -1884,6 +1884,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
     <value>Nelze určit, zda je nastaven plán: hMailServer.ini nebyl na tomto počítači nalezen. Zkontrolujte ScheduledBackupTime a ScheduledBackupIntervalMinutes přímo na serveru.</value>
   </data>
+  <data name="Case" xml:space="preserve">
+    <value>Případ</value>
+  </data>
   <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
     <value>Stropy pro jediné IMAP SEARCH nebo SORT, měřené od začátku hledání, aby jeden klient prohledávající velmi velkou poštovní schránku nemohl obsadit připojení donekonečna. Pokud uživatelé s velkými poštovními schránkami hlásí, že hledání selhává nebo nic nevrací, jsou to právě tyto dvě hodnoty, které je třeba zvýšit. Kteroukoli polovinu lze vypnout samostatně nastavením na 0.</value>
   </data>
@@ -2153,6 +2156,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Zavřít seznam příjemců</value>
+  </data>
+  <data name="Closed" xml:space="preserve">
+    <value>Uzavřený</value>
   </data>
   <data name="Closes a listener" xml:space="preserve">
     <value>Zavře naslouchací službu</value>
@@ -3149,6 +3155,12 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>Zjišťuje a vynucuje politiky MTA-STS příjemců před doručením přes TLS (RFC 8461). Chcete-li publikovat politiku pro vlastní domény, viz stránka Webové služby a autokonfigurace.</value>
   </data>
+  <data name="Discovery" xml:space="preserve">
+    <value>eDiscovery</value>
+  </data>
+  <data name="Discovery cases" xml:space="preserve">
+    <value>Případy eDiscovery</value>
+  </data>
   <data name="Disk space" xml:space="preserve">
     <value>Místo na disku</value>
   </data>
@@ -3271,6 +3283,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Stáhnout a ověřit instalační program, jakmile se najde vydání</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>Staženo</value>
   </data>
   <data name="Draining" xml:space="preserve">
     <value>Vyprazdňování</value>
@@ -3689,11 +3704,17 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Vypršení odsud nelze přečíst: soubory certifikátů jsou na serveru a tento Control Panel je k němu připojen vzdáleně. Vše ostatní na této stránce přichází přes COM a je přesné.</value>
   </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
   <data name="Export everythin_g..." xml:space="preserve">
     <value>_Exportovat vše...</value>
   </data>
   <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
     <value>Exportováno zpráv: {0} a vše ostatní, co server uchovává, do {1}.</value>
+  </data>
+  <data name="Exports" xml:space="preserve">
+    <value>Exporty</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>Zveřejňovat čítače zpráv per doména na /metrics</value>
@@ -4087,6 +4108,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Míra zásahů a využitá paměť, per cache</value>
+  </data>
+  <data name="Hold" xml:space="preserve">
+    <value>Blokace</value>
   </data>
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>Držet odmítnuté spojení otevřené před zahozením (sekundy, 0 = zahodit ihned)</value>
@@ -4686,6 +4710,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Live counters and charts for processed mail, spam, viruses and sessions." xml:space="preserve">
     <value>Živé čítače a grafy pro zpracovanou poštu, spam, viry a relace.</value>
+  </data>
+  <data name="Live holds" xml:space="preserve">
+    <value>Aktivní blokace</value>
   </data>
   <data name="Live logs" xml:space="preserve">
     <value>Živé logy</value>
@@ -5466,6 +5493,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Nejsou definováni žádní blokovaní odesílatelé, takže se nic neshoduje. Seznam nemá přepínač zapnuto/vypnuto – prázdný seznam je vypnutý stav.</value>
   </data>
+  <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
+    <value>Žádný případ nebyl otevřen. Případy se otevírají v Control Deck.</value>
+  </data>
   <data name="No certificate assigned" xml:space="preserve">
     <value>Není přiřazen žádný certifikát</value>
   </data>
@@ -6006,6 +6036,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Používá se pouze společně s uživatelským jménem výše</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>Otevřený</value>
+  </data>
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Otevřít API a monitorování, kde se spravuje port a nastavení TLS REST listeneru</value>
   </data>
@@ -6125,6 +6158,12 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="OpenTelemetry service name" xml:space="preserve">
     <value>Název služby OpenTelemetry</value>
+  </data>
+  <data name="Opened" xml:space="preserve">
+    <value>Otevřeno</value>
+  </data>
+  <data name="Opened by" xml:space="preserve">
+    <value>Otevřel(a)</value>
   </data>
   <data name="Opened {0}" xml:space="preserve">
     <value>Otevřeno {0}</value>
@@ -6766,6 +6805,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>Číst zprávy</value>
+  </data>
+  <data name="Read the cases again" xml:space="preserve">
+    <value>Znovu načíst případy</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Pouze pro čtení. Platnost vyprší {0}.</value>
@@ -7824,6 +7866,9 @@ Pokračovat?</value>
   <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
     <value>SearchBase (nebo UserDnTemplate pro přímý bind bez hledání)</value>
   </data>
+  <data name="Searches" xml:space="preserve">
+    <value>Hledání</value>
+  </data>
   <data name="Searching " xml:space="preserve">
     <value>Hledá se</value>
   </data>
@@ -8322,6 +8367,9 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Podepisovat _také aliasy</value>
+  </data>
+  <data name="Sign in to a server first." xml:space="preserve">
+    <value>Nejprve se přihlaste k serveru.</value>
   </data>
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Přihlaste se přihlašovacími údaji správce hMailServeru.</value>
@@ -8898,6 +8946,27 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>Nastavení OAuth2 nelze přečíst: {0}</value>
   </data>
+  <data name="The REST API answered {0}." xml:space="preserve">
+    <value>REST API odpovědělo {0}.</value>
+  </data>
+  <data name="The REST API answered {0}: {1}" xml:space="preserve">
+    <value>REST API odpovědělo {0}: {1}</value>
+  </data>
+  <data name="The REST API at {0} could not be reached: {1}" xml:space="preserve">
+    <value>REST API na adrese {0} není dostupné: {1}</value>
+  </data>
+  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server." xml:space="preserve">
+    <value>REST API neběží: prostý HTTP obsluhuje jen na 127.0.0.1 nebo ::1 a naslouchání na {0} vyžaduje RestApiCertificateFile a RestApiPrivateKeyFile, nebo certifikát ACME vydaný tomuto serveru.</value>
+  </data>
+  <data name="The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck." xml:space="preserve">
+    <value>REST API je vypnuté (RestApiPort je {0}) a tato stránka přes něj čte případy. Zapněte ho v Nastavení, nebo si případy přečtěte v Control Deck.</value>
+  </data>
+  <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Read the cases in the Control Deck on the server." xml:space="preserve">
+    <value>REST API naslouchá jen na {0}, kam se Control Panel na jiném počítači nedostane. Případy si přečtěte v Control Deck na serveru.</value>
+  </data>
+  <data name="The REST API refused the credential this Control Panel signed in with." xml:space="preserve">
+    <value>REST API odmítlo přihlašovací údaje, se kterými se tento Control Panel přihlásil.</value>
+  </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
     <value>REST API, metriky pro Prometheus a koncové body stavu, které čte vnější monitorovací systém.</value>
   </data>
@@ -8934,6 +9003,9 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Adresy a porty, na kterých každý protokol naslouchá, a zabezpečení připojení použité na každém z nich.</value>
   </data>
+  <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
+    <value>Správce má druhý faktor a REST API žádá jednorázový kód u každého požadavku s heslem, který tato stránka neposílá. Případy si přečtěte v Control Deck.</value>
+  </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Heslo správce a dvoufaktorové ověření najdete na stránce Přístup pro správu.</value>
   </data>
@@ -8961,6 +9033,9 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Přílohy se nahradí a zpráva se doručí. Na tuto akci se nevztahuje ani jedno z nastavení oznámení — upozornění „message deleted“ server odesílá pouze tehdy, když je akcí smazání zprávy.</value>
   </data>
+  <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
+    <value>Řádky auditního záznamu vyžadují také view_audit, které tyto přihlašovací údaje nemají.</value>
+  </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>Hodnota authserv-id: první token každé hlavičky Authentication-Results, kterou tento server zapíše, vždy malými písmeny, a název, který navazující filtr kontroluje, než verdiktům uvěří. Tentýž název rozhoduje, které příchozí hlavičky Authentication-Results se považují za podvržené: hlavička, která si nárokuje tuto identitu, se odstraní, zatímco hlavička uvádějící jakoukoli jinou identitu zůstane zcela nedotčena.</value>
   </data>
@@ -8987,6 +9062,9 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>Vestavěné kontroly připojení a konfigurace a poslední kontrola konzistence úložiště zpráv.</value>
+  </data>
+  <data name="The case's lines on the audit trail" xml:space="preserve">
+    <value>Řádky případu v auditním záznamu</value>
   </data>
   <data name="The certificate &quot;{0}&quot; expired {1}{2} ago{3}" xml:space="preserve">
     <value>Platnost certifikátu „{0}“ vypršela před {1}{2}{3}</value>
@@ -9106,6 +9184,9 @@ Označte klíč výše a zkopírujte ho ručně - znovu už se nezobrazí.</valu
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Seznam domén neobsahuje žádný název domény. Nechte pole prázdné, aby klíč působil na každou doménu - seznam samých oddělovačů by potichu znamenal totéž, což není to, oč jste žádali.</value>
+  </data>
+  <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
+    <value>Případy eDiscovery, jen pro čtení: hledání, blokace a exporty každého případu a každý řádek, který k němu auditní záznam obsahuje. Případ se otevírá, prohledává, blokuje a exportuje v Control Deck.</value>
   </data>
   <data name="The effective timeout moves between these values with server load." xml:space="preserve">
     <value>Účinný timeout se mezi těmito hodnotami pohybuje podle zátěže serveru.</value>
@@ -12074,6 +12155,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} hesel aplikací.</value>
+  </data>
+  <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
+    <value>Případů: {0}. Vyberte jeden a zobrazí se jeho řádky v auditním záznamu.</value>
   </data>
   <data name="{0} change(s) carried out, none failed." xml:space="preserve">
     <value>Provedeno {0} změn, žádná neselhala.</value>

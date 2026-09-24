@@ -112,6 +112,22 @@ namespace HM
       // hm_roles stores, and the position is the bit.
       Provision,
 
+      // eDiscovery (docs/Discovery.md, Util/RestApiDiscovery.cpp). Two, not
+      // one, because an auditor reads everything and changes nothing:
+      // ViewDiscovery reads the cases, their searches and hits, their holds and
+      // their exports - the auditor holds it, and the export download asks
+      // ViewMailbox beside it, since it hands over the mail itself, the
+      // custodians' deleted items included, and ViewArchive as well for a
+      // search that read the archive - and ManageDiscovery opens and closes a
+      // case, runs a search, places and releases a hold and makes an export,
+      // which the auditor does not hold. The server administrator holds both,
+      // as it holds everything; the auditor holds ViewDiscovery alone, no other
+      // built-in role holds either, and a custom role may be given them.
+      // Appended, not inserted: the token is what hm_roles stores, and the
+      // position is the bit.
+      ViewDiscovery,
+      ManageDiscovery,
+
       Count
    };
 
@@ -128,7 +144,7 @@ namespace HM
       // administrative authority at all.
       String name;
 
-      // A bit per RolePermission. RolePermission::Count is 24, so a 64-bit
+      // A bit per RolePermission. RolePermission::Count is 26, so a 64-bit
       // word is the whole set with room to spare; a static assertion in the
       // .cpp holds that true.
       unsigned __int64 permissions;

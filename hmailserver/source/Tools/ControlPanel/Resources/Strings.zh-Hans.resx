@@ -1884,6 +1884,9 @@
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
     <value>无法判断是否配置了计划：在本机上未找到 hMailServer.ini。请在服务器本机上检查 ScheduledBackupTime 和 ScheduledBackupIntervalMinutes。</value>
   </data>
+  <data name="Case" xml:space="preserve">
+    <value>案件</value>
+  </data>
   <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
     <value>单次 IMAP SEARCH 或 SORT 的上限，从搜索开始时计算，以免一个客户端搜索超大邮箱时无限期占用一个连接。如果拥有大邮箱的用户报告搜索失败或没有返回结果，就应该调高这两个值。任何一半都可以单独设为 0 以关闭。</value>
   </data>
@@ -2153,6 +2156,9 @@
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>关闭收件人列表</value>
+  </data>
+  <data name="Closed" xml:space="preserve">
+    <value>已结案</value>
   </data>
   <data name="Closes a listener" xml:space="preserve">
     <value>关闭一个侦听器</value>
@@ -3149,6 +3155,12 @@
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>在通过 TLS 投递之前发现并强制执行收件方的 MTA-STS 策略（RFC 8461）。要为您自己的域发布策略，请参阅“Web 服务和自动配置”页。</value>
   </data>
+  <data name="Discovery" xml:space="preserve">
+    <value>电子取证</value>
+  </data>
+  <data name="Discovery cases" xml:space="preserve">
+    <value>电子取证案件</value>
+  </data>
   <data name="Disk space" xml:space="preserve">
     <value>磁盘空间</value>
   </data>
@@ -3271,6 +3283,9 @@
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>发现发行版后立即下载并验证安装程序</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>已下载</value>
   </data>
   <data name="Draining" xml:space="preserve">
     <value>正在排空</value>
@@ -3689,11 +3704,17 @@
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>无法从此处读取到期时间：证书文件在服务器上，而此控制面板是远程连接到服务器的。本页的其他所有内容都通过 COM 获取，是准确的。</value>
   </data>
+  <data name="Export" xml:space="preserve">
+    <value>导出</value>
+  </data>
   <data name="Export everythin_g..." xml:space="preserve">
     <value>导出全部(_G)...</value>
   </data>
   <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
     <value>已将 {0} 封邮件及服务器保存的其他所有内容导出到 {1}。</value>
+  </data>
+  <data name="Exports" xml:space="preserve">
+    <value>导出记录</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>在 /metrics 上公开按域的邮件计数器</value>
@@ -4087,6 +4108,9 @@
   </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>每个缓存的命中率和占用内存</value>
+  </data>
+  <data name="Hold" xml:space="preserve">
+    <value>保留</value>
   </data>
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>在丢弃被拒绝的连接之前保持其打开（秒，0 = 立即丢弃）</value>
@@ -4686,6 +4710,9 @@
   </data>
   <data name="Live counters and charts for processed mail, spam, viruses and sessions." xml:space="preserve">
     <value>已处理邮件、垃圾邮件、病毒和会话的实时计数器与图表。</value>
+  </data>
+  <data name="Live holds" xml:space="preserve">
+    <value>生效中的保留</value>
   </data>
   <data name="Live logs" xml:space="preserve">
     <value>实时日志</value>
@@ -5466,6 +5493,9 @@
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>未定义任何被拦截的发件人，因此不会匹配任何内容。该列表没有开关 - 空列表就是关闭状态。</value>
   </data>
+  <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
+    <value>尚未新建任何案件。案件在 Control Deck 中新建。</value>
+  </data>
   <data name="No certificate assigned" xml:space="preserve">
     <value>未分配证书</value>
   </data>
@@ -6006,6 +6036,9 @@
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>只与上面的用户名一起使用</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>进行中</value>
+  </data>
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>打开“API 与监控”，它拥有 REST 监听器的端口和 TLS 设置</value>
   </data>
@@ -6125,6 +6158,12 @@
   </data>
   <data name="OpenTelemetry service name" xml:space="preserve">
     <value>OpenTelemetry 服务名称</value>
+  </data>
+  <data name="Opened" xml:space="preserve">
+    <value>新建时间</value>
+  </data>
+  <data name="Opened by" xml:space="preserve">
+    <value>新建人</value>
   </data>
   <data name="Opened {0}" xml:space="preserve">
     <value>已打开 {0}</value>
@@ -6766,6 +6805,9 @@
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>读取邮件</value>
+  </data>
+  <data name="Read the cases again" xml:space="preserve">
+    <value>重新读取案件</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>只读。{0} 过期。</value>
@@ -7824,6 +7866,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
     <value>SearchBase (或 UserDnTemplate，以便不经搜索直接绑定)</value>
   </data>
+  <data name="Searches" xml:space="preserve">
+    <value>搜索记录</value>
+  </data>
   <data name="Searching " xml:space="preserve">
     <value>正在搜索</value>
   </data>
@@ -8322,6 +8367,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>也为别名签名(_T)</value>
+  </data>
+  <data name="Sign in to a server first." xml:space="preserve">
+    <value>请先登录到服务器。</value>
   </data>
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>使用 hMailServer 管理员凭据登录。</value>
@@ -8898,6 +8946,27 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>无法读取 OAuth2 设置: {0}</value>
   </data>
+  <data name="The REST API answered {0}." xml:space="preserve">
+    <value>REST API 返回了 {0}。</value>
+  </data>
+  <data name="The REST API answered {0}: {1}" xml:space="preserve">
+    <value>REST API 返回了 {0}：{1}</value>
+  </data>
+  <data name="The REST API at {0} could not be reached: {1}" xml:space="preserve">
+    <value>无法连接到 {0} 上的 REST API：{1}</value>
+  </data>
+  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server." xml:space="preserve">
+    <value>REST API 未运行：它只在 127.0.0.1 或 ::1 上提供未加密的 HTTP，在 {0} 上监听需要 RestApiCertificateFile 和 RestApiPrivateKeyFile，或为本服务器签发的 ACME 证书。</value>
+  </data>
+  <data name="The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck." xml:space="preserve">
+    <value>REST API 已关闭（RestApiPort 为 {0}），而此页面通过它读取案件。请在“设置”中开启，或在 Control Deck 中查看案件。</value>
+  </data>
+  <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Read the cases in the Control Deck on the server." xml:space="preserve">
+    <value>REST API 仅在 {0} 上监听，其他计算机上的控制面板无法访问。请在服务器上的 Control Deck 中查看案件。</value>
+  </data>
+  <data name="The REST API refused the credential this Control Panel signed in with." xml:space="preserve">
+    <value>REST API 拒绝了此控制面板登录时使用的凭据。</value>
+  </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
     <value>外部监控系统读取的 REST API、Prometheus 指标和健康端点。</value>
   </data>
@@ -8934,6 +9003,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>每种协议监听的地址和端口，以及各自使用的连接安全性。</value>
   </data>
+  <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
+    <value>管理员启用了第二重验证，REST API 在每个使用密码的请求中都要求一次性代码，而此页面不会发送。请在 Control Deck 中查看案件。</value>
+  </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>管理员密码和双因素身份验证在“管理访问”页。</value>
   </data>
@@ -8961,6 +9033,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>附件被替换，邮件被投递。两个通知设置都不适用于此操作 — 服务器只在操作是删除邮件时才发送“邮件已删除”通知。</value>
   </data>
+  <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
+    <value>审计记录行还需要 view_audit 权限，而此凭据没有该权限。</value>
+  </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>authserv-id: 本服务器写入的每个 Authentication-Results 标头的第一个令牌，始终为小写，也是下游过滤器在信任判定之前要核对的名称。同一个名称还决定哪些到达的 Authentication-Results 标头被视为伪造: 声称此身份的会被移除，而指明任何其他身份的则完全不动。</value>
   </data>
@@ -8987,6 +9062,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>内置的连通性和配置检查，以及最近一次邮件存储一致性扫描。</value>
+  </data>
+  <data name="The case's lines on the audit trail" xml:space="preserve">
+    <value>此案件在审计记录中的行</value>
   </data>
   <data name="The certificate &quot;{0}&quot; expired {1}{2} ago{3}" xml:space="preserve">
     <value>证书 "{0}" 已于 {1}{2} 前到期{3}</value>
@@ -9106,6 +9184,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>域列表中没有任何域名。请将此框留空以让密钥作用于所有域 - 只有分隔符的列表会悄悄地表示同样的意思，而那并不是您想要的。</value>
+  </data>
+  <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
+    <value>电子取证案件（只读）：每个案件的搜索、保留和导出，以及审计记录中关于它的每一行。案件的新建、搜索、保留和导出都在 Control Deck 中进行。</value>
   </data>
   <data name="The effective timeout moves between these values with server load." xml:space="preserve">
     <value>实际超时会随服务器负载在这些值之间变化。</value>
@@ -12074,6 +12155,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} 个应用密码。</value>
+  </data>
+  <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
+    <value>{0} 个案件。选择一个即可查看其在审计记录中的行。</value>
   </data>
   <data name="{0} change(s) carried out, none failed." xml:space="preserve">
     <value>已执行 {0} 项更改，没有失败。</value>

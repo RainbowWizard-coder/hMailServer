@@ -71,7 +71,9 @@ namespace HM
          "manage_server",
          "manage_roles",
          "send_through_api",
-         "provision"
+         "provision",
+         "view_discovery",
+         "manage_discovery"
       };
 
       static_assert(sizeof(PermissionTokens) / sizeof(PermissionTokens[0]) == static_cast<size_t>(RolePermission::Count),
@@ -156,6 +158,7 @@ namespace HM
          set |= Bit(RolePermission::ViewLogs);
          set |= Bit(RolePermission::ViewMessageTrace);
          set |= Bit(RolePermission::ViewAudit);
+         set |= Bit(RolePermission::ViewDiscovery);
          return set;
       }
 

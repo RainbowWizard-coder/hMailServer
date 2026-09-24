@@ -37,6 +37,7 @@
 #include "../Common/Util/Unicode.h"
 #include "../Common/Util/RestrictedDelivery.h"
 #include "../Common/Util/ImpersonationCheck.h"
+#include "../Common/Util/DiscoveryHolds.h"
 #include "../Common/Application/EffectiveSetting.h"
 #include "../Common/Persistence/PersistentSettingOverride.h"
 
@@ -374,6 +375,11 @@ STDMETHODIMP InterfaceDomain::Delete()
       if (!authentication_->GetIsServerAdmin())
          return authentication_->GetAccessDenied();
    
+      // A legal hold on the domain or an account in it forbids it, and the
+      // caller is told why (docs/Discovery.md).
+      if (HM::DiscoveryHolds::IsDomainOrAnyAccountHeld(object_->GetID()))
+         return COMError::GenerateError(HM::DiscoveryHolds::DeleteDomainRefusal(object_->GetName()));
+
       if (!parent_collection_)
          return HM::PersistentDomain::DeleteObject(object_) ? S_OK : S_FALSE;
    

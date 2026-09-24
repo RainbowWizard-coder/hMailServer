@@ -344,6 +344,24 @@ namespace HM
          RouteArchiveGet,
          RouteArchiveHold,
          RouteArchiveRelease,
+         // eDiscovery (RestApiDiscovery.cpp, docs/Discovery.md): the cases, a
+         // case, closing one, a search run for it and its hits, a hold placed
+         // and released, an export made and downloaded. The case's id is the
+         // route's record_id and a search's, hold's or export's its
+         // message_id. No path names a domain, so a credential confined to
+         // named domains is confined by the handlers: it names no custodian
+         // outside them, and a case that reaches outside them is the same 404
+         // as one that is not there.
+         RouteDiscoveryCaseList,
+         RouteDiscoveryCaseCreate,
+         RouteDiscoveryCaseGet,
+         RouteDiscoveryCaseClose,
+         RouteDiscoverySearchCreate,
+         RouteDiscoverySearchGet,
+         RouteDiscoveryHoldCreate,
+         RouteDiscoveryHoldRelease,
+         RouteDiscoveryExportCreate,
+         RouteDiscoveryExportGet,
          // The account's own endpoints: answered to the account's credentials
          // and to nothing else.
          RouteMe,
@@ -1291,6 +1309,14 @@ namespace HM
       // domainadmin and no Domains line promote somebody to server
       // administrator.
       static bool HoldsServerAuthority_(const Caller &caller);
+
+      // True when the request's role holds view_archive. eDiscovery asks it of
+      // a search that reads the archive (RestApiDiscovery.cpp): its hits and
+      // its export hand over archived copies, which a role without
+      // view_archive reads nowhere else. Asked here, beside the choke point,
+      // because RoleManager::Allows is named in this file and no other of the
+      // REST API's (build/check-role-choke-point.py).
+      static bool CallerMayReadArchive_(const Caller &caller);
 
       // The domain a route acts inside, or nothing when it acts on the server.
       // One reading of the path for both decisions made about it.
@@ -2370,6 +2396,15 @@ namespace HM
       HttpResponse HandleArchiveSearch_(const std::vector<String> &domains, const AnsiString &query);
       HttpResponse HandleArchiveGet_(const std::vector<String> &domains, __int64 archiveId);
       HttpResponse HandleArchiveHold_(const std::vector<String> &domains, __int64 archiveId, bool hold);
+
+      // eDiscovery (RestApiDiscovery.cpp, docs/Discovery.md): the parser for
+      // everything under /api/v1/discovery/cases, the one entry point for its
+      // ten routes, the export's download - shaped on ArchiveDownload_ - and
+      // the OpenAPI block.
+      static void ParseDiscoveryRoute_(const AnsiString &method, const AnsiString &path, Route &route);
+      HttpResponse HandleDiscovery_(const Caller &caller, const Route &route, const AnsiString &requestBody);
+      HttpResponse DiscoveryDownload_(const Caller &caller, const Route &route);
+      static AnsiString OpenApiDiscoveryPaths_();
       static bool GetJsonBoolValue_(const AnsiString &json, const AnsiString &key, bool defaultValue);
       static std::vector<AnsiString> GetJsonStringArray_(const AnsiString &json, const AnsiString &key);
       static bool IsSafeLogName_(const AnsiString &name);

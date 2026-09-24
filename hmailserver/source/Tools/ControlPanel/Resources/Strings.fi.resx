@@ -1884,6 +1884,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
     <value>Ei voida sanoa, onko aikataulu määritetty: hMailServer.ini-tiedostoa ei löytynyt tältä koneelta. Tarkista ScheduledBackupTime ja ScheduledBackupIntervalMinutes itse palvelimella.</value>
   </data>
+  <data name="Case" xml:space="preserve">
+    <value>Tapaus</value>
+  </data>
   <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
     <value>Katot yhdelle IMAP SEARCH- tai SORT-haulle, mitattuna haun alusta, jotta yksi hyvin suurta postilaatikkoa hakeva asiakas ei voi varata yhteyttä loputtomiin. Jos suurten postilaatikoiden käyttäjät raportoivat hakujen epäonnistuvan tai palauttavan tyhjää, nämä kaksi ovat ne, joita nostetaan. Kumman tahansa puoliskon voi poistaa käytöstä erikseen asettamalla sen arvoon 0.</value>
   </data>
@@ -2153,6 +2156,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Sulje vastaanottajaluettelo</value>
+  </data>
+  <data name="Closed" xml:space="preserve">
+    <value>Suljettu</value>
   </data>
   <data name="Closes a listener" xml:space="preserve">
     <value>Sulkee kuuntelijan</value>
@@ -3149,6 +3155,12 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>Selvittää ja pakottaa vastaanottajien MTA-STS-käytännöt ennen toimitusta TLS:n yli (RFC 8461). Julkaistaksesi käytännön omille verkkotunnuksillesi katso Verkkopalvelut ja automaattinen määritys -sivu.</value>
   </data>
+  <data name="Discovery" xml:space="preserve">
+    <value>eDiscovery</value>
+  </data>
+  <data name="Discovery cases" xml:space="preserve">
+    <value>eDiscovery-tapaukset</value>
+  </data>
   <data name="Disk space" xml:space="preserve">
     <value>Levytila</value>
   </data>
@@ -3271,6 +3283,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Lataa ja varmenna asennusohjelma heti kun julkaisu löytyy</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>Ladattu</value>
   </data>
   <data name="Draining" xml:space="preserve">
     <value>Tyhjennetään</value>
@@ -3689,11 +3704,17 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Vanhenemista ei voi lukea täältä: varmennetiedostot ovat palvelimella ja tämä Control Panel on yhteydessä siihen etänä. Kaikki muu tällä sivulla tulee COM-rajapinnan kautta ja pitää paikkansa.</value>
   </data>
+  <data name="Export" xml:space="preserve">
+    <value>Vienti</value>
+  </data>
   <data name="Export everythin_g..." xml:space="preserve">
     <value>_Vie kaikki...</value>
   </data>
   <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
     <value>Viety {0} viestiä ja kaikki muu palvelimen säilyttämä kohteeseen {1}.</value>
+  </data>
+  <data name="Exports" xml:space="preserve">
+    <value>Viennit</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>Paljasta verkkotunnuskohtaiset viestilaskurit /metrics-päätepisteessä</value>
@@ -4087,6 +4108,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Osumaprosentti ja käytössä oleva muisti välimuistia kohden</value>
+  </data>
+  <data name="Hold" xml:space="preserve">
+    <value>Säilytys</value>
   </data>
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>Pidä hylätty yhteys auki ennen sen pudottamista (sekuntia, 0 = pudota heti)</value>
@@ -4686,6 +4710,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Live counters and charts for processed mail, spam, viruses and sessions." xml:space="preserve">
     <value>Reaaliaikaiset laskurit ja kaaviot käsitellystä postista, roskapostista, viruksista ja istunnoista.</value>
+  </data>
+  <data name="Live holds" xml:space="preserve">
+    <value>Voimassa olevat säilytykset</value>
   </data>
   <data name="Live logs" xml:space="preserve">
     <value>Reaaliaikaiset lokit</value>
@@ -5466,6 +5493,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Estettyjä lähettäjiä ei ole määritetty, joten mikään ei täsmää. Listalla ei ole päälle/pois-kytkintä - tyhjä lista on pois-tila.</value>
   </data>
+  <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
+    <value>Yhtään tapausta ei ole avattu. Tapaukset avataan Control Deckissä.</value>
+  </data>
   <data name="No certificate assigned" xml:space="preserve">
     <value>Varmennetta ei ole määritetty</value>
   </data>
@@ -6006,6 +6036,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Käytetään vain yhdessä yllä olevan käyttäjänimen kanssa</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>Avoin</value>
+  </data>
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Avaa API ja valvonta, joka omistaa REST-kuuntelijan portin ja TLS-asetukset</value>
   </data>
@@ -6125,6 +6158,12 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="OpenTelemetry service name" xml:space="preserve">
     <value>OpenTelemetry-palvelun nimi</value>
+  </data>
+  <data name="Opened" xml:space="preserve">
+    <value>Avattu</value>
+  </data>
+  <data name="Opened by" xml:space="preserve">
+    <value>Avaaja</value>
   </data>
   <data name="Opened {0}" xml:space="preserve">
     <value>Avattu {0}</value>
@@ -6766,6 +6805,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>Lue viestejä</value>
+  </data>
+  <data name="Read the cases again" xml:space="preserve">
+    <value>Lue tapaukset uudelleen</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Vain luku. Vanhenee {0}.</value>
@@ -7824,6 +7866,9 @@ Jatketaanko?</value>
   <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
     <value>SearchBase (tai UserDnTemplate, jos halutaan sitoa suoraan hakematta)</value>
   </data>
+  <data name="Searches" xml:space="preserve">
+    <value>Haut</value>
+  </data>
   <data name="Searching " xml:space="preserve">
     <value>Haetaan</value>
   </data>
@@ -8322,6 +8367,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Allekirjoita _myös aliakset</value>
+  </data>
+  <data name="Sign in to a server first." xml:space="preserve">
+    <value>Kirjaudu ensin palvelimeen.</value>
   </data>
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Kirjaudu sisään hMailServerin järjestelmänvalvojan tunnistetiedoilla.</value>
@@ -8898,6 +8946,27 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>OAuth2-asetuksia ei voitu lukea: {0}</value>
   </data>
+  <data name="The REST API answered {0}." xml:space="preserve">
+    <value>REST-rajapinta vastasi {0}.</value>
+  </data>
+  <data name="The REST API answered {0}: {1}" xml:space="preserve">
+    <value>REST-rajapinta vastasi {0}: {1}</value>
+  </data>
+  <data name="The REST API at {0} could not be reached: {1}" xml:space="preserve">
+    <value>REST-rajapintaan osoitteessa {0} ei saatu yhteyttä: {1}</value>
+  </data>
+  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server." xml:space="preserve">
+    <value>REST-rajapinta ei ole käynnissä: se tarjoaa salaamatonta HTTP:tä vain osoitteissa 127.0.0.1 ja ::1, ja kuuntelu osoitteessa {0} vaatii asetukset RestApiCertificateFile ja RestApiPrivateKeyFile tai tälle palvelimelle myönnetyn ACME-varmenteen.</value>
+  </data>
+  <data name="The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck." xml:space="preserve">
+    <value>REST-rajapinta on pois käytöstä (RestApiPort on {0}), ja tämä sivu lukee tapaukset sen kautta. Ota se käyttöön kohdassa Asetukset tai lue tapaukset Control Deckissä.</value>
+  </data>
+  <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Read the cases in the Control Deck on the server." xml:space="preserve">
+    <value>REST-rajapinta kuuntelee vain osoitteessa {0}, jota toisella koneella oleva Control Panel ei tavoita. Lue tapaukset palvelimen Control Deckissä.</value>
+  </data>
+  <data name="The REST API refused the credential this Control Panel signed in with." xml:space="preserve">
+    <value>REST-rajapinta hylkäsi tunnukset, joilla tämä Control Panel kirjautui.</value>
+  </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
     <value>REST-rajapinta, Prometheus-mittarit ja kuntopäätepisteet, joita ulkoinen valvontajärjestelmä lukee.</value>
   </data>
@@ -8934,6 +9003,9 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Osoitteet ja portit, joita kukin protokolla kuuntelee, ja kussakin käytettävä yhteyden suojaus.</value>
   </data>
+  <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
+    <value>Järjestelmänvalvojalla on toinen tunnistustekijä, ja REST-rajapinta pyytää kertakäyttökoodia jokaisessa salasanalla tehdyssä pyynnössä, mitä tämä sivu ei lähetä. Lue tapaukset Control Deckissä.</value>
+  </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Järjestelmänvalvojan salasana ja kaksivaiheinen todennus ovat Hallinnollinen pääsy -sivulla.</value>
   </data>
@@ -8961,6 +9033,9 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Liitteet korvataan ja viesti toimitetaan. Kumpikaan ilmoitusasetus ei koske tätä toimintoa — palvelin lähettää "viesti poistettu" -ilmoituksen vain, kun toiminto on viestin poistaminen.</value>
   </data>
+  <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
+    <value>Tarkastuslokin rivit vaativat myös oikeuden view_audit, jota näillä tunnuksilla ei ole.</value>
+  </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>authserv-id: jokaisen tämän palvelimen kirjoittaman Authentication-Results-otsakkeen ensimmäinen token, aina pienaakkosin, ja nimi, jonka jälkeenpäin oleva suodatin tarkistaa ennen kuin luottaa tuomioihin. Sama nimi ratkaisee, mitkä saapuvat Authentication-Results-otsakkeet käsitellään väärennettyinä: tätä identiteettiä väittävä poistetaan, kun taas mitä tahansa muuta identiteettiä nimeävä jätetään täysin koskematta.</value>
   </data>
@@ -8987,6 +9062,9 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>Sisäänrakennetut yhteys- ja määritystarkistukset sekä viimeisin viestivaraston eheystarkistus.</value>
+  </data>
+  <data name="The case's lines on the audit trail" xml:space="preserve">
+    <value>Tapauksen rivit tarkastuslokissa</value>
   </data>
   <data name="The certificate &quot;{0}&quot; expired {1}{2} ago{3}" xml:space="preserve">
     <value>Varmenne "{0}" vanheni {1}{2} sitten{3}</value>
@@ -9106,6 +9184,9 @@ Valitse yllä oleva avain ja kopioi se käsin - sitä ei näytetä uudelleen.</v
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Verkkotunnusluettelossa ei ole yhtään verkkotunnusta. Jätä kenttä tyhjäksi, jotta avain vaikuttaa jokaiseen verkkotunnukseen - pelkistä erottimista koostuva luettelo tarkoittaisi hiljaa samaa, mikä ei ole se, mitä pyysit.</value>
+  </data>
+  <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
+    <value>eDiscovery-tapaukset vain luku -tilassa: kunkin tapauksen haut, säilytykset ja viennit sekä jokainen rivi, joka tarkastuslokissa on siitä. Tapaus avataan, haetaan, asetetaan säilytykseen ja viedään Control Deckissä.</value>
   </data>
   <data name="The effective timeout moves between these values with server load." xml:space="preserve">
     <value>Todellinen aikakatkaisu liikkuu näiden arvojen välillä palvelimen kuorman mukaan.</value>
@@ -12074,6 +12155,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} sovellussalasanaa.</value>
+  </data>
+  <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
+    <value>{0} tapausta. Valitse yksi nähdäksesi sen rivit tarkastuslokissa.</value>
   </data>
   <data name="{0} change(s) carried out, none failed." xml:space="preserve">
     <value>{0} muutosta tehty, yksikään ei epäonnistunut.</value>

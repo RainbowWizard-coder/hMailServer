@@ -16,6 +16,7 @@
 
 #include "../Tracking/ChangeNotification.h"
 #include "../Tracking/NotificationServer.h"
+#include "../Util/DiscoveryHolds.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -116,6 +117,13 @@ namespace HM
 
       auto messages = MessagesContainer::Instance()->GetMessages(pFolder->GetAccountID(), pFolder->GetID());
       messages->DeleteMessages(filter);
+
+      // A legal hold keeps a copy of every message deleted from a held account,
+      // and a message whose copy could not be made is not deleted at all
+      // (RecoverableStore::Keep): the folder is not deleted over it, since that
+      // would leave the message with no folder (docs/Discovery.md).
+      if (pFolder->GetAccountID() > 0 && messages->GetCount() > 0 && DiscoveryHolds::IsAccountHeld(pFolder->GetAccountID()))
+         return false;
 
       // The folder's stored ACL rows, loaded explicitly. IMAPFolder::
       // GetPermissions() returns an UNLOADED collection for account folders

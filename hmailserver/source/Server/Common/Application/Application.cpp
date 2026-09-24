@@ -35,6 +35,7 @@
 #include "../Util/MetricsServer.h"
 #include "../Util/RateLimiter.h"
 #include "../Util/JwksKeySet.h"
+#include "../Util/DiscoverySearch.h"
 #include "../Util/OtelTracer.h"
 #include "../Util/OtelMetricsExporter.h"
 #include "../Util/OtelLogExporter.h"
@@ -1675,6 +1676,13 @@ namespace HM
       // read again from the tables: a restore may have put other rows there,
       // and a count read back is how a restart is proved not to reset a day.
       IpWarmup::Instance()->Forget();
+
+      // The eDiscovery runner's flag outlives the maintenance queue ExitInstance
+      // has just taken away, and a runner that queue never started, or one its
+      // stop cut off, would otherwise keep every later search and export queued
+      // (Util/DiscoverySearch.h). The rows it left running are failed when the
+      // runner next starts.
+      DiscoverySearch::Forget();
 
       String sErrorMessage;
       if (!InitInstance(sErrorMessage))

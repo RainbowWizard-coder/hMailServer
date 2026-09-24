@@ -14,6 +14,9 @@
 
 #include "COMAuthentication.h"
 #include "COMError.h"
+#include "../Common/BO/Domain.h"
+#include "../Common/Cache/CacheContainer.h"
+#include "../Common/Util/DiscoveryHolds.h"
 
 #ifdef _DEBUG
 long InterfaceDomains::counter = 0;
@@ -260,6 +263,14 @@ STDMETHODIMP InterfaceDomains::DeleteByDBID(long DBID)
       if (!authentication_->GetIsServerAdmin())
          return authentication_->GetAccessDenied();
    
+      // A legal hold on the domain or an account in it forbids it, and the
+      // caller is told why (docs/Discovery.md).
+      if (HM::DiscoveryHolds::IsDomainOrAnyAccountHeld(DBID))
+      {
+         std::shared_ptr<const HM::Domain> held = HM::CacheContainer::Instance()->GetDomain((__int64) DBID);
+         return COMError::GenerateError(HM::DiscoveryHolds::DeleteDomainRefusal(held ? held->GetName() : HM::StringParser::IntToString((__int64) DBID)));
+      }
+
       objects_->DeleteItemByDBID(DBID);
    
       return S_OK;

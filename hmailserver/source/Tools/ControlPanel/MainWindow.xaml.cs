@@ -212,6 +212,7 @@ namespace hMailServer.ControlPanel
          pageFactories_["messagetrace"] = () => new MessageTraceView();
          pageFactories_["suppressions"] = () => new SuppressionListView();
          pageFactories_["audit"] = () => new AuditTrailView();
+         pageFactories_["discovery"] = () => new DiscoveryView();
          pageFactories_["logs"] = () => new LogsView();
          pageFactories_["domains"] = () => new DomainsView();
          pageFactories_["rules"] = () => new RulesView();

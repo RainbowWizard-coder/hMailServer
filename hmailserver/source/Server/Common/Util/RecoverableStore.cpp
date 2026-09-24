@@ -4,8 +4,10 @@
 
 #include "StdAfx.h"
 #include "RecoverableStore.h"
+#include "DiscoveryHolds.h"
 #include "FileUtilities.h"
 #include "GUIDCreator.h"
+#include "ZeroAccess.h"
 #include "../Application/Application.h"
 #include "../Application/Configuration.h"
 #include "../Application/IniFileSettings.h"
@@ -40,6 +42,7 @@ namespace HM
    namespace
    {
       thread_local int scopes = 0;
+      thread_local int moves = 0;
 
       String Root()
       {
@@ -86,6 +89,16 @@ namespace HM
       scopes--;
    }
 
+   RecoverableStore::MoveScope::MoveScope()
+   {
+      moves++;
+   }
+
+   RecoverableStore::MoveScope::~MoveScope()
+   {
+      moves--;
+   }
+
    int
    RecoverableStore::Days(__int64 accountId)
    {
@@ -99,19 +112,29 @@ namespace HM
       return days < 0 ? 0 : (days > 365 ? 365 : days);
    }
 
-   void
-   RecoverableStore::Keep(std::shared_ptr<Message> message)
+   bool
+   RecoverableStore::Keep(std::shared_ptr<Message> message, bool sealPlaintext)
    {
-      if (scopes <= 0 || !message || message->GetAccountID() <= 0 || message->GetFolderID() <= 0 || Days(message->GetAccountID()) <= 0)
-         return;
+      if (!message || message->GetAccountID() <= 0 || message->GetFolderID() <= 0)
+         return true;
+
+      // Two reasons to keep a copy, asked in this order so that an account the
+      // store is on for pays nothing more: a person deleting mail inside the
+      // recovery window, as always; and a legal hold on the account, for any
+      // delete but the original of a move (docs/Discovery.md).
+      const bool recoverable = scopes > 0 && Days(message->GetAccountID()) > 0;
+      const bool held = moves <= 0 && DiscoveryHolds::IsAccountHeld(message->GetAccountID());
+
+      if (!recoverable && !held)
+         return true;
 
       std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(message->GetAccountID());
       if (!account)
-         return;
+         return !held;
 
       const String source = PersistentMessage::GetFileName(account, message);
       if (!FileUtilities::Exists(source))
-         return;
+         return true;
 
       String guid = GUIDCreator::GetGUID();
       guid.Replace(_T("{"), _T(""));
@@ -123,8 +146,44 @@ namespace HM
 
       if (!FileUtilities::Copy(source, target, true))
       {
+         if (held)
+         {
+            // The delete is refused rather than made without the copy: that is
+            // what a hold is.
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7333, "RecoverableStore::Keep",
+               "The message " + source + " of " + account->GetAddress() + ", an account under a legal hold, could not be kept at " + target +
+               ", so it has not been deleted. It stays where it is until its copy can be made or the hold is released.");
+            return false;
+         }
+
          LOG_APPLICATION("RecoverableStore: the deleted message " + source + " could not be kept at " + target + "; it is deleted without a copy.");
-         return;
+         return true;
+      }
+
+      // A zero-access mailbox's message caught before its seal: the copy is
+      // sealed as the mailbox would have held it, and a copy that cannot be is
+      // not kept in the clear (docs/ZeroAccess.md, docs/Discovery.md).
+      if (sealPlaintext && account->GetZeroAccess())
+      {
+         AnsiString problem;
+         if (!ZeroAccess::SealFile(account, target, problem))
+         {
+            // SealFile leaves the file whole on failure; the plaintext copy is
+            // overwritten before it goes, as a failed delivery seal's is.
+            ZeroAccess::Scrub(target);
+            FileUtilities::DeleteFile(target);
+
+            if (held)
+            {
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7333, "RecoverableStore::Keep",
+                  "The message " + source + " of " + account->GetAddress() + ", a zero-access mailbox under a legal hold, could not be sealed to its key at " + target +
+                  " (" + String(problem) + "), so no copy of it was kept in the clear and it has not been dropped.");
+               return false;
+            }
+
+            LOG_APPLICATION("RecoverableStore: the message " + source + " of the zero-access mailbox " + account->GetAddress() + " could not be sealed at " + target + " (" + String(problem) + "); no copy was kept.");
+            return true;
+         }
       }
 
       AnsiString header = PersistentMessage::LoadHeader(source, false);
@@ -147,14 +206,51 @@ namespace HM
 
       __int64 made = 0;
       if (!Application::Instance()->GetDBManager()->Execute(statement, &made) || made <= 0)
+      {
          FileUtilities::DeleteFile(target);
+
+         if (held)
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7333, "RecoverableStore::Keep",
+               "The message " + source + " of " + account->GetAddress() + ", an account under a legal hold, could not be recorded among its deleted items, so it has not been deleted. It stays where it is until it can be or the hold is released.");
+            return false;
+         }
+
+         return true;
+      }
+
+      if (held && !recoverable)
+         LOG_DEBUG("RecoverableStore: a message of " + account->GetAddress() + " was deleted and is kept among its deleted items, because the account is under a legal hold.");
+
+      return true;
+   }
+
+   String
+   RecoverableStore::KeptFile(const Entry &entry)
+   {
+      return FileUtilities::Combine(Root(), entry.file);
+   }
+
+   bool
+   RecoverableStore::KeptFileOf(__int64 accountId, __int64 id, String &path)
+   {
+      SQLCommand command("select rcfile from hm_recoverable where rcaccountid = @ACCOUNTID and rcid = @ID");
+      command.AddParameter("@ACCOUNTID", accountId);
+      command.AddParameter("@ID", id);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset || recordset->IsEOF())
+         return false;
+
+      path = FileUtilities::Combine(Root(), recordset->GetStringValue("rcfile"));
+      return true;
    }
 
    bool
    RecoverableStore::List(__int64 accountId, std::vector<Entry> &entries)
    {
       entries.clear();
-      SQLCommand command("select rcid, rcfolderid, rcfolder, rcsubject, rcfrom, rcsize, rcflags, rcdeleted from hm_recoverable where rcaccountid = @ACCOUNTID order by rcid desc");
+      SQLCommand command("select rcid, rcfolderid, rcfolder, rcsubject, rcfrom, rcsize, rcflags, rcdeleted, rcfile from hm_recoverable where rcaccountid = @ACCOUNTID order by rcid desc");
       command.AddParameter("@ACCOUNTID", accountId);
 
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
@@ -172,6 +268,7 @@ namespace HM
          entry.size = (int) recordset->GetLongValue("rcsize");
          entry.flags = (int) recordset->GetLongValue("rcflags");
          entry.deleted = recordset->GetInt64Value("rcdeleted");
+         entry.file = recordset->GetStringValue("rcfile");
          entries.push_back(entry);
          recordset->MoveNext();
       }
@@ -302,6 +399,7 @@ namespace HM
          return 0;
 
       std::map<__int64, __int64> accountCutoffs;
+      std::map<__int64, bool> accountsHeld;
       std::vector<std::pair<__int64, __int64> > expired;
       while (!recordset->IsEOF())
       {
@@ -311,7 +409,14 @@ namespace HM
          if (known == accountCutoffs.end())
             known = accountCutoffs.insert(std::make_pair(accountId, now - (__int64) Days(accountId) * 24 * 60 * 60)).first;
 
-         if (recordset->GetInt64Value("rcdeleted") <= known->second)
+         // A held account's copies are what its hold keeps, however old they
+         // are (docs/Discovery.md): they end at the first sweep after the last
+         // hold on the account is released.
+         auto held = accountsHeld.find(accountId);
+         if (held == accountsHeld.end())
+            held = accountsHeld.insert(std::make_pair(accountId, DiscoveryHolds::IsAccountHeld(accountId))).first;
+
+         if (!held->second && recordset->GetInt64Value("rcdeleted") <= known->second)
             expired.push_back(std::make_pair(accountId, recordset->GetInt64Value("rcid")));
 
          recordset->MoveNext();

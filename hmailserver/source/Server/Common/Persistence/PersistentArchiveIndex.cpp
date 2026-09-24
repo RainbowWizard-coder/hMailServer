@@ -9,12 +9,70 @@
 #include "../SQL/SQLCommand.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/DatabaseConnectionManager.h"
+#include "../SQL/DatabaseSettings.h"
 #include "../Application/Application.h"
+#include "../Application/IniFileSettings.h"
+#include "../Util/DiscoveryHolds.h"
 
 namespace HM
 {
    namespace
    {
+      // A row-limited SELECT for each backend: TOP (n) on SQL Server and Compact,
+      // which requires the parentheses, LIMIT n on MySQL and PostgreSQL - the
+      // same knowledge AuditTrail and PersistentBounce apply.
+      String SelectWithLimit(const String &columns, const String &from, const String &where, const String &orderBy, int rows)
+      {
+         DatabaseSettings::SQLDBType type = IniFileSettings::Instance()->GetDatabaseType();
+
+         String statement;
+
+         switch (type)
+         {
+         case DatabaseSettings::TypeMSSQLServer:
+         case DatabaseSettings::TypeMSSQLCompactEdition:
+            statement.Format(_T("select top (%d) %s from %s"), rows, columns.c_str(), from.c_str());
+            if (!where.IsEmpty())
+               statement += _T(" where ") + where;
+            if (!orderBy.IsEmpty())
+               statement += _T(" order by ") + orderBy;
+            break;
+         default:
+            statement.Format(_T("select %s from %s"), columns.c_str(), from.c_str());
+            if (!where.IsEmpty())
+               statement += _T(" where ") + where;
+            if (!orderBy.IsEmpty())
+               statement += _T(" order by ") + orderBy;
+            statement += Formatter::Format(" limit {0}", rows);
+            break;
+         }
+
+         return statement;
+      }
+
+      // The domain and mailbox directories an archived file lies in, for a file
+      // the index has no row for: <ArchiveDir>\<domain>\<mailbox>\<file>. False
+      // for a file outside the archive or directly in its Inbound directory.
+      bool PlaceOfFile(const String &path, String &domain, String &mailbox)
+      {
+         String root = IniFileSettings::Instance()->GetArchiveDir();
+         if (root.IsEmpty() || path.GetLength() <= root.GetLength() || !path.StartsWith(root))
+            return false;
+
+         String rest = path.Mid(root.GetLength());
+         rest.Replace(_T("\\"), _T("/"));
+         while (rest.StartsWith(_T("/")))
+            rest = rest.Mid(1);
+
+         std::vector<String> parts = StringParser::SplitString(rest, _T("/"));
+         if (parts.size() != 3)
+            return false;
+
+         domain = parts[0];
+         mailbox = parts[1];
+         return !domain.IsEmpty() && !mailbox.IsEmpty();
+      }
+
       // A search term is used inside a LIKE, so its own wildcards are literal.
       String Contains(const String &term)
       {
@@ -186,12 +244,85 @@ namespace HM
    }
 
    bool
+   PersistentArchiveIndex::ListAfter(const String &domain, const String &mailbox, __int64 afterId, int maxRows, std::vector<Entry> &entries)
+   {
+      entries.clear();
+
+      if (maxRows < 1)
+         maxRows = 1;
+
+      String where = _T("archiveid > @AFTER");
+      if (!domain.IsEmpty())
+         where += _T(" and archivedomain = @DOMAIN");
+      if (!domain.IsEmpty() && !mailbox.IsEmpty())
+         where += _T(" and archivemailbox = @MAILBOX");
+
+      SQLCommand command(SelectWithLimit(_T("archiveid, archivetime, archivedomain, archivemailbox, archivedirection, archivesender, ")
+                                         _T("archiverecipients, archivesubject, archivemessageid, archivepath, archivesize, archivehold"),
+                                         _T("hm_archiveindex"), where, _T("archiveid"), maxRows));
+      command.AddParameter("@AFTER", afterId);
+      if (!domain.IsEmpty())
+         command.AddParameter("@DOMAIN", String(domain).ToLower());
+      if (!domain.IsEmpty() && !mailbox.IsEmpty())
+         command.AddParameter("@MAILBOX", String(mailbox).ToLower());
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return false;
+
+      while (!recordset->IsEOF())
+      {
+         Entry entry;
+         Read_(recordset, entry);
+         entries.push_back(entry);
+         recordset->MoveNext();
+      }
+
+      return true;
+   }
+
+   bool
    PersistentArchiveIndex::IsHeld(const String &path)
    {
-      SQLCommand command(_T("select archivehold from hm_archiveindex where archivepath = @PATH and archivehold = 1"));
+      // Every row the path has - a file is indexed once, but a question about a
+      // file must not depend on that - and its hold: the row's own flag, or an
+      // eDiscovery hold on the row, its account or its domain.
+      SQLCommand command(_T("select archiveid, archivedomain, archivemailbox, archivehold from hm_archiveindex where archivepath = @PATH"));
       command.AddParameter("@PATH", Truncate(path, 1000));
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
-      return recordset && !recordset->IsEOF();
+
+      // A question the database cannot answer is answered held: the sweep and
+      // the eraser leave the file for the next pass, which is what a hold asks.
+      if (!recordset)
+         return true;
+
+      bool anyRow = false;
+
+      while (!recordset->IsEOF())
+      {
+         anyRow = true;
+
+         if (recordset->GetLongValue("archivehold") != 0)
+            return true;
+
+         if (DiscoveryHolds::IsArchiveEntryHeld(recordset->GetInt64Value("archiveid"),
+                                                recordset->GetStringValue("archivedomain"),
+                                                recordset->GetStringValue("archivemailbox")))
+            return true;
+
+         recordset->MoveNext();
+      }
+
+      // A file with no row is still an archived message; its account's or its
+      // domain's hold is read from where it lies.
+      if (!anyRow)
+      {
+         String domain, mailbox;
+         if (PlaceOfFile(path, domain, mailbox) && DiscoveryHolds::IsArchiveEntryHeld(0, domain, mailbox))
+            return true;
+      }
+
+      return false;
    }
 
    bool
@@ -211,19 +342,34 @@ namespace HM
       String lowered = address;
       lowered.ToLower();
 
-      SQLCommand count(_T("select count(*) as c from hm_archiveindex where archivehold = 0 and (archivesender = @ADDRESS or archiverecipients like @CONTAINS)"));
-      count.AddParameter("@ADDRESS", lowered);
-      count.AddParameter("@CONTAINS", Contains(lowered));
-      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(count);
-      int rows = (recordset && !recordset->IsEOF()) ? recordset->GetLongValue("c") : 0;
-      if (rows == 0)
+      // The rows one at a time rather than in one delete: a row an eDiscovery
+      // hold covers - by its own hold, its account's or its domain's - is kept
+      // as a flagged one is, and only the question can tell which those are.
+      SQLCommand candidates(_T("select archiveid, archivedomain, archivemailbox from hm_archiveindex where archivehold = 0 and (archivesender = @ADDRESS or archiverecipients like @CONTAINS)"));
+      candidates.AddParameter("@ADDRESS", lowered);
+      candidates.AddParameter("@CONTAINS", Contains(lowered));
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(candidates);
+      if (!recordset)
          return 0;
 
-      SQLCommand remove(_T("delete from hm_archiveindex where archivehold = 0 and (archivesender = @ADDRESS or archiverecipients like @CONTAINS)"));
-      remove.AddParameter("@ADDRESS", lowered);
-      remove.AddParameter("@CONTAINS", Contains(lowered));
-      if (!Application::Instance()->GetDBManager()->Execute(remove))
-         return 0;
+      std::vector<__int64> removable;
+      while (!recordset->IsEOF())
+      {
+         const __int64 id = recordset->GetInt64Value("archiveid");
+         if (!DiscoveryHolds::IsArchiveEntryHeld(id, recordset->GetStringValue("archivedomain"), recordset->GetStringValue("archivemailbox")))
+            removable.push_back(id);
+         recordset->MoveNext();
+      }
+
+      int rows = 0;
+      for (const __int64 id : removable)
+      {
+         SQLCommand remove(_T("delete from hm_archiveindex where archiveid = @ID and archivehold = 0"));
+         remove.AddParameter("@ID", id);
+         if (Application::Instance()->GetDBManager()->Execute(remove))
+            rows++;
+      }
+
       return rows;
    }
 

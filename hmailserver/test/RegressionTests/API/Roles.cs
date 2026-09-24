@@ -127,15 +127,20 @@ namespace RegressionTests.API
             Assert.IsFalse(Permissions(byName["auditor"]).Any(p => !p.StartsWith("view_")),
                "An auditor holds a permission that is not a read: " + byName["auditor"].GetProperty("permissions").GetString());
 
-            // Twenty-four since 24 September 2026: send_through_api, the send API's
-            // (docs/SendApi.md), and provision, SCIM's (docs/Scim.md), each appended
+            // Twenty-six since 24 September 2026: send_through_api, the send API's
+            // (docs/SendApi.md), provision, SCIM's (docs/Scim.md), and view_discovery
+            // and manage_discovery, eDiscovery's (docs/Discovery.md), each appended
             // to the vocabulary and held by serveradmin.
-            Assert.AreEqual(24, document.RootElement.GetProperty("permissions").GetArrayLength());
-            Assert.AreEqual(24, Permissions(byName["serveradmin"]).Length);
+            Assert.AreEqual(26, document.RootElement.GetProperty("permissions").GetArrayLength());
+            Assert.AreEqual(26, Permissions(byName["serveradmin"]).Length);
             CollectionAssert.Contains(Permissions(byName["serveradmin"]), "send_through_api");
             CollectionAssert.DoesNotContain(Permissions(byName["auditor"]), "send_through_api", "An auditor sends nothing.");
             CollectionAssert.Contains(Permissions(byName["serveradmin"]), "provision");
             CollectionAssert.DoesNotContain(Permissions(byName["auditor"]), "provision", "An auditor provisions nothing.");
+            CollectionAssert.Contains(Permissions(byName["serveradmin"]), "view_discovery");
+            CollectionAssert.Contains(Permissions(byName["serveradmin"]), "manage_discovery");
+            CollectionAssert.Contains(Permissions(byName["auditor"]), "view_discovery", "An auditor reads the discovery cases.");
+            CollectionAssert.DoesNotContain(Permissions(byName["auditor"]), "manage_discovery", "An auditor searches, holds and exports nothing.");
          }
       }
 

@@ -682,6 +682,9 @@ EXIT 0
     <ClCompile Include="..\Common\Util\AccountRecovery.cpp" />
     <ClCompile Include="..\Common\Util\DirectoryStore.cpp" />
     <ClCompile Include="..\Common\Util\RecoverableStore.cpp" />
+    <ClCompile Include="..\Common\Util\DiscoveryHolds.cpp" />
+    <ClCompile Include="..\Common\Util\DiscoveryStore.cpp" />
+    <ClCompile Include="..\Common\Util\DiscoverySearch.cpp" />
     <ClCompile Include="..\Common\Util\RestApiAccountRecovery.cpp" />
     <ClCompile Include="..\Common\Util\RestApiDirectory.cpp" />
     <ClCompile Include="..\Common\Util\RestApiRecoverable.cpp" />
@@ -752,6 +755,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiSend.cpp" />
     <ClCompile Include="..\Common\Util\ApiSends.cpp" />
     <ClCompile Include="..\Common\Util\RestApiScim.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiDiscovery.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOperator.cpp" />
     <ClCompile Include="..\Common\Util\WebServicesServer.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOpenPgp.cpp" />
@@ -1591,6 +1595,9 @@ EXIT 0
     <ClInclude Include="..\Common\Util\AccountRecovery.h" />
     <ClInclude Include="..\Common\Util\DirectoryStore.h" />
     <ClInclude Include="..\Common\Util\RecoverableStore.h" />
+    <ClInclude Include="..\Common\Util\DiscoveryHolds.h" />
+    <ClInclude Include="..\Common\Util\DiscoveryStore.h" />
+    <ClInclude Include="..\Common\Util\DiscoverySearch.h" />
     <ClInclude Include="..\Common\Util\DistributionListMembership.h" />
     <ClInclude Include="..\Common\Util\ListManager.h" />
     <ClInclude Include="..\Common\Util\ListArchive.h" />

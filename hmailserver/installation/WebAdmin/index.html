@@ -382,6 +382,7 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
         <button data-view="quarantine" data-serverwide="1" data-needs="view_quarantine" title="Quarantine"><span class="ico">⛔</span><span>Quarantine</span></button>
         <button data-view="review" data-serverwide="1" data-needs="view_queue" title="Held for review"><span class="ico">⚠</span><span>Held for review</span></button>
         <button data-view="archive" data-needs="view_archive" title="Archive and holds"><span class="ico">⌸</span><span>Archive and holds</span></button>
+        <button data-view="discovery" data-needs="view_discovery" title="Discovery"><span class="ico">⌕</span><span>Discovery</span></button>
         <button data-view="folders" data-needs="view_accounts" title="Shared folders"><span class="ico">⊟</span><span>Shared folders</span></button>
         <button data-view="dns" data-needs="view_configuration" title="DNS records"><span class="ico">⌁</span><span>DNS records</span></button>
         <button data-view="diagnostics" data-serverwide="1" data-needs="manage_server" title="Diagnostics"><span class="ico">⚕</span><span>Diagnostics</span></button>
@@ -439,6 +440,9 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
 "use strict";
 const $=s=>document.querySelector(s);
 let view="dash", pollTimer=null;
+/* The discovery case on screen, its name and its re-read timer: declared here,
+   with the view, because the navigation and a sign-out put them back. */
+let discoveryCase=0,discoveryName="",discoveryTimer=null;
 
 /* ---------- Language ----------
    English is the key. A catalogue - one object, English to translation, in
@@ -735,6 +739,7 @@ $("#logoutBtn").onclick=async()=>{
 function signedOut(message){
   if(pollTimer){clearInterval(pollTimer);pollTimer=null;}
   spec=null;editing=null;
+  discoveryCase=0;if(discoveryTimer){clearTimeout(discoveryTimer);discoveryTimer=null;}
   try{sessionStorage.removeItem("hmsSession");}catch(_){}
   $("#app").style.display="none";
   $("#gate").style.display="grid";
@@ -826,9 +831,9 @@ $("#nav").addEventListener("click",e=>{
   // The search belongs to the view it was typed in, as the console's toolbar
   // search belongs to its page; a view arrived at shows everything it has.
   $("#deckSearch").value="";
-  view=b.dataset.view;editing=null;render();
+  view=b.dataset.view;editing=null;discoveryCase=0;render();
 });
-const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),migrations:K("Migrations"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps"),journal:K("Journaling"),quarantine:K("Quarantine"),review:K("Held for review"),archive:K("Archive and holds"),folders:K("Shared folders"),dns:K("DNS records"),diagnostics:K("Diagnostics"),metrics:K("Metrics history"),update:K("Update"),apikeys:K("API keys"),passkeys:K("Passkeys")};
+const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),migrations:K("Migrations"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps"),journal:K("Journaling"),quarantine:K("Quarantine"),review:K("Held for review"),archive:K("Archive and holds"),discovery:K("Discovery"),folders:K("Shared folders"),dns:K("DNS records"),diagnostics:K("Diagnostics"),metrics:K("Metrics history"),update:K("Update"),apikeys:K("API keys"),passkeys:K("Passkeys")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
@@ -865,6 +870,7 @@ async function render(silent){
     else if(view==="quarantine")await renderQuarantine();
     else if(view==="review")await renderReview();
     else if(view==="archive")await renderArchive();
+    else if(view==="discovery")await renderDiscovery();
     else if(view==="folders")await renderFolders();
     else if(view==="dns")await renderDns();
     else if(view==="diagnostics")await renderDiagnostics();
@@ -1238,6 +1244,16 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="arcsearch"){readArchiveForm();render();}
   else if(d.act==="archold")archiveHold(d.id,true);
   else if(d.act==="arcunhold")archiveHold(d.id,false);
+  else if(d.act==="dscopen"){discoveryCase=Number(d.id)||0;render();}
+  else if(d.act==="dscback"){discoveryCase=0;render();}
+  else if(d.act==="dscrefresh")render();
+  else if(d.act==="dscnew")discoveryAct("new");
+  else if(d.act==="dscsearch")discoveryAct("search");
+  else if(d.act==="dschold")discoveryAct("hold");
+  else if(d.act==="dscholdarchive")discoveryAct("holdarchive",d.id);
+  else if(d.act==="dscrelease")discoveryAct("release",d.id);
+  else if(d.act==="dscexport")discoveryAct("export",d.id);
+  else if(d.act==="dscclose")discoveryAct("close");
   else if(d.act==="metload"){metricsChoice={metric:$("#metName").value,range:$("#metRange").value};render();}
   else if(d.act==="upcheck")updateAct("check");
   else if(d.act==="updownload")updateAct("download");
@@ -1812,6 +1828,7 @@ const HELP_MAP={
   quarantine:["SenderListsAndDigests.md","The quarantine digest"],
   review:["CompromisedAccounts.md","Reviewing"],
   archive:["Journaling.md"],
+  discovery:["Discovery.md"],
   folders:["Backup.md","In the archive"],
   dns:["SetupChecklist.md","The document"],
   diagnostics:["DiagnosingStalledMail.md","What to include in a report"],
@@ -4736,6 +4753,129 @@ async function archiveHold(id,hold){
     toast(hold?t("On hold: kept through the retention sweep and any erasure"):t("Hold lifted"));
     await render();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_archive",e.message);}
+}
+
+/* ---------- eDiscovery ----------
+   The cases; a case's searches with their progress and hit counts, the query
+   form, its holds with Lift the hold, and its exports with Download
+   (docs/Discovery.md). A search and an export are queued on the server and
+   done one at a time, so a case with one still going is read again every few
+   seconds while it is on screen. What a role may do is what it is offered:
+   view_discovery reads, manage_discovery acts, and the download needs
+   view_mailbox beside it, as the route does. */
+function discoveryState(s){return s==="queued"?t("queued"):s==="running"?t("Running"):s==="done"?t("Done"):t("Failed");}
+function discoveryScope(s){return s==="account"?t("Account"):s==="domain"?t("Domain"):s==="archive"?t("Archive"):(s||"");}
+async function renderDiscovery(){
+  if(discoveryTimer){clearTimeout(discoveryTimer);discoveryTimer=null;}
+  const note=escHtml(operation("/api/v1/discovery/cases","get").description||"");
+  if(!discoveryCase){
+    const cases=asList(await api("/api/v1/discovery/cases"),"cases");
+    const rows=cases.map(c=>`
+      <tr><td>${escHtml(c.name||"")}</td><td>${c.state==="closed"?'<span class="badge">'+t("Closed")+"</span>":""}</td>
+          <td>${escHtml(auditWhen(c.created))}</td><td>${escHtml(c.created_by||"—")}</td><td>${Number(c.live_holds)||0}</td>
+          <td style="text-align:right"><button class="btn ghost sm" data-act="dscopen" data-id="${escHtml(c.id)}">${t("Open")}</button></td></tr>`).join("");
+    $("#content").innerHTML=`<div class="view">
+      <div class="card flat"><p class="note">${note}</p>
+        ${may("manage_discovery")?`<div class="row" style="gap:8px;flex-wrap:wrap">
+          <input id="dsc_name" placeholder="${t("Case name")}" style="flex:1 1 200px">
+          <input id="dsc_description" placeholder="${t("Description")}" style="flex:2 1 300px">
+          <button class="btn" data-act="dscnew">${t("Open a case")}</button></div>`:""}
+        <div class="err" id="err_discovery" style="margin-top:10px"></div></div>
+      <div class="card view" style="margin-top:14px"><div class="tablewrap"><table>
+        <thead><tr><th>${t("Name")}</th><th>${t("State")}</th><th>${t("Created")}</th><th>${t("Who")}</th><th>${t("Holds")}</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="6" class="empty">'+t("Nothing here.")+"</td></tr>"}</tbody></table></div></div></div>`;
+    return;
+  }
+  const c=await api("/api/v1/discovery/cases/"+encodeURIComponent(discoveryCase));
+  discoveryName=c.name||"";
+  const manage=may("manage_discovery")&&c.state==="open";
+  const searches=(c.searches||[]).map(s=>{
+    const q=s.query||{};
+    return `<tr><td>${escHtml(auditWhen(s.ran))}</td><td>${escHtml(s.ran_by||"—")}</td>
+        <td style="word-break:break-all">${escHtml((q.custodians||[]).join(", "))}</td><td>${escHtml(q.words||"")}</td>
+        <td>${escHtml(discoveryState(s.state))}</td>
+        <td>${escHtml(tf("{0} read, {1} matched, {2} not searched",Number(s.scanned)||0,Number(s.matched)||0,Number(s.unsearched)||0))}${s.error?'<div class="err">'+escHtml(s.error)+"</div>":""}</td>
+        <td style="text-align:right;white-space:nowrap">${manage&&s.state==="done"?`<button class="btn ghost sm" data-act="dscexport" data-id="${escHtml(s.id)}">${t("Export")}</button> <button class="btn ghost sm" data-act="dscholdarchive" data-id="${escHtml(s.id)}">${t("Hold its archived copies")}</button>`:""}</td></tr>`;
+  }).join("");
+  const holds=(c.holds||[]).map(h=>`<tr><td>${escHtml(h.name||"")}</td><td>${escHtml(discoveryScope(h.scope))}</td><td>${escHtml(auditWhen(h.placed))}</td><td>${escHtml(h.placed_by||"—")}</td>
+        <td>${h.live?'<span class="badge info">'+t("On hold")+"</span>":escHtml(t("Hold lifted"))}</td>
+        <td style="text-align:right">${manage&&h.live?`<button class="btn ghost sm" data-act="dscrelease" data-id="${escHtml(h.id)}">${t("Lift the hold")}</button>`:""}</td></tr>`).join("");
+  const exports=(c.exports||[]).map(x=>`<tr><td>${escHtml(auditWhen(x.requested))}</td><td>${escHtml(x.requested_by||"—")}</td>
+        <td>${escHtml(discoveryState(x.state))}${x.error?'<div class="err">'+escHtml(x.error)+"</div>":""}</td>
+        <td>${x.state==="done"?escHtml(fmtBytes(x.size)):""}</td><td style="word-break:break-all"><code>${escHtml(x.sha256||"")}</code></td>
+        <td style="text-align:right">${x.state==="done"&&may("view_mailbox")?`<a class="btn ghost sm" href="${escHtml(x.download||"")}" download="case-${escHtml(c.id)}-export-${escHtml(x.id)}.zip">${t("Download")}</a>`:""}</td></tr>`).join("");
+  const table=(head,body,columns)=>`<div class="tablewrap"><table><thead><tr>${head}</tr></thead><tbody>${body||'<tr><td colspan="'+columns+'" class="empty">'+t("Nothing here.")+"</td></tr>"}</tbody></table></div>`;
+  $("#content").innerHTML=`<div class="view">
+    <div class="card flat">
+      <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn ghost sm" data-act="dscback">${t("Back")}</button>
+        <h2 style="margin:0;flex:1">${escHtml(c.name||"")} ${c.state==="closed"?'<span class="badge">'+t("Closed")+"</span>":""}</h2>
+        <button class="btn ghost sm" data-act="dscrefresh">${t("Refresh")}</button>
+        ${manage?`<button class="btn ghost sm" data-act="dscclose">${t("Close the case")}</button>`:""}
+      </div>
+      <p class="note">${escHtml(c.description||"")}</p>
+      ${manage?`<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px">
+        <input id="dsc_custodians" placeholder="${t("Custodians: addresses or domains, comma-separated, or *")}" style="flex:2 1 300px">
+        <input id="dsc_words" placeholder="${t("Words that must all be found")}" style="flex:2 1 240px">
+        <input id="dsc_from" placeholder="${t("From (YYYY-MM-DD)")}" style="flex:1 1 140px">
+        <input id="dsc_to" placeholder="${t("To (YYYY-MM-DD)")}" style="flex:1 1 140px">
+        <input id="dsc_attname" placeholder="${t("Attachment name contains")}" style="flex:1 1 180px">
+        <input id="dsc_atttype" placeholder="${t("Attachment type, such as application/pdf")}" style="flex:1 1 220px">
+        <select id="dsc_scope" title="${t("Scope")}"><option value="both">${t("Mailboxes and the archive")}</option><option value="mailboxes">${t("Mailboxes")}</option><option value="archive">${t("Archive")}</option></select>
+        <button class="btn" data-act="dscsearch">${t("Run the search")}</button>
+      </div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px">
+        <input id="dsc_hold" placeholder="${t("Address or domain to hold")}" style="flex:1 1 260px">
+        <button class="btn ghost" data-act="dschold">${t("Hold")}</button>
+      </div>`:""}
+      <div class="err" id="err_discovery" style="margin-top:10px"></div>
+    </div>
+    <div class="card view" style="margin-top:14px"><h3>${t("Searches")}</h3>
+      ${table(`<th>${t("When")}</th><th>${t("Who")}</th><th>${t("Custodians")}</th><th>${t("Words")}</th><th>${t("State")}</th><th>${t("Status")}</th><th></th>`,searches,7)}</div>
+    <div class="card view" style="margin-top:14px"><h3>${t("Holds")}</h3>
+      ${table(`<th>${t("Name")}</th><th>${t("Scope")}</th><th>${t("When")}</th><th>${t("Who")}</th><th>${t("State")}</th><th></th>`,holds,6)}</div>
+    <div class="card view" style="margin-top:14px"><h3>${t("Exports")}</h3>
+      ${table(`<th>${t("When")}</th><th>${t("Who")}</th><th>${t("State")}</th><th>${t("Size")}</th><th>SHA-256</th><th></th>`,exports,6)}</div>
+    <p class="note" style="margin-top:12px">${note}</p></div>`;
+  const busy=(c.searches||[]).concat(c.exports||[]).some(x=>x.state==="queued"||x.state==="running");
+  if(busy)discoveryTimer=setTimeout(()=>{discoveryTimer=null;if(view==="discovery"&&discoveryCase)render(true);},3000);
+}
+async function discoveryAct(what,id){
+  setErr("err_discovery","");
+  const caseId=encodeURIComponent(discoveryCase);
+  try{
+    if(what==="new"){
+      const answer=await api("/api/v1/discovery/cases",{method:"POST",body:JSON.stringify({name:$("#dsc_name").value.trim(),description:$("#dsc_description").value.trim()})});
+      discoveryCase=Number(answer.id)||0;
+    }else if(what==="search"){
+      const body={custodians:$("#dsc_custodians").value.split(",").map(s=>s.trim()).filter(Boolean),scope:$("#dsc_scope").value};
+      const words=$("#dsc_words").value.trim(),from=$("#dsc_from").value.trim(),to=$("#dsc_to").value.trim();
+      const name=$("#dsc_attname").value.trim(),type=$("#dsc_atttype").value.trim();
+      if(words)body.words=words;
+      if(from)body.from=from;
+      if(to)body.to=to;
+      if(name||type){body.attachment={};if(name)body.attachment.name=name;if(type)body.attachment.type=type;}
+      await api("/api/v1/discovery/cases/"+caseId+"/searches",{method:"POST",body:JSON.stringify(body)});
+      toast(t("Queued: the server works through one search or export at a time."));
+    }else if(what==="hold"){
+      const target=$("#dsc_hold").value.trim();
+      await api("/api/v1/discovery/cases/"+caseId+"/holds",{method:"POST",body:JSON.stringify({scope:target.indexOf("@")>=0?"account":"domain",target:target})});
+      toast(t("On hold"));
+    }else if(what==="holdarchive"){
+      await api("/api/v1/discovery/cases/"+caseId+"/holds",{method:"POST",body:JSON.stringify({scope:"archive",search:Number(id)})});
+      toast(t("On hold"));
+    }else if(what==="release"){
+      await api("/api/v1/discovery/cases/"+caseId+"/holds/"+encodeURIComponent(id),{method:"DELETE"});
+      toast(t("Hold lifted"));
+    }else if(what==="export"){
+      await api("/api/v1/discovery/cases/"+caseId+"/searches/"+encodeURIComponent(id)+"/export",{method:"POST",body:"{}"});
+      toast(t("Queued: the server works through one search or export at a time."));
+    }else if(what==="close"){
+      if(!confirm(tf("Close {0}? Every hold it placed is released, and it runs no search, places no hold and makes no export again.",discoveryName)))return;
+      await api("/api/v1/discovery/cases/"+caseId+"/close",{method:"POST",body:"{}"});
+    }
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_discovery",e.message);}
 }
 
 /* ---------- Metrics history ----------

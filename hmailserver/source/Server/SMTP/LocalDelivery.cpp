@@ -65,6 +65,8 @@
 #include "../Common/Util/Imip.h"
 #include "../Common/Util/ZeroAccess.h"
 #include "../Common/Util/MessageRecall.h"
+#include "../Common/Util/DiscoveryHolds.h"
+#include "../Common/Util/RecoverableStore.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -622,7 +624,10 @@ namespace HM
                                                 original_message_->GetID(), account->GetAddress());
          LOG_APPLICATION(sMessage);
 
-         return false;
+         // Under a legal hold whose copy could not be kept, the local copy is
+         // delivered as if the forward kept one (KeepHeldCopy_).
+         if (KeepHeldCopy_(account, accountLevelMessage, _T("a forward that keeps no copy took it")))
+            return false;
       }
 
       // Do the final delivery of the message. A copy linked from the delivery
@@ -663,7 +668,9 @@ namespace HM
       if (!accountVacationActive && !sieveVacationRequested)
          SendDomainAutoReplyMessage_(account, original_message_, messageIsSpamForThisAccount);
 
-      if (!sieveRejectReason.IsEmpty())
+      // Asked first under a legal hold (KeepHeldCopy_): a reject whose copy could
+      // not be kept is not made at all, and the message is delivered.
+      if (!sieveRejectReason.IsEmpty() && KeepHeldCopy_(account, accountLevelMessage, _T("the Sieve script rejected it")))
       {
          // reject / ereject (RFC 5429): no local copy, and the sender is told why
          // through the same non-delivery report a quota refusal produces - whose
@@ -688,6 +695,7 @@ namespace HM
          String sMessage = Formatter::Format("SMTPDeliverer - Message {0}: rejected by the Sieve script for {1}.",
                                                 original_message_->GetID(), account->GetAddress());
          LOG_APPLICATION(sMessage);
+
          return false;
       }
 
@@ -710,7 +718,11 @@ namespace HM
          String sMessage = Formatter::Format("SMTPDeliverer - Message {0}: not kept locally by the Sieve script for {1}.",
                                                 original_message_->GetID(), account->GetAddress());
          LOG_APPLICATION(sMessage);
-         return false;
+
+         // Under a legal hold whose copy could not be kept, delivered as if the
+         // script had kept it (KeepHeldCopy_).
+         if (KeepHeldCopy_(account, accountLevelMessage, _T("the Sieve script kept no local copy")))
+            return false;
       }
 
       if (sieveFlagsGiven)
@@ -1525,6 +1537,13 @@ namespace HM
             return false;
          }
 
+         // The account's own copy, which this threshold is about to drop: under
+         // a legal hold it is kept among the deleted items as a rule's Delete
+         // keeps it, and when it cannot be kept the marked copy is delivered -
+         // the same trade the quarantine's refusal makes above (KeepHeldCopy_).
+         if (!KeepHeldCopy_(account, accountLevelMessage, Formatter::Format("the score {0} reached the account's spam delete threshold {1}", recordedScore, deleteThreshold)))
+            return true;
+
          String sMessage = Formatter::Format("SMTPDeliverer - Message {0}: not delivered to {1} - the score {2} reached the account's spam delete threshold {3}.",
             original_message_->GetID(), account->GetAddress(), recordedScore, deleteThreshold);
          LOG_APPLICATION(sMessage);
@@ -1795,10 +1814,42 @@ namespace HM
                                                    pMessage->GetID(), pAccount->GetAddress(), sDeleteRuleName);
 
          LOG_APPLICATION(sMessage);
-         return false;
+
+         // Under a legal hold whose copy could not be kept, delivered as if no
+         // rule had deleted it (KeepHeldCopy_).
+         if (KeepHeldCopy_(pAccount, pMessage, _T("an account rule deleted it (") + sDeleteRuleName + _T(")")))
+            return false;
       }
 
       return true;
+   }
+
+   bool
+   LocalDelivery::KeepHeldCopy_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message, const String &dropped)
+   {
+      if (!account || !message || !DiscoveryHolds::IsAccountHeld(account->GetID()))
+         return true;
+
+      // The account-level copy is in the account's directory with the inbox as
+      // its folder, which is what RecoverableStore::Keep takes; the caller then
+      // removes the file as it always did. It is in the clear here, before the
+      // zero-access seal further down, so for such a mailbox the kept copy is
+      // sealed as it is made - and only for a copy that is still the account's
+      // (a rule may have filed it into a public folder, which is not sealed).
+      const bool seal = account->GetZeroAccess() && message->GetAccountID() == account->GetID();
+
+      bool kept = false;
+      {
+         RecoverableStore::Scope deleting;
+         kept = RecoverableStore::Keep(message, seal);
+      }
+
+      LOG_APPLICATION(Formatter::Format(kept
+            ? "SMTPDeliverer - Message {0}: {1} for {2}, and the account is under a legal hold, so the copy is kept among its deleted items instead of being dropped."
+            : "SMTPDeliverer - Message {0}: {1} for {2}; the account is under a legal hold and the copy could not be kept among its deleted items, so the message is delivered to the mailbox instead of being dropped.",
+         original_message_->GetID(), dropped, account->GetAddress()));
+
+      return kept;
    }
 
 

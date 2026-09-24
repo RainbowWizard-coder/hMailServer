@@ -32,6 +32,9 @@
 #include "../Application/Configuration.h"
 #include "../Application/Logger.h"
 #include "../Application/MailboxRestore.h"
+#include "../BO/Account.h"
+#include "../Cache/CacheContainer.h"
+#include "DiscoveryHolds.h"
 
 #include <boost/filesystem.hpp>
 
@@ -252,6 +255,16 @@ namespace HM
 
             return BackupRefusal_(400, String(key.c_str()) + _T(" is not a field of a mailbox restore: the fields are mode, message, folder and passphrase"));
          }
+      }
+
+      // Replace deletes what is in the mailbox now, which a legal hold forbids:
+      // refused before the archive is opened, so the answer does not wait on it
+      // (docs/Discovery.md). Merge and a single message delete nothing.
+      if (request.message_id == 0 && request.mode == MailboxRestore::ModeReplace)
+      {
+         std::shared_ptr<const Account> held = CacheContainer::Instance()->GetAccount(request.address);
+         if (held && DiscoveryHolds::IsAccountHeld(held->GetID()))
+            return BackupRefusal_(409, DiscoveryHolds::ReplaceRefusal(held->GetAddress()));
       }
 
       int statusCode = 400;

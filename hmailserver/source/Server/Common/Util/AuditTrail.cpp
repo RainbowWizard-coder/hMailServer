@@ -121,6 +121,18 @@ namespace HM
          // writes and are not recorded (hm_warmupcounts, NOT_AUDITED).
          { L"hm_warmup",                      L"warm-up schedule" },
          { L"hm_archiveindex",                L"archive entry" },
+         // eDiscovery (Util/DiscoveryStore.h, docs/Discovery.md): a case opened
+         // and closed, a search run - recorded with its whole query, which is
+         // what "every search logged" means - a hold placed and released and an
+         // export made, each under whoever asked. The runner's own writes on the
+         // maintenance queue - a search's progress and result, an export's -
+         // carry no actor and are not recorded; the download of an export
+         // writes no row and records an event of its own. DiscoveryStore names
+         // every row by its case.
+         { L"hm_discoverycases",              L"discovery case" },
+         { L"hm_discoverysearches",           L"discovery search" },
+         { L"hm_discoveryholds",              L"discovery hold" },
+         { L"hm_discoveryexports",            L"discovery export" },
          // Who may administer what. A role given to an account is the most
          // consequential administrative change there is, and a custom role's
          // permissions changing is the same change made to every account that

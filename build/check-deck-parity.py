@@ -164,6 +164,15 @@ PATH_SCOPE = {
     # has, since an empty scope matches a method of any interface by its name.
     'smime-ca': ['SmimeAuthority'],
     'issued': ['SmimeAuthority'],
+    # eDiscovery (/api/v1/discovery/cases, a case's searches, holds and
+    # exports): no COM interface is behind it, and the desktop program reads it
+    # over REST and writes none of it. Scoped to a name no interface has, as the
+    # S/MIME authority is.
+    'discovery': ['Discovery'],
+    'cases': ['Discovery'],
+    'searches': ['Discovery'],
+    'holds': ['Discovery'],
+    'exports': ['Discovery'],
     'app-passwords': ['AppPassword'],
     'groups': ['Group'],
     'folders': ['IMAPFolder'],
@@ -207,7 +216,10 @@ VERB_SEGMENTS = {'reload', 'check', 'clear', 'retry', 'release', 'hold', 'downlo
                  # sign-in link made for one.
                  'pause', 'resume', 'cancel', 'signin',
                  # A domain's S/MIME authority given a new root.
-                 'rotate'}
+                 'rotate',
+                 # An eDiscovery case closed, and a search's hits exported - the
+                 # verb an account's export is, too.
+                 'close', 'export'}
 
 UNIT_SUFFIXES = ('seconds', 'minutes', 'hours', 'days', 'secs', 'mins', 'kb', 'mb', 'ms', 'sec', 'min')
 STOP_WORDS = {'of', 'number', 'no', 'the', 'a', 'an', 'is', 'in', 'to', 'use',

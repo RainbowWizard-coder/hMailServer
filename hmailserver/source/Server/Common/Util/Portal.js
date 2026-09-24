@@ -8171,6 +8171,9 @@
   // The server's recovery window, learned the first time the list tools are
   // drawn: 0 means it keeps nothing, and the way in stays hidden.
   var recoverDays = 0;
+  // Whether a legal hold covers the account (docs/Discovery.md): its deleted
+  // items are then kept whatever the window says, and none is deleted for good.
+  var recoverHeld = false;
   var recoverAsked = false;
   // Whether the server offers a message that expires, learned the same way.
   var confidentialOffered = false;
@@ -8182,13 +8185,14 @@
       recoverAsked = true;
       call('GET', '/api/v1/me/recoverable').then(function (result) {
         recoverDays = result.status === 200 && result.data ? Number(result.data.days) || 0 : 0;
-        el('folder-recover').hidden = !(!state.everywhere && folderIs(state.folderId, 'Trash') && recoverDays > 0);
+        recoverHeld = result.status === 200 && result.data ? result.data.held === true : false;
+        el('folder-recover').hidden = !(!state.everywhere && folderIs(state.folderId, 'Trash') && (recoverDays > 0 || recoverHeld));
       });
     }
     el('view-threads').textContent = pref('view') === 'threads' ? t('Show messages one by one') : t('Show conversations');
     var emptyable = !state.everywhere && (folderIs(state.folderId, 'Junk') || folderIs(state.folderId, 'Trash'));
     el('folder-empty').hidden = !emptyable;
-    el('folder-recover').hidden = !(!state.everywhere && folderIs(state.folderId, 'Trash') && recoverDays > 0);
+    el('folder-recover').hidden = !(!state.everywhere && folderIs(state.folderId, 'Trash') && (recoverDays > 0 || recoverHeld));
     el('folder-confidential').hidden = !(!state.everywhere && folderIs(state.folderId, 'Sent') && confidentialOffered);
     el('folder-protected').hidden = !(!state.everywhere && folderIs(state.folderId, 'Sent') && protectedOffered);
     el('folder-empty').textContent = t('Empty this folder');
@@ -11493,9 +11497,12 @@
     clear(rows);
     var items = data.items || [];
     recoverDays = Number(data.days) || 0;
+    recoverHeld = data.held === true;
+    // A server that keeps nothing says so - unless a hold keeps the account's
+    // deleted items, which are listed then, and the sentence would be false.
     el('recover-note').textContent = recoverDays > 0
       ? tf('Messages you deleted in the last {0} days: put one back and it returns to the folder it was deleted from.', recoverDays)
-      : t('Your server keeps nothing that is deleted.');
+      : (recoverHeld ? '' : t('Your server keeps nothing that is deleted.'));
     items.forEach(function (item) {
       var tr = document.createElement('tr');
       tr.appendChild(node('td', item.subject || t('(no subject)')));
@@ -11513,6 +11520,9 @@
         });
       });
       actions.appendChild(restore);
+      // Under a legal hold nothing is deleted for good (the server answers 409),
+      // so it is not offered.
+      if (recoverHeld) { tr.appendChild(actions); rows.appendChild(tr); return; }
       var purge = button(t('Delete for good'));
       purge.addEventListener('click', function () {
         if (!window.confirm(tf('Delete {0} for good? It cannot be recovered after this.', item.subject || t('(no subject)')))) { return; }
@@ -11527,7 +11537,7 @@
       rows.appendChild(tr);
     });
     el('recover-table').hidden = !items.length;
-    el('recover-empty').hidden = items.length > 0 || recoverDays === 0;
+    el('recover-empty').hidden = items.length > 0 || (recoverDays === 0 && !recoverHeld);
   };
   var loadRecoverable = function () {
     return call('GET', '/api/v1/me/recoverable').then(function (result) {

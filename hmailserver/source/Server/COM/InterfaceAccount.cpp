@@ -54,6 +54,7 @@
 #include "../Common/Util/PushSubscriptions.h"
 #include "../Common/Util/AuditTrail.h"
 #include "../Common/Util/RestrictedDelivery.h"
+#include "../Common/Util/DiscoveryHolds.h"
 #include "../Common/Application/Logger.h"
 
 #ifdef _DEBUG
@@ -798,6 +799,10 @@ STDMETHODIMP InterfaceAccount::DeleteMessages()
    {
       if (!object_)
          return GetAccessDenied();
+
+      // A legal hold forbids it, and the caller is told why (docs/Discovery.md).
+      if (HM::DiscoveryHolds::IsAccountHeld(object_->GetID()))
+         return COMError::GenerateError(HM::DiscoveryHolds::DeleteMessagesRefusal(object_->GetAddress()));
 
       PersistentAccount::DeleteMessages(object_);
    
@@ -1930,6 +1935,10 @@ STDMETHODIMP InterfaceAccount::Delete()
 
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
+
+      // A legal hold forbids it, and the caller is told why (docs/Discovery.md).
+      if (HM::DiscoveryHolds::IsAccountHeld(object_->GetID()))
+         return COMError::GenerateError(HM::DiscoveryHolds::DeleteAccountRefusal(object_->GetAddress()));
    
       if (!parent_collection_)
          return PersistentAccount::DeleteObject(object_) ? S_OK : S_FALSE;

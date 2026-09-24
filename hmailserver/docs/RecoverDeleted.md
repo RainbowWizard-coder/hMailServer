@@ -47,7 +47,9 @@ Where the copies are
 
 Each copy is a file under `<data directory>/Recoverable/<account id>/`, with a row in
 `hm_recoverable` (schema 6068). They count against no quota, and they are not in the
-backup: a backup carries what is in the mailboxes. The retention task - six-hourly, or
+backup: a backup carries what is in the mailboxes, and leaves the `Recoverable` folder
+out; a restore of the data directory leaves it where it is, since `hm_recoverable` is
+not in the backup either and its rows name these files. The retention task - six-hourly, or
 `Utilities.RunMessageRetention` on demand - ends the copies older than the window, all
 of them when the setting is 0, and the directory of an account that no longer exists.
 

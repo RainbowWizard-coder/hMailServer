@@ -157,8 +157,21 @@ REQUIRED = [
 #   RouteReport   GET /api/v1/reports and its senders and recipients list who
 #                 mails whom, which is traffic metadata read out of the
 #                 message trace and not configuration (15 September 2026).
+#
+#   RouteDiscoveryExportGet
+#                 GET /api/v1/discovery/cases/{id}/exports/{export} hands over
+#                 the custodians' mail itself, byte for byte, so reading the
+#                 cases is not enough to take it away: view_mailbox beside
+#                 view_discovery (24 September 2026, docs/Discovery.md). The
+#                 auditor holds both. Together they reach more than
+#                 view_mailbox alone does: an export carries the custodians'
+#                 deleted items, what a hold kept from a rule included, which
+#                 no other administrative route hands over; and an export of a
+#                 search that read the archive needs view_archive as well,
+#                 which the handler asks (CallerMayReadArchive_).
 SECOND_REQUIRED = {
     "RouteReport": "ViewMessageTrace",
+    "RouteDiscoveryExportGet": "ViewMailbox",
 }
 
 # Refused to every credential but the administrator password before any

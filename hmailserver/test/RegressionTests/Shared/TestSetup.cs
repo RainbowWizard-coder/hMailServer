@@ -674,6 +674,26 @@ namespace RegressionTests.Shared
                 > 0)
          {
             var domain = domains[0];
+            DeleteDomainReleasingHolds(domain);
+         }
+      }
+
+      // A domain a legal hold stands on is not deleted (docs/Discovery.md). The
+      // discovery fixture releases every hold it placed in its teardown; one that
+      // died with a hold placed - the runner killed, the server gone - would fail
+      // every test after it here, so the holds are released in the table, which
+      // the server reads again within five seconds, and the delete is asked once
+      // more.
+      private void DeleteDomainReleasingHolds(Domain domain)
+      {
+         try
+         {
+            domain.Delete();
+         }
+         catch (COMException held) when (held.Message.Contains("legal hold"))
+         {
+            application.Database.ExecuteSQL("update hm_discoveryholds set holdreleased = 1, holdreleasedby = 'test setup' where holdreleased = 0");
+            Thread.Sleep(6000);
             domain.Delete();
          }
       }

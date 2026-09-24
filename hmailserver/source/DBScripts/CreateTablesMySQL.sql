@@ -2119,13 +2119,13 @@ ALTER TABLE hm_roleassignments ADD CONSTRAINT fk_hm_roleassignments_account FORE
 
 ALTER TABLE hm_roleassignments ADD CONSTRAINT fk_hm_roleassignments_role FOREIGN KEY (raroleid) REFERENCES hm_roles (roleid);
 
-insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('serveradmin', 'Every permission, in every domain.', 1, 'administer_server,administer_domain,view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_queue,manage_quarantine,manage_archive,manage_settings,manage_domains,manage_server,manage_roles,send_through_api,provision');
+insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('serveradmin', 'Every permission, in every domain.', 1, 'administer_server,administer_domain,view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_queue,manage_quarantine,manage_archive,manage_settings,manage_domains,manage_server,manage_roles,send_through_api,provision,view_discovery,manage_discovery');
 
 insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('domainadmin', 'The accounts, mailboxes and quarantine of named domains.', 1, 'administer_domain,view_configuration,view_accounts,view_mailbox,view_quarantine,view_message_trace,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_quarantine');
 
 insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('helpdesk', 'Resets a password, unlocks an account and reads a message trace.', 1, 'view_accounts,view_message_trace,reset_password,unlock_account');
 
-insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('auditor', 'Reads everything and changes nothing, the audit trail included.', 1, 'view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit');
+insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('auditor', 'Reads everything and changes nothing, the audit trail included.', 1, 'view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit,view_discovery');
 
 create table hm_signins
 (
@@ -2885,4 +2885,85 @@ ALTER TABLE hm_smimeissued ENGINE=InnoDB;
 
 ALTER TABLE hm_smimeissued ADD CONSTRAINT fk_hm_smimeissued_ca FOREIGN KEY (issuedcaid) REFERENCES hm_smimeca (caid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6096);
+create table hm_discoverycases
+(
+	caseid int auto_increment not null, primary key(`caseid`), unique(`caseid`),
+	casename varchar(255) not null,
+	casedescription varchar(1000) not null,
+	casestate int not null,
+	casecreatedby varchar(255) not null,
+	casecreated bigint not null,
+	caseclosedby varchar(255) not null,
+	caseclosed bigint not null
+) DEFAULT CHARSET=utf8;
+
+ALTER TABLE hm_discoverycases ENGINE=InnoDB;
+
+create table hm_discoverysearches
+(
+	searchid int auto_increment not null, primary key(`searchid`), unique(`searchid`),
+	searchcaseid int not null,
+	searchquery text not null,
+	searchranby varchar(255) not null,
+	searchran bigint not null,
+	searchfinished bigint not null,
+	searchstate int not null,
+	searchscanned int not null,
+	searchmatched int not null,
+	searchunsearched int not null,
+	searchtruncated int not null,
+	searcherror varchar(1000) not null,
+	searchresultfile varchar(255) not null
+) DEFAULT CHARSET=utf8;
+
+CREATE INDEX idx_hm_discoverysearches_case ON hm_discoverysearches (searchcaseid);
+
+ALTER TABLE hm_discoverysearches ENGINE=InnoDB;
+
+ALTER TABLE hm_discoverysearches ADD CONSTRAINT fk_hm_discoverysearches_case FOREIGN KEY (searchcaseid) REFERENCES hm_discoverycases (caseid) ON DELETE CASCADE;
+
+create table hm_discoveryholds
+(
+	holdid int auto_increment not null, primary key(`holdid`), unique(`holdid`),
+	holdcaseid int not null,
+	holdscope int not null,
+	holdownerid bigint not null,
+	holdname varchar(255) not null,
+	holdplacedby varchar(255) not null,
+	holdplaced bigint not null,
+	holdreleasedby varchar(255) not null,
+	holdreleased bigint not null
+) DEFAULT CHARSET=utf8;
+
+CREATE INDEX idx_hm_discoveryholds_case ON hm_discoveryholds (holdcaseid);
+
+CREATE INDEX idx_hm_discoveryholds_owner ON hm_discoveryholds (holdscope, holdownerid);
+
+ALTER TABLE hm_discoveryholds ENGINE=InnoDB;
+
+ALTER TABLE hm_discoveryholds ADD CONSTRAINT fk_hm_discoveryholds_case FOREIGN KEY (holdcaseid) REFERENCES hm_discoverycases (caseid) ON DELETE CASCADE;
+
+create table hm_discoveryexports
+(
+	exportid int auto_increment not null, primary key(`exportid`), unique(`exportid`),
+	exportcaseid int not null,
+	exportsearchid int not null,
+	exportstate int not null,
+	exportfile varchar(255) not null,
+	exportsize bigint not null,
+	exportsha256 varchar(64) not null,
+	exportitems int not null,
+	exportwithheld int not null,
+	exportrequestedby varchar(255) not null,
+	exportrequested bigint not null,
+	exportfinished bigint not null,
+	exporterror varchar(1000) not null
+) DEFAULT CHARSET=utf8;
+
+CREATE INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (exportcaseid);
+
+ALTER TABLE hm_discoveryexports ENGINE=InnoDB;
+
+ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE;
+
+insert into hm_dbversion values (6097);

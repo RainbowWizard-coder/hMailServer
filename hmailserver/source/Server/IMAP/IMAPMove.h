@@ -28,5 +28,12 @@ namespace HM
    private:
 
       std::vector<unsigned int> moved_message_uids_;
+
+      // Whether any message of this command went to a folder outside the
+      // account it came from - a public folder, or another account's folder
+      // shared under #Users. Such a move takes the message out of the mailbox,
+      // so a legal hold on that mailbox keeps a copy of the original
+      // (docs/Discovery.md).
+      bool left_the_account_ = false;
    };
 }

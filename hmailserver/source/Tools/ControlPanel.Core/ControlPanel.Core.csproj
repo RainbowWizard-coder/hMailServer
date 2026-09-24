@@ -26,6 +26,12 @@
     <!-- The suppression list's two JSON documents, read into rows. No WPF, so the
          tests can pin the shape BounceTracker writes. -->
     <Compile Include="..\ControlPanel\Services\SuppressionListReport.cs" />
+    <!-- The Discovery page's reading of the REST API: the cases, a case's rows of
+         the audit trail (so the audit trail's own reader is here with it), and
+         where the listener is. No WPF and no network, so the tests can pin the
+         shape RestApiDiscovery writes and the listener's own address rules. -->
+    <Compile Include="..\ControlPanel\Services\AuditTrailReport.cs" />
+    <Compile Include="..\ControlPanel\Services\DiscoveryReport.cs" />
     <!-- Settings search index: plain data plus a search function, no WPF, so the
          tests can verify it still matches the settings pages. -->
     <Compile Include="..\ControlPanel\Services\SettingsSearchIndex.cs" />

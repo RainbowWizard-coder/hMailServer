@@ -167,6 +167,11 @@ Writing, changing or removing a rule is on the audit trail, because
 * **It is not the archive.** `ArchiveDir` and `ArchiveDomains` keep files on this
   server; a journal rule sends mail elsewhere. Neither replaces the other, and
   turning one on does not turn the other off.
+* **It is not eDiscovery.** Finding the mail of some people that mentions some
+  words, holding it against deletion and exporting it is a case's
+  ([Discovery.md](Discovery.md)): a case searches the mailboxes, their deleted
+  items and the archive on this server, and a journal copy has left it. A
+  journal address that is a mailbox here is searched like any other custodian.
 * **It is not an account's forwarding.** A forward is the account holder's, and
   can deliver *instead of* the mailbox. A journal copy is the administrator's,
   and never changes what the mailbox gets.

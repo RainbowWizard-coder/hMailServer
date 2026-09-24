@@ -1884,6 +1884,9 @@
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
     <value>スケジュールが設定されているかどうか判断できません: このコンピューターに hMailServer.ini が見つかりませんでした。サーバー自身で ScheduledBackupTime と ScheduledBackupIntervalMinutes を確認してください。</value>
   </data>
+  <data name="Case" xml:space="preserve">
+    <value>ケース</value>
+  </data>
   <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
     <value>1 回の IMAP SEARCH または SORT に対する上限で、検索の開始時点から計測します。非常に大きなメールボックスを検索する 1 つのクライアントが接続を無期限に占有できないようにするためです。大きなメールボックスを持つユーザーから、検索が失敗する、何も返らないという報告があれば、引き上げるべきはこの 2 つです。どちらか一方だけを 0 にして無効にすることもできます。</value>
   </data>
@@ -2153,6 +2156,9 @@
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>受信者リストを閉じる</value>
+  </data>
+  <data name="Closed" xml:space="preserve">
+    <value>クローズ済み</value>
   </data>
   <data name="Closes a listener" xml:space="preserve">
     <value>リスナーを閉じる</value>
@@ -3149,6 +3155,12 @@
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>TLS で配信する前に、受信者の MTA-STS ポリシーを検出して強制します (RFC 8461)。自分のドメインのポリシーを公開するには、Web サービスと自動設定ページを参照してください。</value>
   </data>
+  <data name="Discovery" xml:space="preserve">
+    <value>電子情報開示</value>
+  </data>
+  <data name="Discovery cases" xml:space="preserve">
+    <value>電子情報開示のケース</value>
+  </data>
   <data name="Disk space" xml:space="preserve">
     <value>ディスク領域</value>
   </data>
@@ -3271,6 +3283,9 @@
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>リリースが見つかったら直ちにインストーラーをダウンロードして検証する</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>ダウンロード済み</value>
   </data>
   <data name="Draining" xml:space="preserve">
     <value>ドレイン中</value>
@@ -3689,11 +3704,17 @@
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>有効期限をここから読み取れません: 証明書ファイルはサーバー上にあり、このコントロールパネルはサーバーにリモート接続しています。このページのそれ以外の項目は COM 経由で取得しており、正確です。</value>
   </data>
+  <data name="Export" xml:space="preserve">
+    <value>エクスポート</value>
+  </data>
   <data name="Export everythin_g..." xml:space="preserve">
     <value>すべてをエクスポート(_G)...</value>
   </data>
   <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
     <value>{0} 件のメッセージとサーバーが保持するその他すべてを {1} にエクスポートしました。</value>
+  </data>
+  <data name="Exports" xml:space="preserve">
+    <value>エクスポート一覧</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>/metrics でドメインごとのメッセージ カウンターを公開する</value>
@@ -4087,6 +4108,9 @@
   </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>キャッシュごとのヒット率と使用中メモリ</value>
+  </data>
+  <data name="Hold" xml:space="preserve">
+    <value>保留</value>
   </data>
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>拒否した接続を切断するまで開いたまま保持する (秒、0 = 直ちに切断)</value>
@@ -4686,6 +4710,9 @@
   </data>
   <data name="Live counters and charts for processed mail, spam, viruses and sessions." xml:space="preserve">
     <value>処理したメール、スパム、ウイルス、セッションのライブ カウンターとグラフ。</value>
+  </data>
+  <data name="Live holds" xml:space="preserve">
+    <value>有効な保留</value>
   </data>
   <data name="Live logs" xml:space="preserve">
     <value>ライブ ログ</value>
@@ -5466,6 +5493,9 @@
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>ブロックされた送信者が定義されていないため、何も一致しません。このリストにはオン/オフのスイッチがなく、空のリストがオフの状態です。</value>
   </data>
+  <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
+    <value>開かれたケースはありません。ケースは Control Deck で開きます。</value>
+  </data>
   <data name="No certificate assigned" xml:space="preserve">
     <value>証明書が割り当てられていません</value>
   </data>
@@ -6006,6 +6036,9 @@
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>上のユーザー名と組み合わせた場合にのみ使用されます</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>オープン</value>
+  </data>
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>「API と監視」を開く — REST リスナーのポートと TLS の設定はそこにあります</value>
   </data>
@@ -6125,6 +6158,12 @@
   </data>
   <data name="OpenTelemetry service name" xml:space="preserve">
     <value>OpenTelemetry のサービス名</value>
+  </data>
+  <data name="Opened" xml:space="preserve">
+    <value>開始日時</value>
+  </data>
+  <data name="Opened by" xml:space="preserve">
+    <value>開始者</value>
   </data>
   <data name="Opened {0}" xml:space="preserve">
     <value>{0} を開きました</value>
@@ -6766,6 +6805,9 @@
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>メッセージを読み取り</value>
+  </data>
+  <data name="Read the cases again" xml:space="preserve">
+    <value>ケースを再読み込み</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>読み取り専用。{0} に期限切れになります。</value>
@@ -7824,6 +7866,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
     <value>SearchBase (または UserDnTemplate を指定すると検索せずに直接バインド)</value>
   </data>
+  <data name="Searches" xml:space="preserve">
+    <value>検索一覧</value>
+  </data>
   <data name="Searching " xml:space="preserve">
     <value>検索中</value>
   </data>
@@ -8322,6 +8367,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>エイリアスにも署名する(_T)</value>
+  </data>
+  <data name="Sign in to a server first." xml:space="preserve">
+    <value>まずサーバーにサインインしてください。</value>
   </data>
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>hMailServer の管理者資格情報でサインインしてください。</value>
@@ -8898,6 +8946,27 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>OAuth2 設定を読み取れませんでした: {0}</value>
   </data>
+  <data name="The REST API answered {0}." xml:space="preserve">
+    <value>REST API の応答: {0}。</value>
+  </data>
+  <data name="The REST API answered {0}: {1}" xml:space="preserve">
+    <value>REST API の応答: {0}: {1}</value>
+  </data>
+  <data name="The REST API at {0} could not be reached: {1}" xml:space="preserve">
+    <value>{0} の REST API に接続できませんでした: {1}</value>
+  </data>
+  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server." xml:space="preserve">
+    <value>REST API は動作していません。暗号化なしの HTTP は 127.0.0.1 または ::1 でのみ提供され、{0} で待ち受けるには RestApiCertificateFile と RestApiPrivateKeyFile、またはこのサーバーに発行された ACME 証明書が必要です。</value>
+  </data>
+  <data name="The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck." xml:space="preserve">
+    <value>REST API はオフです (RestApiPort は {0})。このページはケースを REST API 経由で読み取ります。[設定] で有効にするか、Control Deck でケースを確認してください。</value>
+  </data>
+  <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Read the cases in the Control Deck on the server." xml:space="preserve">
+    <value>REST API は {0} でのみ待ち受けており、別のマシン上のコントロールパネルからは到達できません。サーバー上の Control Deck でケースを確認してください。</value>
+  </data>
+  <data name="The REST API refused the credential this Control Panel signed in with." xml:space="preserve">
+    <value>REST API は、このコントロールパネルがサインインに使用した資格情報を拒否しました。</value>
+  </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
     <value>外部の監視システムが読み取る REST API、Prometheus メトリクス、ヘルス エンドポイント。</value>
   </data>
@@ -8934,6 +9003,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>各プロトコルが待ち受けるアドレスとポート、およびそれぞれで使う接続セキュリティ。</value>
   </data>
+  <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
+    <value>管理者には第 2 要素が設定されており、REST API はパスワードによるすべての要求でワンタイム コードを求めますが、このページはそれを送信しません。Control Deck でケースを確認してください。</value>
+  </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>管理者パスワードと 2 要素認証は管理アクセス ページにあります。</value>
   </data>
@@ -8961,6 +9033,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>添付ファイルは置き換えられ、メッセージは配信されます。このアクションにはどちらの通知設定も適用されません — サーバーが「メッセージ削除」通知を送るのは、アクションがメッセージの削除である場合だけです。</value>
   </data>
+  <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
+    <value>監査ログの行を表示するには view_audit も必要ですが、この資格情報には付与されていません。</value>
+  </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>authserv-id: このサーバーが書くすべての Authentication-Results ヘッダーの最初のトークンで、常に小文字です。下流のフィルターが判定を信頼する前に確認する名前です。同じ名前が、到着した Authentication-Results ヘッダーのどれを偽造として扱うかも決めます。この ID を名乗るものは削除され、他の ID を名乗るものはまったく手を付けられません。</value>
   </data>
@@ -8987,6 +9062,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>組み込みの接続性と設定のチェック、および直近のメッセージ ストア整合性スキャン。</value>
+  </data>
+  <data name="The case's lines on the audit trail" xml:space="preserve">
+    <value>このケースの監査ログの行</value>
   </data>
   <data name="The certificate &quot;{0}&quot; expired {1}{2} ago{3}" xml:space="preserve">
     <value>証明書 "{0}" は {1}{2} 前に期限切れになりました{3}</value>
@@ -9106,6 +9184,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>ドメイン リストにドメイン名が含まれていません。キーをすべてのドメインに作用させるには、ボックスを空のままにしてください。区切り文字だけのリストは黙って同じ意味になりますが、それはあなたが求めたものではありません。</value>
+  </data>
+  <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
+    <value>電子情報開示のケース (読み取り専用): 各ケースの検索、保留、エクスポートと、監査ログに記録されたそのケースのすべての行。ケースの作成、検索、保留、エクスポートは Control Deck で行います。</value>
   </data>
   <data name="The effective timeout moves between these values with server load." xml:space="preserve">
     <value>実効タイムアウトは、サーバーの負荷に応じてこれらの値の間で変動します。</value>
@@ -12074,6 +12155,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0} app passwords." xml:space="preserve">
     <value>アプリ パスワード {0} 件。</value>
+  </data>
+  <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
+    <value>{0} 件のケース。ケースを選択すると監査ログの行が表示されます。</value>
   </data>
   <data name="{0} change(s) carried out, none failed." xml:space="preserve">
     <value>{0} 件の変更を実行し、失敗はありませんでした。</value>

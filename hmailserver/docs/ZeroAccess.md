@@ -54,7 +54,13 @@ lost password has been ticked. In full:
   (a copy-on-write filesystem, a snapshot or an SSD's wear levelling may keep them).
   The queue file is deleted as every queue file is, not overwritten; the account's
   copy is overwritten the same way when a seal fails and the delivery is refused.
-  Nothing of the plaintext is written to any log.
+  Under a legal hold ([Discovery.md](Discovery.md)) a message the account's own filter
+  drops - a rule's Delete, a Sieve discard or reject, a forward that keeps no copy, the
+  spam delete threshold - is kept among its deleted items instead: that copy is made
+  in the recoverable store and sealed there at once, its plaintext overwritten the same
+  way, and one that cannot be sealed is not kept in the clear: the message goes on to
+  the mailbox as if nothing had dropped it, sealed there as any delivery is, or
+  refused as above when it cannot be. Nothing of the plaintext is written to any log.
 * **Only what is delivered is sealed, and the Sent copy.** A message sent from the
   webmail leaves this server in the clear for its recipients, as any message does, and
   the copy filed in the sender's own Sent folder is sealed to the mailbox key on the

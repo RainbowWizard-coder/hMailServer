@@ -41,6 +41,7 @@
 #include "../Sieve/SieveStorage.h"
 #include "../AntiSpam/DKIM/DkimRotation.h"
 #include "../Util/ImpersonationCheck.h"
+#include "../Util/DiscoveryHolds.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -407,6 +408,16 @@ namespace HM
    {
       __int64 iDomainID = pDomain->GetID();
       HM_ASSERT(iDomainID);
+
+      // A legal hold on the domain, or on any account in it, forbids deleting
+      // the domain with everything in it (docs/Discovery.md): refused before
+      // anything is touched, so that no account of it is deleted first and the
+      // domain left half gone.
+      if (iDomainID > 0 && DiscoveryHolds::IsDomainOrAnyAccountHeld(iDomainID))
+      {
+         LOG_APPLICATION(DiscoveryHolds::DeleteDomainRefusal(pDomain->GetName()));
+         return false;
+      }
 
       // The impersonation check's memory of the hosted names and of this
       // domain's people and partners is stale from here on.

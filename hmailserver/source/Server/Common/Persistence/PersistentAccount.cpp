@@ -29,6 +29,7 @@
 #include "../Util/AddressBookStore.h"
 #include "../Util/CompromiseDetector.h"
 #include "../Util/OrganisationCa.h"
+#include "../Util/DiscoveryHolds.h"
 #include "PersistenceMode.h"
 
 #include "../Util/File.h"
@@ -87,6 +88,19 @@ namespace HM
 
       if (iID <= 0)
          return false;
+
+      // A legal hold on the account, or on its domain, forbids the deletion of
+      // everything in it (docs/Discovery.md): refused before anything is
+      // touched, and said, whichever interface asked. REST and COM ask first,
+      // so that the caller hears the sentence; this is what holds when a path
+      // nobody thought of reaches here. The one exception is a request undoing
+      // an account it made a moment before (DiscoveryHolds::UndoingCreation),
+      // which nothing was ever in.
+      if (!DiscoveryHolds::UndoingCreation::Active() && DiscoveryHolds::IsAccountHeld(iID))
+      {
+         LOG_APPLICATION(DiscoveryHolds::DeleteAccountRefusal(pAccount->GetAddress()));
+         return false;
+      }
 
       // Drop any pending-upgrade flag for this id. Account ids are not reused by the
       // identity columns in practice, but a flag naming a deleted account is dead
@@ -451,6 +465,17 @@ namespace HM
       if (!pAccount || pAccount->GetID() == 0)
          return false;
 
+      // Every message at once - Account.DeleteMessages over COM, DELETE
+      // /api/v1/accounts/{address}/messages over REST - is refused for an account
+      // under a legal hold (docs/Discovery.md). DeleteObject above refuses first,
+      // so an account's own deletion never reaches here held - but for the
+      // undoing of an account this request has just made, which it lets by.
+      if (!DiscoveryHolds::UndoingCreation::Active() && DiscoveryHolds::IsAccountHeld(pAccount->GetID()))
+      {
+         LOG_APPLICATION(DiscoveryHolds::DeleteMessagesRefusal(pAccount->GetAddress()));
+         return false;
+      }
+
       PersistentIMAPFolder::DeleteByAccount(pAccount->GetID());
       
       Cache<Account>::Instance()->RemoveObject(pAccount);
@@ -680,7 +705,16 @@ namespace HM
                // the rollback failed too, even though what was left was an account with
                // no inbox, which authenticates perfectly well and can never be
                // delivered to.
-               if (!PersistentAccount::DeleteObject(pAccount))
+               //
+               // Undoing this request's own creation: a hold on the domain does
+               // not keep an account nothing was ever in (DiscoveryHolds.h).
+               bool undone = false;
+               {
+                  DiscoveryHolds::UndoingCreation undoing;
+                  undone = PersistentAccount::DeleteObject(pAccount);
+               }
+
+               if (!undone)
                {
                   ErrorManager::Instance()->ReportError(ErrorManager::High, 6108, "PersistentAccount::SaveObject",
                      Formatter::Format("The inbox for account {0} could not be created and the account could not be removed again, so an account now exists that cannot receive mail. It should be deleted by hand.",

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
+using System.Text;
 using System.Threading;
 using static hMailServer.ControlPanel.Services.Loc;
 
@@ -89,6 +90,27 @@ namespace hMailServer.ControlPanel.Services
          => Permissions == null || string.IsNullOrEmpty(permission) ||
             Permissions.Contains("administer_server") || Permissions.Contains(permission);
       public bool IsConnected => app_ != null;
+
+      /// <summary>
+      /// The HTTP Basic credential for the server's REST API: the user name and
+      /// password this session signed in with, which the REST API answers to as
+      /// the COM API does (RestApiServer::Authenticate_). Null before a sign-in.
+      /// Made on each call and never kept, for the one page that reads what has no
+      /// COM surface - the Discovery page. It carries no one-time code: a second
+      /// factor's code is spent on the sign-in, and the REST API asks for a fresh
+      /// one with every request made with the password, which that page says.
+      /// </summary>
+      public string RestAuthorization()
+      {
+         lock (gate_)
+         {
+            if (password_ == null || string.IsNullOrEmpty(UserName))
+               return null;
+
+            string pair = UserName + ":" + password_.Reveal();
+            return "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(pair)); // no-loc
+         }
+      }
 
       /// <summary>Raised after the session has healed itself, so the shell can
       /// tell the user and refresh whatever page is on screen.</summary>

@@ -121,6 +121,7 @@
 #include "../Persistence/PersistentAccount.h"
 #include "../Persistence/PersistentAppPassword.h"
 #include "SignInStore.h"
+#include "DiscoveryHolds.h"
 #include "../Persistence/PersistentACLPermission.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Tracking/ChangeNotification.h"
@@ -1399,7 +1400,11 @@ namespace
 
    HttpResponse DeleteAccountMessages(const Bridge &bridge, std::shared_ptr<Account> account)
    {
-      // Account.DeleteMessages over COM, to the call.
+      // Account.DeleteMessages over COM, to the call - which a legal hold
+      // refuses, and the caller is told so (docs/Discovery.md).
+      if (DiscoveryHolds::IsAccountHeld(account->GetID()))
+         return Refusal(bridge, 409, DiscoveryHolds::DeleteMessagesRefusal(account->GetAddress()));
+
       if (!PersistentAccount::DeleteMessages(account))
          return Refusal(bridge, 500, "the messages could not be deleted; see the error log");
 

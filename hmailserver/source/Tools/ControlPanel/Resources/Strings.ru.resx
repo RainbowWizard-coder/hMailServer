@@ -1884,6 +1884,9 @@ Control Panel может читать файлы сообщений только
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
     <value>Определить, настроено ли расписание, нельзя: файл hMailServer.ini на этом компьютере не найден. Проверьте ScheduledBackupTime и ScheduledBackupIntervalMinutes на самом сервере.</value>
   </data>
+  <data name="Case" xml:space="preserve">
+    <value>Дело</value>
+  </data>
   <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
     <value>Верхние границы для одного IMAP SEARCH или SORT, отсчитываемые от начала поиска, чтобы один клиент, ищущий в очень большом почтовом ящике, не занимал подключение бесконечно. Если пользователи с большими почтовыми ящиками жалуются, что поиск завершается ошибкой или ничего не возвращает, поднимать нужно именно эти два значения. Любую из половин можно отключить по отдельности, задав ей 0.</value>
   </data>
@@ -2153,6 +2156,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Закрыть список получателей</value>
+  </data>
+  <data name="Closed" xml:space="preserve">
+    <value>Закрыто</value>
   </data>
   <data name="Closes a listener" xml:space="preserve">
     <value>Закрывает прослушивающую службу</value>
@@ -3149,6 +3155,12 @@ Control Panel может читать файлы сообщений только
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>Обнаруживает и применяет политики MTA-STS получателя перед доставкой по TLS (RFC 8461). Чтобы опубликовать политику для своих доменов, откройте страницу «Веб-службы и автоконфигурация».</value>
   </data>
+  <data name="Discovery" xml:space="preserve">
+    <value>eDiscovery</value>
+  </data>
+  <data name="Discovery cases" xml:space="preserve">
+    <value>Дела eDiscovery</value>
+  </data>
   <data name="Disk space" xml:space="preserve">
     <value>Дисковое пространство</value>
   </data>
@@ -3271,6 +3283,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Загружать и проверять установщик, как только найден выпуск</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>Скачано</value>
   </data>
   <data name="Draining" xml:space="preserve">
     <value>Дренаж</value>
@@ -3689,11 +3704,17 @@ Control Panel может читать файлы сообщений только
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Срок действия отсюда прочитать нельзя: файлы сертификата находятся на сервере, а этот Control Panel подключён к нему удалённо. Всё остальное на этой странице приходит по COM и является достоверным.</value>
   </data>
+  <data name="Export" xml:space="preserve">
+    <value>Экспорт</value>
+  </data>
   <data name="Export everythin_g..." xml:space="preserve">
     <value>Экспортировать вс_ё...</value>
   </data>
   <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
     <value>Экспортировано сообщений: {0} и всё остальное, что хранит сервер, в {1}.</value>
+  </data>
+  <data name="Exports" xml:space="preserve">
+    <value>Экспорты</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>Отдавать в /metrics счётчики сообщений по каждому домену</value>
@@ -4087,6 +4108,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Доля попаданий и объём используемой памяти по каждому кэшу</value>
+  </data>
+  <data name="Hold" xml:space="preserve">
+    <value>Удержание</value>
   </data>
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>Удерживать отклонённое соединение открытым перед разрывом (секунды, 0 — разрывать сразу)</value>
@@ -4686,6 +4710,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Live counters and charts for processed mail, spam, viruses and sessions." xml:space="preserve">
     <value>Счётчики и графики в реальном времени по обработанной почте, спаму, вирусам и сеансам.</value>
+  </data>
+  <data name="Live holds" xml:space="preserve">
+    <value>Действующие удержания</value>
   </data>
   <data name="Live logs" xml:space="preserve">
     <value>Журналы в реальном времени</value>
@@ -5466,6 +5493,9 @@ Control Panel может читать файлы сообщений только
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Заблокированные отправители не заданы, поэтому ничего не сопоставляется. У списка нет переключателя вкл/выкл — пустой список и есть выключенное состояние.</value>
   </data>
+  <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
+    <value>Ни одно дело не открыто. Дела открываются в Control Deck.</value>
+  </data>
   <data name="No certificate assigned" xml:space="preserve">
     <value>Сертификат не назначен</value>
   </data>
@@ -6006,6 +6036,9 @@ Control Panel может читать файлы сообщений только
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Используется только вместе с указанным выше именем пользователя</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>Открыто</value>
+  </data>
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Открыть «API и мониторинг», где находятся параметры порта и TLS прослушивателя REST</value>
   </data>
@@ -6125,6 +6158,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="OpenTelemetry service name" xml:space="preserve">
     <value>Имя службы OpenTelemetry</value>
+  </data>
+  <data name="Opened" xml:space="preserve">
+    <value>Дата открытия</value>
+  </data>
+  <data name="Opened by" xml:space="preserve">
+    <value>Кто открыл</value>
   </data>
   <data name="Opened {0}" xml:space="preserve">
     <value>Открыто: {0}</value>
@@ -6766,6 +6805,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>Читать сообщения</value>
+  </data>
+  <data name="Read the cases again" xml:space="preserve">
+    <value>Перечитать дела</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Только чтение. Истекает {0}.</value>
@@ -7824,6 +7866,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
     <value>SearchBase (или UserDnTemplate, чтобы выполнять привязку напрямую, без поиска)</value>
   </data>
+  <data name="Searches" xml:space="preserve">
+    <value>Поиски</value>
+  </data>
   <data name="Searching " xml:space="preserve">
     <value>Идёт поиск </value>
   </data>
@@ -8322,6 +8367,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>_Подписывать также и псевдонимы</value>
+  </data>
+  <data name="Sign in to a server first." xml:space="preserve">
+    <value>Сначала войдите на сервер.</value>
   </data>
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Войдите с учётными данными администратора hMailServer.</value>
@@ -8898,6 +8946,27 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>Не удалось прочитать параметры OAuth2: {0}</value>
   </data>
+  <data name="The REST API answered {0}." xml:space="preserve">
+    <value>REST API ответил {0}.</value>
+  </data>
+  <data name="The REST API answered {0}: {1}" xml:space="preserve">
+    <value>REST API ответил {0}: {1}</value>
+  </data>
+  <data name="The REST API at {0} could not be reached: {1}" xml:space="preserve">
+    <value>Не удалось подключиться к REST API по адресу {0}: {1}</value>
+  </data>
+  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server." xml:space="preserve">
+    <value>REST API не запущен: обычный HTTP он обслуживает только на 127.0.0.1 или ::1, а для прослушивания на {0} нужны RestApiCertificateFile и RestApiPrivateKeyFile или сертификат ACME, выданный этому серверу.</value>
+  </data>
+  <data name="The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck." xml:space="preserve">
+    <value>REST API выключен (RestApiPort равен {0}), а эта страница читает дела через него. Включите его в разделе «Параметры» или читайте дела в Control Deck.</value>
+  </data>
+  <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Read the cases in the Control Deck on the server." xml:space="preserve">
+    <value>REST API слушает только {0}, куда Control Panel на другом компьютере не достанет. Читайте дела в Control Deck на сервере.</value>
+  </data>
+  <data name="The REST API refused the credential this Control Panel signed in with." xml:space="preserve">
+    <value>REST API отклонил учётные данные, с которыми вошёл этот Control Panel.</value>
+  </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
     <value>REST API, метрики Prometheus и конечные точки работоспособности, которые читает внешняя система мониторинга.</value>
   </data>
@@ -8934,6 +9003,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Адреса и порты, которые слушает каждый протокол, и защита подключения, используемая на каждом из них.</value>
   </data>
+  <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
+    <value>У администратора есть второй фактор, и REST API требует одноразовый код при каждом запросе с паролем, а эта страница его не отправляет. Читайте дела в Control Deck.</value>
+  </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Пароль администратора и двухфакторная аутентификация находятся на странице «Административный доступ».</value>
   </data>
@@ -8961,6 +9033,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Вложения заменяются, и сообщение доставляется. Ни один из параметров уведомления к этому действию не относится — уведомление «сообщение удалено» сервер отправляет только тогда, когда действием является удаление сообщения.</value>
   </data>
+  <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
+    <value>Для строк журнала аудита нужно также view_audit, которого у этих учётных данных нет.</value>
+  </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>authserv-id: первый токен каждого заголовка Authentication-Results, который пишет этот сервер, всегда в нижнем регистре, — и то имя, которое проверяет фильтр дальше по цепочке, прежде чем доверять вердиктам. Это же имя решает, какие приходящие заголовки Authentication-Results считаются поддельными: заголовок, заявляющий это удостоверение, удаляется, а заголовок, называющий любое другое удостоверение, остаётся совершенно нетронутым.</value>
   </data>
@@ -8987,6 +9062,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>Встроенные проверки связи и конфигурации, а также последняя проверка целостности хранилища сообщений.</value>
+  </data>
+  <data name="The case's lines on the audit trail" xml:space="preserve">
+    <value>Строки дела в журнале аудита</value>
   </data>
   <data name="The certificate &quot;{0}&quot; expired {1}{2} ago{3}" xml:space="preserve">
     <value>Срок действия сертификата «{0}» истёк {1}{2} назад{3}</value>
@@ -9106,6 +9184,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>В списке доменов нет ни одного имени домена. Оставьте поле пустым, чтобы ключ действовал на каждый домен - список из одних разделителей молча означал бы то же самое, а это не то, о чём вы просили.</value>
+  </data>
+  <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
+    <value>Дела eDiscovery, только для чтения: поиски, удержания и экспорты каждого дела и каждая строка журнала аудита о нём. В Control Deck дело открывают, выполняют по нему поиск, ставят удержания и делают экспорт.</value>
   </data>
   <data name="The effective timeout moves between these values with server load." xml:space="preserve">
     <value>Действующий тайм-аут перемещается между этими значениями в зависимости от нагрузки на сервер.</value>
@@ -12074,6 +12155,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} app passwords." xml:space="preserve">
     <value>Паролей приложений: {0}.</value>
+  </data>
+  <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
+    <value>Дел: {0}. Выберите одно, чтобы увидеть его строки в журнале аудита.</value>
   </data>
   <data name="{0} change(s) carried out, none failed." xml:space="preserve">
     <value>Выполнено изменений: {0}, ни одно не завершилось ошибкой.</value>

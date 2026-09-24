@@ -116,6 +116,23 @@ namespace HM
       // in either form, wins over the domain's.
       void SendDomainAutoReplyMessage_(std::shared_ptr<const Account> pAccount, std::shared_ptr<Message> pMessage, bool messageIsSpamForThisAccount);
       bool RunAccountRules_(std::shared_ptr<const Account> pAccount, std::shared_ptr<Message> pMessage, RuleResult &accountRuleResult);
+
+      // The copy an account's own filter is about to drop - a rule's Delete or
+      // Reject, a Sieve discard, reject or redirect that keeps nothing, a
+      // forward that keeps no copy, the account's spam delete threshold - kept
+      // among the account's deleted items instead when a legal hold covers the
+      // account (docs/Discovery.md), and the log says so. For a zero-access
+      // mailbox the kept copy is sealed to its key first, as the mailbox would
+      // have held it; the copy is never kept in the clear. The copy is still not
+      // delivered to the mailbox: what the filter decided stands, and what it
+      // would have destroyed is what the hold keeps.
+      //
+      // True when the drop may go ahead: no hold covers the account, or the
+      // copy was kept. False when a hold covers it and the copy could not be
+      // kept: the caller then delivers the message instead of dropping it,
+      // since a hold outranks the filter, and the log says that too.
+      bool KeepHeldCopy_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message, const String &dropped);
+
       bool CheckAccountQuotas_(std::shared_ptr<const Account> pAccount, std::vector<DeliveryFailure> &saErrorMessages, bool suppressFailureDsn);
 
       // Evaluates the recipient account's active Sieve script (if any) against the

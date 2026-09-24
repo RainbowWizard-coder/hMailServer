@@ -23,6 +23,7 @@
 #include "../SQL/SQLStatement.h"
 #include "../Sieve/SieveStorage.h"
 #include "../Util/AuditTrail.h"
+#include "../Util/DiscoveryHolds.h"
 #include "../Util/StorePath.h"
 #include "../Util/Time.h"
 #include "../Util/Unicode.h"
@@ -278,6 +279,22 @@ namespace HM
       if (targetDomain->GetID() != oldDomainID && !targetDomain->GetIsActive())
       {
          errorMessage = Formatter::Format("The domain {0} is not active. A mailbox moved into it could not receive mail.", newDomainName);
+         return false;
+      }
+
+      // A legal hold on the account, or on the domain it is in, refuses a move
+      // to another domain (docs/Discovery.md). A domain hold is kept by the
+      // domain's id and holds the accounts that are in the domain, so an
+      // account moved out of it would leave its hold behind - and could then be
+      // deleted, expunged without a copy and swept by retention. Refused for
+      // an account-scope hold as well, which would survive the move: a held
+      // mailbox stays where the case found it until the hold is released. A
+      // rename inside the domain goes ahead, since both kinds of hold stay
+      // with it. Every door comes through here: REST, COM's Account.Move and
+      // Utilities.MoveMailbox, SCIM's rename and Account.Address saved.
+      if (targetDomain->GetID() != oldDomainID && DiscoveryHolds::IsAccountHeld(account->GetID()))
+      {
+         errorMessage = DiscoveryHolds::MoveRefusal(oldAddress, newDomainName);
          return false;
       }
 

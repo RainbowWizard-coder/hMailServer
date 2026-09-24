@@ -38,6 +38,7 @@
 
 #include "../SQL/DatabaseUnavailableMarker.h"
 #include "../AntiSpam/DKIM/DkimRotation.h"
+#include "../Util/DiscoveryHolds.h"
 
 #include "../../IMAP/IMAPConfiguration.h"
 
@@ -164,7 +165,28 @@ namespace HM
    }
 
    static bool
-   CopyTree_(const boost::filesystem::path &from, const boost::filesystem::path &to, TreeCopyOutcome &outcome)
+   IsKeptOutOfBackup_(const boost::filesystem::path &directory)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The directories at the data directory's root that a backup does not carry
+   // and a restore neither deletes nor puts back: the recoverable store
+   // (docs/RecoverDeleted.md) and the eDiscovery cases' results and exports
+   // (docs/Discovery.md). Each is indexed by tables the XML backup does not hold
+   // - hm_recoverable, and the four discovery tables - and that a restore leaves
+   // as they are, so a backup's copy is files no row names, and a restore that
+   // replaced them would leave live rows naming files that are gone: a case's
+   // results and exports, and what a legal hold kept. An export is a copy of
+   // the custodians' mail of up to 4 GB besides, and a backup that carried every
+   // export ever made would grow with each one.
+   //---------------------------------------------------------------------------()
+   {
+      const String name(directory.filename().wstring());
+      return name.CompareNoCase(_T("Recoverable")) == 0 || name.CompareNoCase(_T("Discovery")) == 0;
+   }
+
+   static bool
+   CopyTree_(const boost::filesystem::path &from, const boost::filesystem::path &to, TreeCopyOutcome &outcome,
+             bool skipKeptOutOfBackup = false)
    {
       boost::system::error_code createError;
       boost::filesystem::create_directories(to, createError);
@@ -220,6 +242,10 @@ namespace HM
 
          if (isDirectory)
          {
+            // At the data directory's root only; see IsKeptOutOfBackup_.
+            if (skipKeptOutOfBackup && IsKeptOutOfBackup_(current))
+               continue;
+
             if (!CopyTree_(current, to / current.filename(), outcome))
                return false;
          }
@@ -234,18 +260,20 @@ namespace HM
    }
 
    static bool
-   CopyTreeGuarded_(const String &from, const String &to, TreeCopyOutcome &outcome)
+   CopyTreeGuarded_(const String &from, const String &to, TreeCopyOutcome &outcome, bool skipKeptOutOfBackup)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
    // CopyTree_ with a backstop. Every operation inside it uses an error_code
    // overload, so nothing should reach here - but the whole point of this code is
    // that an exception escaping a work-queue task terminates the process, and that
    // property must not depend on having enumerated every throwing call correctly.
+   // Both callers copy a data directory, and both leave out what
+   // IsKeptOutOfBackup_ names at its root.
    //---------------------------------------------------------------------------()
    {
       try
       {
-         return CopyTree_(boost::filesystem::path(from.c_str()), boost::filesystem::path(to.c_str()), outcome);
+         return CopyTree_(boost::filesystem::path(from.c_str()), boost::filesystem::path(to.c_str()), outcome, skipKeptOutOfBackup);
       }
       catch (boost::thread_interrupted const &)
       {
@@ -271,6 +299,45 @@ namespace HM
    DescribeCopyFailure_(const TreeCopyOutcome &outcome)
    {
       return Formatter::Format("{0} could not be copied: {1}.", outcome.failed_file, outcome.failure_detail);
+   }
+
+   static bool
+   DeleteDataDirectoriesForRestore_(const String &dataDirectory)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // FileUtilities::DeleteDirectoriesInDirectory, less what IsKeptOutOfBackup_
+   // names: every directory at the data directory's root is removed but the
+   // recoverable store and the eDiscovery cases' files. Listed first and removed
+   // after, so the listing is not walked while it changes.
+   //---------------------------------------------------------------------------()
+   {
+      std::vector<boost::filesystem::path> doomed;
+
+      boost::system::error_code iterateError;
+      for (boost::filesystem::directory_iterator file(boost::filesystem::path(dataDirectory.c_str()), iterateError);
+           !iterateError && file != boost::filesystem::directory_iterator(); ++file)
+      {
+         boost::filesystem::path current(file->path());
+
+         boost::system::error_code statusError;
+         if (boost::filesystem::is_directory(current, statusError) && !statusError && !IsKeptOutOfBackup_(current))
+            doomed.push_back(current);
+      }
+
+      for (const boost::filesystem::path &directory : doomed)
+      {
+         boost::system::error_code removeError;
+         boost::filesystem::remove_all(directory, removeError);
+
+         if (removeError)
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 5700, "BackupExecuter::DeleteDataDirectoriesForRestore_",
+               Formatter::Format("Could not delete the directory {0}: {1}.", String(directory.wstring()), String(removeError.message().c_str())));
+            return false;
+         }
+      }
+
+      return true;
    }
 
    static bool
@@ -1046,7 +1113,9 @@ namespace HM
       // DataBackup folder from an earlier run was still there.
       TreeCopyOutcome outcome;
 
-      bool bResult = CopyTreeGuarded_(sDataDir, sDataBackupDir, outcome);
+      // Without the recoverable store and the eDiscovery cases' files: see
+      // IsKeptOutOfBackup_.
+      bool bResult = CopyTreeGuarded_(sDataDir, sDataBackupDir, outcome, true);
       if (!bResult)
       {
          Logger::Instance()->LogBackup("Failed to copy data directory. Details: " + DescribeCopyFailure_(outcome));
@@ -1387,6 +1456,27 @@ namespace HM
       XNode *pBackupNode = restorer.GetBackupNode();
       int iRestoreOptions = restorer.GetRestoreOptions();
 
+      // A legal hold (docs/Discovery.md) is one of the questions with an answer
+      // before the first deletion. A restore with the domains option deletes
+      // every domain on this server - Domains::DeleteAll below, or the DeleteAll
+      // Collection::XMLLoad begins with under BackupMessagesDBOnly - and the
+      // domains go in name order, each refused while it or an account in it is
+      // held: so a hold on a domain that sorts after another used to cost that
+      // other domain everything it had, and then stop the restore with nothing
+      // put back. Refused here instead, whole, naming what is held, before
+      // anything is touched. Not in BackupRestorer::Prepare: VerifyRestore_
+      // runs that on every backup, and a backup taken under a hold is exactly
+      // the backup a case wants taken.
+      if (iRestoreOptions & Backup::BODomains)
+      {
+         String held;
+         if (DiscoveryHolds::AnyAccountOrDomainHeld(held))
+         {
+            ReportRestoreFailure_(DiscoveryHolds::RestoreRefusal(held));
+            return false;
+         }
+      }
+
       // PHASE TWO: the destructive part. From here on, a failure leaves the server
       // part-way through a restore, which is why nothing that could have been
       // checked is checked below.
@@ -1551,11 +1641,15 @@ namespace HM
       // so that we're sure that we're doing a clean restore
       String sDataDirectory = IniFileSettings::Instance()->GetDataDirectory();
 
+      // Every directory but the recoverable store and the eDiscovery cases'
+      // files, which a backup does not carry and a restore leaves where they
+      // are (IsKeptOutOfBackup_); the copy below leaves an older backup's copy
+      // of them out in the same way.
       FileUtilities::DeleteFilesInDirectory(sDataDirectory);
-      FileUtilities::DeleteDirectoriesInDirectory(sDataDirectory);
+      DeleteDataDirectoriesForRestore_(sDataDirectory);
 
       TreeCopyOutcome outcome;
-      bool copied = CopyTreeGuarded_(sDirContainingDataFiles, sDataDirectory, outcome);
+      bool copied = CopyTreeGuarded_(sDirContainingDataFiles, sDataDirectory, outcome, true);
 
       if (!copied)
       {

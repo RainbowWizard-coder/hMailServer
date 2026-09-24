@@ -1884,6 +1884,9 @@ Los detalles completos se escribieron en:
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
     <value>No se puede saber si hay una programación configurada: hMailServer.ini no se encontró en esta máquina. Compruebe ScheduledBackupTime y ScheduledBackupIntervalMinutes en el propio servidor.</value>
   </data>
+  <data name="Case" xml:space="preserve">
+    <value>Caso</value>
+  </data>
   <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
     <value>Topes para un solo IMAP SEARCH o SORT, medidos desde el inicio de la búsqueda, para que un cliente que busca en un buzón muy grande no pueda ocupar una conexión indefinidamente. Si los usuarios con buzones grandes informan de búsquedas que fallan o no devuelven nada, estos son los dos que hay que subir. Cada mitad puede desactivarse por separado poniéndola a 0.</value>
   </data>
@@ -2153,6 +2156,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Cerrar la lista de destinatarios</value>
+  </data>
+  <data name="Closed" xml:space="preserve">
+    <value>Cerrado</value>
   </data>
   <data name="Closes a listener" xml:space="preserve">
     <value>Cierra un servicio de escucha</value>
@@ -3149,6 +3155,12 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>Descubre y aplica las políticas MTA-STS de los destinatarios antes de entregar por TLS (RFC 8461). Para publicar una política para sus propios dominios, vea la página Servicios web y autoconfiguración.</value>
   </data>
+  <data name="Discovery" xml:space="preserve">
+    <value>eDiscovery</value>
+  </data>
+  <data name="Discovery cases" xml:space="preserve">
+    <value>Casos de eDiscovery</value>
+  </data>
   <data name="Disk space" xml:space="preserve">
     <value>Espacio en disco</value>
   </data>
@@ -3271,6 +3283,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Descargar y verificar el instalador en cuanto se encuentre una versión</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>Descargado</value>
   </data>
   <data name="Draining" xml:space="preserve">
     <value>Drenando</value>
@@ -3689,11 +3704,17 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>La caducidad no puede leerse desde aquí: los archivos del certificado están en el servidor y este Control Panel está conectado a él de forma remota. Todo lo demás de esta página llega por COM y es exacto.</value>
   </data>
+  <data name="Export" xml:space="preserve">
+    <value>Exportación</value>
+  </data>
   <data name="Export everythin_g..." xml:space="preserve">
     <value>E_xportar todo...</value>
   </data>
   <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
     <value>Exportados {0} mensaje(s) y todo lo demás que guarda el servidor a {1}.</value>
+  </data>
+  <data name="Exports" xml:space="preserve">
+    <value>Exportaciones</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>Exponer contadores de mensajes por dominio en /metrics</value>
@@ -4087,6 +4108,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Tasa de aciertos y memoria en uso, por caché</value>
+  </data>
+  <data name="Hold" xml:space="preserve">
+    <value>Retención</value>
   </data>
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>Mantener abierta una conexión rechazada antes de cortarla (segundos, 0 = cortar de inmediato)</value>
@@ -4686,6 +4710,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Live counters and charts for processed mail, spam, viruses and sessions." xml:space="preserve">
     <value>Contadores y gráficas en vivo de correo procesado, spam, virus y sesiones.</value>
+  </data>
+  <data name="Live holds" xml:space="preserve">
+    <value>Retenciones activas</value>
   </data>
   <data name="Live logs" xml:space="preserve">
     <value>Registros en vivo</value>
@@ -5466,6 +5493,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>No hay remitentes bloqueados definidos, así que no se compara nada. La lista no tiene interruptor de activación - una lista vacía es el estado desactivado.</value>
   </data>
+  <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
+    <value>No se ha abierto ningún caso. Los casos se abren en el Control Deck.</value>
+  </data>
   <data name="No certificate assigned" xml:space="preserve">
     <value>Ningún certificado asignado</value>
   </data>
@@ -6006,6 +6036,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Solo se usa junto con el nombre de usuario de arriba</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>Abierto</value>
+  </data>
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Abrir API y supervisión, donde están el puerto del oyente REST y sus ajustes de TLS</value>
   </data>
@@ -6125,6 +6158,12 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="OpenTelemetry service name" xml:space="preserve">
     <value>Nombre de servicio de OpenTelemetry</value>
+  </data>
+  <data name="Opened" xml:space="preserve">
+    <value>Abierto el</value>
+  </data>
+  <data name="Opened by" xml:space="preserve">
+    <value>Abierto por</value>
   </data>
   <data name="Opened {0}" xml:space="preserve">
     <value>Abierto {0}</value>
@@ -6766,6 +6805,9 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>Leer mensajes</value>
+  </data>
+  <data name="Read the cases again" xml:space="preserve">
+    <value>Leer de nuevo los casos</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Solo lectura. Caduca el {0}.</value>
@@ -7824,6 +7866,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
     <value>SearchBase (o UserDnTemplate, para hacer bind directamente sin buscar)</value>
   </data>
+  <data name="Searches" xml:space="preserve">
+    <value>Búsquedas</value>
+  </data>
   <data name="Searching " xml:space="preserve">
     <value>Buscando </value>
   </data>
@@ -8322,6 +8367,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Firmar _también los alias</value>
+  </data>
+  <data name="Sign in to a server first." xml:space="preserve">
+    <value>Inicie sesión primero en un servidor.</value>
   </data>
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Inicie sesión con la credencial de administrador de hMailServer.</value>
@@ -8898,6 +8946,27 @@ El próximo mensaje a esa dirección se enviará, y solo volverá a la lista tra
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>No se pudieron leer los ajustes de OAuth2: {0}</value>
   </data>
+  <data name="The REST API answered {0}." xml:space="preserve">
+    <value>La API REST respondió {0}.</value>
+  </data>
+  <data name="The REST API answered {0}: {1}" xml:space="preserve">
+    <value>La API REST respondió {0}: {1}</value>
+  </data>
+  <data name="The REST API at {0} could not be reached: {1}" xml:space="preserve">
+    <value>No se pudo acceder a la API REST en {0}: {1}</value>
+  </data>
+  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server." xml:space="preserve">
+    <value>La API REST no está en marcha: solo sirve HTTP sin cifrar en 127.0.0.1 o ::1, y escuchar en {0} requiere RestApiCertificateFile y RestApiPrivateKeyFile, o un certificado ACME emitido para este servidor.</value>
+  </data>
+  <data name="The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck." xml:space="preserve">
+    <value>La API REST está desactivada (RestApiPort es {0}) y esta página lee los casos a través de ella. Actívela en Ajustes, o lea los casos en el Control Deck.</value>
+  </data>
+  <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Read the cases in the Control Deck on the server." xml:space="preserve">
+    <value>La API REST solo escucha en {0}, adonde un Control Panel en otra máquina no puede llegar. Lea los casos en el Control Deck del servidor.</value>
+  </data>
+  <data name="The REST API refused the credential this Control Panel signed in with." xml:space="preserve">
+    <value>La API REST rechazó la credencial con la que inició sesión este Control Panel.</value>
+  </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
     <value>La API REST, las métricas de Prometheus y los puntos de acceso de salud que lee un sistema de supervisión externo.</value>
   </data>
@@ -8934,6 +9003,9 @@ El próximo mensaje a esa dirección se enviará, y solo volverá a la lista tra
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Las direcciones y puertos en los que escucha cada protocolo, y la seguridad de conexión usada en cada uno.</value>
   </data>
+  <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
+    <value>El administrador tiene un segundo factor, y la API REST pide un código de un solo uso en cada solicitud hecha con la contraseña, que esta página no envía. Lea los casos en el Control Deck.</value>
+  </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>La contraseña de administrador y la autenticación de dos factores están en la página Acceso administrativo.</value>
   </data>
@@ -8961,6 +9033,9 @@ El próximo mensaje a esa dirección se enviará, y solo volverá a la lista tra
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Los adjuntos se sustituyen y el mensaje se entrega. Ninguno de los dos ajustes de notificación se aplica a esta acción — el servidor solo envía el aviso de "mensaje borrado" cuando la acción es borrar el mensaje.</value>
   </data>
+  <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
+    <value>Las líneas de auditoría necesitan también view_audit, que esta credencial no tiene.</value>
+  </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>El authserv-id: el primer token de cada cabecera Authentication-Results que escribe este servidor, siempre en minúsculas, y el nombre que un filtro posterior comprueba antes de fiarse de los veredictos. El mismo nombre decide qué cabeceras Authentication-Results entrantes se tratan como falsificadas: una que reclame esta identidad se quita, mientras que una que nombre cualquier otra identidad se deja completamente intacta.</value>
   </data>
@@ -8987,6 +9062,9 @@ El próximo mensaje a esa dirección se enviará, y solo volverá a la lista tra
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>Las comprobaciones integradas de conectividad y de configuración, y el último análisis de consistencia del almacén de mensajes.</value>
+  </data>
+  <data name="The case's lines on the audit trail" xml:space="preserve">
+    <value>Las líneas del caso en el registro de auditoría</value>
   </data>
   <data name="The certificate &quot;{0}&quot; expired {1}{2} ago{3}" xml:space="preserve">
     <value>El certificado "{0}" caducó hace {1}{2}{3}</value>
@@ -9106,6 +9184,9 @@ Seleccione la clave de arriba y cópiela a mano - no volverá a mostrarse.</valu
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>La lista de dominios no contiene ningún nombre de dominio. Deje la casilla vacía para que la clave actúe sobre todos los dominios - una lista de separadores significaría lo mismo en silencio, que no es lo que usted pidió.</value>
+  </data>
+  <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
+    <value>Los casos de eDiscovery, de solo lectura: las búsquedas, retenciones y exportaciones de cada caso, y cada línea que el registro de auditoría guarda sobre él. Un caso se abre, se busca, se retiene y se exporta en el Control Deck.</value>
   </data>
   <data name="The effective timeout moves between these values with server load." xml:space="preserve">
     <value>El tiempo de espera efectivo se mueve entre estos valores según la carga del servidor.</value>
@@ -12074,6 +12155,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} contraseñas de aplicación.</value>
+  </data>
+  <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
+    <value>{0} caso(s). Seleccione uno para ver sus líneas en el registro de auditoría.</value>
   </data>
   <data name="{0} change(s) carried out, none failed." xml:space="preserve">
     <value>{0} cambio(s) realizado(s), ninguno falló.</value>

@@ -197,7 +197,11 @@ namespace HM
          // the rest of the folder.
          if (oMessage->GetFlagDeleted())
          {
-            RecoverableStore::Keep(oMessage);
+            // A message of an account under a legal hold whose copy could not
+            // be kept is left where it is, flagged deleted (RecoverableStore.h).
+            if (!RecoverableStore::Keep(oMessage))
+               continue;
+
             if (!PersistentMessage::DeleteObject(oMessage))
             {
                ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6093, "Messages::Save",
@@ -247,8 +251,15 @@ namespace HM
             // the id is what every session's view is keyed on.
             const __int64 message_id = message->GetID();
 
-            // A copy aside first when this is a person deleting mail (RecoverableStore.h).
-            RecoverableStore::Keep(message);
+            // A copy aside first when this is a person deleting mail, or when a
+            // legal hold covers the account (RecoverableStore.h). A held
+            // message whose copy could not be made is not deleted: it stays in
+            // the collection, and the client is not told it went.
+            if (!RecoverableStore::Keep(message))
+            {
+               iterMessage++;
+               continue;
+            }
 
             // This is what an IMAP EXPUNGE runs, and the delete was unchecked while
             // the erase below happened regardless - so a message the database refused

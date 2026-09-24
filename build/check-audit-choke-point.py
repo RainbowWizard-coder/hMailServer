@@ -36,7 +36,9 @@ Nine rules, in the shape of build/check-authz-choke-point.py:
               the move once, naming both addresses; and by Profiles, the same
               shape the other way round: a profile applied or reverted is thirty
               settings changed as one act, each recorded by the settings
-              chokepoint and the act recorded once with its counts. Every one of
+              chokepoint and the act recorded once with its counts; and by the
+              eDiscovery export's download, which writes no row and is the act
+              that takes the custodians' mail off the server. Every one of
               these calls must be there.
 
   installed   The actor - who is making the change - is installed at one place
@@ -91,8 +93,10 @@ Nine rules, in the shape of build/check-authz-choke-point.py:
               which writes the two role tables, and by the persister of the
               greylisting white list, whose address column holds the SQL LIKE
               pattern a typed wildcard was converted into (10.78.0.? is stored as
-              10.78.0._) and so names an address no other surface shows. It
-              changes what a row says and never whether it is written.
+              10.78.0._) and so names an address no other surface shows; and by
+              the eDiscovery store, whose rows are ids and states, named by their
+              case, and whose search row carries its whole query. It changes
+              what a row says and never whether it is written.
 
   scripts     Every script engine ScriptServer starts runs inside a
               ScriptActorBoundary. A script runs in process on the server thread
@@ -141,6 +145,7 @@ ALLOWED = {
       "Common/Util/RestApiServer.cpp",              # POST /api/v1/backup/restore
       "COM/InterfaceBackupManager.cpp",             # BackupManager.RestoreMailbox and RestoreMessage
       "Common/Util/RestApiBackupMailbox.cpp",       # POST /api/v1/backup/{archive}/mailboxes/{address}/restore
+      "Common/Util/RestApiDiscovery.cpp",           # GET /api/v1/discovery/cases/{id}/exports/{export}: an export downloaded writes no row
       "Common/Util/RestApiSettings.cpp",            # POST /api/v1/settings/logon-failures/clear
       "COM/InterfaceSettings.cpp",                  # Settings.ClearLogonFailureList
       "Common/Util/RestApiSpamTraps.cpp",           # DELETE /api/v1/spam-traps/hits
@@ -189,6 +194,11 @@ ALLOWED = {
       # hm_migrationjobs, whose row names its target account by number: a job is
       # recorded as "source user -> target address" by the store that writes it.
       "Common/Util/MigrationStore.cpp",
+      # The four eDiscovery tables, whose rows are case ids, owner ids, states
+      # and times: each is named by its case ("case 3: <name>"), and a search's
+      # row is recorded with its whole query - the one detail it supplies,
+      # since "every search logged" is that row.
+      "Common/Util/DiscoveryStore.cpp",
       # hm_smimeca and hm_smimeissued: a root's row is a domain id, a certificate
       # and a key envelope, and a revocation's statement carries two numbers, so
       # the authority names them by the domain and by the address and serial -
@@ -298,6 +308,12 @@ REQUIRED = [
    ("Common/Util/RestApiBackupMailbox.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("backup"), job->GetRequest().archive_file, _T("mailbox restore started"),',
     "a mailbox restore started over REST is no longer recorded - it runs on the maintenance work queue with no actor on it, so the request is the only half that can be"),
+   ("Common/Util/RestApiDiscovery.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("discovery export"), DiscoveryStore::CaseLabel(theCase), _T("downloaded"),',
+    "an eDiscovery export downloaded is no longer recorded - the download writes no row, and it is the act that takes the custodians' mail off the server"),
+   ("Common/Util/DiscoveryStore.cpp",
+    "AuditDescription words(SearchesTable, CaseLabel(theCase), detail);",
+    "an eDiscovery search is no longer recorded with its whole query - the statement's own detail cuts every value at 120 characters, and 'every search logged' is the query as it was asked"),
    ("COM/InterfaceBackupManager.cpp",
     'HM::AuditTrail::Instance()->RecordEvent(_T("backup"), job->GetRequest().archive_file, _T("mailbox restore started"),',
     "a mailbox restore started over COM is no longer recorded - it runs on the maintenance work queue with no actor on it, so the request is the only half that can be"),

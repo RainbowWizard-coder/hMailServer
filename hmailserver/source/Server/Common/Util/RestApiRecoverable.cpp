@@ -13,6 +13,7 @@
 #include "RestApiServer.h"
 #include "HttpServer.h"
 #include "RecoverableStore.h"
+#include "DiscoveryHolds.h"
 #include "../BO/Account.h"
 
 #ifdef _DEBUG
@@ -26,9 +27,9 @@ namespace HM
    RestApiServer::OpenApiRecoverablePaths_()
    {
       static const char *paths =
-         ",\"/api/v1/me/recoverable\":{\"get\":{\"summary\":\"Deleted items the signed-in account can still recover\",\"description\":\"{items:[{id,folder,folder_id,subject,from,size,seen,deleted}],days}: every message deleted within the last RecoverDeletedDays days - by IMAP EXPUNGE, UID EXPUNGE or CLOSE, a POP3 DELE at QUIT, the webmail's delete or its emptying of a folder, or the account's own retention choices - newest first. deleted is seconds since 1970. A message moved to another folder is not a deleted one. days is 0, and items empty, when the server keeps nothing.\",\"responses\":{\"200\":{\"description\":\"The items\"}}}},"
+         ",\"/api/v1/me/recoverable\":{\"get\":{\"summary\":\"Deleted items the signed-in account can still recover\",\"description\":\"{items:[{id,folder,folder_id,subject,from,size,seen,deleted}],days,held}: every message deleted within the last RecoverDeletedDays days - by IMAP EXPUNGE, UID EXPUNGE or CLOSE, a POP3 DELE at QUIT, the webmail's delete or its emptying of a folder, or the account's own retention choices - newest first. deleted is seconds since 1970. A message moved to another folder is not a deleted one. days is 0, and items empty, when the server keeps nothing - unless held is true: a legal hold covers the account (docs/Discovery.md), and every message it deletes is kept here whatever days says, until the hold is released.\",\"responses\":{\"200\":{\"description\":\"The items\"}}}},"
          "\"/api/v1/me/recoverable/{id}/restore\":{\"post\":{\"summary\":\"Put a deleted item back\",\"description\":\"Into the folder it was deleted from; when that folder is gone, the one of the same path, and otherwise the INBOX. Its flags come back with it; it is a new message with a new UID. The item leaves the list.\",\"responses\":{\"200\":{\"description\":\"folder_id and message_id of the message put back\"},\"404\":{\"description\":\"Not one of this account's, or already gone\"}}}},"
-         "\"/api/v1/me/recoverable/{id}\":{\"delete\":{\"summary\":\"Delete an item for good now\",\"responses\":{\"200\":{\"description\":\"Gone\"},\"404\":{\"description\":\"Not one of this account's\"}}}}";
+         "\"/api/v1/me/recoverable/{id}\":{\"delete\":{\"summary\":\"Delete an item for good now\",\"responses\":{\"200\":{\"description\":\"Gone\"},\"404\":{\"description\":\"Not one of this account's\"},\"409\":{\"description\":\"A legal hold covers the account, so its deleted items are kept until it is released\"}}}}";
       return AnsiString(paths);
    }
 
@@ -57,8 +58,12 @@ namespace HM
             body += ",\"subject\":\"" + JsonEscape_(Utf8_(entry.subject)) + "\"";
             body += ",\"from\":\"" + JsonEscape_(Utf8_(entry.from)) + "\"}";
          }
+         // held: a legal hold covers the account, so what is listed stays - a
+         // copy of every message it deletes is kept, whatever days says, and
+         // none of them can be deleted for good (docs/Discovery.md).
          AnsiString tail;
-         tail.Format("],\"days\":%d}", RecoverableStore::Days(account->GetID()));
+         tail.Format("],\"days\":%d,\"held\":%hs}", RecoverableStore::Days(account->GetID()),
+                     DiscoveryHolds::IsAccountHeld(account->GetID()) ? "true" : "false");
          return BuildResponse_(200, body + tail);
       }
 
@@ -82,6 +87,9 @@ namespace HM
 
       if (kind == RouteMeRecoverableDelete)
       {
+         if (DiscoveryHolds::IsAccountHeld(account->GetID()))
+            return BuildResponse_(409, "{\"error\":\"" + JsonEscape_(Utf8_(DiscoveryHolds::PurgeRefusal())) + "\"}");
+
          if (!RecoverableStore::Purge(account->GetID(), id))
             return BuildResponse_(404, "{\"error\":\"not one of your deleted items\"}");
          return BuildResponse_(200, "{\"deleted\":true}");

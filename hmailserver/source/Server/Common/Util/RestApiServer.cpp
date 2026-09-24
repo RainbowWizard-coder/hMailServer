@@ -75,6 +75,7 @@
 #include "GUIDCreator.h"
 #include "InlineImageParts.h"
 #include "RecoverableStore.h"
+#include "DiscoveryHolds.h"
 #include "AccountRecovery.h"
 #include "PasswordValidator.h"
 #include "PasskeyStore.h"
@@ -2732,6 +2733,19 @@ namespace HM
             return HandleArchiveHold_(caller.domains, route.archive_id, true);
          case RouteArchiveRelease:
             return HandleArchiveHold_(caller.domains, route.archive_id, false);
+
+         case RouteDiscoveryCaseList:
+         case RouteDiscoveryCaseCreate:
+         case RouteDiscoveryCaseGet:
+         case RouteDiscoveryCaseClose:
+         case RouteDiscoverySearchCreate:
+         case RouteDiscoverySearchGet:
+         case RouteDiscoveryHoldCreate:
+         case RouteDiscoveryHoldRelease:
+         case RouteDiscoveryExportCreate:
+         case RouteDiscoveryExportGet:
+            return HandleDiscovery_(caller, route, GetRequestBody_(request));
+
          case RouteMe:
             return HandleMe_(caller);
 
@@ -6626,6 +6640,15 @@ namespace HM
             }
          }
       }
+
+      // eDiscovery (RestApiDiscovery.cpp): the cases and everything under them.
+      // A path there that is no route of it is RouteUnknown, as any other is.
+      if (path == "/api/v1/discovery/cases" || path.StartsWith("/api/v1/discovery/cases/"))
+      {
+         ParseDiscoveryRoute_(method, path, route);
+         return;
+      }
+
       if (method == "GET" && path == "/api/v1/audit")
       {
          route.kind = RouteAuditList;
@@ -7343,6 +7366,17 @@ namespace HM
       case RouteScimGroupDelete:
          return true;
 
+      // eDiscovery's writes: a case opened or closed (closing releases its
+      // holds), a search queued, a hold placed or released, an export made.
+      // Reading a case, a search's hits and an export's download are not here.
+      case RouteDiscoveryCaseCreate:
+      case RouteDiscoveryCaseClose:
+      case RouteDiscoverySearchCreate:
+      case RouteDiscoveryHoldCreate:
+      case RouteDiscoveryHoldRelease:
+      case RouteDiscoveryExportCreate:
+         return true;
+
       default:
          break;
       }
@@ -7375,6 +7409,12 @@ namespace HM
    {
       return caller.domains.empty() &&
              RoleManager::Allows(caller.grant, RolePermission::AdministerServer);
+   }
+
+   bool
+   RestApiServer::CallerMayReadArchive_(const Caller &caller)
+   {
+      return RoleManager::Allows(caller.grant, RolePermission::ViewArchive);
    }
 
    void
@@ -7873,6 +7913,26 @@ namespace HM
       case RouteArchiveRelease:
          return RolePermission::ManageArchive;
 
+      // eDiscovery (RestApiDiscovery.cpp, docs/Discovery.md): reading the
+      // cases, a search's hits, the holds and the exports - and downloading an
+      // export, which needs view_mailbox beside it (SecondPermissionFor_) since
+      // it hands over the mail itself. The auditor holds both.
+      case RouteDiscoveryCaseList:
+      case RouteDiscoveryCaseGet:
+      case RouteDiscoverySearchGet:
+      case RouteDiscoveryExportGet:
+         return RolePermission::ViewDiscovery;
+
+      // Opening and closing a case, running a search, placing and releasing a
+      // hold and making an export: what the auditor does not hold.
+      case RouteDiscoveryCaseCreate:
+      case RouteDiscoveryCaseClose:
+      case RouteDiscoverySearchCreate:
+      case RouteDiscoveryHoldCreate:
+      case RouteDiscoveryHoldRelease:
+      case RouteDiscoveryExportCreate:
+         return RolePermission::ManageDiscovery;
+
       // The logs, which carry every domain's traffic and are therefore never
       // a domain-confined role's.
       case RouteLogList:
@@ -8267,6 +8327,20 @@ namespace HM
       // name no address.
       case RouteComplaintList:
          permission = RolePermission::ViewMessageTrace;
+         return true;
+
+      // An eDiscovery export's download is the custodians' mail itself, byte
+      // for byte: a role that may read the cases is not thereby a role that may
+      // take their mail away. The auditor holds both permissions. What they
+      // grant together is more than view_mailbox grants alone: an export also
+      // carries the custodians' deleted items - what a hold kept from the
+      // person's delete and from a rule that dropped mail before it reached a
+      // folder, which no other administrative route hands over - so that is
+      // what a role holding both reaches. An export of a search that read the
+      // archive also needs view_archive, asked in the handler
+      // (CallerMayReadArchive_).
+      case RouteDiscoveryExportGet:
+         permission = RolePermission::ViewMailbox;
          return true;
 
       case RouteSpamTrapDomainList:
@@ -10199,6 +10273,11 @@ namespace HM
       if (!domain)
          return BuildResponse_(404, "{\"error\":\"domain not found\"}");
 
+      // A legal hold on the domain or on an account in it forbids it, and the
+      // caller is told so (docs/Discovery.md).
+      if (DiscoveryHolds::IsDomainOrAnyAccountHeld(domain->GetID()))
+         return BuildResponse_(409, "{\"error\":\"" + JsonEscape_(Utf8_(DiscoveryHolds::DeleteDomainRefusal(domain->GetName()))) + "\"}");
+
       // Through the collection, as InterfaceDomain::Delete goes through its
       // parent collection. Collection::DeleteItemByDBID calls
       // PersistentDomain::DeleteObject, which deletes the accounts with their
@@ -10422,6 +10501,12 @@ namespace HM
 
       if (!PersistentAccount::ReadObject(account, address) || account->GetID() == 0)
          return BuildResponse_(404, "{\"error\":\"account not found\"}");
+
+      // A legal hold forbids it, and the caller is told so rather than handed
+      // the 500 the refusal below the persistence layer would read as
+      // (docs/Discovery.md).
+      if (DiscoveryHolds::IsAccountHeld(account->GetID()))
+         return BuildResponse_(409, "{\"error\":\"" + JsonEscape_(Utf8_(DiscoveryHolds::DeleteAccountRefusal(account->GetAddress()))) + "\"}");
 
       if (!PersistentAccount::DeleteObject(account))
          return BuildResponse_(500, "{\"error\":\"failed to delete account\"}");
@@ -14732,7 +14817,14 @@ namespace HM
       if (!MessageUtilities::CopyToIMAPFolder(message, (int) destination->GetID(), newMessageId))
          return BuildResponse_(500, "{\"error\":\"the message could not be copied to the folder\"}");
 
-      if (!DeleteOwnMessage_(account, message, source))
+      bool originalRemoved = false;
+      {
+         // The original of a move: a legal hold keeps nothing of it (docs/Discovery.md).
+         RecoverableStore::MoveScope moving;
+         originalRemoved = DeleteOwnMessage_(account, message, source);
+      }
+
+      if (!originalRemoved)
          return BuildResponse_(500, "{\"error\":\"the message was copied to the folder but the original could not be removed\"}");
 
       // Into or out of Junk teaches spamd, as the same move over IMAP does.
@@ -14778,7 +14870,15 @@ namespace HM
             if (!MessageUtilities::CopyToIMAPFolder(message, (int) trash->GetID(), newMessageId))
                return BuildResponse_(500, "{\"error\":\"the message could not be copied to the trash folder\"}");
 
-            if (!DeleteOwnMessage_(account, message, folder))
+            bool originalRemoved = false;
+            {
+               // A move to Trash: a legal hold keeps nothing of the original,
+               // which is in Trash now (docs/Discovery.md).
+               RecoverableStore::MoveScope moving;
+               originalRemoved = DeleteOwnMessage_(account, message, folder);
+            }
+
+            if (!originalRemoved)
                return BuildResponse_(500, "{\"error\":\"the message was copied to the trash folder but the original could not be removed\"}");
 
             AnsiString json;
@@ -17863,6 +17963,7 @@ namespace HM
       openApiJson += OpenApiProfilesPaths_();
       openApiJson += OpenApiSendPaths_();
       openApiJson += OpenApiScimPaths_();
+      openApiJson += OpenApiDiscoveryPaths_();
       openApiJson += OpenApiAccountRulesPaths_();
       openApiJson += OpenApiDomainRulesPaths_();
       openApiJson += OpenApiOperatorPaths_();

@@ -485,6 +485,16 @@ namespace hMailServer.ControlPanel.Services
                   seeAlso: "adminaccess|logs",
                   needs: "administer_server"),
 
+               // eDiscovery, read-only, beside the audit trail its lines come from.
+               // Read over the REST API, since discovery has no COM surface; the
+               // cases are opened, searched, held and exported in the Deck. The
+               // permission is the discovery reader's, so an auditor sees it.
+               Page("discovery", N("Discovery"),
+                  N("The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck."),
+                  aliases: "eDiscovery|Legal hold|Litigation hold|Case|Custodian|Preserve mail|Search every mailbox|Export for a lawyer|Discovery search",
+                  seeAlso: "audit|journaling",
+                  needs: "view_discovery"),
+
                Page("logs", N("Live logs"),
                   N("Stream the server log as it is written - the fastest way to see what happened to one message."),
                   aliases: "Log viewer|Tail|Trace|Debug|SMTP conversation|Error log|Awstats",

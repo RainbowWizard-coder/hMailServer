@@ -10,6 +10,8 @@
 #include "../Common/Persistence/PersistentAccount.h"
 #include "../Common/BO/Accounts.h"
 #include "../Common/BO/Account.h"
+#include "../Common/Cache/CacheContainer.h"
+#include "../Common/Util/DiscoveryHolds.h"
 
 #include "COMAuthentication.h"
 
@@ -86,6 +88,11 @@ STDMETHODIMP InterfaceAccounts::Delete(long Index)
          return authentication_->GetAccessDenied();
    
       std::shared_ptr<HM::Account> pAccount = accounts_->GetItem(Index);
+
+      // A legal hold forbids it, and the caller is told why (docs/Discovery.md).
+      if (pAccount && HM::DiscoveryHolds::IsAccountHeld(pAccount->GetID()))
+         return COMError::GenerateError(HM::DiscoveryHolds::DeleteAccountRefusal(pAccount->GetAddress()));
+
       HM::PersistentAccount::DeleteObject(pAccount);
    
       return S_OK;
@@ -210,6 +217,13 @@ STDMETHODIMP InterfaceAccounts::DeleteByDBID(long DBID)
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
    
+      // A legal hold forbids it, and the caller is told why (docs/Discovery.md).
+      if (HM::DiscoveryHolds::IsAccountHeld(DBID))
+      {
+         std::shared_ptr<const HM::Account> held = HM::CacheContainer::Instance()->GetAccount((__int64) DBID);
+         return COMError::GenerateError(HM::DiscoveryHolds::DeleteAccountRefusal(held ? held->GetAddress() : HM::StringParser::IntToString((__int64) DBID)));
+      }
+
       accounts_->DeleteItemByDBID(DBID);
    
       return S_OK;

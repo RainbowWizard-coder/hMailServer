@@ -984,4 +984,30 @@
 //      nothing else does: a key that provisions and does nothing else needs a
 //      custom role holding provision alone.
 //      (6095 is the organisation CA's step, built beside this one.)
-#define REQUIRED_DB_VERSION            6096
+
+// 6097 adds eDiscovery (Util/DiscoveryStore.h, Util/DiscoveryHolds.h,
+//      Util/DiscoverySearch.h, Util/RestApiDiscovery.cpp, docs/Discovery.md):
+//      four tables, each written only by the discovery routes and the one
+//      runner that works through their queue. hm_discoverycases is a case -
+//      its name, description, state (0 open, 1 closed), who opened and closed
+//      it and when (seconds since 1970, 0 for not yet). hm_discoverysearches is
+//      one search run for a case: the query as the JSON the route took, who ran
+//      it and when, its state (0 queued, 1 running, 2 done, 3 failed), how many
+//      messages it has read, matched and could not search, whether its hits
+//      were cut at the ceiling, the reason it failed and the results file under
+//      <data directory>\Discovery. hm_discoveryholds is one hold of a case -
+//      scope 1 an account, 2 a domain, 3 one archived copy, ownerid that
+//      account's, domain's or archive entry's id and name what it was called
+//      then - live while holdreleased is 0; a live row is what stops a held
+//      mailbox's messages from being deleted and a held archive copy from
+//      being swept, and the archive's own archivehold flag is not touched.
+//      hm_discoveryexports is one export of a search's hits: its state, the
+//      zip it wrote, its size and SHA-256, how many items it wrote and
+//      withheld, who asked and when. All four are on the audit trail. It also
+//      appends view_discovery and manage_discovery to the serveradmin row of
+//      hm_roles and view_discovery to the auditor's, kept in step for anybody
+//      reading the table as 6096 did for provision: the grants themselves are
+//      built from the code. An upgraded server has no case and no hold, and
+//      deletes exactly what it deleted before.
+//      (6096 is SCIM's step; the step after this one is another row's.)
+#define REQUIRED_DB_VERSION            6097

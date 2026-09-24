@@ -22,6 +22,7 @@
 #include "../Tracking/NotificationServer.h"
 #include "../Util/MessageUtilities.h"
 #include "../Util/RecoverableStore.h"
+#include "../Util/DiscoveryHolds.h"
 #include "../Util/ConfidentialMessages.h"
 #include "../Util/ProtectedMessages.h"
 #include "../Util/MessageRecall.h"
@@ -354,6 +355,13 @@ namespace HM
       Domains domains;
       domains.Refresh();
 
+      // Holds that could not be read answer "held" for every account, so every
+      // account is passed by below; said once, for what it is, rather than as a
+      // legal hold named on each account (DiscoveryHolds.h, HM7332).
+      const bool holdsUnread = DiscoveryHolds::ReadFailed();
+      if (holdsUnread)
+         LOG_APPLICATION("Message retention: the legal holds could not be read, so every account is treated as held and nothing was deleted or archived by retention this run.");
+
       for (int i = 0; i < domains.GetCount(); i++)
       {
          std::shared_ptr<Domain> domain = domains.GetItem(i);
@@ -371,6 +379,16 @@ namespace HM
             std::shared_ptr<Account> account = accounts->GetItem(j);
             if (!account)
                continue;
+
+            // A legal hold keeps the account's mail where it is: neither the
+            // administrator's policy nor the account holder's own choices delete
+            // or archive anything of it while the hold stands (docs/Discovery.md).
+            if (DiscoveryHolds::IsAccountHeld(account->GetID()))
+            {
+               if (!holdsUnread)
+                  LOG_APPLICATION("Message retention: " + account->GetAddress() + " is under a legal hold, so nothing of it was deleted or archived.");
+               continue;
+            }
 
             // The administrator's policy first, then the account holder's own
             // choices - which reach only the folders they name.

@@ -27,6 +27,7 @@
 #include "../Util/FileUtilities.h"
 #include "../Util/GUIDCreator.h"
 #include "../Util/RecoverableStore.h"
+#include "../Util/DiscoveryHolds.h"
 #include "../Util/StorePath.h"
 #include "../Util/Time.h"
 #include "../Util/Utilities.h"
@@ -1173,6 +1174,14 @@ namespace HM
       // makes, and it happens only once everything above has been read.
       if (request_.message_id == 0 && request_.mode == ModeReplace)
       {
+         // A legal hold placed after the request was taken refuses it here, as
+         // the request itself is refused while one stands (docs/Discovery.md).
+         if (DiscoveryHolds::IsAccountHeld(account->GetID()))
+         {
+            failureReason = DiscoveryHolds::ReplaceRefusal(account->GetAddress()) + _T(" Nothing has been changed on this server.");
+            return false;
+         }
+
          int foldersEmptied = 0;
          int removed = EmptyLiveFolders_(account, tree, foldersEmptied);
 

@@ -1884,6 +1884,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
     <value>Bir zamanlamanın yapılandırılıp yapılandırılmadığı belirlenemiyor: hMailServer.ini bu makinede bulunamadı. Sunucunun kendisinde ScheduledBackupTime ve ScheduledBackupIntervalMinutes'ı denetleyin.</value>
   </data>
+  <data name="Case" xml:space="preserve">
+    <value>Dava</value>
+  </data>
   <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
     <value>Tek bir IMAP SEARCH veya SORT için, aramanın başlangıcından ölçülen üst sınırlar; böylece çok büyük bir posta kutusunda arama yapan tek bir istemci bir bağlantıyı süresiz olarak işgal edemez. Büyük posta kutuları olan kullanıcılar aramaların başarısız olduğunu veya hiçbir şey döndürmediğini bildiriyorsa, yükseltilecek iki değer bunlardır. İki yarıdan biri 0 yapılarak tek başına kapatılabilir.</value>
   </data>
@@ -2153,6 +2156,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Alıcı listesini kapat</value>
+  </data>
+  <data name="Closed" xml:space="preserve">
+    <value>Kapalı</value>
   </data>
   <data name="Closes a listener" xml:space="preserve">
     <value>Bir dinleyiciyi kapatır</value>
@@ -3149,6 +3155,12 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>TLS üzerinden teslim etmeden önce alıcı MTA-STS ilkelerini keşfeder ve uygular (RFC 8461). Kendi etki alanlarınız için bir ilke yayımlamak üzere Web hizmetleri ve otomatik yapılandırma sayfasına bakın.</value>
   </data>
+  <data name="Discovery" xml:space="preserve">
+    <value>eDiscovery</value>
+  </data>
+  <data name="Discovery cases" xml:space="preserve">
+    <value>eDiscovery davaları</value>
+  </data>
   <data name="Disk space" xml:space="preserve">
     <value>Disk alanı</value>
   </data>
@@ -3271,6 +3283,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Bir sürüm bulunur bulunmaz kurulum programını indir ve doğrula</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>İndirildi</value>
   </data>
   <data name="Draining" xml:space="preserve">
     <value>Boşaltılıyor</value>
@@ -3689,11 +3704,17 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Süre sonu buradan okunamıyor: sertifika dosyaları sunucuda ve bu Denetim Masası ona uzaktan bağlı. Bu sayfadaki diğer her şey COM üzerinden gelir ve doğrudur.</value>
   </data>
+  <data name="Export" xml:space="preserve">
+    <value>Dışa aktarma</value>
+  </data>
   <data name="Export everythin_g..." xml:space="preserve">
     <value>_Her şeyi dışa aktar...</value>
   </data>
   <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
     <value>{0} ileti ve sunucunun tuttuğu diğer her şey {1} konumuna aktarıldı.</value>
+  </data>
+  <data name="Exports" xml:space="preserve">
+    <value>Dışa aktarmalar</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>/metrics üzerinde etki alanı başına ileti sayaçlarını sun</value>
@@ -4087,6 +4108,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Önbellek başına isabet oranı ve kullanılan bellek</value>
+  </data>
+  <data name="Hold" xml:space="preserve">
+    <value>Tutma</value>
   </data>
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>Reddedilen bir bağlantıyı kapatmadan önce açık tut (saniye, 0 = hemen kapat)</value>
@@ -4686,6 +4710,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Live counters and charts for processed mail, spam, viruses and sessions." xml:space="preserve">
     <value>İşlenen posta, spam, virüsler ve oturumlar için canlı sayaçlar ve grafikler.</value>
+  </data>
+  <data name="Live holds" xml:space="preserve">
+    <value>Etkin tutmalar</value>
   </data>
   <data name="Live logs" xml:space="preserve">
     <value>Canlı günlükler</value>
@@ -5466,6 +5493,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Hiç engellenen gönderen tanımlanmamış; bu yüzden hiçbir şey eşleşmiyor. Listenin açma/kapatma anahtarı yoktur - boş liste kapalı durumdur.</value>
   </data>
+  <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
+    <value>Henüz dava açılmadı. Davalar Control Deck'te açılır.</value>
+  </data>
   <data name="No certificate assigned" xml:space="preserve">
     <value>Sertifika atanmamış</value>
   </data>
@@ -6006,6 +6036,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Yalnızca yukarıdaki kullanıcı adıyla birlikte kullanılır</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>Açık</value>
+  </data>
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>REST dinleyicisinin portunun ve TLS ayarlarının sahibi olan API ve izleme sayfasını aç</value>
   </data>
@@ -6125,6 +6158,12 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="OpenTelemetry service name" xml:space="preserve">
     <value>OpenTelemetry hizmet adı</value>
+  </data>
+  <data name="Opened" xml:space="preserve">
+    <value>Açılış</value>
+  </data>
+  <data name="Opened by" xml:space="preserve">
+    <value>Açan</value>
   </data>
   <data name="Opened {0}" xml:space="preserve">
     <value>{0} açıldı</value>
@@ -6766,6 +6805,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>İletileri okuma</value>
+  </data>
+  <data name="Read the cases again" xml:space="preserve">
+    <value>Davaları yeniden oku</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Salt okunur. Süre sonu {0}.</value>
@@ -7824,6 +7866,9 @@ Devam edilsin mi?</value>
   <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
     <value>SearchBase (veya aramadan doğrudan bağlanmak için UserDnTemplate)</value>
   </data>
+  <data name="Searches" xml:space="preserve">
+    <value>Aramalar</value>
+  </data>
   <data name="Searching " xml:space="preserve">
     <value>Aranıyor</value>
   </data>
@@ -8322,6 +8367,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Diğer _adları da imzala</value>
+  </data>
+  <data name="Sign in to a server first." xml:space="preserve">
+    <value>Önce bir sunucuda oturum açın.</value>
   </data>
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>hMailServer yönetici kimlik bilgisiyle oturum açın.</value>
@@ -8898,6 +8946,27 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>OAuth2 ayarları okunamadı: {0}</value>
   </data>
+  <data name="The REST API answered {0}." xml:space="preserve">
+    <value>REST API {0} yanıtını verdi.</value>
+  </data>
+  <data name="The REST API answered {0}: {1}" xml:space="preserve">
+    <value>REST API {0} yanıtını verdi: {1}</value>
+  </data>
+  <data name="The REST API at {0} could not be reached: {1}" xml:space="preserve">
+    <value>{0} adresindeki REST API'ye ulaşılamadı: {1}</value>
+  </data>
+  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server." xml:space="preserve">
+    <value>REST API çalışmıyor: şifresiz HTTP'yi yalnızca 127.0.0.1 veya ::1 üzerinde sunar ve {0} üzerinde dinlemek için RestApiCertificateFile ve RestApiPrivateKeyFile ya da bu sunucuya verilmiş bir ACME sertifikası gerekir.</value>
+  </data>
+  <data name="The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck." xml:space="preserve">
+    <value>REST API kapalı (RestApiPort değeri {0}) ve bu sayfa davaları onun üzerinden okur. Ayarlar altında açın ya da davaları Control Deck'te okuyun.</value>
+  </data>
+  <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Read the cases in the Control Deck on the server." xml:space="preserve">
+    <value>REST API yalnızca {0} üzerinde dinliyor; başka bir makinedeki Denetim Masası buraya ulaşamaz. Davaları sunucudaki Control Deck'te okuyun.</value>
+  </data>
+  <data name="The REST API refused the credential this Control Panel signed in with." xml:space="preserve">
+    <value>REST API, bu Denetim Masası'nın oturum açtığı kimlik bilgilerini reddetti.</value>
+  </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
     <value>Dış bir izleme sisteminin okuduğu REST API, Prometheus ölçümleri ve sağlık uç noktaları.</value>
   </data>
@@ -8934,6 +9003,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Her protokolün dinlediği adresler ve portlar ve her birinde kullanılan bağlantı güvenliği.</value>
   </data>
+  <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
+    <value>Yöneticinin ikinci bir faktörü var ve REST API parolayla yapılan her istekte tek kullanımlık bir kod ister; bu sayfa bunu göndermez. Davaları Control Deck'te okuyun.</value>
+  </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Yönetici parolası ve iki etkenli kimlik doğrulama Yönetimsel erişim sayfasındadır.</value>
   </data>
@@ -8961,6 +9033,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Ekler değiştirilir ve ileti teslim edilir. Bu eyleme hiçbir bildirim ayarı uygulanmaz — sunucu "ileti silindi" bildirimini yalnızca eylem iletiyi silmek olduğunda gönderir.</value>
   </data>
+  <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
+    <value>Denetim satırları için ayrıca view_audit gerekir; bu kimlik bilgilerinde bu izin yok.</value>
+  </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>authserv-id: bu sunucunun yazdığı her Authentication-Results başlığının ilk belirteci, her zaman küçük harfli ve alt akıştaki bir filtrenin kararlara güvenmeden önce denetlediği ad. Aynı ad, gelen hangi Authentication-Results başlıklarının sahte sayılacağına da karar verir: bu kimliği iddia eden kaldırılır, başka herhangi bir kimliği belirten ise tamamen dokunulmadan bırakılır.</value>
   </data>
@@ -8987,6 +9062,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>Yerleşik bağlanabilirlik ve yapılandırma denetimleri ile son ileti deposu tutarlılık taraması.</value>
+  </data>
+  <data name="The case's lines on the audit trail" xml:space="preserve">
+    <value>Davanın denetim izindeki satırları</value>
   </data>
   <data name="The certificate &quot;{0}&quot; expired {1}{2} ago{3}" xml:space="preserve">
     <value>"{0}" sertifikasının süresi {1}{2} önce doldu{3}</value>
@@ -9106,6 +9184,9 @@ Yukarıdaki anahtarı seçip elle kopyalayın - bir daha gösterilmeyecek.</valu
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Etki alanı listesinde hiç etki alanı adı yok. Anahtarın her etki alanında etkili olması için kutuyu boş bırakın - yalnızca ayırıcılardan oluşan bir liste sessizce aynı anlama gelirdi, ki istediğiniz bu değil.</value>
+  </data>
+  <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
+    <value>eDiscovery davaları, salt okunur: her davanın aramaları, tutmaları ve dışa aktarmaları ile denetim izinin onunla ilgili her satırı. Davalar Control Deck'te açılır, aranır, tutulur ve dışa aktarılır.</value>
   </data>
   <data name="The effective timeout moves between these values with server load." xml:space="preserve">
     <value>Etkin zaman aşımı, sunucu yüküne göre bu değerler arasında hareket eder.</value>
@@ -12074,6 +12155,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} uygulama parolası.</value>
+  </data>
+  <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
+    <value>{0} dava. Denetim izindeki satırlarını görmek için birini seçin.</value>
   </data>
   <data name="{0} change(s) carried out, none failed." xml:space="preserve">
     <value>{0} değişiklik yapıldı, hiçbiri başarısız olmadı.</value>

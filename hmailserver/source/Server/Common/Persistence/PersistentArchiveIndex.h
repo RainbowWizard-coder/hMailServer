@@ -71,11 +71,24 @@ namespace HM
       static bool Get(__int64 id, Entry &entry);
       static bool SetHold(__int64 id, bool hold);
 
-      // The sweep's questions: is this file held, and forget this file.
+      // eDiscovery's read (Util/DiscoverySearch.h): the copies filed under a
+      // domain, or under one mailbox of it, with an id above afterId, at most
+      // maxRows of them in id order - Search stops at 1,000, and a custodian's
+      // archive is read whole a page at a time. An empty domain is every copy,
+      // the Inbound ones included; an empty mailbox every mailbox of the domain.
+      static bool ListAfter(const String &domain, const String &mailbox, __int64 afterId, int maxRows, std::vector<Entry> &entries);
+
+      // The sweep's questions: is this file held, and forget this file. A file
+      // is held by its row's own hold flag, and by a live eDiscovery hold on the
+      // row, on the account it was archived for or on that account's domain
+      // (Util/DiscoveryHolds.h) - which also holds a file the index has no row
+      // for, by the domain and mailbox directories it lies in. A question the
+      // database cannot answer is answered held.
       static bool IsHeld(const String &path);
       static bool RemoveByPath(const String &path);
 
-      // The address eraser's: forget every copy that names this address.
+      // The address eraser's: forget every copy that names this address. Rows
+      // for held copies - by the flag or by an eDiscovery hold - are kept.
       static int RemoveByAddress(const String &address);
 
       // The JSON the COM and REST callers hand out, one shape for both.

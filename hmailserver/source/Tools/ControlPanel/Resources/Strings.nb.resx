@@ -1884,6 +1884,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
     <value>Kan ikke avgjøre om en tidsplan er konfigurert: hMailServer.ini ble ikke funnet på denne maskinen. Sjekk ScheduledBackupTime og ScheduledBackupIntervalMinutes på selve serveren.</value>
   </data>
+  <data name="Case" xml:space="preserve">
+    <value>Sak</value>
+  </data>
   <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
     <value>Tak for ett enkelt IMAP SEARCH eller SORT, målt fra søkets start, slik at én klient som søker i en svært stor postboks, ikke kan holde en forbindelse på ubestemt tid. Hvis brukere med store postbokser melder at søk feiler eller ikke returnerer noe, er dette de to å heve. Hver halvdel kan slås av for seg ved å sette den til 0.</value>
   </data>
@@ -2153,6 +2156,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Lukk mottakerlisten</value>
+  </data>
+  <data name="Closed" xml:space="preserve">
+    <value>Lukket</value>
   </data>
   <data name="Closes a listener" xml:space="preserve">
     <value>Lukker en lytter</value>
@@ -3149,6 +3155,12 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>Oppdager og håndhever mottakernes MTA-STS-policyer før levering over TLS (RFC 8461). For å publisere en policy for dine egne domener, se siden Webtjenester og autokonfigurasjon.</value>
   </data>
+  <data name="Discovery" xml:space="preserve">
+    <value>eDiscovery</value>
+  </data>
+  <data name="Discovery cases" xml:space="preserve">
+    <value>eDiscovery-saker</value>
+  </data>
   <data name="Disk space" xml:space="preserve">
     <value>Diskplass</value>
   </data>
@@ -3271,6 +3283,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Last ned og verifiser installasjonsprogrammet så snart en utgivelse blir funnet</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>Lastet ned</value>
   </data>
   <data name="Draining" xml:space="preserve">
     <value>Tømmes</value>
@@ -3689,11 +3704,17 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Utløp kan ikke leses herfra: sertifikatfilene er på serveren, og dette Control Panel er koblet til den eksternt. Alt annet på denne siden kommer over COM og er riktig.</value>
   </data>
+  <data name="Export" xml:space="preserve">
+    <value>Eksport</value>
+  </data>
   <data name="Export everythin_g..." xml:space="preserve">
     <value>Eksporter _alt...</value>
   </data>
   <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
     <value>Eksporterte {0} melding(er) og alt annet serveren har til {1}.</value>
+  </data>
+  <data name="Exports" xml:space="preserve">
+    <value>Eksporter</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>Eksponer meldingstellere per domene på /metrics</value>
@@ -4087,6 +4108,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Treffrate og minne i bruk, per hurtigbuffer</value>
+  </data>
+  <data name="Hold" xml:space="preserve">
+    <value>Sperring</value>
   </data>
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>Hold en avvist forbindelse åpen før den droppes (sekunder, 0 = dropp umiddelbart)</value>
@@ -4686,6 +4710,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="Live counters and charts for processed mail, spam, viruses and sessions." xml:space="preserve">
     <value>Direkte tellere og diagrammer for behandlet post, spam, virus og økter.</value>
+  </data>
+  <data name="Live holds" xml:space="preserve">
+    <value>Aktive sperringer</value>
   </data>
   <data name="Live logs" xml:space="preserve">
     <value>Direktelogger</value>
@@ -5466,6 +5493,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Ingen blokkerte avsendere er definert, så ingenting treffes. Listen har ingen av/på-bryter - en tom liste er av-tilstanden.</value>
   </data>
+  <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
+    <value>Ingen sak er åpnet. Saker åpnes i Control Deck.</value>
+  </data>
   <data name="No certificate assigned" xml:space="preserve">
     <value>Ingen sertifikat tildelt</value>
   </data>
@@ -6006,6 +6036,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Brukes bare sammen med brukernavnet ovenfor</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>Åpen</value>
+  </data>
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Åpne API og overvåking, som eier REST-lytterens port og TLS-innstillinger</value>
   </data>
@@ -6125,6 +6158,12 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="OpenTelemetry service name" xml:space="preserve">
     <value>OpenTelemetry-tjenestenavn</value>
+  </data>
+  <data name="Opened" xml:space="preserve">
+    <value>Åpnet</value>
+  </data>
+  <data name="Opened by" xml:space="preserve">
+    <value>Åpnet av</value>
   </data>
   <data name="Opened {0}" xml:space="preserve">
     <value>Åpnet {0}</value>
@@ -6766,6 +6805,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>Lese meldinger</value>
+  </data>
+  <data name="Read the cases again" xml:space="preserve">
+    <value>Les sakene på nytt</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Skrivebeskyttet. Utløper {0}.</value>
@@ -7824,6 +7866,9 @@ Fortsette?</value>
   <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
     <value>SearchBase (eller UserDnTemplate, for å binde direkte uten å søke)</value>
   </data>
+  <data name="Searches" xml:space="preserve">
+    <value>Søk</value>
+  </data>
   <data name="Searching " xml:space="preserve">
     <value>Søker</value>
   </data>
@@ -8322,6 +8367,9 @@ Starte den på nytt nå?</value>
   </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Signer aliaser _også</value>
+  </data>
+  <data name="Sign in to a server first." xml:space="preserve">
+    <value>Logg på en server først.</value>
   </data>
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Logg på med hMailServer-administratorlegitimasjonen.</value>
@@ -8898,6 +8946,27 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>OAuth2-innstillingene kunne ikke leses: {0}</value>
   </data>
+  <data name="The REST API answered {0}." xml:space="preserve">
+    <value>REST-API-et svarte {0}.</value>
+  </data>
+  <data name="The REST API answered {0}: {1}" xml:space="preserve">
+    <value>REST-API-et svarte {0}: {1}</value>
+  </data>
+  <data name="The REST API at {0} could not be reached: {1}" xml:space="preserve">
+    <value>REST-API-et på {0} kunne ikke nås: {1}</value>
+  </data>
+  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server." xml:space="preserve">
+    <value>REST-API-et kjører ikke: det leverer ukryptert HTTP bare på 127.0.0.1 eller ::1, og å lytte på {0} krever RestApiCertificateFile og RestApiPrivateKeyFile, eller et ACME-sertifikat utstedt til denne serveren.</value>
+  </data>
+  <data name="The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck." xml:space="preserve">
+    <value>REST-API-et er slått av (RestApiPort er {0}), og denne siden leser sakene gjennom det. Slå det på under Innstillinger, eller les sakene i Control Deck.</value>
+  </data>
+  <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Read the cases in the Control Deck on the server." xml:space="preserve">
+    <value>REST-API-et lytter bare på {0}, som et Control Panel på en annen maskin ikke når. Les sakene i Control Deck på serveren.</value>
+  </data>
+  <data name="The REST API refused the credential this Control Panel signed in with." xml:space="preserve">
+    <value>REST-API-et avviste påloggingsinformasjonen dette Control Panel logget på med.</value>
+  </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
     <value>REST-API-et, Prometheus-metrikker og helseendepunkter som et eksternt overvåkingssystem leser.</value>
   </data>
@@ -8934,6 +9003,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>Adressene og portene hver protokoll lytter på, og tilkoblingssikkerheten som brukes på hver av dem.</value>
   </data>
+  <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
+    <value>Administratoren har en annen faktor, og REST-API-et ber om en engangskode ved hver forespørsel med passordet, noe denne siden ikke sender. Les sakene i Control Deck.</value>
+  </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Administratorpassordet og tofaktorautentisering er på siden Administrativ tilgang.</value>
   </data>
@@ -8961,6 +9033,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Vedleggene erstattes og meldingen leveres. Ingen av varslingsinnstillingene gjelder for denne handlingen — serveren sender bare varselet "melding slettet" når handlingen er å slette meldingen.</value>
   </data>
+  <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
+    <value>Revisjonslinjene krever også view_audit, som denne påloggingsinformasjonen ikke har.</value>
+  </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>authserv-id: det første tokenet i hver Authentication-Results-header denne serveren skriver, alltid med små bokstaver, og navnet et nedstrøms filter sjekker før det stoler på avgjørelsene. Det samme navnet avgjør hvilke ankommende Authentication-Results-headere som behandles som forfalskede: en som hevder denne identiteten, fjernes, mens en som nevner en hvilken som helst annen identitet, lar være helt urørt.</value>
   </data>
@@ -8987,6 +9062,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>De innebygde tilkoblings- og konfigurasjonskontrollene, og den siste konsistensskanningen av meldingslageret.</value>
+  </data>
+  <data name="The case's lines on the audit trail" xml:space="preserve">
+    <value>Sakens linjer i revisjonsloggen</value>
   </data>
   <data name="The certificate &quot;{0}&quot; expired {1}{2} ago{3}" xml:space="preserve">
     <value>Sertifikatet "{0}" utløp for {1}{2} siden{3}</value>
@@ -9106,6 +9184,9 @@ Merk nøkkelen ovenfor og kopier den for hånd - den vises ikke igjen.</value>
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Domenelisten inneholder ingen domenenavn. La feltet stå tomt for å la nøkkelen virke på alle domener - en liste med skilletegn ville stille betydd det samme, som ikke er det du ba om.</value>
+  </data>
+  <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
+    <value>eDiscovery-sakene, skrivebeskyttet: hver saks søk, sperringer og eksporter, og hver linje revisjonsloggen har om den. En sak åpnes, gjennomsøkes, sperres og eksporteres i Control Deck.</value>
   </data>
   <data name="The effective timeout moves between these values with server load." xml:space="preserve">
     <value>Det effektive tidsavbruddet beveger seg mellom disse verdiene med serverbelastningen.</value>
@@ -12074,6 +12155,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} app-passord.</value>
+  </data>
+  <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
+    <value>{0} sak(er). Velg én for å se linjene i revisjonsloggen.</value>
   </data>
   <data name="{0} change(s) carried out, none failed." xml:space="preserve">
     <value>{0} endring(er) utført, ingen mislyktes.</value>

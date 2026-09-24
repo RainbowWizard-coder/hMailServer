@@ -1884,6 +1884,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
     <value>Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself.</value>
   </data>
+  <data name="Case" xml:space="preserve">
+    <value>Case</value>
+  </data>
   <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
     <value>Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0.</value>
   </data>
@@ -2153,6 +2156,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   </data>
   <data name="Close the recipient list" xml:space="preserve">
     <value>Close the recipient list</value>
+  </data>
+  <data name="Closed" xml:space="preserve">
+    <value>Closed</value>
   </data>
   <data name="Closes a listener" xml:space="preserve">
     <value>Closes a listener</value>
@@ -3149,6 +3155,12 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page." xml:space="preserve">
     <value>Discovers and enforces recipient MTA-STS policies before delivering over TLS (RFC 8461). To publish a policy for your own domains, see the Web services &amp; autoconfiguration page.</value>
   </data>
+  <data name="Discovery" xml:space="preserve">
+    <value>Discovery</value>
+  </data>
+  <data name="Discovery cases" xml:space="preserve">
+    <value>Discovery cases</value>
+  </data>
   <data name="Disk space" xml:space="preserve">
     <value>Disk space</value>
   </data>
@@ -3271,6 +3283,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Download and verify the installer as soon as a release is found</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>Downloaded</value>
   </data>
   <data name="Draining" xml:space="preserve">
     <value>Draining</value>
@@ -3689,11 +3704,17 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate.</value>
   </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
   <data name="Export everythin_g..." xml:space="preserve">
     <value>Export everythin_g...</value>
   </data>
   <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
     <value>Exported {0} message(s) and everything else the server holds to {1}.</value>
+  </data>
+  <data name="Exports" xml:space="preserve">
+    <value>Exports</value>
   </data>
   <data name="Expose per-domain message counters on /metrics" xml:space="preserve">
     <value>Expose per-domain message counters on /metrics</value>
@@ -4087,6 +4108,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Hit rate and memory in use, per cache</value>
+  </data>
+  <data name="Hold" xml:space="preserve">
+    <value>Hold</value>
   </data>
   <data name="Hold a refused connection open before dropping it (seconds, 0 = drop immediately)" xml:space="preserve">
     <value>Hold a refused connection open before dropping it (seconds, 0 = drop immediately)</value>
@@ -4686,6 +4710,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   </data>
   <data name="Live counters and charts for processed mail, spam, viruses and sessions." xml:space="preserve">
     <value>Live counters and charts for processed mail, spam, viruses and sessions.</value>
+  </data>
+  <data name="Live holds" xml:space="preserve">
+    <value>Live holds</value>
   </data>
   <data name="Live logs" xml:space="preserve">
     <value>Live logs</value>
@@ -5466,6 +5493,9 @@ Nothing already there is removed.</value>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state.</value>
   </data>
+  <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
+    <value>No case has been opened. Cases are opened in the Control Deck.</value>
+  </data>
   <data name="No certificate assigned" xml:space="preserve">
     <value>No certificate assigned</value>
   </data>
@@ -6006,6 +6036,9 @@ Nothing already there is removed.</value>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Only used together with the user name above</value>
   </data>
+  <data name="Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
   <data name="Open API &amp; monitoring, which owns the REST listener's port and TLS settings" xml:space="preserve">
     <value>Open API &amp; monitoring, which owns the REST listener's port and TLS settings</value>
   </data>
@@ -6125,6 +6158,12 @@ Nothing already there is removed.</value>
   </data>
   <data name="OpenTelemetry service name" xml:space="preserve">
     <value>OpenTelemetry service name</value>
+  </data>
+  <data name="Opened" xml:space="preserve">
+    <value>Opened</value>
+  </data>
+  <data name="Opened by" xml:space="preserve">
+    <value>Opened by</value>
   </data>
   <data name="Opened {0}" xml:space="preserve">
     <value>Opened {0}</value>
@@ -6766,6 +6805,9 @@ No new connections will be accepted and no mail will be delivered until it is re
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>Read messages</value>
+  </data>
+  <data name="Read the cases again" xml:space="preserve">
+    <value>Read the cases again</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Read-only. Expires {0}.</value>
@@ -7824,6 +7866,9 @@ Continue?</value>
   <data name="SearchBase (or UserDnTemplate, to bind directly without searching)" xml:space="preserve">
     <value>SearchBase (or UserDnTemplate, to bind directly without searching)</value>
   </data>
+  <data name="Searches" xml:space="preserve">
+    <value>Searches</value>
+  </data>
   <data name="Searching " xml:space="preserve">
     <value>Searching </value>
   </data>
@@ -8322,6 +8367,9 @@ Restart it now?</value>
   </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Sign aliases _too</value>
+  </data>
+  <data name="Sign in to a server first." xml:space="preserve">
+    <value>Sign in to a server first.</value>
   </data>
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Sign in with the hMailServer administrator credential.</value>
@@ -8898,6 +8946,27 @@ The next message to it will be sent, and it is listed again only after as many h
   <data name="The OAuth2 settings could not be read: {0}" xml:space="preserve">
     <value>The OAuth2 settings could not be read: {0}</value>
   </data>
+  <data name="The REST API answered {0}." xml:space="preserve">
+    <value>The REST API answered {0}.</value>
+  </data>
+  <data name="The REST API answered {0}: {1}" xml:space="preserve">
+    <value>The REST API answered {0}: {1}</value>
+  </data>
+  <data name="The REST API at {0} could not be reached: {1}" xml:space="preserve">
+    <value>The REST API at {0} could not be reached: {1}</value>
+  </data>
+  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server." xml:space="preserve">
+    <value>The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server.</value>
+  </data>
+  <data name="The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck." xml:space="preserve">
+    <value>The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck.</value>
+  </data>
+  <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Read the cases in the Control Deck on the server." xml:space="preserve">
+    <value>The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Read the cases in the Control Deck on the server.</value>
+  </data>
+  <data name="The REST API refused the credential this Control Panel signed in with." xml:space="preserve">
+    <value>The REST API refused the credential this Control Panel signed in with.</value>
+  </data>
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
     <value>The REST API, Prometheus metrics and health endpoints an outside monitoring system reads.</value>
   </data>
@@ -8934,6 +9003,9 @@ The next message to it will be sent, and it is listed again only after as many h
   <data name="The addresses and ports each protocol listens on, and the connection security used on each." xml:space="preserve">
     <value>The addresses and ports each protocol listens on, and the connection security used on each.</value>
   </data>
+  <data name="The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck." xml:space="preserve">
+    <value>The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck.</value>
+  </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>The administrator password and two-factor authentication are on the Administrative access page.</value>
   </data>
@@ -8961,6 +9033,9 @@ The next message to it will be sent, and it is listed again only after as many h
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the "message deleted" notice when the action is to delete the message.</value>
   </data>
+  <data name="The audit lines need view_audit as well, which this credential does not hold." xml:space="preserve">
+    <value>The audit lines need view_audit as well, which this credential does not hold.</value>
+  </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched.</value>
   </data>
@@ -8987,6 +9062,9 @@ The next message to it will be sent, and it is listed again only after as many h
   </data>
   <data name="The built-in connectivity and configuration checks, and the last message-store consistency scan." xml:space="preserve">
     <value>The built-in connectivity and configuration checks, and the last message-store consistency scan.</value>
+  </data>
+  <data name="The case's lines on the audit trail" xml:space="preserve">
+    <value>The case's lines on the audit trail</value>
   </data>
   <data name="The certificate &quot;{0}&quot; expired {1}{2} ago{3}" xml:space="preserve">
     <value>The certificate "{0}" expired {1}{2} ago{3}</value>
@@ -9106,6 +9184,9 @@ Select the key above and copy it by hand - it will not be shown again.</value>
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for.</value>
+  </data>
+  <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
+    <value>The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck.</value>
   </data>
   <data name="The effective timeout moves between these values with server load." xml:space="preserve">
     <value>The effective timeout moves between these values with server load.</value>
@@ -12074,6 +12155,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} app passwords.</value>
+  </data>
+  <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
+    <value>{0} case(s). Select one for its lines on the audit trail.</value>
   </data>
   <data name="{0} change(s) carried out, none failed." xml:space="preserve">
     <value>{0} change(s) carried out, none failed.</value>

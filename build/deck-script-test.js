@@ -1227,6 +1227,10 @@ const spec = {
          post: { summary: 'Put an archived copy on legal hold', description: 'A held copy is never removed by the retention sweep or by an address erasure.' },
          delete: { summary: 'Lift the hold' }
       },
+      '/api/v1/discovery/cases': {
+         get: { summary: 'eDiscovery: the cases', description: 'A case holds its searches, its holds and its exports; a search and an export are queued and done one at a time. docs/Discovery.md.' },
+         post: { summary: 'eDiscovery: open a case', description: 'Body: name (required) and description.' }
+      },
       '/api/v1/metrics/history': { get: { summary: 'The history of one metric', description: 'Query parameters: metric (a name from the exporter without the hmailserver_ prefix, e.g. sessions_smtp or processed_messages_total) and range (24h, 7d or 30d - samples averaged per minute, per ten minutes and per hour).' } },
       '/api/v1/update': { get: { summary: 'The update check\'s verdict', description: 'state: 0 not checked since the service started, 1 up to date, 2 a newer release is available, 3 its installer is downloaded and verified, 4 installing, 5 the last check failed (lastError).' } },
       '/api/v1/update/check': { post: { summary: 'Read the release feed now', description: 'Runs the update check on this request, whether or not the scheduled check is on, and returns the verdict as GET /api/v1/update does. Refused for read-only keys.' } },
@@ -1667,6 +1671,21 @@ const state = {
       { id: 2751, time: '2026-09-16 10:30:00', domain: 'example.com', mailbox: 'anna', direction: 'sent', sender: 'anna@example.com', subject: 'Re: The signed contract', recipients: 'client@partner.example', message_id: '<b@example.com>', path: 'C:\\archive\\example.com\\anna\\b.eml', size: 20480, hold: true },
       { id: 2752, time: '2026-09-15 08:00:00', domain: 'second.example', mailbox: 'carla', direction: 'received', sender: 'list@announce.example', subject: 'The weekly notice', recipients: 'carla@second.example', message_id: '<c@announce.example>', path: 'C:\\archive\\second.example\\carla\\c.eml', size: 8192, hold: false }
    ],
+   // eDiscovery: an open case with a finished search, a live hold and a
+   // finished export, and a closed case, newest first as the listing is.
+   discovery: {
+      next: 100,
+      cases: [
+         { id: 41, name: 'Northwind v. Example', description: 'The supplier dispute', state: 'open', created_by: 'Administrator', created: 1758060000, closed_by: '', closed: 0,
+           searches: [{ id: 7, case: 41, state: 'done', query: { custodians: ['anna@example.com'], words: 'contract', scope: 'both' }, ran_by: 'Administrator', ran: 1758060100,
+              finished: 1758060160, scanned: 1200, matched: 14, unsearched: 1, truncated: false, error: '' }],
+           holds: [{ id: 3, case: 41, scope: 'account', owner_id: 12, name: 'anna@example.com', placed_by: 'Administrator', placed: 1758060050, released_by: '', released: 0, live: true }],
+           exports: [{ id: 5, case: 41, search: 7, state: 'done', file: 'export-5.zip', size: 2097152, sha256: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
+              items: 14, withheld: 0, requested_by: 'Administrator', requested: 1758060200, finished: 1758060260, error: '', download: '/api/v1/discovery/cases/41/exports/5' }] },
+         { id: 40, name: 'An old matter', description: '', state: 'closed', created_by: 'Administrator', created: 1757000000, closed_by: 'Administrator', closed: 1757100000,
+           searches: [], holds: [], exports: [] }
+      ]
+   },
    // The history is kept, and the counter climbs by five, six and seven over
    // the four samples: the page draws the differences, not the totals.
    metricsEnabled: true,
@@ -3471,6 +3490,76 @@ function answer(method, path, headers, raw) {
       if (!entry) { return json(404, { error: 'no such archived message' }); }
       if (method === 'POST') { entry.hold = true; return json(200, { held: true }); }
       if (method === 'DELETE') { entry.hold = false; return json(200, { released: true }); }
+   }
+
+   // eDiscovery, answering as RestApiDiscovery does: the listing summarises,
+   // a case's own route carries its searches, holds and exports, a search and
+   // an export are queued (202), and a closed case refuses every write.
+   const discoverySummary = (c) => ({ id: c.id, name: c.name, description: c.description, state: c.state, created_by: c.created_by, created: c.created,
+      closed_by: c.closed_by, closed: c.closed, search_count: c.searches.length, live_holds: c.holds.filter((h) => h.live).length, export_count: c.exports.length });
+   if (path === '/api/v1/discovery/cases' && method === 'GET') { return json(200, { cases: state.discovery.cases.map(discoverySummary) }); }
+   if (path === '/api/v1/discovery/cases' && method === 'POST') {
+      if (!parsed || !parsed.name) { return json(400, { error: 'A case needs a name of 1 to 255 characters, on one line.' }); }
+      const created = { id: state.discovery.next++, name: parsed.name, description: parsed.description || '', state: 'open', created_by: 'Administrator', created: 1758070000,
+         closed_by: '', closed: 0, searches: [], holds: [], exports: [] };
+      state.discovery.cases.unshift(created);
+      return json(201, Object.assign(discoverySummary(created), { searches: [], holds: [], exports: [] }));
+   }
+   const discoveryRoute = /^\/api\/v1\/discovery\/cases\/(\d+)(?:\/(close|searches|holds|exports)(?:\/(\d+)(?:\/(export))?)?)?$/.exec(path);
+   if (discoveryRoute) {
+      const theCase = state.discovery.cases.filter((c) => c.id === Number(discoveryRoute[1]))[0];
+      if (!theCase) { return json(404, { error: 'There is no such case.' }); }
+      const what = discoveryRoute[2] || '';
+      const item = Number(discoveryRoute[3] || 0);
+      if (!what && method === 'GET') { return json(200, Object.assign(discoverySummary(theCase), clone({ searches: theCase.searches, holds: theCase.holds, exports: theCase.exports }))); }
+      if (what === 'exports' && item && method === 'GET') { return { status: 200, body: 'PK', headers: { 'Content-Type': 'application/zip' } }; }
+      if (method !== 'GET' && !(what === 'holds' && method === 'DELETE') && theCase.state === 'closed') { return json(409, { error: 'The case is closed: a closed case runs no search. Open a new one.' }); }
+      if (what === 'close' && method === 'POST') {
+         let released = 0;
+         theCase.holds.forEach((h) => { if (h.live) { h.live = false; h.released = 1758070100; h.released_by = 'Administrator'; released += 1; } });
+         Object.assign(theCase, { state: 'closed', closed: 1758070100, closed_by: 'Administrator' });
+         return json(200, Object.assign(discoverySummary(theCase), clone({ searches: theCase.searches, holds: theCase.holds, exports: theCase.exports }), { released }));
+      }
+      if (what === 'searches' && !item && method === 'POST') {
+         if (!parsed || !Array.isArray(parsed.custodians) || !parsed.custodians.length) { return json(400, { error: 'custodians is required: the addresses or domains whose mail is searched, or "*".' }); }
+         const search = { id: state.discovery.next++, case: theCase.id, state: 'queued', query: parsed, ran_by: 'Administrator', ran: 1758070050, finished: 0,
+            scanned: 0, matched: 0, unsearched: 0, truncated: false, error: '' };
+         theCase.searches.unshift(search);
+         return json(202, { id: search.id, case: theCase.id, state: 'queued', query: parsed, status: '/api/v1/discovery/cases/' + theCase.id + '/searches/' + search.id });
+      }
+      if (what === 'searches' && item && discoveryRoute[4] === 'export' && method === 'POST') {
+         const search = theCase.searches.filter((x) => x.id === item)[0];
+         if (!search) { return json(404, { error: 'There is no such search in this case.' }); }
+         if (search.state !== 'done') { return json(409, { error: 'The search is ' + search.state + ': only a search that has finished can be exported.' }); }
+         const made = { id: state.discovery.next++, case: theCase.id, search: item, state: 'queued', file: '', size: 0, sha256: '', items: 0, withheld: 0,
+            requested_by: 'Administrator', requested: 1758070200, finished: 0, error: '' };
+         made.download = '/api/v1/discovery/cases/' + theCase.id + '/exports/' + made.id;
+         theCase.exports.unshift(made);
+         return json(202, { id: made.id, case: theCase.id, search: item, state: 'queued', status: '/api/v1/discovery/cases/' + theCase.id, download: made.download });
+      }
+      if (what === 'holds' && !item && method === 'POST') {
+         if (parsed && parsed.scope === 'archive') {
+            if (!theCase.searches.some((x) => x.id === parsed.search && x.state === 'done')) { return json(404, { error: 'A hold on archived copies names a search of this case in search.' }); }
+            const hold = { id: state.discovery.next++, case: theCase.id, scope: 'archive', owner_id: 2750, name: 'anna@example.com (archive #2750)', placed_by: 'Administrator',
+               placed: 1758070150, released_by: '', released: 0, live: true };
+            theCase.holds.push(hold);
+            return json(201, { placed: 1, holds: [hold.id] });
+         }
+         if (!parsed || (parsed.scope !== 'account' && parsed.scope !== 'domain')) { return json(400, { error: 'scope must be account, domain or archive.' }); }
+         if (theCase.holds.some((h) => h.live && h.name === parsed.target)) { return json(409, { error: 'This case already holds ' + parsed.target + '.' }); }
+         const hold = { id: state.discovery.next++, case: theCase.id, scope: parsed.scope, owner_id: 20, name: parsed.target, placed_by: 'Administrator',
+            placed: 1758070150, released_by: '', released: 0, live: true };
+         theCase.holds.push(hold);
+         return json(201, { placed: 1, holds: [clone(hold)] });
+      }
+      if (what === 'holds' && item && method === 'DELETE') {
+         const hold = theCase.holds.filter((h) => h.id === item)[0];
+         if (!hold) { return json(404, { error: 'There is no such hold in this case.' }); }
+         if (!hold.live) { return json(409, { error: 'The hold was released already.' }); }
+         Object.assign(hold, { live: false, released: 1758070300, released_by: 'Administrator' });
+         return json(200, clone(hold));
+      }
+      return json(404, { error: 'There is no such route.' });
    }
 
    if (/^\/api\/v1\/metrics\/history(\?|$)/.test(path) && method === 'GET') {
@@ -7095,6 +7184,115 @@ async function main() {
       check('a search that matches nothing says so rather than showing an empty table',
          content().textContent.indexOf('Nothing in the archive matches') >= 0, content().textContent.slice(0, 300));
 
+      // ---- eDiscovery: the cases, and one case's searches, holds and exports
+      before = requests.length;
+      await goTo('discovery');
+      check('the discovery view lists the cases, the closed one marked and the live holds counted',
+         called(before, 'GET', '/api/v1/discovery/cases').length === 1 && rows().length === 2 &&
+         rows()[0].textContent.indexOf('Northwind v. Example') >= 0 && rows()[0].textContent.indexOf('Closed') < 0 &&
+         rows()[1].textContent.indexOf('An old matter') >= 0 && rows()[1].textContent.indexOf('Closed') >= 0,
+         rows().map((r) => r.textContent).join(' | '));
+
+      before = requests.length;
+      setValue('dsc_name', 'Acme matter');
+      setValue('dsc_description', 'The notice of 20 September');
+      click(act('dscnew'));
+      await flush();
+      const opened = lastBody(before, 'POST', '/api/v1/discovery/cases');
+      check('Open a case posts its name and description, and opens the case it made',
+         opened && opened.name === 'Acme matter' && opened.description === 'The notice of 20 September' && Object.keys(opened).length === 2 &&
+         called(before, 'GET', '/api/v1/discovery/cases/100').length === 1 && content().textContent.indexOf('Acme matter') >= 0 &&
+         content().querySelectorAll('button[data-act="dscsearch"]').length === 1, paths(before));
+
+      before = requests.length;
+      setValue('dsc_custodians', 'anna@example.com, example.test,');
+      setValue('dsc_words', 'contract');
+      setValue('dsc_from', '2026-09-01');
+      setValue('dsc_attname', 'invoice');
+      click(act('dscsearch'));
+      await flush();
+      const searched = lastBody(before, 'POST', '/api/v1/discovery/cases/100/searches');
+      check('Run the search posts the custodians as a list and only the criteria given, the attachment\'s under attachment',
+         searched && JSON.stringify(searched.custodians) === '["anna@example.com","example.test"]' && searched.scope === 'both' &&
+         searched.words === 'contract' && searched.from === '2026-09-01' && !('to' in searched) &&
+         JSON.stringify(searched.attachment) === '{"name":"invoice"}', JSON.stringify(searched));
+      check('and says it is queued, shows it as queued, and reads the case again while it is',
+         toastText().indexOf('one search or export at a time') >= 0 && rows()[0].textContent.indexOf('queued') >= 0 &&
+         timers.some((x) => x.ms === 3000), toastText() + ' ' + rows().map((r) => r.textContent).join(' | '));
+      state.discovery.cases[0].searches[0].state = 'done';
+      state.discovery.cases[0].searches[0].matched = 2;
+
+      before = requests.length;
+      setValue('dsc_hold', 'bob@example.com');
+      click(act('dschold'));
+      await flush();
+      setValue('dsc_hold', 'example.test');
+      click(act('dschold'));
+      await flush();
+      const holdsPosted = called(before, 'POST', '/api/v1/discovery/cases/100/holds').map((r) => JSON.parse(r.body));
+      check('a hold on an address is an account hold and one on a name is a domain hold',
+         holdsPosted.length === 2 && holdsPosted[0].scope === 'account' && holdsPosted[0].target === 'bob@example.com' &&
+         holdsPosted[1].scope === 'domain' && holdsPosted[1].target === 'example.test', JSON.stringify(holdsPosted));
+      const placedHolds = state.discovery.cases[0].holds;
+      check('and both are drawn on hold, each with Lift the hold',
+         content().querySelectorAll('button[data-act="dscrelease"]').length === 2 &&
+         rows().filter((r) => r.textContent.indexOf('On hold') >= 0).length === 2, rows().map((r) => r.textContent).join(' | '));
+      check('each with its scope in the reader\'s words (Account, Domain), not the server\'s',
+         rows().some((r) => r.textContent.indexOf('bob@example.com') >= 0 && r.textContent.indexOf('Account') >= 0 && r.textContent.indexOf('On hold') >= 0) &&
+         rows().some((r) => r.textContent.indexOf('example.test') >= 0 && r.textContent.indexOf('Domain') >= 0 && r.textContent.indexOf('On hold') >= 0),
+         rows().map((r) => r.textContent).join(' | '));
+
+      before = requests.length;
+      click(act('dscrelease', { id: placedHolds[0].id }));
+      await flush();
+      check('Lift the hold is a DELETE of that hold, and the hold stays listed, lifted',
+         called(before, 'DELETE', '/api/v1/discovery/cases/100/holds/' + placedHolds[0].id).length === 1 &&
+         content().querySelectorAll('button[data-act="dscrelease"]').length === 1 &&
+         rows().filter((r) => r.textContent.indexOf('Hold lifted') >= 0).length === 1, paths(before));
+
+      before = requests.length;
+      click(act('dscholdarchive', { id: state.discovery.cases[0].searches[0].id }));
+      await flush();
+      check('a finished search offers its archived copies for a hold, which names the search',
+         JSON.stringify(lastBody(before, 'POST', '/api/v1/discovery/cases/100/holds')) === '{"scope":"archive","search":' + state.discovery.cases[0].searches[0].id + '}', paths(before));
+
+      before = requests.length;
+      confirmAnswer = false;
+      click(act('dscclose'));
+      await flush();
+      check('closing asks first, naming the case, and no means nothing is sent',
+         confirmations[confirmations.length - 1].indexOf('Acme matter') >= 0 && confirmations[confirmations.length - 1].indexOf('released') >= 0 &&
+         called(before, 'POST', /\/close$/).length === 0, confirmations[confirmations.length - 1] + ' ' + paths(before));
+      confirmAnswer = true;
+      click(act('dscclose'));
+      await flush();
+      check('yes closes it; a closed case is marked and offers no search, hold, export or close',
+         called(before, 'POST', '/api/v1/discovery/cases/100/close').length === 1 && content().textContent.indexOf('Closed') >= 0 &&
+         content().querySelectorAll('button[data-act="dscsearch"]').length === 0 && content().querySelectorAll('button[data-act="dschold"]').length === 0 &&
+         content().querySelectorAll('button[data-act="dscexport"]').length === 0 && content().querySelectorAll('button[data-act="dscclose"]').length === 0 &&
+         content().querySelectorAll('button[data-act="dscrelease"]').length === 0, paths(before));
+
+      before = requests.length;
+      click(act('dscback'));
+      await flush();
+      click(act('dscopen', { id: 41 }));
+      await flush();
+      check('Back lists the cases again, and Open reads one case',
+         called(before, 'GET', '/api/v1/discovery/cases').length === 1 && called(before, 'GET', '/api/v1/discovery/cases/41').length === 1, paths(before));
+      const downloads = content().querySelectorAll('a[download]');
+      check('a finished export is a download link to its own route, named for the case and the export, with its SHA-256 beside it',
+         downloads.length === 1 && downloads[0].attributes.href === '/api/v1/discovery/cases/41/exports/5' &&
+         downloads[0].attributes.download === 'case-41-export-5.zip' &&
+         content().textContent.indexOf('9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08') >= 0 &&
+         content().textContent.indexOf('1200 read, 14 matched, 1 not searched') >= 0, JSON.stringify(downloads.map((a) => a.attributes)));
+
+      before = requests.length;
+      click(act('dscexport', { id: 7 }));
+      await flush();
+      check('Export posts to the search\'s export route and shows the export queued',
+         called(before, 'POST', '/api/v1/discovery/cases/41/searches/7/export').length === 1 &&
+         toastText().indexOf('one search or export at a time') >= 0 && content().querySelectorAll('a[download]').length === 1, paths(before));
+
       // ---- the metric history
       before = requests.length;
       await goTo('metrics');
@@ -8568,6 +8766,7 @@ async function main() {
       $('#nav button[data-view="groups"]').hidden && $('#nav button[data-view="remotedomains"]').hidden &&
       $('#nav button[data-view="audit"]').hidden);
    check('but the reports, which are scoped to its domain rather than refused', !$('#nav button[data-view="reports"]').hidden);
+   check('and not eDiscovery, which it holds no view_discovery for', $('#nav button[data-view="discovery"]').hidden);
 
    // The arrow keys walk the views that are shown and never stop on one that is not.
    $('#nav button[data-view="domains"]').focus();
@@ -8581,9 +8780,19 @@ async function main() {
    await flush();
    whoami = { identity: 'account:audra@example.com', credential: 'account', administrative: true,
       role: 'auditor', permissions: ['view_configuration', 'view_accounts', 'view_mailbox', 'view_queue', 'view_quarantine',
-         'view_archive', 'view_logs', 'view_message_trace', 'view_audit'],
+         'view_archive', 'view_logs', 'view_message_trace', 'view_audit', 'view_discovery'],
       domains: [] };
    await signIn();
+   await goTo('discovery');
+   check('an auditor, who reads the discovery cases and may not act on them, is offered no Open a case',
+      content().querySelectorAll('button[data-act="dscnew"]').length === 0 && rows().length >= 2, content().textContent.slice(0, 300));
+   click(act('dscopen', { id: 41 }));
+   await flush();
+   check('and in a case no search, hold, lift, export or close, but the download, which view_mailbox beside view_discovery allows',
+      content().querySelectorAll('button[data-act="dscsearch"]').length === 0 && content().querySelectorAll('button[data-act="dschold"]').length === 0 &&
+      content().querySelectorAll('button[data-act="dscrelease"]').length === 0 && content().querySelectorAll('button[data-act="dscexport"]').length === 0 &&
+      content().querySelectorAll('button[data-act="dscclose"]').length === 0 && content().querySelectorAll('a[download]').length >= 1,
+      content().textContent.slice(0, 300));
    check('an auditor reaching every domain is shown the audit trail, the reports and the remote domains',
       !$('#nav button[data-view="audit"]').hidden && !$('#nav button[data-view="reports"]').hidden &&
       !$('#nav button[data-view="remotedomains"]').hidden && !$('#nav button[data-view="groups"]').hidden);
