@@ -70,7 +70,8 @@ namespace HM
          "manage_domains",
          "manage_server",
          "manage_roles",
-         "send_through_api"
+         "send_through_api",
+         "provision"
       };
 
       static_assert(sizeof(PermissionTokens) / sizeof(PermissionTokens[0]) == static_cast<size_t>(RolePermission::Count),
@@ -617,7 +618,15 @@ namespace HM
       if (!holder.administrative)
          return false;
 
-      if (holder.Holds(RolePermission::AdministerServer))
+      // The server administrator takes in everything - but only the one that
+      // reaches every domain. A grant that holds AdministerServer and carries a
+      // list of domains - a Scope=full key issued for named domains, which is
+      // serveradmin confined to them, or serveradmin assigned with a list - is
+      // confined to that list at every route it reaches, and the rule below
+      // holds for it as for any other confined grant. Without this a key issued
+      // for a.com could set the password of an a.com account that administers
+      // b.com, or that audits every domain, and sign in as it.
+      if (holder.Holds(RolePermission::AdministerServer) && holder.domains.empty())
          return true;
 
       if ((other.permissions & ~holder.permissions) != 0)
@@ -628,7 +637,11 @@ namespace HM
       if (holder.domains.empty())
          return true;
 
-      if (other.domains.empty())
+      // What reaches every domain is never inside a list: a grant with no list
+      // of its own, and one that holds AdministerServer whatever list it
+      // carries, since Allows and ReachesEveryDomain read that permission as
+      // the whole server.
+      if (ReachesEveryDomain(other))
          return false;
 
       for (const String &domain : other.domains)

@@ -225,6 +225,14 @@ namespace HM
          return false;
       }
 
+      // accountexternalid (schema 6096) is nvarchar(255) and varchar(255): the
+      // identity provider's id for the person, which SCIM and COM both set.
+      if (account->GetExternalId().GetLength() > 255)
+      {
+         resultDescription = "The external id length exceeds the 255 character limit.";
+         return false;
+      }
+
       if (!IsValidAccountAddress_(account->GetAddress()))
       {
          resultDescription = "The account address is not a valid email address.";

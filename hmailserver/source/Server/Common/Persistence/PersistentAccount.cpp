@@ -345,6 +345,7 @@ namespace HM
       pAccount->SetOpenPGPPublish(pRS->GetLongValue("accountopenpgppublish") == 1);
       pAccount->SetZeroAccess(pRS->GetLongValue("accountzeroaccess") == 1);
       pAccount->SetRestrictedDelivery((int) pRS->GetLongValue("accountrestricteddelivery"));
+      pAccount->SetExternalId(pRS->GetStringValue("accountexternalid"));
 
       pAccount->SetPasswordEncryption(pRS->GetLongValue("accountpwencryption"));
 
@@ -613,6 +614,7 @@ namespace HM
       oStatement.AddColumn("accountopenpgppublish", pAccount->GetOpenPGPPublish() ? 1 : 0);
       oStatement.AddColumn("accountzeroaccess", pAccount->GetZeroAccess() ? 1 : 0);
       oStatement.AddColumn("accountrestricteddelivery", (long) pAccount->GetRestrictedDelivery());
+      oStatement.AddColumn("accountexternalid", pAccount->GetExternalId());
 
       oStatement.AddColumn("accountenablesignature", pAccount->GetEnableSignature());
       oStatement.AddColumn("accountsignatureplaintext", pAccount->GetSignaturePlainText());

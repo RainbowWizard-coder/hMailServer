@@ -747,6 +747,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiProfiles.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSend.cpp" />
     <ClCompile Include="..\Common\Util\ApiSends.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiScim.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOperator.cpp" />
     <ClCompile Include="..\Common\Util\WebServicesServer.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOpenPgp.cpp" />

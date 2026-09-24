@@ -152,6 +152,10 @@ public:
    STDMETHOD(get_RestrictedDelivery)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_RestrictedDelivery)(/*[in]*/ long newVal);
 
+   // SCIM provisioning's externalId. See Common/Util/RestApiScim.cpp.
+   STDMETHOD(get_ExternalId)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_ExternalId)(/*[in]*/ BSTR newVal);
+
    // One value, three levels. See Common/Application/EffectiveSetting.h.
    STDMETHOD(get_SettingOverride)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);
    STDMETHOD(put_SettingOverride)(/*[in]*/ BSTR Name, /*[in]*/ BSTR newVal);

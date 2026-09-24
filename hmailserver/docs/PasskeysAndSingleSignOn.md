@@ -279,6 +279,15 @@ For the Control Deck, the address must be in `oidc_administrators`. **An issuer
 that says somebody is an administrator is not obeyed**: what a person may do
 here is decided by this server's roles and this server's list.
 
+Auto-provisioning makes a mailbox in passing, for whoever arrives with a verified
+address, and never touches it again: it does not rename it, suspend it or remove
+it when the person leaves. **SCIM provisioning is the deliberate version** - the
+identity provider itself makes, renames, suspends and removes exactly the people
+the organisation assigned to this server, with their aliases and the lists they
+belong to, over `/scim/v2` under an API key that holds `provision`
+([Scim.md](Scim.md)). The two work together: SCIM keeps the mailboxes, and single
+sign-on is how the people it made sign in to them.
+
 ### What single sign-on does not do
 
 * **No logout, in either direction.** Signing out of the webmail ends the

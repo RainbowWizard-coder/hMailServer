@@ -215,6 +215,31 @@ namespace RegressionTests.Infrastructure
          StringAssert.Contains("\"opt_out\":true", read.Body);
       }
 
+      // --------------------------------------------- hm_accounts.accountexternalid
+
+      [Test]
+      [Description("hm_accounts.accountexternalid: the identity provider's own id for the person - what SCIM finds an "
+                   + "account by with externalId eq - survives a backup and a restore that deleted the domain, so a "
+                   + "restore does not make every provisioned account a stranger to the directory that provisioned it")]
+      public void TheExternalIdComesBack()
+      {
+         string domainName = _domain.Name;
+
+         // dynamic because the test project's interop predates the property.
+         dynamic account = _domain.Accounts.get_ItemByAddress(_address);
+         account.ExternalId = "entra-backup-0001";
+         account.Save();
+
+         dynamic saved = _application.Domains.ItemByName[domainName].Accounts.ItemByAddress[_address];
+         Assert.AreEqual("entra-backup-0001", (string) saved.ExternalId, "The control: the id is there to be backed up.");
+
+         BackupDeleteAndRestore();
+
+         dynamic restored = _application.Domains.ItemByName[domainName].Accounts.ItemByAddress[_address];
+         Assert.AreEqual("entra-backup-0001", (string) restored.ExternalId,
+            "The restored account has no external id, so Account::XMLStore or XMLLoad did not carry it.");
+      }
+
       // ---------------------------------------------------- hm_maskedaddresses
 
       [Test]

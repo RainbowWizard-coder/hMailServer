@@ -1614,6 +1614,10 @@ namespace DBUpdater
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_smimeca_domain' and constraint_type = 'FOREIGN KEY')"),
          new SchemaProbe(6095, "hm_smimeissued.fk_hm_smimeissued_ca",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_smimeissued_ca' and constraint_type = 'FOREIGN KEY')"),
+         // Upgrade6095to6096* - SCIM provisioning: the identity provider's own id
+         // for the person an account is, which its "externalId eq" filter reads.
+         new SchemaProbe(6096, "hm_accounts.accountexternalid",
+                         "update hm_accounts set accountexternalid = accountexternalid where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

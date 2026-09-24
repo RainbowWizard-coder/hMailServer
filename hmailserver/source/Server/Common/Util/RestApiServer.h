@@ -1031,6 +1031,31 @@ namespace HM
          RouteSendCreate,
          RouteSendList,
          RouteSendGet,
+         // SCIM 2.0 provisioning (RestApiScim.cpp, docs/Scim.md): the
+         // organisation's identity provider creating, changing, suspending and
+         // removing accounts - with their aliases - and distribution lists.
+         // Everything under /scim/ is one of these, a path SCIM does not serve
+         // included (RouteScimUnknown), so that every answer there is in SCIM's
+         // own shape. An API key whose role holds provision reaches them and no
+         // other credential does (Authorize_). No SCIM path names a domain, so a
+         // key confined to named domains is confined by the handlers, which
+         // provision those domains and list nothing else.
+         RouteScimServiceProviderConfig,
+         RouteScimSchemas,
+         RouteScimResourceTypes,
+         RouteScimUserList,
+         RouteScimUserGet,
+         RouteScimUserCreate,
+         RouteScimUserReplace,
+         RouteScimUserPatch,
+         RouteScimUserDelete,
+         RouteScimGroupList,
+         RouteScimGroupGet,
+         RouteScimGroupCreate,
+         RouteScimGroupReplace,
+         RouteScimGroupPatch,
+         RouteScimGroupDelete,
+         RouteScimUnknown,
          // The list manager (RestApiMailingLists.cpp): a managed list's archive
          // for programs, and the owner's two verbs on one member - clearing its
          // bounces and approving its request. Scoped to the domain in the list's
@@ -1424,6 +1449,22 @@ namespace HM
       // which a route refuses rather than reads as absent, since a client
       // that wrote the key meant something by it.
       static int JsonWholeNumber_(const AnsiString &json, const AnsiString &key, __int64 &value);
+
+      // SCIM 2.0 provisioning (RestApiScim.cpp, docs/Scim.md). IsScimPath_ is
+      // /scim and everything under it; ParseScimRoute_ decides which SCIM route
+      // a request is, and every path there is one of them; IsScimRoute_ is the
+      // RouteKind half of the same question, for Authorize_. BuildScimError_ is
+      // RFC 7644's error document, in application/scim+json, which the refusals
+      // ProcessRequest_ answers before any handler - 401, 403, 429 and 500 -
+      // give on a /scim/ path in place of the listener's own JSON. The handler
+      // is not static: meta.location is the URL the resource is at, and the
+      // scheme is the listener's.
+      static bool IsScimPath_(const AnsiString &path);
+      static bool IsScimRoute_(RouteKind kind);
+      static void ParseScimRoute_(const AnsiString &method, const AnsiString &path, Route &route);
+      static HttpResponse BuildScimError_(int statusCode, const AnsiString &scimType, const String &detail, const AnsiString &extraHeaders = "");
+      HttpResponse HandleScim_(const Caller &caller, const Route &route, const AnsiString &method, const AnsiString &request);
+      static AnsiString OpenApiScimPaths_();
       static HttpResponse HandleMeMessageAttachment_(const Caller &caller, __int64 messageId, int index);
       static HttpResponse HandleMeSearch_(const Caller &caller, const AnsiString &query);
       static HttpResponse HandleMeSettings_(const Caller &caller);

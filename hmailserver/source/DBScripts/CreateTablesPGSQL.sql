@@ -217,12 +217,15 @@ create table hm_accounts
 	accountspamdeletethreshold int not null default -1,
 	accountopenpgppublish int not null default 0,
 	accountzeroaccess int not null default 0,
-	accountrestricteddelivery int not null default 0
+	accountrestricteddelivery int not null default 0,
+	accountexternalid varchar(255) not null default ''
 );
 
 
 
 CREATE INDEX idx_hm_accounts ON hm_accounts (accountaddress);
+
+CREATE INDEX idx_hm_accounts_externalid ON hm_accounts (accountexternalid);
 
 create table hm_aliases 
 (
@@ -1996,7 +1999,7 @@ ALTER TABLE hm_roleassignments ADD CONSTRAINT fk_hm_roleassignments_account FORE
 
 ALTER TABLE hm_roleassignments ADD CONSTRAINT fk_hm_roleassignments_role FOREIGN KEY (raroleid) REFERENCES hm_roles (roleid);
 
-insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('serveradmin', 'Every permission, in every domain.', 1, 'administer_server,administer_domain,view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_queue,manage_quarantine,manage_archive,manage_settings,manage_domains,manage_server,manage_roles,send_through_api');
+insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('serveradmin', 'Every permission, in every domain.', 1, 'administer_server,administer_domain,view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_queue,manage_quarantine,manage_archive,manage_settings,manage_domains,manage_server,manage_roles,send_through_api,provision');
 
 insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('domainadmin', 'The accounts, mailboxes and quarantine of named domains.', 1, 'administer_domain,view_configuration,view_accounts,view_mailbox,view_quarantine,view_message_trace,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_quarantine');
 
@@ -2708,4 +2711,4 @@ CREATE INDEX idx_hm_smimeissued_fingerprint ON hm_smimeissued (issuedfingerprint
 
 ALTER TABLE hm_smimeissued ADD CONSTRAINT fk_hm_smimeissued_ca FOREIGN KEY (issuedcaid) REFERENCES hm_smimeca (caid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6095);
+insert into hm_dbversion values (6096);

@@ -1955,6 +1955,12 @@ namespace HM
       if (method == "GET" && path == "/portal-sw.js")
          return HandlePortalServiceWorker_();
 
+      // A SCIM client reads every answer under /scim/ as RFC 7644's error
+      // document, the refusals below that come before any handler included: a
+      // /scim/ path is answered those in SCIM's shape (RestApiScim.cpp), and
+      // every other path exactly as before.
+      const bool scimPath = IsScimPath_(path);
+
       try
       {
          // Inside the try: authenticating a bearer token reads the key store and
@@ -1973,8 +1979,14 @@ namespace HM
          if (caller.via_session && method != "GET" && method != "HEAD" &&
              GetHeader_(request, "x-requested-with") != "hMailServer")
          {
+            if (scimPath)
+               return BuildScimError_(403, "", _T("a request that changes something must carry X-Requested-With: hMailServer when it is authenticated by a session cookie or a session token"));
+
             return BuildResponse_(403, "{\"error\":\"a request that changes something must carry X-Requested-With: hMailServer when it is authenticated by a session cookie or a session token\"}");
          }
+
+         if (caller.result == AuthenticationFailed && scimPath)
+            return BuildScimError_(401, "", _T("authentication failed: /scim/ answers to an api key presented as a bearer token"), "WWW-Authenticate: Bearer realm=\"hMailServer\"\r\n");
 
          if (caller.result == AuthenticationFailed)
             return BuildUnauthorizedResponse_(caller.second_factor_required, IsPageScriptRequest_(request));
@@ -2009,6 +2021,13 @@ namespace HM
                   String(caller.identity).c_str(), MaxRequestsPerWindowPerCredential,
                   (int) (RateWindowMilliseconds / 1000));
                LOG_APPLICATION(message);
+            }
+
+            if (scimPath)
+            {
+               AnsiString retryAfter;
+               retryAfter.Format("Retry-After: %d\r\n", (int) (RateWindowMilliseconds / 1000));
+               return BuildScimError_(429, "", _T("too many requests"), retryAfter);
             }
 
             return BuildTooManyRequestsResponse_();
@@ -2048,6 +2067,9 @@ namespace HM
          AnsiString refusalReason;
          AuthorizationResult authorization = Authorize_(caller, route, refusalReason);
 
+         if (authorization == AuthorizationUnauthenticated && scimPath)
+            return BuildScimError_(401, "", _T("authentication failed: /scim/ answers to an api key presented as a bearer token, and to no password or session"), "WWW-Authenticate: Bearer realm=\"hMailServer\"\r\n");
+
          if (authorization == AuthorizationUnauthenticated)
             return BuildUnauthorizedResponse_(false, IsPageScriptRequest_(request));
 
@@ -2058,6 +2080,9 @@ namespace HM
                String(caller.identity).c_str(), String(method).c_str(),
                String(path).c_str(), String(refusalReason).c_str());
             LOG_APPLICATION(message);
+
+            if (scimPath)
+               return BuildScimError_(403, "", String(refusalReason));
 
             return BuildForbiddenResponse_(refusalReason);
          }
@@ -2398,6 +2423,25 @@ namespace HM
             return HandleSendList_(caller, route.query);
          case RouteSendGet:
             return HandleSendGet_(caller, route.identifier);
+
+         case RouteScimServiceProviderConfig:
+         case RouteScimSchemas:
+         case RouteScimResourceTypes:
+         case RouteScimUserList:
+         case RouteScimUserGet:
+         case RouteScimUserCreate:
+         case RouteScimUserReplace:
+         case RouteScimUserPatch:
+         case RouteScimUserDelete:
+         case RouteScimGroupList:
+         case RouteScimGroupGet:
+         case RouteScimGroupCreate:
+         case RouteScimGroupReplace:
+         case RouteScimGroupPatch:
+         case RouteScimGroupDelete:
+         case RouteScimUnknown:
+            return HandleScim_(caller, route, method, request);
+
          case RouteLogTail:
             return HandleLogTail_(route.identifier, route.query);
          case RouteLogSessions:
@@ -3141,12 +3185,18 @@ namespace HM
          // put-back, the branding routes, anything a route's own check did not
          // answer first. Not an error: the change would be undone at the next start
          // (docs/EnvironmentConfiguration.md).
+         if (scimPath)
+            return BuildScimError_(409, "", refusal.Sentence());
+
          AnsiString sentence;
          Unicode::WideToMultiByte(refusal.Sentence(), sentence);
          return BuildResponse_(409, "{\"error\":\"" + JsonEscape_(sentence) + "\"}");
       }
       catch (...)
       {
+         if (scimPath)
+            return BuildScimError_(500, "", _T("internal error"));
+
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
       }
    }
@@ -3259,6 +3309,15 @@ namespace HM
             ParseQueueId(idPart, route.message_id);
          }
 
+         return;
+      }
+
+      // SCIM 2.0 (RestApiScim.cpp): /scim and everything under it is SCIM's,
+      // a path it does not serve included, so that every answer there is in
+      // SCIM's shape rather than this listener's.
+      if (IsScimPath_(path))
+      {
+         ParseScimRoute_(method, path, route);
          return;
       }
 
@@ -7241,6 +7300,18 @@ namespace HM
       case RouteMeSmimeEnroll:
       case RouteMeSmimeIssuedConfirm:
       case RouteMeSmimeIssuedRevoke:
+      // SCIM's writes: an account made, replaced, patched or deleted - a
+      // rename, a suspension and a password among them - with its aliases, and
+      // a distribution list made, replaced, patched or deleted with its
+      // members.
+      case RouteScimUserCreate:
+      case RouteScimUserReplace:
+      case RouteScimUserPatch:
+      case RouteScimUserDelete:
+      case RouteScimGroupCreate:
+      case RouteScimGroupReplace:
+      case RouteScimGroupPatch:
+      case RouteScimGroupDelete:
          return true;
 
       default:
@@ -7397,6 +7468,31 @@ namespace HM
       // alone sends nothing.
       case RouteSendCreate:
          return RolePermission::SendThroughApi;
+
+      // SCIM provisioning (RestApiScim.cpp, docs/Scim.md), its reads as well as
+      // its writes. Only an API key reaches /scim/ (Authorize_ refuses every
+      // other credential before this is asked), and a key reads there only to
+      // provision: the identity provider matches its users before it writes
+      // them. The reads are the documented exception to the auditor rule in
+      // build/check-role-choke-point.py - what they show, an auditor reads at
+      // /api/v1/domains/{domain}/accounts, /aliases and /lists.
+      case RouteScimServiceProviderConfig:
+      case RouteScimSchemas:
+      case RouteScimResourceTypes:
+      case RouteScimUserList:
+      case RouteScimUserGet:
+      case RouteScimUserCreate:
+      case RouteScimUserReplace:
+      case RouteScimUserPatch:
+      case RouteScimUserDelete:
+      case RouteScimGroupList:
+      case RouteScimGroupGet:
+      case RouteScimGroupCreate:
+      case RouteScimGroupReplace:
+      case RouteScimGroupPatch:
+      case RouteScimGroupDelete:
+      case RouteScimUnknown:
+         return RolePermission::Provision;
 
       // Reading the server's shape: its state, its settings, its listeners,
       // its certificates and its rules, the roles that exist and who holds
@@ -8399,6 +8495,17 @@ namespace HM
          refusalReason = "POST /api/v1/send answers to an api key that names a sender, not to the administrator password or an account; a person sends with POST /api/v1/me/messages";
          return AuthorizationForbidden;
       }
+
+      // SCIM (RestApiScim.cpp, docs/Scim.md) is an identity provider's
+      // interface, and an identity provider holds a bearer token: an API key,
+      // whose role must then hold provision, decided below with every other
+      // permission. The administrator password, an account's password, a
+      // session and anything else are answered as no credential at all - 401,
+      // in SCIM's shape - before the administrator password's allow-everything,
+      // so that nothing but a key, which can be confined, revoked and made to
+      // hold provision alone, ever provisions.
+      if (IsScimRoute_(route.kind) && caller.result != AuthenticatedWithApiKey)
+         return AuthorizationUnauthenticated;
 
       // The account's own endpoints, and the account's own credentials: each
       // reaches the other and nothing else. The administrator password and an
@@ -17701,6 +17808,7 @@ namespace HM
       openApiJson += OpenApiSampleDomainPaths_();
       openApiJson += OpenApiProfilesPaths_();
       openApiJson += OpenApiSendPaths_();
+      openApiJson += OpenApiScimPaths_();
       openApiJson += OpenApiAccountRulesPaths_();
       openApiJson += OpenApiDomainRulesPaths_();
       openApiJson += OpenApiOperatorPaths_();

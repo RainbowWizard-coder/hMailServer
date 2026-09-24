@@ -61,6 +61,14 @@ Four things are checked, and the last two are the ones that earn this script:
      permission is consulted, so their classification (manage_roles) is about
      the administrator password and not about what a read-only key may read.
 
+     SCIM's reads are the second: SCIM is an identity provider's interface, and
+     an identity provider reads there only to provision - it matches its users
+     before it writes them - so its reads need provision as its writes do, which
+     the auditor does not hold. They are refused to every credential but an API
+     key in Authorize_ before any permission is consulted, and what they show
+     an auditor reads at /api/v1/domains/{domain}/accounts, /aliases and /lists.
+     Their writes are held to the invariant like any other route's.
+
 Run from the repository root: python3 build/check-role-choke-point.py
 Self-test (proves each rule fires): python3 build/check-role-choke-point.py --self-test
 """
@@ -93,6 +101,7 @@ ALLOWED = {
         ROLE_H,
         "Common/Util/RestApiRoles.cpp",      # the assignment and the password reset
         "Common/Util/RestApiRoutes.cpp",     # the account update
+        "Common/Util/RestApiScim.cpp",       # SCIM's changes to an account: a key may not take over one whose authority it lacks
         "COM/InterfaceApplication.cpp",      # AssignRole and ResetPassword
         "COM/InterfaceAccount.cpp",          # RoleName, Save and MoveTo
         "COM/InterfaceUtilities.cpp",        # MoveMailbox, which is Account.MoveTo reached by address
@@ -157,6 +166,19 @@ SECOND_REQUIRED = {
 API_KEY_ROUTES = {
     "RouteApiKeyUnsupported", "RouteApiKeyList", "RouteApiKeyCreate", "RouteApiKeyRevoke",
     "RouteIniSettingList", "RouteIniSettingGet", "RouteIniSettingPut", "RouteIniSettingDelete",
+}
+
+# SCIM's reads (RestApiScim.cpp, docs/Scim.md): an identity provider's
+# interface, answered to an API key alone - every other credential is refused
+# /scim/ in Authorize_ before any permission is consulted - and read only to
+# provision, so they need provision, as SCIM's writes do. An auditor reads the
+# same accounts, aliases and lists at /api/v1/domains/{domain}/accounts,
+# /aliases and /lists. The exception is to the read half of the rule only: a
+# SCIM write that needed a permission the auditor holds would still fail it.
+SCIM_READ_ROUTES = {
+    "RouteScimServiceProviderConfig", "RouteScimSchemas", "RouteScimResourceTypes",
+    "RouteScimUserList", "RouteScimUserGet", "RouteScimGroupList", "RouteScimGroupGet",
+    "RouteScimUnknown",
 }
 
 
@@ -321,7 +343,7 @@ def check_routes(problems, header, cpp, role_cpp):
                 "%s: %s changes something and needs '%s', which the auditor holds - "
                 "an auditor that can change something is not an auditor"
                 % (REST_CPP, kind, "' and '".join(needed)))
-        if kind not in mutating:
+        if kind not in mutating and kind not in SCIM_READ_ROUTES:
             for p in needed:
                 if p not in auditor:
                     problems.append(

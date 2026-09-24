@@ -19,7 +19,12 @@ it has to do. So it fails here instead, with the file and the function:
 
   recorded   A function that calls PasswordHistory::Record asks the breach check
              BEFORE it. Record writes the old hash into the history and trims the
-             table, and a refused change must not leave that behind.
+             table, and a refused change must not leave that behind. The breach
+             check may be asked through a call, before the Record, to one of the
+             NAMED places in the same file: SCIM judges a password with everything
+             else a change asks before it writes anything, and records the old hash
+             only once the whole change is written (RestApiScim.cpp's
+             ScimJudgePassword and ScimCommitUser).
 
   named      The places the policy does not reach - the administrator password,
              and account creation over REST - still ask the breach check.
@@ -52,6 +57,7 @@ NAMED = [
     ("Common/Util/RestApiServer.cpp", "RestApiServer::HandleMePassword_"),
     ("Common/Util/RestApiAccountResources.cpp", "CreateAppPassword"),
     ("Common/Util/RestApiRoles.cpp", "RestApiServer::HandleAccountPasswordReset_"),
+    ("Common/Util/RestApiScim.cpp", "ScimJudgePassword"),
     ("COM/InterfaceApplication.cpp", "InterfaceApplication::ResetPassword"),
 ]
 
@@ -151,9 +157,14 @@ def check(sources):
             reuse = body.find(REUSE)
             record = body.find(RECORD)
 
+            # The breach check asked through a call to a NAMED place of this file.
+            judged = [body.find(named.split("::")[-1] + "(") for named_rel, named in NAMED
+                      if named_rel == rel and named != name]
+            asked = [position for position in [breach] + judged if position >= 0]
+
             if policy >= 0 and (breach < 0 or breach < policy):
                 failures.append("%s: %s asks the password policy and not the breach check after it" % (rel, name))
-            if record >= 0 and (breach < 0 or breach > record):
+            if record >= 0 and (not asked or min(asked) > record):
                 failures.append("%s: %s records the password history without asking the breach check first" % (rel, name))
             if reuse >= 0 and breach >= 0 and breach < reuse:
                 failures.append("%s: %s asks the breach check before the reuse history, so a reused password costs a request" % (rel, name))
@@ -208,6 +219,14 @@ def self_test(sources):
     copy = dict(sources)
     copy[rel] = text[:call.start()] + "\n" + text[call.end():]
     expect("the administrator password unchecked", copy, "SetAdministratorPassword no longer asks")
+
+    rel = "Common/Util/RestApiScim.cpp"
+    text = sources[rel]
+    commit = text.find("bool ScimCommitUser(")
+    judge = text.find("ScimJudgePassword(", commit)
+    copy = dict(sources)
+    copy[rel] = text[:judge] + "ScimJudgedNowhere(" + text[judge + len("ScimJudgePassword("):]
+    expect("the history recorded with no judgement before it", copy, "ScimCommitUser records the password history without asking")
 
     rel = "Common/Util/RestApiRoutes.cpp"
     text = sources[rel]

@@ -110,6 +110,7 @@ namespace HM
       adusername_ = oldAccount.adusername_;
       person_first_name_ = oldAccount.person_first_name_;
       person_last_name_ = oldAccount.person_last_name_;
+      external_id_ = oldAccount.external_id_;
       vacation_message_ = oldAccount.vacation_message_;
       vacation_subject_ = oldAccount.vacation_subject_;
       vacation_expires_ = oldAccount.vacation_expires_;
@@ -370,6 +371,7 @@ namespace HM
       pNode->AppendAttr(_T("OpenPGPPublish"), openpgp_publish_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("ZeroAccess"), zero_access_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("RestrictedDelivery"), StringParser::IntToString(restricted_delivery_));
+      pNode->AppendAttr(_T("ExternalId"), external_id_);
 
       pNode->AppendAttr(_T("EnableSignature"), enable_signature_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("SignaturePlainText"), signature_plain_text_);
@@ -529,6 +531,14 @@ namespace HM
          const int mode = restricted.IsEmpty() ? 0 : _ttoi(restricted);
          restricted_delivery_ = (mode >= 0 && mode <= 2) ? mode : 0;
       }
+
+      // A backup from before schema 6096 says nothing here, and the account
+      // restores with no identity provider's id, which is what it had. A
+      // hand-edited value past the column is cut to it rather than failing the
+      // restore on one attribute.
+      external_id_ = pAccountNode->GetAttrValue(_T("ExternalId"));
+      if (external_id_.GetLength() > 255)
+         external_id_ = external_id_.Left(255);
 
       signature_plain_text_ = pAccountNode->GetAttrValue(_T("SignaturePlainText"));
       signature_html_ = pAccountNode->GetAttrValue(_T("SignatureHTML"));

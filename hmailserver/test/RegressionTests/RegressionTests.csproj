@@ -749,6 +749,7 @@
     <Compile Include="API\RestApiReaderFetchAccounts.cs" />
     <Compile Include="API\RestApiImportSignIn.cs" />
     <Compile Include="API\RestApiSend.cs" />
+    <Compile Include="API\Scim.cs" />
     <Compile Include="API\RestApiSenderAddresses.cs" />
     <Compile Include="API\RestApiMaskedAddresses.cs" />
     <Compile Include="API\RestApiAccountRecovery.cs" />

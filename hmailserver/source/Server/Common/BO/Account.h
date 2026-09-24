@@ -226,6 +226,13 @@ namespace HM
       int GetRestrictedDelivery() const { return restricted_delivery_; }
       void SetRestrictedDelivery(int newVal) { restricted_delivery_ = newVal; }
 
+      // The organisation's identity provider's own id for the person this
+      // account is - SCIM's externalId (schema 6096, docs/Scim.md): Entra's
+      // object id, Okta's user id. Up to 255 characters, compared exactly, and
+      // empty on every account nothing provisioned. COM Account.ExternalId.
+      String GetExternalId() const { return external_id_; }
+      void SetExternalId(const String &newVal) { external_id_ = newVal; }
+
       bool GetEnableSignature() const;
       void SetEnableSignature(bool bEnabled);
 
@@ -264,6 +271,7 @@ namespace HM
 
       String person_first_name_;
       String person_last_name_;
+      String external_id_;
 
       String vacation_message_;
       String vacation_subject_;

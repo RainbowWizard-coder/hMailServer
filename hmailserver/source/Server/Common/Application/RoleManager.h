@@ -101,6 +101,17 @@ namespace HM
       // token is what hm_roles stores, and the position is the bit.
       SendThroughApi,
 
+      // Provisioning over SCIM 2.0: /scim/v2 (docs/Scim.md). The organisation's
+      // identity provider creating, renaming, suspending and removing accounts,
+      // their aliases and the distribution lists. Held by an API key's role and
+      // used by a key and nothing else - every other credential is refused
+      // /scim/ before any permission is asked. The server administrator holds
+      // it, as it holds everything; no other built-in role does, and a custom
+      // role may be given it, which is how a key that provisions and does
+      // nothing else is made. Appended, not inserted: the token is what
+      // hm_roles stores, and the position is the bit.
+      Provision,
+
       Count
    };
 
@@ -117,7 +128,7 @@ namespace HM
       // administrative authority at all.
       String name;
 
-      // A bit per RolePermission. RolePermission::Count is 23, so a 64-bit
+      // A bit per RolePermission. RolePermission::Count is 24, so a 64-bit
       // word is the whole set with room to spare; a static assertion in the
       // .cpp holds that true.
       unsigned __int64 permissions;
@@ -222,7 +233,11 @@ namespace HM
       // - set its password, change it - whose authority it has not got. Without
       // the second, a help desk that may reset passwords in a domain could
       // reset a domain administrator's there and sign in as them. A grant that
-      // administers nothing is taken in by every grant.
+      // administers nothing is taken in by every grant. AdministerServer takes
+      // in everything only when it reaches every domain: held with a list of
+      // domains - a full key issued for named domains - it is judged by the
+      // list like any confined grant, and takes in nothing that reaches every
+      // domain.
       static bool Encompasses(const RoleGrant &holder, const RoleGrant &other);
 
       // An API key's grant. roleName is the key store's Role= line; when it is

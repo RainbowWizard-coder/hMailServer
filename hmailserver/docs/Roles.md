@@ -60,6 +60,7 @@ domains is refused them whatever it holds.
 | `manage_server` | Reinitialise, back up, reload scripts, clear caches, install an update, run the alert pass, the DKIM key rotation pass, the suppression list's sweep or the feedback loops' sweep, the DKIM key rotation pass or a reputation check now *(server-wide)* | ✅ | | | |
 | `manage_roles` | Roles and who holds them *(server-wide)* | ✅ | | | |
 | `send_through_api` | Sending mail as an application through `POST /api/v1/send`, as the one sender an **API key** names in its `send_from` - the permission alone sends nothing, and only a key reaches the route ([SendApi.md](SendApi.md)). A custom role may be given it, which is how a key that sends and does nothing else is made; a key reads its own sends without any permission, and nobody else's | ✅ | | | |
+| `provision` | Provisioning over SCIM 2.0 at `/scim/v2` - the organisation's identity provider making, renaming, suspending and removing accounts, with their aliases, and distribution lists ([Scim.md](Scim.md)). Only an **API key** reaches `/scim/`, and its reads need this as its writes do, so an auditor's key reads nothing there (an auditor reads the same accounts at `/api/v1/domains/{domain}/accounts`). A custom role may be given it, which is how a key that provisions and does nothing else is made; a key confined to named domains provisions those alone | ✅ | | | |
 
 The REST API's **key store** (`/api/v1/apikeys`) and the `[Settings]` section of
 `hMailServer.ini` (`/api/v1/settings/ini`) answer to the administrator password and to
@@ -95,9 +96,16 @@ every permission, in every domain. A help desk resets an ordinary account's pass
 and is refused a domain administrator's or an auditor's, even in its own domain,
 because otherwise it could sign in as them; a domain administrator may change the
 accounts of its domain as it always could, and is refused an auditor's. Over COM this
-is `Account.Save` and `Application.ResetPassword`; over REST, the password reset and
-`PUT /api/v1/accounts/{address}`. The refusal says so: *that account holds authority this
-credential does not*.
+is `Account.Save` and `Application.ResetPassword`; over REST, the password reset,
+`PUT /api/v1/accounts/{address}`, giving and taking away a role, and SCIM's writes. The
+refusal says so: *that account holds authority this credential does not*.
+
+`administer_server` takes in everything only where it reaches every domain. A full
+key confined to named domains is `serveradmin` confined to them, and it is judged by
+its list like any confined grant: it takes in an administrator of those domains, and
+not an account there that administers another domain, or reaches every domain — the
+server administrator, by admin level or by role, and an auditor given no list. Before
+SCIM was added it took in every account, whatever its list said.
 
 ### The message trace
 

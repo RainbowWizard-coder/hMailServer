@@ -1554,6 +1554,10 @@ interface IInterfaceAccount : IDispatch
    [propput, id(84), helpstring("Sets this account's own value of a setting that may be set below the server, or - with an empty string - makes it inherit its domain's. Written at once, not by Save, and in effect for the next reader. Refused with a sentence: a name that is not one of those settings, a level held in one of the account's own properties (MessageRetentionDays), a gate to anybody but the server administrator, a value the setting refuses, a limit looser than its domain's value, an account not saved yet, a server administrator's account to anybody but a server administrator, and an account whose authority the credential does not take in.")] HRESULT SettingOverride([in] BSTR Name, [in] BSTR newVal);
    [propget, id(85), helpstring("The value of the setting in effect for this account: its own, else its domain's, else the server's. In its text form.")] HRESULT EffectiveSetting([in] BSTR Name, [out, retval] BSTR *pVal);
    [propget, id(86), helpstring("Where EffectiveSetting came from: account, domain or server.")] HRESULT EffectiveSettingSource([in] BSTR Name, [out, retval] BSTR *pVal);
+
+   // SCIM provisioning. See Common/Util/RestApiScim.cpp and docs/Scim.md.
+   [propget, id(87), helpstring("The organisation's identity provider's own id for the person this account is - SCIM's externalId, which an identity provider matches its users by (Entra's object id, Okta's user id). Empty on an account nothing provisioned. See docs/Scim.md.")] HRESULT ExternalId([out, retval] BSTR *pVal);
+   [propput, id(87), helpstring("The identity provider's id for the person this account is: at most 255 characters, on one line, compared exactly. Saved by Save.")] HRESULT ExternalId([in] BSTR newVal);
 };
 
 

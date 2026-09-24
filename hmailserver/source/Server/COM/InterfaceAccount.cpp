@@ -2246,6 +2246,48 @@ STDMETHODIMP InterfaceAccount::put_RestrictedDelivery(long newVal)
    }
 }
 
+STDMETHODIMP InterfaceAccount::get_ExternalId(BSTR *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = object_->GetExternalId().AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::put_ExternalId(BSTR newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      // The same bounds SCIM holds externalId to (RestApiScim.cpp): the width
+      // of hm_accounts.accountexternalid, and one line, since an identity
+      // provider's id is never two.
+      HM::String externalId = newVal;
+      if (externalId.GetLength() > 255)
+         return COMError::GenerateError("ExternalId is at most 255 characters.");
+
+      if (externalId.Find(_T("\r")) >= 0 || externalId.Find(_T("\n")) >= 0)
+         return COMError::GenerateError("ExternalId is one line.");
+
+      object_->SetExternalId(externalId);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 STDMETHODIMP InterfaceAccount::put_OpenPGPPublish(VARIANT_BOOL newVal)
 {
    try

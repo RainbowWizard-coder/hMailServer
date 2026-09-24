@@ -947,4 +947,21 @@
 //      authority issued - set by the server from hm_smimeissued, never taken
 //      from the page. Nothing is issued until an administrator creates a
 //      domain's authority, so an upgraded server does exactly what it did.
-#define REQUIRED_DB_VERSION            6095
+
+// 6096 adds hm_accounts.accountexternalid (Util/RestApiScim.cpp,
+//      docs/Scim.md): SCIM provisioning. The organisation's identity provider
+//      names each person by an id of its own - Entra's object id, Okta's user
+//      id - and sends it as the SCIM externalId; this is where it is kept, up
+//      to 255 characters, compared exactly, with an index for the
+//      "externalId eq" filter an identity provider matches its users by. Empty
+//      on every account an upgrade finds and on every account made any other
+//      way; carried by a backup (Account.XMLStore, ExternalId) and by COM
+//      (Account.ExternalId). It also appends the provision permission to the
+//      serveradmin row of hm_roles, kept in step for anybody reading the table
+//      as 6089 did for send_through_api: the grant itself is built from the
+//      code. So from the upgrade on every full-scope key and every serveradmin
+//      key reaches /scim/v2, as it already reaches the account routes, and
+//      nothing else does: a key that provisions and does nothing else needs a
+//      custom role holding provision alone.
+//      (6095 is the organisation CA's step, built beside this one.)
+#define REQUIRED_DB_VERSION            6096
