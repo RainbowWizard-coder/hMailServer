@@ -440,7 +440,7 @@ namespace RegressionTests.AntiVirus
 
             Pop3ClientSimulator.AssertMessageCount(_recipient.Address, Password, 1, TimeSpan.FromSeconds(60));
             StringAssert.Contains("X-hMailServer-Sandbox: error on odd.exe: Unsupported format",
-               Pop3ClientSimulator.AssertGetFirstMessageText(_recipient.Address, Password));
+               Messages_(_recipient.Address)[0]);
 
             settings.SandboxTimeoutAction = 1;
             SmtpClientSimulator.StaticSendRaw(_sender.Address, _recipient.Address,
