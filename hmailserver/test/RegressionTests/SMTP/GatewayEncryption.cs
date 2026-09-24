@@ -1483,7 +1483,7 @@ namespace RegressionTests.SMTP
             File.WriteAllText(secret, OpenPgpTestSupport.RingOwnSecretArmoured);
             string message = Path.Combine(home, "message.asc");
             File.WriteAllText(message, ArmourOf_(received));
-            string common = "--batch --yes --no-tty --pinentry-mode loopback --passphrase " + OpenPgpTestSupport.RingPassphrase + " --homedir \"" + home + "\" ";
+            string common = "--batch --yes --no-tty --pinentry-mode loopback --passphrase " + OpenPgpTestSupport.RingPassphrase + " --homedir \"" + OpenPgpTestSupport.GpgHome(gpg, home) + "\" ";
 
             if (!RunGpg_(gpg, common + "--import \"" + secret + "\"", out string _, out string importErr))
                Assert.Inconclusive("gpg is here and could not import the fixture's secret key (" + importErr.Trim().Replace("\r\n", " ") + "), so the PGP/MIME copy was not opened: the environment, not the server.");
@@ -1499,7 +1499,7 @@ namespace RegressionTests.SMTP
             // the directory goes, or it holds the directory and outlives the test.
             string gpgconf = Path.Combine(Path.GetDirectoryName(gpg), "gpgconf.exe");
             if (File.Exists(gpgconf))
-               RunGpg_(gpgconf, "--homedir \"" + home + "\" --kill gpg-agent", out string _, out string _);
+               RunGpg_(gpgconf, "--homedir \"" + OpenPgpTestSupport.GpgHome(gpg, home) + "\" --kill gpg-agent", out string _, out string _);
 
             try
             {

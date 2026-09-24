@@ -129,6 +129,23 @@ namespace RegressionTests.Shared
       // opposite case and the one that matters most - a secret key with NO
       // passphrase at all, which the store must refuse rather than keep.
       public const string RingPassphrase = "openpgp-fixture-pass";
+
+      /// <summary>
+      ///    A gpg home directory as the gpg that will be given it reads one. Git
+      ///    for Windows' gpg is an MSYS program: it opens a file named C:\... as
+      ///    it is, but a --homedir that does not start with a slash is joined onto
+      ///    its working directory, so the keyring it made was
+      ///    /c/bench/hmailserver/C:\Users\...\pubring.kbx - which does not exist -
+      ///    and every import failed with "no writable keyring found". That gpg is
+      ///    handed /c/Users/... instead; GnuPG for Windows takes the Windows path.
+      /// </summary>
+      public static string GpgHome(string gpg, string home)
+      {
+         if (gpg.IndexOf(@"\Git\usr\bin\", StringComparison.OrdinalIgnoreCase) < 0 || home.Length < 3 || home[1] != ':')
+            return home;
+         return "/" + char.ToLowerInvariant(home[0]) + home.Substring(2).Replace('\\', '/');
+      }
+
       public const string RingOwnAddress = "alice@fixtures.test";
       public const string RingPeerAddress = "bob@fixtures.test";
       public const string RingOwnFingerprint = "3c6ff5e3458173dd5db3f4a4a14263c97de6857d";
