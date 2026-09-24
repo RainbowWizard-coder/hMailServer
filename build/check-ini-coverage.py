@@ -20,7 +20,7 @@ hand:
             deliberately have no editor, each with the reason; anything else
             missing fails.
 
-  frozen    The rule since 15 September 2026, in .github/CONTRIBUTING.md: a
+  frozen    The rule since 15 September 2026, in CONTRIBUTING.md: a
             SETTING BELONGS IN THE DATABASE, and no key is added to [Settings].
             build/ini-settings-baseline.txt is every key the server read from the
             file on the day the database became the settings store; a key that
@@ -619,7 +619,7 @@ def main():
          frozen.append(
             "  [Settings] %s is new. A SETTING BELONGS IN THE DATABASE: put it in "
             "hm_settings, reached through Property and PropertySet, and give it a Control "
-            "Panel editor - .github/CONTRIBUTING.md says so and this check is what holds "
+            "Panel editor - CONTRIBUTING.md says so and this check is what holds "
             "it. The [Settings] section is a cache of hm_inisettings now, not a store, so a "
             "key added here is a setting nobody can administer remotely, that no backup "
             "carries and that two nodes cannot share." % key)

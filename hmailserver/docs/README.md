@@ -4,7 +4,7 @@ Documentation
 Operator-facing documentation for this fork of hMailServer. Everything here is
 written for someone running the server, not for someone reading the code — the
 codebase map and contribution notes live at the repository root
-([CONTRIBUTING.md](../../.github/CONTRIBUTING.md), [RELEASE.md](../../RELEASE.md)).
+([CONTRIBUTING.md](../../CONTRIBUTING.md), [RELEASE.md](../../RELEASE.md)).
 
 | Document | Read it when |
 |---|---|
@@ -100,13 +100,13 @@ Elsewhere in the repository
 | [ARCHITECTURE.md](../../ARCHITECTURE.md) | Changing the code: the module map, where a given change belongs, and the constraints that have caused real bugs here |
 | [Roadmap.md](../../Roadmap.md) | The full capability matrix — what exists, what is planned, what is deliberately not, and every known defect |
 | [Roadmap2.md](../../Roadmap2.md) | The programme after 6.3.2: what still stands between this server and the best there is, by who feels the gap, with what has landed since |
-| [.github/SUPPORT.md](../../.github/SUPPORT.md) | Where to ask what: issues, discussions, or the hMailServer forum |
-| [.github/SECURITY.md](../../.github/SECURITY.md) | Reporting a security issue privately |
+| [SUPPORT.md](../../SUPPORT.md) | Where to ask what: a GitLab issue, or the hMailServer forum |
+| [SECURITY.md](../../SECURITY.md) | Reporting a security issue privately: a confidential GitLab issue, or the project's Service Desk address |
 | [ResponseCompression.md](ResponseCompression.md) | Wondering why the webmail's script arrived as 90 KB and not 349, or what a reverse proxy in front of the server should do with `Accept-Encoding`: what the two HTTP listeners compress (text, JSON, XML, a message file - when the client asks, between a floor of 1 KB and a ceiling of 4 MB), what they never compress (images, archives, any download, whatever its type says), the headers to expect, why `deflate` is the zlib format and not a bare stream, and why BREACH does not reach a server whose only cross-site defence is the cookie's own attribute. |
 | [SampleDomain.md](SampleDomain.md) | A new server has nothing in it and every page is an empty table, or a sample domain is there and somebody wants it gone. One command - and one button on the Welcome page and the Deck's checklist - that makes `example.test` with three mailboxes, a distribution list, a rule and a handful of delivered messages, and one that removes all of it and says what it removed. What is in it, the one password the server mints and shows once, the marker that keeps an `example.test` this server did not make from ever being touched, and what the sample deliberately is not. |
 | [RELEASE.md](../../RELEASE.md) | The release process, including the pre-flight and regression gates |
 
 If something you needed was not here, that is worth an
-[issue](https://github.com/Progressiverobot/hmailserver/issues) on its own — a
+[issue](https://gitlab.com/Progressiverobot/hmailserver/-/issues) on its own — a
 missing runbook is a real defect, and several of the documents above exist because
 a specific problem took far longer to diagnose than it should have.

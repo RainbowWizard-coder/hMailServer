@@ -2,17 +2,18 @@
 ===========
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14187/badge)](https://www.bestpractices.dev/projects/14187)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Progressiverobot/hmailserver/badge)](https://scorecard.dev/viewer/?uri=github.com/Progressiverobot/hmailserver)
+
+**The project's home is [GitLab](https://gitlab.com/Progressiverobot/hmailserver) since 22 September 2026.** GitHub has been unavailable to the project since 18 September 2026, so links to github.com/Progressiverobot answer 404; the issues, merge requests and wiki are on GitLab, and the releases up to 6.3.3 are being re-published there under their original dates.
 
 hMailServer is a free, open source email server for Microsoft Windows, implementing SMTP, IMAP and POP3. Since 8 September 2026 the server itself also builds, runs and packages on Linux, for x86-64 and AArch64 - see [Linux and AArch64](#linux-and-aarch64) below for exactly how far that goes.
 
 This repository is a maintained fork of the original project, which is no longer developed upstream. It has been brought up to date with a current toolchain, current cryptography, and the transport-security and authentication standards expected of a mail server in 2026 — while remaining a drop-in upgrade for existing hMailServer installations. It is maintained by Christopher Holloway / [Progressive Robot Ltd](https://www.progressiverobot.com).
 
-**[Download the latest release](https://github.com/Progressiverobot/hmailserver/releases/latest)** — a single `hMailServer-x.y.z-x64.exe` installer for Windows, and, since 6.3.0, a `.deb`, an `.rpm` and an AppImage for x86-64 and AArch64 Linux. Upgrading in place preserves your configuration and mail; the database upgrade chain is continuous from every earlier hMailServer version.
+**[Download the latest release](https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest)** — a single `hMailServer-x.y.z-x64.exe` installer for Windows, and, since 6.3.0, a `.deb`, an `.rpm` and an AppImage for x86-64 and AArch64 Linux. Upgrading in place preserves your configuration and mail; the database upgrade chain is continuous from every earlier hMailServer version.
 
 Every release is validated by the full regression suite before it ships — the complete suite, run against the exact binary being released, with live SpamAssassin and ClamAV (real EICAR detection), SPF, DKIM and DMARC evaluated through the resolver code path against the suite's own DNS zone (one fake resolver the server is pointed at for the whole run, so no result depends on the Internet), and TLS 1.2/1.3 handshakes end to end. Nothing is skipped, and nothing but DNS is mocked. Before that run, the same suite runs once more on a build that keeps every internal assertion and reports a violated one to the ERROR log (`build\build.ps1 -Configuration Release -Asserts`), so the invariants the shipped binary compiles out are still exercised by every test.
 
-**What changed in each version** is on the [Releases page](https://github.com/Progressiverobot/hmailserver/releases). What is planned next, and what is deliberately not, is in [Roadmap.md](Roadmap.md). The release process itself is documented in [RELEASE.md](RELEASE.md), and the codebase map is in [ARCHITECTURE.md](ARCHITECTURE.md).
+**What changed in each version** is on the [Releases page](https://gitlab.com/Progressiverobot/hmailserver/-/releases). What is planned next, and what is deliberately not, is in [Roadmap.md](Roadmap.md). The release process itself is documented in [RELEASE.md](RELEASE.md), and the codebase map is in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 Contents
 --------
@@ -140,7 +141,7 @@ Technology
 | Extensibility | COM/IDispatch API, plus a REST administration API |
 | Schema | Database version 6031, upgradeable from every earlier hMailServer release |
 
-**Quality gates.** Every release ships SPDX and CycloneDX SBOMs (Syft). The repository runs CodeQL analysis, Dependabot CVE alerts with grouped update pull requests, a dependency-review gate on pull requests, an installer smoke test that installs the built installer on a clean machine and verifies the service comes up, and a monthly comparison against the original upstream repository so nothing landing there is missed.
+**Quality gates.** Every release ships SPDX and CycloneDX SBOMs (Syft). On GitHub, until 18 September 2026, the repository ran CodeQL analysis, Dependabot CVE alerts with grouped update pull requests, a dependency-review gate on pull requests, an installer smoke test that installs the built installer on a clean machine and verifies the service comes up, and a monthly comparison against the original upstream repository so nothing landing there is missed. None of those runs on GitLab yet; [CONTRIBUTING.md](CONTRIBUTING.md#the-checkers) lists the checks run by hand instead.
 
 Administration
 ==============
@@ -177,7 +178,7 @@ Administration
 Installing
 ==========
 
-Run the installer from the [Releases page](https://github.com/Progressiverobot/hmailserver/releases). It creates the Windows service, initialises or upgrades the database, and installs the .NET 10 Desktop Runtime if it is missing.
+Run the installer from the [Releases page](https://gitlab.com/Progressiverobot/hmailserver/-/releases). It creates the Windows service, initialises or upgrades the database, and installs the .NET 10 Desktop Runtime if it is missing.
 
 Supported platforms
 -------------------
@@ -194,8 +195,9 @@ IMAP, delivery, anti-spam, the REST API and the self-service portal - compiles
 with clang or GCC from `hmailserver/source/Server/CMakeLists.txt`, links as one
 `hmailserver` executable, and packages as a `.deb` and an `.rpm` for x86-64 and
 AArch64, with a `PKGBUILD` for Arch and an AppImage script beside them. All 496
-core translation units compile for both architectures, and CI
-(`.github/workflows/linux-build.yml`) fails when one stops.
+core translation units compile for both architectures; `build/linux-tu-census.sh` counts
+them, and the Linux workflow on GitHub (`.github/workflows/linux-build.yml`) failed when one
+stopped. Until CI runs on GitLab the census is run by hand.
 
 What is proven, against PostgreSQL 18: `hmailserver --create-database` builds
 the schema, the server starts under systemd as the `hmailserver` user, an
@@ -403,22 +405,24 @@ Branches
 
    * The master branch contains the latest development version of hMailServer. This version is typically not yet released for production usage. If you want to add new features to hMailServer, use this branch.
    
-   * The x.y.z (for example 5.6.2) contains the code for the version with the same name as the branch. For example, branch 5.6.1 contains hMailServer version 5.6.1. These branches are typically only used for bugfixes or minor features.
+   * There are no version branches. Each release is a tag (`v6.3.3`, for example), and a fix goes to master and ships in the next release. [CONTRIBUTING.md](CONTRIBUTING.md) describes how a change reaches master.
 
 Environment set up
 ---------------------
 
 **Required software**
 
-   * An installed version of hMailServer 5.7 or later (configured with a database)
    * Visual Studio 2026 (Community edition or Build Tools)
+   * The .NET 10 SDK (the version `global.json` pins) and, for the regression suite, the .NET Framework 4.8.1 developer pack
    * Inno Setup 6  -  only needed to build the installer (`winget install JRSoftware.InnoSetup`)
    * Perl 5 (https://strawberryperl.com/)  -  only needed to build OpenSSL
-   * Python 3 (https://www.python.org/)  -  only needed to build libpq
+   * Python 3 (https://www.python.org/)  -  needed to build libpq and to run the checkers ([CONTRIBUTING.md](CONTRIBUTING.md#the-checkers))
    
 **NOTE**
 
 You should not be compiling hMailServer on a computer which already runs a production version of hMailServer, unless you disable the build events (see _Building hMailServer_ below). The default pre/post build events stop any already running hMailServer service and register the compiled version as the hMailServer service on the machine. If this happens, the easiest path is to reinstall the production version.
+
+Nor should a released hMailServer be installed on a development machine: the installer takes over the service path, the COM registration and `InstallLocation` (see [Installing](#installing)), and the regression suite runs against the repository's own build.
 
 Installing Visual Studio 2026
 ----------------------------------------------
@@ -452,7 +456,7 @@ The repository carries one script per library. Each downloads the source archive
    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.3
    </pre>
 
-`build\Get-LibraryVersions.ps1` prints the versions the project file currently pins. The same three scripts build the libraries for the continuous-integration server build (`.github/workflows/server-build.yml`), which caches the result per version, so a version bump is an edit to `hMailServer.vcxproj` and to the digest table of the matching script. The sections below record what the scripts do, for anyone who would rather do it by hand.
+`build\Get-LibraryVersions.ps1` prints the versions the project file currently pins. The same three scripts built the libraries for the continuous-integration server build on GitHub (`.github/workflows/server-build.yml`), which cached the result per version; either way, a version bump is an edit to `hMailServer.vcxproj` and to the digest table of the matching script. The sections below record what the scripts do, for anyone who would rather do it by hand.
 
 Building OpenSSL
 ----------------
@@ -516,6 +520,7 @@ Building hMailServer
 The repository contains build scripts which locate the prerequisites automatically. Run them with `powershell.exe`:
 
    <pre>
+   powershell.exe -NoProfile -ExecutionPolicy Bypass -File build\get-installer-binaries.ps1 -SystemOnly   # once per clone: copies Windows' ADO type library into libraries\msado28, which the server compiles against
    powershell.exe -NoProfile -ExecutionPolicy Bypass -File build\build.ps1        # builds hMailServer.exe
    powershell.exe -NoProfile -ExecutionPolicy Bypass -File build\build.ps1 -Configuration Release -Asserts   # the dynamic-analysis build: assertions kept, reported as HM6364, never shipped
    powershell.exe -NoProfile -ExecutionPolicy Bypass -File build\post-build.ps1   # copies DLLs, registers the COM server (elevates via UAC)
@@ -544,7 +549,7 @@ Configuration reference
 
 Most of the settings above are stored in the database, in `hm_inisettings`, and are changed in the Control Panel under **Settings**, over the REST API at `/api/v1/settings/ini`, with `hmctl`, or — on a Linux server, for a setting needed before the REST listener is on, `RestApiPort` itself — with `hmailserver --set-setting NAME=VALUE`. **A change applies when it is saved**, for most of them: the 28 that are bound into a listener, a TLS context, a work queue or the database pool wait for a reinitialise (**Apply now** on the Control Panel's pending bar and the Deck's Settings view, or `POST /api/v1/server/reinitialize`), and the service account for a restart; each field says which, and `GET /api/v1/server/settings/pending` lists what is stored and not yet running ([docs/SettingsApply.md](hmailserver/docs/SettingsApply.md)). Twenty-seven settings - the maximum message size, the quarantine digest's switch and hour, the external-sender tag, the session policies, the quota shares, the recall window and others - may also be set **for a domain and for an account** - a limit only tightened below the level above it, a gate opened or shut only by the server administrator, a preference the tenant's own - with what is in effect and where it came from beside the field in the Control Panel and the Deck, over REST and over COM ([docs/SettingLevels.md](hmailserver/docs/SettingLevels.md)). In a container every one of them - and every `hm_settings` row this build reads - can come from the **environment** instead: `HM_SETTING_<key>`, `HM_PROPERTY_<name>`, and `_FILE` after either for a Kubernetes Secret, stored by `hmailserver --apply-environment` (the image's entrypoint runs it whenever such a variable is set or the last run managed anything, the Helm chart's `settings`, `properties` and `settingsFrom` values render it), after which the Control Panel, the Deck and the REST API show such a setting as set by the environment - COM names it in `Settings.GetChangedFromDefault` - and REST and COM refuse an administrator's change the next start would undo; a value a file supplied is withheld from every answer until an administrator writes another ([docs/EnvironmentConfiguration.md](hmailserver/docs/EnvironmentConfiguration.md)). A **setting profile** sets some thirty of them at once for one kind of server - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - each with its reason: the diff against the server is shown before anything changes, the values it replaces are saved first and can be put back, every entry is written through the setter its REST settings route runs, a setting the environment manages is skipped, and an entry that closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept is applied only with an explicit confirmation of the diff that was shown - from the Deck's checklist, the Control Panel's **Setting profiles** page, `hmctl settings apply-profile`, `hmailserver --apply-profile`, the installer's last page for a new installation and the container's `HM_PROFILE` ([docs/Profiles.md](hmailserver/docs/Profiles.md)). The Control Deck edits the few of them its pages carry. They are listed below under the names they have always had, and the `[Settings]` section of `Bin\hMailServer.INI` still holds a copy of every one of them, because `hMailServer.exe /Register` and a few other readers go to the file directly. **That copy is a cache, not the store**: since schema 6042 a value edited into it is named in `hMailServer_ERROR.log` and put back at the next start. To force a value from the file — when the database is unreachable, or holds one the server will not start on — put the key in a `[SettingsOverride]` section, which is applied over the store and announced in the error log at every start. All settings below show their default values.
 
-This block lists the keys an operator is most likely to need and is not the whole file: about ninety further keys - the timeout family, the quarantine, message-trace, filter-hook, password-policy, account-lockout and OAuth2 groups, and the classic keys carried over from 6.2.10 - are documented one row each, with their defaults, bounds and the code that reads them, on the wiki's [Settings Reference](https://github.com/Progressiverobot/hmailserver/wiki/Settings-Reference). The Control Panel's search box finds every key on either list.
+This block lists the keys an operator is most likely to need and is not the whole file: about ninety further keys - the timeout family, the quarantine, message-trace, filter-hook, password-policy, account-lockout and OAuth2 groups, and the classic keys carried over from 6.2.10 - are documented one row each, with their defaults, bounds and the code that reads them, on the wiki's [Settings Reference](https://gitlab.com/Progressiverobot/hmailserver/-/wikis/Settings-Reference). The Control Panel's search box finds every key on either list.
 
 Transport security and authentication:
 
@@ -851,7 +856,7 @@ If you want to run hMailServer in debug mode in Visual Studio, add the command a
 Running tests
 -------------
 
-hMailServer ships with a full NUnit regression suite which exercises the server end to end over SMTP, IMAP and POP3  -  including anti-spam, anti-virus, TLS, DKIM/DMARC, rules, backup and the COM API. Every release must pass it in full, with zero failures and zero inconclusive, against the exact binary being shipped (the per-release count is quoted on the [Releases page](https://github.com/Progressiverobot/hmailserver/releases)). Without live SpamAssassin and ClamAV installed, the tests that depend on them report *inconclusive* rather than failing; the setup that makes them run is below.
+hMailServer ships with a full NUnit regression suite which exercises the server end to end over SMTP, IMAP and POP3  -  including anti-spam, anti-virus, TLS, DKIM/DMARC, rules, backup and the COM API. Every release must pass it in full, with zero failures and zero inconclusive, against the exact binary being shipped (the per-release count is quoted on the [Releases page](https://gitlab.com/Progressiverobot/hmailserver/-/releases)). Without live SpamAssassin and ClamAV installed, the tests that depend on them report *inconclusive* rather than failing; the setup that makes them run is below.
 
 NOTE: When running tests, your local hMailServer installation will be updated with test accounts. Existing domains and accounts are deleted. Each tests prepares the server configuration in different ways. In other words, do not run the automated tests in an environment where you need to preserve hMailServer data.
 
@@ -891,7 +896,7 @@ For 100% coverage the suite expects three optional integrations (tests degrade t
      which is also how a virus would really arrive.
    * **`AddXOriginalRcptTo=1`** in `hMailServer.INI` for the X-Original-Rcpt-To header tests.
 
-The complete dev-tree provisioning recipe (directories, certificates, DB scripts, runtime files) is kept with the maintainer's internal notes; open an issue if you need it to reproduce a build.
+The complete dev-tree provisioning recipe (directories, certificates, DB scripts, runtime files) is [hmailserver/docs/RegressionEnvironment.md](hmailserver/docs/RegressionEnvironment.md), and `build\preflight-tests.ps1` checks a machine against it.
 
 Operator documentation
 ======================
@@ -918,20 +923,9 @@ hMailServer is free and open source software, licensed under the GNU Affero Gene
 Security
 ========
 
-Please report security vulnerabilities privately - see [SECURITY.md](.github/SECURITY.md).
+Please report security vulnerabilities privately, in a confidential issue on GitLab or by email to the project's Service Desk address - see [SECURITY.md](SECURITY.md).
 
 Contributing
 ============
 
-See [CONTRIBUTING.md](.github/CONTRIBUTING.md).
-
-Star History
-============
-
-<a href="https://www.star-history.com/?repos=progressiverobot%2Fhmailserver&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=progressiverobot/hmailserver&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=progressiverobot/hmailserver&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=progressiverobot/hmailserver&type=date&legend=top-left" />
- </picture>
-</a>
+See [CONTRIBUTING.md](CONTRIBUTING.md): building, testing, the checkers, the change checklists and merge requests on GitLab.

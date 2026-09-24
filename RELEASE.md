@@ -3,6 +3,21 @@
 The order below is not advisory. Each rule exists because violating it has
 already cost a release cycle or nearly shipped a defect.
 
+**Status since 18 September 2026.** GitHub has been unavailable to the project
+since 18 September 2026, and its home has been
+[GitLab](https://gitlab.com/Progressiverobot/hmailserver) since 22 September
+2026. The release chain this checklist describes runs on GitHub: the installer's
+fetched inputs come from the `build-inputs-1` GitHub release (step 11), and the
+draft release, the Linux packages, the SBOMs, Sigstore and Authenticode signing,
+the installer smoke test and the package managers are GitHub Releases and GitHub
+Actions (steps 11 to 13). So no release can be completed until that chain moves,
+which is planned roadmap work and not yet done. The bench steps run as written,
+except that step 9's Code Scanning and Dependabot pages are GitHub's. Step 12's
+commit rule is out of date as well: since 24 September 2026 commits are made as
+Christopher Holloway, the identity of the GitLab account `Progressiverobot`, and
+since 14 September 2026 no approval is required, so a tree that has passed the
+gate lands on `master` by fast-forward, with no pull request.
+
 ## Order of operations
 
 1. **Freeze the code.** No fixes land after this point without restarting at
@@ -166,7 +181,7 @@ already cost a release cycle or nearly shipped a defect.
    and re-run. Never abort a run; if one must be stopped, expect step 4 to
    fail and clean up before trusting any result.
    At this point the Code Scanning and Dependabot alert pages show no open
-   high or critical finding - the thresholds in `.github/SECURITY.md` - or the
+   high or critical finding - the thresholds in `SECURITY.md` - or the
    release waits.
 10. **README release notes** — every claim checked against the diff. "Fixed"
    means reproduced-then-fixed or negative-control-tested; anything else is

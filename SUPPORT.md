@@ -1,19 +1,30 @@
 # Getting help
 
-**Something is broken** — open an [issue](https://github.com/Progressiverobot/hmailserver/issues).
+The project's home is GitLab since 22 September 2026: <https://gitlab.com/Progressiverobot/hmailserver>. GitHub
+has been unavailable to the project since 18 September 2026, so older links to its issues, discussions and
+releases answer 404.
+
+**Something is broken** — open an [issue](https://gitlab.com/Progressiverobot/hmailserver/-/issues) with the
+**Bug** template.
 
 The most useful report contains, in order of value:
 
 1. **The relevant log, not a description of it.** Turn on debug logging (Settings → Logging → Debug messages in the Control Panel) and paste the window around the problem. The single most useful bug report this project has received was a log that stopped at a particular line — where it stopped was the whole diagnosis.
 2. **The `ERROR_hmailserver_<date>.log`** for the same window, if there is one. Even one entry is often decisive.
-3. **Version** (`hMailServer.exe` reports it, as does the Control Panel), **Windows version**, and **database backend**.
+3. **Version** (the Control Panel shows it; on Linux, `hmailserver --version`), **the platform** (the Windows version, the Linux distribution and how it was installed, or the container image), and **the database backend**.
 4. **What you expected instead**, and whether it is reproducible.
 
 If mail is being accepted but not delivered, or a session appears to hang, say which of those it is — they have different causes and the logs differ.
 
-**Something might be a security problem** — do not open a public issue. See [SECURITY.md](SECURITY.md).
+Redact passwords, keys and real email addresses from anything you paste: an issue is public.
 
-**A question rather than a defect** — use [Discussions](https://github.com/Progressiverobot/hmailserver/discussions). Configuration questions, "is this supposed to work like this", and "has anyone got X working" all belong there.
+**Something might be a security problem** — do not open a public issue. See [SECURITY.md](SECURITY.md): a
+confidential issue, or an email to the project's Service Desk address, which GitLab files as a confidential
+issue.
+
+**A question rather than a defect** — open an issue with the **Question** template, which gives it the
+`question` label. GitLab has no Discussions, so configuration questions, "is this supposed to work like this" and
+"has anyone got X working" are issues too.
 
 **General hMailServer questions** not specific to this fork are often better answered on the long-running [hMailServer forum](https://www.hmailserver.com/forum/), which has years of accumulated configuration knowledge.
 
@@ -28,6 +39,6 @@ Two commitments in return:
 
 ## Before reporting
 
-- Check the [Releases page](https://github.com/Progressiverobot/hmailserver/releases) — the newest version may already address it.
-- Check [Roadmap.md](../Roadmap.md) for known gaps and work already planned.
-- Search existing [issues](https://github.com/Progressiverobot/hmailserver/issues?q=is%3Aissue) and [discussions](https://github.com/Progressiverobot/hmailserver/discussions).
+- Check the [releases](https://gitlab.com/Progressiverobot/hmailserver/-/releases) — the newest version may already address it.
+- Check [Roadmap2.md](Roadmap2.md) for the work planned now, and [Roadmap.md](Roadmap.md) for known gaps and what was deliberately not done.
+- Search the existing [issues](https://gitlab.com/Progressiverobot/hmailserver/-/issues). The issues and discussions of the former GitHub project are out of reach while GitHub is; a number written as "GitHub issue N" in this repository refers to them.

@@ -32,7 +32,7 @@
 /.github/                           @chrisholloway5 @Zainulabidin90
 /.github/workflows/                 @chrisholloway5 @Zainulabidin90
 /.github/CODEOWNERS                 @chrisholloway5 @Zainulabidin90
-/.github/SECURITY.md                @chrisholloway5 @Zainulabidin90
+/SECURITY.md                       @chrisholloway5 @Zainulabidin90
 /hmailserver/docs/ThirdPartyBinaries.md   @chrisholloway5 @Zainulabidin90
 /hmailserver/docs/third-party-binaries.json @chrisholloway5 @Zainulabidin90
 

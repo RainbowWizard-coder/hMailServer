@@ -8,7 +8,19 @@ decision.
 
 It is deliberately *not* a marketing document. Where a claim is limited, the
 limit is stated. Where a risk is accepted rather than eliminated, it is named
-in [Residual risk](#residual-risk).
+in [Residual risk](#8-residual-risk).
+
+**Status since 18 September 2026.** GitHub has been unavailable to the project
+since 18 September 2026, and its home has been
+[GitLab](https://gitlab.com/Progressiverobot/hmailserver) since 22 September
+2026. Claim C7 rests on the release chain in `.github/workflows/`
+(`sign-release.yml`, `sbom.yml`, `verify-binary-provenance.yml`), which runs on
+GitHub Actions. It holds for the releases that chain signed, 6.2.19 to 6.3.3,
+whose Sigstore bundles verify without GitHub, and it cannot be made for a later
+release until that chain moves, which is planned roadmap work and not yet done.
+Likewise the CodeQL, Dependabot and dependency-review checks cited below ran on
+GitHub and do not run on GitLab yet; [SECURITY.md](SECURITY.md) says what runs
+instead.
 
 Contents:
 
@@ -54,7 +66,7 @@ These are the properties the project claims and argues for below.
 | **C7** | A user can verify that the software they downloaded is the software the project published. |
 
 What is explicitly **not** claimed is listed in
-[SECURITY.md](.github/SECURITY.md) under *Out of scope*, and repeated in
+[SECURITY.md](SECURITY.md) under *Out of scope*, and repeated in
 [Residual risk](#8-residual-risk).
 
 ---
@@ -76,7 +88,7 @@ What is explicitly **not** claimed is listed in
 Administrators are **not** modelled as adversaries: an administrator can run
 event scripts and change configuration by design, so administrative access is
 equivalent to control of the service. This is stated in
-[SECURITY.md](.github/SECURITY.md) and is a deliberate boundary, not an
+[SECURITY.md](SECURITY.md) and is a deliberate boundary, not an
 oversight.
 
 ### Assets
@@ -196,7 +208,7 @@ release.
 ### Injection (CWE-89)
 
 SQL is **exclusively parameterised**, as a stated project rule in
-[CONTRIBUTING.md](.github/CONTRIBUTING.md): *"Use parameterised SQL
+[CONTRIBUTING.md](CONTRIBUTING.md): *"Use parameterised SQL
 exclusively — never build SQL strings manually."* Message and header content
 therefore never becomes query structure. The rule is enforced at review, and
 the persistence layer offers parameterised interfaces as the path of least
@@ -358,5 +370,5 @@ Reviewing this document
 This assurance case should be revisited whenever the threat model changes — a
 new listener, a new external integration, a new authentication mechanism — and
 at minimum reviewed against the codebase once a year. Corrections are welcome
-through the normal pull-request process described in
-[CONTRIBUTING.md](.github/CONTRIBUTING.md).
+through the normal merge-request process described in
+[CONTRIBUTING.md](CONTRIBUTING.md).

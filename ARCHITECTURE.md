@@ -159,10 +159,10 @@ value when the servers start subscribes and re-latches it
 the block. `docs/SettingsApply.md` has the marks, the inventory and the reasons.
 
 **A new server-wide setting goes in `hm_settings`, not in the file.** That is the
-rule from 15 September 2026, written in `.github/CONTRIBUTING.md` and held by
+rule from 15 September 2026, written in [CONTRIBUTING.md](CONTRIBUTING.md) and held by
 `build/check-ini-coverage.py` against the committed baseline
 `build/ini-settings-baseline.txt`: a key that appears in `[Settings]` and is not in
-the baseline fails CI. The existing 241 keep the shape they have - a getter in
+the baseline fails the check. The existing 241 keep the shape they have - a getter in
 `IniFileSettings.h`, the default on the member declaration, a `ReadIniSetting*_` call
 in `IniFileSettings.cpp` and a control in the Control Panel's `FeatureSettingsView` -
 they are simply read from the database now. Per-account and per-domain settings go in
@@ -218,7 +218,7 @@ These are the ones that cost real releases. They are not stylistic.
 pools — a 15-thread async queue that also sends the SMTP `250`, a 10-thread delivery
 queue. A dependency that stops responding consumes threads until none are left, and
 then the server accepts mail and never replies. That was
-[discussion #18](https://github.com/Progressiverobot/hmailserver/discussions/18), and
+GitHub discussion 18, on the project's former GitHub home, and
 once found the same shape turned up in DNS, virus scanning, event scripts, external
 processes and outbound delivery. Every one of those now has a bound, and a new one
 must arrive with one.
@@ -406,11 +406,11 @@ Where to start
 |---|---|
 | A new SMTP behaviour | `SMTP/SMTPConnection.cpp` (reception) or `SMTP/ExternalDelivery.cpp` (sending) |
 | A new IMAP command | a new `IMAP/IMAPCommand*.{h,cpp}` plus the dispatch table and `IMAPCommandCapability.cpp` |
-| A server-wide setting | `Common/Application/IniFileSettings.{h,cpp}` and the Control Panel's feature settings |
+| A server-wide setting | `hm_settings`, never a new `[Settings]` key: a `PROPERTY_*` name in `Common/Application/Constants.h`, its default row from `Configuration::EnsureSettingDefaults_` or an upgrade script, and a Control Panel editor (CONTRIBUTING.md, "A new setting goes in the database"). The 241 keys already in `Common/Application/IniFileSettings.{h,cpp}` are frozen |
 | A per-account or per-domain setting | `Common/BO/`, `Common/Persistence/`, the COM interface, the schema, and the upgrade chain |
 | A new anti-spam test | `Common/AntiSpam/` and the score pipeline |
 | Something exposed to scripts | `Common/Scripting/` and the COM layer |
-| A new REST route or portal page | `Common/Util/RestApiServer.cpp` (dispatch, authorisation through `ACLManager`, the served `openapi.json`); the transport is `Common/Util/HttpServer` — new in 6.2.28 |
+| A new REST route or portal page | `Common/Util/RestApiServer.cpp` (dispatch, authorisation through `RoleManager` - `ACLManager` decides folder access only - and the served `openapi.json`); the transport is `Common/Util/HttpServer` — new in 6.2.28 |
 | A new periodic sweep | a `ScheduledTask` subclass registered in `Application::CreateScheduledTasks_`, startup-plus-periodic |
 
 If a change spans more than about three of those rows, it is worth discussing in an

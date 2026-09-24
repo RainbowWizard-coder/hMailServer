@@ -2,10 +2,24 @@ Governance
 ==========
 
 This document describes how the hMailServer fork at
-[Progressiverobot/hmailserver](https://github.com/Progressiverobot/hmailserver)
+[Progressiverobot/hmailserver](https://gitlab.com/Progressiverobot/hmailserver)
 is run: who decides what, how decisions are made, and what each role is
 expected to do. It describes the project as it actually is today, not as an
 aspirational structure.
+
+**Status since 18 September 2026.** GitHub has been unavailable to the project
+since 18 September 2026, and its home has been GitLab since 22 September 2026.
+Where this document describes the GitHub repository - its ruleset and the
+approval it required, repository admin, private vulnerability reporting, and
+release signing through GitHub's token service - it describes how the project
+ran there. On GitLab, no approval is required (the GitHub ruleset had stopped
+requiring one on 14 September 2026), `master` is protected, and a change that
+has passed the regression gate lands on it by fast-forward. Security reports go
+by the routes in [SECURITY.md](SECURITY.md). The release chain runs on GitHub
+Actions and the installer's fetched build inputs come from a GitHub release, so
+no release can be signed and published, and the installer cannot be built on a
+new machine, until both move; that is planned roadmap work and not yet done.
+Until then, *Critical assets* below overstates what is committed.
 
 The short version
 -----------------
@@ -17,7 +31,7 @@ maintainers, in the open, on the issue tracker.
 Both maintainers work for Progressive Robot Ltd, and until this change this
 document named Christopher Holloway as the project's only maintainer.
 That is stated plainly here for the same reason the project's size is stated in
-[SECURITY.md](.github/SECURITY.md): people relying on a mail server are
+[SECURITY.md](SECURITY.md): people relying on a mail server are
 entitled to know how much of it rests on how few people, and on which
 organisation. The [Continuity](#continuity) section below says what is and is
 not currently true about that.
@@ -27,8 +41,8 @@ Roles and responsibilities
 
 ### Maintainers
 
-**Currently: Christopher Holloway ([@chrisholloway5](https://github.com/chrisholloway5))
-and Zain Ul Abidin ([@Zainulabidin90](https://github.com/Zainulabidin90)).**
+**Currently: Christopher Holloway (`Progressiverobot` on GitLab, `chrisholloway5`
+on GitHub) and Zain Ul Abidin (`Zainulabidin90` on GitHub).**
 
 The maintainers are accountable for the project. In practice this means:
 
@@ -39,7 +53,7 @@ The maintainers are accountable for the project. In practice this means:
   shipped, and signing every release asset.
 - **Security response.** Receiving private vulnerability reports, triaging
   them, and meeting the timetable published in
-  [SECURITY.md](.github/SECURITY.md).
+  [SECURITY.md](SECURITY.md).
 - **Direction.** Keeping [Roadmap.md](Roadmap.md) current, and deciding what
   the project will deliberately *not* do.
 - **Infrastructure.** Holding and protecting the credentials listed under
@@ -80,8 +94,8 @@ neither is in place yet:
 
 ### Contributor
 
-Anyone who opens a pull request. Contributors are expected to follow
-[CONTRIBUTING.md](.github/CONTRIBUTING.md): keep changes focused, keep the
+Anyone who opens a merge request (a pull request, on GitHub). Contributors are expected to follow
+[CONTRIBUTING.md](CONTRIBUTING.md): keep changes focused, keep the
 regression suite green, add or update regression tests for behaviour changes,
 use parameterised SQL exclusively, and accept that contributions are licensed
 under the AGPLv3.
@@ -91,8 +105,8 @@ Contributors do not need any prior status. There is no CLA to sign.
 ### Reporter
 
 Anyone who files an issue or a security report. Reporters are expected to
-follow [SUPPORT.md](.github/SUPPORT.md) for defects, and
-[SECURITY.md](.github/SECURITY.md) for anything security-relevant — in
+follow [SUPPORT.md](SUPPORT.md) for defects, and
+[SECURITY.md](SECURITY.md) for anything security-relevant — in
 particular, **not** to open a public issue for a security problem.
 
 Reporters are credited for security findings unless they ask not to be.
@@ -139,7 +153,7 @@ Compatibility with existing hMailServer deployments is a standing constraint,
 not a preference — an upgrade must preserve configuration and mail.
 
 **Security.** Security decisions are made under the disclosure timetable in
-[SECURITY.md](.github/SECURITY.md), not by consensus. They are the
+[SECURITY.md](SECURITY.md), not by consensus. They are the
 maintainers' to make, and either maintainer may decide alone when waiting for
 the other would miss that timetable. Until the second note under
 [Maintainers](#maintainers) is resolved, only Christopher Holloway is notified
@@ -246,5 +260,5 @@ outside Progressive Robot Ltd; see
 Changing this document
 ----------------------
 
-Propose changes the same way as any other change: open a pull request. The
+Propose changes the same way as any other change: open a merge request. The
 maintainers decide, and, as everywhere else in this project, give a reason.

@@ -1,5 +1,6 @@
-Contact: https://github.com/Progressiverobot/hmailserver/security/advisories/new
+Contact: https://gitlab.com/Progressiverobot/hmailserver/-/issues/new?issue%5Bconfidential%5D=true
+Contact: mailto:contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com
 Expires: 2027-09-15T00:00:00.000Z
 Preferred-Languages: en
-Canonical: https://raw.githubusercontent.com/Progressiverobot/hmailserver/master/.well-known/security.txt
-Policy: https://github.com/Progressiverobot/hmailserver/blob/master/.github/SECURITY.md
+Canonical: https://gitlab.com/Progressiverobot/hmailserver/-/raw/master/.well-known/security.txt
+Policy: https://gitlab.com/Progressiverobot/hmailserver/-/blob/master/SECURITY.md

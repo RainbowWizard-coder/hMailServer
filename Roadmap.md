@@ -4,7 +4,7 @@ Roadmap
 What this fork has, what is planned, what is deliberately not, and why. It is
 kept honest rather than aspirational: work appears here when there is a concrete
 reason for it, and anything already shipped moves to the
-[Releases page](https://github.com/Progressiverobot/hmailserver/releases).
+[Releases page](https://gitlab.com/Progressiverobot/hmailserver/-/releases).
 
 No dates are promised for the work. This is a maintained fork, not a funded
 product, and the order below is the order things will be looked at rather than a
@@ -1564,11 +1564,12 @@ As of the last review, nothing upstream is missing here.
 Influencing this list
 ---------------------
 
-A concrete report with a log beats a feature request. Bugs and enhancements go to
-[Issues](https://github.com/Progressiverobot/hmailserver/issues), open-ended
-questions to
-[Discussions](https://github.com/Progressiverobot/hmailserver/discussions), and
-anything security-sensitive privately via [SECURITY.md](.github/SECURITY.md).
+A concrete report with a log beats a feature request. Bugs, enhancements and
+open-ended questions go to
+[Issues](https://gitlab.com/Progressiverobot/hmailserver/-/issues) on GitLab,
+the project's home since 22 September 2026 (GitLab has no Discussions; a
+question is an issue with the `question` label), and anything
+security-sensitive privately via [SECURITY.md](SECURITY.md).
 
 Something being on this list does not mean it is being worked on now, and
 something not being on it does not mean it will be refused — it usually means

@@ -56,24 +56,33 @@ Examples of representing our community include using an official email address,
 posting via an official social media account, or acting as an appointed
 representative at an online or offline event.
 
-For this project, community spaces include the GitHub repository — issues, pull
-requests, discussions, code review and commit messages.
+For this project, community spaces include the GitLab project at
+<https://gitlab.com/Progressiverobot/hmailserver> — issues, merge requests, code
+review, commit messages and the wiki — and, while it was the project's home, the
+GitHub repository.
 
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to [@chrisholloway5](https://github.com/chrisholloway5)
-(Christopher Holloway / Progressive Robot Ltd). Reports can be sent privately
-through GitHub. All complaints will be reviewed and investigated promptly and
-fairly.
+reported privately to Christopher Holloway / Progressive Robot Ltd
+(`Progressiverobot` on GitLab), by either route:
+
+* a [confidential issue](https://gitlab.com/Progressiverobot/hmailserver/-/issues/new?issue[confidential]=true)
+  on the GitLab project, which only you and the maintainers can see; or
+* an email to the project's Service Desk address,
+  [contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com](mailto:contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com),
+  which GitLab files as a confidential issue and which needs no GitLab account.
+
+All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
 
 Serious cases — threats, targeted harassment, or anything requiring platform
-intervention — can also be reported directly to GitHub through
-[GitHub's abuse reporting](https://github.com/contact/report-abuse), which can
-act on accounts in ways a project maintainer cannot.
+intervention — can also be reported directly to GitLab with its **Report abuse**
+action, on the user's profile or on the issue, merge request or comment
+concerned. The report goes to GitLab.com's administrators, who can act on
+accounts in ways a project maintainer cannot.
 
 ## Enforcement Guidelines
 

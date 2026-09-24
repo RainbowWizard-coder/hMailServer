@@ -2,7 +2,7 @@
 # the database became the settings store.
 #
 # THIS FILE IS A RULE, NOT AN INVENTORY. The rule, from 15 September 2026 and
-# written where a contributor meets it in .github/CONTRIBUTING.md, is that a
+# written where a contributor meets it in CONTRIBUTING.md, is that a
 # SETTING BELONGS IN THE DATABASE: in hm_settings, reached through Property and
 # PropertySet, with a Control Panel editor. No key is added to [Settings] here.
 #
