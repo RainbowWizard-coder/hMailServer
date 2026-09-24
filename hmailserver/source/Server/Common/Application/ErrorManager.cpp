@@ -286,31 +286,6 @@ namespace HM
       return result;
    }
 
-   String
-   ErrorManager::EscapeForScriptLiteral_(const String &value, const String &script_language)
-   {
-      String result = value;
-
-      if (script_language == _T("JScript"))
-      {
-         // Backslash first, and it was not escaped at all before this. Error
-         // descriptions are full of Windows paths, and JScript reads the escapes: a
-         // handler was handed "C:\temp\..." with a real tab character in it, and a
-         // description ending in a backslash escaped the closing quote and turned the
-         // generated call into a syntax error. Doing the quote first instead would
-         // then double the backslash this pass adds, which is why the order matters.
-         result.Replace(_T("\\"), _T("\\\\"));
-         result.Replace(_T("'"), _T("\\'"));
-      }
-      else
-      {
-         // VBScript: a doubled quote is the only escape a string literal has.
-         result.Replace(_T("\""), _T("\"\""));
-      }
-
-      return result;
-   }
-
    void
    ErrorManager::ReportError(eSeverity iSeverity, int iErrorID, const String &sSource, const String &sDescription)
    {
@@ -425,21 +400,27 @@ namespace HM
 
       String sEventCaller;
 
+      // The values made literals by ScriptServer's two helpers, the ones every
+      // caller of a Windows engine uses: the backslash first for JScript - error
+      // descriptions are full of Windows paths, and a handler was once handed
+      // "C:\temp\..." with a real tab in it - and the doubled quote for VBScript.
+      // The description can carry a remote peer's words (a resolver's, a server's
+      // answer), and NormalizeForLog_ has already flattened its line breaks.
       if (sScriptLanguage == _T("VBScript"))
       {
          sEventCaller.Format(_T("OnError(%d, %d, \"%s\", \"%s\")"),
             iSeverity,
             iErrorID,
-            EscapeForScriptLiteral_(normalized_source, sScriptLanguage).c_str(),
-            EscapeForScriptLiteral_(normalized_description, sScriptLanguage).c_str());
+            ScriptServer::EscapeForVBScriptLiteral(normalized_source).c_str(),
+            ScriptServer::EscapeForVBScriptLiteral(normalized_description).c_str());
       }
       else if (sScriptLanguage == _T("JScript"))
       {
          sEventCaller.Format(_T("OnError(%d, %d, '%s', '%s')"),
             iSeverity,
             iErrorID,
-            EscapeForScriptLiteral_(normalized_source, sScriptLanguage).c_str(),
-            EscapeForScriptLiteral_(normalized_description, sScriptLanguage).c_str());
+            ScriptServer::EscapeForJScriptLiteral(normalized_source).c_str(),
+            ScriptServer::EscapeForJScriptLiteral(normalized_description).c_str());
       }
 #ifdef HM_PLATFORM_POSIX
       else if (sScriptLanguage == _T("JavaScript"))

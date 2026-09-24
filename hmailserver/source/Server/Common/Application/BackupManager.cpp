@@ -483,8 +483,21 @@ namespace HM
          pContainer->AddObject("Result", pResult, ScriptObject::OTResult);
          // The reason as a value, for the JavaScript engine; see ScriptArgument.
          pContainer->AddTextArgument(sReason);
-         String sEventCaller = "OnBackupFailed(\"" + sReason + "\")";
-         ScriptServer::Instance()->FireEvent(ScriptServer::EventOnBackupFailed, sEventCaller, pContainer);
+
+         // And as a literal for the Windows engines, which it used to be written
+         // into with no escaping at all - a quote in the destination's path, or in
+         // a file name the backup met, ended the literal, and in VBScript the rest
+         // of the reason was statements. Built for the script in force
+         // (ScriptServer::GetLoadedLanguage), quoted by ScriptServer's helpers.
+         String sScriptLanguage = ScriptServer::Instance()->GetLoadedLanguage();
+         String sEventCaller;
+
+         if (sScriptLanguage == _T("JScript"))
+            sEventCaller = "OnBackupFailed(\"" + ScriptServer::EscapeForJScriptLiteral(sReason) + "\")";
+         else
+            sEventCaller = "OnBackupFailed(\"" + ScriptServer::EscapeForVBScriptLiteral(sReason) + "\")";
+
+         ScriptServer::Instance()->FireEvent(ScriptServer::EventOnBackupFailed, sEventCaller, pContainer, sScriptLanguage);
       }
       LOG_DEBUG("BackupManager::~OnBackupFailed()");
    }

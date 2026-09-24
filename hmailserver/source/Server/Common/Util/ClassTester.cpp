@@ -101,6 +101,7 @@ namespace
 #include "../Util/CompromiseDetector.h"
 #include "../Util/EventTester.h"
 #include "../Util/HttpCompression.h"
+#include "../Scripting/ScriptServer.h"
 #include "../SQL/SQLStatement.h"
 #include <boost/pool/object_pool.hpp>
 
@@ -154,6 +155,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing Formatter\n"));
       FormatterTester formatterTester;
       formatterTester.Test();
+
+      // What a value may do to the call text the Windows script engines are
+      // handed: a password that tries to end its JScript string, each escape, the
+      // VBScript splices, and the rule function names FireEvent lets through.
+      OutputDebugString(_T("hMailServer: Testing ScriptLiteral\n"));
+      ScriptLiteralTester scriptLiteralTester;
+      scriptLiteralTester.Test();
 
       // What a domain does to a message: the rule that decides whether a sender
       // is outside, the tag that rule produces, and the reply-chain guard on the

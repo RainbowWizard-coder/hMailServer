@@ -68,6 +68,28 @@ namespace HM
       // never for the setting's. Empty until a script has been loaded.
       String GetLoadedLanguage() const;
 
+      // A value made safe to stand between the quotes of a JScript string literal,
+      // '...' or "...", in the call text the Windows engines are handed - a
+      // password, a recipient, an error, a remote UID, a backup's reason. Every
+      // character that could end the literal early or change what it holds is
+      // written as an escape: the backslash, both quotes, CR, LF, U+2028, U+2029
+      // and NUL. One pass, so the backslash is escaped before - and never again
+      // after - the escapes this function adds; see ScriptServer.cpp for the
+      // attack that escaping the quote alone let through.
+      static String EscapeForJScriptLiteral(const String &value);
+
+      // The same for VBScript's "...": the quote doubled, which is the only
+      // escape VBScript has, and CR, LF and NUL, which no VBScript literal may
+      // hold, spliced in as vbCr, vbLf and Chr(0) - so the handler is given the
+      // value as it is, where a line break used to make the call a syntax error.
+      static String EscapeForVBScriptLiteral(const String &value);
+
+      // Whether a rule's "Run function" name can be written into call text as it
+      // is: ASCII letters, digits, _ and $, not starting with a digit, at most 255
+      // characters - the names the JavaScript engine looks up. Anything else is
+      // refused by FireEvent before a Windows engine sees it.
+      static bool IsPlainProcedureName(const String &name);
+
       // Checks the syntax of the scripts in the
       // event directory and return the result.
       String CheckSyntax();
@@ -191,5 +213,14 @@ namespace HM
       // read, can take it.
       mutable boost::recursive_mutex state_mutex_;
 
+   };
+
+   // The three helpers above, held to examples: what a password that tried to end
+   // its string becomes, each escape, the VBScript splices, and the procedure
+   // names FireEvent lets through. ClassTester::DoTests runs it.
+   class ScriptLiteralTester
+   {
+   public:
+      void Test();
    };
 }

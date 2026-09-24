@@ -131,7 +131,15 @@ and `Result` in `OnClientLogon`, `OnRecipientUnknown`, `OnTooManyInvalidCommands
 On JavaScript the values - a password, a recipient, an error's description - are
 handed to the handler as values, with `JS_Call`. VBScript and JScript are handed
 their call as source text built and quoted by the server; JavaScript's is not built
-at all, so no quote or backslash in a value can end a string early.
+at all, so no quote or backslash in a value can end a string early. On Windows the
+quoting is one pair of helpers (`ScriptServer::EscapeForJScriptLiteral` and
+`EscapeForVBScriptLiteral`): for JScript every backslash, both quotes, CR, LF,
+U+2028, U+2029 and NUL are escaped, the backslash first - before 24 September 2026
+only the apostrophe was, and a password ending its string with `\'` ran the code
+after it; for VBScript the quote is doubled. A rule's "Run function" name is written
+into the call as it is, so a name that is not a plain identifier - ASCII letters,
+digits, `_` and `$`, not starting with a digit - is refused (HM5018) and nothing is
+run.
 
 ---
 
@@ -399,6 +407,7 @@ is that the script cannot reach past the objects it is given.
 | The engine could not be started (memory) | HM7340 |
 | An event that reaches a script loaded, while scripting was off, in a language this build does not run - in practice a rule's "Run function" | HM5018, once per load |
 | On Windows, an event whose call was built for VBScript while a reload installed JScript, or the reverse | HM5018, once per load; that one event is skipped rather than run in the other language |
+| On Windows, a rule's "Run function" whose name is not a plain identifier | HM5018, each time the rule matches; the function is not run |
 
 The load is all or nothing on every engine: a script that does not compile installs
 nothing, and whatever was loaded before stays in force - so a typo in a reload never

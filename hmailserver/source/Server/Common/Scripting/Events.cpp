@@ -69,6 +69,14 @@ namespace HM
       // other one was an empty call - OnClientValidatePassword not asked, and the
       // stored password deciding in its place, without a word.
       String sScriptLanguage = ScriptServer::Instance()->GetLoadedLanguage();
+
+      // The password is the one value here a remote client chooses, and it is
+      // chosen BEFORE the logon: this runs for any client that names an existing
+      // account. VBScript's doubled quote keeps it inside its literal - a quote
+      // becomes a pair, which cannot close the literal, and a line break can only
+      // break the call, never start a statement. JScript's escape character is the
+      // backslash, and escaping the apostrophe alone let "\'); code; //" close the
+      // literal and run the code; see ScriptServer::EscapeForJScriptLiteral.
       if (sScriptLanguage == _T("VBScript"))
       {
          String sEscapedPassword = sPassword;
@@ -78,8 +86,7 @@ namespace HM
       }
       else if (sScriptLanguage == _T("JScript"))
       {
-         String sEscapedPassword = sPassword;
-         sEscapedPassword.Replace(_T("'"), _T("\\'"));
+         String sEscapedPassword = ScriptServer::EscapeForJScriptLiteral(sPassword);
 
          sEventCaller.Format(_T("OnClientValidatePassword(HMAILSERVER_ACCOUNT, '%s')"), sEscapedPassword.c_str());
       }
@@ -186,15 +193,18 @@ namespace HM
          }
          else if (sScriptLanguage == _T("JScript"))
          {
-            sRecipientCopy.Replace(_T("'"), _T("\\'"));
-            sErrorMessageCopy.Replace(_T("'"), _T("\\'"));
-
-            sErrorMessageCopy.Replace(_T("\r\n"), _T("\\r\\n"));
-
+            // The error is the remote server's answer, word for word, so its
+            // sender chooses it, and the recipient's address may hold a backslash
+            // in a quoted local part: both made literals whole, the backslash
+            // first (ScriptServer::EscapeForJScriptLiteral). Trimmed before, as
+            // the value the JavaScript engine is handed below is; a line break
+            // inside is kept, as \r\n was before.
             sErrorMessageCopy.TrimLeft();
             sErrorMessageCopy.TrimRight();
 
-            sEventCaller.Format(_T("OnDeliveryFailed(HMAILSERVER_MESSAGE, '%s', '%s')"), sRecipientCopy.c_str(), sErrorMessageCopy.c_str());
+            sEventCaller.Format(_T("OnDeliveryFailed(HMAILSERVER_MESSAGE, '%s', '%s')"),
+               ScriptServer::EscapeForJScriptLiteral(sRecipientCopy).c_str(),
+               ScriptServer::EscapeForJScriptLiteral(sErrorMessageCopy).c_str());
          }
 
          std::shared_ptr<ScriptObjectContainer> pContainer  = std::shared_ptr<ScriptObjectContainer>(new ScriptObjectContainer);
@@ -246,7 +256,10 @@ namespace HM
       }
       else if (sScriptLanguage == _T("JScript"))
       {
-         sRemoteUIDCopy.Replace(_T("'"), _T("\\'"));
+         // The UID is whatever the remote server answered to UIDL - its operator
+         // chooses it - so it is made a literal whole, the backslash first
+         // (ScriptServer::EscapeForJScriptLiteral).
+         sRemoteUIDCopy = ScriptServer::EscapeForJScriptLiteral(sRemoteUID);
 
          if (pMessage)
             sEventCaller.Format(_T("OnExternalAccountDownload(HMAILSERVER_FETCHACCOUNT, HMAILSERVER_MESSAGE, '%s')"), sRemoteUIDCopy.c_str());

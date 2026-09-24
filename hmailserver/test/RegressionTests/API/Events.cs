@@ -1122,5 +1122,165 @@ namespace RegressionTests.API
             LeaveAnEmptyVBScriptScriptLoaded();
          }
       }
+
+      // ------------------------------------------------------------------ what a value may do to the call text
+
+      // Logs on over SMTP AUTH LOGIN, which carries the password in base64 and so
+      // byte for byte; true when the server let the client in.
+      private static bool LogsOnOverSmtp(string address, string password)
+      {
+         var client = new SmtpClientSimulator();
+
+         try
+         {
+            string errorMessage;
+            client.ConnectAndLogon(Convert.ToBase64String(Encoding.UTF8.GetBytes(address)),
+               Convert.ToBase64String(Encoding.UTF8.GetBytes(password)), out errorMessage);
+            return true;
+         }
+         catch (System.Security.Authentication.AuthenticationException)
+         {
+            return false;
+         }
+      }
+
+      // The text's UTF-16 code units, comma-separated: what a handler that writes
+      // password.charCodeAt(i) for each i writes, so the comparison is exact and
+      // nothing the event log does to a quote or a line break can hide a difference.
+      private static string CharacterCodes(string text)
+      {
+         var codes = new List<string>();
+
+         foreach (var character in text)
+            codes.Add(((int) character).ToString());
+
+         return string.Join(",", codes);
+      }
+
+      private static Rule AddScriptFunctionRule(Rules rules, string functionName)
+      {
+         var rule = rules.Add();
+         rule.Name = "Runs a script function";
+         rule.Active = true;
+
+         var criteria = rule.Criterias.Add();
+         criteria.UsePredefined = true;
+         criteria.PredefinedField = eRulePredefinedField.eFTMessageSize;
+         criteria.MatchType = eRuleMatchType.eMTGreaterThan;
+         criteria.MatchValue = "0";
+         criteria.Save();
+
+         var action = rule.Actions.Add();
+         action.Type = eRuleActionType.eRARunScriptFunction;
+         action.ScriptFunction = functionName;
+         action.Save();
+
+         rule.Save();
+         return rule;
+      }
+
+      [Test]
+      [Description("A password reaches a JScript OnClientValidatePassword as the value it is, and nothing in it runs. The JScript call used to escape the apostrophe and not the backslash, so a client that sent the password x\\'); followed by a statement - before any logon, for any existing account - ran that statement inside the server's script engine. Negative control: the same statement, run by the handler itself, puts the marker in the log.")]
+      public void APasswordCannotEndItsStringInTheJScriptCallAndRunCode()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
+
+         var scripting = _settings.Scripting;
+
+         try
+         {
+            scripting.Language = "JScript";
+            File.WriteAllText(scripting.CurrentScriptFile,
+               "function OnClientValidatePassword(account, password) {\r\n" +
+               "   var codes = [];\r\n" +
+               "   for (var i = 0; i < password.length; i++)\r\n" +
+               "      codes.push(password.charCodeAt(i));\r\n" +
+               "   EventLog.Write('pw=[' + password + '] codes=' + codes.join(','));\r\n" +
+               "   if (password == 'control')\r\n" +
+               "      EventLog.Write(\"INJ\" + \"ECTED\");\r\n" +
+               "   Result.Value = 1;\r\n" +
+               "}\r\n");
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            // The negative control. The handler is reached, is read back, and when it
+            // runs the attack's statement itself the marker is in the log - so its
+            // absence below means the statement did not run, not that the log could
+            // not have shown it.
+            LogHandler.DeleteEventLog();
+            ClassicAssert.IsFalse(LogsOnOverSmtp("test@example.test", "control"), "The handler refuses every password.");
+
+            var controlLog = TestSetup.ReadExistingTextFile(LogHandler.GetEventLogFileName());
+            StringAssert.Contains("pw=[control] codes=" + CharacterCodes("control"), controlLog);
+            StringAssert.Contains("INJECTED", controlLog);
+
+            // The attack: a backslash before the apostrophe. Escaping the apostrophe
+            // alone made that 'x\\'); - an escaped backslash, the string closed by the
+            // apostrophe after it, and the rest of the password statements, the
+            // comment swallowing the call's own closing quote and parenthesis.
+            const string attack = "x\\'); EventLog.Write(\"INJ\" + \"ECTED\"); //";
+
+            LogHandler.DeleteEventLog();
+            ClassicAssert.IsFalse(LogsOnOverSmtp("test@example.test", attack), "The handler refuses every password.");
+
+            var attackLog = TestSetup.ReadExistingTextFile(LogHandler.GetEventLogFileName());
+            StringAssert.Contains("codes=" + CharacterCodes(attack), attackLog,
+               "The handler was not handed the password it was sent, byte for byte.");
+            StringAssert.DoesNotContain("INJECTED", attackLog,
+               "A statement carried in a password ran inside the server's script engine.");
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
+
+      [Test]
+      [Description("A rule's Run function action is refused unless it names a plain function, so its name cannot carry statements into the script engine; a plain name runs the function (the negative control). The name was written into the call as it was, and domain and account rules are written by a domain's administrator too.")]
+      public void ARuleFunctionNameCannotCarryCodeIntoTheScript()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
+
+         var scripting = _settings.Scripting;
+
+         try
+         {
+            scripting.Language = "JScript";
+            File.WriteAllText(scripting.CurrentScriptFile,
+               "function MarkTheSubject(oMessage) {\r\n" +
+               "   oMessage.Subject = '[rule ran] ' + oMessage.Subject;\r\n" +
+               "   oMessage.Save();\r\n" +
+               "}\r\n");
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            // The negative control: named plainly, the function runs.
+            var plain = AddScriptFunctionRule(_application.Rules, "MarkTheSubject");
+
+            SmtpClientSimulator.StaticSend(account.Address, account.Address, "First", "SampleBody");
+            StringAssert.Contains("Subject: [rule ran] First", Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test"));
+
+            plain.Delete();
+
+            // A name that is a call, then a statement, then a comment: written into
+            // the call as it was, all three ran.
+            AddScriptFunctionRule(_application.Rules, "MarkTheSubject(HMAILSERVER_MESSAGE); EventLog.Write(\"INJ\" + \"ECTED\"); //");
+
+            LogHandler.DeleteEventLog();
+
+            SmtpClientSimulator.StaticSend(account.Address, account.Address, "Second", "SampleBody");
+            var second = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            StringAssert.Contains("Subject: Second", second);
+            StringAssert.DoesNotContain("[rule ran]", second);
+
+            CustomAsserts.AssertReportedError("HM5018", "not a plain function name");
+            StringAssert.DoesNotContain("INJECTED", LogHandler.ReadEventLog(),
+               "A statement carried in a rule's function name ran inside the server's script engine.");
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
    }
 }

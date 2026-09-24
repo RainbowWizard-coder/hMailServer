@@ -57,11 +57,6 @@ namespace HM
       // FormatMessage cannot split one ERROR entry into two.
       static String NormalizeForLog_(const String &value);
 
-      // Makes a value safe to paste into a script source literal in the given
-      // language. The OnError event is invoked by building script source text, so
-      // anything the value can do to that text, it does.
-      static String EscapeForScriptLiteral_(const String &value, const String &script_language);
-
       // True while this thread is inside the OnError event fired from ReportError.
       // Reporting an error from within that event would fire it again, on the same
       // thread, for ever - see ReportError_.

@@ -37,6 +37,8 @@
 #include "../Application/RoleManager.h"
 #include "../Util/AuditTrail.h"
 
+#include <stdexcept>
+
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -335,6 +337,201 @@ namespace HM
    {
       boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
       return script_language_;
+   }
+
+   // THE CALL TEXT, AND WHAT A VALUE MAY DO TO IT.
+   //
+   // VBScript and JScript are handed each event as source text - the whole script,
+   // then a line that calls the handler with the event's values written into it as
+   // string literals - and the engine parses the lot. So a value is only safe to
+   // write there once nothing in it can end the literal. JScript's callers used to
+   // escape the apostrophe and nothing else, and a backslash is JScript's escape
+   // character: the password
+   //
+   //    x\'); EventLog.Write("INJ" + "ECTED"); //
+   //
+   // became 'x\\'); EventLog.Write("INJ" + "ECTED"); //' - an escaped backslash,
+   // the literal closed by the apostrophe that followed it, and the rest of the
+   // password parsed as statements, the comment swallowing the tail. That runs in
+   // the server's own process with whatever the script engine may reach, which on
+   // an unrestricted ScriptAllowedObjects is CreateObject - and a password is sent
+   // BEFORE the logon: OnClientValidatePassword runs for any client that names an
+   // existing account. The remote UID a fetched server chooses, the error text a
+   // remote MX answers with, and a recipient went into their calls the same way.
+   //
+   // Escaped in one pass, character by character, so each character is written
+   // once: a backslash becomes \\ before anything else is added, and the escapes
+   // added for the other characters are never escaped again. The quotes are both
+   // escaped, so the result is safe between either; the four line terminators a
+   // JScript or ECMAScript literal may not hold (CR, LF, U+2028, U+2029) become
+   // \r, \n, \u2028 and \u2029;
+   // and NUL, which a String can hold and String::Format would cut the call at,
+   // becomes \x00.
+   String
+   ScriptServer::EscapeForJScriptLiteral(const String &value)
+   {
+      String result;
+      result.reserve(value.GetLength() + 16);
+
+      for (int i = 0; i < value.GetLength(); i++)
+      {
+         wchar_t character = value[i];
+
+         switch (character)
+         {
+         case L'\\':
+            result += _T("\\\\");
+            break;
+         case L'\'':
+            result += _T("\\'");
+            break;
+         case L'"':
+            result += _T("\\\"");
+            break;
+         case L'\r':
+            result += _T("\\r");
+            break;
+         case L'\n':
+            result += _T("\\n");
+            break;
+         case 0x2028:
+            result += _T("\\u2028");
+            break;
+         case 0x2029:
+            result += _T("\\u2029");
+            break;
+         case 0:
+            result += _T("\\x00");
+            break;
+         default:
+            result += character;
+            break;
+         }
+      }
+
+      return result;
+   }
+
+   // VBScript has one escape - the doubled quote - and no backslash escapes at all,
+   // so a doubled quote is all a value needs to stay inside its literal: every
+   // quote it holds becomes a pair, and a pair cannot close the literal. A CR or an
+   // LF cannot be written inside one either, and used to make the call a syntax
+   // error (the handler not run for that value - never a second statement, since
+   // the literal the line break interrupted can never have been closed); they are
+   // spliced in instead, as is NUL, so the handler is handed the value itself.
+   String
+   ScriptServer::EscapeForVBScriptLiteral(const String &value)
+   {
+      String result;
+      result.reserve(value.GetLength() + 16);
+
+      for (int i = 0; i < value.GetLength(); i++)
+      {
+         wchar_t character = value[i];
+
+         switch (character)
+         {
+         case L'"':
+            result += _T("\"\"");
+            break;
+         case L'\r':
+            result += _T("\" & vbCr & \"");
+            break;
+         case L'\n':
+            result += _T("\" & vbLf & \"");
+            break;
+         case 0:
+            result += _T("\" & Chr(0) & \"");
+            break;
+         default:
+            result += character;
+            break;
+         }
+      }
+
+      return result;
+   }
+
+   bool
+   ScriptServer::IsPlainProcedureName(const String &name)
+   {
+      if (name.IsEmpty() || name.GetLength() > 255)
+         return false;
+
+      for (int i = 0; i < name.GetLength(); i++)
+      {
+         wchar_t c = name[i];
+         bool letter = (c >= L'a' && c <= L'z') || (c >= L'A' && c <= L'Z') || c == L'_' || c == L'$';
+         bool digit = c >= L'0' && c <= L'9';
+
+         if (!letter && !(digit && i > 0))
+            return false;
+      }
+
+      return true;
+   }
+
+   void
+   ScriptLiteralTester::Test()
+   {
+      // The attack in ScriptServer.cpp's comment, and what it must become: every
+      // backslash doubled first, then each quote escaped once.
+      String attack = _T("x\\'); EventLog.Write(\"INJ\" + \"ECTED\"); //");
+      String escaped = ScriptServer::EscapeForJScriptLiteral(attack);
+
+      if (escaped != String(_T("x\\\\\\'); EventLog.Write(\\\"INJ\\\" + \\\"ECTED\\\"); //")))
+         throw std::logic_error("ScriptLiteralTester: a password that tried to end its JScript string was not escaped to stay inside it");
+
+      // A backslash then a quote: \\ then \', never \\\\ - no escape is escaped twice.
+      if (ScriptServer::EscapeForJScriptLiteral(_T("\\'")) != String(_T("\\\\\\'")))
+         throw std::logic_error("ScriptLiteralTester: a backslash before a quote was escaped in the wrong order");
+
+      // The line terminators and NUL.
+      String terminators;
+      terminators += L'a';
+      terminators += L'\r';
+      terminators += L'\n';
+      terminators += static_cast<wchar_t>(0x2028);
+      terminators += static_cast<wchar_t>(0x2029);
+      terminators += static_cast<wchar_t>(0);
+      terminators += L'b';
+
+      if (ScriptServer::EscapeForJScriptLiteral(terminators) != String(_T("a\\r\\n\\u2028\\u2029\\x00b")))
+         throw std::logic_error("ScriptLiteralTester: a line terminator or NUL was left raw in a JScript literal");
+
+      // Nothing else is touched: punctuation, a tab, a letter outside ASCII.
+      String untouched = _T("C:plain text, 100% ~`!@#$^&*()[]{}<>?/|;:");
+      untouched += L'\t';
+      untouched += static_cast<wchar_t>(0xE9);
+
+      if (ScriptServer::EscapeForJScriptLiteral(untouched) != untouched)
+         throw std::logic_error("ScriptLiteralTester: a character that needs no escape was changed");
+
+      // VBScript: the quote doubled, a line break spliced, no backslash escaped.
+      String vb;
+      vb += L'"';
+      vb += L'\\';
+      vb += L'\r';
+      vb += L'\n';
+      vb += L'z';
+
+      if (ScriptServer::EscapeForVBScriptLiteral(vb) != String(_T("\"\"\\\" & vbCr & \"\" & vbLf & \"z")))
+         throw std::logic_error("ScriptLiteralTester: a VBScript literal was not escaped as VBScript reads it");
+
+      // The rule function's name. A letter outside ASCII is refused, as the
+      // JavaScript engine's lookup refuses it: the names are the same on both.
+      String accented;
+      accented += static_cast<wchar_t>(0xC9);
+      accented += L't';
+      accented += static_cast<wchar_t>(0xE9);
+
+      if (!ScriptServer::IsPlainProcedureName(_T("MarkTheSubject")) || !ScriptServer::IsPlainProcedureName(_T("_x$1")))
+         throw std::logic_error("ScriptLiteralTester: a plain procedure name was refused");
+
+      if (ScriptServer::IsPlainProcedureName(_T("")) || ScriptServer::IsPlainProcedureName(_T("1x")) ||
+          ScriptServer::IsPlainProcedureName(_T("X(HMAILSERVER_MESSAGE): CreateObject(\"WScript.Shell\").Run \"calc\" '")) ||
+          ScriptServer::IsPlainProcedureName(_T("a b")) || ScriptServer::IsPlainProcedureName(accented))
+         throw std::logic_error("ScriptLiteralTester: a procedure name that is not plain was let through");
    }
 
    bool
@@ -1021,6 +1218,23 @@ namespace HM
                "the scripts. Events refused for the same reason are not reported again until the scripts are next loaded.");
          }
 
+         return;
+      }
+
+      // A rule's function is named by whoever wrote the rule - the administrator,
+      // and a domain's administrator too, through the domain and account rule
+      // routes - and RuleApplier writes the name into the call as it is:
+      // "Name(HMAILSERVER_MESSAGE)". A name that is not a plain identifier could
+      // carry statements of its own into this process's script engine, so it is
+      // refused before an engine sees it, each time the rule fires. The JavaScript
+      // engine of the Linux builds looks names up the same way (IsIdentifier_).
+      if (e == EventCustom &&
+          (!IsPlainProcedureName(handler_name) || sEventCaller != handler_name + _T("(HMAILSERVER_MESSAGE)")))
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 5018, "ScriptServer::FireEvent",
+            "A rule's Run function action names '" + handler_name + "', which is not a plain function name - letters, digits, _ "
+            "and $, not starting with a digit - so the function was not run. Name the function in the rule as the event script "
+            "declares it.");
          return;
       }
 
