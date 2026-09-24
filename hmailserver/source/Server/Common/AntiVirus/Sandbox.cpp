@@ -24,6 +24,7 @@
 #include "../BO/MessageRecipients.h"
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Application/ExceptionHandler.h"
 #include "../Application/IniFileSettings.h"
 #include "../AntiSpam/QuarantineStore.h"
@@ -820,7 +821,7 @@ namespace HM
 
       bool WriteHeader(std::shared_ptr<Message> message, const String &value)
       {
-         const String fileName = PersistentMessage::GetFileName(message);
+         const String fileName = MessageStore::WorkingFile(message);
 
          std::vector<std::pair<AnsiString, AnsiString> > fields;
          fields.push_back(std::make_pair(AnsiString("X-hMailServer-Sandbox"), HeaderSafe(value)));
@@ -833,7 +834,7 @@ namespace HM
             return false;
          }
 
-         message->SetSize((int) FileUtilities::FileSize(fileName));
+         message->SetSize((int) MessageStore::FileSize(fileName));
          return true;
       }
 
@@ -844,7 +845,7 @@ namespace HM
       // carries the field is parsed and written again.
       void RemoveSendersHeader(std::shared_ptr<Message> message)
       {
-         const String fileName = PersistentMessage::GetFileName(message);
+         const String fileName = MessageStore::WorkingFile(message);
          const AnsiString header = PersistentMessage::LoadHeader(fileName, false);
          if (!HeaderHasField(header, "X-hMailServer-Sandbox", ""))
             return;
@@ -864,7 +865,7 @@ namespace HM
             return;
          }
 
-         message->SetSize((int) FileUtilities::FileSize(fileName));
+         message->SetSize((int) MessageStore::FileSize(fileName));
 
          LOG_DEBUG(Formatter::Format(_T("Sandbox - Message {0}: the X-hMailServer-Sandbox header it arrived with was removed."), message->GetID()));
       }
@@ -1144,7 +1145,7 @@ namespace HM
             return false;
 
          std::shared_ptr<MessageData> data = std::shared_ptr<MessageData>(new MessageData());
-         if (!data->LoadFromMessage(PersistentMessage::GetFileName(message), message))
+         if (!data->LoadFromMessage(MessageStore::WorkingFile(message), message))
             return false;
 
          std::vector<Part> parts;
@@ -1219,7 +1220,7 @@ namespace HM
             return result;
          }
 
-         const AnsiString header = PersistentMessage::LoadHeader(PersistentMessage::GetFileName(message), false);
+         const AnsiString header = PersistentMessage::LoadHeader(MessageStore::WorkingFile(message), false);
          if (!HeaderHasField(header, "X-hMailServer-Sandbox", "malicious"))
             WriteHeader(message, headerValue);
 
@@ -1421,7 +1422,7 @@ namespace HM
          // once; otherwise the file may be held by another process for a moment
          // (an on-access scanner), and it is tried again a minute later, a few
          // times, before SandboxTimeoutAction decides it.
-         const String fileName = PersistentMessage::GetFileName(message);
+         const String fileName = MessageStore::WorkingFile(message);
          std::shared_ptr<MessageData> data = std::shared_ptr<MessageData>(new MessageData());
          if (!data->LoadFromMessage(fileName, message))
          {

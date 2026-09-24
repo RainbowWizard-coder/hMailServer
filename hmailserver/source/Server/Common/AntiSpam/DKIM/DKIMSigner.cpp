@@ -20,6 +20,7 @@
 #include "../../Util/Hashing/HashCreator.h"
 #include "../../Mime/Mime.h"
 #include "../../Persistence/PersistentMessage.h"
+#include "../../Persistence/MessageStore.h"
 #include "../../Util/Parsing/AddresslistParser.h"
 
 #ifdef _DEBUG
@@ -81,7 +82,7 @@ namespace HM
    {
       // Load the message header once. It will be reused for both domain lookup
       // and signing, avoiding a second read from disk inside DKIM::Sign.
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
       AnsiString header = PersistentMessage::LoadHeader(fileName);
 
       MimeHeader mimeHeader;
@@ -278,7 +279,7 @@ namespace HM
       if (algorithm == HashCreator::SHA1 && !IniFileSettings::Instance()->GetDkimAcceptSha1())
          algorithm = HashCreator::SHA256;
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
       AnsiString header = PersistentMessage::LoadHeader(fileName);
 
       DKIM dkim;

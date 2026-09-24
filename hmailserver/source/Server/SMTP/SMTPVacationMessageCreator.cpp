@@ -18,6 +18,7 @@
 #include "../Common/Util/Time.h"
 #include "../Common/Util/Parsing/StringParser.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/SQL/DALConnection.h"
 #include "../Common/SQL/DALRecordset.h"
 #include "../Common/SQL/SQLCommand.h"
@@ -88,7 +89,7 @@ namespace HM
       // whether an automatic reply may answer this message at all, what the original
       // subject was for the %SUBJECT% macro, and what to put after "Re: " when the
       // reply has no subject of its own.
-      const String originalFileName = PersistentMessage::GetFileName(recipientAccount, pOriginalMessage);
+      const String originalFileName = MessageStore::WorkingFile(recipientAccount, pOriginalMessage);
 
       MimeHeader header;
       AnsiString sHeader = PersistentMessage::LoadHeader(originalFileName);
@@ -144,7 +145,7 @@ namespace HM
       // before deciding whether to answer this reply.
       pMsg->SetFromAddress(_T(""));
 
-      const String newFileName = PersistentMessage::GetFileName(pMsg);
+      const String newFileName = MessageStore::WorkingFile(pMsg);
 
       std::shared_ptr<MessageData> pNewMsgData = std::shared_ptr<MessageData>(new MessageData());
       pNewMsgData->LoadFromMessage(newFileName, pMsg);

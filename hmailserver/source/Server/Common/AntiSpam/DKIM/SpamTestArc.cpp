@@ -22,6 +22,7 @@
 #include "../../BO/Message.h"
 #include "../../BO/MessageData.h"
 #include "../../Persistence/PersistentMessage.h"
+#include "../../Persistence/MessageStore.h"
 
 #include "../../../SMTP/SPF/SPF.h"
 
@@ -244,7 +245,7 @@ namespace HM
       if (!pMessage)
          return setSpamTestResults;
 
-      const String fileName = PersistentMessage::GetFileName(pMessage);
+      const String fileName = MessageStore::WorkingFile(pMessage);
 
       AnsiString header = PersistentMessage::LoadHeader(fileName);
       if (header.IsEmpty())

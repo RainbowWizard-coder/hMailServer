@@ -21,6 +21,7 @@
 #include "../Cache/CacheContainer.h"
 
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 
 #include "../TCPIP/DNSResolver.h"
 #include "../TCPIP/HostNameAndIpAddress.h"
@@ -97,7 +98,7 @@ namespace HM
                                             std::shared_ptr<AuthenticationResults> authenticationResults)
    {
 
-      const String fileName = PersistentMessage::GetFileName(pMessage);
+      const String fileName = MessageStore::WorkingFile(pMessage);
 
       AntiSpamConfiguration &config = Configuration::Instance()->GetAntiSpamConfiguration();
 
@@ -252,7 +253,7 @@ namespace HM
          return pMessageData;
 
       pMessageData = std::shared_ptr<MessageData>(new MessageData);
-      if (!pMessageData->LoadFromMessage(PersistentMessage::GetFileName(pMessage), pMessage))
+      if (!pMessageData->LoadFromMessage(MessageStore::WorkingFile(pMessage), pMessage))
          return pMessageData;
 
       if (classifiedAsSpam)

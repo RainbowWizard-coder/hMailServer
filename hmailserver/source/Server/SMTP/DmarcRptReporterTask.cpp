@@ -13,6 +13,7 @@
 #include "../Common/BO/Message.h"
 #include "../Common/BO/MessageRecipients.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/TCPIP/DNSResolver.h"
 #include "../Common/Util/Time.h"
 
@@ -370,7 +371,7 @@ namespace HM
       reportMessage->SetState(Message::Delivering);
       reportMessage->SetFromAddress(fromAddress);
 
-      const String fileName = PersistentMessage::GetFileName(reportMessage);
+      const String fileName = MessageStore::WorkingFile(reportMessage);
 
       if (!FileUtilities::WriteToFile(fileName, mailContent))
       {
@@ -378,7 +379,7 @@ namespace HM
          return false;
       }
 
-      reportMessage->SetSize(FileUtilities::FileSize(fileName));
+      reportMessage->SetSize(MessageStore::FileSize(fileName));
 
       RecipientParser recipientParser;
       for (const String &address : reportingAddresses)

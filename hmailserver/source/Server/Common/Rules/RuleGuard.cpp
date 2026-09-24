@@ -11,6 +11,7 @@
 #include "../BO/MessageData.h"
 
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 
 #include "../Util/FileUtilities.h"
 #include "../Util/Strings/Formatter.h"
@@ -210,7 +211,7 @@ namespace HM
       // escaping a guard on the delivery path would be a worse defect than the one the
       // guard is here to prevent. The two cases are worth telling apart diagnostically
       // and are not worth a throwing call to tell apart.
-      if (FileUtilities::FileSize(fileName) <= 0)
+      if (MessageStore::FileSize(fileName) <= 0)
       {
          String errorMessage = Formatter::Format("Rules were not applied to message {0} ({1}) because its file is missing or empty, even though the message data reported loading successfully. The message is being delivered unfiltered. File: {2}",
             message->GetID(), scope, fileName);

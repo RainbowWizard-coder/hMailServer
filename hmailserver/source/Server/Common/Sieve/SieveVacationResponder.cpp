@@ -17,6 +17,7 @@
 #include "../Cache/CacheContainer.h"
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Util/Charset.h"
 #include "../Util/FileUtilities.h"
 #include "../Util/Time.h"
@@ -361,7 +362,7 @@ namespace HM
       // looks at before deciding whether to answer this message.
       reply->SetFromAddress(_T(""));
 
-      const String fileName = PersistentMessage::GetFileName(reply);
+      const String fileName = MessageStore::WorkingFile(reply);
 
       MessageData data;
       if (!data.LoadFromMessage(fileName, reply))

@@ -435,6 +435,7 @@ EXIT 0
     <ClCompile Include="..\Common\Mime\MimeType.cpp" />
     <ClCompile Include="..\Common\Persistence\Maintenance\Maintenance.cpp" />
     <ClCompile Include="..\Common\Persistence\MailboxMove.cpp" />
+    <ClCompile Include="..\Common\Persistence\MessageStore.cpp" />
     <ClCompile Include="..\Common\Persistence\SchemaUpgrader.cpp" />
     <ClCompile Include="..\Common\Persistence\NameChanger.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentAccount.cpp" />
@@ -1379,6 +1380,7 @@ EXIT 0
     <ClInclude Include="..\Common\Mime\MimeTester.h" />
     <ClInclude Include="..\Common\Persistence\Maintenance\Maintenance.h" />
     <ClInclude Include="..\Common\Persistence\MailboxMove.h" />
+    <ClInclude Include="..\Common\Persistence\MessageStore.h" />
     <ClInclude Include="..\Common\Persistence\SchemaUpgrader.h" />
     <ClInclude Include="..\Common\Persistence\NameChanger.h" />
     <ClInclude Include="..\Common\Persistence\PersistenceMode.h" />

@@ -11,6 +11,7 @@
 #include "../BO/MessageRecipient.h"
 #include "../BO/MessageRecipients.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
@@ -68,7 +69,7 @@ namespace HM
       if (!message)
          return false;
 
-      return Quarantine(message, reason, score, PersistentMessage::GetFileName(message));
+      return Quarantine(message, reason, score, MessageStore::WorkingFile(message));
    }
 
    bool
@@ -340,7 +341,7 @@ namespace HM
       // examined on its way back in like new mail (AntiVirus/Sandbox.h).
       message->SetReleasedFromSandboxQuarantine(Sandbox::IsSandboxQuarantineReason(quarantined.reason));
 
-      const String targetFile = PersistentMessage::GetFileName(message);
+      const String targetFile = MessageStore::WorkingFile(message);
 
       if (!FileUtilities::Copy(sourceFile, targetFile, true))
       {
@@ -348,7 +349,7 @@ namespace HM
          return false;
       }
 
-      message->SetSize(FileUtilities::FileSize(targetFile));
+      message->SetSize(MessageStore::FileSize(targetFile));
 
       RecipientParser recipientParser;
 
@@ -520,14 +521,14 @@ namespace HM
       // verdict made.
       message->SetReleasedFromSandboxQuarantine(Sandbox::IsSandboxQuarantineReason(quarantined.reason));
 
-      const String targetFile = PersistentMessage::GetFileName(message);
+      const String targetFile = MessageStore::WorkingFile(message);
       if (!FileUtilities::Copy(sourceFile, targetFile, true))
       {
          out_error = "The quarantined message could not be copied into the delivery queue.";
          return false;
       }
 
-      message->SetSize(FileUtilities::FileSize(targetFile));
+      message->SetSize(MessageStore::FileSize(targetFile));
 
       RecipientParser recipientParser;
       bool recipientOk = false;

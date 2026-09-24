@@ -16,6 +16,7 @@
 
 // Test
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../../SMTP/RecipientParser.h"
 
 #define XHMAILSERVER_LOOPCOUNT _T("X-hMailServer-LoopCount")
@@ -1019,7 +1020,7 @@ namespace HM
 
       if (message_)
       {
-         message_->SetSize(FileUtilities::FileSize(fileName));
+         message_->SetSize(MessageStore::FileSize(fileName));
       }
 
       return true;
@@ -1176,7 +1177,7 @@ namespace HM
       pMsgData->SetHTMLBody("Min <b>HTML</b> body");
       pMsgData->SetBody("Min plaintext body");
 
-      String fileName = PersistentMessage::GetFileName(account, pMessage);
+      String fileName = MessageStore::WorkingFile(account, pMessage);
 
       // Write it
       pMsgData->WriteReported(fileName, "The self-test message");

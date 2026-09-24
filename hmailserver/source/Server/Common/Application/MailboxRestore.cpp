@@ -19,6 +19,7 @@
 #include "../BO/Message.h"
 #include "../Cache/CacheContainer.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../SQL/DatabaseConnectionManager.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
@@ -991,7 +992,7 @@ namespace HM
          message->SetFolderID(folder->GetID());
          message->SetPartialFileName(archivedMessage.filename);
 
-         String destination = PersistentMessage::GetFileName(account, message);
+         String destination = MessageStore::WorkingFile(account, message);
 
          // The executer's name is a GUID, so a file already at that path with
          // no row naming it is an orphan of some earlier run; it is not
@@ -1000,10 +1001,10 @@ namespace HM
          if (FileUtilities::Exists(destination))
          {
             message->SetPartialFileName(Message::GenerateFileName());
-            destination = PersistentMessage::GetFileName(account, message);
+            destination = MessageStore::WorkingFile(account, message);
          }
 
-         if (!FileUtilities::Copy(source, destination, true))
+         if (!MessageStore::CopyStored(source, destination))
          {
             outcome_.failed++;
             failedHere++;
@@ -1013,7 +1014,7 @@ namespace HM
 
          // The size as the file is, not as the index says: it is what the
          // account's quota is charged.
-         long size = FileUtilities::FileSize(destination);
+         long size = MessageStore::FileSize(destination);
 
          message->SetSize(size > 0 ? (int) size : archivedMessage.size);
          message->SetFlags((short) archivedMessage.flags);
@@ -1025,7 +1026,7 @@ namespace HM
 
          if (!PersistentMessage::SaveObject(message))
          {
-            FileUtilities::DeleteFile(destination);
+            MessageStore::Remove(destination);
             outcome_.failed++;
             failedHere++;
             Log_("the row for " + archivedMessage.filename + " could not be written; the copied file has been removed again.");

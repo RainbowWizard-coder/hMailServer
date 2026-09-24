@@ -19,6 +19,7 @@
 #include "../Common/Persistence/PersistentBounce.h"
 #include "../Common/Persistence/PersistentComplaint.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/Util/MessageOrigin.h"
 #include "../Common/Util/Unicode.h"
 #include "../Common/Util/Hashing/HashCreator.h"
@@ -296,7 +297,7 @@ namespace HM
       if (localAddresses.size() != 1 || !IsComplaintMailbox(mailbox, localAddresses[0]))
          return;
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
 
       FeedbackReport report;
       if (!FeedbackReportParser::ParseFile(fileName, report))

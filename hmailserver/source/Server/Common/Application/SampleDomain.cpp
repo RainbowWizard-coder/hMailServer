@@ -76,6 +76,7 @@
 #include "../Persistence/PersistentDistributionListRecipient.h"
 #include "../Persistence/PersistentDomain.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Persistence/PersistentRule.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
@@ -360,7 +361,7 @@ namespace HM
          queued->SetState(Message::Delivering);
          queued->SetFromAddress(String(message.from));
 
-         const String fileName = PersistentMessage::GetFileName(queued);
+         const String fileName = MessageStore::WorkingFile(queued);
          if (!FileUtilities::WriteToFile(fileName, content))
          {
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6974, "SampleDomain::Queue",
@@ -368,7 +369,7 @@ namespace HM
             return false;
          }
 
-         queued->SetSize(FileUtilities::FileSize(fileName));
+         queued->SetSize(MessageStore::FileSize(fileName));
 
          RecipientParser parser;
          const std::vector<String> addresses = SplitAddresses(String(message.to));

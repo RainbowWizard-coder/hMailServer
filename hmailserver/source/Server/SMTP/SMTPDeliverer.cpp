@@ -34,6 +34,7 @@
 #include "../Common/Scripting/Events.h"
 
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/Persistence/PersistentIMAPFolder.h"
 #include "../Common/Persistence/PersistentAccount.h"
 #include "../Common/Persistence/PersistentMessageRecipient.h"
@@ -307,7 +308,7 @@ namespace HM
       // Before we do anything else, check that the message file exists. If the file
       // does not exist, there is nothing to deliver. So if the file does not exist,
       // delete pMessage from the database and report in the application log.
-      const String messageFileName = PersistentMessage::GetFileName(pMessage);
+      const String messageFileName = MessageStore::WorkingFile(pMessage);
       if (!FileUtilities::Exists(messageFileName))
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5006, "SMTPDeliverer::DeliverMessage()", "Message " + StringParser::IntToString(pMessage->GetID()) + " could not be delivered since the data file does not exist.");
@@ -533,7 +534,7 @@ namespace HM
 
       String log_from_address = pMessage->GetFromAddress().IsEmpty() ? "<Empty>" : pMessage->GetFromAddress();
 
-      auto messageFileName = PersistentMessage::GetFileName(pMessage);
+      auto messageFileName = MessageStore::WorkingFile(pMessage);
       String sMessage = Formatter::Format("SMTPDeliverer - Message {0}: Delivering message from {1} to {2}. File: {3}",
                                                 pMessage->GetID(), log_from_address, sRecipientList, messageFileName);
 
@@ -647,7 +648,7 @@ namespace HM
          return;
       }
 
-      const String fileName = PersistentMessage::GetFileName(pOrigMessage);
+      const String fileName = MessageStore::WorkingFile(pOrigMessage);
 
       std::shared_ptr<MessageData> pMsgData = std::shared_ptr<MessageData> (new MessageData());
       pMsgData->LoadFromMessage(fileName, pOrigMessage);
@@ -687,7 +688,7 @@ namespace HM
       std::shared_ptr<Message> pMsg = std::shared_ptr<Message>(new Message());
       pMsg->SetState(Message::Delivering);
 
-      const String newFileName = PersistentMessage::GetFileName(pMsg);
+      const String newFileName = MessageStore::WorkingFile(pMsg);
 
       std::shared_ptr<MessageData> pNewMsgData = std::shared_ptr<MessageData>(new MessageData());
       pNewMsgData->LoadFromMessage(newFileName, pMsg);
@@ -797,7 +798,7 @@ namespace HM
       // means there is no bounce to deliver - queueing it anyway leaves a row whose file
       // is missing for the delivery to trip over. The function already returns early to
       // avoid bounce-bounce.
-      if (!pNewMsgData->WriteReported(PersistentMessage::GetFileName(pMsg), "A delivery-failure notification"))
+      if (!pNewMsgData->WriteReported(MessageStore::WorkingFile(pMsg), "A delivery-failure notification"))
          return;
 
       // Add recipients
@@ -864,7 +865,7 @@ namespace HM
          // Nobody to send the bounce to (a null sender, or an address that no
          // longer resolves). The file was already written, so remove it rather
          // than leaving an orphan in the queue directory with no database row.
-         const String orphanedFile = PersistentMessage::GetFileName(pMsg);
+         const String orphanedFile = MessageStore::WorkingFile(pMsg);
 
          if (!FileUtilities::DeleteFile(orphanedFile))
          {

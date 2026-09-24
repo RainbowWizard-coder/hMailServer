@@ -12,6 +12,7 @@
 #include "../BO/MessageData.h"
 #include "../BO/MessageRecipients.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../../SMTP/RecipientParser.h"
 #include "../Util/FileUtilities.h"
 #include "../Util/Time.h"
@@ -51,7 +52,7 @@ namespace HM
          // for vacation): a bounce of a notification must die, not converse.
          notification->SetFromAddress(_T(""));
 
-         const String fileName = PersistentMessage::GetFileName(notification);
+         const String fileName = MessageStore::WorkingFile(notification);
 
          MessageData data;
          if (!data.LoadFromMessage(fileName, notification))

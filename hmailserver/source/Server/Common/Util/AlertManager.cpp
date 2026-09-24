@@ -21,6 +21,7 @@
 #include "../BO/SSLCertificate.h"
 #include "../BO/SSLCertificates.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
@@ -704,7 +705,7 @@ namespace HM
       message->SetState(Message::Delivering);
       message->SetFromAddress(from);
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
 
       if (!FileUtilities::WriteToFile(fileName, content))
       {
@@ -713,7 +714,7 @@ namespace HM
          return false;
       }
 
-      message->SetSize(FileUtilities::FileSize(fileName));
+      message->SetSize(MessageStore::FileSize(fileName));
 
       RecipientParser recipientParser;
       bool recipientOk = false;

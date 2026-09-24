@@ -19,6 +19,7 @@
 
 #include "../Common/Persistence/PersistentMessageRecipient.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 
 #include "../Common/TCPIP/DNSResolver.h"
 #include "../Common/TCPIP/IOService.h"
@@ -1156,7 +1157,7 @@ namespace HM
       AnsiString problem;
 
       const GatewayEncryption::Outcome outcome = GatewayEncryption::SealFile(method, key,
-         PersistentMessage::GetFileName(original_message_), candidate, (__int64) time(nullptr), facts, problem);
+         MessageStore::WorkingFile(original_message_), candidate, (__int64) time(nullptr), facts, problem);
 
       if (outcome == GatewayEncryption::AlreadyEncrypted)
       {

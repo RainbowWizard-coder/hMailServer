@@ -12,6 +12,7 @@
 #include "../Common/BO/MessageRecipients.h"
 #include "../Common/BO/MessageData.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/Persistence/PersistentServerMessage.h"
 
 #include "RecipientParser.h"
@@ -51,7 +52,7 @@ namespace HM
       // message, so that we can Re: that..
 
       MimeHeader header;
-      AnsiString sHeader = PersistentMessage::LoadHeader(PersistentMessage::GetFileName(pOriginalMessage));
+      AnsiString sHeader = PersistentMessage::LoadHeader(MessageStore::WorkingFile(pOriginalMessage));
       header.Load(sHeader, sHeader.GetLength(), true);
        
       String sMailerDaemonAddress = MailerDaemonAddressDeterminer::GetMailerDaemonAddress(pOriginalMessage);
@@ -91,7 +92,7 @@ namespace HM
 
       // Write message data. First write of a message built from nothing - see the
       // equivalent in SMTPDeliverer.
-      if (!pNewMsgData->WriteReported(PersistentMessage::GetFileName(pMsg), "A virus notification"))
+      if (!pNewMsgData->WriteReported(MessageStore::WorkingFile(pMsg), "A virus notification"))
          return;
 
       // Add recipients.
@@ -105,7 +106,7 @@ namespace HM
       {
          if (!PersistentMessage::SaveObject(pMsg))
          {
-            FileUtilities::DeleteFile(PersistentMessage::GetFileName(pMsg));
+            FileUtilities::DeleteFile(MessageStore::WorkingFile(pMsg));
 
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6090, "SMTPVirusNotifier::CreateMessageDeletedNotification",
                "The virus notification could not be saved and has not been sent, so nobody has been told that a message was deleted. Its file has been removed rather than left on disk with nothing referring to it.");

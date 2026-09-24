@@ -14,6 +14,7 @@
 #include "../Common/Util/BATV.h"
 #include "../Common/Util/SRS.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/BO/Domain.h"
 
@@ -378,7 +379,7 @@ namespace HM
    SMTPClientConnection::ProtocolData_()
    {
       // Send the data!
-      const String fileName = PersistentMessage::GetFileName(delivery_message_);
+      const String fileName = MessageStore::WorkingFile(delivery_message_);
       StartSendFile_(fileName);
    }
 
@@ -731,7 +732,7 @@ namespace HM
    // once the remote has consumed the chunk.
    //---------------------------------------------------------------------------()
    {
-      const String fileName = PersistentMessage::GetFileName(delivery_message_);
+      const String fileName = MessageStore::WorkingFile(delivery_message_);
 
       bool file_opened = false;
 

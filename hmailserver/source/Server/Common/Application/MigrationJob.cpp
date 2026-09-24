@@ -15,6 +15,7 @@
 #include "../Cache/CacheContainer.h"
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Util/AddressBookStore.h"
 #include "../Util/CalendarStore.h"
 #include "../Util/ContactStore.h"
@@ -1192,7 +1193,7 @@ namespace HM
             // the data directory's own volume - and moved into the account's
             // directory by the import, as the fetcher's mirror files one.
             std::shared_ptr<Message> spool = std::shared_ptr<Message>(new Message());
-            const String spoolFile = PersistentMessage::GetFileName(spool);
+            const String spoolFile = MessageStore::WorkingFile(spool);
 
             // A message the source will not give - a NO to its FETCH on a
             // connection still in step, a damaged message - is asked for again,

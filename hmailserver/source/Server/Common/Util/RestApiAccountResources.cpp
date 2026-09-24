@@ -124,6 +124,7 @@
 #include "DiscoveryHolds.h"
 #include "../Persistence/PersistentACLPermission.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Tracking/ChangeNotification.h"
 #include "../Tracking/NotificationServer.h"
 #include "../../IMAP/IMAPConfiguration.h"
@@ -1178,7 +1179,7 @@ namespace
       if (text.GetLength() < 2 || text.Mid(text.GetLength() - 2) != "\r\n")
          text += "\r\n";
 
-      const String fileName = PersistentMessage::GetFileName(account, message);
+      const String fileName = MessageStore::WorkingFile(account, message);
       // An account that has never had a message on disk has no directory
       // yet; APPEND makes it on the way, and so does this.
       String directory = FileUtilities::GetFilePath(fileName);
@@ -1187,7 +1188,7 @@ namespace
       if (!FileUtilities::WriteToFile(fileName, text))
          return Refusal(bridge, 500, "the message could not be written");
 
-      message->SetSize((int) FileUtilities::FileSize(fileName));
+      message->SetSize((int) MessageStore::FileSize(fileName));
       // A message in a folder is a delivered one, as InterfaceMessage::Save
       // marks it before the store sees it; the row gets its UID on the way.
       message->SetState(Message::Delivered);
@@ -1234,23 +1235,13 @@ namespace
       if (!FileUtilities::Exists(fileName))
          return Refusal(bridge, 404, "the message file is missing");
 
-      if ((__int64) FileUtilities::FileSize(fileName) > MaxMessageBytes)
+      if ((__int64) MessageStore::FileSize(fileName) > MaxMessageBytes)
          return Refusal(bridge, 413, "the message is larger than 16 MB; fetch it with a mail client");
 
+      // The original bytes, whatever the stored file holds (MessageStore.h).
       AnsiString bytes;
-      {
-#ifdef HM_PLATFORM_POSIX
-         // A narrow path, because libstdc++ has no wide-path constructor.
-         const AnsiString narrowFileName = fileName.c_str();
-         std::ifstream in(narrowFileName.c_str(), std::ios::binary);
-#else
-         std::ifstream in(fileName.c_str(), std::ios::binary);
-#endif
-         if (!in)
-            return Refusal(bridge, 500, "the message file could not be read");
-         std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-         bytes = AnsiString(contents);
-      }
+      if (!MessageStore::ReadAll(fileName, bytes))
+         return Refusal(bridge, 500, "the message file could not be read");
 
       AnsiString fileLabel;
       fileLabel.Format("message-%I64d.eml", row->GetID());

@@ -18,6 +18,7 @@
 #include "../../Util/TraceHeaderWriter.h"
 #include "../../Util/FileUtilities.h"
 #include "../../Persistence/PersistentMessage.h"
+#include "../../Persistence/MessageStore.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -297,7 +298,7 @@ namespace HM
          return false;
       }
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
 
       if (FileUtilities::FileSize(fileName) > MaxFileSize)
       {

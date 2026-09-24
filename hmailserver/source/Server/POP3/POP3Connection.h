@@ -6,6 +6,7 @@
 
 #include "../Common/Util/File.h"
 #include "../Common/Util/TransparentTransmissionBuffer.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/TCPIP/TCPConnection.h"
 
 namespace HM
@@ -182,6 +183,8 @@ namespace HM
       // owning session's lock away and let two clients download concurrently.
       bool mailbox_locked_;
 
-      File current_file_;
+      // The message being sent, as its original bytes: the store's reader,
+      // which has File's shape (Persistence/MessageStore.h).
+      MessageStoreReader current_file_;
    };
 }

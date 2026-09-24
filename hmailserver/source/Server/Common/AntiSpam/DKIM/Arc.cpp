@@ -14,6 +14,7 @@
 #include "../../BO/Message.h"
 #include "../../Mime/Mime.h"
 #include "../../Persistence/PersistentMessage.h"
+#include "../../Persistence/MessageStore.h"
 #include "../../TCPIP/DNSResolver.h"
 #include "../../Util/TraceHeaderWriter.h"
 #include "../../Util/Utilities.h"
@@ -78,7 +79,7 @@ namespace HM
          return false;
       }
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
 
       AnsiString header = PersistentMessage::LoadHeader(fileName);
       if (header.IsEmpty())

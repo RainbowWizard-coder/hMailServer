@@ -24,6 +24,7 @@
 #include "../Persistence/PersistenceMode.h"
 #include "../Persistence/PersistentJournalRule.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 
 #include "../../SMTP/RecipientParser.h"
 #include "../../SMTP/SMTPDeliveryManager.h"
@@ -557,7 +558,7 @@ namespace HM
       journal->SetState(Message::Delivering);
       journal->SetFromAddress(envelopeSender);
 
-      const String fileName = PersistentMessage::GetFileName(journal);
+      const String fileName = MessageStore::WorkingFile(journal);
 
       File target;
       if (!target.Open(fileName, File::OTCreate))
@@ -650,7 +651,7 @@ namespace HM
          return false;
       }
 
-      journal->SetSize(FileUtilities::FileSize(fileName));
+      journal->SetSize(MessageStore::FileSize(fileName));
 
       bool recipientOK = false;
       RecipientParser recipientParser;
@@ -710,7 +711,7 @@ namespace HM
             return 0;
       }
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
 
       AnsiString rawHeader = PersistentMessage::LoadHeader(fileName, false);
 

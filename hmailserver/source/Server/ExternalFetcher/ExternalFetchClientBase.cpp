@@ -12,6 +12,7 @@
 #include "../Common/BO/MessageData.h"
 #include "../Common/BO/Account.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/Util/ByteBuffer.h"
 #include "../Common/Util/OutboundOAuth2TokenClient.h"
 #include "../Common/Application/IniFileSettings.h"
@@ -97,7 +98,7 @@ namespace HM
 
       download_finalized_ = true;
 
-      String fileName = PersistentMessage::GetFileName(current_message_);
+      String fileName = MessageStore::WorkingFile(current_message_);
 
       if (!FileUtilities::Exists(fileName))
          return;
@@ -209,7 +210,7 @@ namespace HM
          return true;
       }
 
-      String fileName = PersistentMessage::GetFileName(current_message_);
+      String fileName = MessageStore::WorkingFile(current_message_);
 
       IPAddress ipAddress;
       String hostName;
@@ -275,7 +276,7 @@ namespace HM
    {
       HM_ASSERT(current_message_);
 
-      String fileName = PersistentMessage::GetFileName(current_message_);
+      String fileName = MessageStore::WorkingFile(current_message_);
 
       AnsiString sHeader = PersistentMessage::LoadHeader(fileName);
       std::shared_ptr<MimeHeader> pHeader = std::shared_ptr<MimeHeader>(new MimeHeader);
@@ -334,7 +335,7 @@ namespace HM
             // Released first because it may still hold the file open.
             transmission_buffer_.reset();
 
-            String fileName = PersistentMessage::GetFileName(current_message_);
+            String fileName = MessageStore::WorkingFile(current_message_);
 
             if (!FileUtilities::DeleteFile(fileName))
             {
@@ -373,7 +374,7 @@ namespace HM
       // The downloaded file has already been written though, and without this it
       // would stay in the data directory forever with no database row referring to
       // it - one file per such message, every time the account is checked.
-      String fileName = PersistentMessage::GetFileName(current_message_);
+      String fileName = MessageStore::WorkingFile(current_message_);
 
       if (!FileUtilities::DeleteFile(fileName))
       {

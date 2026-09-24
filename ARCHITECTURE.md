@@ -66,7 +66,7 @@ Server/
 | `Cache/` | In-memory caches in front of the BO layer, to keep hot paths off the database |
 | `Diagnostics/` | The checks behind the Control Panel's "Run diagnostics" |
 | `Mime/` | MIME parsing and construction |
-| `Persistence/` | One class per business object, mapping it to database columns |
+| `Persistence/` | One class per business object, mapping it to database columns. `MessageStore` is the one door to a message's file - where it is, and every way it is read, sized, copied, moved and deleted; `build/check-message-store-seam.py` refuses a path to a stored message taken anywhere else |
 | `Scripting/` | Event hooks: VBScript/JScript through Windows Active Scripting (`ScriptSite`), JavaScript through the QuickJS engine the Linux builds embed (`ScriptBinding`, the engine under `Server/quickjs`) |
 | `Sieve/` | `SieveLexer`/`SieveParser` (AST), `SieveEvaluator`, `SieveStorage` (per-account scripts under `{DataDir}\Sieve\`), and the optional RFC 5804 `ManageSieveServer`. Evaluated during local delivery |
 | `SQL/` | Database abstraction: connections, pooling, parameterised queries |

@@ -15,6 +15,7 @@
 #include "../BO/MessageRecipient.h"
 #include "../BO/MessageRecipients.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -62,7 +63,7 @@ namespace HM
       if (!message)
          return results;
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
       const __int64 messageSize = FileUtilities::FileSize(fileName);
 
       // A ceiling on what is worth sending. The engine is being asked a question

@@ -14,6 +14,7 @@
 #include "../Common/Util/Time.h"
 #include "../Common/Util/VariantDateTime.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 
 #ifdef HM_PLATFORM_POSIX
 // The three answers CompareStringW gives, under their Windows names and with
@@ -359,9 +360,7 @@ namespace HM
          
          if (dbMetaIter == databaseMetaData.end())
          {
-            String fileName = PersistentMessage::GetFileName(pConnection->GetAccountOwningCurrentFolder(), p1);
-
-            AnsiString sHeader = PersistentMessage::LoadHeader(fileName);
+            AnsiString sHeader = MessageStore::LoadHeader(pConnection->GetAccountOwningCurrentFolder(), p1);
 
             MimeHeader oHeader;oHeader.Load(sHeader, sHeader.GetLength());
             sFieldValue = oHeader.GetUnicodeFieldValue(sHeaderField);

@@ -22,6 +22,7 @@
 #include "../BO/MessageRecipients.h"
 #include "../Cache/CacheContainer.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Application/Application.h"
 #include "../Application/IniFileSettings.h"
 #include "../AntiSpam/AuthenticationResults.h"
@@ -1889,7 +1890,7 @@ namespace HM
       if (!IntakeDomainFor_(localAddresses[0], intakeDomainID))
          return;
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
 
       AnsiString raw;
       if (!ReadFile_(fileName, raw))

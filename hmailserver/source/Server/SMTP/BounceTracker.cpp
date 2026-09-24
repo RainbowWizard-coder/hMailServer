@@ -17,6 +17,7 @@
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Persistence/PersistentBounce.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/Persistence/PersistentMessageRecipient.h"
 #include "../Common/Scripting/Events.h"
 #include "../Common/Util/AWStats.h"
@@ -672,7 +673,7 @@ namespace HM
                {
                   messageIdRead = true;
 
-                  const AnsiString header = PersistentMessage::LoadHeader(PersistentMessage::GetFileName(message), false);
+                  const AnsiString header = PersistentMessage::LoadHeader(MessageStore::WorkingFile(message), false);
                   const AnsiString value = MessageOrigin::FirstFieldValue(header, "Message-ID");
 
                   String wide;
@@ -815,7 +816,7 @@ namespace HM
          return;
       }
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
       const AnsiString header = PersistentMessage::LoadHeader(fileName, false);
 
       BounceReportFacts facts;

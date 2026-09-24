@@ -36,6 +36,7 @@
 #include "../Cache/CacheContainer.h"
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Persistence/PersistentMessageRecipient.h"
 #include "../Persistence/PersistentDistributionList.h"
 #include "../Persistence/PersistentServerMessage.h"
@@ -1040,7 +1041,7 @@ namespace HM
          return true;
       }
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
       const AnsiString header = PersistentMessage::LoadHeader(fileName, false);
 
       if (header.IsEmpty())
@@ -1381,7 +1382,7 @@ namespace HM
       std::shared_ptr<Message> copy(new Message());
       copy->SetState(Message::Delivering);
 
-      const String copyName = PersistentMessage::GetFileName(copy);
+      const String copyName = MessageStore::WorkingFile(copy);
       const String directory = FileUtilities::GetFilePath(copyName);
       if (!FileUtilities::Exists(directory))
          FileUtilities::CreateDirectory(directory);
@@ -1431,7 +1432,7 @@ namespace HM
       // is the envelope sender of every copy: a failure comes back to the
       // manager, and never to whoever wrote the posting.
       copy->SetFromAddress(list->GetVerp() ? VerpAddress(list->GetAddress(), member) : CommandAddress(list->GetAddress(), CommandBounces));
-      copy->SetSize(FileUtilities::FileSize(copyName));
+      copy->SetSize(MessageStore::FileSize(copyName));
 
       bool recipientOk = false;
       RecipientParser recipientParser;
@@ -1554,7 +1555,7 @@ namespace HM
          return;
       }
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
       const AnsiString header = PersistentMessage::LoadHeader(fileName, false);
 
       // An automatic reply, a vacation message or another list's mail is never
@@ -2129,7 +2130,7 @@ namespace HM
       // anybody, and cannot start a loop.
       notice->SetFromAddress(_T(""));
 
-      const String fileName = PersistentMessage::GetFileName(notice);
+      const String fileName = MessageStore::WorkingFile(notice);
 
       if (!FileUtilities::WriteToFile(fileName, content))
       {
@@ -2138,7 +2139,7 @@ namespace HM
          return false;
       }
 
-      notice->SetSize(FileUtilities::FileSize(fileName));
+      notice->SetSize(MessageStore::FileSize(fileName));
 
       bool recipientOk = false;
       RecipientParser recipientParser;
@@ -2172,7 +2173,7 @@ namespace HM
    ListManager::HandleBounce_(std::shared_ptr<Message> message, std::shared_ptr<const DistributionList> list, const String &verpMember)
    {
       const String listAddress = list->GetAddress();
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
 
       // The report up to the parser's own ceiling. A larger one - a server
       // that returns the whole failed message, attachments and all - is read

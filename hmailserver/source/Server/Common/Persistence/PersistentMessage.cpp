@@ -5,6 +5,7 @@
 #include "stdafx.h"
 
 #include "PersistentMessage.h"
+#include "MessageStore.h"
 #include "../Util/StorePath.h"
 #include "../Application/IniFileSettings.h"
 #include "../Util/Strings/Formatter.h"
@@ -259,7 +260,7 @@ namespace HM
       }
 
 
-      bool bResult = FileUtilities::DeleteFile(messageFile);   
+      bool bResult = MessageStore::Remove(messageFile);   
 
       return bResult;
    }
@@ -508,11 +509,12 @@ namespace HM
       std::shared_ptr<Message> newMessage = CreateCopy_(sourceMessage, 0);
       newMessage->SetState(Message::Delivering);
 
-      // Copy the message file.
+      // Copy the message file. The queue is plain RFC 822 whatever the account's
+      // copy is stored as (MessageStore.h), so the ORIGINAL bytes go.
       const String sourceFile = GetFileName(sourceAccount, sourceMessage);
       const String destinationFile = GetFileName(newMessage, QueueFolder);
 
-      if (!FileUtilities::Copy(sourceFile, destinationFile, true))
+      if (!MessageStore::CopyOriginal(sourceFile, destinationFile))
       {
          std::shared_ptr<Message> pEmpty;
          return pEmpty;
@@ -606,7 +608,9 @@ namespace HM
          destinationFile = GetFileName(destinationAccount->GetAddress(), messageCopy, AccountFolder);
       }
 
-      if (!FileUtilities::Copy(sourceFile, destinationFile, true))
+      // As stored: a copy into another folder is another name for the same
+      // stored message, and the store counts it (MessageStore.h).
+      if (!MessageStore::CopyStored(sourceFile, destinationFile))
       {
          std::shared_ptr<Message> pEmpty;
          return pEmpty;
@@ -645,26 +649,17 @@ namespace HM
       if (!linkFrom.IsEmpty())
       {
          FileUtilities::CreateDirectory(destinationPath);
-#ifdef HM_PLATFORM_POSIX
-         // link(2) is what CreateHardLink is: a second directory entry for one
-         // inode, on one filesystem, failing when the two ends are on different
-         // volumes. POSIX names the EXISTING file first and answers 0 for
-         // success, so the arguments are the other way round here and the test
-         // is a comparison; the reason for a failure is left in errno, which is
-         // what GetLastError reads on this platform. The fallback below is
-         // untouched - a link that cannot be made is still a copy, which is the
-         // whole promise DeliveryHardLinks makes.
-         const AnsiString linkExisting = linkFrom.c_str();
-         const AnsiString linkNew = destinationFile.c_str();
-         linked = ::link(linkExisting.c_str(), linkNew.c_str()) == 0;
-         LOG_DEBUG(Formatter::Format(linked ? "Local copy {0} is a name for {1}." : "Local copy {0} could not be linked from {1} (errno {2}); copied instead.", destinationFile, linkFrom, (int) GetLastError()));
-#else
-         linked = ::CreateHardLink(destinationFile, linkFrom, NULL) != FALSE;
-         LOG_DEBUG(Formatter::Format(linked ? "Local copy {0} is a name for {1}." : "Local copy {0} could not be linked from {1} (Windows error {2}); copied instead.", destinationFile, linkFrom, (int) GetLastError()));
-#endif
+
+         // A second directory entry for one file, on one volume (CreateHardLink,
+         // or link(2) on POSIX), made by the store's backend. The reason for a
+         // failure is left where GetLastError reads it on either platform. The
+         // fallback below is untouched - a link that cannot be made is still a
+         // copy, which is the whole promise DeliveryHardLinks makes.
+         linked = MessageStore::Link(linkFrom, destinationFile);
+         LOG_DEBUG(Formatter::Format(linked ? "Local copy {0} is a name for {1}." : "Local copy {0} could not be linked from {1} (error {2}); copied instead.", destinationFile, linkFrom, (int) GetLastError()));
       }
 
-      if (!linked && !FileUtilities::Copy(sourceFile, destinationFile, true))
+      if (!linked && !MessageStore::CopyStored(sourceFile, destinationFile))
       {
          std::shared_ptr<Message> pEmpty;
          return pEmpty;
@@ -1010,7 +1005,7 @@ namespace HM
          FileUtilities::CreateDirectory(destinationPath);
 
       // Move the old file to the new path.
-      if (!FileUtilities::Move(sourceLocation, destinationFileName))
+      if (!MessageStore::Rename(sourceLocation, destinationFileName))
          return false;
 
       return true;
@@ -1034,7 +1029,7 @@ namespace HM
          FileUtilities::CreateDirectory(destinationPath);
 
       // Move the old file to the new path.
-      if (!FileUtilities::Move(sourceLocation, destinationFileName))
+      if (!MessageStore::Rename(sourceLocation, destinationFileName))
          return false;
 
       return true;
@@ -1098,7 +1093,7 @@ namespace HM
       // FileSize is stored without a narrowing conversion of its own; the conversion
       // into SetSize is the one this code has always made.
       const long previousSize = pMessage->GetSize();
-      const long placeholderSize = FileUtilities::FileSize(sFileName);
+      const long placeholderSize = MessageStore::FileSize(sFileName);
 
       pMessage->SetSize(placeholderSize);
 
@@ -1344,7 +1339,7 @@ namespace HM
 
             String sFileName = GetFileName(pRS->GetStringValue("accountaddress"), message);
 
-            if (!FileUtilities::DeleteFile(sFileName))
+            if (!MessageStore::Remove(sFileName))
             {
                String sErrorMessage;
                sErrorMessage.Format(_T("Failed to delete file %s while deleting messages in account %I64d"), sFileName.c_str(), iAccountID);

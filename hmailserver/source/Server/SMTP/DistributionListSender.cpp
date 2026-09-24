@@ -22,6 +22,7 @@
 #include "../Common/Mime/Mime.h"
 
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -80,7 +81,7 @@ namespace HM
          return;
       }
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
       const long originalSize = FileUtilities::FileSize(fileName);
 
       if (originalSize <= 0)

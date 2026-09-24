@@ -22,6 +22,7 @@
 #include "../BO/Message.h"
 #include "../Persistence/PersistentAccount.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DALRecordset.h"
@@ -190,11 +191,11 @@ namespace HM
       if (!account || !copy || !account->GetZeroAccess())
          return true;
 
-      const String fileName = PersistentMessage::GetFileName(account, copy);
+      const String fileName = MessageStore::WorkingFile(account, copy);
       AnsiString problem;
       if (SealFile(account, fileName, problem))
       {
-         copy->SetSize(FileUtilities::FileSize(fileName));
+         copy->SetSize(MessageStore::FileSize(fileName));
          return true;
       }
 

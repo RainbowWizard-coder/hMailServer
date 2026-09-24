@@ -26,6 +26,7 @@
 #include "../Util/Event.h"
 #include "../Util/TraceHeaderWriter.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 
 
 #ifdef _DEBUG
@@ -59,7 +60,7 @@ namespace HM
       AntiSpamConfiguration& config = Configuration::Instance()->GetAntiSpamConfiguration();
 
       std::shared_ptr<Message> pMessage = pTestData->GetMessageData()->GetMessage();
-      const String sFilename = PersistentMessage::GetFileName(pMessage);
+      const String sFilename = MessageStore::WorkingFile(pMessage);
 
       // SMTP servers making final delivery MAY/SHOULD remove Return-path header fields before adding their own. See: rfc2821 and rfc5321
       while (!pTestData->GetMessageData()->GetReturnPath().IsEmpty())

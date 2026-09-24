@@ -17,6 +17,7 @@
 #include "../BO/MessageData.h"
 #include "../Cache/CacheContainer.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -82,6 +83,6 @@ namespace HM
       if (!Add(message, senderDomain, writer, submissionIsOurs, AccountSignatureWrittenByClient, messageData) || !messageData)
          return;
 
-      messageData->WriteReported(PersistentMessage::GetFileName(message), "The message signature and the domain disclaimer");
+      messageData->WriteReported(MessageStore::WorkingFile(message), "The message signature and the domain disclaimer");
    }
 }

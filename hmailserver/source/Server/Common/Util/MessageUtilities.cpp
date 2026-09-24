@@ -28,6 +28,7 @@
 #include "../BO/ACLPermission.h"
 #include "../Application/ACLManager.h"
 #include "ZeroAccess.h"
+#include "../Persistence/MessageStore.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -254,7 +255,7 @@ namespace HM
          errorMessage.Format(_T("The copy of message %I64d could not be saved in the database. Copied file: %s"),
             pMessage->GetID(), orphanedFile.c_str());
 
-         if (!FileUtilities::DeleteFile(orphanedFile))
+         if (!MessageStore::Remove(orphanedFile))
             errorMessage += _T(" The file could not be deleted either and is left orphaned.");
 
          ErrorManager::Instance()->ReportError(ErrorManager::High, 6013, "MessageUtilities::CopyToIMAPFolder", errorMessage);
@@ -316,7 +317,7 @@ namespace HM
       {
          // The file was copied and the row could not be written: the file
          // goes, for the reason CopyToIMAPFolder above gives.
-         FileUtilities::DeleteFile(PersistentMessage::GetFileName(account, copy));
+         MessageStore::Delete(account, copy);
          return false;
       }
 
@@ -404,7 +405,7 @@ namespace HM
    String 
    MessageUtilities::GetSendersIP(std::shared_ptr<Message> pMessage)
    {
-      const String fileName = PersistentMessage::GetFileName(pMessage);
+      const String fileName = MessageStore::WorkingFile(pMessage);
 
       AnsiString sHeader = PersistentMessage::LoadHeader(fileName);
 
@@ -437,7 +438,7 @@ namespace HM
    std::shared_ptr<MimeHeader> 
    MessageUtilities::GetMessageHeader_(std::shared_ptr<Message> pMessage)
    {
-      String fileName = PersistentMessage::GetFileName(pMessage);
+      String fileName = MessageStore::WorkingFile(pMessage);
 
       AnsiString sHeader = PersistentMessage::LoadHeader(fileName);
       std::shared_ptr<MimeHeader> pHeader = std::shared_ptr<MimeHeader>(new MimeHeader());

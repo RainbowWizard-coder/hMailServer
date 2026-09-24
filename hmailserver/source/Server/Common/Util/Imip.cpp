@@ -26,6 +26,7 @@
 #include "../Mime/Mime.h"
 #include "../Mime/MimeCode.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Application/Logger.h"
 
 namespace HM
@@ -223,7 +224,7 @@ namespace HM
    {
       calendarText = "";
 
-      __int64 size = FileUtilities::FileSize(fileName);
+      __int64 size = MessageStore::FileSize(fileName);
       if (size <= 0 || size > MaxLookedAtBytes)
          return false;
 
@@ -240,20 +241,15 @@ namespace HM
       if (multipart)
       {
          // The bytes must mention the part before the whole message is parsed.
-         File file;
-         if (!file.Open(fileName, File::OTReadOnly))
+         AnsiString whole;
+         if (!MessageStore::ReadAll(fileName, whole))
             return false;
-         std::shared_ptr<ByteBuffer> bytes = file.ReadFile();
-         file.Close();
-         if (!bytes)
-            return false;
-         AnsiString whole(bytes->GetCharBuffer(), static_cast<int>(bytes->GetSize()));
          if (!ContainsNoCase(whole, "text/calendar") && !ContainsNoCase(whole, ".ics"))
             return false;
       }
 
       std::shared_ptr<MimeBody> body = std::shared_ptr<MimeBody>(new MimeBody);
-      if (body->LoadFromFile(Utf8Of(fileName)) != MimeLoadResult::Loaded)
+      if (MessageStore::LoadMime(Utf8Of(fileName), *body) != MimeLoadResult::Loaded)
          return false;
 
       return FindCalendarPart(body, 0, calendarText) && !Trimmed(calendarText).IsEmpty();

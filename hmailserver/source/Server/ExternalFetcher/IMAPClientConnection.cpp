@@ -10,6 +10,7 @@
 #include "../Common/BO/FetchAccountUID.h"
 #include "../Common/BO/Message.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/Util/ByteBuffer.h"
 #include "../Common/Util/OutboundOAuth2TokenClient.h"
 #include "../Common/Util/ReaderOAuth.h"
@@ -649,7 +650,7 @@ namespace HM
                return;
             }
 
-            String fileName = PersistentMessage::GetFileName(current_message_);
+            String fileName = MessageStore::WorkingFile(current_message_);
             transmission_buffer_ = std::shared_ptr<TransparentTransmissionBuffer>(new TransparentTransmissionBuffer(false));
             transmission_buffer_->SetBinaryMode(true);
             if (!transmission_buffer_->Initialize(fileName))
@@ -790,8 +791,8 @@ namespace HM
       }
 
       const String uidKey = RemoteUidKey_(current_uid_);
-      String fileName = PersistentMessage::GetFileName(current_message_);
-      current_message_->SetSize(FileUtilities::FileSize(fileName));
+      String fileName = MessageStore::WorkingFile(current_message_);
+      current_message_->SetSize(MessageStore::FileSize(fileName));
 
       const bool spoolWriteFailed = transmission_buffer_ && transmission_buffer_->GetWriteFailed();
       if (current_message_->GetSize() == 0 || spoolWriteFailed)
@@ -1093,7 +1094,7 @@ namespace HM
       // The download spooled into the queue directory, where a message with no
       // account goes; the copy belongs in the account's own directory, under the
       // same partial name, exactly where an APPEND would have written it.
-      String spoolFileName = PersistentMessage::GetFileName(current_message_);
+      String spoolFileName = MessageStore::WorkingFile(current_message_);
       transmission_buffer_.reset();
 
       std::shared_ptr<const Account> owner = CacheContainer::Instance()->GetAccount(account_->GetAccountID());
@@ -1119,12 +1120,12 @@ namespace HM
          createTime = Time::GetCurrentDateTime();
       current_message_->SetCreateTime(createTime);
 
-      String fileName = PersistentMessage::GetFileName(owner, current_message_);
+      String fileName = MessageStore::WorkingFile(owner, current_message_);
       String directory = FileUtilities::GetFilePath(fileName);
       if (!FileUtilities::Exists(directory))
          FileUtilities::CreateDirectory(directory);
 
-      if (!FileUtilities::Move(spoolFileName, fileName))
+      if (!MessageStore::Rename(spoolFileName, fileName))
       {
          ErrorManager::Instance()->ReportError(ErrorManager::High, 6371, "IMAPClientConnection::FileMirroredMessage_",
             Formatter::Format("External account {0}: the collected message could not be moved into the account's directory ({1}), so it has not been filed; it is still on the remote server.", account_->GetName(), fileName));
@@ -1138,7 +1139,7 @@ namespace HM
       {
          ErrorManager::Instance()->ReportError(ErrorManager::High, 6372, "IMAPClientConnection::FileMirroredMessage_",
             Formatter::Format("External account {0}: the folder {1} could not be found or created, so the message could not be filed; it is still on the remote server.", account_->GetName(), current_local_folder_));
-         FileUtilities::DeleteFile(fileName);
+         MessageStore::Remove(fileName);
          return false;
       }
 
@@ -1146,7 +1147,7 @@ namespace HM
       {
          ErrorManager::Instance()->ReportError(ErrorManager::High, 6373, "IMAPClientConnection::FileMirroredMessage_",
             Formatter::Format("External account {0}: a message collected into {1} could not be saved, so it has not been filed; it is still on the remote server.", account_->GetName(), current_local_folder_));
-         FileUtilities::DeleteFile(fileName);
+         MessageStore::Remove(fileName);
          return false;
       }
 

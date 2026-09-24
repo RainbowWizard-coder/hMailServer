@@ -13,6 +13,7 @@
 #include "../Util/FileUtilities.h"
 
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 
 #include "Parsing/AddresslistParser.h"
 #include "../../SMTP/RecipientParser.h"
@@ -146,7 +147,7 @@ namespace HM
       pMessage->SetPartialFileName(partialFileName);
 
       // Set message size
-      pMessage->SetSize(FileUtilities::FileSize(newFullPath));
+      pMessage->SetSize(MessageStore::FileSize(newFullPath));
 
       std::shared_ptr<MessageData> pMsgData = std::shared_ptr<MessageData>(new MessageData());
       if (!pMsgData->LoadFromMessage(newFullPath, pMessage))
@@ -330,7 +331,7 @@ namespace HM
          mime.Load(header.GetBuffer(), header.GetLength(), false);
 
       unsigned __int64 size = 0;
-      FileUtilities::FileSize64(fileName, size);
+      MessageStore::FileSize64(fileName, size);
 
       AnsiString sizeText;
       sizeText.Format("%I64u", size);
@@ -465,12 +466,12 @@ namespace HM
 
       // Into the account's own directory, where an APPEND of it would have
       // written it.
-      const String destination = PersistentMessage::GetFileName(owner, message);
+      const String destination = MessageStore::WorkingFile(owner, message);
       const String directory = FileUtilities::GetFilePath(destination);
       if (!FileUtilities::Exists(directory))
          FileUtilities::CreateDirectory(directory);
 
-      if (destination.CompareNoCase(messageFile) != 0 && !FileUtilities::Move(messageFile, destination))
+      if (destination.CompareNoCase(messageFile) != 0 && !MessageStore::Rename(messageFile, destination))
       {
          problem = _T("the message file could not be moved into the account's directory");
          return ImportFailed;
@@ -534,7 +535,7 @@ namespace HM
       {
          // Moved, and not saved: the file is removed rather than left in the
          // account's directory with no row naming it.
-         FileUtilities::DeleteFile(destination);
+         MessageStore::Remove(destination);
          problem = _T("the message could not be saved in the database");
          return ImportFailed;
       }
@@ -614,7 +615,7 @@ namespace HM
 
       String destinationFile = FileUtilities::Combine(destinationDirectory, resultFile);
 
-      if (FileUtilities::Move(sourceFile, destinationFile))
+      if (MessageStore::Rename(sourceFile, destinationFile))
       {
          newFullPath = destinationFile;
          return true;

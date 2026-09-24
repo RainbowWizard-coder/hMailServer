@@ -30,6 +30,7 @@
 
 #include "../Common/Persistence/PersistentMessageRecipient.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/Persistence/PersistentAccount.h"
 
 #include "../Common/Tracking/ChangeNotification.h"
@@ -206,7 +207,7 @@ namespace HM
       // The rewrite is a temporary file renamed over this name, so the template
       // becomes a file of its own with Return-Path and the queue file is untouched
       // - it may still be going to external recipients as it is.
-      const String queueFile = PersistentMessage::GetFileName(original_message_);
+      const String queueFile = MessageStore::WorkingFile(original_message_);
       const String templateFile = queueFile + _T(".delivered");
 
 #ifdef HM_PLATFORM_POSIX
@@ -355,7 +356,7 @@ namespace HM
 
       if (!LocalDeliveryPreProcess_(account, accountLevelMessage, sOriginalAddress, saErrorMessages, suppressFailureDsn))
       {
-         FileUtilities::DeleteFile(PersistentMessage::GetFileName(account, accountLevelMessage));
+         MessageStore::Delete(account, accountLevelMessage);
 
          if (messageReused)
          {
@@ -383,12 +384,12 @@ namespace HM
       if (account->GetZeroAccess() && accountLevelMessage->GetAccountID() == account->GetID())
       {
          AnsiString problem;
-         if (!ZeroAccess::SealFile(account, PersistentMessage::GetFileName(account, accountLevelMessage), problem))
+         if (!ZeroAccess::SealFile(account, MessageStore::WorkingFile(account, accountLevelMessage), problem))
          {
             // SealFile leaves the original whole on failure, so what is deleted
             // here is the plaintext: overwritten first, as a sealed one is.
-            ZeroAccess::Scrub(PersistentMessage::GetFileName(account, accountLevelMessage));
-            FileUtilities::DeleteFile(PersistentMessage::GetFileName(account, accountLevelMessage));
+            ZeroAccess::Scrub(MessageStore::WorkingFile(account, accountLevelMessage));
+            MessageStore::Delete(account, accountLevelMessage);
 
             if (messageReused)
             {
@@ -421,7 +422,7 @@ namespace HM
       // message state. If it's "Delivering", it won't save the changes to the database.
       accountLevelMessage->SetState(Message::Delivered); 
       // Recalculate filesize after Return-Path and optionally Delivered-To header(s) are added
-      accountLevelMessage->SetSize(FileUtilities::FileSize(PersistentMessage::GetFileName(account, accountLevelMessage)));
+      accountLevelMessage->SetSize(MessageStore::Size(account, accountLevelMessage));
 
       // This is the save that makes the delivery real, and its result was discarded.
       //
@@ -447,7 +448,7 @@ namespace HM
       // worth building and is a larger change than this one.
       if (!PersistentMessage::SaveObject(accountLevelMessage))
       {
-         FileUtilities::DeleteFile(PersistentMessage::GetFileName(account, accountLevelMessage));
+         MessageStore::Delete(account, accountLevelMessage);
 
          if (messageReused)
          {
@@ -756,7 +757,7 @@ namespace HM
       if (iDestinationAccountID == 0)
       {
          // This message should be moved to the #public folder structure.
-         const String currentPath = PersistentMessage::GetFileName(account, accountLevelMessage);
+         const String currentPath = MessageStore::WorkingFile(account, accountLevelMessage);
          PersistentMessage::MoveFileToPublicFolder(currentPath, accountLevelMessage);
 
          // Since the owner of the message has changed, we'll have to update
@@ -844,7 +845,7 @@ namespace HM
          return;
 
       // Load the raw message so the script's header/address/size tests can run.
-      String messageFileName = PersistentMessage::GetFileName(account, message);
+      String messageFileName = MessageStore::WorkingFile(account, message);
       String rawMessage = FileUtilities::ReadCompleteTextFile(messageFileName);
 
       // The SMTP envelope. The evaluator can fall back to the Return-Path and
@@ -992,7 +993,7 @@ namespace HM
    LocalDelivery::ApplySieveHeaderEdits_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message,
                                          const std::vector<SieveHeaderEdit> &edits)
    {
-      String fileName = PersistentMessage::GetFileName(account, message);
+      String fileName = MessageStore::WorkingFile(account, message);
 
       MimeBody mail;
       if (mail.LoadFromFile(fileName) != MimeLoadResult::Loaded)
@@ -1112,7 +1113,7 @@ namespace HM
 
       // The file changed size; the record the caller is about to save must agree
       // with it, as the trace-header step above this one already does.
-      message->SetSize(FileUtilities::FileSize(fileName));
+      message->SetSize(MessageStore::FileSize(fileName));
    }
 
    bool
@@ -1182,7 +1183,7 @@ namespace HM
 
       if (reuseMessage)
       {
-         const String sourceLocation = PersistentMessage::GetFileName(pOriginalMessage);
+         const String sourceLocation = MessageStore::WorkingFile(pOriginalMessage);
 
          pNewMessage = pOriginalMessage;
          pNewMessage->SetAccountID(pRecipientAccount->GetID());
@@ -1244,7 +1245,7 @@ namespace HM
       if (Configuration::Instance()->GetSMTPConfiguration()->GetAddDeliveredToHeader())
          fieldsToWrite.push_back(std::make_pair("Delivered-To", sOriginalAddress));
 
-      const String fileName = PersistentMessage::GetFileName(account, pMessage);
+      const String fileName = MessageStore::WorkingFile(account, pMessage);
 
       TraceHeaderWriter writer;
       return writer.Write(fileName, pMessage, fieldsToWrite);
@@ -1283,7 +1284,7 @@ namespace HM
       if (decision.verdict == SenderListCache::NoOpinion &&
           SenderListCache::HasUrlEntries(account->GetID(), account->GetDomainID()))
       {
-         const String fileName = PersistentMessage::GetFileName(account, accountLevelMessage);
+         const String fileName = MessageStore::WorkingFile(account, accountLevelMessage);
          std::shared_ptr<MessageData> messageData = std::shared_ptr<MessageData>(new MessageData());
          if (messageData->LoadFromMessage(fileName, accountLevelMessage))
          {
@@ -1326,7 +1327,7 @@ namespace HM
       // Blocked.
       if (QuarantineStore::GetEnabled())
       {
-         const String fileName = PersistentMessage::GetFileName(account, accountLevelMessage);
+         const String fileName = MessageStore::WorkingFile(account, accountLevelMessage);
 
          String reason = Formatter::Format("{0} is on the {1} block list as {2}.",
             senderAddress, scopeName, decision.value);
@@ -1377,7 +1378,7 @@ namespace HM
 
       header_from_read_ = true;
 
-      const AnsiString header = PersistentMessage::LoadHeader(PersistentMessage::GetFileName(account, accountLevelMessage), false);
+      const AnsiString header = PersistentMessage::LoadHeader(MessageStore::WorkingFile(account, accountLevelMessage), false);
 
       if (header.IsEmpty())
          return header_from_address_;
@@ -1404,7 +1405,7 @@ namespace HM
       // headers rather than the reverse.
       message->SetFlagSpam(true);
 
-      const String fileName = PersistentMessage::GetFileName(account, message);
+      const String fileName = MessageStore::WorkingFile(account, message);
 
       MessageData data;
       if (!data.LoadFromMessage(fileName, message))
@@ -1510,7 +1511,7 @@ namespace HM
 
       if (deleteThreshold > 0 && recordedScore >= deleteThreshold)
       {
-         const String fileName = PersistentMessage::GetFileName(account, accountLevelMessage);
+         const String fileName = MessageStore::WorkingFile(account, accountLevelMessage);
 
          if (QuarantineStore::GetEnabled())
          {
@@ -1614,7 +1615,7 @@ namespace HM
       // the reverse.
       message->SetFlagSpam(false);
 
-      const String fileName = PersistentMessage::GetFileName(account, message);
+      const String fileName = MessageStore::WorkingFile(account, message);
 
       MessageData data;
       if (!data.LoadFromMessage(fileName, message))

@@ -211,6 +211,14 @@ jobs:
           python3 build/check-collection-iteration.py
           python3 build/check-collection-iteration.py --self-test
 
+      # A message's bytes are reached through the message store
+      # (Persistence/MessageStore.h): the stored file's path comes from
+      # PersistentMessage::GetFileName only in the store and in the listed
+      # sites, each with its reason, and a message's size is never its file's.
+      # The negative controls run on every pass.
+      - name: Every message file is reached through the message store
+        run: python3 build/check-message-store-seam.py
+
       # The portal's page and its script are C++ string literals, and what stood
       # behind them was a test asserting that certain substrings appeared - which
       # proves a name is spelled somewhere and nothing about what the page does.

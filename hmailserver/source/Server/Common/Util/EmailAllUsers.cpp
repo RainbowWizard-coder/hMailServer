@@ -17,6 +17,7 @@
 #include "../BO/Domains.h"
 #include "../BO/Domain.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Persistence/PersistentAccount.h"
 #include "../Persistence/PersistentDomain.h"
 
@@ -96,7 +97,7 @@ namespace HM
          iterAccount++;
       }
 
-      const String fileName = PersistentMessage::GetFileName(pMessage);
+      const String fileName = MessageStore::WorkingFile(pMessage);
 
       // Create the actual message
       MessageData oMessageData;

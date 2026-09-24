@@ -16,6 +16,7 @@
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Application/EffectiveSetting.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/Tracking/ChangeNotification.h"
 #include "../Common/Tracking/NotificationServer.h"
 #include "../Common/Util/ByteBuffer.h"
@@ -380,7 +381,7 @@ namespace HM
             return IMAPResult(IMAPResult::ResultNo, "The destination folder could not be resolved.");
       }
 
-      message_file_name_ = PersistentMessage::GetFileName(pMessageOwner, current_message_);
+      message_file_name_ = MessageStore::WorkingFile(pMessageOwner, current_message_);
 
       return IMAPResult();
    }
@@ -576,7 +577,7 @@ namespace HM
          return;
       }
 
-      current_message_->SetSize(FileUtilities::FileSize(message_file_name_));
+      current_message_->SetSize(MessageStore::FileSize(message_file_name_));
       current_message_->SetState(Message::Delivered);
 
       // Set message flags.

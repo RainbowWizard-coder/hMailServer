@@ -10,6 +10,7 @@
 #include "../Common/BO/Message.h"
 #include "../Common/Mime/Mime.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/Util/Time.h"
 
 #ifdef _DEBUG
@@ -607,9 +608,7 @@ namespace HM
          const int sequence = messagePair.first;
          const std::shared_ptr<Message> pMessage = messagePair.second;
 
-         const String fileName = PersistentMessage::GetFileName(pConnection->GetAccountOwningCurrentFolder(), pMessage);
-
-         AnsiString sHeader = PersistentMessage::LoadHeader(fileName);
+         AnsiString sHeader = MessageStore::LoadHeader(pConnection->GetAccountOwningCurrentFolder(), pMessage);
          MimeHeader oHeader;
          oHeader.Load(sHeader, sHeader.GetLength());
 

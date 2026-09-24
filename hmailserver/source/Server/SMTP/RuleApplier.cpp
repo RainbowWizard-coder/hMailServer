@@ -32,6 +32,7 @@
 #include "../Common/Util/SealedMessage.h"
 
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 
 #include "RecipientParser.h"
 
@@ -421,7 +422,7 @@ namespace HM
       std::shared_ptr<Message> pMsg = std::shared_ptr<Message>(new Message());
       pMsg->SetState(Message::Delivering);
 
-      String newMessageFileName = PersistentMessage::GetFileName(pMsg);
+      String newMessageFileName = MessageStore::WorkingFile(pMsg);
 
       std::shared_ptr<MessageData> pNewMsgData = std::shared_ptr<MessageData>(new MessageData());
       pNewMsgData->LoadFromMessage(newMessageFileName, pMsg);
@@ -483,7 +484,7 @@ namespace HM
       if (!DisclaimerAdder::AppendText(pMsgData->GetMessage(), text, data, _T("rule ") + pRule->GetName()))
          return;
 
-      String fileName = PersistentMessage::GetFileName(account, pMsgData->GetMessage());
+      String fileName = MessageStore::WorkingFile(account, pMsgData->GetMessage());
       if (!pMsgData->Write(fileName))
          RuleGuard::ReportActionFailed(_T("AddDisclaimer"), fileName);
    }
@@ -699,7 +700,7 @@ namespace HM
       std::shared_ptr<Account> emptyAccount;
 
       // Increase the number of rule-deliveries made.
-      String newFileName = PersistentMessage::GetFileName(emptyAccount, pMsg);
+      String newFileName = MessageStore::WorkingFile(emptyAccount, pMsg);
 
       std::shared_ptr<MessageData> pNewMsgData = std::shared_ptr<MessageData>(new MessageData());
       pNewMsgData->LoadFromMessage(emptyAccount, pMsg);
@@ -791,7 +792,7 @@ namespace HM
       pMsg->SetState(Message::Delivering);
 
       // Increase the number of rule-deliveries made.
-      String newMessageFileName = PersistentMessage::GetFileName(pMsg);
+      String newMessageFileName = MessageStore::WorkingFile(pMsg);
 
       std::shared_ptr<MessageData> pNewMsgData = std::shared_ptr<MessageData>(new MessageData());
       pNewMsgData->LoadFromMessage(newMessageFileName, pMsg);
@@ -858,7 +859,7 @@ namespace HM
 
       pMsgData->SetFieldValue(sHeader, sValue);
 
-      String fileName = PersistentMessage::GetFileName(account, pMsgData->GetMessage());
+      String fileName = MessageStore::WorkingFile(account, pMsgData->GetMessage());
 
       // Write is not atomic - MimeBody::SaveAllToFile rewrites the file in place - so a
       // failure part-way through leaves a message that is neither the original nor the
@@ -902,7 +903,7 @@ namespace HM
       std::shared_ptr<Message> pMsg = std::shared_ptr<Message>(new Message());
       pMsg->SetState(Message::Delivering);
 
-      String newMessageFileName = PersistentMessage::GetFileName(pMsg);
+      String newMessageFileName = MessageStore::WorkingFile(pMsg);
 
       std::shared_ptr<MessageData> pNewMsgData = std::shared_ptr<MessageData>(new MessageData());
       pNewMsgData->LoadFromMessage(newMessageFileName, pMsg);

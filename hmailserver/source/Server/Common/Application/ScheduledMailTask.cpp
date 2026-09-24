@@ -18,6 +18,7 @@
 #include "../SQL/SQLCommand.h"
 #include "../SQL/DALRecordset.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Util/Time.h"
 #include "../Util/FileUtilities.h"
 #include "../Util/MessageUtilities.h"
@@ -263,9 +264,8 @@ namespace HM
    bool
    ScheduledMailTask::SendDraft(std::shared_ptr<const Account> account, std::shared_ptr<Message> draft)
    {
-      const String draftFile = PersistentMessage::GetFileName(account, draft);
       MessageData data;
-      if (!data.LoadFromMessage(draftFile, draft))
+      if (!data.LoadFromMessage(account, draft))
          return false;
 
       std::vector<String> addresses;
@@ -291,7 +291,7 @@ namespace HM
       if (message->GetRecipients()->GetCount() == 0)
          return false;
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
       data.DeleteField("Bcc");
       data.SetSentTime(Time::GetCurrentMimeDate());
       if (!data.Write(fileName))
@@ -300,7 +300,7 @@ namespace HM
       // The domain's signature and disclaimer, as the send route puts them on.
       OutgoingFooters::AddToWebmailMessage(message, account);
 
-      message->SetSize((int) FileUtilities::FileSize(fileName));
+      message->SetSize((int) MessageStore::FileSize(fileName));
 
       // The shape of a takeover (CompromiseDetector.h), judged as the send
       // route judges it: a scheduled draft is the account's submission when

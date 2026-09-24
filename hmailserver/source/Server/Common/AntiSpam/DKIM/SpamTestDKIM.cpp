@@ -13,6 +13,7 @@
 #include "../AntiSpamConfiguration.h"
 #include "DKIM.h"
 #include "../../Persistence/PersistentMessage.h"
+#include "../../Persistence/MessageStore.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -41,7 +42,7 @@ namespace HM
 
       std::set<std::shared_ptr<SpamTestResult> > setSpamTestResults;
 
-      const String fileName = PersistentMessage::GetFileName(pMessage);
+      const String fileName = MessageStore::WorkingFile(pMessage);
 
       DKIM dkim;
 

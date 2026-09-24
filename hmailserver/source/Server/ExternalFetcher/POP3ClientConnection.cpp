@@ -14,6 +14,7 @@
 #include "../Common/BO/MessageData.h"
 #include "../Common/BO/Account.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/Util/ByteBuffer.h"
 #include "../Common/Util/OutboundOAuth2TokenClient.h"
 #include "../Common/Application/IniFileSettings.h"
@@ -971,7 +972,7 @@ namespace HM
             return;
          }
 
-         String fileName = PersistentMessage::GetFileName(current_message_);
+         String fileName = MessageStore::WorkingFile(current_message_);
 
          // Create a binary buffer for this message. 
          transmission_buffer_ = std::shared_ptr<TransparentTransmissionBuffer>(new TransparentTransmissionBuffer(false));
@@ -1047,8 +1048,8 @@ namespace HM
       // The entire message has now been downloaded from the
       // remote POP3 server. Save it in the database and deliver
       // it to the account.
-      String fileName = PersistentMessage::GetFileName(current_message_);
-      current_message_->SetSize(FileUtilities::FileSize(fileName));
+      String fileName = MessageStore::WorkingFile(current_message_);
+      current_message_->SetSize(MessageStore::FileSize(fileName));
 
       // Read before the buffer is released below, which is also where the file handle
       // goes. The zero-byte test underneath already covered a download that saved

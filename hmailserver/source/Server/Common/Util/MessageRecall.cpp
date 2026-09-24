@@ -17,6 +17,7 @@
 #include "../Cache/CacheContainer.h"
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
@@ -194,7 +195,7 @@ namespace HM
       if (recipients.empty())
          return 0;
 
-      const String messageId = MessageIdOf(PersistentMessage::GetFileName(message));
+      const String messageId = MessageIdOf(MessageStore::WorkingFile(message));
       if (messageId.IsEmpty())
       {
          LOG_DEBUG(Formatter::Format("Message recall: message {0} from {1} over {2} has no Message-ID, or one longer than {3} characters, and is not recallable.",

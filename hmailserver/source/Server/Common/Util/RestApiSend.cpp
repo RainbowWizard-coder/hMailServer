@@ -62,6 +62,7 @@
 #include "../BO/Domain.h"
 #include "../Cache/CacheContainer.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 
 #include <set>
 
@@ -522,7 +523,7 @@ namespace HM
             return refusal;
       }
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
 
       String messageId;
       {

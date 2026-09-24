@@ -19,6 +19,7 @@
 #include "../Cache/CacheContainer.h"
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
@@ -601,7 +602,7 @@ namespace HM
             }
 
             String subject;
-            const String fileName = PersistentMessage::GetFileName(message);
+            const String fileName = MessageStore::WorkingFile(message);
             AnsiString header = PersistentMessage::LoadHeader(fileName, false);
             if (!header.IsEmpty())
             {

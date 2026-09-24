@@ -15,6 +15,7 @@
 #include "../Common/BO/RemoteDomainPolicies.h"
 
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 
 #include "../Common/Util/SRS.h"
 #include "../Common/Application/IniFileSettings.h"
@@ -104,7 +105,7 @@ namespace HM
       }
 
 
-      String originalFileName = PersistentMessage::GetFileName(pRecipientAccount, pOriginalMessage);
+      String originalFileName = MessageStore::WorkingFile(pRecipientAccount, pOriginalMessage);
 
       // Check that rule loop count is not yet reached.
       std::shared_ptr<MessageData> pOldMsgData  = std::shared_ptr<MessageData>(new MessageData());
@@ -161,7 +162,7 @@ namespace HM
 
       // Increase the number of rule-deliveries made.
       std::shared_ptr<MessageData> pNewMsgData = std::shared_ptr<MessageData>(new MessageData());
-      const String newFileName = PersistentMessage::GetFileName(pNewMessage);
+      const String newFileName = MessageStore::WorkingFile(pNewMessage);
       pNewMsgData->LoadFromMessage(newFileName, pNewMessage);
       pNewMsgData->IncreaseRuleLoopCount();
       pNewMsgData->WriteReported(newFileName, "The rule-loop counter on a forwarded message");
@@ -261,7 +262,7 @@ namespace HM
          return false;
       }
 
-      const String originalFileName = PersistentMessage::GetFileName(pRecipientAccount, pOriginalMessage);
+      const String originalFileName = MessageStore::WorkingFile(pRecipientAccount, pOriginalMessage);
 
       std::shared_ptr<MessageData> pOldMsgData = std::shared_ptr<MessageData>(new MessageData());
       pOldMsgData->LoadFromMessage(originalFileName, pOriginalMessage);
@@ -307,7 +308,7 @@ namespace HM
       pNewMessage->SetState(Message::Delivering);
 
       std::shared_ptr<MessageData> pNewMsgData = std::shared_ptr<MessageData>(new MessageData());
-      const String newFileName = PersistentMessage::GetFileName(pNewMessage);
+      const String newFileName = MessageStore::WorkingFile(pNewMessage);
       pNewMsgData->LoadFromMessage(newFileName, pNewMessage);
       pNewMsgData->IncreaseRuleLoopCount();
       pNewMsgData->WriteReported(newFileName, "The rule-loop counter on a forwarded message");

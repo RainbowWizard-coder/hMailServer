@@ -20,6 +20,7 @@
 #include "../Common/BO/ACLPermission.h"
 
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -555,7 +556,7 @@ namespace HM
             // the one shape this still hands back encoded, and that is the
             // remaining half of the UNKNOWN-CTE work rather than something this
             // path can decide.
-            const int fileSize = FileUtilities::FileSize(messageFileName);
+            const int fileSize = MessageStore::FileSize(messageFileName);
 
             int iWholeStart = 0;
             int iWholeCount = 0;
@@ -564,7 +565,7 @@ namespace HM
             if (iWholeCount > 0)
             {
                std::vector<BYTE> buffer((size_t) iWholeCount);
-               FileUtilities::ReadFileToBuf(messageFileName, &buffer[0], iWholeStart, iWholeCount);
+               MessageStore::ReadRange(messageFileName, &buffer[0], iWholeStart, iWholeCount);
                pOutBuf->Add(&buffer[0], iWholeCount);
             }
 
@@ -724,7 +725,7 @@ namespace HM
          the resulting untagged FETCH data (RFC822 is returned).
          */
 
-         int iSize = FileUtilities::FileSize(messageFileName);
+         int iSize = MessageStore::FileSize(messageFileName);
          GetBytesToSend_(iSize, oPart, iByteStart, iByteCount);
 
          // This is the path every chunked client takes: BODY[]<start.count> is what
@@ -742,7 +743,7 @@ namespace HM
             const size_t bufferSize = (size_t) iByteCount;
             std::vector<BYTE> buffer(bufferSize);
 
-            FileUtilities::ReadFileToBuf(messageFileName, &buffer[0], iByteStart, iByteCount);
+            MessageStore::ReadRange(messageFileName, &buffer[0], iByteStart, iByteCount);
 
             pOutBuf->Add(&buffer[0], iByteCount);
          }
@@ -1374,7 +1375,7 @@ namespace HM
          // its own; it is written up against the ignored-return-values row.
          if (bLoadFullMail)
          {
-            if (pMimeBody->LoadFromFile(fileName) != MimeLoadResult::Loaded)
+            if (MessageStore::LoadMime(fileName, *pMimeBody) != MimeLoadResult::Loaded)
                throw std::runtime_error(Formatter::FormatAsAnsi("The message file {0} could not be read.", fileName));
          }
          else

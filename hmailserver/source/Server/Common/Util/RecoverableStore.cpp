@@ -19,6 +19,7 @@
 #include "../Cache/CacheContainer.h"
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
@@ -144,7 +145,7 @@ namespace HM
       relative = FileUtilities::Combine(relative, guid + _T(".eml"));
       const String target = FileUtilities::Combine(Root(), relative);
 
-      if (!FileUtilities::Copy(source, target, true))
+      if (!MessageStore::CopyStored(source, target))
       {
          if (held)
          {
@@ -171,7 +172,7 @@ namespace HM
             // SealFile leaves the file whole on failure; the plaintext copy is
             // overwritten before it goes, as a failed delivery seal's is.
             ZeroAccess::Scrub(target);
-            FileUtilities::DeleteFile(target);
+            MessageStore::Remove(target);
 
             if (held)
             {
@@ -207,7 +208,7 @@ namespace HM
       __int64 made = 0;
       if (!Application::Instance()->GetDBManager()->Execute(statement, &made) || made <= 0)
       {
-         FileUtilities::DeleteFile(target);
+         MessageStore::Remove(target);
 
          if (held)
          {
@@ -317,27 +318,27 @@ namespace HM
       std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message());
       message->SetAccountID(account->GetID());
       message->SetFolderID(folder->GetID());
-      const String fileName = PersistentMessage::GetFileName(account, message);
+      const String fileName = MessageStore::WorkingFile(account, message);
       const String directory = FileUtilities::GetFilePath(fileName);
       if (!FileUtilities::Exists(directory) && !FileUtilities::CreateDirectory(directory))
       {
          problem = _T("the account's directory could not be made");
          return false;
       }
-      if (!FileUtilities::Copy(kept, fileName, true))
+      if (!MessageStore::CopyStored(kept, fileName))
       {
          problem = _T("the message could not be written back");
          return false;
       }
 
-      message->SetSize((int) FileUtilities::FileSize(fileName));
+      message->SetSize((int) MessageStore::FileSize(fileName));
       message->SetFlags(flags);
       message->SetFlagDeleted(false);
       message->SetFlagRecent(true);
       message->SetState(Message::Delivered);
       if (!PersistentMessage::SaveObject(message))
       {
-         FileUtilities::DeleteFile(fileName);
+         MessageStore::Remove(fileName);
          problem = _T("the message could not be stored");
          return false;
       }
@@ -375,7 +376,7 @@ namespace HM
          return false;
 
       if (FileUtilities::Exists(kept))
-         FileUtilities::DeleteFile(kept);
+         MessageStore::Remove(kept);
       return true;
    }
 

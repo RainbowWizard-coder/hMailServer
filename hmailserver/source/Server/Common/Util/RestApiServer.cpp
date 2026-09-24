@@ -154,6 +154,7 @@
 #include "../BO/Message.h"
 #include "../Persistence/PersistentAccount.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Persistence/PersistenceMode.h"
 #include "../TCPIP/SocketConstants.h"
 #include "../TCPIP/SslContextInitializer.h"
@@ -15080,25 +15081,14 @@ namespace HM
          return BuildResponse_(404, "{\"error\":\"the message file is missing\"}");
 
       const __int64 MaxSourceBytes = 25 * 1024 * 1024;
-      __int64 size = FileUtilities::FileSize(fileName);
+      __int64 size = MessageStore::FileSize(fileName);
       if (size > MaxSourceBytes)
          return BuildResponse_(413, "{\"error\":\"the message is larger than 25 MB; fetch it with a mail client\"}");
 
+      // The original bytes, whatever the stored file holds (MessageStore.h).
       AnsiString bytes;
-      {
-#ifdef HM_PLATFORM_POSIX
-         // As the other reads in this unit: a narrow path, because libstdc++
-         // has no wide-path constructor.
-         const AnsiString narrowFileName = fileName.c_str();
-         std::ifstream in(narrowFileName.c_str(), std::ios::binary);
-#else
-         std::ifstream in(fileName.c_str(), std::ios::binary);
-#endif
-         if (!in)
-            return BuildResponse_(500, "{\"error\":\"the message file could not be read\"}");
-         std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-         bytes = AnsiString(contents);
-      }
+      if (!MessageStore::ReadAll(fileName, bytes))
+         return BuildResponse_(500, "{\"error\":\"the message file could not be read\"}");
 
       AnsiString fileLabel;
       fileLabel.Format("message-%I64d.eml", message->GetID());
@@ -16177,7 +16167,7 @@ namespace HM
          }
       }
 
-      message->SetSize((int) FileUtilities::FileSize(fileName));
+      message->SetSize((int) MessageStore::FileSize(fileName));
 
       int maxKB = Configuration::Instance()->GetSMTPConfiguration()->GetMaxMessageSize();
       if (maxKB > 0 && (__int64) message->GetSize() > (__int64) maxKB * 1024)
@@ -16372,7 +16362,7 @@ namespace HM
             return refusal;
       }
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
 
       // "mime": a message the page built itself - a signed or an encrypted one,
       // whose body bytes must reach the recipient exactly as signed. The
@@ -16501,7 +16491,7 @@ namespace HM
             FileUtilities::DeleteFile(fileName);
             return BuildResponse_(500, "{\"error\":\"the notice could not be written\"}");
          }
-         message->SetSize((int) FileUtilities::FileSize(fileName));
+         message->SetSize((int) MessageStore::FileSize(fileName));
       }
 
       // The shape of a takeover (CompromiseDetector.h), judged before the row
@@ -16587,7 +16577,7 @@ namespace HM
                }
                else
                {
-                  FileUtilities::DeleteFile(PersistentMessage::GetFileName(account, copy));
+                  MessageStore::Delete(account, copy);
                }
             }
          }
@@ -17326,7 +17316,7 @@ namespace HM
       draft->SetAccountID(drafts->GetAccountID());
       draft->SetFolderID(drafts->GetID());
 
-      const String fileName = PersistentMessage::GetFileName(account, draft);
+      const String fileName = MessageStore::WorkingFile(account, draft);
 
       MessageData messageData;
       messageData.LoadFromMessage(fileName, draft);
@@ -17362,7 +17352,7 @@ namespace HM
       if (!messageData.Write(fileName))
          return BuildResponse_(500, "{\"error\":\"the draft could not be written\"}");
 
-      draft->SetSize((int) FileUtilities::FileSize(fileName));
+      draft->SetSize((int) MessageStore::FileSize(fileName));
 
       if (!account->SpaceAvailable(draft->GetSize()))
       {

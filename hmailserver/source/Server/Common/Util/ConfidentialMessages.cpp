@@ -22,6 +22,7 @@
 #include "../BO/MessageRecipients.h"
 #include "../Cache/CacheContainer.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
@@ -455,11 +456,11 @@ namespace HM
       copy->SetFromAddress(fromAddress);
       copy->SetState(Message::Delivered);
 
-      const String fileName = PersistentMessage::GetFileName(owner, copy);
-      if (!FileUtilities::Copy(keptPath, fileName, true))
+      const String fileName = MessageStore::WorkingFile(owner, copy);
+      if (!MessageStore::CopyStored(keptPath, fileName))
          return none;
 
-      copy->SetSize((int) FileUtilities::FileSize(fileName));
+      copy->SetSize((int) MessageStore::FileSize(fileName));
       return copy;
    }
 
@@ -732,7 +733,7 @@ namespace HM
       message->SetState(Message::Delivering);
       message->SetFromAddress(_T(""));
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
       if (!FileUtilities::WriteToFile(fileName, content))
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6782, "ConfidentialMessages::SendCode",
@@ -740,7 +741,7 @@ namespace HM
          return CodeFailed;
       }
 
-      message->SetSize(FileUtilities::FileSize(fileName));
+      message->SetSize(MessageStore::FileSize(fileName));
 
       bool recipientOk = false;
       RecipientParser recipientParser;

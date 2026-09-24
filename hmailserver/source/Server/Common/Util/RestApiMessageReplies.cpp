@@ -39,6 +39,7 @@
 #include <map>
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Application/Application.h"
 #include "../../SMTP/RecipientParser.h"
 #include "RestrictedDelivery.h"
@@ -209,14 +210,14 @@ namespace HM
          return 400;
       }
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
       if (!FileUtilities::WriteToFile(fileName, rawText))
       {
          problem = "{\"error\":\"the message could not be written\"}";
          return 500;
       }
 
-      message->SetSize((int) FileUtilities::FileSize(fileName));
+      message->SetSize((int) MessageStore::FileSize(fileName));
       // The account's own submission (Message::FlagSubmittedBySignedInUser).
       message->SetSubmittedBySignedInUser(true);
       message->SetState(Message::Delivering);

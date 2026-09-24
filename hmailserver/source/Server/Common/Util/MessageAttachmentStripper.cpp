@@ -9,6 +9,7 @@
 #include "../BO/Message.h"
 #include "../BO/ServerMessages.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Persistence/PersistentServerMessage.h"
 
 #ifdef _DEBUG
@@ -31,7 +32,7 @@ namespace HM
    MessageAttachmentStripper::Result
    MessageAttachmentStripper::Strip(std::shared_ptr<Message> pMessage)
    {
-      const String fileName = PersistentMessage::GetFileName(pMessage);
+      const String fileName = MessageStore::WorkingFile(pMessage);
 
       // Read message, extract attachments.
       //
@@ -213,7 +214,7 @@ namespace HM
 
       pMessage->SetSize(sData.GetLength());
 
-      String fileName = PersistentMessage::GetFileName(pMessage);
+      String fileName = MessageStore::WorkingFile(pMessage);
 
       FileUtilities::WriteToFile(fileName, sData, false);
    }

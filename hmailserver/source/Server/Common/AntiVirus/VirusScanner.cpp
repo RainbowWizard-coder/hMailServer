@@ -32,6 +32,7 @@
 
 #include "../Persistence/PersistentServerMessage.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -209,7 +210,7 @@ namespace HM
       }
 
       // First scan the entire file.
-      String sLongFilename = PersistentMessage::GetFileName(pMessage);
+      String sLongFilename = MessageStore::WorkingFile(pMessage);
 
       bool scannerError = false;
 
@@ -270,7 +271,7 @@ namespace HM
          {
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6002, "VirusScanner::Scan",
                Formatter::Format("An attachment of {0} could not be written to {1} for scanning, so it has not been examined. The rest of the message has been.",
-                  PersistentMessage::GetFileName(pMessage), sLongFilename));
+                  MessageStore::WorkingFile(pMessage), sLongFilename));
 
             FileUtilities::DeleteFile(sLongFilename);
             iter++;
@@ -327,7 +328,7 @@ namespace HM
    void
    VirusScanner::ReportVirusFound(std::shared_ptr<Message> pMessage)
    {
-      const String fileName = PersistentMessage::GetFileName(pMessage);
+      const String fileName = MessageStore::WorkingFile(pMessage);
 
       std::shared_ptr<MessageData> pMsgData = std::shared_ptr<MessageData> (new MessageData());
       pMsgData->LoadFromMessage(fileName, pMessage);
@@ -344,7 +345,7 @@ namespace HM
       std::shared_ptr<BlockedAttachments> blocked_attachments_config = HM::Configuration::Instance()->GetBlockedAttachments();
       std::vector<std::shared_ptr<BlockedAttachment> > blocked_attachment_wildcards = blocked_attachments_config->GetSnapshot();
 
-      const String file_name = PersistentMessage::GetFileName(message);
+      const String file_name = MessageStore::WorkingFile(message);
 
       std::shared_ptr<MessageData> message_data = std::shared_ptr<MessageData>(new MessageData());
 
@@ -456,7 +457,7 @@ namespace HM
          message_data->WriteReported(file_name, "The removal of virus-bearing attachments");
 
          // Update the size of the message.
-         message->SetSize(FileUtilities::FileSize(file_name));
+         message->SetSize(MessageStore::FileSize(file_name));
 
          // Said in the ordinary log, once, naming the message and every part
          // whose content was replaced. This function has rewritten people's

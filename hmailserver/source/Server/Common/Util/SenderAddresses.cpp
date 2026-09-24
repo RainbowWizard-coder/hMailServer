@@ -18,6 +18,7 @@
 #include "../BO/MessageRecipients.h"
 #include "../Cache/CacheContainer.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
@@ -303,7 +304,7 @@ namespace HM
       // The null sender: generated mail, whose bounce must go nowhere.
       message->SetFromAddress(_T(""));
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
       if (!FileUtilities::WriteToFile(fileName, content))
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6780, "SenderAddresses::SendCode",
@@ -311,7 +312,7 @@ namespace HM
          return false;
       }
 
-      message->SetSize(FileUtilities::FileSize(fileName));
+      message->SetSize(MessageStore::FileSize(fileName));
 
       bool recipientOk = false;
       RecipientParser recipientParser;

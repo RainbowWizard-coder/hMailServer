@@ -27,6 +27,7 @@
 #include "../Cache/CacheContainer.h"
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
 
@@ -1323,7 +1324,7 @@ namespace HM
       if (action == Off)
          return Clean;
 
-      const String fileName = PersistentMessage::GetFileName(account, message);
+      const String fileName = MessageStore::WorkingFile(account, message);
 
       // The header block and the outside/inside decision: the tagger's, when
       // the domain tags, and read here once otherwise.

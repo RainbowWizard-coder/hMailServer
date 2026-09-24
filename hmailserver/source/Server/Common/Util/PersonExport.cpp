@@ -18,6 +18,7 @@
 #include "../BO/Message.h"
 #include "../BO/Messages.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/DatabaseConnectionManager.h"
@@ -102,16 +103,11 @@ namespace HM
          return result;
       }
 
+      // A message's original bytes, whatever its stored file holds
+      // (Persistence/MessageStore.h).
       bool ReadBytes(const String &fileName, AnsiString &bytes)
       {
-         boost::filesystem::path path(fileName.begin(), fileName.end());
-         boost::filesystem::ifstream in(path, std::ios::in | std::ios::binary);
-         if (!in)
-            return false;
-
-         std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-         bytes = content;
-         return true;
+         return MessageStore::ReadAll(fileName, bytes);
       }
 
       bool ExportFolders(std::shared_ptr<Account> account, std::shared_ptr<IMAPFolders> folders, const String &prefix,

@@ -15,6 +15,7 @@
 #include "../BO/Message.h"
 #include "../BO/Messages.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 
 #include <set>
 
@@ -144,8 +145,9 @@ namespace HM
 
                   // The copy creates the folder directory on first use, so an
                   // empty folder produces no empty directory - the export mirrors
-                  // the mail, not the folder skeleton.
-                  if (!FileUtilities::Copy(source, target, true))
+                  // the mail, not the folder skeleton. The original bytes, as a
+                  // plain .eml, whatever the store keeps (MessageStore.h).
+                  if (!MessageStore::CopyOriginal(source, target))
                   {
                      error.Format(_T("The message file %s could not be copied to %s. The export is incomplete and should be re-run."),
                         source.c_str(), target.c_str());

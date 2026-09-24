@@ -28,6 +28,7 @@
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DALRecordset.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Application/Application.h"
 #include "../Application/ScheduledMailTask.h"
 #include "../BO/ACLPermission.h"
@@ -136,19 +137,11 @@ namespace HM
          return mimeHeader.GetUnicodeFieldValue("Subject");
       }
 
+      // A message's original bytes, whatever its stored file holds
+      // (Persistence/MessageStore.h).
       bool ReadWholeFile(const String &fileName, AnsiString &bytes)
       {
-#ifdef HM_PLATFORM_POSIX
-         const AnsiString narrowPath(fileName);
-         std::ifstream in(narrowPath.c_str(), std::ios::binary);
-#else
-         std::ifstream in(fileName.c_str(), std::ios::binary);
-#endif
-         if (!in)
-            return false;
-         std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-         bytes = AnsiString(contents);
-         return true;
+         return MessageStore::ReadAll(fileName, bytes);
       }
    }
 
@@ -433,7 +426,7 @@ namespace HM
       std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message());
       message->SetAccountID(folder->GetAccountID());
       message->SetFolderID(folder->GetID());
-      const String fileName = PersistentMessage::GetFileName(account, message);
+      const String fileName = MessageStore::WorkingFile(account, message);
       // An account that has never had a message on disk has no directory yet;
       // APPEND makes it on the way, and so does this.
       String directory = FileUtilities::GetFilePath(fileName);
@@ -441,7 +434,7 @@ namespace HM
          return BuildResponse_(500, "{\"error\":\"the account's directory could not be made\"}");
       if (!FileUtilities::WriteToFile(fileName, text))
          return BuildResponse_(500, "{\"error\":\"the message could not be written\"}");
-      message->SetSize((int) FileUtilities::FileSize(fileName));
+      message->SetSize((int) MessageStore::FileSize(fileName));
       message->SetFlagSeen(false);
       // A message in a folder is a delivered one; the store refuses to save one
       // still marked as created, as it would a half-written delivery.

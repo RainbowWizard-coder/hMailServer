@@ -28,6 +28,7 @@
 #include "../Common/Util/Crypt.h"
 #include "../Common/Util/Hashing/ScramSha256.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/BO/Message.h"
 #include "../Common/BO/SecurityRange.h"
 #include "../Common/Mime/Mime.h"
@@ -1231,7 +1232,7 @@ namespace HM
          {
             subjectRead = true;
 
-            AnsiString headerText = PersistentMessage::LoadHeader(PersistentMessage::GetFileName(current_message_), false);
+            AnsiString headerText = PersistentMessage::LoadHeader(MessageStore::WorkingFile(current_message_), false);
             MimeHeader header;
             header.Load(headerText, headerText.GetLength(), true);
             subject = header.GetUnicodeFieldValue("Subject");
@@ -2528,7 +2529,7 @@ namespace HM
       }
 
       // Transmission has ended.
-      current_message_->SetSize(FileUtilities::FileSize(PersistentMessage::GetFileName(current_message_)));
+      current_message_->SetSize(MessageStore::FileSize(MessageStore::WorkingFile(current_message_)));
 
 
       // Let's archive message we just received
@@ -2546,7 +2547,7 @@ namespace HM
          LOG_SMTP(GetSessionID(), GetIPAddressString(), "Archiving..");
 
          bool bArchiveHardlinks = IniFileSettings::Instance()->GetArchiveHardlinks();
-         String _messageFileName = PersistentMessage::GetFileName(current_message_);
+         String _messageFileName = MessageStore::WorkingFile(current_message_);
          String sFileNameExclPath = FileUtilities::GetFileNameFromFullPath(_messageFileName);
          String sMessageArchivePath;
          String sFromAddress1 = current_message_->GetFromAddress();
@@ -2774,7 +2775,7 @@ namespace HM
                String subject;
                if (heldForReview)
                {
-                  AnsiString header = PersistentMessage::LoadHeader(PersistentMessage::GetFileName(current_message_), false);
+                  AnsiString header = PersistentMessage::LoadHeader(MessageStore::WorkingFile(current_message_), false);
                   if (!header.IsEmpty())
                   {
                      MimeHeader mimeHeader;
@@ -2807,7 +2808,7 @@ namespace HM
             // delivery removes this one while spamd is still being talked to.
             // After the handle above is released, so the copy can be made.
             if (addressed_spam_trap_)
-               SpamTrapMonitor::TeachSpamAssassin(PersistentMessage::GetFileName(current_message_));
+               SpamTrapMonitor::TeachSpamAssassin(MessageStore::WorkingFile(current_message_));
 
             // Journaling and dual delivery (Util/Journaling.h). Here, and not in
             // the deliverer: the recipients are the ones the archive decision a
@@ -3036,7 +3037,7 @@ namespace HM
          }
       }
 
-      if (pMsgData && !pMsgData->WriteReported(PersistentMessage::GetFileName(current_message_), "The message signature and the domain disclaimer"))
+      if (pMsgData && !pMsgData->WriteReported(MessageStore::WorkingFile(current_message_), "The message signature and the domain disclaimer"))
       {
          // WriteReported has already put the failure itself in the error log; what
          // belongs here is the consequence, because it is what an administrator
@@ -3090,7 +3091,7 @@ namespace HM
       if (isAuthenticated_)
          return;
 
-      AuthenticationResultsWriter::Write(PersistentMessage::GetFileName(current_message_),
+      AuthenticationResultsWriter::Write(MessageStore::WorkingFile(current_message_),
                                          current_message_,
                                          authentication_results_);
    }
@@ -3141,7 +3142,7 @@ namespace HM
          return false;
       }
 
-      const String fileName = PersistentMessage::GetFileName(current_message_);
+      const String fileName = MessageStore::WorkingFile(current_message_);
 
       // Before the Exists check below, because a failed write leaves the file very much
       // in existence - just not holding the message that was sent. Until this was
@@ -3289,7 +3290,7 @@ namespace HM
       if (!current_message_)
          return false;
 
-      const String fileName = PersistentMessage::GetFileName(current_message_);
+      const String fileName = MessageStore::WorkingFile(current_message_);
 
       File oFile;
 
@@ -4219,12 +4220,12 @@ namespace HM
       }      
 
       transmission_buffer_ = std::shared_ptr<TransparentTransmissionBuffer>(new TransparentTransmissionBuffer(false));
-      if (!transmission_buffer_->Initialize(PersistentMessage::GetFileName(current_message_)))
+      if (!transmission_buffer_->Initialize(MessageStore::WorkingFile(current_message_)))
       {
          // Stay in command mode: the client gets the 451 instead of a 354, so no
          // message payload follows. Entering DATA state here would make the next
          // line read misparse the never-sent body as SMTP commands.
-         HandleUnableToSaveMessageDataFile_(PersistentMessage::GetFileName(current_message_));
+         HandleUnableToSaveMessageDataFile_(MessageStore::WorkingFile(current_message_));
          return;
       }
 
@@ -4338,9 +4339,9 @@ namespace HM
          transmission_buffer_ = std::shared_ptr<TransparentTransmissionBuffer>(new TransparentTransmissionBuffer(false));
          transmission_buffer_->SetBinaryMode(true);
 
-         if (!transmission_buffer_->Initialize(PersistentMessage::GetFileName(current_message_)))
+         if (!transmission_buffer_->Initialize(MessageStore::WorkingFile(current_message_)))
          {
-            HandleUnableToSaveMessageDataFile_(PersistentMessage::GetFileName(current_message_));
+            HandleUnableToSaveMessageDataFile_(MessageStore::WorkingFile(current_message_));
             StartBdatDiscard_((size_t)chunkSize);
             return;
          }

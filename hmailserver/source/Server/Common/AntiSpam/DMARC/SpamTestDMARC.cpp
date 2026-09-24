@@ -17,6 +17,7 @@
 
 #include "../../BO/MessageData.h"
 #include "../../Persistence/PersistentMessage.h"
+#include "../../Persistence/MessageStore.h"
 #include "../../Util/DmarcRptStore.h"
 #include "../../Util/Parsing/StringParser.h"
 #include "../../../SMTP/SPF/SPF.h"
@@ -121,7 +122,7 @@ namespace HM
       std::shared_ptr<Message> pMessage = pMessageData->GetMessage();
       if (pMessage)
       {
-         const String fileName = PersistentMessage::GetFileName(pMessage);
+         const String fileName = MessageStore::WorkingFile(pMessage);
 
          DKIM dkim;
          dkim.Verify(fileName, dkimPassingDomains, dkimPassingSelectors);

@@ -54,6 +54,7 @@
 #include "../BO/Message.h"
 #include "../BO/MessageRecipients.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Util/Parsing/StringParser.h"
 #include "../../SMTP/RecipientParser.h"
 #include "RestrictedDelivery.h"
@@ -361,7 +362,7 @@ namespace HM
 
       std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message());
       message->SetFromAddress(from);
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
       const AnsiString link = ProtectedMessages::LinkFor(completed.token);
       if (!ProtectedMessages::WriteNotice(message, fileName, fromHeader, completed.recipient, ConfidentialMessages::DisplayName(fromHeader), completed, link))
       {
@@ -369,7 +370,7 @@ namespace HM
          FileUtilities::DeleteFile(fileName);
          return BuildResponse_(500, "{\"error\":\"the notice could not be written\"}");
       }
-      message->SetSize((int) FileUtilities::FileSize(fileName));
+      message->SetSize((int) MessageStore::FileSize(fileName));
 
       bool recipientOk = false;
       RecipientParser recipientParser;

@@ -28,6 +28,7 @@
 #include "../Common/BO/Messages.h"
 #include "../Common/BO/MessageRecipients.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/Persistence/PersistentAccount.h"
 
 #include "../Common/Mime/Mime.h"

@@ -16,6 +16,7 @@
 #include "../Common/BO/RouteAddresses.h"
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 #include "../Common/Util/FileUtilities.h"
 #include "../Common/Util/MailerDaemonAddressDeterminer.h"
 
@@ -147,7 +148,7 @@ namespace HM
          // which is the same event one step earlier.
          if (!PersistentMessage::SaveObject(pMsg))
          {
-            FileUtilities::DeleteFile(PersistentMessage::GetFileName(pMsg));
+            FileUtilities::DeleteFile(MessageStore::WorkingFile(pMsg));
 
             ErrorManager::Instance()->ReportError(ErrorManager::High, 6086, "MirrorMessage::Send",
                "Could not mirror the message because the copy of it could not be saved. The copy's file has been removed rather than left on disk with nothing referring to it.");

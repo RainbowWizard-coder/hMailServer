@@ -3,12 +3,13 @@
 #
 # This is a Windows-only project and several consumers REQUIRE CRLF in the
 # working tree regardless of core.autocrlf:
-#   - SQLScriptParser splits DB scripts on \r\n\r\n (LF scripts yield
-#     "Found no SQL commands" and database creation fails)
 #   - RegressionTests Resources\*.eml contain DKIM-signed messages whose body
 #     hashes break if line endings change
 #   - Raw-message tests send file/string content verbatim over SMTP; bare LFs
 #     are rejected with "554 Message containing bare LF's"
+# The database scripts are no longer among them: SQLScriptParser folds CRLF to
+# LF and then splits a script into statements at a blank line (";" and a blank
+# line for PostgreSQL), so a script parses with either ending.
 # Hence: normalize text in the repo, but ALWAYS check out CRLF.
 ###############################################################################
 * text=auto eol=crlf

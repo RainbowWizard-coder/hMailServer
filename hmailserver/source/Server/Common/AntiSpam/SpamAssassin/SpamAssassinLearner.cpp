@@ -15,6 +15,7 @@
 #include "../../BO/IMAPFolder.h"
 #include "../../BO/Message.h"
 #include "../../Persistence/PersistentMessage.h"
+#include "../../Persistence/MessageStore.h"
 #include "../../TCPIP/DNSResolver.h"
 #include "../../TCPIP/IOService.h"
 #include "../../Threading/WorkQueue.h"
@@ -75,14 +76,20 @@ namespace HM
       if (IniFileSettings::Instance()->GetSpamAssassinUserFromRecipient())
          user = destinationOwner->GetAddress();
 
-      const String messageFile = PersistentMessage::GetFileName(destinationOwner, copy);
-
       std::shared_ptr<WorkQueue> queue = Application::Instance()->GetAsyncWorkQueue();
       if (!queue)
          return;
 
+      // spamd is sent a plain file: the stored one when it is plain, else a
+      // temporary copy of its original bytes that the task removes once spamd
+      // has had it (Persistence/MessageStore.h).
+      bool temporary = false;
+      const String messageFile = MessageStore::PlainFileFor(PersistentMessage::GetFileName(destinationOwner, copy), temporary);
+      if (messageFile.IsEmpty())
+         return;
+
       std::shared_ptr<SpamAssassinLearnTask> task =
-         std::shared_ptr<SpamAssassinLearnTask>(new SpamAssassinLearnTask(messageFile, toJunk, user));
+         std::shared_ptr<SpamAssassinLearnTask>(new SpamAssassinLearnTask(messageFile, toJunk, user, temporary));
       queue->AddTask(task);
    }
 

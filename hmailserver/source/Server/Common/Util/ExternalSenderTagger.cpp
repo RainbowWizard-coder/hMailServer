@@ -16,6 +16,7 @@
 #include "../BO/MessageData.h"
 #include "../Persistence/PersistentKnownSender.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -67,7 +68,7 @@ namespace HM
       if (!wantSubject && !wantHeader && !wantFirstContact)
          return false;
 
-      const String fileName = PersistentMessage::GetFileName(account, message);
+      const String fileName = MessageStore::WorkingFile(account, message);
 
       // The header block and the outside/inside decision, made once for this
       // copy and shared with the impersonation check that runs after this.

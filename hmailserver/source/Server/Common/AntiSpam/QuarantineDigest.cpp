@@ -17,6 +17,7 @@
 #include "../BO/Message.h"
 #include "../BO/MessageRecipients.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Persistence/PersistentSenderListEntry.h"
 #include "../Cache/CacheContainer.h"
 #include "../SQL/DALRecordset.h"
@@ -792,7 +793,7 @@ namespace HM
       // back to the postmaster as though a person had written to them, nor loop.
       message->SetFromAddress(_T(""));
 
-      const String fileName = PersistentMessage::GetFileName(message);
+      const String fileName = MessageStore::WorkingFile(message);
 
       if (!FileUtilities::WriteToFile(fileName, content))
       {
@@ -801,7 +802,7 @@ namespace HM
          return false;
       }
 
-      message->SetSize(FileUtilities::FileSize(fileName));
+      message->SetSize(MessageStore::FileSize(fileName));
 
       bool recipientOk = false;
       RecipientParser recipientParser;

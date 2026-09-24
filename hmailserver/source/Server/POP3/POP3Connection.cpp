@@ -32,6 +32,7 @@
 #include "../Common/BO/DomainAliases.h"
 #include "../Common/BO/Domain.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/MessageStore.h"
 
 #include "POP3Sessions.h"
 #include "POP3Connection.h"
@@ -1705,7 +1706,7 @@ namespace HM
          // Open returns false for a missing or locked file; it only throws when
          // the File object is already open. Both have to be handled, or the
          // code below streams a file that was never opened.
-         opened = current_file_.Open(fileName, File::OTReadOnly);
+         opened = current_file_.Open(fileName);
       }
       catch (...)
       {
@@ -1901,13 +1902,14 @@ namespace HM
       // before the terminating ".".
       endedWithNewline = true;
 
-      File file;
+      // The message's original bytes, through the store (MessageStore.h).
+      MessageStoreReader file;
       bool opened = false;
       try
       {
-         // Open returns false for a missing or unreadable file and only throws
-         // when the File object is already open; handle both.
-         opened = file.Open(sFilename, File::OTReadOnly);
+         // Open returns false for a missing or unreadable file; handle a throw
+         // as well, as the File this replaced could.
+         opened = file.Open(sFilename);
       }
       catch (...)
       {
