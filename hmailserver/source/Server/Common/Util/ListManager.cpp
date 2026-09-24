@@ -38,6 +38,7 @@
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/PersistentMessageRecipient.h"
 #include "../Persistence/PersistentDistributionList.h"
+#include "../Persistence/PersistentServerMessage.h"
 #include "../TCPIP/IPAddress.h"
 #include "../../SMTP/RecipientParser.h"
 #include "../../SMTP/DeliveryFailure.h"

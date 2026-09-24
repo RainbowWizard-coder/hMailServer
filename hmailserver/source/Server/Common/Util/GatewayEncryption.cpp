@@ -1707,7 +1707,7 @@ namespace HM
                  (AnsiString("A P-256 key was not refused for its subkey's kind: ") + nist.problem).c_str());
 
          // RSA 1024, bound properly, and too short to encrypt to.
-         const String small =
+         const String smallKey =
             _T("mI0EarScrwEEANLzM35NkWDcpW3wNwytwo0pIDkDO0pcD1+Yi/uGZeFzkrljs36UyucRPYMXb6En")
             _T("DURGHywkmAxl8dGtxMIuq3H//Qfyg1OUqAIYBT4ClPSbLl66mXmXipt/KMsmytQjLd9B2A43oWge")
             _T("LgcKjEdgbtYVmC7n9t2ggOnNde+fv+yhABEBAAG0I1NtYWxsIEZpeHR1cmUgPHNtYWxsQGZpeHR1")
@@ -1721,7 +1721,7 @@ namespace HM
             _T("rwIbDAAKCRAnREfZHQdWDVn+A/9iKWhbUkEGOYczIHAakvHQ+bPGWY3V1+3ibD7KA6hn6FoD5Chs")
             _T("VLftb6PeZZDnRjdmUJoL1vHx87bQi15AG9LedGEmWeiu3nXE2/+PvWcrPr6yzQi/MvglilhXSDK4")
             _T("6sJpfygJdQbW/dO4FEc8ThW+W/ME5DYxwbw1IWuqF7JDjg==");
-         const GatewayEncryption::KeyFacts weak = GatewayEncryption::Inspect(RemoteEncryptOpenPgp, small, _T("fixtures.test"), now);
+         const GatewayEncryption::KeyFacts weak = GatewayEncryption::Inspect(RemoteEncryptOpenPgp, smallKey, _T("fixtures.test"), now);
          Require(!weak.usable && weak.problem.Find("RSA of 1024 bits") >= 0,
                  (AnsiString("An RSA 1024 OpenPGP key was not refused for its size: ") + weak.problem).c_str());
       }
