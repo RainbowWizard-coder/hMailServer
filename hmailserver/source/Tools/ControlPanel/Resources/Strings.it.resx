@@ -4585,8 +4585,8 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Language" xml:space="preserve">
     <value>Lingua</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>Linguaggio (VBScript o JScript)</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>Linguaggio (VBScript, JScript o JavaScript)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Allegato più grande inviato (KB)</value>

@@ -4585,8 +4585,8 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Language" xml:space="preserve">
     <value>Dil</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>Dil (VBScript veya JScript)</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>Dil (VBScript, JScript veya JavaScript)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Gönderilen en büyük ek (KB)</value>

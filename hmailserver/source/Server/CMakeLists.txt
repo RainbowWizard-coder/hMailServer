@@ -26,6 +26,11 @@
 #                              installed below with the two units that run it.
 #   Server/hMailServer.Minidump  Windows Error Reporting.
 #
+# And it builds one thing the Windows project does not: Server/quickjs, the
+# JavaScript engine the event scripts run in on this platform (the release has
+# no MSVC support; Windows runs VBScript and JScript). See "the JavaScript
+# engine" below.
+#
 # WINDOWS_ONLY_SOURCES below is the list of core files that wrap a Win32
 # subsystem with no POSIX equivalent yet. Each one is a roadmap row, not an
 # oversight, and each is named with the row it belongs to. Removing a name from
@@ -75,7 +80,7 @@ endif()
 project(hmailserver_core
    VERSION ${HMAILSERVER_VERSION}
    DESCRIPTION "hMailServer core, portable build"
-   LANGUAGES CXX)
+   LANGUAGES C CXX)
 
 message(STATUS "hMailServer version ${PROJECT_VERSION}, read from Common/Application/Version.h")
 
@@ -252,6 +257,44 @@ if(NOT LDAP_INCLUDE_DIR OR NOT LDAP_LIBRARY OR NOT LBER_LIBRARY)
       "(Arch) and configure again.")
 endif()
 
+# ---------------------------------------------------------------- the JavaScript engine
+#
+# QuickJS, Fabrice Bellard's release 2025-04-26 (MIT), vendored as source under
+# Server/quickjs: the engine, its regular expression and Unicode libraries,
+# cutils and dtoa, byte for byte as released, with its LICENSE and VERSION. The
+# event scripts run in it on this platform (Common/Scripting/ScriptBinding.cpp,
+# hmailserver/docs/EventScripts.md). quickjs-libc.c - QuickJS's std and os
+# modules, files and processes and sockets - is not in the tree at all.
+#
+# A static library of its own, in C, for two reasons: hmailserver_core forces
+# portable_stdafx.h into every file it compiles, which is C++ and must not reach
+# a C file, and upstream's code is built with upstream's flags. Those are the
+# ones its Makefile gives the library's objects - _GNU_SOURCE, CONFIG_VERSION
+# from VERSION, and -fwrapv, which it passes so that signed overflow wraps as the
+# engine's arithmetic expects. The Makefile's warning switches are for its own
+# -Wall, which this build passes to nothing; HAVE_CLOSEFROM, the other definition
+# it can add, is read only by quickjs-libc.c. No C standard is named, as the
+# Makefile names none. The engine takes pthread for Atomics and libm for Math.
+file(READ ${SERVER_DIR}/quickjs/VERSION QUICKJS_VERSION)
+string(STRIP "${QUICKJS_VERSION}" QUICKJS_VERSION)
+
+add_library(quickjs STATIC
+   ${SERVER_DIR}/quickjs/quickjs.c
+   ${SERVER_DIR}/quickjs/libregexp.c
+   ${SERVER_DIR}/quickjs/libunicode.c
+   ${SERVER_DIR}/quickjs/cutils.c
+   ${SERVER_DIR}/quickjs/dtoa.c)
+
+target_compile_definitions(quickjs PRIVATE
+   _GNU_SOURCE
+   "CONFIG_VERSION=\"${QUICKJS_VERSION}\"")
+
+target_compile_options(quickjs PRIVATE -fwrapv)
+
+target_link_libraries(quickjs PRIVATE Threads::Threads m)
+
+message(STATUS "QuickJS ${QUICKJS_VERSION}, read from quickjs/VERSION")
+
 # ---------------------------------------------------------------- the target
 
 add_library(hmailserver_core STATIC ${CORE_SOURCES})
@@ -303,6 +346,13 @@ target_link_libraries(hmailserver_core PUBLIC
    Boost::filesystem
    ${CMAKE_DL_LIBS})
 
+# The JavaScript engine, above. PRIVATE because nothing outside the core names
+# it: ScriptBinding.cpp includes quickjs/quickjs.h by its path from the source
+# tree, so the engine's own directory - where a list.h and a cutils.h live - is
+# on nobody's include path. A static library's private dependency still reaches
+# every program linked against the core.
+target_link_libraries(hmailserver_core PRIVATE quickjs)
+
 # ---------------------------------------------------------------- the service
 
 # The executable a package installs and systemd starts. platform/main.cpp is the
@@ -334,6 +384,21 @@ add_executable(spf-tests ${SERVER_DIR}/platform/spf_tests_main.cpp)
 target_link_libraries(spf-tests PRIVATE hmailserver_core)
 set_target_properties(spf-tests PROPERTIES OUTPUT_NAME spf-tests)
 
+# ---------------------------------------------------------------- the event-script binding's tests
+#
+# ScriptBindingTester (Common/Scripting/ScriptBinding.h) as a program of its own,
+# for the reason spf-tests is one: nothing inside the server runs it on this
+# platform - ClassTester is reached only through COM and the Windows /Test switch -
+# and the Linux regression suite does not run it either, so this program, which
+# linux-build.yml runs and anybody can run from the build directory, is the only
+# thing that does. It proves the JavaScript
+# binding's members against the contract EventScripts.md lists, values both ways,
+# and the engine's limits - the timeout, the memory ceiling, no std or os module.
+# No database, no configuration, no network. Not installed; a bench tool.
+add_executable(script-binding-tests ${SERVER_DIR}/platform/script_binding_tests_main.cpp)
+target_link_libraries(script-binding-tests PRIVATE hmailserver_core)
+set_target_properties(script-binding-tests PROPERTIES OUTPUT_NAME script-binding-tests)
+
 # ---------------------------------------------------------------- the OpenPGP writer
 #
 # The one OpenPGP message this server writes - a delivery to a zero-access
@@ -352,6 +417,14 @@ install(TARGETS hmailserver RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY ${SERVER_DIR}/../DBScripts/
    DESTINATION ${CMAKE_INSTALL_DATADIR}/hmailserver/DBScripts
    FILES_MATCHING PATTERN "*.sql")
+
+# QuickJS's MIT licence asks for its notice in every copy, and the engine is
+# compiled into the binary: the release's LICENSE, installed beside the data the
+# server reads, under /usr/share/hmailserver rather than /usr/share/doc so that
+# no package has to own a directory another package owns.
+install(FILES ${SERVER_DIR}/quickjs/LICENSE
+   DESTINATION ${CMAKE_INSTALL_DATADIR}/hmailserver/licenses
+   RENAME QuickJS.txt)
 
 # The Control Deck - the administration page the REST listener serves at GET /.
 #

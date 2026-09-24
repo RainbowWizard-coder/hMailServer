@@ -4585,8 +4585,8 @@
   <data name="Language" xml:space="preserve">
     <value>Мова</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>Мова (VBScript або JScript)</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>Мова (VBScript, JScript або JavaScript)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Найбільше вкладення, що надсилається (КБ)</value>

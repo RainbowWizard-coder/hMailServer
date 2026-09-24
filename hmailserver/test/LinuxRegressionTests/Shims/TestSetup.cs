@@ -423,6 +423,11 @@ namespace RegressionTests.Shared
          // and on a server without a script engine a script file any later
          // fixture writes is then reported at every reload.
          ("/api/v1/settings/scripting", "enabled", "false"),
+         // And puts the language back to VBScript, as the Windows PerformBasicSetup
+         // does: the JavaScript fixture sets JavaScript, and a fixture after it that
+         // writes a VBScript handler must meet the language it was written for - on
+         // this build that is the skip the Scripting.Enabled gate gives it.
+         ("/api/v1/settings/scripting", "language", "\"VBScript\""),
       };
 
       private static readonly string[] SettingsGroups =

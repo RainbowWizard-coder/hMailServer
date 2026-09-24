@@ -4585,8 +4585,8 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Language" xml:space="preserve">
     <value>Language</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>Language (VBScript or JScript)</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>Language (VBScript, JScript or JavaScript)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Largest attachment submitted (KB)</value>

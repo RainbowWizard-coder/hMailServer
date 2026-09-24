@@ -929,5 +929,198 @@ namespace RegressionTests.API
          Assert.IsTrue(eventLogText.Contains("Account: test@example.test"));
          Assert.IsTrue(eventLogText.Contains("Password: MySecretPassword"));
       }
+
+      // ------------------------------------------------------------------ the language in force, and the one stored
+
+      // Leaves no script behind for the tests after these, whose setup switches
+      // scripting off and puts VBScript back but loads nothing: both files emptied,
+      // and an empty VBScript script loaded.
+      private void LeaveAnEmptyVBScriptScriptLoaded()
+      {
+         var scripting = SingletonProvider<TestSetup>.Instance.GetApp().Settings.Scripting;
+         scripting.Enabled = false;
+
+         scripting.Language = "JScript";
+         File.WriteAllText(scripting.CurrentScriptFile, string.Empty);
+
+         scripting.Language = "VBScript";
+         File.WriteAllText(scripting.CurrentScriptFile, string.Empty);
+
+         scripting.Reload();
+      }
+
+      [Test]
+      [Description("GET /api/v1/status names VBScript and JScript as the languages this build runs, and says it has an engine")]
+      public void TheStatusNamesVBScriptAndJScriptAsTheLanguagesThisBuildRuns()
+      {
+         ClassicAssert.IsTrue(ScriptLanguages.ListReported, "GET /api/v1/status has no build.script_languages.");
+         ClassicAssert.AreEqual("VBScript, JScript", ScriptLanguages.Describe(), "build.script_languages");
+         ClassicAssert.IsTrue(ScriptLanguages.ScriptEngine, "build.script_engine is false on a build that runs VBScript and JScript.");
+         ClassicAssert.IsFalse(ScriptLanguages.ServerRuns("JavaScript"), "A Windows build does not run JavaScript.");
+      }
+
+      [Test]
+      [Description("Storing JavaScript reloads nothing, and the JScript OnClientValidatePassword in force goes on deciding logons - before the reload and after it, since the reload is refused with the reason. Against the build before this, the call was built for the stored language: empty, the handler never asked, and the stored password let the client in.")]
+      public void StoringJavaScriptLeavesTheJScriptPasswordHandlerDeciding()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
+
+         var scripting = _settings.Scripting;
+
+         try
+         {
+            scripting.Language = "JScript";
+            File.WriteAllText(scripting.CurrentScriptFile,
+               "function OnClientValidatePassword(account, password) {\r\n" +
+               "   EventLog.Write('Password: ' + password);\r\n" +
+               "   Result.Value = password == 'MySecretPassword' ? 0 : 1;\r\n" +
+               "}\r\n");
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            // The handler decides: its password lets the client in, the stored one does not.
+            ClassicAssert.IsTrue(ImapClientSimulator.ValidatePassword("test@example.test", "MySecretPassword"));
+            ClassicAssert.IsFalse(ImapClientSimulator.ValidatePassword("test@example.test", "test"));
+
+            // The setting says JavaScript; nothing has been reloaded.
+            scripting.Language = "JavaScript";
+            LogHandler.DeleteEventLog();
+
+            ClassicAssert.IsFalse(ImapClientSimulator.ValidatePassword("test@example.test", "test"),
+               "The JScript handler in force was not asked, and the stored password let the client in.");
+            ClassicAssert.IsTrue(ImapClientSimulator.ValidatePassword("test@example.test", "MySecretPassword"));
+            StringAssert.Contains("Password: MySecretPassword", TestSetup.ReadExistingTextFile(LogHandler.GetEventLogFileName()));
+
+            // A reload in JavaScript is refused on this build, saying why, and the
+            // JScript script stays in force - handler and all.
+            scripting.Reload();
+            CustomAsserts.AssertReportedError("HM5710", "the engine the Linux builds");
+
+            ClassicAssert.IsFalse(ImapClientSimulator.ValidatePassword("test@example.test", "test"),
+               "After the refused reload the JScript handler was no longer asked.");
+            ClassicAssert.IsTrue(ImapClientSimulator.ValidatePassword("test@example.test", "MySecretPassword"));
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
+
+      [Test]
+      [Description("A reload into a language this build does not run is refused with the ERROR line even when there is no file for it, and the VBScript handler in force keeps running. Against the build before this, the missing file read as an empty script, the load went through without a word and every handler was off.")]
+      public void AReloadIntoJavaScriptWithNoFileIsRefusedAndTheVBScriptHandlerStays()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
+
+         var scripting = _settings.Scripting;
+
+         try
+         {
+            File.WriteAllText(scripting.CurrentScriptFile,
+               "Sub OnAcceptMessage(oClient, oMessage)\r\n" +
+               "   oMessage.HeaderValue(\"X-Handler\") = \"vbscript\"\r\n" +
+               "   oMessage.Save\r\n" +
+               "End Sub\r\n");
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            scripting.Language = "JavaScript";
+
+            // No EventHandlers.js at all: the case that used to pass in silence.
+            var javaScriptFile = scripting.CurrentScriptFile;
+            if (File.Exists(javaScriptFile))
+               File.Delete(javaScriptFile);
+
+            scripting.Reload();
+            CustomAsserts.AssertReportedError("HM5710", "the engine the Linux builds");
+
+            SmtpClientSimulator.StaticSend(account.Address, account.Address, "Test", "SampleBody");
+            StringAssert.Contains("X-Handler: vbscript", Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test"));
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
+
+      [Test]
+      [Description("A JavaScript file - here one that is valid JScript too - is refused at load on this build and never run as JScript, the ProgID Windows registers for it; loaded while scripting was off, it is not run when scripting is switched on either, and the rule function that reaches it is reported once, not in silence and not once per message")]
+      public void AJavaScriptScriptIsNeverRunAsJScriptAndARuleFunctionAgainstItIsReportedOnce()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
+
+         var scripting = _settings.Scripting;
+
+         try
+         {
+            // A known script in force first: VBScript, empty.
+            File.WriteAllText(scripting.CurrentScriptFile, string.Empty);
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            // Both functions are JScript as much as JavaScript. If "JavaScript" ever
+            // reached CoCreateInstance, the subjects would carry the marks.
+            scripting.Language = "JavaScript";
+            File.WriteAllText(scripting.CurrentScriptFile,
+               "function OnAcceptMessage(oClient, oMessage) {\r\n" +
+               "   oMessage.Subject = '[accept ran] ' + oMessage.Subject;\r\n" +
+               "   oMessage.Save();\r\n" +
+               "}\r\n" +
+               "function MarkTheSubject(oMessage) {\r\n" +
+               "   oMessage.Subject = '[rule ran] ' + oMessage.Subject;\r\n" +
+               "   oMessage.Save();\r\n" +
+               "}\r\n");
+
+            scripting.Reload();
+            CustomAsserts.AssertReportedError("the engine the Linux builds");
+            StringAssert.Contains("the engine the Linux builds", scripting.CheckSyntax());
+
+            SmtpClientSimulator.StaticSend(account.Address, account.Address, "First", "SampleBody");
+            var first = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            StringAssert.Contains("Subject: First", first);
+            StringAssert.DoesNotContain("[accept ran]", first);
+
+            // Loaded while scripting is off: nothing is refused then, and nothing
+            // registered. Switched on without a reload, as put_Enabled does.
+            scripting.Enabled = false;
+            scripting.Reload();
+            scripting.Enabled = true;
+
+            var rule = _application.Rules.Add();
+            rule.Name = "Runs a script function";
+            rule.Active = true;
+
+            var criteria = rule.Criterias.Add();
+            criteria.UsePredefined = true;
+            criteria.PredefinedField = eRulePredefinedField.eFTMessageSize;
+            criteria.MatchType = eRuleMatchType.eMTGreaterThan;
+            criteria.MatchValue = "0";
+            criteria.Save();
+
+            var action = rule.Actions.Add();
+            action.Type = eRuleActionType.eRARunScriptFunction;
+            action.ScriptFunction = "MarkTheSubject";
+            action.Save();
+
+            rule.Save();
+
+            SmtpClientSimulator.StaticSend(account.Address, account.Address, "Second", "SampleBody");
+            var second = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            StringAssert.Contains("Subject: Second", second);
+            StringAssert.DoesNotContain("[rule ran]", second);
+            CustomAsserts.AssertReportedError("HM5018", "MarkTheSubject", "which this Windows build does not run");
+
+            // Once per load: the next message the rule matches is refused as quietly
+            // as it should be, since the administrator has been told.
+            SmtpClientSimulator.StaticSend(account.Address, account.Address, "Third", "SampleBody");
+            var third = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            StringAssert.DoesNotContain("[rule ran]", third);
+            CustomAsserts.AssertNoReportedError();
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
    }
 }

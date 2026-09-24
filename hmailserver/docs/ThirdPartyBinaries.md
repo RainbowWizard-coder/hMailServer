@@ -45,12 +45,32 @@ outside the tree under `%hMailServerLibs%`, and
 DLLs into the output directory. That is why Scorecard does not flag them, and
 it is the model the rest of this list should be judged against.
 
-One native dependency is in the tree by design: zlib 1.3.1 is vendored as source
+Two native dependencies are in the tree by design. zlib 1.3.1 is vendored as source
 under `hmailserver/source/Server/zlib` (its own LICENSE beside it, the text also
 under `docs/Licenses/`) and compiled straight into `hMailServer.exe` for IMAP
 COMPRESS=DEFLATE - new in 6.2.28.
 Source, not a binary, so it is outside this inventory; it is not yet listed by
 `build/native-dependencies.ps1`, so the SBOM does not name it either.
+
+QuickJS 2025-04-26, Fabrice Bellard's JavaScript engine (MIT), is vendored as source
+under `hmailserver/source/Server/quickjs` - the engine and the four libraries it needs,
+byte for byte as released, with its LICENSE and VERSION; the licence text is also under
+`docs/Licenses/` and is installed by every Linux package as
+`/usr/share/hmailserver/licenses/QuickJS.txt` - the .deb, the .rpm and the PKGBUILD
+through the CMake install rule, the AppImage by its build script. It is the engine the event scripts run
+in on the Linux builds ([EventScripts.md](EventScripts.md)), built by CMake alone: the
+release has no MSVC support, so it is in no Visual Studio project and not in
+`hMailServer.exe`. `quickjs-libc.c`, where QuickJS's `std` and `os` modules live, was
+left out of the tree. It came from its author's site,
+bellard.org/quickjs/quickjs-2025-04-26.tar.xz (sha256
+`2f20074c25166ef6f781f381c50d57b502cb85d470d639abccebbef7954c83bf`), and was checked
+against the Ubuntu archive's pristine copy of the same release,
+quickjs_2025.04.26.orig.tar.xz (sha256
+`ec81da5b3249ed648dbc7df4a1654988910e66a118d9b71cb63534216efcfbbe`): the files are
+identical, and only the top directory's name and the compression differ. Source, not a
+binary, so it is outside this inventory too; `build/native-dependencies.ps1` does list
+it, reading the version from `quickjs/VERSION` (the one place the CMake build reads it
+from as well), so the SBOM names it.
 
 It is worth being precise about one thing. The three scripts that build those
 libraries - `libraries/build-openssl.ps1`, `build-boost.ps1` and

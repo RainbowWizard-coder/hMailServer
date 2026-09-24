@@ -99,11 +99,15 @@ Nine rules, in the shape of build/check-authz-choke-point.py:
               what a row says and never whether it is written.
 
   scripts     Every script engine ScriptServer starts runs inside a
-              ScriptActorBoundary. A script runs in process on the server thread
-              that fired its event, and a COM object it authenticates installs
-              that credential on the thread as every COM authority question
-              does; without the boundary it stays there, and the server's next
-              change on that thread is recorded as the script's credential's.
+              ScriptActorBoundary - an Active Scripting engine on Windows, and a
+              run of the JavaScript engine (ScriptBinding) on Linux. A script
+              runs in process on the server thread that fired its event, and a
+              COM object it authenticates installs that credential on the thread
+              as every COM authority question does; without the boundary it
+              stays there, and the server's next change on that thread is
+              recorded as the script's credential's. The JavaScript engine has no
+              COM to sign in to; its boundary keeps what a handler changes from
+              being recorded as whoever was acting on the thread.
 
 Run from the repository root: python3 build/check-audit-choke-point.py
 """
@@ -701,7 +705,13 @@ def check_scripts(problems):
    rel = "Common/Scripting/ScriptServer.cpp"
    text = read(os.path.join(SERVER, "Common", "Scripting", "ScriptServer.cpp"))
 
-   engines = text.count("pBasic->Initiate(")
+   # An Active Scripting engine on Windows, and a run of the JavaScript engine the
+   # Linux builds embed - each of ScriptBinding's three entry points makes an
+   # engine of its own - on the other.
+   engines = (text.count("pBasic->Initiate(")
+              + text.count("ScriptBinding::RunScript(")
+              + text.count("ScriptBinding::FindFunction(")
+              + text.count("ScriptBinding::CallHandler("))
    boundaries = text.count("ScriptActorBoundary actors;")
 
    if engines == 0:

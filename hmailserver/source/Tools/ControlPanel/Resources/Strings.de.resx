@@ -4585,8 +4585,8 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="Language" xml:space="preserve">
     <value>Sprache</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>Sprache (VBScript oder JScript)</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>Sprache (VBScript, JScript oder JavaScript)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Größter übermittelter Anhang (KB)</value>

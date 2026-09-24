@@ -4585,8 +4585,8 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Language" xml:space="preserve">
     <value>Langue</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>Langage (VBScript ou JScript)</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>Langage (VBScript, JScript ou JavaScript)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Plus grande pièce jointe soumise (Ko)</value>

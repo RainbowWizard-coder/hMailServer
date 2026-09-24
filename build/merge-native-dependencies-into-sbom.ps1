@@ -75,7 +75,11 @@ if ($isSpdx) {
          copyrightText    = 'NOASSERTION'
          filesAnalyzed    = $false
          supplier         = 'NOASSERTION'
-         comment          = ('Linked native dependency, not present in the repository: {0}. Version taken from {1}.' -f $dependency.why, $dependency.source)
+         comment          = $(if ($dependency.vendored) {
+                                 'Native dependency vendored as source in the repository at {0}: {1}. Version taken from {2}.' -f $dependency.vendored, $dependency.why, $dependency.source
+                              } else {
+                                 'Linked native dependency, not present in the repository: {0}. Version taken from {1}.' -f $dependency.why, $dependency.source
+                              })
          externalRefs     = @(
             [pscustomobject]@{ referenceCategory = 'PACKAGE-MANAGER'; referenceType = 'purl'; referenceLocator = $dependency.purl },
             [pscustomobject]@{ referenceCategory = 'SECURITY';        referenceType = 'cpe23Type'; referenceLocator = $dependency.cpe }

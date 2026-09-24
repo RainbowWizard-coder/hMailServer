@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using NUnit.Framework;
@@ -289,12 +290,78 @@ namespace RegressionTests.Infrastructure
          return hMailServer.SettingsApi.GetString(hMailServer.SettingsApi.Logging, "current_event_log");
       }
 
+      // Where the event log stood when DeleteEventLog was last called, in bytes.
+      private static long _eventLogMark;
+
       /// <summary>
-      ///    The event log is written by the server and no route deletes it; a mark is
-      ///    taken instead, the same way the ERROR log is handled here.
+      ///    The event log is the server's file, one for the whole life of the server:
+      ///    it is not rotated, and no route deletes it. So "delete" takes a mark
+      ///    instead - the file's length now - and ReadEventLog answers only what was
+      ///    written after it, which is what a Windows test finds in the file it has
+      ///    just deleted. This used to do nothing, although this comment said a mark
+      ///    was taken, and every read of the event log was the whole of it: a test
+      ///    that asserted a line was NOT there found the one an earlier test had
+      ///    written, and a test that asserted a line WAS there could pass on it.
       /// </summary>
       public static void DeleteEventLog()
       {
+         _eventLogMark = EventLogLength();
+      }
+
+      private static long EventLogLength()
+      {
+         try
+         {
+            var file = new FileInfo(GetEventLogFileName());
+            return file.Exists ? file.Length : 0;
+         }
+         catch (IOException)
+         {
+            return 0;
+         }
+         catch (UnauthorizedAccessException)
+         {
+            return 0;
+         }
+      }
+
+      /// <summary>
+      ///    The event log as written since DeleteEventLog's mark, read from the file
+      ///    the server names (current_event_log), without a lock so that the server
+      ///    goes on writing it. The server writes it as UTF-16 after a byte order
+      ///    mark, on this platform as on Windows (File::Write), so the bytes after the
+      ///    mark are decoded as the start of the file says; with no mark at the start
+      ///    they are UTF-8. Empty when the file is not there yet. A file shorter than
+      ///    the mark is a new file, and all of it is new.
+      /// </summary>
+      public static string ReadEventLog()
+      {
+         var fileName = GetEventLogFileName();
+         if (!File.Exists(fileName))
+            return string.Empty;
+
+         byte[] bytes;
+         using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+         using (var copy = new MemoryStream())
+         {
+            stream.CopyTo(copy);
+            bytes = copy.ToArray();
+         }
+
+         var utf16 = bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE;
+         var preamble = utf16 ? 2 : (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF ? 3 : 0);
+
+         var start = _eventLogMark > bytes.Length ? 0 : _eventLogMark;
+         if (start < preamble)
+            start = preamble;
+
+         // A code unit is two bytes: a mark taken while the server was part way
+         // through writing one starts at the unit's first byte.
+         if (utf16 && (start - preamble) % 2 != 0)
+            start--;
+
+         var encoding = utf16 ? Encoding.Unicode : Encoding.UTF8;
+         return encoding.GetString(bytes, (int) start, bytes.Length - (int) start);
       }
 
       /// <summary>

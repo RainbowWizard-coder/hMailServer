@@ -425,8 +425,9 @@ namespace RegressionTests.Shared
       });
 
       /// <summary>
-      ///    Whether this build of the server has the named capability - script_engine,
-      ///    argon2id or post_quantum_key_exchange - as GET /api/v1/status reports under
+      ///    Whether this build of the server has the named capability - script_engine
+      ///    (see ScriptLanguages for which), argon2id or post_quantum_key_exchange - as
+      ///    GET /api/v1/status reports under
       ///    "build". A server that reports no build object (one built before 6.3.3)
       ///    is taken to have none of them.
       /// </summary>
@@ -435,6 +436,63 @@ namespace RegressionTests.Shared
          var build = Build.Value;
          JsonElement value;
          return build.HasValue && build.Value.TryGetProperty(name, out value) && value.ValueKind == JsonValueKind.True;
+      }
+
+      /// <summary>
+      ///    The event-script languages this build runs, as GET /api/v1/status reports
+      ///    them under build.script_languages: JavaScript on a Linux build, VBScript and
+      ///    JScript on a Windows one. The setting accepts all three everywhere; a
+      ///    language a build does not run is refused when the script is loaded. A
+      ///    server that reports no list is one from before the list: its script_engine
+      ///    was true only on Windows, where the two Active Scripting languages ran.
+      /// </summary>
+      public static IReadOnlyList<string> ScriptLanguages
+      {
+         get
+         {
+            var build = Build.Value;
+            JsonElement value;
+            var languages = new List<string>();
+
+            if (build.HasValue && build.Value.TryGetProperty("script_languages", out value) && value.ValueKind == JsonValueKind.Array)
+            {
+               foreach (var language in value.EnumerateArray())
+               {
+                  if (language.ValueKind == JsonValueKind.String)
+                     languages.Add(language.GetString());
+               }
+            }
+            else if (Capability("script_engine"))
+            {
+               languages.Add("VBScript");
+               languages.Add("JScript");
+            }
+
+            return languages;
+         }
+      }
+
+      /// <summary>Whether GET /api/v1/status names the languages itself, under build.script_languages.</summary>
+      public static bool ReportsScriptLanguages
+      {
+         get
+         {
+            var build = Build.Value;
+            JsonElement value;
+            return build.HasValue && build.Value.TryGetProperty("script_languages", out value) && value.ValueKind == JsonValueKind.Array;
+         }
+      }
+
+      /// <summary>Whether this build runs event scripts in the language, as the setting spells it.</summary>
+      public static bool RunsScriptLanguage(string language)
+      {
+         foreach (var runs in ScriptLanguages)
+         {
+            if (string.Equals(runs, language, StringComparison.OrdinalIgnoreCase))
+               return true;
+         }
+
+         return false;
       }
 
       /// <summary>

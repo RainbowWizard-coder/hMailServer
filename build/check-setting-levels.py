@@ -122,6 +122,7 @@ ALLOWED = {
     # beside the effective value the resolver answers.
     "COM/InterfaceDomain.cpp": (["InterfaceDomain::get_*", "InterfaceDomain::put_*"], "the domain's own properties over COM"),
     "COM/InterfaceAccount.cpp": (["InterfaceAccount::get_*", "InterfaceAccount::put_*"], "the account's own properties over COM"),
+    "Common/Scripting/ScriptBinding.cpp": (["AccountGet_"], "the account's own properties to a JavaScript event script, read-only, as InterfaceAccount::get_* reports them to VBScript and JScript"),
     "COM/InterfaceSettings.cpp": (["InterfaceSettings::get_*", "InterfaceSettings::put_*"], "the server's own properties over COM"),
     "Common/Util/RestApiAdministration.cpp": (["RestApiServer::DomainEntryJson_", "ApplyDomainBody"], "the domain's own fields over REST"),
     "Common/Util/RestApiRoutes.cpp": (["AccountEntryJson", "RestApiServer::HandleUpdateAccount_"], "the account's own fields over REST"),

@@ -4585,8 +4585,8 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Language" xml:space="preserve">
     <value>Språk</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>Språk (VBScript eller JScript)</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>Språk (VBScript, JScript eller JavaScript)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Største vedlegg som sendes inn (KB)</value>

@@ -4585,8 +4585,8 @@
   <data name="Language" xml:space="preserve">
     <value>语言</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>语言（VBScript 或 JScript）</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>语言（VBScript、JScript 或 JavaScript）</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>提交的最大附件（KB）</value>

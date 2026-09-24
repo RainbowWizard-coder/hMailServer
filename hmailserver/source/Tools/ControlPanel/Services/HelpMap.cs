@@ -130,7 +130,7 @@ namespace hMailServer.ControlPanel.Services
             ["backup"] = new HelpTarget("Backup.md"),
             ["performance"] = new HelpTarget("DiagnosingStalledMail.md", "Settings that bound each stage"),
             ["advanced"] = new HelpTarget("ChangedFromStock.md"),
-            ["scripts"] = new HelpTarget("Webhooks.md", "What a webhook carries, and what it does not"),
+            ["scripts"] = new HelpTarget("EventScripts.md", "Which language, where"),
             ["hardening"] = new HelpTarget("ChangedFromStock.md", "A value the file is forcing"),
             ["about"] = new HelpTarget("Upgrading.md"),
          });

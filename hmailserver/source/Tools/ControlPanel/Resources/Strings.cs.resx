@@ -4585,8 +4585,8 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Language" xml:space="preserve">
     <value>Jazyk</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>Jazyk (VBScript nebo JScript)</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>Jazyk (VBScript, JScript nebo JavaScript)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Největší odesílaná příloha (KB)</value>

@@ -32,6 +32,19 @@
 
 namespace HM
 {
+   ScriptArgument::ScriptArgument(const String &value) :
+      kind(KindText),
+      text(value),
+      number(0)
+   {
+   }
+
+   ScriptArgument::ScriptArgument(long long value) :
+      kind(KindNumber),
+      number(value)
+   {
+   }
+
    ScriptObjectContainer::ScriptObjectContainer(void)
    {
       // Default objects
@@ -61,6 +74,46 @@ namespace HM
       pObject->sName = sName;
       pObject->pObject = pObj;
       objects_[sName] = pObject;
+   }
+
+   std::shared_ptr<ScriptObject>
+   ScriptObjectContainer::FindObject(const String &sName) const
+   {
+      auto iterPos = objects_.find(sName);
+      if (iterPos == objects_.end())
+         return nullptr;
+
+      return (*iterPos).second;
+   }
+
+   void
+   ScriptObjectContainer::AddTextArgument(const String &value)
+   {
+      arguments_.push_back(ScriptArgument(value));
+   }
+
+   void
+   ScriptObjectContainer::AddNumberArgument(long long value)
+   {
+      arguments_.push_back(ScriptArgument(value));
+   }
+
+   const std::vector<ScriptArgument> &
+   ScriptObjectContainer::GetArguments() const
+   {
+      return arguments_;
+   }
+
+   void
+   ScriptObjectContainer::SetProcedureName(const String &name)
+   {
+      procedure_name_ = name;
+   }
+
+   String
+   ScriptObjectContainer::GetProcedureName() const
+   {
+      return procedure_name_;
    }
 
 #ifndef HM_PLATFORM_POSIX

@@ -92,13 +92,21 @@ STDMETHODIMP InterfaceScripting::put_Language(BSTR newVal)
       // Validated, because an unrecognised language does not fail loudly - it turns
       // every event handler off in silence, and reports success while doing it.
       //
-      // ScriptServer knows exactly two language names. Anything else makes
+      // ScriptServer knows exactly three language names. Anything else makes
       // GetScriptExtension_ return an empty extension, so the file the server looks
       // for is "EventHandlers." with nothing after the dot; no such file exists, the
       // script it loads is empty, and OnAcceptMessage, OnClientLogon and
       // OnClientValidatePassword simply stop firing. An operator who mistyped the
       // language got no error from this setter, no error in the log, and an
       // anti-spam or logon handler that had quietly stopped running.
+      //
+      // All three are accepted on every platform, JavaScript included, although
+      // this Windows build runs only the first two: a backup, an environment
+      // configuration or a configuration document (hmctl config export) made on a
+      // Linux server has to apply here. The language a build cannot run is refused
+      // when the script is loaded, in the error log (ScriptServer::CompileContents_);
+      // storing it reloads nothing, and the script in force goes on running in the
+      // language it was loaded in (ScriptServer::GetLoadedLanguage).
       HM::String requested = newVal;
       requested.Trim();
 
@@ -108,8 +116,10 @@ STDMETHODIMP InterfaceScripting::put_Language(BSTR newVal)
          canonical = _T("VBScript");
       else if (requested.CompareNoCase(_T("JScript")) == 0)
          canonical = _T("JScript");
+      else if (requested.CompareNoCase(_T("JavaScript")) == 0)
+         canonical = _T("JavaScript");
       else
-         return COMError::GenerateError(HM::Formatter::Format("The script language '{0}' is not supported. hMailServer can run VBScript or JScript.", requested));
+         return COMError::GenerateError(HM::Formatter::Format("The script language '{0}' is not supported. The script language is VBScript, JScript or JavaScript.", requested));
 
       // Stored in the spelling ScriptServer compares against, not the caller's. Those
       // comparisons are String::operator==, which is case-sensitive, so accepting

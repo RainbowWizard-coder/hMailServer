@@ -4585,8 +4585,8 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Language" xml:space="preserve">
     <value>Idioma</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>Lenguaje (VBScript o JScript)</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>Lenguaje (VBScript, JScript o JavaScript)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Adjunto más grande enviado (KB)</value>

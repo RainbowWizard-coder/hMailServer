@@ -1864,11 +1864,29 @@ namespace
       return directory + "hmailserver_backup.log";
    }
 
-   // InterfaceScripting::put_Language's rule: two languages, and a name that
-   // is neither is refused rather than stored, because an unrecognised name
-   // turns every event handler off in silence.
+   // InterfaceScripting::put_Language's rule: three languages, accepted on every
+   // platform so that a backup, an environment configuration or a configuration
+   // document (hmctl config export) made on one applies on the other, and a name
+   // that is none of them is refused rather than stored, because an unrecognised
+   // name turns every event handler off in silence. The word is trimmed first, as
+   // COM trims it, so that the two take the same text and refuse it in the same
+   // sentence. Which of the three this build runs is GET /api/v1/status's
+   // build.script_languages.
    const char *ScriptLanguageRefusalHead = "The script language '";
-   const char *ScriptLanguageRefusalTail = "' is not supported. hMailServer can run VBScript or JScript.";
+   const char *ScriptLanguageRefusalTail = "' is not supported. The script language is VBScript, JScript or JavaScript.";
+
+   // The spelling ScriptServer compares against, for a word the check has let
+   // through.
+   String CanonicalScriptLanguage(const AnsiString &word)
+   {
+      if (word.CompareNoCase("JScript") == 0)
+         return String("JScript");
+
+      if (word.CompareNoCase("JavaScript") == 0)
+         return String("JavaScript");
+
+      return String("VBScript");
+   }
 
    const Row ScriptingRows[] =
    {
@@ -1876,10 +1894,10 @@ namespace
         "Whether the event handlers run at all.",
         ROW_FLAG(Config()->GetUseScriptServer()), ROW_SET(Config()->SetUseScriptServer(v.flag)), ROW_NO_CHECK },
       { "language", KindString, ReadWrite, EffectNow, nullptr,
-        "VBScript or JScript, the language the event handlers are written in; any other name is refused.",
+        "VBScript, JScript or JavaScript, the language the event handlers are written in; any other name is refused. The Windows builds run VBScript and JScript, the Linux builds JavaScript.",
         ROW_TEXT(Config()->GetScriptLanguage()),
-        [] (const Value &v) { AnsiString word = v.text; Config()->SetScriptLanguage(word.CompareNoCase("JScript") == 0 ? String("JScript") : String("VBScript")); return Applied(); },
-        [] (const Value &v) -> String { AnsiString word = v.text; if (word.CompareNoCase("VBScript") == 0 || word.CompareNoCase("JScript") == 0) return String(); return String(ScriptLanguageRefusalHead) + v.text + ScriptLanguageRefusalTail; } },
+        [] (const Value &v) { AnsiString word = v.text; word.Trim(); Config()->SetScriptLanguage(CanonicalScriptLanguage(word)); return Applied(); },
+        [] (const Value &v) -> String { String trimmed = v.text; trimmed.Trim(); AnsiString word = trimmed; if (word.CompareNoCase("VBScript") == 0 || word.CompareNoCase("JScript") == 0 || word.CompareNoCase("JavaScript") == 0) return String(); return String(ScriptLanguageRefusalHead) + trimmed + ScriptLanguageRefusalTail; } },
       { "current_script_file", KindString, ReadOnly, EffectNow, nullptr,
         "The event-handler file the server is running, in the event directory.",
         ROW_TEXT(ScriptServer::Instance()->GetCurrentScriptFile()), nullptr, ROW_NO_CHECK },

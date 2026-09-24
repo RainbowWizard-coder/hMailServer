@@ -1,0 +1,35 @@
+QuickJS, Fabrice Bellard's JavaScript engine, release 2025-04-26, vendored as source
+at hmailserver/source/Server/quickjs and compiled into the Linux builds of the
+server, where the event scripts run in it (hmailserver/docs/EventScripts.md). It is
+not in hMailServer.exe. It was taken from its author's site
+(bellard.org/quickjs/quickjs-2025-04-26.tar.xz, sha256
+2f20074c25166ef6f781f381c50d57b502cb85d470d639abccebbef7954c83bf) and checked
+against the Ubuntu archive's pristine copy of the same release
+(quickjs_2025.04.26.orig.tar.xz, sha256
+ec81da5b3249ed648dbc7df4a1654988910e66a118d9b71cb63534216efcfbbe). The text below
+is a verbatim copy of the release's LICENSE, which is kept beside the source.
+
+----------------------------------------------------------------------------
+
+QuickJS Javascript Engine
+
+Copyright (c) 2017-2021 Fabrice Bellard
+Copyright (c) 2017-2021 Charlie Gordon
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

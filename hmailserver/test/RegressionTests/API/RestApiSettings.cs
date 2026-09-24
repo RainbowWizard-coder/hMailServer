@@ -979,7 +979,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("GET and PUT /api/v1/settings/scripting are Settings.Scripting: the switch and the language written and read back through COM, a language that is neither refused in COM's words, the script checked and loaded again over the two POSTs.")]
+      [Description("GET and PUT /api/v1/settings/scripting are Settings.Scripting: the switch and the language written and read back through COM, a language that is none of the three refused in COM's words, the script checked and loaded again over the two POSTs.")]
       public void ScriptingGroupRoundTripsThroughCom()
       {
          var scripting = _settings.Scripting;
@@ -998,8 +998,22 @@ namespace RegressionTests.API
 
          (int refusedStatus, string refusedBody) = Http("PUT", "/api/v1/settings/scripting", "{\"language\":\"Python\"}");
          Assert.AreEqual(400, refusedStatus, refusedBody);
-         StringAssert.Contains("is not supported. hMailServer can run VBScript or JScript", refusedBody);
+         StringAssert.Contains("is not supported. The script language is VBScript, JScript or JavaScript", refusedBody);
          Assert.AreEqual("JScript", scripting.Language, "A refused language changes nothing.");
+
+         // The third word, accepted on every platform - a backup, an environment
+         // configuration or a configuration document made on a Linux server has to
+         // apply on a Windows one - and stored as COM stores it.
+         (int javaScriptStatus, string javaScriptBody) = Http("PUT", "/api/v1/settings/scripting", "{\"language\":\"javascript\"}");
+         Assert.AreEqual(200, javaScriptStatus, javaScriptBody);
+         StringAssert.Contains("\"language\":\"JavaScript\"", javaScriptBody, "Stored in its canonical spelling, as COM stores it.");
+         Assert.AreEqual("JavaScript", scripting.Language);
+
+         // Spaces around the word are trimmed, as COM trims them, so that the two
+         // take the same text.
+         (int paddedStatus, string paddedBody) = Http("PUT", "/api/v1/settings/scripting", "{\"language\":\" JScript \"}");
+         Assert.AreEqual(200, paddedStatus, paddedBody);
+         Assert.AreEqual("JScript", scripting.Language);
 
          (int caseStatus, string caseBody) = Http("PUT", "/api/v1/settings/scripting", "{\"language\":\"vbscript\"}");
          Assert.AreEqual(200, caseStatus, caseBody);

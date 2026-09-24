@@ -119,8 +119,8 @@ handles it was given, or to the console of whoever ran it. It:
    does not start on settings it was not given;
 4. writes each, and prints its line as soon as it is written: **through the REST
    settings row's setter wherever a row lends one**, so that a value is stored as
-   `PUT /api/v1/settings/...` stores it - the script language as `JScript` or
-   `VBScript` whatever the case it was given in, a URL trimmed, the VAPID private
+   `PUT /api/v1/settings/...` stores it - the script language as `VBScript`,
+   `JScript` or `JavaScript` whatever the case it was given in, a URL trimmed, the VAPID private
    key with the public half derived from it, the backup passphrase with its is-set
    flag - and otherwise a `[Settings]` key through
    `IniFileSettings::WriteSettingsValue`, the locked write path every save takes,
@@ -362,7 +362,7 @@ cleared before any test. Each with its negative control:
   sentence their `PUT` refuses the same value with, compared, and
   `RewriteEnvelopeFromWhenForwarding=7` refused as the switch it is; the value in
   range taken over REST and by the verb;
-* the script language given in small letters stored as `JScript` or `VBScript`;
+* the script language given in small letters stored as `JavaScript` or `VBScript`;
 * a VAPID private key refused as REST refuses it, the public key refused as
   derived, and a good key from a file stored with the public half derived and a new
   pair refused (409);

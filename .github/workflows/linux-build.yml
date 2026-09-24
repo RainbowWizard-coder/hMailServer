@@ -178,6 +178,16 @@ jobs:
       - name: The SPF tests, and the RFC 7208 conformance suite
         run: ./build/linux/spf-tests
 
+      # The JavaScript event-script binding (Common/Scripting/ScriptBinding.h): every
+      # member the contract in hmailserver/docs/EventScripts.md names, values both
+      # ways, and the engine held to its limits - the timeout, the 64 MB ceiling,
+      # no std or os module, no import(). No server, no database, no network - and
+      # this step is the only thing that runs it: the tester is compiled on Linux
+      # alone, where there is no COM to reach ClassTester by, and neither
+      # regression suite runs this program.
+      - name: The JavaScript event-script binding
+        run: ./build/linux/script-binding-tests
+
       # The one OpenPGP message this server writes - a zero-access mailbox's
       # delivery, encrypted to the mailbox's own key (Common/Util/OpenPgpWriter,
       # docs/ZeroAccess.md) - handed to an implementation that is not this one.

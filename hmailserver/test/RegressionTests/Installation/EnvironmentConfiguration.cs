@@ -297,15 +297,15 @@ namespace RegressionTests.Installation
       }
 
       [Test]
-      [Description("A value is written through its REST settings row's setter, so it is stored as REST stores it: the script language given in small letters is stored as JScript or VBScript, which is what every reader compares with. Negative control: the language before the run is the other one.")]
+      [Description("A value is written through its REST settings row's setter, so it is stored as REST stores it: the script language given in small letters is stored as JavaScript or VBScript, which is what every reader compares with - JavaScript accepted here although this build runs VBScript and JScript, because a configuration made for a Linux server has to apply. Negative control: the language before the run is the other one.")]
       public void AValueIsStoredAsItsRestRowStoresIt()
       {
          string before = _settings.Scripting.Language;
          putBack_.Add(() => _settings.Scripting.Language = before);
 
-         bool toJScript = !string.Equals(before, "JScript", StringComparison.Ordinal);
-         string typed = toJScript ? "jscript" : "vbscript";
-         string canonical = toJScript ? "JScript" : "VBScript";
+         bool toJavaScript = !string.Equals(before, "JavaScript", StringComparison.Ordinal);
+         string typed = toJavaScript ? "javascript" : "vbscript";
+         string canonical = toJavaScript ? "JavaScript" : "VBScript";
          Assert.AreNotEqual(canonical, before, "The negative control: the server must not hold the language before the run.");
 
          Verb run = RunVerb(new Dictionary<string, string> { { "HM_PROPERTY_scriptlanguage", typed } });

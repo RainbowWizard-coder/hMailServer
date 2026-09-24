@@ -578,6 +578,7 @@
     <Compile Include="AntiSpam\DKIM\Verification.cs" />
     <Compile Include="AntiSpam\DKIM\Sha1SignatureRejection.cs" />
     <Compile Include="API\Events.cs" />
+    <Compile Include="API\EventsJavaScript.cs" />
     <Compile Include="API\Links.cs" />
     <Compile Include="Stress\ContentStressTest.cs" />
     <Compile Include="IMAP\Sort.cs" />
@@ -801,6 +802,7 @@
     <Compile Include="SSL\ListenerTlsConfiguration.cs" />
     <Compile Include="Shared\IniFileSetting.cs" />
     <Compile Include="Shared\RestListener.cs" />
+    <Compile Include="Shared\ScriptLanguages.cs" />
     <Compile Include="SMTP\SpoolWriteFailure.cs" />
     <Compile Include="SMTP\OutboundBindFamily.cs" />
     <Compile Include="Infrastructure\ReaderRetentionTests.cs" />

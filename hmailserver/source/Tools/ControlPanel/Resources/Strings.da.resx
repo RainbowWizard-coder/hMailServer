@@ -4585,8 +4585,8 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Language" xml:space="preserve">
     <value>Sprog</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>Sprog (VBScript eller JScript)</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>Sprog (VBScript, JScript eller JavaScript)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Største vedhæftning, der indsendes (KB)</value>

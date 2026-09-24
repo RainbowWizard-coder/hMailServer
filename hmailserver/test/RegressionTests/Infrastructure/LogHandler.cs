@@ -170,5 +170,25 @@ namespace RegressionTests.Infrastructure
       {
          return SingletonProvider<TestSetup>.Instance.GetApp().Settings.Logging.CurrentEventLog;
       }
+
+      /// <summary>
+      ///    The event log as a test that called DeleteEventLog finds it: the whole
+      ///    file, which DeleteEventLog deleted, read without a lock so that the server
+      ///    goes on writing it; empty while nothing has written it since. The Linux
+      ///    project's LogHandler answers what was written after a mark, which is the
+      ///    same fact on a server whose event log is never deleted.
+      /// </summary>
+      public static string ReadEventLog()
+      {
+         var fileName = GetEventLogFileName();
+         if (!File.Exists(fileName))
+            return string.Empty;
+
+         using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+         using (var reader = new StreamReader(stream))
+         {
+            return reader.ReadToEnd();
+         }
+      }
    }
 }

@@ -156,6 +156,9 @@ From the CMakeLists install rules, with the prefix above:
                                             REST listener
 /usr/share/hmailserver/WebAdmin/languages/  the Deck's catalogues, one JSON file per
                                             language, served at /deck-lang/<code>.json
+/usr/share/hmailserver/licenses/QuickJS.txt the licence of QuickJS, the JavaScript
+                                            engine compiled into the binary for the
+                                            event scripts (MIT asks for its notice)
 /usr/lib/systemd/system/hmailserver.service the unit
 /usr/lib/systemd/system/hmailserver-update.path     the live update's trigger
 /usr/lib/systemd/system/hmailserver-update.service  and the root service it starts
@@ -184,6 +187,16 @@ removed with it:
 /etc/hmailserver               0750 root:hmailserver
 /etc/hmailserver/hMailServer.ini 0640 root:hmailserver
 ```
+
+**The event scripts** in `/var/lib/hmailserver/events` are JavaScript on this
+platform: `EventHandlers.js`, run by the QuickJS engine compiled into the server,
+with the script language set to `JavaScript` (`hmctl settings set scripting
+--set-string language=JavaScript`). The setting is seeded `VBScript`, as on
+Windows, and while scripting is on a VBScript or JScript script is refused when it
+is loaded - one line in the error log saying to set `JavaScript` - rather than left
+silently unrun. The
+objects a handler is given, how a Windows script ports and what a handler may not
+do are [EventScripts.md](../../../../docs/EventScripts.md).
 
 Created by the server itself, the first time a stored secret is written, and
 therefore in neither list:

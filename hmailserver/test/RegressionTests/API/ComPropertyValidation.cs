@@ -79,6 +79,11 @@ namespace RegressionTests.API
             Assert.Throws<COMException>(() => scripting.Language = "");
             Assert.Throws<COMException>(() => scripting.Language = "VBScript2");
 
+            // Windows registers ECMAScript as a ProgID for JScript, as it does
+            // JavaScript; the setting takes the three names it knows and not every
+            // name an engine answers to.
+            Assert.Throws<COMException>(() => scripting.Language = "ECMAScript");
+
             // The refusals left the setting alone. Before the fix each of these was
             // stored and S_OK returned.
             Assert.AreEqual(originalLanguage, scripting.Language);
@@ -109,6 +114,13 @@ namespace RegressionTests.API
 
             scripting.Language = "jscript";
             Assert.AreEqual("JScript", scripting.Language);
+
+            // Accepted on Windows too, although this build refuses a JavaScript
+            // script when it is loaded: a backup, an environment configuration or a
+            // configuration document made on a Linux server, whose engine it is, has
+            // to apply here.
+            scripting.Language = "javascript";
+            Assert.AreEqual("JavaScript", scripting.Language);
          }
          finally
          {

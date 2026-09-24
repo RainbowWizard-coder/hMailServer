@@ -892,7 +892,7 @@ const SETTING_GROUPS = {
    '/api/v1/settings/scripting': {
       props: {
          enabled: { type: 'boolean', description: 'Whether the event handlers run at all.' },
-         language: { type: 'string', description: 'VBScript or JScript, the language the event handlers are written in; any other name is refused.' },
+         language: { type: 'string', description: 'VBScript, JScript or JavaScript, the language the event handlers are written in; any other name is refused. The Windows builds run VBScript and JScript, the Linux builds JavaScript.' },
          current_script_file: { type: 'string', description: 'The event-handler file the server is running, in the event directory.', readOnly: true }
       },
       values: { enabled: false, language: 'VBScript', current_script_file: '/var/lib/hmailserver/events/EventHandlers.vbs' }

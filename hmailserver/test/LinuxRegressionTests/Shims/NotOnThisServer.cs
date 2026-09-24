@@ -79,12 +79,21 @@ namespace RegressionTests.Shared
          "needs an account with a maximum size, which this server's POST /api/v1/domains/{domain}/accounts advertises and does not set (it reads it from wave 162 on)";
 
       /// <summary>
-      ///    The event handlers are VBScript or JScript, run by Windows Active
-      ///    Scripting; this build has no script engine and says so when a script
-      ///    is loaded. A test that needs a handler to run cannot run here.
+      ///    A server from before the Linux builds ran JavaScript: it has no script
+      ///    engine at all and says so when a script is loaded.
       /// </summary>
       public const string NoScriptEngine =
          "needs the event-handler script to run, and this build has no script engine - VBScript and JScript are Windows Active Scripting engines with no equivalent on this platform";
+
+      /// <summary>
+      ///    The handler is VBScript or JScript - or the test is about the COM objects
+      ///    those two engines are given, or the COM classes a script may create - and
+      ///    this build runs event scripts in JavaScript (GET /api/v1/status,
+      ///    build.script_languages). The tests that could be written in JavaScript
+      ///    have been, beside them, in API/EventsJavaScript.cs.
+      /// </summary>
+      public const string WindowsScriptLanguage =
+         "runs a VBScript or JScript event handler, or tests the COM objects those engines are given - Windows Active Scripting, which this build does not have; it runs event scripts in JavaScript, and API/EventsJavaScript.cs holds the tests that could be ported";
 
       public const string NoGssapi =
          "needs SASL GSSAPI, which is SSPI on Windows and is not offered by this build";
@@ -447,15 +456,15 @@ namespace RegressionTests.Shared
          { "RegressionTests.Security.PasswordScrypt.AMinimumOfEitherMemoryHardSchemeAcceptsBoth", NoSecretReadback },
          { "RegressionTests.Security.PasswordScrypt.Argon2idAndScryptArePeersSoNeitherPreferenceRewritesTheOther", NoSecretReadback },
          { "RegressionTests.SSL.ListenerTlsConfiguration", RebindsTheRestListener },
-         { "RegressionTests.API.ScriptObjectPolicy", NoScriptEngine },
+         { "RegressionTests.API.ScriptObjectPolicy", WindowsScriptLanguage },
          { "RegressionTests.Infrastructure.DeliveryHardLinks", HardLinksNeedFsutil },
          { "RegressionTests.IMAP.FullTextSearch.TheIndexNarrowsTheScanButNeverAnswersForIt", FullTextBackfillWindow },
-         { "RegressionTests.API.ScriptReload", NoScriptEngine },
-         { "RegressionTests.API.MessageHeaderObjects.DeletedHeaderObjectCannotWriteOntoAnotherHeader", NoScriptEngine },
-         { "RegressionTests.API.MessageHeaderObjects.HeaderObjectStillNamesItsOwnHeaderAfterAnEarlierOneIsDeleted", NoScriptEngine },
-         { "RegressionTests.API.MessageHeaderObjects.RenamingAHeaderReachesTheSavedMessage", NoScriptEngine },
-         { "RegressionTests.API.Message.TestUpdateSubjectOnMessageWithNoMessageWideCharacterSet", NoScriptEngine },
-         { "RegressionTests.Infrastructure.ErrorManagerDiagnosticsTests.MultiLineErrorDescriptionShouldStillReachTheOnErrorHandler", NoScriptEngine },
+         { "RegressionTests.API.ScriptReload", WindowsScriptLanguage },
+         { "RegressionTests.API.MessageHeaderObjects.DeletedHeaderObjectCannotWriteOntoAnotherHeader", WindowsScriptLanguage },
+         { "RegressionTests.API.MessageHeaderObjects.HeaderObjectStillNamesItsOwnHeaderAfterAnEarlierOneIsDeleted", WindowsScriptLanguage },
+         { "RegressionTests.API.MessageHeaderObjects.RenamingAHeaderReachesTheSavedMessage", WindowsScriptLanguage },
+         { "RegressionTests.API.Message.TestUpdateSubjectOnMessageWithNoMessageWideCharacterSet", WindowsScriptLanguage },
+         { "RegressionTests.Infrastructure.ErrorManagerDiagnosticsTests.MultiLineErrorDescriptionShouldStillReachTheOnErrorHandler", WindowsScriptLanguage },
          { "RegressionTests.IMAP.CapabilityAuthAdvertisement.GssapiIsOfferedOnlyWhenEnabledAndRefusesAStrayToken", NoGssapi },
          { "RegressionTests.SMTP.OutboundSize", NoRouteCreate },
          { "RegressionTests.SSL.SmtpDeliverySslTests", NoRouteCreate },
@@ -520,6 +529,8 @@ namespace RegressionTests.Shared
             return !ServerApi.HasSettingsWriteRoutes;
          if (reason == NoScriptEngine)
             return !ServerApi.Capability("script_engine");
+         if (reason == WindowsScriptLanguage)
+            return !ServerApi.RunsScriptLanguage("VBScript");
          if (reason == NoArgon2id)
             return !ServerApi.Capability("argon2id");
          if (reason == ClassicalKeyExchangeOnly)

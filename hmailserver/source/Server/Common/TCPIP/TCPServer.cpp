@@ -594,14 +594,18 @@ namespace HM
 
       String sEventCaller;
 
-      String sScriptLanguage = Configuration::Instance()->GetScriptLanguage();
+      // Built for the language of the script in force, not the setting's: see
+      // ScriptServer::GetLoadedLanguage. Built for the setting's, a JavaScript
+      // stored beside a JScript script still loaded made this call empty, and
+      // OnClientConnect stopped being asked who may connect, in silence.
+      String sScriptLanguage = ScriptServer::Instance()->GetLoadedLanguage();
 
       if (sScriptLanguage == _T("VBScript"))
          sEventCaller.Format(_T("OnClientConnect(HMAILSERVER_CLIENT)"));
       else if (sScriptLanguage == _T("JScript"))
          sEventCaller.Format(_T("OnClientConnect(HMAILSERVER_CLIENT);"));
 
-      ScriptServer::Instance()->FireEvent(ScriptServer::EventOnClientConnect, sEventCaller, pContainer);
+      ScriptServer::Instance()->FireEvent(ScriptServer::EventOnClientConnect, sEventCaller, pContainer, sScriptLanguage);
 
       switch (pResult->GetValue())
       {

@@ -4585,8 +4585,8 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Language" xml:space="preserve">
     <value>Taal</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>Taal (VBScript of JScript)</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>Taal (VBScript, JScript of JavaScript)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Grootste ingediende bijlage (KB)</value>

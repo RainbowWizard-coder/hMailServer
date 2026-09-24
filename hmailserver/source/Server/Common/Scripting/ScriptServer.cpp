@@ -12,16 +12,17 @@
 // - what a script is handed as the "hMailServer" object - and it is produced by
 // #import from a type library, which is an MSVC facility. ScriptSite.h is the ATL
 // Active Scripting host: IActiveScript, IActiveScriptSite, and the VBScript and
-// JScript engines Windows ships. Neither has an equivalent here, and inventing
-// one would mean shipping a script interpreter.
+// JScript engines Windows ships. Neither has an equivalent on POSIX.
 //
-// So on POSIX this class keeps its shape and its state - the handler flags, the
-// loaded text, the lock that keeps them coherent - and says plainly that it
-// cannot run a script. What it must never do is stay silent: an administrator who
-// carried an EventHandlers.vbs across from Windows would otherwise have
-// OnClientLogon and OnClientValidatePassword quietly not run, which is a security
-// control disappearing without a word. See the roadmap section "Linux and
-// AArch64".
+// So the Linux builds run event scripts in a third language, JavaScript, in the
+// QuickJS engine the tree vendors (ScriptBinding.h); the class keeps its shape
+// and its state on both - the handler flags, the loaded text, the lock that keeps
+// them coherent, the all-or-nothing load - and each platform refuses the
+// language it cannot run, when the script is loaded, in the error log. What it
+// must never do is stay silent: an administrator who carried an EventHandlers.vbs
+// across from Windows would otherwise have OnClientLogon and
+// OnClientValidatePassword quietly not run, which is a security control
+// disappearing without a word. See hmailserver/docs/EventScripts.md.
 #include "../../hMailServer/hMailServer.h"
 #endif
 
@@ -29,6 +30,8 @@
 #include "ScriptServer.h"
 #ifndef HM_PLATFORM_POSIX
 #include "ScriptSite.h"
+#else
+#include "ScriptBinding.h"
 #endif
 #include "ScriptObjectContainer.h"
 #include "../Application/RoleManager.h"
@@ -42,9 +45,9 @@
 
 namespace HM
 {
-#ifndef HM_PLATFORM_POSIX
    namespace
    {
+#ifndef HM_PLATFORM_POSIX
       // Aborts a runaway script by interrupting the engine from a timer queue
       // thread.
       //
@@ -140,6 +143,7 @@ namespace HM
          HANDLE timer_;
          volatile LONG fired_;
       };
+#endif
 
       // WHO IS ACTING, AROUND A SCRIPT.
       //
@@ -166,6 +170,12 @@ namespace HM
       // puts back exactly what was there before when the script has finished and
       // been torn down: nothing, on a worker thread; the request's credential,
       // when a REST request reloaded the scripts.
+      //
+      // The JavaScript engine of the Linux builds has no COM to sign in to, so a
+      // script there installs no actor of its own; the boundary is kept around it
+      // all the same, for the first half of the rule - what a handler changes
+      // (Message.Save) is never recorded as whoever happened to be acting on the
+      // thread that fired the event.
       class ScriptActorBoundary
       {
       public:
@@ -190,8 +200,62 @@ namespace HM
          AuditScope audit_scope_;
          RoleActor role_actor_;
       };
-   }
+
+#ifdef HM_PLATFORM_POSIX
+      // The name the JavaScript engine gives the script in a stack: "at OnHELO
+      // (EventHandlers.js:4:7)". The full path is in the report around it.
+      const wchar_t *JavaScriptFileName = _T("EventHandlers.js");
+
+      // The objects each event's JavaScript handler is called with, in order - the
+      // same parameters, in the same order, as the call text each event's caller
+      // builds for VBScript and JScript. The values some events pass after them
+      // (a password, a recipient and an error, a remote UID, a backup's failure,
+      // OnError's four) are added to the container by the caller; see
+      // ScriptArgument. An object the container does not hold is passed as null:
+      // OnExternalAccountDownload without a message, and the SMTP events fired
+      // before MAIL FROM.
+      std::vector<String> JavaScriptObjectArguments_(ScriptServer::Event e)
+      {
+         std::vector<String> names;
+
+         switch (e)
+         {
+         case ScriptServer::EventOnClientConnect:
+         case ScriptServer::EventOnHELO:
+         case ScriptServer::EventOnClientLogon:
+            names.push_back(_T("HMAILSERVER_CLIENT"));
+            break;
+         case ScriptServer::EventOnAcceptMessage:
+         case ScriptServer::EventOnSMTPData:
+         case ScriptServer::EventOnRecipientUnknown:
+         case ScriptServer::EventOnTooManyInvalidCommands:
+            names.push_back(_T("HMAILSERVER_CLIENT"));
+            names.push_back(_T("HMAILSERVER_MESSAGE"));
+            break;
+         case ScriptServer::EventOnDeliverMessage:
+         case ScriptServer::EventOnDeliveryStart:
+         case ScriptServer::EventOnDeliveryFailed:
+         case ScriptServer::EventCustom:
+            names.push_back(_T("HMAILSERVER_MESSAGE"));
+            break;
+         case ScriptServer::EventOnExternalAccountDownload:
+            names.push_back(_T("HMAILSERVER_FETCHACCOUNT"));
+            names.push_back(_T("HMAILSERVER_MESSAGE"));
+            break;
+         case ScriptServer::EventOnClientValidatePassword:
+            names.push_back(_T("HMAILSERVER_ACCOUNT"));
+            break;
+         case ScriptServer::EventOnBackupCompleted:
+         case ScriptServer::EventOnBackupFailed:
+         case ScriptServer::EventOnError:
+         default:
+            break;
+         }
+
+         return names;
+      }
 #endif
+   }
 
    ScriptServer::ScriptServer(void) :
       has_on_client_connect_(false),
@@ -209,7 +273,8 @@ namespace HM
       has_on_client_validate_password_(false),
       has_on_recipient_unknown_(false),
       has_on_too_many_invalid_comands_(false),
-      scripts_loaded_(false)
+      scripts_loaded_(false),
+      refusal_reported_(false)
    {
       
    }
@@ -228,9 +293,83 @@ namespace HM
       if (language == _T("JScript"))
          return "js";
 
+      if (language == _T("JavaScript"))
+         return "js";
+
       // An unrecognized language deliberately gives an empty extension, which
       // yields a file name that will not be found and so a script which is empty.
       return "";
+   }
+
+   std::vector<AnsiString>
+   ScriptServer::GetRunnableLanguages()
+   {
+      std::vector<AnsiString> languages;
+
+#ifdef HM_PLATFORM_POSIX
+      languages.push_back("JavaScript");
+#else
+      languages.push_back("VBScript");
+      languages.push_back("JScript");
+#endif
+
+      return languages;
+   }
+
+   bool
+   ScriptServer::IsRunnableLanguage_(const String &language)
+   {
+      std::vector<AnsiString> runnable = GetRunnableLanguages();
+
+      for (const AnsiString &name : runnable)
+      {
+         if (language == String(name))
+            return true;
+      }
+
+      return false;
+   }
+
+   String
+   ScriptServer::GetLoadedLanguage() const
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
+      return script_language_;
+   }
+
+   bool
+   ScriptServer::ClaimRefusalReport_()
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
+
+      if (refusal_reported_)
+         return false;
+
+      refusal_reported_ = true;
+      return true;
+   }
+
+   void
+   ScriptServer::ReportRejectedLoad_(const String &sMessage)
+   {
+      // Reported before anything has been installed, so firing OnError from here
+      // runs the previous script, which is still the one in force.
+      String report;
+
+      if (scripts_loaded_)
+      {
+         report = "The scripts in the event directory could not be compiled and have not been loaded. The previously loaded scripts remain in force, so the server is still running the event handlers it had before this reload. ";
+         report += sMessage;
+
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 5710, "ScriptServer::LoadScripts", report);
+      }
+      else
+      {
+         report = "The scripts in the event directory could not be compiled and have not been loaded. No event handlers are registered until this is fixed and the scripts are reloaded. ";
+         report += sMessage;
+
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 5016, "ScriptServer::LoadScripts", report);
+      }
    }
 
    String
@@ -279,47 +418,49 @@ namespace HM
          String sMessage = CompileContents_(new_language, script_file, new_contents);
          if (!sMessage.IsEmpty())
          {
-            // Reported before anything has been installed, so firing OnError from
-            // here runs the previous script, which is still the one in force.
-            String report;
-
-            if (scripts_loaded_)
-            {
-               report = "The scripts in the event directory could not be compiled and have not been loaded. The previously loaded scripts remain in force, so the server is still running the event handlers it had before this reload. ";
-               report += sMessage;
-
-               ErrorManager::Instance()->ReportError(ErrorManager::High, 5710, "ScriptServer::LoadScripts", report);
-            }
-            else
-            {
-               report = "The scripts in the event directory could not be compiled and have not been loaded. No event handlers are registered until this is fixed and the scripts are reloaded. ";
-               report += sMessage;
-
-               ErrorManager::Instance()->ReportError(ErrorManager::High, 5016, "ScriptServer::LoadScripts", report);
-            }
-
+            ReportRejectedLoad_(sMessage);
             return;
          }
 
          // Determine which functions are available. Detected into locals: each of
          // these runs the script, so any of them can fail, and committing them as
          // they are found would leave some flags describing the new script and the
-         // rest the old one.
-         bool on_client_connect = DoesFunctionExist_(new_language, new_contents, "OnClientConnect");
-         bool on_accept_message = DoesFunctionExist_(new_language, new_contents, "OnAcceptMessage");
-         bool on_deliver_message = DoesFunctionExist_(new_language, new_contents, "OnDeliverMessage");
-         bool on_backup_completed = DoesFunctionExist_(new_language, new_contents, "OnBackupCompleted");
-         bool on_backup_failed = DoesFunctionExist_(new_language, new_contents, "OnBackupFailed");
-         bool on_delivery_start = DoesFunctionExist_(new_language, new_contents, "OnDeliveryStart");
-         bool on_error = DoesFunctionExist_(new_language, new_contents, "OnError");
-         bool on_delivery_failed = DoesFunctionExist_(new_language, new_contents, "OnDeliveryFailed");
-         bool on_external_account_download = DoesFunctionExist_(new_language, new_contents, "OnExternalAccountDownload");
-         bool on_smtpdata = DoesFunctionExist_(new_language, new_contents, "OnSMTPData");
-         bool on_helo = DoesFunctionExist_(new_language, new_contents, "OnHELO");
-         bool on_client_logon = DoesFunctionExist_(new_language, new_contents, "OnClientLogon");
-         bool on_client_validate_password = DoesFunctionExist_(new_language, new_contents, "OnClientValidatePassword");
-         bool on_recipient_unknown = DoesFunctionExist_(new_language, new_contents, "OnRecipientUnknown");
-         bool on_too_many_invalid_commands = DoesFunctionExist_(new_language, new_contents, "OnTooManyInvalidCommands");
+         // rest the old one. A search that could not be made at all fails the load,
+         // as a compile error does: installing the script with that handler off
+         // would switch OnClientValidatePassword or OnClientLogon off in silence.
+         String detection_failure;
+
+         auto detect = [&](const String &procedure) -> bool
+         {
+            if (!detection_failure.IsEmpty())
+               return false;
+
+            return DoesFunctionExist_(new_language, new_contents, procedure, detection_failure);
+         };
+
+         bool on_client_connect = detect(_T("OnClientConnect"));
+         bool on_accept_message = detect(_T("OnAcceptMessage"));
+         bool on_deliver_message = detect(_T("OnDeliverMessage"));
+         bool on_backup_completed = detect(_T("OnBackupCompleted"));
+         bool on_backup_failed = detect(_T("OnBackupFailed"));
+         bool on_delivery_start = detect(_T("OnDeliveryStart"));
+         bool on_error = detect(_T("OnError"));
+         bool on_delivery_failed = detect(_T("OnDeliveryFailed"));
+         bool on_external_account_download = detect(_T("OnExternalAccountDownload"));
+         bool on_smtpdata = detect(_T("OnSMTPData"));
+         bool on_helo = detect(_T("OnHELO"));
+         bool on_client_logon = detect(_T("OnClientLogon"));
+         bool on_client_validate_password = detect(_T("OnClientValidatePassword"));
+         bool on_recipient_unknown = detect(_T("OnRecipientUnknown"));
+         bool on_too_many_invalid_commands = detect(_T("OnTooManyInvalidCommands"));
+
+         if (!detection_failure.IsEmpty())
+         {
+            ReportRejectedLoad_("File: " + script_file + "\r\n" +
+               "The script compiled, but a later run of it, made to find out which event handlers it declares, did not complete: " +
+               detection_failure);
+            return;
+         }
 
          // Commit. Nothing in this block runs a script, reports an error or takes
          // another lock, so an event being fired on another thread sees either the
@@ -329,6 +470,9 @@ namespace HM
          script_language_ = new_language;
          script_extension_ = new_extension;
          script_contents_ = new_contents;
+
+         // A new script, so a refusal FireEvent makes from here on is news again.
+         refusal_reported_ = false;
 
          has_on_client_connect_ = on_client_connect;
          has_on_accept_message_ = on_accept_message;
@@ -397,12 +541,22 @@ namespace HM
    ScriptServer::ReportInterruption_(const String &sContext, bool bReportError)
    {
       String sMessage;
+#ifdef HM_PLATFORM_POSIX
+      // The JavaScript engine's interrupt is polled inside the interpreter and the
+      // regular expression matcher, and a script cannot catch it; unlike an Active
+      // Scripting interrupt there is no COM call it can be stuck behind.
+      sMessage.Format(_T("The JavaScript %s did not complete within %d seconds (ScriptTimeout) and was interrupted. The event went on without it."),
+         sContext.c_str(), IniFileSettings::Instance()->GetScriptTimeout());
+      const int errorCode = 7341;
+#else
       sMessage.Format(_T("The script %s did not complete within %d seconds and was interrupted. An interrupt aborts script execution, but cannot release a handler which is blocked inside a COM call."),
          sContext.c_str(), IniFileSettings::Instance()->GetScriptTimeout());
+      const int errorCode = 5019;
+#endif
 
       if (bReportError)
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::High, 5019, "ScriptServer::ReportInterruption_", sMessage);
+         ErrorManager::Instance()->ReportError(ErrorManager::High, errorCode, "ScriptServer::ReportInterruption_", sMessage);
       }
       else
       {
@@ -414,21 +568,63 @@ namespace HM
    }
 
    bool
-   ScriptServer::DoesFunctionExist_(const String &language, const String &contents, const String &sProcedure)
+   ScriptServer::DoesFunctionExist_(const String &language, const String &contents, const String &sProcedure, String &sFailure)
    {
 #ifdef HM_PLATFORM_POSIX
       // Finding out whether a script declares a procedure means RUNNING the
-      // script, and there is no engine here to run it in. False is the honest
-      // answer and it is also the safe one: a handler that is not registered is
-      // never fired, so nothing can believe that OnClientValidatePassword is
-      // being consulted when it is not.
-      //
-      // This is only ever reached with empty text. LoadScripts calls
-      // CompileContents_ first, and on this platform that already refuses - and
-      // reports - any script that is not empty, so a real script never gets this
-      // far.
-      return false;
+      // script, as it does on Windows: the whole top level runs once per handler
+      // looked for, under the same timeout. For VBScript and JScript there is no
+      // engine here, and false is the honest answer and the safe one - a handler
+      // that is not registered is never fired, so nothing can believe that
+      // OnClientValidatePassword is being consulted when it is not. LoadScripts
+      // calls CompileContents_ first, which refuses and reports those languages
+      // while scripting is on, so a real script in them never gets this far.
+      if (language != _T("JavaScript") || contents.IsEmpty())
+         return false;
+
+      ScriptActorBoundary actors;
+
+      ScriptRunOutcome outcome = ScriptBinding::FindFunction(contents, JavaScriptFileName, sProcedure,
+         IniFileSettings::Instance()->GetScriptTimeout());
+
+      if (outcome.interrupted)
+      {
+         // Reported here, as the Windows host reports it; the handler is left
+         // unregistered, as it is there.
+         ReportInterruption_("EventHandlers (function detection)", true);
+      }
+      else if (!outcome.completed)
+      {
+         // The engine could not start, the top level threw on this run although
+         // it did not when the script was compiled, or the run reached the memory
+         // ceiling, or the lookup itself failed. None of those says whether the
+         // handler is there, and "no" would switch it off without a word.
+         sFailure = outcome.error.IsEmpty() ? String(_T("the JavaScript engine gave no reason")) : outcome.error;
+
+         if (outcome.out_of_memory)
+         {
+            String sCeiling;
+            sCeiling.Format(_T("The run reached the JavaScript engine's memory ceiling of %d MB. "),
+               static_cast<int>(ScriptBinding::MemoryCeiling / (1024 * 1024)));
+            sFailure = sCeiling + sFailure;
+         }
+      }
+
+      return outcome.function_exists;
 #else
+      // A failure to create the script site is reported below as HM5017, as it
+      // always was; the Windows engines have no other way for the search itself
+      // to fail that is not their own Script Error line.
+      (void) sFailure;
+
+      // JavaScript is the Linux builds' engine. CompileContents_ refuses it here
+      // while scripting is on and lets it pass, installing nothing that runs, while
+      // scripting is off - so it can reach this point, and must stop before an
+      // engine is created: "JavaScript" is a ProgID Windows registers for JScript.
+      // The same for any other name that is not one of this build's two.
+      if (!IsRunnableLanguage_(language))
+         return false;
+
       // Code outside a function runs here, once per handler looked for, on the
       // thread reloading the scripts - see ScriptActorBoundary.
       ScriptActorBoundary actors;
@@ -471,37 +667,114 @@ namespace HM
    String
    ScriptServer::CompileContents_(const String &sLanguage, const String &sFilename, const String &sContents)
    {
+      // A language this build does not run is refused before the file is looked
+      // at, so an empty file - or none at all, which reads as empty - is refused as
+      // a full one is. Checking the contents first let a load in such a language
+      // through whenever the file for it did not exist yet: an administrator on
+      // VBScript who stored JavaScript on Windows (or VBScript on Linux) and
+      // reloaded before writing EventHandlers.js had every handler switched off
+      // with no line in the ERROR log.
+      if (!IsRunnableLanguage_(sLanguage))
+      {
+         // With scripting switched off, a script file is left alone: no handler
+         // would run whether it compiled or not, so nothing is lost by installing
+         // nothing, and the report below - which the message tells the operator
+         // is stopped by switching scripting off - is not made. LoadScripts runs
+         // at every reload regardless of the switch, so without this a file left
+         // behind by a test, or by an install migrated from another platform, was
+         // reported as an error at every reinitialise for as long as it existed.
+         if (!Configuration::Instance()->GetUseScriptServer())
+            return "";
+
+#ifdef HM_PLATFORM_POSIX
+         // A VBScript or JScript script, and this platform has no engine to compile
+         // it in. The caller treats a non-empty return as "the load failed", which
+         // is exactly right: nothing is installed, no handler flag is set, and
+         // LoadScripts reports the message through ErrorManager - once per load -
+         // saying whether a previously loaded script remains in force.
+         //
+         // Answering "" instead would say the script compiled cleanly, and the
+         // server would go on to register handlers that can never run. That is the
+         // silent failure this branch exists to prevent - and it would be silent in
+         // the worst possible place, since OnClientLogon and OnClientValidatePassword
+         // are authentication decisions.
+         return "File: " + sFilename + "\r\n" +
+            "The event script could not be compiled: this build of hMailServer runs event scripts in JavaScript only, "
+            "and the script language is " + sLanguage + ". VBScript and JScript are Windows Active Scripting engines "
+            "with no equivalent on this platform, so no event handler in this file will run. Set the script language "
+            "to JavaScript and write the handlers in EventHandlers.js (see EventScripts.md), or turn scripting off, "
+            "to stop this being reported on every reload.";
+#else
+         // The setting accepts JavaScript on every platform, so that a backup, an
+         // environment configuration or a configuration document made on Linux
+         // applies here; the engine is in the Linux builds only. Refused when the
+         // script is loaded, as a VBScript file is on Linux - and left alone, as
+         // that is, while scripting is switched off. Checked before an engine is
+         // created: "JavaScript" is also a ProgID Windows registers for JScript,
+         // and CoCreateInstance would otherwise run the file as JScript.
+         if (sLanguage == _T("JavaScript"))
+         {
+            return "File: " + sFilename + "\r\n" +
+               "The event script could not be compiled: the script language is JavaScript, the engine the Linux builds "
+               "of hMailServer embed. This Windows build runs event scripts in VBScript and JScript through Windows "
+               "Active Scripting, so no event handler in this file will run. Set the script language to VBScript or "
+               "JScript, or turn scripting off, to stop this being reported on every reload.";
+         }
+
+         // Any other word: the setting refuses one, so it can only have been
+         // written into the database by hand.
+         return "File: " + sFilename + "\r\n" +
+            "The event script could not be compiled: the script language is '" + sLanguage + "', which is none of "
+            "the three hMailServer knows. This Windows build runs event scripts in VBScript and JScript, so no event "
+            "handler will run. Set the script language to VBScript or JScript, or turn scripting off, to stop this "
+            "being reported on every reload.";
+#endif
+      }
+
       if (sContents.IsEmpty())
          return "";
 
 #ifdef HM_PLATFORM_POSIX
-      // With scripting switched off, a script file is left alone: no handler
-      // would run whether it compiled or not, so nothing is lost by installing
-      // nothing, and the report below - which the message tells the operator
-      // is stopped by switching scripting off - is not made. LoadScripts runs
-      // at every reload regardless of the switch, so without this a file left
-      // behind by a test, or by an install migrated from Windows, was reported
-      // as an error at every reinitialise for as long as it existed.
-      if (!Configuration::Instance()->GetUseScriptServer())
-         return "";
+      // JavaScript, the one language this build runs - the check above has turned
+      // every other away.
+      {
+         // Compiling a script means running its top level, here as on Windows, so a
+         // top level that throws fails the load as a syntax error does - and one that
+         // runs past the timeout is reported the way the Windows host reports it.
+         ScriptActorBoundary actors;
 
-      // A script exists and this platform has no engine to compile it in. The
-      // caller treats a non-empty return as "the load failed", which is exactly
-      // right: nothing is installed, no handler flag is set, and LoadScripts
-      // reports the message through ErrorManager saying whether a previously
-      // loaded script remains in force.
-      //
-      // Answering "" instead would say the script compiled cleanly, and the server
-      // would go on to register handlers that can never run. That is the silent
-      // failure this branch exists to prevent - and it would be silent in the
-      // worst possible place, since OnClientLogon and OnClientValidatePassword are
-      // authentication decisions.
-      return "File: " + sFilename + "\r\n" +
-         "The event script could not be compiled: this build of hMailServer has no script engine. "
-         "VBScript and JScript are Windows Active Scripting engines and there is no equivalent on this platform, "
-         "so no event handler in this file will run. Remove the file, or turn scripting off in the settings, "
-         "to stop this being reported on every reload.";
+         ScriptRunOutcome outcome = ScriptBinding::RunScript(sContents, JavaScriptFileName,
+            IniFileSettings::Instance()->GetScriptTimeout());
+
+         if (outcome.completed)
+            return "";
+
+         String sErrorMessage = outcome.error;
+
+         if (outcome.interrupted)
+         {
+            String sTimeoutMessage;
+            sTimeoutMessage.Format(_T("The script file %s did not finish executing within %d seconds and was interrupted. Code outside a function runs when the file is loaded, so it must return promptly. The script has not been loaded."),
+               sFilename.c_str(), IniFileSettings::Instance()->GetScriptTimeout());
+
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 5021, "ScriptServer::CompileContents_", sTimeoutMessage);
+
+            sErrorMessage = sTimeoutMessage;
+         }
+         else if (outcome.out_of_memory)
+         {
+            String sCeilingMessage;
+            sCeilingMessage.Format(_T("The script file %s reached the JavaScript engine's memory ceiling of %d MB while it was loaded. "),
+               sFilename.c_str(), static_cast<int>(ScriptBinding::MemoryCeiling / (1024 * 1024)));
+            sErrorMessage = sCeilingMessage + sErrorMessage;
+         }
+
+         return "File: " + sFilename + "\r\n" + sErrorMessage;
+      }
 #else
+      // VBScript or JScript, the two languages this build runs - the check above
+      // has turned every other away, JavaScript among them.
+      //
       // The whole file runs once here, on the thread checking or reloading the
       // scripts - see ScriptActorBoundary.
       ScriptActorBoundary actors;
@@ -647,7 +920,7 @@ namespace HM
    }
 
    void
-   ScriptServer::FireEvent(Event e,  const String &sEventCaller, std::shared_ptr<ScriptObjectContainer> pObjects)
+   ScriptServer::FireEvent(Event e,  const String &sEventCaller, std::shared_ptr<ScriptObjectContainer> pObjects, const String &sCallerLanguage)
    {
       if (!Configuration::Instance()->GetUseScriptServer())
          return;
@@ -678,6 +951,10 @@ namespace HM
 
       LOG_DEBUG("Executing event " + event_name);
 
+      // The rule action's function is named by the rule; every other handler by
+      // its event.
+      String handler_name = (e == EventCustom && pObjects) ? pObjects->GetProcedureName() : event_name;
+
       String sScript;
 
       // Build the script.
@@ -687,18 +964,102 @@ namespace HM
          sScript = script_contents + "\r\n\r\n" + sEventCaller + ";\r\n";
 
 #ifdef HM_PLATFORM_POSIX
-      // Unreachable, and reported rather than ignored if it ever is reached. No
-      // handler flag can be true on this platform - DoesFunctionExist_ answers
-      // false for every one of them - so IsHandlerRegistered_ has already returned
-      // above and this code has not been entered. If it ever is, something has set
-      // a flag without an engine behind it, and an event that is believed to be
-      // handled and is not is precisely the failure worth a line in the ERROR log.
-      ErrorManager::Instance()->ReportError(ErrorManager::High, 5018, "ScriptServer::FireEvent",
-         "The event " + event_name + " was fired with a registered handler, but this build has no script engine to run it in. The handler did not run.");
+      // JavaScript takes no call text: see below.
+      (void) sCallerLanguage;
+
+      if (script_language == _T("JavaScript"))
+      {
+         // No source text is built for JavaScript: the handler is looked up by name
+         // and called with JS_Call, with the event's objects and the values its
+         // caller added to the container (ScriptArgument). The script text still
+         // runs in full first, in a fresh engine, as the Windows path's does.
+         ScriptActorBoundary actors;
+
+         ScriptRunOutcome outcome = ScriptBinding::CallHandler(script_contents, JavaScriptFileName, handler_name,
+            JavaScriptObjectArguments_(e), pObjects, IniFileSettings::Instance()->GetScriptTimeout());
+
+         ReportJavaScriptOutcome_(outcome, handler_name, e != EventOnError);
+      }
+      else
+      {
+         // Reached only by a rule's Run function action, which no handler flag
+         // gates: a VBScript or JScript script is refused at load while scripting
+         // is on (CompileContents_), and one loaded while scripting was off
+         // registers no handler, so no other event gets here. Reported rather than
+         // ignored, because a rule believed to run a function that does not run is
+         // exactly the failure worth a line in the ERROR log - once per load, not
+         // once per message the rule matches.
+         if (ClaimRefusalReport_())
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 5018, "ScriptServer::FireEvent",
+               "The event " + handler_name + " was fired, but no JavaScript event script is loaded, so the handler did not run. "
+               "This build runs event scripts in JavaScript only: the script language JavaScript, and the file EventHandlers.js. "
+               "Events refused for the same reason are not reported again until the scripts are next loaded.");
+         }
+      }
 
       (void) sScript;
-      (void) pObjects;
 #else
+      // Nothing but the two languages this build runs is ever handed to an engine.
+      // JavaScript - which is also a ProgID Windows registers for JScript - and any
+      // other name are refused at load while scripting is on, which keeps the
+      // previous script in force; a load made while scripting was off installs such
+      // a script all the same, with no handler registered, and scripting can then
+      // be switched on without a reload. A rule's Run function action is gated by
+      // no flag and reaches it, and without this its call would run as JScript.
+      // Reported, once per load.
+      if (script_language != _T("VBScript") && script_language != _T("JScript"))
+      {
+         if (ClaimRefusalReport_())
+         {
+            String loaded = script_language.IsEmpty() ? String(_T("no language")) : script_language;
+
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 5018, "ScriptServer::FireEvent",
+               "The event " + handler_name + " was fired, but the event script in force was loaded in " + loaded +
+               ", which this Windows build does not run, so the handler did not run. This build runs event scripts in "
+               "VBScript and JScript through Windows Active Scripting: set the script language to one of them and reload "
+               "the scripts. Events refused for the same reason are not reported again until the scripts are next loaded.");
+         }
+
+         return;
+      }
+
+      // A call its caller could not build for the language in force - an empty
+      // one, which VBScript runs as a bare "Call" and JScript as a bare ";", or a
+      // name with no argument list, which JScript reads without calling it. The
+      // callers build their call for GetLoadedLanguage(), so this is a caller
+      // that did not; never run in silence.
+      if (e != EventCustom && (sEventCaller.IsEmpty() || sEventCaller.Find(_T("(")) < 0))
+      {
+         if (ClaimRefusalReport_())
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 5018, "ScriptServer::FireEvent",
+               "The event " + handler_name + " was fired, but no call to it could be built for the event script in force, "
+               "which is " + script_language + ", so the handler did not run. Events refused for the same reason are not "
+               "reported again until the scripts are next loaded.");
+         }
+
+         return;
+      }
+
+      // A call quoted for the other language: a reload installed a script in the
+      // other language between the moment the caller read GetLoadedLanguage() and
+      // the snapshot above. VBScript and JScript quote differently, so the text is
+      // not a call the script in force should run - a value quoted for one can end
+      // its string early in the other. This one event is skipped.
+      if (!sCallerLanguage.IsEmpty() && sCallerLanguage != script_language)
+      {
+         if (ClaimRefusalReport_())
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 5018, "ScriptServer::FireEvent",
+               "The event " + handler_name + " was fired while the scripts were being reloaded: its call was built for "
+               + sCallerLanguage + " and the script now in force is " + script_language + ", so the handler did not run "
+               "for this event. Events refused for the same reason are not reported again until the scripts are next loaded.");
+         }
+
+         return;
+      }
+
       // The event's handler runs on the thread that fired it - a protocol
       // worker, a delivery thread - and whatever credential the script signs in
       // to COM with must not outlive it there. See ScriptActorBoundary. Declared
@@ -731,5 +1092,54 @@ namespace HM
 
       LOG_DEBUG("Event completed");
    }
+
+#ifdef HM_PLATFORM_POSIX
+   void
+   ScriptServer::ReportJavaScriptOutcome_(const ScriptRunOutcome &outcome, const String &sContext, bool bReportError)
+   {
+      if (outcome.completed)
+         return;
+
+      if (outcome.engine_failed)
+      {
+         String sMessage = "The JavaScript engine could not be started for " + sContext + ", so the handler did not run: the server is short of memory.";
+
+         if (bReportError)
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 7340, "ScriptServer::FireEvent", sMessage);
+         else
+            Logger::Instance()->LogError(sMessage);
+
+         return;
+      }
+
+      if (outcome.interrupted)
+      {
+         ReportInterruption_(sContext, bReportError);
+         return;
+      }
+
+      if (outcome.out_of_memory)
+      {
+         // Stopped by the ceiling, not by a bug the script can see: every run has
+         // the same 64 MB, and what the handler was doing when it reached it is in
+         // the Script Error text that follows.
+         String sMessage;
+         sMessage.Format(_T("The JavaScript %s was stopped at the engine's memory ceiling of %d MB and did not complete. The event went on without it. %s"),
+            sContext.c_str(), static_cast<int>(ScriptBinding::MemoryCeiling / (1024 * 1024)), outcome.error.c_str());
+
+         if (bReportError)
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 7342, "ScriptServer::FireEvent", sMessage);
+         else
+            Logger::Instance()->LogError(sMessage);
+
+         return;
+      }
+
+      // An exception the handler did not catch: one "Script Error" line in the
+      // ERROR log, as CScriptSiteBasic::HandleScriptError writes on Windows, and the
+      // event carries on with whatever Result the handler had set by then.
+      Logger::Instance()->LogError(outcome.error);
+   }
+#endif
 
 }

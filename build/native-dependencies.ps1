@@ -21,6 +21,14 @@
 # stale while the build works - if the version in the path is wrong, the build fails
 # rather than the SBOM.
 #
+# One dependency has no path to read: QuickJS, the JavaScript engine the event scripts
+# run in on the Linux builds, vendored as source under hmailserver/source/Server/quickjs
+# and built by CMake alone (the release has no MSVC support, so it is in no vcxproj).
+# Its version is read from the VERSION file its release ships and that directory keeps,
+# which is also where the CMake build reads CONFIG_VERSION from - so, as with the paths,
+# the number the SBOM gives is the number the build compiled. Syft sees the C files but
+# has no package manifest to name them by, which is why it is listed here too.
+#
 # The licences are declared here because a path cannot carry one. They are checked against
 # the shipped licence text by build/check-native-dependencies.ps1.
 
@@ -80,6 +88,17 @@ $dependencies = @(
       License = 'PostgreSQL'
       Website = 'https://www.postgresql.org/'
       Why     = 'libpq, the client library for the PostgreSQL database backend'
+   },
+   @{
+      Name        = 'quickjs'
+      # Read from this file rather than matched in the project file; see the header.
+      VersionFile = @('hmailserver', 'source', 'Server', 'quickjs', 'VERSION')
+      Vendored    = 'hmailserver/source/Server/quickjs'
+      Purl        = 'pkg:generic/quickjs@{0}'
+      Cpe         = 'cpe:2.3:a:quickjs_project:quickjs:{0}:*:*:*:*:*:*:*'
+      License     = 'MIT'
+      Website     = 'https://bellard.org/quickjs/'
+      Why         = 'the JavaScript engine the event scripts run in on the Linux builds (hMailServer.exe does not contain it: its event scripts are VBScript and JScript)'
    }
 )
 
@@ -87,29 +106,47 @@ $found = @()
 $missing = @()
 
 foreach ($dependency in $dependencies) {
-   $match = [regex]::Match($project, $dependency.Pattern)
+   if ($dependency.VersionFile) {
+      $versionFile = $repoRoot
+      foreach ($segment in $dependency.VersionFile) { $versionFile = Join-Path $versionFile $segment }
 
-   if (-not $match.Success) {
-      $missing += $dependency.Name
-      continue
+      $version = if (Test-Path $versionFile) { (Get-Content $versionFile -Raw).Trim() } else { '' }
+
+      if (-not $version) {
+         $missing += $dependency.Name
+         continue
+      }
+
+      $source = ($dependency.VersionFile -join '/')
+   }
+   else {
+      $match = [regex]::Match($project, $dependency.Pattern)
+
+      if (-not $match.Success) {
+         $missing += $dependency.Name
+         continue
+      }
+
+      # Boost's directory convention is underscores; everything else already reads as a
+      # version. Joining the numeric groups keeps this general rather than special-casing
+      # the name.
+      $groups = @()
+      for ($i = 1; $i -lt $match.Groups.Count; $i++) { $groups += $match.Groups[$i].Value }
+      $version = $groups -join '.'
+
+      $source = 'hMailServer.vcxproj include path'
    }
 
-   # Boost's directory convention is underscores; everything else already reads as a
-   # version. Joining the numeric groups keeps this general rather than special-casing
-   # the name.
-   $groups = @()
-   for ($i = 1; $i -lt $match.Groups.Count; $i++) { $groups += $match.Groups[$i].Value }
-   $version = $groups -join '.'
-
    $found += [pscustomobject]@{
-      name    = $dependency.Name
-      version = $version
-      purl    = $dependency.Purl -f $version
-      cpe     = $dependency.Cpe -f $version
-      license = $dependency.License
-      website = $dependency.Website
-      why     = $dependency.Why
-      source  = 'hMailServer.vcxproj include path'
+      name     = $dependency.Name
+      version  = $version
+      purl     = $dependency.Purl -f $version
+      cpe      = $dependency.Cpe -f $version
+      license  = $dependency.License
+      website  = $dependency.Website
+      why      = $dependency.Why
+      source   = $source
+      vendored = $dependency.Vendored
    }
 }
 
@@ -117,10 +154,14 @@ if ($missing.Count -gt 0) {
    # A hard failure, not a warning. This script exists to stop the SBOM omitting things
    # silently, so it must not itself omit things silently: if a dependency's path
    # convention changed, that is a two-minute fix to a regex above, and it should block
-   # the release rather than quietly shrink the SBOM back to being wrong.
-   throw ("Could not determine the version of: {0}. The include paths in hMailServer.vcxproj " +
-          "no longer match the expected pattern. Fix the pattern in this script - do not " +
-          "remove the dependency, because it is still linked." -f ($missing -join ', '))
+   # the release rather than quietly shrink the SBOM back to being wrong. The same holds
+   # for a vendored dependency whose VERSION file has gone.
+   # The sentence is joined before -f is applied: -f binds more tightly than +, so
+   # applied to the last piece alone it left the {0} in the first one unfilled.
+   throw (("Could not determine the version of: {0}. Either the include paths in " +
+           "hMailServer.vcxproj no longer match the expected pattern, or a vendored " +
+           "dependency's VERSION file is missing or empty. Fix the pattern or the path in " +
+           "this script - do not remove the dependency, because it is still linked.") -f ($missing -join ', '))
 }
 
 $json = $found | ConvertTo-Json -Depth 4

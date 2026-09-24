@@ -50,8 +50,10 @@ The generators that write source into the tree (build/generate-*.ps1, .py)
 emit the same three lines and the blank line, so a regenerated file passes
 --check. The third-party sources unpacked under libraries/ and the zlib under
 the server are not ours to stamp and are inventoried in
-hmailserver/docs/third-party-binaries.json instead; the build scripts at the
-top of libraries/ are the project's own and carry the header.
+hmailserver/docs/third-party-binaries.json instead, and nor is the QuickJS
+beside it (hmailserver/docs/ThirdPartyBinaries.md says where it came from); the
+build scripts at the top of libraries/ are the project's own and carry the
+header.
 
 Usage:
   python build/add-license-headers.py            # apply
@@ -107,7 +109,7 @@ SKIP_DIRS = {'.git', 'obj', 'bin', 'publish', 'packages', 'Output',
              # script into it, which is generated and not source.
              'logs',
              # Vendored third-party source under its own licence (see docs/Licenses).
-             'zlib'}
+             'quickjs', 'zlib'}
 
 # Walked for its own files, never descended: the project's build scripts sit
 # at the top of libraries/, and the sources they unpack below them.

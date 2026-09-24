@@ -121,6 +121,7 @@ ALLOWED = {
         "COM/InterfaceAccounts.cpp",
         "COM/InterfaceDistributionList.cpp",
         "Common/Util/RestApiRoutes.cpp",     # the same property, over REST
+        "Common/Scripting/ScriptBinding.cpp",  # the same property, read-only, to a JavaScript event script
     },
     # The grant's own bit test. Asking it directly is fine where a credential
     # is deciding what it may HAND OUT (which is not the same question as what

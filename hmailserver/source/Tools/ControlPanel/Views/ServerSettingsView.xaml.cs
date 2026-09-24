@@ -2915,7 +2915,7 @@ namespace hMailServer.ControlPanel.Views
 
          var script = Card(L("Scripting engine"), L("Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save."));
          script.Settings.Add(new ComBool { Path = "Scripting.Enabled", Label = L("Enable server-side event scripts") });
-         script.Settings.Add(new ComText { Path = "Scripting.Language", Label = L("Language (VBScript or JScript)") });
+         script.Settings.Add(new ComText { Path = "Scripting.Language", Label = L("Language (VBScript, JScript or JavaScript)") });
          script.Settings.Add(new IniText
          {
             Path = "ScriptAllowedObjects",

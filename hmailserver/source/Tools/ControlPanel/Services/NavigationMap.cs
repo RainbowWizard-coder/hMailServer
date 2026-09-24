@@ -895,12 +895,12 @@ namespace hMailServer.ControlPanel.Services
                // title stays as an alias; the key is unchanged, so links still arrive.
                Page("advanced", N("Advanced"),
                   N("Archiving, mirroring, the default domain, disk-space limits, and the switch that turns the event-scripting engine on."),
-                  aliases: "Advanced & scripting|Archive|Archiving|Mirror|Default domain|Scripting engine|Enable scripting|VBScript|JScript|IPv6 preference",
+                  aliases: "Advanced & scripting|Archive|Archiving|Mirror|Default domain|Scripting engine|Enable scripting|VBScript|JScript|JavaScript|IPv6 preference",
                   seeAlso: "scripts|hardening"),
 
                Page("scripts", N("Event scripts"),
                   N("Edit the event-handler script the server runs on delivery, logon and error events. The engine itself is switched on under Advanced."),
-                  aliases: "EventHandlers|Scripts|OnDeliverMessage|OnClientLogon|OnAcceptMessage|VBScript|Run code on mail",
+                  aliases: "EventHandlers|Scripts|OnDeliverMessage|OnClientLogon|OnAcceptMessage|VBScript|JScript|JavaScript|Run code on mail",
                   seeAlso: "advanced|rules"),
 
                // Renamed from "Advanced INI settings", which named the page after

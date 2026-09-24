@@ -828,7 +828,11 @@ namespace HM
       std::shared_ptr<Result> pResult = std::shared_ptr<Result>(new Result);
       pContainer->AddObject("HMAILSERVER_MESSAGE", pMsgData->GetMessage(), ScriptObject::OTMessage);
       pContainer->AddObject("Result", pResult, ScriptObject::OTResult);
-      
+
+      // The function by name, for the JavaScript engine, which looks it up and
+      // calls it rather than running the text below.
+      pContainer->SetProcedureName(sFunctionName);
+
       String sEventCaller = sFunctionName + "(HMAILSERVER_MESSAGE)";
       ScriptServer::Instance()->FireEvent(ScriptServer::EventCustom, sEventCaller, pContainer);
 

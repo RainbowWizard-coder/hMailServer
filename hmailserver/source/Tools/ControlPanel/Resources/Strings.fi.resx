@@ -4585,8 +4585,8 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Language" xml:space="preserve">
     <value>Kieli</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>Kieli (VBScript tai JScript)</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>Kieli (VBScript, JScript tai JavaScript)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Suurin lähetettävä liite (kt)</value>

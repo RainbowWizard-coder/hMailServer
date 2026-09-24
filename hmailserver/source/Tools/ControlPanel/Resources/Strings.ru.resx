@@ -4585,8 +4585,8 @@ Control Panel может читать файлы сообщений только
   <data name="Language" xml:space="preserve">
     <value>Язык</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>Язык (VBScript или JScript)</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>Язык (VBScript, JScript или JavaScript)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Наибольшее отправляемое вложение (КБ)</value>

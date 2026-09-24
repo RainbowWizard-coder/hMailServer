@@ -39,7 +39,7 @@ namespace hMailServer.ControlPanel.Services
          new SettingEntry("Default domain (for unqualified logons)", "DefaultDomain", "advanced"),
          new SettingEntry("Enable server-side event scripts", "Scripting.Enabled", "advanced"),
          new SettingEntry("Hard-link each recipient's copy instead of copying it", "ArchiveHardLinks", "advanced"),
-         new SettingEntry("Language (VBScript or JScript)", "Scripting.Language", "advanced"),
+         new SettingEntry("Language (VBScript, JScript or JavaScript)", "Scripting.Language", "advanced"),
          new SettingEntry("Mirror address (empty = disabled)", "MirrorEMailAddress", "advanced"),
          new SettingEntry("Only archive mail for these domains (comma-separated; empty = every message)", "ArchiveDomains", "advanced"),
          new SettingEntry("Prefer IPv6 when delivering", "IPv6PreferredEnabled", "advanced"),

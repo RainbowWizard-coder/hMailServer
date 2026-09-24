@@ -417,7 +417,11 @@ namespace HM
          return;
       }
 
-      String sScriptLanguage = Configuration::Instance()->GetScriptLanguage();
+      // Built for the language of the script in force, not the setting's: see
+      // ScriptServer::GetLoadedLanguage. Storing the setting reloads nothing, and
+      // a call built for the setting's language beside a script loaded in the
+      // other one was "OnError" alone, or "Call" with nothing after it.
+      String sScriptLanguage = ScriptServer::Instance()->GetLoadedLanguage();
 
       String sEventCaller;
 
@@ -437,6 +441,17 @@ namespace HM
             EscapeForScriptLiteral_(normalized_source, sScriptLanguage).c_str(),
             EscapeForScriptLiteral_(normalized_description, sScriptLanguage).c_str());
       }
+#ifdef HM_PLATFORM_POSIX
+      else if (sScriptLanguage == _T("JavaScript"))
+      {
+         // The JavaScript engine builds no source: it calls OnError with the four
+         // values the container carries below, so there is nothing to quote. The
+         // Linux builds' alone: on Windows a JavaScript script is never run, and a
+         // bare name handed to a Windows engine would name the handler without
+         // calling it.
+         sEventCaller = _T("OnError");
+      }
+#endif
       else
       {
          // A language we cannot quote for is a language we must not build source for.
@@ -448,9 +463,16 @@ namespace HM
 
       std::shared_ptr<ScriptObjectContainer> pContainer  = std::shared_ptr<ScriptObjectContainer>(new ScriptObjectContainer);
 
+      // OnError(severity, code, source, description) as values, for the JavaScript
+      // engine: the same normalised text the call above carries, unescaped.
+      pContainer->AddNumberArgument(iSeverity);
+      pContainer->AddNumberArgument(iErrorID);
+      pContainer->AddTextArgument(normalized_source);
+      pContainer->AddTextArgument(normalized_description);
+
       OnErrorDispatchGuard on_error_guard(dispatching_on_error_);
 
-      ScriptServer::Instance()->FireEvent(ScriptServer::EventOnError, sEventCaller, pContainer);
+      ScriptServer::Instance()->FireEvent(ScriptServer::EventOnError, sEventCaller, pContainer, sScriptLanguage);
    }
 
 

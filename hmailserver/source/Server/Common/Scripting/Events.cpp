@@ -53,12 +53,22 @@ namespace HM
       pContainer->AddObject("HMAILSERVER_ACCOUNT", pPersistentAccount, ScriptObject::OTAccount);
       pContainer->AddObject("Result", pResult, ScriptObject::OTResult);
 
+      // The password as a value, for the JavaScript engine, which calls the handler
+      // with it rather than pasting it into source text; see ScriptArgument. A
+      // password is the one string here a remote client chooses.
+      pContainer->AddTextArgument(sPassword);
+
       // By default, pass through.
       pResult->SetValue(2);
 
       String sEventCaller;
 
-      String sScriptLanguage = Configuration::Instance()->GetScriptLanguage();
+      // Built for the language of the script in force, not the setting's: see
+      // ScriptServer::GetLoadedLanguage. Storing the setting reloads nothing, and
+      // a call written for the setting's language beside a script loaded in the
+      // other one was an empty call - OnClientValidatePassword not asked, and the
+      // stored password deciding in its place, without a word.
+      String sScriptLanguage = ScriptServer::Instance()->GetLoadedLanguage();
       if (sScriptLanguage == _T("VBScript"))
       {
          String sEscapedPassword = sPassword;
@@ -74,7 +84,7 @@ namespace HM
          sEventCaller.Format(_T("OnClientValidatePassword(HMAILSERVER_ACCOUNT, '%s')"), sEscapedPassword.c_str());
       }
 
-      ScriptServer::Instance()->FireEvent(ScriptServer::EventOnClientValidatePassword, sEventCaller, pContainer);
+      ScriptServer::Instance()->FireEvent(ScriptServer::EventOnClientValidatePassword, sEventCaller, pContainer, sScriptLanguage);
       return pResult;
 
    }
@@ -159,7 +169,8 @@ namespace HM
          String sRecipientCopy = sRecipient;
          String sErrorMessageCopy = sErrorMessage;
 
-         String sScriptLanguage = Configuration::Instance()->GetScriptLanguage();
+         // For the script in force; see FireOnClientValidatePassword.
+         String sScriptLanguage = ScriptServer::Instance()->GetLoadedLanguage();
 
          if (sScriptLanguage == _T("VBScript"))
          {
@@ -189,7 +200,17 @@ namespace HM
          std::shared_ptr<ScriptObjectContainer> pContainer  = std::shared_ptr<ScriptObjectContainer>(new ScriptObjectContainer);
          pContainer->AddObject("HMAILSERVER_MESSAGE", pMessage, ScriptObject::OTMessage);
 
-         ScriptServer::Instance()->FireEvent(ScriptServer::EventOnDeliveryFailed, sEventCaller, pContainer);
+         // The same two values as values, for the JavaScript engine: the recipient as
+         // it is and the error trimmed, line breaks and quotes kept, since nothing is
+         // quoted into source text there.
+         String sErrorMessageValue = sErrorMessage;
+         sErrorMessageValue.TrimLeft();
+         sErrorMessageValue.TrimRight();
+
+         pContainer->AddTextArgument(sRecipient);
+         pContainer->AddTextArgument(sErrorMessageValue);
+
+         ScriptServer::Instance()->FireEvent(ScriptServer::EventOnDeliveryFailed, sEventCaller, pContainer, sScriptLanguage);
       }      
 
    }
@@ -211,7 +232,8 @@ namespace HM
 
       String sRemoteUIDCopy = sRemoteUID;
 
-      String sScriptLanguage = Configuration::Instance()->GetScriptLanguage();
+      // For the script in force; see FireOnClientValidatePassword.
+      String sScriptLanguage = ScriptServer::Instance()->GetLoadedLanguage();
 
       if (sScriptLanguage == _T("VBScript"))
       {
@@ -240,7 +262,12 @@ namespace HM
          pContainer->AddObject("HMAILSERVER_MESSAGE", pMessage, ScriptObject::OTMessage);
       pContainer->AddObject("Result", pResult, ScriptObject::OTResult);
 
-      ScriptServer::Instance()->FireEvent(ScriptServer::EventOnExternalAccountDownload, sEventCaller, pContainer);
+      // The remote UID as a value, for the JavaScript engine; the message argument
+      // before it is null there when there is no message, as Nothing and null are
+      // in the text above.
+      pContainer->AddTextArgument(sRemoteUID);
+
+      ScriptServer::Instance()->FireEvent(ScriptServer::EventOnExternalAccountDownload, sEventCaller, pContainer, sScriptLanguage);
 
       return pResult;
    }

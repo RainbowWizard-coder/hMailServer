@@ -150,7 +150,9 @@ namespace RegressionTests.Shared
       ///    rather than leaving it to match nothing.
       ///
       ///    Three remain, each only where the server's build object says the gap is real:
-      ///    HM5710, an event script asked for on a build with no script engine; HM5607,
+      ///    HM5710, a VBScript or JScript event script asked for on a build that runs
+      ///    JavaScript only (build.script_languages; an older build said it had "no script
+      ///    engine" at all); HM5607,
       ///    PreferredHashAlgorithm asks for Argon2id and the build's OpenSSL
       ///    (below 3.2) has no such KDF, so scrypt is used - written at every reload
       ///    while the hash-policy fixtures have the setting at 5, and blamed on
@@ -164,10 +166,11 @@ namespace RegressionTests.Shared
       {
          var noArgon2id = !ServerApi.Capability("argon2id");
          var classicalOnly = !ServerApi.Capability("post_quantum_key_exchange");
-         var noScriptEngine = !ServerApi.Capability("script_engine");
+         var noWindowsEngines = !ServerApi.RunsScriptLanguage("VBScript");
          return errorLines
             .Where(line => !LogHandler.IsExpectedError(line))
-            .Where(line => !(noScriptEngine && line.Contains("HM5710") && line.Contains("no script engine")))
+            .Where(line => !(noWindowsEngines && line.Contains("HM5710") &&
+                             (line.Contains("runs event scripts in JavaScript only") || line.Contains("no script engine"))))
             .Where(line => !(noArgon2id && line.Contains("HM5607") && line.Contains("has no Argon2id KDF")))
             .Where(line => !(classicalOnly && line.Contains("HM5720") && line.Contains("Failed to set the TLS key exchange groups")))
             .ToArray();

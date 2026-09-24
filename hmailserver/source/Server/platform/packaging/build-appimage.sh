@@ -204,6 +204,13 @@ install -m 0644 "${REPO_ROOT}/hmailserver/installation/Extras/tlds.txt" \
 # without it cannot get as far as a database.
 cp -r "${REPO_ROOT}/hmailserver/source/DBScripts" "${APPDIR}/usr/share/hmailserver/DBScripts"
 
+# QuickJS's licence. The engine is compiled into the binary, and its MIT licence
+# asks for the notice in every copy; the .deb, .rpm and PKGBUILD install it
+# through CMake's install rule, which this script does not run, so it is placed
+# here at the same path they give it.
+install -Dm 0644 "${REPO_ROOT}/hmailserver/source/Server/quickjs/LICENSE" \
+   "${APPDIR}/usr/share/hmailserver/licenses/QuickJS.txt"
+
 # The Control Deck. AppRun points ProgramFolder at this same directory, and
 # RestApiServer::HandleWebAdminPage_ opens <ProgramFolder>/WebAdmin/index.html;
 # without the file the REST listener answers GET / with a stub saying the page

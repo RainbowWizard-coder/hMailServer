@@ -67,7 +67,7 @@ Server/
 | `Diagnostics/` | The checks behind the Control Panel's "Run diagnostics" |
 | `Mime/` | MIME parsing and construction |
 | `Persistence/` | One class per business object, mapping it to database columns |
-| `Scripting/` | VBScript/JScript event hooks |
+| `Scripting/` | Event hooks: VBScript/JScript through Windows Active Scripting (`ScriptSite`), JavaScript through the QuickJS engine the Linux builds embed (`ScriptBinding`, the engine under `Server/quickjs`) |
 | `Sieve/` | `SieveLexer`/`SieveParser` (AST), `SieveEvaluator`, `SieveStorage` (per-account scripts under `{DataDir}\Sieve\`), and the optional RFC 5804 `ManageSieveServer`. Evaluated during local delivery |
 | `SQL/` | Database abstraction: connections, pooling, parameterised queries |
 | `TCPIP/` | Boost.Asio networking, TLS, DNS. Also `DnssecResolver` (validating stub resolver) and `DaneVerifier` (TLSA matching) |

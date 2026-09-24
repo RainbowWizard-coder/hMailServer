@@ -481,6 +481,8 @@ namespace HM
          std::shared_ptr<ScriptObjectContainer> pContainer = std::shared_ptr<ScriptObjectContainer>(new ScriptObjectContainer);
          std::shared_ptr<Result> pResult = std::shared_ptr<Result>(new Result);
          pContainer->AddObject("Result", pResult, ScriptObject::OTResult);
+         // The reason as a value, for the JavaScript engine; see ScriptArgument.
+         pContainer->AddTextArgument(sReason);
          String sEventCaller = "OnBackupFailed(\"" + sReason + "\")";
          ScriptServer::Instance()->FireEvent(ScriptServer::EventOnBackupFailed, sEventCaller, pContainer);
       }

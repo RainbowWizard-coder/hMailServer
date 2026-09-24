@@ -4585,8 +4585,8 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Language" xml:space="preserve">
     <value>Język</value>
   </data>
-  <data name="Language (VBScript or JScript)" xml:space="preserve">
-    <value>Język (VBScript lub JScript)</value>
+  <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
+    <value>Język (VBScript, JScript lub JavaScript)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Największy przesyłany załącznik (KB)</value>

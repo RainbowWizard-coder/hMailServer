@@ -1346,12 +1346,18 @@ namespace hMailServer
          get { return SettingsApi.ReadOrSkip(SettingsApi.Scripting, "enabled", NotOnThisServer.NoScripting).GetBoolean(); }
          set
          {
-            // On a server without a script engine, scripting switched on makes
-            // every later reload report HM5710 - and that error log fails every
-            // test after this one. The test that wanted the handlers to run is
-            // skipped here with the reason, before anything is written.
-            if (value && !ServerApi.Capability("script_engine"))
-               throw NotOnThisServer.Skipped(NotOnThisServer.NoScriptEngine);
+            // Scripting switched on in a language this build does not run - VBScript
+            // or JScript on a Linux build, whose engine is JavaScript - makes every
+            // later reload report HM5710, and that error log fails every test after
+            // this one. The test that wanted the handlers to run is skipped here with
+            // the reason, before anything is written. The gate is the language, not
+            // the engine: a test that set JavaScript runs.
+            if (value && !ServerApi.RunsScriptLanguage(Language))
+            {
+               throw NotOnThisServer.Skipped(ServerApi.Capability("script_engine")
+                  ? NotOnThisServer.WindowsScriptLanguage
+                  : NotOnThisServer.NoScriptEngine);
+            }
 
             SettingsApi.PutOrSkip(SettingsApi.Scripting, "enabled", value ? "true" : "false", NotOnThisServer.NoScripting);
          }
