@@ -416,7 +416,7 @@ namespace RegressionTests.API
 
          // Rotation: two certificates stored, the new one signing.
          using (RSACryptoServiceProvider next = NewKey(2048))
-         using (X509Certificate2 nextCertificate = SelfSigned(next, "CN=SAML fixture identity provider, next"))
+         using (X509Certificate2 nextCertificate = SelfSigned(next, "CN=SAML fixture identity provider (next)"))
          {
             Assert.AreEqual(200, Admin("PUT", "/api/v1/settings",
                "{\"saml_idp_certificate\":\"" + Json(Pem(_certificate) + Pem(nextCertificate)) + "\"}").status);
