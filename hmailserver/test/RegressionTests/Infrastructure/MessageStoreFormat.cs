@@ -464,13 +464,14 @@ namespace RegressionTests.Infrastructure
          // Negative control: the links off, three files, one blob.
          SetHardLinks(false);
          new SmtpClientSimulator().SendRaw("sender@example.test", recipients, Message(one.Address, "Copies", TextBody("copyword", 200), attachment));
+         // Each inbox is empty again - the three linked copies were expunged above.
          foreach (string address in recipients)
-            ImapClientSimulator.AssertMessageCount(address, Password, "INBOX", 2);
+            ImapClientSimulator.AssertMessageCount(address, Password, "INBOX", 1);
 
          var identities = new HashSet<string>();
          foreach (Account account in new[] { one, two, three })
          {
-            string fileName = Inbox(account).Messages[1].Filename;
+            string fileName = Inbox(account).Messages[0].Filename;
             var identity = Identify(fileName);
             ClassicAssert.AreEqual(1u, identity.links, "A copy of its own: " + fileName);
             identities.Add(identity.identity);
@@ -479,7 +480,7 @@ namespace RegressionTests.Infrastructure
          }
          ClassicAssert.AreEqual(3, identities.Count, "Three distinct files.");
          ClassicAssert.AreEqual(1, Directory.GetFiles(Path.Combine(dataDirectory_, "Blobs"), "*", SearchOption.AllDirectories).Length,
-            "Six names of one attachment are more than one blob.");
+            "Three copies of one attachment are more than one blob.");
       }
 
       // ---- the walk, from the command line ---------------------------------------------
@@ -528,12 +529,17 @@ namespace RegressionTests.Infrastructure
          StringAssert.Contains("service is running", refused.Output);
          AssertUnchanged(files, before, "A refused --compress-store changed a file");
 
+         // The COM objects belong to the running service; the service stops and
+         // is started again below, so what is needed of them is read now.
+         string walkedAddress = walked.Address;
+         string domainName = _domain.Name;
+
          StopService();
          try
          {
-            Verb compress = RunVerb("--compress-store --account " + walked.Address);
+            Verb compress = RunVerb("--compress-store --account " + walkedAddress);
             ClassicAssert.AreEqual(0, compress.ExitCode, compress.Output);
-            StringAssert.Contains("Compressed 2 of 3 stored files in " + walked.Address, compress.Output);
+            StringAssert.Contains("Compressed 2 of 3 stored files in " + walkedAddress, compress.Output);
             StringAssert.Contains("1 shared with names outside the walk and left", compress.Output);
 
             for (int i = 0; i < 2; i++)
@@ -550,7 +556,7 @@ namespace RegressionTests.Infrastructure
             ClassicAssert.AreEqual(2u, sharedAfter.links);
             CollectionAssert.AreEqual(before[2], File.ReadAllBytes(shared), "The file shared with another account's name was rewritten.");
 
-            Verb decompress = RunVerb("--compress-store --decompress --account " + walked.Address);
+            Verb decompress = RunVerb("--compress-store --decompress --account " + walkedAddress);
             ClassicAssert.AreEqual(0, decompress.ExitCode, decompress.Output);
             StringAssert.Contains("Decompressed 2 of 3 stored files", decompress.Output);
             AssertUnchanged(files, before, "--decompress did not put a file back byte for byte");
@@ -560,9 +566,11 @@ namespace RegressionTests.Infrastructure
             // walk: it is rewritten once and both names relinked to the new one,
             // never split into a copy per name. This is the walk's multi-name
             // relink branch, which --account leaves untouched.
-            Verb byDomain = RunVerb("--compress-store --domain " + _domain.Name);
+            Verb byDomain = RunVerb("--compress-store --domain " + domainName);
             ClassicAssert.AreEqual(0, byDomain.ExitCode, byDomain.Output);
-            StringAssert.DoesNotContain("shared with names outside the walk", byDomain.Output);
+            // The summary always counts them; the domain walk holds both names, so
+            // none is left for a name outside it.
+            StringAssert.Contains(" 0 shared with names outside the walk", byDomain.Output);
 
             var sharedByDomain = Identify(shared);
             ClassicAssert.AreEqual(sharedBefore.identity, sharedByDomain.identity, "The shared file was split into a copy per name by the domain walk.");
@@ -571,7 +579,7 @@ namespace RegressionTests.Infrastructure
             CollectionAssert.AreEqual(before[2], Decode(File.ReadAllBytes(shared)), "The rewritten shared file does not hold the message it was.");
 
             // Put it back, so the fixture leaves the shared file as it found it.
-            RunVerb("--compress-store --decompress --domain " + _domain.Name);
+            RunVerb("--compress-store --decompress --domain " + domainName);
             AssertUnchanged(new List<string> { shared }, new List<byte[]> { before[2] }, "--decompress --domain did not put the shared file back");
          }
          finally
@@ -579,7 +587,7 @@ namespace RegressionTests.Infrastructure
             RestartServerAndReacquireCom();
          }
 
-         StringAssert.Contains(attachment, FetchLiteral(walked.Address, "INBOX", 1, "BODY.PEEK[]"), "The server does not read the store the walk left.");
+         StringAssert.Contains(attachment, FetchLiteral(walkedAddress, "INBOX", 1, "BODY.PEEK[]"), "The server does not read the store the walk left.");
       }
 
       // ---- damage --------------------------------------------------------------------
@@ -609,6 +617,7 @@ namespace RegressionTests.Infrastructure
          ClassicAssert.IsNull(fetched, "A container cut short was served, in whole or in part: " + response);
          StringAssert.DoesNotContain("HMS\r\n", response, "The container's own bytes were handed out.");
          StringAssert.DoesNotContain(" OK ", response, "BODY[] of a damaged container was answered OK.");
+         StringAssert.Contains(" NO ", response, "BODY[] of a damaged container was not answered NO: " + response);
          CustomAsserts.AssertReportedError("HM7350", "could not be read", leaf);
 
          // The header-only readers refuse it too: FETCH ENVELOPE reads the

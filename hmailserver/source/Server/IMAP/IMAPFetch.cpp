@@ -320,7 +320,21 @@ namespace HM
             int iOctetCount = oPart.octet_count_;
            
             const String messageFileName = PersistentMessage::GetFileName(pConnection->GetAccountOwningCurrentFolder(), pMessage);
-            std::shared_ptr<ByteBuffer> pBuffer = GetByteBufferByBodyPart_(messageFileName, pMimeBody, oPart);
+            // A stored file the store cannot read - a container cut short or
+            // whose SHA-256 does not match (HM7350, reported by the store) - makes
+            // MessageStore::ReadRange throw. Nothing of this part has been sent,
+            // so the command is answered NO for it rather than the throw reaching
+            // the connection's catch-all, which logged a critical error with a
+            // minidump and dropped the session.
+            std::shared_ptr<ByteBuffer> pBuffer;
+            try
+            {
+               pBuffer = GetByteBufferByBodyPart_(messageFileName, pMimeBody, oPart);
+            }
+            catch (const std::exception &)
+            {
+               return IMAPResult(IMAPResult::ResultNo, "The message could not be read.");
+            }
             
             String sPartIdentifier;
             if (iOctetStart == -1 && iOctetCount == -1)

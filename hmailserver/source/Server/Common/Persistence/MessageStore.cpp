@@ -385,13 +385,36 @@ namespace HM
          return MessageStoreFormat::Decode(std::string(bytes.data(), bytes.size()), blob, original, header, problem);
       }
 
+      // When a stored file last changed, for the decoded cache's key: a file
+      // written over in place keeps its identity, and can keep its size.
+      AnsiString LastWrittenOf(const String &name)
+      {
+#ifdef HM_PLATFORM_POSIX
+         const AnsiString narrow = name.c_str();
+         struct stat status;
+         if (::stat(narrow.c_str(), &status) != 0)
+            return AnsiString();
+
+         return AnsiString(std::to_string((long long) status.st_mtim.tv_sec) + "." + std::to_string((long long) status.st_mtim.tv_nsec) + "/" +
+                           std::to_string((long long) status.st_ctim.tv_sec) + "." + std::to_string((long long) status.st_ctim.tv_nsec));
+#else
+         WIN32_FILE_ATTRIBUTE_DATA data;
+         if (!::GetFileAttributesExW(name.c_str(), GetFileExInfoStandard, &data))
+            return AnsiString();
+
+         return AnsiString(std::to_string((unsigned long long) data.ftLastWriteTime.dwHighDateTime) + ":" +
+                           std::to_string((unsigned long long) data.ftLastWriteTime.dwLowDateTime));
+#endif
+      }
+
       // The last containers decoded. A client that reads a message in pieces -
       // BODY[]<start.count>, which Thunderbird and Apple Mail use - or asks for
       // its structure and then its parts would otherwise have it decoded whole,
       // every blob read and hashed and the SHA-256 of the whole taken, once a
       // piece. Keyed by the name, by which file the name is (a rewrite is a new
-      // file under the name, so it is never served from here) and by its stored
-      // size; at most eight entries and 96 MB, and an entry nobody has asked
+      // file under the name, so it is never served from here), by when that
+      // file was last written (a file written over in place keeps its identity)
+      // and by its stored size; at most eight entries and 96 MB, and an entry nobody has asked
       // for in half a minute goes. What is kept here was checked whole when it
       // was decoded.
       class DecodedCache
@@ -510,7 +533,14 @@ namespace HM
          AnsiString identity;
          unsigned int names = 0;
          unsigned __int64 storedSize = 0;
-         const bool keyed = MessageStore::Backend().Identity(name, identity, names) && MessageStore::Backend().Size(name, storedSize);
+         bool keyed = MessageStore::Backend().Identity(name, identity, names) && MessageStore::Backend().Size(name, storedSize);
+         if (keyed)
+         {
+            const AnsiString written = LastWrittenOf(name);
+            keyed = !written.IsEmpty();
+            identity += "@";
+            identity += written;
+         }
 
          if (keyed)
          {
