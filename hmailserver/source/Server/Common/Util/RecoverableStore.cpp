@@ -462,7 +462,26 @@ namespace HM
                gone.push_back(current);
          }
          for (const boost::filesystem::path &directory : gone)
+         {
+            // Each kept copy through the store first: a copy of a message the
+            // store keeps compressed references parts held once, and removing
+            // the directory around the store would leave them counted for names
+            // that are gone (Persistence/MessageStoreBlobs.h).
+            std::vector<String> kept;
+            boost::system::error_code walkError;
+            for (boost::filesystem::recursive_directory_iterator entry(directory, walkError);
+                 !walkError && entry != boost::filesystem::recursive_directory_iterator(); entry.increment(walkError))
+            {
+               boost::system::error_code fileError;
+               if (boost::filesystem::is_regular_file(entry->path(), fileError) && !fileError)
+                  kept.push_back(String(entry->path().wstring()));
+            }
+
+            for (const String &file : kept)
+               MessageStore::Remove(file);
+
             boost::filesystem::remove_all(directory, error_code);
+         }
       }
 
       return ended;

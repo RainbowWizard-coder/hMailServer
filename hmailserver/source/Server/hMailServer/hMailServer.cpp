@@ -19,6 +19,7 @@
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/EnvironmentSettings.h"
 #include "../Common/Application/Profiles.h"
+#include "../Common/Persistence/MessageStoreMaintenance.h"
 #include "../Common/Util/ClassTester.h"
 #include "../Common/Util/SystemInformation.h"
 #include "../Common/Util/CrashOracle.h"
@@ -402,6 +403,48 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
          profileIfNew = true;
    }
 
+   // The message store walked (Common/Persistence/MessageStoreMaintenance.h):
+   // --measure-store, --compress-store [--decompress] and --recount-store, the
+   // first two with an optional --account <address> or --domain <name>, found
+   // anywhere on the line as the profile verb's switches are.
+   int storeVerb = 0;
+   String storeAccount;
+   bool storeAccountGiven = false;
+   String storeDomain;
+   bool storeDomainGiven = false;
+   for (size_t index = 0; index < vecParams.size(); index++)
+   {
+      if (vecParams[index].CompareNoCase(_T("--measure-store")) == 0)
+         storeVerb = HM::MessageStoreMaintenance::VerbMeasure;
+      else if (vecParams[index].CompareNoCase(_T("--compress-store")) == 0 && storeVerb != HM::MessageStoreMaintenance::VerbDecompress)
+         storeVerb = HM::MessageStoreMaintenance::VerbCompress;
+      else if (vecParams[index].CompareNoCase(_T("--recount-store")) == 0)
+         storeVerb = HM::MessageStoreMaintenance::VerbRecount;
+      else if (vecParams[index].CompareNoCase(_T("--account")) == 0)
+      {
+         storeAccountGiven = true;
+         for (size_t next = index + 1; next < vecParams.size() && storeAccount.IsEmpty(); next++)
+         {
+            if (!vecParams[next].IsEmpty())
+               storeAccount = vecParams[next];
+         }
+      }
+      else if (vecParams[index].CompareNoCase(_T("--domain")) == 0)
+      {
+         storeDomainGiven = true;
+         for (size_t next = index + 1; next < vecParams.size() && storeDomain.IsEmpty(); next++)
+         {
+            if (!vecParams[next].IsEmpty())
+               storeDomain = vecParams[next];
+         }
+      }
+   }
+   for (size_t index = 0; index < vecParams.size(); index++)
+   {
+      if (vecParams[index].CompareNoCase(_T("--decompress")) == 0 && storeVerb == HM::MessageStoreMaintenance::VerbCompress)
+         storeVerb = HM::MessageStoreMaintenance::VerbDecompress;
+   }
+
    _AtlModule.InitializeCom();
 
    // Register app id so that client can create instances
@@ -620,6 +663,38 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       }
       else
          iRet = HM::Profiles::RunCommand(profileName, profileConfirmed, profileOnce, profileIfNew);
+   }
+   else if (storeVerb != 0)
+   {
+      // The lines go where the profile verb's go. The rewrites are refused while
+      // the service runs, as the upgrade and the profiles are: a running server
+      // reads and writes the files a walk renames, and counts the blobs a walk
+      // counts, in a process the walk cannot lock. Measuring changes nothing and
+      // runs beside it. Exit 4.
+      AttachVerbOutput();
+
+      if (storeVerb != HM::MessageStoreMaintenance::VerbMeasure && HMailServerServiceIsRunning())
+      {
+         WriteVerbError("The hMailServer service is running. Stop it (Stop-Service hMailServer) to rewrite the message store or recount its blobs, then start it again; --measure-store runs beside it. Nothing was changed.\r\n");
+         iRet = 4;
+      }
+      else if (storeAccountGiven && (storeAccount.IsEmpty() || storeAccount.Left(2) == _T("--")))
+      {
+         WriteVerbError("--account needs the account's address; for example --account alice@example.com.\r\n");
+         iRet = 2;
+      }
+      else if (storeDomainGiven && (storeDomain.IsEmpty() || storeDomain.Left(2) == _T("--")))
+      {
+         WriteVerbError("--domain needs the domain's name; for example --domain example.com.\r\n");
+         iRet = 2;
+      }
+      else if (storeAccountGiven && storeDomainGiven)
+      {
+         WriteVerbError("--account and --domain each say what the walk covers; give one of them, or neither for the whole store.\r\n");
+         iRet = 2;
+      }
+      else
+         iRet = HM::MessageStoreMaintenance::RunCommand((HM::MessageStoreMaintenance::Verb) storeVerb, storeAccount, storeDomain);
    }
    else if (sLastParam.CompareNoCase(_T("RunAsService")) == 0)
    {

@@ -2734,6 +2734,23 @@ namespace hMailServer.ControlPanel.Views
          });
          Tab(L("Indexing")).Cards.Add(index);
 
+         // The message store's form (docs/MessageStore.md): the switch, the size a
+         // part must reach to be held once, and - because a switch that says it
+         // saves space is a claim - what the store holds and saves, measured by the
+         // server itself (Settings.MessageStoreStatus, GET /api/v1/store).
+         var store = Card(L("Message store"),
+            L("Whether new mail is stored compressed, with the large attachments it shares with other messages kept once. Clients see every message exactly as it arrived. Turning it off stores new mail as it comes and leaves the stored messages readable; hmailserver --compress-store rewrites the messages already there, and --decompress puts them back."));
+         store.Settings.Add(new ComBool { Path = "MessageStoreCompression", Label = L("Store new mail compressed, with large parts held once") });
+         store.Settings.Add(new ComText { Path = "MessageStoreDedupMinKB", Label = L("Smallest part held once (KB; 0 holds nothing once)"), Numeric = true });
+         store.Settings.Add(new ComStat
+         {
+            Path = "MessageStoreStatus",
+            Label = L("What the store holds, and what it saves"),
+            Read = () => DescribeStore_(),
+            Blurb = L("Measured by the server on its own time, and at most a quarter of an hour old. A file with several names is counted once.")
+         });
+         Tab(L("Message store")).Cards.Add(store);
+
          // The three [Database] values that are tuning rather than connection detail.
          //
          // Everything else in that section - server, database name, credentials, type
@@ -3440,6 +3457,39 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private static object ComProperty_(object owner, string name)
          => owner.GetType().InvokeMember(name, BindingFlags.GetProperty, null, owner, null);
+
+      /// <summary>
+      /// The message store's last measurement, from Settings.MessageStoreStatus
+      /// (the JSON GET /api/v1/store answers): what the messages are beside what
+      /// their files and the parts held once take, so that a saving is read off
+      /// the server rather than assumed from the switch.
+      /// </summary>
+      private static string DescribeStore_()
+      {
+         dynamic settings = ServerSession.Current.Application.Settings;
+         string json = (string)settings.MessageStoreStatus;
+
+         using (System.Text.Json.JsonDocument document = System.Text.Json.JsonDocument.Parse(json))
+         {
+            System.Text.Json.JsonElement root = document.RootElement;
+
+            long measured = root.GetProperty("measured").GetInt64();
+            if (measured == 0)
+               return L("The server is measuring the message store; open this page again in a minute for the figures.");
+
+            var culture = System.Globalization.CultureInfo.CurrentCulture;
+            string MegaBytes(string name) => (root.GetProperty(name).GetInt64() / 1048576.0).ToString("N1", culture);
+
+            return F("{0} messages, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. {5} of the files are compressed. Measured {6}.",
+               root.GetProperty("messages").GetInt64().ToString("N0", culture),
+               MegaBytes("logical_bytes"),
+               MegaBytes("stored_bytes"),
+               MegaBytes("blob_bytes"),
+               root.GetProperty("saved_percent").GetDouble().ToString("N1", culture),
+               root.GetProperty("compressed_files").GetInt64().ToString("N0", culture),
+               DateTimeOffset.FromUnixTimeSeconds(measured).LocalDateTime.ToString("g", culture));
+         }
+      }
 
       // ---- message index actions ---------------------------------------------
       //

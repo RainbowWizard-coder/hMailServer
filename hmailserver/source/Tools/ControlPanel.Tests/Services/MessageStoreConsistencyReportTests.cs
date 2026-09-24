@@ -113,9 +113,76 @@ namespace hMailServer.ControlPanel.Tests.Services
          MessageStoreConsistencyReport report = MessageStoreConsistencyReport.Parse(text);
 
          Assert.Empty(report.Entries);
+         Assert.Empty(report.UnreferencedBlobs);
          Assert.Null(report.Generated);
          Assert.Null(report.ReportedMissingCount);
+         Assert.Null(report.ReportedUnreferencedBlobCount);
          Assert.Equal(0, report.MissingCount);
+      }
+
+      // The message store's section (docs/MessageStore.md), byte for byte as
+      // MessageStoreConsistencyTask::WriteReport_ appends it after the rows.
+      private const string BlobSection =
+         "# Blobs nothing references: 2\r\n" +
+         "# Columns: blob<TAB>sha256\r\n" +
+         "blob\t" + "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" + "\r\n" +
+         "blob\t" + "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210" + "\r\n";
+
+      [Fact]
+      public void Parse_ABlobNothingReferencesIsNotAMissingMessage()
+      {
+         // A clean scan with two stray blobs: no problem found, and no false
+         // "read while it was being rewritten" - the header says 0 missing and
+         // no missing row is listed.
+         MessageStoreConsistencyReport report = MessageStoreConsistencyReport.Parse(
+            "# hMailServer message-store consistency report\r\n" +
+            "# Generated: 2026-09-24 21:14:03\r\n" +
+            "# Missing files: 0\r\n" +
+            "# Columns: messageid<TAB>account<TAB>expected-path\r\n" +
+            BlobSection);
+
+         Assert.Empty(report.Entries);
+         Assert.Equal(0, report.MissingCount);
+         Assert.False(report.IsTruncated);
+         Assert.Equal(2, report.ReportedUnreferencedBlobCount);
+         Assert.Equal(new[]
+         {
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+         }, report.UnreferencedBlobs);
+      }
+
+      [Fact]
+      public void Parse_MissingMessagesAndStrayBlobsAreReadApart()
+      {
+         // Negative control of the one above: with missing files as well, the
+         // rows before the blob section are the missing messages and nothing
+         // after it is one.
+         MessageStoreConsistencyReport report = MessageStoreConsistencyReport.Parse(ServerFormat + BlobSection);
+
+         Assert.Equal(2, report.Entries.Count);
+         Assert.Equal(2, report.MissingCount);
+         Assert.False(report.IsTruncated);
+         Assert.DoesNotContain(report.Entries, e => e.MessageId == "blob");
+         Assert.Equal(2, report.UnreferencedBlobs.Count);
+      }
+
+      [Fact]
+      public void Parse_AMissingBlobIsAMissingMessage()
+      {
+         // A stored message whose file is there but whose part held once is
+         // not is written among the missing files, with the blob in its path
+         // column - a missing message, which is what it is.
+         MessageStoreConsistencyReport report = MessageStoreConsistencyReport.Parse(
+            "# Missing files: 1\r\n" +
+            "9\ta@b.com\tC:\\store\\9.eml (blob 0123 missing)\r\n" +
+            "# Blobs nothing references: 0\r\n" +
+            "# Columns: blob<TAB>sha256\r\n");
+
+         MessageStoreConsistencyEntry entry = Assert.Single(report.Entries);
+         Assert.Equal("9", entry.MessageId);
+         Assert.Empty(report.UnreferencedBlobs);
+         Assert.False(report.IsTruncated);
       }
    }
 }

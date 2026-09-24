@@ -1,0 +1,935 @@
+// https://www.progressiverobot.com
+// Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+#include "stdafx.h"
+
+#include "MessageStoreMaintenance.h"
+#include "MessageStore.h"
+#include "MessageStoreBlobs.h"
+#include "MessageStoreFormat.h"
+#include "PersistentAccount.h"
+#include "PersistentDomain.h"
+#include "PersistentMessage.h"
+
+#include "../BO/Account.h"
+#include "../BO/Domain.h"
+#include "../BO/Message.h"
+#include "../SQL/DALRecordset.h"
+#include "../SQL/DatabaseConnectionManager.h"
+#include "../Threading/Task.h"
+#include "../Threading/WorkQueue.h"
+#include "../Util/GUIDCreator.h"
+#include "../Util/Unicode.h"
+
+#include <boost/filesystem.hpp>
+
+#include <algorithm>
+#include <atomic>
+#include <cstdio>
+#include <ctime>
+#include <map>
+#include <set>
+
+#ifdef HM_PLATFORM_POSIX
+#include <cerrno>
+#include <cstring>
+#include <fcntl.h>
+#include <sys/file.h>
+#include <unistd.h>
+#endif
+
+#ifdef _DEBUG
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW
+#endif
+
+namespace HM
+{
+   namespace
+   {
+      // How long a measurement for GET /api/v1/store is kept.
+      const __int64 TotalsSeconds = 15 * 60;
+
+      boost::mutex totals_lock;
+      MessageStoreMaintenance::Totals last_totals;
+      std::atomic<bool> measuring(false);
+
+      // Set when a measurement is queued and cleared when its task goes -
+      // after it ran, when it threw, or when a stopping queue dropped it
+      // without running it - so that a measurement that never happened does
+      // not leave the flag up and stop every later one.
+      class MessageStoreMeasureTask : public Task
+      {
+      public:
+         MessageStoreMeasureTask() : Task("MessageStoreMeasureTask") {}
+
+         ~MessageStoreMeasureTask()
+         {
+            measuring = false;
+         }
+
+         virtual void DoWork()
+         {
+            try
+            {
+               MessageStoreMaintenance::MeasureNow();
+            }
+            catch (...)
+            {
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7352, "MessageStoreMeasureTask::DoWork",
+                  "The message store could not be measured; the last measurement is kept, and the next request for the totals starts another.");
+            }
+         }
+      };
+
+      void Print(bool error, const String &line)
+      {
+         AnsiString text;
+         Unicode::WideToMultiByte(line, text);
+         text += "\n";
+
+#ifdef HM_PLATFORM_POSIX
+         std::fputs(text.c_str(), error ? stderr : stdout);
+         std::fflush(error ? stderr : stdout);
+#else
+         HANDLE handle = GetStdHandle(error ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
+         if (handle && handle != INVALID_HANDLE_VALUE)
+         {
+            DWORD written = 0;
+            WriteFile(handle, text.c_str(), (DWORD) text.GetLength(), &written, nullptr);
+         }
+#endif
+      }
+
+      String Bytes(unsigned __int64 bytes)
+      {
+         String text;
+         text.Format(_T("%I64u"), bytes);
+         return text;
+      }
+
+      String Percent(unsigned __int64 part, unsigned __int64 whole)
+      {
+         if (whole == 0)
+            return _T("0");
+
+         String text;
+         text.Format(_T("%.1f"), 100.0 * (double) part / (double) whole);
+         return text;
+      }
+
+      // The files that are one file: grouped by what the backend says each is.
+      struct Group
+      {
+         Group() : names_total(0) {}
+         std::vector<String> names;
+         unsigned int names_total;
+      };
+
+      void GroupByIdentity(const std::vector<MessageStoreMaintenance::StoredFile> &files, std::vector<Group> &groups, std::vector<String> &unreadable)
+      {
+         std::map<AnsiString, size_t> byIdentity;
+         for (size_t i = 0; i < files.size(); i++)
+         {
+            AnsiString identity;
+            unsigned int names = 0;
+            if (!MessageStore::Backend().Identity(files[i].path, identity, names))
+            {
+               unreadable.push_back(files[i].path);
+               continue;
+            }
+
+            auto known = byIdentity.find(identity);
+            if (known == byIdentity.end())
+            {
+               Group group;
+               group.names.push_back(files[i].path);
+               group.names_total = names;
+               byIdentity[identity] = groups.size();
+               groups.push_back(group);
+               continue;
+            }
+
+            // The same name met twice (two rows naming one file) is one name.
+            std::vector<String> &names_found = groups[known->second].names;
+            if (std::find(names_found.begin(), names_found.end(), files[i].path) == names_found.end())
+               names_found.push_back(files[i].path);
+         }
+      }
+
+      struct WalkCounts
+      {
+         WalkCounts() : rewritten(0), unchanged(0), shared_left(0), zero_access(0), failed(0), before(0), after(0) {}
+         int rewritten;
+         int unchanged;
+         int shared_left;
+         int zero_access;
+         int failed;
+         unsigned __int64 before;
+         unsigned __int64 after;
+      };
+
+      // One file, with all of its names: rewritten once beside the first name,
+      // read back and compared, then every name made a name of the new file.
+      bool RewriteGroup(const Group &group, bool decompress, unsigned __int64 dedupMinimum, WalkCounts &counts)
+      {
+         const String first = group.names[0];
+
+         unsigned __int64 before = 0;
+         MessageStore::StoredFileSize64(first, before);
+
+         std::vector<MessageStoreReference> oldReferences;
+         if (!MessageStore::GetReferences(first, oldReferences))
+         {
+            Print(true, "  " + first + ": its header is not one this server reads; left as it is.");
+            counts.failed++;
+            return false;
+         }
+
+         const bool container = MessageStore::IsContainer(first);
+         if (container != decompress)
+         {
+            counts.unchanged++;
+            counts.before += before;
+            counts.after += before;
+            return true;
+         }
+
+         std::string original;
+         String problem;
+         if (!MessageStore::ReadOriginal(first, original, problem))
+         {
+            Print(true, "  " + first + ": could not be read (" + problem + "); left as it is.");
+            counts.failed++;
+            return false;
+         }
+
+         // A plain message that begins with the magic stays a container.
+         if (decompress && MessageStoreFormat::HasMagic(original.data(), original.size()))
+         {
+            counts.unchanged++;
+            counts.before += before;
+            counts.after += before;
+            return true;
+         }
+
+         // Beside the first name, on its volume, so that a rename and a link can
+         // reach every name.
+         const String staged = first + _T(".store-") + GUIDCreator::GetGUID();
+
+         if (decompress)
+         {
+            if (!MessageStore::Backend().WriteAtomically(staged, AnsiString(original.data(), original.size())))
+            {
+               Print(true, "  " + first + ": the plain message could not be written beside it; left as it is.");
+               counts.failed++;
+               return false;
+            }
+         }
+         else
+         {
+            bool written = false;
+            if (!MessageStore::WriteContainer(original, staged, dedupMinimum, written, problem))
+            {
+               Print(true, "  " + first + ": could not be compressed (" + problem + "); left as it is.");
+               counts.failed++;
+               return false;
+            }
+
+            if (!written)
+            {
+               counts.unchanged++;
+               counts.before += before;
+               counts.after += before;
+               return true;
+            }
+         }
+
+         // Read back through the store and compared with the message, byte for
+         // byte - the size and the SHA-256 with it - before any name moves.
+         std::string check;
+         if (!MessageStore::ReadOriginal(staged, check, problem) || check != original)
+         {
+            MessageStore::Remove(staged);
+            Print(true, "  " + first + ": what was written did not read back as the message; left as it is.");
+            counts.failed++;
+            return false;
+         }
+
+         unsigned __int64 after = 0;
+         MessageStore::StoredFileSize64(staged, after);
+
+         bool allMoved = true;
+         if (group.names.size() == 1)
+         {
+            // One name: the new file takes it, and with it the counts the staged
+            // name holds.
+            if (!MessageStore::Rename(staged, first))
+            {
+               MessageStore::Remove(staged);
+               allMoved = false;
+            }
+            else if (decompress)
+               MessageStoreBlobs::Release(oldReferences);
+         }
+         else
+         {
+            for (size_t i = 0; i < group.names.size(); i++)
+            {
+               if (!MessageStore::Relink(staged, group.names[i]))
+               {
+                  allMoved = false;
+                  continue;
+               }
+
+               // A name that was the container no longer references its parts.
+               if (decompress)
+                  MessageStoreBlobs::Release(oldReferences);
+            }
+
+            MessageStore::Remove(staged);
+         }
+
+         if (!allMoved)
+         {
+            Print(true, "  " + first + ": the rewritten file could not be given every name; the names it has are readable, as are the ones left.");
+            counts.failed++;
+            return false;
+         }
+
+         counts.rewritten++;
+         counts.before += before;
+         counts.after += after;
+         return true;
+      }
+
+      bool OpenForCommand(const String &verb)
+      {
+         IniFileSettings::Instance()->LoadSettings();
+         if (!IniFileSettings::Instance()->GetDatabaseSettingsExists())
+         {
+            Print(true, Formatter::Format("[Database] in {0} does not name a database, so there is no store to {1}. Nothing was changed.",
+               IniFileSettings::GetInitializationFile(), verb));
+            return false;
+         }
+
+         String error;
+         if (!Application::Instance()->InitInstance(error))
+         {
+            if (error.IsEmpty())
+               error = Application::Instance()->GetLastErrorMessage();
+
+            Print(true, Formatter::Format("The configuration could not be read and the database opened: {0} Nothing was changed.", error));
+            Application::Instance()->ExitInstance();
+            return false;
+         }
+
+         return true;
+      }
+
+      int Measure(const std::vector<MessageStoreMaintenance::StoredFile> &files, const String &scope)
+      {
+         const unsigned __int64 dedupMinimum = (unsigned __int64) Configuration::Instance()->GetMessageStoreDedupMinKB() * 1024;
+
+         std::vector<Group> groups;
+         std::vector<String> unreadable;
+         GroupByIdentity(files, groups, unreadable);
+
+         unsigned __int64 logical = 0;
+         unsigned __int64 storedNow = 0;
+         unsigned __int64 wouldBe = 0;
+         unsigned __int64 duplicateParts = 0;
+         unsigned __int64 heldOnce = 0;
+         int containers = 0;
+         int names = 0;
+
+         // Every part the walk would hold once, and every part a compressed file
+         // holds once already - which is on disk now, once, however many files
+         // name it.
+         std::set<AnsiString> seenParts;
+         std::set<AnsiString> blobsNow;
+
+         for (size_t i = 0; i < groups.size(); i++)
+         {
+            const String &file = groups[i].names[0];
+            names += (int) groups[i].names.size();
+
+            unsigned __int64 size = 0;
+            MessageStore::StoredFileSize64(file, size);
+            storedNow += size;
+
+            std::vector<MessageStoreReference> references;
+            if (MessageStore::IsContainer(file) && MessageStore::GetReferences(file, references))
+            {
+               // Already stored compressed: it would take what it takes now, and
+               // so would the blobs it names - on both sides of the sum, each
+               // part once, so that a store compressed already shows the saving
+               // still to be had, which is none, and not a loss.
+               containers++;
+               unsigned __int64 original = 0;
+               MessageStore::FileSize64(file, original);
+               logical += original;
+               wouldBe += size;
+               for (size_t r = 0; r < references.size(); r++)
+               {
+                  if (blobsNow.insert(references[r].sha256).second)
+                     storedNow += references[r].length;
+
+                  if (seenParts.insert(references[r].sha256).second)
+                     heldOnce += references[r].length;
+                  else
+                     duplicateParts += references[r].length;
+               }
+               continue;
+            }
+
+            std::string original;
+            String problem;
+            if (!MessageStore::ReadOriginal(file, original, problem))
+            {
+               unreadable.push_back(file);
+               continue;
+            }
+
+            logical += (unsigned __int64) original.size();
+
+            std::vector<MessageStoreReference> parts;
+            if (dedupMinimum > 0)
+               MessageStoreFormat::FindLargeParts(original, dedupMinimum, parts);
+
+            std::string container;
+            if (!MessageStoreFormat::Encode(original, parts, true, container, problem) ||
+                (parts.empty() && container.size() >= original.size()))
+            {
+               wouldBe += (unsigned __int64) original.size();
+               continue;
+            }
+
+            wouldBe += (unsigned __int64) container.size();
+            for (size_t r = 0; r < parts.size(); r++)
+            {
+               if (seenParts.insert(parts[r].sha256).second)
+                  heldOnce += parts[r].length;
+               else
+                  duplicateParts += parts[r].length;
+            }
+         }
+
+         const unsigned __int64 total = wouldBe + heldOnce;
+         const unsigned __int64 saved = storedNow > total ? storedNow - total : 0;
+
+         Print(false, Formatter::Format("Measured {0}: {1} stored files ({2} names), {3} of them compressed already; nothing was changed.",
+            scope, (int) groups.size(), names, containers));
+         Print(false, "  The messages:                          " + Bytes(logical) + " bytes, what IMAP and POP3 say they are.");
+         Print(false, "  Stored now:                            " + Bytes(storedNow) + " bytes of message files and of the blobs the compressed ones name (a file with several names counted once).");
+         Print(false, "  Compressed, parts held once:           " + Bytes(wouldBe) + " bytes of message files and " + Bytes(heldOnce) + " of blobs, " + Bytes(total) + " in all.");
+         Print(false, "  Parts met more than once:              " + Bytes(duplicateParts) + " bytes that would be stored once.");
+         Print(false, "  Would save:                            " + Bytes(saved) + " bytes more, " + Percent(saved, storedNow) + "% of what is stored now.");
+         Print(false, Formatter::Format("  Parts held once from {0} KB (MessageStoreDedupMinKB); compression is {1} for new mail (MessageStoreCompression).",
+            Configuration::Instance()->GetMessageStoreDedupMinKB(), Configuration::Instance()->GetMessageStoreCompression() ? String(_T("on")) : String(_T("off"))));
+
+         for (size_t i = 0; i < unreadable.size(); i++)
+            Print(true, "  Not read: " + unreadable[i]);
+
+         return unreadable.empty() ? 0 : 1;
+      }
+
+      int Rewrite(const std::vector<MessageStoreMaintenance::StoredFile> &files, const String &scope, bool decompress)
+      {
+         const unsigned __int64 dedupMinimum = (unsigned __int64) Configuration::Instance()->GetMessageStoreDedupMinKB() * 1024;
+
+         WalkCounts counts;
+
+         std::vector<MessageStoreMaintenance::StoredFile> walked;
+         for (size_t i = 0; i < files.size(); i++)
+         {
+            // A zero-access mailbox's delivered mail is ciphertext: nothing to
+            // compress, no part to hold once, so compressing leaves it. It is
+            // not only ciphertext, though - an APPEND is stored as the client
+            // sent it, and mail stored before the switch was thrown is not
+            // sealed afterwards - so --decompress walks it like any other and
+            // puts back every container it finds.
+            if (files[i].zero_access && !decompress)
+            {
+               counts.zero_access++;
+               continue;
+            }
+            walked.push_back(files[i]);
+         }
+
+         std::vector<Group> groups;
+         std::vector<String> unreadable;
+         GroupByIdentity(walked, groups, unreadable);
+
+         for (size_t i = 0; i < groups.size(); i++)
+         {
+            // A file with a name outside the walk: rewriting it would give the
+            // names here a new file and leave the others the old one, which is
+            // one copy per name. Left, and counted.
+            if (groups[i].names_total > (unsigned int) groups[i].names.size())
+            {
+               counts.shared_left++;
+               continue;
+            }
+
+            RewriteGroup(groups[i], decompress, dedupMinimum, counts);
+         }
+
+         counts.failed += (int) unreadable.size();
+         for (size_t i = 0; i < unreadable.size(); i++)
+            Print(true, "  Not read: " + unreadable[i]);
+
+         const String done = decompress ? String(_T("Decompressed")) : String(_T("Compressed"));
+         // Two calls: Formatter::Format takes five arguments at most.
+         Print(false, Formatter::Format("{0} {1} of {2} stored files in {3}: ", done, counts.rewritten, (int) groups.size(), scope) +
+            Formatter::Format("{0} bytes before, {1} after.", Bytes(counts.before), Bytes(counts.after)));
+         Print(false, Formatter::Format("  {0} left as they were ({1}), {2} shared with names outside the walk and left, {3} in zero-access mailboxes left, {4} failed.",
+            counts.unchanged, decompress ? String(_T("plain already")) : String(_T("compressed already, or not made smaller")),
+            counts.shared_left, counts.zero_access, counts.failed));
+
+         return counts.failed == 0 ? 0 : 1;
+      }
+   }
+
+   bool
+   MessageStoreMaintenance::ListStoredFiles(const String &accountAddress, const String &domainName, std::vector<StoredFile> &files, String &problem)
+   {
+      files.clear();
+
+      std::shared_ptr<DatabaseConnectionManager> db = Application::Instance()->GetDBManager();
+      if (!db)
+      {
+         problem = _T("the database is not open");
+         return false;
+      }
+
+      // The account or the domain found as a sign-in finds it - through
+      // SQLStatement's where clause, which compares without regard to case on
+      // PostgreSQL as the other databases do by their collation - and the walk
+      // then filtered by its id rather than by the text given.
+      __int64 accountId = 0;
+      __int64 domainId = 0;
+
+      if (!accountAddress.IsEmpty())
+      {
+         std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
+         if (!PersistentAccount::ReadObject(account, accountAddress))
+         {
+            problem = "there is no account " + accountAddress;
+            return false;
+         }
+         accountId = account->GetID();
+      }
+      else if (!domainName.IsEmpty())
+      {
+         std::shared_ptr<Domain> domain = std::shared_ptr<Domain>(new Domain());
+         if (!PersistentDomain::ReadObject(domain, domainName))
+         {
+            problem = "there is no domain " + domainName;
+            return false;
+         }
+         domainId = domain->GetID();
+      }
+
+      String sql = _T("select m.messageid, m.messagefilename, m.messageaccountid, m.messagefolderid, m.messagesize, a.accountaddress, a.accountzeroaccess ")
+                   _T("from hm_messages m left join hm_accounts a on m.messageaccountid = a.accountid where m.messagetype = 2");
+      if (accountId > 0)
+         sql += _T(" and m.messageaccountid = @ACCOUNTID");
+      else if (domainId > 0)
+         sql += _T(" and a.accountdomainid = @DOMAINID");
+
+      SQLCommand command(sql);
+      if (accountId > 0)
+         command.AddParameter("@ACCOUNTID", accountId);
+      else if (domainId > 0)
+         command.AddParameter("@DOMAINID", domainId);
+
+      std::shared_ptr<DALRecordset> recordset = db->OpenRecordset(command);
+      if (!recordset)
+      {
+         problem = _T("the messages could not be read");
+         return false;
+      }
+
+      while (!recordset->IsEOF())
+      {
+         const String partial = recordset->GetStringValue("messagefilename");
+         if (!partial.IsEmpty())
+         {
+            // false: a message only to name a file with, given no new name.
+            std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message(false));
+            message->SetPartialFileName(partial);
+            message->SetAccountID(recordset->GetLongValue("messageaccountid"));
+            message->SetFolderID(recordset->GetLongValue("messagefolderid"));
+
+            StoredFile file;
+            file.message_id = recordset->GetInt64Value("messageid");
+            file.size = recordset->GetInt64Value("messagesize");
+            file.account = recordset->GetStringValue("accountaddress");
+            file.zero_access = recordset->GetLongValue("accountzeroaccess") == 1;
+            file.path = PersistentMessage::GetFileName(file.account, message);
+            files.push_back(file);
+         }
+
+         recordset->MoveNext();
+      }
+
+      return true;
+   }
+
+   void
+   MessageStoreMaintenance::ListKeptFiles(std::vector<String> &files)
+   {
+      files.clear();
+
+      const String root = FileUtilities::Combine(IniFileSettings::Instance()->GetDataDirectory(), _T("Recoverable"));
+
+      boost::system::error_code error;
+      const boost::filesystem::path rootPath(std::wstring(root.c_str()));
+      if (!boost::filesystem::is_directory(rootPath, error) || error)
+         return;
+
+      for (boost::filesystem::recursive_directory_iterator entry(rootPath, error);
+           !error && entry != boost::filesystem::recursive_directory_iterator(); entry.increment(error))
+      {
+         boost::system::error_code fileError;
+         if (boost::filesystem::is_regular_file(entry->path(), fileError) && !fileError)
+            files.push_back(String(entry->path().wstring()));
+      }
+   }
+
+   bool
+   MessageStoreMaintenance::Recount(String &summary, bool exact)
+   {
+      // A store that has never held a part once has nothing to count - no row,
+      // and no Blobs directory a stored file could name - so the walk a restore
+      // ends with, which reads the start of every stored file, is not made: a
+      // restore on a server that never turned compression on costs what it cost
+      // before this row. The command line's recount always walks: it is also
+      // how a store upgraded from before schema 6098 has every file that begins
+      // with the magic counted (docs/MessageStore.md).
+      if (!exact)
+      {
+         std::map<AnsiString, __int64> rows;
+         if (MessageStoreBlobs::List(rows) && rows.empty() && !FileUtilities::DirectoryExists(MessageStoreBlobs::Root()))
+         {
+            summary = _T("the store holds no part once, so there was nothing to count.");
+            return true;
+         }
+      }
+
+      std::vector<StoredFile> files;
+      if (!ListStoredFiles(String(), String(), files, summary))
+         return false;
+
+      std::vector<String> names;
+      for (size_t i = 0; i < files.size(); i++)
+         names.push_back(files[i].path);
+
+      std::vector<String> kept;
+      ListKeptFiles(kept);
+      names.insert(names.end(), kept.begin(), kept.end());
+
+      // Every name that references a blob counts it once: a file with several
+      // names is several names, which is what a count is of.
+      std::map<AnsiString, std::pair<unsigned __int64, __int64> > counts;
+      for (size_t i = 0; i < names.size(); i++)
+      {
+         std::vector<MessageStoreReference> references;
+         if (!MessageStore::GetReferences(names[i], references))
+            continue;
+
+         for (size_t r = 0; r < references.size(); r++)
+         {
+            std::pair<unsigned __int64, __int64> &count = counts[references[r].sha256];
+            count.first = references[r].length;
+            count.second++;
+         }
+      }
+
+      return MessageStoreBlobs::SetCounts(counts, exact, summary);
+   }
+
+   void
+   MessageStoreMaintenance::FindBlobProblems(std::vector<String> &missing, std::vector<AnsiString> &unreferenced)
+   {
+      missing.clear();
+      unreferenced.clear();
+
+      // A store that has never held a part once has nothing to look at, and
+      // the check costs what it cost before this row.
+      std::map<AnsiString, __int64> rows;
+      MessageStoreBlobs::List(rows);
+      const String root = MessageStoreBlobs::Root();
+      if (rows.empty() && !FileUtilities::DirectoryExists(root))
+         return;
+
+      std::vector<StoredFile> files;
+      String problem;
+      if (!ListStoredFiles(String(), String(), files, problem))
+         return;
+
+      std::set<AnsiString> referenced;
+
+      for (size_t i = 0; i < files.size(); i++)
+      {
+         std::vector<MessageStoreReference> references;
+         if (!MessageStore::GetReferences(files[i].path, references))
+            continue;
+
+         for (size_t r = 0; r < references.size(); r++)
+         {
+            referenced.insert(references[r].sha256);
+
+            if (!MessageStoreBlobs::Exists(references[r].sha256))
+            {
+               String line;
+               line.Format(_T("%I64d\t%s\t%s (blob %s missing)"), files[i].message_id, files[i].account.c_str(),
+                  files[i].path.c_str(), String(references[r].sha256).c_str());
+               missing.push_back(line);
+               break;
+            }
+         }
+      }
+
+      std::vector<String> kept;
+      ListKeptFiles(kept);
+      for (size_t i = 0; i < kept.size(); i++)
+      {
+         std::vector<MessageStoreReference> references;
+         if (MessageStore::GetReferences(kept[i], references))
+         {
+            for (size_t r = 0; r < references.size(); r++)
+               referenced.insert(references[r].sha256);
+         }
+      }
+
+      boost::system::error_code error;
+      const boost::filesystem::path rootPath(std::wstring(root.c_str()));
+      if (!boost::filesystem::is_directory(rootPath, error) || error)
+         return;
+
+      for (boost::filesystem::recursive_directory_iterator entry(rootPath, error);
+           !error && entry != boost::filesystem::recursive_directory_iterator(); entry.increment(error))
+      {
+         boost::system::error_code fileError;
+         if (!boost::filesystem::is_regular_file(entry->path(), fileError) || fileError)
+            continue;
+
+         const AnsiString name = AnsiString(String(entry->path().filename().wstring()));
+         if (name.size() == 64 && referenced.find(name) == referenced.end())
+            unreferenced.push_back(name);
+      }
+   }
+
+   MessageStoreMaintenance::Totals
+   MessageStoreMaintenance::GetTotals(bool &running, MeasureWhen when)
+   {
+      Totals totals;
+      {
+         boost::mutex::scoped_lock lock(totals_lock);
+         totals = last_totals;
+      }
+
+      const __int64 now = (__int64) time(nullptr);
+      bool start = when == MeasureImmediately ||
+                   totals.measured == 0 || now - totals.measured > TotalsSeconds || now < totals.measured;
+
+      // The dashboard's question, asked on every refresh: a walk of the whole
+      // store only when there is something in it to measure. On the shipped
+      // default - compression off, no part held once, and no container seen -
+      // nothing is walked, and the answer is the last measurement, or none.
+      if (start && when == MeasureIfDueWhileInUse)
+         start = Configuration::Instance()->GetMessageStoreCompression() || totals.containers > 0 || MessageStoreBlobs::Any();
+
+      if (start && !measuring.exchange(true))
+      {
+         std::shared_ptr<WorkQueue> queue = Application::Instance()->GetAsyncWorkQueue();
+         if (queue)
+            queue->AddTask(std::shared_ptr<Task>(new MessageStoreMeasureTask()));
+         else
+            measuring = false;
+      }
+
+      running = measuring.load();
+      return totals;
+   }
+
+   void
+   MessageStoreMaintenance::MeasureNow()
+   {
+      Totals totals;
+
+      std::vector<StoredFile> files;
+      String problem;
+      if (!ListStoredFiles(String(), String(), files, problem))
+         return;
+
+      // One stat per name, one read of a header per file: what a store of this
+      // size takes to look at, on the asynchronous work queue. A row whose file
+      // cannot be sized - missing, or expunged while the walk ran - is counted
+      // on neither side, so that it never reads as a saving; the consistency
+      // check is what reports it.
+      std::set<AnsiString> seen;
+      for (size_t i = 0; i < files.size(); i++)
+      {
+         unsigned __int64 stored = 0;
+         if (!MessageStore::StoredFileSize64(files[i].path, stored))
+            continue;
+
+         totals.messages++;
+         totals.logical_bytes += files[i].size;
+
+         AnsiString identity;
+         unsigned int names = 0;
+         if (MessageStore::Backend().Identity(files[i].path, identity, names) && !seen.insert(identity).second)
+            continue;
+
+         totals.stored_bytes += (__int64) stored;
+
+         if (MessageStore::IsContainer(files[i].path))
+            totals.containers++;
+      }
+
+      MessageStoreBlobs::Totals blobs;
+      if (MessageStoreBlobs::GetTotals(blobs))
+      {
+         totals.blobs = blobs.blobs;
+         totals.blob_bytes = blobs.bytes;
+         totals.blob_references = blobs.references;
+      }
+
+      totals.measured = (__int64) time(nullptr);
+
+      boost::mutex::scoped_lock lock(totals_lock);
+      last_totals = totals;
+   }
+
+   AnsiString
+   MessageStoreMaintenance::TotalsJson(MeasureWhen when)
+   {
+      bool running = false;
+      const Totals totals = GetTotals(running, when);
+
+      // What is saved: the messages' own size against what their files and the
+      // blobs they share take. Signed: a store of tiny messages wrapped only to
+      // be read exactly could take a few bytes more.
+      const __int64 saved = totals.logical_bytes - totals.stored_bytes - totals.blob_bytes;
+      const double percent = totals.logical_bytes > 0 ? 100.0 * (double) saved / (double) totals.logical_bytes : 0.0;
+
+      AnsiString json;
+      json.Format("{\"measured\":%I64d,\"measuring\":%s,\"messages\":%I64d,\"logical_bytes\":%I64d,\"stored_bytes\":%I64d,"
+                  "\"compressed_files\":%I64d,\"blobs\":%I64d,\"blob_bytes\":%I64d,\"blob_references\":%I64d,"
+                  "\"saved_bytes\":%I64d,\"saved_percent\":%.1f,\"compression\":%s,\"dedup_min_kb\":%d}",
+         totals.measured, running ? "true" : "false", totals.messages, totals.logical_bytes, totals.stored_bytes,
+         totals.containers, totals.blobs, totals.blob_bytes, totals.blob_references,
+         saved, percent, Configuration::Instance()->GetMessageStoreCompression() ? "true" : "false",
+         Configuration::Instance()->GetMessageStoreDedupMinKB());
+
+      return json;
+   }
+
+   int
+   MessageStoreMaintenance::TakeStoreLock(bool exclusive, String &problem)
+   {
+#ifdef HM_PLATFORM_POSIX
+      // Held for the life of the process: the descriptor is never closed, and
+      // the kernel lets go of the lock when the process ends, however it ends.
+      static int held = -1;
+      if (held >= 0)
+         return 0;
+
+      const String path = FileUtilities::Combine(IniFileSettings::Instance()->GetLogDirectory(), _T("hmailserver-store.lock"));
+      const AnsiString narrow = path.c_str();
+
+      const int descriptor = ::open(narrow.c_str(), O_RDWR | O_CREAT | O_CLOEXEC, 0640);
+      if (descriptor < 0)
+      {
+         problem = "the lock file " + path + " could not be opened: " + String(AnsiString(std::strerror(errno)));
+         return 2;
+      }
+
+      if (::flock(descriptor, (exclusive ? LOCK_EX : LOCK_SH) | LOCK_NB) != 0)
+      {
+         ::close(descriptor);
+         problem = exclusive
+            ? "the server is running (it holds " + path + ")"
+            : "a message store walk is running (hmailserver --compress-store or --recount-store holds " + path + ")";
+         return 1;
+      }
+
+      held = descriptor;
+      return 0;
+#else
+      // The service controller is asked instead (hMailServer.cpp).
+      (void) exclusive;
+      (void) problem;
+      return 0;
+#endif
+   }
+
+   int
+   MessageStoreMaintenance::RunCommand(Verb verb, const String &accountAddress, const String &domainName)
+   {
+      const String verbName = verb == VerbMeasure ? String(_T("measure")) : (verb == VerbRecount ? String(_T("recount")) : String(_T("rewrite")));
+      if (!OpenForCommand(verbName))
+         return 2;
+
+      // The rewrite and the recount write what a running server reads, writes
+      // and counts, in a process neither can lock; measuring changes nothing and
+      // runs beside it. Windows asked the service controller before this.
+      if (verb != VerbMeasure)
+      {
+         String problem;
+         const int taken = TakeStoreLock(true, problem);
+         if (taken != 0)
+         {
+            Print(true, taken == 1
+               ? "The hMailServer server is running: " + problem + ". Stop it (systemctl stop hmailserver) to rewrite the message store or recount its blobs, then start it again; --measure-store runs beside it. Nothing was changed."
+               : "Whether the server is running could not be asked: " + problem + ". Run this as the user the server runs as, with the server stopped. Nothing was changed.");
+            Application::Instance()->ExitInstance();
+            return 4;
+         }
+      }
+
+      int result = 0;
+
+      do
+      {
+         if (verb == VerbRecount)
+         {
+            String summary;
+            if (!MessageStoreMaintenance::Recount(summary, true))
+            {
+               Print(true, "The blob counts could not be rebuilt: " + summary);
+               result = 1;
+               break;
+            }
+
+            Print(false, "Recounted: " + summary);
+            break;
+         }
+
+         std::vector<StoredFile> files;
+         String problem;
+         if (!ListStoredFiles(accountAddress, domainName, files, problem))
+         {
+            Print(true, "The stored files could not be listed: " + problem + ". Nothing was changed.");
+            result = accountAddress.IsEmpty() && domainName.IsEmpty() ? 1 : 2;
+            break;
+         }
+
+         const String scope = !accountAddress.IsEmpty() ? accountAddress :
+                              (!domainName.IsEmpty() ? String(_T("the domain ")) + domainName : String(_T("the whole store")));
+
+         if (verb == VerbMeasure)
+            result = Measure(files, scope);
+         else
+            result = Rewrite(files, scope, verb == VerbDecompress);
+      } while (false);
+
+      Application::Instance()->ExitInstance();
+      return result;
+   }
+}

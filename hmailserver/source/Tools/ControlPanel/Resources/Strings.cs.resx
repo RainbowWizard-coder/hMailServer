@@ -5086,6 +5086,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Maximum timeout (seconds)" xml:space="preserve">
     <value>Maximální časový limit (sekundy)</value>
   </data>
+  <data name="Measured by the server on its own time, and at most a quarter of an hour old. A file with several names is counted once." xml:space="preserve">
+    <value>Měří server sám, když má čas, a údaje jsou staré nejvýše čtvrt hodiny. Soubor s více názvy se počítá jednou.</value>
+  </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Měří se od vytvoření záznamu, takže snížení platí i pro záznamy, které už existují. Ručně přidaný záznam si ponechá vlastní vypršení.</value>
   </data>
@@ -5162,6 +5165,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Message source" xml:space="preserve">
     <value>Zdroj zprávy</value>
+  </data>
+  <data name="Message store" xml:space="preserve">
+    <value>Úložiště zpráv</value>
   </data>
   <data name="Message store durability" xml:space="preserve">
     <value>Odolnost úložiště zpráv</value>
@@ -8428,6 +8434,9 @@ Restartovat ji nyní?</value>
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once; stored in hMailServer.ini as SmtpTarpitCount and SmtpTarpitDelaySeconds." xml:space="preserve">
     <value>Zpomaluje relaci, která uvádí více příjemců, než kolik jich legitimní zpráva potřebuje. Za tímto počtem každé další RCPT TO v neověřené relaci před odpovědí počká zadanou prodlevu – slovníkový útok nebo spamová vlna uvádí stovky adres a za každou zaplatí, zatímco odesílající MTA uvede několik málo adres a k tomuto počtu se nikdy nedostane. Ověřené relace a IP rozsahy s vypnutou ochranou proti spamu jsou vyňaty. Čekání je časovač na připojení, ne spící vlákno. Projeví se okamžitě; ukládá se do hMailServer.ini jako SmtpTarpitCount a SmtpTarpitDelaySeconds.</value>
   </data>
+  <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
+    <value>Nejmenší část uložená jednou (KB; 0 neukládá jednou nic)</value>
+  </data>
   <data name="Soft" xml:space="preserve">
     <value>Dočasné</value>
   </data>
@@ -8577,6 +8586,9 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Zastaví engine poštovního serveru, zatímco služba Windows běží dál: nepřijímají se žádná nová připojení a nic se nedoručuje, dokud jej znovu nespustíte.</value>
+  </data>
+  <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
+    <value>Ukládat novou poštu komprimovanou, velké části jen jednou</value>
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Úložiště:</value>
@@ -9623,6 +9635,9 @@ Odpovídá vlastní resolver serveru - tentýž, který používá doručování
   <data name="The server is draining. A reinitialize ends maintenance mode: the listeners open again and delivery resumes. Reinitialize the server now?" xml:space="preserve">
     <value>Server se vyprazdňuje. Reinicializace ukončí režim údržby: naslouchací porty se znovu otevřou a doručování pokračuje. Reinicializovat server nyní?</value>
   </data>
+  <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
+    <value>Server měří úložiště zpráv; otevřete tuto stránku znovu za minutu, čísla už tu budou.</value>
+  </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Server neuchovává žádnou historii: MetricsHistoryDays je v hMailServer.ini 0. Nastavte ho na počet dní k uchování.</value>
   </data>
@@ -10452,6 +10467,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Co server zapisuje do souborů logu (k zobrazení na stránce Živé logy).</value>
   </data>
+  <data name="What the store holds, and what it saves" xml:space="preserve">
+    <value>Co úložiště obsahuje a co šetří</value>
+  </data>
   <data name="What this key is for, e.g. &quot;Grafana probe&quot;" xml:space="preserve">
     <value>K čemu tento klíč je, např. „Grafana probe“</value>
   </data>
@@ -10532,6 +10550,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Zda se dotazy smějí zodpovídat z cache resolveru DNS Windows. Vypnuto - každý dotaz jde do sítě. Ignorováno, když je výše nastaven přepisující server DNS — ty dotazy systémovou cache vždy obcházejí, protože její odpovědi by pocházely od špatného resolveru.</value>
+  </data>
+  <data name="Whether new mail is stored compressed, with the large attachments it shares with other messages kept once. Clients see every message exactly as it arrived. Turning it off stores new mail as it comes and leaves the stored messages readable; hmailserver --compress-store rewrites the messages already there, and --decompress puts them back." xml:space="preserve">
+    <value>Zda se nová pošta ukládá komprimovaná a velké přílohy, které sdílí s jinými zprávami, se uchovávají jen jednou. Klienti vidí každou zprávu přesně tak, jak přišla. Po vypnutí se nová pošta ukládá tak, jak přijde, a uložené zprávy zůstanou čitelné; hmailserver --compress-store přepíše zprávy, které už jsou uložené, a --decompress je vrátí zpět.</value>
   </data>
   <data name="Whether the key file needs one cannot be checked from here. If it is encrypted, it will not load without a passphrase (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Zda soubor klíče přístupové heslo potřebuje, odsud nelze zkontrolovat. Pokud je šifrovaný, bez přístupového hesla se nenačte (chyba serveru 6170) a porty TLS používající tento certifikát se nespustí.</value>
@@ -12281,6 +12302,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} zpráv odkazuje na soubor, který na disku chybí.</value>
+  </data>
+  <data name="{0} messages, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. {5} of the files are compressed. Measured {6}." xml:space="preserve">
+    <value>{0} zpráv, {1} MB tak, jak je vidí klienti. Jejich soubory zabírají {2} MB a části uložené jednou {3} MB, což šetří {4} %. Komprimovaných souborů: {5}. Změřeno {6}.</value>
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>před {0} minutami</value>

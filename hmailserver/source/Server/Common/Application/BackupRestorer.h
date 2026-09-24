@@ -142,6 +142,14 @@ namespace HM
                                     const std::vector<String> &fileNames,
                                     unsigned int archiveOpenTimeoutMilliseconds, bool *timedOut, String &failureReason);
 
+      // After StageAccountMessageStore: the blobs the staged files reference
+      // (Persistence/MessageStoreBlobs.h), the members DataBackup\Blobs\<xx>\<sha256>,
+      // staged the same way - a store that held a part once holds it outside the
+      // account's directory. Afterwards GetStagedBlobDirectory names the Blobs
+      // directory they are in, or is empty when the archive holds none of them.
+      bool StageBlobs(const String &archiveFile, const std::vector<AnsiString> &sha256s, String &failureReason);
+      String GetStagedBlobDirectory() const;
+
       // The <Backup> element of the validated index. Owned by this object - it dies
       // with the BackupRestorer, so the restore has to finish inside its lifetime.
       XNode *GetBackupNode();
@@ -187,6 +195,7 @@ namespace HM
       String index_directory_;
       String staging_directory_;
       String staged_message_store_;
+      String staged_blob_directory_;
 
       bool retain_staged_files_;
    };

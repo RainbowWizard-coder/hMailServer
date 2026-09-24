@@ -39,6 +39,7 @@
 #include "../SQL/DatabaseUnavailableMarker.h"
 #include "../AntiSpam/DKIM/DkimRotation.h"
 #include "../Util/DiscoveryHolds.h"
+#include "../Persistence/MessageStoreBlobs.h"
 
 #include "../../IMAP/IMAPConfiguration.h"
 
@@ -1521,6 +1522,15 @@ namespace HM
          // deleted private key back: its domain would go on naming a file that no
          // longer exists, for a record already published.
          DkimRotation::KeepKeysOnDomainDelete keepRotationKeys;
+
+         // And the parts the message store holds once (Persistence/MessageStoreBlobs.h):
+         // deleting every domain lets every blob's count go to none, and the
+         // backup's messages that are put back reference the same blobs and
+         // arrive uncounted. None is deleted while this block runs; when it ends
+         // - the restore done, or stopped part-way - every count is raised to
+         // what the stored files that are there reference, with the hold still
+         // in force, and only then does a blob whose count is none still go.
+         MessageStoreBlobs::DeletionHold keepBlobs(true);
 
          std::shared_ptr<Domains> pDomains = std::shared_ptr<Domains>(new Domains);
 

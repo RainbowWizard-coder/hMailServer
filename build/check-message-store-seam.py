@@ -14,7 +14,7 @@ FileUtilities reads garbage and sizes it wrongly, silently, for every message
 the store has changed and none of the others. That is the defect this refuses,
 at the one point a line checker can see: where the path comes from.
 
-Four rules:
+Five rules:
 
   name        PersistentMessage::GetFileName is called by the store unit
               (Common/Persistence/MessageStore*.cpp and PersistentMessage.cpp,
@@ -26,6 +26,15 @@ Four rules:
               the store's doors by message. A call in a file not listed, or one
               more call than a listed file is allowed, is refused: a new site is
               a decision, and the list is where it is made.
+
+  working     MessageStore::WorkingFile(account, message), the form that names
+              an account's folder - where a stored message is, or is about to be
+              - is the same path under another name, so it is held to the same
+              rule: called from the files in LISTED_WORKING only, each with its
+              count and its reason. The one-argument form names the queue (or a
+              public folder, for a message that has one and no account), which a
+              reader of the queue needs by path. A new two-argument call is a
+              decision about a stored message's file, made in the list.
 
   size        A message's size is never taken from its file with
               FileUtilities::FileSize: SetSize(FileUtilities::FileSize(...)) is
@@ -42,8 +51,9 @@ Four rules:
 
   controls    The checker proves its own negative controls on every run, in
               temporary copies: a call added to a file not listed, a second call
-              added to a listed file, a size taken from a file, are each refused;
-              the same call written in a comment or a string is not.
+              added to a listed file, a two-argument WorkingFile call added to a
+              file not listed, a size taken from a file, are each refused; the
+              same call written in a comment or a string is not.
 
 Run from the repository root: python3 build/check-message-store-seam.py
 """
@@ -86,6 +96,12 @@ LISTED = {
    "Common/Util/MailImporter.cpp": (1,
       "a key for the messages already in a folder, from PersistentMessage::LoadHeader and MessageStore::FileSize64; "
       "never opened otherwise"),
+   "Common/Scripting/ScriptBinding.cpp": (2,
+      "the JavaScript twin of COM InterfaceMessage: Message.Filename answers the stored file's path and "
+      "Message.Save rewrites the message through MessageData::Write, as COM's do"),
+   "Common/Util/DiscoverySearch.cpp": (2,
+      "a discovery search and its export name each message by its stored file and read it only through "
+      "MessageStore (Exists, FileSize64, ReadAll), PersistentMessage::LoadHeader and MessageData::LoadFromMessage"),
    "Common/Util/MessageExport.cpp": (1,
       "copied out as a plain .eml through MessageStore::CopyOriginal"),
    "Common/Util/MessageUtilities.cpp": (1,
@@ -116,6 +132,52 @@ LISTED = {
       "PersistentMessage::LoadHeader, MessageStore::ReadAll and MessageStore::LoadMime"),
 }
 
+WORKING_SYMBOL = "MessageStore::WorkingFile("
+
+# file -> (the two-argument WorkingFile calls it makes, why it holds an account
+# folder's path by name). What the next rows - an object store, encryption at
+# rest - audit: each is a place a key-based backend hands a local file to.
+LISTED_WORKING = {
+   "Common/Application/MailboxRestore.cpp": (2,
+      "the name a restored message is copied to from the archive, through MessageStore::CopyStored, which counts "
+      "what it references - and a fresh name when that one is taken"),
+   "Common/BO/MessageData.cpp": (1,
+      "MessageDataTester writes its self-test message for a row it then saves"),
+   "Common/Util/ConfidentialMessages.cpp": (1,
+      "the owner's copy of a kept confidential message, made through MessageStore::CopyStored"),
+   "Common/Util/ExternalSenderTagger.cpp": (1,
+      "tags the delivery copy by path before it is placed"),
+   "Common/Util/ImpersonationCheck.cpp": (1,
+      "reads the delivery copy's header by path before it is placed"),
+   "Common/Util/MailImporter.cpp": (1,
+      "the account folder a migrated message is moved into, and placed there through MessageStore::PlaceWorkingFile"),
+   "Common/Util/RecoverableStore.cpp": (1,
+      "the name a recovered message is put back under, through MessageStore::CopyStored"),
+   "Common/Util/RestApiAccountResources.cpp": (1,
+      "a message written into a folder over REST for a new row, its line ends made CRLF - so no bare LF, and so never "
+      "the container's magic, whose last byte is one"),
+   "Common/Util/RestApiScheduled.cpp": (1,
+      "an .eml put into a folder over REST for a new row, its line ends made CRLF as above"),
+   "Common/Util/RestApiServer.cpp": (1,
+      "the webmail's draft, written by MessageData, which never writes a message that begins with the magic"),
+   "Common/Util/ZeroAccess.cpp": (1,
+      "a zero-access mailbox's Sent copy, sealed by path by this server's own writer"),
+   "ExternalFetcher/IMAPClientConnection.cpp": (1,
+      "the account folder the IMAP mirror files a collected message into, placed there through "
+      "MessageStore::PlaceWorkingFile"),
+   "IMAP/IMAPCommandAppend.cpp": (1,
+      "the file APPEND writes the literal into, placed through MessageStore::PlaceWorkingFile when it is complete"),
+   "SMTP/LocalDelivery.cpp": (16,
+      "the delivery copy, read and rewritten by path by the rules, Sieve, the forward and the seal, placed through "
+      "PlaceCopy_ and discarded through MessageStore::DiscardWorkingFile when it is not"),
+   "SMTP/RuleApplier.cpp": (3,
+      "rules rewrite the delivery copy by path before it is placed, and name a copy for the queue"),
+   "SMTP/SMTPForwarding.cpp": (2,
+      "the forward reads the delivery copy before it is placed"),
+   "SMTP/SMTPVacationMessageCreator.cpp": (1,
+      "the auto-reply reads the delivery copy's header before it is placed"),
+}
+
 # The doors the reasons above describe. (file, text, what it means when it is gone)
 REQUIRED = [
    ("Common/Persistence/MessageStore.h", "static String WorkingFile(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message);",
@@ -138,6 +200,45 @@ REQUIRED = [
     "a calendar reply filed at delivery is no longer read through the store"),
    ("SMTP/LocalDelivery.cpp", "accountLevelMessage->SetSize(MessageStore::Size(account, accountLevelMessage));",
     "a delivered copy's size is no longer the message's size"),
+   ("SMTP/LocalDelivery.cpp", "if (!PlaceCopy_(account, accountLevelMessage))",
+    "a delivered copy is no longer stored in the store's form - so compression and de-duplication never happen, and a "
+    "copy that begins with the magic is kept to be read as a container"),
+   ("SMTP/LocalDelivery.cpp", "if (!MessageStore::PlaceWorkingFile(copy, changed))",
+    "the first DeliveryHardLinks copy is no longer placed where it is, so a container is written beside the queue again"),
+   ("SMTP/LocalDelivery.cpp", "MessageStore::DiscardWorkingFile(MessageStore::WorkingFile(account, accountLevelMessage));",
+    "a delivery copy that was never placed is removed through Remove, which lets go of what its first bytes claim"),
+   ("IMAP/IMAPCommandAppend.cpp", "if (!MessageStore::PlaceWorkingFile(message_file_name_))",
+    "an appended message is no longer stored in the store's form, and a literal that begins with the magic is kept to "
+    "be read as a container - naming, and on EXPUNGE letting go of, blobs other accounts share"),
+   ("IMAP/IMAPCommandAppend.cpp", "MessageStore::DiscardWorkingFile(message_file_name_);",
+    "an APPEND the store refused is removed through Remove, which lets go of what its first bytes claim"),
+   ("ExternalFetcher/IMAPClientConnection.cpp", "if (!MessageStore::PlaceWorkingFile(fileName))",
+    "the IMAP mirror files a remote server's literal without placing it, so one that begins with the magic is read as "
+    "a container"),
+   ("Common/Util/MailImporter.cpp", "if (!MessageStore::PlaceWorkingFile(destination))",
+    "a migrated message is filed without placing it, so one that begins with the magic is read as a container"),
+   ("Common/Util/MailImporter.cpp", "if (!MessageStore::PlaceWorkingFile(newFullPath))",
+    "an imported file is adopted without placing it"),
+   ("Common/Util/MailImporter.cpp", "MessageStoreFormat::HasMagic(start.data(), start.size())",
+    "an imported file that begins with the magic is adopted, and read as a container nobody counted"),
+   ("Common/BO/MessageData.cpp", "if (MessageStoreFormat::HasMagic(start.c_str(), (size_t) start.GetLength()))",
+    "MessageData writes a message whose first bytes are the magic - a rewritten draft, a scheduled send - into a "
+    "stored file or the queue"),
+   ("Common/Persistence/MessageStore.cpp", "MessageStoreFormat::HasMagic(start->GetCharBuffer(), start->GetSize()) || !MessageStore::MayHoldContainer(name)",
+    "a queue file that begins with the magic is read, sized and let go of as a container"),
+   ("Common/Persistence/PersistentMessage.cpp", "MessageStoreFormat::HasMagic((const char *) buf, (size_t) nbytes) && MessageStore::MayHoldContainer(fileName)",
+    "LoadHeader and LoadBody read a queue file that begins with the magic as a container"),
+   ("Common/Persistence/PersistentMessage.cpp", "return MessageStore::ReadHeaderOfContainer(fileName, reportError);",
+    "a compressed message's header is read as the container's bytes - the rules, the sort and the search see garbage"),
+   ("Common/Persistence/PersistentMessage.cpp", "return MessageStore::ReadBodyOfContainer(fileName);",
+    "a compressed message's body is read as the container's bytes"),
+   ("Common/BO/MessageData.cpp", "plain_copy_ = std::shared_ptr<MessageStorePlainCopy>(new MessageStorePlainCopy(message_file_name_));",
+    "MessageData parses a compressed message's container as if it were RFC 822"),
+   ("Common/Application/BackupExecuter.cpp", "MessageStoreBlobs::DeletionHold keepBlobs(true);",
+    "a restore that deletes every domain lets the blobs the restored messages reference be deleted under them"),
+   ("Common/Application/MailboxRestore.cpp", "MessageStoreBlobs::DeletionHold keepBlobs(false);",
+    "a replace that empties a mailbox deletes a blob only its live copies named, and then cannot put back the "
+    "archived copies that need it"),
 ]
 
 SIZE_FROM_FILE = re.compile(r"SetSize\s*\([^;]*FileUtilities::FileSize(64)?\s*\(")
@@ -214,9 +315,34 @@ def in_store_unit(rel):
    return rel in STORE_UNIT or rel.startswith(STORE_UNIT_PREFIX)
 
 
+def two_argument_calls(code, symbol):
+   """The offsets of the calls of symbol in (stripped) code that pass two or
+   more arguments: a comma at the top level of the parentheses."""
+   offsets = []
+   at = code.find(symbol)
+   while at >= 0:
+      i = at + len(symbol)
+      depth = 1
+      commas = 0
+      while i < len(code) and depth > 0:
+         c = code[i]
+         if c in "([{":
+            depth += 1
+         elif c in ")]}":
+            depth -= 1
+         elif c == "," and depth == 1:
+            commas += 1
+         i += 1
+      if commas >= 1:
+         offsets.append(at)
+      at = code.find(symbol, at + len(symbol))
+   return offsets
+
+
 def check(sources):
    problems = []
    counts = {}
+   working = {}
 
    for rel, path in sorted(sources.items()):
       code = strip(read(path))
@@ -235,6 +361,17 @@ def check(sources):
                             "MessageStore::WorkingFile for a working file, use the store's doors for a stored one, "
                             "or list the file in build/check-message-store-seam.py with the reason" % (rel, number))
 
+      if in_store_unit(rel):
+         continue
+
+      for offset in two_argument_calls(code, WORKING_SYMBOL):
+         working[rel] = working.get(rel, 0) + 1
+         if rel not in LISTED_WORKING:
+            problems.append("%s:%d: MessageStore::WorkingFile(account, message) - an account folder's path - outside "
+                            "the files LISTED_WORKING names: read a stored message through the store's doors, or list "
+                            "the file in build/check-message-store-seam.py with the reason it holds the path"
+                            % (rel, code.count("\n", 0, offset) + 1))
+
    for rel, (allowed, reason) in sorted(LISTED.items()):
       made = counts.get(rel, 0)
       if made > allowed:
@@ -244,12 +381,21 @@ def check(sources):
          problems.append("build/check-message-store-seam.py: LISTED allows %s %d call(s) and it makes %d - "
                          "bring the number down, so the list says what is there" % (rel, allowed, made))
 
+   for rel, (allowed, reason) in sorted(LISTED_WORKING.items()):
+      made = working.get(rel, 0)
+      if made > allowed:
+         problems.append("%s: %d two-argument call(s) of MessageStore::WorkingFile where %d are listed (%s) - a new "
+                         "one is a decision: list it with its reason, or use the store" % (rel, made, allowed, reason))
+      elif made < allowed:
+         problems.append("build/check-message-store-seam.py: LISTED_WORKING allows %s %d call(s) and it makes %d - "
+                         "bring the number down, so the list says what is there" % (rel, allowed, made))
+
    for rel, text, meaning in REQUIRED:
       path = sources.get(rel)
       if path is None or text not in read(path):
          problems.append("%s: '%s' is gone: %s" % (rel, text, meaning))
 
-   return problems, counts
+   return problems, counts, working
 
 
 def self_test(sources):
@@ -265,7 +411,7 @@ def self_test(sources):
             handle.write(appended)
          mutated = dict(sources)
          mutated[rel] = copy
-         failures, _ = check(mutated)
+         failures, _, _ = check(mutated)
          return failures
 
       call = ("\nnamespace HM\n{\n   String\n   NegativeControl_(std::shared_ptr<Message> message)\n   {\n"
@@ -280,6 +426,24 @@ def self_test(sources):
       failures = mutated_with("IMAP/IMAPFetch.cpp", call, "listed")
       if not any(f.startswith("IMAP/IMAPFetch.cpp:") and "where 2 are listed" in f for f in failures):
          problems.append("self-test: a second PersistentMessage::GetFileName call in a listed file was not refused (%r)" % failures[:3])
+
+      # An account folder's path asked for in a file not listed, and one more in
+      # a listed file; the one-argument form, the queue's, is not refused.
+      working = ("\nnamespace HM\n{\n   String\n   NegativeControlWorking_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message)\n   {\n"
+                 "      return MessageStore::WorkingFile(account, message);\n   }\n}\n")
+      failures = mutated_with("SMTP/QuotaWarner.cpp", working, "working")
+      if not any(f.startswith("SMTP/QuotaWarner.cpp:") and "LISTED_WORKING" in f for f in failures):
+         problems.append("self-test: a two-argument MessageStore::WorkingFile call added to a file not listed was not refused (%r)" % failures[:3])
+
+      failures = mutated_with("IMAP/IMAPCommandAppend.cpp", working, "working-listed")
+      if not any(f.startswith("IMAP/IMAPCommandAppend.cpp:") and "two-argument call(s)" in f and "where 1 are listed" in f for f in failures):
+         problems.append("self-test: a second two-argument MessageStore::WorkingFile call in a listed file was not refused (%r)" % failures[:3])
+
+      queue = ("\nnamespace HM\n{\n   String\n   NegativeControlQueue_(std::shared_ptr<Message> message)\n   {\n"
+               "      return MessageStore::WorkingFile(message);\n   }\n}\n")
+      failures = mutated_with("SMTP/QuotaWarner.cpp", queue, "queue")
+      if any(f.startswith("SMTP/QuotaWarner.cpp:") for f in failures):
+         problems.append("self-test: a one-argument MessageStore::WorkingFile call - the queue's - was refused (%r)" % failures[:3])
 
       # A size taken from a file.
       size = "\nnamespace HM\n{\n   void\n   NegativeControlSize_(std::shared_ptr<Message> message, const String &fileName)\n   {\n" \
@@ -303,7 +467,7 @@ def self_test(sources):
 def main():
    sources = load_sources(SERVER)
    problems = self_test(sources)
-   failures, counts = check(sources)
+   failures, counts, working = check(sources)
    failures = problems + failures
 
    if failures:
@@ -312,15 +476,18 @@ def main():
          print("  " + failure)
       return 1
 
-   working = 0
+   queue = 0
    for rel, path in sources.items():
-      working += strip(read(path)).count("MessageStore::WorkingFile(")
+      if not in_store_unit(rel):
+         queue += strip(read(path)).count(WORKING_SYMBOL)
+   queue -= sum(working.values())
 
    print("Message store seam: PersistentMessage::GetFileName is the store's and %d listed call(s) in %d file(s), each with "
-         "its reason; %d working-file call(s); no size taken from a file; %d door(s) in place; and the negative controls "
-         "(a call in a file not listed, one more in a listed file, a size from a file) are refused while a call in a "
-         "comment or a string is not"
-         % (sum(counts.values()), len(counts), working, len(REQUIRED)))
+         "its reason; %d account-folder working-file call(s) in %d listed file(s), each with its reason, and %d of the "
+         "queue's; no size taken from a file; %d door(s) in place; and the negative controls (a call in a file not "
+         "listed, one more in a listed file, an account folder's working file asked for in a file not listed and one "
+         "more in a listed file, a size from a file) are refused while a call in a comment or a string is not"
+         % (sum(counts.values()), len(counts), sum(working.values()), len(working), queue, len(REQUIRED)))
    return 0
 
 

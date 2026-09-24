@@ -553,6 +553,101 @@ namespace HM
    }
 
    bool
+   BackupRestorer::StageBlobs(const String &archiveFile, const std::vector<AnsiString> &sha256s, String &failureReason)
+   {
+      staged_blob_directory_ = String();
+
+      if (sha256s.empty())
+         return true;
+
+      if (!backup_node_)
+      {
+         failureReason = "The archive has not been opened, so nothing can be staged from it.";
+         return false;
+      }
+
+      XNode *informationNode = backup_node_->GetChild(_T("BackupInformation"));
+      LPXAttr formatAttribute = informationNode ? informationNode->GetChildAttr(_T("DataFiles"), _T("Format")) : 0;
+
+      if (!formatAttribute)
+      {
+         failureReason = "This backup's index does not say where its message store is (no DataFiles element), so the parts its messages hold once cannot be located. Nothing has been changed on this server.";
+         return false;
+      }
+
+      // Where the executer wrote them: the data directory's Blobs directory,
+      // copied whole into the backup with the rest of the store.
+      const String blobsMember = FileUtilities::Combine(BACKUP_DATA_FOLDER_NAME, _T("Blobs"));
+      String format = formatAttribute->value;
+
+      if (format.CompareNoCase(_T("7Z")) == 0)
+      {
+         std::vector<String> members;
+         for (size_t i = 0; i < sha256s.size(); i++)
+         {
+            const String name = sha256s[i];
+            members.push_back(FileUtilities::Combine(FileUtilities::Combine(blobsMember, name.Mid(0, 2)), name));
+         }
+
+         if (staging_directory_.IsEmpty())
+         {
+            staging_directory_ = Utilities::GetUniqueTempDirectory();
+
+            if (!FileUtilities::CreateDirectory(staging_directory_))
+            {
+               failureReason = "The temporary directory " + staging_directory_ + " could not be created, so the parts the mailbox's messages hold once could not be extracted. Nothing has been changed on this server.";
+               return false;
+            }
+         }
+
+         Compression compression;
+         if (!compression.UncompressMembers(archiveFile, staging_directory_, members, passphrase_))
+         {
+            failureReason = "The parts the mailbox's messages hold once could not be extracted from " + archiveFile + ". Nothing has been changed on this server.";
+            return false;
+         }
+
+         const String candidate = FileUtilities::Combine(staging_directory_, blobsMember);
+
+         // 7za reports success for a member that matched nothing; a blob the
+         // archive does not have is the caller's to judge.
+         if (FileUtilities::DirectoryExists(candidate))
+            staged_blob_directory_ = candidate;
+
+         return true;
+      }
+
+      if (format.CompareNoCase(_T("Raw")) == 0)
+      {
+         LPXAttr folderAttribute = informationNode->GetChildAttr(_T("DataFiles"), _T("FolderName"));
+
+         if (!folderAttribute)
+         {
+            failureReason = "This backup stores its messages uncompressed but its index does not say in which folder (no FolderName attribute). Nothing has been changed on this server.";
+            return false;
+         }
+
+         const String candidate = FileUtilities::Combine(FileUtilities::Combine(FileUtilities::GetFilePath(archiveFile), folderAttribute->value), _T("Blobs"));
+
+         if (FileUtilities::DirectoryExists(candidate))
+            staged_blob_directory_ = candidate;
+
+         return true;
+      }
+
+      failureReason = Formatter::Format("The backup index describes its message store in a format this version does not understand (Format=\"{0}\"). Nothing has been changed on this server.",
+         format);
+
+      return false;
+   }
+
+   String
+   BackupRestorer::GetStagedBlobDirectory() const
+   {
+      return staged_blob_directory_;
+   }
+
+   bool
    BackupRestorer::CheckSelection(int archiveContents, int restoreOptions, String &failureReason)
    {
       const int selectable = Backup::BOSettings | Backup::BODomains | Backup::BOMessages;

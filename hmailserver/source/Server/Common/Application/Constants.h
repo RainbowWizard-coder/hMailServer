@@ -137,6 +137,12 @@
 
 #define PROPERTY_IMAP_HIERARCHY_DELIMITER       _T("IMAPHierarchyDelimiter")
 #define PROPERTY_MESSAGE_INDEXING               _T("MessageIndexing")
+// The message store (Persistence/MessageStore.h, docs/MessageStore.md): whether a
+// message placed in a mailbox is stored compressed, off; and the smallest MIME
+// part, in KB decoded, that is held once as a blob when it is, 256 (0 holds
+// nothing once).
+#define PROPERTY_MESSAGE_STORE_COMPRESSION      _T("MessageStoreCompression")
+#define PROPERTY_MESSAGE_STORE_DEDUP_MIN_KB     _T("MessageStoreDedupMinKB")
 #define PROPERTY_MAX_NUMBER_OF_ASYNC_TASKS      _T("MaxNumberOfAsynchronousTasks")
 
 #define PROPERTY_BYPASS_GREYLISTING_ON_SPFSUCCESS  _T("BypassGreylistingOnSPFSuccess")
@@ -1010,4 +1016,17 @@
 //      built from the code. An upgraded server has no case and no hold, and
 //      deletes exactly what it deleted before.
 //      (6096 is SCIM's step; the step after this one is another row's.)
-#define REQUIRED_DB_VERSION            6097
+
+// 6098 adds hm_storeblobs (Persistence/MessageStoreBlobs.h,
+//      docs/MessageStore.md): storage compression and attachment
+//      de-duplication. A row is one blob - the bytes of a large MIME part the
+//      message store holds once, as they were on the wire, under
+//      <data>\Blobs\<xx>\<sha256> - with sbsha256 (its name, 64 lower-case
+//      hex digits, unique), sbsize, sbrefs (how many stored message files
+//      name it: the blob and its row go at none) and sbcreated (seconds since
+//      1970). It also seeds the two settings, MessageStoreCompression (0) and
+//      MessageStoreDedupMinKB (256), so an upgraded server stores every message
+//      as it always has until compression is turned on, and reads a store of
+//      either form whatever the setting says.
+//      (6097 is the eDiscovery row's step, built beside this one.)
+#define REQUIRED_DB_VERSION            6098

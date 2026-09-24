@@ -5086,6 +5086,9 @@
   <data name="Maximum timeout (seconds)" xml:space="preserve">
     <value>最大超时（秒）</value>
   </data>
+  <data name="Measured by the server on its own time, and at most a quarter of an hour old. A file with several names is counted once." xml:space="preserve">
+    <value>由服务器在空闲时测量，数据最多为一刻钟前的。有多个名称的文件只计一次。</value>
+  </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>从条目创建时开始计算，因此调低此值也会作用于已有条目。手动添加的条目保留其自身的过期时间。</value>
   </data>
@@ -5162,6 +5165,9 @@
   </data>
   <data name="Message source" xml:space="preserve">
     <value>邮件源</value>
+  </data>
+  <data name="Message store" xml:space="preserve">
+    <value>邮件存储</value>
   </data>
   <data name="Message store durability" xml:space="preserve">
     <value>邮件存储持久性</value>
@@ -8428,6 +8434,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once; stored in hMailServer.ini as SmtpTarpitCount and SmtpTarpitDelaySeconds." xml:space="preserve">
     <value>减慢指定收件人数量超出正常邮件所需的会话。超过该数量后，未验证会话中的每个后续 RCPT TO 都要等待延迟后才被应答 - 字典攻击或垃圾邮件群发会指定数百个地址并为每一个付出代价，而正常的发送 MTA 只指定寥寥几个，永远达不到该数量。已验证会话和关闭了垃圾邮件防护的 IP 范围不受影响。等待是连接上的计时器，不是休眠的线程。立即生效；以 SmtpTarpitCount 和 SmtpTarpitDelaySeconds 存储在 hMailServer.ini 中。</value>
   </data>
+  <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
+    <value>只存一次的最小部分（KB；0 表示不只存一次任何部分）</value>
+  </data>
   <data name="Soft" xml:space="preserve">
     <value>软退信</value>
   </data>
@@ -8577,6 +8586,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>在 Windows 服务继续运行的同时停止邮件服务器引擎: 在恢复之前不接受新连接，也不投递任何邮件。</value>
+  </data>
+  <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
+    <value>以压缩形式存储新邮件，大的部分只存一次</value>
   </data>
   <data name="Store: " xml:space="preserve">
     <value>存储:</value>
@@ -9623,6 +9635,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The server is draining. A reinitialize ends maintenance mode: the listeners open again and delivery resumes. Reinitialize the server now?" xml:space="preserve">
     <value>服务器正在排空。重新初始化会结束维护模式：侦听器重新打开，投递恢复。现在重新初始化服务器吗？</value>
   </data>
+  <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
+    <value>服务器正在测量邮件存储；请一分钟后重新打开此页面查看数字。</value>
+  </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>服务器不保留历史: hMailServer.ini 中的 MetricsHistoryDays 为 0。请将其设为要保留的天数。</value>
   </data>
@@ -10452,6 +10467,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>服务器写入其日志文件的内容 (可在“实时日志”页查看)。</value>
   </data>
+  <data name="What the store holds, and what it saves" xml:space="preserve">
+    <value>存储包含的内容及节省的空间</value>
+  </data>
   <data name="What this key is for, e.g. &quot;Grafana probe&quot;" xml:space="preserve">
     <value>此密钥的用途，例如 "Grafana probe"</value>
   </data>
@@ -10532,6 +10550,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>查询是否可以由 Windows DNS 解析器缓存应答。关闭时，每次查询都走网络。在上面设置了覆盖 DNS 服务器时会被忽略 — 那些查询总是绕过系统缓存，因为缓存的应答会来自错误的解析器。</value>
+  </data>
+  <data name="Whether new mail is stored compressed, with the large attachments it shares with other messages kept once. Clients see every message exactly as it arrived. Turning it off stores new mail as it comes and leaves the stored messages readable; hmailserver --compress-store rewrites the messages already there, and --decompress puts them back." xml:space="preserve">
+    <value>新邮件是否以压缩形式存储，并将其与其他邮件共享的大附件只保存一次。客户端看到的每封邮件都与到达时完全相同。关闭后，新邮件按到达时的原样存储，已存储的邮件仍可读取；hmailserver --compress-store 会重写已存储的邮件，--decompress 则将其恢复原样。</value>
   </data>
   <data name="Whether the key file needs one cannot be checked from here. If it is encrypted, it will not load without a passphrase (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>无法从此处检查密钥文件是否需要密码短语。如果它已加密，没有密码短语就不会加载 (服务器错误 6170)，使用此证书的 TLS 端口也不会启动。</value>
@@ -12281,6 +12302,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>有 {0} 封邮件引用了磁盘上已缺失的文件。</value>
+  </data>
+  <data name="{0} messages, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. {5} of the files are compressed. Measured {6}." xml:space="preserve">
+    <value>{0} 封邮件，客户端看到的大小为 {1} MB。其文件占用 {2} MB，只存一次的部分占用 {3} MB，节省了 {4}%。其中 {5} 个文件已压缩。测量于 {6}。</value>
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>{0} 分钟前</value>

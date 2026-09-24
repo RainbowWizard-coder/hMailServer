@@ -20,6 +20,7 @@
 #include "../Cache/CacheContainer.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/MessageStore.h"
+#include "../Persistence/MessageStoreBlobs.h"
 #include "../SQL/DatabaseConnectionManager.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
@@ -1057,6 +1058,54 @@ namespace HM
    }
 
    bool
+   MailboxRestore::StageBlobs_(BackupRestorer &restorer, const std::vector<String> &fileNames, String &failureReason)
+   {
+      const String stagedStore = restorer.GetStagedMessageStore();
+
+      // What the staged files reference that this store does not have.
+      std::map<AnsiString, unsigned __int64> wanted;
+      for (size_t i = 0; i < fileNames.size(); i++)
+      {
+         const String source = FileUtilities::Combine(FileUtilities::Combine(stagedStore, fileNames[i].Mid(1, 2)), fileNames[i]);
+         std::vector<MessageStoreReference> references;
+         if (!FileUtilities::Exists(source) || !MessageStore::GetReferences(source, references))
+            continue;
+
+         for (size_t r = 0; r < references.size(); r++)
+         {
+            if (!MessageStoreBlobs::Exists(references[r].sha256))
+               wanted[references[r].sha256] = references[r].length;
+         }
+      }
+
+      if (wanted.empty())
+         return true;
+
+      std::vector<AnsiString> names;
+      for (auto blob = wanted.begin(); blob != wanted.end(); ++blob)
+         names.push_back(blob->first);
+
+      if (!restorer.StageBlobs(request_.archive_file, names, failureReason))
+         return false;
+
+      // A part the archive does not have leaves the messages that reference it
+      // unrestorable: each is counted as failed when it is copied, and the log
+      // names the part here.
+      const String blobs = restorer.GetStagedBlobDirectory();
+      for (auto blob = wanted.begin(); blob != wanted.end(); ++blob)
+      {
+         const String name = blob->first;
+         const String file = blobs.IsEmpty() ? String() : FileUtilities::Combine(FileUtilities::Combine(blobs, name.Mid(0, 2)), name);
+
+         String problem;
+         if (file.IsEmpty() || !MessageStoreBlobs::Adopt(file, blob->first, blob->second, problem))
+            Log_("the part " + name + " the archived messages hold once could not be put back" + (problem.IsEmpty() ? String() : String(_T(": ")) + problem) + "; the messages that reference it are not restored.");
+      }
+
+      return true;
+   }
+
+   bool
    MailboxRestore::ReadLiveFileNames_(std::shared_ptr<const Account> account, std::set<String> &liveFileNames, String &failureReason)
    {
       SQLCommand command("select messagefilename from hm_messages where messageaccountid = @ACCOUNTID and messagetype = @TYPE");
@@ -1150,6 +1199,18 @@ namespace HM
             (unsigned int) wanted, request_.address);
          return false;
       }
+
+      // The parts the archived messages hold once (Persistence/MessageStoreBlobs.h),
+      // kept from here until every folder is put back: StageBlobs_ stages only
+      // the parts this store lacks now, and a replace then empties the live
+      // folders, which can take the count of a part only they named to none -
+      // the part the archived copies of the same messages are about to need.
+      // Held, it stays; each copy put back counts it again; and a part whose
+      // count is still none when this ends goes then.
+      MessageStoreBlobs::DeletionHold keepBlobs(false);
+
+      if (restorer.GetHasStagedMessageStore() && !StageBlobs_(restorer, fileNames, failureReason))
+         return false;
 
       Log_(Formatter::Format("the archive holds {0} folder(s) and {1} message(s) for {2}; {3} message(s) selected. Files staged in {4}.",
          (unsigned int) mailbox_.folders.size(), (unsigned int) mailbox_.MessageCount(), request_.address, (unsigned int) wanted,

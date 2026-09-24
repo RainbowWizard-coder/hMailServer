@@ -2249,6 +2249,15 @@ async function renderDash(update){
         <div class="card kpi"><div class="v" id="sesImap" data-v="0">0</div><div class="l">${t("IMAP sessions")}</div></div>
         <div class="card kpi"><div class="v" id="sesPop3" data-v="0">0</div><div class="l">${t("POP3 sessions")}</div></div>
       </div>
+    </div>
+    <div class="sect view" id="storeSect" hidden><h2>${t("Message store")}</h2>
+      <div class="grid g4">
+        <div class="card kpi"><div class="v" id="storeLogical">—</div><div class="l">${t("Message size")}</div></div>
+        <div class="card kpi"><div class="v" id="storeStored">—</div><div class="l">${t("Stored on disk")}</div></div>
+        <div class="card kpi"><div class="v" id="storeBlobs">—</div><div class="l">${t("Parts held once")}</div></div>
+        <div class="card kpi"><div class="v" id="storeSaved">—</div><div class="l">${t("Space saved")}</div></div>
+      </div>
+      <p class="note" id="storeNote"></p>
     </div>`;
   }
   animateNum($("#kpiProcessed"),s.processedMessages);
@@ -2259,6 +2268,28 @@ async function renderDash(update){
   animateNum($("#sesPop3"),s.sessions.pop3);
   const states={0:K("Unknown"),1:K("Stopped"),2:K("Starting"),3:K("Running"),4:K("Stopping"),5:K("Draining")};
   $("#kpiState").innerHTML=s.state===3?'<span class="badge good">'+t("Running")+'</span>':'<span class="badge warn">'+escHtml(states[s.state]?t(states[s.state]):tf("State {0}",s.state))+'</span>';
+  // The message store (GET /api/v1/store, docs/MessageStore.md): what the
+  // messages are beside what their files and the parts held once take. The
+  // server measures on its own time, so the first look may say it is still
+  // measuring; an older server, or a refusal, leaves the section hidden, and
+  // so does a server that has nothing measured and is measuring nothing - it
+  // walks the store only while compression is on or a part is held once.
+  if(may("view_configuration")&&$("#storeSect")){
+    let st=null;
+    try{st=await api("/api/v1/store");}catch(_){st=null;}
+    if(st&&typeof st.logical_bytes==="number"){
+      $("#storeSect").hidden=!(st.measured||st.measuring);
+    }
+    if(st&&typeof st.logical_bytes==="number"&&(st.measured||st.measuring)){
+      $("#storeLogical").textContent=fmtBytes(st.logical_bytes);
+      $("#storeStored").textContent=fmtBytes(st.stored_bytes);
+      $("#storeBlobs").textContent=fmtBytes(st.blob_bytes);
+      $("#storeSaved").textContent=st.measured&&st.logical_bytes>0?Number(st.saved_percent).toFixed(1)+"%":"—";
+      $("#storeNote").textContent=st.measured
+        ?tf(st.compression?K("Measured {0}; new mail is stored compressed."):K("Measured {0}; new mail is stored as it came."),new Date(st.measured*1000).toLocaleString())
+        :t("Measuring the message store; the figures follow on the next refresh.");
+    }
+  }
 }
 
 /* ---------- Domains and accounts ----------

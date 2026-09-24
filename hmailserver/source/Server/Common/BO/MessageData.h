@@ -12,6 +12,7 @@ namespace HM
    class Attachments;
 
    class MimeBody;
+   class MessageStorePlainCopy;
 
    class MessageData  
    {
@@ -148,6 +149,12 @@ namespace HM
       // exception while parsing). The MimeBody is empty in that case, so Write must
       // refuse rather than replace the message on disk with nothing. See Write.
       bool load_failed_;
+
+      // The message as the plain file that was parsed (Persistence/MessageStore.h):
+      // the stored file itself, or a temporary copy of the bytes of one the store
+      // keeps in another form, kept for as long as this is, because MimeBody's
+      // rewrite copies the body from the file it parsed.
+      std::shared_ptr<MessageStorePlainCopy> plain_copy_;
    };
 
    class MessageDataTester

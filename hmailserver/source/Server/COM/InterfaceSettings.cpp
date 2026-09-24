@@ -38,6 +38,7 @@
 #include "../Common/AntiVirus/Sandbox.h"
 
 #include "../Common/Persistence/PersistentServerMessage.h"
+#include "../Common/Persistence/MessageStoreMaintenance.h"
 
 #include "../POP3/POP3Configuration.h"
 #include "../SMTP/SMTPConfiguration.h"
@@ -6404,6 +6405,101 @@ STDMETHODIMP InterfaceSettings::put_SandboxMaxFiles(long newVal)
          return COMError::GenerateError("SandboxMaxFiles must be between 1 and 100.");
 
       config_->SetSandboxMaxFiles((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_MessageStoreCompression(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetMessageStoreCompression() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_MessageStoreCompression(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->SetMessageStoreCompression(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_MessageStoreDedupMinKB(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetMessageStoreDedupMinKB();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_MessageStoreDedupMinKB(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (newVal < 0 || newVal > 65536)
+         return COMError::GenerateError("MessageStoreDedupMinKB must be between 0 and 65536.");
+
+      config_->SetMessageStoreDedupMinKB((int) newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::get_MessageStoreStatus(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      // Read when the Control Panel's page is opened: a measurement is started
+      // whenever the last is a quarter of an hour old, as the doc says.
+      HM::String json = HM::MessageStoreMaintenance::TotalsJson(HM::MessageStoreMaintenance::MeasureIfDue);
+      *pVal = json.AllocSysString();
 
       return S_OK;
    }

@@ -236,6 +236,10 @@ namespace HM
       // Every file name a delivered row of the live account carries, in
       // whatever folder, lower-cased: the identity rule's set. One query.
       bool ReadLiveFileNames_(std::shared_ptr<const Account> account, std::set<String> &liveFileNames, String &failureReason);
+      // The parts the staged files hold once (Persistence/MessageStoreBlobs.h),
+      // staged from the archive and put into this store where it lacks them,
+      // before a file that references one is copied in.
+      bool StageBlobs_(BackupRestorer &restorer, const std::vector<String> &fileNames, String &failureReason);
       bool RestoreFolder_(std::shared_ptr<const Account> account, std::shared_ptr<IMAPFolders> tree,
                           const ArchivedFolder &archived, const std::vector<String> &livePath,
                           const std::vector<const ArchivedMessage *> &messages, const String &stagedStore,

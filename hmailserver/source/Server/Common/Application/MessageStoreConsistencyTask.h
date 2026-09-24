@@ -26,6 +26,6 @@ namespace HM
 
    private:
 
-      void WriteReport_(const std::vector<String> &missingFiles);
+      void WriteReport_(const std::vector<String> &missingFiles, const std::vector<AnsiString> &unreferencedBlobs);
    };
 }

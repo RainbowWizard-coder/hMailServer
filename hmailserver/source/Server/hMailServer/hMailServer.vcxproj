@@ -436,6 +436,9 @@ EXIT 0
     <ClCompile Include="..\Common\Persistence\Maintenance\Maintenance.cpp" />
     <ClCompile Include="..\Common\Persistence\MailboxMove.cpp" />
     <ClCompile Include="..\Common\Persistence\MessageStore.cpp" />
+    <ClCompile Include="..\Common\Persistence\MessageStoreBlobs.cpp" />
+    <ClCompile Include="..\Common\Persistence\MessageStoreFormat.cpp" />
+    <ClCompile Include="..\Common\Persistence\MessageStoreMaintenance.cpp" />
     <ClCompile Include="..\Common\Persistence\SchemaUpgrader.cpp" />
     <ClCompile Include="..\Common\Persistence\NameChanger.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentAccount.cpp" />
@@ -752,6 +755,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiSampleDomain.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSandbox.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSetupChecklist.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiStore.cpp" />
     <ClCompile Include="..\Common\Util\RestApiProfiles.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSend.cpp" />
     <ClCompile Include="..\Common\Util\ApiSends.cpp" />
@@ -1381,6 +1385,9 @@ EXIT 0
     <ClInclude Include="..\Common\Persistence\Maintenance\Maintenance.h" />
     <ClInclude Include="..\Common\Persistence\MailboxMove.h" />
     <ClInclude Include="..\Common\Persistence\MessageStore.h" />
+    <ClInclude Include="..\Common\Persistence\MessageStoreBlobs.h" />
+    <ClInclude Include="..\Common\Persistence\MessageStoreFormat.h" />
+    <ClInclude Include="..\Common\Persistence\MessageStoreMaintenance.h" />
     <ClInclude Include="..\Common\Persistence\SchemaUpgrader.h" />
     <ClInclude Include="..\Common\Persistence\NameChanger.h" />
     <ClInclude Include="..\Common\Persistence\PersistenceMode.h" />

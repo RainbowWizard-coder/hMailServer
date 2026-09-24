@@ -118,6 +118,8 @@ drop table if exists hm_domain_aliases;
 
 drop table if exists hm_messages;
 
+drop table if exists hm_storeblobs;
+
 drop table if exists hm_message_metadata;
 
 drop table if exists hm_dbversion;
@@ -344,6 +346,19 @@ create table hm_messages
 CREATE INDEX idx_hm_messages ON hm_messages (messageaccountid, messagefolderid);
 
 CREATE INDEX idx_hm_messages_type ON hm_messages (messagetype);
+
+create table hm_storeblobs
+(
+	sbid bigint auto_increment not null, primary key(`sbid`), unique(`sbid`),
+	sbsha256 varchar(64) not null,
+	sbsize bigint not null,
+	sbrefs int not null,
+	sbcreated bigint not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_storeblobs_sha256 ON hm_storeblobs (sbsha256);
+
+ALTER TABLE hm_storeblobs ENGINE=InnoDB;
 
 create table hm_message_metadata 
 (
@@ -1486,6 +1501,10 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('IM
 insert into hm_settings (settingname, settingstring, settinginteger) values ('MaxNumberOfAsynchronousTasks', '', 15);
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('MessageIndexing', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('MessageStoreCompression', '', 0);
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('MessageStoreDedupMinKB', '', 256);
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('BypassGreylistingOnSPFSuccess', '', 1);
 
@@ -2966,4 +2985,4 @@ ALTER TABLE hm_discoveryexports ENGINE=InnoDB;
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6097);
+insert into hm_dbversion values (6098);

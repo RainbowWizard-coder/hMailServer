@@ -577,6 +577,26 @@ namespace HM
          return;
       }
 
+      // Stored as a delivery stores a message (Persistence/MessageStore.h):
+      // compressed, its large parts held once, when MessageStoreCompression is
+      // on. One that cannot be is kept as it came, and the error log says why.
+      // The literal is the client's, and is the message whatever it begins
+      // with: one that begins with the mark of a container is wrapped, never
+      // taken for one - and refused, like a write that failed, when it cannot
+      // be wrapped (HM7353). Never placed, it counted nothing, and it goes
+      // without letting go of anything.
+      if (!MessageStore::PlaceWorkingFile(message_file_name_))
+      {
+         MessageStore::DiscardWorkingFile(message_file_name_);
+         current_message_.reset();
+
+         FailCommand_(current_tag_ + " NO APPEND failed - the message could not be stored on the server.\r\n");
+         return;
+      }
+
+      // The size after placing, of what the store now holds: the file is plain,
+      // or a container the store wrote itself, and either answers the literal's
+      // own size - never a size a header inside the literal claims.
       current_message_->SetSize(MessageStore::FileSize(message_file_name_));
       current_message_->SetState(Message::Delivered);
 
@@ -918,8 +938,9 @@ namespace HM
       // whole rollback.
       for (const PendingMessage &pending : pending_messages_)
       {
+         // Through the store: a placed file lets go of what it references.
          if (FileUtilities::Exists(pending.fileName))
-            FileUtilities::DeleteFile(pending.fileName);
+            MessageStore::Remove(pending.fileName);
       }
 
       pending_messages_.clear();

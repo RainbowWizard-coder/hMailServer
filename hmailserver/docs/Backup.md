@@ -41,6 +41,7 @@ In the archive
 | What | Table | Notes |
 |---|---|---|
 | Folders and messages | `hm_imapfolders`, `hm_messages` | Only with **Back up messages** on. A message keeps its UID, its flags **and its keywords** — the webmail's labels, the second and third stars, follow-up flags, mute and pin |
+| The parts of messages held once | The files under `<data directory>\Blobs` | With the messages, because **Back up messages** copies the whole data directory. `hm_storeblobs`, which counts the names that need each part, is not carried: a restore rebuilds it from the stored files when it ends, and a mailbox restore brings in the parts its messages need that the server lacks. See [MessageStore.md](MessageStore.md) |
 | Rules | `hm_rules`, and its criteria and actions | |
 | Fetch accounts, and the UIDs already downloaded | `hm_fetchaccounts`, `hm_fetchaccounts_uids` | |
 | Application passwords | `hm_apppasswords` | The hashes, so a restore does not silently revoke every client the account holder set up |

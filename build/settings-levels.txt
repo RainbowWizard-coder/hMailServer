@@ -168,6 +168,8 @@ maxpop3connections server
 maxsmtpconnections server
 maxsmtprecipientsinbatch server
 MessageIndexing server
+MessageStoreCompression server
+MessageStoreDedupMinKB server
 MigrationConnectionsPerHost server
 mirroremailaddress server
 OidcAdministrators server

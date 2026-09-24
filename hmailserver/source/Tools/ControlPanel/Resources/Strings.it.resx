@@ -5086,6 +5086,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Maximum timeout (seconds)" xml:space="preserve">
     <value>Timeout massimo (secondi)</value>
   </data>
+  <data name="Measured by the server on its own time, and at most a quarter of an hour old. A file with several names is counted once." xml:space="preserve">
+    <value>Misurato dal server nei suoi tempi, e vecchio al massimo un quarto d'ora. Un file con più nomi viene contato una volta.</value>
+  </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Misurato da quando la voce è stata creata, quindi abbassarlo vale anche per le voci già presenti. Una voce aggiunta a mano mantiene la propria scadenza.</value>
   </data>
@@ -5162,6 +5165,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Message source" xml:space="preserve">
     <value>Sorgente del messaggio</value>
+  </data>
+  <data name="Message store" xml:space="preserve">
+    <value>Archivio messaggi</value>
   </data>
   <data name="Message store durability" xml:space="preserve">
     <value>Durabilità dell'archivio dei messaggi</value>
@@ -8428,6 +8434,9 @@ Riavviarlo ora?</value>
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once; stored in hMailServer.ini as SmtpTarpitCount and SmtpTarpitDelaySeconds." xml:space="preserve">
     <value>Rallenta una sessione che indica più destinatari di quanti ne serva a un messaggio legittimo. Superato il conteggio, ogni ulteriore RCPT TO in una sessione non autenticata attende il ritardo prima di ricevere risposta - un attacco a dizionario o una campagna di spam indica centinaia di indirizzi e paga per ciascuno di essi, mentre un MTA mittente ne indica una manciata e non raggiunge mai il conteggio. Le sessioni autenticate e gli intervalli IP con la protezione antispam disattivata sono esenti. L'attesa è un timer sulla connessione, non un thread addormentato. Ha effetto immediato; memorizzata in hMailServer.ini come SmtpTarpitCount e SmtpTarpitDelaySeconds.</value>
   </data>
+  <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
+    <value>Parte più piccola conservata una volta (KB; 0 non conserva nulla una volta sola)</value>
+  </data>
   <data name="Soft" xml:space="preserve">
     <value>Temporaneo</value>
   </data>
@@ -8577,6 +8586,9 @@ Riavviarlo ora?</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Arresta il motore del server di posta mentre il servizio Windows resta in esecuzione: non viene accettata alcuna nuova connessione e nulla viene consegnato finché non lo si riprende.</value>
+  </data>
+  <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
+    <value>Salva la nuova posta compressa, con le parti grandi conservate una volta</value>
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Archivio: </value>
@@ -9623,6 +9635,9 @@ Aggiungerlo comunque?</value>
   <data name="The server is draining. A reinitialize ends maintenance mode: the listeners open again and delivery resumes. Reinitialize the server now?" xml:space="preserve">
     <value>Il server è in svuotamento. Una reinizializzazione termina la modalità di manutenzione: i listener si riaprono e la consegna riprende. Reinizializzare il server ora?</value>
   </data>
+  <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
+    <value>Il server sta misurando l'archivio messaggi; riapri questa pagina tra un minuto per vedere i dati.</value>
+  </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Il server non conserva alcuno storico: MetricsHistoryDays è 0 in hMailServer.ini. Impostarlo ai giorni da conservare.</value>
   </data>
@@ -10452,6 +10467,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Che cosa il server scrive nei propri file di registro (consultabili nella pagina Registri in tempo reale).</value>
   </data>
+  <data name="What the store holds, and what it saves" xml:space="preserve">
+    <value>Cosa contiene l'archivio e quanto risparmia</value>
+  </data>
   <data name="What this key is for, e.g. &quot;Grafana probe&quot;" xml:space="preserve">
     <value>A che cosa serve questa chiave, ad es. "Grafana probe"</value>
   </data>
@@ -10532,6 +10550,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Se le ricerche possano essere soddisfatte dalla cache del resolver DNS di Windows. Disattivato, ogni ricerca va in rete. Ignorato quando qui sopra è impostato un server DNS di override — quelle ricerche aggirano sempre la cache di sistema, perché le sue risposte proverrebbero dal resolver sbagliato.</value>
+  </data>
+  <data name="Whether new mail is stored compressed, with the large attachments it shares with other messages kept once. Clients see every message exactly as it arrived. Turning it off stores new mail as it comes and leaves the stored messages readable; hmailserver --compress-store rewrites the messages already there, and --decompress puts them back." xml:space="preserve">
+    <value>Indica se la nuova posta viene salvata compressa, con i grandi allegati che condivide con altri messaggi conservati una sola volta. I client vedono ogni messaggio esattamente come è arrivato. Disattivandolo, la nuova posta viene salvata così come arriva e i messaggi salvati restano leggibili; hmailserver --compress-store riscrive i messaggi già presenti e --decompress li riporta com'erano.</value>
   </data>
   <data name="Whether the key file needs one cannot be checked from here. If it is encrypted, it will not load without a passphrase (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Da qui non è possibile verificare se il file della chiave ne abbia bisogno. Se è cifrato, non verrà caricato senza una passphrase (errore del server 6170) e le porte TLS che usano questo certificato non si avvieranno.</value>
@@ -12281,6 +12302,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} messaggi fanno riferimento a un file mancante sul disco.</value>
+  </data>
+  <data name="{0} messages, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. {5} of the files are compressed. Measured {6}." xml:space="preserve">
+    <value>{0} messaggi, {1} MB come li vedono i client. I loro file occupano {2} MB e le parti conservate una volta {3} MB, con un risparmio del {4}%. {5} dei file sono compressi. Misurato {6}.</value>
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>{0} minuti fa</value>

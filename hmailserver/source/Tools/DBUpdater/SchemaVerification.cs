@@ -1716,6 +1716,17 @@ namespace DBUpdater
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_discoveryholds_case' and constraint_type = 'FOREIGN KEY')"),
          new SchemaProbe(6097, "hm_discoveryexports.fk_hm_discoveryexports_search",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_discoveryexports_search' and constraint_type = 'FOREIGN KEY')"),
+         // Upgrade6097to6098* - storage compression and attachment de-duplication:
+         // the parts the message store holds once, and how many stored files name
+         // each.
+         new SchemaProbe(6098, "hm_storeblobs.sbsha256",
+                         "update hm_storeblobs set sbsha256 = sbsha256 where 1 = 0"),
+         new SchemaProbe(6098, "hm_storeblobs.sbsize",
+                         "update hm_storeblobs set sbsize = sbsize where 1 = 0"),
+         new SchemaProbe(6098, "hm_storeblobs.sbrefs",
+                         "update hm_storeblobs set sbrefs = sbrefs where 1 = 0"),
+         new SchemaProbe(6098, "hm_storeblobs.sbcreated",
+                         "update hm_storeblobs set sbcreated = sbcreated where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

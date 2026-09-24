@@ -441,6 +441,15 @@ namespace HM
       bool GetMessageIndexing();
       void SetMessageIndexing(bool enable);
 
+      // The message store's form (Persistence/MessageStore.h): whether a message
+      // placed in a mailbox is compressed, off by default; and the smallest part,
+      // in KB decoded, held once when it is - 0 to 65536, 256 by default, 0
+      // holding nothing once.
+      bool GetMessageStoreCompression();
+      void SetMessageStoreCompression(bool enabled);
+      int GetMessageStoreDedupMinKB();
+      void SetMessageStoreDedupMinKB(int kilobytes);
+
       bool GetVerifyRemoteSslCertificate() const;
       void SetVerifyRemoteSslCertificate(bool newValue);
 

@@ -29,6 +29,7 @@
 #include "../Cache/CacheContainer.h"
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/MessageStore.h"
 #include "../Persistence/PersistentMessageIndex.h"
 #include "../Persistence/PersistentArchiveIndex.h"
 #include "../SQL/DALRecordset.h"
@@ -422,18 +423,6 @@ namespace HM
          }
 
          return statement;
-      }
-
-      bool ReadBytes(const String &fileName, AnsiString &bytes)
-      {
-         boost::filesystem::path path(fileName.begin(), fileName.end());
-         boost::filesystem::ifstream in(path, std::ios::in | std::ios::binary);
-         if (!in)
-            return false;
-
-         std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-         bytes = content;
-         return true;
       }
 
       AnsiString Hex(const unsigned char *digest, unsigned int length)
@@ -1055,7 +1044,7 @@ namespace HM
             if (scanned % ProgressEvery == 0)
                DiscoveryStore::RecordSearchProgress(search_.id, scanned, matched, unsearched_count);
 
-            if (!FileUtilities::Exists(candidate.file))
+            if (!MessageStore::Exists(candidate.file))
             {
                Unsearched_(candidate, _T("Its file is not on the disk."));
                return;
@@ -1145,7 +1134,7 @@ namespace HM
             const bool needBody = !query_.words.empty() || query_.attachment;
 
             unsigned __int64 fileSize = 0;
-            FileUtilities::FileSize64(candidate.file, fileSize);
+            MessageStore::FileSize64(candidate.file, fileSize);
 
             if (fileSize > (unsigned __int64) DiscoverySearch::MaxMessageBytes)
             {
@@ -1648,7 +1637,7 @@ namespace HM
                   AnsiString bytes;
 
                   bool readable = Locate_(hit, path, held, reason);
-                  if (readable && !ReadBytes(path, bytes))
+                  if (readable && !MessageStore::ReadAll(path, bytes))
                   {
                      readable = false;
                      reason = _T("Its file could not be read.");

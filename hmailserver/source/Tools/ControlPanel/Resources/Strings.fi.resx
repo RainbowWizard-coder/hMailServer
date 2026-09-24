@@ -5086,6 +5086,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Maximum timeout (seconds)" xml:space="preserve">
     <value>Enimmäisaikakatkaisu (sekuntia)</value>
   </data>
+  <data name="Measured by the server on its own time, and at most a quarter of an hour old. A file with several names is counted once." xml:space="preserve">
+    <value>Palvelin mittaa tämän omalla ajallaan, ja tieto on enintään vartin vanha. Tiedosto, jolla on useita nimiä, lasketaan kerran.</value>
+  </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Mitataan merkinnän luomisesta, joten arvon laskeminen koskee myös jo olemassa olevia merkintöjä. Käsin lisätty merkintä säilyttää oman vanhenemisensa.</value>
   </data>
@@ -5162,6 +5165,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Message source" xml:space="preserve">
     <value>Viestin lähde</value>
+  </data>
+  <data name="Message store" xml:space="preserve">
+    <value>Viestivarasto</value>
   </data>
   <data name="Message store durability" xml:space="preserve">
     <value>Viestisäilön kestävyys</value>
@@ -8428,6 +8434,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once; stored in hMailServer.ini as SmtpTarpitCount and SmtpTarpitDelaySeconds." xml:space="preserve">
     <value>Hidastaa istuntoa, joka nimeää enemmän vastaanottajia kuin aito viesti tarvitsee. Määrän ylityttyä jokainen seuraava RCPT TO todentamattomassa istunnossa odottaa viiveen ennen vastausta - sanakirjahyökkäys tai roskapostiajo nimeää satoja osoitteita ja maksaa jokaisesta, kun taas lähettävä MTA nimeää kourallisen eikä koskaan saavuta määrää. Todennetut istunnot ja IP-alueet, joilla roskapostisuojaus on pois päältä, ovat vapautettuja. Odotus on ajastin yhteydellä, ei nukkuva säie. Tulee voimaan heti; tallennetaan hMailServer.ini-tiedostoon nimillä SmtpTarpitCount ja SmtpTarpitDelaySeconds.</value>
   </data>
+  <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
+    <value>Pienin kerran tallennettava osa (kt; 0 ei tallenna mitään kerran)</value>
+  </data>
   <data name="Soft" xml:space="preserve">
     <value>Tilapäinen</value>
   </data>
@@ -8577,6 +8586,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Pysäyttää postipalvelinmoottorin, kun Windows-palvelu jatkaa toimintaansa: uusia yhteyksiä ei hyväksytä eikä mitään toimiteta, ennen kuin toimintaa jatketaan.</value>
+  </data>
+  <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
+    <value>Tallenna uusi posti pakattuna, suuret osat kerran</value>
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Varasto:</value>
@@ -9623,6 +9635,9 @@ Tähän vastaa palvelimen oma nimiselvitin - sama, jota SMTP-toimitus käyttää
   <data name="The server is draining. A reinitialize ends maintenance mode: the listeners open again and delivery resumes. Reinitialize the server now?" xml:space="preserve">
     <value>Palvelinta tyhjennetään. Uudelleenalustus päättää huoltotilan: kuuntelijat avautuvat uudelleen ja toimitus jatkuu. Alustetaanko palvelin uudelleen nyt?</value>
   </data>
+  <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
+    <value>Palvelin mittaa viestivarastoa; avaa tämä sivu uudelleen minuutin päästä nähdäksesi luvut.</value>
+  </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Palvelin ei säilytä historiaa: MetricsHistoryDays on 0 hMailServer.ini-tiedostossa. Aseta se säilytettävien päivien määräksi.</value>
   </data>
@@ -10452,6 +10467,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Mitä palvelin kirjoittaa lokitiedostoihinsa (katsottavissa Reaaliaikaiset lokit -sivulla).</value>
   </data>
+  <data name="What the store holds, and what it saves" xml:space="preserve">
+    <value>Mitä varasto sisältää ja mitä se säästää</value>
+  </data>
   <data name="What this key is for, e.g. &quot;Grafana probe&quot;" xml:space="preserve">
     <value>Mihin tämä avain on tarkoitettu, esim. "Grafana probe"</value>
   </data>
@@ -10532,6 +10550,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Voidaanko hakuihin vastata Windowsin DNS-nimiselvittimen välimuistista. Pois päältä: jokainen haku menee verkkoon. Ohitetaan, kun yllä on asetettu ohittava DNS-palvelin — nuo haut ohittavat aina järjestelmän välimuistin, koska sen vastaukset tulisivat väärältä nimiselvittimeltä.</value>
+  </data>
+  <data name="Whether new mail is stored compressed, with the large attachments it shares with other messages kept once. Clients see every message exactly as it arrived. Turning it off stores new mail as it comes and leaves the stored messages readable; hmailserver --compress-store rewrites the messages already there, and --decompress puts them back." xml:space="preserve">
+    <value>Tallennetaanko uusi posti pakattuna niin, että suuret liitteet, jotka se jakaa muiden viestien kanssa, säilytetään vain kerran. Asiakasohjelmat näkevät jokaisen viestin täsmälleen sellaisena kuin se saapui. Kun asetus on pois päältä, uusi posti tallennetaan sellaisenaan ja tallennetut viestit pysyvät luettavina; hmailserver --compress-store kirjoittaa jo tallennetut viestit uudelleen ja --decompress palauttaa ne.</value>
   </data>
   <data name="Whether the key file needs one cannot be checked from here. If it is encrypted, it will not load without a passphrase (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Sitä, tarvitseeko avaintiedosto tunnuslausetta, ei voi tarkistaa täältä. Jos se on salattu, se ei lataudu ilman tunnuslausetta (palvelinvirhe 6170), eivätkä tätä varmennetta käyttävät TLS-portit käynnisty.</value>
@@ -12281,6 +12302,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} viestiä viittaa tiedostoon, joka puuttuu levyltä.</value>
+  </data>
+  <data name="{0} messages, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. {5} of the files are compressed. Measured {6}." xml:space="preserve">
+    <value>{0} viestiä, {1} Mt asiakasohjelmien näkemänä. Niiden tiedostot vievät {2} Mt ja kerran tallennetut osat {3} Mt, mikä säästää {4} %. Tiedostoista {5} on pakattu. Mitattu {6}.</value>
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>{0} minuuttia sitten</value>

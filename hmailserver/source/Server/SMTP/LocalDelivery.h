@@ -204,6 +204,16 @@ namespace HM
       bool shared_template_failed_ = false;
       bool current_copy_traced_ = false;
 
+      // The copy becomes a stored message (Persistence/MessageStore.h): compressed
+      // and its large parts held once, when MessageStoreCompression is on. The
+      // first copy that is still a name of the template above is placed where it
+      // is, and each later one is made a name of that placed file, so the
+      // recipients go on sharing one file. False when the store refuses the copy
+      // (MessageStore::Place), which is then not to be kept.
+      bool PlaceCopy_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message);
+      String placed_template_;
+      bool placed_template_failed_ = false;
+
       const String &_sendersIP;
       const std::shared_ptr<Message> original_message_;
       const RuleResult &_globalRuleResult;

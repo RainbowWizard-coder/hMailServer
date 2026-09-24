@@ -1409,6 +1409,9 @@ const state = {
    directory: {},
    assignments: [{ address: 'anna@example.com', role: 'helpdesk', domains: '' }],
    status: { version: '6.3.3', state: 3, processedMessages: 1234, spamMessages: 56, virusesRemoved: 7, sessions: { smtp: 3, imap: 12, pop3: 1 } },
+   // What GET /api/v1/store answers: the message store measured, compressed.
+   store: { measured: 1790000000, measuring: false, messages: 120, logical_bytes: 52428800, stored_bytes: 20971520, compressed_files: 100,
+            blobs: 3, blob_bytes: 5242880, blob_references: 9, saved_bytes: 26214400, saved_percent: 50, compression: true, dedup_min_kb: 256 },
    drain: { draining: false, since: '', sessions: 0, deliveries: 0, drained: false },
    // What GET /api/v1/server/settings/pending answers: a key marked reinitialize
    // saved and not yet running. A reinitialise takes it.
@@ -1999,6 +2002,7 @@ function answer(method, path, headers, raw) {
    if (method !== 'GET' && nextRefusalAnswer) { const refusal = nextRefusalAnswer; nextRefusalAnswer = null; return json(refusal.status, refusal.body); }
 
    if (path === '/api/v1/status') { return json(200, state.status); }
+   if (path === '/api/v1/store') { return json(200, state.store); }
    if (path === '/api/v1/openapi.json') { return json(200, spec); }
 
    if (path === '/api/v1/domains' && method === 'GET') { return json(200, state.domains); }
@@ -4017,6 +4021,34 @@ async function main() {
    await flush();
    check('a draining server is named as such, as a warning', $('#kpiState').querySelector('.badge.warn') !== null && $('#kpiState').textContent === 'Draining', $('#kpiState').textContent);
    state.status.state = 3;
+
+   // The message store beside the counters, from GET /api/v1/store.
+   check('the dashboard shows the message store: the messages, what their files and the parts held once take, and what is saved',
+      $('#storeSect') !== null && $('#storeSect').hidden === false &&
+      $('#storeLogical').textContent === '50.0 MB' && $('#storeStored').textContent === '20.0 MB' &&
+      $('#storeBlobs').textContent === '5.0 MB' && $('#storeSaved').textContent === '50.0%' &&
+      $('#storeNote').textContent.indexOf('new mail is stored compressed') >= 0,
+      $('#storeSect') ? $('#storeSect').textContent : 'no section');
+   const storeBefore = state.store;
+   state.store = Object.assign({}, storeBefore, { measured: 0, measuring: true });
+   fireIntervals();
+   await flush();
+   check('a store not measured yet says it is being measured, and claims no saving',
+      $('#storeSect').hidden === false &&
+      $('#storeNote').textContent === 'Measuring the message store; the figures follow on the next refresh.' && $('#storeSaved').textContent === '\u2014',
+      $('#storeNote').textContent + ' / ' + $('#storeSaved').textContent);
+   // A server that never turned compression on measures nothing unless asked,
+   // and the section says nothing rather than "measuring" for ever.
+   state.store = Object.assign({}, storeBefore, { measured: 0, measuring: false, compression: false });
+   fireIntervals();
+   await flush();
+   check('a store nothing measured and nothing measuring leaves the section hidden',
+      $('#storeSect').hidden === true, $('#storeSect').hidden);
+   state.store = storeBefore;
+   fireIntervals();
+   await flush();
+   check('and a measurement shows it again',
+      $('#storeSect').hidden === false && $('#storeSaved').textContent === '50.0%', $('#storeSaved').textContent);
 
    // ---- domains
    before = requests.length;

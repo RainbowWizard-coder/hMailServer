@@ -140,6 +140,13 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_SPAM_TRAP_HIT_RETENTION_DAYS, 90);
       property_set_->EnsureLong(PROPERTY_SPAM_TRAP_TEACH_SPAMASSASSIN, 0);
 
+      // The message store's form (Persistence/MessageStore.h): off, and 256 KB
+      // for the day it is turned on. Schema 6098 seeds the same two rows; these
+      // are here because every delivery reads the first, and a read of a missing
+      // property reports HM5015 every time.
+      property_set_->EnsureLong(PROPERTY_MESSAGE_STORE_COMPRESSION, 0);
+      property_set_->EnsureLong(PROPERTY_MESSAGE_STORE_DEDUP_MIN_KB, 256);
+
       // Greylisting, hardened (SMTP/GreyListing.h): no slide, no abuse threshold,
       // and an hour's lock that means nothing while the threshold is 0. Schema 6072
       // seeds the same three rows; these are here for the same reason as the rest.
@@ -1785,6 +1792,33 @@ namespace HM
          MessageIndexer::Instance()->Stop();
 
       property_set_->SetBool(PROPERTY_MESSAGE_INDEXING, enable);
+   }
+
+   bool
+   Configuration::GetMessageStoreCompression()
+   {
+      return GetSettings()->GetBool(PROPERTY_MESSAGE_STORE_COMPRESSION);
+   }
+
+   void
+   Configuration::SetMessageStoreCompression(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_MESSAGE_STORE_COMPRESSION, enabled);
+   }
+
+   int
+   Configuration::GetMessageStoreDedupMinKB()
+   {
+      // Clamped here as the other getters clamp, so a row edited by hand cannot
+      // ask for a negative size or a part larger than a container holds.
+      const long kilobytes = GetSettings()->GetLong(PROPERTY_MESSAGE_STORE_DEDUP_MIN_KB);
+      return kilobytes < 0 ? 0 : (kilobytes > 65536 ? 65536 : (int) kilobytes);
+   }
+
+   void
+   Configuration::SetMessageStoreDedupMinKB(int kilobytes)
+   {
+      GetSettings()->SetLong(PROPERTY_MESSAGE_STORE_DEDUP_MIN_KB, kilobytes < 0 ? 0 : (kilobytes > 65536 ? 65536 : kilobytes));
    }
 
    bool

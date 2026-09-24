@@ -2144,6 +2144,12 @@ namespace HM
          case RouteStatus:
             return HandleStatus_();
 
+         case RouteStoreStatus:
+            return HandleStoreStatus_();
+
+         case RouteStoreMeasure:
+            return HandleStoreMeasure_();
+
          case RouteSessionGet:
             return HandleSessionGet_(caller);
 
@@ -4702,6 +4708,19 @@ namespace HM
       if (method == "GET" && path == "/api/v1/status")
       {
          route.kind = RouteStatus;
+         return;
+      }
+
+      // The message store's totals (RestApiStore.cpp).
+      if (method == "GET" && path == "/api/v1/store")
+      {
+         route.kind = RouteStoreStatus;
+         return;
+      }
+
+      if (method == "POST" && path == "/api/v1/store/measure")
+      {
+         route.kind = RouteStoreMeasure;
          return;
       }
 
@@ -7377,6 +7396,10 @@ namespace HM
       case RouteDiscoveryHoldCreate:
       case RouteDiscoveryHoldRelease:
       case RouteDiscoveryExportCreate:
+      // A measurement of the message store started now: it changes nothing, but
+      // it reads the start of every stored file, which is the server acting and
+      // not a read-only credential's to set off (RestApiStore.cpp).
+      case RouteStoreMeasure:
          return true;
 
       default:
@@ -7564,6 +7587,16 @@ namespace HM
       case RouteScimGroupDelete:
       case RouteScimUnknown:
          return RolePermission::Provision;
+
+      // The message store's totals (RestApiStore.cpp): bytes and counts, a fact
+      // of the server's shape as its status is, and never a message.
+      case RouteStoreStatus:
+         return RolePermission::ViewConfiguration;
+
+      // A measurement started now walks the whole store on the work queue:
+      // the process acting, as a pass of the alerts or the scheduled sends is.
+      case RouteStoreMeasure:
+         return RolePermission::ManageServer;
 
       // Reading the server's shape: its state, its settings, its listeners,
       // its certificates and its rules, the roles that exist and who holds
@@ -8781,6 +8814,14 @@ namespace HM
           route.kind == RouteWarmupDelete || route.kind == RouteWarmupHistory)
       {
          refusalReason = "this credential is restricted to named domains, and the delivery queue is server-wide";
+         return AuthorizationForbidden;
+      }
+
+      // The message store's totals are every domain's messages at once, and so
+      // is a measurement of them.
+      if (route.kind == RouteStoreStatus || route.kind == RouteStoreMeasure)
+      {
+         refusalReason = "this credential is restricted to named domains, and the message store is server-wide";
          return AuthorizationForbidden;
       }
 
@@ -17767,6 +17808,9 @@ namespace HM
          "\"description\":\"Administration API. Authenticate with the administrator password (HTTP Basic, user 'Administrator') or an API key (Bearer). API keys can be read-only or restricted to named domains; key management itself requires the administrator password. The /api/v1/me endpoints are the exception: they answer to an account\'s own credentials (HTTP Basic, user = the mailbox address) and to nothing else, and /portal is a sign-in page for them. An account that holds an administrative role also reaches the routes that role permits, with the same credential or a browser session: GET /api/v1/session says what a credential may do, and GET /api/v1/roles lists the roles and what each holds.\"},"
          "\"paths\":{"
          "\"/api/v1/status\":{\"get\":{\"summary\":\"Server status\",\"responses\":{\"200\":{\"description\":\"Version, state, the message counters, the session counts, and build: what this build can do - script_engine, script_languages (the event-script languages this build runs: VBScript and JScript on Windows, JavaScript on Linux), argon2id, post_quantum_key_exchange\"}}}},"
+         "\"/api/v1/status\":{\"get\":{\"summary\":\"Server status\",\"responses\":{\"200\":{\"description\":\"Version, state, the message counters, the session counts, and build: what this build can do - script_engine, argon2id, post_quantum_key_exchange\"}}}},"
+         "\"/api/v1/store\":{\"get\":{\"summary\":\"The message store: what the messages are and what they take\",\"description\":\"{measured,measuring,messages,logical_bytes,stored_bytes,compressed_files,blobs,blob_bytes,blob_references,saved_bytes,saved_percent,compression,dedup_min_kb}. logical_bytes is what IMAP and POP3 say the delivered messages are; stored_bytes is what their files take, a file with several names counted once; blob_bytes is the parts held once; messages and logical_bytes count only the messages whose files could be sized. Always the last measurement, made on the server's own time: measured is when (seconds since 1970, 0 for never) and measuring is true while one runs. A request starts the next one when the last is a quarter of an hour old and the store is in use - compression on, a part held once, or a container found last time - so on a server that never turned compression on nothing is walked and measured stays 0 until POST /api/v1/store/measure. docs/MessageStore.md. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"The totals\"}}}},"
+         "\"/api/v1/store/measure\":{\"post\":{\"summary\":\"Measure the message store now\",\"description\":\"Starts a measurement of the message store on the server's own time, unless one is running, and answers what GET /api/v1/store answers: the last measurement, with measuring true. The walk reads the start of every stored file, so it is manage_server's, and refused for read-only and domain-restricted keys. docs/MessageStore.md.\",\"responses\":{\"202\":{\"description\":\"The last totals, measuring true\"}}}},"
          "\"/api/v1/server/reinitialize\":{\"post\":{\"summary\":\"Restart the services in place\",\"description\":\"What the Control Panel's Reinitialize does: every service is stopped, the configuration reloaded and the services started again in the same process, so that a port, a certificate binding or a setting the document marks as taking effect on restart takes effect now - and every [Settings] key marked reinitialize that GET /api/v1/server/settings/pending lists is taken, which empties that list of them (a key marked restart waits for the service to start again). Answers before it happens, because the REST listener itself restarts: poll GET /api/v1/status until it answers again. A reinitialise ends maintenance mode: when the server was draining, drained is true in the answer and the listeners come back open. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"202\":{\"description\":\"{reinitializing: true, drained}: reinitialising, the listeners restart in a moment; drained is true when this ends a drain\"}}}},"
          "\"/api/v1/server/settings/pending\":{\"get\":{\"summary\":\"The saved settings the server is not running on yet\",\"description\":\"Every [Settings] key saved since what applies it last happened: a key marked reinitialize or restart in GET /api/v1/settings/ini whose stored value is not the value the running server is using, as [{name, stored, running, applies, secret}]. Recomputed from the store and the running values at every request rather than remembered, so a value put back before anything applied it is not listed, and POST /api/v1/server/reinitialize empties it of every reinitialize key (a restart key waits for the service to start again). A secret's two values are (set) or empty, as the ini list shows them. What Settings.PendingIniSettings lists over COM. Administrator password only, as the ini list is.\",\"responses\":{\"200\":{\"description\":\"[{name, stored, running, applies, secret}], empty when nothing waits\"}}}},"
          "\"/api/v1/server/drain\":{"

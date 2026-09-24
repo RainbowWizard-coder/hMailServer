@@ -69,8 +69,18 @@ namespace HM
       mime_mail_ = std::shared_ptr<MimeBody>(new MimeBody);
       load_failed_ = true;
 
+      // The file that is parsed: the message's own, or for a message the store
+      // keeps in another form a plain copy of its bytes (MessageStore.h). A stored
+      // file that cannot be read is refused there, with the reason in the error
+      // log, and is not treated as a message being composed.
+      plain_copy_ = std::shared_ptr<MessageStorePlainCopy>(new MessageStorePlainCopy(message_file_name_));
+      if (!plain_copy_->IsReady())
+         return false;
+
+      const String parsedFile = plain_copy_->GetPath();
+
       const int MaxSize = 1024*1024 * 80; // we'll ignore messages larger than 80MB.
-      if (FileUtilities::FileSize(message_file_name_) > MaxSize)
+      if (FileUtilities::FileSize(parsedFile) > MaxSize)
          return false;
 
       bool bNewMessage = false;
@@ -90,7 +100,7 @@ namespace HM
          // here. It races, as any such test does; losing the race means treating a
          // file that has just been deleted as a new message, which is exactly what
          // happened before, so the race cannot make anything worse.
-         switch (mime_mail_->LoadFromFile(message_file_name_))
+         switch (mime_mail_->LoadFromFile(parsedFile))
          {
          case MimeLoadResult::Loaded:
             break;
@@ -119,8 +129,10 @@ namespace HM
          {
             String sFileNameExclPath = FileUtilities::GetFileNameFromFullPath(message_file_name_);
 
+            // The bytes that were parsed, which are the message's whatever form
+            // the store keeps it in.
             String sMessageBackupPath = FileUtilities::Combine(FileUtilities::Combine(IniFileSettings::Instance()->GetLogDirectory(), "Problematic messages"), sFileNameExclPath);
-            FileUtilities::Copy(message_file_name_, sMessageBackupPath, true);
+            FileUtilities::Copy(parsedFile, sMessageBackupPath, true);
 
             String sErrorMessage;
             sErrorMessage.Format(_T("An unknown error occurred while loading message. File: %s. Backuped to: %s"), message_file_name_.c_str(), sMessageBackupPath.c_str());
@@ -992,6 +1004,25 @@ namespace HM
          return false;
       }
 
+      // A message whose first bytes would be the mark of a message store
+      // container (Persistence/MessageStoreFormat.h) is not written, here or
+      // anywhere. No RFC 5322 header field begins with that byte, so only bytes
+      // shaped to be taken for a container begin with it - a client can APPEND
+      // such a message, which the store keeps wrapped, and its first line
+      // survives a parse and a rewrite unchanged - and a stored file written so
+      // would be read as a container the store never wrote, naming parts other
+      // messages share. The file on disk is left as it was. The header is the
+      // start of whatever this writes; with no field at all it is the blank line.
+      {
+         const AnsiString start = static_cast<const MimeHeader &>(*mime_mail_).Store();
+         if (MessageStoreFormat::HasMagic(start.c_str(), (size_t) start.GetLength()))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 7353, "MessageData::Write",
+               "Refusing to write the message file " + fileName + ": the message begins with the bytes that mark a container of the message store, and written so it would be read as one. The message on disk was left as it was.");
+            return false;
+         }
+      }
+
       const HM::String directoryName = HM::FileUtilities::GetFilePath(fileName);
       if (!HM::FileUtilities::Exists(directoryName) && !HM::FileUtilities::CreateDirectory(directoryName))
       {
@@ -1017,6 +1048,12 @@ namespace HM
             "Failed to write the message file " + fileName + ". The message data was not stored.");
          return false;
       }
+
+      // The stored file this was read from, written over by the plain message: a
+      // file the store kept in another form referenced parts held once, and this
+      // name no longer does (MessageStore.h).
+      if (plain_copy_ && plain_copy_->IsTemporary() && fileName == message_file_name_)
+         plain_copy_->StoredFileReplaced();
 
       if (message_)
       {

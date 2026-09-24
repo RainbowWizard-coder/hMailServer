@@ -5086,6 +5086,9 @@ Control Panel может читать файлы сообщений только
   <data name="Maximum timeout (seconds)" xml:space="preserve">
     <value>Максимальный тайм-аут (секунд)</value>
   </data>
+  <data name="Measured by the server on its own time, and at most a quarter of an hour old. A file with several names is counted once." xml:space="preserve">
+    <value>Измеряется сервером в свободное время, данные не старше четверти часа. Файл с несколькими именами считается один раз.</value>
+  </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Отсчитывается от создания записи, поэтому уменьшение действует и на уже существующие записи. Запись, добавленная вручную, сохраняет собственный срок.</value>
   </data>
@@ -5162,6 +5165,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Message source" xml:space="preserve">
     <value>Исходный текст сообщения</value>
+  </data>
+  <data name="Message store" xml:space="preserve">
+    <value>Хранилище сообщений</value>
   </data>
   <data name="Message store durability" xml:space="preserve">
     <value>Надёжность хранилища сообщений</value>
@@ -8428,6 +8434,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once; stored in hMailServer.ini as SmtpTarpitCount and SmtpTarpitDelaySeconds." xml:space="preserve">
     <value>Замедляет сеанс, называющий больше получателей, чем нужно нормальному сообщению. За пределом этого счётчика каждая следующая команда RCPT TO в сеансе без аутентификации ждёт указанную задержку, прежде чем получит ответ: перебор по словарю или спам-рассылка называют сотни адресов и платят за каждый из них, тогда как отправляющий MTA называет несколько штук и до счётчика не доходит никогда. Сеансы, прошедшие аутентификацию, и диапазоны IP с отключённой защитой от спама освобождены от этого. Ожидание — это таймер на соединении, а не спящий поток. Вступает в силу немедленно; хранится в hMailServer.ini как SmtpTarpitCount и SmtpTarpitDelaySeconds.</value>
   </data>
+  <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
+    <value>Наименьшая часть, хранимая один раз (КБ; 0 — ничего не хранить один раз)</value>
+  </data>
   <data name="Soft" xml:space="preserve">
     <value>Временные</value>
   </data>
@@ -8577,6 +8586,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Останавливает движок почтового сервера, оставляя службу Windows работать: новые подключения не принимаются и ничего не доставляется, пока работа не будет возобновлена.</value>
+  </data>
+  <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
+    <value>Хранить новую почту в сжатом виде, крупные части — один раз</value>
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Хранилище: </value>
@@ -9623,6 +9635,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The server is draining. A reinitialize ends maintenance mode: the listeners open again and delivery resumes. Reinitialize the server now?" xml:space="preserve">
     <value>Сервер разгружается. Повторная инициализация завершает режим обслуживания: прослушиватели снова открываются, и доставка возобновляется. Выполнить повторную инициализацию сервера сейчас?</value>
   </data>
+  <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
+    <value>Сервер измеряет хранилище сообщений; откройте эту страницу снова через минуту, чтобы увидеть цифры.</value>
+  </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Сервер не хранит историю: MetricsHistoryDays в hMailServer.ini равен 0. Задайте число дней хранения.</value>
   </data>
@@ -10452,6 +10467,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Что сервер пишет в файлы журналов (смотреть на странице «Журналы в реальном времени»).</value>
   </data>
+  <data name="What the store holds, and what it saves" xml:space="preserve">
+    <value>Что содержит хранилище и сколько оно экономит</value>
+  </data>
   <data name="What this key is for, e.g. &quot;Grafana probe&quot;" xml:space="preserve">
     <value>Для чего этот ключ, например «Grafana probe»</value>
   </data>
@@ -10532,6 +10550,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Могут ли запросы отвечаться из кеша резолвера DNS Windows. Выключено - каждый запрос уходит в сеть. Игнорируется, когда выше задан переопределяющий DNS-сервер — те запросы всегда обходят системный кеш, потому что его ответы приходили бы от не того резолвера.</value>
+  </data>
+  <data name="Whether new mail is stored compressed, with the large attachments it shares with other messages kept once. Clients see every message exactly as it arrived. Turning it off stores new mail as it comes and leaves the stored messages readable; hmailserver --compress-store rewrites the messages already there, and --decompress puts them back." xml:space="preserve">
+    <value>Хранится ли новая почта в сжатом виде, а крупные вложения, общие с другими сообщениями, — только один раз. Клиенты видят каждое сообщение точно таким, каким оно пришло. Если выключить, новая почта хранится в том виде, в каком приходит, а сохранённые сообщения остаются читаемыми; hmailserver --compress-store перезаписывает уже сохранённые сообщения, а --decompress возвращает их в исходный вид.</value>
   </data>
   <data name="Whether the key file needs one cannot be checked from here. If it is encrypted, it will not load without a passphrase (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Нужна ли файлу ключа парольная фраза, отсюда проверить нельзя. Если он зашифрован, без парольной фразы он не загрузится (ошибка сервера 6170), и порты TLS, использующие этот сертификат, не запустятся.</value>
@@ -12281,6 +12302,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>Сообщений, ссылающихся на отсутствующий на диске файл: {0}.</value>
+  </data>
+  <data name="{0} messages, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. {5} of the files are compressed. Measured {6}." xml:space="preserve">
+    <value>Сообщений: {0}, {1} МБ с точки зрения клиентов. Их файлы занимают {2} МБ, а части, хранимые один раз, — {3} МБ, что экономит {4} %. Сжатых файлов: {5}. Измерено {6}.</value>
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>{0} мин. назад</value>

@@ -48,6 +48,7 @@
 #include "../../SMTP/DestinationBackoffTester.h"
 #include "../../SMTP/WarmupPlanTester.h"
 #include "../Persistence/SchemaUpgrader.h"
+#include "../Persistence/MessageStoreFormat.h"
 #include "../../SMTP/DeliveryReportParser.h"
 #include "../../SMTP/ComplaintTracker.h"
 #include "DomainReports.h"
@@ -409,6 +410,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing ReputationWatch\n"));
       ReputationWatchTester reputationWatchTester;
       reputationWatchTester.Test();
+
+      // The message store's container (docs/MessageStore.md): a large part found
+      // and cut out at its wire bytes, the container encoded and decoded back to
+      // the message byte for byte, its start read without the blob, a changed
+      // byte and a file cut short refused, and a message that begins with the
+      // magic kept as a container with no stages. Functions of values only.
+      OutputDebugString(_T("hMailServer: Testing MessageStoreFormat\n"));
+      MessageStoreFormat::Test();
 
       // Parameter substitution matters most on the two backends the bench does not
       // usually run: MySQL and PostgreSQL report GetSupportsCommandParameters() as

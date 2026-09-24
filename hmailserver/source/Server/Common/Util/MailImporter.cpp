@@ -143,10 +143,36 @@ namespace HM
          }
       }
 
+      // Into an account: a file found in the data directory - by the Data
+      // Directory Synchronizer, or written there by the Import Tool from an mbox
+      // or a Maildir - becomes a stored message here, and its bytes are an
+      // importer's, never taken for a container (Persistence/MessageStore.h). One
+      // that begins with the mark of a container is refused rather than adopted:
+      // it is a stored container that lost its row, which is not a message to
+      // file as one, or bytes shaped to look like one. Any other is placed as a
+      // delivery is - compressed when MessageStoreCompression is on. A file for
+      // the queue is left as it is: a queue file is never a container, and
+      // delivery places each copy.
+      if (iAccountID > 0)
+      {
+         AnsiString start;
+         if (MessageStore::Backend().ReadAll(newFullPath, start, MessageStoreFormat::MagicLength) &&
+             MessageStoreFormat::HasMagic(start.data(), start.size()))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7354, "MailImporter::Import",
+               "The file " + newFullPath + " begins with the bytes that mark a container of the message store, and is not imported: a stored message is not adopted from its file, and an imported message is never taken for a container.");
+            return false;
+         }
+
+         if (!MessageStore::PlaceWorkingFile(newFullPath))
+            return false;
+      }
+
       std::shared_ptr<Message> pMessage = std::shared_ptr<Message> (new Message);
       pMessage->SetPartialFileName(partialFileName);
 
-      // Set message size
+      // Set message size: after placing, what the store holds, which answers the
+      // message's own size.
       pMessage->SetSize(MessageStore::FileSize(newFullPath));
 
       std::shared_ptr<MessageData> pMsgData = std::shared_ptr<MessageData>(new MessageData());
@@ -474,6 +500,18 @@ namespace HM
       if (destination.CompareNoCase(messageFile) != 0 && !MessageStore::Rename(messageFile, destination))
       {
          problem = _T("the message file could not be moved into the account's directory");
+         return ImportFailed;
+      }
+
+      // Stored as a delivery stores a message (Persistence/MessageStore.h): the
+      // source server's bytes are the message whatever they begin with - wrapped
+      // when they begin with the mark of a container, never taken for one - and
+      // compressed when MessageStoreCompression is on. One the store refuses
+      // (HM7353) was never placed, counted nothing, and goes.
+      if (!MessageStore::PlaceWorkingFile(destination))
+      {
+         MessageStore::DiscardWorkingFile(destination);
+         problem = _T("the message begins with the bytes that mark a container of the message store and could not be stored as the message it is");
          return ImportFailed;
       }
 

@@ -31,6 +31,15 @@ namespace hMailServer.ControlPanel.Services
    ///   # Columns: messageid&lt;TAB&gt;account&lt;TAB&gt;expected-path
    ///   &lt;id&gt;\t&lt;account&gt;\t&lt;path&gt;
    ///   ...
+   ///   # Blobs nothing references: &lt;count&gt;
+   ///   # Columns: blob&lt;TAB&gt;sha256
+   ///   blob\t&lt;sha256&gt;
+   ///   ...
+   ///
+   /// The second section is the message store's (docs/MessageStore.md): the
+   /// parts held once that no stored message references, which the scan lists
+   /// and leaves. They are not missing messages, and are read into
+   /// <see cref="UnreferencedBlobs"/>, never into <see cref="Entries"/>.
    ///
    /// The file is rewritten on every run, so it always describes the most
    /// recent scan, and it is written even when nothing is missing.
@@ -42,6 +51,8 @@ namespace hMailServer.ControlPanel.Services
 
       private const string GeneratedPrefix = "# Generated:"; // no-loc
       private const string MissingPrefix = "# Missing files:"; // no-loc
+      private const string BlobsPrefix = "# Blobs nothing references:"; // no-loc
+      private const string BlobRowPrefix = "blob\t"; // no-loc
 
       /// <summary>Timestamp string from the report header, or null when absent.</summary>
       public string Generated { get; private set; }
@@ -59,6 +70,18 @@ namespace hMailServer.ControlPanel.Services
 
       private readonly List<MessageStoreConsistencyEntry> entries_ = new();
 
+      /// <summary>
+      /// The SHA-256 names of the blobs the report lists as referenced by no
+      /// stored message: left on disk, for an administrator to judge. Not
+      /// missing messages.
+      /// </summary>
+      public IReadOnlyList<string> UnreferencedBlobs => blobs_;
+
+      private readonly List<string> blobs_ = new();
+
+      /// <summary>The count the server put in the blob section's header, or null when there is none.</summary>
+      public int? ReportedUnreferencedBlobCount { get; private set; }
+
       /// <summary>True when the header count and the listed rows disagree.</summary>
       public bool IsTruncated => ReportedMissingCount.HasValue && ReportedMissingCount.Value != entries_.Count;
 
@@ -70,6 +93,10 @@ namespace hMailServer.ControlPanel.Services
          var report = new MessageStoreConsistencyReport();
          if (string.IsNullOrEmpty(text))
             return report;
+
+         // Rows after the blob section's header are blobs, whatever they look
+         // like; rows before it are missing messages.
+         bool inBlobSection = false;
 
          foreach (string line in text.Split('\n').Select(raw => raw.TrimEnd('\r')).Where(l => l.Length != 0))
          {
@@ -87,6 +114,23 @@ namespace hMailServer.ControlPanel.Services
                {
                   report.ReportedMissingCount = count;
                }
+               else if (line.StartsWith(BlobsPrefix, StringComparison.OrdinalIgnoreCase))
+               {
+                  inBlobSection = true;
+                  if (int.TryParse(line.Substring(BlobsPrefix.Length).Trim(), out int blobs) && blobs >= 0)
+                     report.ReportedUnreferencedBlobCount = blobs;
+               }
+
+               continue;
+            }
+
+            // blob<TAB>sha256: a part held once that nothing references.
+            if (inBlobSection || line.StartsWith(BlobRowPrefix, StringComparison.Ordinal))
+            {
+               string name = line.StartsWith(BlobRowPrefix, StringComparison.Ordinal) ? line.Substring(BlobRowPrefix.Length) : line;
+               name = name.Trim();
+               if (name.Length > 0)
+                  report.blobs_.Add(name);
 
                continue;
             }

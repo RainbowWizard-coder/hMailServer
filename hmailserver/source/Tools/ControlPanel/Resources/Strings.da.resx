@@ -5086,6 +5086,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Maximum timeout (seconds)" xml:space="preserve">
     <value>Maksimal timeout (sekunder)</value>
   </data>
+  <data name="Measured by the server on its own time, and at most a quarter of an hour old. A file with several names is counted once." xml:space="preserve">
+    <value>Målt af serveren, når den har tid, og højst et kvarter gammelt. En fil med flere navne tælles én gang.</value>
+  </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Måles fra, da posten blev oprettet, så en sænkning gælder også de poster, der allerede findes. En manuelt tilføjet post beholder sin egen udløbstid.</value>
   </data>
@@ -5162,6 +5165,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Message source" xml:space="preserve">
     <value>Meddelelseskilde</value>
+  </data>
+  <data name="Message store" xml:space="preserve">
+    <value>Meddelelseslager</value>
   </data>
   <data name="Message store durability" xml:space="preserve">
     <value>Holdbarhed af meddelelseslageret</value>
@@ -8428,6 +8434,9 @@ Genstart den nu?</value>
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once; stored in hMailServer.ini as SmtpTarpitCount and SmtpTarpitDelaySeconds." xml:space="preserve">
     <value>Bremser en session, der nævner flere modtagere, end en legitim meddelelse har brug for. Over antallet venter hver yderligere RCPT TO i en ugodkendt session på forsinkelsen, før den besvares - et ordbogsangreb eller en spamkørsel nævner hundredvis af adresser og betaler for hver enkelt, mens en afsendende MTA nævner en håndfuld og aldrig når antallet. Godkendte sessioner og IP-intervaller med spambeskyttelse slået fra er undtaget. Ventetiden er en timer på forbindelsen, ikke en sovende tråd. Får virkning med det samme; gemmes i hMailServer.ini som SmtpTarpitCount og SmtpTarpitDelaySeconds.</value>
   </data>
+  <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
+    <value>Mindste del, der gemmes én gang (KB; 0 gemmer intet én gang)</value>
+  </data>
   <data name="Soft" xml:space="preserve">
     <value>Blød</value>
   </data>
@@ -8577,6 +8586,9 @@ Genstart den nu?</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Stopper postservermotoren, mens Windows-tjenesten bliver ved med at køre: ingen nye forbindelser accepteres, og intet leveres, før den genoptages.</value>
+  </data>
+  <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
+    <value>Gem ny post komprimeret, med store dele gemt én gang</value>
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Lager:</value>
@@ -9623,6 +9635,9 @@ Det er serverens egen resolver, der svarer - den samme, som SMTP-levering bruger
   <data name="The server is draining. A reinitialize ends maintenance mode: the listeners open again and delivery resumes. Reinitialize the server now?" xml:space="preserve">
     <value>Serveren dræner. En reinitialisering afslutter vedligeholdelsestilstanden: lytterne åbner igen, og leveringen genoptages. Reinitialiser serveren nu?</value>
   </data>
+  <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
+    <value>Serveren måler meddelelseslageret; åbn siden igen om et minut for at se tallene.</value>
+  </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Serveren gemmer ingen historik: MetricsHistoryDays er 0 i hMailServer.ini. Sæt den til antallet af dage, der skal beholdes.</value>
   </data>
@@ -10452,6 +10467,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Hvad serveren skriver til sine logfiler (kan ses på siden Levende logs).</value>
   </data>
+  <data name="What the store holds, and what it saves" xml:space="preserve">
+    <value>Hvad lageret rummer, og hvad det sparer</value>
+  </data>
   <data name="What this key is for, e.g. &quot;Grafana probe&quot;" xml:space="preserve">
     <value>Hvad denne nøgle er til, f.eks. "Grafana probe"</value>
   </data>
@@ -10532,6 +10550,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Om opslag må besvares fra Windows' DNS-resolvercache. Slået fra går hvert opslag til netværket. Ignoreres, når en tilsidesættende DNS-server er sat ovenfor — de opslag går altid uden om systemcachen, fordi dens svar ville komme fra den forkerte resolver.</value>
+  </data>
+  <data name="Whether new mail is stored compressed, with the large attachments it shares with other messages kept once. Clients see every message exactly as it arrived. Turning it off stores new mail as it comes and leaves the stored messages readable; hmailserver --compress-store rewrites the messages already there, and --decompress puts them back." xml:space="preserve">
+    <value>Om ny post gemmes komprimeret, med de store vedhæftede filer, den deler med andre meddelelser, gemt én gang. Klienterne ser hver meddelelse præcis, som den kom. Slås det fra, gemmes ny post, som den kommer, og de gemte meddelelser kan stadig læses; hmailserver --compress-store omskriver de meddelelser, der allerede ligger der, og --decompress sætter dem tilbage.</value>
   </data>
   <data name="Whether the key file needs one cannot be checked from here. If it is encrypted, it will not load without a passphrase (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Om nøglefilen har brug for en, kan ikke kontrolleres herfra. Er den krypteret, indlæses den ikke uden en adgangssætning (serverfejl 6170), og de TLS-porte, der bruger dette certifikat, starter ikke.</value>
@@ -12281,6 +12302,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} meddelelser henviser til en fil, der mangler på disken.</value>
+  </data>
+  <data name="{0} messages, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. {5} of the files are compressed. Measured {6}." xml:space="preserve">
+    <value>{0} meddelelser, {1} MB som klienterne ser dem. Deres filer fylder {2} MB og de dele, der gemmes én gang, {3} MB, hvilket sparer {4} %. {5} af filerne er komprimeret. Målt {6}.</value>
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>for {0} minutter siden</value>

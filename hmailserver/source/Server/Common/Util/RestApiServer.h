@@ -220,6 +220,10 @@ namespace HM
          RouteApiKeyCreate,
          RouteApiKeyRevoke,
          RouteStatus,
+         // The message store's totals (RestApiStore.cpp, docs/MessageStore.md),
+         // and a measurement of them started now.
+         RouteStoreStatus,
+         RouteStoreMeasure,
          RouteDomainList,
          // One domain by name, whole: the same document an entry of the listing
          // is, and the one hmctl domain get and Get-HmDomain -Name have always
@@ -2020,6 +2024,10 @@ namespace HM
       static HttpResponse HandleWebAdminLanguage_(const AnsiString &code);
       static bool ReadWebAdminFile_(const String &relativePath, AnsiString &body);
       static HttpResponse HandleStatus_();
+
+      // GET /api/v1/store and POST /api/v1/store/measure (RestApiStore.cpp).
+      static HttpResponse HandleStoreStatus_();
+      static HttpResponse HandleStoreMeasure_();
 
       // allowedDomains empty means every domain; otherwise the listing is
       // filtered to those, so a key issued for one customer is not handed the

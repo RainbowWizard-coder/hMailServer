@@ -67,6 +67,8 @@ if exists (select * from sysobjects where id = object_id('hm_domain_aliases') an
 
 if exists (select * from sysobjects where id = object_id('hm_messages') and objectproperty(id, 'isusertable') = 1) drop table hm_messages 
 
+if exists (select * from sysobjects where id = object_id('hm_storeblobs') and objectproperty(id, 'isusertable') = 1) drop table hm_storeblobs
+
 if exists (select * from sysobjects where id = object_id('hm_message_metadata') and objectproperty(id, 'isusertable') = 1) drop table hm_message_metadata 
 
 if exists (select * from sysobjects where id = object_id('hm_settings') and objectproperty(id, 'isusertable') = 1) drop table hm_settings
@@ -429,6 +431,19 @@ ALTER TABLE hm_messages ADD CONSTRAINT hm_messages_pk PRIMARY KEY NONCLUSTERED (
 CREATE CLUSTERED INDEX idx_hm_messages ON hm_messages (messageaccountid, messagefolderid)  
 
 CREATE INDEX idx_hm_messages_type ON hm_messages (messagetype) 
+
+create table hm_storeblobs
+(
+	sbid bigint identity(1,1) not null,
+	sbsha256 nvarchar(64) not null,
+	sbsize bigint not null,
+	sbrefs int not null,
+	sbcreated bigint not null
+)
+
+ALTER TABLE hm_storeblobs ADD CONSTRAINT hm_storeblobs_pk PRIMARY KEY NONCLUSTERED (sbid)
+
+CREATE UNIQUE INDEX idx_hm_storeblobs_sha256 ON hm_storeblobs (sbsha256)
 
 create table hm_message_metadata 
 (
@@ -1694,6 +1709,10 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('IM
 insert into hm_settings (settingname, settingstring, settinginteger) values ('MaxNumberOfAsynchronousTasks', '', 15)
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('MessageIndexing', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('MessageStoreCompression', '', 0)
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('MessageStoreDedupMinKB', '', 256)
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('BypassGreylistingOnSPFSuccess', '', 1)
 
@@ -3105,4 +3124,4 @@ CREATE CLUSTERED INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (expo
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6097)
+insert into hm_dbversion values (6098)

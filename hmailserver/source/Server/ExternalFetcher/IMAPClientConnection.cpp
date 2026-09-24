@@ -1133,6 +1133,18 @@ namespace HM
          return false;
       }
 
+      // Stored as a delivery or an APPEND stores a message (Persistence/
+      // MessageStore.h): the remote server's literal, spooled as it came, is the
+      // message whatever it begins with - wrapped when it begins with the mark
+      // of a container, never taken for one - and compressed when
+      // MessageStoreCompression is on. One the store refuses (HM7353) was never
+      // placed, counted nothing, and goes; it is still on the remote server.
+      if (!MessageStore::PlaceWorkingFile(fileName))
+      {
+         MessageStore::DiscardWorkingFile(fileName);
+         return false;
+      }
+
       __int64 resultAccount = 0;
       __int64 resultFolder = 0;
       if (!MessageUtilities::MoveToIMAPFolder(current_message_, owner->GetID(), current_local_folder_, true, false, resultAccount, resultFolder) || resultFolder == 0)

@@ -44,6 +44,7 @@
 #include "../Common/Application/IniSettingStore.h"
 #include "../Common/Application/EnvironmentSettings.h"
 #include "../Common/Application/Profiles.h"
+#include "../Common/Persistence/MessageStoreMaintenance.h"
 #include "../Common/Application/SampleDomain.h"
 #include "../Common/Application/Logger.h"
 #include "../Common/Util/Utilities.h"
@@ -208,6 +209,22 @@ namespace
          "                    writes to the log directory as the server does.\n"
          "                    Remove the sample before this server takes real\n"
          "                    mail - the password is in the documentation.\n"
+         "  --measure-store [--account <address> | --domain <name>]\n"
+         "                    what compressing the message store and holding its\n"
+         "                    large parts once would save, changing nothing\n"
+         "                    (docs/MessageStore.md).\n"
+         "  --compress-store [--account <address> | --domain <name>] [--decompress]\n"
+         "                    rewrite every stored message file in place -\n"
+         "                    compressed with its large parts held once, or back\n"
+         "                    to plain RFC 822 with --decompress - each one read\n"
+         "                    back and compared before it is renamed over its\n"
+         "                    name, and report the bytes before and after. Run it\n"
+         "                    as the user the server runs as, with the server\n"
+         "                    stopped: it is refused (exit 4) while the server\n"
+         "                    holds the lock it takes in the log directory.\n"
+         "  --recount-store\n"
+         "                    rebuild the counts of the parts the store holds once\n"
+         "                    from the stored files; the same conditions.\n"
          "  --verify-update <file>\n"
          "                    check a downloaded release file - a package or an\n"
          "                    AppImage - against the Sigstore bundle beside it\n"
@@ -907,6 +924,10 @@ int main(int argc, char *argv[])
    bool profile_confirm = false;
    bool profile_once = false;
    bool profile_if_new = false;
+   int store_verb = 0;
+   bool store_decompress = false;
+   std::string store_account;
+   std::string store_domain;
 
    for (int index = 1; index < argc; index++)
    {
@@ -976,6 +997,46 @@ int main(int argc, char *argv[])
       if (argument == "--revert-profile")
       {
          revert_profile = true;
+         continue;
+      }
+      if (argument == "--measure-store")
+      {
+         store_verb = HM::MessageStoreMaintenance::VerbMeasure;
+         continue;
+      }
+      if (argument == "--compress-store")
+      {
+         store_verb = HM::MessageStoreMaintenance::VerbCompress;
+         continue;
+      }
+      if (argument == "--recount-store")
+      {
+         store_verb = HM::MessageStoreMaintenance::VerbRecount;
+         continue;
+      }
+      if (argument == "--decompress")
+      {
+         store_decompress = true;
+         continue;
+      }
+      if (argument == "--account")
+      {
+         if (index + 1 >= argc)
+         {
+            std::fprintf(stderr, "--account needs the account's address; for example --account alice@example.com.\n");
+            return 2;
+         }
+         store_account = argv[++index];
+         continue;
+      }
+      if (argument == "--domain")
+      {
+         if (index + 1 >= argc)
+         {
+            std::fprintf(stderr, "--domain needs the domain's name; for example --domain example.com.\n");
+            return 2;
+         }
+         store_domain = argv[++index];
          continue;
       }
       if (argument == "--set-setting")
@@ -1121,6 +1182,28 @@ int main(int argc, char *argv[])
    if (revert_profile)
       return HM::Profiles::RunRevertCommand();
 
+   // The message store walked (Common/Persistence/MessageStoreMaintenance.h).
+   // There is no service controller to ask here, so the rewrite and the recount
+   // take a lock the server holds for as long as it runs (TakeStoreLock, below
+   // where the server starts) and are refused with exit 4 while it does.
+   if (store_verb != 0)
+   {
+      if (store_decompress && store_verb != HM::MessageStoreMaintenance::VerbCompress)
+      {
+         std::fprintf(stderr, "--decompress goes with --compress-store.\n");
+         return 2;
+      }
+
+      if (!store_account.empty() && !store_domain.empty())
+      {
+         std::fprintf(stderr, "--account and --domain each say what the walk covers; give one of them, or neither for the whole store.\n");
+         return 2;
+      }
+
+      const int verb = store_decompress ? (int) HM::MessageStoreMaintenance::VerbDecompress : store_verb;
+      return HM::MessageStoreMaintenance::RunCommand((HM::MessageStoreMaintenance::Verb) verb, HM::String(store_account.c_str()), HM::String(store_domain.c_str()));
+   }
+
    if (!sample_domain.empty())
       return SampleDomainCommand(sample_domain);
 
@@ -1158,6 +1241,25 @@ int main(int argc, char *argv[])
       // directory may be exactly what is wrong.
       std::fprintf(stderr, "hMailServer could not start: %s\n", HM::AnsiString(error).c_str());
       return 1;
+   }
+
+   // The message store's lock (MessageStoreMaintenance::TakeStoreLock), shared,
+   // for as long as this process runs: a --compress-store or --recount-store
+   // started beside it is refused, and one that is running keeps the server
+   // from starting under it. A lock file that cannot be opened is said in the
+   // log and does not stop the server; it only means the walk cannot ask.
+   {
+      HM::String lockProblem;
+      const int lock = HM::MessageStoreMaintenance::TakeStoreLock(false, lockProblem);
+      if (lock == 1)
+      {
+         std::fprintf(stderr, "hMailServer could not start: %s. Start it when the walk has finished.\n", HM::AnsiString(lockProblem).c_str());
+         HM::Application::Instance()->ExitInstance();
+         return 1;
+      }
+
+      if (lock == 2)
+         HM::Logger::Instance()->LogApplication(HM::String(_T("The message store's lock was not taken: ")) + lockProblem + _T(". A --compress-store or --recount-store run beside this server would not be refused."));
    }
 
    if (!HM::Application::Instance()->StartServers())

@@ -23,13 +23,16 @@
 //
 //   working     A queue file, a copy of a message while it is being delivered,
 //               and a file being written for a row that does not exist yet (an
-//               APPEND, an import, a restore). WorkingFile() names it. It is
-//               RFC 822 as written, by construction: the store only turns a
-//               working file into a stored one at Place(), and a queue file
-//               never is one. So these callers read and write it by path as
-//               they always have - the scanners, SpamAssassin, the filter hook,
-//               the sandbox, gateway encryption and the event scripts all work
-//               on the queue file, and a path is what they need.
+//               APPEND, an import, a restore). WorkingFile() names it. Its bytes
+//               are the message as written, whatever they begin with: the store
+//               only turns a working file into a stored one at Place(), and a
+//               queue file never is one - a file directly in the data directory
+//               is read as the bytes it holds, sized by its file, and lets go of
+//               nothing when it goes (MayHoldContainer). So these callers read
+//               and write it by path as they always have - the scanners,
+//               SpamAssassin, the filter hook, the sandbox, gateway encryption
+//               and the event scripts all work on the queue file, and a path is
+//               what they need.
 //
 //   stored      A message at rest in an account's folder or a public folder.
 //               Read through the doors here - LoadHeader, the reader, ReadAll,
@@ -44,7 +47,21 @@
 //               copies the recover-deleted store keeps. They call
 //               PersistentMessage::GetFileName and are listed, each with its
 //               reason, in build/check-message-store-seam.py, which refuses a
-//               call anywhere else.
+//               call anywhere else - and the account-folder path WorkingFile
+//               answers is listed there the same way, by file, since it names
+//               the file a stored message will have.
+//
+// ONLY THE STORE WRITES A CONTAINER
+//
+// A stored file that begins with the container's magic is read as a container,
+// and a container names blobs every message carrying the same part shares. So
+// bytes from outside the store - a client's APPEND, a remote server's message,
+// a migration's, an importer's, the queue's - are never taken for one: placing
+// a working file wraps one that begins with the magic (or refuses it when that
+// cannot be done), MessageData refuses to write such a message at all, a queue
+// file is never a container, and a working file that was never placed is
+// discarded without letting go of anything. The only containers the store
+// meets are the ones its own writer made, copied or linked, each counted.
 //
 // WHAT THE ROWS AFTER THIS ONE BUILD ON
 //
@@ -52,11 +69,16 @@
 // bytes live - the local file system, MessageStoreBackend below, is the one
 // there is - and an object store is another. The stages are what is done to a
 // message's bytes on the way to the backend and undone on the way back; see
-// docs/MessageStore.md for the chain and the container that names it.
-// Nothing outside this unit and the listed sites holds a stored message's
-// path; a name here is a local path today and a key under another backend.
+// docs/MessageStore.md for the chain and the container that names it. The
+// listed sites and the working-file paths are what those rows audit: a working
+// file is a local path by construction today, and each of its listed callers
+// is a place a key-based backend has to hand a temporary file to instead.
 
 #pragma once
+
+#include <string>
+
+#include "MessageStoreFormat.h"
 
 namespace HM
 {
@@ -113,6 +135,11 @@ namespace HM
 
       // True when the name is gone, including when it was never there.
       virtual bool Remove(const String &name) = 0;
+
+      // Which object a name is, as text two names of the same object share, and
+      // how many names it has (a file's hard links). False when it cannot be
+      // asked.
+      virtual bool Identity(const String &name, AnsiString &identity, unsigned int &names) = 0;
    };
 
    // A message's ORIGINAL bytes, whatever the stored file holds: the reader
@@ -154,16 +181,59 @@ namespace HM
 
       bool Fill_();
 
+      // The next bytes, from the stream or from the decoded message.
+      std::shared_ptr<ByteBuffer> Next_(int maxBytes);
+
       String name_;
       std::shared_ptr<MessageStoreBackendStream> stream_;
+
+      // A container's original bytes, decoded whole and checked when it was
+      // opened - or taken from the store's last decodes, when the same file
+      // was decoded a moment ago (a client reading it in pieces).
+      std::shared_ptr<const std::string> decoded_;
+      bool in_memory_;
       unsigned __int64 size_;
+
+      // Where the caller is, and where the next byte from the source comes
+      // from: ahead of it by what ReadLine holds read ahead.
       unsigned __int64 position_;
+      unsigned __int64 source_position_;
 
       // Read ahead for ReadLine: the bytes from pending_offset_ on are the
       // next ones at position_.
       AnsiString pending_;
       size_t pending_offset_;
       bool open_;
+   };
+
+   // A stored message as a plain file, for as long as this lives: the stored
+   // file itself when it is plain, else a temporary copy of the original bytes,
+   // removed when this is. What MessageData parses, so that its fast rewrite,
+   // which copies the body from the file it parsed, copies the message's bytes.
+   class MessageStorePlainCopy
+   {
+   public:
+      explicit MessageStorePlainCopy(const String &messageFile);
+      ~MessageStorePlainCopy();
+
+      MessageStorePlainCopy(const MessageStorePlainCopy &) = delete;
+      MessageStorePlainCopy &operator=(const MessageStorePlainCopy &) = delete;
+
+      // False when the stored file is a container that could not be read; the
+      // reason is in the error log (HM7350).
+      bool IsReady() const { return ready_; }
+      bool IsTemporary() const { return temporary_; }
+      const String &GetPath() const { return path_; }
+
+      // The stored file has been written over by a plain one: what the
+      // container referenced is let go of. Once.
+      void StoredFileReplaced();
+
+   private:
+      String path_;
+      bool ready_;
+      bool temporary_;
+      std::vector<MessageStoreReference> references_;
    };
 
    class MessageStore
@@ -178,9 +248,23 @@ namespace HM
       // The file of a message the store has not placed: a queue file, a copy
       // being delivered, a file written for a new row. The same path
       // PersistentMessage::GetFileName answers; see the header of this file
-      // for why its callers may read and write it by path.
+      // for why its callers may read and write it by path. The two-argument
+      // form names an account's folder, where a stored message will be, and
+      // is called only from the files build/check-message-store-seam.py lists.
       static String WorkingFile(std::shared_ptr<const Message> message);
       static String WorkingFile(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message);
+
+      // Whether a name can be a container at all. A file directly in the data
+      // directory is a queue file, and a queue file is the message's bytes by
+      // construction whatever they begin with: every door below reads it as
+      // those bytes, sizes it by its file, and lets go of nothing when it goes.
+      static bool MayHoldContainer(const String &messageFile);
+
+      // A working file that was never placed, and so counted nothing: the name
+      // removed and nothing let go of, whatever its first bytes claim. What a
+      // delivery, an APPEND, the IMAP mirror or an import that gives up before
+      // placing uses, rather than Remove.
+      static bool DiscardWorkingFile(const String &messageFile);
 
       // ---- By name -----------------------------------------------------------
       //
@@ -234,6 +318,29 @@ namespace HM
       // The name gone, and whatever it alone kept with it.
       static bool Remove(const String &messageFile);
 
+      // Whether two names are one file (two names DeliveryHardLinks gave it).
+      static bool SameFile(const String &first, const String &second);
+
+      // Whether the stored file is a container, and what it references. False
+      // for a file that cannot be read, or a container whose header is not one
+      // this server reads.
+      static bool IsContainer(const String &messageFile);
+      static bool GetReferences(const String &messageFile, std::vector<MessageStoreReference> &references);
+
+      // The compressed container of a message's original bytes written under a
+      // new name, its large parts kept as blobs and counted for that name.
+      // written is false, and nothing is kept, when it would not make the
+      // message smaller and holds no part once. The walk's door.
+      static bool WriteContainer(const std::string &original, const String &storedFile, unsigned __int64 dedupMinimumBytes,
+                                 bool &written, String &problem);
+
+      // A name made a name of another stored file: the first recipient's placed
+      // copy of a DeliveryHardLinks delivery linked to the next recipient's
+      // name, which it replaces, and a file the walk rewrote linked to each of
+      // its names. False, with the name left as it was, when the volume cannot
+      // link them.
+      static bool Relink(const String &storedFile, const String &name);
+
       // ---- By message ----------------------------------------------------------
 
       static AnsiString LoadHeader(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message, bool reportError = true);
@@ -241,10 +348,61 @@ namespace HM
       static __int64 StoredSize(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message);
       static bool Delete(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message);
 
-      // The working file of a message placed in an account's folder or a public
-      // folder becomes its stored file. False only when the file could not be
-      // written in the stored form, and then the working file is left as it was
-      // - which the store reads as well as any other.
+      // ---- Placing: a working file becomes a stored file ------------------------
+      //
+      // The working file of a message put in an account's folder or a public
+      // folder - delivered, appended, collected by the IMAP mirror, brought in
+      // by a migration or an import - becomes its stored file: compressed with
+      // its large parts held once when MessageStoreCompression is on, left as
+      // it is when that is off or would not make it smaller. Its bytes came from
+      // outside the store and are the message whatever they begin with, so one
+      // that begins with the container's magic is wrapped - a container with no
+      // stage, which the reader gives back as exactly those bytes - whatever
+      // the setting says.
+      //
+      // True when the file may be kept: in the stored form, or as it came when
+      // it is plain and could not be compressed (the error log says why,
+      // HM7351). False when it must NOT be kept - it begins with the magic and
+      // could not be wrapped (over 64 MB, or the write failed; HM7353) - and
+      // then the caller refuses the message and removes the file with
+      // DiscardWorkingFile, never Remove. changed says whether the file was
+      // rewritten, which DeliveryHardLinks asks.
       static bool Place(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message);
+      static bool PlaceWorkingFile(const String &messageFile);
+      static bool PlaceWorkingFile(const String &messageFile, bool &changed);
+
+      // A stored file's original bytes, and the reason when they cannot be had.
+      // The whole container is checked, blobs and SHA-256 included, and read
+      // from the file every time - never from the last decodes.
+      static bool ReadOriginal(const String &messageFile, std::string &original, String &problem);
+
+      // HM7350: a stored message that could not be read, refused.
+      static void ReportUnreadable(const String &messageFile, const String &problem);
+
+      // For PersistentMessage::LoadHeader and LoadBody, which read a file that
+      // may hold a container and find it begins with the magic: the header of
+      // the message the container holds (what LoadHeader answers for a plain
+      // file, the blank line's first CRLF included), read without its blobs but
+      // with the rest of the container checked (MessageStoreFormat::DecodeStart),
+      // and the body after the blank line, read whole and checked. Empty when
+      // it cannot be read.
+      static AnsiString ReadHeaderOfContainer(const String &messageFile, bool reportError);
+      static AnsiString ReadBodyOfContainer(const String &messageFile);
+
+   private:
+
+      enum PlaceOutcome
+      {
+         PlaceLeft,       // left as it is: plain, and nothing to do or nothing worth doing
+         PlaceWritten,    // rewritten in the stored form, compressed or wrapped
+         PlaceFailed,     // plain, and could not be compressed: left as it came
+         PlaceRefused     // begins with the magic and could not be wrapped: not to be kept
+      };
+
+      static PlaceOutcome PlaceFile_(const String &messageFile, bool compress, unsigned __int64 dedupMinimumBytes, String &problem);
+      static bool PlaceWorkingFile_(const String &messageFile, bool compress, bool &changed);
+
+      static bool Encode_(const std::string &original, bool compress, unsigned __int64 dedupMinimumBytes,
+                          std::string &container, std::vector<MessageStoreReference> &references, String &problem);
    };
 }

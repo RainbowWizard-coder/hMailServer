@@ -5086,6 +5086,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Maximum timeout (seconds)" xml:space="preserve">
     <value>En büyük zaman aşımı (saniye)</value>
   </data>
+  <data name="Measured by the server on its own time, and at most a quarter of an hour old. A file with several names is counted once." xml:space="preserve">
+    <value>Sunucu tarafından kendi zamanında ölçülür ve en fazla çeyrek saat eskidir. Birden çok adı olan bir dosya bir kez sayılır.</value>
+  </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Kaydın oluşturulduğu andan itibaren ölçülür, bu yüzden değeri düşürmek zaten var olan kayıtlara da uygulanır. Elle eklenen bir kayıt kendi süresini korur.</value>
   </data>
@@ -5162,6 +5165,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Message source" xml:space="preserve">
     <value>İleti kaynağı</value>
+  </data>
+  <data name="Message store" xml:space="preserve">
+    <value>İleti deposu</value>
   </data>
   <data name="Message store durability" xml:space="preserve">
     <value>İleti deposu dayanıklılığı</value>
@@ -8428,6 +8434,9 @@ Devam edilsin mi?</value>
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once; stored in hMailServer.ini as SmtpTarpitCount and SmtpTarpitDelaySeconds." xml:space="preserve">
     <value>Meşru bir iletinin ihtiyaç duyduğundan daha fazla alıcı belirten oturumu yavaşlatır. Sayının ötesinde, kimliği doğrulanmamış bir oturumdaki her ek RCPT TO yanıtlanmadan önce gecikmeyi bekler - bir sözlük saldırısı veya spam kampanyası yüzlerce adres belirtir ve her biri için bedel öder, oysa gönderen bir MTA birkaç tane belirtir ve sayıya hiç ulaşmaz. Kimliği doğrulanmış oturumlar ve spam koruması kapalı IP aralıkları muaftır. Bekleme, bağlantıdaki bir zamanlayıcıdır, uyuyan bir iş parçacığı değil. Hemen etkili olur; hMailServer.ini'de SmtpTarpitCount ve SmtpTarpitDelaySeconds olarak saklanır.</value>
   </data>
+  <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
+    <value>Bir kez saklanan en küçük parça (KB; 0 hiçbir şeyi bir kez saklamaz)</value>
+  </data>
   <data name="Soft" xml:space="preserve">
     <value>Geçici</value>
   </data>
@@ -8577,6 +8586,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Stops the mail server engine while the Windows service keeps running: no new connections are accepted and nothing is delivered until it is resumed." xml:space="preserve">
     <value>Windows hizmeti çalışmaya devam ederken posta sunucusu motorunu durdurur: sürdürülene kadar yeni bağlantı kabul edilmez ve hiçbir şey teslim edilmez.</value>
+  </data>
+  <data name="Store new mail compressed, with large parts held once" xml:space="preserve">
+    <value>Yeni postayı sıkıştırarak sakla, büyük parçaları bir kez sakla</value>
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Depo:</value>
@@ -9623,6 +9635,9 @@ Yanıt veren sunucunun kendi çözümleyicisi - SMTP teslimatının kullandığ�
   <data name="The server is draining. A reinitialize ends maintenance mode: the listeners open again and delivery resumes. Reinitialize the server now?" xml:space="preserve">
     <value>Sunucu boşaltılıyor. Yeniden başlatma (Reinitialize) bakım modunu sona erdirir: dinleyiciler yeniden açılır ve teslim sürer. Sunucu şimdi yeniden başlatılsın mı?</value>
   </data>
+  <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
+    <value>Sunucu ileti deposunu ölçüyor; rakamları görmek için bu sayfayı bir dakika sonra yeniden açın.</value>
+  </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Sunucu geçmiş tutmuyor: hMailServer.ini içinde MetricsHistoryDays 0. Onu tutulacak gün sayısına ayarlayın.</value>
   </data>
@@ -10452,6 +10467,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Sunucunun günlük dosyalarına ne yazdığı (Canlı günlükler sayfasında görüntülenebilir).</value>
   </data>
+  <data name="What the store holds, and what it saves" xml:space="preserve">
+    <value>Deponun içerdikleri ve sağladığı tasarruf</value>
+  </data>
   <data name="What this key is for, e.g. &quot;Grafana probe&quot;" xml:space="preserve">
     <value>Bu anahtarın ne için olduğu, ör. "Grafana probe"</value>
   </data>
@@ -10532,6 +10550,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Aramaların Windows DNS çözümleyici önbelleğinden yanıtlanıp yanıtlanamayacağı. Kapalıyken her arama ağa gider. Yukarıda geçersiz kılan bir DNS sunucusu ayarlandığında yok sayılır — o aramalar sistem önbelleğini her zaman atlar, çünkü önbelleğin yanıtları yanlış çözümleyiciden gelirdi.</value>
+  </data>
+  <data name="Whether new mail is stored compressed, with the large attachments it shares with other messages kept once. Clients see every message exactly as it arrived. Turning it off stores new mail as it comes and leaves the stored messages readable; hmailserver --compress-store rewrites the messages already there, and --decompress puts them back." xml:space="preserve">
+    <value>Yeni postanın sıkıştırılarak saklanıp saklanmayacağı; diğer iletilerle paylaştığı büyük ekler yalnızca bir kez tutulur. İstemciler her iletiyi tam geldiği gibi görür. Kapatıldığında yeni posta geldiği gibi saklanır ve saklanan iletiler okunabilir kalır; hmailserver --compress-store zaten orada olan iletileri yeniden yazar, --decompress ise onları eski haline getirir.</value>
   </data>
   <data name="Whether the key file needs one cannot be checked from here. If it is encrypted, it will not load without a passphrase (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Anahtar dosyasının parola ifadesine ihtiyacı olup olmadığı buradan denetlenemez. Şifreliyse parola ifadesi olmadan yüklenmez (sunucu hatası 6170) ve bu sertifikayı kullanan TLS portları başlamaz.</value>
@@ -12281,6 +12302,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} ileti diskte eksik olan bir dosyaya başvuruyor.</value>
+  </data>
+  <data name="{0} messages, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. {5} of the files are compressed. Measured {6}." xml:space="preserve">
+    <value>{0} ileti, istemcilerin gördüğü haliyle {1} MB. Dosyaları {2} MB, bir kez saklanan parçalar {3} MB yer kaplıyor; bu %{4} tasarruf demek. Dosyaların {5} tanesi sıkıştırılmış. Ölçüldü: {6}.</value>
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>{0} dakika önce</value>

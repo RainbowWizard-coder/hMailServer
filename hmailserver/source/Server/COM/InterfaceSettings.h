@@ -381,6 +381,13 @@ END_COM_MAP()
    STDMETHOD(get_SandboxMaxFiles)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_SandboxMaxFiles)(/*[in]*/ long newVal);
 
+   // The message store's form (Persistence/MessageStore.h, docs/MessageStore.md).
+   STDMETHOD(get_MessageStoreCompression)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_MessageStoreCompression)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_MessageStoreDedupMinKB)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_MessageStoreDedupMinKB)(/*[in]*/ long newVal);
+   STDMETHOD(get_MessageStoreStatus)(/*[out, retval]*/ BSTR *pVal);
+
    // The [Settings] section of hMailServer.INI. See the IDL for why these exist and
    // for the two things they deliberately do not do.
    STDMETHOD(GetIniSetting)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);

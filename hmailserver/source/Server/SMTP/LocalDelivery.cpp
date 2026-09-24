@@ -159,9 +159,57 @@ namespace HM
          shared_template_ = _T("");
       }
 
+      // The placed copy the later recipients were linked to is the first
+      // recipient's own stored file, and stays; only the name of it is forgotten.
+      placed_template_ = _T("");
+      placed_template_failed_ = false;
+
       LOG_DEBUG("Local delivery completed");
 
       return messageReused;
+   }
+
+   bool
+   LocalDelivery::PlaceCopy_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message)
+   {
+      // A copy that is still a name of the delivery template: nothing between
+      // the link and here rewrote it (a rewrite is a new file under this name),
+      // so it is the template's bytes. The first such copy is placed where it
+      // is, and every later one is made a name of that stored file, so the
+      // recipients go on sharing one file whatever form it is stored in -
+      // and no container is ever written beside the queue, where a file is
+      // never read as one (MessageStore::MayHoldContainer). The zero-access
+      // mailbox never shares (SharingPossible_), and a copy a rule filed into
+      // a public folder has been moved and is a name of its own.
+      if (current_copy_traced_ && !shared_template_.IsEmpty() && message->GetAccountID() == account->GetID())
+      {
+         const String copy = MessageStore::WorkingFile(account, message);
+
+         if (MessageStore::SameFile(copy, shared_template_))
+         {
+            if (!placed_template_.IsEmpty() && MessageStore::Relink(placed_template_, copy))
+               return true;
+
+            if (placed_template_.IsEmpty() && !placed_template_failed_)
+            {
+               bool changed = false;
+               if (!MessageStore::PlaceWorkingFile(copy, changed))
+                  return false;
+
+               // Rewritten in the stored form, the copy is a file of its own now
+               // and the next recipients' names become names of it. Left as it
+               // was - the template's own bytes - the next ones are left too.
+               if (changed)
+                  placed_template_ = copy;
+               else
+                  placed_template_failed_ = true;
+
+               return true;
+            }
+         }
+      }
+
+      return MessageStore::Place(account, message);
    }
 
    bool
@@ -356,7 +404,8 @@ namespace HM
 
       if (!LocalDeliveryPreProcess_(account, accountLevelMessage, sOriginalAddress, saErrorMessages, suppressFailureDsn))
       {
-         MessageStore::Delete(account, accountLevelMessage);
+         // Not placed yet, so it counted nothing, and nothing is let go of.
+         MessageStore::DiscardWorkingFile(MessageStore::WorkingFile(account, accountLevelMessage));
 
          if (messageReused)
          {
@@ -387,9 +436,10 @@ namespace HM
          if (!ZeroAccess::SealFile(account, MessageStore::WorkingFile(account, accountLevelMessage), problem))
          {
             // SealFile leaves the original whole on failure, so what is deleted
-            // here is the plaintext: overwritten first, as a sealed one is.
+            // here is the plaintext: overwritten first, as a sealed one is. Not
+            // placed yet, so it counted nothing, and nothing is let go of.
             ZeroAccess::Scrub(MessageStore::WorkingFile(account, accountLevelMessage));
-            MessageStore::Delete(account, accountLevelMessage);
+            MessageStore::DiscardWorkingFile(MessageStore::WorkingFile(account, accountLevelMessage));
 
             if (messageReused)
             {
@@ -412,6 +462,40 @@ namespace HM
 
             return;
          }
+      }
+
+      // The copy becomes a stored message: here, after every step that reads or
+      // rewrites it by path - the spam overrides, the rules, the forward, Sieve,
+      // the zero-access seal - and before its size is taken, which is the
+      // message's whatever the file now holds. A copy that cannot be stored
+      // compressed is kept as it came (the store says why in the error log).
+      //
+      // One the store refuses is not kept at all: its bytes begin with the mark
+      // of a container and could not be stored as the message they are (HM7353
+      // says why), and kept they would be read as a container they are not. It
+      // was never placed, so it counted nothing; it goes as it came, and the
+      // sender is told, as for a copy that could not be saved.
+      if (!PlaceCopy_(account, accountLevelMessage))
+      {
+         MessageStore::DiscardWorkingFile(MessageStore::WorkingFile(account, accountLevelMessage));
+
+         if (messageReused)
+         {
+            accountLevelMessage->SetAccountID(0);
+            messageReused = false;
+         }
+
+         if (!suppressFailureDsn)
+         {
+            // RFC 3463 5.6.0, "other or undefined media error": what cannot be
+            // stored is the message's content, and sending it again will not
+            // change that.
+            saErrorMessages.push_back(DeliveryFailure(account->GetAddress(), _T("5.6.0"),
+               Formatter::Format("{0}\r\n   Error Type: SMTP\r\n   Error Description: Delivery failed\r\n   Additional information: The message could not be stored in the recipient's mailbox: its first bytes are the ones this server uses to mark a stored container, and it could not be stored as the message it is. The server administrator should check the hMailServer error log.\r\n\r\n",
+                  account->GetAddress())));
+         }
+
+         return;
       }
 
       // We don't want to set the message state to Delivered until just before we save it. If we set

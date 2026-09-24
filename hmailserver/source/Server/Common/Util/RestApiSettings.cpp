@@ -1038,6 +1038,15 @@ namespace
            return String();
         } },
 
+      // The message store's form (Persistence/MessageStore.h, docs/MessageStore.md).
+      { "message_store_compression", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether a message placed in a mailbox - delivered, appended over IMAP, collected by the IMAP mirror or brought in by a migration or an import - is stored compressed (deflate), each MIME part of at least message_store_dedup_min_kb once decoded held once as a blob that every message carrying the same bytes shares. A message stored before is read as it is, whichever form it has; hmailserver --compress-store rewrites the ones already there, and --decompress puts them back. IMAP, POP3, the sizes and DKIM see the original message. Off by default. GET /api/v1/store says what is saved.",
+        ROW_FLAG(Config()->GetMessageStoreCompression()), ROW_SET(Config()->SetMessageStoreCompression(v.flag)), ROW_NO_CHECK },
+      { "message_store_dedup_min_kb", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The smallest MIME part, in KB once decoded, held once as a blob while message_store_compression is on; 0 holds nothing once. 0 to 65536; 256 by default.",
+        ROW_NUMBER(Config()->GetMessageStoreDedupMinKB()), ROW_SET(Config()->SetMessageStoreDedupMinKB((int) v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 65536) ? String(_T("message_store_dedup_min_kb must be between 0 and 65536.")) : String(); } },
+
       // Message recall within the server (Util/MessageRecall.h).
       { "recall_days", KindInteger, ReadWrite, EffectNow, nullptr,
         "How many days after sending a message to other accounts on this server its sender may still recall it from the webmail - the unread copies deleted, the read ones left - and how long the rows that make that possible are kept. A recall of an older message answers 404 as if it had never been recorded. 1 to 365; 14 by default.",

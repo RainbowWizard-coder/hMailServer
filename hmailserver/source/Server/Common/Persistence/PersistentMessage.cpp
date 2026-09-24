@@ -1380,6 +1380,13 @@ namespace HM
       // would reach ReadFile as a huge DWORD, so it falls back to the buffer size as well.
       if (iHeaderReadSize <= 0 || iHeaderReadSize > iReadBufferSize) iHeaderReadSize = iReadBufferSize;
 
+      // And at least enough for the first read to hold a container's magic
+      // (Persistence/MessageStoreFormat.h), which is how a stored file that is
+      // not the message's bytes is told apart.
+      if (iHeaderReadSize < 64) iHeaderReadSize = 64;
+
+      bool firstRead = true;
+
       String sHeaderData; 
 
 #ifdef HM_PLATFORM_POSIX
@@ -1455,6 +1462,21 @@ namespace HM
          else
             bMoreData = FALSE;
 
+         // A container (Persistence/MessageStore.h): the header of the message
+         // it holds, from the store, rather than the container's own bytes. The
+         // bytes as read, not sHeaderData, which is wide text by now. A queue
+         // file is never a container, whatever it begins with.
+         if (firstRead)
+         {
+            firstRead = false;
+
+            if (MessageStoreFormat::HasMagic((const char *) buf, (size_t) nbytes) && MessageStore::MayHoldContainer(fileName))
+            {
+               CloseHandle(handleFile);
+               return MessageStore::ReadHeaderOfContainer(fileName, reportError);
+            }
+         }
+
          // Check if we have read the entire header.
          iHeaderEnd = sHeaderData.Find(_T("\r\n\r\n"));
 
@@ -1488,6 +1510,11 @@ namespace HM
       // We need to take care not to overflow buffer. A non-positive size in the ini file
       // would reach ReadFile as a huge DWORD, so it falls back to the buffer size as well.
       if (iBodyReadSize <= 0 || iBodyReadSize > iReadBufferSize) iBodyReadSize = iReadBufferSize;
+
+      // As in LoadHeader: enough for the first read to hold a container's magic.
+      if (iBodyReadSize < 64) iBodyReadSize = 64;
+
+      bool firstRead = true;
 
 #ifdef HM_PLATFORM_POSIX
       // As in LoadHeader above: open the file that is already there, for
@@ -1548,6 +1575,20 @@ namespace HM
 
          if (!nbytes)
             break;
+
+         // A container: the body of the message it holds, read whole through
+         // the store and checked, rather than the container's own bytes. A
+         // queue file is never a container, whatever it begins with.
+         if (firstRead)
+         {
+            firstRead = false;
+
+            if (MessageStoreFormat::HasMagic((const char *) buf, (size_t) nbytes) && MessageStore::MayHoldContainer(fileName))
+            {
+               CloseHandle(handleFile);
+               return MessageStore::ReadBodyOfContainer(fileName);
+            }
+         }
 
          AnsiString readData = AnsiString((char*)buf, nbytes);
 
