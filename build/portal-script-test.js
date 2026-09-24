@@ -1248,7 +1248,7 @@ function answerOffline(method, path, body) {
 // cryptography and this file does not: what is checked here is that the page
 // asks for a challenge, hands what the authenticator answered back in
 // base64url, and draws what it is told.
-let signInMethods = { passkeys: true, oidc: true, oidc_label: 'login.example.com' };
+let signInMethods = { passkeys: true, oidc: true, oidc_label: 'login.example.com', saml: true, saml_label: 'Sign in with SAML' };
 let passkeys = [
    { id: 7, name: 'Work laptop', created: 1789600000, last_used: 1789700000, transports: 'internal', algorithm: -7, aaguid: 'AAECAwQFBgcICQoLDA0ODw' },
    { id: 8, name: 'Phone', created: 1789500000, last_used: 0, transports: 'hybrid', algorithm: -7, aaguid: 'AAECAwQFBgcICQoLDA0ODw' }
@@ -2361,6 +2361,22 @@ async function main() {
       document.getElementById('signin-sso').hidden === false &&
       document.getElementById('signin-sso').textContent.indexOf('login.example.com') >= 0,
       document.getElementById('signin-sso').textContent);
+   // SAML beside OIDC: a button of its own, with words of its own - the
+   // default said through the page's own "Sign in with {0}", so in the reader's
+   // language - that starts the SAML sign-in and nothing else.
+   check('the sign-in card offers the SAML identity provider beside the OpenID Connect one when the server says so',
+      document.getElementById('signin-saml').hidden === false &&
+      document.getElementById('signin-saml').textContent === 'Sign in with SAML' &&
+      document.getElementById('signin-saml').textContent !== document.getElementById('signin-sso').textContent,
+      document.getElementById('signin-saml').textContent);
+   {
+      const navigatedBefore = navigatedTo.length;
+      document.getElementById('signin-saml').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('the SAML button sends the browser to /portal/saml/start',
+         navigatedTo.length === navigatedBefore + 1 && navigatedTo[navigatedTo.length - 1] === '/portal/saml/start',
+         navigatedTo.slice(navigatedBefore).join(' '));
+   }
 
    // ---- sign in
    const before = requests.length;
@@ -3054,15 +3070,25 @@ async function main() {
    check('and the button is off again', !followBtn.classList.contains('on') && document.getElementById('followup-clear').hidden === true, followBtn.className + ' clear hidden=' + document.getElementById('followup-clear').hidden);
    dismissAllToasts();
    // The reminder's Open: announced again on a fresh sign-in, since what was announced went with the account.
+   // And the sign-in card, drawn again, asks again what it may offer: with
+   // single sign-on switched off meanwhile, neither button stays - the negative
+   // control of the two checks at the first visit. (An administrator's own
+   // words on the SAML button, shown as written, are the Deck harness's check.)
+   const methodsBefore = signInMethods;
+   signInMethods = Object.assign({}, methodsBefore, { oidc: false, saml: false });
    document.getElementById('signout').dispatchEvent(makeEvent('click'));
    await flush();
    check('sign-out forgets which follow-ups were announced', !store.has('hmPortalDueShown') && gate.hidden === false, String(store.get('hmPortalDueShown')));
+   check('with single sign-on off, the card drawn again at sign-out offers neither the OpenID Connect nor the SAML button',
+      document.getElementById('signin-sso').hidden === true && document.getElementById('signin-saml').hidden === true,
+      'sso hidden=' + document.getElementById('signin-sso').hidden + ' saml hidden=' + document.getElementById('signin-saml').hidden);
    document.getElementById('address').value = 'user@example.com';
    document.getElementById('password').value = 'a-real-password';
    const beforeAgain = requests.length;
    document.getElementById('signin-form').dispatchEvent(makeEvent('submit'));
    await flush();
    check('and the next sign-in announces the one due today again', app.hidden === false && toastBox.textContent.indexOf('Due for follow-up: First') >= 0, toastBox.textContent);
+   signInMethods = methodsBefore;
    { const buttons = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.tagName === 'BUTTON' && c.textContent === 'Open') { buttons.push(c); } if (c.childNodes) { walk(c); } } })(toastBox); if (buttons.length) { buttons[0].dispatchEvent(makeEvent('click')); } }
    await flush();
    check('Open opens the message', location.hash === '#/m/101' && called(beforeAgain, 'GET', '/api/v1/me/messages/101') && toastBox.children.length === 0, location.hash + ' ' + toastBox.children.length + ' toasts');

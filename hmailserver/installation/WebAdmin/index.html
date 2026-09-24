@@ -326,6 +326,7 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
     <button class="btn" type="submit">Connect</button>
     <button class="btn" type="button" id="passkeyBtn" hidden>Sign in with a passkey</button>
     <button class="btn" type="button" id="ssoBtn" hidden></button>
+    <button class="btn" type="button" id="samlBtn" hidden></button>
     <div class="err" id="loginErr"></div>
     <div class="langrow"><select data-lang id="langSelGate" aria-label="Language" title="Language"></select></div>
   </form>
@@ -727,6 +728,9 @@ $("#loginForm").onsubmit=async e=>{
 $("#logoutBtn").onclick=async()=>{
   try{await api("/api/v1/session",{method:"DELETE"});}catch(_){}
   signedOut(t("Signed out."));
+  /* The card is drawn again, so what it offers is asked again: a way in an
+     administrator switched on or off meanwhile is shown as it now stands. */
+  loadSignInMethods();
 };
 function signedOut(message){
   if(pollTimer){clearInterval(pollTimer);pollTimer=null;}
@@ -4508,7 +4512,14 @@ async function loadSignInMethods(){
     if(!res.ok)return;
     const methods=JSON.parse(await res.text());
     $("#passkeyBtn").hidden=!(methods.passkeys&&passkeysHere());
-    if(methods.oidc){$("#ssoBtn").textContent=tf("Sign in with {0}",methods.oidc_label||"");$("#ssoBtn").hidden=false;}
+    if(methods.oidc){$("#ssoBtn").textContent=tf("Sign in with {0}",methods.oidc_label||"");}
+    $("#ssoBtn").hidden=!methods.oidc;
+    /* A SAML identity provider is a button of its own beside the OpenID Connect
+       one, with words of its own (saml_button_label) so the two never read
+       alike: the default said in the reader's language, anything else as
+       written. It comes back with the same ticket, read by singleSignOnReturn. */
+    if(methods.saml){const samlLabel=String(methods.saml_label||"");$("#samlBtn").textContent=(samlLabel===""||samlLabel==="Sign in with SAML")?tf("Sign in with {0}","SAML"):samlLabel;}
+    $("#samlBtn").hidden=!methods.saml;
   }catch(_){/* the password is always there */}
 }
 /* The identity provider sent the browser back with a one-use ticket in the
@@ -4540,6 +4551,7 @@ async function singleSignOnReturn(){
 }
 $("#passkeyBtn").onclick=()=>{passkeySignIn();};
 $("#ssoBtn").onclick=()=>{location.href="/portal/oidc/start?deck=1";};
+$("#samlBtn").onclick=()=>{location.href="/portal/saml/start?deck=1";};
 
 /* ---------- Quarantine ----------
    What the filters held back rather than delivered, newest first: released to

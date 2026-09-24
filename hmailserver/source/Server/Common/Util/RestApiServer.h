@@ -1785,6 +1785,22 @@ namespace HM
       static bool AuthenticateOidcTicket_(const AnsiString &request, const IPAddress &peer_address, Caller &caller);
       static AnsiString OpenApiOidcPaths_();
 
+      // SAML sign-in beside it (RestApiSamlSignIn.cpp, SamlSignIn.h): the
+      // request to the identity provider with the browser's cookie, the ACS
+      // the browser posts the Response to, the finish the ACS sends it on to,
+      // where the cookie is asked for, and this service provider's metadata.
+      // The ticket the finish mints is OIDC's, redeemed by
+      // AuthenticateOidcTicket_.
+      HttpResponse HandleSamlStart_(const AnsiString &request, const AnsiString &query, const IPAddress &peer_address);
+      static HttpResponse HandleSamlAcs_(const AnsiString &request);
+      HttpResponse HandleSamlFinish_(const AnsiString &request, const AnsiString &query, const IPAddress &peer_address);
+      static HttpResponse HandleSamlMetadata_();
+      static AnsiString OpenApiSamlPaths_();
+      // Whether the browser reached this server over TLS: the listener speaks
+      // it, or - a plain-HTTP listener binds the loopback address only - the
+      // proxy on this machine in front of it says so in X-Forwarded-Proto.
+      bool BrowserCameOverTls_(const AnsiString &request, const IPAddress &peer_address) const;
+
       // The organisation's directory (RestApiDirectory.cpp): the reader's own
       // domain, the reader's own entry, one entry's photo, and the
       // administrator's view of one account's entry.
@@ -1840,6 +1856,8 @@ namespace HM
       static int AddAttachmentsFromJson_(MessageData &messageData, const AnsiString &requestBody, AnsiString &error,
                                          const char *nameKey = "name", const char *typeKey = "type");
       static bool IsLargeRequest_(const AnsiString &method, const AnsiString &target);
+      // A granted route's own ceiling below the large cap, or 0 (HttpServer.h).
+      static size_t LargeRequestCeiling_(const AnsiString &method, const AnsiString &target);
       static bool ReadJsonHex4_(const AnsiString &json, int at, unsigned int &value);
       static void AppendUtf8_(AnsiString &out, unsigned int codePoint);
       static void CollectReadableFolders_(std::shared_ptr<const Account> account, std::shared_ptr<IMAPFolders> folders, const String &parentPath,

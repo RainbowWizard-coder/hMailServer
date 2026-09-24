@@ -213,6 +213,15 @@ ReputationWatchAddresses server
 ReputationWatchEnabled server
 ReputationWatchLists server
 rulelooplimit server
+SamlAdministrators server
+SamlAutoProvision server
+SamlButtonLabel server
+SamlEmailAttribute server
+SamlIdpCertificate server
+SamlIdpEntityId server
+SamlIdpSsoUrl server
+SamlRequireSignedAssertion server
+SamlSpEntityId server
 SampleDomainId server
 SandboxCacheHours server
 SandboxEnabled server

@@ -262,6 +262,26 @@
 #define PROPERTY_OIDC_ADMINISTRATORS            _T("OidcAdministrators")
 #define PROPERTY_OIDC_REDIRECT_BASE_URL         _T("OidcRedirectBaseUrl")
 
+// SAML sign-in, beside OIDC (Util/SamlSignIn.h). Off until the identity
+// provider's entity ID, its sign-in URL and its signing certificate (PEM, one
+// or two while a key rolls over) are set; the address this server is reached at
+// is OIDC's base URL. This server's own entity ID is <base URL>/saml unless one
+// is named; the address is the NameID when it is an email address and the
+// attribute named here otherwise (Entra ID's and ADFS's email claim by
+// default); the Assertion must carry its own signature unless the switch says a
+// signature over the whole Response is enough; the Control Deck list and the
+// provisioning switch are SAML's own, off and empty; and the sign-in button has
+// words of its own, so that it never reads as the OpenID Connect one.
+#define PROPERTY_SAML_IDP_ENTITY_ID             _T("SamlIdpEntityId")
+#define PROPERTY_SAML_IDP_SSO_URL               _T("SamlIdpSsoUrl")
+#define PROPERTY_SAML_IDP_CERTIFICATE           _T("SamlIdpCertificate")
+#define PROPERTY_SAML_SP_ENTITY_ID              _T("SamlSpEntityId")
+#define PROPERTY_SAML_EMAIL_ATTRIBUTE           _T("SamlEmailAttribute")
+#define PROPERTY_SAML_REQUIRE_SIGNED_ASSERTION  _T("SamlRequireSignedAssertion")
+#define PROPERTY_SAML_AUTO_PROVISION            _T("SamlAutoProvision")
+#define PROPERTY_SAML_ADMINISTRATORS            _T("SamlAdministrators")
+#define PROPERTY_SAML_BUTTON_LABEL              _T("SamlButtonLabel")
+
 // Country blocking. Seven rows in hm_settings, which is where a setting belongs:
 // the MaxMind database the administrator supplies (this project ships none and
 // downloads none), how old that file may be before the log says so, the

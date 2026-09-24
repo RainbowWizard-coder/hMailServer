@@ -79,6 +79,7 @@
 #include "PasswordValidator.h"
 #include "PasskeyStore.h"
 #include "OidcSignIn.h"
+#include "SamlSignIn.h"
 #include "DirectoryStore.h"
 #include "CompromiseDetector.h"
 #include "ConfidentialMessages.h"
@@ -197,6 +198,13 @@ namespace HM
       // wire, and five minutes for them to arrive.
       const size_t MaxLargeRequestSize = 16 * 1024 * 1024;
       const unsigned LargeRequestSeconds = 300;
+
+      // The one route granted more than the ordinary cap and held to far less
+      // than the large one: the form a SAML identity provider posts to the
+      // ACS, which carries no credential. A signed Response from Entra ID, Okta
+      // or ADFS is a few kilobytes, base64'd; 256 KB is room for a large
+      // attribute statement and nothing like room for a flood.
+      const size_t MaxSamlResponseSize = 256 * 1024;
       const unsigned RequestSeconds = 30;
       const unsigned ConnectionSeconds = 300;
       const unsigned MaxConnections = 64;
@@ -1051,6 +1059,7 @@ namespace HM
          }));
 
       server->SetLargeRequestFilter(&RestApiServer::IsLargeRequest_);
+      server->SetLargeRequestCeiling(&RestApiServer::LargeRequestCeiling_);
 
       if (!server->Listen(bind_address, port, use_tls_ ? tls_context_owner : std::shared_ptr<boost::asio::ssl::context>()))
       {
@@ -1112,6 +1121,7 @@ namespace HM
       // button again.
       PasskeyStore::Clear();
       OidcSignIn::Clear();
+      SamlSignIn::Clear();
 
       // Deliberately no SSL_CTX_free: the boost context owns the SSL_CTX and frees it
       // in its own destructor. Released after the server has stopped, so no session
@@ -1887,6 +1897,25 @@ namespace HM
 
       if (method == "GET" && path == "/portal/oidc/callback")
          return HandleOidcCallback_(request, query);
+
+      // SAML, beside it (RestApiSamlSignIn.cpp): the request to the identity
+      // provider, the Response the browser posts back, the finish the ACS
+      // sends it on to, and this service provider's metadata for the identity
+      // provider to import. None of them mints a session - the finish hands
+      // out the same one-use ticket - and none takes a credential: the
+      // signature the ACS verifies, and the cookie the finish asks for, are
+      // the whole of their trust.
+      if (method == "GET" && path == "/portal/saml/start")
+         return HandleSamlStart_(request, query, peer_address);
+
+      if (method == "POST" && path == "/portal/saml/acs")
+         return HandleSamlAcs_(request);
+
+      if (method == "GET" && path == "/portal/saml/finish")
+         return HandleSamlFinish_(request, query, peer_address);
+
+      if (method == "GET" && path == "/saml/metadata")
+         return HandleSamlMetadata_();
 
       // What the two sign-in pages may offer, and the challenge a passkey
       // sign-in answers. Both before Authenticate_, and necessarily: a person
@@ -17475,6 +17504,12 @@ namespace HM
       if (path.StartsWith("/api/v1/protected/") && path.EndsWith("/reply"))
          return true;
 
+      // The Response a SAML identity provider has the browser post to the ACS:
+      // granted here and held to MaxSamlResponseSize by LargeRequestCeiling_
+      // below, so a larger body is answered 413 before anything reads it.
+      if (path == "/portal/saml/acs")
+         return true;
+
       if (path.StartsWith("/api/v1/me/folders/") && path.EndsWith("/messages"))
          return true;
       // A raw message into one of an account's folders, by the administrator
@@ -17487,6 +17522,24 @@ namespace HM
       if (path == "/api/v1/send")
          return true;
       return path == "/api/v1/me/messages" || path == "/api/v1/me/drafts";
+   }
+
+   size_t
+   RestApiServer::LargeRequestCeiling_(const AnsiString &method, const AnsiString &target)
+   {
+      AnsiString path = target;
+      int query = path.Find("?");
+      if (query >= 0)
+         path = path.Mid(0, query);
+
+      // The SAML ACS: a route with no credential, granted above only so that
+      // a Response larger than the ordinary 64 KB still arrives - and held to
+      // 256 KB, never the 16 MB the attachment routes are granted.
+      if (method == "POST" && path == "/portal/saml/acs")
+         return MaxSamlResponseSize;
+
+      // Every other granted route keeps the large cap.
+      return 0;
    }
 
    // The page, its script, its manifest and its service worker are files
@@ -17777,6 +17830,7 @@ namespace HM
       openApiJson += OpenApiRecoveryPaths_();
       openApiJson += OpenApiPasskeyPaths_();
       openApiJson += OpenApiOidcPaths_();
+      openApiJson += OpenApiSamlPaths_();
       openApiJson += OpenApiDirectoryPaths_();
       openApiJson += OpenApiConfidentialPaths_();
       openApiJson += OpenApiOpenPgpKeysPaths_();

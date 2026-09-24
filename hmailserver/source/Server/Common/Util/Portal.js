@@ -2574,14 +2574,26 @@
   };
   el('signin-passkey').addEventListener('click', function () { passkeySignIn(); });
   el('signin-sso').addEventListener('click', function () { location.href = '/portal/oidc/start'; });
+  // A SAML identity provider is a second button beside the OpenID Connect one:
+  // an installation may front both. It comes back the same way, with a ticket
+  // or a sentence in the fragment, which singleSignOnReturn reads for both.
+  el('signin-saml').addEventListener('click', function () { location.href = '/portal/saml/start'; });
   var loadSignInMethods = function () {
     return call('GET', '/api/v1/signin-methods').then(function (result) {
       if (result.status !== 200 || !result.data) { return; }
       el('signin-passkey').hidden = !(result.data.passkeys && passkeysHere());
       if (result.data.oidc) {
         el('signin-sso').textContent = tf('Sign in with {0}', result.data.oidc_label || '');
-        el('signin-sso').hidden = false;
       }
+      el('signin-sso').hidden = !result.data.oidc;
+      // The SAML button has words of its own (saml_button_label), so that it
+      // never reads as the OpenID Connect one. The default is said in the
+      // reader's language; anything an administrator wrote is shown as written.
+      if (result.data.saml) {
+        var samlLabel = String(result.data.saml_label || '');
+        el('signin-saml').textContent = (samlLabel === '' || samlLabel === 'Sign in with SAML') ? tf('Sign in with {0}', 'SAML') : samlLabel;
+      }
+      el('signin-saml').hidden = !result.data.saml;
     });
   };
   // The identity provider sent the browser back with a one-use ticket in the
@@ -2623,7 +2635,7 @@
       var token = accounts.second.token;
       secondForget();
       return token ? call('DELETE', '/api/v1/session', undefined, { 'Authorization': 'Bearer ' + token }, 'first') : null;
-    }).then(function () { return call('DELETE', '/api/v1/session', undefined, undefined, 'first'); }).then(function () { probe.token = ''; probe.off = false; showSignIn(); });
+    }).then(function () { return call('DELETE', '/api/v1/session', undefined, undefined, 'first'); }).then(function () { probe.token = ''; probe.off = false; showSignIn(); loadSignInMethods(); });
   });
   el('theme-btn').addEventListener('click', function () {
     var next = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';

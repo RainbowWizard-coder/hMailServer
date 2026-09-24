@@ -302,14 +302,20 @@ namespace HM
       String GetImportOAuthString(const String &propertyName) const;
       void SetImportOAuthString(const String &propertyName, const String &value);
 
-      // PASSKEYS AND SINGLE SIGN-ON. Nine rows in hm_settings; see WebAuthn.h,
-      // PasskeyStore.h and OidcSignIn.h. The two switches have accessors of
-      // their own and the seven strings share one pair, named by the PROPERTY_
-      // constants in Constants.h.
+      // PASSKEYS AND SINGLE SIGN-ON. Nine rows in hm_settings, and SAML's eight
+      // beside them; see WebAuthn.h, PasskeyStore.h, OidcSignIn.h and
+      // SamlSignIn.h. The switches have accessors of their own and the strings
+      // share one pair, named by the PROPERTY_ constants in Constants.h.
       bool GetPasskeysEnabled() const;
       void SetPasskeysEnabled(bool enabled);
       bool GetOidcAutoProvision() const;
       void SetOidcAutoProvision(bool enabled);
+      // SAML sign-in's two switches (SamlSignIn.h); its six strings share the
+      // pair below.
+      bool GetSamlAutoProvision() const;
+      void SetSamlAutoProvision(bool enabled);
+      bool GetSamlRequireSignedAssertion() const;
+      void SetSamlRequireSignedAssertion(bool required);
       String GetSignInString(const String &propertyName) const;
       void SetSignInString(const String &propertyName, const String &value);
 

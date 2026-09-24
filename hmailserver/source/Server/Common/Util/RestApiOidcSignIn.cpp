@@ -27,6 +27,7 @@
 #include "HttpsClient.h"
 #include "OidcSignIn.h"
 #include "PasskeyStore.h"
+#include "SamlSignIn.h"
 #include "../Application/Logger.h"
 #include "../BO/Account.h"
 #include "../Persistence/PersistentAccount.h"
@@ -61,11 +62,15 @@ namespace HM
    HttpResponse
    RestApiServer::HandleSignInMethods_()
    {
+      // SAML's flag and label beside OIDC's (SamlSignIn.h): the two are
+      // separate buttons, since an installation may front both.
       AnsiString body;
-      body.Format("{\"passkeys\":%hs,\"oidc\":%hs,\"oidc_label\":\"%hs\"}",
+      body.Format("{\"passkeys\":%hs,\"oidc\":%hs,\"oidc_label\":\"%hs\",\"saml\":%hs,\"saml_label\":\"%hs\"}",
          PasskeyStore::Enabled() ? "true" : "false",
          OidcSignIn::Configured() ? "true" : "false",
-         JsonEscape_(OidcSignIn::Label()).c_str());
+         JsonEscape_(OidcSignIn::Label()).c_str(),
+         SamlSignIn::Configured() ? "true" : "false",
+         JsonEscape_(SamlSignIn::Label()).c_str());
       return BuildResponse_(200, body);
    }
 

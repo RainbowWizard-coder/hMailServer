@@ -421,6 +421,19 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_OIDC_AUTO_PROVISION, 0);
       property_set_->EnsureString(PROPERTY_OIDC_ADMINISTRATORS, _T(""));
       property_set_->EnsureString(PROPERTY_OIDC_REDIRECT_BASE_URL, _T(""));
+
+      // SAML sign-in: off, for the same reason - no identity provider until an
+      // administrator names one - and with an Assertion's own signature
+      // demanded, provisioning off and nobody opening the Control Deck.
+      property_set_->EnsureString(PROPERTY_SAML_IDP_ENTITY_ID, _T(""));
+      property_set_->EnsureString(PROPERTY_SAML_IDP_SSO_URL, _T(""));
+      property_set_->EnsureString(PROPERTY_SAML_IDP_CERTIFICATE, _T(""));
+      property_set_->EnsureString(PROPERTY_SAML_SP_ENTITY_ID, _T(""));
+      property_set_->EnsureString(PROPERTY_SAML_EMAIL_ATTRIBUTE, _T("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"));
+      property_set_->EnsureLong(PROPERTY_SAML_REQUIRE_SIGNED_ASSERTION, 1);
+      property_set_->EnsureLong(PROPERTY_SAML_AUTO_PROVISION, 0);
+      property_set_->EnsureString(PROPERTY_SAML_ADMINISTRATORS, _T(""));
+      property_set_->EnsureString(PROPERTY_SAML_BUTTON_LABEL, _T("Sign in with SAML"));
    }
 
    void
@@ -882,6 +895,30 @@ namespace HM
    Configuration::SetOidcAutoProvision(bool enabled)
    {
       GetSettings()->SetBool(PROPERTY_OIDC_AUTO_PROVISION, enabled);
+   }
+
+   bool
+   Configuration::GetSamlAutoProvision() const
+   {
+      return GetSettings()->GetBool(PROPERTY_SAML_AUTO_PROVISION);
+   }
+
+   void
+   Configuration::SetSamlAutoProvision(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_SAML_AUTO_PROVISION, enabled);
+   }
+
+   bool
+   Configuration::GetSamlRequireSignedAssertion() const
+   {
+      return GetSettings()->GetBool(PROPERTY_SAML_REQUIRE_SIGNED_ASSERTION);
+   }
+
+   void
+   Configuration::SetSamlRequireSignedAssertion(bool required)
+   {
+      GetSettings()->SetBool(PROPERTY_SAML_REQUIRE_SIGNED_ASSERTION, required);
    }
 
    String

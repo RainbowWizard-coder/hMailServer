@@ -30,6 +30,8 @@
 #include "../Util/OpenPgpKey.h"
 #include "../Util/OpenPgpWriter.h"
 #include "../Util/GatewayEncryption.h"
+#include "../Util/XmlDocument.h"
+#include "../Util/XmlSignature.h"
 #include "../AntiSpam/DKIM/DkimRotationPlan.h"
 #include "../../SMTP/BounceClassifier.h"
 #include "BrandLogo.h"
@@ -358,6 +360,20 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing GatewayEncryption\n"));
       GatewayEncryptionTester gatewayEncryptionTester;
       gatewayEncryptionTester.Test();
+
+      // SAML sign-in's ground: the strict XML reader and Exclusive XML
+      // Canonicalization held to the W3C's own examples byte for byte (a
+      // failure names the example), and XML-Signature verification against
+      // vectors .NET's SignedXml signed, every single-byte change to them
+      // refused, and each refusal - SHA-1, HMAC, an XSLT transform, an empty
+      // Reference, a second signature, an ID written twice - by name.
+      OutputDebugString(_T("hMailServer: Testing XmlCanonicalization\n"));
+      XmlCanonicalizationTester xmlCanonicalizationTester;
+      xmlCanonicalizationTester.Test();
+
+      OutputDebugString(_T("hMailServer: Testing XmlSignature\n"));
+      XmlSignatureTester xmlSignatureTester;
+      xmlSignatureTester.Test();
 
       // Complaints read, the feedback loops: the RFC 5965 parser that is handed
       // hostile input by construction, and the decisions taken on what it read -

@@ -150,6 +150,15 @@ namespace HM
       // body is read; never for the head itself.
       typedef std::function<bool(const AnsiString &method, const AnsiString &target)> LargeRequestFilter;
 
+      // For a request the filter above granted, a ceiling of the route's own:
+      // a number of bytes, head and body together, between max_request_bytes
+      // and max_request_bytes_large, which then holds that request instead of
+      // max_request_bytes_large, and keeps request_seconds rather than
+      // request_seconds_large; anything else - 0 above all - leaves the large
+      // cap as it is. So a route that needs more than the ordinary cap and
+      // nothing like the large one is held to what it needs.
+      typedef std::function<size_t(const AnsiString &method, const AnsiString &target)> LargeRequestCeiling;
+
       HttpServer(const AnsiString &name, const HttpLimits &limits, Handler handler,
                  AcceptFilter accept_filter, ErrorResponder error_responder);
       ~HttpServer();
@@ -161,8 +170,9 @@ namespace HM
 
       void Start();
 
-      // Set before Listen; connections copy it as they are made.
+      // Set before Listen; connections copy them as they are made.
       void SetLargeRequestFilter(LargeRequestFilter filter);
+      void SetLargeRequestCeiling(LargeRequestCeiling ceiling);
 
       // Closes the listeners and every connection, then joins the workers. A
       // handler that is running at the time is waited for.
@@ -198,6 +208,7 @@ namespace HM
       AcceptFilter accept_filter_;
       ErrorResponder error_responder_;
       LargeRequestFilter large_request_filter_;
+      LargeRequestCeiling large_request_ceiling_;
 
       boost::asio::io_context io_;
       std::unique_ptr<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>> work_;

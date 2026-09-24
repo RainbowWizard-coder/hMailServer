@@ -90,10 +90,38 @@ namespace HM
       static bool Complete(const AnsiString &state, const AnsiString &cookie, const AnsiString &code,
                            Result &result, AnsiString &problem);
 
+      // Whose the settings are that decide what a verified address may open:
+      // OIDC's, or SAML's (SamlSignIn.h), which keeps its own list and its
+      // own switch and otherwise the same rules.
+      struct Mapping
+      {
+         // The hm_settings property listing the addresses that open the
+         // Control Deck, comma separated.
+         String administrators;
+
+         // Whether an unknown address at a domain this server has gets a
+         // mailbox: read only when one is about to be made, as OIDC always
+         // read it.
+         bool (*auto_provision)();
+
+         // That switch's name and the protocol's, for the log line.
+         String auto_provision_name;
+         String component;
+      };
+
+      // Who a verified address is here, the rules both protocols share: for
+      // the Control Deck, the administrator when the list names the address
+      // and a refusal otherwise; for the webmail, the active mailbox at that
+      // address, or - with the switch on and at a domain this server has - a
+      // mailbox made for it with a password nobody is told. result.deck is the
+      // caller's; address, administrator and account_id are set here.
+      static bool MapAddress(bool deck, const String &address, const Mapping &mapping, Result &result, AnsiString &problem);
+
       // A verified sign-in, held for two minutes and spent once, so that the
       // session itself is still minted by POST /api/v1/session and by nothing
       // else. The ticket travels in the URL fragment, which a browser does not
-      // send to any server and no access log holds.
+      // send to any server and no access log holds. A SAML sign-in ends in the
+      // same ticket, redeemed by the same route: one ticket, one redeemer.
       static bool MintTicket(const Result &result, AnsiString &ticket);
       static bool RedeemTicket(const AnsiString &ticket, Result &result);
 

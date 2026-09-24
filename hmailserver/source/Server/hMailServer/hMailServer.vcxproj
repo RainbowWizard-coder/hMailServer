@@ -695,6 +695,10 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiPasskeys.cpp" />
     <ClCompile Include="..\Common\Util\OidcSignIn.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOidcSignIn.cpp" />
+    <ClCompile Include="..\Common\Util\SamlSignIn.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiSamlSignIn.cpp" />
+    <ClCompile Include="..\Common\Util\XmlDocument.cpp" />
+    <ClCompile Include="..\Common\Util\XmlSignature.cpp" />
     <ClCompile Include="..\Common\Util\ConfidentialMessages.cpp" />
     <ClCompile Include="..\Common\Util\DomainReports.cpp" />
     <ClCompile Include="..\Common\Util\RestApiDomainReports.cpp" />
@@ -1593,6 +1597,9 @@ EXIT 0
     <ClInclude Include="..\Common\Util\WebAuthn.h" />
     <ClInclude Include="..\Common\Util\PasskeyStore.h" />
     <ClInclude Include="..\Common\Util\OidcSignIn.h" />
+    <ClInclude Include="..\Common\Util\SamlSignIn.h" />
+    <ClInclude Include="..\Common\Util\XmlDocument.h" />
+    <ClInclude Include="..\Common\Util\XmlSignature.h" />
     <ClInclude Include="..\Common\Util\ConfidentialMessages.h" />
     <ClInclude Include="..\Common\Util\ContentPolicy.h" />
     <ClInclude Include="..\Common\Util\DomainReports.h" />

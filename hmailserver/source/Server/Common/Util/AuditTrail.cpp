@@ -187,6 +187,12 @@ namespace HM
          // whatever reaches the column - the fingerprint is what the REST
          // listing and the Control Panel show.
          L"encryptkey",
+         // SAML sign-in's identity provider certificate (SamlIdpCertificate).
+         // Public too, and withheld for the same reason: the setting is
+         // write-only, its fingerprints are what is answered, and the list of
+         // what is changed from stock and this table must not answer the PEM
+         // back either.
+         L"idpcertificate",
       };
 
       // Settings whose NAME carries one of the fragments above and whose value

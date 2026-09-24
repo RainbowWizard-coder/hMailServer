@@ -382,10 +382,11 @@ namespace HM
          return true;
       }
 
-      // The addresses OidcAdministrators names, compared case-insensitively.
-      bool IsAdministratorAddress(const String &address)
+      // The addresses the list names - OidcAdministrators, or SAML's own -
+      // compared case-insensitively.
+      bool IsAdministratorAddress(const String &address, const String &property)
       {
-         const String list = Configuration::Instance()->GetSignInString(PROPERTY_OIDC_ADMINISTRATORS);
+         const String list = Configuration::Instance()->GetSignInString(property);
          if (list.IsEmpty())
             return false;
 
@@ -397,6 +398,11 @@ namespace HM
                return true;
          }
          return false;
+      }
+
+      bool OidcAutoProvision()
+      {
+         return Configuration::Instance()->GetOidcAutoProvision();
       }
    }
 
@@ -598,13 +604,25 @@ namespace HM
          return false;
       }
 
+      Mapping mapping;
+      mapping.administrators = PROPERTY_OIDC_ADMINISTRATORS;
+      mapping.auto_provision = &OidcAutoProvision;
+      mapping.auto_provision_name = PROPERTY_OIDC_AUTO_PROVISION;
+      mapping.component = _T("OidcSignIn");
+
+      return MapAddress(entry.deck, address, mapping, result, problem);
+   }
+
+   bool
+   OidcSignIn::MapAddress(bool deck, const String &address, const Mapping &mapping, Result &result, AnsiString &problem)
+   {
       result.address = address;
 
       // The Control Deck: the administrator, and only for an address the list
       // names. An issuer that says somebody is an administrator is not obeyed.
-      if (entry.deck)
+      if (deck)
       {
-         if (!IsAdministratorAddress(address))
+         if (!IsAdministratorAddress(address, mapping.administrators))
          {
             problem = "that address does not open the Control Deck on this server";
             return false;
@@ -625,7 +643,7 @@ namespace HM
          return true;
       }
 
-      if (!Configuration::Instance()->GetOidcAutoProvision())
+      if (mapping.auto_provision == nullptr || !mapping.auto_provision())
       {
          problem = "that address has no mailbox on this server";
          return false;
@@ -669,7 +687,8 @@ namespace HM
          return false;
       }
 
-      LOG_APPLICATION("OidcSignIn: made a mailbox for " + address + ", which the identity provider verified and OidcAutoProvision allows.");
+      LOG_APPLICATION(mapping.component + _T(": made a mailbox for ") + address + _T(", which the identity provider verified and ") +
+                      mapping.auto_provision_name + _T(" allows."));
 
       result.account_id = made->GetID();
       return true;

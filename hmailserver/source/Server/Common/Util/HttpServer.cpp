@@ -173,6 +173,7 @@ namespace HM
          handler_(server->handler_),
          error_responder_(server->error_responder_),
          large_request_filter_(server->large_request_filter_),
+         large_request_ceiling_(server->large_request_ceiling_),
          strand_(boost::asio::make_strand(server->io_)),
          socket_(std::move(socket)),
          request_timer_(server->io_),
@@ -346,7 +347,23 @@ namespace HM
              large_request_filter_ && large_request_filter_(request_.method, request_.target))
          {
             cap = limits_.max_request_bytes_large;
-            if (limits_.request_seconds_large > limits_.request_seconds)
+
+            // A granted route with a ceiling of its own below the large cap -
+            // a form an identity provider posts - is held to that instead,
+            // and keeps the ordinary timer: the longer one is for a body the
+            // size of the large cap.
+            bool ownCeiling = false;
+            if (large_request_ceiling_)
+            {
+               const size_t own = large_request_ceiling_(request_.method, request_.target);
+               if (own > limits_.max_request_bytes && own < cap)
+               {
+                  cap = own;
+                  ownCeiling = true;
+               }
+            }
+
+            if (!ownCeiling && limits_.request_seconds_large > limits_.request_seconds)
                ArmRequestTimer_(limits_.request_seconds_large);
          }
 
@@ -651,6 +668,7 @@ namespace HM
       HttpServer::Handler handler_;
       HttpServer::ErrorResponder error_responder_;
       HttpServer::LargeRequestFilter large_request_filter_;
+      HttpServer::LargeRequestCeiling large_request_ceiling_;
       boost::asio::strand<boost::asio::io_context::executor_type> strand_;
       boost::asio::ip::tcp::socket socket_;
       std::unique_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> tls_;
@@ -761,6 +779,12 @@ namespace HM
    HttpServer::SetLargeRequestFilter(LargeRequestFilter filter)
    {
       large_request_filter_ = filter;
+   }
+
+   void
+   HttpServer::SetLargeRequestCeiling(LargeRequestCeiling ceiling)
+   {
+      large_request_ceiling_ = ceiling;
    }
 
    void

@@ -13,12 +13,17 @@ webmail at `/portal` and the Control Deck at `/`.
   issuer. The person signs in there, the issuer says who they are in an
   `id_token` this server verifies, and the verified address names a mailbox
   here.
+* **SAML sign-in** does the same for an identity provider that speaks SAML 2.0
+  rather than OpenID Connect - an ADFS farm, or an Entra ID or Okta application
+  set up the SAML way. The identity provider's answer is a signed XML document,
+  and this server verifies that signature itself: see
+  [Single sign-on (SAML)](#single-sign-on-saml) below.
 
-Both are additions. A stock installation is unchanged: passkeys are offered but
-nobody has one until they enrol it, and single sign-on does nothing at all
-until an administrator names an issuer. The password, and the one-time code
-where it is enrolled, stay exactly as they were and are the fallback for
-everything below.
+All three are additions. A stock installation is unchanged: passkeys are
+offered but nobody has one until they enrol it, and neither kind of single
+sign-on does anything at all until an administrator names an identity
+provider. The password, and the one-time code where it is enrolled, stay
+exactly as they were and are the fallback for everything below.
 
 Passkeys
 --------
@@ -306,6 +311,365 @@ sign-on is how the people it made sign in to them.
   (`OAuth2Enabled`, see the administrator documentation) are a separate,
   older mechanism with its own settings.
 
+Single sign-on (SAML)
+---------------------
+
+The identity providers that still speak only SAML 2.0 - ADFS above all, and an
+Entra ID or Okta application set up the SAML way - for the same two pages, ending
+in the same ticket, the same `POST /api/v1/session` and the same mapping rules
+as OpenID Connect.
+
+**This is an XML-signature feature first and a sign-in feature second.** An
+OpenID Connect `id_token` is a JWT whose signature covers its bytes as they
+arrive. A SAML Response is an XML document whose signature covers a
+*canonical form* of one element of it, and there is no verifying that without an
+XML reader that keeps what the canonical form needs, an implementation of
+Exclusive XML Canonicalization 1.0, and XML-Signature verification - none of
+which this server had. So they were written for this, in
+`Common/Util/XmlDocument.{h,cpp}` and `Common/Util/XmlSignature.{h,cpp}`, and are
+held to the W3C's own canonicalisation examples and to what .NET's `SignedXml`
+writes. Almost every published SAML vulnerability of the last decade was in
+exactly that layer rather than in the sign-in logic, which is why most of what
+follows is about it.
+
+### Setting it up
+
+| Setting (REST; hm_settings) | What it is |
+|---|---|
+| `saml_idp_entity_id` (`SamlIdpEntityId`) | The identity provider's entity ID, exactly as its metadata writes it: the `Issuer` of every answer. Empty, the default, offers no SAML sign-in at all. |
+| `saml_idp_sso_url` (`SamlIdpSsoUrl`) | Its sign-in URL for the HTTP-Redirect binding. One line, `https://` or the loopback. |
+| `saml_idp_certificate` (`SamlIdpCertificate`) | Its signing certificate in PEM - or two, while it rolls its key over. **Write-only**, though it is not secret (below). RSA of 2048 bits or more, or an elliptic curve of 256 or more. A private key anywhere in the paste, anything that is not a certificate, a third certificate, or a paste over 60,000 characters is refused (the gateway-encryption row's `AcceptableKeyText` is the gate), and what is stored - the certificates written out again as PEM, 64 characters to a line, without anything a tool printed around them - must fit the setting's 4,000 characters (below). A paste whose line breaks were dropped or made spaces, which is what the Deck's box does to one, is read as well. |
+| `saml_sp_entity_id` (`SamlSpEntityId`) | This server's entity ID as the identity provider knows it; every assertion's audience must name it. Empty means `<base URL>/saml`. |
+| `saml_email_attribute` (`SamlEmailAttribute`) | The attribute the address is read from when the NameID is not an email address: `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress` by default, which is what Entra ID and ADFS send. |
+| `saml_require_signed_assertion` (`SamlRequireSignedAssertion`) | Whether the Assertion must carry its own signature. **On** by default; off takes a signature over the whole Response as enough. |
+| `saml_auto_provision` (`SamlAutoProvision`) | As `oidc_auto_provision`, for SAML. Off. |
+| `saml_administrators` (`SamlAdministrators`) | As `oidc_administrators`, for SAML: the addresses that open the Control Deck. Empty. |
+| `saml_button_label` (`SamlButtonLabel`) | The words on the SAML button of both sign-in pages: **Sign in with SAML** by default, which each page says in its reader's language, and anything else shown as written. One line, at most 60 characters. Its own setting, so that the SAML button never reads as the OpenID Connect one does when one identity provider - Entra ID's `login.microsoftonline.com` - serves both. |
+
+**The certificate is never answered back.** Not by `GET /api/v1/settings`,
+which answers `saml_idp_certificate_fingerprints` (read-only) instead - each
+certificate's SHA-256 fingerprint, its SHA-1 thumbprint and its expiry; not by
+the list of what is changed from stock (`GET /api/v1/settings/changed`,
+`hmctl config changed`, COM's `Settings.GetChangedFromDefault`), which names it
+with `(set)`; and not by the audit trail, which records
+`SamlIdpCertificate: (changed)`. The last two follow from its name being
+withheld as a secret's is (`AuditTrail::IsSecretName`, by the fragment
+`idpcertificate`, beside the gateway key's `encryptkey`), and so does one more
+thing worth knowing: `--apply-environment`, given `HM_PROPERTY_SamlIdpCertificate`,
+says it set the value and not what the value was.
+
+**What fits in 4,000 characters.** One certificate is stored as its PEM, and
+what that comes to was measured: a self-signed 2048-bit RSA certificate, as
+identity providers make them, is about 1,200 to 1,470 characters, and a 4096-bit
+one about 1,770 to 2,160 - the spread is the subject and the extensions, not the
+key. So two 2048-bit certificates fit with room to spare; two 4096-bit ones fit
+when they are the ordinary kind (two at 1,900 are 3,800), and two with long
+subjects - an Okta-style one with country, state, locality, organisation, unit
+and an email address is about 2,150 - do not. The refusal names the stored
+length, so there is nothing to work out beforehand.
+
+**A certificate that cannot be read stops every SAML sign-in.** The settings
+refuse one, so that is reached only through a database edited by hand: the ACS
+then refuses each Response and **HM7320** in the error log says which setting to
+paste again.
+
+The base URL is OpenID Connect's: `oidc_redirect_base_url`, falling back to
+`import_oauth_redirect_base_url`. From it this server's two addresses follow -
+the **entity ID** `<base URL>/saml` and the **ACS URL** (Assertion Consumer
+Service) `<base URL>/portal/saml/acs` - and its metadata is at
+`<base URL>/saml/metadata`, for an identity provider that imports one. The
+settings are REST's and the Deck's (its Server group draws them from the API's
+own description), as OpenID Connect's are; there is no COM property and no
+Control Panel page for either.
+
+**Microsoft Entra ID.** Enterprise applications, *New application*, *Create your
+own application*, "Integrate any other application you don't find in the
+gallery". Under *Single sign-on* choose *SAML*. In *Basic SAML Configuration*,
+the *Identifier (Entity ID)* is `<base URL>/saml` and the *Reply URL (Assertion
+Consumer Service URL)* is `<base URL>/portal/saml/acs` - or upload the metadata
+file. *Attributes & Claims* already sends the `emailaddress` claim; its
+*Unique User Identifier* is the user principal name in the email-address format,
+which is used as the address when it is one, so where people's user principal
+names are not their mail addresses, set it to `user.mail`. Under *SAML
+Certificates*, download *Certificate (Base64)* and paste it into
+`saml_idp_certificate`; leave the signing option at *Sign SAML assertion* (or
+*Sign SAML response and assertion*) and the algorithm at SHA-256, and leave token
+encryption off. *Set up* the application shows the *Login URL* - that is
+`saml_idp_sso_url` - and the *Microsoft Entra Identifier*
+(`https://sts.windows.net/<tenant id>/`) - that is `saml_idp_entity_id`. Assign
+the people who may use it.
+
+**Okta.** *Applications*, *Create App Integration*, *SAML 2.0*. The *Single
+sign-on URL* is `<base URL>/portal/saml/acs`, used for the Recipient and the
+Destination as well; the *Audience URI (SP Entity ID)* is `<base URL>/saml`; the
+*Name ID format* is *EmailAddress* and the *Application username* is *Email*.
+Under the advanced settings Okta signs the Response and the Assertion, both
+RSA-SHA256, which is taken as it is, and *Assertion Encryption* must stay
+*Unencrypted*. *View SAML setup instructions* shows the *Identity Provider
+Single Sign-On URL* (`saml_idp_sso_url`), the *Identity Provider Issuer*
+(`saml_idp_entity_id`) and the *X.509 Certificate* (`saml_idp_certificate`).
+
+**ADFS.** In AD FS Management, *Relying Party Trusts*, *Add Relying Party Trust*,
+*Claims aware*; import the data from `<base URL>/saml/metadata`, or enter it by
+hand - SAML 2.0 WebSSO with the ACS URL above, and `<base URL>/saml` as the
+relying party trust identifier. In the claim issuance policy, *Send LDAP
+Attributes as Claims* with *E-Mail-Addresses* sent as *E-Mail Address*, which is
+the default `saml_email_attribute`; a *Transform an Incoming Claim* rule that
+sends it as the Name ID in the *Email* format works as well. ADFS signs the
+assertion, with SHA-256, as the default expects, and does not encrypt, because
+the metadata offers no encryption certificate. `saml_idp_sso_url` is
+`https://<adfs host>/adfs/ls/`; `saml_idp_entity_id` is the *Federation Service
+Identifier* (*Service*, *Edit Federation Service Properties*, typically
+`http://<adfs host>/adfs/services/trust`); `saml_idp_certificate` is the
+*Token-signing* certificate from *Service*, *Certificates*, exported as
+Base-64 encoded X.509.
+
+`GET /api/v1/signin-methods` then answers `saml: true` and `saml_label` (the
+words of `saml_button_label`), and both sign-in pages draw a second button -
+**Sign in with SAML**, unless it is named otherwise - beside the OpenID Connect
+one: an installation may front both.
+
+### The flow
+
+    GET  /portal/saml/start[?deck=1]   to the identity provider, with an AuthnRequest,
+                                       and the hmsaml cookie
+    POST /portal/saml/acs              back from it, with the Response
+    GET  /portal/saml/finish           on from the ACS, where the cookie is asked for
+    GET  /saml/metadata                this service provider, for the identity provider
+
+The start writes an AuthnRequest - its ID, this server's entity ID as the
+Issuer, the ACS URL, the HTTP-POST binding for the answer - compresses it with
+raw DEFLATE (RFC 1951, no zlib header), base64s it into the `SAMLRequest`
+parameter of the sign-in URL (the HTTP-Redirect binding), adds a `RelayState`,
+and sends the browser there. The request is **not signed**: this server holds no
+SAML signing key, and the metadata says so (`AuthnRequestsSigned="false"`, no
+key descriptor).
+
+**Two bindings: the request, at the ACS, and the browser, a step later.** Every
+request's ID is kept here with the RelayState that went out beside it and the
+value of the cookie the start set, for ten minutes and one use, in a table of
+two hundred that evicts its oldest entry rather than refusing the newest (the
+same rule, for the same reason, as OpenID Connect's). A Response is taken only
+when its `InResponseTo` is one of those IDs, not yet answered, and it comes back
+with the same RelayState.
+
+The cookie, `hmsaml`, is `HttpOnly`, `SameSite=Lax`, `Path=/portal/saml` and ten
+minutes long, and `Secure` when the request came over TLS, or through a proxy
+that says `X-Forwarded-Proto: https` from this machine - the only place a proxy
+in front of the REST listener can be, since the listener speaks plain HTTP on the
+loopback address alone. It is **not** asked for at the ACS: the identity
+provider's POST there is cross-site, so a `SameSite=Lax` cookie does not ride it,
+and a `SameSite=None` one needs `Secure`, which a server on plain HTTP to the
+loopback cannot promise. It is asked for at the finish, which the ACS sends the
+browser on to: a top-level navigation from this server to itself, which a Lax
+cookie does ride.
+
+The ACS takes the form the browser posts - `SAMLResponse` and `RelayState` - of
+**at most 256 KB**. The REST listener holds every request to 64 KB unless the
+route is granted more (`IsLargeRequest_`); this one is granted, and held by
+`LargeRequestCeiling_` to its own 256 KB rather than the 16 MB the attachment
+routes are granted, and to the ordinary request timer. A larger body is answered
+413 before anything reads it. A signed Response from Entra ID, Okta or ADFS is a
+few kilobytes; the fixture signs one of about 170 KB on the wire, which only the
+route's own ceiling lets through and which signs in, and posts 300 KB and 1.1 MB,
+which are refused.
+
+Then the Response is verified (below). What was verified - the address and
+which page the sign-in was for - is kept under a one-use token of 32 random
+bytes, for two minutes, and the ACS sends the browser (303, since it came with a
+POST) to `/portal/saml/finish?token=`. The finish spends the token whatever
+happens next, and goes on only when the browser carries the `hmsaml` cookie the
+start gave for that very request (compared in constant time); it clears the
+cookie. Only then is the address mapped - so no mailbox is made for a Response
+that ends in the wrong browser - and, exactly as OpenID Connect's callback does,
+a one-use ticket good for two minutes is minted and the browser sent to the page
+with it in the URL fragment; the page hands it to `POST /api/v1/session`.
+
+A refusal comes back as `#sso_error=` with the sentence, to the page the sign-in
+was started for. **That page is chosen by this server alone**: at the ACS it is
+the one the posted RelayState's own sign-in named, and at the finish the one the
+verified sign-in named; a Response naming another sign-in in its `InResponseTo`
+does not choose it.
+
+**Two sign-ins in one browser.** A second start replaces the cookie, so the
+first sign-in, if its Response still arrives, is refused at the finish; start
+again. The expiries - ten minutes for a request, two for the finish token - are
+read in the code and not tested, since a test would have to wait them out; the
+eviction of the oldest of two hundred is tested.
+
+### What is verified
+
+The signature, in `XmlSignature::Verify`:
+
+* exactly one `ds:Signature` among the signed element's children - an
+  **enveloped** signature - and no signature anywhere else in the document but
+  the Response's own and the Assertion's own;
+* `SignedInfo` canonicalised with Exclusive XML Canonicalization 1.0 without
+  comments (its `InclusiveNamespaces` PrefixList honoured); inclusive
+  canonicalisation, and exclusive canonicalisation **with comments**, refused;
+* the signature method `rsa-sha256` or `ecdsa-sha256`; SHA-1 and HMAC refused;
+* exactly one `Reference`, whose URI is `#` and the signed element's own `ID` -
+  an empty URI, which is the whole document, or any other element refused - and
+  that `ID` written once in the whole document;
+* the transforms **exactly** `enveloped-signature` and then exclusive
+  canonicalisation; XSLT, XPath, base64 and anything else refused;
+* the digest SHA-256, over the element as that canonicalisation writes it with
+  the signature left out; SHA-1 refused;
+* the signature against **the certificates an administrator stored**, and never
+  a key the message carries: `KeyInfo` is ignored - and checked **first**, over
+  the canonical `SignedInfo`, before the element the Reference names is
+  canonicalised and its digest compared, so that of a document the stored keys
+  did not sign nothing but its `SignedInfo` is canonicalised;
+* base64 read strictly, so that a value has one spelling;
+* and then **the anti-wrapping rule**: what is used is the signed bytes read again
+  as a document of their own, never the element looked up again in the
+  original.
+
+The document's shape, before any of that: one `Assertion`, directly under the
+Response; its `ID` and the Response's written once each in the whole document;
+an `EncryptedAssertion` refused with a sentence that says to switch encryption
+off at the identity provider; the status `Success`, and otherwise the identity
+provider's own reason (`AuthnFailed`, `RequestDenied` ...) in the sentence.
+
+The Assertion must carry its own signature while `saml_require_signed_assertion`
+is on - the default, and how Entra ID and ADFS sign. Off, a signature over the
+whole Response is enough, which is what an identity provider set to sign the
+response only sends; the Assertion used is then the one inside the Response's
+signed bytes. When both are signed, both must verify, and the Assertion used is
+the one its own signature covered.
+
+Then SAML 2.0 core and the Web Browser SSO profile's section 4.1.4.3:
+
+* the Response's `Destination` is this server's ACS URL, its `InResponseTo` a
+  request issued here and not yet answered, coming back with its RelayState,
+  and its `Issuer`, when it has one, the identity provider's entity ID;
+* the Assertion's `Issuer` is the identity provider's entity ID;
+* a **bearer** `SubjectConfirmation` whose `SubjectConfirmationData` has the ACS
+  URL as its `Recipient`, the same request as its `InResponseTo`, and a
+  `NotOnOrAfter` in the future (and a `NotBefore`, when it has one, in the past);
+* `Conditions`' `NotBefore` and `NotOnOrAfter`, with a minute of skew;
+* an `AudienceRestriction` naming this server's entity ID - every one of them,
+  where there are several;
+* an `AuthnStatement`;
+* the Assertion's `ID` not taken before: it is kept in memory until the
+  assertion expires or five thousand newer ones push it out, and forgotten when
+  the REST listener stops - by which time every request ID it could answer has
+  been forgotten too.
+
+The address is the `NameID` when its format is
+`urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress`, and otherwise the
+attribute `saml_email_attribute` names, which must carry exactly one value.
+
+### Mapping and provisioning
+
+Exactly OpenID Connect's (above), through the same function
+(`OidcSignIn::MapAddress`), with `saml_administrators` in place of
+`oidc_administrators` and `saml_auto_provision` in place of
+`oidc_auto_provision`: the mailbox at the address, active; with provisioning on,
+a mailbox made at a domain this server already has and with a password nobody is
+told; an address at a domain this server does not have refused; and the Control
+Deck only for an address the list names. An identity provider that says somebody
+is an administrator is not obeyed.
+
+**A SAML identity provider says nothing like `email_verified`.** The address it
+sends is taken as the directory's, so the attribute it is read from must be one
+the directory controls - `mail` or the user principal name, which people cannot
+edit - and never one a person can set at the identity provider themselves, or
+one person can name another's mailbox. That is the identity provider
+administrator's to decide, and it is said here because this server cannot check
+it.
+
+### What SAML sign-in does not do, and what that costs
+
+* **No single logout.** Signing out of the webmail ends the session here; the
+  session at the identity provider is the identity provider's, and a person
+  disabled there keeps a session already started here until its own ceiling
+  ends it - as with OpenID Connect.
+* **No encrypted assertions.** An `EncryptedAssertion` is refused, with the
+  sentence that says so. The assertion therefore passes through the browser
+  readable; TLS protects it on the wire, and since it arrives in a POST body no
+  access log holds it, but the browser - and anything running in it - can read
+  it.
+* **No signed requests.** The AuthnRequest is not signed, so an identity provider
+  set to demand signed requests cannot be used, and anybody can write a request
+  naming this server - which gains nothing, since the Response must answer a
+  request this server issued.
+* **No metadata fetch.** The three values are pasted, not read from the
+  identity provider's metadata URL; when it rolls its key over, the new
+  certificate has to be pasted beside the old one before the switch, and the old
+  one taken away after.
+* **No artifact binding, no attribute queries, and no IdP-initiated sign-in.** A
+  Response nobody asked for - the identity provider's own portal sending people
+  to the ACS - is refused with a sentence: this server takes only the sign-ins it
+  started, and a person starts one from the sign-in page.
+* **One identity provider**, and one OpenID Connect issuer beside it.
+
+### The threat model
+
+* **Signature wrapping.** The attack moves the signed Assertion somewhere a
+  verifier looks and puts a forged one where the application looks. Here the
+  application only ever looks at the signed bytes read back; there must be one
+  Assertion, where SAML puts it, its `ID` written once; the Reference must name
+  the signed element's own `ID`; and a signature anywhere but on the Response or
+  the Assertion is refused. The fixture tries the attack with the forgery under
+  the same `ID` and under another, and both are refused by the first of those
+  rules to meet them, the count of Assertions; that what is used is the signed
+  bytes read back is held by `XmlSignatureTester`, which no document sent from
+  outside can reach past the shape checks.
+* **Replay.** A request ID is spent by its first Response, so a Response posted
+  twice is refused by that; and an Assertion's `ID` is kept (above), so the same
+  assertion in a Response to a second, fresh sign-in is refused too - the fixture
+  proves both.
+* **Comment injection** (the 2018 family of attacks). A `NameID` of
+  `user@example.test<!---->.evil` carries a signature over
+  `user@example.test.evil`, because canonicalisation without comments leaves the
+  comment out. The reader drops comments and joins the text either side into one,
+  so the address read is `user@example.test.evil`, the whole of what was signed,
+  and not the `user@example.test` a reader that stops at the first text node
+  would take.
+* **The reader's refusals.** No document type declaration, so no entity - no
+  external entity to read a file with and no nested entities to exhaust memory
+  with - and no entity but the five XML predefines; no processing instruction;
+  UTF-8 only, every character checked, a surrogate refused; an attribute written
+  twice, or once under each of two prefixes, refused; a prefix nobody declared
+  refused, the `xml` prefix held to its own namespace and no prefix bound to the
+  `xmlns` one; nesting to 64, 20,000 elements, 256 attributes on one element, 128
+  namespace declarations, namespace names to 512 characters and a document to
+  1 MB (the ACS's own ceiling, 256 KB, is below that) - each ceiling held by the
+  tester on both sides of it.
+* **Algorithm confusion.** The key is the stored certificate's, and its type
+  must be the signature method's: an ECDSA signature is not checked against an
+  RSA key, nor the reverse, and RSA under 2048 bits is not used.
+* **Login forgery, closed by the finish.** A Response must answer a request
+  this server issued, with that request's RelayState, so a Response nobody asked
+  for is refused, and so is one for another sign-in. What those two cannot see is
+  a person who starts a sign-in *themselves*, keeps the Response their own
+  identity provider sends back, and has another person's browser post it: the
+  request and the RelayState are both right. The finish is what refuses that -
+  the other browser does not hold the cookie the start gave for that request -
+  and the fixture posts a Response started in one browser and finishes it in
+  another, with that browser's own cookie and with none, beside Responses
+  finished in the browsers that started them. What is left needs more than a
+  Response: a person who can set cookies for this server's host - from a sibling
+  subdomain serving pages they control, which can toss a cookie of its own at
+  `Path=/portal/saml` - could plant their own `hmsaml` beside a Response of their
+  own. That is the reason not to serve anybody else's pages from a name that
+  shares the webmail's parent domain.
+* **Floods.** The start carries no credential, so its table evicts rather than
+  refuses, and so does the finish's; the ACS is held to 256 KB and the ordinary
+  timer. The canonicaliser, which runs on a document before any key has been
+  checked, is bounded where its work grows with what a sender controls: the
+  reader refuses a document declaring more than 128 namespaces (a SAML document
+  declares fewer than twenty) or a namespace name over 512 characters (exc-c14n
+  writes a declaration again on every element that uses a prefix no output
+  ancestor wrote, so one long name used by many elements is written many
+  times), and an `InclusiveNamespaces` PrefixList is read without its repeats and
+  refused past 32 prefixes; an element's scope is copied only when it declares
+  something, and what the output ancestors wrote is never copied; and the
+  signature is checked over `SignedInfo` before the signed element is
+  canonicalised at all. `XmlCanonicalizationTester` holds a worst-case document
+  of 256 KB - every ceiling spent where it costs most - to a time bound.
+
 Where it lives
 --------------
 
@@ -314,10 +678,13 @@ Where it lives
 | The CBOR, COSE and signature reader | `Common/Util/WebAuthn.{h,cpp}`, with `WebAuthnTester` running fixed vectors on every debug start |
 | The credentials and the challenges | `Common/Util/PasskeyStore.{h,cpp}`, table `hm_passkeys` (schema 6077) |
 | The REST routes | `Common/Util/RestApiPasskeys.cpp` |
-| The OIDC flow | `Common/Util/OidcSignIn.{h,cpp}` and `Common/Util/RestApiOidcSignIn.cpp` |
-| The webmail | the Passkeys card on the Security page, and the two buttons on the sign-in card |
-| The Control Deck | the Passkeys view, and the two buttons on the sign-in card |
-| The fixtures | `RegressionTests/API/RestApiPasskeys.cs` (a software authenticator in the fixture) and `RegressionTests/API/RestApiOidcSignIn.cs` (a fake issuer in the fixture) |
+| The OIDC flow | `Common/Util/OidcSignIn.{h,cpp}` and `Common/Util/RestApiOidcSignIn.cpp`; `OidcSignIn::MapAddress` is the mapping both kinds of single sign-on share |
+| The XML reader and the canonicaliser | `Common/Util/XmlDocument.{h,cpp}`, with `XmlCanonicalizationTester` holding them to the W3C's examples |
+| XML-Signature verification | `Common/Util/XmlSignature.{h,cpp}`, with `XmlSignatureTester` verifying vectors .NET's `SignedXml` signed and refusing every single-byte change to them |
+| The SAML flow | `Common/Util/SamlSignIn.{h,cpp}` (the start, the ACS's verification and the finish) and `Common/Util/RestApiSamlSignIn.cpp` (the routes and the `hmsaml` cookie); the ACS's 256 KB ceiling is `RestApiServer::LargeRequestCeiling_` over `HttpServer`'s per-route ceiling |
+| The webmail | the Passkeys card on the Security page, and the three buttons on the sign-in card |
+| The Control Deck | the Passkeys view, and the three buttons on the sign-in card |
+| The fixtures | `RegressionTests/API/RestApiPasskeys.cs` (a software authenticator in the fixture), `RegressionTests/API/RestApiOidcSignIn.cs` (a fake issuer in the fixture) and `RegressionTests/API/SamlSignIn.cs` (a SAML identity provider in the fixture, signing with .NET's `SignedXml`) |
 
 `hm_passkeys` is **not in the backup**, and `AccountStores.cpp` says why: a
 credential is bound to the relying party id and to an authenticator that will

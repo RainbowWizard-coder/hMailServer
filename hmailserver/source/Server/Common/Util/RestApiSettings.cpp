@@ -62,6 +62,7 @@
 #include "CompromiseDetector.h"
 #include "../AntiVirus/Sandbox.h"
 #include "SessionPolicies.h"
+#include "SamlSignIn.h"
 #include "../Application/IniSettingStore.h"
 #include "../Application/IniSettingsBaseline.h"
 #include "../Application/SettingsDiff.h"
@@ -1290,7 +1291,7 @@ namespace
         "The scopes asked for, space separated. 'openid email' by default, which is what the mapping needs: the id_token's verified email names the local account.",
         ROW_TEXT(Config()->GetSignInString(PROPERTY_OIDC_SCOPES)), ROW_SET(Config()->SetSignInString(PROPERTY_OIDC_SCOPES, v.text)), ROW_NO_CHECK },
       { "oidc_redirect_base_url", KindString, ReadWrite, EffectNow, nullptr,
-        "The address the webmail is reached at from outside, such as https://mail.example.com: the issuer sends a person back to it plus /portal/oidc/callback, and that whole address is the redirect URI to register at the issuer. Empty falls back to import_oauth_redirect_base_url.",
+        "The address the webmail is reached at from outside, such as https://mail.example.com: the issuer sends a person back to it plus /portal/oidc/callback, and that whole address is the redirect URI to register at the issuer. It is also the base of SAML sign-in's ACS URL (plus /portal/saml/acs), its default entity ID (plus /saml) and its metadata (plus /saml/metadata). Empty falls back to import_oauth_redirect_base_url.",
         ROW_TEXT(Config()->GetSignInString(PROPERTY_OIDC_REDIRECT_BASE_URL)), ROW_SET(Config()->SetSignInString(PROPERTY_OIDC_REDIRECT_BASE_URL, v.text)),
         [] (const Value &v) -> String { return ImportUrlProblem(v.text, true); } },
       { "oidc_auto_provision", KindBoolean, ReadWrite, EffectNow, nullptr,
@@ -1299,6 +1300,63 @@ namespace
       { "oidc_administrators", KindString, ReadWrite, EffectNow, nullptr,
         "The addresses that sign in to the Control Deck as the administrator when the issuer verifies them, comma separated. Empty, the default, means single sign-on reaches the webmail only and the Deck still asks for the administrator password.",
         ROW_TEXT(Config()->GetSignInString(PROPERTY_OIDC_ADMINISTRATORS)), ROW_SET(Config()->SetSignInString(PROPERTY_OIDC_ADMINISTRATORS, v.text)), ROW_NO_CHECK },
+
+      // SAML sign-in, beside OIDC (Util/SamlSignIn.h): off until the identity
+      // provider's entity ID, its sign-in URL and its certificate are set, and
+      // reached at OIDC's base URL. The certificate is write-only as the
+      // client secret is - not because it is secret but so that a paste is
+      // never answered back - and its fingerprints are what is read; its name
+      // is withheld by AuditTrail::IsSecretName as well, so that the list of
+      // what is changed from stock and the audit trail do not answer it back
+      // either.
+      { "saml_idp_entity_id", KindString, ReadWrite, EffectNow, nullptr,
+        "The SAML identity provider's entity ID, exactly as its metadata writes it: the Issuer every answer must carry. Entra ID shows it as the Microsoft Entra Identifier (https://sts.windows.net/ and the tenant id), Okta as the Identity Provider Issuer, ADFS as its Federation Service Identifier. Empty, the default, offers no SAML sign-in at all.",
+        ROW_TEXT(Config()->GetSignInString(PROPERTY_SAML_IDP_ENTITY_ID)), ROW_SET(Config()->SetSignInString(PROPERTY_SAML_IDP_ENTITY_ID, v.text)),
+        [] (const Value &v) -> String { return v.text.GetLength() > 500 ? String(_T("saml_idp_entity_id is at most 500 characters.")) : String(); } },
+      { "saml_idp_sso_url", KindString, ReadWrite, EffectNow, nullptr,
+        "The identity provider's sign-in URL for the HTTP-Redirect binding, where the browser is sent with the request: Entra ID's Login URL, Okta's Identity Provider Single Sign-On URL, ADFS's https://<host>/adfs/ls/. One line, https or the loopback. Empty offers no SAML sign-in.",
+        ROW_TEXT(Config()->GetSignInString(PROPERTY_SAML_IDP_SSO_URL)), ROW_SET(Config()->SetSignInString(PROPERTY_SAML_IDP_SSO_URL, v.text)),
+        [] (const Value &v) -> String
+        {
+           // The browser is sent to it in a Location header, as it is.
+           if (v.text.Find(_T("\r")) >= 0 || v.text.Find(_T("\n")) >= 0)
+              return String(_T("saml_idp_sso_url is one line."));
+           return ImportUrlProblem(v.text, true);
+        } },
+      { "saml_idp_certificate", KindString, WriteOnly, EffectNow, nullptr,
+        "The identity provider's signing certificate in PEM, or two while its key is rolled over; every signature is verified against these and never against a key the answer carries. RSA of 2048 bits or more, or an elliptic curve of 256 or more. A private key, anything that is not a certificate, or a paste over 60,000 characters is refused; a paste whose line breaks were dropped or made spaces is read. Stored as PEM again, which must fit 4,000 characters, and never answered back - not here, not in the list of what is changed from stock and not in the audit trail: saml_idp_certificate_fingerprints says what is held. Empty offers no SAML sign-in.",
+        nullptr, ROW_SET(Config()->SetSignInString(PROPERTY_SAML_IDP_CERTIFICATE, SamlSignIn::NormalisedCertificates(v.text))),
+        [] (const Value &v) -> String { return SamlSignIn::CertificateProblem(v.text); },
+        nullptr, PROPERTY_SAML_IDP_CERTIFICATE },
+      { "saml_idp_certificate_fingerprints", KindString, ReadOnly, EffectNow, nullptr,
+        "The certificates saml_idp_certificate holds, by their SHA-256 fingerprints, their SHA-1 thumbprints (what Entra ID and ADFS show) and when each expires, separated by semicolons. Empty when none is held.",
+        ROW_TEXT(SamlSignIn::CertificateSummary(Config()->GetSignInString(PROPERTY_SAML_IDP_CERTIFICATE))), nullptr, ROW_NO_CHECK },
+      { "saml_sp_entity_id", KindString, ReadWrite, EffectNow, nullptr,
+        "This server's entity ID as the identity provider knows it (Entra ID's Identifier, Okta's Audience URI, ADFS's relying party identifier): every assertion's audience must name it. Empty, the default, means the base URL - oidc_redirect_base_url, or import_oauth_redirect_base_url when that is empty - followed by /saml. The metadata at /saml/metadata carries it with the ACS URL, <base URL>/portal/saml/acs.",
+        ROW_TEXT(Config()->GetSignInString(PROPERTY_SAML_SP_ENTITY_ID)), ROW_SET(Config()->SetSignInString(PROPERTY_SAML_SP_ENTITY_ID, v.text)),
+        [] (const Value &v) -> String { return v.text.GetLength() > 500 ? String(_T("saml_sp_entity_id is at most 500 characters.")) : String(); } },
+      { "saml_email_attribute", KindString, ReadWrite, EffectNow, nullptr,
+        "The attribute the address is read from when the NameID is not an emailAddress one: the emailaddress claim URI Entra ID and ADFS send by default. Empty means that default. The attribute must carry exactly one value.",
+        ROW_TEXT(Config()->GetSignInString(PROPERTY_SAML_EMAIL_ATTRIBUTE)), ROW_SET(Config()->SetSignInString(PROPERTY_SAML_EMAIL_ATTRIBUTE, v.text)),
+        [] (const Value &v) -> String { return v.text.GetLength() > 500 ? String(_T("saml_email_attribute is at most 500 characters.")) : String(); } },
+      { "saml_require_signed_assertion", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether the Assertion must carry its own signature. On, the default, which is how Entra ID and ADFS sign; off takes a signature over the whole Response as enough, which is what an identity provider set to sign the response only sends. Either way the assertion used is the one read back from the bytes a signature covered.",
+        ROW_FLAG(Config()->GetSamlRequireSignedAssertion()), ROW_SET(Config()->SetSamlRequireSignedAssertion(v.flag)), ROW_NO_CHECK },
+      { "saml_auto_provision", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether an address the SAML identity provider vouched for that has no mailbox here gets one made for it at its first sign-in, as oidc_auto_provision does for OIDC. Off, the default. The account made has no password of its own and is at a domain this server already has.",
+        ROW_FLAG(Config()->GetSamlAutoProvision()), ROW_SET(Config()->SetSamlAutoProvision(v.flag)), ROW_NO_CHECK },
+      { "saml_administrators", KindString, ReadWrite, EffectNow, nullptr,
+        "The addresses that sign in to the Control Deck as the administrator when the SAML identity provider vouches for them, comma separated, as oidc_administrators does for OIDC. Empty, the default, means SAML reaches the webmail only.",
+        ROW_TEXT(Config()->GetSignInString(PROPERTY_SAML_ADMINISTRATORS)), ROW_SET(Config()->SetSignInString(PROPERTY_SAML_ADMINISTRATORS, v.text)), ROW_NO_CHECK },
+      { "saml_button_label", KindString, ReadWrite, EffectNow, nullptr,
+        "The words on the SAML sign-in button of the webmail and the Control Deck. Sign in with SAML by default, which each page shows in its reader's language; anything else is shown as written. Its own words, so that the SAML button never reads as the OpenID Connect one does when one identity provider serves both. One line, at most 60 characters; empty means the default.",
+        ROW_TEXT(Config()->GetSignInString(PROPERTY_SAML_BUTTON_LABEL)), ROW_SET(Config()->SetSignInString(PROPERTY_SAML_BUTTON_LABEL, v.text)),
+        [] (const Value &v) -> String
+        {
+           if (v.text.GetLength() > 60 || v.text.Find(_T("\r")) >= 0 || v.text.Find(_T("\n")) >= 0)
+              return String(_T("saml_button_label is one line of at most 60 characters."));
+           return String();
+        } },
 
       // Spam traps (Common/AntiSpam/SpamTrapMonitor.h). In hm_settings, read
       // when a trap is addressed, so a change applies to the next hit. Nothing

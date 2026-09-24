@@ -456,6 +456,9 @@ let clipboard = null;
 
 const requests = [];
 let signedIn = false;
+// What /api/v1/signin-methods answers; a check below switches single sign-on
+// off to see both buttons go.
+let deckSignInMethods = { passkeys: true, oidc: true, oidc_label: 'login.example.com', saml: true, saml_label: 'Contoso single sign-on' };
 let otpRequired = false;
 let nextRefusal = null;
 // GET /api/v1/warmup answers 500 once when set: the queue page must stand.
@@ -1966,7 +1969,7 @@ function answer(method, path, headers, raw) {
       return { status: 200, body: fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n'), headers: { 'Content-Type': 'text/markdown; charset=utf-8' } };
    }
    if (path === '/api/v1/signin-methods' && method === 'GET') {
-      return json(200, { passkeys: true, oidc: true, oidc_label: 'login.example.com' });
+      return json(200, Object.assign({}, deckSignInMethods));
    }
    if (path === '/api/v1/passkeys/challenge' && method === 'POST') {
       return json(200, { challenge: 'Y2hhbGxlbmdl', rp_id: 'deck.test', timeout: 300000 });
@@ -3719,6 +3722,18 @@ async function main() {
       $('#passkeyBtn').hidden === false && $('#ssoBtn').hidden === false &&
       $('#ssoBtn').textContent.indexOf('login.example.com') >= 0,
       $('#ssoBtn').textContent);
+   // SAML beside OIDC: a button of its own, named by the identity provider's
+   // sign-in host, starting a Deck sign-in.
+   check('the sign-in card offers the SAML identity provider beside the OpenID Connect one when the server says so',
+      $('#samlBtn').hidden === false && $('#samlBtn').textContent === 'Contoso single sign-on',
+      $('#samlBtn').textContent);
+   {
+      const hrefBefore = locationStub.href;
+      click($('#samlBtn'));
+      check('the SAML button starts a Control Deck sign-in at /portal/saml/start?deck=1',
+         locationStub.href === '/portal/saml/start?deck=1', String(locationStub.href));
+      locationStub.href = hrefBefore;
+   }
 
    // ---- signing in with a passkey rather than the administrator password
    {
@@ -3799,9 +3814,18 @@ async function main() {
       // and signed out at the card. The view outlives a sign-out, so leaving
       // the Passkeys page selected would draw it again at the next sign-in.
       await goTo('dash');
+      // And the card drawn again at sign-out asks again what it may offer:
+      // with single sign-on switched off meanwhile, neither button stays - the
+      // negative control of the checks at the first visit.
+      const deckMethodsBefore = deckSignInMethods;
+      deckSignInMethods = Object.assign({}, deckMethodsBefore, { oidc: false, saml: false });
       click($('#logoutBtn'));
       await flush();
       await flush();
+      check('with single sign-on off, the card drawn again at sign-out offers neither the OpenID Connect nor the SAML button',
+         $('#ssoBtn').hidden === true && $('#samlBtn').hidden === true,
+         'sso hidden=' + $('#ssoBtn').hidden + ' saml hidden=' + $('#samlBtn').hidden);
+      deckSignInMethods = deckMethodsBefore;
    }
 
    // ---- the tokens: one palette, a dark theme beside it, and nothing else
