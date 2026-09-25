@@ -170,8 +170,20 @@ cleanly.
   `[Security]` in each node's INI (the paths, the connection, the administrator
   password and its second factor); `PasswordPepper`, the one `[Settings]` key
   that lives in the file only and must be identical on both nodes or no
-  account whose password is an Argon2id or scrypt hash signs in on B; and the
-  certificate and DKIM key files at the paths the database names. Do not copy
+  account whose password is an Argon2id or scrypt hash signs in on B; the
+  **stored-secrets key**, `[Security] StoredSecretsKey`, which every account's
+  second factor and the `[Settings]` secrets in the shared database are sealed
+  under once the installation has one, and which must be the database's key on
+  both nodes or every second factor refuses every code on B and SRS, BATV, HS256
+  tokens and `/metrics` stop working there ([SecretsAtRest.md](SecretsAtRest.md)).
+  It is made once, by an elevated step - `--create-stored-secrets-key`, or the
+  installer on a new installation - never by a service's start, and the database
+  records which key it is, so B can neither make one of its own beside A's nor
+  have one imported that is not the database's. Carry it with `hMailServer.exe
+  --export-stored-secrets-key FILE` on A and `--import-stored-secrets-key FILE`
+  on B, never by copying the line, which is sealed under A's own DPAPI, and keep
+  the exported file with the database backups; and the certificate and DKIM key
+  files at the paths the database names. Do not copy
   A's INI over B's wholesale - on Windows `[Database] Password` is normally
   sealed with the machine's own DPAPI key, and a `[SettingsOverride]` section, if
   A has one, is per node on purpose.
@@ -203,15 +215,29 @@ cleanly.
    schema, B refuses to start (`HM5011`) unless its `hMailServer.ini` says
    `[Database] UpgradeOnStart=1`, in which case B applies the chain at its own
    start - see [Upgrading.md](Upgrading.md#an-upgrade-without-a-window). Take the
-   database backup before this step, not after. **One node at a time:** start B
+   database backup before this step, not after. An upgrade to a version that
+   seals stored secrets makes no stored-secrets key: sealing stays off until you
+   make one on one node (`--create-stored-secrets-key`), export it and import it
+   on the other ([Upgrading.md](Upgrading.md)). A node that starts without the
+   database's key once there is one says so as `HM7495` at each start, seals
+   nothing and makes no key of its own. **One node at a time:** start B
    and let it finish the chain before A's binaries are replaced and A is
    started again; A then reads the new version and does nothing. Two nodes that
    start together are serialised on the version row and the second finds each
    step done, but a warm-standby pair should never need that.
-6. **Confirm:** send a test message through the VIP and confirm delivery; check
+6. **Check the key on B before the VIP is B's for good:** B's error log has no
+   `HM7495`, `HM7492` or `HM7493` from this start. `/readyz` is 200 either way -
+   a node without the key serves mail, and only its users with a second factor,
+   and SRS, BATV and HS256, fail - so this is the check that finds it. If B says
+   `HM7495`, stop it, run `hMailServer.exe --import-stored-secrets-key FILE` on B
+   with the file exported from A (or kept with the backups), and start it again.
+7. **Confirm:** send a test message through the VIP and confirm delivery; check
    `/healthz` reports `database: up` and `state: running`.
 
-Reverse the steps to fail back. To take A off the air for a moment without a
+Reverse the steps to fail back - step 6 included, on A: after an upgrade the
+installer starts A on its own before you can import anything, so when A comes back
+check its error log for `HM7495`, `HM7492` and `HM7493` before the VIP moves back,
+and import the key there first if it asks for it. To take A off the air for a moment without a
 failover at all - a certificate on disk to swap, a disk to grow - step 1, then
 `DELETE /api/v1/server/drain` to reopen the same ports: that is maintenance mode,
 and nothing was stopped.
@@ -250,6 +276,12 @@ and nothing was stopped.
 * [ ] `ShutdownDrainSeconds` is set so planned failovers drain gracefully.
 * [ ] `PasswordPepper` is identical in both nodes' `hMailServer.INI` (or absent
       from both), and neither node has a `[SettingsOverride]` section.
+* [ ] Both nodes hold the database's stored-secrets key: the key id each prints when
+      it exports it is the same, the setup checklist's `stored_secrets_key` item is
+      done on both, and neither node's error log has `HM7495`, `HM7492` or `HM7493`.
+* [ ] The exported stored-secrets key is kept with the database backups, apart from
+      them: without it a database restored after both nodes are lost opens no
+      second factor and no `[Settings]` secret.
 * [ ] Passive node's service is stopped and set to Manual/Disabled.
 * [ ] A documented fencing step exists for unplanned failover.
 * [ ] A test message sent through the VIP is delivered after a planned failover in

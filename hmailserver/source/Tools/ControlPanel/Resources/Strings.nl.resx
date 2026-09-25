@@ -5703,6 +5703,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No signature database folder is set." xml:space="preserve">
     <value>Er is geen map met de handtekeningendatabase ingesteld.</value>
   </data>
+  <data name="No stored-secrets key has been made, so an account's second factor and the [Settings] secrets are stored as written. Make one on the server with {0}, then export it." xml:space="preserve">
+    <value>Er is geen sleutel voor opgeslagen geheimen gemaakt, dus de tweede factor van een account en de geheimen in [Settings] worden opgeslagen zoals ze geschreven zijn. Maak er een op de server met {0} en exporteer hem daarna.</value>
+  </data>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>Geen syntaxisfouten gemeld.</value>
   </data>
@@ -5978,6 +5981,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Geef op de pagina TCP/IP-poorten de submission-poort (587) STARTTLS met een certificaat van de pagina SSL-certificaten, of voeg poort 465 met impliciete TLS toe.</value>
+  </data>
+  <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
+    <value>Op de server, vanaf een opdrachtprompt met verhoogde rechten in de map Bin: hMailServer.exe --create-stored-secrets-key maakt de sleutel, en hMailServer.exe --export-stored-secrets-key FILE exporteert hem. Bewaar het bestand bij de databaseback-ups, maar apart ervan.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Aan, maar kan niet draaien</value>
@@ -6595,6 +6601,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>De beheerdersreferentie beschermen</value>
+  </data>
+  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>ProtectStoredSecretsWithDPAPI is 0, dus de tweede factor van een account en de geheimen in [Settings] worden opgeslagen zoals ze geschreven zijn, en er is geen sleutel voor opgeslagen geheimen nodig.</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Beschermde _personen (personen buiten de accounts van dit domein wier naam niet mag worden geleend; één per regel, elk Naam &lt;address&gt;, Naam of adres)</value>
@@ -9185,6 +9194,12 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   <data name="The database destination creates its table on first use and inserts asynchronously, so a log write never blocks a mail session. If the database is unreachable the entries go to the log files instead and the server says so in the application log - nothing is discarded." xml:space="preserve">
     <value>De databasebestemming maakt haar tabel aan bij het eerste gebruik en voegt asynchroon in, zodat een logschrijfactie een mailsessie nooit blokkeert. Is de database onbereikbaar, dan gaan de vermeldingen in plaats daarvan naar de logbestanden en zegt de server dat in het toepassingslogboek - er wordt niets weggegooid.</value>
   </data>
+  <data name="The database's record of its stored-secrets key could not be read, so whether this server holds the database's key cannot be told." xml:space="preserve">
+    <value>Het record dat de database van haar sleutel voor opgeslagen geheimen bijhoudt, kon niet worden gelezen, dus is niet te zeggen of deze server de sleutel van de database heeft.</value>
+  </data>
+  <data name="The database's second factors and [Settings] secrets are sealed under the stored-secrets key {0}, which this server does not hold, so they do not open here. Import it on the server from one that holds it: {1}." xml:space="preserve">
+    <value>De tweede factoren en de geheimen in [Settings] van de database zijn verzegeld onder de sleutel voor opgeslagen geheimen {0}, die deze server niet heeft, dus ze gaan hier niet open. Importeer hem op de server vanaf een server die hem heeft: {1}.</value>
+  </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>De database: kijk naar fouten die de verbindingspool noemen. Wanneer de wachttijd van de pool verstrijkt, antwoordt een ontvangeropzoeking met 451 4.3.2 in plaats van 550, zodat een database die door een back-up vergrendeld is mail uitstelt in plaats van hem te laten bouncen.</value>
   </data>
@@ -9321,6 +9336,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   </data>
   <data name="The item no longer exists." xml:space="preserve">
     <value>Het item bestaat niet meer.</value>
+  </data>
+  <data name="The key an account's second factor and the [Settings] secrets are sealed under in the database. It exists on the server alone, so a copy has to be exported and kept with the database backups." xml:space="preserve">
+    <value>De sleutel waaronder de tweede factor van een account en de geheimen in [Settings] in de database zijn verzegeld. Hij bestaat alleen op de server, dus een kopie moet worden geëxporteerd en bij de databaseback-ups worden bewaard.</value>
   </data>
   <data name="The key file could not be checked from this machine." xml:space="preserve">
     <value>Het sleutelbestand kon niet vanaf deze machine worden gecontroleerd.</value>
@@ -9746,6 +9764,15 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>De opgeslagen vervaldatum kon niet worden gelezen in de vorm die deze pagina verwacht (YYYY-MM-DD HH:MM:SS), dus hiervandaan valt niet te zeggen of de server deze sleutel nog accepteert. Is de regel met de hand bewerkt, corrigeer die dan; trek anders de sleutel in en maak een vervanger aan.</value>
+  </data>
+  <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
+    <value>De sleutel voor opgeslagen geheimen - waaronder de geheimen van de database zijn verzegeld</value>
+  </data>
+  <data name="The stored-secrets key {0} has never been exported. Export it on the server with {1} and keep the file with the database backups: a database restored without it opens no second factor and no [Settings] secret." xml:space="preserve">
+    <value>De sleutel voor opgeslagen geheimen {0} is nog nooit geëxporteerd. Exporteer hem op de server met {1} en bewaar het bestand bij de databaseback-ups: een database die zonder hem wordt teruggezet, opent geen enkele tweede factor en geen enkel geheim in [Settings].</value>
+  </data>
+  <data name="The stored-secrets key {0} was exported on {1}; keep that file with the database backups." xml:space="preserve">
+    <value>De sleutel voor opgeslagen geheimen {0} is geëxporteerd op {1}; bewaar dat bestand bij de databaseback-ups.</value>
   </data>
   <data name="The subject tag breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does. The header does not, so prefer the header where the reader can show it." xml:space="preserve">
     <value>De markering in het onderwerp breekt elke DKIM-handtekening die de afzender over zijn onderwerp heeft gezet, precies zoals het onderwerpvoorvoegsel van de spamfilter. De kopregel doet dat niet, dus geef daar de voorkeur aan waar de lezer hem kan tonen.</value>

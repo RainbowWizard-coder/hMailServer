@@ -118,8 +118,13 @@ namespace HM
       // 0600 is asked of open() and the umask can only tighten it; the mode is
       // checked again, by every reader, on every read, so a chmod after the fact
       // is caught too.
+      //
+      // giveAway: root making the file for the service (CreateKeyFileFor). The file
+      // is given to owner:group, and its mode set, through the descriptor it was
+      // made with - before it has its name, and never by a path, which a symbolic
+      // link planted in a directory the service owns could send elsewhere.
       bool
-      CreateKeyFile_(const AnsiString &path, String &failure)
+      CreateKeyFile_(const AnsiString &path, String &failure, bool giveAway = false, uid_t owner = 0, gid_t group = 0)
       {
          unsigned char key[KeyLength];
          if (RAND_bytes(key, (int) KeyLength) != 1)
@@ -132,7 +137,7 @@ namespace HM
          temporary.append(".writing-");
          temporary.append(std::to_string(::getpid()));
 
-         int fd = ::open(temporary.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, S_IRUSR | S_IWUSR);
+         int fd = ::open(temporary.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, S_IRUSR | S_IWUSR);
          if (fd < 0)
          {
             String reason = LastErrnoText_();
@@ -161,6 +166,15 @@ namespace HM
          }
 
          OPENSSL_cleanse(key, sizeof(key));
+
+         if (giveAway && (::fchown(fd, owner, group) != 0 || ::fchmod(fd, S_IRUSR | S_IWUSR) != 0))
+         {
+            String reason = LastErrnoText_();
+            failure.Format(_T("the key file could not be given to the account the service runs as: %s"), reason.c_str());
+            ::close(fd);
+            ::unlink(temporary.c_str());
+            return false;
+         }
 
          // The key has to be on the disk before its name is, or a crash between the
          // two leaves a name with nothing behind it and every secret protected
@@ -242,9 +256,23 @@ namespace HM
                String reason = LastErrnoText_();
                String message;
                if (openError == ENOENT)
+               {
+                  // Once a process, and not at High: nothing here can change until
+                  // somebody restores the file or re-enters the secrets, and every
+                  // read of a stored secret meets the same missing file - a route
+                  // at each delivery, the stored-secrets key at each start - so the
+                  // sentence written each time was the same sentence, as an alert.
+                  static std::atomic<bool> missingReported(false);
+                  bool expected = false;
+                  if (!missingReported.compare_exchange_strong(expected, true))
+                     return false;
+
                   message.Format(_T("The stored-secret key file %s does not exist, so a stored secret that was protected under ")
                      _T("it cannot be opened. If the data directory was restored from a backup, the key file has to be restored ")
-                     _T("with it; without it every stored password has to be re-entered."), keyPath.c_str());
+                     _T("with it; without it every stored password has to be re-entered. Reported once a process."), keyPath.c_str());
+                  ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6412, source, message);
+                  return false;
+               }
                else if (openError == ELOOP)
                   message.Format(_T("The stored-secret key file %s is a symbolic link, which is refused: the key must be a plain ")
                      _T("file of 32 bytes with mode 0600 at that name, so that the mode check is a check of the file itself."),
@@ -334,6 +362,64 @@ namespace HM
          return key_file_override;
 
       return FileUtilities::Combine(IniFileSettings::Instance()->GetDataDirectory(), KeyFileName);
+   }
+
+   bool
+   DataProtector::CreateKeyFileFor(unsigned int owner, unsigned int group, String &failure)
+   {
+      failure.Empty();
+
+      AnsiString narrowPath;
+      Unicode::WideToMultiByte(GetKeyFilePath(), narrowPath);
+
+      // Made unless it is there, never replaced; either way judged below.
+      struct stat existing = {};
+      if (::lstat(narrowPath.c_str(), &existing) != 0)
+      {
+         if (errno != ENOENT)
+         {
+            String reason = LastErrnoText_();
+            failure.Format(_T("%s could not be examined: %s"), String(narrowPath).c_str(), reason.c_str());
+            return false;
+         }
+
+         if (!CreateKeyFile_(narrowPath, failure, true, (uid_t) owner, (gid_t) group))
+            return false;
+      }
+
+      // What the name holds now, through a descriptor that did not follow a link.
+      const int fd = ::open(narrowPath.c_str(), O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+      if (fd < 0)
+      {
+         String reason = LastErrnoText_();
+         failure.Format(_T("%s could not be opened: %s. It must be a plain file, not a symbolic link."), String(narrowPath).c_str(), reason.c_str());
+         return false;
+      }
+
+      struct stat status = {};
+      const bool examined = ::fstat(fd, &status) == 0;
+      ::close(fd);
+
+      if (!examined || !S_ISREG(status.st_mode) || status.st_nlink != 1)
+      {
+         failure.Format(_T("%s is not a plain file with one name"), String(narrowPath).c_str());
+         return false;
+      }
+
+      if (status.st_uid != (uid_t) owner)
+      {
+         failure.Format(_T("%s belongs to user %u, not to %u, the owner of the data directory and the account the service runs as, which then cannot read it. ")
+            _T("Give it to that account (chown) and keep its mode 0600"), String(narrowPath).c_str(), (unsigned) status.st_uid, (unsigned) owner);
+         return false;
+      }
+
+      if ((status.st_mode & (S_IRWXG | S_IRWXO)) != 0)
+      {
+         failure.Format(_T("%s can be read by users other than its owner; chmod 600 it"), String(narrowPath).c_str());
+         return false;
+      }
+
+      return true;
    }
 
 #endif
@@ -505,8 +591,13 @@ namespace HM
 
       plainText.assign(reinterpret_cast<const char*>(output.pbData), output.cbData);
 
+      // The plaintext DPAPI handed back, wiped before the memory goes back to the
+      // heap: it is the secret, and the heap keeps what it is given.
       if (output.pbData)
+      {
+         SecureZeroMemory(output.pbData, output.cbData);
          LocalFree(output.pbData);
+      }
 
       return true;
 #endif

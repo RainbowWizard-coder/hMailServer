@@ -8,9 +8,10 @@ Filename: "{app}\Bin\hMailServer.INI"; Section: "Directories"; Key: "EventFolder
 
 ; Languages
 Filename: "{app}\Bin\hMailServer.INI"; Section: "GUILanguages"; Key: "ValidLanguages"; String: "english,swedish";
-; Check: HasAdministratorPassword is what keeps an installation that never collected
-; a password from writing the MD5 of the empty string here - a value the server
-; accepts an empty password against, while looking configured to everything that
-; tests for "unset". Silent installs can supply one with /adminpassword=<password>.
-; See HasAdministratorPassword in hMailServerInnoExtension.iss.
-Filename: "{app}\Bin\hMailServer.INI"; Section: "Security"; Key: "AdministratorPassword"; String: "{code:GetHashedPassword}"; Flags: createkeyifdoesntexist; Components: server; Check: HasAdministratorPassword;
+; [Security] AdministratorPassword is not written from here any more. Until 25
+; September 2026 an entry here wrote GetMD5OfString of the password: an unsalted MD5
+; digest, which the server accepted and never re-hashed. The server makes the hash
+; now - PBKDF2, the one the Control Panel writes - when RunPostInstallTasks runs
+; hMailServer.exe --set-admin-password, with the password in the environment and
+; never on its command line. See WriteAdministratorPassword in
+; hMailServerInnoExtension.iss.

@@ -5703,6 +5703,9 @@ Control Panel может читать файлы сообщений только
   <data name="No signature database folder is set." xml:space="preserve">
     <value>Папка базы сигнатур не задана.</value>
   </data>
+  <data name="No stored-secrets key has been made, so an account's second factor and the [Settings] secrets are stored as written. Make one on the server with {0}, then export it." xml:space="preserve">
+    <value>Ключ хранимых секретов не создан, поэтому второй фактор учётной записи и секреты [Settings] хранятся в исходном виде. Создайте его на сервере командой {0}, а затем экспортируйте.</value>
+  </data>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>Синтаксических ошибок не обнаружено.</value>
   </data>
@@ -5978,6 +5981,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>На странице Порты TCP/IP задайте порту отправки (587) STARTTLS с сертификатом со страницы Сертификаты SSL или добавьте порт 465 с неявным TLS.</value>
+  </data>
+  <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
+    <value>На сервере, в командной строке с повышенными правами в папке Bin: hMailServer.exe --create-stored-secrets-key создаёт ключ, а hMailServer.exe --export-stored-secrets-key FILE экспортирует его. Храните файл вместе с резервными копиями базы данных, но отдельно от них.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Включено, но работать не может</value>
@@ -6595,6 +6601,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Защитить учётные данные администратора</value>
+  </data>
+  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>ProtectStoredSecretsWithDPAPI равен 0, поэтому второй фактор учётной записи и секреты [Settings] хранятся в исходном виде, и ключ хранимых секретов не нужен.</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Защищённые _лица (лица вне учётных записей этого домена, чьё имя нельзя заимствовать; по одному на строку, каждое как Имя &lt;address&gt;, Имя или адрес)</value>
@@ -9185,6 +9194,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The database destination creates its table on first use and inserts asynchronously, so a log write never blocks a mail session. If the database is unreachable the entries go to the log files instead and the server says so in the application log - nothing is discarded." xml:space="preserve">
     <value>Назначение «база данных» создаёт свою таблицу при первом использовании и вставляет записи асинхронно, поэтому запись в журнал никогда не блокирует почтовую сессию. Если база данных недоступна, записи уходят в файлы журналов, и сервер сообщает об этом в журнале приложения - ничего не отбрасывается.</value>
   </data>
+  <data name="The database's record of its stored-secrets key could not be read, so whether this server holds the database's key cannot be told." xml:space="preserve">
+    <value>Не удалось прочитать запись базы данных о её ключе хранимых секретов, поэтому нельзя сказать, есть ли у этого сервера ключ базы данных.</value>
+  </data>
+  <data name="The database's second factors and [Settings] secrets are sealed under the stored-secrets key {0}, which this server does not hold, so they do not open here. Import it on the server from one that holds it: {1}." xml:space="preserve">
+    <value>Вторые факторы и секреты [Settings] в базе данных запечатаны ключом хранимых секретов {0}, которого у этого сервера нет, поэтому здесь они не открываются. Импортируйте его на сервер с сервера, у которого он есть: {1}.</value>
+  </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>База данных: ищите ошибки с упоминанием пула соединений. Когда истекает срок ожидания пула, поиск получателя отвечает 451 4.3.2, а не 550, поэтому база, заблокированная резервным копированием, откладывает почту, а не возвращает её.</value>
   </data>
@@ -9321,6 +9336,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The item no longer exists." xml:space="preserve">
     <value>Элемент больше не существует.</value>
+  </data>
+  <data name="The key an account's second factor and the [Settings] secrets are sealed under in the database. It exists on the server alone, so a copy has to be exported and kept with the database backups." xml:space="preserve">
+    <value>Ключ, которым в базе данных запечатаны второй фактор учётной записи и секреты [Settings]. Он существует только на сервере, поэтому его копию нужно экспортировать и хранить вместе с резервными копиями базы данных.</value>
   </data>
   <data name="The key file could not be checked from this machine." xml:space="preserve">
     <value>Файл ключа не удалось проверить с этой машины.</value>
@@ -9746,6 +9764,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Сохранённый срок действия не удалось прочитать в форме, которую ожидает эта страница (ГГГГ-ММ-ДД ЧЧ:ММ:СС), поэтому отсюда нельзя сказать, принимает ли сервер ещё этот ключ. Если строка редактировалась вручную, исправьте её; иначе отзовите ключ и создайте замену.</value>
+  </data>
+  <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
+    <value>Ключ хранимых секретов - то, чем запечатаны секреты базы данных</value>
+  </data>
+  <data name="The stored-secrets key {0} has never been exported. Export it on the server with {1} and keep the file with the database backups: a database restored without it opens no second factor and no [Settings] secret." xml:space="preserve">
+    <value>Ключ хранимых секретов {0} ни разу не экспортировался. Экспортируйте его на сервере командой {1} и храните файл вместе с резервными копиями базы данных: база данных, восстановленная без него, не откроет ни одного второго фактора и ни одного секрета [Settings].</value>
+  </data>
+  <data name="The stored-secrets key {0} was exported on {1}; keep that file with the database backups." xml:space="preserve">
+    <value>Ключ хранимых секретов {0} экспортирован {1}; храните этот файл вместе с резервными копиями базы данных.</value>
   </data>
   <data name="The subject tag breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does. The header does not, so prefer the header where the reader can show it." xml:space="preserve">
     <value>Метка в теме ломает любую подпись DKIM, сделанную отправителем над его темой, точно так же, как префикс темы в защите от спама. Заголовок не ломает, поэтому там, где читатель умеет его показать, выбирайте заголовок.</value>

@@ -72,8 +72,9 @@ STDMETHODIMP InterfaceLanguage::Download()
       if (!language_)
          return GetAccessDenied();
 
-      // language_->Download();   
-   
+      // Nothing is downloaded: the method stays for the interface's sake, and
+      // Language::Download, which wrote what it fetched to C:\test.txt and which
+      // nothing called, was removed on 25 September 2026.
       return COMError::GenerateError("Not implemented.");
    }
    catch (...)

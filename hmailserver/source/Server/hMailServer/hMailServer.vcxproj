@@ -794,6 +794,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\OpenPgpWriter.cpp" />
     <ClCompile Include="..\Common\Util\ZeroAccess.cpp" />
     <ClCompile Include="..\Common\Util\MailboxCrypto.cpp" />
+    <ClCompile Include="..\Common\Util\StoredSecrets.cpp" />
     <ClCompile Include="..\Common\Util\MailboxKeys.cpp" />
     <ClCompile Include="..\Common\Util\RestApiMailboxKeys.cpp" />
     <ClCompile Include="..\Common\Util\GatewayEncryption.cpp" />
@@ -1673,6 +1674,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\OpenPgpWriter.h" />
     <ClInclude Include="..\Common\Util\ZeroAccess.h" />
     <ClInclude Include="..\Common\Util\MailboxCrypto.h" />
+    <ClInclude Include="..\Common\Util\StoredSecrets.h" />
     <ClInclude Include="..\Common\Util\MailboxKeys.h" />
     <ClInclude Include="..\Common\Util\GatewayEncryption.h" />
     <ClInclude Include="..\Common\Util\OrganisationCa.h" />

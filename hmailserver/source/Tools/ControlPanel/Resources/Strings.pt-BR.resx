@@ -5703,6 +5703,9 @@ Nada do que já está lá é removido.</value>
   <data name="No signature database folder is set." xml:space="preserve">
     <value>Nenhuma pasta de banco de dados de assinaturas está definida.</value>
   </data>
+  <data name="No stored-secrets key has been made, so an account's second factor and the [Settings] secrets are stored as written. Make one on the server with {0}, then export it." xml:space="preserve">
+    <value>Nenhuma chave dos segredos armazenados foi criada, então o segundo fator de uma conta e os segredos de [Settings] são armazenados como foram escritos. Crie uma no servidor com {0} e depois exporte-a.</value>
+  </data>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>Nenhum erro de sintaxe informado.</value>
   </data>
@@ -5978,6 +5981,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Na página Portas TCP/IP, dê à porta de envio (587) STARTTLS com um certificado da página Certificados SSL, ou adicione a porta 465 com TLS implícito.</value>
+  </data>
+  <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
+    <value>No servidor, em um prompt de comando com privilégios elevados na pasta Bin: hMailServer.exe --create-stored-secrets-key cria a chave, e hMailServer.exe --export-stored-secrets-key FILE a exporta. Guarde o arquivo com os backups do banco de dados, mas separado deles.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Ligado, mas não consegue rodar</value>
@@ -6595,6 +6601,9 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Proteger a credencial de administrador</value>
+  </data>
+  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>ProtectStoredSecretsWithDPAPI é 0, então o segundo fator de uma conta e os segredos de [Settings] são armazenados como foram escritos, e nenhuma chave dos segredos armazenados é necessária.</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>_Pessoas protegidas (pessoas fora das contas deste domínio cujo nome não pode ser emprestado; uma por linha, cada uma Nome &lt;address&gt;, Nome ou endereço)</value>
@@ -9185,6 +9194,12 @@ Selecione a chave acima e copie-a à mão - ela não será mostrada de novo.</va
   <data name="The database destination creates its table on first use and inserts asynchronously, so a log write never blocks a mail session. If the database is unreachable the entries go to the log files instead and the server says so in the application log - nothing is discarded." xml:space="preserve">
     <value>O destino de banco de dados cria sua tabela no primeiro uso e insere de forma assíncrona, então uma gravação de log nunca bloqueia uma sessão de e-mail. Se o banco de dados estiver inacessível, as entradas vão para os arquivos de log e o servidor informa isso no log do aplicativo - nada é descartado.</value>
   </data>
+  <data name="The database's record of its stored-secrets key could not be read, so whether this server holds the database's key cannot be told." xml:space="preserve">
+    <value>Não foi possível ler o registro que o banco de dados mantém da sua chave dos segredos armazenados, então não é possível dizer se este servidor tem a chave do banco de dados.</value>
+  </data>
+  <data name="The database's second factors and [Settings] secrets are sealed under the stored-secrets key {0}, which this server does not hold, so they do not open here. Import it on the server from one that holds it: {1}." xml:space="preserve">
+    <value>Os segundos fatores e os segredos de [Settings] do banco de dados estão selados com a chave dos segredos armazenados {0}, que este servidor não tem, então não abrem aqui. Importe-a no servidor a partir de um que a tenha: {1}.</value>
+  </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>O banco de dados: procure erros que mencionem o pool de conexões. Quando o prazo do pool expira, uma consulta de destinatário responde 451 4.3.2 em vez de 550, então um banco de dados travado por um backup adia o e-mail em vez de devolvê-lo.</value>
   </data>
@@ -9321,6 +9336,9 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   </data>
   <data name="The item no longer exists." xml:space="preserve">
     <value>O item não existe mais.</value>
+  </data>
+  <data name="The key an account's second factor and the [Settings] secrets are sealed under in the database. It exists on the server alone, so a copy has to be exported and kept with the database backups." xml:space="preserve">
+    <value>A chave com que o segundo fator de uma conta e os segredos de [Settings] são selados no banco de dados. Ela existe apenas no servidor, então é preciso exportar uma cópia e guardá-la com os backups do banco de dados.</value>
   </data>
   <data name="The key file could not be checked from this machine." xml:space="preserve">
     <value>O arquivo de chave não pôde ser verificado a partir desta máquina.</value>
@@ -9746,6 +9764,15 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>A validade armazenada não pôde ser lida no formato que esta página espera (YYYY-MM-DD HH:MM:SS), então não dá para saber daqui se o servidor ainda aceita esta chave. Se a linha foi editada à mão, corrija-a; caso contrário, revogue a chave e crie uma substituta.</value>
+  </data>
+  <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
+    <value>A chave dos segredos armazenados - aquilo com que os segredos do banco de dados são selados</value>
+  </data>
+  <data name="The stored-secrets key {0} has never been exported. Export it on the server with {1} and keep the file with the database backups: a database restored without it opens no second factor and no [Settings] secret." xml:space="preserve">
+    <value>A chave dos segredos armazenados {0} nunca foi exportada. Exporte-a no servidor com {1} e guarde o arquivo com os backups do banco de dados: um banco de dados restaurado sem ela não abre nenhum segundo fator nem nenhum segredo de [Settings].</value>
+  </data>
+  <data name="The stored-secrets key {0} was exported on {1}; keep that file with the database backups." xml:space="preserve">
+    <value>A chave dos segredos armazenados {0} foi exportada em {1}; guarde esse arquivo com os backups do banco de dados.</value>
   </data>
   <data name="The subject tag breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does. The header does not, so prefer the header where the reader can show it." xml:space="preserve">
     <value>A marca no assunto quebra qualquer assinatura DKIM que o remetente tenha feito sobre o próprio assunto, exatamente como o prefixo de assunto do antispam. O cabeçalho não quebra, então prefira o cabeçalho onde o leitor souber mostrá-lo.</value>

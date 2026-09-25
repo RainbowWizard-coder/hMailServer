@@ -86,6 +86,7 @@
 #include <vector>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -542,7 +543,24 @@ namespace
          written = false;
 
       if (written && ::rename(&temporary[0], path.c_str()) == 0)
+      {
+         // And the NAME made durable: the rename is a change to the directory,
+         // which a power failure can lose after the database has committed
+         // something that depends on the file's new content - the stored-secrets
+         // key's line above all, whose id the database records the moment after
+         // (Util/StoredSecrets.h). A directory that cannot be opened or flushed
+         // does not undo a rename that has happened; the file is written.
+         const size_t slash = path.find_last_of('/');
+         const std::string directory = slash == std::string::npos ? std::string(".") : (slash == 0 ? std::string("/") : path.substr(0, slash));
+         const int directoryDescriptor = ::open(directory.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+         if (directoryDescriptor >= 0)
+         {
+            ::fsync(directoryDescriptor);
+            ::close(directoryDescriptor);
+         }
+
          return true;
+      }
 
       const int failure = errno;
       ::unlink(&temporary[0]);

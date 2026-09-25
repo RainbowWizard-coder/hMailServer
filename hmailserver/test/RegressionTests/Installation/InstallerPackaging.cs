@@ -345,7 +345,7 @@ namespace RegressionTests.Installation
       }
 
       [Test]
-      [Description("An installation that collected no administrator password must not write one.")]
+      [Description("The installer writes no administrator password of its own - no [INI] entry and no MD5 - and has the server write it as PBKDF2 through hMailServer.exe --set-admin-password, only when one was collected and the file has none, before the database step, with the password in the environment and never on a command line.")]
       public void TestAdministratorPasswordIsOnlyWrittenWhenOneWasCollected()
       {
          string iniSection = ReadInstallerScript("section_ini.iss");
@@ -353,30 +353,93 @@ namespace RegressionTests.Installation
          string entry = EntryLines(iniSection)
             .FirstOrDefault(line => line.IndexOf("AdministratorPassword", StringComparison.OrdinalIgnoreCase) >= 0);
 
-         Assert.IsNotNull(entry, "The [INI] section no longer writes Security\\AdministratorPassword.");
-
-         Assert.IsTrue(entry.IndexOf("Check:", StringComparison.OrdinalIgnoreCase) >= 0,
-            "The Security\\AdministratorPassword entry has no Check: condition, so it is written on every " +
-            "installation - including every silent one, where the password page does not exist and the " +
-            "value written is therefore the MD5 of the empty string. That is not an unset password: the " +
-            "server authenticates an empty password against it (Crypt::GetHashType treats any " +
-            "32-character value as MD5), the REST API's \"refuse to start while the administrator " +
-            "password is unset\" guard stops applying, and setup never offers the password page again.");
-
-         // The condition has to be about the password, not about anything else that
-         // happens to be convenient.
-         Assert.IsTrue(entry.IndexOf("HasAdministratorPassword", StringComparison.OrdinalIgnoreCase) >= 0,
-            "The Security\\AdministratorPassword entry's Check: condition is not HasAdministratorPassword.");
+         ClassicAssert.IsNull(entry,
+            "The [INI] section writes Security\\AdministratorPassword again: " + entry + ". What the installer " +
+            "wrote there until 25 September 2026 was GetMD5OfString of the password - an unsalted MD5 digest, " +
+            "which the server accepted and nothing re-hashed. The hash is the server's to make, through " +
+            "hMailServer.exe --set-admin-password (WriteAdministratorPassword).");
 
          string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
 
-         Assert.IsTrue(Regex.IsMatch(extension, @"function\s+HasAdministratorPassword\s*\(\s*\)\s*:\s*Boolean",
-                                     RegexOptions.IgnoreCase),
-            "HasAdministratorPassword is referenced by section_ini.iss but not defined in [Code].");
+         // The code, without its comments, which name the old MD5 to say why it went.
+         string code = Regex.Replace(extension, @"//[^\n]*", "");
 
-         Assert.IsTrue(extension.IndexOf("{param:adminpassword", StringComparison.OrdinalIgnoreCase) >= 0,
+         ClassicAssert.IsFalse(code.IndexOf("GetMD5OfString", StringComparison.OrdinalIgnoreCase) >= 0,
+            "The installer's code computes an MD5 again. An MD5 of the administrator password is what the " +
+            "server authenticates against without a salt or a work factor, and an MD5 of the empty string " +
+            "is a password the server accepts an empty password against.");
+
+         ClassicAssert.IsTrue(Regex.IsMatch(code, @"function\s+HasAdministratorPassword\s*\(\s*\)\s*:\s*Boolean",
+                                     RegexOptions.IgnoreCase),
+            "HasAdministratorPassword is no longer defined in [Code].");
+
+         Match function = Regex.Match(code, @"function\s+WriteAdministratorPassword\s*\(\s*\)\s*:\s*Boolean\s*;(.*?)\nend;",
+                                      RegexOptions.Singleline | RegexOptions.IgnoreCase);
+         ClassicAssert.IsTrue(function.Success, "WriteAdministratorPassword is no longer defined in [Code].");
+         string body = function.Groups[1].Value;
+
+         // Written only when one was collected - without that, every silent install
+         // would write a password nobody chose - and only when the file has none, as
+         // an upgrade never changes the administrator password.
+         StringAssert.Contains("HasAdministratorPassword()", body,
+            "WriteAdministratorPassword no longer asks whether a password was collected.");
+         StringAssert.Contains("GetAdministratorPassword()", body,
+            "WriteAdministratorPassword no longer leaves a password the file already has alone.");
+         StringAssert.Contains("--set-admin-password", body,
+            "WriteAdministratorPassword no longer has the server write the hash.");
+
+         // The password goes in the environment and comes out of it again; no
+         // command line carries it, where anybody listing processes reads it.
+         ClassicAssert.IsTrue(Regex.IsMatch(body, @"SetProcessEnvironmentVariable\(\s*'HM_ADMIN_PASSWORD'\s*,\s*g_szAdminPassword\s*\)"),
+            "The password is no longer handed to the verb in HM_ADMIN_PASSWORD.");
+         ClassicAssert.IsTrue(Regex.IsMatch(body, @"finally\s+SetProcessEnvironmentVariable\(\s*'HM_ADMIN_PASSWORD'\s*,\s*''\s*\)"),
+            "HM_ADMIN_PASSWORD is not emptied again in a finally, so every process the installer starts afterwards inherits the password.");
+         foreach (Match exec in Regex.Matches(body, @"Exec\(([^;]*)\);"))
+         {
+            StringAssert.DoesNotContain("g_szAdminPassword", exec.Groups[1].Value,
+               "The administrator password is on hMailServer.exe --set-admin-password's command line.");
+         }
+
+         // Before the database step, which signs in with the password and starts the
+         // service - and the service reads the file when it starts.
+         int tasks = code.IndexOf("function RunPostInstallTasks", StringComparison.OrdinalIgnoreCase);
+         ClassicAssert.Greater(tasks, -1, "RunPostInstallTasks is no longer defined in [Code].");
+         int write = code.IndexOf("WriteAdministratorPassword()", tasks, StringComparison.OrdinalIgnoreCase);
+         int database = code.IndexOf("DBSetupQuick.exe", tasks, StringComparison.OrdinalIgnoreCase);
+         ClassicAssert.Greater(write, -1, "RunPostInstallTasks no longer writes the administrator password.");
+         ClassicAssert.Less(write, database,
+            "RunPostInstallTasks runs the database step before it writes the administrator password, so the " +
+            "database tools sign in against a file with no password, and the service they start reads none.");
+
+         ClassicAssert.IsTrue(extension.IndexOf("{param:adminpassword", StringComparison.OrdinalIgnoreCase) >= 0,
             "There is no way to supply the administrator password to an unattended install. Without one, " +
             "every silent installation is left with no administrator password at all.");
+      }
+
+      [Test]
+      [Description("The installer makes the stored-secrets key on a new installation only - hMailServer.exe --create-stored-secrets-key, after the database step and before the service is started - and never on an upgrade, where an administrator turns sealing on; and it says to export the key.")]
+      public void TheInstallerMakesTheStoredSecretsKeyOnANewInstallationOnly()
+      {
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+         string code = Regex.Replace(extension, @"//[^\n]*", "");
+
+         Match procedure = Regex.Match(code, @"procedure\s+CreateStoredSecretsKey\s*\(\s*\)\s*;(.*?)\nend;",
+                                       RegexOptions.Singleline | RegexOptions.IgnoreCase);
+         ClassicAssert.IsTrue(procedure.Success, "CreateStoredSecretsKey is no longer defined in [Code].");
+         string body = procedure.Groups[1].Value;
+
+         ClassicAssert.IsTrue(Regex.IsMatch(body, @"IsNewDatabase\(\)\s*=\s*false\)\s*then\s*Exit", RegexOptions.IgnoreCase),
+            "CreateStoredSecretsKey no longer leaves an upgrade alone: a key made by an upgrade would be made on whichever node was upgraded first.");
+         StringAssert.Contains("'--create-stored-secrets-key'", body, "CreateStoredSecretsKey no longer runs the verb.");
+         StringAssert.Contains("--export-stored-secrets-key", body, "CreateStoredSecretsKey no longer says to export the key it made.");
+
+         int tasks = code.IndexOf("function RunPostInstallTasks", StringComparison.OrdinalIgnoreCase);
+         ClassicAssert.Greater(tasks, -1, "RunPostInstallTasks is no longer defined in [Code].");
+         int database = code.IndexOf("DBSetupQuick.exe", tasks, StringComparison.OrdinalIgnoreCase);
+         int key = code.IndexOf("CreateStoredSecretsKey()", tasks, StringComparison.OrdinalIgnoreCase);
+         int start = code.IndexOf("START hMailServer", tasks, StringComparison.OrdinalIgnoreCase);
+         ClassicAssert.Greater(key, database, "RunPostInstallTasks makes the key before the database it is recorded in exists.");
+         ClassicAssert.Less(key, start, "RunPostInstallTasks makes the key after it starts the service, whose first start would then have none.");
       }
 
       [Test]
@@ -481,9 +544,11 @@ namespace RegressionTests.Installation
             "The [INI] section writes into the ini's Database section: " + string.Join(" | ", databaseEntries) +
             ". Those keys are the database connection an upgrade has to preserve.");
 
-         // Directory keys and the administrator password are defaults for a fresh
-         // installation only. ProgramFolder is the deliberate exception: it has to
-         // follow the installation directory, which the user may have changed.
+         // Directory keys are defaults for a fresh installation only (the
+         // administrator password is no longer an [INI] entry: WriteAdministratorPassword
+         // writes it only into a file that has none). ProgramFolder is the deliberate
+         // exception: it has to follow the installation directory, which the user may
+         // have changed.
          foreach (string entry in entries.Where(entry => !Regex.IsMatch(entry, @"Key:\s*""(ProgramFolder|ValidLanguages)""", RegexOptions.IgnoreCase)))
          {
             Assert.IsTrue(entry.IndexOf("createkeyifdoesntexist", StringComparison.OrdinalIgnoreCase) >= 0,

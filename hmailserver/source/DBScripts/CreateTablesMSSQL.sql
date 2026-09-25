@@ -292,7 +292,7 @@ create table hm_accounts (
 	accountvacationinternalmessage nvarchar(1000) not null default '',
 	accountvacationinternalonly tinyint not null default 0,
 	accountforwardabortspamflagged tinyint not null,
-	accounttotpsecret nvarchar(255) not null,
+	accounttotpsecret nvarchar(1024) not null,
 	accountpasswordchanged datetime not null,
 	accountantispamenabled tinyint not null,
 	accountspammarkthreshold int not null,
@@ -3297,4 +3297,4 @@ CREATE CLUSTERED INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (expo
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6102)
+insert into hm_dbversion values (6103)

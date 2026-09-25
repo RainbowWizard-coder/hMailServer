@@ -5703,6 +5703,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No signature database folder is set." xml:space="preserve">
     <value>Není nastavena žádná složka s databází signatur.</value>
   </data>
+  <data name="No stored-secrets key has been made, so an account's second factor and the [Settings] secrets are stored as written. Make one on the server with {0}, then export it." xml:space="preserve">
+    <value>Klíč uložených tajemství nebyl vytvořen, takže druhý faktor účtu a tajemství v [Settings] se ukládají tak, jak byly zapsány. Vytvořte jej na serveru pomocí {0} a poté jej exportujte.</value>
+  </data>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>Nebyly hlášeny žádné syntaktické chyby.</value>
   </data>
@@ -5978,6 +5981,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Na stránce Porty TCP/IP dejte portu pro odesílání (587) STARTTLS s certifikátem ze stránky Certifikáty SSL, nebo přidejte port 465 s implicitním TLS.</value>
+  </data>
+  <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
+    <value>Na serveru, z příkazového řádku se zvýšenými oprávněními ve složce Bin: hMailServer.exe --create-stored-secrets-key vytvoří klíč a hMailServer.exe --export-stored-secrets-key FILE jej exportuje. Soubor uchovávejte se zálohami databáze, ale odděleně od nich.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Zapnuto, ale nemůže běžet</value>
@@ -6595,6 +6601,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Chránit přihlašovací údaje správce</value>
+  </data>
+  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>ProtectStoredSecretsWithDPAPI je 0, takže druhý faktor účtu a tajemství v [Settings] se ukládají tak, jak byly zapsány, a klíč uložených tajemství není potřeba.</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Chráněné _osoby (osoby mimo účty této domény, jejichž jméno nesmí být vypůjčeno; jedna na řádek, každá Jméno &lt;address&gt;, Jméno nebo adresa)</value>
@@ -9185,6 +9194,12 @@ Označte klíč výše a zkopírujte ho ručně - znovu už se nezobrazí.</valu
   <data name="The database destination creates its table on first use and inserts asynchronously, so a log write never blocks a mail session. If the database is unreachable the entries go to the log files instead and the server says so in the application log - nothing is discarded." xml:space="preserve">
     <value>Cíl databáze si při prvním použití vytvoří tabulku a vkládá asynchronně, takže zápis do logu nikdy neblokuje poštovní relaci. Pokud je databáze nedostupná, položky jdou místo toho do souborů logu a server to řekne v logu aplikace - nic se nezahazuje.</value>
   </data>
+  <data name="The database's record of its stored-secrets key could not be read, so whether this server holds the database's key cannot be told." xml:space="preserve">
+    <value>Záznam databáze o jejím klíči uložených tajemství nebylo možné přečíst, takže nelze určit, zda tento server má klíč databáze.</value>
+  </data>
+  <data name="The database's second factors and [Settings] secrets are sealed under the stored-secrets key {0}, which this server does not hold, so they do not open here. Import it on the server from one that holds it: {1}." xml:space="preserve">
+    <value>Druhé faktory a tajemství v [Settings] v databázi jsou zapečetěny pod klíčem uložených tajemství {0}, který tento server nemá, takže se zde neotevřou. Importujte jej na server ze serveru, který jej má: {1}.</value>
+  </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>Databáze: hledejte chyby zmiňující pool spojení. Když vyprší lhůta poolu, vyhledání příjemce odpoví 451 4.3.2 místo 550, takže databáze zamčená zálohou poštu odloží místo toho, aby ji vrátila.</value>
   </data>
@@ -9321,6 +9336,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   </data>
   <data name="The item no longer exists." xml:space="preserve">
     <value>Položka už neexistuje.</value>
+  </data>
+  <data name="The key an account's second factor and the [Settings] secrets are sealed under in the database. It exists on the server alone, so a copy has to be exported and kept with the database backups." xml:space="preserve">
+    <value>Klíč, pod kterým jsou v databázi zapečetěny druhé faktory účtů a tajemství v [Settings]. Existuje jen na serveru, takže je nutné jeho kopii exportovat a uchovávat se zálohami databáze.</value>
   </data>
   <data name="The key file could not be checked from this machine." xml:space="preserve">
     <value>Soubor klíče nešlo z tohoto počítače zkontrolovat.</value>
@@ -9746,6 +9764,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Uložené vypršení nešlo přečíst v podobě, kterou tato stránka očekává (RRRR-MM-DD HH:MM:SS), takže odsud nelze říct, zda server tento klíč ještě přijímá. Pokud byl řádek upraven ručně, opravte ho; jinak klíč odvolejte a vytvořte náhradu.</value>
+  </data>
+  <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
+    <value>Klíč uložených tajemství - čím jsou zapečetěna tajemství databáze</value>
+  </data>
+  <data name="The stored-secrets key {0} has never been exported. Export it on the server with {1} and keep the file with the database backups: a database restored without it opens no second factor and no [Settings] secret." xml:space="preserve">
+    <value>Klíč uložených tajemství {0} nebyl nikdy exportován. Exportujte jej na serveru pomocí {1} a soubor uchovávejte se zálohami databáze: databáze obnovená bez něj neotevře žádný druhý faktor ani žádné tajemství v [Settings].</value>
+  </data>
+  <data name="The stored-secrets key {0} was exported on {1}; keep that file with the database backups." xml:space="preserve">
+    <value>Klíč uložených tajemství {0} byl exportován {1}; uchovávejte tento soubor se zálohami databáze.</value>
   </data>
   <data name="The subject tag breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does. The header does not, so prefer the header where the reader can show it." xml:space="preserve">
     <value>Značka v předmětu poruší každý podpis DKIM, který odesílatel vytvořil nad svým předmětem, přesně jako předpona předmětu u antispamu. Hlavička nikoli, takže tam, kde ji čtenář umí zobrazit, dejte přednost hlavičce.</value>

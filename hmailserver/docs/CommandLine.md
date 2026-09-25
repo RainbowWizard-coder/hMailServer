@@ -616,7 +616,17 @@ What neither client does
   The archive is written, read and restored by the server; nothing here touches
   it.
 * **It sets no administrator password.** `hmailserver --set-admin-password` on
-  the server does that, and the Control Panel does it on Windows.
+  the server does that - on Windows `hMailServer.exe --set-admin-password`, with the
+  password in `HM_ADMIN_PASSWORD` or on standard input and never as an argument
+  ([SecretsAtRest.md](SecretsAtRest.md)) - and the Control Panel does it on Windows.
+* **It does not make or carry the stored-secrets key.** The key the second factors
+  and the `[Settings]` secrets are sealed under in the database is made with
+  `--create-stored-secrets-key`, exported with `--export-stored-secrets-key FILE` -
+  a copy kept with the database backups, and for the other nodes that share it,
+  which take it with `--import-stored-secrets-key FILE` - and, lost for good, what
+  it sealed is cleared with `--forget-sealed-secrets KEYID`: all run on the server itself
+  (`hMailServer.exe`, elevated, or `sudo hmailserver`), never over the API
+  ([SecretsAtRest.md](SecretsAtRest.md)).
 * **It cannot turn the REST listener on**, since both clients need it. On a
   Linux server `sudo hmailserver --set-setting RestApiPort=8080` stores the
   setting - the database is the settings store since schema 6042, so editing

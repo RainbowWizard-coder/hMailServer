@@ -59,6 +59,10 @@ namespace HM
       // stored secrets keep working transparently. Empty input returns empty.
       String UnprotectSecret(const String &sStored) const;
 
+      // Whether a stored value is one of ProtectSecret's machine envelopes,
+      // "DPAPI:" or "LINUX1:" - a value only the platform's own store opens.
+      static bool IsSecretEnvelope(const String &stored);
+
    private:
 
       // The one report for an envelope from the other platform, whichever

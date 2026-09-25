@@ -25,8 +25,9 @@
 // credential may. Only sign_in_plain has one.
 //
 // The items, in the order a new server meets them: profile, domain, account,
-// submission, sign_in_tls, spf, dkim, dmarc, backup, second_factor, and last the
-// account the server runs as, service_account (docs/ServiceAccount.md). The profile item is first
+// submission, sign_in_tls, spf, dkim, dmarc, backup, second_factor,
+// stored_secrets_key, and last the account the server runs as, service_account
+// (docs/ServiceAccount.md). The profile item is first
 // because a profile sets thirty of the settings the rest of the first hour is
 // spent finding (Application/Profiles.h, docs/Profiles.md); it asks for one on a
 // young server - fewer than ten accounts, the sample domain's not counted - that
@@ -83,6 +84,12 @@
 //   backup_set               Backups go to {0}.
 //   second_factor_on         The administrator's password is backed by a one-time code.
 //   second_factor_off        The administrator signs in with a password alone.
+//   stored_secrets_off       ProtectStoredSecretsWithDPAPI is 0; no key is needed.
+//   stored_secrets_key_none  No stored-secrets key has been made: {0}, the verb.
+//   stored_secrets_key_not_held  Sealed under {0}, which this server does not hold: {1}.
+//   stored_secrets_key_not_exported  The key {0} has never been exported: {1}.
+//   stored_secrets_key_exported  The key {0} was exported on {1}.
+//   stored_secrets_key_unreadable  The database's record could not be read (cannot_tell).
 //   service_account_local_system  The service runs as LocalSystem ... (Windows)
 //   service_account_root     The server runs as root ... (POSIX)
 //   service_account_own      The service runs as {0}.
@@ -116,6 +123,14 @@
 // first, and carries no fix. A server whose ranges all sit on the loopback sends
 // no password across a network, and the item is not needed.
 //
+// The stored-secrets key (Util/StoredSecrets.h, docs/SecretsAtRest.md) is done
+// when this server holds the key the database records and an export of it has
+// been recorded: the key exists on the machines that hold it and in the files
+// exported from them, and a database restored without it opens no second factor
+// and no [Settings] secret - so the item stays open until a copy has been made.
+// The verbs are named in the arguments as this platform spells them. Not needed
+// with ProtectStoredSecretsWithDPAPI at 0, which seals nothing.
+//
 // An SPF record is a TXT at the domain beginning v=spf1; a DMARC record is a TXT
 // at _dmarc.<domain> beginning v=DMARC1; a DKIM record is a TXT at
 // <selector>._domainkey.<domain> carrying a p= tag. Presence is what is checked
@@ -142,6 +157,7 @@
 
 #include "FileUtilities.h"
 #include "ServiceAccount.h"
+#include "StoredSecrets.h"
 #include "Unicode.h"
 #include "../Application/Configuration.h"
 #include "../Application/IniFileSettings.h"
@@ -261,6 +277,12 @@ namespace HM
             { "backup_set", "Backups go to {0}." },
             { "second_factor_on", "The administrator's password is backed by a one-time code." },
             { "second_factor_off", "The administrator signs in with a password alone." },
+            { "stored_secrets_off", "ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." },
+            { "stored_secrets_key_none", "No stored-secrets key has been made, so an account's second factor and the [Settings] secrets are stored as written. Make one on the server with {0}, then export it." },
+            { "stored_secrets_key_not_held", "The database's second factors and [Settings] secrets are sealed under the stored-secrets key {0}, which this server does not hold, so they do not open here. Import it on the server from one that holds it: {1}." },
+            { "stored_secrets_key_not_exported", "The stored-secrets key {0} has never been exported. Export it on the server with {1} and keep the file with the database backups: a database restored without it opens no second factor and no [Settings] secret." },
+            { "stored_secrets_key_exported", "The stored-secrets key {0} was exported on {1}; keep that file with the database backups." },
+            { "stored_secrets_key_unreadable", "The database's record of its stored-secrets key could not be read, so whether this server holds the database's key cannot be told." },
             { "service_account_local_system", "The service runs as LocalSystem, the most privileged account on the machine, so a flaw reachable through SMTP, IMAP or POP3 would have full control of it. The virtual account a new installation uses contains that; running the installer again, or the Control Panel, moves the service to it." },
             { "service_account_root", "The server runs as root, so a flaw reachable through SMTP, IMAP or POP3 would have full control of the machine. The packages run it as a user of its own." },
             { "service_account_own", "The service runs as {0}." },
@@ -481,6 +503,64 @@ namespace HM
          if (counted)
             *counted = true;
          return recordset->GetInt64Value("accountcount");
+      }
+
+      // The stored-secrets key: made, the database's, and exported at least once.
+      // A database whose record cannot be read is cannot_tell, and says so.
+      void
+      StoredSecretsFindings(Item &item)
+      {
+         if (!IniFileSettings::Instance()->GetProtectStoredSecretsWithDPAPI())
+         {
+            Add(item, StateNotNeeded, "stored_secrets_off");
+            return;
+         }
+
+         AnsiString recorded;
+         if (!StoredSecrets::ReadDatabaseKeyId(recorded))
+         {
+            Add(item, StateCannotTell, "stored_secrets_key_unreadable");
+            return;
+         }
+
+         const AnsiString held = StoredSecrets::HeldKeyId();
+
+         if (!held.IsEmpty() && (recorded.IsEmpty() || recorded == held))
+         {
+            AnsiString exportedId;
+            __int64 exportedAt = 0;
+            if (StoredSecrets::ReadExportRecord(exportedId, exportedAt) && exportedId == held)
+               Add(item, StateDone, "stored_secrets_key_exported", { held, UtcDate(exportedAt) });
+            else
+               Add(item, StateActionNeeded, "stored_secrets_key_not_exported", { held, Utf8(StoredSecrets::ExportVerbText()) });
+            return;
+         }
+
+         // The key the database's values are sealed under: the one it records, or
+         // on a database from before the record, the ones its envelopes name.
+         std::set<AnsiString> wanted;
+         if (!recorded.IsEmpty())
+            wanted.insert(recorded);
+         else if (!StoredSecrets::CollectDatabaseKeyIds(wanted))
+         {
+            Add(item, StateCannotTell, "stored_secrets_key_unreadable");
+            return;
+         }
+
+         if (wanted.empty())
+         {
+            Add(item, StateActionNeeded, "stored_secrets_key_none", { Utf8(StoredSecrets::CreateVerbText()) });
+            return;
+         }
+
+         AnsiString ids;
+         for (const AnsiString &keyId : wanted)
+         {
+            if (!ids.empty())
+               ids += ", ";
+            ids += keyId;
+         }
+         Add(item, StateActionNeeded, "stored_secrets_key_not_held", { ids, Utf8(StoredSecrets::ImportVerbText()) });
       }
 
       AnsiString
@@ -819,6 +899,11 @@ namespace HM
       else
          Add(secondFactor, StateActionNeeded, "second_factor_off");
       items.push_back(secondFactor);
+
+      Item storedSecrets;
+      storedSecrets.key = "stored_secrets_key";
+      StoredSecretsFindings(storedSecrets);
+      items.push_back(storedSecrets);
 
       // The account the server runs as, judged from this process's own token
       // rather than from what the service manager was asked for

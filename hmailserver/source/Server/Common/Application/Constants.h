@@ -1172,4 +1172,14 @@
 //      UTF-8), and their scripts only move the version.
 //      (6099, 6100 and 6101 are the encryption-at-rest, inbound-webhook and rooms
 //      rows' steps, folded before this one.)
-#define REQUIRED_DB_VERSION            6102
+// 6103 widens hm_accounts.accounttotpsecret from 255 characters to 1024
+//      (Persistence/PersistentAccount.h, Util/StoredSecrets.h,
+//      docs/SecretsAtRest.md): an account's second factor is sealed from this
+//      step under the installation's stored-secrets key, an HMK1 envelope of
+//      some 100 characters for a 32-character secret, and the width is the one
+//      the route, relay and fetch-account secrets have, so that a longer secret
+//      or a longer envelope never meets the column. No row is changed by the
+//      step: the server seals the secrets still stored as generated at its start
+//      (PersistentAccount::ProtectStoredTotpSecrets), and reads either kind.
+//      (6099 to 6102 are other rows' steps, folded before this one.)
+#define REQUIRED_DB_VERSION            6103

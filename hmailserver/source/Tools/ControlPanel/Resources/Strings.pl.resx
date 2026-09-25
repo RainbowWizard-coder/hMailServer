@@ -5703,6 +5703,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No signature database folder is set." xml:space="preserve">
     <value>Nie ustawiono folderu bazy sygnatur.</value>
   </data>
+  <data name="No stored-secrets key has been made, so an account's second factor and the [Settings] secrets are stored as written. Make one on the server with {0}, then export it." xml:space="preserve">
+    <value>Nie utworzono klucza przechowywanych sekretów, więc drugi składnik konta i sekrety z [Settings] są przechowywane tak, jak je zapisano. Utwórz go na serwerze poleceniem {0}, a następnie wyeksportuj.</value>
+  </data>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>Nie zgłoszono błędów składni.</value>
   </data>
@@ -5978,6 +5981,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Na stronie Porty TCP/IP nadaj portowi nadawania (587) STARTTLS z certyfikatem ze strony Certyfikaty SSL albo dodaj port 465 z niejawnym TLS.</value>
+  </data>
+  <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
+    <value>Na serwerze, w wierszu polecenia z podwyższonymi uprawnieniami w folderze Bin: hMailServer.exe --create-stored-secrets-key tworzy klucz, a hMailServer.exe --export-stored-secrets-key FILE go eksportuje. Przechowuj plik razem z kopiami zapasowymi bazy danych, ale oddzielnie od nich.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Włączone, ale nie może działać</value>
@@ -6595,6 +6601,9 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Chroń poświadczenie administratora</value>
+  </data>
+  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>ProtectStoredSecretsWithDPAPI ma wartość 0, więc drugi składnik konta i sekrety z [Settings] są przechowywane tak, jak je zapisano, i klucz przechowywanych sekretów nie jest potrzebny.</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Chronione _osoby (osoby spoza kont tej domeny, których nazwy nie wolno pożyczać; jedna w wierszu, każda Nazwa &lt;address&gt;, Nazwa lub adres)</value>
@@ -9185,6 +9194,12 @@ Należy zaznaczyć klucz powyżej i skopiować go ręcznie - nie zostanie pokaza
   <data name="The database destination creates its table on first use and inserts asynchronously, so a log write never blocks a mail session. If the database is unreachable the entries go to the log files instead and the server says so in the application log - nothing is discarded." xml:space="preserve">
     <value>Zapis dziennika do bazy danych tworzy swoją tabelę przy pierwszym użyciu i wstawia wiersze asynchronicznie, więc zapis do dziennika nigdy nie blokuje sesji pocztowej. Gdy baza danych jest nieosiągalna, wpisy trafiają zamiast tego do plików dzienników, a serwer informuje o tym w dzienniku aplikacji - nic nie jest odrzucane.</value>
   </data>
+  <data name="The database's record of its stored-secrets key could not be read, so whether this server holds the database's key cannot be told." xml:space="preserve">
+    <value>Nie udało się odczytać zapisu bazy danych o jej kluczu przechowywanych sekretów, więc nie można ustalić, czy ten serwer ma klucz bazy danych.</value>
+  </data>
+  <data name="The database's second factors and [Settings] secrets are sealed under the stored-secrets key {0}, which this server does not hold, so they do not open here. Import it on the server from one that holds it: {1}." xml:space="preserve">
+    <value>Drugie składniki i sekrety z [Settings] w bazie danych są zapieczętowane kluczem przechowywanych sekretów {0}, którego ten serwer nie ma, więc nie da się ich tu otworzyć. Zaimportuj go na serwerze z serwera, który go ma: {1}.</value>
+  </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>Baza danych: należy poszukać błędów wspominających o puli połączeń. Gdy upłynie termin oczekiwania na pulę, wyszukanie odbiorcy odpowiada 451 4.3.2, a nie 550, więc baza danych zablokowana przez kopię zapasową odracza pocztę, zamiast odsyłać powiadomienie o niedoręczeniu.</value>
   </data>
@@ -9321,6 +9336,9 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   </data>
   <data name="The item no longer exists." xml:space="preserve">
     <value>Ta pozycja już nie istnieje.</value>
+  </data>
+  <data name="The key an account's second factor and the [Settings] secrets are sealed under in the database. It exists on the server alone, so a copy has to be exported and kept with the database backups." xml:space="preserve">
+    <value>Klucz, którym drugi składnik konta i sekrety z [Settings] są zapieczętowane w bazie danych. Istnieje tylko na serwerze, więc jego kopię trzeba wyeksportować i przechowywać razem z kopiami zapasowymi bazy danych.</value>
   </data>
   <data name="The key file could not be checked from this machine." xml:space="preserve">
     <value>Nie udało się sprawdzić pliku klucza z tego komputera.</value>
@@ -9746,6 +9764,15 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Nie udało się odczytać zapisanego terminu wygaśnięcia w postaci, jakiej oczekuje ta strona (YYYY-MM-DD HH:MM:SS), więc nie da się stąd stwierdzić, czy serwer nadal przyjmuje ten klucz. Jeśli wiersz był edytowany ręcznie, należy go poprawić; w przeciwnym razie należy unieważnić klucz i utworzyć nowy w jego miejsce.</value>
+  </data>
+  <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
+    <value>Klucz przechowywanych sekretów - to, czym zapieczętowane są sekrety bazy danych</value>
+  </data>
+  <data name="The stored-secrets key {0} has never been exported. Export it on the server with {1} and keep the file with the database backups: a database restored without it opens no second factor and no [Settings] secret." xml:space="preserve">
+    <value>Klucz przechowywanych sekretów {0} nigdy nie został wyeksportowany. Wyeksportuj go na serwerze poleceniem {1} i przechowuj plik razem z kopiami zapasowymi bazy danych: baza danych przywrócona bez niego nie otworzy żadnego drugiego składnika ani żadnego sekretu z [Settings].</value>
+  </data>
+  <data name="The stored-secrets key {0} was exported on {1}; keep that file with the database backups." xml:space="preserve">
+    <value>Klucz przechowywanych sekretów {0} wyeksportowano {1}; przechowuj ten plik razem z kopiami zapasowymi bazy danych.</value>
   </data>
   <data name="The subject tag breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does. The header does not, so prefer the header where the reader can show it." xml:space="preserve">
     <value>Znacznik w temacie psuje każdy podpis DKIM, który nadawca złożył pod swoim tematem, dokładnie tak jak przedrostek tematu w ochronie przed spamem. Nagłówek nie psuje, więc tam, gdzie czytelnik potrafi go pokazać, wybierz nagłówek.</value>

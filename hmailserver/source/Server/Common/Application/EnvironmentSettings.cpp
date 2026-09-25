@@ -1440,9 +1440,12 @@ namespace HM
                }
                else
                {
+                  // Opened: a secret the store protects is compared by what it
+                  // holds, not by its envelope, which is new at every write - or
+                  // every start would store it again and call it set.
                   auto row = rows.find(request.name);
                   had = row != rows.end();
-                  before = had ? (*row).second.first : String();
+                  before = had ? IniSettingStore::OpenStored(request.name, (*row).second.first) : String();
                }
 
                if (request.lent)
@@ -1459,7 +1462,7 @@ namespace HM
                   std::map<String, std::pair<String, String> > after;
                   IniSettingStore::ReadAllRows(after);
                   auto now = after.find(request.name);
-                  same = had && now != after.end() && (*now).second.first == before;
+                  same = had && now != after.end() && IniSettingStore::OpenStored(request.name, (*now).second.first) == before;
                }
                else
                {

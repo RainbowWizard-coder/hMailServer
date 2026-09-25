@@ -117,7 +117,10 @@ namespace HM
          return;
       }
 
-      String sPasswordCorrect = HM::IniFileSettings::Instance()->GetAdministratorPassword();
+      // The hash as [Security] AdministratorPassword holds it, kept apart from the
+      // stand-in below: it is what a successful sign-in re-hashes.
+      const String stored = HM::IniFileSettings::Instance()->GetAdministratorPassword();
+      String sPasswordCorrect = stored;
 
       if (sPasswordCorrect.IsEmpty())
       {
@@ -166,6 +169,12 @@ namespace HM
             return;
          }
       }
+
+      // Signed in. A password that verified against the installer's old unsalted
+      // MD5, or against a hash cheaper than the one the server makes now, is written
+      // again as PBKDF2, as an account's is at its next logon.
+      if (!stored.IsEmpty())
+         HM::IniFileSettings::Instance()->UpgradeAdministratorPasswordHash(sPassword, stored);
 
       // Create a dummy account since the administrator
       // does not have a real email account.

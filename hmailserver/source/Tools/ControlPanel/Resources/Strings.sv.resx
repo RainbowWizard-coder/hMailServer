@@ -5703,6 +5703,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No signature database folder is set." xml:space="preserve">
     <value>Ingen mapp för signaturdatabasen är satt.</value>
   </data>
+  <data name="No stored-secrets key has been made, so an account's second factor and the [Settings] secrets are stored as written. Make one on the server with {0}, then export it." xml:space="preserve">
+    <value>Ingen nyckel för lagrade hemligheter har skapats, så ett kontos andra faktor och hemligheterna i [Settings] lagras som de skrevs. Skapa en på servern med {0} och exportera den sedan.</value>
+  </data>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>Inga syntaxfel rapporterade.</value>
   </data>
@@ -5978,6 +5981,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Ge inlämningsporten (587) STARTTLS med ett certifikat från sidan SSL-certifikat på sidan TCP/IP-portar, eller lägg till port 465 med implicit TLS.</value>
+  </data>
+  <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
+    <value>På servern, från en kommandotolk med förhöjda behörigheter i mappen Bin: hMailServer.exe --create-stored-secrets-key skapar nyckeln, och hMailServer.exe --export-stored-secrets-key FILE exporterar den. Förvara filen tillsammans med databasens säkerhetskopior, men åtskild från dem.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>På, men kan inte köras</value>
@@ -6595,6 +6601,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Skydda administratörens inloggningsuppgift</value>
+  </data>
+  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>ProtectStoredSecretsWithDPAPI är 0, så ett kontos andra faktor och hemligheterna i [Settings] lagras som de skrevs, och ingen nyckel för lagrade hemligheter behövs.</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Skyddade _personer (personer utanför domänens konton vars namn inte får lånas; en per rad, var och en Namn &lt;address&gt;, Namn eller adress)</value>
@@ -9185,6 +9194,12 @@ Markera nyckeln ovan och kopiera den för hand - den visas inte igen.</value>
   <data name="The database destination creates its table on first use and inserts asynchronously, so a log write never blocks a mail session. If the database is unreachable the entries go to the log files instead and the server says so in the application log - nothing is discarded." xml:space="preserve">
     <value>Databasmålet skapar sin tabell vid första användning och infogar asynkront, så en loggskrivning blockerar aldrig en e-postsession. Om databasen inte kan nås går posterna till loggfilerna i stället och servern säger det i programloggen - inget kastas.</value>
   </data>
+  <data name="The database's record of its stored-secrets key could not be read, so whether this server holds the database's key cannot be told." xml:space="preserve">
+    <value>Databasens registrering av nyckeln för lagrade hemligheter kunde inte läsas, så det går inte att avgöra om den här servern har databasens nyckel.</value>
+  </data>
+  <data name="The database's second factors and [Settings] secrets are sealed under the stored-secrets key {0}, which this server does not hold, so they do not open here. Import it on the server from one that holds it: {1}." xml:space="preserve">
+    <value>Databasens andra faktorer och hemligheter i [Settings] är förseglade under nyckeln för lagrade hemligheter {0}, som den här servern inte har, så de öppnas inte här. Importera den på servern från en som har den: {1}.</value>
+  </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>Databasen: leta efter fel som nämner anslutningspoolen. När poolens tidsfrist går ut svarar en mottagaruppslagning 451 4.3.2 i stället för 550, så en databas låst av en säkerhetskopiering skjuter upp post i stället för att studsa den.</value>
   </data>
@@ -9321,6 +9336,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   </data>
   <data name="The item no longer exists." xml:space="preserve">
     <value>Posten finns inte längre.</value>
+  </data>
+  <data name="The key an account's second factor and the [Settings] secrets are sealed under in the database. It exists on the server alone, so a copy has to be exported and kept with the database backups." xml:space="preserve">
+    <value>Nyckeln som ett kontos andra faktor och hemligheterna i [Settings] är förseglade under i databasen. Den finns bara på servern, så en kopia måste exporteras och förvaras tillsammans med databasens säkerhetskopior.</value>
   </data>
   <data name="The key file could not be checked from this machine." xml:space="preserve">
     <value>Nyckelfilen kunde inte kontrolleras från den här datorn.</value>
@@ -9746,6 +9764,15 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Den sparade utgångstiden kunde inte läsas i den form den här sidan förväntar sig (YYYY-MM-DD HH:MM:SS), så om servern fortfarande godtar den här nyckeln kan inte avgöras härifrån. Om raden redigerats för hand, rätta den; annars, återkalla nyckeln och skapa en ersättning.</value>
+  </data>
+  <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
+    <value>Nyckeln för lagrade hemligheter - det som databasens hemligheter är förseglade under</value>
+  </data>
+  <data name="The stored-secrets key {0} has never been exported. Export it on the server with {1} and keep the file with the database backups: a database restored without it opens no second factor and no [Settings] secret." xml:space="preserve">
+    <value>Nyckeln för lagrade hemligheter {0} har aldrig exporterats. Exportera den på servern med {1} och förvara filen tillsammans med databasens säkerhetskopior: en databas som återställs utan den öppnar ingen andra faktor och ingen hemlighet i [Settings].</value>
+  </data>
+  <data name="The stored-secrets key {0} was exported on {1}; keep that file with the database backups." xml:space="preserve">
+    <value>Nyckeln för lagrade hemligheter {0} exporterades {1}; förvara den filen tillsammans med databasens säkerhetskopior.</value>
   </data>
   <data name="The subject tag breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does. The header does not, so prefer the header where the reader can show it." xml:space="preserve">
     <value>Märket i ämnet bryter varje DKIM-signatur som avsändaren gjort över sitt ämne, precis som skräppostskyddets ämnesprefix. Huvudet gör det inte, så föredra huvudet där läsaren kan visa det.</value>

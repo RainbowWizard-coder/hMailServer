@@ -5703,6 +5703,9 @@
   <data name="No signature database folder is set." xml:space="preserve">
     <value>未设置签名数据库文件夹。</value>
   </data>
+  <data name="No stored-secrets key has been made, so an account's second factor and the [Settings] secrets are stored as written. Make one on the server with {0}, then export it." xml:space="preserve">
+    <value>尚未创建存储机密密钥，因此账户的第二因素和 [Settings] 机密按原样存储。请在服务器上使用 {0} 创建一个，然后将其导出。</value>
+  </data>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>未报告语法错误。</value>
   </data>
@@ -5978,6 +5981,9 @@
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>在TCP/IP 端口页面，为提交端口 (587) 设置 STARTTLS 并使用SSL 证书页面的证书，或添加使用隐式 TLS 的端口 465。</value>
+  </data>
+  <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
+    <value>在服务器上，从 Bin 文件夹中以管理员身份运行的命令提示符：hMailServer.exe --create-stored-secrets-key 创建密钥，hMailServer.exe --export-stored-secrets-key FILE 将其导出。请将该文件与数据库备份一起保存，但要与备份分开存放。</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>已打开，但无法运行</value>
@@ -6595,6 +6601,9 @@
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>保护管理员凭据</value>
+  </data>
+  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>ProtectStoredSecretsWithDPAPI 为 0，因此账户的第二因素和 [Settings] 机密按原样存储，不需要存储机密密钥。</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>受保护人员(_P)（不属于此域账户、姓名不得被冒用的人；每行一个，每项为 姓名 &lt;address&gt;、姓名或地址）</value>
@@ -9185,6 +9194,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The database destination creates its table on first use and inserts asynchronously, so a log write never blocks a mail session. If the database is unreachable the entries go to the log files instead and the server says so in the application log - nothing is discarded." xml:space="preserve">
     <value>数据库目标在首次使用时创建其表，并异步插入，因此日志写入永远不会阻塞邮件会话。如果数据库不可达，日志条目会改为写入日志文件，服务器会在应用程序日志中说明 - 不会丢弃任何内容。</value>
   </data>
+  <data name="The database's record of its stored-secrets key could not be read, so whether this server holds the database's key cannot be told." xml:space="preserve">
+    <value>无法读取数据库对其存储机密密钥的记录，因此无法判断此服务器是否持有数据库的密钥。</value>
+  </data>
+  <data name="The database's second factors and [Settings] secrets are sealed under the stored-secrets key {0}, which this server does not hold, so they do not open here. Import it on the server from one that holds it: {1}." xml:space="preserve">
+    <value>数据库中的第二因素和 [Settings] 机密是用存储机密密钥 {0} 封存的，而此服务器没有该密钥，因此在这里无法打开。请从持有该密钥的服务器将其导入到此服务器：{1}。</value>
+  </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>数据库: 查找提到连接池的错误。当连接池等待超时时，收件人查询会应答 451 4.3.2 而不是 550，因此被备份锁住的数据库会推迟邮件而不是退回邮件。</value>
   </data>
@@ -9321,6 +9336,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The item no longer exists." xml:space="preserve">
     <value>该项已不存在。</value>
+  </data>
+  <data name="The key an account's second factor and the [Settings] secrets are sealed under in the database. It exists on the server alone, so a copy has to be exported and kept with the database backups." xml:space="preserve">
+    <value>在数据库中封存账户第二因素和 [Settings] 机密所用的密钥。它只存在于服务器上，因此必须导出一份副本，并与数据库备份一起保存。</value>
   </data>
   <data name="The key file could not be checked from this machine." xml:space="preserve">
     <value>无法从本机检查密钥文件。</value>
@@ -9746,6 +9764,15 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>无法以本页预期的格式 (YYYY-MM-DD HH:MM:SS) 读取存储的到期时间，因此从此处无法判断服务器是否仍接受此密钥。如果该行是手动编辑的，请更正它；否则请吊销该密钥并创建一个替代。</value>
+  </data>
+  <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
+    <value>存储机密密钥 - 数据库机密的封存所用</value>
+  </data>
+  <data name="The stored-secrets key {0} has never been exported. Export it on the server with {1} and keep the file with the database backups: a database restored without it opens no second factor and no [Settings] secret." xml:space="preserve">
+    <value>存储机密密钥 {0} 从未导出过。请在服务器上使用 {1} 将其导出，并将该文件与数据库备份一起保存：没有它而恢复的数据库无法打开任何第二因素或任何 [Settings] 机密。</value>
+  </data>
+  <data name="The stored-secrets key {0} was exported on {1}; keep that file with the database backups." xml:space="preserve">
+    <value>存储机密密钥 {0} 已于 {1} 导出；请将该文件与数据库备份一起保存。</value>
   </data>
   <data name="The subject tag breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does. The header does not, so prefer the header where the reader can show it." xml:space="preserve">
     <value>主题标记会破坏发件人对自己主题所做的任何 DKIM 签名，和反垃圾邮件的主题前缀完全一样。邮件头不会，所以在读者能够显示的地方请优先使用邮件头。</value>

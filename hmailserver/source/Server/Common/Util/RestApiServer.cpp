@@ -1422,14 +1422,22 @@ namespace HM
             "Administrator logon refused: a second factor is enrolled but its secret cannot be opened on this machine (see the preceding secret-store error). Restore the key the secret was protected with, or clear AdministratorTotpSecret in hMailServer.ini and enrol again.");
          return BasicRefused;
       }
-      if (secret.IsEmpty())
-         return BasicAccepted;
+      if (!secret.IsEmpty())
+      {
+         const AnsiString code = GetHeader_(request, "x-hmailserver-otp");
+         if (code.IsEmpty())
+            return BasicCodeMissing;
 
-      const AnsiString code = GetHeader_(request, "x-hmailserver-otp");
-      if (code.IsEmpty())
-         return BasicCodeMissing;
+         if (!Totp::VerifyCode(AnsiString(secret), code))
+            return BasicCodeWrong;
+      }
 
-      return Totp::VerifyCode(AnsiString(secret), code) ? BasicAccepted : BasicCodeWrong;
+      // Signed in. A password that verified against the installer's old unsalted
+      // MD5, or a hash cheaper than the one the server makes now, is written again
+      // as PBKDF2 (IniFileSettings::UpgradeAdministratorPasswordHash) - before a
+      // session is made, whose stamp is taken from the hash in force.
+      IniFileSettings::Instance()->UpgradeAdministratorPasswordHash(password, correctPassword);
+      return BasicAccepted;
    }
 
    bool

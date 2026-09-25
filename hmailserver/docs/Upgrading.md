@@ -18,6 +18,25 @@ and re-import.
 below has run continuously since hMailServer 4 — but because the one thing an
 upgrade cannot do is undo itself. See [Rolling back](#rolling-back).
 
+**Sealed secrets are off after an upgrade until you turn them on.** From schema 6103
+each account's second factor and the `[Settings]` secrets can be sealed in the
+database under the installation's stored-secrets key, but an upgrade makes no key:
+the server goes on storing them as written, says so in the application log at each
+start, and the setup checklist offers the step. To turn sealing on, from an elevated
+prompt on one server (`sudo hmailserver ...` on Linux):
+
+```powershell
+.\hMailServer.exe --create-stored-secrets-key
+.\hMailServer.exe --export-stored-secrets-key D:\Escrow\hmailserver-stored-secrets.key
+Restart-Service hMailServer
+```
+
+then `--import-stored-secrets-key` the same file on every other server that shares the
+database, and restart each. Keep the exported file with the database backups, stored
+apart from them: from then on a database-level backup restored without it opens none
+of those secrets ([SecretsAtRest.md](SecretsAtRest.md)). A new installation's installer
+makes the key itself and says to export it.
+
 Where you can upgrade from
 --------------------------
 
@@ -305,6 +324,18 @@ metadata row, and will be invisible.
 Which is the real argument for the backup: not fear of the upgrade, but the fact that
 rollback is only as good as the snapshot you took first.
 
+**Restore `hMailServer.ini` with it, when the version you roll back from sealed the
+stored secrets** (schema 6103 on, [SecretsAtRest.md](SecretsAtRest.md)). Such a server
+writes the `[Settings]` secrets into the file as `HMK1:` envelopes, and an older server
+reads the file's lines as they are: its `/Register` - which the older installer runs -
+hands `ServiceAccountPassword`'s envelope to Windows as the service account's password,
+and the service then cannot log on and does not start; its first moments, before the
+restored database puts its rows back into the file, run SRS, BATV and OAuth2 on the
+envelopes. So restore the pre-upgrade `hMailServer.ini` beside the database, or, where
+you have none, set `ServiceAccountPassword` (and any other of those secrets you use)
+again with the older version's Control Panel once it runs, and run `hMailServer.exe
+/Register` again.
+
 Special cases
 -------------
 
@@ -318,6 +349,25 @@ is no first-class tool for that yet, which is honestly recorded as a gap in
 database and the data directory, and confirm the data-directory path in the settings
 matches where you actually put it. Upgrade afterwards, as a separate step, so that if
 something goes wrong you know which of the two changes caused it.
+
+Two values that are not in the database go with it by hand, before the new machine's
+service first starts on the restored database: `PasswordPepper`, whose value is copied
+into the new machine's `hMailServer.ini` ([Backup.md](Backup.md)), and - from schema
+6103, where the installation has one - the **stored-secrets key** every account's second
+factor and the `[Settings]` secrets are sealed under. Export it on the old machine
+(`hMailServer.exe --export-stored-secrets-key FILE`, elevated, or `sudo hmailserver
+--export-stored-secrets-key FILE` on Linux) - or take the file exported when the key was
+made, if the old machine is gone - and import it on the new one with
+`--import-stored-secrets-key FILE`. The new machine's installer made a key of its own for
+the empty database it installed with: remove that `[Security] StoredSecretsKey` line from
+the new machine's `hMailServer.ini` first, or the import is refused. Never copy the line
+from the old machine, which is sealed under its own DPAPI. Without the key every second
+factor refuses every code on the new machine and those settings read as not set, and the
+error log says `HM7495` and names this step; with the key lost for good,
+`--forget-sealed-secrets KEYID` clears what it sealed ([SecretsAtRest.md](SecretsAtRest.md)). A
+move through a backup archive rather than the database does not need the key: the archive
+carries those secrets opened, and the restore seals them under the new machine's own. It
+still needs the pepper.
 
 **Upgrading silently** — see the [unattended install](../../README.md#unattended-install)
 notes. Until 6.2.23 a silent upgrade of an installation with an administrator password

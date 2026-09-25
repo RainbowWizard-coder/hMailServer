@@ -231,7 +231,7 @@ create table hm_accounts
 	accountvacationinternalmessage varchar(1000) not null default '',
 	accountvacationinternalonly tinyint not null default 0,
 	accountforwardabortspamflagged tinyint not null,
-	accounttotpsecret varchar(255) not null default '',
+	accounttotpsecret varchar(1024) not null default '',
 	accountpasswordchanged datetime not null default '2000-01-01',
 	accountantispamenabled tinyint not null default 1,
 	accountspammarkthreshold int not null default -1,
@@ -3162,4 +3162,4 @@ ALTER TABLE hm_discoveryexports ENGINE=InnoDB;
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6102);
+insert into hm_dbversion values (6103);

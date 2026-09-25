@@ -12,6 +12,7 @@
 #include "../SQL/DALRecordset.h"
 #include "../Util/XMLite.h"
 #include "../Util/AuditTrail.h"
+#include "../Util/StoredSecrets.h"
 #include "EnvironmentSettings.h"
 
 #include <atomic>
@@ -135,6 +136,50 @@ namespace HM
    static std::shared_ptr<DatabaseConnectionManager> StoreDatabase_()
    {
       return Application::Instance()->GetDBManager();
+   }
+
+   /// <summary>
+   /// Says, once a process for each name, that a protected setting's envelope does
+   /// not open here. Every reader then runs as though the secret were not set, and a
+   /// start, a reinitialise and every save read it again - so without the once the
+   /// same sentence would be written at each of them.
+   /// </summary>
+   static void ReportUnopenedSecretOnce_(const String &name, const AnsiString &keyId)
+   {
+      static boost::mutex reportedMutex;
+      static std::set<String> reported;
+
+      {
+         boost::lock_guard<boost::mutex> guard(reportedMutex);
+         if (!reported.insert(name).second)
+            return;
+      }
+
+      ErrorManager::Instance()->ReportError(ErrorManager::High, 7492, "IniSettingStore::OpenStored",
+         Formatter::Format("The setting {0} is sealed under the stored-secrets key {1}, which this node does not hold (Util/StoredSecrets.h), so the server runs as though it were not set. "
+            "Carry the key from a node that holds it - {2} there, {3} here - and restart or reinitialise; or enter the setting again. "
+            "Only when no node holds that key any more, {4} - with {1} for KEYID - clears it and every other value sealed under it (docs/SecretsAtRest.md). Reported once a process.",
+            name, String(keyId), StoredSecrets::ExportVerbText(), StoredSecrets::ImportVerbText(), StoredSecrets::ForgetVerbText()));
+   }
+
+   /// <summary>
+   /// Says, once a process for each name, that a secret was saved as written because
+   /// its sealed form would not fit the 4,000 characters a setting may have.
+   /// </summary>
+   static void ReportTooLongOnce_(const String &name, int length)
+   {
+      static boost::mutex reportedMutex;
+      static std::set<String> reported;
+
+      {
+         boost::lock_guard<boost::mutex> guard(reportedMutex);
+         if (!reported.insert(name).second)
+            return;
+      }
+
+      ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7491, "IniSettingStore::WriteSetting",
+         Formatter::Format("The setting {0} holds a secret of {1} characters, whose sealed form would be longer than the 4,000 characters a setting may have, so it was stored as written, as it was before secrets were sealed. "
+            "A secret of up to about 2,900 characters is sealed (docs/SecretsAtRest.md). Reported once a process.", name, StringParser::IntToString(length)));
    }
 
    bool
@@ -620,6 +665,104 @@ namespace HM
          resolvedValues[name] = storedValue;
       }
 
+      // 3. The secrets, sealed or opened as the switch says.
+      //
+      //    Until 25 September 2026 SRSSecret, BATVSecret, OAuth2HmacSecret, the
+      //    metrics listener's credentials and the other names IsProtectedName
+      //    answers were stored exactly as typed, in the row and in the file's line.
+      //    With protection on - ProtectStoredSecretsWithDPAPI as the DATABASE holds
+      //    it, or as [SettingsOverride] forces it, never this machine's copy of the
+      //    line alone - each value still as written is sealed under the
+      //    installation's stored-secrets key (Util/StoredSecrets.h), when this node
+      //    holds that key; with it off, each sealed value this node can open is put
+      //    back as written, so that switching it off undoes it. After the reconcile
+      //    above, so that a line an administrator edited is still named and put
+      //    back first, and the row before the line, as a save writes them: a line
+      //    that cannot be written - the packaged Linux file is root's - leaves the
+      //    row as the switch says and the line as it was, which reads the same,
+      //    and is named below.
+      std::vector<String> sealedNow;
+      std::vector<String> openedNow;
+      std::vector<String> tooLong;
+      std::vector<String> linesLeft;
+      {
+         std::map<String, std::pair<String, String> > current;
+         if (ReadAllRows(current))
+         {
+            const bool protectionOn = IsProtectionOn_(current);
+            const bool maySeal = protectionOn && StoredSecrets::MaySeal();
+
+            for (auto iter = current.begin(); iter != current.end(); iter++)
+            {
+               const String &name = (*iter).first;
+               const String &asStored = (*iter).second.first;
+
+               if (asStored.IsEmpty() || !IsProtectedName(name))
+                  continue;
+
+               const bool sealed = StoredSecrets::IsEnvelope(asStored);
+
+               String replacement;
+               if (protectionOn && !sealed)
+               {
+                  if (!maySeal || !StoredSecrets::Seal(asStored, StoredSecrets::SettingPurpose(name), replacement))
+                     continue;
+
+                  if (!IsStorableValue(replacement))
+                  {
+                     tooLong.push_back(name);
+                     continue;
+                  }
+               }
+               else if (!protectionOn && sealed)
+               {
+                  bool opened = false;
+                  replacement = StoredSecrets::Open(asStored, StoredSecrets::SettingPurpose(name), opened);
+                  if (!opened)
+                     continue;
+               }
+               else
+               {
+                  continue;
+               }
+
+               if (!UpdateRow_(name, replacement, (*iter).second.second))
+                  continue;
+
+               resolvedValues[name] = replacement;
+               (protectionOn ? sealedNow : openedNow).push_back(name);
+
+               if (WriteIniValue_(_T("Settings"), name, replacement))
+                  UpdateRow_(name, replacement, replacement);
+               else
+                  linesLeft.push_back(name);
+            }
+         }
+      }
+
+      // Through StoredSecrets::Note: at a start this runs before the logger is
+      // configured, and a line logged now would be dropped whatever logging is set
+      // to; the note is logged once it is.
+      if (!sealedNow.empty())
+      {
+         StoredSecrets::Note(Formatter::Format("IniSettingStore: these settings hold secrets and were stored as written; they are now sealed under the stored-secrets key {0}, in the database and in hMailServer.INI: {1}.",
+            String(StoredSecrets::HeldKeyId()), StringParser::JoinVector(sealedNow, _T(", "))));
+      }
+
+      if (!openedNow.empty())
+      {
+         StoredSecrets::Note(Formatter::Format("IniSettingStore: ProtectStoredSecretsWithDPAPI is 0, so these settings, which were sealed under the stored-secrets key, are stored as written again, in the database and in hMailServer.INI: {0}.",
+            StringParser::JoinVector(openedNow, _T(", "))));
+      }
+
+      if (!tooLong.empty())
+      {
+         // Said, not raised: the value works as it always did, and nothing an
+         // administrator does at the next start changes it.
+         StoredSecrets::Note(Formatter::Format("IniSettingStore: these settings hold secrets too long to seal within the 4,000 characters a setting may have, so they are kept as written: {0}. A secret of up to about 2,900 characters is sealed.",
+            StringParser::JoinVector(tooLong, _T(", "))));
+      }
+
       WriteFileNotice_();
 
       if (!edited.empty())
@@ -647,6 +790,17 @@ namespace HM
          LOG_APPLICATION(Formatter::Format(_T("IniSettingStore: {0} is read-only to the account the service runs as, which is how a service account of its own is meant to run - NT SERVICE\\hMailServer on Windows, the packages' hmailserver user on Linux (docs/ServiceAccount.md). The database is the settings store and its values are in use; the [Settings] copy in the file is not refreshed. {1} setting(s) there are older than the stored values{2}"),
             IniFileSettings::GetInitializationFile(), StringParser::IntToString((int) olderInFile.size()),
             olderInFile.empty() ? String(_T(".")) : String(_T(": ")) + StringParser::JoinVector(olderInFile, _T(", ")) + _T(".")));
+      }
+
+      if (!linesLeft.empty())
+      {
+         // Not "the old ones": the row and the line hold the same secret, one sealed
+         // and one not, and both read the same. What is wrong is that the line still
+         // holds it as written, readable by whoever can read the file.
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5803, "IniSettingStore::Synchronize",
+            Formatter::Format("These settings hold secrets, and their rows were changed as ProtectStoredSecretsWithDPAPI says, but hMailServer.INI could not be written, so its lines still hold them the other way: {0}. "
+               "Both read the same secret. To have the file match, store each again as root - sudo hmailserver --set-setting NAME, with the value on standard input - or give the account the service runs as write access to the file.",
+               StringParser::JoinVector(linesLeft, _T(", "))));
       }
 
       if (!keptInFileOnly.empty())
@@ -785,6 +939,113 @@ namespace HM
    }
 
    bool
+   IniSettingStore::IsProtectedName(const String &name)
+   {
+      if (!IsSecretName(name) || IsFileOnlyName(name))
+         return false;
+
+      // A key the loader reads as a number is never sealed: ResolveInteger_ reads
+      // the text as a number, and an envelope would read as 0 without a word. No
+      // key does both today; this is so the next one cannot.
+      String defaultValue;
+      bool isInteger = false;
+      if (DefaultFor(name, defaultValue, isInteger) && isInteger)
+         return false;
+
+      return true;
+   }
+
+   bool
+   IniSettingStore::IsProtectionOn_(const std::map<String, std::pair<String, String> > &rows)
+   {
+      const String switchName = _T("ProtectStoredSecretsWithDPAPI");
+
+      // As the loader would resolve it, and from the same places: [SettingsOverride]
+      // first, then the row, then - when neither has it - this machine's file and the
+      // shipped default, which is on. Read as GetPrivateProfileInt reads it.
+      std::map<String, String> overrides;
+      ReadOverrides(overrides);
+      for (auto iter = overrides.begin(); iter != overrides.end(); iter++)
+      {
+         if ((*iter).first.CompareNoCase(switchName) == 0)
+            return _ttoi((*iter).second.c_str()) == 1;
+      }
+
+      for (auto iter = rows.begin(); iter != rows.end(); iter++)
+      {
+         if ((*iter).first.CompareNoCase(switchName) == 0)
+            return _ttoi((*iter).second.first.c_str()) == 1;
+      }
+
+      return IniFileSettings::Instance()->GetProtectStoredSecretsWithDPAPI();
+   }
+
+   bool
+   IniSettingStore::IsProtectionOnAsStored()
+   {
+      std::map<String, std::pair<String, String> > rows;
+      ReadAllRows(rows);
+      return IsProtectionOn_(rows);
+   }
+
+   String
+   IniSettingStore::ProtectForStore(const String &name, const String &value)
+   {
+      if (value.IsEmpty() || !IsProtectedName(name) || StoredSecrets::IsEnvelope(value))
+         return value;
+
+      // Off, or no key of the database's on this node: the value is kept as
+      // written, as it always was, and the next start seals it once the key is here.
+      if (!IniFileSettings::Instance()->GetProtectStoredSecretsWithDPAPI())
+         return value;
+
+      String envelope;
+      if (!StoredSecrets::Seal(value, StoredSecrets::SettingPurpose(name), envelope))
+         return value;
+
+      return envelope;
+   }
+
+   String
+   IniSettingStore::OpenStored(const String &name, const String &stored)
+   {
+      if (!StoredSecrets::IsEnvelope(stored))
+         return stored;
+
+      bool opened = true;
+      const String secret = StoredSecrets::Open(stored, StoredSecrets::SettingPurpose(name), opened);
+      if (!opened)
+         ReportUnopenedSecretOnce_(name, StoredSecrets::EnvelopeKeyId(stored));
+
+      return secret;
+   }
+
+   bool
+   IniSettingStore::ForgetSealedValue(const String &name, const String &asStored)
+   {
+      std::shared_ptr<DatabaseConnectionManager> database = StoreDatabase_();
+
+      if (!database)
+         return false;
+
+      SQLCommand command("update hm_inisettings set inisettingvalue = @VALUE, inisettingfilevalue = @FILEVALUE where inisettingname = @NAME and inisettingvalue = @WAS");
+      command.AddParameter("@VALUE", String());
+      command.AddParameter("@FILEVALUE", String());
+      command.AddParameter("@NAME", name);
+      command.AddParameter("@WAS", asStored);
+
+      if (!database->Execute(command))
+         return false;
+
+      WriteIniValue_(_T("Settings"), name, String());
+
+      // Recorded as a secret's change is, whatever the name: the value it had could
+      // not be opened, and was a secret.
+      RecordChange_(name, true, _T("(sealed under a key this node does not hold)"), true, String(), false);
+      return true;
+   }
+
+   bool
    IniSettingStore::IsSettingTheServerReads(const String &name, String &spelling)
    {
       spelling.Empty();
@@ -898,7 +1159,12 @@ namespace HM
       String previousFileValue = existing == rows.end() ? String() : (*existing).second.second;
 
       bool wasStored = existing != rows.end();
-      String previousValue = wasStored ? (*existing).second.first : String();
+
+      // The row as it is kept, and the value it holds as the server uses it: for a
+      // protected secret the one is the envelope and the other what it opens to.
+      // Everything below that asks what the setting WAS asks the second.
+      const String previousStored = wasStored ? (*existing).second.first : String();
+      const String previousValue = OpenStored(name, previousStored);
 
       // As above: the environment's keys are refused to an administrator, here at
       // the store every door writes through - WriteSettingsValue and the audit
@@ -908,9 +1174,34 @@ namespace HM
 
       const bool withheld = IsWithheld_(name);
 
+      // What the row and the line are given: the value, or for a protected secret
+      // its envelope (docs/SecretsAtRest.md). The value already stored, saved again
+      // while protection is on, keeps the envelope it has, so that a settings page
+      // writing every field it shows does not rewrite every secret on it; saved with
+      // protection off it is stored as written. An empty value clears one, even one
+      // whose envelope does not open here.
+      String storedValue = value;
+      if (IsProtectedName(name))
+      {
+         const bool keepEnvelope = !value.IsEmpty() && wasStored && StoredSecrets::IsEnvelope(previousStored) &&
+                                   previousValue.Compare(value) == 0 && IniFileSettings::Instance()->GetProtectStoredSecretsWithDPAPI();
+
+         storedValue = keepEnvelope ? previousStored : ProtectForStore(name, value);
+
+         // The envelope is longer than what it protects - four characters for every
+         // three, and some sixty more - and has to fit the 4,000 characters a setting
+         // may have. One that does not is kept as written, as before this row, and
+         // said once for the name: refusing it would refuse a value that saved before.
+         if (!IsStorableValue(storedValue))
+         {
+            storedValue = value;
+            ReportTooLongOnce_(name, value.GetLength());
+         }
+      }
+
       bool stored = existing == rows.end()
-         ? InsertRow_(name, value, value)
-         : UpdateRow_(name, value, value);
+         ? InsertRow_(name, storedValue, storedValue)
+         : UpdateRow_(name, storedValue, storedValue);
 
       if (!stored)
          return false;
@@ -937,7 +1228,7 @@ namespace HM
       // because "it saved, but /Register still sees the old service account" is
       // precisely the half-success this area keeps producing when nobody says
       // anything.
-      if (!WriteIniValue_(_T("Settings"), name, value))
+      if (!WriteIniValue_(_T("Settings"), name, storedValue))
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5806, "IniSettingStore::WriteSetting",
             Formatter::Format("The setting '{0}' was stored in the database, which is the settings store, but hMailServer.INI could not be written. The setting itself is correct and will be used; the file's copy, which is read only while the database cannot be, keeps the old value until a later start can write it.", name));
@@ -949,7 +1240,7 @@ namespace HM
          // one, and accuse an administrator of editing a file nobody touched - while
          // doing exactly the right thing about it. With the previous value here the
          // next start sees no edit, writes the line again, and says so quietly.
-         UpdateRow_(name, value, previousFileValue);
+         UpdateRow_(name, storedValue, previousFileValue);
       }
 
       return true;
@@ -1074,9 +1365,24 @@ namespace HM
          if (IsFileOnlyName((*iter).first))
             continue;
 
+         // A sealed secret goes into the archive opened, as the server's other stored
+         // secrets go into the settings it carries (Backup.md): a restore has to put
+         // it back on a server that may hold another stored-secrets key, or none, and
+         // seals it again there. An encrypted archive covers it. One that does not
+         // open here is carried as it is - which is what it is worth here too - so
+         // that a restore where its key is held keeps it.
+         String value = (*iter).second.first;
+         if (StoredSecrets::IsEnvelope(value))
+         {
+            bool opened = true;
+            const String secret = StoredSecrets::Open(value, StoredSecrets::SettingPurpose((*iter).first), opened);
+            if (opened)
+               value = secret;
+         }
+
          XNode *pSetting = pNode->AppendChild(_T("Setting"));
          pSetting->AppendAttr(_T("Name"), (*iter).first);
-         pSetting->AppendAttr(_T("Value"), (*iter).second.first);
+         pSetting->AppendAttr(_T("Value"), value);
       }
 
       return true;
@@ -1148,6 +1454,14 @@ namespace HM
 
             continue;
          }
+
+         // A secret the archive carries opened is sealed again, under this server's
+         // stored-secrets key, before it is written anywhere; one it carries as an
+         // envelope is written as it is. A sealed form too long for the column leaves
+         // the value as the archive has it, as the start's pass would.
+         const String protectedValue = ProtectForStore(name, value);
+         if (IsStorableValue(protectedValue))
+            value = protectedValue;
 
          // Restore is authoritative: the point of restoring settings is to get the
          // backed-up settings. Both the row and the file are written, and the two

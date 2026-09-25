@@ -1919,6 +1919,11 @@ namespace DBUpdater
                          "update hm_bookingdecisions set bddecided = bddecided where 1 = 0"),
          new SchemaProbe(6101, "hm_bookingdecisions.fk_hm_bookingdecisions_account",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_bookingdecisions_account' and constraint_type = 'FOREIGN KEY')"),
+         // Upgrade6102to6103* - an account's second factor widened to 1024 for the
+         // sealed form it is stored in (docs/SecretsAtRest.md), the width the relay
+         // password has since 6039 (probing proves the column exists, not its width).
+         new SchemaProbe(6103, "hm_accounts.accounttotpsecret",
+                         "update hm_accounts set accounttotpsecret = accounttotpsecret where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

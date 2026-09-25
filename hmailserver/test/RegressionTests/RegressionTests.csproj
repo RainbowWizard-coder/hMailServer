@@ -618,6 +618,7 @@
     <Compile Include="Security\OAuth2Introspection.cs" />
     <Compile Include="Security\OAuth2BearerEs256.cs" />
     <Compile Include="Security\SecretProtection.cs" />
+    <Compile Include="Security\SecretsAtRest.cs" />
     <Compile Include="Security\PasswordPepper.cs" />
     <Compile Include="Security\PasswordHashCost.cs" />
     <Compile Include="Security\ProtocolFuzz.cs" />

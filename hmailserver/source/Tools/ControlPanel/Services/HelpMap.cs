@@ -178,6 +178,7 @@ namespace hMailServer.ControlPanel.Services
          "SampleDomain.md",
          "Sandbox.md",
          "Scim.md",
+         "SecretsAtRest.md",
          "SendAs.md",
          "SendApi.md",
          "SettingLevels.md",

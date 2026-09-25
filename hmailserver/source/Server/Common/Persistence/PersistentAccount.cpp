@@ -35,6 +35,7 @@
 
 #include "../Util/File.h"
 #include "../Util/Crypt.h"
+#include "../Util/StoredSecrets.h"
 #include "../Util/Time.h"
 #include "../BO/Account.h"
 #include "../BO/Rules.h"
@@ -56,6 +57,8 @@
 #include "PreSaveLimitationsCheck.h"
 #include "../Sieve/SieveStorage.h"
 #include "../Util/ImpersonationCheck.h"
+
+#include <atomic>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -376,7 +379,10 @@ namespace HM
       pAccount->SetSignatureHTML(pRS->GetStringValue("accountsignaturehtml"));
 
       pAccount->SetLastLogonTime(pRS->GetStringValue("accountlastlogontime"));
-      pAccount->SetTotpSecret(pRS->GetStringValue("accounttotpsecret"));
+      // Opened: the row holds it sealed under the installation's stored-secrets key,
+      // with this account's id in the associated data, or as generated if it was
+      // enrolled before that (ProtectStoredTotpSecrets).
+      pAccount->SetTotpSecret(TotpSecretFromStore_(pRS->GetStringValue("accounttotpsecret"), pAccount->GetAddress(), pAccount->GetID()));
       pAccount->SetPasswordChanged(pRS->GetStringValue("accountpasswordchanged"));
 
       pAccount->SetPersonFirstName(pRS->GetStringValue("accountpersonfirstname"));
@@ -655,7 +661,10 @@ namespace HM
       oStatement.AddColumn("accountsignaturehtml", pAccount->GetSignatureHTML());
 
       oStatement.AddColumn("accountlastlogontime", pAccount->GetLastLogonTime());
-      oStatement.AddColumn("accounttotpsecret", pAccount->GetTotpSecret());
+      // Sealed with the account's id in the associated data, which a new account
+      // does not have until the insert: its secret goes in as generated and is
+      // sealed by an update once the id is known, below.
+      oStatement.AddColumn("accounttotpsecret", TotpSecretToStore_(pAccount->GetTotpSecret(), pAccount->GetID()));
       // accountpasswordchanged is NOT NULL, and AddColumnDate writes NULL for a date
       // it cannot parse - so an account created by any path that does not set a
       // password through InterfaceAccount::put_Password (the REST API, a restore, a
@@ -706,6 +715,12 @@ namespace HM
          // A new account has no mailbox key, whatever an account that once had
          // this id had (MailboxKeys::NewAccount).
          MailboxKeys::NewAccount(pAccount->GetID());
+
+         // A second factor it was created with - a restore's - sealed now that the
+         // account has an id. Until this update it is as generated, as every row was
+         // before 25 September 2026, and one this update cannot seal the next start
+         // seals (ProtectStoredTotpSecrets).
+         SealNewAccountTotpSecret_(pAccount->GetID(), pAccount->GetTotpSecret());
 
          if (createInbox)
          {
@@ -924,5 +939,149 @@ namespace HM
          SMTPVacationMessageCreator::Instance()->VacationMessageTurnedOff(pAccount->GetAddress());
 
       return result;
+   }
+
+   String
+   PersistentAccount::TotpSecretToStore_(const String &secret, __int64 accountId)
+   {
+      // Empty is no second factor, and an envelope is one that did not open when the
+      // account was read: written back as it is, so that saving the account for some
+      // other reason neither drops its second factor nor seals the envelope again.
+      if (secret.IsEmpty() || StoredSecrets::IsEnvelope(secret))
+         return secret;
+
+      // Sealed under the installation's stored-secrets key while protection is on,
+      // this node holds the database's key and the account has an id; as generated
+      // otherwise, as it was before, until the start pass or the next save seals it.
+      if (accountId == 0 || !IniFileSettings::Instance()->GetProtectStoredSecretsWithDPAPI())
+         return secret;
+
+      String envelope;
+      if (!StoredSecrets::Seal(secret, StoredSecrets::TotpPurpose(accountId), envelope))
+         return secret;
+
+      return envelope;
+   }
+
+   void
+   PersistentAccount::SealNewAccountTotpSecret_(__int64 accountId, const String &secret)
+   {
+      const String stored = TotpSecretToStore_(secret, accountId);
+      if (stored.IsEmpty() || stored == secret)
+         return;
+
+      // Only the row as it was inserted.
+      SQLCommand update("update hm_accounts set accounttotpsecret = @SECRET where accountid = @ACCOUNTID and accounttotpsecret = @WAS");
+      update.AddParameter("@SECRET", stored);
+      update.AddParameter("@ACCOUNTID", accountId);
+      update.AddParameter("@WAS", secret);
+      Application::Instance()->GetDBManager()->Execute(update);
+   }
+
+   String
+   PersistentAccount::TotpSecretFromStore_(const String &stored, const String &address, __int64 accountId)
+   {
+      bool opened = true;
+      const String secret = StoredSecrets::Open(stored, StoredSecrets::TotpPurpose(accountId), opened);
+      if (opened)
+         return secret;
+
+      // This node does not hold the stored-secrets key the database's second factors
+      // are sealed under. Said once a process, naming the first account met and the
+      // step that mends it: every enrolled account is in the same state here.
+      static std::atomic<bool> reported(false);
+      bool expected = false;
+      if (reported.compare_exchange_strong(expected, true))
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 7493, "PersistentAccount::ReadObject",
+            Formatter::Format("The second factor of {0} is sealed under the stored-secrets key {1}, which this node does not hold, or was copied from another account's row. "
+               "The account keeps its second factor and every code is refused here - it signs in with an app password or a recovery code - until the key is carried to this node: "
+               "{2} on a node that holds it, {3} here, then restart or reinitialise. Only when no node holds that key any more, {4} - with {1} for KEYID - removes the second factors sealed under it, "
+               "and each account enrols again (docs/SecretsAtRest.md). Other accounts may be in the same state. Reported once a process.",
+               address, String(StoredSecrets::EnvelopeKeyId(stored)), StoredSecrets::ExportVerbText(), StoredSecrets::ImportVerbText(), StoredSecrets::ForgetVerbText()));
+      }
+
+      return stored;
+   }
+
+   void
+   PersistentAccount::ProtectStoredTotpSecrets()
+   {
+      std::shared_ptr<DatabaseConnectionManager> database = Application::Instance()->GetDBManager();
+      if (!database)
+         return;
+
+      // As the database holds the switch: this runs after the stored settings are
+      // published. On, the rows still as generated are sealed, when this node holds
+      // the database's key; off, the sealed rows this node can open are put back as
+      // generated, so that switching it off undoes it.
+      const bool protectionOn = IniFileSettings::Instance()->GetProtectStoredSecretsWithDPAPI();
+      if (protectionOn && !StoredSecrets::MaySeal())
+         return;
+
+      SQLCommand select(protectionOn
+         ? "select accountid, accounttotpsecret from hm_accounts where accounttotpsecret <> '' and accounttotpsecret not like 'HMK1:%'"
+         : "select accountid, accounttotpsecret from hm_accounts where accounttotpsecret like 'HMK1:%'");
+
+      std::shared_ptr<DALRecordset> recordset = database->OpenRecordset(select);
+      if (!recordset)
+         return;
+
+      std::vector<std::pair<__int64, String> > rows;
+      while (!recordset->IsEOF())
+      {
+         rows.push_back(std::make_pair(recordset->GetInt64Value("accountid"), recordset->GetStringValue("accounttotpsecret")));
+         recordset->MoveNext();
+      }
+      recordset.reset();
+
+      int changedCount = 0;
+      for (const std::pair<__int64, String> &row : rows)
+      {
+         String replacement;
+         if (protectionOn)
+         {
+            // The key could not be used just now: the rest would fare no better, and
+            // the next start tries again.
+            if (!StoredSecrets::Seal(row.second, StoredSecrets::TotpPurpose(row.first), replacement))
+               break;
+         }
+         else
+         {
+            bool opened = false;
+            replacement = StoredSecrets::Open(row.second, StoredSecrets::TotpPurpose(row.first), opened);
+            if (!opened || replacement.IsEmpty())
+               continue;
+         }
+
+         // Only the row as it was read: a second factor enrolled, replaced or removed
+         // since is newer than this pass and is left as it is.
+         SQLCommand update("update hm_accounts set accounttotpsecret = @SECRET where accountid = @ACCOUNTID and accounttotpsecret = @WAS");
+         update.AddParameter("@SECRET", replacement);
+         update.AddParameter("@ACCOUNTID", row.first);
+         update.AddParameter("@WAS", row.second);
+
+         if (database->Execute(update))
+            changedCount++;
+      }
+
+      if (changedCount > 0)
+      {
+         // The account cache holds each account's secret opened either way, but an
+         // object read before this pass is dropped, so that nothing carries the row
+         // as it was.
+         Cache<Account>::Instance()->Clear();
+
+         if (protectionOn)
+         {
+            LOG_APPLICATION(Formatter::Format("The second factors of {0} account(s) were stored as generated, and are now sealed under the stored-secrets key {1}.",
+               changedCount, String(StoredSecrets::HeldKeyId())));
+         }
+         else
+         {
+            LOG_APPLICATION(Formatter::Format("ProtectStoredSecretsWithDPAPI is 0, so the second factors of {0} account(s), which were sealed under the stored-secrets key, are stored as generated again.",
+               changedCount));
+         }
+      }
    }
 }

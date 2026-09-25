@@ -75,6 +75,17 @@ namespace HM
       // helper stops the unit and checks what it installs again as root.
       static bool EnsureDirectory(const String &path, HeldDirectory &held, String &repaired, String &error);
 
+      // The same permissions, for a file that must NEVER replace one: a key a verb
+      // exports to a name an administrator gave. Nothing is deleted first, so a
+      // file at path - made a moment before, by anyone - is left and the write
+      // refused. On Windows CREATE_NEW, flushed to the disk. On POSIX the bytes go
+      // to a new temporary name beside it (O_CREAT|O_EXCL|O_NOFOLLOW, mode 0600),
+      // are given their mode and flushed through that descriptor, and reach path
+      // through link(), which refuses a name that exists as anything - a file, a
+      // directory, a symbolic link - and never follows one; nothing is done to the
+      // file by its path after it is made.
+      static bool WriteNew(const String &path, const AnsiString &data, String &error);
+
       // The last modification time of a file, in seconds since the epoch (UTC).
       // False when the file cannot be examined.
       static bool ModifiedAt(const String &path, __int64 &seconds);

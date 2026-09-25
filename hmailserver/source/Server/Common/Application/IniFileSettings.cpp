@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <thread>
 #include "../Util/Crypt.h"
+#include "../Util/StoredSecrets.h"
 #include "../Util/Hashing/HashCreator.h"
 #include "../Util/DiskSpace.h"
 #include "../Util/Utilities.h"
@@ -179,8 +180,20 @@ namespace HM
    {
       boost::lock_guard<boost::recursive_mutex> guard(reload_mutex_);
 
-      administrator_password_ = ReadIniSettingString_("Security", "AdministratorPassword", "");
+      {
+         const String administratorPassword = ReadIniSettingString_("Security", "AdministratorPassword", "");
+         boost::lock_guard<boost::mutex> passwordGuard(administrator_password_mutex_);
+         administrator_password_ = administratorPassword;
+      }
       administrator_totp_secret_protected_ = ReadIniSettingString_("Security", "AdministratorTotpSecret", "");
+      {
+         // The stored-secrets key, as this machine's store protects it: read here and
+         // nowhere else, so that /Register and the file-only bootstrap open the
+         // [Settings] secrets they read (Util/StoredSecrets.h).
+         const String storedSecretsKey = ReadIniSettingString_("Security", "StoredSecretsKey", "");
+         boost::lock_guard<boost::mutex> keyGuard(administrator_password_mutex_);
+         stored_secrets_key_protected_ = storedSecretsKey;
+      }
 
       database_server_ = ReadIniSettingString_("Database", "Server", "");
       database_name_ = ReadIniSettingString_("Database", "Database", "");
@@ -1620,16 +1633,33 @@ namespace HM
       // sections that say where the database IS - so a value from the database could
       // never be needed to reach it, and allowing one would be a way to point a
       // server at a different database by writing to the one it already has.
-      if (sSection.CompareNoCase(_T("Settings")) == 0)
-      {
-         boost::lock_guard<boost::recursive_mutex> guard(database_settings_mutex_);
+      const bool settingsSection = sSection.CompareNoCase(_T("Settings")) == 0;
 
-         if (database_settings_loaded_)
+      if (settingsSection)
+      {
+         String stored;
+         bool found = false;
+
          {
-            auto found = database_settings_.find(sKey);
-            if (found != database_settings_.end())
-               return (*found).second;
+            boost::lock_guard<boost::recursive_mutex> guard(database_settings_mutex_);
+
+            if (database_settings_loaded_)
+            {
+               auto row = database_settings_.find(sKey);
+               if (row != database_settings_.end())
+               {
+                  stored = (*row).second;
+                  found = true;
+               }
+            }
          }
+
+         // A secret sealed under the stored-secrets key is opened here, where every
+         // reader of a [Settings] value comes through - the loader, the pending list,
+         // COM's GetIniSetting, a key read by name - and outside the lock, since an
+         // envelope that does not open is reported (IniSettingStore::OpenStored).
+         if (found)
+            return StoredSecrets::IsEnvelope(stored) ? IniSettingStore::OpenStored(sKey, stored) : stored;
       }
 
       // The buffer must be large enough for the longest value we may store. Most
@@ -1642,7 +1672,15 @@ namespace HM
       const DWORD nBufferSize = 4096;
       TCHAR Value[nBufferSize];
       GetPrivateProfileString( sSection, sKey, sDefault, Value, nBufferSize, GetInitializationFile() );
-      return Value;
+
+      // The file's copy of a sealed secret is the same envelope the row holds -
+      // what the bootstrap, /Register and a server whose table cannot be read go on -
+      // and opens under the same stored-secrets key.
+      const String fromFile(Value);
+      if (settingsSection && StoredSecrets::IsEnvelope(fromFile))
+         return IniSettingStore::OpenStored(sKey, fromFile);
+
+      return fromFile;
    }
 
    int
@@ -1897,9 +1935,10 @@ namespace HM
    }
 
 
-   String 
+   String
    IniFileSettings::GetAdministratorPassword()
    {
+      boost::lock_guard<boost::mutex> guard(administrator_password_mutex_);
       return administrator_password_;
    }
 
@@ -1914,10 +1953,21 @@ namespace HM
    {
       const String hash = HM::Crypt::Instance()->EnCrypt(sNewPassword, HM::Crypt::ETPBKDF2);
 
+      // An empty hash is a derivation that failed (no randomness for the salt), and
+      // written it would be no administrator password at all - the state in which
+      // COM asks nobody for one. The password in force stays.
+      if (hash.IsEmpty() && !sNewPassword.IsEmpty())
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 7494, "IniFileSettings::SetAdministratorPassword",
+            "The administrator password was not changed: its PBKDF2 hash could not be made. The password in force is unchanged.");
+         return false;
+      }
+
       if (!WritePrivateProfileString(_T("Security"), _T("AdministratorPassword"), hash, GetInitializationFile()))
          return false;
 
       WritePrivateProfileString(nullptr, nullptr, nullptr, GetInitializationFile());
+      boost::lock_guard<boost::mutex> guard(administrator_password_mutex_);
       administrator_password_ = hash;
       return true;
    }
@@ -1960,6 +2010,162 @@ namespace HM
 
       return Formatter::Format(_T("{0} is kept in {1}, and {2} may not write that file. That is deliberate: the file says how the server reaches its database and who may administer it, and commands an administrator runs elevated read it, so a service that could rewrite it could choose both (docs/ServiceAccount.md). Nothing was changed. {3}"),
          what, GetInitializationFile(), account, insteadDo);
+   }
+
+   bool
+   IniFileSettings::UpgradeAdministratorPasswordHash(const String &password, const String &verifiedHash)
+   {
+      // A file this process has once failed to write is not tried again: the
+      // packaged Linux file is root's, and every sign-in - every REST Basic
+      // request among them - would otherwise derive a PBKDF2 hash it cannot keep.
+      static std::atomic<bool> fileUnwritable(false);
+
+      if (password.IsEmpty() || verifiedHash.IsEmpty() || fileUnwritable.load())
+         return false;
+
+      // Weaker than what SetAdministratorPassword writes: the installer's unsalted
+      // MD5 and the salted SHA-256 of old versions by their scheme, a PBKDF2 hash by
+      // its work factor. Argon2id and scrypt are never written for the administrator
+      // and are left alone, as a peer of PBKDF2 or stronger.
+      const Crypt::EncryptionType type = Crypt::Instance()->GetHashType(verifiedHash);
+      const bool weaker = type == Crypt::ETMD5 || type == Crypt::ETSHA256 ||
+                          (type == Crypt::ETPBKDF2 && HashCreator::NeedsRehash(AnsiString(verifiedHash)));
+      if (!weaker)
+         return false;
+
+      const String upgraded = Crypt::Instance()->EnCrypt(password, Crypt::ETPBKDF2);
+      if (upgraded.IsEmpty())
+         return false;
+
+      const String file = GetInitializationFile();
+      bool reportUnwritable = false;
+
+      {
+         boost::lock_guard<boost::mutex> guard(administrator_password_mutex_);
+
+         // Another sign-in upgraded it first, or this process set the password
+         // since the check: either way the value in force is newer than the one
+         // that verified.
+         if (administrator_password_ != verifiedHash)
+            return false;
+
+         // And the FILE must still hold it. Another process - hMailServer.exe
+         // --set-admin-password, the Linux verb, an administrator's editor - may
+         // have written a new password since this one loaded the old, and the
+         // running server goes on verifying the old until it is restarted or
+         // reinitialised. A sign-in with the old password must not write it back
+         // over the new one: a password reset because the old one leaked would be
+         // undone by whoever holds the leak. This process's cache is flushed first,
+         // so the line read is the one on disk.
+         WritePrivateProfileString(nullptr, nullptr, nullptr, file.c_str());
+
+         const DWORD bufferSize = 4096;
+         TCHAR onDisk[bufferSize];
+         GetPrivateProfileString(_T("Security"), _T("AdministratorPassword"), _T(""), onDisk, bufferSize, file.c_str());
+         if (verifiedHash.Compare(String(onDisk)) != 0)
+            return false;
+
+         if (!WritePrivateProfileString(_T("Security"), _T("AdministratorPassword"), upgraded.c_str(), file.c_str()))
+         {
+            fileUnwritable = true;
+            reportUnwritable = true;
+         }
+         else
+         {
+            // Flushed, so that a reader in another process - the Control Panel's
+            // editor, a test - reads the new line and not the cache.
+            WritePrivateProfileString(nullptr, nullptr, nullptr, file.c_str());
+            administrator_password_ = upgraded;
+         }
+      }
+
+      // Reported with the lock released: ErrorManager runs the OnError event
+      // script on this thread, and a script that signs in as the administrator
+      // would otherwise wait on this lock for ever. Once a process, as the file is
+      // not tried again.
+      if (reportUnwritable)
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7494, "IniFileSettings::UpgradeAdministratorPasswordHash",
+            Formatter::Format("The administrator password is stored in {0} as an older, weaker hash, and could not be written again as PBKDF2 because the file cannot be written by the account the server runs as. "
+               "It still signs in. Set the password again - the Control Panel, COM Settings.SetAdministratorPassword, hMailServer.exe --set-admin-password, or sudo hmailserver --set-admin-password - to store it as PBKDF2. Reported once a process.", file));
+         return false;
+      }
+
+      LOG_APPLICATION(type == Crypt::ETPBKDF2
+         ? String(_T("The administrator password hash was derived again at sign-in with the configured PBKDF2 work factor (PasswordHashIterations)."))
+         : String(_T("The administrator password was stored as an older, unsalted or single-pass hash, and has been written again at sign-in as PBKDF2.")));
+      return true;
+   }
+
+   String
+   IniFileSettings::GetStoredSecretsKeyProtected()
+   {
+      boost::lock_guard<boost::mutex> guard(administrator_password_mutex_);
+      return stored_secrets_key_protected_;
+   }
+
+   bool
+   IniFileSettings::ReplaceStoredSecretsKeyProtected(const String &expected, const String &replacement, String &problem)
+   {
+      problem.Empty();
+
+      const String file = GetInitializationFile();
+      const DWORD bufferSize = 4096;
+      TCHAR onDisk[bufferSize];
+
+      boost::lock_guard<boost::mutex> guard(administrator_password_mutex_);
+
+      // Compare, then set. The line this process loaded may not be the line on the
+      // disk any more: another verb, or an administrator, may have written a key
+      // since. Written over, that key would be gone - and whatever was sealed under
+      // it with it. The cache is flushed first, so that the line read is the file's.
+      WritePrivateProfileString(nullptr, nullptr, nullptr, file.c_str());
+      GetPrivateProfileString(_T("Security"), _T("StoredSecretsKey"), _T(""), onDisk, bufferSize, file.c_str());
+      if (expected.Compare(String(onDisk)) != 0)
+      {
+         problem = Formatter::Format(_T("[Security] StoredSecretsKey in {0} was changed by something else since this process read it; nothing was written over it"), file);
+         return false;
+      }
+
+      // An empty replacement takes the line out, as the line was before a key.
+      if (!WritePrivateProfileString(_T("Security"), _T("StoredSecretsKey"), replacement.IsEmpty() ? nullptr : replacement.c_str(), file.c_str()))
+      {
+         problem = Formatter::Format(_T("{0} could not be written by the account this runs as"), file);
+         return false;
+      }
+
+      WritePrivateProfileString(nullptr, nullptr, nullptr, file.c_str());
+
+#ifndef HM_PLATFORM_POSIX
+      // The profile cache flushed is the file written, not the file on the disk:
+      // the lazy writer holds it for a while. The database records the key, and
+      // values are sealed under it, within moments, and those commits are durable -
+      // a power cut in between would leave them sealed under a key whose only copy
+      // never reached the disk. The POSIX profile writer fsyncs its file itself.
+      {
+         HANDLE handle = CreateFile(file.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+         const bool flushed = handle != INVALID_HANDLE_VALUE && FlushFileBuffers(handle) != FALSE;
+         if (handle != INVALID_HANDLE_VALUE)
+            CloseHandle(handle);
+
+         if (!flushed)
+         {
+            problem = Formatter::Format(_T("{0} was written but could not be flushed to the disk"), file);
+            return false;
+         }
+      }
+#endif
+
+      // Read back from the file, not from this process's copy.
+      GetPrivateProfileString(_T("Security"), _T("StoredSecretsKey"), _T(""), onDisk, bufferSize, file.c_str());
+      if (replacement.Compare(String(onDisk)) != 0)
+      {
+         problem = Formatter::Format(_T("[Security] StoredSecretsKey in {0} did not read back as it was written"), file);
+         return false;
+      }
+
+      stored_secrets_key_protected_ = replacement;
+      return true;
    }
 
    String

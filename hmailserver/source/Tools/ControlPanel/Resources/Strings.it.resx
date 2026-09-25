@@ -5703,6 +5703,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No signature database folder is set." xml:space="preserve">
     <value>Non è impostata alcuna cartella del database delle firme.</value>
   </data>
+  <data name="No stored-secrets key has been made, so an account's second factor and the [Settings] secrets are stored as written. Make one on the server with {0}, then export it." xml:space="preserve">
+    <value>Non è stata creata alcuna chiave dei segreti memorizzati, quindi il secondo fattore di un account e i segreti di [Settings] sono memorizzati così come scritti. Creane una sul server con {0}, poi esportala.</value>
+  </data>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>Nessun errore di sintassi segnalato.</value>
   </data>
@@ -5978,6 +5981,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Nella pagina Porte TCP/IP, assegna alla porta di invio (587) STARTTLS con un certificato della pagina Certificati SSL, oppure aggiungi la porta 465 con TLS implicito.</value>
+  </data>
+  <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
+    <value>Sul server, da un prompt dei comandi con privilegi elevati nella cartella Bin: hMailServer.exe --create-stored-secrets-key crea la chiave e hMailServer.exe --export-stored-secrets-key FILE la esporta. Conserva il file con i backup del database, ma separato da essi.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Attivato, ma non può essere eseguito</value>
@@ -6595,6 +6601,9 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Proteggi la credenziale di amministratore</value>
+  </data>
+  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>ProtectStoredSecretsWithDPAPI è 0, quindi il secondo fattore di un account e i segreti di [Settings] sono memorizzati così come scritti, e non serve alcuna chiave dei segreti memorizzati.</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>_Persone protette (persone fuori dagli account di questo dominio il cui nome non deve essere preso in prestito; una per riga, ciascuna Nome &lt;address&gt;, Nome o indirizzo)</value>
@@ -9185,6 +9194,12 @@ Selezionare la chiave qui sopra e copiarla a mano - non verrà mostrata di nuovo
   <data name="The database destination creates its table on first use and inserts asynchronously, so a log write never blocks a mail session. If the database is unreachable the entries go to the log files instead and the server says so in the application log - nothing is discarded." xml:space="preserve">
     <value>La destinazione database crea la propria tabella al primo utilizzo e inserisce in modo asincrono, quindi una scrittura di registro non blocca mai una sessione di posta. Se il database non è raggiungibile le voci vanno invece nei file di registro e il server lo segnala nel registro dell'applicazione - nulla viene scartato.</value>
   </data>
+  <data name="The database's record of its stored-secrets key could not be read, so whether this server holds the database's key cannot be told." xml:space="preserve">
+    <value>Non è stato possibile leggere il registro che il database tiene della sua chiave dei segreti memorizzati, quindi non si può dire se questo server possiede la chiave del database.</value>
+  </data>
+  <data name="The database's second factors and [Settings] secrets are sealed under the stored-secrets key {0}, which this server does not hold, so they do not open here. Import it on the server from one that holds it: {1}." xml:space="preserve">
+    <value>I secondi fattori e i segreti di [Settings] del database sono sigillati con la chiave dei segreti memorizzati {0}, che questo server non possiede, quindi qui non si aprono. Importala sul server da uno che la possiede: {1}.</value>
+  </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>Il database: cercare errori che citano il pool di connessioni. Quando scade il termine del pool, una ricerca del destinatario risponde 451 4.3.2 anziché 550, quindi un database bloccato da un backup rinvia la posta invece di respingerla.</value>
   </data>
@@ -9321,6 +9336,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   </data>
   <data name="The item no longer exists." xml:space="preserve">
     <value>L'elemento non esiste più.</value>
+  </data>
+  <data name="The key an account's second factor and the [Settings] secrets are sealed under in the database. It exists on the server alone, so a copy has to be exported and kept with the database backups." xml:space="preserve">
+    <value>La chiave con cui il secondo fattore di un account e i segreti di [Settings] sono sigillati nel database. Esiste solo sul server, quindi una copia va esportata e conservata con i backup del database.</value>
   </data>
   <data name="The key file could not be checked from this machine." xml:space="preserve">
     <value>Non è stato possibile verificare il file della chiave da questa macchina.</value>
@@ -9746,6 +9764,15 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Non è stato possibile leggere la scadenza memorizzata nel formato che questa pagina si aspetta (YYYY-MM-DD HH:MM:SS), quindi da qui non si può dire se il server accetti ancora questa chiave. Se la riga è stata modificata a mano, correggerla; altrimenti revocare la chiave e crearne una sostitutiva.</value>
+  </data>
+  <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
+    <value>La chiave dei segreti memorizzati - quella con cui sono sigillati i segreti del database</value>
+  </data>
+  <data name="The stored-secrets key {0} has never been exported. Export it on the server with {1} and keep the file with the database backups: a database restored without it opens no second factor and no [Settings] secret." xml:space="preserve">
+    <value>La chiave dei segreti memorizzati {0} non è mai stata esportata. Esportala sul server con {1} e conserva il file con i backup del database: un database ripristinato senza di essa non apre alcun secondo fattore né alcun segreto di [Settings].</value>
+  </data>
+  <data name="The stored-secrets key {0} was exported on {1}; keep that file with the database backups." xml:space="preserve">
+    <value>La chiave dei segreti memorizzati {0} è stata esportata il {1}; conserva quel file con i backup del database.</value>
   </data>
   <data name="The subject tag breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does. The header does not, so prefer the header where the reader can show it." xml:space="preserve">
     <value>Il contrassegno nell'oggetto rompe qualsiasi firma DKIM che il mittente abbia fatto sul proprio oggetto, esattamente come il prefisso dell'oggetto dell'antispam. L'intestazione no, quindi preferisci l'intestazione dove il lettore sa mostrarla.</value>

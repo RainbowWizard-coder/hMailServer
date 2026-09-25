@@ -75,6 +75,63 @@ namespace HM
          CloseHandle(token);
          return result;
       }
+
+      // A new file at path with the DACL: SYSTEM, the local Administrators group,
+      // and the account this process runs as. The last one matters: the service
+      // does not have to be LocalSystem - there is a setting for running it as a
+      // named account - and a DACL naming only SYSTEM would leave the server unable
+      // to read back the file it had just written. CREATE_NEW: a file that exists is
+      // refused. flush: FlushFileBuffers before the handle is closed.
+      bool CreateNew_(const String &path, const AnsiString &data, bool flush, String &error)
+      {
+         String sddl = _T("D:P(A;;FA;;;SY)(A;;FA;;;BA)");
+         String owner = CurrentUserSid_();
+         if (!owner.IsEmpty() && owner != _T("S-1-5-18"))
+            sddl += Formatter::Format(_T("(A;;FA;;;{0})"), owner);
+
+         PSECURITY_DESCRIPTOR descriptor = nullptr;
+         if (!ConvertStringSecurityDescriptorToSecurityDescriptorW(
+                sddl, SDDL_REVISION_1, &descriptor, nullptr))
+         {
+            error = Formatter::Format(_T("The permissions of {0} could not be built (error {1})."), path, (int) GetLastError());
+            return false;
+         }
+
+         SECURITY_ATTRIBUTES attributes = {};
+         attributes.nLength = sizeof(attributes);
+         attributes.lpSecurityDescriptor = descriptor;
+         attributes.bInheritHandle = FALSE;
+
+         HANDLE handle = CreateFileW(path, GENERIC_WRITE, 0, &attributes, CREATE_NEW,
+                                     FILE_ATTRIBUTE_NORMAL, nullptr);
+         const DWORD createError = GetLastError();
+         LocalFree(descriptor);
+
+         if (handle == INVALID_HANDLE_VALUE)
+         {
+            error = createError == ERROR_FILE_EXISTS
+               ? Formatter::Format(_T("{0} already exists, and nothing is written over it."), path)
+               : Formatter::Format(_T("{0} could not be written (error {1})."), path, (int) createError);
+            return false;
+         }
+
+         DWORD written = 0;
+         bool ok = WriteFile(handle, data.c_str(), (DWORD) data.GetLength(), &written, nullptr) != 0 &&
+                   written == (DWORD) data.GetLength();
+         if (ok && flush)
+            ok = FlushFileBuffers(handle) != 0;
+         CloseHandle(handle);
+
+         if (!ok)
+         {
+            // The file this call made, and nobody else's: CREATE_NEW succeeded.
+            DeleteFile(path);
+            error = Formatter::Format(_T("{0} could not be written."), path);
+            return false;
+         }
+
+         return true;
+      }
 #endif
 
 #ifdef _WIN32
@@ -491,57 +548,98 @@ namespace HM
       return true;
 
 #else
-      // SYSTEM, the local Administrators group, and the account this process
-      // runs as. The last one matters: the service does not have to be
-      // LocalSystem - there is a setting for running it as a named account -
-      // and a DACL naming only SYSTEM would leave the server unable to read
-      // back the file it had just written.
-      String sddl = _T("D:P(A;;FA;;;SY)(A;;FA;;;BA)");
-      String owner = CurrentUserSid_();
-      if (!owner.IsEmpty() && owner != _T("S-1-5-18"))
-         sddl += Formatter::Format(_T("(A;;FA;;;{0})"), owner);
-
-      PSECURITY_DESCRIPTOR descriptor = nullptr;
-      if (!ConvertStringSecurityDescriptorToSecurityDescriptorW(
-             sddl, SDDL_REVISION_1, &descriptor, nullptr))
-      {
-         error = Formatter::Format(_T("The permissions of {0} could not be built (error {1})."), path, (int) GetLastError());
-         return false;
-      }
-
-      SECURITY_ATTRIBUTES attributes = {};
-      attributes.nLength = sizeof(attributes);
-      attributes.lpSecurityDescriptor = descriptor;
-      attributes.bInheritHandle = FALSE;
-
       // CREATE_ALWAYS on an existing file keeps the file's existing DACL, so a
       // file written earlier - before this code, or by anything else - is
-      // removed first and the new one created with the DACL above.
+      // removed first and the new one created with the DACL CreateNew_ gives it.
       DeleteFile(path);
 
-      HANDLE handle = CreateFileW(path, GENERIC_WRITE, 0, &attributes, CREATE_NEW,
-                                  FILE_ATTRIBUTE_NORMAL, nullptr);
-      LocalFree(descriptor);
+      return CreateNew_(path, data, false, error);
+#endif
+   }
 
-      if (handle == INVALID_HANDLE_VALUE)
+   bool
+   ProtectedFile::WriteNew(const String &path, const AnsiString &data, String &error)
+   {
+#ifdef HM_PLATFORM_POSIX
+      const std::string native = boost::filesystem::path(std::wstring(path)).string();
+
+      // A temporary name beside the file. O_EXCL with O_CREAT never follows a
+      // symbolic link and never opens a name that exists, so one left there by
+      // anybody is not written through; another name is tried instead.
+      std::string temporary;
+      int descriptor = -1;
+      int openError = 0;
+      for (int attempt = 0; attempt < 16 && descriptor < 0; attempt++)
       {
-         error = Formatter::Format(_T("{0} could not be written (error {1})."), path, (int) GetLastError());
+         temporary = native + ".writing-" + std::to_string((long long) ::getpid()) + "-" +
+                     std::to_string((long long) ::time(nullptr)) + "-" + std::to_string((long long) attempt);
+         descriptor = ::open(temporary.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, S_IRUSR | S_IWUSR);
+         openError = errno;
+         if (descriptor < 0 && openError != EEXIST)
+            break;
+      }
+
+      if (descriptor < 0)
+      {
+         error = Formatter::Format(_T("{0} could not be written: a file beside it could not be made (error {1})."), path, openError);
          return false;
       }
 
-      DWORD written = 0;
-      bool ok = WriteFile(handle, data.c_str(), (DWORD) data.GetLength(), &written, nullptr) != 0 &&
-                written == (DWORD) data.GetLength();
-      CloseHandle(handle);
+      // Everything through the descriptor: the bytes, the mode - the umask can only
+      // have narrowed 0600, and this says it outright - and the flush.
+      bool ok = true;
+      size_t written = 0;
+      const size_t length = (size_t) data.GetLength();
+      while (ok && written < length)
+      {
+         const ssize_t count = ::write(descriptor, data.c_str() + written, length - written);
+         if (count < 0 && errno == EINTR)
+            continue;
+         if (count <= 0)
+            ok = false;
+         else
+            written += (size_t) count;
+      }
+
+      ok = ok && ::fchmod(descriptor, S_IRUSR | S_IWUSR) == 0 && ::fsync(descriptor) == 0;
+      ::close(descriptor);
 
       if (!ok)
       {
-         DeleteFile(path);
+         ::unlink(temporary.c_str());
          error = Formatter::Format(_T("{0} could not be written."), path);
          return false;
       }
 
+      // link() gives the file its name only where the name is free: it replaces
+      // nothing and follows nothing, where rename() would replace what is there.
+      if (::link(temporary.c_str(), native.c_str()) != 0)
+      {
+         const int linkError = errno;
+         ::unlink(temporary.c_str());
+         error = linkError == EEXIST
+            ? Formatter::Format(_T("{0} already exists, and nothing is written over it."), path)
+            : Formatter::Format(_T("{0} could not be written (error {1})."), path, linkError);
+         return false;
+      }
+
+      ::unlink(temporary.c_str());
+
+      // The name flushed as well as the bytes.
+      std::string directory = boost::filesystem::path(native).parent_path().string();
+      if (directory.empty())
+         directory = ".";
+      const int directoryDescriptor = ::open(directory.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+      if (directoryDescriptor >= 0)
+      {
+         ::fsync(directoryDescriptor);
+         ::close(directoryDescriptor);
+      }
+
       return true;
+#else
+      // No delete first: a file at path is left as it is, and CREATE_NEW refuses it.
+      return CreateNew_(path, data, true, error);
 #endif
    }
 

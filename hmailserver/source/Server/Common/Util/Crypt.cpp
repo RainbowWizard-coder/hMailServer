@@ -10,6 +10,7 @@
 #include "Hashing/HashCreator.h"
 #include "../Application/IniFileSettings.h"
 
+#include <algorithm>
 #include <atomic>
 
 #ifdef _DEBUG
@@ -84,7 +85,13 @@ namespace HM
             Unicode::WideToMultiByte(sInput, utf8);
 
             AnsiString protectedBase64;
-            if (!DataProtector::Protect(utf8, protectedBase64))
+            const bool protectedIt = DataProtector::Protect(utf8, protectedBase64);
+
+            // The narrow copy of the secret wiped before it goes back to the heap,
+            // as DataProtector wipes its own.
+            std::fill(utf8.begin(), utf8.end(), '\0');
+
+            if (!protectedIt)
                return "";
 
             return protectedBase64;
@@ -216,6 +223,7 @@ namespace HM
 
                String result;
                Unicode::MultiByteToWide(utf8, result);
+               std::fill(utf8.begin(), utf8.end(), '\0');
                return result;
             }
             break;
@@ -305,6 +313,12 @@ namespace HM
       }
 
       return DeCrypt(sStored, ETBlowFish);
+   }
+
+   bool
+   Crypt::IsSecretEnvelope(const String &stored)
+   {
+      return stored.Left(6) == _T("DPAPI:") || stored.Left(7) == _T("LINUX1:");
    }
 
    void

@@ -603,6 +603,31 @@ namespace HM
       bool SetAdministratorPassword(const String &sNewPassword);
       String GetAdministratorPassword();
 
+      // After an administrator sign-in whose password verified against
+      // verifiedHash - the value GetAdministratorPassword returned for that check -
+      // writes the password again as the PBKDF2 hash SetAdministratorPassword makes,
+      // when verifiedHash is weaker than that: the unsalted MD5 the Windows installer
+      // wrote until 25 September 2026, the salted SHA-256 of older versions, or a
+      // PBKDF2 hash of fewer iterations than PasswordHashIterations asks for now. As
+      // an account's password is re-hashed at its next logon (PasswordValidator).
+      // Nothing is written unless the value in force AND the file's line are still
+      // the one that verified - a password set meanwhile, by this process or by
+      // another (hMailServer.exe --set-admin-password runs beside the service),
+      // wins - and nothing once the file has refused a write (HM7494, once). True
+      // only when the file was rewritten.
+      bool UpgradeAdministratorPasswordHash(const String &password, const String &verifiedHash);
+
+      // [Security] StoredSecretsKey: the installation's stored-secrets key as this
+      // machine's store protects it (Util/StoredSecrets.h, docs/SecretsAtRest.md).
+      // In the file and nowhere else - never in the database, whose secrets it
+      // seals - and read by LoadSettings only. Written by the elevated verbs alone,
+      // never by the service. The replace is compare-and-set: the file's line is
+      // read first and must still be expected, the new line is flushed to the disk
+      // and read back, and only then taken as the value in force; an empty
+      // replacement takes the line out. False, with the reason, otherwise.
+      String GetStoredSecretsKeyProtected();
+      bool ReplaceStoredSecretsKeyProtected(const String &expected, const String &replacement, String &problem);
+
       // The administrator credential's second factor: a base32 TOTP secret kept
       // under [Security] AdministratorTotpSecret in the machine-bound DPAPI
       // envelope route passwords use (Crypt::ProtectSecret), and handed out only
@@ -1533,6 +1558,12 @@ namespace HM
       String database_directory_;
       String database_server_FailoverPartner;
       String administrator_password_;
+      // administrator_password_ is read on every thread that signs the administrator
+      // in and, since a sign-in can re-hash it (UpgradeAdministratorPasswordHash),
+      // written on them too; stored_secrets_key_protected_ is read wherever a
+      // sealed secret is opened. The one lock guards both.
+      boost::mutex administrator_password_mutex_;
+      String stored_secrets_key_protected_;
       // As stored: protected, not the base32 secret. See GetAdministratorTotpSecret.
       String administrator_totp_secret_protected_;
 

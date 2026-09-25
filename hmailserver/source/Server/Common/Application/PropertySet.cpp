@@ -11,6 +11,7 @@
 #include "NewInstallDefaults.h"
 #include "Profiles.h"
 #include "../Util/SnmpAgent.h"
+#include "../Util/StoredSecrets.h"
 
 #include <algorithm>
 
@@ -108,7 +109,8 @@ namespace HM
       // records and a profile's are the server's bookkeeping, read beside a setting
       // rather than as one, and are never a name a row holds.
       if (recorder_ && sPropertyName != EnvironmentSettings::MarkerName() && sPropertyName != EnvironmentSettings::SecretMarkerName() &&
-          sPropertyName != Profiles::SnapshotName() && sPropertyName != Profiles::AppliedName())
+          sPropertyName != Profiles::SnapshotName() && sPropertyName != Profiles::AppliedName() &&
+          sPropertyName != StoredSecrets::KeyIdRowName() && sPropertyName != StoredSecrets::ExportRowName())
       {
          if (std::find(recorder_->names_.begin(), recorder_->names_.end(), sPropertyName) == recorder_->names_.end())
             recorder_->names_.push_back(sPropertyName);
@@ -468,11 +470,17 @@ namespace HM
          // mark that this database was made by a new installation's create step and
          // its defaults are still to be decided (Application/NewInstallDefaults.h):
          // restored onto another database it would claim that one was new.
+         // Nor the record of the stored-secrets key and of its last export
+         // (Util/StoredSecrets.h): the archive carries the sealed values opened, and a
+         // restore seals them under the restoring installation's key - carried there,
+         // this installation's record would stop that one sealing anything.
          if (String(oProperty->GetName()).CompareNoCase(EnvironmentSettings::MarkerName()) == 0 ||
              String(oProperty->GetName()).CompareNoCase(EnvironmentSettings::SecretMarkerName()) == 0 ||
              String(oProperty->GetName()).CompareNoCase(Profiles::SnapshotName()) == 0 ||
              String(oProperty->GetName()).CompareNoCase(Profiles::AppliedName()) == 0 ||
-             String(oProperty->GetName()).CompareNoCase(NewInstallDefaults::PendingName()) == 0)
+             String(oProperty->GetName()).CompareNoCase(NewInstallDefaults::PendingName()) == 0 ||
+             String(oProperty->GetName()).CompareNoCase(StoredSecrets::KeyIdRowName()) == 0 ||
+             String(oProperty->GetName()).CompareNoCase(StoredSecrets::ExportRowName()) == 0)
          {
             iterProperty++;
             continue;
@@ -521,13 +529,16 @@ namespace HM
             continue;
 
          // The environment's records are this server's deployment, not the archive's,
-         // and a profile's records are this server's history, as is the mark of a
-         // new installation's database.
+         // a profile's records are this server's history, as is the mark of a
+         // new installation's database, and the stored-secrets key's record is
+         // this installation's key, not the archive's.
          if (sName.CompareNoCase(EnvironmentSettings::MarkerName()) == 0 ||
              sName.CompareNoCase(EnvironmentSettings::SecretMarkerName()) == 0 ||
              sName.CompareNoCase(Profiles::SnapshotName()) == 0 ||
              sName.CompareNoCase(Profiles::AppliedName()) == 0 ||
-             sName.CompareNoCase(NewInstallDefaults::PendingName()) == 0)
+             sName.CompareNoCase(NewInstallDefaults::PendingName()) == 0 ||
+             sName.CompareNoCase(StoredSecrets::KeyIdRowName()) == 0 ||
+             sName.CompareNoCase(StoredSecrets::ExportRowName()) == 0)
             continue;
 
          String sStringValue = pPropertyNode->GetAttrValue(_T("StringValue"));

@@ -310,6 +310,29 @@ step runs it on upgrade; it is safe to run by hand and reports "nothing to do"
 when there is nothing to do. Both commands refuse the two Windows-only backends
 by name.
 
+**4c. Make the stored-secrets key, and export it at once.** Each account's second
+factor and the `[Settings]` secrets (`SRSSecret`, `OAuth2HmacSecret`, the metrics
+credentials and the rest) are sealed in the database under a key of the
+installation's, kept in the configuration under the key file
+`/var/lib/hmailserver/.hmailserver-secret-key` - never by the service, which runs
+as its own user and cannot write the configuration. `--create-database` makes it
+where it can write the configuration (the container's entrypoint); run as the
+service's user here, it cannot, and says so. So, as root:
+
+```sh
+sudo hmailserver --create-stored-secrets-key
+sudo hmailserver --export-stored-secrets-key /root/hmailserver-stored-secrets.key
+```
+
+Keep the exported file with the database backups, stored apart from them as the
+password pepper is: a database restored without it opens no second factor and no
+`[Settings]` secret. Every other node that shares the database imports it
+(`--import-stored-secrets-key`). Root makes the key file for the owner of the data
+directory through the descriptor it made it with, never by its path, and refuses a
+data directory root owns. Without a key the secrets are stored as written, as
+before; the Control Deck's setup checklist asks for one until it is made and
+exported ([SecretsAtRest.md](../../../../docs/SecretsAtRest.md)).
+
 **5. Check it before starting anything.**
 
 ```sh

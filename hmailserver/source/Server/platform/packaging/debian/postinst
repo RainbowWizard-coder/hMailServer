@@ -179,6 +179,15 @@ started. Three things are needed before it can run:
 
          sudo -u hmailserver hmailserver --create-database
 
+And one more before it holds any secret: the stored-secrets key, which seals
+each account's second factor and the secret settings in the database. It is
+made once, as root, and exported at once - keep the file with the database
+backups, stored apart from them: a database restored without it opens none of
+those secrets.
+
+    sudo hmailserver --create-stored-secrets-key
+    sudo hmailserver --export-stored-secrets-key /root/hmailserver-stored-secrets.key
+
 Then check the file before starting anything:
 
     sudo -u hmailserver hmailserver --check-config

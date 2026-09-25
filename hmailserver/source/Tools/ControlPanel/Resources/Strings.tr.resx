@@ -5703,6 +5703,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No signature database folder is set." xml:space="preserve">
     <value>İmza veritabanı klasörü ayarlanmamış.</value>
   </data>
+  <data name="No stored-secrets key has been made, so an account's second factor and the [Settings] secrets are stored as written. Make one on the server with {0}, then export it." xml:space="preserve">
+    <value>Saklanan sırlar anahtarı oluşturulmadı, bu yüzden bir hesabın ikinci faktörü ve [Settings] sırları yazıldığı gibi saklanıyor. Sunucuda {0} ile bir anahtar oluşturun, ardından dışa aktarın.</value>
+  </data>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>Söz dizimi hatası bildirilmedi.</value>
   </data>
@@ -5978,6 +5981,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>TCP/IP portları sayfasında gönderim bağlantı noktasına (587) SSL sertifikaları sayfasından bir sertifikayla STARTTLS verin veya örtük TLS ile 465 numaralı bağlantı noktasını ekleyin.</value>
+  </data>
+  <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
+    <value>Sunucuda, Bin klasöründe yükseltilmiş bir komut isteminden: hMailServer.exe --create-stored-secrets-key anahtarı oluşturur, hMailServer.exe --export-stored-secrets-key FILE ise dışa aktarır. Dosyayı veritabanı yedekleriyle birlikte, ama onlardan ayrı saklayın.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Açık, ama çalışamıyor</value>
@@ -6595,6 +6601,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Protect the administrator credential" xml:space="preserve">
     <value>Yönetici kimlik bilgisini koru</value>
+  </data>
+  <data name="ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed." xml:space="preserve">
+    <value>ProtectStoredSecretsWithDPAPI 0 olduğundan bir hesabın ikinci faktörü ve [Settings] sırları yazıldığı gibi saklanır ve saklanan sırlar anahtarı gerekmez.</value>
   </data>
   <data name="Protected _persons (people outside this domain's accounts whose name must not be borrowed; one per line, each Name &lt;address&gt;, Name, or address)" xml:space="preserve">
     <value>Korunan _kişiler (adı ödünç alınmaması gereken, bu alan adının hesapları dışındaki kişiler; her satıra bir tane, her biri Ad &lt;address&gt;, Ad ya da adres)</value>
@@ -9185,6 +9194,12 @@ Yukarıdaki anahtarı seçip elle kopyalayın - bir daha gösterilmeyecek.</valu
   <data name="The database destination creates its table on first use and inserts asynchronously, so a log write never blocks a mail session. If the database is unreachable the entries go to the log files instead and the server says so in the application log - nothing is discarded." xml:space="preserve">
     <value>Veritabanı hedefi tablosunu ilk kullanımda oluşturur ve zaman uyumsuz olarak ekler; bu yüzden bir günlük yazması hiçbir zaman bir posta oturumunu engellemez. Veritabanına erişilemezse kayıtlar bunun yerine günlük dosyalarına gider ve sunucu bunu uygulama günlüğünde belirtir - hiçbir şey atılmaz.</value>
   </data>
+  <data name="The database's record of its stored-secrets key could not be read, so whether this server holds the database's key cannot be told." xml:space="preserve">
+    <value>Veritabanının saklanan sırlar anahtarına ilişkin kaydı okunamadı, bu yüzden bu sunucunun veritabanının anahtarına sahip olup olmadığı anlaşılamıyor.</value>
+  </data>
+  <data name="The database's second factors and [Settings] secrets are sealed under the stored-secrets key {0}, which this server does not hold, so they do not open here. Import it on the server from one that holds it: {1}." xml:space="preserve">
+    <value>Veritabanındaki ikinci faktörler ve [Settings] sırları, bu sunucuda bulunmayan {0} saklanan sırlar anahtarıyla mühürlü, bu yüzden burada açılmıyor. Anahtarı, ona sahip bir sunucudan bu sunucuya içe aktarın: {1}.</value>
+  </data>
   <data name="The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it." xml:space="preserve">
     <value>Veritabanı: bağlantı havuzundan söz eden hataları arayın. Havuz süresi dolduğunda bir alıcı araması 550 yerine 451 4.3.2 yanıtı verir; bu yüzden bir yedekleme tarafından kilitlenmiş bir veritabanı postayı geri çevirmek yerine erteler.</value>
   </data>
@@ -9321,6 +9336,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   </data>
   <data name="The item no longer exists." xml:space="preserve">
     <value>Öğe artık yok.</value>
+  </data>
+  <data name="The key an account's second factor and the [Settings] secrets are sealed under in the database. It exists on the server alone, so a copy has to be exported and kept with the database backups." xml:space="preserve">
+    <value>Bir hesabın ikinci faktörünün ve [Settings] sırlarının veritabanında altında mühürlendiği anahtar. Yalnızca sunucuda bulunur, bu yüzden bir kopyası dışa aktarılmalı ve veritabanı yedekleriyle birlikte saklanmalıdır.</value>
   </data>
   <data name="The key file could not be checked from this machine." xml:space="preserve">
     <value>Anahtar dosyası bu makineden denetlenemedi.</value>
@@ -9746,6 +9764,15 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Saklanan süre sonu bu sayfanın beklediği biçimde (YYYY-AA-GG SS:DD:SS) okunamadı; bu yüzden sunucunun bu anahtarı hâlâ kabul edip etmediği buradan söylenemez. Satır elle düzenlendiyse düzeltin; aksi hâlde anahtarı iptal edip bir yenisini oluşturun.</value>
+  </data>
+  <data name="The stored-secrets key - what the database's secrets are sealed under" xml:space="preserve">
+    <value>Saklanan sırlar anahtarı - veritabanının sırlarının altında mühürlendiği şey</value>
+  </data>
+  <data name="The stored-secrets key {0} has never been exported. Export it on the server with {1} and keep the file with the database backups: a database restored without it opens no second factor and no [Settings] secret." xml:space="preserve">
+    <value>Saklanan sırlar anahtarı {0} hiç dışa aktarılmadı. Sunucuda {1} ile dışa aktarın ve dosyayı veritabanı yedekleriyle birlikte saklayın: onsuz geri yüklenen bir veritabanı hiçbir ikinci faktörü ve hiçbir [Settings] sırrını açamaz.</value>
+  </data>
+  <data name="The stored-secrets key {0} was exported on {1}; keep that file with the database backups." xml:space="preserve">
+    <value>Saklanan sırlar anahtarı {0}, {1} tarihinde dışa aktarıldı; bu dosyayı veritabanı yedekleriyle birlikte saklayın.</value>
   </data>
   <data name="The subject tag breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does. The header does not, so prefer the header where the reader can show it." xml:space="preserve">
     <value>Konudaki etiket, istenmeyen posta korumasının konu öneki gibi, gönderenin kendi konusu üzerinde oluşturduğu her DKIM imzasını bozar. Başlık bozmaz; bu yüzden okuyucunun gösterebildiği yerlerde başlığı tercih edin.</value>

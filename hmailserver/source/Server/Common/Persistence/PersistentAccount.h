@@ -68,7 +68,41 @@ namespace HM
       // somebody else's accounts.
       static void ClearAllPasswordUpgradePending();
 
+      // An account's second factor at rest (docs/SecretsAtRest.md). The secret is
+      // kept in accounttotpsecret sealed under the installation's stored-secrets
+      // key - the HMK1 envelope of Util/StoredSecrets.h, a key every node that shares
+      // the database holds, never one bound to a machine - and the Account object
+      // holds it opened, so that everything that verifies a code, and the backup,
+      // which carries it opened as it carries the server's other stored secrets, is
+      // unchanged. Until 25 September 2026 it was stored as generated, and a row of
+      // that kind is read as it is - as it still is stored on an installation that
+      // has made no stored-secrets key.
+      //
+      // The pass at every start, after the stored settings are published: with
+      // ProtectStoredSecretsWithDPAPI on, the rows still as generated are sealed,
+      // when this node holds the database's key; with it off, the sealed rows this
+      // node can open are put back as generated. Once done, its select finds no row.
+      static void ProtectStoredTotpSecrets();
+
    private:
+
+      // What accounttotpsecret holds for an account's secret: the envelope, sealed
+      // with the account's id in its associated data, the envelope as it was read
+      // when it did not open here, or the secret as generated when protection is
+      // off, this node holds no key of the database's, or the account has no id yet.
+      static String TotpSecretToStore_(const String &secret, __int64 accountId);
+
+      // A new account's second factor - a restore's - sealed by an update once the
+      // insert has given the account its id.
+      static void SealNewAccountTotpSecret_(__int64 accountId, const String &secret);
+
+      // The secret an account's row holds, opened. One that does not open on this
+      // node - another key, or an envelope copied from another account's row - is
+      // kept as its envelope, which verifies no code: the second factor stays
+      // enrolled and refuses every code, rather than looking unenrolled and letting
+      // the password alone in (HM7493, once a process, naming the step that carries
+      // the key here, and the one that clears it when the key is lost).
+      static String TotpSecretFromStore_(const String &stored, const String &address, __int64 accountId);
 
       static bool ReadObject(std::shared_ptr<Account> pAccount,const SQLCommand &command);
 

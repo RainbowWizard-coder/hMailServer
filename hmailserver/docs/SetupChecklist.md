@@ -1,7 +1,7 @@
 # The first-hour checklist
 
 What a new server still needs before it is a mail server anybody can use, judged
-by the server itself rather than by whoever is reading the documentation. Eleven
+by the server itself rather than by whoever is reading the documentation. Twelve
 items, in the order a new installation meets them:
 
 | Key | Item | Done when |
@@ -16,6 +16,7 @@ items, in the order a new installation meets them:
 | `dmarc` | A DMARC record | every active domain has a TXT record beginning `v=DMARC1` at `_dmarc.<domain>` |
 | `backup` | A backup destination | the backup destination is set and the folder exists on the server |
 | `second_factor` | A second factor for the administrator | the administrator password is enrolled with a one-time code |
+| `stored_secrets_key` | The stored-secrets key | this server holds the key the database records, and an export of it has been recorded - the key an account's second factor and the `[Settings]` secrets are sealed under, which exists on the servers that hold it and in the files exported from them, so that a database restored without it opens none of them ([SecretsAtRest.md](SecretsAtRest.md)); not needed with `ProtectStoredSecretsWithDPAPI` at 0 |
 | `service_account` | The account the server runs as | the server runs as an account that is not the most privileged one on the machine - not LocalSystem on Windows, not root on Linux ([ServiceAccount.md](ServiceAccount.md)). Judged from the server's own token. The most privileged account is action needed as the missing profile is: a recommendation, the account an upgraded Windows installation keeps, never an error. Under an account that is not an administrator, what it cannot do is said beside it while the setting that needs it is on |
 
 Each item is in one of four states, and an item is as bad as its worst finding:
@@ -25,7 +26,7 @@ Each item is in one of four states, and an item is as bad as its worst finding:
 | `done` | the server found the thing in place |
 | `action_needed` | it is missing or wrong, and the finding says what |
 | `cannot_tell` | the server could not find out: a DNS lookup failed, or the caller asked for none. This says nothing either way |
-| `not_needed` | there is nothing to do, because nothing depends on it yet (the three record items, with no active domain; the passwords item, on a server only this computer may connect to) |
+| `not_needed` | there is nothing to do, because nothing depends on it yet (the three record items, with no active domain; the passwords item, on a server only this computer may connect to; the stored-secrets key, with sealing switched off) |
 
 The judgement is made from what the server can see: its own configuration, the
 files it would open, and DNS lookups made the way a receiving server makes them.
@@ -156,6 +157,12 @@ too. The Control Panel shows the item and opens its IP ranges page.
 | `backup_set` | folder | Backups go to {0}. |
 | `second_factor_on` | | The administrator's password is backed by a one-time code. |
 | `second_factor_off` | | The administrator signs in with a password alone. |
+| `stored_secrets_off` | | ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed. |
+| `stored_secrets_key_none` | verb | No stored-secrets key has been made, so an account's second factor and the [Settings] secrets are stored as written. Make one on the server with {0}, then export it. |
+| `stored_secrets_key_not_held` | key ids, verb | The database's second factors and [Settings] secrets are sealed under the stored-secrets key {0}, which this server does not hold, so they do not open here. Import it on the server from one that holds it: {1}. |
+| `stored_secrets_key_not_exported` | key id, verb | The stored-secrets key {0} has never been exported. Export it on the server with {1} and keep the file with the database backups: a database restored without it opens no second factor and no [Settings] secret. |
+| `stored_secrets_key_exported` | key id, date | The stored-secrets key {0} was exported on {1}; keep that file with the database backups. |
+| `stored_secrets_key_unreadable` | | The database's record of its stored-secrets key could not be read, so whether this server holds the database's key cannot be told. |
 | `service_account_local_system` | | The service runs as LocalSystem, the most privileged account on the machine, so a flaw reachable through SMTP, IMAP or POP3 would have full control of it. The virtual account a new installation uses contains that; running the installer again, or the Control Panel, moves the service to it. (Windows) |
 | `service_account_root` | | The server runs as root, so a flaw reachable through SMTP, IMAP or POP3 would have full control of the machine. The packages run it as a user of its own. (Linux) |
 | `service_account_own` | account | The service runs as {0}. (done) |
@@ -174,7 +181,7 @@ not asked to wait for all of them.
 is the route; `InterfaceUtilities::GetSetupChecklist` the COM method; the Deck's
 view is `renderChecklist` in `installation/WebAdmin/index.html`; the Control
 Panel's items are `ExternalSetupChecks.FirstHourItems`. The regression fixture is
-`test/RegressionTests/API/RestApiSetupChecklist.cs`: the eleven items in order,
+`test/RegressionTests/API/RestApiSetupChecklist.cs`: the twelve items in order,
 the records looked up in the suite's own zone for two domains, the skipped lookup
 saying so, the submission port judged with a certificate that exists and with the
 self-signed one a new installation makes, the passwords item's fix sent as the

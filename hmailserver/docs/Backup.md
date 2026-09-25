@@ -26,14 +26,14 @@ In the archive
 | What | Notes |
 |---|---|
 | Domains, and their aliases, distribution lists and signatures | With each domain its allow and block list, its spam traps, its quarantine digest switch and hour, and its own values of the settings with levels (`hm_settingoverrides`, scope 1; see [SettingLevels.md](SettingLevels.md)) |
-| Accounts | Address, password hash, forwarding, vacation, signature, quota, admin level, TOTP secret, anti-spam thresholds |
+| Accounts | Address, password hash, forwarding, vacation, signature, quota, admin level, TOTP secret, anti-spam thresholds. The TOTP secret is carried opened and sealed again under the restoring server's stored-secrets key, so that a restore onto a server with another key, or onto new hardware, keeps every second factor; one that did not open where the backup was taken is carried as its envelope, about a hundred characters, which fits an older server's column too ([SecretsAtRest.md](SecretsAtRest.md)) |
 | A domain's S/MIME authority | With its domain: each root's certificate, its private key **as the envelope it is stored in** (none for a retired root whose certificates have all expired), its serial counter, and every certificate it issued, carried by the address of the account it was issued to. The envelope is the platform's secret store's, never the legacy scheme's: on Windows it opens on the machine that protected it, to any process there; on Linux wherever the stored-secret key file goes. An archive restored where it does not open brings back an authority that must be rotated there before it signs; one restored where it does is a working authority, so guard the archive as you guard the server. See [SmimeAuthority.md](SmimeAuthority.md) |
 | Aliases and distribution lists, with their members | |
 | Routes, IP ranges, TCP/IP ports, SSL certificate *records*, incoming relays, groups | Only with **Back up settings** on |
 | IP warm-up schedules | Only with **Back up settings** on: the address, the start as a date, the plan and the switch. A restore changes a schedule the server already has for the address to the archive's, keeping its counts; removes one the archive does not name; and adds the rest with none. See [IpWarmup.md](IpWarmup.md) |
 | Anti-spam and anti-virus lists | DNS black lists, SURBL servers, white list, blocked senders, the server's allow and block list, blocked attachments, greylisting white list |
 | Public folders, and the permissions on them | |
-| The server settings that were the `[Settings]` section of `hMailServer.ini` | The rows of `hm_inisettings`, which is the settings store since schema 6042; the section in the file is the server's copy of them, and is not what the archive reads. Carried as name and value with **Back up settings** on, so a row this build does not know still comes back. **Not `PasswordPepper`** - see *Not in the archive* |
+| The server settings that were the `[Settings]` section of `hMailServer.ini` | The rows of `hm_inisettings`, which is the settings store since schema 6042; the section in the file is the server's copy of them, and is not what the archive reads. Carried as name and value with **Back up settings** on, so a row this build does not know still comes back. A secret among them - `SRSSecret`, `OAuth2HmacSecret` and the rest - is carried opened and sealed again on the way in ([SecretsAtRest.md](SecretsAtRest.md)). **Not `PasswordPepper`** - see *Not in the archive* |
 | Custom administrator roles | The rows of `hm_roles` that are not built in, with their permissions and descriptions, whenever **Back up domains** or **Back up settings** is on. Restored first, before any domain is removed, so that the assignments the accounts carry find their role on a server that has never seen it. A role the restoring server already has is kept as it is there, never overwritten with the archive's, and the difference is named in the backup log. See [Roles.md](Roles.md) |
 
 ### Everything an account has
@@ -73,6 +73,7 @@ Not in the archive, deliberately
 |---|---|
 | `[Database]` and `[Directories]` in `hMailServer.ini` | Per-machine. They are how this installation finds its database and its data folder, and they would be wrong on the machine you restore onto. Keep a copy of the file |
 | The administrator password and its second-factor secret | In `hMailServer.ini`, for the same reason: they are what lets you in when there is no database |
+| The stored-secrets key (`[Security] StoredSecretsKey`), and the database's record of it | The key the second factors and the `[Settings]` secrets are sealed under in the database. The archive does not need it - it carries those secrets opened - and a restore seals them under the restoring server's own key; the database's record of which key it is (`StoredSecretsKeyId`, and the last export's) is not carried either, since it names this installation's key. **A database-level backup does need it** - a dump, a SQL Server backup, a copy of `hMailServer.sdf`: restored without the key it brings back every second factor and `[Settings]` secret unopenable, and on Windows a copy of `hMailServer.ini` is no copy of the key. Export it as soon as it is made - `hMailServer.exe --export-stored-secrets-key FILE`, elevated, or `sudo hmailserver --export-stored-secrets-key FILE` - and keep the file with the database backups, stored apart from them as the pepper is; the setup checklist asks until it has been. Lost with no copy anywhere, `--forget-sealed-secrets KEYID` clears what it sealed ([SecretsAtRest.md](SecretsAtRest.md)) |
 | `PasswordPepper` | The one `[Settings]` key the settings store never holds and the archive never carries. Its whole purpose is to be somewhere the password hashes are not, and the archive holds the hashes: every Argon2id and scrypt hash was made with it, and without it each verifies false. It lives in `hMailServer.ini` only - the server takes it back out of the database if an earlier start put it there, and says so in the application log. **A restore onto new hardware needs the same pepper in that machine's `hMailServer.ini` before an account whose password is an Argon2id or scrypt hash can sign in**; PBKDF2, SHA-256 and MD5 hashes, and the administrator password, do not use it. Keep a copy of the value with the backups, apart from the archive |
 | TLS certificate and DKIM key **files** | The database stores the *paths*, not the files. A restore onto a machine where those paths hold nothing gives you a server that starts, serves no TLS and signs nothing. Keep them inside the data directory (where the message-store backup carries them) or copy them yourself |
 | Mail still in the delivery queue, and its recipients | A queued message is in flight rather than in a mailbox. Let the queue drain before a migration |
@@ -306,9 +307,10 @@ dump of a service running as `LocalSystem` can read that server's secrets by
 easier routes as well; this is a statement of what the feature does not claim,
 not a way in.
 
-And one thing it protects that is easy to miss: the settings section inside the
-archive carries the server's own stored secrets in the clear — the smart host's
-password among them — because a restore has to be able to put them back. An
+And one thing it protects that is easy to miss: the archive carries the server's
+own stored secrets in the clear — the smart host's password and the `[Settings]`
+secrets in its settings section, every account's second factor with the account —
+because a restore has to be able to put them back, and on another machine too. An
 unencrypted archive hands those to whoever can read the destination folder.
 
 
@@ -527,7 +529,9 @@ deletes them. Until you are on a release that carries them:
 
 1. **Back up the database as well**, with your database server's own tool:
    `pg_dump`, `mysqldump`, SQL Server's backup, or a copy of `hMailServer.sdf`
-   with the service stopped.
+   with the service stopped - and, from 6103 on, keep the exported stored-secrets
+   key beside those backups, or the second factors and `[Settings]` secrets they
+   hold do not open where they are restored ([SecretsAtRest.md](SecretsAtRest.md)).
 2. **Restore from that** when what you are recovering is a whole server, and use
    the built-in restore for what it was good at: moving domains, accounts and the
    message store between installations.

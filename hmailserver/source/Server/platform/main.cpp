@@ -37,6 +37,8 @@
 #include <cstdlib>
 #include <map>
 #include <string>
+#include <set>
+#include <sys/stat.h>
 
 #include "../Common/Application/Application.h"
 #include "../Common/Application/Version.h"
@@ -63,6 +65,10 @@
 #include "../Common/Util/CrashOracle.h"
 #include "../Common/Util/SigstoreVerifier.h"
 #include "../Common/Util/UpdateChecker.h"
+#include "../Common/Util/StoredSecrets.h"
+#include "../Common/Util/DataProtector.h"
+#include "../Common/Util/ProtectedFile.h"
+#include "../Common/Util/Unicode.h"
 
 namespace
 {
@@ -281,6 +287,40 @@ namespace
          "                    and the settings beside it) or the public Sigstore\n"
          "                    instance. hmailserver-update runs this as root\n"
          "                    before it installs anything.\n"
+         "  --create-stored-secrets-key\n"
+         "                    make this installation's stored-secrets key - the\n"
+         "                    key an account's second factor and the [Settings]\n"
+         "                    secrets are sealed under in the database - write it\n"
+         "                    into the configuration and record it in the database\n"
+         "                    (docs/SecretsAtRest.md). The service never makes one;\n"
+         "                    --create-database does when it creates the schema and\n"
+         "                    can write the configuration. Refused where the\n"
+         "                    database records another key: import that one. Run\n"
+         "                    it as root, and export the key at once.\n"
+         "  --export-stored-secrets-key <file>\n"
+         "                    write the key to <file>, mode 0600, never over a file\n"
+         "                    that exists and never to the terminal, to keep with\n"
+         "                    the database backups: a database restored without it\n"
+         "                    opens no sealed value. The export is recorded for the\n"
+         "                    setup checklist. Run it as root.\n"
+         "  --import-stored-secrets-key <file>\n"
+         "                    make the key in <file> this server's, on every other\n"
+         "                    node that shares the database, a standby or a new\n"
+         "                    machine, then restart the service. Refused where the\n"
+         "                    database records another key, or another is held;\n"
+         "                    remove [Security] StoredSecretsKey first to replace\n"
+         "                    it. Run it as root.\n"
+         "  --forget-sealed-secrets <key id>\n"
+         "                    when a key is lost for good - no node holds it and no\n"
+         "                    export was kept; importing it comes first: clear\n"
+         "                    every value sealed under that key - each account's\n"
+         "                    second factor, to enrol again, and each [Settings]\n"
+         "                    secret, to enter again - and the database's record\n"
+         "                    where it names it, one line each. Nothing sealed\n"
+         "                    under another key is touched. Refused where this\n"
+         "                    server holds that key or its own key line does not\n"
+         "                    open, and while the server runs (exit 4). Run it as\n"
+         "                    root.\n"
          "  --version         print the version and exit\n"
          "  --help            print this and exit\n"
          "\n"
@@ -290,6 +330,11 @@ namespace
    }
 }
 
+
+namespace
+{
+   void CreateKeyAfterNewSchema();
+}
 
 namespace
 {
@@ -524,6 +569,12 @@ namespace
          else
             std::printf("Its first start under systemd, if it comes within a day of this, secures it: a self-signed certificate, STARTTLS on 25, 587, 110 and 143, and a password refused without TLS from any address but this machine's. A later first start leaves it for hmailserver --apply-new-install-defaults, run by hand with the server stopped (docs/SecureDefaults.md).\n");
       }
+
+      // A new installation's stored-secrets key (Util/StoredSecrets.h), made here
+      // and nowhere at run time. Never on a database that already held a schema,
+      // above: an upgrade gets no key without an administrator asking for one.
+      database.reset();
+      CreateKeyAfterNewSchema();
       return 0;
    }
 
@@ -893,6 +944,373 @@ namespace
 
 namespace
 {
+   // The stored-secrets key's verbs (Common/Util/StoredSecrets.h,
+   // docs/SecretsAtRest.md). The create, the import and the forget write the key
+   // line or the [Settings] lines into the configuration, which is root's on the
+   // packaged layout, so they run as root; every one of them opens the database,
+   // where the key is recorded and checked against.
+   //
+   // The key is kept in the configuration under this machine's own store - the key
+   // file <DataFolder>/.hmailserver-secret-key - which the service, running as its
+   // own user, must be able to read. So where root meets no key file it makes one
+   // for the owner of the data directory - the service's account, as the package
+   // makes it - through DataProtector::CreateKeyFileFor, which gives the file away
+   // through the descriptor it was made with and never touches it by its path: the
+   // data directory is the service's, and a symbolic link it planted at that name
+   // would otherwise send root's chown - and the key - wherever it pointed. A key
+   // file that exists is left as it is, and has to be the service's already.
+   bool PrepareServiceKeyFile()
+   {
+      if (::geteuid() != 0)
+         return true;
+
+      HM::AnsiString dataDirectory;
+      HM::Unicode::WideToMultiByte(HM::IniFileSettings::Instance()->GetDataDirectory(), dataDirectory);
+
+      struct stat directory;
+      if (::stat(dataDirectory.c_str(), &directory) != 0 || !S_ISDIR(directory.st_mode))
+      {
+         std::fprintf(stderr, "The data directory %s could not be examined, so the stored-secret key file cannot be made for the account the service runs as. Nothing was changed.\n",
+            dataDirectory.c_str());
+         return false;
+      }
+
+      // A data directory root owns names no service account: a key file made for
+      // root would be one the service could not read.
+      if (directory.st_uid == 0)
+      {
+         std::fprintf(stderr, "The data directory %s belongs to root, so the account the service runs as cannot be told from it, and a key file made for root would be one the service could not read. "
+            "Give the data directory to that account (the package makes it hmailserver's), then run this again. Nothing was changed.\n",
+            dataDirectory.c_str());
+         return false;
+      }
+
+      HM::String failure;
+      if (!HM::DataProtector::CreateKeyFileFor((unsigned int) directory.st_uid, (unsigned int) directory.st_gid, failure))
+      {
+         std::fprintf(stderr, "The stored-secret key file is not ready for the account the service runs as: %s. Nothing was changed.\n", HM::AnsiString(failure).c_str());
+         return false;
+      }
+
+      return true;
+   }
+
+   // The configuration writable by this user, for a verb that writes into it.
+   bool ConfigurationIsWritable(const char *asRoot)
+   {
+      const HM::AnsiString iniFile(HM::IniFileSettings::GetInitializationFile());
+      if (::access(iniFile.c_str(), W_OK) != 0)
+      {
+         std::fprintf(stderr, "%s is not writable by this user, and this verb writes into it. Run it as root (sudo hmailserver %s). Nothing was changed.\n",
+            iniFile.c_str(), asRoot);
+         return false;
+      }
+      return true;
+   }
+
+   // The database opened the way the server opens it, after one plain connection
+   // that says why it cannot be, as --set-setting makes it: a wrong password is
+   // answered on standard error, not into a log directory root would then own. The
+   // key file is made for the service in between, when asked for. quietly: say
+   // nothing when the database cannot be reached.
+   bool OpenDatabaseForKeyVerb(bool prepareKeyFile, bool quietly)
+   {
+      std::shared_ptr<HM::DatabaseSettings> withDatabase, serverOnly;
+      if (!ReadDatabaseSettings(withDatabase, serverOnly))
+         return false;
+
+      {
+         std::shared_ptr<HM::DALConnection> probe = Connect(withDatabase, "the database", quietly);
+         if (!probe)
+            return false;
+
+         const int version = ReadSchemaVersion(probe);
+         if (version != REQUIRED_DB_VERSION)
+         {
+            if (!quietly)
+               std::fprintf(stderr, "The database is at schema version %d and this build needs %d: bring it to this build's schema first (--create-database, --upgrade-database).\n",
+                  version, REQUIRED_DB_VERSION);
+            return false;
+         }
+      }
+
+      if (prepareKeyFile && !PrepareServiceKeyFile())
+         return false;
+
+      HM::String error;
+      if (!HM::Application::Instance()->OpenDatabase(error))
+      {
+         if (!quietly)
+            std::fprintf(stderr, "Could not open the database: %s\n", HM::AnsiString(error).c_str());
+         return false;
+      }
+      return true;
+   }
+
+   // --create-stored-secrets-key: this installation's stored-secrets key made,
+   // written into [Security] StoredSecretsKey under the key file, and recorded in the
+   // database - never by the service, which runs as its own user with no write on the
+   // configuration. --create-database makes one too, when it creates the schema and
+   // can write the configuration; this is how the packaged server, and any server
+   // upgraded from before 25 September 2026, gets its key. Refused where the
+   // database records a key or holds values sealed under one: that key is imported.
+   int CreateStoredSecretsKey()
+   {
+      HM::IniFileSettings::Instance()->LoadSettings();
+
+      if (!ConfigurationIsWritable("--create-stored-secrets-key"))
+         return 1;
+
+      if (!OpenDatabaseForKeyVerb(true, false))
+      {
+         std::fprintf(stderr, "No stored-secrets key was made.\n");
+         return 1;
+      }
+
+      HM::AnsiString keyId;
+      bool alreadyHeld = false;
+      HM::String problem;
+      const bool made = HM::StoredSecrets::CreateKey(keyId, alreadyHeld, problem);
+      HM::Application::Instance()->CloseDatabase();
+
+      if (!made)
+      {
+         std::fprintf(stderr, "No stored-secrets key was made: %s. Nothing was changed.\n", HM::AnsiString(problem).c_str());
+         return 1;
+      }
+
+      if (alreadyHeld)
+      {
+         std::printf("This server already holds the stored-secrets key %s, which is the database's. Nothing was changed.\n", keyId.c_str());
+         return 0;
+      }
+
+      std::printf("Made the stored-secrets key %s, wrote it to [Security] StoredSecretsKey in %s and recorded it in the database. "
+         "The service seals an account's second factor and the [Settings] secrets under it from its next start (sudo systemctl restart hmailserver).\n"
+         "Export it NOW - sudo hmailserver --export-stored-secrets-key <file> - and keep the file with the database backups, stored apart from them as the password pepper is: "
+         "a database restored without it opens no second factor and no [Settings] secret. Every other node that shares this database needs it too (--import-stored-secrets-key there).\n",
+         keyId.c_str(), HM::AnsiString(HM::IniFileSettings::GetInitializationFile()).c_str());
+      return 0;
+   }
+
+   // --export-stored-secrets-key <file>: the key written to a new file, mode 0600,
+   // never over a file that exists and never to the terminal - to keep with the
+   // database backups, and for --import-stored-secrets-key on every other node.
+   // Checked against the key the database records, and the export recorded there for
+   // the setup checklist; a database that cannot be reached does not stop the copy,
+   // but then the export is not recorded. It makes no key.
+   int ExportStoredSecretsKey(const std::string &file)
+   {
+      HM::IniFileSettings::Instance()->LoadSettings();
+
+      const HM::String path(file.c_str());
+      if (HM::FileUtilities::Exists(path))
+      {
+         std::fprintf(stderr, "%s already exists. Name a file that does not, so that nothing is written over. Nothing was changed.\n", file.c_str());
+         return 2;
+      }
+
+      const bool databaseOpen = OpenDatabaseForKeyVerb(false, true);
+
+      HM::AnsiString text;
+      HM::AnsiString keyId;
+      HM::String problem;
+      if (!HM::StoredSecrets::ExportText(text, keyId, problem))
+      {
+         if (databaseOpen)
+            HM::Application::Instance()->CloseDatabase();
+         std::fprintf(stderr, "%s. Nothing was written.\n", HM::AnsiString(problem).c_str());
+         return 1;
+      }
+
+      HM::String writeError;
+      const bool written = HM::ProtectedFile::WriteNew(path, text, writeError);
+      std::fill(text.begin(), text.end(), '\0');
+
+      const bool recorded = written && databaseOpen && HM::StoredSecrets::RecordExport(keyId);
+      if (databaseOpen)
+         HM::Application::Instance()->CloseDatabase();
+
+      if (!written)
+      {
+         std::fprintf(stderr, "The key could not be written to %s: %s\n", file.c_str(), HM::AnsiString(writeError).c_str());
+         return 1;
+      }
+
+      std::printf("The stored-secrets key %s was written to %s, mode 0600. Keep it with the database backups, stored apart from them as the password pepper is: "
+         "a database restored without it opens no second factor and no [Settings] secret, and it opens every one of them for whoever holds it. "
+         "On every other node that shares this server's database: sudo hmailserver --import-stored-secrets-key <file>, then restart the service there.\n",
+         keyId.c_str(), file.c_str());
+
+      if (!recorded)
+         std::fprintf(stderr, "The export could not be recorded in the database, so the setup checklist still asks for one; export it again, to a new file, once the database can be reached.\n");
+
+      return 0;
+   }
+
+   // --import-stored-secrets-key <file>: the key in the file made this server's,
+   // checked against the key the database records.
+   int ImportStoredSecretsKey(const std::string &file)
+   {
+      HM::IniFileSettings::Instance()->LoadSettings();
+
+      const HM::String path(file.c_str());
+      if (!HM::FileUtilities::Exists(path))
+      {
+         std::fprintf(stderr, "%s does not exist. Nothing was changed.\n", file.c_str());
+         return 2;
+      }
+
+      if (!ConfigurationIsWritable("--import-stored-secrets-key <file>"))
+         return 1;
+
+      if (!OpenDatabaseForKeyVerb(true, false))
+      {
+         std::fprintf(stderr, "The key was not imported.\n");
+         return 1;
+      }
+
+      HM::AnsiString text(HM::FileUtilities::ReadCompleteTextFile(path));
+      HM::AnsiString keyId;
+      HM::String problem;
+      const bool imported = HM::StoredSecrets::ImportText(text, keyId, problem);
+      std::fill(text.begin(), text.end(), '\0');
+      HM::Application::Instance()->CloseDatabase();
+
+      if (!imported)
+      {
+         std::fprintf(stderr, "The key was not imported: %s. Nothing was changed.\n", HM::AnsiString(problem).c_str());
+         return 1;
+      }
+
+      std::printf("The stored-secrets key %s is this server's, in [Security] StoredSecretsKey of %s. Restart the service (sudo systemctl restart hmailserver) for it to take the key. "
+         "Keep %s with the database backups, or delete it if a copy is kept there already.\n",
+         keyId.c_str(), HM::AnsiString(HM::IniFileSettings::GetInitializationFile()).c_str(), file.c_str());
+      return 0;
+   }
+
+   // --forget-sealed-secrets KEYID: the way forward when a stored-secrets key is
+   // lost - no node holds it any more and no export was kept; importing it is the
+   // first thing to try. Every envelope that names that key is cleared - a second
+   // factor removed, a [Settings] secret emptied - and the record removed where it
+   // names it; nothing sealed under another key is touched. Refused while the
+   // server runs (exit 4), as the store's rewrite is: a running one holds what it
+   // read, and would write an envelope back. The server holds the message store's
+   // lock for as long as it runs; the lock file is made by the server's first
+   // start, so where there is none, no server is running, and root does not make
+   // one the service could not open afterwards.
+   int ForgetSealedSecrets(const std::string &keyId)
+   {
+      HM::IniFileSettings::Instance()->LoadSettings();
+
+      if (keyId.empty() || keyId.compare(0, 2, "--") == 0)
+      {
+         std::fprintf(stderr, "--forget-sealed-secrets needs the lost key's id, the sixteen hex digits HM7495 and the setup checklist name: --forget-sealed-secrets 0123456789abcdef. "
+            "Import the key from a node that holds it instead, if there is one. Nothing was changed.\n");
+         return 2;
+      }
+
+      const HM::String lockFile = HM::FileUtilities::Combine(HM::IniFileSettings::Instance()->GetLogDirectory(), _T("hmailserver-store.lock"));
+      if (HM::FileUtilities::Exists(lockFile))
+      {
+         HM::String lockProblem;
+         const int taken = HM::MessageStoreMaintenance::TakeStoreLock(true, lockProblem);
+         if (taken != 0)
+         {
+            std::fprintf(stderr, taken == 1
+               ? "The hMailServer server is running: %s. Stop it (sudo systemctl stop hmailserver), run this again, then start it. Nothing was changed.\n"
+               : "Whether the server is running could not be asked: %s. Stop it and run this again. Nothing was changed.\n",
+               HM::AnsiString(lockProblem).c_str());
+            return 4;
+         }
+      }
+
+      if (!ConfigurationIsWritable("--forget-sealed-secrets KEYID"))
+         return 1;
+
+      if (!OpenDatabaseForKeyVerb(false, false))
+      {
+         std::fprintf(stderr, "Nothing was changed.\n");
+         return 1;
+      }
+
+      std::vector<HM::String> forgotten;
+      HM::String problem;
+      const bool done = HM::StoredSecrets::ForgetLostKey(HM::AnsiString(keyId.c_str()), forgotten, problem);
+      HM::Application::Instance()->CloseDatabase();
+
+      for (const HM::String &line : forgotten)
+         std::printf("%s\n", HM::AnsiString(line).c_str());
+
+      if (!done)
+      {
+         std::fprintf(stderr, "%s%s.\n", forgotten.empty() ? "Nothing was cleared: " : "Not everything was cleared: ", HM::AnsiString(problem).c_str());
+         return 1;
+      }
+
+      if (forgotten.empty())
+         std::printf("Nothing is sealed under the key %s, and the database does not record it. Nothing was changed.\n", keyId.c_str());
+      else
+         std::printf("Done. Start the service. If this node holds no stored-secrets key now, make one with sudo hmailserver --create-stored-secrets-key and export it at once.\n");
+
+      return 0;
+   }
+
+   // After --create-database has created the schema: the installation's key, where
+   // this user can write the configuration - the container's entrypoint, a
+   // configuration the administrator owns. The packaged server's is root's and
+   // --create-database runs as the service's user there, so it says what to run
+   // instead; a new installation is never refused for it.
+   void CreateKeyAfterNewSchema()
+   {
+      // A configuration that asks for no sealing gets no key made for it; the verb
+      // makes one whenever an administrator asks.
+      HM::IniFileSettings::Instance()->LoadSettings();
+      if (!HM::IniFileSettings::Instance()->GetProtectStoredSecretsWithDPAPI())
+      {
+         std::printf("ProtectStoredSecretsWithDPAPI is 0 in the configuration, so no stored-secrets key was made; sudo hmailserver --create-stored-secrets-key makes one.\n");
+         return;
+      }
+
+      const HM::AnsiString iniFile(HM::IniFileSettings::GetInitializationFile());
+      if (::access(iniFile.c_str(), W_OK) != 0)
+      {
+         std::printf("No stored-secrets key was made: %s is not writable by this user. Make one with sudo hmailserver --create-stored-secrets-key, then export it; until then an account's second factor and the [Settings] secrets are stored as written.\n",
+            iniFile.c_str());
+         return;
+      }
+
+      if (!OpenDatabaseForKeyVerb(true, false))
+      {
+         std::printf("No stored-secrets key was made. Make one with sudo hmailserver --create-stored-secrets-key, then export it.\n");
+         return;
+      }
+
+      HM::AnsiString keyId;
+      bool alreadyHeld = false;
+      HM::String problem;
+      const bool made = HM::StoredSecrets::CreateKey(keyId, alreadyHeld, problem);
+      HM::Application::Instance()->CloseDatabase();
+
+      if (!made)
+      {
+         std::printf("No stored-secrets key was made: %s.\n", HM::AnsiString(problem).c_str());
+         return;
+      }
+
+      if (alreadyHeld)
+      {
+         std::printf("This server holds the stored-secrets key %s, now recorded as the new database's.\n", keyId.c_str());
+         return;
+      }
+
+      std::printf("Made the stored-secrets key %s and recorded it in the new database. Export it NOW - hmailserver --export-stored-secrets-key <file> - and keep the file with the database backups: "
+         "a database restored without it opens no second factor and no [Settings] secret.\n", keyId.c_str());
+   }
+}
+
+namespace
+{
    // --sample-domain create|remove: a throwaway example.test, made and removed
    // from the command line. The one place this platform has no other door to it:
    // the REST API answers the same two calls, but the listener may not be on yet
@@ -1026,6 +1444,11 @@ int main(int argc, char *argv[])
    std::string set_setting;
    std::string sample_domain;
    std::string verify_update;
+   std::string export_secrets_key;
+   std::string import_secrets_key;
+   bool create_secrets_key = false;
+   bool forget_sealed_secrets = false;
+   std::string forget_key_id;
    bool check_only = false;
    bool set_password = false;
    bool create_database = false;
@@ -1215,6 +1638,30 @@ int main(int argc, char *argv[])
          configuration = argv[++index];
          continue;
       }
+      if (argument == "--create-stored-secrets-key")
+      {
+         create_secrets_key = true;
+         continue;
+      }
+      if (argument == "--forget-sealed-secrets")
+      {
+         // The lost key's id: refused without one, so that nothing sealed under
+         // another key is cleared.
+         forget_sealed_secrets = true;
+         if (index + 1 < argc)
+            forget_key_id = argv[++index];
+         continue;
+      }
+      if (argument == "--export-stored-secrets-key" || argument == "--import-stored-secrets-key")
+      {
+         if (index + 1 >= argc)
+         {
+            std::fprintf(stderr, "%s needs the key file; for example %s /root/hmailserver-stored-secrets.key.\n", argument.c_str(), argument.c_str());
+            return 2;
+         }
+         (argument == "--export-stored-secrets-key" ? export_secrets_key : import_secrets_key) = argv[++index];
+         continue;
+      }
       if (argument == "--verify-update")
       {
          if (index + 1 >= argc)
@@ -1318,6 +1765,18 @@ int main(int argc, char *argv[])
 
    if (!set_setting.empty())
       return SetSetting(set_setting);
+
+   if (create_secrets_key)
+      return CreateStoredSecretsKey();
+
+   if (!export_secrets_key.empty())
+      return ExportStoredSecretsKey(export_secrets_key);
+
+   if (!import_secrets_key.empty())
+      return ImportStoredSecretsKey(import_secrets_key);
+
+   if (forget_sealed_secrets)
+      return ForgetSealedSecrets(forget_key_id);
 
    // Every setting from the environment (Common/Application/EnvironmentSettings,
    // docs/EnvironmentConfiguration.md): what the container's entrypoint runs after

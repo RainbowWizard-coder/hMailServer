@@ -262,6 +262,67 @@ namespace HM
       static bool IsSecretName(const String &name);
 
       /// <summary>
+      /// Whether a setting's value is sealed under the installation's stored-secrets
+      /// key (Util/StoredSecrets.h) - in the row and in the file's line, never in the
+      /// clear - rather than kept as written: every name IsSecretName masks, which
+      /// over the keys this build reads is SRSSecret, BATVSecret, OAuth2HmacSecret,
+      /// OAuth2IntrospectionClientSecret, OutboundOAuth2ClientSecret,
+      /// OutboundOAuth2FixedToken, MetricsServerAuthToken, MetricsServerAuthPassword
+      /// and ServiceAccountPassword, and GssapiServicePassword, which is read by name.
+      /// The same rule, so that the next secret added is kept the same way without
+      /// anybody remembering this, and so that what the lists mask and what the
+      /// store seals cannot drift apart.
+      ///
+      /// Not PasswordPepper, the file-only key: it is never in the database or a
+      /// backup, which is what sealing would protect it from, and a restore onto new
+      /// hardware gets it back by its value being copied into that machine's file
+      /// (Backup.md). Nor a key the loader reads as a number, which an envelope would
+      /// turn into 0.
+      /// </summary>
+      static bool IsProtectedName(const String &name);
+
+      /// <summary>
+      /// ProtectStoredSecretsWithDPAPI as the settings store holds it - its
+      /// [SettingsOverride] line, else its row, else this machine's file and the
+      /// shipped default (on) - for the start, which reconciles before the settings
+      /// the store holds are published and must not go by this machine's copy of the
+      /// line alone: on a node whose file lacks it, the shared row would be ignored.
+      /// </summary>
+      static bool IsProtectionOnAsStored();
+
+      /// <summary>
+      /// What is stored for a value of a protected name: its HMK1 envelope while
+      /// ProtectStoredSecretsWithDPAPI is on and this node holds the database's
+      /// stored-secrets key (StoredSecrets::MaySeal), and the value as written
+      /// otherwise, as it always was. A value that is already an envelope is stored
+      /// as it is - a profile's way back, a restore of a value that did not open
+      /// where the backup was taken, a test putting back what it read - because
+      /// sealing it again would make its opening another envelope. Empty for empty.
+      /// Any other name's value is returned as it is.
+      /// </summary>
+      static String ProtectForStore(const String &name, const String &value);
+
+      /// <summary>
+      /// A stored value as the server uses it: an envelope is opened, and one that
+      /// does not open on this node is empty - reported once a process, by name
+      /// (HM7492), naming the step that carries the key here, since every caller
+      /// then runs as though the secret were not set. Anything else, and a value
+      /// stored as written, is returned as it is.
+      /// </summary>
+      static String OpenStored(const String &name, const String &stored);
+
+      /// <summary>
+      /// hmailserver --forget-sealed-secrets KEYID (StoredSecrets::ForgetLostKey): a
+      /// secret sealed under a key no node here holds, emptied - the row only while
+      /// it still holds asStored, and the file's line - and recorded as the settings
+      /// chokepoint records any change, as "(changed)". Nothing is opened, so
+      /// nothing is reported as unopenable on the way. False when the row could not
+      /// be written; a line that cannot be written is put right by the next start,
+      /// which writes the row's value into the file.
+      /// </summary>
+      static bool ForgetSealedValue(const String &name, const String &asStored);
+
+      /// <summary>
       /// Whether a name is a [Settings] key this build reads - one of the keys in
       /// build/ini-settings-baseline.txt, carried into the binary as
       /// IniSettingsBaseline.h - and, when it is, the key's own spelling. Matched
@@ -347,6 +408,12 @@ namespace HM
       /// instead - see the comment there for why that inverted with the precedence.
       /// </summary>
       static bool DeleteRow_(const String &name);
+
+      /// <summary>
+      /// ProtectStoredSecretsWithDPAPI from these rows, [SettingsOverride] over them,
+      /// this machine's file and the default under them. See IsProtectionOnAsStored.
+      /// </summary>
+      static bool IsProtectionOn_(const std::map<String, std::pair<String, String> > &rows);
 
       /// <summary>One row's stored value. False when there is no row, or no database.</summary>
       static bool ReadRow_(const String &name, String &value);

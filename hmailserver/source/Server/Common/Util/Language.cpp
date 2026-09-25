@@ -4,7 +4,6 @@
 
 #include "StdAfx.h"
 
-#include "HTTPClient.h"
 #include "Unicode.h"
 #include "Charset.h"
 
@@ -131,25 +130,5 @@ namespace HM
       if (sText.Right(3) == _T("..."))
          sText = sText.Left(sText.GetLength() - 3);
 
-   }
-
-
-
-   bool
-   Language::Download()
-   {
-      AnsiString output;
-      HTTPClient client;
-      
-      bool result = client.ExecuteScript("www.hmailserver.com", "/devnet/translation_getlanguage.php?language=" + name_, output);
-
-      String unicodeString = output;
-      Unicode::MultiByteToWide(output, unicodeString);
-
-      FileUtilities::WriteToFile("C:\\test.txt", unicodeString, true);
-
-      
-
-      return result;
    }
 }

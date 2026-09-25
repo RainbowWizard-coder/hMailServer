@@ -75,11 +75,14 @@
 #include "MigrationManager.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/PersistentDomain.h"
+#include "../Persistence/PersistentAccount.h"
 #include "../Persistence/SchemaUpgrader.h"
 #include "../Util/AuditTrail.h"
 #include "RemoveExpiredRecords.h"
 #include "ScheduledMailTask.h"
 #include "../Util/AutoBanFirewall.h"
+#include "../Util/StoredSecrets.h"
+#include "IniSettingStore.h"
 #include "../Util/CompromiseDetector.h"
 #include "../AntiVirus/Sandbox.h"
 #include "LogRetentionTask.h"
@@ -228,6 +231,15 @@ namespace HM
          The first load at the top of this function stays file-only and is what the
          bootstrap runs on: it is how the server finds the database at all.
       */
+      // The installation's stored-secrets key (Util/StoredSecrets.h), before the
+      // settings store is reconciled, which seals and opens the [Settings] secrets
+      // with it: judged against the key the database records. Never made here - the
+      // service may have no write on hMailServer.ini, and a key made by whichever
+      // node starts first is how a database came to be sealed under two - and
+      // nothing is written into the file. The switch is read as the store holds it,
+      // not as this machine's file does.
+      StoredSecrets::EnsureAtStart(IniSettingStore::IsProtectionOnAsStored());
+
       IniFileSettings::Instance()->LoadDatabaseSettings();
       IniFileSettings::Instance()->LoadSettings(IniFileSettings::ScopeReinitialize);
 
@@ -242,6 +254,11 @@ namespace HM
          return false;
 
       LOG_DEBUG("Application::InitInstance - Configuration loaded.");
+
+      // What the key's judgement and the settings reconcile had to say, now that
+      // the logger is configured: before Configuration::Load its mask is 0 and an
+      // application-log line is dropped, whatever logging is set to.
+      StoredSecrets::LogNotes();
 
       // Which settings the environment sets, said where an operator reads the
       // start: no interface will change them (docs/EnvironmentConfiguration.md).
@@ -260,6 +277,12 @@ namespace HM
       // start are held again before a listener is open: the lock is a row in
       // hm_accountreview, and the hold on the name is in memory.
       CompromiseDetector::LoadLocks();
+
+      // The accounts' second factors still stored as generated - every one enrolled
+      // before 25 September 2026 - are sealed under the stored-secrets key, or with
+      // ProtectStoredSecretsWithDPAPI off the sealed ones are opened back, before a
+      // listener is open. Once done, its select finds no row (docs/SecretsAtRest.md).
+      PersistentAccount::ProtectStoredTotpSecrets();
 
       // The asynchronous task and name lookup queues are deliberately NOT created
       // here. Their tasks hold live client connections, so they belong to the

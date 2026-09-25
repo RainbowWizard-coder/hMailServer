@@ -503,7 +503,7 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>
       /// The first-hour items the server judges itself (Common/Util/SetupChecklist.h):
       /// a setting profile on a young server, a domain, an account, TLS on the submission port, passwords only over TLS, SPF, DMARC, a backup
-      /// destination and a second factor on the administrator password. Read over
+      /// destination, a second factor on the administrator password and the stored-secrets key made and exported. Read over
       /// COM as Utilities.GetSetupChecklist without DNS lookups - the SPF and DMARC
       /// records are looked up here, off the window thread, by the same probes the
       /// DKIM item uses - and rendered from the finding codes, so that the sentence
@@ -636,6 +636,17 @@ namespace hMailServer.ControlPanel.Services
                   Action = L("On the Administrative access page's Two-factor tab, enrol an authenticator app for the administrator password."),
                   Page = "adminaccess"
                };
+            // The key the database's second factors and [Settings] secrets are sealed
+            // under (docs/SecretsAtRest.md): made and exported on the server itself, by
+            // an elevated verb, so there is no page of this panel's to send anybody to.
+            case "stored_secrets_key":
+               return new SetupItem
+               {
+                  Title = L("The stored-secrets key - what the database's secrets are sealed under"),
+                  Purpose = L("The key an account's second factor and the [Settings] secrets are sealed under in the database. It exists on the server alone, so a copy has to be exported and kept with the database backups."),
+                  Action = L("On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them."),
+                  Page = null
+               };
             default:
                return null;
          }
@@ -682,7 +693,13 @@ namespace hMailServer.ControlPanel.Services
          ["backup_folder_missing"] = N("The backup destination {0} does not exist on the server."),
          ["backup_set"] = N("Backups go to {0}."),
          ["second_factor_on"] = N("The administrator's password is backed by a one-time code."),
-         ["second_factor_off"] = N("The administrator signs in with a password alone.")
+         ["second_factor_off"] = N("The administrator signs in with a password alone."),
+         ["stored_secrets_off"] = N("ProtectStoredSecretsWithDPAPI is 0, so an account's second factor and the [Settings] secrets are stored as written, and no stored-secrets key is needed."),
+         ["stored_secrets_key_none"] = N("No stored-secrets key has been made, so an account's second factor and the [Settings] secrets are stored as written. Make one on the server with {0}, then export it."),
+         ["stored_secrets_key_not_held"] = N("The database's second factors and [Settings] secrets are sealed under the stored-secrets key {0}, which this server does not hold, so they do not open here. Import it on the server from one that holds it: {1}."),
+         ["stored_secrets_key_not_exported"] = N("The stored-secrets key {0} has never been exported. Export it on the server with {1} and keep the file with the database backups: a database restored without it opens no second factor and no [Settings] secret."),
+         ["stored_secrets_key_exported"] = N("The stored-secrets key {0} was exported on {1}; keep that file with the database backups."),
+         ["stored_secrets_key_unreadable"] = N("The database's record of its stored-secrets key could not be read, so whether this server holds the database's key cannot be told.")
       };
 
       private void AddFirstHourFinding(SetupItem item, string key, JsonElement finding)

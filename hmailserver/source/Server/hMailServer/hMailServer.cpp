@@ -33,10 +33,16 @@
 #include "../Common/SQL/DALConnectionFactory.h"
 #include "../Common/SQL/DatabaseSettings.h"
 #include "../Common/SQL/DatabaseTls.h"
+#include "../Common/Util/Crypt.h"
+#include "../Common/Util/StoredSecrets.h"
+#include "../Common/Util/ProtectedFile.h"
+#include "../Common/Util/FileUtilities.h"
 
 #include <algorithm>
 #include <cstdio>
+#include <set>
 #include <string>
+#include <vector>
 #include <shellapi.h>
 
 // CommandLineToArgvW, for the switches that take a folder, which may have
@@ -413,6 +419,402 @@ static int UpgradeDatabaseFromCommandLine()
       std::printf("The database is at schema version %d, which is what this build needs. Nothing to do.\n", outcome.version);
    else
       std::printf("Upgraded in %d step%s; the database is at schema version %d.\n", outcome.steps, outcome.steps == 1 ? "" : "s", outcome.version);
+
+   return 0;
+}
+
+static void WriteVerbOutput(const char *text)
+{
+   HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+   DWORD written = 0;
+   if (output && output != INVALID_HANDLE_VALUE)
+      WriteFile(output, text, (DWORD) strlen(text), &written, NULL);
+}
+
+// hMailServer.exe --set-admin-password: the administrator password written into
+// [Security] AdministratorPassword of the hMailServer.ini beside this binary, as the
+// salted PBKDF2 hash the Control Panel and COM write (IniFileSettings::
+// SetAdministratorPassword), as `hmailserver --set-admin-password` writes it on
+// Linux (platform/main.cpp). The Windows installer runs it: until 25 September 2026
+// it wrote an unsalted MD5 of the password it collected into the file itself
+// (docs/SecretsAtRest.md).
+//
+// The password is never an argument, where the process list and a script's own log
+// would show it. It is the value of HM_ADMIN_PASSWORD in this process's
+// environment - the installer's way, because Inno Setup starts a process but
+// cannot write to its standard input - or, when that is not set, one line of
+// standard input when that is a pipe or a file. No database is opened. A running
+// service goes on with the password it loaded until it is restarted or
+// reinitialised, which the last line says. Exit 0 written, 2 no password given, 1
+// not written.
+static int SetAdministratorPasswordFromCommandLine()
+{
+   AttachVerbOutput();
+
+   HM::String password;
+
+   // The environment first. It is what the installer sets, and when it is set the
+   // standard input is not touched at all: a process started with an inherited
+   // pipe that nobody writes to or closes would otherwise wait on it for ever -
+   // and so would the installer waiting on this process.
+   const DWORD needed = GetEnvironmentVariableW(L"HM_ADMIN_PASSWORD", NULL, 0);
+   if (needed > 1)
+   {
+      std::vector<wchar_t> value((size_t) needed, L'\0');
+      const DWORD length = GetEnvironmentVariableW(L"HM_ADMIN_PASSWORD", &value[0], needed);
+      if (length > 0 && length < needed)
+         password = HM::String(&value[0]);
+      SecureZeroMemory(&value[0], value.size() * sizeof(wchar_t));
+   }
+
+   HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
+   const DWORD inputType = (input == NULL || input == INVALID_HANDLE_VALUE) ? FILE_TYPE_UNKNOWN : GetFileType(input);
+
+   if (password.IsEmpty() && (inputType == FILE_TYPE_PIPE || inputType == FILE_TYPE_DISK))
+   {
+      // One line, and no more than a password could be: what follows the first
+      // line break is not read.
+      std::string line;
+      char buffer[512];
+      DWORD read = 0;
+      while (line.size() < 4096 && ReadFile(input, buffer, sizeof(buffer), &read, NULL) && read > 0)
+      {
+         line.append(buffer, read);
+         if (line.find_first_of("\r\n") != std::string::npos)
+            break;
+      }
+      SecureZeroMemory(buffer, sizeof(buffer));
+
+      std::string::size_type end = line.find_first_of("\r\n");
+      if (end == std::string::npos)
+         end = line.size();
+
+      // A byte order mark a writer put in front of the text is not part of it.
+      std::string::size_type start = 0;
+      if (end >= 3 && (unsigned char) line[0] == 0xEF && (unsigned char) line[1] == 0xBB && (unsigned char) line[2] == 0xBF)
+         start = 3;
+
+      if (end > start)
+      {
+         const int length = (int) (end - start);
+         const int wideNeeded = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, line.data() + start, length, NULL, 0);
+         if (wideNeeded <= 0)
+         {
+            SecureZeroMemory(&line[0], line.size());
+            WriteVerbError("The password on standard input is not UTF-8 text, so nothing was changed.\r\n");
+            return 2;
+         }
+
+         std::vector<wchar_t> wide((size_t) wideNeeded + 1, L'\0');
+         MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, line.data() + start, length, &wide[0], wideNeeded);
+         password = HM::String(&wide[0]);
+         SecureZeroMemory(&wide[0], wide.size() * sizeof(wchar_t));
+      }
+
+      // Overwrite this process's narrow copy, as the Linux verb does.
+      if (!line.empty())
+         SecureZeroMemory(&line[0], line.size());
+   }
+
+   if (password.IsEmpty())
+   {
+      WriteVerbError("No password was given, so nothing was changed. Give it in the environment variable HM_ADMIN_PASSWORD, or as one line of standard input - never as an argument, where the process list would show it.\r\n");
+      return 2;
+   }
+
+   // The settings first, so that the hash is derived with the work factor this
+   // server is configured for (PasswordHashIterations), as the Linux verb does.
+   HM::IniFileSettings::Instance()->LoadSettings();
+   HM::IniFileSettings::Instance()->SetAdministratorPassword(password);
+
+   // Read back from the file itself, as the service will read it when it starts -
+   // the file flushed, and the settings loaded from it again - and held to being a
+   // PBKDF2 hash of this password.
+   const HM::String file = HM::IniFileSettings::GetInitializationFile();
+   WritePrivateProfileString(NULL, NULL, NULL, file.c_str());
+
+   HM::IniFileSettings::Instance()->LoadSettings();
+   const HM::String storedHash = HM::IniFileSettings::Instance()->GetAdministratorPassword();
+
+   const bool written = HM::Crypt::Instance()->GetHashType(storedHash) == HM::Crypt::ETPBKDF2 &&
+                        HM::Crypt::Instance()->Validate(password, storedHash, HM::Crypt::ETPBKDF2);
+
+   if (!written)
+   {
+      std::string message = "The administrator password could not be written to " + std::string(HM::AnsiString(file).c_str()) +
+                            ". The file must be writable by the account this runs as; run it from an elevated prompt.\r\n";
+      WriteVerbError(message.c_str());
+      return 1;
+   }
+
+   std::string message = "The administrator password was written to " + std::string(HM::AnsiString(file).c_str()) +
+                         " as a PBKDF2 hash. A running hMailServer service takes it when it is next started or reinitialised.\r\n";
+   WriteVerbOutput(message.c_str());
+   return 0;
+}
+
+
+// The stored-secrets key's verbs (Common/Util/StoredSecrets.h,
+// docs/SecretsAtRest.md), the export and the import each with the key file as the
+// argument after it, the forget with the lost key's id. Read with
+// CommandLineToArgvW rather than from the space-split line the other verbs use,
+// so that a quoted path with a space in it is one argument.
+static bool FindVerbWithArgument(const wchar_t *verb, HM::String &file)
+{
+   file.Empty();
+
+   int count = 0;
+   LPWSTR *arguments = CommandLineToArgvW(GetCommandLineW(), &count);
+   if (arguments == NULL)
+      return false;
+
+   bool present = false;
+   for (int index = 1; index < count; index++)
+   {
+      if (_wcsicmp(arguments[index], verb) == 0)
+      {
+         present = true;
+         if (index + 1 < count)
+            file = arguments[index + 1];
+         break;
+      }
+   }
+
+   LocalFree(arguments);
+   return present;
+}
+
+static std::string NarrowForVerb(const HM::String &text)
+{
+   return std::string(HM::AnsiString(text).c_str());
+}
+
+// The database the key is recorded in, opened as the other verbs open it. False,
+// said, when it cannot be.
+static bool OpenDatabaseForKeyVerb()
+{
+   HM::String error;
+   if (!HM::Application::Instance()->OpenDatabase(error))
+   {
+      WriteVerbError(("The database could not be opened: " + NarrowForVerb(error) + ". Nothing was changed.\r\n").c_str());
+      return false;
+   }
+   return true;
+}
+
+// hMailServer.exe --create-stored-secrets-key: this installation's stored-secrets
+// key made, written into [Security] StoredSecretsKey of the hMailServer.ini beside
+// this binary under this machine's DPAPI, and recorded in the database - the only
+// ways a key is made, besides the Linux --create-database; the service never makes
+// one. The installer runs it on a new installation, after the database is created;
+// an administrator runs it once, elevated, to turn sealing on for an installation
+// upgraded from before 25 September 2026. Refused where the database records a key
+// or holds values sealed under one: that key is imported, never replaced. Exit 0
+// made (or already held, and the database's), 1 not made.
+static int CreateStoredSecretsKeyFromCommandLine()
+{
+   AttachVerbOutput();
+
+   HM::IniFileSettings::Instance()->LoadSettings();
+
+   if (!OpenDatabaseForKeyVerb())
+      return 1;
+
+   HM::AnsiString keyId;
+   bool alreadyHeld = false;
+   HM::String problem;
+   const bool made = HM::StoredSecrets::CreateKey(keyId, alreadyHeld, problem);
+   HM::Application::Instance()->CloseDatabase();
+
+   if (!made)
+   {
+      WriteVerbError(("No stored-secrets key was made: " + NarrowForVerb(problem) + ". Nothing was changed.\r\n").c_str());
+      return 1;
+   }
+
+   if (alreadyHeld)
+   {
+      WriteVerbOutput(("This server already holds the stored-secrets key " + std::string(keyId.c_str()) + ", which is the database's. Nothing was changed.\r\n").c_str());
+      return 0;
+   }
+
+   WriteVerbOutput(("Made the stored-secrets key " + std::string(keyId.c_str()) + ", wrote it to [Security] StoredSecretsKey in " +
+      NarrowForVerb(HM::IniFileSettings::GetInitializationFile()) + " under this machine's DPAPI, and recorded it in the database. "
+      "The service seals an account's second factor and the [Settings] secrets under it from its next start or reinitialise.\r\n"
+      "Export it NOW - hMailServer.exe --export-stored-secrets-key FILE, from an elevated prompt - and keep the file with the database backups, stored apart from them as the password pepper is: "
+      "the key exists on this machine alone, and a database restored anywhere without it opens no second factor and no [Settings] secret. "
+      "Every other node that shares this database needs it too (--import-stored-secrets-key FILE there).\r\n").c_str());
+   return 0;
+}
+
+// hMailServer.exe --export-stored-secrets-key FILE: this server's stored-secrets
+// key written to FILE - a new file, readable by SYSTEM and the administrators only
+// (ProtectedFile::WriteNew, which never replaces a file), never printed - to keep
+// with the database backups, and for --import-stored-secrets-key on every other
+// node that shares the database. Checked against the key the database records, and
+// the export recorded there for the setup checklist; a database that cannot be
+// reached does not stop the copy - that is when one is wanted most - but then the
+// export is not recorded. It makes no key. Exit 0 written, 2 refused before
+// anything was done, 1 failed.
+static int ExportStoredSecretsKeyFromCommandLine(const HM::String &file)
+{
+   AttachVerbOutput();
+
+   if (file.IsEmpty() || file.Left(2) == _T("--"))
+   {
+      WriteVerbError("--export-stored-secrets-key needs the file to write the key to; for example --export-stored-secrets-key C:\\Keys\\hmailserver-stored-secrets.key.\r\n");
+      return 2;
+   }
+
+   if (HM::FileUtilities::Exists(file))
+   {
+      WriteVerbError((NarrowForVerb(file) + " already exists. Name a file that does not, so that nothing is written over. Nothing was changed.\r\n").c_str());
+      return 2;
+   }
+
+   HM::IniFileSettings::Instance()->LoadSettings();
+
+   HM::String error;
+   const bool databaseOpen = HM::Application::Instance()->OpenDatabase(error);
+
+   HM::AnsiString text;
+   HM::AnsiString keyId;
+   HM::String problem;
+   if (!HM::StoredSecrets::ExportText(text, keyId, problem))
+   {
+      if (databaseOpen)
+         HM::Application::Instance()->CloseDatabase();
+      WriteVerbError((NarrowForVerb(problem) + ". Nothing was written.\r\n").c_str());
+      return 1;
+   }
+
+   HM::String writeError;
+   const bool written = HM::ProtectedFile::WriteNew(file, text, writeError);
+   std::fill(text.begin(), text.end(), '\0');
+
+   const bool recorded = written && databaseOpen && HM::StoredSecrets::RecordExport(keyId);
+   if (databaseOpen)
+      HM::Application::Instance()->CloseDatabase();
+
+   if (!written)
+   {
+      WriteVerbError(("The key could not be written to " + NarrowForVerb(file) + ": " + NarrowForVerb(writeError) + "\r\n").c_str());
+      return 1;
+   }
+
+   WriteVerbOutput(("The stored-secrets key " + std::string(keyId.c_str()) + " was written to " + NarrowForVerb(file) +
+      ", readable by SYSTEM and the administrators only. Keep it with the database backups, stored apart from them as the password pepper is: "
+      "a database restored without it opens no second factor and no [Settings] secret, and it opens every one of them for whoever holds it. "
+      "On every other node that shares this server's database: hMailServer.exe --import-stored-secrets-key FILE from an elevated prompt, then restart the service there.\r\n").c_str());
+
+   if (!recorded)
+   {
+      WriteVerbError(("The export could not be recorded in the database" + std::string(databaseOpen ? "" : (": " + NarrowForVerb(error)).c_str()) +
+         ", so the setup checklist still asks for one; export it again, to a new file, once the database can be reached.\r\n").c_str());
+   }
+
+   return 0;
+}
+
+// hMailServer.exe --import-stored-secrets-key FILE: the key in FILE made this
+// server's - written into [Security] StoredSecretsKey under this machine's DPAPI -
+// on a standby, a new machine, or any node that shares the database with the one
+// that made it. Checked against the key the database records, and refused where
+// another key that opens is held: replacing it is removing its line first,
+// deliberately. The service takes it when it next starts or is reinitialised. Exit
+// 0 imported, 2 refused before anything was done, 1 failed.
+static int ImportStoredSecretsKeyFromCommandLine(const HM::String &file)
+{
+   AttachVerbOutput();
+
+   if (file.IsEmpty() || file.Left(2) == _T("--"))
+   {
+      WriteVerbError("--import-stored-secrets-key needs the key file --export-stored-secrets-key wrote.\r\n");
+      return 2;
+   }
+
+   if (!HM::FileUtilities::Exists(file))
+   {
+      WriteVerbError((NarrowForVerb(file) + " does not exist. Nothing was changed.\r\n").c_str());
+      return 2;
+   }
+
+   HM::IniFileSettings::Instance()->LoadSettings();
+
+   if (!OpenDatabaseForKeyVerb())
+      return 1;
+
+   HM::AnsiString text(HM::FileUtilities::ReadCompleteTextFile(file));
+   HM::AnsiString keyId;
+   HM::String problem;
+   const bool imported = HM::StoredSecrets::ImportText(text, keyId, problem);
+   std::fill(text.begin(), text.end(), '\0');
+   HM::Application::Instance()->CloseDatabase();
+
+   if (!imported)
+   {
+      WriteVerbError(("The key was not imported: " + NarrowForVerb(problem) + ". Nothing was changed.\r\n").c_str());
+      return 1;
+   }
+
+   WriteVerbOutput(("The stored-secrets key " + std::string(keyId.c_str()) + " is this server's, in [Security] StoredSecretsKey of " +
+      NarrowForVerb(HM::IniFileSettings::GetInitializationFile()) + ". Restart the hMailServer service, or reinitialise it, for it to take the key. Keep " +
+      NarrowForVerb(file) + " with the database backups, or delete it if a copy is kept there already.\r\n").c_str());
+   return 0;
+}
+
+// hMailServer.exe --forget-sealed-secrets KEYID: the way forward when a
+// stored-secrets key is lost - no node holds it any more and no export was kept.
+// Importing it from a node that has it is always the first thing to try. Every
+// envelope that names that key is cleared: an account's second factor removed, so
+// that it enrols again; a [Settings] secret emptied, so that it is entered again.
+// The database's record is removed where it names that key, after which
+// --create-stored-secrets-key makes a new one. Nothing sealed under another key is
+// touched. Refused where this node's own key line does not open, and where this
+// node holds the key named. Each item is printed, and all of them written to the
+// error log (HM7497). Refused while the service runs, as the profile verb is: a
+// running server holds the accounts and settings it read, and would write an
+// envelope back. Exit 0 done, 1 refused or failed, 2 no key id, 4 the service is
+// running.
+static int ForgetSealedSecretsFromCommandLine(const HM::String &keyId)
+{
+   AttachVerbOutput();
+
+   if (keyId.IsEmpty() || keyId.Left(2) == _T("--"))
+   {
+      WriteVerbError("--forget-sealed-secrets needs the lost key's id, the sixteen hex digits HM7495 and the setup checklist name: --forget-sealed-secrets 0123456789abcdef. Import the key from a node that holds it instead, if there is one. Nothing was changed.\r\n");
+      return 2;
+   }
+
+   if (HMailServerServiceIsRunning())
+   {
+      WriteVerbError("The hMailServer service is running. Stop it (Stop-Service hMailServer), run this again, then start it. Nothing was changed.\r\n");
+      return 4;
+   }
+
+   HM::IniFileSettings::Instance()->LoadSettings();
+
+   if (!OpenDatabaseForKeyVerb())
+      return 1;
+
+   std::vector<HM::String> forgotten;
+   HM::String problem;
+   const bool done = HM::StoredSecrets::ForgetLostKey(HM::AnsiString(keyId), forgotten, problem);
+   HM::Application::Instance()->CloseDatabase();
+
+   for (const HM::String &line : forgotten)
+      WriteVerbOutput((NarrowForVerb(line) + "\r\n").c_str());
+
+   if (!done)
+   {
+      WriteVerbError(((forgotten.empty() ? std::string("Nothing was cleared: ") : std::string("Not everything was cleared: ")) + NarrowForVerb(problem) + ".\r\n").c_str());
+      return 1;
+   }
+
+   if (forgotten.empty())
+      WriteVerbOutput(("Nothing is sealed under the key " + NarrowForVerb(keyId) + ", and the database does not record it. Nothing was changed.\r\n").c_str());
+   else
+      WriteVerbOutput("Done. Start the service. If this node holds no stored-secrets key now, make one with hMailServer.exe --create-stored-secrets-key and export it at once.\r\n");
 
    return 0;
 }
@@ -834,6 +1236,7 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
    }
    
    int iRet = 0;
+   String secretsKeyFile;
 
    if (sLastParam.CompareNoCase(_T("/Test")) == 0)
    {
@@ -939,6 +1342,39 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       // See SetAdministratorPasswordFromInput.
       AttachVerbOutput();
       iRet = SetAdministratorPasswordFromInput();
+   }
+   else if (sLastParam.CompareNoCase(_T("--create-stored-secrets-key")) == 0)
+   {
+      // See CreateStoredSecretsKeyFromCommandLine. Not refused while the service
+      // runs: it writes the file and the database's record, and the service takes
+      // the key at its next start or reinitialise.
+      iRet = CreateStoredSecretsKeyFromCommandLine();
+   }
+   else if (FindVerbWithArgument(L"--forget-sealed-secrets", secretsKeyFile))
+   {
+      // See ForgetSealedSecretsFromCommandLine: the argument is the lost key's id.
+      // Refused while the service runs.
+      iRet = ForgetSealedSecretsFromCommandLine(secretsKeyFile);
+   }
+   else if (FindVerbWithArgument(L"--export-stored-secrets-key", secretsKeyFile))
+   {
+      // See ExportStoredSecretsKeyFromCommandLine. Not refused while the service
+      // runs: it reads the key, and makes none.
+      iRet = ExportStoredSecretsKeyFromCommandLine(secretsKeyFile);
+   }
+   else if (FindVerbWithArgument(L"--import-stored-secrets-key", secretsKeyFile))
+   {
+      // See ImportStoredSecretsKeyFromCommandLine. The running service takes the
+      // key at its next start or reinitialise, which the last line says.
+      iRet = ImportStoredSecretsKeyFromCommandLine(secretsKeyFile);
+   }
+   else if (sLastParam.CompareNoCase(_T("--set-admin-password")) == 0)
+   {
+      // See SetAdministratorPasswordFromCommandLine: the password from standard
+      // input or HM_ADMIN_PASSWORD, never from the command line. Not refused while
+      // the service runs, as on Linux: it writes the file, and the service takes
+      // the password at its next start or reinitialise.
+      iRet = SetAdministratorPasswordFromCommandLine();
    }
    else if (sLastParam.CompareNoCase(_T("--apply-environment")) == 0)
    {

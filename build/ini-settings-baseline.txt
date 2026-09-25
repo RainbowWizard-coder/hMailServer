@@ -91,6 +91,7 @@ GUILanguages ValidLanguages string "" restart server
 
 Security AdministratorPassword string "" restart server
 Security AdministratorTotpSecret string "" restart server
+Security StoredSecretsKey string "" restart server
 
 Settings AVFailAction integer "0" now server
 Settings AVFailMaxHolds integer "16" now server

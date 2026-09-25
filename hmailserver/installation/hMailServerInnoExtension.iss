@@ -175,6 +175,15 @@ external 'WaitForSingleObject@kernel32.dll stdcall';
 function CloseProcessForWait(hObject: HANDLE): boolean;
 external 'CloseHandle@kernel32.dll stdcall';
 
+// A variable of this process's environment, which a process Exec starts inherits:
+// how the administrator password reaches hMailServer.exe --set-admin-password
+// without being on its command line (WriteAdministratorPassword). A String reaches
+// the W function as a pointer to its wide characters. Named apart from the API, so
+// that it cannot meet an identifier Inno Setup predefines (as FILE_ATTRIBUTE_DIRECTORY
+// did in 6.2.19).
+function SetProcessEnvironmentVariable(lpName: String; lpValue: String): Boolean;
+external 'SetEnvironmentVariableW@kernel32.dll stdcall';
+
 // Ports 25, 110 and 143 in use by something other than hMailServer. A bind test
 // over WinSock, which is what the ISC.DLL this replaced did: a 45 KB unsigned DLL
 // with no version resource and no known upstream, shipped inside the installer
@@ -353,14 +362,10 @@ begin
 
 end;
 
-function GetHashedPassword(Param: String) : String;
-begin
-  Result := GetMD5OfString(g_szAdminPassword);
-end;
-
-// Check function on the Security\AdministratorPassword entry in section_ini.iss.
+// Whether a password was collected, on the wizard's page or with /adminpassword.
+// WriteAdministratorPassword writes one only then.
 //
-// Without it, an installation that never collects a password - every silent
+// Without that rule, an installation that never collects a password - every silent
 // install, because the password page only exists in the interactive wizard - wrote
 // GetMD5OfString('') into the ini: 'd41d8cd98f00b204e9800998ecf8427e', the MD5 of
 // the empty string. That is not "no password set", it is a valid password entry
@@ -561,6 +566,72 @@ begin
 	Result := sKey;
 end;
 
+// Writes the administrator password the wizard's page or /adminpassword collected
+// into [Security] AdministratorPassword, as the salted PBKDF2 hash the Control Panel
+// writes: hMailServer.exe --set-admin-password makes it, the hash being the server's
+// to make. Until 25 September 2026 an [INI] entry wrote GetMD5OfString of the
+// password instead - an unsalted MD5 digest, which the server accepted and nothing
+// re-hashed (docs/SecretsAtRest.md).
+//
+// The password reaches the verb in this process's environment, HM_ADMIN_PASSWORD,
+// which the process Exec starts inherits, and never on its command line, where
+// anybody listing processes could read it: Exec cannot write to a process's
+// standard input. The variable is emptied again as soon as the verb has finished,
+// so that no process started after it - the database tools included - inherits it.
+//
+// Only when a password was collected and the file has none, as the [INI] entry's
+// createkeyifdoesntexist did: an upgrade never changes the administrator password.
+// Called before the database step, which signs in with this password over COM and
+// starts the service, which reads the file when it starts. False when the password
+// could not be written; the caller then does not hand it to the database tools,
+// which would be refused with it, and the message says what to do.
+function WriteAdministratorPassword(): Boolean;
+var
+  ResultCode: Integer;
+  bStarted: Boolean;
+begin
+  Result := true;
+
+  if (HasAdministratorPassword() = false) or (Length(GetAdministratorPassword()) > 0) then
+    Exit;
+
+  bStarted := false;
+  ResultCode := 0;
+  if not SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', g_szAdminPassword) then
+  begin
+    SuppressibleMsgBox('The administrator password could not be set: it could not be handed to hMailServer.exe.' + #13#10#13#10 +
+           'hMailServer is installed with no administrator password. Set one in the Control Panel (Settings > Security > Administrative access) before the server is used.', mbError, MB_OK, IDOK);
+    Result := false;
+    Exit;
+  end;
+  try
+    bStarted := Exec(ExpandConstant('{app}\Bin\hMailServer.exe'), '--set-admin-password', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  finally
+    SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', '');
+  end;
+
+  if (bStarted = false) then
+  begin
+    SuppressibleMsgBox('The administrator password could not be set: hMailServer.exe did not start.' + #13#10 + SysErrorMessage(ResultCode) + #13#10#13#10 +
+           'hMailServer is installed with no administrator password. Set one in the Control Panel (Settings > Security > Administrative access) before the server is used.', mbError, MB_OK, IDOK);
+    Result := false;
+  end
+  else if (ResultCode <> 0) then
+  begin
+    SuppressibleMsgBox('The administrator password could not be set (hMailServer.exe --set-admin-password returned ' + IntToStr(ResultCode) + ').' + #13#10#13#10 +
+           'hMailServer is installed with no administrator password. Set one in the Control Panel (Settings > Security > Administrative access) before the server is used.', mbError, MB_OK, IDOK);
+    Result := false;
+  end
+  // Exit 0 and still no line: an hMailServer.exe that does not know the verb
+  // answers 0 as well. What the file holds is the answer, not the exit code.
+  else if (Length(GetAdministratorPassword()) = 0) then
+  begin
+    SuppressibleMsgBox('The administrator password could not be set: hMailServer.exe --set-admin-password finished, but hMailServer.ini holds no administrator password.' + #13#10#13#10 +
+           'Set one in the Control Panel (Settings > Security > Administrative access) before the server is used.', mbError, MB_OK, IDOK);
+    Result := false;
+  end;
+end;
+
 // Returns true when the .NET {#DOTNET_MAJOR} Desktop Runtime is not installed, in
 // which case the bundled runtime installer is executed. Also the Check function on
 // the [Run] entry in section_run.iss.
@@ -758,6 +829,60 @@ begin
       szWhy := 'hMailServer.exe --apply-profile returned ' + IntToStr(ResultCode) + ', and the error log says why.';
    end;
    SayProfileNotApplied(szProfile, szWhy);
+end;
+
+// Makes this installation's stored-secrets key (docs/SecretsAtRest.md) on a new
+// installation, after the database step has created the database and before the
+// installation starts the service: hMailServer.exe --create-stored-secrets-key writes
+// it into [Security] StoredSecretsKey under this machine's DPAPI and records it in the
+// database. The service never makes a key - it may run as an account that cannot
+// write hMailServer.ini - and an upgrade gets none here: the setup checklist and the
+// upgrade notes say how to turn sealing on. The service is stopped first if the
+// database step started it, so that its first start has the key. Every failure is
+// said, and the installation still succeeds with the secrets stored as written, as
+// they were before. Once made, the key has to be exported and kept with the database
+// backups, which the installer cannot do for anybody: the last message says so.
+procedure CreateStoredSecretsKey();
+var
+   ResultCode: Integer;
+begin
+   if (IsComponentSelected('server') = false) or (IsNewDatabase() = false) then
+      Exit;
+
+   // Stopped, and its process waited for, as the profile step, the uninstall and
+   // the upgrade do (StopHMailServerAndWaitForExit, batch36's): the verb below
+   // opens the database the service's process had open, and the service reports
+   // STOPPED about a second before that process has gone. A service that will not
+   // stop leaves the key unmade, said, rather than made beside a running server
+   // that would not take it until it is restarted.
+   if (IsServiceRunning('hMailServer') = true) then
+   begin
+      if (StopHMailServerAndWaitForExit(90000) = false) then
+      begin
+         SuppressibleMsgBox('The stored-secrets key was not made: the hMailServer service, which the database step started, did not stop, or its process did not exit, within ' + IntToStr((90000 + PROCESS_EXIT_BUDGET_MS) div 1000) + ' seconds.' + #13#10#13#10 +
+                'hMailServer is installed, and stores each account''s second factor and the secret settings as written until a key is made. From an elevated prompt in the hMailServer Bin folder: hMailServer.exe --create-stored-secrets-key, restart the service, then hMailServer.exe --export-stored-secrets-key FILE.', mbInformation, MB_OK, IDOK);
+         Exit;
+      end;
+   end;
+
+   if (Exec(ExpandConstant('{app}\Bin\hMailServer.exe'), '--create-stored-secrets-key', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
+   begin
+      SuppressibleMsgBox('The stored-secrets key was not made: hMailServer.exe did not start. ' + SysErrorMessage(ResultCode) + #13#10#13#10 +
+             'hMailServer is installed, and stores each account''s second factor and the secret settings as written until a key is made. From an elevated prompt in the hMailServer Bin folder: hMailServer.exe --create-stored-secrets-key, then hMailServer.exe --export-stored-secrets-key FILE.', mbInformation, MB_OK, IDOK);
+      Exit;
+   end;
+
+   if (ResultCode <> 0) then
+   begin
+      SuppressibleMsgBox('The stored-secrets key was not made (hMailServer.exe --create-stored-secrets-key returned ' + IntToStr(ResultCode) + '). The database may already record the key of another server that shares it.' + #13#10#13#10 +
+             'hMailServer is installed. Run the verb again from an elevated prompt in the hMailServer Bin folder to read why; where another server holds the database''s key, import it here with hMailServer.exe --import-stored-secrets-key FILE.', mbInformation, MB_OK, IDOK);
+      Exit;
+   end;
+
+   SuppressibleMsgBox('hMailServer made this installation''s stored-secrets key, which seals each account''s second factor and the secret settings in the database. It exists on this machine alone.' + #13#10#13#10 +
+          'Export it now and keep the file with your database backups, stored apart from them: a database restored without it opens none of those secrets. From an elevated prompt in the hMailServer Bin folder:' + #13#10#13#10 +
+          'hMailServer.exe --export-stored-secrets-key FILE' + #13#10#13#10 +
+          'The Control Deck''s and the Control Panel''s setup checklist ask for this until it is done.', mbInformation, MB_OK, IDOK);
 end;
 
 // Says that a new installation's defaults were not applied, why, and what that
@@ -1652,6 +1777,7 @@ function RunPostInstallTasks() : Boolean;
       szParameters: AnsiString;
       bDatabaseBackendReady: Boolean;
       bServiceRegistered: Boolean;
+      bPasswordWritten: Boolean;
 begin
    Result := true;
 
@@ -1695,6 +1821,13 @@ begin
                Result := false;
          end;
 
+         // The administrator password, as the server's own PBKDF2 hash, before the
+         // database step signs in with it and starts the service.
+         ProgressPage.SetText('Setting the administrator password...', '');
+         bPasswordWritten := WriteAdministratorPassword();
+         if (bPasswordWritten = false) then
+            Result := false;
+
          ProgressPage.SetText('Initializing hMailServer database...', '');
          ProgressPage.SetProgress(4,6);
 
@@ -1715,7 +1848,11 @@ begin
          // indefinitely. DBSetupQuick now forwards this value on both paths, and the shared
          // Authenticator fails instead of prompting under /silent, so the worst case is a
          // reported exit code rather than a wait with no end.
-         if (Length(g_szAdminPassword) > 0) then
+         //
+         // Not when it could not be written above: the server would refuse it, the file
+         // having no password, and the database step then signs in with none - which is
+         // what such a server has, as the message just said.
+         if (Length(g_szAdminPassword) > 0) and bPasswordWritten then
             szParameters := szParameters + ' password:' + g_szAdminPassword
          else if (Length(g_szUpgradeToken) > 0) then
             szParameters := szParameters + ' password:token:' + g_szUpgradeToken;
@@ -1754,13 +1891,15 @@ begin
             else
             begin
                // The database is there and at this build's schema: a new one's
-               // secure defaults, then the profile the last page chose, before the
-               // service is started below.
+               // secure defaults, then the profile the last page chose, and on a new
+               // installation the stored-secrets key, before the service is started below.
                if IsNewDatabase() then
                   ProgressPage.SetText('Securing the new installation...', '');
                ApplyNewInstallDefaults(g_bUseInternal);
                ProgressPage.SetText('Applying the server profile...', '');
                ApplyChosenProfile();
+               ProgressPage.SetText('Making the stored-secrets key...', '');
+               CreateStoredSecretsKey();
             end;
          end
          else
@@ -1778,16 +1917,20 @@ begin
             end
             else
             begin
-               // An external database set up: a new one's secure defaults and the
-               // profile the last page chose, as for the built-in one - each of
-               // which leaves alone a database DBSetup attached that is already in
-               // service: the defaults because only a database DBSetup created
-               // carries the mark they require.
+               // An external database set up: a new one's secure defaults, the
+               // profile the last page chose, as for the built-in one, and the
+               // stored-secrets key - each of which leaves alone a database DBSetup
+               // attached that is already in service: the defaults because only a
+               // database DBSetup created carries the mark they require, the profile
+               // by --if-new, the key because the verb refuses where that database
+               // records one.
                if IsNewDatabase() then
                   ProgressPage.SetText('Securing the new installation...', '');
                ApplyNewInstallDefaults(false);
                ProgressPage.SetText('Applying the server profile...', '');
                ApplyChosenProfile();
+               ProgressPage.SetText('Making the stored-secrets key...', '');
+               CreateStoredSecretsKey();
             end;
          end;
 
@@ -2068,7 +2211,7 @@ begin
 	      if g_bGrantFailed then
 	        RaiseException('The hMailServer service account could not be granted its folders. See the message above; run "hMailServer.exe --confirm /GrantServiceAccess" as an administrator from the hMailServer Bin folder to retry.')
 	      else
-	        RaiseException('The hMailServer database could not be created or upgraded. See the message above; run DBSetupQuick.exe from the hMailServer Bin folder to retry.');
+	        RaiseException('A post-installation step did not complete: the administrator password, the service or the database. See the message above; run DBSetupQuick.exe from the hMailServer Bin folder to retry the database.');
 	    end;
 	  end
 	 else

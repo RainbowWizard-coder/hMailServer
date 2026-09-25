@@ -62,6 +62,17 @@ namespace HM
       // or deletes the real key. Nothing outside DataProtectorTester sets it.
       static void SetKeyFileForTest(const String &path);
       static String GetKeyFilePath();
+
+      // Root's way of making the key file for the service, which runs as its own
+      // user (the root-run verbs of platform/main.cpp). Made as Protect makes it -
+      // 32 random bytes to a new temporary name opened O_CREAT|O_EXCL|O_NOFOLLOW,
+      // mode 0600 - and given to owner:group through that descriptor, flushed, then
+      // linked to its name, which it never replaces: nothing is done to the file by
+      // its path after it is made, so a symbolic link planted at either name is
+      // never followed. A key file that exists already is left as it is, and
+      // passes only when, opened O_NOFOLLOW and judged through the descriptor, it
+      // is a regular file with one link, owned by owner. failure says why not.
+      static bool CreateKeyFileFor(unsigned int owner, unsigned int group, String &failure);
 #endif
    };
 

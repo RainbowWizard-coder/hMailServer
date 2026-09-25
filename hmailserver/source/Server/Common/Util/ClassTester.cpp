@@ -90,6 +90,7 @@ namespace
 #endif
 #include "Crypt.h"
 #include "DataProtector.h"
+#include "StoredSecrets.h"
 #include "SRS.h"
 #include "BATV.h"
 #include "AccountLockout.h"
@@ -758,6 +759,14 @@ namespace HM
          // A legacy Blowfish value (no DPAPI prefix) must still round-trip.
          String legacy = Crypt::Instance()->EnCrypt(secret, Crypt::ETBlowFish);
          if (Crypt::Instance()->UnprotectSecret(legacy) != secret)
+            throw 0;
+
+         // The seal an account's second factor and the [Settings] secrets are kept
+         // under in the database (docs/SecretsAtRest.md), under a key made for the
+         // test: round-tripped, and refused for another purpose, another key and a
+         // changed byte.
+         StoredSecrets::Test();
+         if (Crypt::IsSecretEnvelope(legacy))
             throw 0;
       }
 

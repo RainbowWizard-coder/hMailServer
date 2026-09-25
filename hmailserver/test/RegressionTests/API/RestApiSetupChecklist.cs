@@ -19,11 +19,12 @@ namespace RegressionTests.API
 {
    /// <summary>
    ///    The first-hour checklist: GET /api/v1/setup/checklist and
-   ///    Utilities.GetSetupChecklist, the same document over REST and over COM. Eleven
+   ///    Utilities.GetSetupChecklist, the same document over REST and over COM. Twelve
    ///    items - a setting profile, a domain, an account, TLS on the submission port, passwords only
    ///    over TLS, SPF, DKIM, DMARC, a backup destination, a second factor on the administrator
-   ///    password and the account the server runs as - each done, action_needed, cannot_tell or
-   ///    not_needed, with findings that carry a code, its arguments and an English sentence.
+   ///    password, the stored-secrets key made and exported, and the account the server runs as -
+   ///    each done, action_needed, cannot_tell or not_needed, with findings that carry a code, its
+   ///    arguments and an English sentence.
    ///
    ///    What is tested is that the judgement is the server's and is made from what
    ///    the server can see: the records are looked up in the suite's own zone, the
@@ -103,7 +104,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("Eleven items in the order a new server meets them - a setting profile first, the account the server runs as last - each in one of the four states, each finding with a code, its arguments and a sentence; the fixture's domain and account are done.")]
+      [Description("Twelve items in the order a new server meets them - a setting profile first, the account the server runs as last - each in one of the four states, each finding with a code, its arguments and a sentence; the fixture's domain and account are done.")]
       public void TenItemsEachWithAState()
       {
          JsonDocument document = Get(Path);
@@ -133,7 +134,7 @@ namespace RegressionTests.API
             counted++;
          }
 
-         CollectionAssert.AreEqual(new[] { "profile", "domain", "account", "submission", "sign_in_tls", "spf", "dkim", "dmarc", "backup", "second_factor", "service_account" }, keys);
+         CollectionAssert.AreEqual(new[] { "profile", "domain", "account", "submission", "sign_in_tls", "spf", "dkim", "dmarc", "backup", "second_factor", "stored_secrets_key", "service_account" }, keys);
 
          int summed = root.GetProperty("done").GetInt32() + root.GetProperty("action_needed").GetInt32() +
                       root.GetProperty("cannot_tell").GetInt32() + root.GetProperty("not_needed").GetInt32();
@@ -190,7 +191,7 @@ namespace RegressionTests.API
          {
             ClassicAssert.IsFalse(com.RootElement.GetProperty("dns_looked_up").GetBoolean());
             ClassicAssert.AreEqual("record_not_looked_up", FirstCode(com.RootElement, "spf"));
-            ClassicAssert.AreEqual(11, com.RootElement.GetProperty("items").GetArrayLength());
+            ClassicAssert.AreEqual(12, com.RootElement.GetProperty("items").GetArrayLength());
          }
 
          using (JsonDocument com = JsonDocument.Parse(_application.Utilities.GetSetupChecklist(true)))

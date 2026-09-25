@@ -61,6 +61,7 @@ What is where
 | DKIM signing keys | **files on disk** — `hm_domains` stores *paths* (`domaindkimprivatekeyfile`); keys the DKIM key rotation generates are in `<DataDirectory>\DKIM` | replicate the files to the same paths — the `DKIM` folder with the rest of the data directory |
 | DKIM key rotation state | the database (`hm_dkimrotations`) | sharing the database |
 | Route / external-fetch / per-domain-relay passwords | the database, **DPAPI-protected** | **they do not travel — see below** |
+| An account's second factor, and the `[Settings]` secrets (`SRSSecret`, `BATVSecret`, `OAuth2HmacSecret`, the metrics listener's credentials and the rest) | the database, **sealed under the installation's stored-secrets key** from schema 6103 ([SecretsAtRest.md](SecretsAtRest.md)), a key that is not the machine's | sharing the database - **once the standby holds the key**: `hMailServer.exe --export-stored-secrets-key FILE` on the primary, `--import-stored-secrets-key FILE` on the standby (setup step 5). Without it every second factor refuses every code on the standby, and those settings read as not set |
 
 Two rows in that table do more work than the rest:
 
@@ -241,7 +242,20 @@ Building the standby
    `PasswordPepper` from the primary's `[Settings]` into the standby's file at
    the same time, if the primary has one: it is the one `[Settings]` key that
    lives in the file only, and with a different value - or none - no account
-   whose password is an Argon2id or scrypt hash signs in on the standby.
+   whose password is an Argon2id or scrypt hash signs in on the standby. And
+   carry the **stored-secrets key** across, where the installation has one, which
+   is not in the database either: `hMailServer.exe --export-stored-secrets-key
+   FILE` on the primary (elevated; `sudo hmailserver ...` on Linux) - or the file
+   exported when the key was made - then `--import-stored-secrets-key FILE` on the
+   standby, and keep the file with the database backups. The import is checked
+   against the key the database records. If the standby's installer made a key of
+   its own for an empty database it installed with before it was pointed at the
+   shared one, remove the standby's `[Security] StoredSecretsKey` line first, or the
+   import is refused. Do not copy the primary's line itself: it is sealed under the
+   primary's own DPAPI. Without the key every account's second factor refuses every
+   code on the standby, and SRS, BATV, HS256 tokens and `/metrics` stop working
+   there; the standby says so as `HM7495` at each start and makes no key of its own
+   - no service start ever makes one.
 6. Rehearse the failover below at least once before it is real. A standby that
    has never been started is a hope, not a topology. One rehearsal is recorded
    below.
