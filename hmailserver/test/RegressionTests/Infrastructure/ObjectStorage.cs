@@ -135,6 +135,12 @@ namespace RegressionTests.Infrastructure
       [TearDown]
       public void PutTheStoreBack()
       {
+         // A SetUp that ignored the test - no lab named, or the lab down - changed
+         // nothing and started no REST listener: there is nothing to put back, and
+         // the settings call below would only meet a closed port.
+         if (s3Relay_ == null && azureRelay_ == null)
+            return;
+
          try
          {
             if (s3Relay_ != null)
@@ -186,6 +192,8 @@ namespace RegressionTests.Infrastructure
                s3Relay_.Dispose();
             if (azureRelay_ != null)
                azureRelay_.Dispose();
+            s3Relay_ = null;
+            azureRelay_ = null;
             RestListener.Stop();
             Guarded(() => _application.Reinitialize());
 
