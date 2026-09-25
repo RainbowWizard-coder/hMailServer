@@ -96,6 +96,16 @@ API = "https://gitlab.com/api/v4/projects/" + PROJECT_ID
 SITE = "https://updates.progressiverobot.com"
 DOCUMENT_URL = PROJECT_URL + "/-/blob/master/hmailserver/docs/UpdateFeed.md"
 
+# Releases published with an installer and no Sigstore bundle on purpose, and why.
+# A server offered one says the release "carries no Sigstore bundle for its
+# installer, so it cannot be verified" and downloads nothing
+# (UpdateDownloader.cpp), which is what is wanted: it is installed by hand. The
+# serve check notes such a release as the stable one instead of failing on it;
+# any other stable release without its bundle still fails.
+UNSIGNED_BY_DESIGN = {
+    "6.3.4": "built and Authenticode-signed by hand after GitHub's suspension; the GitLab CI signing job arrives with 6.3.5",
+}
+
 # A link of a release is a file of this project's generic package registry.
 REGISTRY_LINK = re.compile(r"^https://gitlab\.com/api/v4/projects/" + PROJECT_ID + r"/packages/generic/([^/?#]+)/([^/?#]+)/([^/?#]+)$")
 # A server release's tag: v, a digit, then what the server accepts in a tag.
@@ -708,7 +718,9 @@ def serve_check(directory, constants, out=print):
         out("the compiled defaults:")
         stable = read(feed_url(constants, "", False), False)
         preview = read(feed_url(constants, "", True), True)
-        if stable and not (stable["installer_url"] and stable["bundle_url"]):
+        if stable and stable["installer_url"] and not stable["bundle_url"] and stable["version"] in UNSIGNED_BY_DESIGN:
+            out("NOTE %s, the stable channel's release, carries no Sigstore bundle by design (%s): servers are told so and install it by hand" % (stable["version"], UNSIGNED_BY_DESIGN[stable["version"]]))
+        elif stable and not (stable["installer_url"] and stable["bundle_url"]):
             problems.append("%s, the stable channel's release, carries no Windows installer with its Sigstore bundle, so no Windows server could install it" % stable["version"])
         out("UpdateFeedUrl=%s, the value docs/UpdateFeed.md gives:" % configured)
         stable_configured = read(feed_url(constants, configured, False), False)
@@ -974,6 +986,24 @@ def self_test():
         problems = serve_check(directory, constants, out=lambda line: None)
         expect(any("carries no Windows installer" in p for p in problems),
                "serve-check fails when the stable release has no Windows installer: %s" % problems)
+
+        # One with the installer and no bundle is a note when it is named in
+        # UNSIGNED_BY_DESIGN, and a failure when it is not.
+        unsigned = json.loads(tree["releases/latest"].decode("utf-8"))
+        unsigned["assets"] = [a for a in unsigned["assets"] if a["name"] != "hMailServer-6.3.4-x64.exe.cosign.bundle"]
+        with open(latest_path, "wb") as f:
+            f.write(feed_bytes(unsigned))
+        problems = serve_check(directory, constants, out=lambda line: None)
+        expect(not any("carries no Windows installer" in p for p in problems),
+               "serve-check notes a release unsigned by design: %s" % problems)
+        saved = dict(UNSIGNED_BY_DESIGN)
+        UNSIGNED_BY_DESIGN.clear()
+        try:
+            problems = serve_check(directory, constants, out=lambda line: None)
+        finally:
+            UNSIGNED_BY_DESIGN.update(saved)
+        expect(any("carries no Windows installer" in p for p in problems),
+               "serve-check fails on a release with no bundle that is not unsigned by design: %s" % problems)
         with open(latest_path, "wb") as f:
             f.write(tree["releases/latest"])
         try:
@@ -1044,7 +1074,9 @@ def main():
         names = installer_names(latest["tag_name"][1:])
         have = set(a["name"] for a in latest["assets"])
         missing = [n for n in (names["windows"], names["windows"] + ".cosign.bundle") if n not in have]
-        if missing:
+        if missing == [names["windows"] + ".cosign.bundle"] and latest["tag_name"][1:] in UNSIGNED_BY_DESIGN:
+            print("NOTE: %s carries no Sigstore bundle by design (%s)." % (latest["tag_name"], UNSIGNED_BY_DESIGN[latest["tag_name"][1:]]))
+        elif missing:
             print("WARNING: %s carries no %s, so no Windows server can install it; --serve-check fails on it." % (
                 latest["tag_name"], " and no ".join(missing)))
         return 0
