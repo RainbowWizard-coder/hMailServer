@@ -21,18 +21,29 @@ namespace RegressionTests.IMAP
          sim.ConnectAndLogon(account.Address, "test");
          sim.SelectFolder("INBOX");
 
-         // Deliver two messages after SELECT. They are not added to this connection's
-         // recent-messages set, so lastRecent remains 0 while lastExists becomes 2.
+         // Deliver two messages after SELECT. This session is the first to be told of
+         // them, so they are \Recent to it (RFC 3501 2.3.2, as imaptest holds since the
+         // IMAP compliance row) - and to no other session.
          SmtpClientSimulator.StaticSend(account.Address, account.Address, "Test 1", "Body 1");
          SmtpClientSimulator.StaticSend(account.Address, account.Address, "Test 2", "Body 2");
 
          // Wait for delivery without opening a second IMAP SELECT (which would claim \Recent).
          Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 2);
 
-         // NOOP flushes cached notifications. EXISTS must be 2, RECENT must be 0.
+         // NOOP flushes cached notifications: 2 EXISTS, and the two are this session's
+         // recent messages.
          var response = sim.NOOP();
          Assert.IsTrue(response.Contains("* 2 EXISTS"), response);
-         Assert.IsTrue(response.Contains("* 0 RECENT"), response);
+         Assert.IsTrue(response.Contains("* 2 RECENT"), response);
+
+         // A second session is not the first to see them: RECENT counts \Recent
+         // messages, never merely the messages that exist.
+         var second = new ImapClientSimulator();
+         second.ConnectAndLogon(account.Address, "test");
+         string selected = second.SendSingleCommand("A2 SELECT INBOX");
+         Assert.IsTrue(selected.Contains("* 2 EXISTS"), selected);
+         Assert.IsTrue(selected.Contains("* 0 RECENT"), selected);
+         second.Disconnect();
 
          sim.Disconnect();
       }

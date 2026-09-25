@@ -65,6 +65,40 @@ namespace HM
          return folded;
       }
 
+      bool IsAscii_(const String &value)
+      {
+         for (int i = 0; i < value.GetLength(); i++)
+         {
+            if (value.GetAt(i) > 0x7F)
+               return false;
+         }
+
+         return true;
+      }
+
+      // Two keys compared. ASCII keys - every date, and most subjects and
+      // addresses - by the i;ascii-casemap collation, ordinal once folded. A key
+      // beyond ASCII, under any charset but US-ASCII, by the system's own
+      // case-insensitive comparison, as SORT has always ordered it: RFC 5256's
+      // collation leaves "é" and "É" apart and puts every Greek or Turkish
+      // letter after "Z", which reads as no order at all to the people whose
+      // letters they are (MessageIndexing.TestMetaDataSortSubjectGreek and
+      // Turkish hold it).
+      int CompareKeys_(const String &left, const String &right, bool usAscii)
+      {
+         if (usAscii || (IsAscii_(left) && IsAscii_(right)))
+            return left.Compare(right);
+
+#ifdef HM_PLATFORM_POSIX
+         return ::wcscasecmp(left.c_str(), right.c_str());
+#else
+         const int result = CompareStringW(LOCALE_SYSTEM_DEFAULT, NORM_IGNORECASE, left.c_str(), -1, right.c_str(), -1);
+         if (result == 0)
+            return left.Compare(right);
+         return result - CSTR_EQUAL;
+#endif
+      }
+
       // One message's keys, one per sort criterion, and the sequence number that
       // breaks the last tie.
       struct SortEntry
@@ -255,12 +289,14 @@ namespace HM
          entries.push_back(entry);
       }
 
+      const bool usAscii = character_set.CompareNoCase(_T("US-ASCII")) == 0;
+
       std::stable_sort(entries.begin(), entries.end(),
-         [&ascending](const SortEntry &left, const SortEntry &right)
+         [&ascending, usAscii](const SortEntry &left, const SortEntry &right)
          {
             for (size_t i = 0; i < ascending.size(); i++)
             {
-               const int compare = left.keys[i].Compare(right.keys[i]);
+               const int compare = CompareKeys_(left.keys[i], right.keys[i], usAscii);
 
                if (compare == 0)
                   continue;
