@@ -289,6 +289,47 @@ namespace HM
          return std::wstring(&buffer[0], length);
       }
 
+      // Whether an open handle is the folder path names, and not one a link in a
+      // folder ABOVE it led to. Opening with FILE_FLAG_OPEN_REPARSE_POINT holds the
+      // last part of the path as itself, and the held handle stops anything above
+      // it from being swapped from then on - but a swap made before the open still
+      // counts: where the data folder sits under one that others may change, the
+      // folder opened could be some other folder of the same name, whose list a
+      // repair would then rewrite and whose contents it would delete. The path
+      // Windows resolved the handle to is compared with the path as named (made
+      // full and long, so that a relative or 8.3 spelling is not a difference),
+      // ignoring case.
+      bool IsHeldAt_(HANDLE handle, const String &path, std::wstring &resolved)
+      {
+         resolved = HeldPath_(handle);
+         if (resolved.empty())
+            return false;
+
+         std::wstring held = resolved;
+         if (held.compare(0, 8, L"\\\\?\\UNC\\") == 0)
+            held = L"\\\\" + held.substr(8);
+         else if (held.compare(0, 4, L"\\\\?\\") == 0)
+            held = held.substr(4);
+
+         std::vector<wchar_t> full(32768);
+         const DWORD fullLength = GetFullPathNameW(path.c_str(), (DWORD) full.size(), &full[0], nullptr);
+         if (fullLength == 0 || fullLength >= full.size())
+            return false;
+         std::wstring named(&full[0], fullLength);
+
+         std::vector<wchar_t> longer(32768);
+         const DWORD longLength = GetLongPathNameW(named.c_str(), &longer[0], (DWORD) longer.size());
+         if (longLength > 0 && longLength < longer.size())
+            named.assign(&longer[0], longLength);
+
+         while (named.size() > 3 && (named.back() == L'\\' || named.back() == L'/'))
+            named.pop_back();
+         while (held.size() > 3 && held.back() == L'\\')
+            held.pop_back();
+
+         return CompareStringOrdinal(held.c_str(), (int) held.size(), named.c_str(), (int) named.size(), TRUE) == CSTR_EQUAL;
+      }
+
       // How deep DeleteTree_ goes before it gives up: the Updates folder holds a
       // rollback folder and files, and anything far deeper was planted.
       const int DELETE_DEPTH_ = 16;
@@ -531,16 +572,16 @@ namespace HM
       std::vector<unsigned char> selfBuffer;
       PSID self = CurrentUserSidBinary_(selfBuffer);
 
-      // The service's own SID, when this is not SYSTEM: NT SERVICE\hMailServer,
-      // or where Windows does not know that name, the account this runs as.
+      // The service's own SID, NT SERVICE\hMailServer, whenever Windows knows it -
+      // under SYSTEM too: a server that downloaded once as LocalSystem and was
+      // then moved to the virtual account (ServiceAccount, /GrantServiceAccess)
+      // must still be able to write here, and this folder takes nothing from the
+      // data folder's grant. Where Windows does not know the name, the account
+      // this runs as when that is not SYSTEM.
       std::vector<unsigned char> serviceBuffer;
-      PSID service = nullptr;
-      if (self == nullptr || !IsWellKnownSid(self, WinLocalSystemSid))
-      {
-         service = ServiceSidBinary_(serviceBuffer);
-         if (service == nullptr)
-            service = self;
-      }
+      PSID service = ServiceSidBinary_(serviceBuffer);
+      if (service == nullptr && (self == nullptr || !IsWellKnownSid(self, WinLocalSystemSid)))
+         service = self;
 
       // SYSTEM and the Administrators, full control; the service, Modify; all of
       // it inherited by files (OI) and folders (CI) made inside, and protected (P)
@@ -621,6 +662,18 @@ namespace HM
          held.Release();
          LocalFree(descriptor);
          error = Formatter::Format(_T("{0} is not a folder the server can use."), path);
+         return false;
+      }
+
+      // And the folder the path names, not one a link above it led to (IsHeldAt_):
+      // nothing is judged, repaired or emptied until that is known.
+      std::wstring resolved;
+      if (!IsHeldAt_(handle, path, resolved))
+      {
+         held.Release();
+         LocalFree(descriptor);
+         error = Formatter::Format(_T("{0} was opened as {1}: a folder above it is a link, or was changed while it was opened, and whoever may change that folder could point it anywhere. Give the data folder's real path, where nobody but the administrators may change the folders above it."),
+            path, resolved.empty() ? String(_T("a path Windows could not name")) : String(resolved.c_str()));
          return false;
       }
 
