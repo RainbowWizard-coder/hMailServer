@@ -169,6 +169,7 @@ namespace hMailServer.ControlPanel.Services
          "OutboundContentPolicy.md",
          "OutboundShaping.md",
          "PackageManagers.md",
+         "Performance.md",
          "PersonalData.md",
          "RegressionEnvironment.md",
          "RegulatoryScope.md",

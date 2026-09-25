@@ -461,6 +461,9 @@ namespace HM
          RouteMePreferences,
          RouteMePreferencesPut,
          RouteMeFolderEmpty,
+         // POST /api/v1/me/folders/{id}/bulk: select-all over a folder of any
+         // size, acted on by the server a bounded step at a time.
+         RouteMeFolderBulk,
          RouteMeMessageSource,
          RouteMeMessageHtml,
          RouteMeAppPasswords,
@@ -1680,6 +1683,10 @@ namespace HM
       static std::shared_ptr<IMAPFolder> DesignatedFolderOrCreate_(std::shared_ptr<const Account> account, int designation, const String &name);
       static void LearnAfterMove_(std::shared_ptr<IMAPFolder> source, std::shared_ptr<IMAPFolder> destination, __int64 newMessageId, std::shared_ptr<const Account> account);
       static HttpResponse HandleMeFolderEmpty_(const Caller &caller, __int64 folderId, const AnsiString &query);
+      // One action - flags, move or delete - over many messages of one folder,
+      // named by id or as every message up to a UID, a bounded step per call
+      // (RestApiServer.cpp, beside the folder's empty).
+      static HttpResponse HandleMeFolderBulk_(const Caller &caller, __int64 folderId, const AnsiString &requestBody);
       static HttpResponse HandleMeMessageSource_(const Caller &caller, __int64 messageId);
       static HttpResponse HandleMeMessageHtml_(const Caller &caller, __int64 messageId, const AnsiString &query);
       static bool HtmlNamesRemoteContent_(const AnsiString &html);
@@ -1945,6 +1952,7 @@ namespace HM
       static HttpResponse HandleMeExportArchive_(const Caller &caller);
       static HttpResponse HandleMeFolderImport_(const Caller &caller, __int64 folderId, const AnsiString &requestBody);
       static AnsiString ThreadFieldsJson_(const String &fileName);
+      static AnsiString ThreadFieldsJson_(const AnsiString &messageId, const AnsiString &inReplyTo, const AnsiString &references);
       static AnsiString ListingExtrasJson_(const String &fileName, std::shared_ptr<Message> message);
       static String FromHeader_(std::shared_ptr<const Account> account);
       // nameKey and typeKey are the members an attachment object names its

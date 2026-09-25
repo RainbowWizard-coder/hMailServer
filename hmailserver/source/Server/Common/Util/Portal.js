@@ -278,7 +278,9 @@
     location.replace('#' + hash);
   };
   var listHash = function () {
-    if (state.everywhere && state.query) { return '/search?q=' + encodeURIComponent(state.query); }
+    // A search of every folder goes on from a message id rather than a UID:
+    // ids grow across the whole mailbox, so one number is a place in all of it.
+    if (state.everywhere && state.query) { return '/search?q=' + encodeURIComponent(state.query) + (state.before ? '&before=' + state.before : ''); }
     return '/f/' + (state.folderId || inboxId) + (state.query ? '?q=' + encodeURIComponent(state.query) : '') +
       (state.before ? (state.query ? '&' : '?') + 'before=' + state.before : '');
   };
@@ -527,9 +529,12 @@
     var note = 'Searched ' + page.scanned + ' message' + (page.scanned === 1 ? '' : 's') + ' for \'' + page.query + '\'.';
     if (page.more) { note += ' Only the newest are shown.'; }
     var row = node('div', note, 'listfoot');
-    if (!page.complete && page.next_before_uid) {
+    // A folder's search goes on from a UID, a search of every folder from a
+    // message id; either way the server says where.
+    var next = Number(page.next_before_uid || page.next_before_id) || 0;
+    if (!page.complete && next) {
       var older = button(t('Search older messages'));
-      older.addEventListener('click', function () { state.before = page.next_before_uid; go(listHash()); });
+      older.addEventListener('click', function () { state.before = next; go(listHash()); });
       row.appendChild(older);
     }
     list.appendChild(row);
@@ -947,7 +952,7 @@
   var loadMessages = function () {
     var url;
     if (state.query && state.everywhere) {
-      url = '/api/v1/me/search?q=' + encodeURIComponent(state.query) + '&limit=200';
+      url = '/api/v1/me/search?q=' + encodeURIComponent(state.query) + '&limit=200' + (state.before ? '&before_id=' + state.before : '');
     } else {
       if (!state.folderId) { renderMessages({ total: 0, messages: [] }); return Promise.resolve(); }
       url = '/api/v1/me/folders/' + state.folderId + '/messages';
@@ -1847,7 +1852,7 @@
   var showSearch = function (params) {
     state.query = params.q || '';
     state.everywhere = true;
-    state.before = 0;
+    state.before = Number(params.before || 0);
     el('mail-search').value = state.query;
     el('mail-search-everywhere').checked = true;
     dropMessage();
@@ -8106,14 +8111,23 @@
       say('password-status', refusal(result, t('Could not change the password')), false);
     });
   });
-  el('bulk-read').addEventListener('click', function () { eachSelected(function (id) { return call('PUT', '/api/v1/me/messages/' + id + '/flags', { seen: true }); }); });
-  el('bulk-unread').addEventListener('click', function () { eachSelected(function (id) { return call('PUT', '/api/v1/me/messages/' + id + '/flags', { seen: false }); }); });
+  // A selection of the whole folder goes to the server as one (markWholeFolder,
+  // fileWholeFolder); the rows ticked on the page go a request a message.
+  el('bulk-read').addEventListener('click', function () {
+    if (wholeFolder) { markWholeFolder(true); return; }
+    eachSelected(function (id) { return call('PUT', '/api/v1/me/messages/' + id + '/flags', { seen: true }); });
+  });
+  el('bulk-unread').addEventListener('click', function () {
+    if (wholeFolder) { markWholeFolder(false); return; }
+    eachSelected(function (id) { return call('PUT', '/api/v1/me/messages/' + id + '/flags', { seen: false }); });
+  });
   el('bulk-archive').addEventListener('click', function () { fileSelected('archive'); });
   el('bulk-junk').addEventListener('click', function () { fileSelected(junkTargetFor(state.folderId)); });
   el('bulk-delete').addEventListener('click', function () { fileSelected('delete'); });
   el('bulk-move-go').addEventListener('click', function () {
     var target = Number(el('bulk-move').value);
     if (!target) { return; }
+    if (wholeFolder) { fileWholeFolder(target); return; }
     eachSelected(function (id) { return call('POST', '/api/v1/me/messages/' + id + '/move', { folder_id: target }); });
   });
   el('bulk-clear').addEventListener('click', function () { clearSelection(); listRows.forEach(function (r) { r.box.checked = false; }); });
@@ -9263,6 +9277,7 @@
     });
   };
   var fileSelected = function (to) {
+    if (wholeFolder) { fileWholeFolder(to); return; }
     selectedEntries().then(function (entries) {
       var ids = entries.map(function (e) { return e.id; });
       return fileMany(entries, to).then(function (ok) {
@@ -9274,8 +9289,107 @@
   };
   // ---- Every message of the folder, not only the page ----------------------
   // Ticking the page's box offers the rest of the folder, as both webmails
-  // do; taken up, the bulk actions read the folder page by page - at most
-  // five thousand messages - and act on all of it, or on the open tab of it.
+  // do. Taken up, the page does not read the folder to learn its ids - at a
+  // hundred thousand messages that was five hundred listings, cut off at five
+  // thousand, and then a request a message. It hands the server the
+  // selection itself: every message of the folder up to the newest there was
+  // when the reader chose (so what arrives meanwhile is not swept up), or of
+  // the open tab of it, decided by the rule the page's own tabs use. The
+  // server works through it a bounded step at a time and each answer says
+  // where to go on from (POST /api/v1/me/folders/{id}/bulk). A quick step
+  // still reads the folder into the page, at most five thousand messages.
+  // The newest UID of the folder as the listing on screen read it, in the
+  // same pass as its rows - not the folder tree's uidnext, which can be newer
+  // than anything the reader has seen. A server that does not say falls back
+  // to the newest row listed.
+  var wholeTop = 0;
+  var newestListed = function () {
+    var top = Number(lastPage && lastPage.newest_uid) || 0;
+    ((lastPage && lastPage.messages) || []).forEach(function (m) { if (Number(m.uid) > top) { top = Number(m.uid); } });
+    return top;
+  };
+  // One selection to its end: the same body again from where each answer
+  // stopped, until the server says it is complete, or refuses, or - which it
+  // never should - names a place that is not further on. Every answer goes
+  // through each(); the promise gives the last one.
+  var bulkRun = function (folderId, request, each) {
+    var step = function (before) {
+      var body = Object.assign({}, request);
+      if (before) { body.before_uid = before; }
+      return call('POST', '/api/v1/me/folders/' + folderId + '/bulk', body).then(function (r) {
+        if (r.status !== 200 || !r.data) { return r; }
+        if (each) { each(r.data); }
+        var next = Number(r.data.next_before_uid) || 0;
+        if (r.data.complete || !next || (before && next >= before)) { return r; }
+        return step(next);
+      });
+    };
+    return step(0);
+  };
+  // The whole folder, or its open tab, as the server is to take it.
+  var wholeFolderRun = function (action) {
+    var folderId = state.folderId;
+    var request = Object.assign({ all: true, max_uid: wholeTop || newestListed() }, action);
+    if (lastPage && tabsActive(lastPage)) {
+      request.tab = activeTab;
+      request.inbox = inboxMode();
+      request.senders = senderTabs();
+    }
+    var totals = { done: 0, failed: 0, moved: [], movedTo: 0 };
+    el('bulk-count').textContent = tf('Done so far: {0}', 0);
+    return bulkRun(folderId, request, function (d) {
+      totals.done += (d.done || 0) + (d.unchanged || 0);
+      totals.failed += d.failed || 0;
+      (d.moved || []).forEach(function (x) { totals.moved.push(x.id); });
+      if (d.moved_to) { totals.movedTo = d.moved_to; }
+      el('bulk-count').textContent = tf('Done so far: {0}', totals.done);
+    }).then(function (last) {
+      totals.last = last;
+      totals.folderId = folderId;
+      return totals;
+    });
+  };
+  // What a whole-folder move gave, put back where it came from: the new ids,
+  // a thousand to a request, as the server takes them.
+  var moveBackByIds = function (ids, from, to) {
+    var chain = Promise.resolve();
+    for (var i = 0; i < ids.length; i += 1000) {
+      (function (chunk) {
+        chain = chain.then(function () { return bulkRun(from, { action: 'move', ids: chunk, folder_id: to }); });
+      })(ids.slice(i, i + 1000));
+    }
+    return chain.then(function () { lastListing = null; loadFolders(); if (!el('mail-section').hidden) { loadMessages(); } });
+  };
+  var finishWholeFolder = function () {
+    clearSelection();
+    listRows.forEach(function (r) { if (r.box) { r.box.checked = false; } });
+    lastListing = null;
+    loadFolders();
+    return loadMessages();
+  };
+  var markWholeFolder = function (seen) {
+    return wholeFolderRun({ action: 'flags', seen: seen }).then(function (totals) {
+      if (!totals.last || totals.last.status !== 200) { say('mail-status', describe(totals.last || { status: 0 }, t('Could not change the flags')), false); }
+      else if (totals.failed) { say('mail-status', t('Could not change the flags'), false); }
+      return finishWholeFolder();
+    });
+  };
+  var fileWholeFolder = function (to) {
+    var action = to === 'delete' ? { action: 'delete' } : typeof to === 'number' ? { action: 'move', folder_id: to } : { action: 'move', to: to };
+    var from = state.folderId;
+    return wholeFolderRun(action).then(function (totals) {
+      var last = totals.last;
+      if (!last || last.status !== 200) {
+        say('mail-status', describe(last || { status: 0 }, t('Could not file the message')), false);
+      } else {
+        say('mail-status', totals.failed ? t('Could not file the message') : '', !totals.failed);
+        var undo = totals.moved.length && totals.movedTo ? function () { moveBackByIds(totals.moved, totals.movedTo, from); } : null;
+        toast(filingText(to, { data: { deleted: to === 'delete' && !totals.movedTo } }, totals.done), undo);
+      }
+      if (current && (current.folder_id || from) === from) { closeMessage(true); }
+      return finishWholeFolder();
+    });
+  };
   var selectionScope = function () {
     return lastPage && tabsActive(lastPage) ? tabName(activeTab) : folderName(state.folderId);
   };
@@ -9296,6 +9410,7 @@
   el('select-folder').addEventListener('click', function () {
     if (wholeFolder) { clearSelection(); listRows.forEach(function (r) { r.box.checked = false; }); return; }
     wholeFolder = true;
+    wholeTop = newestListed();
     renderBulk();
   });
   var selectedEntries = function () {
@@ -9480,19 +9595,28 @@
     var count = el('list-count');
     var older = el('page-older');
     var newer = el('page-newer');
+    var oldest = el('page-oldest');
     var n = page.messages.length;
     if (page.query) {
       count.textContent = n ? tf('{0} results', n) : '';
-      older.hidden = true; newer.hidden = true;
+      older.hidden = true; newer.hidden = true; oldest.hidden = true;
       return;
     }
     count.textContent = n ? (state.before ? tf('{0} older, of {1}', n, page.total) : tf('1-{0} of {1}', n, page.total)) : '';
     older.hidden = !(n && page.total > n);
     newer.hidden = !state.before;
     pagerOlderUid = n ? page.messages[n - 1].uid : 0;
+    // The end of a long folder in one step: the server names the before_uid
+    // under which its oldest page lies, and a folder of three pages or more
+    // offers it, so the last of a hundred thousand is not five hundred
+    // presses of Older away.
+    pagerOldestUid = Number(page.oldest_before_uid) || 0;
+    oldest.hidden = !(n && pagerOldestUid && page.total > 2 * n && state.before !== pagerOldestUid);
   };
   var pagerOlderUid = 0;
+  var pagerOldestUid = 0;
   el('page-older').addEventListener('click', function () { if (pagerOlderUid) { state.before = pagerOlderUid; go(listHash()); } });
+  el('page-oldest').addEventListener('click', function () { if (pagerOldestUid) { state.before = pagerOldestUid; go(listHash()); } });
   el('page-newer').addEventListener('click', function () { state.before = 0; go(listHash()); });
   el('list-refresh').addEventListener('click', function () { lastListing = null; loadFolders(); loadMessages(); });
   el('list-mark-all-read').addEventListener('click', function () { closeMenus(); markRows(listRows.filter(function (r) { return !r.m || !r.m.flags.seen || r.ids; }), true); });

@@ -47,6 +47,29 @@ namespace HM
 
    }
 
+   size_t
+   Messages::VisitNewestFirst(const std::function<bool(const std::shared_ptr<Message> &)> &visit) const
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(_mutex);
+
+      size_t live = 0;
+      bool visiting = true;
+
+      for (std::vector<std::shared_ptr<Message>>::const_reverse_iterator it = vecObjects.rbegin(); it != vecObjects.rend(); ++it)
+      {
+         const std::shared_ptr<Message> &message = *it;
+         if (!message || message->GetFlagDeleted())
+            continue;
+
+         live++;
+
+         if (visiting && !visit(message))
+            visiting = false;
+      }
+
+      return live;
+   }
+
    std::map<__int64, std::shared_ptr<Message>>
    Messages::GetCopyByIds(const std::set<__int64> &message_ids) const
    {

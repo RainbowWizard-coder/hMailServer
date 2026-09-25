@@ -31,16 +31,25 @@ namespace HM
 
    }
 
-   std::shared_ptr<Messages> 
+   std::shared_ptr<Messages>
    MessagesContainer::GetMessages(__int64 account_id, __int64 folder_id)
    {
-      std::set<__int64> recent_messages;
-
-      return GetMessages(account_id, folder_id, recent_messages, false);
+      // Nobody asked for the recent ids, so none are collected. Collecting them
+      // meant a walk of the folder and a set built of every message still
+      // carrying \Recent - after an import that is every message in it - for
+      // each caller that then threw the set away: every IMAPFolder::GetMessages,
+      // the webmail's listing and the change probe it polls among them.
+      return GetMessages_(account_id, folder_id, nullptr, false);
    }
 
    std::shared_ptr<Messages>
    MessagesContainer::GetMessages(__int64 account_id, __int64 folder_id, std::set<__int64> &recent_messages, bool update_recent_messages)
+   {
+      return GetMessages_(account_id, folder_id, &recent_messages, update_recent_messages);
+   }
+
+   std::shared_ptr<Messages>
+   MessagesContainer::GetMessages_(__int64 account_id, __int64 folder_id, std::set<__int64> *recent_messages, bool update_recent_messages)
    {
       auto cached_messages = messages_cache_.GetObject(folder_id);
 
@@ -67,7 +76,8 @@ namespace HM
       // Collected under the collection's own lock. Iterating GetVector() here
       // raced with another session erasing from the same shared vector, which
       // showed up as intermittent IMAP crashes under concurrent access.
-      recent_messages = messages->GetRecentMessageIDs();
+      if (recent_messages != nullptr)
+         *recent_messages = messages->GetRecentMessageIDs();
 
       if (update_recent_messages)
          messages->RemoveRecentFlags();

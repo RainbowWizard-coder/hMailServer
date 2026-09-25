@@ -19,6 +19,9 @@
 #include "Encoding/ModifiedUTF7.h"
 #include <boost/thread/thread.hpp>
 #include <boost/chrono.hpp>
+#include <chrono>
+#include <functional>
+#include <map>
 #include <mutex>
 #include "../Application/MetricsHistoryTask.h"
 #include "ServerStatus.h"
@@ -2977,6 +2980,9 @@ namespace HM
          case RouteMeFolderEmpty:
             return HandleMeFolderEmpty_(caller, route.folder_id, route.query);
 
+         case RouteMeFolderBulk:
+            return HandleMeFolderBulk_(caller, route.folder_id, GetRequestBody_(request));
+
          case RouteMeMessageSource:
             return HandleMeMessageSource_(caller, route.message_id);
 
@@ -4502,6 +4508,15 @@ namespace HM
             AnsiString idText = rest.Mid(0, rest.GetLength() - AnsiString("/empty").GetLength());
             if (ParseQueueId(idText, route.folder_id))
                route.kind = RouteMeFolderEmpty;
+
+            return;
+         }
+
+         if (method == "POST" && rest.EndsWith("/bulk"))
+         {
+            AnsiString idText = rest.Mid(0, rest.GetLength() - AnsiString("/bulk").GetLength());
+            if (ParseQueueId(idText, route.folder_id))
+               route.kind = RouteMeFolderBulk;
 
             return;
          }
@@ -7259,6 +7274,7 @@ namespace HM
       case RouteMeSessionDelete:
       case RouteMeDeviceDelete:
       case RouteMeFolderEmpty:
+      case RouteMeFolderBulk:
       case RouteMePreferencesPut:
       case RouteMePushSubscribe:
       case RouteMePushUpdate:
@@ -12451,6 +12467,7 @@ namespace HM
       case RouteMeZeroAccessDelete:
       case RouteMeMailboxEncryption:
       case RouteMeFolderEmpty:
+      case RouteMeFolderBulk:
       case RouteMeMessageSource:
       case RouteMeMessageHtml:
       case RouteMeIdentities:
@@ -13649,6 +13666,100 @@ namespace HM
          Unicode::WideToMultiByte(wideDate, date);
       }
 
+      // The three headers a conversation is built from, as they stand in the
+      // head of the file, trimmed. RestApiServer::ThreadFieldsJson_ writes them
+      // out; a head that was never loaded gives three empty values.
+      struct ThreadFields
+      {
+         AnsiString messageId;
+         AnsiString inReplyTo;
+         AnsiString references;
+      };
+
+      ThreadFields ThreadFieldsFrom(MimeHeader &mimeHeader)
+      {
+         ThreadFields fields;
+
+         const char *value = mimeHeader.GetRawFieldValue("Message-ID");
+         fields.messageId = value ? value : "";
+         value = mimeHeader.GetRawFieldValue("In-Reply-To");
+         fields.inReplyTo = value ? value : "";
+         value = mimeHeader.GetRawFieldValue("References");
+         fields.references = value ? value : "";
+
+         fields.messageId.TrimLeft();
+         fields.messageId.TrimRight();
+         fields.inReplyTo.TrimLeft();
+         fields.inReplyTo.TrimRight();
+         fields.references.TrimLeft();
+         fields.references.TrimRight();
+
+         return fields;
+      }
+
+      // What one row of a listing reads from the head of its file - Subject,
+      // From and Date, and the three conversation headers - from one read of
+      // it. The listing used to open the file once for the first three and
+      // again for the other three, two hundred times a page. It is still read
+      // once more by ListingExtrasJson_ for the recipients and the tab, with
+      // the whole file for the snippet, unless the row's extras are cached:
+      // two reads of the head a row where there were three.
+      void DescribeListingHeader(const String &fileName, AnsiString &subject, AnsiString &from, AnsiString &date, ThreadFields &thread)
+      {
+         String wideSubject, wideFrom, wideDate;
+         MimeHeader mimeHeader;
+
+         AnsiString header = PersistentMessage::LoadHeader(fileName, false);
+         if (!header.IsEmpty())
+         {
+            mimeHeader.Load(header.c_str(), header.GetLength(), true);
+
+            wideSubject = mimeHeader.GetUnicodeFieldValue("Subject");
+            wideFrom = mimeHeader.GetUnicodeFieldValue("From");
+
+            const char *rawDate = mimeHeader.GetRawFieldValue("Date");
+            wideDate = rawDate ? String(rawDate) : String();
+         }
+
+         Unicode::WideToMultiByte(wideSubject, subject);
+         Unicode::WideToMultiByte(wideFrom, from);
+         Unicode::WideToMultiByte(wideDate, date);
+
+         thread = ThreadFieldsFrom(mimeHeader);
+      }
+
+      // How long one listing, search or bulk request works before it answers
+      // with where it stopped. A count alone does not bound a request: two
+      // thousand small messages on a local disk are read in a moment, and the
+      // same two thousand on a slow share or an object store are not, and the
+      // listener's worker is held for as long as the request runs.
+      const long long WorkMilliseconds = 2500;
+
+      class WorkClock
+      {
+      public:
+         WorkClock() : started_(std::chrono::steady_clock::now()) { }
+
+         bool Spent() const
+         {
+            return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started_).count() >= WorkMilliseconds;
+         }
+
+      private:
+         std::chrono::steady_clock::time_point started_;
+      };
+
+      // One message a listing or a search walks past, in the order it was met:
+      // a copy to read, or none when the full-text index has already answered
+      // that the message cannot hold the words asked for.
+      struct ListingEntry
+      {
+         ListingEntry() : uid(0) { }
+
+         unsigned int uid;
+         std::shared_ptr<Message> message;
+      };
+
       AnsiString FlagsJson(std::shared_ptr<Message> message)
       {
          // The keywords are IMAP atoms - no quote, no backslash, nothing
@@ -14621,35 +14732,98 @@ namespace HM
       const bool searching = !text.IsEmpty();
       SearchIndexPrune prune(account->GetID(), searchQuery.freeText);
 
-      // A snapshot, walked newest UID first: the collection is shared with
-      // every IMAP session on the mailbox, and a copy is what lets this read
-      // files without holding its lock.
+      // One pass over the folder's shared collection, newest UID first, under
+      // its lock, copying only what this answer reads: the page of a listing,
+      // or what a search will open. It used to copy the whole folder for
+      // every page - a hundred thousand messages allocated, under the lock
+      // IMAP and delivery wait on, to show two hundred of them - and then walk
+      // the copy twice more. The copies are what let the files be read below
+      // without holding the lock.
+      //
+      // A search also asks the full-text index here, where it costs a set
+      // lookup: a message the index has read whole and that holds none of the
+      // words is walked past without a copy and without counting against the
+      // budget of files one request may open (the same filter IMAP SEARCH
+      // trusts, SearchIndexPrune, which fails open). So an indexed mailbox is
+      // searched as far as it has candidates, not as far as its newest two
+      // thousand.
       std::shared_ptr<Messages> messages = folder->GetMessages();
-      std::vector<std::shared_ptr<Message>> snapshot = messages ? messages->GetCopy() : std::vector<std::shared_ptr<Message>>();
 
-      int total = 0;
-      for (std::vector<std::shared_ptr<Message>>::const_iterator it = snapshot.begin(); it != snapshot.end(); ++it)
+      std::vector<ListingEntry> entries;
+      size_t copies = 0;
+      const size_t wanted = searching ? (size_t) MaxSearchScan + 1 : (size_t) limit;
+
+      // The page an Oldest button opens: the before_uid under which exactly
+      // the oldest `limit` messages lie, which is the UID of the (limit+1)th
+      // oldest. A ring of the last limit+1 UIDs the pass meets holds it at the
+      // end - the pass reads every message anyway, for the total.
+      std::vector<unsigned int> oldestRing(searching ? 0 : (size_t) limit + 1, 0);
+      size_t ringSeen = 0;
+
+      // The newest UID the folder holds, from the same pass as the page: what
+      // a select-all made from this answer means by "every message there
+      // was" (max_uid on the bulk route), consistent with the rows drawn.
+      unsigned int newestUid = 0;
+
+      size_t live = 0;
+      if (messages)
       {
-         if (*it && !(*it)->GetFlagDeleted())
-            total++;
+         live = messages->VisitNewestFirst([&](const std::shared_ptr<Message> &message) -> bool
+         {
+            if (message->GetUID() > newestUid)
+               newestUid = message->GetUID();
+
+            if (!oldestRing.empty())
+            {
+               oldestRing[ringSeen % oldestRing.size()] = message->GetUID();
+               ringSeen++;
+            }
+
+            // A listing walks on to the end for the ring; a search stops once
+            // it holds one more copy than it may read, which is how it knows
+            // there was more.
+            if (copies >= wanted)
+               return !searching;
+
+            if (beforeUid > 0 && message->GetUID() >= beforeUid)
+               return true;
+
+            ListingEntry entry;
+            entry.uid = message->GetUID();
+
+            if (searching && prune.CannotContain(message->GetID()))
+            {
+               entries.push_back(entry);
+               return true;
+            }
+
+            entry.message = std::shared_ptr<Message>(new Message(*message));
+            entries.push_back(entry);
+            copies++;
+            return true;
+         });
       }
 
+      unsigned int oldestBeforeUid = 0;
+      if (!oldestRing.empty() && ringSeen > (size_t) limit)
+         oldestBeforeUid = oldestRing[ringSeen % oldestRing.size()];
+
       AnsiString json;
-      json.Format("{\"folder_id\":%I64d,\"total\":%d,\"query\":\"%hs\",\"messages\":[", folder->GetID(), total, JsonEscape_(Utf8_(text)).c_str());
+      json.Format("{\"folder_id\":%I64d,\"total\":%d,\"query\":\"%hs\",\"messages\":[", folder->GetID(), (int) live, JsonEscape_(Utf8_(text)).c_str());
 
       int written = 0;
+      // What the search walked past (read, or answered for by the index), and
+      // of those the ones whose file was opened - which is what MaxSearchScan
+      // and the clock bound.
       int scanned = 0;
+      int examined = 0;
       bool complete = true;
       unsigned int lastUid = 0;
+      WorkClock workClock;
 
-      for (std::vector<std::shared_ptr<Message>>::reverse_iterator it = snapshot.rbegin(); it != snapshot.rend(); ++it)
+      for (size_t i = 0; i < entries.size(); i++)
       {
-         std::shared_ptr<Message> message = *it;
-         if (!message || message->GetFlagDeleted())
-            continue;
-
-         if (beforeUid > 0 && message->GetUID() >= beforeUid)
-            continue;
+         const ListingEntry &walked = entries[i];
 
          if (written >= limit)
          {
@@ -14660,25 +14834,40 @@ namespace HM
             break;
          }
 
-         const String fileName = MessageFile_(message);
-
          if (searching)
          {
-            if (scanned >= MaxSearchScan)
+            if (!walked.message)
+            {
+               // The index has read this message whole and it holds none of
+               // the words: walked past, no file opened.
+               scanned++;
+               lastUid = walked.uid;
+               continue;
+            }
+
+            if (examined >= MaxSearchScan || (examined > 0 && workClock.Spent()))
             {
                complete = false;
                break;
             }
 
+            examined++;
             scanned++;
-            lastUid = message->GetUID();
+            lastUid = walked.uid;
 
-            if (!MessageMatchesQuery(fileName, message, String(), searchQuery, prune))
+            if (!MessageMatchesQuery(MessageFile_(walked.message), walked.message, String(), searchQuery, prune))
                continue;
          }
 
+         std::shared_ptr<Message> message = walked.message;
+         if (!message)
+            continue;
+
+         const String fileName = MessageFile_(message);
+
          AnsiString subject, from, date;
-         DescribeHeader(fileName, subject, from, date);
+         ThreadFields thread;
+         DescribeListingHeader(fileName, subject, from, date, thread);
 
          if (written > 0)
             json += ",";
@@ -14693,15 +14882,16 @@ namespace HM
             JsonEscape_(from).c_str(),
             JsonEscape_(date).c_str(),
             FlagsJson(message).c_str(),
-            ThreadFieldsJson_(MessageFile_(message)).c_str(),
-            ListingExtrasJson_(MessageFile_(message), message).c_str());
+            ThreadFieldsJson_(thread.messageId, thread.inReplyTo, thread.references).c_str(),
+            ListingExtrasJson_(fileName, message).c_str());
          json += entry;
          written++;
          lastUid = message->GetUID();
       }
 
       AnsiString tail;
-      tail.Format("],\"scanned\":%d,\"complete\":%hs,\"next_before_uid\":%u}", scanned, complete ? "true" : "false", complete ? 0 : lastUid);
+      tail.Format("],\"scanned\":%d,\"complete\":%hs,\"next_before_uid\":%u,\"oldest_before_uid\":%u,\"newest_uid\":%u}",
+         scanned, complete ? "true" : "false", complete ? 0 : lastUid, oldestBeforeUid, newestUid);
       json += tail;
 
       return BuildResponse_(200, json);
@@ -14773,13 +14963,33 @@ namespace HM
          String path;
       };
 
-      std::vector<Hit> hits;
-      int scanned = 0;
-      bool complete = true;
+      // before_id continues a search that stopped: only messages with a lower
+      // id are looked at. Ids grow with time across the whole mailbox, which
+      // is what makes one number a place to go on from in every folder at once.
+      __int64 beforeId = 0;
+      AnsiString beforeText = QueryParameter_(query, "before_id");
+      if (!beforeText.IsEmpty())
+         beforeId = _atoi64(beforeText.c_str());
 
-      // Every folder, newest first within each, under one budget for the
-      // whole request.
-      for (size_t f = 0; f < folders.size() && complete; f++)
+      // Every message of every folder searched, as an id and a folder, walked
+      // newest first ACROSS the mailbox. The search used to go folder by
+      // folder, newest first within each, and stop at two thousand: with a
+      // hundred thousand in the inbox it never reached another folder, and it
+      // had no way to go on. Collected under each folder's lock without
+      // copying a message - a copy is made below only of what will be read -
+      // and with the full-text index asked as it goes (see the listing).
+      struct Walked
+      {
+         __int64 id;
+         size_t folder;
+         bool pruned;
+      };
+
+      std::vector<Walked> walk;
+      std::vector<std::shared_ptr<Messages>> collections(folders.size());
+      std::vector<String> pathsLower(folders.size());
+
+      for (size_t f = 0; f < folders.size(); f++)
       {
          std::shared_ptr<Messages> messages = folders[f].first->GetMessages();
          if (!messages)
@@ -14790,38 +15000,108 @@ namespace HM
          // before its messages count against the budget.
          if (!searchQuery.inFolder.IsEmpty() && pathLower.Find(searchQuery.inFolder) < 0)
             continue;
-         std::vector<std::shared_ptr<Message>> snapshot = messages->GetCopy();
-         for (std::vector<std::shared_ptr<Message>>::reverse_iterator it = snapshot.rbegin(); it != snapshot.rend(); ++it)
+
+         collections[f] = messages;
+         pathsLower[f] = pathLower;
+
+         messages->VisitNewestFirst([&](const std::shared_ptr<Message> &message) -> bool
          {
-            std::shared_ptr<Message> message = *it;
-            if (!message || message->GetFlagDeleted())
-               continue;
+            if (beforeId > 0 && message->GetID() >= beforeId)
+               return true;
 
-            if (scanned >= MaxSearchScan)
-            {
-               complete = false;
-               break;
-            }
-
-            scanned++;
-
-            if (!MessageMatchesQuery(MessageFile_(message), message, pathLower, searchQuery, prune))
-               continue;
-
-            Hit hit;
-            hit.message = message;
-            hit.folder = folders[f].first;
-            hit.path = folders[f].second;
-            hits.push_back(hit);
-         }
+            Walked one;
+            one.id = message->GetID();
+            one.folder = f;
+            one.pruned = prune.CannotContain(one.id);
+            walk.push_back(one);
+            return true;
+         });
       }
 
       // Newest first across folders: ids grow with time.
-      std::sort(hits.begin(), hits.end(), [](const Hit &a, const Hit &b) { return a.message->GetID() > b.message->GetID(); });
+      std::sort(walk.begin(), walk.end(), [](const Walked &a, const Walked &b) { return a.id > b.id; });
 
-      bool more = (int) hits.size() > limit;
-      if (more)
-         hits.resize(limit);
+      // The messages this request may read - one more than the budget, which
+      // is how it knows there was more - copied a folder at a time, in one
+      // pass over each folder that has any.
+      std::vector<std::set<__int64>> toCopy(folders.size());
+      size_t chosen = 0;
+      for (size_t i = 0; i < walk.size() && chosen <= (size_t) MaxSearchScan; i++)
+      {
+         if (walk[i].pruned)
+            continue;
+
+         toCopy[walk[i].folder].insert(walk[i].id);
+         chosen++;
+      }
+
+      std::map<__int64, std::shared_ptr<Message>> copies;
+      for (size_t f = 0; f < folders.size(); f++)
+      {
+         if (toCopy[f].empty() || !collections[f])
+            continue;
+
+         std::map<__int64, std::shared_ptr<Message>> some = collections[f]->GetCopyByIds(toCopy[f]);
+         copies.insert(some.begin(), some.end());
+      }
+
+      std::vector<Hit> hits;
+      int scanned = 0;
+      int examined = 0;
+      bool complete = true;
+      bool more = false;
+      __int64 nextBeforeId = 0;
+      WorkClock workClock;
+
+      // In the walk's order, under one budget of files opened and one clock
+      // for the whole request, until a page and one more are found.
+      for (size_t i = 0; i < walk.size(); i++)
+      {
+         const Walked &one = walk[i];
+
+         if (one.pruned)
+         {
+            scanned++;
+            continue;
+         }
+
+         if (examined >= MaxSearchScan || (examined > 0 && workClock.Spent()))
+         {
+            // Everything newer than this one has been looked at.
+            complete = false;
+            nextBeforeId = one.id + 1;
+            break;
+         }
+
+         examined++;
+         scanned++;
+
+         std::map<__int64, std::shared_ptr<Message>>::const_iterator copy = copies.find(one.id);
+
+         // Expunged between the walk and the copy: nothing to read.
+         if (copy == copies.end() || !copy->second || copy->second->GetFlagDeleted())
+            continue;
+
+         if (!MessageMatchesQuery(MessageFile_(copy->second), copy->second, pathsLower[one.folder], searchQuery, prune))
+            continue;
+
+         if ((int) hits.size() >= limit)
+         {
+            // A page and one more: the page is full and there is more. The
+            // next request starts at this one, so what lay between the last
+            // hit shown and this one is not read twice.
+            more = true;
+            complete = false;
+            nextBeforeId = one.id + 1;
+            break;
+         }
+
+         Hit hit;
+         hit.message = copy->second;
+         hit.folder = folders[one.folder].first;
+         hit.path = folders[one.folder].second;
+         hits.push_back(hit);
+      }
 
       AnsiString json;
       json.Format("{\"query\":\"%hs\",\"scanned\":%d,\"complete\":%hs,\"more\":%hs,\"messages\":[",
@@ -14856,7 +15136,9 @@ namespace HM
          json += entry;
       }
 
-      json += "]}";
+      AnsiString tail;
+      tail.Format("],\"next_before_id\":%I64d}", complete ? (__int64) 0 : nextBeforeId);
+      json += tail;
       return BuildResponse_(200, json);
    }
 
@@ -15543,6 +15825,590 @@ namespace HM
       AnsiString json;
       json.Format("{\"deleted\":%d,\"remaining\":%d,\"folder_id\":%I64d,\"older_than_days\":%d}",
          (int) deleted.size(), (int) remaining, folder->GetID(), olderThanDays);
+      return BuildResponse_(200, json);
+   }
+
+   namespace
+   {
+      // How many messages one bulk call takes on at most: a flag change is a
+      // row written, a move or a delete a file copied or removed as well. The
+      // clock (WorkClock) stops a call sooner when each costs more.
+      const size_t MaxBulkPerCall = 1000;
+      const size_t MaxBulkMovesPerCall = 500;
+
+      // A number from a request as a UID: never negative, never past the
+      // largest a UID can be.
+      unsigned int BulkUidOf(__int64 value)
+      {
+         if (value <= 0)
+            return 0;
+
+         return value > 0xFFFFFFFFLL ? 0xFFFFFFFFu : (unsigned int) value;
+      }
+
+      // The five tabs the webmail sorts an inbox into (Portal.js, TABS).
+      bool IsInboxTab(const std::string &tab)
+      {
+         return tab == "primary" || tab == "social" || tab == "promotions" || tab == "updates" || tab == "forums";
+      }
+
+      // The tab the webmail shows a message under - tabOf in Portal.js, rule
+      // for rule: the reader's own word for the sender first, then the
+      // category the listing gives the message from its head (CategoryOf); in
+      // Outlook's arrangement primary is Focused and the rest is Other. The
+      // sender is the address in the decoded From, as addressOf takes it: what
+      // is in the angle brackets, or the whole field.
+      std::string TabOfMessage(MimeHeader &mimeHeader, const std::map<String, std::string> &senderTabs, bool focused)
+      {
+         const String from = mimeHeader.GetUnicodeFieldValue("From");
+
+         String address;
+         const int open = from.Find(_T("<"));
+         const int close = open >= 0 ? from.Find(_T(">"), open + 1) : -1;
+         if (open >= 0 && close > open + 1)
+         {
+            address = from.Mid(open + 1, close - open - 1);
+         }
+         else
+         {
+            address = from;
+            address.TrimLeft();
+            address.TrimRight();
+         }
+         address.ToLower();
+
+         std::string own;
+         std::map<String, std::string>::const_iterator word = senderTabs.find(address);
+         if (word != senderTabs.end())
+            own = word->second;
+
+         if (focused && (own == "focused" || own == "other"))
+            return own;
+
+         const std::string category = IsInboxTab(own) ? own : std::string(CategoryOf(mimeHeader).c_str());
+         if (focused)
+            return category == "primary" ? "focused" : "other";
+
+         return category;
+      }
+   }
+
+   // POST /api/v1/me/folders/{id}/bulk: what a select-all over a folder of any
+   // size asks for - read, unread, a star, a label, move, archive, junk,
+   // delete - done by the server a bounded step at a time. The page used to
+   // read the folder two hundred messages a request to learn the ids, stop at
+   // five thousand whatever the folder held, and then send one request per
+   // message; a hundred thousand was out of its reach altogether.
+   //
+   // One call takes at most MaxBulkPerCall messages (MaxBulkMovesPerCall for
+   // a move or a delete), newest first, and stops sooner when the clock says
+   // so; it answers what it did, how many are left and next_before_uid, and
+   // the caller sends the same body again with before_uid set to that until
+   // complete is true. The selection is ids (this folder's messages, at most
+   // MaxBulkPerCall) or all with max_uid - every message up to the newest UID
+   // there was when the reader chose, so that mail arriving meanwhile is not
+   // swept up - narrowed, for an inbox shown in tabs, to one tab. Each
+   // message is changed exactly as its own route changes it: the flags the
+   // way STORE writes them (PersistentMessage::SaveFlags, the next
+   // mod-sequence), a move as a copy and an expunge, a delete into Trash
+   // unless it is final - under the same rights, asked once for the folder.
+   HttpResponse
+   RestApiServer::HandleMeFolderBulk_(const Caller &caller, __int64 folderId, const AnsiString &requestBody)
+   {
+      std::shared_ptr<const Account> account = caller.account;
+      if (!account)
+         return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      std::shared_ptr<IMAPFolder> folder = FindReadableFolder_(account, folderId);
+      if (!folder)
+         return BuildResponse_(404, "{\"error\":\"folder not found\"}");
+
+      JsonValue body;
+      std::string parseError;
+      if (!JsonValue::Parse(std::string(requestBody.c_str(), requestBody.GetLength()), body, parseError) || !body.IsObject())
+         return BuildResponse_(400, "{\"error\":\"the body is not a JSON object\"}");
+
+      const std::string action = body.GetString("action");
+      if (action != "flags" && action != "move" && action != "delete")
+         return BuildResponse_(400, "{\"error\":\"action is flags, move or delete\"}");
+
+      // Which messages: named, or all of them up to a UID.
+      const JsonValue *idsMember = body.Get("ids");
+      const bool named = idsMember != 0 && !idsMember->IsNull();
+      const bool all = body.GetBool("all", false);
+      if (named == all)
+         return BuildResponse_(400, "{\"error\":\"name the messages with ids, or take them all with all and max_uid - one of the two\"}");
+
+      std::set<__int64> namedIds;
+      if (named)
+      {
+         if (!idsMember->IsArray() || idsMember->Size() == 0 || idsMember->Size() > MaxBulkPerCall)
+            return BuildResponse_(400, "{\"error\":\"ids is an array of 1 to 1000 message ids\"}");
+
+         for (size_t i = 0; i < idsMember->Size(); i++)
+         {
+            const JsonValue *item = idsMember->At(i);
+            if (item == 0 || !item->IsNumber() || item->AsInt64() <= 0)
+               return BuildResponse_(400, "{\"error\":\"ids is an array of 1 to 1000 message ids\"}");
+
+            namedIds.insert(item->AsInt64());
+         }
+      }
+
+      unsigned int maxUid = 0;
+      if (all)
+      {
+         const JsonValue *maxMember = body.Get("max_uid");
+         if (maxMember == 0 || !maxMember->IsNumber() || maxMember->AsInt64() <= 0)
+            return BuildResponse_(400, "{\"error\":\"all needs max_uid: the newest UID there was when the selection was made\"}");
+
+         maxUid = BulkUidOf(maxMember->AsInt64());
+      }
+
+      // Where the call before this one stopped.
+      unsigned int beforeUid = 0;
+      const JsonValue *beforeMember = body.Get("before_uid");
+      if (beforeMember != 0 && !beforeMember->IsNull())
+      {
+         if (!beforeMember->IsNumber() || beforeMember->AsInt64() < 0)
+            return BuildResponse_(400, "{\"error\":\"before_uid is a UID\"}");
+
+         beforeUid = BulkUidOf(beforeMember->AsInt64());
+      }
+
+      // A tab narrows all to what the webmail shows under it, decided the way
+      // the page decides it: by the arrangement (inbox: tabs or focused) and
+      // the reader's own word for a sender (senders), both the page's own
+      // preferences, handed in with the tab.
+      std::string tab;
+      bool focused = false;
+      std::map<String, std::string> senderTabs;
+      const JsonValue *tabMember = body.Get("tab");
+      if (tabMember != 0 && !tabMember->IsNull())
+      {
+         if (!all || !tabMember->IsString())
+            return BuildResponse_(400, "{\"error\":\"tab narrows all, and is the name of a tab\"}");
+
+         tab = tabMember->AsString();
+         focused = body.GetString("inbox") == "focused";
+
+         const bool known = focused ? (tab == "focused" || tab == "other") : IsInboxTab(tab);
+         if (!known)
+            return BuildResponse_(400, "{\"error\":\"tab is primary, social, promotions, updates or forums - or, with inbox focused, focused or other\"}");
+
+         const JsonValue *senders = body.Get("senders");
+         if (senders != 0 && !senders->IsNull())
+         {
+            if (!senders->IsObject())
+               return BuildResponse_(400, "{\"error\":\"senders is an object from an address to a tab\"}");
+
+            const std::vector<std::pair<std::string, JsonValue> > &members = senders->Members();
+            for (size_t i = 0; i < members.size(); i++)
+            {
+               if (!members[i].second.IsString())
+                  continue;
+
+               String address;
+               if (!Unicode::MultiByteToWide(AnsiString(members[i].first.c_str()), address))
+                  continue;
+
+               address.ToLower();
+               senderTabs[address] = members[i].second.AsString();
+            }
+         }
+      }
+
+      // What is done to each: the flags and keywords the per-message route
+      // takes, or where a move or a delete sends it - and the rights each asks
+      // for, asked once here for the whole folder.
+      static const char *flagNames[] = { "seen", "flagged", "answered", "draft", "deleted" };
+      bool flagNamed[5] = { false, false, false, false, false };
+      bool flagValues[5] = { false, false, false, false, false };
+      std::vector<String> keywordsAdd;
+      std::vector<String> keywordsRemove;
+      std::shared_ptr<IMAPFolder> destination;
+
+      if (action == "flags")
+      {
+         int mentioned = 0;
+
+         for (int i = 0; i < 5; i++)
+         {
+            const JsonValue *value = body.Get(flagNames[i]);
+            if (value == 0 || value->IsNull())
+               continue;
+
+            if (!value->IsBool())
+               return BuildResponse_(400, "{\"error\":\"seen, flagged, answered, draft and deleted are true or false\"}");
+
+            flagNamed[i] = true;
+            flagValues[i] = value->AsBool();
+            mentioned++;
+         }
+
+         // A selection here is of messages not flagged deleted - the pass
+         // below walks past the rest, as the listing does - so "deleted":
+         // false would find nothing to undelete and answer that it had done
+         // it. Refused instead; one message is undeleted by its own route.
+         if (flagNamed[4] && !flagValues[4])
+            return BuildResponse_(400, "{\"error\":\"deleted false is not taken here: the selection holds no message flagged deleted, so there is none to undelete; use PUT /api/v1/me/messages/{id}/flags for one\"}");
+
+         const JsonValue *lists[2] = { body.Get("keywords_add"), body.Get("keywords_remove") };
+         for (int l = 0; l < 2; l++)
+         {
+            if (lists[l] == 0 || lists[l]->IsNull())
+               continue;
+
+            if (!lists[l]->IsArray())
+               return BuildResponse_(400, "{\"error\":\"keywords_add and keywords_remove are arrays of keyword names\"}");
+
+            for (size_t i = 0; i < lists[l]->Size(); i++)
+            {
+               const JsonValue *item = lists[l]->At(i);
+               if (item == 0 || !item->IsString())
+                  return BuildResponse_(400, "{\"error\":\"keywords_add and keywords_remove are arrays of keyword names\"}");
+
+               String keyword;
+               Unicode::MultiByteToWide(AnsiString(item->AsString().c_str()), keyword);
+               keyword.TrimLeft();
+               keyword.TrimRight();
+               if (keyword.IsEmpty() || keyword[0] == '\\' || !SieveParser::IsValidFlagName(keyword))
+                  return BuildResponse_(400, "{\"error\":\"a keyword is an IMAP atom: printable ASCII without spaces, parentheses, braces, brackets, quotes, %, * or a backslash\"}");
+
+               (l == 0 ? keywordsAdd : keywordsRemove).push_back(keyword);
+            }
+
+            mentioned++;
+         }
+
+         if (mentioned == 0)
+            return BuildResponse_(400, "{\"error\":\"no flag named: seen, flagged, answered, draft or deleted; and no keywords_add or keywords_remove\"}");
+
+         if (flagNamed[0] && !RightOn_(account, folder, ACLPermission::PermissionWriteSeen))
+            return BuildResponse_(403, "{\"error\":\"the folder does not allow this account to change the seen flag\"}");
+
+         if (flagNamed[4] && !RightOn_(account, folder, ACLPermission::PermissionWriteDeleted))
+            return BuildResponse_(403, "{\"error\":\"the folder does not allow this account to change the deleted flag\"}");
+
+         if ((flagNamed[1] || flagNamed[2] || flagNamed[3] || !keywordsAdd.empty() || !keywordsRemove.empty()) && !RightOn_(account, folder, ACLPermission::PermissionWriteOthers))
+            return BuildResponse_(403, "{\"error\":\"the folder does not allow this account to change flags\"}");
+      }
+      else if (action == "move")
+      {
+         AnsiString to = body.GetString("to").c_str();
+         to.ToLower();
+
+         if (!to.IsEmpty())
+         {
+            if (to == "archive")
+               destination = DesignatedFolderOrCreate_(account, IMAPSpecialUse::DesignationArchive, _T("Archive"));
+            else if (to == "junk")
+               destination = DesignatedFolderOrCreate_(account, IMAPSpecialUse::DesignationJunk, _T("Junk"));
+            else if (to == "trash")
+               destination = DesignatedFolderOrCreate_(account, IMAPSpecialUse::DesignationTrash, _T("Trash"));
+            else if (to == "inbox")
+            {
+               std::shared_ptr<IMAPFolders> own = IMAPFolderContainer::Instance()->GetFoldersForAccount(account->GetID());
+               if (own)
+                  destination = own->GetFolderByName(_T("INBOX"));
+            }
+            else
+               return BuildResponse_(400, "{\"error\":\"to must be archive, junk, trash or inbox\"}");
+
+            if (!destination)
+               return BuildResponse_(500, "{\"error\":\"the folder could not be found or made\"}");
+         }
+         else
+         {
+            const JsonValue *target = body.Get("folder_id");
+            if (target == 0 || !target->IsNumber())
+               return BuildResponse_(400, "{\"error\":\"folder_id or to is required\"}");
+
+            destination = FindReadableFolder_(account, target->AsInt64());
+            if (!destination)
+               return BuildResponse_(404, "{\"error\":\"folder not found\"}");
+         }
+
+         if (destination->GetID() == folder->GetID())
+            return BuildResponse_(400, "{\"error\":\"the messages are already in that folder\"}");
+
+         if (destination->GetAccountID() != folder->GetAccountID())
+            return BuildResponse_(400, "{\"error\":\"a message moves within its own mailbox; copy it by other means\"}");
+
+         if (!RightOn_(account, destination, ACLPermission::PermissionInsert))
+            return BuildResponse_(403, "{\"error\":\"the folder does not allow this account to add messages\"}");
+
+         if (!RightOn_(account, folder, ACLPermission::PermissionWriteDeleted) ||
+             !RightOn_(account, folder, ACLPermission::PermissionExpunge))
+            return BuildResponse_(403, "{\"error\":\"the folder does not allow this account to remove messages\"}");
+      }
+      else
+      {
+         if (!RightOn_(account, folder, ACLPermission::PermissionWriteDeleted) ||
+             !RightOn_(account, folder, ACLPermission::PermissionExpunge))
+            return BuildResponse_(403, "{\"error\":\"the folder does not allow this account to delete messages\"}");
+
+         // Into Trash when the account has one and the folder is not it, as
+         // the per-message delete does; final otherwise, or when asked.
+         const bool permanent = body.GetBool("permanent", false);
+         if (!permanent && folder->GetAccountID() == account->GetID())
+         {
+            std::shared_ptr<IMAPFolder> trash = DesignatedFolderOrCreate_(account, IMAPSpecialUse::DesignationTrash, _T("Trash"));
+            if (trash && trash->GetID() != folder->GetID())
+            {
+               if (!RightOn_(account, trash, ACLPermission::PermissionInsert))
+                  return BuildResponse_(403, "{\"error\":\"the trash folder does not allow this account to add messages\"}");
+
+               destination = trash;
+            }
+         }
+      }
+
+      std::shared_ptr<Messages> messages = folder->GetMessages();
+      if (!messages)
+         return BuildResponse_(500, "{\"error\":\"the folder could not be read\"}");
+
+      // This call's messages, newest first, in one pass under the folder's
+      // lock with nothing copied; the rest of the selection is only counted.
+      struct Pick
+      {
+         __int64 id;
+         unsigned int uid;
+      };
+
+      const size_t perCall = action == "flags" ? MaxBulkPerCall : MaxBulkMovesPerCall;
+      std::vector<Pick> picks;
+      size_t beyond = 0;
+
+      messages->VisitNewestFirst([&](const std::shared_ptr<Message> &message) -> bool
+      {
+         const unsigned int uid = message->GetUID();
+
+         if (all && uid > maxUid)
+            return true;
+
+         if (beforeUid > 0 && uid >= beforeUid)
+            return true;
+
+         if (named && namedIds.find(message->GetID()) == namedIds.end())
+            return true;
+
+         if (picks.size() < perCall)
+         {
+            Pick pick;
+            pick.id = message->GetID();
+            pick.uid = uid;
+            picks.push_back(pick);
+         }
+         else
+         {
+            beyond++;
+         }
+
+         return true;
+      });
+
+      // The objects every IMAP session on the folder shares, in one pass: what
+      // is changed here must be what they see.
+      std::set<__int64> pickIds;
+      for (size_t i = 0; i < picks.size(); i++)
+         pickIds.insert(picks[i].id);
+
+      std::map<__int64, std::shared_ptr<Message>> live = messages->GetItemsByIds(pickIds);
+
+      WorkClock workClock;
+      size_t processed = 0;
+      int done = 0;
+      int unchanged = 0;
+      int skipped = 0;
+      int failed = 0;
+      std::vector<__int64> flagsChanged;
+      std::set<__int64> toExpunge;
+      std::map<__int64, __int64> copiedTo;
+      std::vector<std::pair<__int64, __int64> > moved;
+
+      // The originals of a move, and a delete, expunged a slice at a time
+      // inside the loop and so inside the clock - not all of a call's at its
+      // end - so that a moved message's original and its copy are both kept,
+      // and both counted against the quota, for the length of a slice rather
+      // than of a whole call. One pass over the folder and one notification a
+      // slice.
+      const size_t ExpungeSlice = 50;
+      auto expungeSlice = [&]()
+      {
+         if (toExpunge.empty())
+            return;
+
+         std::vector<__int64> deleted;
+
+         if (destination)
+         {
+            // The original of a move: a legal hold keeps nothing of it (docs/Discovery.md).
+            RecoverableStore::MoveScope moving;
+            deleted = messages->DeleteMessagesById(toExpunge);
+         }
+         else
+         {
+            // A person deleting mail: kept for recovery.
+            RecoverableStore::Scope recoverable;
+            deleted = messages->DeleteMessagesById(toExpunge);
+         }
+
+         if (!deleted.empty())
+            NotifyFolder(folder, ChangeNotification::NotificationMessageDeleted, deleted);
+
+         done += (int) deleted.size();
+
+         // A copy whose original could not be removed stays where it went, as
+         // it does for the per-message move; it is counted as failed.
+         failed += (int) toExpunge.size() - (int) deleted.size();
+
+         for (size_t i = 0; i < deleted.size(); i++)
+         {
+            std::map<__int64, __int64>::const_iterator copy = copiedTo.find(deleted[i]);
+            if (copy == copiedTo.end())
+               continue;
+
+            moved.push_back(std::make_pair(copy->second, copy->first));
+
+            // Into or out of Junk teaches spamd, as the same move over IMAP
+            // does: one lesson queued per message moved (docs/Performance.md).
+            LearnAfterMove_(folder, destination, copy->second, account);
+         }
+
+         toExpunge.clear();
+         copiedTo.clear();
+      };
+
+      for (; processed < picks.size(); processed++)
+      {
+         // At least one per call, so that every call moves the cursor on; and
+         // checked between every message, so between every slice expunged.
+         if (processed > 0 && workClock.Spent())
+            break;
+
+         std::map<__int64, std::shared_ptr<Message>>::const_iterator found = live.find(picks[processed].id);
+         if (found == live.end() || !found->second || found->second->GetFlagDeleted())
+         {
+            // Expunged or flagged \Deleted since the pass above.
+            skipped++;
+            continue;
+         }
+
+         std::shared_ptr<Message> message = found->second;
+
+         if (!tab.empty())
+         {
+            AnsiString header = PersistentMessage::LoadHeader(MessageFile_(message), false);
+            MimeHeader mimeHeader;
+            if (!header.IsEmpty())
+               mimeHeader.Load(header.c_str(), header.GetLength(), true);
+
+            if (TabOfMessage(mimeHeader, senderTabs, focused) != tab)
+            {
+               skipped++;
+               continue;
+            }
+         }
+
+         if (action == "flags")
+         {
+            const short flagsBefore = message->GetFlags();
+            const String keywordsBefore = message->GetKeywords();
+
+            if (flagNamed[0])
+               message->SetFlagSeen(flagValues[0]);
+            if (flagNamed[1])
+               message->SetFlagFlagged(flagValues[1]);
+            if (flagNamed[2])
+               message->SetFlagAnswered(flagValues[2]);
+            if (flagNamed[3])
+               message->SetFlagDraft(flagValues[3]);
+            if (flagNamed[4])
+               message->SetFlagDeleted(flagValues[4]);
+            for (size_t k = 0; k < keywordsRemove.size(); k++)
+               message->RemoveKeyword(keywordsRemove[k]);
+
+            bool fits = true;
+            for (size_t k = 0; k < keywordsAdd.size() && fits; k++)
+               fits = message->AddKeyword(keywordsAdd[k]);
+
+            if (!fits)
+            {
+               // Too many keywords on this one: left exactly as it was.
+               message->SetFlags(flagsBefore);
+               message->SetKeywords(keywordsBefore);
+               failed++;
+               continue;
+            }
+
+            // Already so: no row written, no mod-sequence spent. A select-all
+            // "mark as read" over a folder mostly read costs what is unread.
+            if (message->GetFlags() == flagsBefore && message->GetKeywords() == keywordsBefore)
+            {
+               unchanged++;
+               continue;
+            }
+
+            if (!PersistentMessage::SaveFlags(message))
+            {
+               message->SetFlags(flagsBefore);
+               message->SetKeywords(keywordsBefore);
+               failed++;
+               continue;
+            }
+
+            flagsChanged.push_back(message->GetID());
+            done++;
+         }
+         else if (destination)
+         {
+            __int64 newMessageId = 0;
+            if (!MessageUtilities::CopyToIMAPFolder(message, (int) destination->GetID(), newMessageId))
+            {
+               failed++;
+               continue;
+            }
+
+            toExpunge.insert(message->GetID());
+            copiedTo[message->GetID()] = newMessageId;
+
+            if (toExpunge.size() >= ExpungeSlice)
+               expungeSlice();
+         }
+         else
+         {
+            toExpunge.insert(message->GetID());
+
+            if (toExpunge.size() >= ExpungeSlice)
+               expungeSlice();
+         }
+      }
+
+      // What is left of the last slice: fewer than ExpungeSlice.
+      expungeSlice();
+
+      // Every IMAP session on the folder is told once per call, by id.
+      if (!flagsChanged.empty())
+         NotifyFolder(folder, ChangeNotification::NotificationMessageFlagsChanged, flagsChanged);
+
+      const size_t left = (picks.size() - processed) + beyond;
+      const bool complete = left == 0;
+      const unsigned int nextBeforeUid = complete || processed == 0 ? 0 : picks[processed - 1].uid;
+
+      AnsiString json;
+      json.Format("{\"folder_id\":%I64d,\"action\":\"%hs\",\"done\":%d,\"unchanged\":%d,\"skipped\":%d,\"failed\":%d,\"remaining\":%d,\"complete\":%hs,\"next_before_uid\":%u,\"moved_to\":%I64d,\"moved\":[",
+         folder->GetID(), action.c_str(), done, unchanged, skipped, failed, (int) left, complete ? "true" : "false", nextBeforeUid,
+         destination ? destination->GetID() : (__int64) 0);
+
+      for (size_t i = 0; i < moved.size(); i++)
+      {
+         AnsiString entry;
+         entry.Format("%hs{\"id\":%I64d,\"was\":%I64d}", i > 0 ? "," : "", moved[i].first, moved[i].second);
+         json += entry;
+      }
+
+      json += "]}";
       return BuildResponse_(200, json);
    }
 
@@ -17502,29 +18368,24 @@ namespace HM
    AnsiString
    RestApiServer::ThreadFieldsJson_(const String &fileName)
    {
-      AnsiString messageId, inReplyTo, references;
+      ThreadFields fields;
 
       AnsiString header = PersistentMessage::LoadHeader(fileName, false);
       if (!header.IsEmpty())
       {
          MimeHeader mimeHeader;
          mimeHeader.Load(header.c_str(), header.GetLength(), true);
-
-         const char *value = mimeHeader.GetRawFieldValue("Message-ID");
-         messageId = value ? value : "";
-         value = mimeHeader.GetRawFieldValue("In-Reply-To");
-         inReplyTo = value ? value : "";
-         value = mimeHeader.GetRawFieldValue("References");
-         references = value ? value : "";
-
-         messageId.TrimLeft();
-         messageId.TrimRight();
-         inReplyTo.TrimLeft();
-         inReplyTo.TrimRight();
-         references.TrimLeft();
-         references.TrimRight();
+         fields = ThreadFieldsFrom(mimeHeader);
       }
 
+      return ThreadFieldsJson_(fields.messageId, fields.inReplyTo, fields.references);
+   }
+
+   // The same members from values already read - the listing reads them in
+   // the one pass over the head that gives it Subject, From and Date.
+   AnsiString
+   RestApiServer::ThreadFieldsJson_(const AnsiString &messageId, const AnsiString &inReplyTo, const AnsiString &references)
+   {
       AnsiString json;
       json.Format("\"message_id\":\"%hs\",\"in_reply_to\":\"%hs\",\"references\":\"%hs\"",
          JsonEscape_(messageId).c_str(), JsonEscape_(inReplyTo).c_str(), JsonEscape_(references).c_str());
@@ -18336,11 +19197,11 @@ namespace HM
          "\"/api/v1/me/quarantine\":{\"get\":{\"summary\":\"The messages held as suspected spam for the signed-in account\",\"description\":\"Only the entries this address is a recipient of, without the other recipients. enabled says whether the server holds spam at all.\",\"responses\":{\"200\":{\"description\":\"enabled, messages (id, sender, subject, reason, score, size, created)\"}}}},"
          "\"/api/v1/me/quarantine/{id}/release\":{\"post\":{\"summary\":\"Deliver a held message to the signed-in account\",\"description\":\"Delivered to this address only; the entry stays for its other recipients and goes when this was the last. A message this address was not sent is 404.\",\"responses\":{\"200\":{\"description\":\"Released\"},\"404\":{\"description\":\"Not held for this account\"}}}},"
          "\"/api/v1/me/quarantine/{id}\":{\"delete\":{\"summary\":\"Give up the signed-in account's copy of a held message\",\"description\":\"This address leaves the entry; the entry and its file go when no recipient is left. Nothing is delivered.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Not held for this account\"}}}},"
-         "\"/api/v1/me/folders/{id}/messages\":{\"get\":{\"summary\":\"One folder's messages, newest first\",\"description\":\"Query parameters: limit (1-200, default 200), before_uid (only messages with a lower UID - the way to page back) and q (only messages containing the text, case-insensitively, in Subject, From, To, Cc, the text or the HTML; at most 2000 are looked at per request - scanned says how many, complete whether that was all, and next_before_uid where to continue). Each entry: id, uid, size, received, subject, from, date (decoded from the head of the file, as FETCH ENVELOPE would), flags (seen, flagged, answered, draft, deleted), message_id, in_reply_to, references, to, has_attachments, snippet (the first 160 characters of the text, quotations and the signature left out) and category - primary, social, promotions, updates or forums, decided from the header alone: the sender's domain, List-Post, List-Unsubscribe, Precedence and Auto-Submitted. total is the folder's count. A folder of another account, or one the ACL keeps from this one, is 404.\",\"responses\":{\"200\":{\"description\":\"folder_id, total, messages\"},\"404\":{\"description\":\"Not this account's folder\"}}}},"
+         "\"/api/v1/me/folders/{id}/messages\":{\"get\":{\"summary\":\"One folder's messages, newest first\",\"description\":\"Query parameters: limit (1-200, default 200), before_uid (only messages with a lower UID - the way to page back) and q (only messages containing the text, case-insensitively, in Subject, From, To, Cc, the text or the HTML; at most 2000 message files are opened per request and the request stops after about two and a half seconds of reading - scanned says how many messages were looked at, complete whether that was all, and next_before_uid where to continue; with the full-text index on, a message the index has read whole and which cannot hold the words is looked at without its file being opened, so it neither costs a read nor counts against the 2000). Each entry: id, uid, size, received, subject, from, date (decoded from the head of the file, as FETCH ENVELOPE would), flags (seen, flagged, answered, draft, deleted), message_id, in_reply_to, references, to, has_attachments, snippet (the first 160 characters of the text, quotations and the signature left out) and category - primary, social, promotions, updates or forums, decided from the header alone: the sender's domain, List-Post, List-Unsubscribe, Precedence and Auto-Submitted. total is the folder's count. oldest_before_uid is the before_uid that lists the folder's oldest limit messages - the page an Oldest button opens - or 0 when the folder fits in one page. newest_uid is the newest UID the folder holds, read in the same pass: the max_uid of a select-all made from this page. Only the page is copied out of the folder's shared collection, whatever the folder holds. A folder of another account, or one the ACL keeps from this one, is 404.\",\"responses\":{\"200\":{\"description\":\"folder_id, total, query, messages, scanned, complete, next_before_uid, oldest_before_uid, newest_uid\"},\"404\":{\"description\":\"Not this account's folder\"}}}},"
          "\"/api/v1/me/drafts\":{\"post\":{\"summary\":\"Keep a draft in the Drafts folder\",\"description\":\"Body: to, cc, bcc, subject, text, html (its data: images kept as inline parts, as on a send), from (as on a send), and optionally replace_id - the draft this one supersedes, expunged once the new one is saved (new content is a new message with a new UID, as IMAP requires). The Drafts folder is made as Drafts when the account has none. The draft carries the \\\\Draft and \\\\Seen flags and is read, moved and deleted through the message routes.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"to\":{\"type\":\"string\"},\"cc\":{\"type\":\"string\"},\"bcc\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"text\":{\"type\":\"string\"},\"replace_id\":{\"type\":\"integer\"}}}}}},\"responses\":{\"201\":{\"description\":\"id, folder_id\"},\"403\":{\"description\":\"The Drafts folder does not allow it\"},\"413\":{\"description\":\"The mailbox is full\"}}}},"
          "\"/api/v1/me/settings\":{\"get\":{\"summary\":\"The signed-in account's own settings\",\"responses\":{\"200\":{\"description\":\"name (first, last), forwarding (enabled, address, keep_original), signature (enabled, text, html)\"}}},\"put\":{\"summary\":\"Change the signed-in account's own settings\",\"description\":\"Each of name, forwarding and signature the body names is applied whole; one it does not name is left as it is. A forwarding that is enabled needs an e-mail address, and not the account's own. signature.text is at most 20,000 characters; signature.html, the formatted signature - where the webmail keeps an image as a data: URL - is at most 64,000 bytes of UTF-8, images included, which is what the narrowest backend's column (MySQL's text) holds. A request to this route may be as large as a message's, so the limit is answered here as a sentence rather than by the listener.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"object\"},\"forwarding\":{\"type\":\"object\"},\"signature\":{\"type\":\"object\"}}}}}},\"responses\":{\"200\":{\"description\":\"The settings as saved\"},\"400\":{\"description\":\"Nothing named, a name or signature too long, or a forwarding address refused\"}}}},"
          "\"/api/v1/me/filters\":{\"get\":{\"summary\":\"The signed-in account's active Sieve script\",\"responses\":{\"200\":{\"description\":\"active (the script, empty when none), name (the active script's name when ManageSieve set one)\"}}},\"put\":{\"summary\":\"Set the signed-in account's active Sieve script\",\"description\":\"Body: script. Checked as ManageSieve's PUTSCRIPT checks it, with the same wording in error; an empty script removes the filter. The script runs on every message that arrives from then on.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"script\"],\"properties\":{\"script\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"active\"},\"400\":{\"description\":\"script missing, over 256 KB, or not parsing (the reason is in error)\"}}}},"
-         "\"/api/v1/me/search\":{\"get\":{\"x-operators\":\"q takes words (every one must be found), quoted phrases, -term (a word, phrase or operator the message must not match), a OR b (one of the two must match, and so on through a OR b OR c; OR in capitals), and from:, to:, cc:, bcc: (address or name in that header; Bcc only where the sender's own copy kept it), subject:, has:attachment, has:link (an http or https address in the text, or a link to one in the HTML; the message is read for it), filename: (an attachment's file name contains), larger:10M and smaller: (bytes, or K, M, G for multiples of 1024), before:YYYY-MM-DD, after:YYYY-MM-DD, older_than:7d and newer_than: (d, w, m or y, against the time the message was stored, as before: and after: are), in:folder, is:unread, is:read, is:flagged, is:unflagged, is:answered, is:muted, is:pinned (the $Muted and $Pinned keywords), label:name (an IMAP keyword the message carries; several must all be there), category: (primary, social, promotions, updates or forums - the tab the listing gives the message), in_reply_to:<message-id> (the id, with or without its angle brackets, is in In-Reply-To or References: the replies to that message, which is what the webmail asks for the Sent folder's nudges); a folder listing's q takes the same, without in:.\",\"summary\":\"Search every folder of the signed-in account\",\"description\":\"Query parameters: q (required) and limit (1-200, default 50). The same match as q on a folder listing, over every folder the account may read, newest first; at most 2000 messages are looked at per request (scanned, complete), and more says whether hits beyond limit were cut. Each hit names its folder_id and folder path.\",\"responses\":{\"200\":{\"description\":\"query, scanned, complete, more, messages\"},\"400\":{\"description\":\"q missing\"}}}},"
+         "\"/api/v1/me/search\":{\"get\":{\"x-operators\":\"q takes words (every one must be found), quoted phrases, -term (a word, phrase or operator the message must not match), a OR b (one of the two must match, and so on through a OR b OR c; OR in capitals), and from:, to:, cc:, bcc: (address or name in that header; Bcc only where the sender's own copy kept it), subject:, has:attachment, has:link (an http or https address in the text, or a link to one in the HTML; the message is read for it), filename: (an attachment's file name contains), larger:10M and smaller: (bytes, or K, M, G for multiples of 1024), before:YYYY-MM-DD, after:YYYY-MM-DD, older_than:7d and newer_than: (d, w, m or y, against the time the message was stored, as before: and after: are), in:folder, is:unread, is:read, is:flagged, is:unflagged, is:answered, is:muted, is:pinned (the $Muted and $Pinned keywords), label:name (an IMAP keyword the message carries; several must all be there), category: (primary, social, promotions, updates or forums - the tab the listing gives the message), in_reply_to:<message-id> (the id, with or without its angle brackets, is in In-Reply-To or References: the replies to that message, which is what the webmail asks for the Sent folder's nudges); a folder listing's q takes the same, without in:.\",\"summary\":\"Search every folder of the signed-in account\",\"description\":\"Query parameters: q (required), limit (1-200, default 50) and before_id (only messages with a lower id - where an earlier answer stopped). The same match as q on a folder listing, over every folder the account may read, newest first across all of them (by message id, which grows with time); at most 2000 message files are opened per request and the request stops after about two and a half seconds of reading, the full-text index sparing the reads it can (scanned, complete). The search stops at limit hits and one more: more says there were hits beyond limit, and whenever complete is false next_before_id is the before_id that goes on from there. Each hit names its folder_id and folder path.\",\"responses\":{\"200\":{\"description\":\"query, scanned, complete, more, messages, next_before_id\"},\"400\":{\"description\":\"q missing\"}}}},"
          "\"/api/v1/me/messages\":{\"post\":{\"x-body\":\"text and, when given, html (the message goes as multipart/alternative); attachments; from (one of the identities); receipt; in_reply_to, references, answered_id; expires_in and passcode for a message that expires; or mime - the MIME entity the page built (a signed or an encrypted message: its Content-Type headers, a blank line, its body, 7-bit), sent under this server's headers in place of text, html and attachments.\",\"summary\":\"Send a message as the signed-in account\",\"description\":\"The domain of the address the message is sent from adds its signature and its disclaimer, by the rules SMTP submission applies; the account's own signature is not added, because it is the caller's to write into the text, as the webmail does. Body: to, cc, bcc (address lists, comma or semicolon separated, display names allowed), subject, text, and from - one of the account's identities (GET /api/v1/me/identities: its own address, an alias of it, or an address whose owner granted it the post right), as address or Name <address>; optionally in_reply_to and references (written as the headers of those names, so the recipient's client threads the reply) and answered_id (the id of the message this answers, which gets \\\\Answered). Every address is put through the checks RCPT TO makes for an authenticated sender, and a refused one is named in error. The message is queued through the same delivery pipeline as SMTP submission, and a copy marked read is kept in the folder designated \\\\Sent when the account has one and its quota allows. attachments is an array of {name, type, data} with data as base64 - at most 20, twelve megabytes together; this route and the drafts route take a request of up to sixteen megabytes. An image html holds as a data: URL - PNG, JPEG, GIF or WebP, the whole value of a src attribute - is sent as an inline part beside the HTML in a multipart/related part, and the HTML names it with a cid: URL, since Gmail and Outlook do not display a data: image; the copy in Sent is the same message, and GET /api/v1/me/messages/{id}/html puts the image back in place for the page. expires_in (seconds from now, 1 to 7776000) makes a message that expires, Gmail's confidential mode: the message is kept on this server under the data directory and each recipient is sent a short notice with a link to /confidential/{token} under confidential_base_url, where they read it after proving they are a recipient; passcode (4 to 64 characters) adds a word the sender gives them another way. The copy in Sent is the full message; the answer adds confidential_id and expires; GET /api/v1/me/confidential lists them and POST .../{id}/revoke withdraws one. Refused with 403 and code confidential_unavailable when no base URL is set, and with 400 beside mime; an expires_in that is not a whole number of seconds (negative, a fraction, a string, true, null) is refused with 400 rather than read as no expiry, and so is passcode without expires_in. The kept copy counts against the mailbox's quota with everything else the account keeps (413, code quota_exceeded), and an account has at most 1000 outstanding (400, code confidential_ceiling).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"to\":{\"type\":\"string\"},\"cc\":{\"type\":\"string\"},\"bcc\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"text\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"queued, recipients, sent_id (0 when no copy was kept), and for a message that expires confidential_id and expires\"},\"400\":{\"description\":\"No recipient, or an address refused (named in error). A recipient on the sending domain's suppression list also answers code recipient_suppressed, address, and source - bounce or report for an address that bounced, manual for one an administrator listed.\"},\"403\":{\"description\":\"Refused by a rule of the server's or of a domain's with a reject action, as the SMTP session would refuse it at DATA: error is the rule's text (or a sentence naming the rule) and code is policy_rejected; nothing is queued or kept. Also a message that expires where no base URL is set (code confidential_unavailable).\"},\"413\":{\"description\":\"Larger than the server allows\"}}}},"
          "\"/api/v1/me/messages/{id}\":{\"get\":{\"summary\":\"One message, read\",\"description\":\"The listing's fields plus folder_id, to, cc, text, html and attachments (index, name, size, content_type, content_id). content_type is the media type the part declares, lower-cased and without its parameters, and is the empty string when the part declares none; content_id is the part's Content-ID with the angle brackets stripped - the form a cid: URL in html uses - and is the empty string when the part carries none. An inline image is an attachment here like any other part, so a page renders one by matching a cid: URL in html against content_id and pointing at the attachment route. A message over one megabyte is described with truncated true and no body. Another account's message, or one in a folder the ACL keeps from this account, is 404.\",\"responses\":{\"200\":{\"description\":\"The message\"},\"404\":{\"description\":\"Not this account's message\"}}},\"delete\":{\"summary\":\"Delete one message\",\"description\":\"Moved to the folder designated \\\\Trash when the account has one and the message is not in it already; expunged instead when the account has no Trash folder, when the message is already in it, or when the caller adds ?permanent=1. The rights EXPUNGE asks for.\",\"responses\":{\"200\":{\"description\":\"deleted true, or deleted false with moved_to and the new id\"},\"403\":{\"description\":\"The folder does not allow it\"},\"404\":{\"description\":\"Not this account's message\"}}}},"
          "\"/api/v1/me/messages/{id}/flags\":{\"put\":{\"summary\":\"Change one message's flags\",\"description\":\"Body: any of seen, flagged, answered, draft, deleted as booleans; only the flags named change. The rights STORE asks for - seen, deleted and the rest are three permissions. Every IMAP session on the folder is told.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"seen\":{\"type\":\"boolean\"},\"flagged\":{\"type\":\"boolean\"},\"answered\":{\"type\":\"boolean\"},\"draft\":{\"type\":\"boolean\"},\"deleted\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"id, folder_id, flags\"},\"400\":{\"description\":\"No flag named\"},\"403\":{\"description\":\"The folder does not allow it\"},\"404\":{\"description\":\"Not this account's message\"}}}},"
@@ -18369,6 +19230,7 @@ namespace HM
          "\"/api/v1/me/messages/{id}/unsubscribe\":{\"post\":{\"summary\":\"Unsubscribe by the list's own method\",\"description\":\"With List-Unsubscribe-Post: List-Unsubscribe=One-Click and an https address in List-Unsubscribe, the one RFC 8058 POST (method one-click, with the list's status) - made only to a public address, judged by what the name resolves to and connected to those addresses, never through HttpProxy, within ten seconds and 32 KB; else a message to the mailto address with its subject (method mail, queued). Neither is 400. A mailto address carrying a control character is refused.\",\"responses\":{\"200\":{\"description\":\"one-click: ok, status\"},\"201\":{\"description\":\"mail: queued, to\"},\"400\":{\"description\":\"No method, or a mailto address that cannot be written into a header\"},\"502\":{\"description\":\"The list could not be reached, or its address is not public (error says which)\"}}}},"
          "\"/api/v1/me/messages/{id}/source\":{\"get\":{\"summary\":\"The message as it is on disk\",\"description\":\"message/rfc822, as a download named message-{id}.eml, under the same right as reading the message. Larger than 25 MB is 413.\",\"responses\":{\"200\":{\"description\":\"The file\"},\"404\":{\"description\":\"No such message\"},\"413\":{\"description\":\"Too large for this route\"}}}},"
          "\"/api/v1/me/folders/{id}/empty\":{\"post\":{\"summary\":\"Empty a Junk or Trash folder\",\"description\":\"Every message in the folder is expunged for good - or, with older_than_days=N (digits, 0 to 36500; 0 is everything), only what arrived more than N days ago; any other value is refused rather than read as everything. At most 500 go per call: remaining says how many more match, so call again until it is 0. Any other folder is 400: emptying is what those two are for.\",\"responses\":{\"200\":{\"description\":\"deleted (how many), remaining, folder_id, older_than_days\"},\"400\":{\"description\":\"Not a Junk or Trash folder, or older_than_days is not a number of days\"},\"403\":{\"description\":\"The folder does not allow it\"},\"404\":{\"description\":\"No such folder\"}}}},"
+         "\"/api/v1/me/folders/{id}/bulk\":{\"post\":{\"summary\":\"One action over many messages of a folder - select-all\",\"description\":\"What a select-all over a folder of any size asks for, done by the server a bounded step at a time. Body: action (flags, move or delete); the selection - ids (1 to 1000 message ids of this folder) or all true with max_uid (every message of the folder up to that UID: the newest there was when the reader chose, so mail arriving meanwhile is not swept up), narrowed for an inbox shown in tabs by tab (primary, social, promotions, updates or forums; with inbox focused, focused or other) with senders, the page's own map from a sender's address to a tab, which is decided exactly as the webmail decides it; and before_uid, where the previous call stopped. For flags: any of seen, flagged, answered, draft as booleans, deleted true (deleted false is refused: the selection holds no message flagged deleted), keywords_add and keywords_remove, as PUT /api/v1/me/messages/{id}/flags takes them; a message already so is left alone and counted unchanged. For move: folder_id, or to = archive | junk | trash | inbox, as POST /api/v1/me/messages/{id}/move takes it. For delete: into the folder designated Trash when the account has one and this is not it, final otherwise or with permanent true, as DELETE /api/v1/me/messages/{id} does. The rights are the per-message routes', asked once for the folder. One call takes at most 1000 messages (500 for move and delete), newest first, and stops sooner after about two and a half seconds of work; call again with the same body and before_uid = next_before_uid until complete is true. Every IMAP session on the folder is told once per call. moved lists, for a move or a delete into Trash, each message's new id and the id it had (was), which is how a page moves them back. The originals are expunged fifty at a time inside the same clock. A move into or out of Junk queues one spam lesson for each message moved, as the same move over IMAP does. A mutating route, so a browser session must also carry X-Requested-With: hMailServer.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"action\"],\"properties\":{\"action\":{\"type\":\"string\",\"enum\":[\"flags\",\"move\",\"delete\"]},\"ids\":{\"type\":\"array\",\"items\":{\"type\":\"integer\"}},\"all\":{\"type\":\"boolean\"},\"max_uid\":{\"type\":\"integer\"},\"before_uid\":{\"type\":\"integer\"},\"tab\":{\"type\":\"string\"},\"inbox\":{\"type\":\"string\"},\"senders\":{\"type\":\"object\"},\"seen\":{\"type\":\"boolean\"},\"flagged\":{\"type\":\"boolean\"},\"answered\":{\"type\":\"boolean\"},\"draft\":{\"type\":\"boolean\"},\"deleted\":{\"type\":\"boolean\"},\"keywords_add\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"keywords_remove\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"folder_id\":{\"type\":\"integer\"},\"to\":{\"type\":\"string\"},\"permanent\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"folder_id, action, done, unchanged, skipped (gone, or not in the tab), failed, remaining (still to go: exact for ids and all, an upper bound under a tab), complete, next_before_uid, moved_to (0 when nothing moved), moved (id, was)\"},\"400\":{\"description\":\"No action, both or neither of ids and all, all without max_uid, a tab that is not one, no flag named, deleted false, a keyword that is not an atom, or a move to where the messages are\"},\"403\":{\"description\":\"The folder does not allow it, or a session without X-Requested-With\"},\"404\":{\"description\":\"No such folder, or no such destination\"},\"500\":{\"description\":\"The folder could not be read, or the destination could not be found or made\"}}}},"
          "\"/api/v1/me/messages/{id}/move\":{\"post\":{\"summary\":\"Move one message to another of the account's folders\",\"description\":\"Body: folder_id, or to = archive | junk | trash | inbox - the folder designated so, made by that name when the account has none. As MOVE does: a copy with a new UID in the destination, then the original expunged, every session on either folder told; a move into or out of Junk teaches spamd when SpamAssassinLearnOnMove is on. Another account's folder is 404.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"folder_id\":{\"type\":\"integer\"},\"to\":{\"type\":\"string\",\"enum\":[\"archive\",\"junk\",\"trash\",\"inbox\"]}}}}}},\"responses\":{\"200\":{\"description\":\"id (the new one), folder_id\"},\"400\":{\"description\":\"folder_id missing, or the same folder\"},\"403\":{\"description\":\"A folder does not allow it\"},\"404\":{\"description\":\"Not this account's message or folder\"}}}},"
          "\"/api/v1/me/messages/{id}/attachments/{index}\":{\"get\":{\"summary\":\"One attachment, decoded, as a download\",\"description\":\"index is the attachment's position in the message's attachments list. Served under the very media type that listing reports in content_type - so an img element pointed here renders, with nosniff set - except the types a browser would run or render (HTML, SVG, XML, script), which go out as application/octet-stream, and a part declaring no usable type, which does too; with Content-Disposition attachment (the name in both filename and RFC 8187 filename*), nosniff, a sandbox policy and no-store. A message over 32 MB is not parsed.\",\"responses\":{\"200\":{\"description\":\"The attachment's bytes\"},\"404\":{\"description\":\"Not this account's message, or no such attachment\"},\"413\":{\"description\":\"The message is too large to read here\"}}}},"
          "\"/api/v1/domains\":{"

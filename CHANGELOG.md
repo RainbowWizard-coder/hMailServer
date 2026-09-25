@@ -116,6 +116,11 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
     variants) are stored at every start, and a setting the environment manages is refused to the other
     interfaces until a start without the variable
     ([EnvironmentConfiguration.md](hmailserver/docs/EnvironmentConfiguration.md)).
+11. **`GET /api/v1/me/search` goes on from where it stopped.** A search with more hits than `limit` answered
+    `complete: true, more: true` and could not reach the rest; it now answers `complete: false, more: true`
+    with `next_before_id`, which `before_id` continues from, and `complete` is false with a
+    `next_before_id` whenever an answer is not the end. Hits are newest first across every folder by message
+    id, where they were folder by folder ([Performance.md](hmailserver/docs/Performance.md)).
 
 ### Delivery and SMTP
 
@@ -225,6 +230,12 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
   Outlook's IMAP code show by themselves.
 - Fixed: a heap-corruption abort under concurrent IMAP `LIST` and folder changes on the same account; every
   loop over a shared collection now iterates a locked copy.
+- **A folder of a hundred thousand in the webmail**: a page copies one page of the folder, never all of it;
+  Oldest reaches the end in one request; a search is bounded by time as well as by files read, spared by
+  the full-text index, and goes on from where it stopped across every folder; select-all hands the
+  selection to the server (`POST /api/v1/me/folders/{id}/bulk`), which works through it in bounded steps.
+  The seeding and timing scripts are in `build/perf/`; the numbers are to be measured on the bench
+  ([Performance.md](hmailserver/docs/Performance.md)).
 
 ### Security and identity
 

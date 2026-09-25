@@ -392,6 +392,15 @@ let sendRefusal = null;
 // One message arrives while the reader is looking at the folder: the probe
 // says so, and from then on the folder tree and the listing both show it.
 let arrived = false;
+// The inbox as a folder of a hundred thousand (largeFolderChecks): the same
+// page of rows, the folder's real size, and where its oldest page begins.
+let largeFolder = false;
+// A search of every folder that stops before the end and says where to go on
+// from (largeFolderChecks).
+let searchPaged = false;
+// What the bulk bar said while the server was part-way through a selection,
+// read by the stub when the second step arrives.
+let bulkProgressSeen = '';
 // The preferences the page saves, answered back merged, as the server does.
 let prefsStore = {};
 // A server that does not answer the change route at all - an older one, or one
@@ -1595,6 +1604,28 @@ function answer(method, path, body) {
    if (path === '/api/v1/me/filters' && method === 'PUT') { return json(200, { saved: true }); }
    if (path === '/api/v1/me/preferences' && method === 'GET') { return json(200, { preferences: prefsStore }); }
    if (path === '/api/v1/me/preferences' && method === 'PUT') { Object.assign(prefsStore, JSON.parse(body || '{}')); return json(200, { preferences: prefsStore }); }
+   if (largeFolder && path.startsWith('/api/v1/me/folders/1/messages')) {
+      const deeper = path.indexOf('before_uid=') >= 0;
+      return json(200, { folder_id: 1, total: 100000, query: '', messages: (deeper ? OLDER : LISTING.messages).map(withState), scanned: 0, complete: true, next_before_uid: 0, oldest_before_uid: 201, newest_uid: 13 });
+   }
+   // Select-all over a folder, worked through by the server in steps: a
+   // selection of all stops once, at uid 11, and says where to go on from; one
+   // named by ids is done in one answer. A move or a delete into Trash says
+   // where each message went, which is what Undo sends back.
+   if (/^\/api\/v1\/me\/folders\/\d+\/bulk$/.test(path) && method === 'POST') {
+      const asked = JSON.parse(body || '{}');
+      const moving = asked.action !== 'flags';
+      const movedTo = moving ? (asked.folder_id || (asked.to === 'archive' ? 4 : 5)) : 0;
+      const bulkAnswer = (ids, complete, next) => json(200, {
+         folder_id: Number(path.split('/')[5]), action: asked.action, done: ids.length, unchanged: 0, skipped: 0, failed: 0,
+         remaining: complete ? 0 : 2, complete: complete, next_before_uid: next, moved_to: movedTo,
+         moved: moving ? ids.map((id) => ({ id: id + 1000, was: id })) : []
+      });
+      if (asked.ids) { return bulkAnswer(asked.ids, true, 0); }
+      if (!asked.before_uid) { return bulkAnswer([103, 102, 101], false, 11); }
+      bulkProgressSeen = document.getElementById('bulk-count').textContent;
+      return bulkAnswer([100, 99], true, 0);
+   }
    if (path.startsWith('/api/v1/me/folders/1/messages')) {
       if (path.indexOf('before_uid=') >= 0) { return json(200, { total: arrived ? 6 : 5, messages: OLDER.map(withState) }); }
       const extra = importantExtra();
@@ -1603,6 +1634,13 @@ function answer(method, path, body) {
    }
    if (path.startsWith('/api/v1/me/folders/2/messages')) { return json(200, { total: SENT_LISTING.length, messages: SENT_LISTING.map(withState) }); }
    if (path.startsWith('/api/v1/me/folders/3/messages')) { return json(200, { total: WORK_THREAD.length, messages: WORK_THREAD.map((m) => withState(Object.assign({}, m, { text: undefined }))) }); }
+   if (searchPaged && path.startsWith('/api/v1/me/search?q=budget')) {
+      // A mailbox too big to search in one request: the first answer stops
+      // with next_before_id, and the one asked with before_id finishes.
+      const later = path.indexOf('before_id=150') >= 0;
+      const hit = Object.assign({ folder_id: 1, folder: 'INBOX' }, withState(later ? OLDER[0] : LISTING.messages[0]));
+      return json(200, { query: 'budget', scanned: later ? 40 : 2000, complete: later, more: false, messages: [hit], next_before_id: later ? 0 : 150 });
+   }
    if (path.startsWith('/api/v1/me/search?')) {
       // Every folder, for the three queries the page makes of it: the Starred
       // view's, the follow-up reminder's, and the Sent folder's nudges asking
@@ -2604,7 +2642,8 @@ async function main() {
    check('and takes the mark off it', !!unmark && JSON.stringify(JSON.parse(unmark.body).keywords_remove) === '["$Muted"]', unmark ? unmark.body : 'no flags call');
    dismissAllToasts();
 
-   // ---- select all: the page first, then the whole folder, read page by page
+   // ---- select all: the page first, then the whole folder, handed to the
+   // server as one selection and worked through by it a step at a time
    document.getElementById('select-all').checked = true;
    document.getElementById('select-all').dispatchEvent(makeEvent('click'));
    const note = document.getElementById('select-note');
@@ -2613,14 +2652,25 @@ async function main() {
    check('and says the whole folder is selected', document.getElementById('bulk-count').textContent === 'All of Primary selected' && note.textContent.indexOf('Clear selection') >= 0,
       document.getElementById('bulk-count').textContent + ' / ' + note.textContent);
    const beforeSweep = requests.length;
+   const newestShown = Math.max.apply(null, rows().map((r) => Number(r.getAttribute('data-uid')) || 0).concat([0]));
    document.getElementById('bulk-read').dispatchEvent(makeEvent('click'));
-   await flush();
-   await flush();
-   await flush();
-   const pagedCalls = since(beforeSweep).filter((r) => r.method === 'GET' && /\/folders\/1\/messages\?limit=200/.test(r.path));
-   check('the folder is read page by page, from the uid the first page ended on', pagedCalls.length === 2 && /before_uid=11$/.test(pagedCalls[1].path), pagedCalls.map((r) => r.path).join(' '));
-   const flaggedIds = since(beforeSweep).filter((r) => r.method === 'PUT' && /\/flags$/.test(r.path)).map((r) => r.path.match(/messages\/(\d+)\//)[1]);
-   check('and every message of it is acted on, not only the page', flaggedIds.join(',') === '103,102,101,100,99', flaggedIds.join(','));
+   for (let i = 0; i < 6; i++) { await flush(); }
+   const sweepCalls = since(beforeSweep).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/folders/1/bulk').map((r) => JSON.parse(r.body || '{}'));
+   check('the whole folder is not read into the page, and not changed a request a message',
+      !since(beforeSweep).some((r) => r.method === 'GET' && /\/folders\/1\/messages\?limit=200/.test(r.path)) &&
+      !since(beforeSweep).some((r) => r.method === 'PUT' && /\/messages\/\d+\/flags$/.test(r.path)),
+      since(beforeSweep).map((r) => r.method + ' ' + r.path).join(' '));
+   check('it goes to the server as one selection: every message up to the newest there was, as read',
+      sweepCalls.length >= 1 && sweepCalls[0].action === 'flags' && sweepCalls[0].seen === true && sweepCalls[0].all === true &&
+      typeof sweepCalls[0].max_uid === 'number' && sweepCalls[0].max_uid >= 13 && (!newestShown || sweepCalls[0].max_uid >= newestShown),
+      JSON.stringify(sweepCalls[0]));
+   check('narrowed to the open tab, with what the page decides a tab by',
+      sweepCalls.length >= 1 && sweepCalls[0].tab === 'primary' && sweepCalls[0].inbox === 'tabs' &&
+      !!sweepCalls[0].senders && sweepCalls[0].senders['b@example.net'] === 'primary',
+      JSON.stringify(sweepCalls[0]));
+   check('and asked again from where the server stopped until it says it is done',
+      sweepCalls.length === 2 && !sweepCalls[0].before_uid && sweepCalls[1].before_uid === 11 && sweepCalls[1].max_uid === sweepCalls[0].max_uid,
+      JSON.stringify(sweepCalls));
    check('the selection is cleared after', document.getElementById('bulk-bar').hidden === true && note.hidden === true);
    while (onCursor() < 1) { document.dispatchEvent(makeEvent('keydown', { key: 'j', target: document.body })); }
    while (onCursor() > 1) { document.dispatchEvent(makeEvent('keydown', { key: 'k', target: document.body })); }
@@ -7405,6 +7455,12 @@ async function main() {
       await flush();
    }
 
+   // ---- A folder of a hundred thousand: one page drawn whatever the folder
+   // holds, its end one press away, select-all worked through by the server
+   // with Undo by id, and a search of every folder that goes on from where it
+   // stopped (docs/Performance.md).
+   await largeFolderChecks();
+
    // ---- Shared address books: the books beside the contacts, the Sharing
    // panel the owner sees, and a book shared read-only that offers no way to
    // change anything (AddressBookStore.h, docs/SharedAddressBooks.md).
@@ -7997,6 +8053,120 @@ async function main() {
 // service worker is loaded into a world of its own and handed a push event -
 // which is the only way to find out what a reader would actually see.
 let germanCatalogue = null;
+async function largeFolderChecks() {
+   // The page is in German by now: every text is compared through its catalogue.
+   const said = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+   const filled = (english, ...values) => values.reduce((s, v, i) => s.split('{' + i + '}').join(String(v)), said(english));
+   const walkAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+   const rows = () => document.getElementById('message-list').children;
+   const toastBox = document.getElementById('toasts');
+   const toastButtons = (label) => walkAll(toastBox, (n) => n.tagName === 'BUTTON' && (n.textContent === label || n.getAttribute('aria-label') === label));
+   const settle = async () => { for (let i = 0; i < 6; i++) { await flush(); } };
+
+   // ---- opening: one request, one page, the folder's size in the count
+   largeFolder = true;
+   location.hash = '#/f/2';
+   await settle();
+   const beforeOpen = requests.length;
+   location.hash = '#/f/1';
+   await settle();
+   const listed = since(beforeOpen).filter((r) => r.method === 'GET' && r.path.startsWith('/api/v1/me/folders/1/messages'));
+   check('L1: a folder of a hundred thousand is opened with one request for one page, and no limit asked of the server beyond its own',
+      listed.length >= 1 && listed.every((r) => r.path === '/api/v1/me/folders/1/messages'), listed.map((r) => r.path).join(' '));
+   check('L1: the page draws that page and nothing more', rows().length > 0 && rows().length <= LISTING.messages.length, rows().length + ' rows');
+   check('L1: the count says how many the folder holds', document.getElementById('list-count').textContent.indexOf('100000') >= 0,
+      document.getElementById('list-count').textContent);
+
+   // ---- the end of the folder in one step
+   const oldest = document.getElementById('page-oldest');
+   check('L2: a folder of many pages offers its oldest page', oldest.hidden === false);
+   const beforeOldest = requests.length;
+   oldest.dispatchEvent(makeEvent('click'));
+   await settle();
+   check('L2: Oldest opens the page the server named, in one request',
+      location.hash === '#/f/1?before=201' && called(beforeOldest, 'GET', '/api/v1/me/folders/1/messages?before_uid=201'),
+      location.hash + ' ' + since(beforeOldest).map((r) => r.path).join(' '));
+   check('L2: and, there, is not offered again', oldest.hidden === true);
+   // Selected from the oldest page, whose rows are the folder's oldest, the
+   // whole folder still means every message up to the newest the listing
+   // read in the same pass - newest_uid - and not the newest row on screen.
+   document.getElementById('select-all').checked = true;
+   document.getElementById('select-all').dispatchEvent(makeEvent('click'));
+   document.getElementById('select-folder').dispatchEvent(makeEvent('click'));
+   const beforeOldRead = requests.length;
+   document.getElementById('bulk-read').dispatchEvent(makeEvent('click'));
+   await settle();
+   const oldRead = since(beforeOldRead).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/folders/1/bulk').map((r) => JSON.parse(r.body || '{}'));
+   check('L2: select-all from the oldest page takes the folder up to the newest UID the listing read, not the newest row shown',
+      oldRead.length >= 1 && oldRead[0].max_uid === 13 && oldRead[0].seen === true, JSON.stringify(oldRead[0]));
+   document.getElementById('page-newer').dispatchEvent(makeEvent('click'));
+   await settle();
+   check('L2: Newer goes back to the newest page', location.hash === '#/f/1' && oldest.hidden === false, location.hash);
+
+   // ---- select-all and archive: the server moves the folder in steps,
+   // the bar counts as it goes, and Undo moves back what moved, by id
+   dismissAllToastsIn(toastBox, said('Dismiss'));
+   document.getElementById('select-all').checked = true;
+   document.getElementById('select-all').dispatchEvent(makeEvent('click'));
+   document.getElementById('select-folder').dispatchEvent(makeEvent('click'));
+   check('L3: the whole folder can be selected', document.getElementById('select-note').textContent.indexOf(said('Clear selection')) >= 0,
+      document.getElementById('select-note').textContent);
+   const beforeArchive = requests.length;
+   bulkProgressSeen = '';
+   document.getElementById('bulk-archive').dispatchEvent(makeEvent('click'));
+   await settle();
+   const archiveCalls = since(beforeArchive).filter((r) => r.method === 'POST' && r.path === '/api/v1/me/folders/1/bulk').map((r) => JSON.parse(r.body || '{}'));
+   check('L3: Archive over the whole folder is a move the server makes, from the newest listed message down',
+      archiveCalls.length === 2 && archiveCalls.every((b) => b.action === 'move' && b.to === 'archive' && b.all === true && b.max_uid === 13) &&
+      !archiveCalls[0].before_uid && archiveCalls[1].before_uid === 11,
+      JSON.stringify(archiveCalls));
+   check('L3: no message is moved a request at a time', !since(beforeArchive).some((r) => /\/messages\/\d+\/move$/.test(r.path)),
+      since(beforeArchive).map((r) => r.path).join(' '));
+   check('L3: while it works the bar says how far it has got', bulkProgressSeen === filled('Done so far: {0}', 3), bulkProgressSeen);
+   check('L3: the toast says how many went, and offers Undo',
+      toastBox.textContent.indexOf(filled('{0} {1}.', 5, said('archived'))) >= 0 && toastButtons(said('Undo')).length === 1, toastBox.textContent);
+   const beforeUndo = requests.length;
+   const undoButton = toastButtons(said('Undo'))[0];
+   if (undoButton) { undoButton.dispatchEvent(makeEvent('click')); }
+   await settle();
+   const undoCalls = since(beforeUndo).filter((r) => r.method === 'POST' && /\/api\/v1\/me\/folders\/\d+\/bulk$/.test(r.path));
+   const undoBody = undoCalls.length ? JSON.parse(undoCalls[0].body || '{}') : {};
+   check('L3: Undo moves them back from the archive to the folder, by the ids the move gave them',
+      undoCalls.length === 1 && undoCalls[0].path === '/api/v1/me/folders/4/bulk' && undoBody.action === 'move' && undoBody.folder_id === 1 &&
+      JSON.stringify(undoBody.ids) === JSON.stringify([1103, 1102, 1101, 1100, 1099]),
+      undoCalls.map((r) => r.path + ' ' + r.body).join(' '));
+   dismissAllToastsIn(toastBox, said('Dismiss'));
+
+   // ---- a search of every folder that stops says where to go on from
+   searchPaged = true;
+   const beforeSearch = requests.length;
+   location.hash = '#/search?q=budget';
+   await settle();
+   check('L4: a search of every folder asks for one page', called(beforeSearch, 'GET', '/api/v1/me/search?q=budget&limit=200'),
+      since(beforeSearch).map((r) => r.path).join(' '));
+   const goOn = walkAll(document.getElementById('message-list'), (n) => n.tagName === 'BUTTON' && n.textContent === said('Search older messages'));
+   check('L4: and, where it stopped short, offers to go on', goOn.length === 1);
+   const beforeMore = requests.length;
+   if (goOn.length) { goOn[0].dispatchEvent(makeEvent('click')); }
+   await settle();
+   check('L4: going on asks from the message id the server named',
+      location.hash === '#/search?q=budget&before=150' && called(beforeMore, 'GET', '/api/v1/me/search?q=budget&limit=200&before_id=150'),
+      location.hash + ' ' + since(beforeMore).map((r) => r.path).join(' '));
+   check('L4: and a search that finished offers nothing more',
+      walkAll(document.getElementById('message-list'), (n) => n.tagName === 'BUTTON' && n.textContent === said('Search older messages')).length === 0);
+
+   largeFolder = false;
+   searchPaged = false;
+   location.hash = '#/settings';
+   await settle();
+}
+
+function dismissAllToastsIn(box, label) {
+   const buttons = [];
+   (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.tagName === 'BUTTON' && c.getAttribute('aria-label') === label) { buttons.push(c); } if (c.childNodes) { walk(c); } } })(box);
+   buttons.forEach((b) => b.dispatchEvent(makeEvent('click')));
+}
+
 async function addressBookChecks() {
    // The page is in German by now, so every text a reader sees is the
    // catalogue's; asserting the English would prove it was NOT translated.

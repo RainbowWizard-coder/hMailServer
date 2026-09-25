@@ -9,6 +9,10 @@
 #include "../BO/Message.h"
 #include "../Persistence/PersistentMessage.h"
 
+#include <functional>
+#include <set>
+#include <vector>
+
 namespace HM
 {
 
@@ -36,6 +40,22 @@ namespace HM
       long GetNoOfSeen() const;
 
       std::vector<std::shared_ptr<Message>> GetCopy();
+
+      // Walks the collection from its last message to its first - newest UID
+      // first, the order a listing is read in - under the collection's lock,
+      // handing visit each message not flagged \Deleted until visit answers
+      // false. Returns how many messages are not flagged \Deleted, counted over
+      // the whole collection whether visit stopped early or not, so one pass
+      // gives a listing both its page and its total.
+      //
+      // This is what lets a folder of a hundred thousand be listed a page at a
+      // time: GetCopy made a copy of every message for every page, under this
+      // same lock, and a visitor copies only what it keeps (new Message(*m)).
+      // What visit does runs under the lock every IMAP session on the folder
+      // waits on, so it must stay cheap: compare, collect an id, copy a
+      // message. It must never read a file, and never call back into this
+      // collection.
+      size_t VisitNewestFirst(const std::function<bool(const std::shared_ptr<Message> &)> &visit) const;
 
       // Copies of the messages with the given database ids, keyed on id, in ONE pass over
       // the collection: a command resolving a whole message set must not scan it once per

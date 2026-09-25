@@ -6,6 +6,9 @@
 
 #include "../Common/Cache/Cache.h"
 
+#include <memory>
+#include <set>
+
 namespace HM
 {
    class Messages;
@@ -25,7 +28,11 @@ namespace HM
       void Clear();
 
    private:
-      
+
+      // Both overloads above, the recent ids collected only when a set to put
+      // them in is passed.
+      std::shared_ptr<Messages> GetMessages_(__int64 account_id, __int64 folder_id, std::set<__int64> *recent_messages, bool update_recent_messages);
+
       Cache<CachedMessages> messages_cache_;
 
 
