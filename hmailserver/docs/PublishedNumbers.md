@@ -1,0 +1,287 @@
+Published numbers
+=================
+
+How fast this server is, measured rather than claimed: messages per second in
+and out, IMAP sessions per core and memory per session, on named hardware,
+against Postfix and Dovecot on the same machine, with the load generator in
+the repository so that anyone can run it again. This page is the method, the
+fairness rules, how to run it, and the table the numbers go in. **The table is
+filled in from runs of the tool and from nowhere else**: a cell that says *to
+be measured* has not been measured, and no number on this page was estimated.
+Until the table is filled, Roadmap2.md's first line is a goal, not a claim.
+
+What is measured
+----------------
+
+| Measure | Mode | What it is |
+|---|---|---|
+| Messages in per second | `smtp-in` | N clients deliver M messages of a size distribution to local mailboxes. *Accepted per second* counts the 250 after each message's final dot, the moment the server has taken responsibility for it; *delivered per second* counts until every accepted message is in its mailbox, by IMAP `STATUS`. Both servers queue before they deliver, so the second is the one that compares like with like. |
+| Messages out per second | `smtp-out` | The same clients send to a remote domain the server relays to a sink the tool runs, which accepts and discards. *Relayed per second* is counted **at the sink**, from its first arrival to its last, and from the first client's `MAIL FROM` to the sink's last arrival. |
+| Latency | `smtp-in`, `smtp-out` | Per message, from `MAIL FROM` to the 250 after the dot (and, out, to the sink's receipt): p50, p90, p95, p99 and the worst. |
+| IMAP sessions per core | `imap-sessions` | Sessions are opened in steps (25, 50, 100, ... by default); each logs in, selects INBOX and loops through `FETCH`es, `NOOP` and `IDLE` with a think time. The largest step at which the 95th percentile of every operation's latency stayed under 200 ms, with no error and every session alive, divided by the server machine's logical cores. |
+| Memory per session | `imap-sessions` | The server's memory at each step, sampled while the step runs, and the slope of a straight line fitted through them and the idle server: what one more session costs. |
+| imaptest | `imaptest` | Dovecot's own IMAP stress tool, in its benchmark profile (`no_tracking`), against either server: commands per second by kind. |
+
+Each mode writes a JSON document (the record) and a Markdown table (what is
+pasted below), and both carry the machine: CPU model, physical and logical
+cores, RAM, operating system and kernel, the disk under the server's data and
+whether the machine is virtual, collected by the tool itself.
+
+The load generator
+------------------
+
+`build/perf/load/loadgen.py`, Python 3.9 or later (3.11 for `--tls starttls`),
+with nothing but the standard library. `python build/perf/load/loadgen.py
+--help` lists the modes; the module's docstring and each file's say more.
+
+| File | What it holds |
+|---|---|
+| `loadgen.py` | The command line, the modes, the self-test |
+| `smtpload.py` | The SMTP clients (asyncio, pipelined where the server offers PIPELINING), the message factory, the sink, the delivery count |
+| `imapload.py` | The IMAP sessions and their operations |
+| `imaptestrun.py` | imaptest's command line and the reading of its output |
+| `sampler.py` | The server's memory and CPU while the load runs |
+| `machine.py` | The machine's details |
+| `report.py` | Percentiles, the JSON document and the Markdown table |
+| `hmprepare.py` | The accounts, route, IP range and fsync setting a run needs on hMailServer, over its REST API |
+| `toyserver.py` | A toy SMTP and IMAP server for the self-test and for nothing else |
+
+**Why Python.** Every rate here is bounded by the server long before the
+generator: a server that writes each message to disk and to an index reaches
+thousands a second, not the hundreds of thousands a benchmark of a web cache
+needs. One asyncio process drives several thousand SMTP transactions or IMAP
+commands a second on one core, and `--processes` spreads the clients over as
+many processes as it is given. Measured on the development laptop against the
+tool's own sink: 20,000 messages of 4 KB over 32 connections in four
+processes, 8,800 to 13,900 accepted a second - more than either server will
+take, and the sink shared the machine. The generator does not assume it was
+fast enough: every mode records its own processes' CPU and prints a warning
+when one of them was busy for more than 85 per cent of the run, which means
+the generator may have been the limit and the number is a floor. A run that
+carries that warning is not published.
+
+**Memory.** Sampling the server is optional and needs nothing installed:
+psutil when it is there; otherwise `/proc` on Linux (the resident set, and the
+proportional set from `smaps_rollup` where it can be read, which divides pages
+shared between Dovecot's processes fairly) and `Get-Process` through PowerShell
+on Windows (the working set and private bytes, at most one sample every two
+seconds); and on Linux, the cgroup of each container named with
+`--server-container`, added up - the anonymous memory, the whole charge, the
+CPU time and whether a memory limit was reached. The lab's comparison uses the
+cgroups, the same figure for both servers.
+
+**Passwords** come from the environment, never the command line:
+`HMLOAD_PASSWORD` for the load mailboxes (IMAP, and SMTP AUTH unless
+`HMLOAD_SMTP_PASSWORD` is set), `HMLOAD_ADMIN_PASSWORD` for
+`prepare-hmailserver`. imaptest takes its passwords from a user file of mode
+600 in a directory of mode 700, removed after the run.
+
+**Self-test.** `python build/perf/load/loadgen.py self-test` runs every mode
+against the toy server, at low load, on the machine it is run on: 200 messages
+in and counted in the mailboxes, 200 relayed and counted at the sink, two steps
+of IMAP sessions with every operation exercised and the toy server's memory
+sampled, the REST calls `prepare-hmailserver` makes (against a fake listener),
+the imaptest command line, the reading of imaptest's output and of cgroup
+files. It proves the generator and says nothing about any server.
+
+The fairness rules
+------------------
+
+A comparison is only as honest as the two setups are equal where they can be
+and stated where they cannot. The published run keeps these rules;
+`lab.sh numbers` keeps the ones a script can, and records beside every result
+what each side ran with (`postconf -n` and `doveconf -n`; hMailServer's
+`MessageStoreFsync` and the database's flush settings), so that the rest can be
+checked afterwards.
+
+1. **One machine, one side at a time.** Both servers run on the same host, the
+   generator beside them, each measured with the other stopped and nothing else
+   loading the machine: on linix, no GitLab CI job and no regression suite may
+   run during a measurement, and the lab's other profiles are down (the
+   always-on monitor, about 100 MB, is recorded, not stopped).
+2. **The same generator, the same parameters.** The two command lines differ in
+   the address, the port and the mail domain and in nothing else; `lab.sh
+   numbers` builds both from the same arguments.
+3. **The same durability.** A message a server has answered 250 for must
+   survive a power cut, on both sides. Postfix fsyncs its queue file before it
+   answers, and that cannot be turned off; Dovecot runs with `mail_fsync =
+   optimized`, its default, which fsyncs a delivered message and its index.
+   hMailServer runs with `MessageStoreFsync` = 1 (a setting in the database; the
+   shipped default is 0) and a database that flushes its log at every commit
+   (MariaDB's `innodb_flush_log_at_trx_commit` = 1, its default). hMailServer's
+   shipped default, fsync off, is measured as a row of its own and labelled as
+   not durable; it is never set beside Postfix and Dovecot as if it were.
+4. **The same TLS.** The published run is plain on both sides: hMailServer's
+   plain ports and Postfix's and Dovecot's with TLS off. A TLS row, when there
+   is one, has TLS on both sides (`--tls starttls` for the generator).
+5. **No filtering on either side.** No anti-spam, anti-virus, DKIM, SPF or DMARC
+   checks: hMailServer's IP range for the generator has spam and virus
+   protection off; Postfix has no milter and no policy service. Logging stays at
+   each side's default and is stated.
+6. **The whole mail service is measured.** hMailServer's memory and CPU are its
+   container's and its database's added up; Postfix and Dovecot's are both
+   containers'. No CPU limit on any container; memory limits are generous, and
+   a run in which any limit was reached (the cgroup's `memory.events`) is void.
+7. **The same storage.** Every side's data is on a docker volume on the same
+   disk: Postfix's queue, Dovecot's Maildir, and hMailServer's tree
+   (`HMLAB_SERVE_STORE`), where it would otherwise be in the container's
+   overlay filesystem.
+8. **Warm, repeated, the median.** The first run after a server starts is not
+   counted; each measure is run three times and the median is published, with
+   the lowest and highest beside it.
+9. **The generator is not the limit.** No published run carries the
+   generator's busy warning. Where one does, it is run again with more
+   `--processes`, or from a second machine with `--server-machine`.
+10. **Mailboxes seeded the same.** `imap-sessions` runs after `smtp-in` on each
+    side, so that both serve the same messages from the same fifty mailboxes;
+    imaptest, which appends and expunges, runs last.
+
+What differs, and cannot be made equal:
+
+- **The store.** Dovecot keeps each message as a Maildir file with its
+  `dovecot.index` files beside it; hMailServer keeps each message as an `.eml`
+  file with its row in a SQL database, here MariaDB with the lab's 128 MB
+  buffer pool. The database write is part of what hMailServer costs, and is
+  measured as such.
+- **The path of a message.** Postfix takes a message into its queue and hands
+  it to Dovecot over LMTP, a second process and a second write; hMailServer
+  queues and delivers within one process.
+- **The process model.** Dovecot runs a process for each IMAP session;
+  hMailServer runs every session on a pool of threads in one process. Memory
+  per session is therefore a cgroup's anonymous memory on both sides, not a
+  process's resident set, which would count Dovecot's shared pages once for
+  each process.
+- **Concurrency left at each side's default.** Postfix delivers up to 20 at once
+  to one destination (`default_destination_concurrency_limit`); hMailServer's
+  `MaxDeliveryThreads` is 10. The process caps that would end a run at the
+  configuration and not at the server are raised: Postfix's
+  `default_process_limit` to 512, Dovecot's process and client limits and
+  `mail_max_userip_connections`; hMailServer's `MaxSMTPConnections` and
+  `MaxIMAPConnections` are 0, no cap, by default.
+- **The builds.** The Postfix image is Alpine (musl); hMailServer's container is
+  the project's Ubuntu CI image (glibc). Each allocator is part of its server.
+
+How to run it on linix
+----------------------
+
+The comparison lives in the test lab (TestLab.md): profile `numbers` brings up
+Postfix and Dovecot configured as above (`build/lab/docker-compose.yml`,
+`build/lab/dovecot/numbers.conf`), and `lab.sh numbers` runs the generator on
+linix itself against one side, reaching each container at its address on the
+lab network rather than through a published port. The sink listens on linix's
+port 10365, which the containers reach at the lab network's gateway. On linix,
+as a member of the docker group, from a copy of the tree
+(`build/lab/push-source.sh`), with nothing else running:
+
+```sh
+bash build/lab/lab.sh build
+bash build/lab/lab.sh up mariadb
+HMLAB_SERVE_STORE=hmlab-numbers-store bash build/lab/lab.sh serve mariadb
+
+# hMailServer, durable: 50 accounts, the route to the sink, the generator's IP
+# range, MessageStoreFsync on. Then one warm-up run, then three of each.
+bash build/lab/lab.sh numbers hmailserver prepare
+bash build/lab/lab.sh numbers hmailserver smtp-in --clients 32 --messages 20000 --processes 4 --label "hMailServer, fsync on"
+bash build/lab/lab.sh numbers hmailserver smtp-out --clients 32 --messages 20000 --processes 4 --label "hMailServer, fsync on"
+bash build/lab/lab.sh numbers hmailserver imap-sessions --processes 4 --label "hMailServer, fsync on"
+bash build/lab/lab.sh numbers hmailserver imaptest --clients 50 --seconds 120 --label "hMailServer"
+
+# hMailServer's shipped default, for its own row
+HMLAB_NUMBERS_FSYNC=off bash build/lab/lab.sh numbers hmailserver prepare
+bash build/lab/lab.sh numbers hmailserver smtp-in --clients 32 --messages 20000 --processes 4 --label "hMailServer, fsync off (default)"
+
+bash build/lab/lab.sh unserve
+bash build/lab/lab.sh down mariadb
+
+# Postfix and Dovecot, the same runs
+bash build/lab/lab.sh up numbers
+bash build/lab/lab.sh numbers postfix-dovecot prepare
+bash build/lab/lab.sh numbers postfix-dovecot smtp-in --clients 32 --messages 20000 --processes 4 --label "Postfix + Dovecot"
+bash build/lab/lab.sh numbers postfix-dovecot smtp-out --clients 32 --messages 20000 --processes 4 --label "Postfix + Dovecot"
+bash build/lab/lab.sh numbers postfix-dovecot imap-sessions --processes 4 --label "Postfix + Dovecot"
+bash build/lab/lab.sh numbers postfix-dovecot imaptest --clients 50 --seconds 120 --label "Postfix + Dovecot"
+bash build/lab/lab.sh down numbers
+```
+
+Each run leaves `~/hmlab/runs/numbers-<time>-<side>-<mode>.json`, `.md` and
+`.config.txt`. `HMLAB_NUMBERS_MAILBOXES` changes the fifty mailboxes; every
+other `loadgen.py` argument can be added to the line. Where linix's firewall
+is on, the lab network must be allowed to reach port 10365 for `smtp-out`.
+
+How to run it on the Windows bench
+----------------------------------
+
+There is no Postfix or Dovecot for Windows, so the Windows bench gives
+hMailServer's own numbers and no comparison; the comparison is on Linux, above.
+(Postfix and Dovecot in WSL2 would run in a virtual machine beside Windows, not
+on the same machine as the service, and are not used.) On the bench, with the
+service running the build to be measured, nothing else running on it, and
+Python 3 on the PATH:
+
+```powershell
+# The REST listener on 127.0.0.1:9530, as the README shots use.
+powershell -NoProfile -File build\readme-shots\bench.ps1 -Up
+$env:HMLOAD_ADMIN_PASSWORD = 'testar'
+$env:HMLOAD_PASSWORD = '<a password for the load accounts>'
+
+python build\perf\load\loadgen.py prepare-hmailserver --rest http://127.0.0.1:9530 --accounts 50 `
+    --route sink.test=127.0.0.1:10365 --client-range 127.0.0.1-127.0.0.1 --fsync on
+
+python build\perf\load\loadgen.py smtp-in --port 25 --mailboxes 50 --clients 32 --messages 20000 --processes 4 `
+    --verify-imap-port 143 --server-process hMailServer --data-path C:\HMTest\Data `
+    --server "hMailServer <version>, Windows, <database>" --label "Windows bench, fsync on" --json in.json --markdown in.md
+python build\perf\load\loadgen.py smtp-out --port 25 --mail-from load1@example.test --clients 32 --messages 20000 `
+    --processes 4 --sink-listen 127.0.0.1:10365 --server-process hMailServer --data-path C:\HMTest\Data `
+    --label "Windows bench, fsync on" --json out.json --markdown out.md
+python build\perf\load\loadgen.py imap-sessions --port 143 --users 50 --processes 4 --server-process hMailServer `
+    --data-path C:\HMTest\Data --label "Windows bench" --json imap.json --markdown imap.md
+
+python build\perf\load\loadgen.py prepare-hmailserver --rest http://127.0.0.1:9530 --accounts 50 `
+    --route sink.test=127.0.0.1:10365 --cleanup
+powershell -NoProfile -File build\readme-shots\bench.ps1 -Down
+```
+
+`--data-path` names the server's `DataFolder` (from `hMailServer.ini`), so that
+the table describes the disk the message store is on. `MessageStoreFsync` is
+left as `prepare-hmailserver` set it; put it back to what the bench had
+(`--fsync off`, the shipped default) after the run. On Windows the service's
+memory is its working set and private bytes, which are not the cgroup figure
+the Linux comparison uses; the two tables are not compared with each other.
+
+Results
+-------
+
+**Not measured yet.** The row in Roadmap2.md stays open until this table is
+filled from runs of the tool as described above, with each run's JSON kept
+beside the release notes that quote it.
+
+On linix - the machine named by the runs' own tables (CPU, cores, RAM, disk,
+virtualisation), to be copied here from the first run:
+
+| Measure | hMailServer, fsync on | hMailServer, fsync off (shipped default) | Postfix + Dovecot |
+|---|---|---|---|
+| SMTP in: accepted per second (median of 3) | to be measured | to be measured | to be measured |
+| SMTP in: delivered per second (median of 3) | to be measured | to be measured | to be measured |
+| SMTP in: latency p50 / p95 / p99 (ms) | to be measured | to be measured | to be measured |
+| SMTP out: relayed per second at the sink (median of 3) | to be measured | to be measured | to be measured |
+| SMTP out: client to sink p50 / p95 (ms) | to be measured | to be measured | to be measured |
+| IMAP: most sessions with p95 under 200 ms | to be measured | - | to be measured |
+| IMAP: sessions per core | to be measured | - | to be measured |
+| IMAP: memory per session (cgroup anon, KiB) | to be measured | - | to be measured |
+| imaptest benchmark: FETCH per second | to be measured | - | to be measured |
+| imaptest benchmark: SELECT per second | to be measured | - | to be measured |
+| imaptest benchmark: APPEND per second | to be measured | - | to be measured |
+
+On the Windows bench - hMailServer alone:
+
+| Measure | hMailServer, fsync on | hMailServer, fsync off (shipped default) |
+|---|---|---|
+| SMTP in: accepted / delivered per second | to be measured | to be measured |
+| SMTP in: latency p95 (ms) | to be measured | to be measured |
+| SMTP out: relayed per second at the sink | to be measured | to be measured |
+| IMAP: sessions per core | to be measured | - |
+| IMAP: memory per session (private bytes, KiB) | to be measured | - |
+
+The default message sizes are 2 KB (25 per cent), 8 KB (35), 32 KB (25), 128 KB
+(10) and 1 MB (5), about 75 KB on average; a published row names its sizes if
+they are not these.

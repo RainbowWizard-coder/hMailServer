@@ -171,6 +171,7 @@ namespace hMailServer.ControlPanel.Services
          "PackageManagers.md",
          "Performance.md",
          "PersonalData.md",
+         "PublishedNumbers.md",
          "RegressionEnvironment.md",
          "RegulatoryScope.md",
          "RelocatingAnInstallation.md",

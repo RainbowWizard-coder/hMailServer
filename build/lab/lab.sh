@@ -13,7 +13,7 @@
 #                            (~/hmlab/secrets.env, mode 600, generated once and never
 #                            printed) and the lab CA with Keycloak's certificate
 #   up <profile>...          start services: core, mysql, mariadb, postgresql, mssql,
-#                            idp, peers. A database also gets its application user
+#                            idp, peers, numbers. A database also gets its application user
 #                            (hmlab); idp gets its test users' passwords
 #   down <profile>...        stop and remove those services' containers; their volumes
 #                            stay (the core is never taken down by this)
@@ -33,6 +33,13 @@
 #   interop                  Postfix and Dovecot against the served server (profile peers)
 #   imaptest [secs]          Dovecot's imaptest compliance scripts against its IMAP
 #   idp-check                Keycloak's realm, and single sign-on into the served server
+#   numbers <target> <mode> [arguments]
+#                            the published numbers (hmailserver/docs/PublishedNumbers.md):
+#                            build/perf/load/loadgen.py, run on linix, against the served
+#                            server (target hmailserver; serve it with HMLAB_SERVE_STORE set)
+#                            or profile numbers' Postfix and Dovecot (target postfix-dovecot);
+#                            modes prepare, smtp-in, smtp-out, imap-sessions, imaptest; the
+#                            arguments go to loadgen.py; results in ~/hmlab/runs/numbers-*
 #
 # Nothing here reads or changes the host's own PostgreSQL, MariaDB or Postfix, ~/hmbench,
 # the GitLab runner or its images, or Forgejo. Every port is in 10300-10399.
@@ -111,7 +118,8 @@ services_of() {
     mysql|mariadb|postgresql|mssql) echo "$1" ;;
     idp) echo keycloak ;;
     peers) echo "postfix dovecot" ;;
-    *) die "no profile '$1' (core, mysql, mariadb, postgresql, mssql, idp, peers)" ;;
+    numbers) echo "numbers-postfix numbers-dovecot" ;;
+    *) die "no profile '$1' (core, mysql, mariadb, postgresql, mssql, idp, peers, numbers)" ;;
   esac
 }
 
@@ -384,9 +392,18 @@ cmd_serve() {
   docker rm -f "$BENCH" > /dev/null 2>&1 || true
   local results="$HMLAB_HOME/runs/serve-$db"
   rm -rf "$results"
+  # HMLAB_SERVE_STORE names a docker volume for the server's tree - its data, its
+  # logs, its temp - in place of the container's own overlay filesystem: what the
+  # published numbers need, so that the message store is on a volume as Postfix's
+  # queue and Dovecot's Maildir are (lab.sh numbers).
+  local store=()
+  if [ -n "${HMLAB_SERVE_STORE:-}" ]; then
+    store=(-v "$HMLAB_SERVE_STORE:/store" -e HM_TREE=/store/tree)
+    say "== the server's tree on volume $HMLAB_SERVE_STORE"
+  fi
   # The served server alone answers to hmailserver on the lab network, the name
   # Postfix's transport and imaptest use; a suite run beside it must not.
-  run_bench serve "$db" serve "$results" --name "$BENCH" --detach --network-alias hmailserver \
+  run_bench serve "$db" serve "$results" --name "$BENCH" --detach --network-alias hmailserver "${store[@]}" \
     -p 10350:2525 -p 10351:1110 -p 10352:1143 -p 10353:587 > /dev/null || die "the bench did not start"
   local up=""
   for _ in $(seq 1 180); do
@@ -470,6 +487,116 @@ cmd_imaptest() {
   say "imaptest exit $code; the whole output: $log"
 }
 
+# ---------------------------------------------------------------- the published numbers
+
+# A container's address on the lab network.
+lab_address() {
+  docker inspect -f '{{range $name, $net := .NetworkSettings.Networks}}{{if eq $name "hmlab"}}{{$net.IPAddress}}{{end}}{{end}}' "$1" 2> /dev/null
+}
+
+# The load generator on linix against one side of the comparison. The generator
+# reaches each container at its lab address, not through a published port, and
+# samples the side's containers' cgroups: the served server and its database, or
+# Postfix and Dovecot - each side the whole mail service. Beside each result it
+# records how that side was configured (the fsync setting; postconf -n and
+# doveconf -n), so that the fairness rules can be checked after the fact.
+cmd_numbers() {
+  local target="${1:-}" mode="${2:-}"
+  [ -n "$target" ] && [ -n "$mode" ] || die "numbers <hmailserver|postfix-dovecot> <prepare|smtp-in|smtp-out|imap-sessions|imaptest> [loadgen.py arguments]"
+  shift 2
+  load_secrets
+  command -v python3 > /dev/null || die "no python3 on this host"
+  local loadgen="$TREE/build/perf/load/loadgen.py"
+  local gateway
+  gateway=$(docker network inspect hmlab -f '{{(index .IPAM.Config 0).Gateway}}' 2> /dev/null)
+  [ -n "$gateway" ] || die "no hmlab network: bash build/lab/lab.sh up core"
+  local mailboxes="${HMLAB_NUMBERS_MAILBOXES:-50}"
+  local smtp imap smtp_port imap_port domain containers server alias db
+  case "$target" in
+    hmailserver)
+      need_bench
+      db=$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$BENCH" | sed -n 's/^HM_LAB_DB=//p')
+      smtp=$(lab_address "$BENCH"); imap="$smtp"; smtp_port=2525; imap_port=1143; domain=example.test; alias=hmailserver
+      containers="$BENCH,hmlab-$db-1"
+      server="hMailServer $(commit_of_tree) (Linux build, lab.sh serve $db)"
+      export HMLOAD_PASSWORD="$HMLAB_BENCH_ACCOUNT_PASSWORD"
+      ;;
+    postfix-dovecot)
+      docker ps -q --filter "name=^hmlab-numbers-dovecot-1\$" | grep -q . || die "profile numbers is not up - run: bash build/lab/lab.sh up numbers"
+      smtp=$(lab_address hmlab-numbers-postfix-1); imap=$(lab_address hmlab-numbers-dovecot-1)
+      smtp_port=587; imap_port=31143; domain=numbers.test; alias=numbers-dovecot
+      containers="hmlab-numbers-postfix-1,hmlab-numbers-dovecot-1"
+      server="Postfix 3.10 (boky/postfix 5.1.0) + Dovecot 2.4.5"
+      export HMLOAD_PASSWORD="$HMLAB_PEER_PASSWORD"
+      ;;
+    *) die "no target '$target' (hmailserver, postfix-dovecot)" ;;
+  esac
+  [ -n "$smtp" ] && [ -n "$imap" ] || die "could not find the $target containers' addresses on hmlab"
+  local run
+  run="$HMLAB_HOME/runs/numbers-$(date -u +%Y%m%d-%H%M%S)-$target-$mode"
+  mkdir -p "$HMLAB_HOME/runs"
+
+  # What the side ran with, beside the result.
+  {
+    echo "== $server, $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    if [ "$target" = hmailserver ]; then
+      docker exec "$BENCH" sh -c 'curl -s -u "Administrator:${HMTEST_ADMIN_PASSWORD:-testar}" http://127.0.0.1:8045/api/v1/settings/ini/MessageStoreFsync; echo'
+      if [ "$db" = postgresql ]; then
+        docker exec "hmlab-$db-1" psql -U postgres -tA -c "select 'fsync ' || current_setting('fsync') || ', synchronous_commit ' || current_setting('synchronous_commit')" || true
+      else
+        docker exec "hmlab-$db-1" sh -c 'echo "innodb_flush_log_at_trx_commit, sync_binlog, log_bin:"; (MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-$MYSQL_ROOT_PASSWORD}"; export MYSQL_PWD; mariadb -N -u root -e "select @@innodb_flush_log_at_trx_commit, @@sync_binlog, @@log_bin" 2> /dev/null || mysql -N -u root -e "select @@innodb_flush_log_at_trx_commit, @@sync_binlog, @@log_bin")' || true
+      fi
+    else
+      docker exec hmlab-numbers-postfix-1 postconf -n
+      docker exec hmlab-numbers-dovecot-1 doveconf -n
+    fi
+  } > "$run.config.txt" 2>&1
+
+  local common=(--server "$server" --server-container "$containers" --data-path /var/lib/docker
+                --json "$run.json" --markdown "$run.md")
+  case "$mode" in
+    prepare)
+      if [ "$target" = postfix-dovecot ]; then
+        say "Postfix and Dovecot need nothing made: any load{n}@numbers.test is a mailbox. Their configuration: $run.config.txt"
+        return 0
+      fi
+      # Inside the bench, where the REST listener is (127.0.0.1:8045), with the tree
+      # the bench copied. The generator connects from the lab network's gateway.
+      docker exec -e HMLOAD_PASSWORD "$BENCH" sh -c 'HMLOAD_ADMIN_PASSWORD="${HMTEST_ADMIN_PASSWORD:-testar}" exec python3 /work/build/perf/load/loadgen.py prepare-hmailserver "$@"' \
+        prepare --accounts "$mailboxes" --route "sink.test=$gateway:10365" --client-range "$gateway-$gateway" \
+        --fsync "${HMLAB_NUMBERS_FSYNC:-on}" "$@"
+      return
+      ;;
+    smtp-in)
+      python3 "$loadgen" smtp-in --host "$smtp" --port "$smtp_port" --rcpt-template "load{n}@$domain" \
+        --mailboxes "$mailboxes" --verify-imap-host "$imap" --verify-imap-port "$imap_port" "${common[@]}" "$@"
+      ;;
+    smtp-out)
+      python3 "$loadgen" smtp-out --host "$smtp" --port "$smtp_port" --mail-from "load1@$domain" \
+        --rcpt-template "sink{n}@sink.test" --sink-listen 0.0.0.0:10365 "${common[@]}" "$@"
+      ;;
+    imap-sessions)
+      python3 "$loadgen" imap-sessions --host "$imap" --port "$imap_port" --user-template "load{n}@$domain" \
+        --users "$mailboxes" "${common[@]}" "$@"
+      ;;
+    imaptest)
+      local tests="$HMLAB_HOME/imaptest/$IMAPTEST_COMMIT"
+      if [ ! -f "$tests/src/tests/default.mbox" ]; then
+        mkdir -p "$tests"
+        curl -fsSL "https://codeberg.org/dovecot/imaptest/archive/$IMAPTEST_COMMIT.tar.gz" | tar -xzf - -C "$tests" --strip-components=1 \
+          || die "fetching imaptest's tests from codeberg.org failed"
+      fi
+      python3 "$loadgen" imaptest --docker --image "$IMAPTEST_IMAGE" --network hmlab --host "$alias" --port "$imap_port" \
+        --user-template "load{n}@$domain" --users "$mailboxes" --mbox "$tests/src/tests/default.mbox" --log "$run.log" \
+        "${common[@]}" "$@"
+      ;;
+    *) die "no mode '$mode' (prepare, smtp-in, smtp-out, imap-sessions, imaptest)" ;;
+  esac
+  local code=$?
+  say "loadgen exit $code; $run.md, $run.json, $run.config.txt"
+  return $code
+}
+
 cmd_idp_check() {
   load_secrets
   python3 "$LAB_DIR/keycloak-setup.py" check || die "the realm check failed"
@@ -484,7 +611,7 @@ cmd_idp_check() {
 }
 
 command="${1:-}"
-[ -n "$command" ] || { sed -n '6,34p' "$0"; exit 2; }
+[ -n "$command" ] || { sed -n '6,42p' "$0"; exit 2; }
 shift
 case "$command" in
   init) cmd_init "$@" ;;
@@ -500,5 +627,6 @@ case "$command" in
   interop) cmd_interop "$@" ;;
   imaptest) cmd_imaptest "$@" ;;
   idp-check) cmd_idp_check "$@" ;;
+  numbers) cmd_numbers "$@" ;;
   *) die "no command '$command' (bash build/lab/lab.sh for the list)" ;;
 esac

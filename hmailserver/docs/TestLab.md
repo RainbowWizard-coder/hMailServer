@@ -30,12 +30,15 @@ after, its data kept in a volume.
 | Keycloak 26.7.4 | `idp` | 10320 (HTTP), 10321 (HTTPS) | `quay.io/keycloak/keycloak:26.7.4` (quay.io) | 593 MiB |
 | Postfix 3.10.7 | `peers` | 10330 | `boky/postfix:5.1.0-alpine` (Docker Hub) | 26 MiB |
 | Dovecot 2.4.5 | `peers` | 10340 | `dovecot/dovecot:2.4.5` (Docker Hub, Dovecot's own) | 31 MiB |
+| Postfix and Dovecot for the published numbers | `numbers` | none: reached at their lab addresses | the same two images | not measured yet |
 | imaptest | none: a container for one run | none | `dovecot/imaptest` (Docker Hub, Dovecot's own) | 2 MiB under its checking load |
 | The server under test (`hmlab-bench`) | none: `lab.sh serve` or `suite` | 10350-10353 when served | `hmlab/bench`, built on linix from the CI image | 65 MiB served and idle; 525-700 MiB during a suite run, the server and `dotnet test` together |
 
 Every service with a profile has a memory limit in the compose file, above what it
 was measured at: MySQL 1 GB, MariaDB 768 MB, PostgreSQL 512 MB, SQL Server 2.5 GB,
-Keycloak 1 GB (half of it heap), Kuma 384 MB, Postfix 128 MB, Dovecot 256 MB.
+Keycloak 1 GB (half of it heap), Kuma 384 MB, Postfix 128 MB, Dovecot 256 MB, and for
+the published numbers Postfix 1 GB and Dovecot 4 GB, room for the most sessions a run
+opens (a run that reaches a limit is void; PublishedNumbers.md).
 Everything at once is about 2.5 GB, and 3 GB with a suite running; in practice a
 run needs one database and at most the peers and the identity provider beside it.
 
@@ -317,6 +320,24 @@ On 25 September 2026, against the server on MariaDB:
 | 3 Dovecot to here | **Fail, three runs out of three.** mbsync appended one message of three and then timed out: it pipelines its APPENDs, and the server answered the first and nothing after it ([What the first runs found](#what-the-first-runs-found), 5) |
 | 3b the same, one command at a time | **Pass.** Every message copied |
 | 4 here to Dovecot | **Pass.** This server as the source of a sync |
+
+The published numbers
+---------------------
+
+Profile `numbers`: Postfix and Dovecot again, from the same images as the peers, set
+up to be measured against the served server rather than to talk to it - the domain
+`numbers.test`, Postfix handing it to Dovecot over LMTP and relaying `sink.test` to
+the load generator's sink on linix's port 10365, Postfix's queue and Dovecot's
+Maildir on volumes, `mail_fsync = optimized`, TLS off, and the process and connection
+caps raised (`build/lab/dovecot/numbers.conf`). `lab.sh numbers <side> <mode>` runs
+`build/perf/load/loadgen.py` on linix against the served server (`hmailserver`,
+served with `HMLAB_SERVE_STORE` so that its tree is on a volume too) or against these
+two (`postfix-dovecot`), at each container's lab address, sampling the side's
+containers' cgroups - the server and its database, or Postfix and Dovecot - and
+writing beside each result what that side ran with. The method, the fairness rules
+and the commands are in [PublishedNumbers.md](PublishedNumbers.md). Nothing has been
+run with it yet; linix is shared, so a measurement is made with no CI job and no
+suite running.
 
 imaptest
 --------

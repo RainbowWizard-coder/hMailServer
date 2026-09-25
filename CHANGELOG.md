@@ -389,6 +389,11 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
   `check-openapi-blocks.py` and the audit and role choke-point checks.
 - The three GnuPG proofs of the gateway-encryption and zero-access fixtures run on Windows for the first time:
   they had handed Git for Windows' gpg a home directory it could not read.
+- A load generator in the repository, `build/perf/load/loadgen.py`: messages per second in and out, IMAP sessions
+  per core under a latency limit, memory per session and Dovecot's imaptest as a benchmark, against any server,
+  with the machine's details in every result; and a lab recipe that runs it against hMailServer and against
+  Postfix and Dovecot on the same machine under stated fairness rules
+  ([PublishedNumbers.md](hmailserver/docs/PublishedNumbers.md)). No numbers have been measured with it yet.
 
 ---
 

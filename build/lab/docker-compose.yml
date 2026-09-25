@@ -26,6 +26,7 @@
 #                Linux build refuses SQL Server, HM6390)
 #   idp          Keycloak, realm "hmailserver"
 #   peers        Postfix and Dovecot, the interoperability peers
+#   numbers      Postfix and Dovecot again, set up for the published numbers
 #
 # Every port is in 10300-10399, the range the lab was given; nothing else on linix
 # is touched. The images are pinned by digest and come from Docker Hub, quay.io and
@@ -223,6 +224,58 @@ services:
     mem_limit: 256m
     networks: [lab]
 
+  # ---------------------------------------------------------------- the published numbers
+
+  # Postfix and Dovecot as the mail service hMailServer is measured against
+  # (hmailserver/docs/PublishedNumbers.md, lab.sh numbers). The same images as the
+  # peers, a domain of their own (numbers.test) and settings chosen for a fair run,
+  # not for interoperability: Postfix hands numbers.test to Dovecot over LMTP, relays
+  # sink.test to the load generator's sink on linix itself, and keeps its queue on a
+  # volume; Dovecot stores Maildir on a volume and takes as many sessions as the
+  # generator opens (dovecot/numbers.conf). TLS is off on both, as it is on the
+  # served hMailServer's plain ports. Nothing is published: the generator runs on
+  # linix and reaches each container at its address on the lab network, so neither
+  # side goes through docker's port proxy. Memory limits are generous and the run
+  # records whether one was reached (memory.events), which voids it.
+  numbers-postfix:
+    profiles: [numbers]
+    image: boky/postfix:5.1.0-alpine@sha256:6e761312e833947f77af755072c0e77b67d298d127595470a79e9454008dd594
+    restart: "no"
+    hostname: mx.numbers.test
+    environment:
+      ALLOWED_SENDER_DOMAINS: "numbers.test loadgen.invalid"
+      MYNETWORKS: "127.0.0.0/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16"
+      POSTFIX_myhostname: mx.numbers.test
+      POSTFIX_virtual_mailbox_domains: numbers.test
+      POSTFIX_virtual_transport: "lmtp:inet:numbers-dovecot:31025"
+      POSTFIX_transport_maps: "inline:{ sink.test=smtp:[host.docker.internal]:10365 }"
+      POSTFIX_smtp_tls_security_level: none
+      POSTFIX_smtpd_tls_security_level: none
+      POSTFIX_smtpd_recipient_restrictions: "permit_mynetworks, reject_unauth_destination"
+      # Postfix's default of 100 processes a service would cap smtpd below the
+      # generator's clients; hMailServer's SMTP has no such cap by default.
+      POSTFIX_default_process_limit: "512"
+      # Postfix's own durability is fixed: a queue file is fsynced before the 250.
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    volumes: [numbers-postfix-spool:/var/spool/postfix]
+    mem_limit: 1g
+    networks: [lab]
+
+  numbers-dovecot:
+    profiles: [numbers]
+    image: dovecot/dovecot:2.4.5@sha256:c807be4fb5a97d9c3a90770569d3a6c4cbdcb36742ad41f90409cbd929166553
+    restart: "no"
+    hostname: imap.numbers.test
+    environment:
+      USER_PASSWORD: ${HMLAB_PEER_PASSWORD:-}
+    volumes:
+      - numbers-dovecot-data:/srv/vmail
+      - ./dovecot/numbers.conf:/etc/dovecot/conf.d/numbers.conf:ro
+    ulimits:
+      nofile: {soft: 65536, hard: 65536}
+    mem_limit: 4g
+    networks: [lab]
+
 networks:
   lab:
     name: hmlab
@@ -235,3 +288,5 @@ volumes:
   mssql-data:
   keycloak-data:
   dovecot-data:
+  numbers-postfix-spool:
+  numbers-dovecot-data:

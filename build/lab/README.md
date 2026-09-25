@@ -97,13 +97,25 @@ The peers, the identity provider and imaptest, against a served server:
     bash build/lab/lab.sh unserve
     bash build/lab/lab.sh down peers idp
 
+The published numbers (hmailserver/docs/PublishedNumbers.md has the whole recipe and
+the fairness rules), one side at a time, with nothing else running on linix:
+
+    HMLAB_SERVE_STORE=hmlab-numbers-store bash build/lab/lab.sh serve mariadb
+    bash build/lab/lab.sh numbers hmailserver prepare
+    bash build/lab/lab.sh numbers hmailserver smtp-in --clients 32 --messages 20000 --processes 4
+    bash build/lab/lab.sh unserve
+    bash build/lab/lab.sh up numbers
+    bash build/lab/lab.sh numbers postfix-dovecot smtp-in --clients 32 --messages 20000 --processes 4
+    bash build/lab/lab.sh down numbers
+
 And `bash build/lab/lab.sh status` for what runs and what it uses.
 
 The rules it keeps
 ------------------
 
 * **Ports 10300-10399 only.** 10300 Kuma; 10310-10313 the databases; 10320 and 10321
-  Keycloak; 10330 Postfix; 10340 Dovecot; 10350-10353 the served server.
+  Keycloak; 10330 Postfix; 10340 Dovecot; 10350-10353 the served server; 10365 the
+  load generator's sink, on linix itself, while `lab.sh numbers ... smtp-out` runs.
 * **Memory.** Only Kuma runs all the time. Start a profile for the run that needs it
   and stop it after. SQL Server alone takes 2 GB; never run the whole matrix at once
   beside a suite.
