@@ -9,6 +9,7 @@
 #include "../Mime/MimeCode.h"
 #include "../Util/Charset.h"
 #include "../BO/Message.h"
+#include "../BO/Account.h"
 #include "../BO/Attachments.h"
 #include "../Util/Time.h"
 #include "../Util/GUIDCreator.h"
