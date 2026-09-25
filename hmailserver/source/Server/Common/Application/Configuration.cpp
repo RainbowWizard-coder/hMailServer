@@ -147,6 +147,11 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_MESSAGE_STORE_COMPRESSION, 0);
       property_set_->EnsureLong(PROPERTY_MESSAGE_STORE_DEDUP_MIN_KB, 256);
 
+      // PST import: no directory, so no PST migration job is taken until an
+      // administrator names one. The row exists from the start because a read
+      // of a missing property reports HM5015.
+      property_set_->EnsureString(PROPERTY_PST_IMPORT_DIRECTORY, _T(""));
+
       // Greylisting, hardened (SMTP/GreyListing.h): no slide, no abuse threshold,
       // and an hour's lock that means nothing while the threshold is 0. Schema 6072
       // seeds the same three rows; these are here for the same reason as the rest.
@@ -2162,6 +2167,20 @@ namespace HM
          connections = 64;
 
       GetSettings()->SetLong(PROPERTY_MIGRATION_CONNECTIONS_PER_HOST, connections);
+   }
+
+   String
+   Configuration::GetPstImportDirectory() const
+   {
+      return GetSettings()->GetString(PROPERTY_PST_IMPORT_DIRECTORY);
+   }
+
+   void
+   Configuration::SetPstImportDirectory(const String &directory)
+   {
+      String value = directory;
+      value.Trim();
+      GetSettings()->SetString(PROPERTY_PST_IMPORT_DIRECTORY, value);
    }
 
    namespace

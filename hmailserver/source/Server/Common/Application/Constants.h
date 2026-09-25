@@ -454,6 +454,10 @@
 // and five hundred mailboxes started at once from one address is the shape
 // that gets an address throttled for the rest of the day.
 #define PROPERTY_MIGRATION_CONNECTIONS_PER_HOST _T("MigrationConnectionsPerHost")
+// PST import (Util/PstImportPath.h): the directory an administrator copies
+// Outlook data files into, one subdirectory per domain, that a PST migration job
+// names its file in. Empty, as shipped, and no PST job is taken.
+#define PROPERTY_PST_IMPORT_DIRECTORY _T("PstImportDirectory")
 // The syslog sink (RFC 5424), beside the log files rather than instead of them.
 // In hm_settings rather than in hMailServer.ini because of the rule in
 // .github/CONTRIBUTING.md from 15 September 2026: a setting belongs in the

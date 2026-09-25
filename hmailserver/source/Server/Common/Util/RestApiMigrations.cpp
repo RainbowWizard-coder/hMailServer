@@ -20,6 +20,18 @@
 //    POST   /api/v1/migrations/{id}/jobs/{job}/cancel   cancel it; what was copied stays
 //    POST   /api/v1/migrations/{id}/jobs/{job}/signin   a new sign-in link for its owner
 //
+// A migration of kind pst is Outlook data files rather than a server: each job's
+// source_user is the name of a file in <pst_import_directory>/<the target's
+// domain>/ (Util/PstImportPath.h), its secret the file's password if it has one,
+// and the file is resolved and checked when the job is added - a name that is
+// not a plain one, or that leads anywhere but into that directory, refuses the
+// whole request as any wrong line does - and kept by the one name the file has
+// there however it was spelled, so that two spellings of one file are one job.
+// Adding one needs manage_mailbox in the target's domain beside the route's
+// manage_accounts: the job writes into another account's folders. Nothing of
+// the file is read here: the job reads it (Application/MigrationJobPst.cpp), and
+// a file it refuses fails the job with the reason.
+//
 // And, before any credential, GET /portal/oauth/migration?job=&key=: the page a
 // job's sign-in link opens, which sends the browser to Google or Microsoft with
 // the cookie the callback checks - the fetch-account import's consent flow
@@ -52,6 +64,7 @@
 #include "JsonDocument.h"
 #include "MigrationSources.h"
 #include "MigrationStore.h"
+#include "PstImportPath.h"
 #include "ReaderOAuth.h"
 #include "SecureCompare.h"
 #include "Unicode.h"
@@ -466,9 +479,9 @@ namespace HM
       static const char *paths =
          ",\"/api/v1/migrations\":{"
          "\"get\":{\"summary\":\"The migrations\",\"description\":\"Every migration - a batch of mailboxes copied from another server, a job per mailbox - with its jobs counted by state and its messages totalled. A credential confined to named domains sees only the migrations with a job copying into one of them and none copying anywhere else - a job whose account was deleted counts for nobody, and a migration with no jobs is no domain's. Needs view_accounts.\",\"responses\":{\"200\":{\"description\":\"{migrations:[...]}\"}}},"
-         "\"post\":{\"summary\":\"Create a migration\",\"description\":\"Body: name (required); kind (imap, google or microsoft365; default imap); host (required for imap); port (993 with tls and 143 otherwise, when not given); security (none, tls, starttls_optional, starttls_required; default tls); dav_url (where CardDAV and CalDAV are, when not https://<host>/ - an https URL, or plain http only to this machine); concurrency (1 to 32; default 4), how many of its jobs run at once, below MigrationConnectionsPerHost across every migration at one host; messages_per_minute (0 to 100000, 0 for no limit; default 0), each job waiting between fetches to keep below it. For google and microsoft365 the source is the provider's own IMAP server - imap.gmail.com or outlook.office365.com, 993, tls - and a host, port or security naming anything else is refused, since the owner's token is sent there. It is created new; POST .../jobs adds the mailboxes and POST .../start runs them. Needs manage_accounts, from a credential not confined to named domains: a migration with no jobs is no domain's.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{"
+         "\"post\":{\"summary\":\"Create a migration\",\"description\":\"Body: name (required); kind (imap, google, microsoft365 or pst; default imap); host (required for imap); port (993 with tls and 143 otherwise, when not given); security (none, tls, starttls_optional, starttls_required; default tls); dav_url (where CardDAV and CalDAV are, when not https://<host>/ - an https URL, or plain http only to this machine); concurrency (1 to 32; default 4), how many of its jobs run at once, below MigrationConnectionsPerHost across every migration at one host; messages_per_minute (0 to 100000, 0 for no limit; default 0), each job waiting between fetches to keep below it. For google and microsoft365 the source is the provider's own IMAP server - imap.gmail.com or outlook.office365.com, 993, tls - and a host, port or security naming anything else is refused, since the owner's token is sent there. A pst migration copies Outlook data files, read by this server's own PST reader: it takes no host, port, security or dav_url (what is sent for them is not used), and each of its jobs names a file in the pst_import_directory setting's subdirectory for the target account's domain. It is created new; POST .../jobs adds the mailboxes and POST .../start runs them. Needs manage_accounts, from a credential not confined to named domains: a migration with no jobs is no domain's.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\"],\"properties\":{"
             "\"name\":{\"type\":\"string\",\"description\":\"What the migration is called here.\"},"
-            "\"kind\":{\"type\":\"string\",\"enum\":[\"imap\",\"google\",\"microsoft365\"],\"description\":\"An IMAP server with passwords; Google Workspace or Microsoft 365, each job signed in to by its owner.\"},"
+            "\"kind\":{\"type\":\"string\",\"enum\":[\"imap\",\"google\",\"microsoft365\",\"pst\"],\"description\":\"An IMAP server with passwords; Google Workspace or Microsoft 365, each job signed in to by its owner; or Outlook data files (PST) copied onto this server.\"},"
             "\"host\":{\"type\":\"string\",\"description\":\"The source's IMAP host.\"},"
             "\"port\":{\"type\":\"integer\",\"minimum\":1,\"maximum\":65535},"
             "\"security\":{\"type\":\"string\",\"enum\":[\"tls\",\"starttls_required\",\"starttls_optional\",\"none\"]},"
@@ -485,9 +498,9 @@ namespace HM
          "\"/api/v1/migrations/{id}/summary.csv\":{\"get\":{\"summary\":\"A migration's jobs as CSV\",\"description\":\"One row per job: job, source_user, target, state, phase, folders_total, folders_done, messages_total, messages_copied, skipped, bytes, attempts, last_error, started, finished (UTC seconds). For the person running five hundred.\",\"responses\":{\"200\":{\"description\":\"text/csv\"}}}},"
          "\"/api/v1/migrations/{id}/jobs\":{"
          "\"get\":{\"summary\":\"A migration's jobs\",\"description\":\"Each: id, source_user, target, state (queued, running, paused, done, failed, cancelled), phase (mail, contacts, calendars, report), awaiting_signin, folders and messages done of their totals, bytes, skipped, last_error, attempts and next_attempt. The secret is never returned.\",\"responses\":{\"200\":{\"description\":\"{jobs:[...]}\"}}},"
-         "\"post\":{\"summary\":\"Add jobs to a migration\",\"description\":\"A JSON body - source_user, secret and target - adds one job; any other body is CSV, one job a line as sourceuser,secret,target, a first line naming the columns skipped, fields quoted as RFC 4180 quotes them. target is an account of this server. secret is the source password for kind imap; for google and microsoft365 it may be a refresh token, or empty, when the job waits for its owner to sign in and the answer carries signin_url - a link for that person to open, answered once. Every line is checked before any job is made: a malformed line, an unknown target, a target outside the credential's domains, a mailbox already in the migration, or one a job of another migration is copying into that account now (409) refuses the whole request, naming the line; a target that is not an address is not repeated back, since a row with its columns the wrong way round has a password there. A UTF-8 byte order mark before the first line is ignored. Needs manage_accounts in every target's domain.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"source_user\":{\"type\":\"string\"},\"secret\":{\"type\":\"string\",\"writeOnly\":true},\"target\":{\"type\":\"string\"}}}},\"text/csv\":{\"schema\":{\"type\":\"string\"}}}},\"responses\":{\"201\":{\"description\":\"{created, jobs:[... with signin_url where one was made]}\"},\"400\":{\"description\":\"A line refused (error and line name it)\"},\"403\":{\"description\":\"A target outside the credential's domains\"},\"409\":{\"description\":\"A mailbox another migration's job is copying into that account now\"}}}},"
+         "\"post\":{\"summary\":\"Add jobs to a migration\",\"description\":\"A JSON body - source_user, secret and target - adds one job; any other body is CSV, one job a line as sourceuser,secret,target, a first line naming the columns skipped, fields quoted as RFC 4180 quotes them. target is an account of this server. secret is the source password for kind imap; for google and microsoft365 it may be a refresh token, or empty, when the job waits for its owner to sign in and the answer carries signin_url - a link for that person to open, answered once. For kind pst, sourceuser is the name of a file in <pst_import_directory>/<the target's domain>/ - archive.pst, or sub/archive.pst, never a path, a drive, a share or a name with .. in it, and never one that leads out of that directory through a link or a junction - and secret is its password when it has one; the file must be there, and the job keeps it by the one name it has there (sub/archive.pst, however it was spelled). A first line file,password,target is a heading as well. Every line is checked before any job is made: a malformed line, an unknown target, a target outside the credential's domains, a mailbox already in the migration, or one a job of another migration is copying into that account now (409) refuses the whole request, naming the line; a target that is not an address is not repeated back, since a row with its columns the wrong way round has a password there. A UTF-8 byte order mark before the first line is ignored. Needs manage_accounts in every target's domain, and for kind pst manage_mailbox there as well, since the job writes into the account's folders.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"source_user\":{\"type\":\"string\"},\"secret\":{\"type\":\"string\",\"writeOnly\":true},\"target\":{\"type\":\"string\"}}}},\"text/csv\":{\"schema\":{\"type\":\"string\"}}}},\"responses\":{\"201\":{\"description\":\"{created, jobs:[... with signin_url where one was made]}\"},\"400\":{\"description\":\"A line refused (error and line name it)\"},\"403\":{\"description\":\"A target outside the credential's domains\"},\"409\":{\"description\":\"A mailbox another migration's job is copying into that account now\"}}}},"
          "\"/api/v1/migrations/{id}/jobs/{job}\":{\"get\":{\"summary\":\"One job\",\"responses\":{\"200\":{\"description\":\"The job\"},\"404\":{\"description\":\"No such job in this migration\"}}}},"
-         "\"/api/v1/migrations/{id}/jobs/{job}/report\":{\"get\":{\"summary\":\"A job's report\",\"description\":\"JSON, written at every resume mark and at the end, so readable while the job runs: per folder the source's count, what was copied, what was skipped and why, the special use and any UIDVALIDITY restart; the contacts and calendars copied or skipped and why; the bytes, the duration, the errors met and retried, the first and last message dates.\",\"responses\":{\"200\":{\"description\":\"The report\"}}}},"
+         "\"/api/v1/migrations/{id}/jobs/{job}/report\":{\"get\":{\"summary\":\"A job's report\",\"description\":\"JSON, written at every resume mark and at the end, so readable while the job runs: per folder the source's count, what was copied, what was skipped and why, the warnings (what a message was copied without, by kind), the special use and any UIDVALIDITY restart; the contacts and calendars copied or skipped and why; the bytes, the duration, the errors met and retried (the most recent fifty, as many as fit), the first and last message dates. A job of kind pst adds pst: the file and its size, the store's name, record key, version and encoding, not_read (the folders that could not be read), not_mail (what is not mail, by class, counted and not imported; not_mail_folders and not_mail_messages are its two parts), the refusal when the file was refused, and list_attempts.\",\"responses\":{\"200\":{\"description\":\"The report\"}}}},"
          "\"/api/v1/migrations/{id}/jobs/{job}/retry\":{\"post\":{\"summary\":\"Retry a job\",\"description\":\"A failed, cancelled or paused job - or one whose row says running with nothing running it - is queued again from its phase and its marks, its attempts counted afresh. Body, optional: secret, the mended password or a new refresh token.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"secret\":{\"type\":\"string\",\"writeOnly\":true}}}}}},\"responses\":{\"200\":{\"description\":\"The job\"},\"409\":{\"description\":\"Running, queued or done\"}}}},"
          "\"/api/v1/migrations/{id}/jobs/{job}/cancel\":{\"post\":{\"summary\":\"Cancel a job\",\"description\":\"A running job stops between two commands; what it copied stays, and its state is cancelled. The audit trail records who cancelled it, a running one as an event, since its own thread writes the row.\",\"responses\":{\"200\":{\"description\":\"The job\"},\"409\":{\"description\":\"Done, or cancelled already\"}}}},"
          "\"/api/v1/migrations/{id}/jobs/{job}/signin\":{\"post\":{\"summary\":\"A new sign-in link for a job\",\"description\":\"For google and microsoft365: a new link for the mailbox's owner to open, answered once as signin_url; the one before it stops working, and so does a sign-in begun from it and not finished. A link works once: opening it spends it, and a sign-in as another address than the job's gives it back. The job waits for the sign-in and is not started until it completes; a failed or cancelled job is queued again when it does. Needs import_oauth_redirect_base_url and the provider's client registered.\",\"responses\":{\"200\":{\"description\":\"signin_url\"},\"409\":{\"description\":\"Not a kind that signs in, or the job is running or done\"},\"503\":{\"description\":\"Signing in with the provider is not set up on this server\"}}}}";
@@ -578,7 +591,34 @@ namespace HM
 
          const MigrationProvider *provider = MigrationSources::ByWord(AnsiString(kind.c_str()));
          if (!provider)
-            return BuildResponse_(400, "{\"error\":\"kind must be imap, google or microsoft365\"}");
+            return BuildResponse_(400, "{\"error\":\"kind must be imap, google, microsoft365 or pst\"}");
+
+         if (provider->kind == MigrationStore::KindPst)
+         {
+            // Outlook data files: no host, port, security or DAV - what a form
+            // sends for them is not used - and no sign-in.
+            long pstConcurrency = 4;
+            long pstPerMinute = 0;
+            if (!ReadInteger(body, "concurrency", 1, 32, pstConcurrency, error) ||
+                !ReadInteger(body, "messages_per_minute", 0, 100000, pstPerMinute, error))
+               return BuildResponse_(400, "{\"error\":" + MigrationJob::JsonString(error) + "}");
+
+            MigrationRecord files;
+            files.name = Utf8ToString(name);
+            files.kind = MigrationStore::KindPst;
+            files.port = 0;
+            files.security = CSNone;
+            files.concurrency = (int) pstConcurrency;
+            files.messagesPerMinute = (int) pstPerMinute;
+            files.state = MigrationStore::MigrationNew;
+
+            if (!MigrationStore::CreateMigration(files))
+               return BuildResponse_(500, "{\"error\":\"the migration could not be saved; see the error log\"}");
+
+            LOG_APPLICATION(Formatter::Format(_T("RestApi: migration {0} ({1}) of PST files created by {2}."), files.id, files.name, String(caller.identity)));
+
+            return BuildResponse_(201, MigrationJson(files, std::vector<MigrationJobRecord>()));
+         }
 
          int securityValue = CSSSL;
          if (!ParseSecurityWord(security, securityValue))
@@ -665,6 +705,7 @@ namespace HM
 
       const MigrationProvider *provider = MigrationSources::ByKind(migration.kind);
       const bool signsIn = provider && provider->oauthProvider[0] != '\0';
+      const bool pstFiles = migration.kind == MigrationStore::KindPst;
 
       auto again = [&]() -> HttpResponse
       {
@@ -805,12 +846,18 @@ namespace HM
                      return BuildResponse_(400, "{\"error\":" + MigrationJob::JsonString(sentence) + ",\"line\":" + Number(lineNumber) + "}");
                   }
 
-                  // A first line that names the columns is a heading.
+                  // A first line that names the columns is a heading - for a
+                  // migration of PST files, "file,password,target" as well,
+                  // but only as a whole line: a mailbox, or a PST, called
+                  // "file" is a job.
                   if (requested.empty() && !fields.empty())
                   {
                      AnsiString first = AnsiString(fields[0].c_str());
                      first.MakeLower();
-                     if (first == "sourceuser" || first == "source_user")
+                     AnsiString last = AnsiString(fields[fields.size() - 1].c_str());
+                     last.MakeLower();
+                     if (first == "sourceuser" || first == "source_user" ||
+                         (pstFiles && first == "file" && fields.size() == 3 && last == "target"))
                         continue;
                   }
 
@@ -882,14 +929,44 @@ namespace HM
 
                one.targetAccountId = account->GetID();
 
-               if (!signsIn && one.secret.empty())
-                  return refuse(400, "a migration from an IMAP server needs the source password as the secret");
-
-               if (signsIn && one.secret.empty())
+               if (pstFiles)
                {
-                  const ReaderOAuth::Provider *oauth = ReaderOAuth::Find(AnsiString(provider->oauthProvider));
-                  if (!linkPossible || !oauth || !ReaderOAuth::Configured(*oauth))
-                     return refuse(400, "no secret was given and no sign-in link can be made: set import_oauth_redirect_base_url and register this server with the provider, or give the refresh token as the secret");
+                  // Writing into another account's folders, which manage_mailbox
+                  // is for, in the target's domain.
+                  const String targetDomain = StringParser::ExtractDomain(account->GetAddress());
+                  if (!CallerMayManageMailboxIn_(caller, targetDomain))
+                     return refuse(403, "a PST job writes into the target's folders, which needs manage_mailbox in the domain of " + one.target);
+
+                  // A file in the target's domain's own directory, there now; the
+                  // secret is its password, when it has one.
+                  String file, directory, why;
+                  bool missing = false;
+                  if (!PstImportPath::Resolve(Utf8ToString(one.user), targetDomain, file, directory, why, missing))
+                     return refuse(400, std::string(Utf8(why).c_str()));
+
+                  // Kept by its one name below the directory, so that the checks
+                  // below - one job a file in this request, and none while
+                  // another migration's job reads it into this account - see
+                  // 2019\a.pst and 2019/a.pst, or a name and its 8.3 name, as the
+                  // one file they are.
+                  const String canonical = PstImportPath::RelativeName(file, directory);
+                  if (canonical.IsEmpty())
+                     return refuse(400, "the file could not be named below the domain's PST import directory");
+                  one.user = std::string(Utf8(canonical).c_str());
+                  if (one.user.size() > (size_t) MigrationStore::MaximumUserLength)
+                     return refuse(400, "the file's name is longer than 255 characters");
+               }
+               else
+               {
+                  if (!signsIn && one.secret.empty())
+                     return refuse(400, "a migration from an IMAP server needs the source password as the secret");
+
+                  if (signsIn && one.secret.empty())
+                  {
+                     const ReaderOAuth::Provider *oauth = ReaderOAuth::Find(AnsiString(provider->oauthProvider));
+                     if (!linkPossible || !oauth || !ReaderOAuth::Configured(*oauth))
+                        return refuse(400, "no secret was given and no sign-in link can be made: set import_oauth_redirect_base_url and register this server with the provider, or give the refresh token as the secret");
+                  }
                }
 
                AnsiString key = AnsiString(one.user.c_str()) + "\n" + Utf8(account->GetAddress());

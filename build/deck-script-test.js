@@ -828,7 +828,7 @@ const INBOUND_POST = 'Body: address (required; an address or a whole domain of a
 // emits them (docs/Migration.md, "Five hundred mailboxes: migration jobs").
 const MIGRATION_PROPS = {
    name: { type: 'string', description: 'What the migration is called here.' },
-   kind: { type: 'string', enum: ['imap', 'google', 'microsoft365'], description: 'An IMAP server with passwords; Google Workspace or Microsoft 365, each job signed in to by its owner.' },
+   kind: { type: 'string', enum: ['imap', 'google', 'microsoft365', 'pst'], description: 'An IMAP server with passwords; Google Workspace or Microsoft 365, each job signed in to by its owner; or Outlook data files (PST) copied onto this server.' },
    host: { type: 'string', description: 'The source\'s IMAP host.' },
    port: { type: 'integer', minimum: 1, maximum: 65535 },
    security: { type: 'string', enum: ['tls', 'starttls_required', 'starttls_optional', 'none'] },
@@ -837,7 +837,7 @@ const MIGRATION_PROPS = {
    messages_per_minute: { type: 'integer', minimum: 0, maximum: 100000, description: 'The most messages a minute each job fetches; 0 for no limit.' }
 };
 const MIGRATIONS_GET = 'Every migration - a batch of mailboxes copied from another server, a job per mailbox - with its jobs counted by state and its messages totalled. A credential confined to named domains sees only the migrations every job of which copies into one of them. Needs view_accounts.';
-const MIGRATIONS_POST = 'Body: name (required); kind (imap, google or microsoft365; default imap); host (required for imap); port (993 with tls and 143 otherwise, when not given); security (none, tls, starttls_optional, starttls_required; default tls); dav_url (where CardDAV and CalDAV are, when not https://<host>/ - an https URL, or plain http only to this machine); concurrency (1 to 32; default 4), how many of its jobs run at once, below MigrationConnectionsPerHost across every migration at one host; messages_per_minute (0 to 100000, 0 for no limit; default 0), each job waiting between fetches to keep below it. For google and microsoft365 the source is the provider\'s own IMAP server - imap.gmail.com or outlook.office365.com, 993, tls - and a host, port or security naming anything else is refused, since the owner\'s token is sent there. It is created new; POST .../jobs adds the mailboxes and POST .../start runs them. Needs manage_accounts, from a credential not confined to named domains: a migration with no jobs is no domain\'s.';
+const MIGRATIONS_POST = 'Body: name (required); kind (imap, google, microsoft365 or pst; default imap); host (required for imap); port (993 with tls and 143 otherwise, when not given); security (none, tls, starttls_optional, starttls_required; default tls); dav_url (where CardDAV and CalDAV are, when not https://<host>/ - an https URL, or plain http only to this machine); concurrency (1 to 32; default 4), how many of its jobs run at once, below MigrationConnectionsPerHost across every migration at one host; messages_per_minute (0 to 100000, 0 for no limit; default 0), each job waiting between fetches to keep below it. For google and microsoft365 the source is the provider\'s own IMAP server - imap.gmail.com or outlook.office365.com, 993, tls - and a host, port or security naming anything else is refused, since the owner\'s token is sent there. A pst migration copies Outlook data files, read by this server\'s own PST reader: it takes no host, port, security or dav_url (what is sent for them is not used), and each of its jobs names a file in the pst_import_directory setting\'s subdirectory for the target account\'s domain. It is created new; POST .../jobs adds the mailboxes and POST .../start runs them. Needs manage_accounts, from a credential not confined to named domains: a migration with no jobs is no domain\'s.';
 // A migration and a job as MigrationJson and JobJson emit them, less the
 // counts the recorded server works out from the jobs on every read.
 function migrationRecord(id, name, fields) {
@@ -2548,7 +2548,7 @@ function answer(method, path, headers, raw) {
          if (!parsed || !String(parsed.name || '').trim()) { return json(400, { error: 'name is required' }); }
          const kind = parsed.kind || 'imap';
          if (kind === 'imap' && !String(parsed.host || '').trim()) { return json(400, { error: 'host is required for a migration from an IMAP server' }); }
-         const made = migrationRecord(nextId++, parsed.name, Object.assign({}, parsed, { kind, host: parsed.host || (kind === 'google' ? 'imap.gmail.com' : 'outlook.office365.com') }));
+         const made = migrationRecord(nextId++, parsed.name, Object.assign({}, parsed, { kind, host: parsed.host || (kind === 'google' ? 'imap.gmail.com' : kind === 'pst' ? '' : 'outlook.office365.com') }));
          state.migrations.push(made);
          state.migrationJobs[made.id] = [];
          return json(201, counted(made));
@@ -5820,6 +5820,21 @@ async function main() {
    await flush();
    check('yes deletes by id and the re-read list is without it', called(before, 'DELETE', '/api/v1/migrations/42').length === 1 && rows().length === 2 &&
       migRows().every((r) => r.indexOf('Google Workspace') < 0) && toastText() === 'Migration deleted', paths(before));
+
+   // A migration of Outlook data files, from the same form: the kind the
+   // schema offers is what is posted, and no host is asked for.
+   click(act('mignew'));
+   await flush();
+   setValue('mig_name', 'Archives');
+   setValue('mig_kind', 'pst');
+   before = requests.length;
+   click(act('migsave'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/migrations');
+   check('a migration of kind pst posts kind pst, with no host', !!posted && posted.kind === 'pst' && posted.name === 'Archives' && !('host' in posted) &&
+      state.migrations[state.migrations.length - 1].kind === 'pst' && toastText() === 'Migration created', JSON.stringify(posted));
+   click(act('migback'));
+   await flush();
 
    // ---- the seven small collections, one view
    before = requests.length;

@@ -487,6 +487,31 @@ namespace HM
    }
 
    bool
+   MigrationStore::ListDoneJobsOfAccount(__int64 targetAccountId, std::vector<MigrationJobRecord> &jobs)
+   {
+      jobs.clear();
+
+      SQLCommand command(String(AnsiString("select ") + JobColumns + ", mjreport from hm_migrationjobs where mjtargetaccountid = @ACCOUNTID and mjstate = @DONE order by mjid asc"));
+      command.AddParameter("@ACCOUNTID", targetAccountId);
+      command.AddParameter("@DONE", (int) JobDone);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return false;
+
+      while (!recordset->IsEOF())
+      {
+         MigrationJobRecord job;
+         ReadJob(recordset, job);
+         job.report = recordset->GetStringValue("mjreport");
+         jobs.push_back(job);
+         recordset->MoveNext();
+      }
+
+      return true;
+   }
+
+   bool
    MigrationStore::CancelJobsOfAccount(__int64 accountId, const String &reason)
    {
       // Asked first, so that deleting an account no migration names - nearly

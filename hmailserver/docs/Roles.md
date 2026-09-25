@@ -51,7 +51,7 @@ domains is refused them whatever it holds.
 | `manage_accounts` | Create, change and delete accounts, aliases, lists, groups, fetch accounts and app passwords, a domain's own allow and block list, a domain's spam traps, a domain's DKIM key rotation (rotate, check, switch, retire and cancel now), a domain's suppression list (an address added or removed by hand), and an account's OpenPGP public keys (stored or removed domain's suppression list (an address added or removed by hand), and renaming a mailbox or moving one to another domain - which needs the permission in **both** domains, the one the mailbox leaves and the one it goes to ([MailboxMove.md](MailboxMove.md)) | ✅ | ✅ | | |
 | `reset_password` | `POST /api/v1/accounts/{address}/password`, `Application.ResetPassword` | ✅ | ✅ | ✅ | |
 | `unlock_account` | `POST /api/v1/accounts/{address}/unlock` and `Application.UnlockAccount` (both locks), `Account.UnlockMailbox` (the POP3 mailbox lock alone; an account's own is its own to clear) - each on the audit trail as `unlocked` - and clearing the logon-failure list (`POST /api/v1/settings/logon-failures/clear` *(server-wide)*; `Settings.ClearLogonFailureList` answers the server administrator only), on it as `logon failures` / `cleared`. See [The logon-failure list](#the-logon-failure-list) for what a confined help desk does instead | ✅ | ✅ | ✅ | |
-| `manage_mailbox` | Another account's folders, messages and folder rights, and a support session | ✅ | ✅ | | |
+| `manage_mailbox` | Another account's folders, messages and folder rights, a support session, and adding a migration job of Outlook data files (PST), beside `manage_accounts` - see [PST import files](#pst-import-files) | ✅ | ✅ | | |
 | `manage_queue` | Retrying or deleting a queued message *(server-wide)* | ✅ | | | |
 | `manage_quarantine` | Releasing or deleting held mail *(server-wide)* | ✅ | ✅ | | |
 | `manage_archive` | Holding and releasing archived messages *(server-wide)* | ✅ | | | |
@@ -153,6 +153,20 @@ a custom role holding `view_configuration` alone is refused and told it lacks `v
 The Control Deck leaves the *Reports* view out for a role without both. This is the one route that
 needs two permissions — `RestApiServer::SecondPermissionFor_` names the second — and
 `build/check-role-choke-point.py` holds both to the auditor rule. See [Reports.md](Reports.md).
+
+### PST import files
+
+A migration job of kind `pst` needs what every migration job needs, `manage_accounts`
+in the target account's domain, and `manage_mailbox` there as well, since it writes
+into the account's folders - asked when the job is added
+(`RestApiServer::CallerMayManageMailboxIn_`, beside the choke point, as the archive's
+second permission is). Its file is looked for only in that domain's own
+subdirectory of `pst_import_directory` (`<directory>/<domain>/`), resolved as the file
+system resolves it, links and junctions followed: a domain administrator reaches only
+the files placed there for their own domain, and not a file left for another domain's,
+however the name is spelled; a refusal names the file below that directory, never where
+the directory is on the server. The rule is the same for the server administrator. See
+[Migration.md](Migration.md), *Outlook data files (PST)*.
 
 ### What a refusal says
 

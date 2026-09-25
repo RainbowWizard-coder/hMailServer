@@ -101,7 +101,8 @@ namespace HM
       {
          KindImap = 0,
          KindGoogle = 1,
-         KindMicrosoft = 2
+         KindMicrosoft = 2,
+         KindPst = 3           // Outlook data files: a job per file (Application/MigrationJob.h)
       };
 
       enum MigrationState
@@ -199,6 +200,11 @@ namespace HM
       // A job not yet finished - queued, running or paused, in any migration -
       // copying this source user into this account; jobId 0 when there is none.
       static bool FindActiveJob(__int64 targetAccountId, const String &sourceUser, __int64 &jobId);
+
+      // Every finished (done) job of any migration that copied into this
+      // account, with its report: a PST job asks whether the store it is about
+      // to read was given to the account already (MigrationJobPst.cpp).
+      static bool ListDoneJobsOfAccount(__int64 targetAccountId, std::vector<MigrationJobRecord> &jobs);
 
       // Every unfinished job copying into an account, cancelled with the
       // reason: the account is being deleted, and its number will be given to

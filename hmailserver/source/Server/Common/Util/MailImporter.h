@@ -77,10 +77,13 @@ namespace HM
       // internalDate is the IMAP INTERNALDATE ("17-Jul-1996 02:44:25 -0700");
       // empty, the Date header's. written may be null (no duplicate check);
       // acrossFolders checks it against every folder, not only this one.
+      // archived is a message from an archive - a PST - rather than one being
+      // sent to the account now: only the 2 GB ceiling is asked of its size,
+      // not the account's max_message_size_kb.
       static ImportOutcome ImportMessage(std::shared_ptr<const Account> owner, const std::vector<String> &folderPath,
                                          int designation, const String &messageFile, short flags,
                                          const std::vector<String> &keywords, const String &internalDate,
-                                         WrittenKeys *written, bool acrossFolders, String &problem);
+                                         WrittenKeys *written, bool acrossFolders, String &problem, bool archived = false);
 
       // The account's folder at a path, made when it is missing, as ImportMessage
       // makes it; 0 with the reason when it cannot be. permanent then says

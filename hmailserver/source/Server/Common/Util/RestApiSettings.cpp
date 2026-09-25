@@ -59,6 +59,7 @@
 #include "MessageOrigin.h"
 #include "WebPush.h"
 #include "PasswordBreachCheck.h"
+#include "PstImportPath.h"
 #include "CompromiseDetector.h"
 #include "../AntiVirus/Sandbox.h"
 #include "SessionPolicies.h"
@@ -1444,6 +1445,13 @@ namespace
         "The most connections every running migration job of every migration together holds to one source host, however many jobs each migration may run at once. A provider counts sessions per client address, and five hundred mailboxes started at once from one address is how an address gets throttled for the rest of the day. 1 to 64; 4 by default.",
         ROW_NUMBER(Config()->GetMigrationConnectionsPerHost()), ROW_SET(Config()->SetMigrationConnectionsPerHost((int) v.number)),
         [] (const Value &v) { return (v.number < 1 || v.number > 64) ? String(MigrationConnectionsPerHostRefusal) : String(); } },
+
+      // PST import (Util/PstImportPath.h). In hm_settings, read each time a PST
+      // job is added or run.
+      { "pst_import_directory", KindString, ReadWrite, EffectNow, nullptr,
+        "The directory Outlook data files (PST) are copied into for a PST migration job, on this machine: a job names a file in its subdirectory named for the target account's domain (<directory>/example.com/archive.pst), and nowhere else. An absolute local path; empty, as shipped, takes no PST job.",
+        ROW_TEXT(Config()->GetPstImportDirectory()), ROW_SET(Config()->SetPstImportDirectory(v.text)),
+        [] (const Value &v) -> String { return PstImportPath::SettingProblem(v.text); } },
 
       // The password breach check (PasswordBreachCheck). In hm_settings, read at
       // every password change. The checks are the COM setters' own, so a value

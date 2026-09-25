@@ -471,7 +471,7 @@ namespace HM
    MailImporter::ImportMessage(std::shared_ptr<const Account> owner, const std::vector<String> &folderPath,
                                int designation, const String &messageFile, short flags,
                                const std::vector<String> &keywords, const String &internalDate,
-                               WrittenKeys *written, bool acrossFolders, String &problem)
+                               WrittenKeys *written, bool acrossFolders, String &problem, bool archived)
    {
       if (!owner || folderPath.empty())
       {
@@ -487,8 +487,9 @@ namespace HM
       }
 
       // APPEND's ceilings: the account's own limit, else its domain's, else the
-      // server's, and 2 GB whatever they say.
-      const __int64 limit = IMAPCommandAppend::GetEffectiveAppendLimitBytes(owner);
+      // server's, and 2 GB whatever they say - or, for archived mail, which is
+      // not being sent to the account now, the 2 GB alone.
+      const __int64 limit = archived ? (__int64) 2 * 1024 * 1024 * 1024 : IMAPCommandAppend::GetEffectiveAppendLimitBytes(owner);
       if (limit > 0 && (__int64) size > limit)
       {
          problem = Formatter::Format(_T("the message is {0} bytes, over the {1} this account may receive"), (__int64) size, limit);

@@ -11,6 +11,7 @@
 #include "HttpsClient.h"
 #include "ICalendar.h"
 #include "JsonDocument.h"
+#include "MigrationStore.h"
 #include "VCard.h"
 #include "Strings/Formatter.h"
 
@@ -62,7 +63,13 @@ namespace HM
            "https://outlook.office.com/IMAP.AccessAsUser.All https://graph.microsoft.com/Contacts.Read https://graph.microsoft.com/Calendars.Read offline_access openid email",
            true,
            "https://graph.microsoft.com/v1.0/me/contacts?$top=100",
-           "https://graph.microsoft.com/v1.0/me/events?$top=50" }
+           "https://graph.microsoft.com/v1.0/me/events?$top=50" },
+         // Outlook data files, read by this server's own PST reader from the
+         // target domain's PST import directory: no host, no sign-in, no DAV.
+         { 3, "pst", "Outlook data file (PST)", "", "", 0,
+           "", "", "",
+           "",
+           false, "", "" }
       };
 
       // What one DAV answer may be, and one Graph page: an address book with
@@ -1510,9 +1517,12 @@ namespace HM
       const MigrationProvider *imap = S::ByKind(0);
       const MigrationProvider *google = S::ByKind(1);
       const MigrationProvider *microsoft = S::ByKind(2);
-      Expect(imap && google && microsoft && !S::ByKind(3), "Three kinds of source, and no fourth.");
+      const MigrationProvider *pst = S::ByKind(3);
+      Expect(imap && google && microsoft && pst && !S::ByKind(4), "Four kinds of source, and no fifth.");
       Expect(S::ByWord("google") == google && S::ByWord("MICROSOFT365") == microsoft && S::ByWord("imap") == imap &&
-             !S::ByWord("yahoo"), "The REST words name the kinds.");
+             S::ByWord("pst") == pst && !S::ByWord("yahoo"), "The REST words name the kinds.");
+      Expect(AnsiString(pst->oauthProvider).IsEmpty() && AnsiString(pst->imapHost).IsEmpty() && pst->kind == MigrationStore::KindPst,
+             "An Outlook data file has no host and no sign-in.");
       Expect(AnsiString(imap->oauthProvider).IsEmpty() && AnsiString(imap->mailScope).IsEmpty() && !imap->graph,
              "An IMAP server is a password and DAV discovered from the host.");
       Expect(AnsiString(google->oauthProvider) == "google" && AnsiString(google->imapHost) == "imap.gmail.com" && google->imapPort == 993,

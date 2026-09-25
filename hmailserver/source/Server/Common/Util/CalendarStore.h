@@ -176,6 +176,13 @@ namespace HM
       static bool FindByUri(__int64 accountId, __int64 calendarId, const String &uri, CalendarObjectRecord &object);
       static bool FindByUid(__int64 accountId, __int64 calendarId, const String &uid, CalendarObjectRecord &object);
 
+      // A live object of this UID in any of these calendars of the account's
+      // own, in one query that seeks by calendar (the index on objectcalendarid;
+      // none leads with the UID): for a PST import that must not store a
+      // deleted copy beside it. failed says the database could not answer.
+      static bool FindByUidAmong(__int64 accountId, const std::vector<__int64> &calendarIds, const String &uid,
+                                 CalendarObjectRecord &object, bool &failed);
+
       // One live object by its row id, whichever calendar holds it: the page
       // names events by it, and the caller checks the calendar is theirs.
       static bool FindById(__int64 objectId, CalendarObjectRecord &object);

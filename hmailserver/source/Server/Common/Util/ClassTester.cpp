@@ -39,6 +39,8 @@
 #include "MigrationImapClient.h"
 #include "MigrationSources.h"
 #include "../Application/MigrationJob.h"
+#include "../Pst/PstTester.h"
+#include "../Pst/PstItemsTester.h"
 #include "WebAuthn.h"
 #include "PasskeyStore.h"
 #include "MaskedAddresses.h"
@@ -328,6 +330,25 @@ namespace HM
       migrationImapClientTester.Test();
       MigrationJobTester migrationJobTester;
       migrationJobTester.Test();
+
+      // The PST reader: the format's CRC and encodings, compressed RTF against
+      // [MS-OXRTFCP]'s own examples, HTML carried in RTF, the header's
+      // refusals, data trees, subnode trees, heaps, property contexts and
+      // tables built byte by byte in memory - with the damage the reader must
+      // refuse without looping or allocating what a file claims - and the
+      // import's rules for names, keywords and dates.
+      OutputDebugString(_T("hMailServer: Testing the PST reader\n"));
+      PstTester pstTester;
+      pstTester.Test();
+
+      // The PST reader's ANSI files and what is not mail: an ANSI NDB layer
+      // built byte by byte, the recurrence blob cut at every length, the time
+      // zones across a clock change, and the iCalendar and vCard written from
+      // an appointment, a task and a contact, through this server's own
+      // ICalendar and VCard.
+      OutputDebugString(_T("hMailServer: Testing the PST reader's ANSI files, contacts, calendar and tasks\n"));
+      PstItemsTester pstItemsTester;
+      pstItemsTester.Test();
 
       // Passkeys: the CBOR attestation object, the COSE key inside it, the
       // authenticator data, the two signature algorithms and what each reader

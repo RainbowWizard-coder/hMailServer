@@ -755,6 +755,7 @@
     <Compile Include="API\RestApiBrandLogos.cs" />
     <Compile Include="API\RestApiReaderFetchAccounts.cs" />
     <Compile Include="API\RestApiImportSignIn.cs" />
+    <Compile Include="API\PstImport.cs" />
     <Compile Include="API\RestApiSend.cs" />
     <Compile Include="API\Scim.cs" />
     <Compile Include="API\RestApiSenderAddresses.cs" />

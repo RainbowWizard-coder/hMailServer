@@ -293,7 +293,10 @@ namespace HM
             break;
          if (CountRunning_(job.migrationId) >= concurrency)
             continue;
-         if (CountRunningAt_(host) >= perHost)
+
+         // A PST file is read from this machine's disk: there is no source host
+         // to spare, so MigrationConnectionsPerHost does not apply to it.
+         if (migration->second.kind != MigrationStore::KindPst && CountRunningAt_(host) >= perHost)
             continue;
 
          if (!MigrationStore::MarkJobRunning(job.id))

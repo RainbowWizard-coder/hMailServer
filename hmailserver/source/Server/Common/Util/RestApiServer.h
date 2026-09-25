@@ -1372,6 +1372,12 @@ namespace HM
       // the routes its scheme and host alone, since a receiver's URL often carries
       // a token of its own.
       static bool CallerManagesInboundWebhooks_(const Caller &caller);
+      // True when the request's role holds manage_mailbox in the domain
+      // named. A migration job of Outlook data files writes into another
+      // account's folders, which is that permission's work, beside the
+      // manage_accounts its route needs (RestApiMigrations.cpp); asked here for
+      // the same reason as the one above.
+      static bool CallerMayManageMailboxIn_(const Caller &caller, const String &domain);
 
       // The domain a route acts inside, or nothing when it acts on the server.
       // One reading of the path for both decisions made about it.

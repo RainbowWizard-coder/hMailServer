@@ -2,9 +2,8 @@ Migrating mail into hMailServer
 ===============================
 
 How to bring existing mailboxes into this server: from another IMAP server, from
-mbox files, from a Maildir, from Outlook, and from the original upstream
-hMailServer. What each route preserves, what it does not, and what to do about the
-one format the server does not read.
+mbox files, from a Maildir, from Outlook's own data files (PST), and from the
+original upstream hMailServer. What each route preserves, and what it does not.
 
 If you are moving an *installation* of hMailServer rather than mail from somewhere
 else, this is the wrong page: [Upgrading.md](Upgrading.md) covers a release-to-release
@@ -20,7 +19,7 @@ The routes at a glance
 | Many mailboxes at once: an IMAP server, Google Workspace, Microsoft 365 | A migration: a job per mailbox, run, throttled, resumed and reported on by the server - see *Five hundred mailboxes* below | Folders into their special-use counterparts, every message byte for byte, the five flags and keywords, the internal date; contacts and calendars | Rules, signatures, shared mailboxes, ACLs, subscriptions, Gmail's labels as labels (a message is copied once) |
 | mbox files (Thunderbird's profile, Apple Mail export, a Unix spool) | The Import Tool, one IMAP folder per file | Every message; the date from the `Received` or `Date` header | Flags: mbox has no standard for them, and the Import Tool sets none |
 | A Maildir (Dovecot, Courier, Postfix local delivery) | The Import Tool, the folders and flags read from the tree | The Maildir++ hierarchy, every message, the flags the file names carry, the date from the headers | Custom keywords; the arrival time in the file name (the header date is used instead) |
-| Outlook (PST) | Outlook itself, through IMAP - see below | Whatever Outlook uploads: folders, messages, read and flagged state | Anything Outlook does not put on the wire |
+| Outlook data files (PST) | A migration of kind `pst`: the server reads the file itself - see *Outlook data files* below | The folders under the IPM subtree, the special folders by what the store says they are, every message rebuilt as Internet mail with its attachments, read, draft, flagged, answered and forwarded, its categories as keywords, its internal date | Contacts, calendars, tasks and notes (counted), attachments by reference, OST and ANSI files (refused) - Outlook over IMAP is still the route for those |
 | The upstream hMailServer, in place | The installer, over the existing installation | Everything | Nothing - see [Upgrading.md](Upgrading.md) |
 | Accounts in bulk | The Import Tool's text-file import | Addresses, passwords, quotas | Mail - pair it with one of the routes above |
 
@@ -419,7 +418,8 @@ people's mailboxes, a view not copied, and a folder whose messages were copied o
 into another. Then the contacts and calendars, each copied, skipped with the reasons,
 or skipped whole with the phase's reason; the bytes; the duration; the first and last
 message dates; and the errors - the failures met and retried, and what was left for
-good - the newest fifty.
+good - the newest fifty, each cut to 1,000 bytes, and as many of them as fit in 20,000
+bytes of the report, so that long ones cannot crowd the folders out.
 
 `GET .../summary.csv` is a migration's jobs one per row - job, source user, target,
 state, phase, folders and messages done of their totals, skipped, bytes, attempts,
@@ -430,7 +430,9 @@ hundred of them in a spreadsheet. A value that starts as a spreadsheet formula w
 Two errors reach the server's error log, both about this server rather than the
 source: `HM7240` when a resume mark could not be written (the job goes on, and an
 interruption before the next mark repeats that work without copying anything twice),
-and `HM7241` when a message could not be filed (the job pauses and tries again). What
+and `HM7241` when a message could not be filed (the job pauses and tries again) - and
+for a job of Outlook data files the same two as `HM7370` and `HM7371` (*Outlook data
+files*, below). What
 the source did - a wrong password, a lost connection, a folder it refused - goes to
 the job's `last_error`, its report and the application log. A server at the host and
 port that is not IMAP is said to be so, without what it answered.
@@ -465,6 +467,7 @@ port that is not IMAP is said to be so, without what it answered.
   with the mirror on, which polls until it is switched off.
 - **Many mailboxes, or Google Workspace or Microsoft 365 with the contacts and
   calendars, and a report per mailbox**: a migration.
+- **An Outlook data file (PST)**: a migration of kind `pst` - *Outlook data files*, below.
 - **mbox files or a Maildir on disk**: the Import Tool, below.
 - **The accounts themselves, in bulk**: the Import Tool's text-file import, below,
   before any of the others.
@@ -476,8 +479,10 @@ The Import Tool (`Start menu > hMailServer > Import Tool`, or
 `Addons\ImportTool\ImportTool.exe` under the installation) imports a folder of mbox
 files into one account, one IMAP folder per file, named after the file without its
 extension; `Inbox` (any case) is the INBOX. Thunderbird's profile keeps its
-folders this way (`Mail\<account>\Inbox`, `Sent`, `Archives.sbd\2025`), and its `.msf`
-index files beside them are ignored. Each message is streamed out of the file - a
+folders this way (`Mail\<account>\Inbox`, `Sent`), and its `.msf` index files beside
+them are ignored. Only the files directly in the chosen folder are listed: a
+subfolder's files (Thunderbird's `Archives.sbd\2025`) are imported by choosing that
+folder in a second run. Each message is streamed out of the file - a
 mailbox larger than memory is fine - its line endings made CRLF, and handed to the
 server, which files it and takes the date from its `Received` or `Date` header.
 mbox carries no flags the tool could read, so every imported message is unread.
@@ -508,14 +513,615 @@ archive made on the Unix side and opened with 7-Zip, keep it).
 If the server's IMAP hierarchy delimiter has been changed from `.`, a Maildir++
 folder name is still split on `.`, because that is what the format means by it.
 
-From Outlook
-------------
+Outlook data files (PST)
+------------------------
 
-The server does not read PST files, and this is deliberate. PST is a proprietary
-format whose readable implementations are either commercial or GPL-licensed
-libraries with a long record of fidelity problems on real archives, and a migration
-tool that silently drops or damages a message is worse than none. Outlook itself,
-which wrote the file, is the reliable reader of it:
+**Built 24 September 2026, bounded 25 September 2026, and extended the same day** to
+ANSI files, OSTs that are PSTs in all but name, contacts, calendar items, tasks, notes
+and journal entries. A PST - the file Outlook keeps a mailbox or an archive in - is
+read by this server itself, as a migration of kind `pst`: a job per file, each into
+one account, with the migrations' state, throttle, resume marks and report (*Five
+hundred mailboxes* above). The reader runs inside the service, not in a child process
+the service could end - that is still to come - and *Resume, the reader's guard, and
+the report* below says what bounds it meanwhile.
+
+The reader is this project's own, written from Microsoft's published specifications
+and nothing else: [MS-PST] for the file (its pages, blocks and B-trees - the Unicode
+layout and the ANSI one - the heaps, property contexts and tables built on them, and
+the store, folders and messages built on those), [MS-OXRTFCP] for compressed RTF,
+[MS-OXRTFEX] for HTML and text carried in RTF, [MS-OXCMSG], [MS-OXPROPS] and
+[MS-OXCMAIL] for what a message's properties mean as Internet mail, and
+[MS-OXOCNTC], [MS-OXOCAL], [MS-OXOTASK] and [MS-OXCICAL] for contacts, appointments
+and their recurrence, tasks, and how they are said in iCalendar. The server contains
+no third-party PST code.
+
+### Where the file goes
+
+A job names a file; it never gives a path. The file is looked for only in the
+subdirectory, named for the target account's domain, of the directory the setting
+`pst_import_directory` names (`PstImportDirectory` in `hm_settings`, empty as shipped,
+set with `PUT /api/v1/settings` or on the Control Deck's Settings page):
+
+    D:\PstImport\                       <- pst_import_directory
+    D:\PstImport\example.com\archive.pst <- a job for anna@example.com names archive.pst
+
+The directory must be an absolute path on this machine (a share on another is
+refused: the service's account usually cannot see one), and the subdirectory is the
+domain's name in lower case. Copy the file there, where the account the service runs
+as can read it. While the setting is empty, a PST job is refused with *No PST import
+directory is set on this server*.
+
+The name is checked when the job is added, and again when it runs. It must be a name
+such as `archive.pst` or `2019/archive.pst`: a path, a drive letter, a share (`\\server\share`),
+a leading separator or a `.` or `..` component is refused. Then the domain's
+directory and the file are each resolved as the file system resolves them - every
+link and junction followed, short names and case as they are on disk - and a file
+that lands outside that domain's directory is refused, however its name was spelled.
+The job checks the file it opened once more, by the final path of its own handle, so a
+file swapped for a link between the check and the read is refused rather than read
+(*The file changed between the check and the read; name it again.*) - and so is a
+handle whose final path cannot be told, or that is on another machine, as the check
+when the job was added refuses both. On Linux the file is opened without following a
+link in its last name and without waiting on anything that is not a regular file (a
+FIFO put in its place would otherwise hold the job, and every stop of the service
+with it). A sentence about the file names it below the domain's directory, never by
+where the directory is on this machine, since a domain's administrator reads it.
+
+The rule is the same for everyone, the server administrator included, because the
+directory is shared and a domain's administrator holds `manage_accounts` for their own
+domain: without it they could import, into an account of their own, a file left for
+another domain ([Roles.md](Roles.md)).
+
+### Running one
+
+    POST /api/v1/migrations               {"name": "Archives", "kind": "pst"}
+    POST /api/v1/migrations/{id}/jobs     archive.pst,,anna@example.com
+                                          2019/bert.pst,his-pst-password,bert@example.com
+    POST /api/v1/migrations/{id}/start
+
+A pst migration takes no host, port, security or `dav_url` (what a form sends for
+them is not used); `concurrency` and `messages_per_minute` apply as to any migration,
+and `MigrationConnectionsPerHost` does not, since there is no host. A job's
+`source_user` is the file's name and its `secret` the file's password, when it has
+one; a first CSV line naming the columns is skipped - `sourceuser,...`, or for a pst
+migration `file,password,target` as a whole line (a mailbox or a file called `file`
+is a job). The job keeps the one name the file has below the domain's directory,
+however it was spelled - `2019\bert.pst`, `2019/bert.pst`, `2019/BERT.PST.` and its 8.3
+name are all `2019/bert.pst` - so that one file is one job, and two migrations cannot
+read it into one account at once.
+
+`hmctl api POST /api/v1/migrations/{id}/jobs` takes one job as JSON -
+`{"source_user": "archive.pst", "secret": "", "target": "anna@example.com"}` - and a
+list of files goes as the CSV body above over REST, or into the Control Deck's
+Migrations view, which makes the migration (kind `pst`) and takes the lines.
+
+The permission is a migration's, `manage_accounts` in the target's domain, and
+`manage_mailbox` there as well: a PST job writes into the account's folders. A file
+whose store a finished job already gave that account is refused when its job runs -
+*This file's store was imported into this account already, by job N of migration M* -
+since a second job would file every message again; delete that migration to import it
+once more.
+
+### What is read
+
+Only the folders a person sees in Outlook: the **IPM subtree** and everything under
+it. Search folders, the folders outside the subtree (the search root, Outlook's views
+and its own bookkeeping) and a folder's associated items (its views and rules, not
+mail) are never read.
+
+- Each folder is filed at its own path below the account's top level; a top-level
+  **Inbox**, in any case, is the INBOX. A localised Inbox keeps its own name - the
+  store names no Inbox - and the report shows where each folder went.
+- The special folders are found by what the store says they are, **never by their
+  names**: *Sent Items* and *Deleted Items* by the message store's
+  `PR_IPM_SENTMAIL_ENTRYID` and `PR_IPM_WASTEBASKET_ENTRYID`, *Drafts* and *Junk
+  E-mail* by the root folder's `PR_IPM_DRAFTS_ENTRYID` and the fifth entry of its
+  `PR_ADDITIONAL_REN_ENTRYIDS` (else the Inbox's). Each is filed into the account's own
+  folder of that use where it has one, and otherwise into a folder of the PST's name
+  that is given the use (`\Sent`, `\Trash`, `\Drafts`, `\Junk`). An account folder that
+  holds one of the four uses by its name alone (IMAP's name table: *Sent Items*,
+  *Trash* ...) is given it for good before the import makes anything, so that no folder
+  the import makes - an ordinary *Sent* listed before the account's *Sent Items* - can
+  take it by name.
+- An ordinary folder is filed at its own path even when its name is a special folder's
+  - but never into a special folder: one whose path is the account's special folder's,
+  or the one the PST's own special folder is filed into, arrives beside it as
+  *Sent Items (PST)*, and the report names the rename. An ordinary *Junk E-mail* is an
+  ordinary folder, and gets no `\Junk`.
+- Names are made ones this server's folders can hold, and the report names every
+  change: the hierarchy delimiter inside a name becomes `_`, a top-level name starting
+  with `#` gets a `_` in front, an empty name is *Unnamed folder*, a name is cut, at a
+  character, until its stored (modified UTF-7) form is at most 255 characters, and a
+  folder deeper than 25 levels is filed into its ancestor at 25. Folders whose names
+  differ only in case are one folder here, and sibling folders of one name are one
+  line of the report, their counts added. A name is read as at most its first 1,024
+  bytes; folders nested more than 64 levels below the IPM subtree are not read, and a
+  file that names more than 100,000 folders, or whose folders' paths together pass
+  16 MB, is refused.
+- A folder's target is decided the first time the job sees it and kept - compared, at
+  every run, as the job's row holds it (1,024 characters), so that a longer path is
+  never cut short and split again - and the folders the job makes are subscribed.
+- **Notes and journal entries** are filed as messages, each folder of them at its own
+  path like any other; **contacts, calendar items and tasks** go into the account's
+  address books and calendars in the job's contacts and calendars phases, and no mail
+  folder is made for them (*Contacts, calendar items, tasks, notes and journals*,
+  below). An appointment, a contact or a task inside a mail folder is counted by its
+  class and not imported: those phases read the folders Outlook keeps such items in.
+
+Each message is imported with:
+
+- **Flags**: read is `\Seen`, unsent `\Draft`, flagged for follow-up (flag status 2)
+  `\Flagged`, replied to `\Answered`, forwarded the keyword `$Forwarded`. `\Deleted` is
+  never set.
+- **Keywords**: its categories, each character an IMAP keyword cannot hold (a space,
+  brackets, anything outside ASCII) made `_`; what does not fit in a message's 500
+  characters of keywords is named in the report.
+- **The internal date**: when it was delivered, else sent, else made, in this server's
+  time as a delivered message's is - a delivery or sent time before 1981 or more than a
+  day ahead is passed over for the next, with a warning, and a message with no date
+  left is dated by its Date header, else as imported, with a warning.
+
+### What a rebuilt message is
+
+A PST keeps a message's properties, not the message as it arrived, so each is written
+again as Internet mail, and **deterministically**: the same file gives the same bytes
+on every run, which is how a resumed job knows what it filed before.
+
+- **Headers**: the message's transport headers where it kept them (mail that was
+  received), with MIME-Version and every `Content-` field left out and written again
+  for the body built here. Otherwise they are built: From (the "sent representing"
+  sender), Sender when it differs, To, Cc and - only where the recipient table has one
+  - Bcc, Subject (Outlook's prefix marker removed), Date (sent, else delivered, else
+  made, in UTC), Message-ID, In-Reply-To and References; none is invented. An
+  Exchange sender or recipient is written by the SMTP address the PST keeps beside
+  it; one it kept none for is written as its name alone (`Name:;`). Text outside ASCII
+  is RFC 2047-encoded, and a line break inside a property never starts a header.
+- **Bodies**: text/plain from the plain body; text/html from the HTML body, its bytes
+  as they are and its charset named from the message's code page (a code page not in
+  the table below gets no charset and a warning); else the HTML an RTF body carries
+  (`\fromhtml1`), as UTF-8. multipart/alternative, multipart/related and
+  multipart/mixed each appear only where they are needed.
+- **Attachments**: a file is a part named by its long file name, cut to its last
+  component, its control characters removed and RFC 2231-encoded, of its own MIME
+  type or `application/octet-stream`; one with a Content-ID goes with an HTML body as
+  a picture it shows. An embedded message is message/rfc822, rebuilt the same way, at
+  most ten deep, and what it came in without is the message's warning too. Each
+  multipart's boundary is one that no line of its parts begins with, since an
+  embedded message's own lines go in as they are.
+- **S/MIME** is kept as it was: a clear-signed message is its headers followed by the
+  signed entity byte for byte; an opaque one is `application/pkcs7-mime`, with no
+  `smime-type`, since the file does not say whether it is enveloped or signed.
+- An identifier - a Message-ID, In-Reply-To or References - longer than a header line
+  may be (998 characters) cannot be folded, and is left out with a warning.
+
+### Contacts, calendar items, tasks, notes and journals
+
+After the mail, the job's contacts and calendars phases open the file again and put
+what it holds besides mail where a phone or the webmail would find it: through the
+same stores CardDAV, CalDAV and the webmail write, past the same checks, as the text a
+CardDAV or CalDAV client would have sent. Most of these items' properties are named
+ones ([MS-PST] 2.4.7), found through the file's name-to-id map rather than by fixed
+numbers. The phases read that map once, after the store is opened, as a unit of the
+work budget of its own; where it cannot be read, no item is lost for it, each item
+read without it says so, and the report says once why its contacts are counted
+`no_address` and its events `no_start`. (The mail phase, which needs it only for a journal entry's
+fields, reads it at the first entry, and tries it again at the next, three times in
+all.)
+
+**Which folders.** Every folder of the phase's kinds under the IPM subtree, but not a
+folder Outlook keeps hidden (`PR_ATTR_HIDDEN`), and of contacts not the sub-classes of
+`IPF.Contact` Exchange and Outlook keep for themselves - the recipient cache, the GAL
+and organisational contacts, Skype's lists (`IPF.Contact.RecipientCache`,
+`IPF.Contact.GalContacts` ...); the report names each folder left out, with why. A
+folder under **Deleted Items** is imported, as the mail phase imports Deleted Items
+(into the account's Trash) - but after every other folder, so that a live contact or
+event always wins over a deleted copy of it, which is counted `already_there`: a
+contact's address is looked for across the account's books, as it always is, and a
+deleted event's UID across every one of the account's calendars. It goes into a book
+of its name or a calendar of its own, never the default: one that cannot have its own
+- its name the default book's or one no book may have, the account at its ceiling of
+books, the job at its ceiling of calendars - is left out, its items counted
+`folder_left_out`, and the report says why.
+
+**Where they go** is decided when a folder's first item is stored - an empty folder
+makes nothing - and kept in the folder's row of the job, so that a later run puts the
+rest of the folder where its first items went. The default folders (below) go into the
+account's default address book or calendar; every other contacts folder into a book
+of its name and every other calendar or tasks folder into a calendar of its own, each
+found or made, its name cut to the 255 characters a book's or a calendar's may have. A
+folder that cannot have its own goes into the default one and the report's `errors`
+say why: the account at its ceiling of 50 address books, the job at its ceiling of 50
+calendars made, a name no book may have, or its own refused as often as an item may be
+(below), when the item that asked goes there with it.
+
+**Contacts** (`IPM.Contact`, in every contacts folder taken). The folder the root
+folder names as the contacts folder (`PidTagIpmContactEntryId`), else the first outside
+Deleted Items, goes into the account's default address book; every other into a book
+of the folder's name. Each contact is kept as a **vCard 4.0**: `FN`
+(the display name, else the given and family names, else the "file as" name), `N`
+(family, given, middle, prefix, suffix), `NICKNAME`, `ORG` (company and department),
+`TITLE`, up to three `EMAIL` (Email1 to Email3 - an Exchange address by the SMTP
+address Outlook keeps beside it, the first marked preferred), `TEL` with vCard 4
+types (work, home, cell, fax, pager; the primary, car, assistant and other numbers as
+voice), `ADR` for the home, work and other addresses (the mailing address alone where
+none of the three is there), `BDAY` (the day `PidLidBirthdayLocal` keeps, else the day
+nearest `PidTagBirthday`, with a warning: that is a time in UTC in a zone the file does
+not name, and a zone twelve or more hours from UTC puts it a day out), `URL` (the
+business and personal home pages), `CATEGORIES`, `NOTE` (the contact's notes, cut to
+256 KB with a warning where they are longer), `PHOTO` (the attachment
+marked as the contact's picture, a JPEG, PNG or GIF of at most 512 KB, as a `data:`
+URI) and `REV`. The card is what `GET /api/v1/me/contacts?fields=card` answers and
+what CardDAV serves, byte for byte; the listing reads its birthday, note, telephones
+and photo from it. The address book keeps each contact under one e-mail address - its
+preferred one - and one address once in an account, so a contact with **no e-mail
+address** cannot be kept (`no_address`), nor one whose address the account holds
+already as a contact (`already_there`). An address the account only **collected** from
+mail it sent, in the book the contact goes into, is adopted as CardDAV adopts one: the
+row takes the PST's card and name, and is kept as a contact from then on (one
+collected into another book is left there, `already_there`). A **distribution list**
+(`IPM.DistList`) is counted (`distribution_list`) and not imported.
+
+**Calendar items** (`IPM.Appointment`, and a meeting request kept in a calendar
+folder, in every calendar folder) and **tasks** (`IPM.Task`, in every tasks folder).
+The calendar and the tasks folder the root folder names (else the first of each
+outside Deleted Items) go into the account's default calendar; every other folder into
+a calendar of its own, named after the folder. Each appointment becomes a **VEVENT**:
+`SUMMARY`, `LOCATION`, `DESCRIPTION` (cut to 256 KB with a warning where it is
+longer), `CATEGORIES`, `CLASS` for a
+private or confidential one, `TRANSP` and `X-MICROSOFT-CDO-BUSYSTATUS` from its busy
+status, `STATUS:CANCELLED` for a cancelled meeting, `ORGANIZER` and an `ATTENDEE` per
+recipient with an SMTP address (required, optional or a resource, with the answer
+Outlook tracked), a `VALARM` for its reminder, and a `UID` from its global object id
+([MS-OXCICAL]: the UID the id carries, else the id in hex) or, without one, a UID made
+from the file and the item. A single appointment's start and end are UTC; an all-day
+one is the days it covers in the zone it was made in, where the file names that zone -
+where it names none, the day nearest its start in UTC, with a warning, since a zone
+twelve or more hours from UTC puts that a day out. A **recurring** one is read from
+its recurrence blob ([MS-OXOCAL] 2.2.1.44) and written in its own time zone - the
+Windows zone Outlook names (`PidLidAppointmentTimeZoneDefinitionRecur`, else
+`PidLidTimeZoneStruct`), carried in the object as a `VTIMEZONE` - so a weekly 09:00
+meeting stays at 09:00 across a clock change: an `RRULE` (daily, weekly on its days,
+monthly on a day or on the nth weekday, yearly; its interval, its count or its end as
+an `UNTIL` in UTC, and `WKST`), an `EXDATE` for each occurrence deleted, and for each
+occurrence moved or changed an override with its own `RECURRENCE-ID`, start, end,
+subject and location. Outlook's "day 30 of every month" falls on the last day of a
+shorter month, and is written so (`BYMONTHDAY=28,29,30;BYSETPOS=-1`). A zone whose
+changes Outlook gives as dates of one year (a `wYear` set) is read as those dates every
+year, by the `VTIMEZONE` and by the times alike. A blob must describe as many changed
+occurrences as it says are changed, as [MS-OXOCAL] requires; one that does not is
+`recurrence_unreadable`. Each task
+becomes a **VTODO**: `SUMMARY`, `DESCRIPTION`, `DTSTART` and `DUE` as days, `STATUS`
+(needs action, in process, completed), `PERCENT-COMPLETE`, `COMPLETED`, `PRIORITY` (1
+for high importance, 9 for low), `CATEGORIES`, `CLASS` and a `VALARM` at its reminder
+time. Outlook's "no date" (4501-01-01) is no date. Every object is parsed and
+summarised as CalDAV parses and summarises what a client sends before it is stored;
+one that does not pass is counted `not_storable` with the reason, one whose
+recurrence cannot be read or said `recurrence_unreadable` - the whole series, never
+a guess at it - and one with no time `no_start`. An object whose UID the calendar
+holds already is not stored again (`already_there`). An object is stored under a
+resource name made from its UID, as the webmail's are - the letters, digits and
+`@._-` kept and every other character made `_`, at most 200 - so two UIDs that differ
+only in the characters made `_` make one name: the second is refused by the store as
+often as an item may be, and counted `not_saved`. The events are what
+`GET /api/v1/me/calendar/events` expands and CalDAV serves; the tasks what
+`GET /api/v1/me/tasks` lists.
+
+**Notes** (`IPM.StickyNote`) and **journal entries** (`IPM.Activity`) are filed as
+messages, in the mail phase, into a folder of their folder's name (*Notes*, *Journal*,
+or what the file calls them): a note as its text, with its subject and date; a journal
+entry as its text with its type, start, end, duration, contacts and companies written
+above it (*Journal entry: Phone call*, *Start: 2024-03-05 10:00 UTC* ...). Outlook's
+RTF copy of a note's or an entry's text is not kept beside it.
+
+**Text.** A contact, an appointment or a task keeps 64 KB of a name or another short
+text and 256 KB of its notes or description, each cut at a character with a warning
+where it is longer, and leaves out, with a warning, a short text of more than 1 MB or
+notes or a description of more than 4 MB - never the item for it. Notes or a
+description Outlook kept only as RTF (no plain text beside it) are read through the RTF
+reader the mail phase uses, at most 4 MB of it, charged to the budget before it is
+decompressed, where the RTF carries plain text or is written in RTF; HTML carried in
+RTF is left out, with a warning.
+
+What a contact or an item comes in without - a text cut or left out, a picture that is
+not a JPEG, PNG or GIF or is larger than 512 KB, a list of attendees that could not be
+read, a day guessed for want of a zone - is named in the report's `errors`, the first
+fifty of a run.
+
+### What is thinner, and what is refused
+
+- **Attachments by reference** (a path, a OneDrive or web link) and **OLE objects** are
+  not imported; the report names each, with its method, and the message comes in
+  without it.
+- **An RTF body written in RTF** (neither HTML nor text carried in it) is kept as
+  `body.rtf` beside the text, with a warning; the text part is then the RTF's own
+  plain text where the message had no other.
+- **Meeting requests and reports** (`IPM.Schedule.*`, `REPORT.*`) in a mail folder come
+  in as the text Outlook keeps; the iCalendar part of a request and the
+  multipart/report of a delivery report are not rebuilt. The appointment Outlook made
+  of a request is in the calendar folder, and comes in as an event.
+- **Eight-bit text** (`PT_STRING8`) in a code page outside the table below is not
+  decoded: its ASCII is kept and every other byte becomes U+FFFD, with a warning.
+- **A message larger than the reader takes** is not imported, and is counted
+  `too_large` and named: one whose text and data together - its bodies, headers,
+  recipients, attachments' names and bytes, and its embedded messages' the same - pass
+  128 MB; whose plain, HTML or RTF body alone passes 64 MB; that holds more than 10,000
+  attachments and embedded messages, counting those inside its embedded messages; or
+  that costs more than its work budget (below). A subject, a header block, an
+  identifier or a sender's name past its own limit (64 KB; 4 MB for the headers) is
+  left out instead, with a warning (`property_too_large`), and the message comes in
+  without it. Of more than 5,000 recipients the first 5,000 are kept
+  (`recipients_left_out`); of a recipient's or an attachment's name, at most 64 KB is
+  read. The account's message size limit is not asked of archived mail (*Quota*,
+  below).
+- **A damaged message** - a block whose checksum fails, a table that points outside
+  itself - is counted `unreadable` and named, and the rest of its folder comes in.
+  A damaged attachment or recipient list leaves the message without it, with a
+  warning. A damaged contact, appointment or task is the same: that item alone.
+- **A contact with no e-mail address**, or with only an Exchange address the file
+  kept no SMTP address for, is not kept (`no_address`): this server's address book
+  holds each contact under an address. A contact's second and third addresses are in
+  its card; the address book finds it by the first. **Distribution lists** are counted
+  (`distribution_list`), not made into contact groups.
+- **A changed occurrence of a series** takes its time, subject, location and busy
+  status from the recurrence blob; its own body, attendees, reminder and attachments,
+  which Outlook keeps in a message embedded in the series, are not read, and it has
+  the series' instead. An occurrence made all-day, or no longer all-day, on its own
+  is written as its series is. A series is placed by its zone's rule in force when it
+  starts; a change to that zone's rules in a later year is not followed. A series on
+  a lunar or Hijri calendar is `recurrence_unreadable`: an `RRULE` cannot say it.
+  Attachments of appointments and tasks are not imported.
+- **Tasks**: a recurring task comes in as its current occurrence (its recurrence is
+  not read); "waiting on someone else" and "deferred" are `NEEDS-ACTION`; a task
+  request (`IPM.TaskRequest`), and who a task was assigned to, are not read.
+- **An ANSI file names no code page for its folders' and its store's names**: they are
+  read as Windows-1252; a message's text is read in the code page it names.
+- **An appointment, a contact or a task in a mail folder** is counted by class, not
+  imported.
+
+A file the reader does not take fails its job at once, with the sentence it says:
+
+| The file | The job says |
+|---|---|
+| The 4K-page layout (version 36): an OST of Outlook 2013 and later, or a PST in that layout | *This file is in the 4K-page layout (version 36) that Outlook 2013 and later write for an OST - Outlook's offline copy of a mailbox that lives on a server - with 4 KB pages and compressed blocks that Microsoft's published PST format ([MS-PST]) does not describe ...; migrate the mailbox from its server with a migration job, or export its folders to a PST in Outlook.* |
+| An OST caching an Exchange mailbox, whose store names its folders by the server's EntryIDs | *This OST - Outlook's offline copy of a mailbox that lives on a server - names its folders by the server's own identifiers rather than by the file's, and how the one maps to the other is not in Microsoft's published PST format ([MS-PST]) ...; migrate the mailbox from its server with a migration job, or export its folders to a PST in Outlook.* |
+| Protected with Windows Information Protection | *This PST is encrypted with Windows Information Protection, under a key that only the Windows account and device that protected it can use, so no server can decrypt it; open it in Outlook on that computer, as that account, and export its folders to a new PST saved as a personal file, with the protection removed.* |
+| Any other version or encoding | *This PST's format (version N, encoding M) is not one this reader knows ...* |
+| A damaged header, or a file shorter than its header says | *The file's header is damaged ...* / *The file is N bytes and its header says M: it was cut short ...; copy it again.* |
+| A password, missing or wrong | *This PST is protected with a password; give it as the job's secret.* / *The password given is not this PST's ...* - retry the job with the password (`POST .../jobs/{job}/retry`, `{"secret": "..."}`) |
+| Gone when the job runs | *There is no file ... What the job copied stays; put the file back and retry the job to go on from where it stopped.* |
+
+A file **Outlook has open** (or any program holding it without sharing it) pauses the
+job instead - *The file is open in Outlook or another program that does not share it;
+close it, and the job tries again* - and it is tried again with the usual back-off,
+or at once with a retry. The PST password is Outlook's: it is checked against the CRC
+the file keeps, as [MS-PST] describes, and it protects nothing in the file itself.
+Read the password check as this row's reading of the specification, tested against
+files written here: no password-protected PST from Outlook was at hand.
+
+**What is read of the older and the offline files, and why the rest is not.**
+
+- **ANSI files** (Outlook 97 to 2002, `wVer` 14 or 15) are read. [MS-PST] specifies
+  them beside the Unicode ones field for field: four-byte BIDs, IBs and NIDs, a
+  512-byte header with one CRC, 12-byte page and block trailers with the BID before
+  the CRC, narrower B-tree entries and data and subnode trees. Everything above that
+  - heaps, property contexts, tables, the store, folders and messages - is the same,
+  and a table's rows are packed into the ANSI block's 8,180 bytes. The layout was
+  checked against a file written here from [MS-PST] (`ansi.pst`), which libpff - a
+  reader written by other hands - also reads whole, attachment and code pages
+  included; no ANSI file Outlook wrote was at hand.
+- **An OST** (`wMagicClient` "SO") of version 23 - Outlook 2003 to 2010 - or an ANSI
+  one has the pages, blocks, heaps and tables [MS-PST] describes; [MS-PST] names only
+  the magic apart. It is read as a PST wherever its store names its folders as a PST
+  does (24-byte PST EntryIDs, [MS-PST] 2.4.3.2). An OST that caches an Exchange
+  mailbox names them instead by the server's own EntryIDs, and [MS-PST] says nothing
+  of how those map to the file's nodes; such a file is refused at its store, with the
+  sentence above. No OST from Outlook was at hand, so the second case - which is the
+  usual one - is this reading of the specification rather than a file seen.
+- **The 4K-page layout** (`wVer` 36, what Outlook 2013 and later write for an OST) stays
+  refused. [MS-PST] describes 512-byte pages and 8 KB blocks only; a version-36 file
+  has 4 KB pages, larger blocks and compressed blocks, and Microsoft has published
+  neither their layout nor how they are compressed. What descriptions exist are third
+  parties' reverse engineering, which this reader - written from Microsoft's
+  specifications alone - does not take, and no such file was at hand to prove a
+  reader against.
+- **Windows Information Protection** (`bCryptMethod` 0x10, `NDB_CRYPT_EDPCRYPTED` in
+  [MS-PST]) stays refused, and nothing else is honestly possible: the file's blocks
+  are encrypted with a key Windows keeps for the enterprise identity of the account
+  that protected it, which never leaves that account and device. Only Outlook there
+  can open it, and export its folders to a PST with the protection removed.
+- **A password-protected PST** is read with its password: [MS-PST] keeps the
+  password as a CRC-32 in the message store's `PidTagPstPassword`, not as encryption -
+  nothing in the file is encrypted with it - and the job asks for it only because the
+  file's owner set it.
+
+### Resume, the reader's guard, and the report
+
+A folder's messages are taken in the order of their node ids, and the job writes the
+last one dealt with after every message, so an interruption anywhere - a restart, a
+pause, the service stopping - goes on from the next. A job that ran before also reads
+back what it filed, and the import's duplicate check keeps anything from arriving
+twice.
+
+The reader runs in the service, and what a file can make it do is bounded twice over.
+Every size, offset, count and level is checked against the block it is in and the
+limit it is read with before anything is allocated from it, and every tree it walks -
+the node and block B-trees, a data tree, a subnode tree, a heap's B-trees, the
+folders - has a depth cap and refuses a page, a block or a node it has already been
+to in that walk. And because a file can still ask for the same legitimate work again
+and again - a table whose every row names one large value, an embedded message that
+holds itself - every read is charged to a **work budget**: each page, block, heap
+allocation, table cell, subnode, attachment and embedded message read counts one,
+with the bytes it decodes. That holds for an ANSI file's pages, blocks and subnode
+entries as for a Unicode one's, and for what the contacts and calendars phases read:
+each contact, calendar item and task, each attachment looked at for a contact's
+picture, the name-to-id map, an appointment's recurrence blob (its bytes, and each
+changed occurrence) and its time zones (each rule).
+
+| What is read | Its budget |
+|---|---|
+| One message read whole, the store opened, one folder of the list of folders, or one folder's list of messages | 4,000,000 reads and 512 MB decoded |
+| One contact, calendar item or task read whole (its recurrence and time zones with it), the root folder read for the default contacts, calendar and tasks folders, or one folder's list of items | 4,000,000 reads and 512 MB decoded |
+| The whole file, in one run of its job's mail phase - and again in each of its contacts and calendars phases, which open the file anew | 10,000,000 reads and one more for every 4 bytes of the file; 1 GB decoded and 64 bytes more for every byte of the file |
+| What a message keeps | 128 MB, 10,000 attachments and embedded messages, 5,000 recipients, 100 warnings of at most 1,024 bytes |
+| What a contact, calendar item or task keeps | 64 KB of a name or other short text and 256 KB of notes or a description, cut with a warning (a short text of more than 1 MB, or a body of more than 4 MB, left out with a warning), a 512 KB picture (the first attachment marked as one, each attachment looked at once), 5,000 attendees of at most 1,024 bytes a name, 100 warnings of at most 1,024 bytes; and as iCalendar or a vCard, 1 MB - a series whose changed occurrences, each repeating its description and attendees, would come to more is `too_large`, counted before they are built |
+| What the list of folders keeps | 100,000 folders, 16 MB of paths, 1,000 sentences about what could not be read (the report names twenty) |
+
+A message past its budget is counted `too_large` and named, and so is a contact, a
+calendar item or a task; a file past its own fails the job - *Reading this file has
+cost more work than any PST Outlook writes needs for its size* - with what it copied
+kept, and a retry goes on from the marks with a budget of its own. Every read also
+asks whether the job has been told to stop, so a pause, a cancel, a restart or the
+service stopping waits for one read, never for a file; the phase that was reading
+puts its mark back where the last message or item left it. Memory that runs short
+is the server's, not the file's: the mark stays before the message or item, and the
+job tries again.
+
+What no bound can rule out is a defect in the reader itself that ends the process; so
+before the job opens the store and lists its folders, before a folder's list of
+messages and before each message, it writes where it is, and after, that it got past.
+A run that finds that mark still standing takes the thing once more; the second time,
+it leaves that message out (`reader_stopped`: the service stopped twice while it was
+being read or filed), or that folder, or fails the file, and says so - so that no file
+can stop the service at every start through the reader. A crash is still a crash of
+the service, which is what the child process this row has still to build is for.
+The contacts and calendars phases keep the same marks and the same guard, each
+contacts, calendar or tasks folder with a row of its own, so an interrupted phase
+goes on from the item after the last one it dealt with and stores nothing twice.
+
+The report is a migration job's (above), and adds `pst`: the file, its size, the
+store's name, record key, version (14 or 15 for an ANSI file) and encoding (`none`,
+`permute` or `cyclic`), the folders that could not be read (`not_read`), the items
+counted and not imported by
+class (`not_mail`: the folders that are not mail by their container class, counted
+afresh at every pass, and the messages in mail folders that are not mail by their
+message class, counted once each - `not_mail_folders` and `not_mail_messages` are the
+two parts), the refusal, if the file was refused, and `list_attempts`, the guard's
+count. Every string from the file is cut to a couple of hundred bytes with no control
+characters in it, and at most twenty classes are named in each count, the rest
+together; the contacts, calendar and tasks folders among `not_mail_folders` are what
+the next two phases take. The report's `contacts` and `calendars` parts say what those
+phases copied and what they skipped and why (`no_address`, `already_there`,
+`distribution_list`, `not_a_contact`, `no_start`, `recurrence_unreadable`,
+`not_storable`, `not_an_item`, `too_large`, `unreadable`, `not_saved`, `folder_left_out`,
+`reader_stopped`), or why a
+phase was skipped whole (*the file has no contacts
+folder*); each contacts, calendar and tasks folder has the same counts, and the address
+book or calendar it went into, as its target. Each folder has its source path, its
+target, its special use, the messages the file says it holds, what was copied, what was skipped and why (`duplicate`,
+`too_large`, `unreadable`, `not_mail`, `reader_stopped`), what a message came in
+without (`warnings`: `attachment_not_imported`, `attachment_unreadable`,
+`attachments_unreadable`, `recipients_unreadable`, `recipients_left_out`,
+`embedded_too_deep`, `rtf_body_kept`, `rtf_unreadable`, `html_charset_unknown`,
+`text_not_decoded`, `property_too_large`, `identifier_too_long`,
+`categories_unreadable`, `keywords_left_out`, `delivery_time_out_of_range`,
+`submit_time_out_of_range`, `date_missing`, `warnings_left_out`) and the renames.
+
+The application log names every message and folder not imported, with the reason -
+too large for the reader or for the 2 GB ceiling, unreadable, left out by the guard -
+and the first fifty warnings of a run. The report's `errors` keep the most recent fifty
+of those entries, and of the retries, as many as fit in the report. Duplicates (what a
+job meets again after an interruption) and items that are not mail are counted, not
+named.
+
+### Quota
+
+Each message is filed as an IMAP APPEND is, as archived mail: the 2 GB ceiling (and not
+the account's message size limit, which is about mail sent to the account now - old
+PSTs hold messages larger than today's limit), the room on the data directory's
+volume, and the account's quota. A message the quota has no room for pauses the job
+with the account's name and the reason - *the account has no room left under its
+quota* - and it is tried again after 1, 5 and 15 minutes and then hourly, up to 24
+attempts in all, after which the job fails and a retry resumes it; raise the quota (or
+make room) and retry the job to go on at once. No message is filed past the quota by
+the check each message makes; the check and the filing are not one step, so two jobs
+into one account, or mail arriving meanwhile, can each pass it before the other's
+message lands.
+
+`HM7370` reaches the error log when a folder's resume mark could not be written (the
+job goes on, and an interruption before the next mark repeats that work without
+copying anything twice), and `HM7371` when a message could not be filed for a reason
+of this server's - its database, its volume (the job pauses and tries again). The
+contacts and calendars phases add two: `HM7410` when one of their resume marks, or
+where a folder's items go, could not be written (as `HM7370`), and `HM7411` when a
+contact, an appointment or a task could not be saved into the account's address book
+or calendar, or its folder's own book or calendar could not be made. Such an item is
+**held**: the folder's row keeps it with how often it has been refused, and the job
+goes on to the items after it, which show whether the store works.
+- **An item after it is stored**: the store works, so each held item is tried once
+  more at once and, refused again, is its own refusal - a resource name another UID
+  holds, a character a MySQL table cannot keep - counted `not_saved` and named, with
+  no pause; `HM7411` says so once a run.
+- **The folder ends with items still held**: they are tried once more; one stored
+  shows the store works, and the others are counted as above. None stored: the store
+  is not working, or proves nothing - as with `HM7371`, their counts go up and the job
+  pauses with the job's usual pauses (1, 5 and 15 minutes when nothing else has failed
+  before them) and tries them again when it reaches the folder's end.
+- At most two items are held at once; a third refused with none stored since pauses
+  the job with the mark before it.
+- A held item still refused in its fourth run (three pauses) is decided by that count:
+  counted `not_saved`, or - where it was its folder's own book or calendar that was
+  refused - the folder goes into the default instead, and the item is tried there once
+  (refused there too, it is `not_saved`); under Deleted Items such a folder is left
+  out, its items counted `folder_left_out`. A database that answers the job's own
+  records but refuses every new contact or event for that long - one at its size limit
+  - therefore has the items held then counted `not_saved`; the job's own ceiling of 24
+  attempts still stands, and a retry goes on from the marks.
+
+Every read, of an item after the mark or of a held one, is first written into the
+folder's row with its attempt, so the reader's guard leaves out an item that stopped
+the service twice wherever it is read; a held item leaves the row only in the save that
+writes its outcome, so no crash, stop or pause loses a held item or its count.
+
+**On MySQL before schema step 6102**, the tables that hold contacts, address books and
+a job's folders are in the three-byte `utf8` character set; step 6102 moves them to
+`utf8mb4`, and from it MySQL keeps characters outside the Basic Multilingual Plane
+like any other. Before it, a contact whose name or notes hold such a character - an
+emoji, some CJK - is refused, and counted `not_saved` (at once, where a contact after
+it is stored); and a book named with one cannot be made, so its folder goes into the
+default book in its fourth run. A folder's name is kept in the job's own record of it
+with such a character made U+FFFD, on every database and at every step - the record is
+only shown, never looked up - so that no folder's name stops a job on a server of step
+6101 or older. Calendars and their objects are `utf8mb4` at every step.
+
+### The code pages
+
+The HTML body's charset, and the text of a `PT_STRING8` property, come from this
+table - on Windows through `MultiByteToWideChar`, on Linux through iconv by the name
+in its third column, so that a message reads the same on both. An ANSI file keeps
+nearly all its text as `PT_STRING8`: a message's in the code page it names, and the
+names of its folders and its store - for which it names none - in Windows-1252:
+
+| Code page | Charset | iconv |
+|---|---|---|
+| 437, 850, 852, 866 | ibm437, ibm850, ibm852, cp866 | CP437, CP850, CP852, CP866 |
+| 874 | windows-874 | CP874 |
+| 932 | shift_jis | CP932 |
+| 936 | gb2312 | CP936 |
+| 949 | ks_c_5601-1987 | CP949 |
+| 950 | big5 | CP950 |
+| 1250-1258 | windows-1250 ... windows-1258 | CP1250 ... CP1258 |
+| 20127 | us-ascii | ASCII |
+| 20866, 21866 | koi8-r, koi8-u | KOI8-R, KOI8-U |
+| 28591-28599, 28603, 28605 | iso-8859-1 ... iso-8859-9, iso-8859-13, iso-8859-15 | ISO-8859-1 ... |
+| 50220, 50221, 50222 | iso-2022-jp | ISO-2022-JP |
+| 51932, 51949 | euc-jp, euc-kr | EUC-JP, EUC-KR |
+| 54936 | gb18030 | GB18030 |
+| 65000, 65001 | utf-7, utf-8 | UTF-7, UTF-8 |
+
+### Windows and Linux
+
+The reader and the job are the same code on both. On Linux the import directory is a
+POSIX path and the file's final path is read from `/proc/self/fd`. There is no Import
+Tool on Linux, and on Windows the Import Tool does not read PST files: the file goes
+into the import directory, and REST, hmctl or the Control Deck start the job. The row
+was written without a compiler at hand, and so was its extension of 25 September; the
+bench's build and the regression fixture `API.PstImport` are what prove it on
+Windows, and no Linux test runs it.
+
+### Outlook over IMAP, still
+
+Outlook itself remains a reader of its own files, and the route for what this one
+refuses or leaves out:
 
 1. Add the hMailServer account to Outlook as an IMAP account.
 2. Drag the folders from the PST-backed account onto the IMAP account, or copy
@@ -537,6 +1143,6 @@ Accounts in bulk
 ----------------
 
 The Import Tool's other button creates or updates the accounts of one domain from
-a comma-separated text file - address, password, and optionally the quota - which is
-the usual first step before any of the routes above, since each needs the local
-account to exist.
+a comma-separated text file - three fields a line: the account's name without the
+domain, its password and its size limit in MB (0 for none) - which is the usual first
+step before any of the routes above, since each needs the local account to exist.

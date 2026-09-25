@@ -197,6 +197,7 @@ ProtectedMessageDays server
 protocolimap server
 protocolpop3 server
 protocolsmtp server
+PstImportDirectory server
 QuarantineDigestBaseUrl server
 QuarantineDigestLinkHours server
 QuotaGracePercent account

@@ -59,6 +59,14 @@
 // is readable while the job runs: per folder the source's count, what was
 // copied, what was skipped and why; the contacts and events copied; the bytes;
 // the duration; the errors met and retried; the first and last message dates.
+//
+// A PST FILE (kind pst, MigrationJobPst.cpp) is a job of its own shape: its
+// source is a file in the target domain's PST import directory rather than a
+// mailbox on a server, read by this server's own PST reader (Common/Pst) and
+// filed through the same import entry, with the same marks, report and
+// throttle; MigrationJobPst.cpp has the whole of it. Its contacts, calendar
+// items and tasks are the contacts and calendars phases, read from the same
+// file into the same stores (MigrationJobPstItems.cpp).
 
 #pragma once
 
@@ -99,6 +107,7 @@ namespace HM
          __int64 sourceMessages;
          int copied;
          std::map<AnsiString, int> skipped;   // reason word -> count
+         std::map<AnsiString, int> warnings;  // copied without something: word -> count (a PST's)
          int uidValidityRestarts;
          AnsiString note;
       };
@@ -122,14 +131,46 @@ namespace HM
          AnsiString error;
       };
 
+      // What a PST job's report adds: the file and its store, what was not
+      // read, the items counted and not imported by class, and a refusal.
+      // Every string from the file is cut short and has no control
+      // characters, and the classes are at most twenty a count and the rest
+      // together, so that the part stays small whatever the file holds.
+      struct PstSummary
+      {
+         PstSummary() : size(0), version(0), crypt(0), listAttempts(0) { }
+
+         AnsiString file;            // UTF-8, the name the job carries
+         __int64 size;
+         AnsiString storeName;
+         AnsiString recordKey;       // hex
+         int version;
+         int crypt;
+         std::vector<AnsiString> notRead;             // a sentence each
+         // Items not imported by class, counted two ways: the folders that are
+         // not mail, by their container class and their count - counted afresh
+         // at every list pass - and the messages in mail folders that are not
+         // mail, by their message class, one at a time as the job meets them,
+         // adding up across runs. The report's not_mail is the two together;
+         // each is kept under its own key as well, which is what is read back.
+         std::map<AnsiString, int> notMailFolders;
+         std::map<AnsiString, int> notMail;
+         AnsiString refusal;
+         int listAttempts;           // store-and-list passes begun and not finished: the reader stopped in one
+      };
+
       struct Report
       {
+         Report() : isPst(false) { }
+
          std::vector<FolderTally> folders;
          PhaseTally contacts;
          PhaseTally calendars;
          std::vector<ErrorEntry> errors;
          AnsiString firstMessage;    // the earliest internal date copied, "YYYY-MM-DD HH:MM:SS"
          AnsiString lastMessage;
+         bool isPst;
+         PstSummary pst;
       };
 
       // The report as JSON, and back. Kept under MigrationStore::MaximumReportBytes
@@ -143,6 +184,34 @@ namespace HM
       // What a state and a phase are called in the report and over REST.
       static const char *StateWord(int state);
       static const char *PhaseWord(int phase);
+
+      // A PST import's rules (MigrationJobPst.cpp), public for PstTester.
+      //
+      // The path a PST folder is filed into, from its names in the file (UTF-8,
+      // the IPM subtree's child first): each name made one this server's folders
+      // may carry - the hierarchy delimiter inside it an underscore, a first
+      // name starting with # given an underscore in front, an empty one
+      // "Unnamed folder", and each cut at a character boundary until its
+      // modified UTF-7 form, which is what the folder table holds, is at most
+      // 255 characters - an "Inbox" at the top the INBOX, and folders deeper than
+      // IMAPFolder::MaxFolderDepth filed into their ancestor at that depth. The
+      // names come back encoded, as FolderFor takes them; renames names each
+      // change, "from -> to".
+      static std::vector<String> PstTargetPath(const std::vector<std::string> &names, const String &delimiter,
+                                               std::vector<AnsiString> &renames);
+
+      // One name, cleaned as above and encoded.
+      static String PstFolderName(const std::string &utf8, const String &delimiter, bool topLevel);
+
+      // A category as an IMAP keyword: every character an atom may not hold,
+      // and every character outside ASCII, an underscore.
+      static String PstKeyword(const std::string &utf8);
+
+      // The IMAP INTERNALDATE ("17-Jul-1996 03:44:25 +0100") of a FILETIME, in
+      // this server's time with its offset - the import keeps the date and time
+      // and not the zone, as a delivery's is kept - or empty when it is 0 or not
+      // between 1981 and a day after now (unix).
+      static String PstInternalDate(unsigned __int64 fileTime, __int64 now);
 
    private:
       enum Outcome
@@ -163,6 +232,13 @@ namespace HM
 
       Outcome RunMail_(String &problem);
       Outcome RunDav_(bool calendars, String &problem);
+
+      // A PST file's mail (MigrationJobPst.cpp).
+      Outcome RunPst_(String &problem);
+
+      // A PST file's contacts, into the account's address books; and its
+      // calendar items and tasks, into its calendars (MigrationJobPstItems.cpp).
+      Outcome RunPstItems_(bool calendars, String &problem);
 
       // A contacts or calendars phase that met a busy source: a retry, or -
       // after MaxDavAttempts in a row - the phase skipped with the reason.
@@ -191,6 +267,12 @@ namespace HM
       bool progressed_;
 
       Report report_;
+
+      // report_.folders by their source, the first of each, and how many of the
+      // list that index has seen: a job of a hundred thousand folders is not a
+      // hundred thousand scans of it (Tally_). Reset when the report is read.
+      std::map<AnsiString, size_t> tally_at_;
+      size_t tally_indexed_ = 0;
 
       // What the job has written, by target folder and anywhere, for the
       // duplicate check the import makes (see the note at the top).

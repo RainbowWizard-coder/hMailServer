@@ -7654,6 +7654,13 @@ namespace HM
       return RoleManager::Allows(caller.grant, RolePermission::ManageInboundWebhooks);
    }
 
+   bool
+   RestApiServer::CallerMayManageMailboxIn_(const Caller &caller, const String &domain)
+   {
+      String reason;
+      return RoleManager::Allows(caller.grant, RolePermission::ManageMailbox, domain, reason);
+   }
+
    void
    RestApiServer::ApplyAccountGrant_(Caller &caller)
    {

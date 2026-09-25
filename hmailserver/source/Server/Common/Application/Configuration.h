@@ -510,6 +510,12 @@ namespace HM
       int GetMigrationConnectionsPerHost();
       void SetMigrationConnectionsPerHost(int connections);
 
+      // PST import (Util/PstImportPath.h): the directory Outlook data files are
+      // copied into for a PST migration job, one subdirectory per domain. Empty
+      // takes no PST job.
+      String GetPstImportDirectory() const;
+      void SetPstImportDirectory(const String &directory);
+
       // Bounces read, and the suppression list (see SMTP/BounceTracker.h). All
       // eight live in hm_settings. The getters clamp to the documented range, so a
       // hand-edited row cannot turn a threshold of 0 into "list on no bounce at all".

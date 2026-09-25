@@ -98,8 +98,24 @@ namespace HM
       // MaxMessageBytes): a larger one is skipped and counted.
       const __int64 MaxMessageBytes = (__int64) 512 * 1024 * 1024;
 
-      // The errors a report keeps, newest last.
+      // The errors a report keeps, newest last, and the most bytes of the
+      // report they may take: what the source said - a PST's subjects, a
+      // server's answers - can be long, and the folders after them must still
+      // have room under MigrationStore::MaximumReportBytes.
       const size_t MaxErrorsKept = 50;
+      const int MaxErrorBytes = 20000;
+
+      // An error as long as the column of errors holds, cut at a character.
+      AnsiString CutError(const AnsiString &utf8)
+      {
+         const int maximum = MigrationStore::MaximumErrorLength;
+         if (utf8.GetLength() <= maximum)
+            return utf8;
+         int cut = maximum - 3;
+         while (cut > 0 && ((unsigned char) utf8.GetAt(cut) & 0xC0) == 0x80)
+            cut--;
+         return utf8.Left(cut) + "...";
+      }
 
       void Expect(bool condition, const char *message)
       {
@@ -549,8 +565,40 @@ namespace HM
                 ",\"copied\":" + Number(tally.copied) +
                 ",\"skipped\":" + Number(skipped) +
                 ",\"skipped_reasons\":" + ReasonsJson(tally.skipped) +
+                ",\"warnings\":" + ReasonsJson(tally.warnings) +
                 ",\"uidvalidity_restarts\":" + Number(tally.uidValidityRestarts) +
                 ",\"note\":" + MigrationJob::JsonString(tally.note) + "}";
+      }
+
+      // A PST job's own part of the report (MigrationJobPst.cpp).
+      AnsiString PstJson(const MigrationJob::PstSummary &pst)
+      {
+         AnsiString notRead = "[";
+         for (size_t i = 0; i < pst.notRead.size(); i++)
+            notRead += (i > 0 ? "," : "") + MigrationJob::JsonString(pst.notRead[i]);
+         notRead += "]";
+
+         const char *encoding = pst.crypt == 1 ? "permute" : (pst.crypt == 2 ? "cyclic" : "none");
+
+         // not_mail is what a reader of the report wants, the two counts
+         // together; each is kept as well, since only one of them adds up
+         // across runs (PstSummary).
+         std::map<AnsiString, int> notMail = pst.notMailFolders;
+         for (const std::pair<const AnsiString, int> &messages : pst.notMail)
+            notMail[messages.first] += messages.second;
+
+         return "{\"file\":" + MigrationJob::JsonString(pst.file) +
+                ",\"size\":" + Number(pst.size) +
+                ",\"store\":" + MigrationJob::JsonString(pst.storeName) +
+                ",\"record_key\":" + MigrationJob::JsonString(pst.recordKey) +
+                ",\"version\":" + Number(pst.version) +
+                ",\"encoding\":" + MigrationJob::JsonString(encoding) +
+                ",\"not_read\":" + notRead +
+                ",\"not_mail\":" + ReasonsJson(notMail) +
+                ",\"not_mail_folders\":" + ReasonsJson(pst.notMailFolders) +
+                ",\"not_mail_messages\":" + ReasonsJson(pst.notMail) +
+                ",\"refusal\":" + MigrationJob::JsonString(pst.refusal) +
+                ",\"list_attempts\":" + Number(pst.listAttempts) + "}";
       }
 
       void ReadReasons(const JsonValue *object, std::map<AnsiString, int> &reasons)
@@ -669,14 +717,29 @@ namespace HM
       json += ",\"last_message\":" + JsonString(report.lastMessage);
       json += ",\"contacts\":" + PhaseJson(report.contacts);
       json += ",\"calendars\":" + PhaseJson(report.calendars);
+      if (report.isPst)
+         json += ",\"pst\":" + PstJson(report.pst);
+
+      // The errors, the newest first until MaxErrorBytes of them, then in
+      // their order.
+      std::vector<AnsiString> errors;
+      int errorBytes = 0;
+      for (size_t i = report.errors.size(); i-- > 0;)
+      {
+         const AnsiString one = "{\"at\":" + Number(report.errors[i].at) + ",\"attempt\":" + Number(report.errors[i].attempt) +
+                                ",\"error\":" + JsonString(report.errors[i].error) + "}";
+         if (errorBytes + one.GetLength() + 1 > MaxErrorBytes)
+            break;
+         errorBytes += one.GetLength() + 1;
+         errors.insert(errors.begin(), one);
+      }
 
       json += ",\"errors\":[";
-      for (size_t i = 0; i < report.errors.size(); i++)
+      for (size_t i = 0; i < errors.size(); i++)
       {
          if (i > 0)
             json += ",";
-         json += "{\"at\":" + Number(report.errors[i].at) + ",\"attempt\":" + Number(report.errors[i].attempt) +
-                 ",\"error\":" + JsonString(report.errors[i].error) + "}";
+         json += errors[i];
       }
       json += "]";
 
@@ -720,6 +783,30 @@ namespace HM
       ReadPhase(root.Get("contacts"), report.contacts);
       ReadPhase(root.Get("calendars"), report.calendars);
 
+      if (const JsonValue *pst = root.Get("pst"))
+      {
+         if (pst->IsObject())
+         {
+            report.isPst = true;
+            report.pst.file = AnsiString(pst->GetString("file").c_str());
+            report.pst.size = pst->GetInt64("size");
+            report.pst.storeName = AnsiString(pst->GetString("store").c_str());
+            report.pst.recordKey = AnsiString(pst->GetString("record_key").c_str());
+            report.pst.version = (int) pst->GetInt64("version");
+            const std::string encoding = pst->GetString("encoding");
+            report.pst.crypt = encoding == "permute" ? 1 : (encoding == "cyclic" ? 2 : 0);
+            report.pst.refusal = AnsiString(pst->GetString("refusal").c_str());
+            report.pst.listAttempts = (int) pst->GetInt64("list_attempts");
+            ReadReasons(pst->Get("not_mail_folders"), report.pst.notMailFolders);
+            ReadReasons(pst->Get("not_mail_messages"), report.pst.notMail);
+            if (const JsonValue *notRead = pst->Get("not_read"))
+            {
+               for (const JsonValue &item : notRead->Items())
+                  report.pst.notRead.push_back(AnsiString(item.AsString().c_str()));
+            }
+         }
+      }
+
       if (const JsonValue *errors = root.Get("errors"))
       {
          for (const JsonValue &error : errors->Items())
@@ -745,6 +832,7 @@ namespace HM
             tally.uidValidityRestarts = (int) folder.GetInt64("uidvalidity_restarts");
             tally.note = AnsiString(folder.GetString("note").c_str());
             ReadReasons(folder.Get("skipped_reasons"), tally.skipped);
+            ReadReasons(folder.Get("warnings"), tally.warnings);
             report.folders.push_back(tally);
          }
       }
@@ -778,7 +866,7 @@ namespace HM
       ErrorEntry entry;
       entry.at = MigrationStore::Now();
       entry.attempt = job_.attempts;
-      entry.error = Utf8(what);
+      entry.error = CutError(Utf8(what));
       report_.errors.push_back(entry);
       if (report_.errors.size() > MaxErrorsKept)
          report_.errors.erase(report_.errors.begin());
@@ -789,10 +877,30 @@ namespace HM
    MigrationJob::FolderTally &
    MigrationJob::Tally_(const AnsiString &source)
    {
-      for (FolderTally &tally : report_.folders)
+      // The list only grows here once the report is read back (Run resets the
+      // index then), so what the index has not seen is its tail. The check of
+      // the entry found is a guard, not the rule.
+      if (tally_indexed_ > report_.folders.size())
       {
-         if (tally.source == source)
-            return tally;
+         tally_at_.clear();
+         tally_indexed_ = 0;
+      }
+      for (; tally_indexed_ < report_.folders.size(); tally_indexed_++)
+         tally_at_.insert(std::make_pair(report_.folders[tally_indexed_].source, tally_indexed_));
+
+      std::map<AnsiString, size_t>::const_iterator found = tally_at_.find(source);
+      if (found != tally_at_.end())
+      {
+         if (found->second < report_.folders.size() && report_.folders[found->second].source == source)
+            return report_.folders[found->second];
+
+         tally_at_.clear();
+         tally_indexed_ = 0;
+         for (FolderTally &tally : report_.folders)
+         {
+            if (tally.source == source)
+               return tally;
+         }
       }
 
       FolderTally tally;
@@ -1493,6 +1601,8 @@ namespace HM
          return;
 
       ParseReport(Utf8(job_.report), report_);
+      tally_at_.clear();
+      tally_indexed_ = 0;
 
       provider_ = MigrationSources::ByKind(migration_.kind);
       if (!provider_)
@@ -1527,8 +1637,16 @@ namespace HM
       {
          Outcome outcome = OutcomeDone;
 
+         const bool pstFile = migration_.kind == MigrationStore::KindPst;
+
          if (job_.phase == MigrationStore::PhaseMail)
-            outcome = RunMail_(problem);
+            outcome = pstFile ? RunPst_(problem) : RunMail_(problem);
+         else if (pstFile && (job_.phase == MigrationStore::PhaseContacts || job_.phase == MigrationStore::PhaseCalendars))
+         {
+            // A PST's contacts, and its calendar items and tasks, from the
+            // file itself (MigrationJobPstItems.cpp).
+            outcome = RunPstItems_(job_.phase == MigrationStore::PhaseCalendars, problem);
+         }
          else if (job_.phase == MigrationStore::PhaseContacts)
             outcome = RunDav_(false, problem);
          else if (job_.phase == MigrationStore::PhaseCalendars)
@@ -1630,6 +1748,68 @@ namespace HM
       Expect(back.contacts.state == "skipped" && back.contacts.reason == report.contacts.reason, "A skipped phase and its reason read back.");
       Expect(back.errors.size() == 1 && back.errors[0].attempt == 1 && back.errors[0].error == error.error, "The errors retried read back.");
       Expect(back.firstMessage == report.firstMessage, "The first message's date reads back.");
+
+      // A PST job's part of the report, and a folder's warnings, read back.
+      J::Report pstReport;
+      pstReport.isPst = true;
+      pstReport.pst.file = "archive.pst";
+      pstReport.pst.size = 271360;
+      pstReport.pst.recordKey = "00112233445566778899aabbccddeeff";
+      pstReport.pst.version = 23;
+      pstReport.pst.crypt = 2;
+      pstReport.pst.notMail["IPM.Appointment"] = 1;
+      pstReport.pst.notMailFolders["IPF.Contact"] = 2;
+      pstReport.pst.notMailFolders["IPM.Appointment"] = 3;
+      pstReport.pst.notRead.push_back("The folder 0x8042 could not be read.");
+      pstReport.pst.listAttempts = 1;
+      J::FolderTally pstFolder;
+      pstFolder.source = "Inbox";
+      pstFolder.warnings["attachment_not_imported"] = 3;
+      pstReport.folders.push_back(pstFolder);
+      J::Report pstBack;
+      J::ParseReport(J::ReportJson(job, "ann@example.test", pstReport), pstBack);
+      Expect(pstBack.isPst && pstBack.pst.file == "archive.pst" && pstBack.pst.size == 271360 && pstBack.pst.crypt == 2 &&
+             pstBack.pst.version == 23 && pstBack.pst.notMailFolders["IPF.Contact"] == 2 && pstBack.pst.notMail.size() == 1 &&
+             pstBack.pst.notMail["IPM.Appointment"] == 1 && pstBack.pst.notMailFolders["IPM.Appointment"] == 3 && pstBack.pst.notRead.size() == 1 &&
+             pstBack.pst.listAttempts == 1 && pstBack.folders.size() == 1 && pstBack.folders[0].warnings["attachment_not_imported"] == 3,
+             "A PST job's part of the report, and a folder's warnings, read back.");
+      Expect(back.isPst == false && J::ReportJson(job, "ann@example.test", report).Find("\"pst\"") < 0,
+             "A report of a job from a server has no PST part.");
+
+      // not_mail is the folders' count and the messages' together, and a pass
+      // that reads the report back and counts its folders again does not add
+      // them twice: the folders' count is its own key, replaced at each pass.
+      const AnsiString pstJson = J::ReportJson(job, "ann@example.test", pstReport);
+      Expect(pstJson.Find("\"not_mail\":{\"IPF.Contact\":2,\"IPM.Appointment\":4}") >= 0 &&
+             pstJson.Find("\"not_mail_folders\":{\"IPF.Contact\":2,\"IPM.Appointment\":3}") >= 0 &&
+             pstJson.Find("\"not_mail_messages\":{\"IPM.Appointment\":1}") >= 0,
+             "not_mail is the two counts together, each kept under its own key.");
+      J::Report again;
+      J::ParseReport(J::ReportJson(job, "ann@example.test", pstBack), again);
+      Expect(again.pst.notMailFolders["IPF.Contact"] == 2 && again.pst.notMail.size() == 1 && again.pst.notMail["IPM.Appointment"] == 1,
+             "Read back and written again, not_mail is not added to itself.");
+
+      // Long errors - a PST's subjects, a server's answers - take their share
+      // of the column and no more, the newest kept; each is cut to what the
+      // column of errors holds.
+      J::Report noisy;
+      for (int i = 0; i < 50; i++)
+      {
+         J::ErrorEntry entry;
+         entry.at = 1000 + i;
+         entry.error = AnsiString(std::string(990, 'e').c_str());
+         noisy.errors.push_back(entry);
+      }
+      for (int i = 0; i < 150; i++)
+      {
+         J::FolderTally folder;
+         folder.source.Format("Folder %d", i);
+         noisy.folders.push_back(folder);
+      }
+      const AnsiString loud = J::ReportJson(job, "ann@example.test", noisy);
+      Expect(loud.GetLength() <= MigrationStore::MaximumReportBytes && loud.Find("\"at\":1049,") >= 0 && loud.Find("\"at\":1000,") < 0 &&
+             loud.Find("\"folders_left_out\":0") >= 0,
+             "Long errors take their share of the report, the newest kept, and the folders still fit.");
 
       // A report too large for the column leaves folders out, and says so.
       J::Report large;

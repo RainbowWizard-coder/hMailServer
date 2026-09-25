@@ -821,6 +821,46 @@ namespace HM
    }
 
    bool
+   CalendarStore::FindByUidAmong(__int64 accountId, const std::vector<__int64> &calendarIds, const String &uid,
+                                 CalendarObjectRecord &object, bool &failed)
+   {
+      failed = false;
+      if (uid.IsEmpty() || uid.GetLength() > 255 || calendarIds.empty())
+         return false;
+
+      // The ids are numbers of this server's own: written into the text, the
+      // UID a parameter.
+      AnsiString among;
+      for (size_t i = 0; i < calendarIds.size(); i++)
+         among += (i == 0 ? AnsiString() : AnsiString(",")) + Int64Text(calendarIds[i]);
+
+      SQLCommand command(String(AnsiString("select ") + ObjectColumns + " from hm_calendarobjects where objectcalendarid in (" + among +
+                                ") and objectaccountid = @ACCOUNTID and objectuid = @UID and objectdeleted = 0"));
+      command.AddParameter("@ACCOUNTID", accountId);
+      command.AddParameter("@UID", uid);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+      {
+         failed = true;
+         return false;
+      }
+
+      while (!recordset->IsEOF())
+      {
+         CalendarObjectRecord candidate;
+         ReadObject(recordset, candidate);
+         if (candidate.uid.Compare(uid) == 0)
+         {
+            object = candidate;
+            return true;
+         }
+         recordset->MoveNext();
+      }
+      return false;
+   }
+
+   bool
    CalendarStore::FindById(__int64 objectId, CalendarObjectRecord &object)
    {
       SQLCommand command(String(AnsiString("select ") + ObjectColumns + " from hm_calendarobjects where objectid = @ID and objectdeleted = 0"));

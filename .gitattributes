@@ -46,6 +46,13 @@ hmailserver/source/Tools/Cli/hmctl text eol=lf
 ###############################################################################
 build/fixtures/openpgp/** binary
 
+###############################################################################
+# The PST fixtures: Outlook data files build/generate-pst-fixtures.py writes, whose
+# every byte is covered by a CRC. Binary, as any .pst anywhere is.
+###############################################################################
+build/fixtures/pst/** binary
+*.pst binary
+
 # Explicitly binary
 *.exe binary
 *.dll binary
