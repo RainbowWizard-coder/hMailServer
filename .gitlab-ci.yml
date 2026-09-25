@@ -381,6 +381,8 @@ db-matrix:
   needs: [linux-build]
   timeout: 3 hours
   rules:
+    - if: $HM_PIPELINE == "fuzz" || $CI_PIPELINE_SOURCE == "schedule"
+      when: never
     - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"
       when: manual
       allow_failure: true
