@@ -350,7 +350,17 @@ if (Test-Path $dataFolder) {
     # its rollback image and the apply token live there. It appeared in 6.2.28
     # and is not a domain; without this line a bench that has ever run an update
     # test fails pre-flight, and -Clean would delete a verified download.
-    $reserved = @('Quarantine', 'Sieve', 'Temp', 'Events', 'Updates')
+    #
+    # The rest are the server's own stores under the data directory, each made
+    # on first use (grep GetDataDirectory in Server/): ACME challenges, the
+    # de-duplicated attachment blobs (MessageStoreCompression), confidential and
+    # password-protected messages, eDiscovery exports, rotated DKIM keys, the
+    # webmail's files, list archives and recoverable deleted items. Until 25
+    # September 2026 they were missing here, so a bench that had exercised any of
+    # them failed pre-flight, and -Clean deleted them - generated DKIM keys and
+    # recoverable items included - as if they were orphan domains.
+    $reserved = @('Quarantine', 'Sieve', 'Temp', 'Events', 'Updates',
+                  'ACME', 'Blobs', 'Confidential', 'Discovery', 'DKIM', 'Files', 'Lists', 'Protected', 'Recoverable')
 
     $liveDomains = @()
     try {
