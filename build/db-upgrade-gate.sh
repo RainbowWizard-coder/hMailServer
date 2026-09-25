@@ -7,7 +7,8 @@
 # rows upgrades to this build's schema through the real upgrade scripts, on a real
 # backend. Nothing in CI executed an upgrade before 11 September 2026, which is how
 # the 6029 -> 6030 step shipped sweeping children before parents (issue #93's
-# report led to it). This runs on the Ubuntu VM and in the Linux workflow alike.
+# report led to it). This runs on the Ubuntu VM and in GitLab CI's
+# linux-db-upgrade-pgsql and linux-db-upgrade-mysql jobs (build/ci/linux-db-upgrade.sh).
 #
 #   db-upgrade-gate.sh pgsql|mysql
 #
@@ -46,6 +47,9 @@ if [ "$backend" = pgsql ]; then
    query() { sql -c "$1" </dev/null; }
    run_file() { sql -f "$1" </dev/null >/dev/null; }
    drop_fk() { echo "alter table $1 drop constraint if exists $2;"; }
+   drop_index() { echo "drop index if exists $2;"; }
+   # PostgreSQL drops a column's indexes with it.
+   drop_column() { echo "alter table $1 drop column $2;"; }
    count_fks="select count(*) from information_schema.table_constraints where constraint_type = 'FOREIGN KEY' and table_schema = 'public';"
 else
    DB_PORT="${DB_PORT:-3306}"
@@ -56,6 +60,17 @@ else
    query() { sql -e "$1" </dev/null; }
    run_file() { sql < "$1"; }
    drop_fk() { echo "alter table $1 drop foreign key if exists $2;"; }
+   drop_index() { echo "drop index if exists $2 on $1;"; }
+   # MariaDB will not drop a column a unique index still names with another
+   # column (ERROR 1072: sharegroupid, 6086), whatever the step called the index,
+   # so every index on the column goes first, read from the database as it is.
+   drop_column() {
+      local index
+      for index in $(query "select distinct index_name from information_schema.statistics where table_schema = database() and table_name = '$1' and column_name = '$2' and index_name <> 'PRIMARY';"); do
+         drop_index "$1" "$index"
+      done
+      echo "alter table $1 drop column $2;"
+   }
    count_fks="select count(*) from information_schema.referential_constraints where constraint_schema = database();"
 fi
 
@@ -107,8 +122,9 @@ echo "-- created at schema $required"
 
 # 2. Wind it back to 6029: everything every step after it added, removed -
 #    read from the steps' own scripts, so a new step needs nothing here.
-#    Foreign keys first, then columns, then tables. The foreign keys the
-#    create script made are counted now, and expected back after the upgrade.
+#    Foreign keys first, then each step's indexes, columns and tables. The
+#    foreign keys the create script made are counted now, and expected back
+#    after the upgrade.
 echo "-- winding back to 6029"
 expected_fks=$(query "$count_fks")
 dialect=$( [ "$backend" = pgsql ] && echo PGSQL || echo MySQL )
@@ -126,10 +142,17 @@ dialect=$( [ "$backend" = pgsql ] && echo PGSQL || echo MySQL )
    done
    for ((v = required; v > 6029; v--)); do
       script="$HM_SCRIPTS/Upgrade$((v - 1))to${v}${dialect}.sql"
+      # The indexes a step created, before its columns go: a later step's index on
+      # a table 6029 already had is still there after the columns and tables are
+      # gone, and the step that makes it again stops on "already exists"
+      # (idx_hm_messagetrace_queueid, 6089, found on 25 September 2026, the first
+      # run of this gate on GitLab CI's linix).
+      (grep -ioE 'create (unique )?index \w+ on \w+' "$script" || true) \
+         | awk '{print tolower($NF), tolower($(NF - 2))}' | while read -r table name; do drop_index "$table" "$name"; done
       (grep -ioE 'alter table \w+ add (column )?\w+' "$script" || true) \
          | awk '{ c = tolower($NF); if (c != "constraint" && c != "index" && c != "unique" && c != "primary") print tolower($3), c }' \
          | tee -a "$work/dropped-columns.txt" \
-         | while read -r table column; do echo "alter table $table drop column $column;"; done
+         | while read -r table column; do drop_column "$table" "$column"; done
       (grep -ioE 'create table \w+' "$script" || true) \
          | awk '{print tolower($3)}' | while read -r table; do echo "drop table if exists $table;"; done
    done

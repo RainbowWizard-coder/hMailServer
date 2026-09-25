@@ -145,7 +145,7 @@ Technology
 | Extensibility | COM/IDispatch API, plus a REST administration API |
 | Schema | Database version 6031, upgradeable from every earlier hMailServer release |
 
-**Quality gates.** Every release ships SPDX and CycloneDX SBOMs (Syft). On GitHub, until 18 September 2026, the repository ran CodeQL analysis, Dependabot CVE alerts with grouped update pull requests, a dependency-review gate on pull requests, an installer smoke test that installs the built installer on a clean machine and verifies the service comes up, and a monthly comparison against the original upstream repository so nothing landing there is missed. None of those runs on GitLab yet. GitLab CI runs the project's own checkers, the Deck's and the webmail's harnesses and the sign-off of a merge request from a fork on every push and merge request, and for `master`, `batch*` branches and release tags it builds the Linux server and runs the Linux suite and the whole Windows suite on the project's own two machines ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)); [CONTRIBUTING.md](CONTRIBUTING.md#the-checkers) lists them and the checks still run by hand.
+**Quality gates.** Every release ships SPDX and CycloneDX SBOMs (Syft). On GitHub, until 18 September 2026, the repository ran CodeQL analysis, Dependabot CVE alerts with grouped update pull requests, a dependency-review gate on pull requests, an installer smoke test that installs the built installer on a clean machine and verifies the service comes up, and a monthly comparison against the original upstream repository so nothing landing there is missed. None of those runs on GitLab yet: CodeQL, dependency review and the upstream comparison are GitHub's own services, and the installer smoke test is being moved separately. GitLab CI runs the project's own checkers, the Deck's and the webmail's harnesses, editorconfig and the sign-off of a merge request from a fork on every push and merge request, and for `master`, `batch*` branches and release tags it builds the Linux server and its packages, runs the Linux suite and the whole Windows suite, builds and tests the Control Panel and the tools, upgrades a 6029 database on PostgreSQL and MariaDB, installs the packages in clean containers, builds the container image and the SBOMs, and compiles the core for AArch64, on the project's own two machines; the MIME fuzzers run every night ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)); [CONTRIBUTING.md](CONTRIBUTING.md#the-checkers) lists them and the checks still run by hand.
 
 Administration
 ==============
@@ -201,8 +201,8 @@ with clang or GCC from `hmailserver/source/Server/CMakeLists.txt`, links as one
 AArch64, with a `PKGBUILD` for Arch and an AppImage script beside them. All 496
 core translation units compile for both architectures; `build/linux-tu-census.sh` counts
 them, and the Linux workflow on GitHub (`.github/workflows/linux-build.yml`) failed when one
-stopped. GitLab CI builds the Linux server with clang on the project's own runner, but runs neither the
-census nor the GCC and AArch64 builds, so those are run by hand.
+stopped. GitLab CI builds the Linux server with clang on the project's own runner and compiles every core
+file for AArch64 there; the GCC build and a build on AArch64 hardware are run by hand.
 
 What is proven, against PostgreSQL 18: `hmailserver --create-database` builds
 the schema, the server starts under systemd as the `hmailserver` user, an

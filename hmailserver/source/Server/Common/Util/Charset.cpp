@@ -225,7 +225,15 @@ namespace HM
       int iNeedSize = MultiByteToWideChar(iToCodePage, 0, sMultiByte.c_str(), -1, NULL, NULL);
 #endif
 
+      // Zeroed, as ToMultiByte zeroes its buffer. A conversion that fails answers
+      // 0 and writes nothing, not even the terminator - on POSIX, iconv refuses a
+      // byte sequence the character set does not have, which any header's
+      // encoded word can carry - and the String below was then read out of an
+      // unterminated heap buffer: the Linux fuzz build's first replay of
+      // fuzz/regression/mime_decode_fuzzer (25 September 2026). A failed
+      // conversion now gives an empty string.
       wchar_t *pOutput = new wchar_t[iNeedSize + 1];
+      memset(pOutput, 0, (iNeedSize + 1) * sizeof(wchar_t));
 #ifdef HM_PLATFORM_POSIX
       int i = Unicode::FromCodePage(iToCodePage, sMultiByte.c_str(), -1, pOutput, iNeedSize + 1);
 #else

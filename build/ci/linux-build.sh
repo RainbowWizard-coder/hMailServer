@@ -14,6 +14,9 @@
 #   linux-build/hmailserver     the server binary the linux-suite job tests
 #   linux-build/build-info.txt  its SHA-256 and what --version says
 #   linux-build/build.log       the whole ninja output
+#   linux-build/packages/       the .deb and the .rpm CPack made from that build,
+#                               and their SHA256SUMS.txt (none when packaging failed)
+#   linux-build/package.log     the stamp check and CPack's output
 #
 # The build tree itself is outside the checkout (HM_BUILD_DIR, /tmp/hm-build by
 # default), in the job container's own filesystem, so it goes when the container
@@ -132,6 +135,12 @@ openpgp() {
   export GNUPGHOME="$home"
   local G="gpg --batch --yes --no-tty --pinentry-mode loopback --passphrase openpgp-fixture-pass"
   $G --import "$fixtures/alice.sec.asc" "$fixtures/bob.sec.asc"
+  # The agent that imported the keys refuses their passphrase afterwards: GnuPG
+  # 2.4.8 as Ubuntu 26.04 ships it answers "Bad passphrase" to the very next
+  # --decrypt, and a fresh agent takes the same passphrase (found running this
+  # script in the CI image on linix, 25 September 2026). So the next command
+  # starts a new one.
+  gpgconf --kill gpg-agent
   for who in alice bob; do
     "$writer" "$fixtures/$who.pub.asc" "$fixtures/body.bin" > "$home/to-$who.asc"
     $G --decrypt "$home/to-$who.asc" > "$home/$who.out"
@@ -157,6 +166,42 @@ code=$?
 if [ "$code" -ne 0 ]; then
   echo "the OpenPGP round trip failed (exit $code)"
   failed="$failed openpgp-writer"
+fi
+
+# The .deb and the .rpm, made by CPack from the build above, for the jobs that
+# install them in clean distribution containers (linux-package-deb,
+# linux-package-rpm) and build the container image from the .deb (linux-image).
+# The version stamps are checked first, as the old workflow's stamps job gated
+# its packaging: a stamp that has drifted makes a good package under a name
+# nothing looks for, so none is made. A packaging failure does NOT fail this job
+# - the suite needs the binary, not the packages - it is reported here, and the
+# jobs that need the packages fail on their absence and point at package.log.
+echo ""
+echo "== the packages"
+package() {
+  set -e
+  bash build/check-linux-version-stamp.sh
+  ( cd "$build_dir" && cpack -G DEB && cpack -G RPM )
+  mkdir -p "$out/packages"
+  cp "$build_dir"/*.deb "$build_dir"/*.rpm "$out/packages/"
+  for deb in "$out"/packages/*.deb; do
+    dpkg-deb -f "$deb" Package Version Architecture Depends
+  done
+  for rpm in "$out"/packages/*.rpm; do
+    rpm -qp --queryformat '%{NAME} %{VERSION}-%{RELEASE} %{ARCH}\n' "$rpm"
+  done
+}
+( package ) > "$out/package.log" 2>&1
+code=$?
+if [ "$code" -eq 0 ]; then
+  grep -E '^(Package|Version|Architecture|Depends|hmailserver )|agree with Version.h' "$out/package.log"
+  sums=$(cd "$out/packages" && sha256sum -- *.deb *.rpm)
+  echo "$sums" > "$out/packages/SHA256SUMS.txt"
+  echo "$sums"
+else
+  tail -n 30 "$out/package.log"
+  rm -rf "$out/packages"
+  echo "PACKAGING FAILED (exit $code): no packages; linux-build/package.log has the whole of it."
 fi
 
 rm -rf "$build_dir"

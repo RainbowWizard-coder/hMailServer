@@ -385,11 +385,27 @@ the job and the reproducer landed as an artifact of the run (`fuzz-findings-<run
 id>`, kept thirty days); the section above says what to do with it.
 
 It has not run since GitHub suspended the project's account on 18 September
-2026. GitLab reads nothing under `.github/`, and a nightly run needs a Windows
-runner with clang-cl, which the project does not have on GitLab. Until it has
-one, the fuzzing a change gets is the run somebody starts by hand with
-`run-fuzz.ps1`, and the release checklist's timed run on the release tree - the
-same harness, on a tree that has to be right that day.
+2026. GitLab reads nothing under `.github/`.
+
+From 25 September 2026 the nightly job is GitLab CI's `linux-fuzz`, on the
+project's Linux runner: the same three harnesses, the same dictionary, the same
+reproducers and the same libFuzzer flags, built with clang++ by
+`build/ci/linux-fuzz.sh` against the POSIX platform header instead of
+`<Windows.h>` (the shim's only difference between the two), every kept input
+and reproducer replayed first, then twenty minutes a harness with two workers,
+on a corpus the runner's cache carries from night to night. A finding fails the
+job and its input is the job's artifact for thirty days; reproduce it with one
+execution of `fuzz/bin/<target> <file>` on Linux, or `run-fuzz.ps1 -Reproduce` on
+Windows. A GitLab pipeline schedule starts it; [ContinuousIntegration.md](ContinuousIntegration.md),
+"The fuzz schedule", says how the owner creates it. `run-fuzz.ps1` by hand and
+the release checklist's timed run on the release tree stay as they were.
+
+Its first replay found what the Windows build had never been able to: the
+committed reproducer `regression/mime_decode_fuzzer/out-of-memory-mimeunicodeencoder-encodevalue`
+made `Charset::ToWideChar` read an unterminated heap buffer on Linux, where
+iconv refuses a byte sequence the named character set does not have and the
+Windows conversion substitutes instead. The buffer is zeroed now, as
+`ToMultiByte`'s always was, and a failed conversion gives an empty string.
 
 What is not covered yet
 -----------------------

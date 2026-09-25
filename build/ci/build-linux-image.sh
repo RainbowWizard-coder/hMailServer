@@ -42,7 +42,7 @@ echo "== building $tag from $dockerfile"
 # The context is build/ci alone: the Dockerfile copies nothing from the tree.
 docker build --file "$dockerfile" --tag "$tag" \
   --label "org.opencontainers.image.title=hMailServer Linux CI" \
-  --label "org.opencontainers.image.description=The image the linux-build and linux-suite jobs run in" \
+  --label "org.opencontainers.image.description=The image the Linux jobs of .gitlab-ci.yml run in" \
   "$here"
 
 echo ""

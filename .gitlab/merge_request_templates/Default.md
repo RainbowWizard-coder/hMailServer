@@ -1,6 +1,6 @@
 <!--
 Thank you. CONTRIBUTING.md has the detail behind every line of this template.
-GitLab CI runs the checkers, the page harnesses and the sign-off; the builds, the suites and the checks run by hand are recorded only here. Say what you ran, and on what.
+GitLab CI runs the checkers, the page harnesses, editorconfig and the sign-off; the builds, the suites and the checks run by hand are recorded only here. Say what you ran, and on what.
 Text between these comment markers is not shown once the merge request is saved.
 -->
 

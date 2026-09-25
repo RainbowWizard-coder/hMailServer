@@ -14,18 +14,34 @@
 #               small DOM and a recorded server, and the webmail's S/MIME and OpenPGP
 #               modules against OpenSSL and GnuPG;
 #   sign-off    on a merge request from a fork, every commit carries a Signed-off-by
-#               trailer naming its author (CONTRIBUTING.md, "Sign-off").
+#               trailer naming its author (CONTRIBUTING.md, "Sign-off");
+#   editorconfig          every text file against .editorconfig;
+#   chart-and-compose     the Helm chart and the Compose file, when they change;
+#   update-helper         the live update's Linux apply step against fakes, and the
+#                         units, when they change;
+#   package-templates     the winget and Chocolatey templates render, when they change.
 #
 # On the project's own two machines, for a protected ref only - master, a batch*
 # branch, a v* tag - and never for a merge request:
 #
-#   linux-build   linix: the Linux server with clang, its tester programs, and the
-#                 OpenPGP writer against GnuPG (build/ci/linux-build.sh);
+#   linux-build   linix: the Linux server with clang, its tester programs, the
+#                 OpenPGP writer against GnuPG, and the .deb and the .rpm
+#                 (build/ci/linux-build.sh);
 #   linux-suite   linix: the whole of LinuxRegressionTests against that server on
 #                 PostgreSQL (build/ci/linux-suite.sh);
+#   linux-cross, linux-sanitize, linux-db-upgrade-pgsql, linux-db-upgrade-mysql,
+#   linux-package-deb, linux-package-rpm, linux-image, linux-sbom
+#                 linix: what the old GitHub workflows ran beside the build (the
+#                 block "ported from GitHub Actions" below);
 #   windows-gate  bench150: the whole Windows suite in the bench's own checkout,
 #                 which its hMailServer service runs from (build/ci/windows-gate.ps1);
+#   windows-dotnet  bench150: the Control Panel and the tools built, tested and held
+#                 to dotnet format (build/ci/windows-dotnet.ps1);
 #   release       a v* tag only, by hand: a placeholder for the release-chain row.
+#
+# And in a pipeline of its own, from a schedule that sets HM_PIPELINE=fuzz:
+#
+#   linux-fuzz    linix: the MIME harnesses under libFuzzer (build/ci/linux-fuzz.sh).
 #
 # Why protected refs only: the two runners are registered ref_protected, so GitLab
 # gives them no job for anything else, and the rules below do not even create one.
@@ -33,12 +49,10 @@
 # none of it reaches a machine of the project's (docs/ContinuousIntegration.md).
 #
 # What is still run by hand (CONTRIBUTING.md, "The checkers"): check-package-manifests.py
-# (it needs manifests rendered by a PowerShell script from a released installer), the
-# PowerShell checks (check-schema-versions.ps1, check-db-scripts.ps1, which needs SQL
-# Server Compact, check-roadmap.ps1, generate-settings-index.ps1), editorconfig-checker
-# and dotnet format; and the builds and both suites for any branch that is not
-# protected. Signing, packaging, publishing and the update feed are the Roadmap2 row
-# "The release chain off a single forge".
+# against a released installer, the PowerShell checks (check-schema-versions.ps1,
+# check-db-scripts.ps1, which needs SQL Server Compact, check-roadmap.ps1), and the
+# builds and both suites for any branch that is not protected. Signing, publishing and
+# the update feed are the Roadmap2 row "The release chain off a single forge".
 #
 # Every script is started through python3, node, bash or PowerShell, never by its
 # shebang. The tree checks out CRLF on every platform (.gitattributes, but for
@@ -78,10 +92,22 @@ variables:
   PYTHONUTF8: "1"
   PYTHONDONTWRITEBYTECODE: "1"
 
+# The nightly fuzz pipeline is started by a pipeline schedule that sets
+# HM_PIPELINE=fuzz (docs/ContinuousIntegration.md, "The fuzz schedule"). It runs
+# linux-fuzz and no other job: every job on the shared runners takes these rules,
+# and .own-runners below begins with the same refusal.
+.not-a-fuzz-pipeline:
+  rules:
+    - if: $HM_PIPELINE == "fuzz"
+      when: never
+    - when: on_success
+
 checkers:
   stage: check
   image: python:3.13-slim-trixie
   timeout: 20 minutes
+  rules:
+    - !reference [.not-a-fuzz-pipeline, rules]
   before_script:
     # git for the two "is the committed file still what this writes" steps below.
     - apt-get update -qq
@@ -163,6 +189,8 @@ harnesses:
   stage: check
   image: node:22-trixie-slim
   timeout: 20 minutes
+  rules:
+    - !reference [.not-a-fuzz-pipeline, rules]
   before_script:
     # python3 starts the two page harnesses, openssl is the other side of the S/MIME
     # check, and gpg the other side of the OpenPGP one (without it that check runs
@@ -231,6 +259,9 @@ sign-off:
 # for a protected ref, and out of every merge request pipeline whatever its source.
 .own-runners:
   rules:
+    # A fuzz pipeline (HM_PIPELINE=fuzz, from its schedule) runs linux-fuzz and nothing else.
+    - if: $HM_PIPELINE == "fuzz"
+      when: never
     - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"
 
 # The Linux jobs run in an image built ON linix from build/ci/linux.Dockerfile and never
@@ -241,7 +272,7 @@ sign-off:
   extends: .own-runners
   tags: [linix]
   image:
-    name: hmailserver-ci/linux:26.04-ebbef5d9caeb
+    name: hmailserver-ci/linux:26.04-1c3319908955
     pull_policy: if-not-present
 
 # Started at once rather than after the checks: the runner is otherwise idle, and
@@ -385,6 +416,390 @@ windows-gate:
       - gate-results/
     reports:
       junit: gate-results/junit.xml
+
+# ---------------------------------------------------------------- ported from GitHub Actions
+#
+# What the old .github/workflows ran beside the builds and the suites, each job in a
+# block of its own; docs/ContinuousIntegration.md, "From GitHub Actions to GitLab CI",
+# has the table of old job to new. Nothing here downloads from GitHub: each job says
+# where its tools come from.
+
+# style.yml's editorconfig job. editorconfig-checker publishes its binaries on GitHub
+# releases alone, and its npm and PyPI packages fetch them from there when installed,
+# so it comes from Alpine's community repository, which builds it from source: 3.0.3
+# (the old job pinned 3.11.3). That release looks for no configuration file of this
+# name by itself, hence -config.
+editorconfig:
+  stage: check
+  image: alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
+  timeout: 10 minutes
+  rules:
+    - !reference [.not-a-fuzz-pipeline, rules]
+  before_script:
+    - apk add --no-cache -q editorconfig-checker
+  script:
+    - ec -version
+    - ec -config .editorconfig-checker.json -no-color
+    # The negative control: a tab in a C++ file fails it, or it has stopped looking.
+    - |
+      printf 'int f()\n{\n\treturn 0;\n}\n' > editorconfig-negative-control.cpp
+      if ec -config .editorconfig-checker.json -no-color editorconfig-negative-control.cpp > /dev/null; then
+        echo "editorconfig-checker passed a C++ file indented with a tab: it is not checking."
+        exit 1
+      fi
+      rm -f editorconfig-negative-control.cpp
+      echo "Every file holds to .editorconfig, and a file that does not is refused."
+
+# packaging.yml's chart-and-compose job: the Helm chart linted and rendered with the
+# values a real install needs, and the Compose file resolved by Compose itself. Both
+# tools are Alpine's packages (community/helm, community/docker-cli-compose); neither
+# needs a Docker daemon for this. As before, it runs when what it checks has changed.
+chart-and-compose:
+  stage: check
+  image: alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
+  timeout: 10 minutes
+  rules:
+    - if: $HM_PIPELINE == "fuzz"
+      when: never
+    - changes:
+        - hmailserver/source/Server/platform/packaging/helm/**/*
+        - hmailserver/source/Server/platform/packaging/docker/docker-compose.yml
+        - .gitlab-ci.yml
+  before_script:
+    - apk add --no-cache -q helm docker-cli-compose
+  script:
+    - helm version --short
+    - docker compose version
+    - helm lint hmailserver/source/Server/platform/packaging/helm/hmailserver
+    - |
+      chart=hmailserver/source/Server/platform/packaging/helm/hmailserver
+      helm template mail "$chart" --set database.host=db --set database.password=dbpw \
+        --set administrator.password=adminpw --set rest.tlsSecretName=mail-tls > rendered.yaml
+      for kind in StatefulSet Service Secret; do
+        grep -q "kind: $kind" rendered.yaml || { echo "the chart rendered no $kind"; exit 1; }
+      done
+      grep -q HM_REST_CERTIFICATE_FILE rendered.yaml || { echo "the chart does not hand the server its REST certificate"; exit 1; }
+      # Without a database host the chart must refuse, not render a broken server.
+      if helm template mail "$chart" --set database.password=x --set administrator.password=y > /dev/null 2>&1; then
+        echo "the chart rendered without database.host"; exit 1
+      fi
+      # An existing Secret leaves the chart's own out.
+      if helm template mail "$chart" --set database.host=db --set existingSecret=mine | grep -q 'kind: Secret'; then
+        echo "the chart wrote a Secret beside existingSecret"; exit 1
+      fi
+      echo "The chart lints, renders what a real install needs, and refuses what it must."
+    - |
+      cd hmailserver/source/Server/platform/packaging/docker
+      mkdir -p secrets certs
+      printf '%s' x > secrets/db_password
+      printf '%s' y > secrets/admin_password
+      docker compose config --quiet
+      echo "The Compose file resolves."
+
+# packaging.yml's update-helper job: the live update's Linux apply step,
+# hmailserver-update, run under dash against fakes for every outcome it can write
+# (build/test-hmailserver-update.sh), and the three units read by systemd-analyze.
+# systemd is Ubuntu's package; dash is the image's /bin/sh.
+update-helper:
+  stage: check
+  image: ubuntu:26.04@sha256:513c074113a871b51a8d16ab445c88779d6452d937a164fb5cc479f32668a41d
+  timeout: 10 minutes
+  rules:
+    - if: $HM_PIPELINE == "fuzz"
+      when: never
+    - changes:
+        - hmailserver/source/Server/platform/packaging/hmailserver-update
+        - hmailserver/source/Server/platform/packaging/hmailserver-update.path
+        - hmailserver/source/Server/platform/packaging/hmailserver-update.service
+        - hmailserver/source/Server/platform/packaging/hmailserver.service
+        - build/test-hmailserver-update.sh
+        - .gitlab-ci.yml
+  before_script:
+    - apt-get update -qq
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends systemd > /dev/null
+  script:
+    - ls -l /bin/sh
+    - bash build/test-hmailserver-update.sh
+    # The only thing systemd-analyze objects to in a checkout is the two executables
+    # the package would have installed; they are tolerated by name and nothing else is.
+    - |
+      cd hmailserver/source/Server/platform/packaging
+      for unit in hmailserver.service hmailserver-update.path hmailserver-update.service; do
+        out="$(systemd-analyze verify --recursive-errors=no "./$unit" 2>&1 || true)"
+        problems="$(printf '%s\n' "$out" | grep -v -E 'Command /usr/(bin/hmailserver|lib/hmailserver/hmailserver-update) is not executable' | grep -v '^$' || true)"
+        if [ -n "$problems" ]; then
+          echo "$unit did not verify:"
+          printf '%s\n' "$problems"
+          exit 1
+        fi
+        echo "$unit: ok"
+      done
+
+# package-managers.yml's templates job: the winget manifests and the Chocolatey
+# package render from their templates, every token is one the renderer knows, and the
+# three winget manifests agree - checked offline, as the old job checked a change: the
+# winget schemas are fetched through aka.ms from GitHub, and a release is what has a
+# real hash. Rendering, checking and submitting for a release (the manifests job) is
+# the release-chain row's. pwsh is the one in Microsoft's .NET SDK image; PyYAML and
+# jsonschema are Ubuntu's packages.
+package-templates:
+  stage: check
+  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:2fa828c68761b1b8c23d7662dc134421b9d3b59fe1425fdbc80804e390cdb24d
+  timeout: 10 minutes
+  rules:
+    - if: $HM_PIPELINE == "fuzz"
+      when: never
+    - changes:
+        - hmailserver/installation/winget/**/*
+        - hmailserver/installation/chocolatey/**/*
+        - build/make-package-manifests.ps1
+        - build/check-package-manifests.py
+        - .gitlab-ci.yml
+  before_script:
+    - apt-get update -qq
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends python3 python3-yaml python3-jsonschema > /dev/null
+  script:
+    - pwsh -NoProfile -File build/make-package-manifests.ps1 -Check
+    - pwsh -NoProfile -File build/make-package-manifests.ps1 -Version 9.9.9 -ReleaseDate 2026-01-01 -Sha256 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA -OutputDirectory /tmp/manifests
+    - python3 build/check-package-manifests.py /tmp/manifests --offline
+
+# roadmap.yml: Roadmap.md's counts are what its tick boxes say (build/check-roadmap.ps1),
+# when either changes. pwsh is the one in Microsoft's .NET SDK image.
+roadmap:
+  stage: check
+  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:2fa828c68761b1b8c23d7662dc134421b9d3b59fe1425fdbc80804e390cdb24d
+  timeout: 5 minutes
+  rules:
+    - if: $HM_PIPELINE == "fuzz"
+      when: never
+    - changes:
+        - Roadmap.md
+        - build/check-roadmap.ps1
+        - .gitlab-ci.yml
+  script:
+    - pwsh -NoProfile -File build/check-roadmap.ps1
+
+# linux-build.yml's cross job: every core translation unit compiled for AArch64 on
+# x86-64 (build/ci/linux-cross.sh). The cross GCC is the CI image's, from Ubuntu.
+linux-cross:
+  extends: .linix
+  stage: test
+  needs: []
+  timeout: 1 hour
+  script:
+    - bash build/ci/linux-cross.sh
+  artifacts:
+    when: always
+    expire_in: 3 days
+    paths:
+      - linux-cross/
+
+# The SNMP agent's tester built with AddressSanitizer (build/ci/linux-sanitize.sh):
+# cmake -DHM_SANITIZE=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo, the snmp-tests target, run
+# with ASAN_OPTIONS=abort_on_error=1. It passes, saying so, on a tree whose CMake build
+# has no HM_SANITIZE yet; the SNMP row adds it.
+linux-sanitize:
+  extends: .linix
+  stage: test
+  needs: []
+  timeout: 1 hour 30 minutes
+  script:
+    - bash build/ci/linux-sanitize.sh
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - linux-sanitize/
+
+# linux-build.yml's db-upgrade job, once per backend: a 6029 database holding orphaned
+# rows upgrades to this build's schema with the server linux-build made
+# (build/ci/linux-db-upgrade.sh, build/db-upgrade-gate.sh). The same PostgreSQL as the
+# suite, and the MariaDB the old job pinned, both by digest from Docker Hub.
+.linux-db-upgrade:
+  extends: .linix
+  stage: test
+  needs: [linux-build]
+  timeout: 20 minutes
+
+linux-db-upgrade-pgsql:
+  extends: .linux-db-upgrade
+  services:
+    - name: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
+      alias: postgres
+      pull_policy: if-not-present
+      variables:
+        POSTGRES_USER: hmailserver
+        POSTGRES_PASSWORD: hmtest
+        POSTGRES_DB: postgres
+  script:
+    - bash build/ci/linux-db-upgrade.sh pgsql
+
+linux-db-upgrade-mysql:
+  extends: .linux-db-upgrade
+  services:
+    - name: mariadb:11@sha256:2d2f4095530294735a857cfe22bb101e19b0849b416911c796ec4aa81b164a62
+      alias: mariadb
+      pull_policy: if-not-present
+      variables:
+        MARIADB_ROOT_PASSWORD: hmtest
+  script:
+    - bash build/ci/linux-db-upgrade.sh mysql
+
+# linux-build.yml's package-install job: the .deb and the .rpm the packaging step of
+# linux-build made, each installed in a clean distribution container - the job's own
+# image - and held to what a working installation needs; the .deb is then configured,
+# started as its unit starts it and asked for the Control Deck
+# (build/ci/linux-package-install.sh, which says what a container cannot prove). The
+# images are the distributions' own: Ubuntu's from Docker Hub, Fedora's from
+# registry.fedoraproject.org.
+linux-package-deb:
+  extends: .own-runners
+  stage: test
+  tags: [linix]
+  image:
+    name: ubuntu:26.04@sha256:513c074113a871b51a8d16ab445c88779d6452d937a164fb5cc479f32668a41d
+    pull_policy: if-not-present
+  needs: [linux-build]
+  timeout: 20 minutes
+  services:
+    - name: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
+      alias: postgres
+      pull_policy: if-not-present
+      variables:
+        POSTGRES_USER: hmailserver
+        POSTGRES_PASSWORD: hmtest
+        POSTGRES_DB: hmpackage
+  script:
+    - bash build/ci/linux-package-install.sh deb
+
+linux-package-rpm:
+  extends: .own-runners
+  stage: test
+  tags: [linix]
+  image:
+    name: registry.fedoraproject.org/fedora:44@sha256:2cdfedd312a3c92e0d9932ee18d9d2dd80b00fa0bb4ebdaa86736195b5eaa974
+    pull_policy: if-not-present
+  needs: [linux-build]
+  timeout: 10 minutes
+  script:
+    - bash build/ci/linux-package-install.sh rpm
+
+# linux-build.yml's image job, the build half: the container image built from the .deb
+# with kaniko - no Docker daemon, no socket, no privilege - and inspected, not pushed
+# (build/ci/linux-image.sh). Publishing it is the release-chain row's. kaniko is
+# Google's image on gcr.io, pinned by digest; its debug variant carries the busybox
+# shell a job needs.
+linux-image:
+  extends: .own-runners
+  stage: test
+  tags: [linix]
+  image:
+    name: gcr.io/kaniko-project/executor:v1.24.0-debug@sha256:2562c4fe551399514277ffff7dcca9a3b1628c4ea38cb017d7286dc6ea52f4cd
+    entrypoint: [""]
+    pull_policy: if-not-present
+  needs: [linux-build]
+  timeout: 30 minutes
+  script:
+    - sh build/ci/linux-image.sh
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - linux-image/
+
+# sbom.yml, less the upload: the SPDX and CycloneDX SBOMs of this tree, with the native
+# dependencies Syft cannot see merged in and checked for (build/ci/linux-sbom.sh), kept
+# as the job's artifact. Syft and pwsh are the CI image's. Attaching them to a release
+# is the release-chain row's.
+linux-sbom:
+  extends: .linix
+  stage: test
+  needs: []
+  timeout: 15 minutes
+  script:
+    - bash build/ci/linux-sbom.sh
+  artifacts:
+    expire_in: 90 days
+    paths:
+      - sbom/
+
+# ci.yml's control-panel and tools jobs and style.yml's dotnet-format job: the .NET
+# half built with warnings as errors, published, tested and held to dotnet format
+# (build/ci/windows-dotnet.ps1), in the runner's own checkout of the commit - not the
+# bench's, whose service this never touches. It takes the bench's gate lock
+# around its work all the same: a build beside a running suite perturbs the suite, and
+# the maintainer's split gate runs one over SSH outside GitLab. The .NET SDK, Visual
+# Studio's Build Tools (MIDL) and the .NET Framework SDK (TlbImp) are the bench's own,
+# from Microsoft; the packages come from nuget.org, held to the lock files.
+windows-dotnet:
+  extends: .own-runners
+  stage: test
+  tags: [bench150]
+  needs: []
+  timeout: 4 hours
+  variables:
+    HM_GATE_LOCK: 'C:\bench\gate.lock'
+    HM_GATE_LOCK_WAIT_MINUTES: "200"
+    GIT_TERMINAL_PROMPT: "0"
+    GCM_INTERACTIVE: "Never"
+    MSBUILDDISABLENODEREUSE: "1"
+    RUNNER_SCRIPT_TIMEOUT: 3h50m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 5m
+  script:
+    - |
+      $holder = "gitlab-pipeline-$($env:CI_PIPELINE_ID)-job-$($env:CI_JOB_ID)"
+      $shell = (Get-Process -Id $PID).Path
+      & $shell -NoProfile -ExecutionPolicy Bypass -File build\ci\gate-lock.ps1 -Take -Holder $holder -Path $env:HM_GATE_LOCK -WaitMinutes $env:HM_GATE_LOCK_WAIT_MINUTES
+      if ($LASTEXITCODE -ne 0) { "the gate lock is not ours - nothing built"; exit 10 }
+      $code = 4
+      try {
+        & $shell -NoProfile -ExecutionPolicy Bypass -File build\ci\windows-dotnet.ps1 -ResultsDirectory "$env:CI_PROJECT_DIR\dotnet-results"
+        $code = $LASTEXITCODE
+      } finally {
+        & $shell -NoProfile -ExecutionPolicy Bypass -File build\ci\gate-lock.ps1 -Release -Holder $holder -Path $env:HM_GATE_LOCK
+      }
+      exit $code
+  after_script:
+    - |
+      $holder = "gitlab-pipeline-$($env:CI_PIPELINE_ID)-job-$($env:CI_JOB_ID)"
+      if (Test-Path build\ci\gate-lock.ps1) {
+        & (Get-Process -Id $PID).Path -NoProfile -ExecutionPolicy Bypass -File build\ci\gate-lock.ps1 -Release -Holder $holder -Path $env:HM_GATE_LOCK
+      }
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - dotnet-results/
+
+# fuzz-nightly.yml, on linix: the three MIME harnesses built with clang++ and libFuzzer,
+# every kept input and reproducer replayed, then each fuzzed for HM_FUZZ_MINUTES on the
+# corpus the earlier nights grew, which the runner's cache carries from night to night
+# (build/ci/linux-fuzz.sh). It runs in a pipeline whose HM_PIPELINE is "fuzz" - the
+# schedule docs/ContinuousIntegration.md tells the owner how to create - and nowhere
+# else, and a newer push does not cancel it.
+linux-fuzz:
+  extends: .linix
+  stage: test
+  needs: []
+  timeout: 2 hours
+  interruptible: false
+  rules:
+    - if: $HM_PIPELINE == "fuzz" && $CI_COMMIT_REF_PROTECTED == "true" && $CI_PIPELINE_SOURCE != "merge_request_event"
+  variables:
+    HM_FUZZ_MINUTES: "20"
+    HM_FUZZ_JOBS: "2"
+  cache:
+    key: linux-fuzz-corpus
+    paths:
+      - fuzz/corpus/
+    when: always
+  script:
+    - bash build/ci/linux-fuzz.sh
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - fuzz-results/
 
 # The release stage belongs to the Roadmap2 row "The release chain off a single forge":
 # signing, the packages, publishing and the update feed. Until it is built, a v* tag

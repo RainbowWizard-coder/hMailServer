@@ -15,11 +15,13 @@ change is held to, and how a change reaches `master`. By taking part you agree t
 18 September 2026, so every link to github.com/Progressiverobot - in older notes, commit messages and
 documents - answers 404. **GitLab CI runs the platform-neutral checks** (`.gitlab-ci.yml`) on every push and
 every merge request: the Python checkers, the generators' check modes, the Deck's and the webmail's harnesses,
-and the sign-off of a merge request from a fork. **The builds and both regression suites run on the project's
-own two machines, for `master`, `batch*` branches and `v*` tags only** - never for a merge request, and never
-for a fork ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)). So for
-your branch they are still run by hand, by you before you open a merge request, and so are the Windows-only
-checks everywhere. [The checkers](#the-checkers) says which is which.
+editorconfig, the packaging and package-manager checks when their files change, and the sign-off of a merge
+request from a fork. **The builds, both regression suites, the .NET build and tests, the packages, the
+schema-upgrade gate and the rest of what the old GitHub workflows ran happen on the project's own two machines,
+for `master`, `batch*` branches and `v*` tags only** - never for a merge request, and never for a fork
+([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)). So for your branch
+they are still run by hand, by you before you open a merge request, and so are two PowerShell checks
+everywhere. [The checkers](#the-checkers) says which is which.
 
 Contents:
 
@@ -330,32 +332,44 @@ reads.
 
 ## The checkers
 
-**What GitLab CI runs.** `.gitlab-ci.yml` runs on every push to a branch and on every merge request, in three
-jobs. *checkers* (a Python image with git) runs every Python checker below except `check-package-manifests.py`,
-the seven `--self-test` modes, `add-license-headers.py --check`, every generator's `--check`,
-`generate-portal-languages.py` and `check-deck-parity.py` held to the files they write staying as committed, and
-`check-linux-version-stamp.sh`, and it reports every failure at the end rather than stopping at the first.
-*harnesses* (a Node image with Python, OpenSSL and GnuPG) runs `check-deck-script.py`, `check-portal-script.py`,
-`check-portal-smime.js` and `check-portal-openpgp.js`. *sign-off* runs on a merge request from a fork (see
-[Sign-off](#sign-off)). Each script is started as `python3 build/...`, `node build/...` or `bash build/...`,
-never by its shebang, because the tree checks out CRLF.
+**What GitLab CI runs.** `.gitlab-ci.yml` runs on every push to a branch and on every merge request, on
+GitLab's shared runners. *checkers* (a Python image with git) runs every Python checker below except
+`check-package-manifests.py`, the seven `--self-test` modes, `add-license-headers.py --check`, every
+generator's `--check`, `generate-portal-languages.py` and `check-deck-parity.py` held to the files they write
+staying as committed, and `check-linux-version-stamp.sh`, and it reports every failure at the end rather than
+stopping at the first. *harnesses* (a Node image with Python, OpenSSL and GnuPG) runs `check-deck-script.py`,
+`check-portal-script.py`, `check-portal-smime.js` and `check-portal-openpgp.js`. *editorconfig* runs
+editorconfig-checker. Four more run when their files change: *chart-and-compose* (the Helm chart and the
+Compose file), *update-helper* (`build/test-hmailserver-update.sh` and the units under `systemd-analyze`),
+*package-templates* (`make-package-manifests.ps1 -Check` and `check-package-manifests.py --offline` on
+placeholder values) and *roadmap* (`check-roadmap.ps1`). *sign-off* runs on a merge request from a fork (see
+[Sign-off](#sign-off)). Each script is started as `python3 build/...`, `node build/...`, `bash build/...` or
+`pwsh -File build/...`, never by its shebang, because the tree checks out CRLF.
 
 **On the project's own runners**, for a push to `master`, to a `batch*` branch or of a `v*` tag, and for
-nothing else: *linux-build* and *linux-suite* on the Linux lab machine (the server with clang, its tester
-programs, then the whole Linux suite against it on PostgreSQL), and *windows-gate* on the second Windows bench
-(the whole Windows suite, in the bench's own checkout). A `v*` tag also gets a *release* job, which is a
-placeholder until the release chain is built. The two machines never take a job for a merge request, above
-all not one from a fork; [hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)
-says why, and how the runners, their image and the bench's gate lock work.
+nothing else. On the Linux lab machine: *linux-build* (the server with clang, its tester programs, the OpenPGP
+writer against GnuPG, and the `.deb` and the `.rpm`), *linux-suite* (the whole Linux suite against it on
+PostgreSQL), *linux-cross* (every core file compiled for AArch64), *linux-sanitize* (`snmp-tests` under
+AddressSanitizer, once the option exists), *linux-db-upgrade-pgsql* and *-mysql* (`build/db-upgrade-gate.sh`),
+*linux-package-deb* and *-rpm* (the packages installed in clean containers, the `.deb` started and asked for
+the Deck), *linux-image* (the container image built, not pushed) and *linux-sbom*. On the second Windows bench:
+*windows-gate* (the whole Windows suite, in the bench's own checkout) and *windows-dotnet* (the Control Panel and
+the tools built with warnings as errors and tested, `generate-settings-index.ps1` held to its file, and
+`dotnet format --verify-no-changes`). A `v*` tag also gets a *release* job, which is a placeholder until the
+release chain is built, and a pipeline schedule runs *linux-fuzz*, the MIME harnesses under libFuzzer, every
+night. The two machines never take a job for a merge request, above all not one from a fork;
+[hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) says why, what each old
+GitHub workflow became, where every tool comes from, and how the runners, their image and the bench's gate
+lock work.
 
-**What stays by hand:** for any branch that is not protected, the builds and the Windows and the Linux
-regression suites; everywhere, `check-package-manifests.py`,
-the PowerShell checks (`check-schema-versions.ps1`, `check-db-scripts.ps1`, `check-roadmap.ps1`,
-`generate-settings-index.ps1`), `editorconfig-checker` and `dotnet format`. Run those from the repository root
-before you open a merge request, and say in it which ones you ran; the ones CI runs are worth running first too,
-since they take a few minutes here and a round trip there. They need nothing but Python unless their row says
-otherwise, and ran on Linux under `python3` in the GitHub workflow `.github/workflows/style.yml` before they ran
-on GitLab. **Rewrites** marks a mode that changes files.
+**What stays by hand:** for any branch that is not protected, everything the project's own runners run - the
+builds, both regression suites, the .NET build and tests with `dotnet format`, and the Linux jobs that apply to
+the change; everywhere, `check-package-manifests.py` against a released installer and two PowerShell checks,
+`check-schema-versions.ps1` and `check-db-scripts.ps1`. Run those from the repository root before you open a
+merge request, and say in it which ones you ran; the ones CI runs are worth running first too, since they take
+a few minutes here and a round trip there. They need nothing but Python unless their row says otherwise, and
+ran on Linux under `python3` in the GitHub workflow `.github/workflows/style.yml` before they ran on GitLab.
+**Rewrites** marks a mode that changes files.
 
 ### Python checkers
 
@@ -426,8 +440,8 @@ something which already exists.
 | `node build/check-portal-smime.js` | The webmail's S/MIME module against OpenSSL, both ways | Node 20 or later and `openssl` on `PATH` |
 | `node build/check-portal-openpgp.js` | The webmail's OpenPGP module against GnuPG's fixtures, and back to `gpg` when it is present | Node 20 or later; `gpg` optional |
 | `bash build/check-linux-version-stamp.sh` | The Linux stamps (the PKGBUILD's `pkgver`) agree with `Version.h` | Git Bash, WSL or Linux |
-| `editorconfig-checker` | `.editorconfig` on every text file, with the exclusions in `.editorconfig-checker.json` | The workflow used v3.11.3 |
-| `dotnet format --verify-no-changes` | C# formatting, on `"hmailserver/source/Tools/hMailServer Tools.sln"` and on `hmailserver/source/Tools/ControlPanel/ControlPanel.csproj` | Windows; the .NET 10 SDK |
+| `editorconfig-checker` | `.editorconfig` on every text file, with the exclusions in `.editorconfig-checker.json` | `ec -config .editorconfig-checker.json`. CI uses Alpine's package, 3.0.3, which reads the configuration only when named; the GitHub workflow used v3.11.3 |
+| `dotnet format --verify-no-changes` | C# formatting, on `"hmailserver/source/Tools/hMailServer Tools.sln"` and on `hmailserver/source/Tools/ControlPanel/ControlPanel.csproj` | Windows; the .NET 10 SDK. CI runs it in *windows-dotnet* |
 
 ### Which ones for which change
 

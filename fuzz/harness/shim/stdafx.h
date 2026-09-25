@@ -71,8 +71,21 @@
 // two macros strip out of Windows.h. The macros only affect which Windows
 // headers are visible, not the behaviour of any parser code, so widening the
 // header set here does not change what is being fuzzed.
+//
+// On Linux (build/ci/linux-fuzz.sh, the scheduled linux-fuzz job) the same
+// harness is built with clang++ against the POSIX platform header, which is what
+// the portable core build forces into every file in place of <Windows.h>, and
+// with SS_ANSI, the switch the portable build gives StdString.h. Nothing below
+// this block differs between the two.
+#if defined(_WIN32)
 #include <WinSock2.h>
 #include <Windows.h>
+#else
+#ifndef SS_ANSI
+#define SS_ANSI
+#endif
+#include "../../../hmailserver/source/Server/platform/hm_platform.h"
+#endif
 
 // <algorithm> is load-bearing, not tidiness: NOMINMAX above removes the Windows
 // min/max macros, and MimeCode.cpp calls bare min() relying on the

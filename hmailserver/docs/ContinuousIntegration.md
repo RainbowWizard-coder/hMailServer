@@ -3,14 +3,19 @@ Continuous integration
 
 GitLab CI starts every pipeline (`.gitlab-ci.yml` at the repository root). The
 cheap checks run on GitLab's shared runners, for every push and every merge
-request. The builds and both regression suites run on the project's own two
-machines, and only for the refs that only a maintainer can push. The owner
-decided this on 25 September 2026, a week after GitHub suspended the project's
-account and its workflows with it.
+request. The builds, both regression suites and everything else that needs a
+machine of the project's run on its own two machines, and only for the refs that
+only a maintainer can push. The owner decided this on 25 September 2026, a week
+after GitHub suspended the project's account and its workflows with it. The same
+day, the rest of the old GitHub workflows were ported
+([From GitHub Actions to GitLab CI](#from-github-actions-to-gitlab-ci)), and a
+nightly fuzz pipeline was added ([The fuzz schedule](#the-fuzz-schedule)).
 
-**Nothing here has run yet.** When this was written, neither runner had taken a
-job. Every duration below is an estimate made from the gates run by hand, and it
-says so. Replace the estimates with the first runs' times.
+**No GitLab job has run yet.** When this was written, neither runner had taken a
+job. The ported Linux jobs' scripts were run by hand on linix, in the jobs' own
+images and beside the same services, and the times they took are given as
+measured by hand. Every other duration below is an estimate made from the gates
+run by hand, and says so. Replace both with the first runs' times.
 
 What runs where
 ---------------
@@ -20,15 +25,33 @@ What runs where
 | `checkers` | check | GitLab's shared runners | every pipeline | Every Python checker, the self-tests, the generators' `--check` ([CONTRIBUTING.md](../../CONTRIBUTING.md), "The checkers") |
 | `harnesses` | check | GitLab's shared runners | every pipeline | The Control Deck's and the webmail's script harnesses, and the S/MIME and OpenPGP checks |
 | `sign-off` | check | GitLab's shared runners | a merge request from a fork | Every commit carries its author's `Signed-off-by` |
-| `linux-build` | build | linix | a protected ref | The Linux server with clang, every `*-tests` program the CMake build makes, and the OpenPGP writer against GnuPG (`build/ci/linux-build.sh`) |
+| `editorconfig` | check | GitLab's shared runners | every pipeline | Every text file against `.editorconfig`, and a negative control |
+| `chart-and-compose` | check | GitLab's shared runners | a change to the Helm chart or the Compose file | The chart linted and rendered, the Compose file resolved |
+| `update-helper` | check | GitLab's shared runners | a change to the update helper or the units | `build/test-hmailserver-update.sh` under dash, and `systemd-analyze verify` of the three units |
+| `package-templates` | check | GitLab's shared runners | a change to the winget or Chocolatey templates | The templates render and agree, checked offline |
+| `roadmap` | check | GitLab's shared runners | a change to `Roadmap.md` | `build/check-roadmap.ps1` |
+| `linux-build` | build | linix | a protected ref | The Linux server with clang, every `*-tests` program the CMake build makes, the OpenPGP writer against GnuPG, and the `.deb` and the `.rpm` (`build/ci/linux-build.sh`) |
 | `linux-suite` | test | linix | a protected ref | The whole of `LinuxRegressionTests` against that server on PostgreSQL 16 (`build/ci/linux-suite.sh`) |
+| `linux-cross` | test | linix | a protected ref | Every core translation unit compiled for AArch64 (`build/ci/linux-cross.sh`) |
+| `linux-sanitize` | test | linix | a protected ref | `snmp-tests` under AddressSanitizer; says SKIPPED and passes while the tree has no `HM_SANITIZE` (`build/ci/linux-sanitize.sh`) |
+| `linux-db-upgrade-pgsql`, `linux-db-upgrade-mysql` | test | linix | a protected ref | A 6029 database with orphaned rows upgrades to this schema, on PostgreSQL 16 and MariaDB 11 (`build/ci/linux-db-upgrade.sh`) |
+| `linux-package-deb`, `linux-package-rpm` | test | linix | a protected ref | The packages installed in clean Ubuntu 26.04 and Fedora 44 containers; the `.deb` configured, started and asked for the Deck (`build/ci/linux-package-install.sh`) |
+| `linux-image` | test | linix | a protected ref | The container image built from the `.deb` with kaniko and inspected, not pushed (`build/ci/linux-image.sh`) |
+| `linux-sbom` | test | linix | a protected ref | The SPDX and CycloneDX SBOMs of the tree, kept 90 days (`build/ci/linux-sbom.sh`) |
 | `windows-gate` | test | bench150 | a protected ref | The whole Windows suite in the bench's own checkout (`build/ci/windows-gate.ps1`) |
+| `windows-dotnet` | test | bench150 | a protected ref | The Control Panel and the tools built with warnings as errors, published and tested, and `dotnet format` (`build/ci/windows-dotnet.ps1`) |
+| `linux-fuzz` | test | linix | a pipeline with `HM_PIPELINE=fuzz`, from its schedule | The three MIME harnesses under libFuzzer (`build/ci/linux-fuzz.sh`) |
 | `release` | release | GitLab's shared runners | a `v*` tag, started by hand | A placeholder. It fails with "the release stage is the release-chain row's (137)" |
 
-`linux-build` and `windows-gate` start as soon as the pipeline does. They do not
-wait for the checks, because the two machines are otherwise idle and the
-Windows gate is the longest job. `linux-suite` waits for `linux-build`, and
-`release` waits for everything else.
+`linux-build`, `windows-gate`, `windows-dotnet`, `linux-cross`, `linux-sanitize`
+and `linux-sbom` start as soon as the pipeline does. They do not wait for the
+checks, because the two machines are otherwise idle and the Windows gate is the
+longest job. `linux-suite`, the two upgrade gates, the two package jobs and
+`linux-image` wait for `linux-build`, whose artifact holds the binary and the
+packages, and `release` waits for the checks and the two suites. linix runs one
+job at a time, so its jobs queue behind each other in the order GitLab hands them
+out; bench150's two jobs take the bench's gate lock in turn
+([The .NET job](#the-net-job)).
 
 A test report is published for both suites, under the pipeline's *Tests* tab.
 The Linux suite's TRX goes through `build/ci/trx-to-junit.py`, and the Windows
@@ -36,26 +59,38 @@ suite's NUnit result goes through `build/ci/nunit-to-junit.ps1`. Skipped tests
 are expected and do not fail a job: a Linux fixture that the REST API cannot
 drive says why and skips, and a Windows test skips where the bench lacks what
 it needs (a real `python.exe`, for one). A job passes on "Failed 0" with at least one
-test passed. A failed test fails it, and so does a run of no tests.
+test passed. A failed test fails it, and so does a run of no tests. The .NET
+tests of `windows-dotnet` are kept as TRX files in its artifact and are not
+published as a report: the converter is Python, and bench150's LocalSystem has
+none.
 
 Which pipeline runs what
 ------------------------
 
 | Push or event | Pipeline | Jobs |
 |---|---|---|
-| `master` | the branch's | all of them but `release` |
-| a `batch*` branch | the branch's | all of them but `release`: this is the gate a batch passes before it lands |
-| any other branch, no open merge request | the branch's | `checkers`, `harnesses` |
-| any other branch, with an open merge request | the merge request's | `checkers`, `harnesses`, and `sign-off` when the branch is in a fork |
+| `master` | the branch's | all of them but `release` and `linux-fuzz` |
+| a `batch*` branch | the branch's | all of them but `release` and `linux-fuzz`: this is the gate a batch passes before it lands |
+| any other branch, no open merge request | the branch's | `checkers`, `harnesses`, `editorconfig`, and the four path-bound checks whose files changed |
+| any other branch, with an open merge request | the merge request's | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, and `sign-off` when the branch is in a fork |
 | a merge request from `master` or a `batch*` branch | none; the branch's own pipeline stands for it | as for the branch |
-| a `v*` tag | the tag's | all of them, and the manual `release` |
+| a `v*` tag | the tag's | all of them but `linux-fuzz`, and the manual `release` |
 | any other tag | none | |
+| the fuzz schedule (`HM_PIPELINE=fuzz`, on `master`) | the schedule's | `linux-fuzz` alone |
+
+The four path-bound checks - `chart-and-compose`, `update-helper`,
+`package-templates` and `roadmap` - run when a file they check, or
+`.gitlab-ci.yml`, changed, as their GitHub workflows did (`rules:changes`). For
+a branch's first push and for a tag GitLab counts every file as changed, so they
+all run then.
 
 The `workflow:` rules keep this to one pipeline per change. A branch with an
 open merge request would otherwise run two pipelines, one for the branch and
 one for the merge request. A newer push to the same ref makes an older pipeline
 moot: every job is `interruptible`, so GitLab cancels the older one when the
 project's "auto-cancel redundant pipelines" setting is on, as it is by default.
+`linux-fuzz` is the exception: it is not interruptible, so a push to `master`
+during the night does not cut the night's fuzzing short.
 
 Landing a batch runs the full gate twice. The gate runs once on the `batch*`
 branch, and again when `master` is fast-forwarded to the same commit. That is
@@ -71,9 +106,10 @@ off and `locked`. GitLab gives them a job only when all three of these hold:
 1. the pipeline is for a protected ref: `master`, a `batch*` branch or a `v*`
    tag, which only the maintainers can push;
 2. the job names one of the runner's tags (`linix`, `bench150`);
-3. the job's `rules:` created it. `.own-runners` in the CI file creates the
-   three jobs only when `$CI_COMMIT_REF_PROTECTED` is `"true"` and the pipeline
-   is not a merge request's.
+3. the job's `rules:` created it. `.own-runners` in the CI file creates its
+   jobs only when `$CI_COMMIT_REF_PROTECTED` is `"true"` and the pipeline is not
+   a merge request's (and not the fuzz pipeline, which `linux-fuzz`'s own rule
+   also holds to a protected ref).
 
 A merge request from a fork runs in the fork's context, on an unprotected ref,
 with code nobody here has reviewed. The code could build anything, and both
@@ -106,9 +142,17 @@ What the host needs:
   [The image](#the-image)).
 - `postgres:16` at the digest the CI file names. It is pulled on first use, and
   it is on the host already.
+- The other images the ported jobs name, each by digest, each pulled on first
+  use: `mariadb:11` (the MySQL upgrade gate's service) and `ubuntu:26.04` from
+  Docker Hub, `registry.fedoraproject.org/fedora:44`, and
+  `gcr.io/kaniko-project/executor:v1.24.0-debug`. If the runner's `config.toml`
+  restricts images (`allowed_images`) or registries, these must be allowed.
+- The runner's local cache, which carries the fuzz corpus from night to night
+  (`cache:` in `linux-fuzz`). The docker executor keeps it in a volume on the
+  host; nothing needs setting up.
 
-Nothing else is installed on the host for CI. The toolchain, the .NET SDK and
-the PostgreSQL client are in the image.
+Nothing else is installed on the host for CI. The toolchains, the .NET SDK,
+PowerShell, Syft and the database clients are in the image.
 
 ### bench150
 
@@ -136,6 +180,14 @@ bench), plus these:
 - Access to `gitlab.com`, to fetch the commit, and to `api.nuget.org`, because
   the first build as LocalSystem restores NuGet packages into LocalSystem's own
   profile.
+- For `windows-dotnet`: the .NET SDK for the machine, 10.0.303 or a later
+  feature band of .NET 10 (`global.json`), on the machine PATH - 10.0.401 is
+  there, in `C:\Program Files\dotnet` (read on 25 September 2026); and Visual
+  Studio's Build Tools with the C++ tools and the .NET Framework SDK, which give
+  `build/generate-com-wrapper.ps1` MIDL (through `vcvars64.bat`) and `TlbImp.exe`
+  ("NETFX 4.8.1 Tools"). The gate's server build needs the Build Tools already.
+  This job clones the commit into the runner's own builds directory as usual;
+  its checkout is LocalSystem's, so it needs no `safe.directory`.
 
 ### Re-creating a runner
 
@@ -158,15 +210,28 @@ the old runner on GitLab first, so that its token stops working.
 The image
 ---------
 
-`linux-build` and `linux-suite` run in one image, described by
-`build/ci/linux.Dockerfile`. The image holds:
+The Linux jobs that build or run the server - `linux-build`, `linux-suite`,
+`linux-cross`, `linux-sanitize`, the two upgrade gates, `linux-sbom` and
+`linux-fuzz` - run in one image, described by `build/ci/linux.Dockerfile`. The
+package jobs run in the distributions' own images instead, because the point
+is a clean system, and `linux-image` in kaniko's. The image holds:
 
 - Ubuntu 26.04 at a pinned digest;
 - the toolchain and the `-dev` packages of the Linux build;
-- GnuPG, the PostgreSQL client, curl and Python;
-- the .NET 10 SDK, copied from Microsoft's SDK image at a pinned digest.
-  Ubuntu's own `dotnet-sdk-10.0` is a 10.0.1xx SDK, and `global.json` refuses
-  it.
+- clang's sanitizer and libFuzzer runtimes (`libclang-rt-dev`) and
+  `llvm-symbolizer` (`llvm`), for `linux-sanitize` and `linux-fuzz`;
+- the AArch64 cross GCC (`g++-aarch64-linux-gnu`), for `linux-cross`;
+- `rpm`, whose `rpmbuild` CPack's RPM generator runs;
+- GnuPG, the PostgreSQL client, the MariaDB client and `libmariadb3` (the
+  library the server loads to reach MySQL), curl and Python;
+- the .NET 10 SDK and PowerShell 7, copied from Microsoft's SDK image at a
+  pinned digest. Ubuntu's own `dotnet-sdk-10.0` is a 10.0.1xx SDK, and
+  `global.json` refuses it;
+- Syft, copied from Anchore's image on Docker Hub at a pinned digest.
+
+Every package is Ubuntu's own. Nothing in the image, and nothing any job
+fetches, comes from GitHub; [Where the tools come from](#where-the-tools-come-from)
+lists every tool of every job.
 
 The image is built **on linix and never pushed anywhere**. Jobs find it in the
 host's image store under its tag, and the `if-not-present` pull policy means
@@ -198,7 +263,9 @@ give every job on linix root on linix: every job for a protected ref, and every
 job any future change to the rules lets through. The integrator decides on
 socket access. Until that decision is taken, the image is built by hand, and
 the tag rule above makes sure no job runs on an image the Dockerfile no longer
-describes.
+describes. (`linux-image` builds the product's image without a socket, with
+kaniko, but kaniko writes a tarball or pushes to a registry: it cannot put an
+image into linix's own image store, which is where the jobs look for theirs.)
 
 The Windows gate
 ----------------
@@ -311,34 +378,267 @@ lock cannot be made. `-Release` exits 0 when it removed your lock, 4 when the
 lock is someone else's (and it leaves that lock alone), and 5 when there was no
 lock.
 
+From GitHub Actions to GitLab CI
+--------------------------------
+
+Every job of the old `.github/workflows`, and where it went. The workflows stay
+in the tree in case GitHub returns; GitLab reads none of them.
+
+| GitHub workflow and job | GitLab job | Runner | When |
+|---|---|---|---|
+| `ci.yml` control-panel | `windows-dotnet` | bench150 | a protected ref |
+| `ci.yml` tools | `windows-dotnet` | bench150 | a protected ref |
+| `ci.yml` upload-coverage-csharp | not ported: it fed GitHub's code-quality page, and the tests run without the coverage collector | | |
+| `style.yml` editorconfig | `editorconfig` | shared | every pipeline |
+| `style.yml` license-headers | `checkers` (row 139) | shared | every pipeline |
+| `style.yml` dotnet-format | `windows-dotnet` | bench150 | a protected ref |
+| `server-build.yml` | `windows-gate`, which builds the Release server before the suite | bench150 | a protected ref |
+| `dco.yml` | `sign-off` (row 139) | shared | a merge request from a fork |
+| `roadmap.yml` | `roadmap` | shared | `Roadmap.md` changed |
+| `linux-build.yml` stamps | `checkers` runs `check-linux-version-stamp.sh` (row 139), and `linux-build` runs it again before it packages: a drifted stamp makes no package | shared, linix | every pipeline; a protected ref |
+| `linux-build.yml` build, x86-64 clang | `linux-build` (with the packages) | linix | a protected ref |
+| `linux-build.yml` build, x86-64 GCC | not ported: see below | | |
+| `linux-build.yml` build, AArch64 | not ported: see below | | |
+| `linux-build.yml` build, the AppImage | not ported: see below | | |
+| `linux-build.yml` cross | `linux-cross` | linix | a protected ref |
+| `linux-build.yml` package-install | `linux-package-deb`, `linux-package-rpm` | linix | a protected ref |
+| `linux-build.yml` regression-on-linux | `linux-suite` (row 139), the whole suite in one run | linix | a protected ref |
+| `linux-build.yml` db-upgrade | `linux-db-upgrade-pgsql`, `linux-db-upgrade-mysql` | linix | a protected ref |
+| `linux-build.yml` image | `linux-image`: built and inspected, not pushed | linix | a protected ref |
+| `linux-build.yml` publish | not ported: the release-chain row (137) | | |
+| `packaging.yml` chart-and-compose | `chart-and-compose` | shared | the chart or the Compose file changed |
+| `packaging.yml` update-helper | `update-helper` | shared | the helper, its test or a unit changed |
+| `package-managers.yml` templates | `package-templates` | shared | the templates or their scripts changed |
+| `package-managers.yml` manifests | not ported: it renders from a published, signed installer and submits it; the release-chain row (137) | | |
+| `sbom.yml` | `linux-sbom`: made and kept, not attached | linix | a protected ref |
+| `fuzz-nightly.yml` | `linux-fuzz`, on Linux rather than Windows | linix | the fuzz schedule |
+| (none) | `linux-sanitize`: `snmp-tests` under AddressSanitizer, once the SNMP row adds `HM_SANITIZE` | linix | a protected ref |
+| `codeql.yml` | not ported: see below | | |
+| `dependency-review.yml` | not ported: see below | | |
+| `scorecard.yml` | not ported: see below | | |
+| `upstream-watch.yml` | not ported: see below | | |
+| `sign-release.yml` | not ported: the release-chain row (137) | | |
+| `verify-binary-provenance.yml` | not ported: the release-chain row (137) | | |
+| `installer-smoke.yml` | ported separately, by its own change | | |
+
+**Not ported, and why:**
+
+- `codeql.yml`. The CodeQL CLI and its query packs are GitHub's, downloaded
+  from GitHub, and its results went to GitHub's code scanning. There is no
+  other source for either.
+- `dependency-review.yml` and `scorecard.yml`. Both are GitHub services: the
+  first reads GitHub's advisory database for a pull request's dependency
+  changes, the second scores the repository through GitHub's API and publishes
+  to the OpenSSF API from a verified GitHub workflow.
+- `upstream-watch.yml`. It reads upstream hMailServer's repository, which is on
+  GitHub, and files an issue there.
+- `sign-release.yml`, `verify-binary-provenance.yml`, `linux-build.yml`
+  publish, `package-managers.yml` manifests, and the upload halves of
+  `sbom.yml` and the image job. Signing, publishing, the update feed and what a
+  release attaches are the Roadmap2 row "The release chain off a single forge"
+  (137). The jobs here make and check the packages, the image and the SBOMs;
+  that row decides where they go.
+- `installer-smoke.yml`. Another change ports it.
+- `ci.yml`'s coverage upload. It went to GitHub's code-quality page. The tests
+  still run; the coverage is not collected.
+- The GCC build and the native AArch64 build of `linux-build.yml`'s matrix. linix
+  is one x86-64 machine, and a second whole build per pipeline would add
+  twelve minutes to its queue; `linux-cross` compiles every file for AArch64,
+  and `bash build/linux-tu-census.sh --cc g++` is the GCC census by hand.
+- The AppImage. Its build script runs linuxdeploy, whose only distribution is
+  GitHub's releases. It waits for the release-chain row.
+
+Where the tools come from
+-------------------------
+
+Nothing is downloaded from GitHub, at build time or at run time. Every image is
+pinned by digest where the CI file names it.
+
+| Job | Image | Tools, and where each comes from |
+|---|---|---|
+| `editorconfig` | `alpine:3.24` (Docker Hub) | editorconfig-checker 3.0.3, Alpine's community package. Its own releases are on GitHub, and its npm and PyPI packages download them from there when installed. The old job pinned 3.11.3; 3.0.3 reads the configuration only when named (`-config .editorconfig-checker.json`) |
+| `chart-and-compose` | `alpine:3.24` | Helm 3.19 and Docker Compose 5.1, Alpine's community packages |
+| `update-helper` | `ubuntu:26.04` (Docker Hub) | `systemd-analyze`, Ubuntu's `systemd` package; dash is the image's `/bin/sh` |
+| `package-templates`, `roadmap` | `mcr.microsoft.com/dotnet/sdk:10.0` (Microsoft) | `pwsh`, in Microsoft's SDK image; PyYAML and jsonschema, Ubuntu's packages |
+| `linux-build`, `linux-suite`, `linux-cross`, `linux-sanitize`, `linux-db-upgrade-*`, `linux-sbom`, `linux-fuzz` | `hmailserver-ci/linux` (built on linix) | Ubuntu's packages; the .NET SDK and PowerShell from Microsoft's SDK image; Syft 1.52.0 from `anchore/syft` on Docker Hub ([The image](#the-image)) |
+| `linux-db-upgrade-*` services | `postgres:16`, `mariadb:11` (Docker Hub) | the database servers |
+| `linux-package-deb` | `ubuntu:26.04` | the package's dependencies, PostgreSQL's client, curl and iproute2 from Ubuntu's archive |
+| `linux-package-rpm` | `registry.fedoraproject.org/fedora:44` (Fedora) | `rpm`, in the image |
+| `linux-image` | `gcr.io/kaniko-project/executor:v1.24.0-debug` (Google) | kaniko, and its busybox; the image it builds installs the `.deb` from Ubuntu's archive |
+| `windows-dotnet` | bench150's own | the .NET SDK, Visual Studio's Build Tools and the .NET Framework SDK, from Microsoft; NuGet packages from nuget.org, held to the lock files |
+
+The .NET job
+------------
+
+`windows-dotnet` is `ci.yml`'s two jobs and `style.yml`'s `dotnet format` in
+one, on bench150, run by `build/ci/windows-dotnet.ps1`: the settings search
+index is what `generate-settings-index.ps1` writes; the COM wrapper made from
+the IDL alone (`generate-com-wrapper.ps1 -FromIdl`); the Control Panel restored
+against its lock file, built with warnings as errors, published and tested; the
+tools' solution likewise, the Import Tool's tests, and `build-tools.ps1`'s
+publish of every tool the installer ships; then `dotnet format
+--verify-no-changes` over both. Every step runs unless it needs what an earlier
+one failed to make, and the summary names every failure.
+
+It works in the runner's own checkout of the commit, not in the bench's, and
+touches neither the bench's build nor its service. It takes the bench's gate
+lock all the same, waiting up to 200 minutes for it (`HM_GATE_LOCK_WAIT_MINUTES`):
+a .NET build beside a running suite takes the CPU the suite's timing-sensitive
+tests expect, and the maintainer's split gate runs a suite over SSH that GitLab
+knows nothing about. Its exit codes are the script's (0 passed, 1 a step
+failed), and 10 when the lock stayed another holder's.
+
+The packages and the image
+--------------------------
+
+`linux-build` makes the `.deb` and the `.rpm` with CPack from the build it has
+just made, after checking the version stamps, and keeps them in its artifact
+(`linux-build/packages/`, with their SHA-256 sums). A packaging failure does
+not fail `linux-build` - the suite needs the binary, not the packages - but the
+package jobs and `linux-image` fail on the missing files and point at
+`linux-build/package.log`.
+
+`linux-package-deb` installs the `.deb` in a clean Ubuntu 26.04 container with
+`apt`, asserts every file a working installation needs, configures the packaged
+INI against a PostgreSQL service the way the packaging README tells an
+administrator to, and runs the server's own verbs as the service user. Then it
+starts the server as its unit would - as `hmailserver`, in `/var/lib/hmailserver`,
+with `CAP_NET_BIND_SERVICE` alone and no new privileges, through `setpriv` - and
+asks whether the REST API answers and whether `GET /` is the Control Deck, byte
+for byte. What a container cannot show is the start under systemd itself, with
+the unit's sandbox in force: the old job's hosted runner had systemd, and a job
+container does not. `update-helper` still verifies the units.
+`linux-package-rpm` installs the `.rpm` in Fedora 44 with `--nodeps`, as before:
+it is built on Ubuntu, so its requirements name Ubuntu's sonames.
+
+The package is built on Ubuntu 26.04 now, where the GitHub runner built it on
+24.04; its `Depends` asks for glibc 2.38 or later, which 24.04 has, and the
+container image, whose base is still Ubuntu 24.04, installs it.
+
+`linux-image` builds `platform/packaging/docker/Dockerfile` from that `.deb`
+with kaniko, which needs no Docker daemon and no privilege, into a tarball, and
+checks what it built: the user, the entrypoint, the healthcheck, the nine
+ports, and the file capability `setcap` gave `/usr/bin/hmailserver`, read from
+the layer. It does not run the image; that needs a daemon. The tarball is not
+kept: the release-chain row will build and push its own.
+
+The fuzz schedule
+-----------------
+
+`linux-fuzz` is the old nightly fuzz workflow, moved from a hosted Windows runner
+with clang-cl to linix with clang: the same three MIME harnesses under `fuzz/`,
+the same dictionary, the same reproducers and the same libFuzzer flags, built by
+`build/ci/linux-fuzz.sh` (`fuzz/build-fuzz.ps1` stays the way to build them on
+Windows). It replays every kept input and every committed reproducer first, then
+fuzzes each harness for `HM_FUZZ_MINUTES` (20) with `HM_FUZZ_JOBS` workers (2),
+on the corpus the earlier nights grew, which the runner's cache carries from one
+night to the next. A finding fails the job and keeps the input in its artifact
+for 30 days; [Fuzzing.md](Fuzzing.md) says what to do with one.
+
+It runs in a pipeline of its own and nowhere else: its rule asks for
+`HM_PIPELINE` to be `fuzz` on a protected ref, and every other job refuses a
+pipeline where it is. **Creating the schedule is a one-time step for the owner**,
+in the project's *Build*, *Pipeline schedules*, *New schedule*:
+
+- description `Nightly fuzz`; interval pattern `10 2 * * *` (custom), time zone
+  UTC - 02:10, after the day's pushes, as before;
+- target branch `master`;
+- one variable, `HM_PIPELINE` = `fuzz`; and, to change the time box,
+  `HM_FUZZ_MINUTES` (three harnesses run in turn: keep it at 35 or less inside
+  the job's two hours) and `HM_FUZZ_JOBS`;
+- activated.
+
+The schedule runs as the maintainer who owns it, who must be allowed to push to
+`master`, because a scheduled pipeline on a protected branch is that user's.
+The same pipeline can be started by hand from *Run pipeline* on `master` with
+`HM_PIPELINE=fuzz`. It occupies linix for a little over an hour, and a
+protected ref's pipeline that arrives meanwhile waits for it. To start the
+corpus again from the seeds, clear the runner caches (*Pipelines*, *Clear
+runner caches*).
+
+What the first runs by hand found
+---------------------------------
+
+Running the ported jobs' scripts on linix on 25 September 2026 found four
+things, each fixed in the same change:
+
+- `linux-build`'s OpenPGP round trip failed in the CI image, old tag and new:
+  GnuPG 2.4.8, as Ubuntu 26.04 ships it, answers "Bad passphrase" to a
+  `--decrypt` in the same agent that has just imported the fixture keys, and a
+  fresh agent takes the same passphrase. The script now restarts the agent after
+  the import.
+- The schema-upgrade gate's rewind to 6029 left behind the indexes later steps
+  had made on tables 6029 already had (`idx_hm_messagetrace_queueid`, which the
+  6089 step then made again), and MariaDB would not drop a column a unique index
+  still named. The rewind drops each step's indexes, and on MariaDB a column's
+  indexes before the column.
+- With the rewind right, the MySQL upgrade stopped at 6085: the 6086 step drops
+  `idx_hm_calendarshares_pair` to widen it, InnoDB refuses because the calendar
+  foreign key uses it (ERROR 1553, which the step ignores as marked), and the
+  `CREATE UNIQUE INDEX` of the same name then fails. That is every MySQL or
+  MariaDB database upgraded through 6086, not only the gate's; the same
+  statements fail on MySQL 5.7 and 8.4 and MariaDB 10.6 and 11.8. The step now
+  makes the widened index under another name first, drops the old one - which
+  the foreign key no longer needs - and renames the new one.
+- The first Linux fuzz replay: see [Fuzzing.md](Fuzzing.md), "The nightly job".
+
 How long each job takes
 -----------------------
 
-**These are estimates.** No job has run on either runner yet. Each estimate is
-reasoned from the gates run by hand. Replace them with the measured times after
-the first pipelines.
+**No job has run on either runner yet.** A time marked *by hand* is the job's
+script run on linix on 25 September 2026 in the job's own image, with six CPUs
+and the job's service beside it, as the runner would run it; it leaves out the
+runner's checkout, the image pulls and the artifact transfers. Every other time
+is an estimate reasoned from the gates run by hand. Replace both with the
+measured times after the first pipelines.
 
-| Job | Estimate | Timeout | Where the estimate comes from |
+| Job | Time | Timeout | Where the time comes from |
 |---|---|---|---|
 | `checkers` | 4 to 6 min | 20 min | Row 139 estimated about six minutes for the checks together, from their run time on a laptop |
 | `harnesses` | 2 to 3 min | 20 min | The same estimate |
-| `linux-build` | 15 to 30 min | 1 h | A clean clang Release build of the core (about 500 translation units) with six jobs, plus the testers, which take seconds |
+| `editorconfig` | 11 s by hand | 10 min | 3,938 files, and the package install |
+| `chart-and-compose`, `update-helper`, `package-templates`, `roadmap` | 1 to 30 s by hand | 5 to 10 min | Plus the image pull on a shared runner: the .NET SDK image is about 1.3 GB |
+| `linux-build` | 12 min by hand | 1 h | The clang build took 695 s with six jobs; the testers, the OpenPGP round trip and the packages take seconds |
 | `linux-suite` | 1.5 to 2.5 h | 3 h | The whole suite took 75 to 90 minutes on GitHub's hosted runner on 16 September 2026, and it has grown since. Add about 5 minutes for the layout and the restore |
+| `linux-cross` | 8 min by hand | 1 h | 750 translation units compiled for AArch64 with six jobs |
+| `linux-sanitize` | seconds by hand, while it skips | 1 h 30 min | Once `HM_SANITIZE` exists, an estimated 15 to 25 minutes: the core under AddressSanitizer, RelWithDebInfo |
+| `linux-db-upgrade-pgsql`, `-mysql` | 6 s and 21 s by hand | 20 min | 69 upgrade steps from 6029 |
+| `linux-package-deb`, `-rpm` | 17 s and 2 s by hand | 20 and 10 min | |
+| `linux-image` | 18 s by hand | 30 min | kaniko over Ubuntu 24.04 and the `.deb` |
+| `linux-sbom` | 6 s by hand | 15 min | |
 | `windows-gate` | 2.5 to 3 h | 4 h | On 25 September 2026 the two halves took 62 minutes (1,339 tests, on bench150) and 70 minutes (2,126 tests, on the laptop), each with its build. One bench runs both, one after the other, with one build. Add any wait for the lock |
+| `windows-dotnet` | 10 to 20 min, estimated | 4 h | Two restores (cold for LocalSystem the first time), two Release builds, MIDL, the tests and five publishes; the timeout allows 200 minutes of waiting for the lock |
+| `linux-fuzz` | 65 min | 2 h | Three harnesses of 20 minutes, plus about 3 minutes to build and replay (by hand: 3.5 minutes all told with one minute a harness) |
 
 The runners' own `maximum_timeout` is four hours. GitLab lets a job's
 `timeout:` exceed the project's default of one hour, but not exceed its
-runner's maximum. So a pipeline for a protected ref takes about three hours
-from start to finish, and the Windows gate decides how long.
+runner's maximum. linix runs one job at a time, so its jobs add up: about 12
+minutes of build, 1.5 to 2.5 hours of suite and about 10 minutes of the rest, so
+three hours or a little more. bench150's two jobs add up the same way. So a
+pipeline for a protected ref takes about three hours from start to finish, and
+the Windows gate and the Linux lane decide it between them.
 
 What each job leaves behind
 ---------------------------
 
 - **`linux-build`** builds in its container's own filesystem (`/tmp/hm-build`),
   which goes when the container does. The runner's build volume on linix keeps
-  the checkout and `linux-build/`, the server binary, its hash and the build
-  log, until the next job's checkout cleans it. The artifact expires after
-  three days.
+  the checkout and `linux-build/`, the server binary, its hash, the build log
+  and the packages (about 23 MB for the two), until the next job's checkout
+  cleans it. The artifact expires after three days.
+- **`linux-cross`**, **`linux-sanitize`** and **`linux-fuzz`** build in their
+  containers' `/tmp` too. `linux-fuzz` leaves its grown corpus in the runner's
+  cache volume on linix, on purpose, and `fuzz/bin`, `fuzz/build` and
+  `fuzz-results/` in the checkout until the next job cleans it; its artifact
+  expires after 30 days. The others' artifacts expire after three and seven
+  days.
+- **`linux-db-upgrade-*`** and **`linux-package-deb`** leave nothing: their
+  databases are in the service containers, which the runner removes. The
+  package jobs install into their own job containers.
+- **`linux-image`** removes its tarball before it ends and keeps only the
+  image's configuration and hashes (`linux-image/`, seven days). kaniko's
+  layers are in its own container.
+- **`linux-sbom`**'s two documents are its artifact, kept 90 days.
 - **`linux-suite`** lays its tree out inside the checkout (`.hmtest-tree`),
   because `after_script` may run in a new container from the same image, which
   sees only the checkout. `after_script` copies the server's error logs (and every log,
@@ -349,7 +649,12 @@ What each job leaves behind
   anonymous data volume it leaves. `linux-suite/` stays until the next job's checkout cleans it. The
   artifact expires after seven days.
 - **linix** keeps the image, each older tag of it until somebody removes it,
-  `postgres:16`, the runner's helper image and its build and cache volumes.
+  `postgres:16`, `mariadb:11`, `ubuntu:26.04`, `fedora:44`, the kaniko image,
+  the runner's helper image and its build and cache volumes.
+- **`windows-dotnet`** leaves its clone in `C:\GitLab-Runner\builds` with the
+  build output in it (the next job's checkout cleans that), the NuGet packages
+  in LocalSystem's profile, which the next run reuses, and its TRX files as the
+  artifact for seven days. No MSBuild or compiler server is left running.
 - **`windows-gate`** leaves the bench as the split gate leaves it: the bench's
   checkout at the gated commit, the service running that build, `C:\HMTest` as
   the suite left it, and the fetched objects in the checkout's `.git`. The
@@ -361,22 +666,22 @@ What each job leaves behind
 What is still done by hand
 --------------------------
 
-- The builds and both suites for any branch that is not protected. A
-  contributor runs them before opening a merge request, and the maintainer runs
-  them before a change lands, as [CONTRIBUTING.md](../../CONTRIBUTING.md)
-  describes.
-- `check-package-manifests.py`, the PowerShell checks (`check-schema-versions.ps1`,
-  `check-db-scripts.ps1`, `check-roadmap.ps1`, `generate-settings-index.ps1`),
-  editorconfig-checker and `dotnet format`.
-- The Linux build under GCC, the AArch64 build and the cross-compile census.
-  GitHub's `linux-build.yml` ran them, and linix is one x86-64 machine.
-  `build/linux-tu-census.sh` runs the census by hand.
-- The schema-upgrade gate (`build/db-upgrade-gate.sh`), the Control Panel's
-  tests and the tools' tests.
-- Signing, the `.deb`, `.rpm` and AppImage packages, the container image,
-  publishing and the update feed. These belong to the Roadmap2 row "The release
+- For any branch that is not protected, everything the project's machines run:
+  the builds and both suites, the .NET build, tests and `dotnet format`, the
+  packages, the upgrade gate and the census. A contributor runs what applies
+  before opening a merge request, and the maintainer runs it before a change
+  lands, as [CONTRIBUTING.md](../../CONTRIBUTING.md) describes.
+- `check-package-manifests.py` against a released installer, and the two
+  PowerShell checks CI does not run: `check-schema-versions.ps1`, and
+  `check-db-scripts.ps1`, which needs Windows PowerShell 5.1 and SQL Server
+  Compact.
+- The Linux build under GCC and on AArch64 hardware
+  (`bash build/linux-tu-census.sh --cc g++` is the GCC census), and the AppImage.
+- Signing, publishing the packages, the image and the SBOMs, the release's
+  manifests, and the update feed. These belong to the Roadmap2 row "The release
   chain off a single forge". The `release` stage is its placeholder.
 - Building the Linux job image when its Dockerfile changes (see [The
-  image](#the-image)).
+  image](#the-image)), and creating the fuzz schedule once (see [The fuzz
+  schedule](#the-fuzz-schedule)).
 - Bringing a runner back when its machine has been rebuilt (see
   [Re-creating a runner](#re-creating-a-runner)).
