@@ -1,7 +1,7 @@
 # The first-hour checklist
 
 What a new server still needs before it is a mail server anybody can use, judged
-by the server itself rather than by whoever is reading the documentation. Nine
+by the server itself rather than by whoever is reading the documentation. Ten
 items, in the order a new installation meets them:
 
 | Key | Item | Done when |
@@ -9,7 +9,8 @@ items, in the order a new installation meets them:
 | `profile` | A profile for this server | a setting profile has been applied ([Profiles.md](Profiles.md)); asked for on a young server - fewer than ten accounts, the sample domain's not counted - and not needed on one past that, where a profile that closes a listener or turns a filter off is not something to suggest in a list of things left to do, nor where the shipped settings were chosen instead; asked for again when a profile could not be written in full |
 | `domain` | A domain | at least one domain exists and is active |
 | `account` | An account | at least one account exists in any domain |
-| `submission` | TLS on the submission port | every SMTP listener other than port 25 has STARTTLS or implicit TLS and a certificate that exists |
+| `submission` | TLS on the submission port | every SMTP listener other than port 25 has STARTTLS or implicit TLS and a certificate that exists, other than the self-signed one a new installation made ([SecureDefaults.md](SecureDefaults.md)), which mail clients warn about |
+| `sign_in_tls` | Passwords only over TLS | every IP range that lets a client connect from an address other than this computer's requires TLS for authentication, or reaches only listeners that start TLS before a password ([SecureDefaults.md](SecureDefaults.md)) |
 | `spf` | An SPF record | every active domain has a TXT record beginning `v=spf1` |
 | `dkim` | DKIM signing | every active domain signs, its selector and key file are set, the key file exists, and a TXT record with a `p=` tag is at `<selector>._domainkey.<domain>` |
 | `dmarc` | A DMARC record | every active domain has a TXT record beginning `v=DMARC1` at `_dmarc.<domain>` |
@@ -23,14 +24,30 @@ Each item is in one of four states, and an item is as bad as its worst finding:
 | `done` | the server found the thing in place |
 | `action_needed` | it is missing or wrong, and the finding says what |
 | `cannot_tell` | the server could not find out: a DNS lookup failed, or the caller asked for none. This says nothing either way |
-| `not_needed` | there is nothing to do, because nothing depends on it yet (the three record items, with no active domain) |
+| `not_needed` | there is nothing to do, because nothing depends on it yet (the three record items, with no active domain; the passwords item, on a server only this computer may connect to) |
 
 The judgement is made from what the server can see: its own configuration, the
 files it would open, and DNS lookups made the way a receiving server makes them.
 Port 25 is never the submission port, whatever its security setting: it is the
 server-to-server port, and clients are not sent there. A plain submission port
 beside a secured one still needs action, because the plain one is the one a
-badly configured client will use. The DKIM item checks that a record is
+badly configured client will use. A listener whose certificate is the
+self-signed one a new installation made needs action too: its TLS works, and
+every mail client warns about it until a certificate authority's replaces it -
+ACME's does, and takes the listener over when it arrives. The passwords item
+judges every IP range that is not all loopback and lets a client connect over
+SMTP, POP3 or IMAP: done when the range requires TLS for authentication, or when
+every listener it may use - a listener bound to a loopback address only is not
+one - has implicit TLS or requires STARTTLS; otherwise it
+needs action and names the listeners - no TLS, or STARTTLS a client is free not
+to start - on which a password from there would cross the network in the clear.
+It is `sign_in_plain`, with the fix below, when every one of those listeners
+offers STARTTLS with a certificate that is there, and `sign_in_no_tls`, with no
+fix, when one of them has no TLS to start: requiring TLS for sign-in then would
+refuse every client there on that listener, so the finding says to give those
+listeners a certificate and STARTTLS first.
+A server whose ranges are all on the loopback takes no password from a network,
+and the item is not needed. The DKIM item checks that a record is
 published; whether it carries the key the domain signs with is the DKIM
 rotation check's business (`ReputationWatch.md`'s neighbour, `DkimRotation.h`),
 which compares the record with the private key file.
@@ -76,6 +93,23 @@ that the Deck and the Control Panel say the same thing in their own languages
 while a script switches on the code. The arguments are strings whatever they
 count.
 
+A finding the server can put right in one step also carries **`fix`**: the REST
+request that takes the step, as `{"method", "path", "body"}`. Only
+`sign_in_plain` has one - `PUT /api/v1/ipranges/{id}` with
+`{"require_tls_for_auth": true}`, offered only when every listener it names can
+start TLS - and the Deck draws it as a button, *Require TLS for sign-in from this
+range*, which asks first and then sends exactly that. For `sign_in_no_tls` the
+Deck draws a button to its Ports view instead.
+The route answers it as it answers any caller: `manage_settings` is needed, and
+the Deck draws the button only for a sign-in that has it. A script may send it
+too. The Control Panel shows the item and opens its IP ranges page.
+
+```json
+{"state": "action_needed", "code": "sign_in_plain", "args": ["Internet", "25, 110, 143, 587"],
+ "text": "The IP range Internet takes a password without TLS on port 25, 110, 143, 587, ...",
+ "fix": {"method": "PUT", "path": "/api/v1/ipranges/2", "body": {"require_tls_for_auth": true}}}
+```
+
 | Code | Arguments | Sentence |
 |---|---|---|
 | `profile_none` | | No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made. |
@@ -94,6 +128,12 @@ count.
 | `submission_plain` | port | Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear. |
 | `submission_no_certificate` | port | Port {0} is set to TLS but has no certificate, so TLS cannot start. |
 | `submission_tls` | port, certificate | Port {0} offers TLS with the certificate {1}. |
+| `submission_self_signed` | port, certificate | Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt. (action_needed) |
+| `sign_in_plain` | range, ports | The IP range {0} takes a password without TLS on port {1}, so a client there that signs in before STARTTLS sends it across the network in the clear. (action_needed, with `fix`) |
+| `sign_in_no_tls` | range, ports | The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range. (action_needed, no `fix`) |
+| `sign_in_tls_required` | range | The IP range {0} takes a password only over TLS. |
+| `sign_in_tls_ports` | range | Every port the IP range {0} may use starts TLS before it takes a password. |
+| `sign_in_local_only` | | Only this computer may connect, so no password crosses a network. (not_needed) |
 | `no_active_domain` | | No active domain, so there is nothing to publish yet. |
 | `record_published` | domain, kind, host | {0}: the {1} record at {2} is published. |
 | `record_missing` | domain, kind, host | {0}: no {1} record at {2}. |
@@ -121,7 +161,10 @@ not asked to wait for all of them.
 is the route; `InterfaceUtilities::GetSetupChecklist` the COM method; the Deck's
 view is `renderChecklist` in `installation/WebAdmin/index.html`; the Control
 Panel's items are `ExternalSetupChecks.FirstHourItems`. The regression fixture is
-`test/RegressionTests/API/RestApiSetupChecklist.cs`: the nine items in order,
+`test/RegressionTests/API/RestApiSetupChecklist.cs`: the ten items in order,
 the records looked up in the suite's own zone for two domains, the skipped lookup
-saying so, the submission port judged with a certificate that exists, and the
-backup destination judged on disk.
+saying so, the submission port judged with a certificate that exists and with the
+self-signed one a new installation makes, the passwords item's fix sent as the
+finding gives it and withheld while a listener has no TLS, and the backup
+destination judged on disk. The Deck's button is
+`build/deck-script-test.js`'s.

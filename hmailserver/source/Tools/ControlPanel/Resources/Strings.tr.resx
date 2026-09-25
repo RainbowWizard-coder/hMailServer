@@ -503,6 +503,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="A low rate on a busy server usually means the TTL is shorter than the interval between lookups of the same object; a rate of 0% with no memory in use means nothing has been looked up yet, which is not the same thing. Memory in use is measured against the size caps above, and a cache at its cap is evicting entries it would otherwise have kept." xml:space="preserve">
     <value>Yoğun bir sunucuda düşük bir oran genellikle TTL'nin, aynı nesnenin aramaları arasındaki süreden daha kısa olduğu anlamına gelir; kullanılan bellek sıfırken %0'lık bir oran ise henüz hiçbir şeyin aranmadığı anlamına gelir ki bu aynı şey değildir. Kullanılan bellek yukarıdaki boyut üst sınırlarına göre ölçülür ve üst sınırındaki bir önbellek, aksi hâlde saklayacağı girdileri bellekten atıyor demektir.</value>
   </data>
+  <data name="A mail client signs in with a password, and from any address but this computer's the password should cross the network only inside TLS." xml:space="preserve">
+    <value>Bir posta istemcisi parolayla oturum açar ve bu bilgisayarınki dışındaki her adresten parola ağı yalnızca TLS içinde geçmelidir.</value>
+  </data>
   <data name="A mail server usually starts with the rest of the machine, and on a machine where the database service starts second, the first few attempts fail. Together with the delay below this is the whole window: six attempts five seconds apart is half a minute. Lengthen it rather than delaying the service if the database is on another host that is slower to come up." xml:space="preserve">
     <value>Bir posta sunucusu genellikle makinenin geri kalanıyla birlikte başlar ve veritabanı hizmetinin sonradan başladığı bir makinede ilk birkaç deneme başarısız olur. Aşağıdaki gecikmeyle birlikte pencerenin tamamı budur: beşer saniye arayla altı deneme yarım dakika eder. Veritabanı, daha yavaş açılan başka bir ana bilgisayardaysa hizmeti geciktirmek yerine bu süreyi uzatın.</value>
   </data>
@@ -3632,6 +3635,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Boyutu ne olursa olsun her ileti. Boyut sınırı 0; burada bu "sınır yok" demektir.</value>
   </data>
+  <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
+    <value>{0} IP aralığının kullanabileceği her bağlantı noktası, parola kabul etmeden önce TLS'yi başlatır.</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Sunucunun çalıştırdığı sırayla her spam denetimi, her birinin puana ne eklediği ve o puanın sonra iletiye ne yaptığı.</value>
   </data>
@@ -6033,6 +6039,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
     <value>Yalnızca anahtar dosyası şifreliyken gerekir: şifreli bir anahtar ve parola ifadesi yokken anahtar yüklenmez (sunucu hatası 6170) ve bu sertifikayı kullanan her TLS portu başlamaz - o portlardaki gelen posta durur. Parola ifadesi bir gizli anahtardır: sunucuda korumalı olarak saklanır ve burada bir daha asla gösterilmez; yenisini kaydetmek daha önce saklananın yerine geçer.</value>
   </data>
+  <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
+    <value>Yalnızca bu bilgisayar bağlanabilir, bu yüzden hiçbir parola bir ağdan geçmez.</value>
+  </data>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Yalnızca yukarıdaki kullanıcı adıyla birlikte kullanılır</value>
   </data>
@@ -6363,6 +6372,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Passwords found in published breaches" xml:space="preserve">
     <value>Yayımlanmış sızıntılarda bulunan parolalar</value>
   </data>
+  <data name="Passwords only over TLS - from any address but this computer's" xml:space="preserve">
+    <value>Parolalar yalnızca TLS üzerinden - bu bilgisayarınki dışındaki her adresten</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Parolalar ve onları taşımasına izin verilenler</value>
   </data>
@@ -6475,6 +6487,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
     <value>{0} numaralı bağlantı noktası {1} sertifikasıyla TLS sunuyor.</value>
+  </data>
+  <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
+    <value>{0} bağlantı noktası TLS'yi {1} ile sunuyor; bu, bu kurulumun oluşturduğu kendinden imzalı sertifikadır: posta istemcileri, bir sertifika yetkilisinin verdiği ve ACME'nin Let's Encrypt'ten alabileceği bir sertifikayla değiştirilene kadar bu konuda uyarır.</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>{0} numaralı bağlantı noktası gönderimi TLS olmadan kabul ediyor; parolalar ve posta ağdan açık metin olarak geçerdi.</value>
@@ -8940,6 +8955,15 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>E-posta teslimi'ndeki Ana bilgisayar adı BOŞ, bu yüzden sunucu Windows bilgisayar adına geri düşüyor{0}. Çıplak bir bilgisayar adı genel bir DNS adı değildir: HELO'yu DNS ile karşılaştıran alıcılar bunu cezalandırır ve hiçbir PTR onunla uyuşamaz. Önce gerçek bir ana bilgisayar adı ayarlayın.</value>
   </data>
+  <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
+    <value>{0} IP aralığı parolayı yalnızca TLS üzerinden kabul eder.</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS on port {1}, so a client there that signs in before STARTTLS sends it across the network in the clear." xml:space="preserve">
+    <value>{0} IP aralığı {1} bağlantı noktasında TLS olmadan parola kabul ediyor; bu yüzden oradan STARTTLS'den önce oturum açan bir istemci parolayı ağ üzerinden açık metin olarak gönderir.</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
+    <value>{0} IP aralığı TLS olmadan parola kabul ediyor ve {1} bağlantı noktası bir istemcinin başlatabileceği TLS sunmuyor: önce bu bağlantı noktalarına bir sertifika ve STARTTLS verin, ardından aralıktan oturum açmak için TLS gerektirin.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Posta kutusu olması gereken kişileri seçen LDAP süzgeci. Varsayılan, posta adresi taşıyan etkin person nesnelerini alır - bu, devre dışı bırakılmış ayrılanları, hizmet hesaplarını ve bilgisayarları bilerek dışlar; daha geniş bir süzgeç bunların hepsine posta kutusu sağlardı.</value>
   </data>
@@ -10514,6 +10538,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>Bekleme sona erdiğinde ya da korumalı alan hata yanıtı verdiğinde</value>
+  </data>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Aşağıda adı geçen bir bağlantı noktasında TLS yoksa, önce TCP/IP portları sayfasında ona bir sertifika ve STARTTLS verin; ardından IP aralıkları sayfasında, aşağıda adı geçen her aralık için Kimlik doğrulaması için TLS gerektir seçeneğini açın. Bu bilgisayarın kendi istemcileri etkilenmez.</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Nereye gider</value>

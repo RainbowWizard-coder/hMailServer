@@ -213,14 +213,7 @@ namespace HM
       if (app_directory_.Right(1) != FileUtilities::PathSeparator)
          app_directory_ += FileUtilities::PathSeparator;
 
-      data_directory_ = ResolveAgainstProgramDirectory_(ReadIniSettingString_("Directories", "DataFolder", ""));
-#ifdef HM_PLATFORM_POSIX
-      if (data_directory_.Right(1) == _T("/") || data_directory_.Right(1) == _T("\\"))
-         data_directory_ = data_directory_.Left(data_directory_.GetLength() -1);
-#else
-      if (data_directory_.Right(1) == _T("\\"))
-         data_directory_ = data_directory_.Left(data_directory_.GetLength() -1);
-#endif
+      data_directory_ = ResolveDataDirectory_(app_directory_, ReadIniSettingString_("Directories", "DataFolder", ""));
 
       temp_directory_ = ResolveAgainstProgramDirectory_(ReadIniSettingString_("Directories", "TempFolder", ""));
 #ifdef HM_PLATFORM_POSIX
@@ -1783,6 +1776,38 @@ namespace HM
       // app_directory_ is read before any of the values this resolves and
       // already ends with the platform separator; Combine tolerates that.
       return FileUtilities::Combine(app_directory_, value);
+   }
+
+   String
+   IniFileSettings::ResolveDataDirectory_(const String &programDirectory, const String &configured)
+   {
+      // As ResolveAgainstProgramDirectory_, against the directory given.
+      String directory = configured;
+      if (!directory.IsEmpty() && !FileUtilities::IsFullPath(directory))
+         directory = FileUtilities::Combine(programDirectory, directory);
+
+#ifdef HM_PLATFORM_POSIX
+      if (directory.Right(1) == _T("/") || directory.Right(1) == _T("\\"))
+         directory = directory.Left(directory.GetLength() -1);
+#else
+      if (directory.Right(1) == _T("\\"))
+         directory = directory.Left(directory.GetLength() -1);
+#endif
+
+      return directory;
+   }
+
+   String
+   IniFileSettings::ReadDataDirectory()
+   {
+      // ProgramFolder as LoadSettings reads it into app_directory_, ending with
+      // this platform's separator, then DataFolder resolved against it. Both are
+      // [Directories] keys, which are read from the file and nowhere else.
+      String program = ReadIniSettingString_("Directories", "ProgramFolder", "");
+      if (program.Right(1) != FileUtilities::PathSeparator)
+         program += FileUtilities::PathSeparator;
+
+      return ResolveDataDirectory_(program, ReadIniSettingString_("Directories", "DataFolder", ""));
    }
 
    bool

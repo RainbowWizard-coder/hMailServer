@@ -350,26 +350,26 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
-| `AllowDeliveryFromLocalToLocal` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `AllowDeliveryFromLocalToRemote` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `AllowDeliveryFromRemoteToLocal` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `AllowDeliveryFromRemoteToRemote` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `AllowIMAPConnections` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `AllowPOP3Connections` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `AllowSMTPConnections` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `EnableAntiVirus` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `EnableSpamProtection` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `Expires` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `ExpiresTime` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `LowerIP` | IPRangeDialog, IPRangesView | `POST /api/v1/roles` (words, loose, scope unknown)<br>`PUT /api/v1/roles/{name}` (words, loose, scope unknown)<br>`POST /api/v1/ipranges` (words, loose)<br>`PUT /api/v1/ipranges/{id}` (words, loose)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown) | ipranges, webhooks |
+| `AllowDeliveryFromLocalToLocal` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `AllowDeliveryFromLocalToRemote` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `AllowDeliveryFromRemoteToLocal` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `AllowDeliveryFromRemoteToRemote` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `AllowIMAPConnections` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `AllowPOP3Connections` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `AllowSMTPConnections` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `EnableAntiVirus` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `EnableSpamProtection` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `Expires` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `ExpiresTime` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `LowerIP` | IPRangeDialog, IPRangesView | `POST /api/v1/roles` (words, loose, scope unknown)<br>`PUT /api/v1/roles/{name}` (words, loose, scope unknown)<br>`POST /api/v1/ipranges` (words, loose)<br>`PUT /api/v1/ipranges/{id}` (words, loose)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown) | checklist, ipranges, webhooks |
 | `Name` | IPRangeDialog, IPRangesView | `POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/settings/profiles/{name}/apply` (path, scope unknown)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/diagnostics/run` (name, scope unknown)<br>`POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter)<br>`POST /api/v1/backup/{archive}/mailboxes/{address}/restore` (name, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | checklist, diagnostics, ipranges, passkeys, roles, webhooks |
-| `Priority` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `RequireSMTPAuthExternalToExternal` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `RequireSMTPAuthExternalToLocal` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `RequireSMTPAuthLocalToExternal` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `RequireSMTPAuthLocalToLocal` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `RequireSSLTLSForAuth` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | ipranges |
-| `UpperIP` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (words, loose)<br>`PUT /api/v1/ipranges/{id}` (words, loose) | ipranges |
+| `Priority` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `RequireSMTPAuthExternalToExternal` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `RequireSMTPAuthExternalToLocal` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `RequireSMTPAuthLocalToExternal` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `RequireSMTPAuthLocalToLocal` | IPRangeDialog | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `RequireSSLTLSForAuth` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (setter)<br>`PUT /api/v1/ipranges/{id}` (setter) | checklist, ipranges |
+| `UpperIP` | IPRangeDialog, IPRangesView | `POST /api/v1/ipranges` (words, loose)<br>`PUT /api/v1/ipranges/{id}` (words, loose) | checklist, ipranges |
 
 ### AntiVirus
 
@@ -1104,7 +1104,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | View | Routes called |
 |---|---|
 | `dash` | `GET /api/v1/status`, `GET /api/v1/store` |
-| `checklist` | `GET /api/v1/settings/profiles`, `POST /api/v1/settings/profiles/decline`, `POST /api/v1/settings/profiles/discard`, `POST /api/v1/settings/profiles/revert`, `GET /api/v1/settings/profiles/{}`, `POST /api/v1/settings/profiles/{}/apply`, `GET /api/v1/setup/checklist`, `DELETE /api/v1/setup/sample-domain`, `GET /api/v1/setup/sample-domain`, `POST /api/v1/setup/sample-domain` |
+| `checklist` | `PUT /api/v1/ipranges/{}`, `GET /api/v1/settings/profiles`, `POST /api/v1/settings/profiles/decline`, `POST /api/v1/settings/profiles/discard`, `POST /api/v1/settings/profiles/revert`, `GET /api/v1/settings/profiles/{}`, `POST /api/v1/settings/profiles/{}/apply`, `GET /api/v1/setup/checklist`, `DELETE /api/v1/setup/sample-domain`, `GET /api/v1/setup/sample-domain`, `POST /api/v1/setup/sample-domain` |
 | `domains` | `DELETE /api/v1/accounts/{}`, `GET /api/v1/accounts/{}`, `PUT /api/v1/accounts/{}`, `GET /api/v1/accounts/{}/booking-policy`, `PUT /api/v1/accounts/{}/booking-policy`, `GET /api/v1/accounts/{}/directory`, `PUT /api/v1/accounts/{}/directory`, `GET /api/v1/accounts/{}/mailbox-encryption`, `PUT /api/v1/accounts/{}/mailbox-encryption`, `POST /api/v1/accounts/{}/mailbox-encryption/recover`, `GET /api/v1/accounts/{}/move`, `POST /api/v1/accounts/{}/move`, `PUT /api/v1/accounts/{}/openpgp`, `DELETE /api/v1/accounts/{}/openpgp/{}`, `POST /api/v1/accounts/{}/password`, `DELETE /api/v1/accounts/{}/push`, `DELETE /api/v1/accounts/{}/recovery`, `DELETE /api/v1/accounts/{}/recovery/codes`, `POST /api/v1/accounts/{}/unlock`, `POST /api/v1/addresses/erase`, `DELETE /api/v1/aliases/{}`, `GET /api/v1/domains`, `POST /api/v1/domains`, `DELETE /api/v1/domains/{}`, `GET /api/v1/domains/{}`, `PUT /api/v1/domains/{}`, `GET /api/v1/domains/{}/accounts`, `POST /api/v1/domains/{}/accounts`, `GET /api/v1/domains/{}/aliases`, `POST /api/v1/domains/{}/aliases`, `GET /api/v1/domains/{}/complaints?limit={}&offset={}`, `GET /api/v1/domains/{}/dmarc-reports/{}`, `GET /api/v1/domains/{}/domain-aliases`, `POST /api/v1/domains/{}/domain-aliases`, `DELETE /api/v1/domains/{}/domain-aliases/{}`, `GET /api/v1/domains/{}/lists`, `POST /api/v1/domains/{}/lists`, `GET /api/v1/domains/{}/mailbox-recovery`, `PUT /api/v1/domains/{}/mailbox-recovery`, `GET /api/v1/domains/{}/openpgp`, `GET /api/v1/domains/{}/sender-list`, `POST /api/v1/domains/{}/sender-list`, `DELETE /api/v1/domains/{}/sender-list/{}`, `GET /api/v1/domains/{}/smime-ca`, `POST /api/v1/domains/{}/smime-ca`, `DELETE /api/v1/domains/{}/smime-ca/issued/{}?reason={}`, `POST /api/v1/domains/{}/smime-ca/rotate`, `GET /api/v1/domains/{}/spam-traps`, `POST /api/v1/domains/{}/spam-traps`, `GET /api/v1/domains/{}/spam-traps/hits?limit=10`, `POST /api/v1/domains/{}/suppressions`, `DELETE /api/v1/domains/{}/suppressions/{}`, `DELETE /api/v1/lists/{}`, `PUT /api/v1/lists/{}`, `GET /api/v1/lists/{}/members`, `POST /api/v1/lists/{}/members/{}/approve`, `POST /api/v1/lists/{}/members/{}/reset-bounces`, `GET /api/v1/openapi.json`, `DELETE /api/v1/spam-traps/{}` |
 | `groups` | `GET /api/v1/groups`, `POST /api/v1/groups`, `DELETE /api/v1/groups/{}`, `PUT /api/v1/groups/{}`, `GET /api/v1/groups/{}/members`, `POST /api/v1/groups/{}/members`, `DELETE /api/v1/groups/{}/members/{}`, `GET /api/v1/openapi.json` |
 | `ipranges` | `GET /api/v1/ipranges`, `POST /api/v1/ipranges`, `DELETE /api/v1/ipranges/{}`, `PUT /api/v1/ipranges/{}`, `GET /api/v1/openapi.json` |

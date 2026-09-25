@@ -5,12 +5,13 @@
 // The first-hour checklist: what a new server still needs done, judged by the
 // server itself rather than by whoever is reading the documentation.
 //
-// Nine items, the ones every installation has to get past before it is a
+// Ten items, the ones every installation has to get past before it is a
 // mail server anybody can use: a profile chosen for the kind of server it is
 // (on a young server; docs/Profiles.md), a domain, an account in it, TLS on the port
-// clients submit through, an SPF record, DKIM signing with its record
-// published, a DMARC record, a backup destination, and a second factor on the
-// administrator password. Each is judged from what the server can see - its
+// clients submit through, passwords taken only over TLS from any address but
+// this computer's (docs/SecureDefaults.md), an SPF record, DKIM signing with its
+// record published, a DMARC record, a backup destination, and a second factor on
+// the administrator password. Each is judged from what the server can see - its
 // own configuration, the files it would open, and a DNS lookup made the way a
 // receiving server makes it - and reported as one of four states:
 //
@@ -22,7 +23,9 @@
 //
 // Every finding carries a code and its arguments beside an English sentence,
 // so that the Control Deck and the Control Panel can say the same thing in
-// their own languages while a script reads the code. The document is what
+// their own languages while a script reads the code. A finding the server can
+// put right in one step also carries that step, as the REST request that takes
+// it (fix: method, path and body); the Deck offers it as a button. The document is what
 // GET /api/v1/setup/checklist answers and what Utilities.GetSetupChecklist
 // returns over COM; SetupChecklist.cpp says what each code means.
 #pragma once

@@ -503,6 +503,9 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name="A low rate on a busy server usually means the TTL is shorter than the interval between lookups of the same object; a rate of 0% with no memory in use means nothing has been looked up yet, which is not the same thing. Memory in use is measured against the size caps above, and a cache at its cap is evicting entries it would otherwise have kept." xml:space="preserve">
     <value>En lav rate på en travel server betyr som regel at TTL-en er kortere enn intervallet mellom oppslag av det samme objektet; en rate på 0 % uten minne i bruk betyr at ingenting er slått opp ennå, noe som ikke er det samme. Minne i bruk måles mot størrelsesgrensene ovenfor, og en hurtigbuffer som ligger på grensen kaster ut oppføringer den ellers ville ha beholdt.</value>
   </data>
+  <data name="A mail client signs in with a password, and from any address but this computer's the password should cross the network only inside TLS." xml:space="preserve">
+    <value>Et e-postprogram logger på med et passord, og fra alle adresser unntatt denne datamaskinens bør passordet bare krysse nettverket inne i TLS.</value>
+  </data>
   <data name="A mail server usually starts with the rest of the machine, and on a machine where the database service starts second, the first few attempts fail. Together with the delay below this is the whole window: six attempts five seconds apart is half a minute. Lengthen it rather than delaying the service if the database is on another host that is slower to come up." xml:space="preserve">
     <value>En e-postserver starter som regel sammen med resten av maskinen, og på en maskin der databasetjenesten starter etter den, feiler de første forsøkene. Sammen med forsinkelsen nedenfor utgjør dette hele vinduet: seks forsøk med fem sekunders mellomrom er et halvt minutt. Forleng det heller enn å forsinke tjenesten hvis databasen ligger på en annen vert som bruker lengre tid på å komme opp.</value>
   </data>
@@ -3632,6 +3635,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Hver melding, uansett størrelse. Størrelsesgrensen er 0, som her betyr "ingen grense".</value>
   </data>
+  <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
+    <value>Hver port IP-området {0} kan bruke, starter TLS før den tar imot et passord.</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Hver spamkontroll i rekkefølgen serveren kjører dem, hva hver legger til poengsummen, og hva den poengsummen deretter gjør med meldingen.</value>
   </data>
@@ -6033,6 +6039,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
     <value>Trengs bare når nøkkelfilen er kryptert: med en kryptert nøkkel og ingen passfrase lastes ikke nøkkelen (serverfeil 6170), og hver TLS-port som bruker dette sertifikatet, starter ikke - innkommende post på de portene stopper. Passfrasen er en hemmelighet: den lagres beskyttet på serveren og vises aldri her igjen, og lagring av en ny erstatter det som var lagret fra før.</value>
   </data>
+  <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
+    <value>Bare denne datamaskinen kan koble til, så ingen passord krysser et nettverk.</value>
+  </data>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Brukes bare sammen med brukernavnet ovenfor</value>
   </data>
@@ -6363,6 +6372,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Passwords found in published breaches" xml:space="preserve">
     <value>Passord funnet i publiserte datalekkasjer</value>
   </data>
+  <data name="Passwords only over TLS - from any address but this computer's" xml:space="preserve">
+    <value>Passord bare over TLS - fra alle adresser unntatt denne datamaskinens</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Passord, og hva som har lov til å bære dem</value>
   </data>
@@ -6475,6 +6487,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
     <value>Port {0} tilbyr TLS med sertifikatet {1}.</value>
+  </data>
+  <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
+    <value>Port {0} tilbyr TLS med {1}, det selvsignerte sertifikatet denne installasjonen laget: e-postprogrammer advarer om det til det erstattes med et som en sertifiseringsinstans har utstedt, og som ACME kan hente fra Let's Encrypt.</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Port {0} tar imot innlevering uten TLS, så passord og post ville gå i klartekst over nettet.</value>
@@ -8940,6 +8955,15 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Vertsnavnet under Levering av e-post er TOMT, så serveren faller tilbake til Windows-datamaskinnavnet sitt{0}. Et nakent datamaskinnavn er ikke et offentlig DNS-navn: mottakere som sammenligner HELO med DNS, vil straffe det, og ingen PTR kan stemme med det. Sett et ekte vertsnavn først.</value>
   </data>
+  <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
+    <value>IP-området {0} tar bare imot et passord over TLS.</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS on port {1}, so a client there that signs in before STARTTLS sends it across the network in the clear." xml:space="preserve">
+    <value>IP-området {0} tar imot et passord uten TLS på port {1}, så en klient derfra som logger på før STARTTLS, sender det i klartekst over nettverket.</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
+    <value>IP-området {0} tar imot et passord uten TLS, og port {1} har ingen TLS som en klient kan starte: gi først disse portene et sertifikat og STARTTLS, og krev deretter TLS for pålogging fra området.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>LDAP-filteret som velger ut personene som skal ha en postboks. Standarden tar aktiverte person-objekter som bærer en e-postadresse - som bevisst utelukker deaktiverte sluttede, tjenestekontoer og datamaskiner, som et bredere filter ville provisjonert postbokser for.</value>
   </data>
@@ -10514,6 +10538,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>Når ventetiden er over eller sandkassen svarer feil</value>
+  </data>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Der en port som er nevnt nedenfor ikke har TLS, gir du den først et sertifikat og STARTTLS på siden TCP/IP-porter; slå deretter på Krev TLS for autentisering på siden IP-områder for hvert område som er nevnt nedenfor. Denne datamaskinens egne klienter berøres ikke.</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Hvor det sendes</value>

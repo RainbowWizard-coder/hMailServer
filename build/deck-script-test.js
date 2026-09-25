@@ -1891,7 +1891,7 @@ const state = {
    // catalogue with the arguments, and one whose code it does not, where the
    // server's own sentence is what is shown.
    checklist: {
-      generated: 1789000000, dns_looked_up: true, done: 3, action_needed: 5, cannot_tell: 1, not_needed: 0,
+      generated: 1789000000, dns_looked_up: true, done: 3, action_needed: 6, cannot_tell: 1, not_needed: 0,
       items: [
          // The profile item, first, whose code the page renders in its own words
          // rather than the server's (docs/Profiles.md).
@@ -1901,6 +1901,17 @@ const state = {
          { key: 'submission', state: 'action_needed', findings: [
             { state: 'action_needed', code: 'submission_plain', args: ['587'], text: 'Port 587 takes submission without TLS, so passwords and mail would cross the network in the clear.' },
             { state: 'done', code: 'submission_tls', args: ['465', 'Example'], text: 'Port 465 offers TLS with the certificate Example.' }] },
+         // Passwords only over TLS (docs/SecureDefaults.md): the Internet range takes
+         // one in the clear, and its finding carries the one step that puts it right
+         // - the IP range update the page offers as a button. The range the server
+         // judged done carries none.
+         { key: 'sign_in_tls', state: 'action_needed', findings: [
+            { state: 'action_needed', code: 'sign_in_plain', args: ['Internet', '25, 110, 143, 587'], text: 'the server sentence the page does not use',
+              fix: { method: 'PUT', path: '/api/v1/ipranges/2', body: { require_tls_for_auth: true } } },
+            { state: 'done', code: 'sign_in_tls_required', args: ['Branch office'], text: 'the server sentence the page does not use' },
+            // A range whose listeners have no TLS to start: no fix - requiring TLS
+            // there would lock everybody out - and a button to the Ports view.
+            { state: 'action_needed', code: 'sign_in_no_tls', args: ['Lab', '8025'], text: 'the server sentence the page does not use' }] },
          { key: 'spf', state: 'action_needed', findings: [{ state: 'action_needed', code: 'record_missing', args: ['example.com', 'SPF', 'example.com'], text: 'example.com: no SPF record at example.com.' }] },
          { key: 'dkim', state: 'cannot_tell', findings: [{ state: 'cannot_tell', code: 'lookup_failed', args: ['example.com', 'DKIM', 'mail._domainkey.example.com'], text: 'example.com: the lookup for mail._domainkey.example.com failed, which says nothing about the DKIM record.' }] },
          { key: 'dmarc', state: 'done', findings: [{ state: 'done', code: 'record_published', args: ['example.com', 'DMARC', '_dmarc.example.com'], text: 'example.com: the DMARC record at _dmarc.example.com is published.' }] },
@@ -8044,7 +8055,7 @@ async function main() {
    before = requests.length;
    await goTo('checklist');
    check('the checklist view reads the list', called(before, 'GET', '/api/v1/setup/checklist').length === 1, paths(before));
-   check('one card per item, nine of them', content().querySelectorAll('.checkitem').length === 9,
+   check('one card per item, ten of them', content().querySelectorAll('.checkitem').length === 10,
       String(content().querySelectorAll('.checkitem').length));
    check('the first item is the profile, drawn from this page\'s own words for its code',
       content().querySelectorAll('.checkitem')[0].attributes['data-key'] === 'profile' &&
@@ -8076,8 +8087,53 @@ async function main() {
    check('a code this page does not know is shown in the server\'s own words',
       content().querySelector('.checkitem[data-key="second_factor"]').textContent.indexOf('The server said this in its own words.') >= 0,
       content().querySelector('.checkitem[data-key="second_factor"]').textContent);
-   check('the summary counts the four states', document.getElementById('checklistSummary').textContent === '3 done, 5 need action, 1 cannot be told, 0 not needed.',
+   check('the summary counts the four states', document.getElementById('checklistSummary').textContent === '3 done, 6 need action, 1 cannot be told, 0 not needed.',
       document.getElementById('checklistSummary').textContent);
+
+   // ---- passwords only over TLS, and the one-click fix its finding carries
+   check('the passwords item is drawn from this page\'s own words, names the range and its ports, and offers its fix as a button on that finding alone',
+      content().querySelector('.checkitem[data-key="sign_in_tls"]') !== null &&
+      content().querySelector('.checkitem[data-key="sign_in_tls"]').textContent.indexOf('Passwords only over TLS') >= 0 &&
+      content().querySelector('.checkitem[data-key="sign_in_tls"]').textContent.indexOf('The IP range Internet takes a password without TLS on port 25, 110, 143, 587') >= 0 &&
+      content().querySelector('.checkitem[data-key="sign_in_tls"]').textContent.indexOf('The IP range Branch office takes a password only over TLS.') >= 0 &&
+      content().querySelector('.checkitem[data-key="sign_in_tls"]').textContent.indexOf('the server sentence the page does not use') < 0 &&
+      content().querySelectorAll('button[data-act="checklistfix"]').length === 1 &&
+      content().querySelector('button[data-act="checklistfix"]').textContent === 'Require TLS for sign-in from this range',
+      content().querySelector('.checkitem[data-key="sign_in_tls"]') ? content().querySelector('.checkitem[data-key="sign_in_tls"]').textContent : 'no item');
+
+   confirmAnswer = false;
+   before = requests.length;
+   click(act('checklistfix'));
+   await flush();
+   check('the fix asks first, naming the range, and a no sends nothing',
+      called(before, 'PUT', /ipranges/).length === 0 &&
+      confirmations[confirmations.length - 1].indexOf('Require TLS for sign-in from the IP range Internet?') >= 0,
+      confirmations[confirmations.length - 1]);
+   confirmAnswer = true;
+
+   const rangeBeforeFix = Object.assign({}, state.ranges[1]);
+   before = requests.length;
+   click(act('checklistfix'));
+   await flush();
+   const fixBody = lastBody(before, 'PUT', '/api/v1/ipranges/2');
+   check('a yes sends exactly the request the finding carries, and the list is read again',
+      called(before, 'PUT', '/api/v1/ipranges/2').length === 1 &&
+      fixBody !== null && Object.keys(fixBody).length === 1 && fixBody.require_tls_for_auth === true &&
+      state.ranges[1].require_tls_for_auth === true &&
+      called(before, 'GET', '/api/v1/setup/checklist').length === 1,
+      paths(before) + ' ' + JSON.stringify(fixBody));
+   state.ranges[1] = rangeBeforeFix;
+
+   check('a range whose listeners have no TLS to start says to give them STARTTLS first, and offers the Ports view rather than a fix',
+      content().querySelector('.checkitem[data-key="sign_in_tls"]').textContent.indexOf('The IP range Lab takes a password without TLS, and port 8025 has no TLS a client could start') >= 0 &&
+      content().querySelectorAll('button[data-act="checklistfix"]').length === 1 &&
+      content().querySelectorAll('button[data-act="checklistgo"]').length === 1 &&
+      content().querySelector('button[data-act="checklistgo"]').textContent === 'Ports',
+      content().querySelector('.checkitem[data-key="sign_in_tls"]').textContent);
+   click(act('checklistgo'));
+   await flush();
+   check('the Ports button opens the Ports view', $('#viewTitle').textContent === 'Ports', $('#viewTitle').textContent);
+   await goTo('checklist');
 
    // ---- a setting profile: the diff, the confirmation, the apply and the way back
    before = requests.length;

@@ -23,7 +23,7 @@ namespace HM
    {
    }
 
-   void 
+   bool
    TCPIPPorts::Refresh()
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
@@ -31,7 +31,7 @@ namespace HM
    //---------------------------------------------------------------------------()
    {
       String sSQL = "select * from hm_tcpipports order by portaddress1 asc, portaddress2 asc, portnumber asc";
-      DBLoad_(sSQL);
+      return DBLoad_(sSQL);
    }
 
    bool

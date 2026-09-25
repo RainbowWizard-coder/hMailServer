@@ -19,8 +19,9 @@ namespace HM
 
       std::shared_ptr<TCPIPPort> GetPort(const IPAddress &iIPAddress, int iPort);
 
-      void Refresh();
-      // Refreshes this collection from the database.
+      bool Refresh();
+      // Refreshes this collection from the database. False when the read failed,
+      // and the collection is then left as it was (Collection::DBLoad_).
 
       // False if the defaults could not be written. The existing ports are deleted
       // first, so a false return means the server may now be listening on fewer

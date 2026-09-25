@@ -37,7 +37,32 @@ After=postgresql.service mariadb.service mysql.service mysqld.service
 
 [Service]
 Type=simple
+
+# A new installation's first start (docs/SecureDefaults.md). hmailserver
+# --create-database leaves .new-installation in the DataFolder the configuration
+# names when it makes the database, and marks the database it made; --if-marked
+# with no file looks there, in the same configuration's DataFolder, wherever it
+# has been moved. With the file there, and the database marked within a day of
+# this machine's clock, this makes a self-signed certificate,
+# offers STARTTLS on 25, 587, 110 and 143 and refuses a password without TLS from
+# any address but this machine's - to that database, still as the create script
+# left it with no account, domain or route, and to no other - and removes the
+# file. Without it, which is every other start, it reads where the data is, exits
+# at once and opens nothing. It runs as the service's user, so the key it writes
+# is the service's; the leading "-" keeps a failure here from stopping the start,
+# and the server's own start says what is wrong with a database it cannot reach.
+# A DataFolder outside ReadWritePaths below needs the drop-in the server needs for
+# its mail there anyway, or this can write neither the certificate nor the file.
+ExecStartPre=-/usr/bin/hmailserver --apply-new-install-defaults --if-marked
 ExecStart=/usr/bin/hmailserver --foreground
+
+# The "-" above forgives a failure, not a timeout. Under Type=simple the start is
+# over once ExecStart has run, so this bounds the step above alone: it tries the
+# database once before anything else (a connect the operating system may take a
+# couple of minutes to give up on, for a host that does not answer), and a first
+# start that ran out of time would fail the unit and restart it with the file
+# still there. Ninety seconds, systemd's default, is not enough for that one try.
+TimeoutStartSec=300
 User=hmailserver
 Group=hmailserver
 

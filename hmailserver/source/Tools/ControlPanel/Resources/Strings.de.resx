@@ -503,6 +503,9 @@ Dieses schwache Passwort trotzdem speichern?</value>
   <data name="A low rate on a busy server usually means the TTL is shorter than the interval between lookups of the same object; a rate of 0% with no memory in use means nothing has been looked up yet, which is not the same thing. Memory in use is measured against the size caps above, and a cache at its cap is evicting entries it would otherwise have kept." xml:space="preserve">
     <value>Eine niedrige Rate auf einem ausgelasteten Server bedeutet meist, dass die TTL kürzer ist als der Abstand zwischen Nachschlagevorgängen desselben Objekts; eine Rate von 0 % ohne belegten Speicher bedeutet, dass noch nichts nachgeschlagen wurde, was nicht dasselbe ist. Der belegte Speicher wird an den Größenobergrenzen oben gemessen, und ein Cache an seiner Obergrenze verdrängt Einträge, die er sonst behalten hätte.</value>
   </data>
+  <data name="A mail client signs in with a password, and from any address but this computer's the password should cross the network only inside TLS." xml:space="preserve">
+    <value>Ein Mailprogramm meldet sich mit einem Passwort an, und von jeder Adresse außer der dieses Computers sollte das Passwort das Netzwerk nur innerhalb von TLS durchqueren.</value>
+  </data>
   <data name="A mail server usually starts with the rest of the machine, and on a machine where the database service starts second, the first few attempts fail. Together with the delay below this is the whole window: six attempts five seconds apart is half a minute. Lengthen it rather than delaying the service if the database is on another host that is slower to come up." xml:space="preserve">
     <value>Ein Mailserver startet meist mit dem Rest des Rechners, und auf einem Rechner, auf dem der Datenbankdienst als zweiter startet, schlagen die ersten Versuche fehl. Zusammen mit der Verzögerung unten ist das das ganze Fenster: sechs Versuche im Abstand von fünf Sekunden sind eine halbe Minute. Verlängern Sie es lieber, als den Dienst zu verzögern, wenn die Datenbank auf einem anderen Host liegt, der langsamer hochkommt.</value>
   </data>
@@ -3632,6 +3635,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Jede Nachricht, gleich welcher Größe. Die Größengrenze ist 0, was hier „keine Grenze" bedeutet.</value>
   </data>
+  <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
+    <value>Jeder Port, den der IP-Bereich {0} nutzen darf, startet TLS, bevor er ein Passwort annimmt.</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Jede Spamprüfung in der Reihenfolge, in der der Server sie ausführt, was jede zur Bewertung beiträgt und was diese Bewertung dann mit der Nachricht macht.</value>
   </data>
@@ -6033,6 +6039,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
     <value>Nur nötig, wenn die Schlüsseldatei verschlüsselt ist: bei einem verschlüsselten Schlüssel ohne Passphrase lädt der Schlüssel nicht (Serverfehler 6170) und jeder TLS-Port, der dieses Zertifikat verwendet, startet nicht - eingehende Mail auf diesen Ports hört auf. Die Passphrase ist ein Geheimnis: sie wird auf dem Server geschützt gespeichert und hier nie wieder angezeigt, und das Speichern einer neuen ersetzt, was vorher gespeichert war.</value>
   </data>
+  <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
+    <value>Nur dieser Computer darf sich verbinden, also geht kein Passwort über ein Netzwerk.</value>
+  </data>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Wird nur zusammen mit dem Benutzernamen oben verwendet</value>
   </data>
@@ -6363,6 +6372,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Passwords found in published breaches" xml:space="preserve">
     <value>In veröffentlichten Datenlecks gefundene Passwörter</value>
   </data>
+  <data name="Passwords only over TLS - from any address but this computer's" xml:space="preserve">
+    <value>Passwörter nur über TLS - von jeder Adresse außer der dieses Computers</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Passwörter und was sie transportieren darf</value>
   </data>
@@ -6475,6 +6487,9 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
   </data>
   <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
     <value>Port {0} bietet TLS mit dem Zertifikat {1}.</value>
+  </data>
+  <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
+    <value>Port {0} bietet TLS mit {1} an, dem selbstsignierten Zertifikat, das diese Installation erstellt hat: Mailprogramme warnen davor, bis es durch eines ersetzt wird, das eine Zertifizierungsstelle ausgestellt hat und das ACME von Let's Encrypt holen kann.</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Port {0} nimmt Einlieferungen ohne TLS an, Passwörter und Mail gingen also im Klartext durchs Netz.</value>
@@ -8940,6 +8955,15 @@ Die nächste Nachricht an diese Adresse wird gesendet, und sie kommt erst wieder
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Der Hostname unter Zustellung von E-Mail ist LEER, der Server greift also auf seinen Windows-Computernamen zurück{0}. Ein bloßer Computername ist kein öffentlicher DNS-Name: Empfänger, die HELO mit dem DNS vergleichen, bewerten ihn negativ, und kein PTR kann mit ihm übereinstimmen. Setzen Sie zuerst einen echten Hostnamen.</value>
   </data>
+  <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
+    <value>Der IP-Bereich {0} nimmt ein Passwort nur über TLS an.</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS on port {1}, so a client there that signs in before STARTTLS sends it across the network in the clear." xml:space="preserve">
+    <value>Der IP-Bereich {0} nimmt auf Port {1} ein Passwort ohne TLS an, sodass ein Client dort, der sich vor STARTTLS anmeldet, es im Klartext über das Netzwerk sendet.</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
+    <value>Der IP-Bereich {0} nimmt ein Passwort ohne TLS an, und Port {1} bietet kein TLS, das ein Client starten könnte: Geben Sie diesen Ports zuerst ein Zertifikat und STARTTLS, und verlangen Sie dann TLS für die Anmeldung aus dem Bereich.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Der LDAP-Filter, der die Personen auswählt, die ein Postfach haben sollen. Die Vorgabe nimmt aktivierte Personenobjekte, die eine Mailadresse tragen - was deaktivierte Ausgeschiedene, Dienstkonten und Computer absichtlich ausschließt, für die ein breiterer Filter allesamt Postfächer bereitstellen würde.</value>
   </data>
@@ -10514,6 +10538,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>Wenn die Wartezeit endet oder die Sandbox einen Fehler meldet</value>
+  </data>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Wo ein unten genannter Port kein TLS hat, geben Sie ihm zuerst auf der Seite TCP/IP-Ports ein Zertifikat und STARTTLS; schalten Sie dann auf der Seite IP-Bereiche für jeden unten genannten Bereich TLS für Auth verlangen ein. Die eigenen Clients dieses Computers sind nicht betroffen.</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Wohin es geht</value>

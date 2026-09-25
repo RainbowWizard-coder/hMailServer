@@ -43,6 +43,7 @@
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/IniSettingStore.h"
 #include "../Common/Application/EnvironmentSettings.h"
+#include "../Common/Application/NewInstallDefaults.h"
 #include "../Common/Application/Profiles.h"
 #include "../Common/Persistence/MessageStoreMaintenance.h"
 #include "../Common/Application/SampleDomain.h"
@@ -137,6 +138,10 @@ namespace
          "                    A database that already holds this build's schema, or\n"
          "                    an older one, is left as it is with exit status 0, so\n"
          "                    it can run at every start; a newer one exits 1.\n"
+         "                    A database it makes is marked as a new\n"
+         "                    installation's, with a file beside the data that\n"
+         "                    the unit's first start answers\n"
+         "                    (--apply-new-install-defaults).\n"
          "  --upgrade-database\n"
          "                    run every upgrade script from the database's version\n"
          "                    to this build's, in order. What DBUpdater does on\n"
@@ -194,6 +199,30 @@ namespace
          "  --revert-profile\n"
          "                    put back what the last profile changed, as the\n"
          "                    REST API's revert does; the same conditions.\n"
+         "  --apply-new-install-defaults [--if-marked [<file>]]\n"
+         "                    what a new installation starts with\n"
+         "                    (docs/SecureDefaults.md): a self-signed certificate\n"
+         "                    made for this machine, STARTTLS offered with it on\n"
+         "                    25, 587, 110 and 143, and a password refused from\n"
+         "                    any address but this computer's until TLS is up.\n"
+         "                    Done only to a database --create-database made,\n"
+         "                    which it marks, and only while it is as the\n"
+         "                    create script left it - those four ports without\n"
+         "                    TLS, the two IP ranges, no certificate, account,\n"
+         "                    domain or route - and exit 5, changing nothing, on\n"
+         "                    any other; exit 2, the mark kept, when it cannot\n"
+         "                    read enough to tell. With --if-marked it does\n"
+         "                    nothing unless a file exists, and removes it once\n"
+         "                    answered: <file>,\n"
+         "                    or without one .new-installation in the\n"
+         "                    configuration's DataFolder, which --create-database\n"
+         "                    leaves when it makes the database; the unit runs it\n"
+         "                    so before every start. With it, too, a database\n"
+         "                    marked more than a day from now either way is left\n"
+         "                    as it is (exit 5), its mark kept for a run without\n"
+         "                    it, which has no such limit. Run it as the user the\n"
+         "                    service runs as, whose key it writes (it is\n"
+         "                    refused as root), with the server stopped.\n"
          "  --sample-domain create\n"
          "  --sample-domain remove\n"
          "                    make a throwaway example.test - three mailboxes\n"
@@ -330,6 +359,37 @@ namespace
       return (int) recordset->GetLongValue("value");
    }
 
+   // Whether the packaged unit's first start will find the marker --create-database
+   // has just written, and so secure the new database by itself: systemd runs this
+   // machine (the test sd_booted() makes), the unit is installed, and this command
+   // read the configuration the unit's server reads - the packaged one, since the
+   // unit names none - so the marker is in the data directory the unit's bare
+   // --if-marked looks in. A container, the AppImage, a tarball and a --config of
+   // any other file are all somewhere it will not.
+   bool PackagedUnitFindsMarker()
+   {
+      if (::access("/run/systemd/system", F_OK) != 0)
+         return false;
+
+      if (::access("/usr/lib/systemd/system/hmailserver.service", F_OK) != 0 &&
+          ::access("/lib/systemd/system/hmailserver.service", F_OK) != 0 &&
+          ::access("/etc/systemd/system/hmailserver.service", F_OK) != 0)
+         return false;
+
+      const std::string configuration = HM::AnsiString(HM::IniFileSettings::GetInitializationFile()).c_str();
+      return configuration == "/etc/hmailserver/hMailServer.ini";
+   }
+
+   // Whether the unit may write where the marker is: its ReadWritePaths. Anywhere
+   // else its first start can neither write the certificate there nor remove the
+   // marker until a drop-in adds the directory - which the server needs for its
+   // own data there in any case.
+   bool UnitMayWrite(const HM::String &path)
+   {
+      const std::string file = HM::AnsiString(path).c_str();
+      return file.rfind("/var/lib/hmailserver/", 0) == 0 || file.rfind("/var/log/hmailserver/", 0) == 0;
+   }
+
    int CreateDatabase()
    {
       std::shared_ptr<HM::DatabaseSettings> withDatabase, serverOnly;
@@ -422,6 +482,39 @@ namespace
       std::printf("Database %s created on %s at schema version %d, from %s.\n",
          HM::AnsiString(withDatabase->GetDatabaseName()).c_str(), DescribeType(withDatabase->GetType()),
          ReadSchemaVersion(database), HM::AnsiString(script).c_str());
+
+      // This is the Linux installation's create step, so the database it has just
+      // made is the one a new installation's defaults are for
+      // (Common/Application/NewInstallDefaults.h, docs/SecureDefaults.md): the mark
+      // goes into it, and the file the unit's first start looks for beside the
+      // data. Nothing else on this platform writes either - a database that was
+      // already there, above, gets neither - so the first start never changes a
+      // database this command did not make. Neither failing fails the create; the
+      // defaults are then not applied, and that is said.
+      HM::String markError;
+      if (!HM::NewInstallDefaults::MarkCreated(database, markError))
+      {
+         std::fprintf(stderr, "The database was not marked as new (%s), so the first start will not secure it; the setup checklist says what to do by hand.\n",
+            HM::AnsiString(markError).c_str());
+      }
+      else
+      {
+         // "Secures it" only where the unit will look; everywhere else the
+         // administrator is told the one command that does it.
+         const HM::String marker = HM::NewInstallDefaults::FirstStartMarkerFile();
+         const HM::AnsiString configuration(HM::IniFileSettings::GetInitializationFile());
+         if (!HM::FileUtilities::WriteToFile(marker, HM::AnsiString("made by hmailserver --create-database; the unit's first start secures the new database and removes this file (docs/SecureDefaults.md)\n")))
+            std::fprintf(stderr, "%s could not be written, so the first start will not secure the new database; run hmailserver --config %s --apply-new-install-defaults as the user the server runs as, with the server stopped (docs/SecureDefaults.md).\n",
+               HM::AnsiString(marker).c_str(), configuration.c_str());
+         else if (!PackagedUnitFindsMarker())
+            std::printf("Only the packaged systemd unit's first start secures a new database by itself - on a machine systemd runs, with /etc/hmailserver/hMailServer.ini - and this is not that (a container, the AppImage or another configuration): secure it with hmailserver --config %s --apply-new-install-defaults, run as the user the server runs as with the server stopped (docs/SecureDefaults.md).\n",
+               configuration.c_str());
+         else if (!UnitMayWrite(marker))
+            std::printf("Its first start under systemd, if it comes within a day of this, secures it only once the unit may write to %s, which is outside the unit's ReadWritePaths: add the data directory with a drop-in (systemctl edit hmailserver) before that start, as the server needs for its mail in any case (docs/SecureDefaults.md).\n",
+               HM::AnsiString(HM::IniFileSettings::Instance()->GetDataDirectory()).c_str());
+         else
+            std::printf("Its first start under systemd, if it comes within a day of this, secures it: a self-signed certificate, STARTTLS on 25, 587, 110 and 143, and a password refused without TLS from any address but this machine's. A later first start leaves it for hmailserver --apply-new-install-defaults, run by hand with the server stopped (docs/SecureDefaults.md).\n");
+      }
       return 0;
    }
 
@@ -932,6 +1025,9 @@ int main(int argc, char *argv[])
    bool profile_confirm = false;
    bool profile_once = false;
    bool profile_if_new = false;
+   bool apply_new_install_defaults = false;
+   bool new_install_if_marked = false;
+   std::string new_install_marker;
    int store_verb = 0;
    bool store_decompress = false;
    std::string store_account;
@@ -1005,6 +1101,21 @@ int main(int argc, char *argv[])
       if (argument == "--revert-profile")
       {
          revert_profile = true;
+         continue;
+      }
+      if (argument == "--apply-new-install-defaults")
+      {
+         apply_new_install_defaults = true;
+         continue;
+      }
+      if (argument == "--if-marked")
+      {
+         // The file is optional: without one it is the file --create-database
+         // leaves, in the data directory the configuration names, which is what
+         // the unit passes. A following argument that is an option is not a file.
+         new_install_if_marked = true;
+         if (index + 1 < argc && argv[index + 1][0] != '-')
+            new_install_marker = argv[++index];
          continue;
       }
       if (argument == "--measure-store")
@@ -1199,6 +1310,23 @@ int main(int argc, char *argv[])
 
    if (revert_profile)
       return HM::Profiles::RunRevertCommand();
+
+   // What a new installation starts with (Common/Application/NewInstallDefaults,
+   // docs/SecureDefaults.md): the unit's ExecStartPre runs it with --if-marked
+   // before every start, and it does nothing - not even open the database -
+   // unless the file --create-database left when it made the database is there,
+   // in the data directory of the same configuration, and nothing to a database
+   // without the mark that same step wrote. As for the profile verb, nothing
+   // here says whether a server is running; the unit runs it before the server
+   // it starts.
+   if (new_install_if_marked && !apply_new_install_defaults)
+   {
+      std::fprintf(stderr, "--if-marked goes with --apply-new-install-defaults.\n");
+      return 2;
+   }
+
+   if (apply_new_install_defaults)
+      return HM::NewInstallDefaults::RunCommand(new_install_if_marked, HM::String(new_install_marker.c_str()));
 
    // The message store walked (Common/Persistence/MessageStoreMaintenance.h).
    // There is no service controller to ask here, so the rewrite and the recount

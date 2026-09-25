@@ -503,6 +503,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="A low rate on a busy server usually means the TTL is shorter than the interval between lookups of the same object; a rate of 0% with no memory in use means nothing has been looked up yet, which is not the same thing. Memory in use is measured against the size caps above, and a cache at its cap is evicting entries it would otherwise have kept." xml:space="preserve">
     <value>Een lage hit rate op een drukke server betekent meestal dat de TTL korter is dan de tijd tussen opzoekingen van hetzelfde object; een rate van 0% zonder geheugengebruik betekent dat er nog niets is opgezocht, wat niet hetzelfde is. Het geheugengebruik wordt afgezet tegen de groottelimieten hierboven, en een cache op zijn limiet verwijdert vermeldingen die hij anders had bewaard.</value>
   </data>
+  <data name="A mail client signs in with a password, and from any address but this computer's the password should cross the network only inside TLS." xml:space="preserve">
+    <value>Een mailprogramma meldt zich aan met een wachtwoord, en vanaf elk adres behalve dat van deze computer hoort het wachtwoord het netwerk alleen binnen TLS over te gaan.</value>
+  </data>
   <data name="A mail server usually starts with the rest of the machine, and on a machine where the database service starts second, the first few attempts fail. Together with the delay below this is the whole window: six attempts five seconds apart is half a minute. Lengthen it rather than delaying the service if the database is on another host that is slower to come up." xml:space="preserve">
     <value>Een mailserver start meestal met de rest van de machine, en op een machine waar de databaseservice als tweede start, mislukken de eerste pogingen. Samen met de vertraging hieronder is dit het hele venster: zes pogingen met vijf seconden ertussen is een halve minuut. Verleng het liever dan de service te vertragen als de database op een andere host staat die trager opkomt.</value>
   </data>
@@ -3632,6 +3635,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Elk bericht, ongeacht de grootte. De groottelimiet is 0, wat hier "geen limiet" betekent.</value>
   </data>
+  <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
+    <value>Elke poort die het IP-bereik {0} mag gebruiken, start TLS voordat die een wachtwoord accepteert.</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Elke spamcontrole in de volgorde waarin de server ze uitvoert, wat elk aan de score toevoegt, en wat die score vervolgens met het bericht doet.</value>
   </data>
@@ -6033,6 +6039,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
     <value>Alleen nodig wanneer het sleutelbestand versleuteld is: met een versleutelde sleutel en zonder wachtwoordzin laadt de sleutel niet (serverfout 6170) en start elke TLS-poort die dit certificaat gebruikt niet - inkomende mail op die poorten stopt. De wachtwoordzin is een geheim: hij wordt beschermd op de server opgeslagen en wordt hier nooit meer getoond, en een nieuwe opslaan vervangt wat er eerder was opgeslagen.</value>
   </data>
+  <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
+    <value>Alleen deze computer mag verbinden, dus er gaat geen wachtwoord over een netwerk.</value>
+  </data>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Wordt alleen samen met de gebruikersnaam hierboven gebruikt</value>
   </data>
@@ -6363,6 +6372,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Passwords found in published breaches" xml:space="preserve">
     <value>Wachtwoorden gevonden in gepubliceerde datalekken</value>
   </data>
+  <data name="Passwords only over TLS - from any address but this computer's" xml:space="preserve">
+    <value>Wachtwoorden alleen via TLS - vanaf elk adres behalve dat van deze computer</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Wachtwoorden, en wat ze mag vervoeren</value>
   </data>
@@ -6475,6 +6487,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
     <value>Poort {0} biedt TLS met het certificaat {1}.</value>
+  </data>
+  <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
+    <value>Poort {0} biedt TLS aan met {1}, het zelfondertekende certificaat dat deze installatie heeft gemaakt: mailprogramma's waarschuwen ervoor totdat het is vervangen door een certificaat van een certificeringsinstantie, dat ACME bij Let's Encrypt kan ophalen.</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Poort {0} neemt berichten aan zonder TLS, dus wachtwoorden en mail zouden onversleuteld over het netwerk gaan.</value>
@@ -8940,6 +8955,15 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>De hostnaam op E-mailbezorging is LEEG, dus valt de server terug op zijn Windows-computernaam{0}. Een kale computernaam is geen publieke DNS-naam: ontvangers die HELO met DNS vergelijken zullen dat bestraffen, en geen enkele PTR kan ermee overeenkomen. Stel eerst een echte hostnaam in.</value>
   </data>
+  <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
+    <value>Het IP-bereik {0} accepteert een wachtwoord alleen via TLS.</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS on port {1}, so a client there that signs in before STARTTLS sends it across the network in the clear." xml:space="preserve">
+    <value>Het IP-bereik {0} accepteert een wachtwoord zonder TLS op poort {1}, dus een client daar die zich vóór STARTTLS aanmeldt, stuurt het onversleuteld over het netwerk.</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
+    <value>Het IP-bereik {0} accepteert een wachtwoord zonder TLS, en poort {1} biedt geen TLS dat een client kan starten: geef die poorten eerst een certificaat en STARTTLS, en vereis daarna TLS voor aanmelden vanuit het bereik.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Het LDAP-filter dat de mensen selecteert die een postvak horen te hebben. De standaard neemt ingeschakelde person-objecten met een mailadres - wat bewust uitgeschakelde vertrekkers, serviceaccounts en computers uitsluit, waarvoor een ruimer filter allemaal postvakken zou aanmaken.</value>
   </data>
@@ -10514,6 +10538,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>Als het wachten eindigt of de sandbox een fout antwoordt</value>
+  </data>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Geef een hieronder genoemde poort zonder TLS eerst een certificaat en STARTTLS op de pagina TCP/IP-poorten; zet daarna op de pagina IP-bereiken TLS vereisen voor auth aan voor elk bereik dat hieronder wordt genoemd. De eigen clients van deze computer merken er niets van.</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Waar het naartoe gaat</value>

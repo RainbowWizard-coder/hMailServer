@@ -503,6 +503,9 @@
   <data name="A low rate on a busy server usually means the TTL is shorter than the interval between lookups of the same object; a rate of 0% with no memory in use means nothing has been looked up yet, which is not the same thing. Memory in use is measured against the size caps above, and a cache at its cap is evicting entries it would otherwise have kept." xml:space="preserve">
     <value>Низкий показатель на нагруженном сервере обычно означает, что TTL короче интервала между обращениями к одному и тому же объекту; показатель 0 % при нулевом использовании памяти означает, что обращений ещё не было, а это не одно и то же. Использование памяти измеряется относительно заданных выше пределов размера, и кэш, достигший своего предела, вытесняет записи, которые иначе сохранил бы.</value>
   </data>
+  <data name="A mail client signs in with a password, and from any address but this computer's the password should cross the network only inside TLS." xml:space="preserve">
+    <value>Почтовый клиент входит с паролем, и с любого адреса, кроме адреса этого компьютера, пароль должен проходить по сети только внутри TLS.</value>
+  </data>
   <data name="A mail server usually starts with the rest of the machine, and on a machine where the database service starts second, the first few attempts fail. Together with the delay below this is the whole window: six attempts five seconds apart is half a minute. Lengthen it rather than delaying the service if the database is on another host that is slower to come up." xml:space="preserve">
     <value>Почтовый сервер обычно запускается вместе со всей машиной, и там, где служба базы данных стартует второй, первые несколько попыток заканчиваются неудачей. Вместе с задержкой ниже это задаёт всё окно целиком: шесть попыток с интервалом пять секунд — это полминуты. Если база данных находится на другом узле, который поднимается медленнее, увеличьте это значение, а не откладывайте запуск службы.</value>
   </data>
@@ -3632,6 +3635,9 @@ Control Panel может читать файлы сообщений только
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Каждое сообщение, какого бы размера оно ни было. Ограничение размера равно 0, что здесь означает «без ограничения».</value>
   </data>
+  <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
+    <value>Каждый порт, который может использовать диапазон IP {0}, запускает TLS прежде, чем принять пароль.</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Все проверки на спам в том порядке, в каком их выполняет сервер, что каждая из них добавляет к оценке и что затем эта оценка делает с сообщением.</value>
   </data>
@@ -6033,6 +6039,9 @@ Control Panel может читать файлы сообщений только
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
     <value>Требуется только тогда, когда файл ключа зашифрован: если ключ зашифрован, а парольная фраза не задана, ключ не загружается (ошибка сервера 6170) и ни один порт TLS, использующий этот сертификат, не запускается — приём почты на этих портах прекращается. Парольная фраза — это секрет: она хранится на сервере под защитой и здесь больше никогда не показывается, а сохранение новой заменяет ту, что была сохранена раньше.</value>
   </data>
+  <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
+    <value>Подключаться может только этот компьютер, поэтому ни один пароль не передаётся по сети.</value>
+  </data>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Используется только вместе с указанным выше именем пользователя</value>
   </data>
@@ -6363,6 +6372,9 @@ Control Panel может читать файлы сообщений только
   <data name="Passwords found in published breaches" xml:space="preserve">
     <value>Пароли, найденные в опубликованных утечках</value>
   </data>
+  <data name="Passwords only over TLS - from any address but this computer's" xml:space="preserve">
+    <value>Пароли только через TLS - с любого адреса, кроме адреса этого компьютера</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Пароли и то, чему разрешено их переносить</value>
   </data>
@@ -6475,6 +6487,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
     <value>Порт {0} предлагает TLS с сертификатом {1}.</value>
+  </data>
+  <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
+    <value>Порт {0} предлагает TLS с сертификатом {1} - самоподписанным сертификатом, созданным этой установкой: почтовые клиенты предупреждают о нём, пока его не заменят сертификатом, выданным центром сертификации, который ACME может получить от Let's Encrypt.</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Порт {0} принимает отправку без TLS, поэтому пароли и почта шли бы по сети открытым текстом.</value>
@@ -8940,6 +8955,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Поле «Имя узла» в разделе «Доставка почты» ПУСТО, поэтому сервер использует вместо него имя своего компьютера Windows{0}. Голое имя компьютера не является публичным именем DNS: получатели, сверяющие HELO с DNS, начислят за него штраф, и никакая запись PTR с ним согласоваться не может. Сначала задайте настоящее имя узла.</value>
   </data>
+  <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
+    <value>Диапазон IP {0} принимает пароль только через TLS.</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS on port {1}, so a client there that signs in before STARTTLS sends it across the network in the clear." xml:space="preserve">
+    <value>Диапазон IP {0} принимает пароль без TLS на порту {1}, поэтому клиент оттуда, входящий до STARTTLS, отправляет его по сети открытым текстом.</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
+    <value>Диапазон IP {0} принимает пароль без TLS, а порт {1} не предлагает TLS, который клиент мог бы запустить: сначала дайте этим портам сертификат и STARTTLS, затем требуйте TLS для входа из этого диапазона.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Фильтр LDAP, отбирающий тех людей, у которых должен быть почтовый ящик. Значение по умолчанию берёт включённые объекты person, у которых есть почтовый адрес, — тем самым намеренно исключаются отключённые уволившиеся, учётные записи служб и компьютеры, а для всех них более широкий фильтр создал бы почтовые ящики.</value>
   </data>
@@ -10514,6 +10538,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>Когда ожидание заканчивается или песочница отвечает ошибкой</value>
+  </data>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Если у порта, указанного ниже, нет TLS, сначала дайте ему сертификат и STARTTLS на странице «Порты TCP/IP»; затем на странице «Диапазоны IP» включите «Требовать TLS для аутентификации» для каждого диапазона, указанного ниже. Собственных клиентов этого компьютера это не затрагивает.</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Куда уходит</value>

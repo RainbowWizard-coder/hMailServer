@@ -8,6 +8,7 @@
 #include "../Util/Crypt.h"
 #include "../Util/AuditTrail.h"
 #include "EnvironmentSettings.h"
+#include "NewInstallDefaults.h"
 #include "Profiles.h"
 #include "../Util/SnmpAgent.h"
 
@@ -463,11 +464,15 @@ namespace HM
          // And a profile's way back and the record of which profile was applied
          // (docs/Profiles.md): this server's history with a profile, not the
          // configuration an archive carries - a snapshot restored onto the values it
-         // was not taken of would put back values that were never there.
+         // was not taken of would put back values that were never there. And the
+         // mark that this database was made by a new installation's create step and
+         // its defaults are still to be decided (Application/NewInstallDefaults.h):
+         // restored onto another database it would claim that one was new.
          if (String(oProperty->GetName()).CompareNoCase(EnvironmentSettings::MarkerName()) == 0 ||
              String(oProperty->GetName()).CompareNoCase(EnvironmentSettings::SecretMarkerName()) == 0 ||
              String(oProperty->GetName()).CompareNoCase(Profiles::SnapshotName()) == 0 ||
-             String(oProperty->GetName()).CompareNoCase(Profiles::AppliedName()) == 0)
+             String(oProperty->GetName()).CompareNoCase(Profiles::AppliedName()) == 0 ||
+             String(oProperty->GetName()).CompareNoCase(NewInstallDefaults::PendingName()) == 0)
          {
             iterProperty++;
             continue;
@@ -516,11 +521,13 @@ namespace HM
             continue;
 
          // The environment's records are this server's deployment, not the archive's,
-         // and a profile's records are this server's history.
+         // and a profile's records are this server's history, as is the mark of a
+         // new installation's database.
          if (sName.CompareNoCase(EnvironmentSettings::MarkerName()) == 0 ||
              sName.CompareNoCase(EnvironmentSettings::SecretMarkerName()) == 0 ||
              sName.CompareNoCase(Profiles::SnapshotName()) == 0 ||
-             sName.CompareNoCase(Profiles::AppliedName()) == 0)
+             sName.CompareNoCase(Profiles::AppliedName()) == 0 ||
+             sName.CompareNoCase(NewInstallDefaults::PendingName()) == 0)
             continue;
 
          String sStringValue = pPropertyNode->GetAttrValue(_T("StringValue"));

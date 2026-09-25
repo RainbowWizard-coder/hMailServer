@@ -362,6 +362,64 @@ if (Test-Path $dataFolder) {
     $reserved = @('Quarantine', 'Sieve', 'Temp', 'Events', 'Updates',
                   'ACME', 'Blobs', 'Confidential', 'Discovery', 'DKIM', 'Files', 'Lists', 'Protected', 'Recoverable')
 
+    # 'Certificates' is NOT reserved. It holds the self-signed pair a new
+    # installation's defaults make (NewInstallDefaults.cpp, docs/SecureDefaults.md),
+    # and on this bench only the fixture Security.NewInstallDefaults makes it, and
+    # removes it again. Found here, that fixture was aborted after its verb ran, and
+    # it left more than the directory: the database's four listeners on STARTTLS
+    # with that certificate, the Internet range requiring TLS for sign-in, and - as
+    # nothing else restarts them - the running listeners too. So it is named, and
+    # -Clean puts the database back, removes the directory and restarts the service,
+    # which opens the plain listeners again.
+    $installationCertificates = Join-Path $dataFolder 'Certificates'
+    if (Test-Path -LiteralPath $installationCertificates) {
+        # Any step of -Clean that fails - the database left as it was, the files,
+        # the restart - fails the check below, whatever became of the directory.
+        $cleanFailed = $false
+        if ($Clean) {
+            try {
+                $fix = New-Object -ComObject hMailServer.Application
+                if (-not $fix.Authenticate('Administrator', 'testar')) {
+                    throw 'COM authentication failed, so the database was not put back.'
+                }
+
+                # Once for each port there is: a delete the database refused
+                # leaves the port in the collection, and would otherwise be asked
+                # for ever. The stock ports and ranges are written back whatever
+                # became of the deletes, so that a failure here does not also leave
+                # the Internet range requiring TLS; the failure still fails the
+                # check below.
+                try {
+                    $ports = $fix.Settings.TCPIPPorts
+                    $count = $ports.Count
+                    for ($i = 0; $i -lt $count -and $ports.Count -gt 0; $i++) {
+                        $ports.DeleteByDBID($ports.Item(0).ID)
+                    }
+                    if ($ports.Count -gt 0) {
+                        throw ('{0} TCP/IP port(s) could not be deleted.' -f $ports.Count)
+                    }
+                } finally {
+                    $fix.Settings.TCPIPPorts.SetDefault()
+                    $fix.Settings.SecurityRanges.SetDefault()
+                }
+
+                $fix.Settings.SSLCertificates.Clear()
+                $fix.Database.ExecuteSQL("delete from hm_settings where settingname = 'NewInstallDefaultsPending'")
+                $fix = $null
+                Remove-Item -LiteralPath $installationCertificates -Recurse -Force -ErrorAction Stop
+                Restart-Service hMailServer -ErrorAction Stop
+                Start-Sleep -Seconds 3
+                Write-Host '  CLEAN Removed the leftovers of an aborted Security.NewInstallDefaults and restarted the service.' -ForegroundColor Yellow
+            } catch {
+                $cleanFailed = $true
+                Write-Host ("  The leftovers of Security.NewInstallDefaults could not all be removed: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
+            }
+        }
+
+        Report ((-not $cleanFailed) -and (-not (Test-Path -LiteralPath $installationCertificates))) 'No leftovers of Security.NewInstallDefaults' `
+            'C:\HMTest\Data\Certificates exists, or -Clean could not put everything back: left by an aborted Security.NewInstallDefaults, which also leaves the listeners on STARTTLS and the Internet range requiring TLS for sign-in. Re-run with -Clean, and read its line above.'
+    }
+
     $liveDomains = @()
     try {
         $probe = New-Object -ComObject hMailServer.Application
@@ -380,6 +438,8 @@ if (Test-Path $dataFolder) {
         $orphanDirs = @()
         foreach ($dir in Get-ChildItem -LiteralPath $dataFolder -Directory -ErrorAction SilentlyContinue) {
             if ($reserved -contains $dir.Name) { continue }
+            # Named by its own check above, with what it means.
+            if ($dir.Name -eq 'Certificates') { continue }
             if ($liveDomains -contains $dir.Name) { continue }
             $orphanDirs += $dir.Name
         }

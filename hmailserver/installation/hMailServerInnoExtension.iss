@@ -743,6 +743,88 @@ begin
    SayProfileNotApplied(szProfile, szWhy);
 end;
 
+// Says that a new installation's defaults were not applied, why, and what that
+// leaves; the installation still succeeds. bCanRunAgain when the database still
+// carries its mark untouched, so that running the verb by hand would do it: not
+// after an exit 5, which removed the mark, nor in general after an exit 1, which
+// may have changed part of the server - the verb then leaves it as it is, and the
+// checklist's "Passwords only over TLS" item is the way. An exit 1 that changed
+// nothing keeps the mark, and its szWhy says so.
+procedure SayNewInstallDefaultsNotApplied(szWhy: String; bCanRunAgain: Boolean);
+var
+   szThen: String;
+begin
+   if bCanRunAgain then
+      szThen := 'The Control Deck''s checklist says what is left; ' +
+                'or run "hMailServer.exe --apply-new-install-defaults" from the Bin folder with the service stopped.'
+   else
+      szThen := 'The Control Deck''s checklist says what is left, and its "Passwords only over TLS" item what to do.';
+
+   SuppressibleMsgBox('The secure defaults of a new installation were not applied: ' + szWhy + #13#10#13#10 +
+          'hMailServer is installed, but its listeners on ports 25, 587, 110 and 143 may have no TLS, and a mail client on another machine that signs in may send its password in the clear. ' +
+          szThen, mbInformation, MB_OK, IDOK);
+end;
+
+// What a new installation starts with (docs/SecureDefaults.md): a self-signed
+// certificate made for this machine, STARTTLS offered with it on ports 25, 587,
+// 110 and 143, and the Internet IP range requiring TLS for authentication - so
+// that no password crosses the network in the clear before anybody has
+// configured anything. Run after the database step of a new installation and
+// before the profile and the service start, with the service stopped: the verb
+// refuses to change a running server (exit 4), which would go on serving its
+// listeners without TLS until a restart.
+//
+// Only to a database this installation CREATED, never one that existed before,
+// whatever its size. The installer cannot see whether DBSetup created the
+// external database or attached one (its exit code is 0 for both); the database
+// can say: COM's CreateInternalDatabase and CreateExternalDatabase mark the
+// database they make, SetDefaultDatabase - the attach - does not, and the verb
+// changes nothing without the mark (exit 5). So on the built-in branch, where
+// DBSetupQuick has just created the database (bBuiltIn), exit 5 means the verb
+// and the create step disagree and is said; on the DBSetup branch it is the
+// answer for an attached database, and only logged. An upgrade never reaches
+// here: IsNewDatabase is false for it, and an upgraded server keeps what it has.
+procedure ApplyNewInstallDefaults(bBuiltIn: Boolean);
+var
+   ResultCode: Integer;
+begin
+   if (IsComponentSelected('server') = false) or (IsNewDatabase() = false) then
+      Exit;
+
+   // Stopped and its process gone, not only reported stopped: the verb opens the
+   // database the service had open (StopHMailServerAndWaitForExit).
+   if (IsServiceRunning('hMailServer') = true) then
+   begin
+      if (StopHMailServerAndWaitForExit(90000) = false) then
+      begin
+         SayNewInstallDefaultsNotApplied('the hMailServer service, which the database step started, did not stop within 90 seconds.', true);
+         Exit;
+      end;
+   end;
+
+   if (Exec(ExpandConstant('{app}\Bin\hMailServer.exe'), '--apply-new-install-defaults', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
+   begin
+      Log('hMailServer.exe --apply-new-install-defaults did not start: ' + SysErrorMessage(ResultCode));
+      SayNewInstallDefaultsNotApplied('hMailServer.exe did not start. ' + SysErrorMessage(ResultCode), true);
+      Exit;
+   end;
+
+   Log('hMailServer.exe --apply-new-install-defaults exited ' + IntToStr(ResultCode) + '.');
+
+   case ResultCode of
+      0: Exit;
+      5:
+         begin
+            if bBuiltIn then
+               SayNewInstallDefaultsNotApplied('the built-in database DBSetupQuick has just created was not recognised as a new one (exit code 5), which should not happen; its listeners were left as the create step made them.', false);
+         end;
+      2: SayNewInstallDefaultsNotApplied('hMailServer.exe did not find the database, could not open it, or could not read it well enough to tell whether it is new (exit code 2).', true);
+      4: SayNewInstallDefaultsNotApplied('the hMailServer service was running again when the defaults were to be applied (exit code 4).', true);
+   else
+      SayNewInstallDefaultsNotApplied('hMailServer.exe --apply-new-install-defaults returned ' + IntToStr(ResultCode) + '. The error log says what was and was not changed: where it says nothing was changed (the certificate could not be made, written or recorded), the database keeps its mark, and running it again from the Bin folder with the service stopped still applies them.', false);
+   end;
+end;
+
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
    Result := false;
@@ -1325,8 +1407,12 @@ begin
             end
             else
             begin
-               // The database is there and at this build's schema: the profile the
-               // last page chose, before the service is started below.
+               // The database is there and at this build's schema: a new one's
+               // secure defaults, then the profile the last page chose, before the
+               // service is started below.
+               if IsNewDatabase() then
+                  ProgressPage.SetText('Securing the new installation...', '');
+               ApplyNewInstallDefaults(g_bUseInternal);
                ProgressPage.SetText('Applying the server profile...', '');
                ApplyChosenProfile();
             end;
@@ -1346,9 +1432,14 @@ begin
             end
             else
             begin
-               // An external database set up: the profile the last page chose, as for
-               // the built-in one - with --if-new, since DBSetup can attach a
-               // database that is already in service.
+               // An external database set up: a new one's secure defaults and the
+               // profile the last page chose, as for the built-in one - each of
+               // which leaves alone a database DBSetup attached that is already in
+               // service: the defaults because only a database DBSetup created
+               // carries the mark they require.
+               if IsNewDatabase() then
+                  ProgressPage.SetText('Securing the new installation...', '');
+               ApplyNewInstallDefaults(false);
                ProgressPage.SetText('Applying the server profile...', '');
                ApplyChosenProfile();
             end;

@@ -503,6 +503,9 @@
   <data name="A low rate on a busy server usually means the TTL is shorter than the interval between lookups of the same object; a rate of 0% with no memory in use means nothing has been looked up yet, which is not the same thing. Memory in use is measured against the size caps above, and a cache at its cap is evicting entries it would otherwise have kept." xml:space="preserve">
     <value>在繁忙的服务器上命中率偏低，通常意味着 TTL 短于对同一对象两次查询之间的间隔；而命中率为 0% 且没有占用内存，则表示还没有查询过任何内容，这是两回事。占用的内存是相对于上面的容量上限来衡量的，达到上限的缓存会逐出本来可以保留的条目。</value>
   </data>
+  <data name="A mail client signs in with a password, and from any address but this computer's the password should cross the network only inside TLS." xml:space="preserve">
+    <value>邮件客户端使用密码登录；从本计算机以外的任何地址，密码都应只在 TLS 内穿过网络。</value>
+  </data>
   <data name="A mail server usually starts with the rest of the machine, and on a machine where the database service starts second, the first few attempts fail. Together with the delay below this is the whole window: six attempts five seconds apart is half a minute. Lengthen it rather than delaying the service if the database is on another host that is slower to come up." xml:space="preserve">
     <value>邮件服务器通常随机器的其余部分一起启动，而在数据库服务较晚启动的机器上，最初几次尝试会失败。它与下面的延迟共同构成整个窗口：每隔五秒尝试一次、共六次，就是半分钟。如果数据库位于另一台启动较慢的主机上，请延长它，而不是延迟服务本身。</value>
   </data>
@@ -3632,6 +3635,9 @@
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>每封邮件，无论大小。大小限制为 0，在这里表示“不限制”。</value>
   </data>
+  <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
+    <value>IP 范围 {0} 可以使用的每个端口都会在接受密码之前启动 TLS。</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>每项垃圾邮件检查按服务器运行它们的顺序列出，每项给分数加多少，以及该分数随后会对邮件产生什么影响。</value>
   </data>
@@ -6033,6 +6039,9 @@
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
     <value>仅当密钥文件已加密时需要：密钥已加密却没有密码短语时，密钥无法加载（服务器错误 6170），使用此证书的每个 TLS 端口都不会启动 - 这些端口上的入站邮件会停止。密码短语是机密：它在服务器上受保护地存储，此处不会再次显示，保存新的会替换之前存储的内容。</value>
   </data>
+  <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
+    <value>只有本计算机可以连接，因此没有密码会穿过网络。</value>
+  </data>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>只与上面的用户名一起使用</value>
   </data>
@@ -6363,6 +6372,9 @@
   <data name="Passwords found in published breaches" xml:space="preserve">
     <value>在公开泄露中发现的密码</value>
   </data>
+  <data name="Passwords only over TLS - from any address but this computer's" xml:space="preserve">
+    <value>密码仅通过 TLS - 来自本计算机以外的任何地址</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>密码，以及允许承载密码的方式</value>
   </data>
@@ -6475,6 +6487,9 @@
   </data>
   <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
     <value>端口 {0} 以证书 {1} 提供 TLS。</value>
+  </data>
+  <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
+    <value>端口 {0} 使用 {1} 提供 TLS，这是本次安装创建的自签名证书：在替换为证书颁发机构签发的证书之前，邮件客户端会对此发出警告；ACME 可以从 Let's Encrypt 获取证书。</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>端口 {0} 在没有 TLS 的情况下接受提交，密码和邮件会以明文穿过网络。</value>
@@ -8940,6 +8955,15 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>“电子邮件投递”中的主机名为空，因此服务器回退到其 Windows 计算机名{0}。裸计算机名不是公共 DNS 名称: 把 HELO 与 DNS 比对的收件方会为此扣分，也没有任何 PTR 能与之相符。请先设置一个真实的主机名。</value>
   </data>
+  <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
+    <value>IP 范围 {0} 仅通过 TLS 接受密码。</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS on port {1}, so a client there that signs in before STARTTLS sends it across the network in the clear." xml:space="preserve">
+    <value>IP 范围 {0} 在端口 {1} 上接受不经 TLS 的密码，因此那里在 STARTTLS 之前登录的客户端会以明文在网络上发送密码。</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
+    <value>IP 范围 {0} 接受不经 TLS 的密码，而端口 {1} 没有客户端可以启动的 TLS：请先为这些端口配置证书和 STARTTLS，然后再要求从该范围登录时使用 TLS。</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>选出应当拥有邮箱的人员的 LDAP 过滤器。默认值选取带有邮件地址的已启用 person 对象 - 这有意排除了已禁用的离职人员、服务账户和计算机，而更宽泛的过滤器会为这些全都预配邮箱。</value>
   </data>
@@ -10514,6 +10538,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>等待结束或沙箱答复错误时</value>
+  </data>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>如果下面列出的端口没有 TLS，请先在“TCP/IP 端口”页面上为其配置证书和 STARTTLS；然后在“IP 范围”页面上，为下面列出的每个范围打开“身份验证要求 TLS”。本计算机自己的客户端不受影响。</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>发往何处</value>

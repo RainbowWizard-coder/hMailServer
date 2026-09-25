@@ -323,7 +323,7 @@ One server that receives an office's mail from the Internet, holds its mailboxes
 
 What it cannot do for you:
 
-* Turn on "Require SSL/TLS when authenticating" (the Control Panel's Require TLS for auth) on the Internet IP range, or make the submission port STARTTLS-required: that is what refuses a password sent in the clear - SMTP AUTH LOGIN, IMAP LOGIN and POP3 alike - and an IP range is not a setting a profile can write.
+* Check that "Require SSL/TLS when authenticating" (the Control Panel's Require TLS for auth) is on for the Internet IP range - a new installation turns it on, an upgraded one keeps what it had (docs/SecureDefaults.md) - or make the submission port STARTTLS-required: that is what refuses a password sent in the clear - SMTP AUTH LOGIN, IMAP LOGIN and POP3 alike - and an IP range is not a setting a profile can write.
 * Give the submission port (587) STARTTLS with a certificate, or add port 465 with TLS: a port's security is the port's, not a setting, and the checklist's submission item says which port still takes a password in the clear.
 * Switch each domain's quarantine digest and external-sender tag on in the domain's own settings: both are a domain's choice, and the server has no value of them to set.
 * Set quarantine_digest_base_url to the address the webmail answers on, or the digest has no links to send.
@@ -359,7 +359,7 @@ What it cannot do for you:
 * Put the gateway's addresses in SMTPXClientTrustedIPs if it sends XCLIENT, so that the session takes the real client's address from the start: until then XCLIENT is honoured from nobody.
 * Before applying the profile, add the gateway's addresses to Incoming relays and leave spam protection on for the IP range they connect from: Incoming relays run SPF, HELO, PTR, DMARC and the DNS block lists after DATA against the address the gateway received the message from, read from its Received header, and until the addresses are there those tests judge the gateway's own.
 * Name the ARC sealer the gateway signs as in arc_trusted_sealers: until then no ARC seal is trusted, and the ARC entry offsets nothing.
-* Turn on "Require SSL/TLS when authenticating" on the Internet IP range, or make the submission port STARTTLS-required, for the people who sign in here directly: that is what refuses a password sent in the clear, and an IP range is not a setting a profile can write.
+* Check that "Require SSL/TLS when authenticating" is on for the Internet IP range - a new installation turns it on, an upgraded one keeps what it had (docs/SecureDefaults.md) - or make the submission port STARTTLS-required, for the people who sign in here directly: that is what refuses a password sent in the clear, and an IP range is not a setting a profile can write.
 * On the listener the gateway delivers to, leave TLS optional unless the gateway offers it: a port's security is the port's, not a setting.
 * A backup-MX callout to the primary is a remote domain policy (callout), which a profile does not make.
 

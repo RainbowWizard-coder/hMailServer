@@ -502,7 +502,7 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>
       /// The first-hour items the server judges itself (Common/Util/SetupChecklist.h):
-      /// a setting profile on a young server, a domain, an account, TLS on the submission port, SPF, DMARC, a backup
+      /// a setting profile on a young server, a domain, an account, TLS on the submission port, passwords only over TLS, SPF, DMARC, a backup
       /// destination and a second factor on the administrator password. Read over
       /// COM as Utilities.GetSetupChecklist without DNS lookups - the SPF and DMARC
       /// records are looked up here, off the window thread, by the same probes the
@@ -590,6 +590,17 @@ namespace hMailServer.ControlPanel.Services
                   Action = L("On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS."),
                   Page = "ports"
                };
+            // docs/SecureDefaults.md: a new installation starts with this done; an
+            // upgraded server is told here. The Control Deck's checklist offers the
+            // one-click fix the finding carries; here the page is one click away.
+            case "sign_in_tls":
+               return new SetupItem
+               {
+                  Title = L("Passwords only over TLS - from any address but this computer's"),
+                  Purpose = L("A mail client signs in with a password, and from any address but this computer's the password should cross the network only inside TLS."),
+                  Action = L("Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected."),
+                  Page = "ipranges"
+               };
             case "spf":
                return new SetupItem
                {
@@ -652,6 +663,12 @@ namespace hMailServer.ControlPanel.Services
          ["submission_plain"] = N("Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear."),
          ["submission_no_certificate"] = N("Port {0} is set to TLS but has no certificate, so TLS cannot start."),
          ["submission_tls"] = N("Port {0} offers TLS with the certificate {1}."),
+         ["submission_self_signed"] = N("Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt."),
+         ["sign_in_plain"] = N("The IP range {0} takes a password without TLS on port {1}, so a client there that signs in before STARTTLS sends it across the network in the clear."),
+         ["sign_in_no_tls"] = N("The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range."),
+         ["sign_in_tls_required"] = N("The IP range {0} takes a password only over TLS."),
+         ["sign_in_tls_ports"] = N("Every port the IP range {0} may use starts TLS before it takes a password."),
+         ["sign_in_local_only"] = N("Only this computer may connect, so no password crosses a network."),
          ["no_active_domain"] = N("No active domain, so there is nothing to publish yet."),
          ["record_published"] = N("{0}: the {1} record at {2} is published."),
          ["record_missing"] = N("{0}: no {1} record at {2}."),

@@ -18,6 +18,7 @@
 // registration installs is read from here, and nothing else on that path loads it.
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/EnvironmentSettings.h"
+#include "../Common/Application/NewInstallDefaults.h"
 #include "../Common/Application/Profiles.h"
 #include "../Common/Application/WindowsEventLog.h"
 #include "../Common/Persistence/MessageStoreMaintenance.h"
@@ -404,6 +405,16 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
          profileIfNew = true;
    }
 
+   // --apply-new-install-defaults: what a new installation starts with
+   // (Common/Application/NewInstallDefaults.h, docs/SecureDefaults.md). A switch
+   // with no value, found anywhere on the line as the profile verb is.
+   bool newInstallDefaultsVerb = false;
+   for (size_t index = 0; index < vecParams.size(); index++)
+   {
+      if (vecParams[index].CompareNoCase(_T("--apply-new-install-defaults")) == 0)
+         newInstallDefaultsVerb = true;
+   }
+
    // The message store walked (Common/Persistence/MessageStoreMaintenance.h):
    // --measure-store, --compress-store [--decompress] and --recount-store, the
    // first two with an optional --account <address> or --domain <name>, found
@@ -650,6 +661,28 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       }
 
       iRet = HM::EnvironmentSettings::RunCommand();
+   }
+   else if (newInstallDefaultsVerb)
+   {
+      // What a new installation starts with: a self-signed certificate, STARTTLS
+      // offered on the four listeners, and a password refused without TLS from
+      // any address but this computer's. The installer runs it for a database it
+      // has just made, with the service stopped, before it starts the service;
+      // it changes a server only while that server is exactly as a new database
+      // leaves it (exit 5 otherwise). The lines go where the profile verb's go.
+      //
+      // Refused while the service runs, as the profile verb is: a running server
+      // holds the listeners and the ranges it loaded, and would go on serving
+      // them without TLS until a restart. Exit 4.
+      AttachVerbOutput();
+
+      if (HMailServerServiceIsRunning())
+      {
+         WriteVerbError("The hMailServer service is running. Stop it (Stop-Service hMailServer) to apply a new installation's defaults, then start it again. Nothing was changed.\r\n");
+         iRet = 4;
+      }
+      else
+         iRet = HM::NewInstallDefaults::RunCommand(false, String());
    }
    else if (profileVerb || profileRevert)
    {

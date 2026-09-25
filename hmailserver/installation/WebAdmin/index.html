@@ -1309,6 +1309,8 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="auditrevert")revertAuditedChange(d.id);
   else if(d.act==="repwatchcheck")runReputationCheck();
   else if(d.act==="checklistagain")render();
+  else if(d.act==="checklistfix")applyChecklistFix(d.i);
+  else if(d.act==="checklistgo"){const to=document.querySelector('#nav button[data-view="'+d.to+'"]');if(to&&!to.hidden)to.click();}
   else if(d.act==="profileshow"){profileShown_=d.name;render();}
   else if(d.act==="profilehide"){profileShown_="";render();}
   else if(d.act==="profileapply")applyProfile(d.name,Number(d.changes)||0,d.needs==="1",d.token||"");
@@ -1831,7 +1833,7 @@ const HELP_MAP={
   routes:["RemoteDomains.md","A policy is not a route"],
   remotedomains:["RemoteDomains.md"],
   certs:["RemoteDomains.md","Outbound TLS"],
-  ports:["SetupChecklist.md","The document"],
+  ports:["SecureDefaults.md","What a new installation starts with"],
   roles:["Roles.md"],
   devices:["DevicesAndSessions.md"],
   logs:["DiagnosingStalledMail.md","Turn on debug logging first"],
@@ -7329,19 +7331,20 @@ async function verifyAuditChain(){
    What is checked, and which lists, are settings (reputation_watch_addresses,
    reputation_watch_lists) and so live on the Settings page with every other one;
    this view is the answer and the button that asks again. */
-/* The first-hour checklist: nine items the server judges itself (SetupChecklist.cpp),
+/* The first-hour checklist: ten items the server judges itself (SetupChecklist.cpp),
    the first of them a setting profile (docs/Profiles.md).
    Every finding carries a code and its arguments beside the server's English
    sentence, so the sentence is rendered from the catalogue here and the server's
    own is the fallback for a code this page does not know. */
 const CHECKLIST_TITLE={profile:K("A profile for this server"),domain:K("A domain"),account:K("An account"),submission:K("TLS on the submission port"),
-  spf:K("An SPF record"),dkim:K("DKIM signing"),dmarc:K("A DMARC record"),backup:K("A backup destination"),
+  sign_in_tls:K("Passwords only over TLS"),spf:K("An SPF record"),dkim:K("DKIM signing"),dmarc:K("A DMARC record"),backup:K("A backup destination"),
   second_factor:K("A second factor for the administrator")};
 const CHECKLIST_PURPOSE={
   profile:K("A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back."),
   domain:K("Mail is addressed to a domain, so the server needs one before it can receive anything."),
   account:K("An account is a mailbox in a domain: the address people write to, and what a client signs in as."),
   submission:K("Mail clients send through the submission port, and without TLS their passwords cross the network in the clear."),
+  sign_in_tls:K("A mail client signs in with a password, and from any address but this computer's the password should cross the network only inside TLS."),
   spf:K("SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam."),
   dkim:K("DKIM signs outgoing mail so receivers can verify it left this domain unchanged; the public key has to be published in DNS."),
   dmarc:K("DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it."),
@@ -7366,6 +7369,12 @@ const CHECKLIST_TEXT={
   submission_plain:K("Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear."),
   submission_no_certificate:K("Port {0} is set to TLS but has no certificate, so TLS cannot start."),
   submission_tls:K("Port {0} offers TLS with the certificate {1}."),
+  submission_self_signed:K("Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt."),
+  sign_in_plain:K("The IP range {0} takes a password without TLS on port {1}, so a client there that signs in before STARTTLS sends it across the network in the clear."),
+  sign_in_no_tls:K("The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range."),
+  sign_in_tls_required:K("The IP range {0} takes a password only over TLS."),
+  sign_in_tls_ports:K("Every port the IP range {0} may use starts TLS before it takes a password."),
+  sign_in_local_only:K("Only this computer may connect, so no password crosses a network."),
   no_active_domain:K("No active domain, so there is nothing to publish yet."),
   record_published:K("{0}: the {1} record at {2} is published."),
   record_missing:K("{0}: no {1} record at {2}."),
@@ -7392,6 +7401,45 @@ function checklistPill(state){
 function checklistText(finding){
   const key=CHECKLIST_TEXT[finding.code];
   return key?tf(key,...(finding.args||[])):(finding.text||finding.code||"");
+}
+/* A finding the server can put right in one step carries it as fix - the REST
+   request that takes it, {method, path, body} - and is drawn with a button that
+   sends it, after a confirmation that says what it changes. The page takes only
+   the fixes it knows by their code and their shape - today sign_in_plain's, the
+   PUT that makes an IP range require TLS for authentication
+   (docs/SecureDefaults.md) - so that it never sends a request it cannot name,
+   and draws the button only for a sign-in that may change settings; the route
+   decides, as it does for any request. The server offers that fix only while
+   every listener the range uses can start TLS; where one cannot, the finding is
+   sign_in_no_tls, which says to give those listeners a certificate and STARTTLS
+   first, and its button opens the Ports view where that is done. */
+const CHECKLIST_FIX={sign_in_plain:K("Require TLS for sign-in from this range")};
+const CHECKLIST_FIX_CONFIRM={sign_in_plain:K("Require TLS for sign-in from the IP range {0}? From then on a client there that signs in before STARTTLS is refused.")};
+let checklistFixes_=[];
+function checklistFixRange(finding){
+  const fix=finding&&finding.fix;
+  if(!fix||finding.code!=="sign_in_plain"||String(fix.method||"").toUpperCase()!=="PUT")return "";
+  const match=/^\/api\/v1\/ipranges\/(\d+)$/.exec(String(fix.path||""));
+  return match?match[1]:"";
+}
+function checklistFixButton(finding){
+  if(finding&&finding.code==="sign_in_no_tls")
+    return ' <button class="btn ghost sm" data-act="checklistgo" data-to="ports">'+escHtml(t("Ports"))+"</button>";
+  if(!checklistFixRange(finding)||!may("manage_settings"))return "";
+  checklistFixes_.push(finding);
+  return ' <button class="btn ghost sm" data-act="checklistfix" data-i="'+(checklistFixes_.length-1)+'">'+escHtml(t(CHECKLIST_FIX[finding.code]))+"</button>";
+}
+async function applyChecklistFix(index){
+  const finding=checklistFixes_[Number(index)];
+  const range=checklistFixRange(finding);
+  if(!range)return;
+  if(!confirm(tf(CHECKLIST_FIX_CONFIRM[finding.code],...(finding.args||[]))))return;
+  setErr("err_checklist","");
+  try{
+    await api("/api/v1/ipranges/"+range,{method:"PUT",body:JSON.stringify(finding.fix.body||{})});
+    toast(t("Done"));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_checklist",e.message);}
 }
 /* ---------- setting profiles ----------
    The four profiles the server ships (docs/Profiles.md), under the checklist
@@ -7592,8 +7640,9 @@ async function renderChecklist(){
   let sample=null;
   try{sample=await api("/api/v1/setup/sample-domain");}catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}sample=null;}
   const items=answer.items||[];
+  checklistFixes_=[];
   const cards=items.map(item=>{
-    const findings=(item.findings||[]).map(f=>'<li>'+checklistPill(f.state)+' '+escHtml(checklistText(f))+'</li>').join("");
+    const findings=(item.findings||[]).map(f=>'<li>'+checklistPill(f.state)+' '+escHtml(checklistText(f))+checklistFixButton(f)+'</li>').join("");
     return `<div class="card flat checkitem" data-key="${escHtml(item.key)}">
       <div class="row" style="gap:10px;align-items:center">${checklistPill(item.state)}<b>${escHtml(t(CHECKLIST_TITLE[item.key]||item.key))}</b></div>
       <p class="note">${escHtml(t(CHECKLIST_PURPOSE[item.key]||""))}</p>
@@ -7609,6 +7658,7 @@ async function renderChecklist(){
         <span class="muted">${escHtml(answer.generated?tf("Checked {0}",auditWhen(answer.generated)):"")}</span>
         <button class="btn ghost sm" data-act="checklistagain">${t("Check again")}</button>
       </div>
+      <div class="err" id="err_checklist"></div>
     </div>
     ${cards.join("")}
     ${profilesCard(profiles,profileDiff)}

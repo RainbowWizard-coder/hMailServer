@@ -187,6 +187,13 @@ and, when it reads back what you meant:
 
     sudo systemctl start hmailserver
 
+When step 3 made the database, that first start secures it before the server
+listens: a self-signed certificate is made for this machine, STARTTLS is offered
+with it on 25, 587, 110 and 143, and a password from any address but this
+machine's is refused until TLS is up. A database that already existed is left as
+it is. Mail clients warn about a self-signed certificate; replace it with a real
+one - ACME gets one from Let's Encrypt and gives it to those ports itself.
+
 To administer it - the Control Deck in a browser, the REST API, hmctl - turn
 the REST listener on. Not by editing RestApiPort in the file: since schema 6042
 the database is the settings store and the file is the server's copy of it, so

@@ -307,6 +307,7 @@ EXIT 0
     <ClCompile Include="..\Common\Application\PropertySet.cpp" />
     <ClCompile Include="..\Common\Application\SettingsDiff.cpp" />
     <ClCompile Include="..\Common\Application\EnvironmentSettings.cpp" />
+    <ClCompile Include="..\Common\Application\NewInstallDefaults.cpp" />
     <ClCompile Include="..\Common\Application\Profiles.cpp" />
     <ClCompile Include="..\Common\Application\ProfilesData.cpp" />
     <ClCompile Include="..\Common\Application\Reinitializator.cpp" />
@@ -1275,6 +1276,7 @@ EXIT 0
     <ClInclude Include="..\Common\Application\SettingsDefaults.h" />
     <ClInclude Include="..\Common\Application\SettingsDiff.h" />
     <ClInclude Include="..\Common\Application\EnvironmentSettings.h" />
+    <ClInclude Include="..\Common\Application\NewInstallDefaults.h" />
     <ClInclude Include="..\Common\Application\Profiles.h" />
     <ClInclude Include="..\Common\Application\ProfilesData.h" />
     <ClInclude Include="..\Common\Application\Reinitializator.h" />

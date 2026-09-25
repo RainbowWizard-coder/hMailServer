@@ -17,9 +17,10 @@ namespace RegressionTests.API
 {
    /// <summary>
    ///    The first-hour checklist: GET /api/v1/setup/checklist and
-   ///    Utilities.GetSetupChecklist, the same document over REST and over COM. Nine
-   ///    items - a setting profile, a domain, an account, TLS on the submission port, SPF, DKIM, DMARC, a
-   ///    backup destination and a second factor on the administrator password - each
+   ///    Utilities.GetSetupChecklist, the same document over REST and over COM. Ten
+   ///    items - a setting profile, a domain, an account, TLS on the submission port, passwords only
+   ///    over TLS, SPF, DKIM, DMARC, a backup destination and a second factor on the administrator
+   ///    password - each
    ///    done, action_needed, cannot_tell or not_needed, with findings that carry a
    ///    code, its arguments and an English sentence.
    ///
@@ -36,10 +37,19 @@ namespace RegressionTests.API
       private const string AdminPassword = "testar";
       private const string Path = "/api/v1/setup/checklist";
       private const string CertificateName = "Checklist certificate";
+      // NewInstallDefaults::CertificateName(): the record a new installation's defaults make.
+      private const string InstallationCertificateName = "Self-signed (made at installation)";
       private const int TlsPort = 5593;
 
       private string _previousBackupDestination;
       private Domain _secondDomain;
+      // The Internet range's id while a test has it requiring TLS for authentication,
+      // so that the teardown puts it back: the Linux suite's ranges are not reset
+      // between fixtures (SecurityRanges.SetDefault is a Windows COM call).
+      private long _internetRangeChanged;
+      // A stock listener a test gave STARTTLS, each with the step that puts it back
+      // as it was: the Linux suite's listeners are not reset between fixtures either.
+      private readonly List<Action> _listenersToPutBack = new List<Action>();
 
       [SetUp]
       public void StartRestApi()
@@ -72,6 +82,17 @@ namespace RegressionTests.API
                _secondDomain = null;
             }
 
+            if (_internetRangeChanged != 0)
+            {
+               Http("PUT", "/api/v1/ipranges/" + _internetRangeChanged, "{\"require_tls_for_auth\":false}");
+               _internetRangeChanged = 0;
+            }
+
+            // The listeners before the certificate they were given is deleted.
+            foreach (Action putBack in _listenersToPutBack)
+               putBack();
+            _listenersToPutBack.Clear();
+
             RemoveWhatWasAdded();
          }
          finally
@@ -81,8 +102,8 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("Nine items in the order a new server meets them - a setting profile first - each in one of the four states, each finding with a code, its arguments and a sentence; the fixture's domain and account are done.")]
-      public void NineItemsEachWithAState()
+      [Description("Ten items in the order a new server meets them - a setting profile first - each in one of the four states, each finding with a code, its arguments and a sentence; the fixture's domain and account are done.")]
+      public void TenItemsEachWithAState()
       {
          JsonDocument document = Get(Path);
          JsonElement root = document.RootElement;
@@ -111,7 +132,7 @@ namespace RegressionTests.API
             counted++;
          }
 
-         CollectionAssert.AreEqual(new[] { "profile", "domain", "account", "submission", "spf", "dkim", "dmarc", "backup", "second_factor" }, keys);
+         CollectionAssert.AreEqual(new[] { "profile", "domain", "account", "submission", "sign_in_tls", "spf", "dkim", "dmarc", "backup", "second_factor" }, keys);
 
          int summed = root.GetProperty("done").GetInt32() + root.GetProperty("action_needed").GetInt32() +
                       root.GetProperty("cannot_tell").GetInt32() + root.GetProperty("not_needed").GetInt32();
@@ -168,7 +189,7 @@ namespace RegressionTests.API
          {
             ClassicAssert.IsFalse(com.RootElement.GetProperty("dns_looked_up").GetBoolean());
             ClassicAssert.AreEqual("record_not_looked_up", FirstCode(com.RootElement, "spf"));
-            ClassicAssert.AreEqual(9, com.RootElement.GetProperty("items").GetArrayLength());
+            ClassicAssert.AreEqual(10, com.RootElement.GetProperty("items").GetArrayLength());
          }
 
          using (JsonDocument com = JsonDocument.Parse(_application.Utilities.GetSetupChecklist(true)))
@@ -219,6 +240,117 @@ namespace RegressionTests.API
 
          JsonDocument noCertificate = Get(Path);
          ClassicAssert.IsTrue(HasFinding(noCertificate.RootElement, "submission", "submission_no_certificate", TlsPort.ToString()), Item(noCertificate.RootElement, "submission").ToString());
+      }
+
+      [Test]
+      [Description("A listener whose certificate is the self-signed one a new installation made needs action - its TLS works, and every mail client warns about it - and is named with the certificate, where one an administrator chose is done (docs/SecureDefaults.md).")]
+      public void TheInstallationsSelfSignedCertificateIsToBeReplaced()
+      {
+         string sslPath = SslSetup.GetSslCertPath();
+         SSLCertificate certificate = _settings.SSLCertificates.Add();
+         certificate.Name = InstallationCertificateName;
+         certificate.CertificateFile = Paths.Combine(sslPath, "example.crt");
+         certificate.PrivateKeyFile = Paths.Combine(sslPath, "example.key");
+         certificate.Save();
+
+         TCPIPPort port = _settings.TCPIPPorts.Add();
+         port.Address = "0.0.0.0";
+         port.PortNumber = TlsPort;
+         port.Protocol = eSessionType.eSTSMTP;
+         port.ConnectionSecurity = eConnectionSecurity.eCSSTARTTLSOptional;
+         port.SSLCertificateID = certificate.ID;
+         port.Save();
+
+         JsonDocument document = Get(Path + "?dns=0");
+         ClassicAssert.IsTrue(HasFinding(document.RootElement, "submission", "submission_self_signed", TlsPort.ToString(), InstallationCertificateName), Item(document.RootElement, "submission").ToString());
+         ClassicAssert.IsFalse(HasFinding(document.RootElement, "submission", "submission_tls", TlsPort.ToString()), "The installation's certificate is not called done.");
+         ClassicAssert.AreEqual("action_needed", StateOf(document.RootElement, "submission"));
+         StringAssert.Contains("ACME", FindingWithCode(document.RootElement, "submission", "submission_self_signed").GetProperty("text").GetString());
+      }
+
+      [Test]
+      [Description("Passwords only over TLS. The stock Internet range takes a password before TLS on listeners that have no TLS to start, so the item needs action as sign_in_no_tls, naming them, with no fix: requiring TLS there would refuse every client there. Once the listeners offer STARTTLS with a certificate, the finding is sign_in_plain and carries the one step that puts it right - the IP range update - which, sent exactly as the finding gives it, makes the item done. The loopback range is not judged. Negative control: with the requirement taken off again, sign_in_plain and its fix come back.")]
+      public void PasswordsOnlyOverTlsCarriesTheStepThatPutsItRight()
+      {
+         SecurityRange internet = _settings.SecurityRanges.get_ItemByName("Internet");
+         ClassicAssert.IsNotNull(internet, "The bench has the Internet range a new database has.");
+         ClassicAssert.IsFalse(internet.RequireSSLTLSForAuth, "The bench's Internet range is as the create scripts make it.");
+
+         // The stock listeners have no TLS at all: the step that would require it
+         // is not offered, and the finding says what comes first.
+         JsonDocument stock = Get(Path + "?dns=0");
+         ClassicAssert.AreEqual("action_needed", StateOf(stock.RootElement, "sign_in_tls"), Item(stock.RootElement, "sign_in_tls").ToString());
+         JsonElement noTls = FindingWithCode(stock.RootElement, "sign_in_tls", "sign_in_no_tls");
+         ClassicAssert.AreEqual("Internet", noTls.GetProperty("args")[0].GetString());
+         StringAssert.Contains(TestPorts.Actual(587).ToString(), noTls.GetProperty("args")[1].GetString(), "The listeners with no TLS to start are named.");
+         ClassicAssert.IsFalse(noTls.TryGetProperty("fix", out _), "Requiring TLS where no listener can start it would lock every client out: " + noTls);
+         foreach (JsonElement finding in Item(stock.RootElement, "sign_in_tls").GetProperty("findings").EnumerateArray())
+            ClassicAssert.AreNotEqual("My computer", finding.GetProperty("args").GetArrayLength() > 0 ? finding.GetProperty("args")[0].GetString() : "", "The loopback range is not judged: " + finding);
+
+         // Every listener given STARTTLS with a certificate, as a new installation's
+         // are - and put back as it was by the teardown.
+         string sslPath = SslSetup.GetSslCertPath();
+         SSLCertificate certificate = _settings.SSLCertificates.Add();
+         certificate.Name = CertificateName;
+         certificate.CertificateFile = Paths.Combine(sslPath, "example.crt");
+         certificate.PrivateKeyFile = Paths.Combine(sslPath, "example.key");
+         certificate.Save();
+
+         TCPIPPorts ports = _settings.TCPIPPorts;
+         for (int i = 0; i < ports.Count; i++)
+         {
+            TCPIPPort port = ports[i];
+            var id = port.ID;
+            var security = port.ConnectionSecurity;
+            var certificateId = port.SSLCertificateID;
+            _listenersToPutBack.Add(() =>
+            {
+               TCPIPPorts current = _settings.TCPIPPorts;
+               for (int j = 0; j < current.Count; j++)
+               {
+                  if (current[j].ID != id)
+                     continue;
+
+                  TCPIPPort listener = current[j];
+                  listener.ConnectionSecurity = security;
+                  listener.SSLCertificateID = certificateId;
+                  listener.Save();
+                  return;
+               }
+            });
+
+            port.ConnectionSecurity = eConnectionSecurity.eCSSTARTTLSOptional;
+            port.SSLCertificateID = certificate.ID;
+            port.Save();
+         }
+
+         JsonDocument tlsReady = Get(Path + "?dns=0");
+         JsonElement plain = FindingWithCode(tlsReady.RootElement, "sign_in_tls", "sign_in_plain");
+         ClassicAssert.AreEqual("Internet", plain.GetProperty("args")[0].GetString());
+         StringAssert.Contains(TestPorts.Actual(587).ToString(), plain.GetProperty("args")[1].GetString(), "The listeners that would take a password in the clear are named.");
+
+         JsonElement fix = plain.GetProperty("fix");
+         ClassicAssert.AreEqual("PUT", fix.GetProperty("method").GetString());
+         ClassicAssert.AreEqual("/api/v1/ipranges/" + internet.ID, fix.GetProperty("path").GetString());
+         ClassicAssert.IsTrue(fix.GetProperty("body").GetProperty("require_tls_for_auth").GetBoolean());
+
+         _internetRangeChanged = internet.ID;
+         (int status, string body) applied = Http(fix.GetProperty("method").GetString(), fix.GetProperty("path").GetString(), fix.GetProperty("body").GetRawText());
+         ClassicAssert.AreEqual(200, applied.status, applied.body);
+
+         JsonDocument secured = Get(Path + "?dns=0");
+         ClassicAssert.AreEqual("done", StateOf(secured.RootElement, "sign_in_tls"), Item(secured.RootElement, "sign_in_tls").ToString());
+         ClassicAssert.IsTrue(HasFinding(secured.RootElement, "sign_in_tls", "sign_in_tls_required", "Internet"), Item(secured.RootElement, "sign_in_tls").ToString());
+         foreach (JsonElement finding in Item(secured.RootElement, "sign_in_tls").GetProperty("findings").EnumerateArray())
+            ClassicAssert.IsFalse(finding.TryGetProperty("fix", out _), "A finding that is done carries no fix: " + finding);
+
+         (int status, string body) undone = Http("PUT", fix.GetProperty("path").GetString(), "{\"require_tls_for_auth\":false}");
+         ClassicAssert.AreEqual(200, undone.status, undone.body);
+         _internetRangeChanged = 0;
+
+         JsonDocument again = Get(Path + "?dns=0");
+         ClassicAssert.IsTrue(HasFinding(again.RootElement, "sign_in_tls", "sign_in_plain", "Internet"), Item(again.RootElement, "sign_in_tls").ToString());
+         ClassicAssert.IsTrue(FindingWithCode(again.RootElement, "sign_in_tls", "sign_in_plain").TryGetProperty("fix", out _));
       }
 
       [Test]
@@ -305,6 +437,18 @@ namespace RegressionTests.API
          return args;
       }
 
+      private static JsonElement FindingWithCode(JsonElement root, string key, string code)
+      {
+         foreach (JsonElement finding in Item(root, key).GetProperty("findings").EnumerateArray())
+         {
+            if (finding.GetProperty("code").GetString() == code)
+               return finding;
+         }
+
+         Assert.Fail("No finding " + code + " on " + key + ": " + Item(root, key));
+         return default;
+      }
+
       private static bool HasFinding(JsonElement root, string key, string code, params string[] leadingArgs)
       {
          foreach (JsonElement finding in Item(root, key).GetProperty("findings").EnumerateArray())
@@ -336,7 +480,7 @@ namespace RegressionTests.API
          SSLCertificates certificates = _settings.SSLCertificates;
          for (int i = certificates.Count - 1; i >= 0; i--)
          {
-            if (certificates[i].Name == CertificateName)
+            if (certificates[i].Name == CertificateName || certificates[i].Name == InstallationCertificateName)
                certificates.DeleteByDBID(certificates[i].ID);
          }
       }

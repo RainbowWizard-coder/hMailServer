@@ -503,6 +503,9 @@
   <data name="A low rate on a busy server usually means the TTL is shorter than the interval between lookups of the same object; a rate of 0% with no memory in use means nothing has been looked up yet, which is not the same thing. Memory in use is measured against the size caps above, and a cache at its cap is evicting entries it would otherwise have kept." xml:space="preserve">
     <value>忙しいサーバーで率が低い場合、通常は TTL が同じオブジェクトを参照する間隔より短いことを意味します。率が 0% でメモリも使われていない場合は、まだ何も参照されていないという別の意味になります。メモリ使用量は上のサイズ上限と対比して測られ、上限に達したキャッシュは、本来なら保持していたはずのエントリを破棄しています。</value>
   </data>
+  <data name="A mail client signs in with a password, and from any address but this computer's the password should cross the network only inside TLS." xml:space="preserve">
+    <value>メールクライアントはパスワードでサインインします。このコンピューター以外のアドレスからは、パスワードは TLS の内側でのみネットワークを通るべきです。</value>
+  </data>
   <data name="A mail server usually starts with the rest of the machine, and on a machine where the database service starts second, the first few attempts fail. Together with the delay below this is the whole window: six attempts five seconds apart is half a minute. Lengthen it rather than delaying the service if the database is on another host that is slower to come up." xml:space="preserve">
     <value>メール サーバーは通常コンピューターのほかの部分と一緒に起動するため、データベース サービスの開始がその後になるコンピューターでは、最初の数回の試行が失敗します。下の待ち時間と合わせて、これが猶予の全体になります。5 秒間隔で 6 回なら 30 秒です。データベースが起動の遅い別のホストにある場合は、サービスの開始を遅らせるのではなく、この値を大きくしてください。</value>
   </data>
@@ -3632,6 +3635,9 @@
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>サイズを問わずすべてのメッセージ。サイズ制限は 0 で、ここでは「無制限」を意味します。</value>
   </data>
+  <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
+    <value>IP 範囲 {0} が使用できるすべてのポートは、パスワードを受け付ける前に TLS を開始します。</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>サーバーが実行する順に並べたすべてのスパム チェック、それぞれがスコアに加える値、そしてそのスコアがメッセージに何をもたらすか。</value>
   </data>
@@ -6033,6 +6039,9 @@
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
     <value>鍵ファイルが暗号化されている場合にのみ必要です。鍵が暗号化されていてパスフレーズがないと、鍵は読み込まれず (サーバー エラー 6170)、この証明書を使うすべての TLS ポートが起動しません。それらのポートでの受信メールは止まります。パスフレーズはシークレットです。サーバー上で保護された状態で保存され、ここに再び表示されることはありません。新しいものを保存すると、以前保存されていたものが置き換えられます。</value>
   </data>
+  <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
+    <value>接続できるのはこのコンピューターだけなので、パスワードがネットワークを通ることはありません。</value>
+  </data>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>上のユーザー名と組み合わせた場合にのみ使用されます</value>
   </data>
@@ -6363,6 +6372,9 @@
   <data name="Passwords found in published breaches" xml:space="preserve">
     <value>公開された漏えいに含まれるパスワード</value>
   </data>
+  <data name="Passwords only over TLS - from any address but this computer's" xml:space="preserve">
+    <value>パスワードは TLS 経由のみ - このコンピューター以外のすべてのアドレスから</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>パスワードと、それを運ぶことを許可されるもの</value>
   </data>
@@ -6475,6 +6487,9 @@
   </data>
   <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
     <value>ポート {0} は証明書 {1} で TLS を提供しています。</value>
+  </data>
+  <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
+    <value>ポート {0} は {1} で TLS を提供しています。これはこのインストールが作成した自己署名証明書で、認証局が発行した証明書に置き換えるまでメールクライアントが警告します。ACME で Let's Encrypt から取得できます。</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>ポート {0} は TLS なしでサブミッションを受け付けているため、パスワードとメールが平文でネットワークを流れます。</value>
@@ -8940,6 +8955,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>メール配信のホスト名が空のため、サーバーは Windows コンピューター名{0}にフォールバックします。素のコンピューター名は公開 DNS 名ではありません。HELO を DNS と比較する受信側はこれを減点し、どの PTR とも一致しません。まず実際のホスト名を設定してください。</value>
   </data>
+  <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
+    <value>IP 範囲 {0} は TLS 経由でのみパスワードを受け付けます。</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS on port {1}, so a client there that signs in before STARTTLS sends it across the network in the clear." xml:space="preserve">
+    <value>IP 範囲 {0} はポート {1} で TLS なしのパスワードを受け付けます。そのため、そこから STARTTLS の前にサインインするクライアントは、パスワードを平文でネットワークに送信します。</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
+    <value>IP 範囲 {0} は TLS なしのパスワードを受け付けますが、ポート {1} にはクライアントが開始できる TLS がありません。先にこれらのポートに証明書と STARTTLS を設定してから、この範囲からのサインインに TLS を要求してください。</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>メールボックスを持つべき人を選ぶ LDAP フィルター。既定では、メール アドレスを持つ有効な person オブジェクトを対象にします。無効化された退職者、サービス アカウント、コンピューターは意図的に除外されます。より広いフィルターではこれらすべてにメールボックスが作られてしまいます。</value>
   </data>
@@ -10514,6 +10538,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>待機が終了したとき、またはサンドボックスがエラーを返したとき</value>
+  </data>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>以下に挙げたポートに TLS がない場合は、先に [TCP/IP ポート] ページで証明書と STARTTLS を設定してください。そのうえで [IP 範囲] ページで、以下に挙げた各範囲の [認証に TLS を要求] をオンにしてください。このコンピューター自身のクライアントには影響しません。</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>送り先</value>

@@ -12,6 +12,7 @@
 #include "WebServicesServer.h"
 #include "Encoding/Base64.h"
 
+#include "../Application/NewInstallDefaults.h"
 #include "../Application/Reinitializator.h"
 #include "../BO/SSLCertificate.h"
 #include "../BO/SSLCertificates.h"
@@ -1641,7 +1642,12 @@ namespace HM
          return;
       }
 
-      // Assign the certificate to TLS-enabled ports that have none configured.
+      // Assign the certificate to TLS-enabled ports that have none configured, and
+      // to those that hold the self-signed certificate a new installation made
+      // (Application/NewInstallDefaults.h): that one was only ever there so that
+      // the listeners had TLS before anybody configured them, and a certificate
+      // from a CA is what it was waiting for. A certificate an administrator chose
+      // for a port is theirs, and is left.
       TCPIPPorts ports;
       ports.Refresh();
 
@@ -1654,8 +1660,14 @@ namespace HM
          if (port->GetConnectionSecurity() == CSNone)
             continue;
 
+         bool replacesInstallation = false;
          if (port->GetSSLCertificateID() > 0)
-            continue;
+         {
+            std::shared_ptr<SSLCertificate> current = certificates.GetItemByDBID(port->GetSSLCertificateID());
+            replacesInstallation = current && NewInstallDefaults::IsInstallationCertificate(current->GetName());
+            if (!replacesInstallation)
+               continue;
+         }
 
          port->SetSSLCertificateID((int) certificate->GetID());
 
@@ -1676,7 +1688,10 @@ namespace HM
          }
 
          String message;
-         message.Format(_T("ACME: Assigned the certificate to port %d (no certificate was configured)."), port->GetPortNumber());
+         if (replacesInstallation)
+            message.Format(_T("ACME: Assigned the certificate to port %d, in place of the self-signed certificate made at installation."), port->GetPortNumber());
+         else
+            message.Format(_T("ACME: Assigned the certificate to port %d (no certificate was configured)."), port->GetPortNumber());
          LOG_APPLICATION(message);
       }
 

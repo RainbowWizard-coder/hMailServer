@@ -16,6 +16,8 @@
 #include "../Common/SQL/Prerequisites/PrerequisiteList.h"
 
 #include "../Common/Util/PasswordGenerator.h"
+#include "../Common/Application/ErrorManager.h"
+#include "../Common/Application/NewInstallDefaults.h"
 #include "../Common/SQL/SQLCommand.h"
 
 STDMETHODIMP 
@@ -514,6 +516,23 @@ STDMETHODIMP InterfaceDatabase::CreateInternalDatabase()
       {
          return COMError::GenerateError(sErrorMessage);
       }
+
+      // A database made here is one a new installation's defaults may secure
+      // (Common/Application/NewInstallDefaults.h), and the mark says so. Only the
+      // two create methods write it - SetDefaultDatabase, which attaches a
+      // database that already exists, does not - so the installer's run of
+      // --apply-new-install-defaults never changes a database it did not make. A
+      // mark that could not be written costs the defaults and nothing else, so it
+      // does not fail the create; it is an error in the error log (HM7512), so
+      // that the installer's exit 5 for this database has its reason written down.
+      HM::String markError;
+      if (!HM::NewInstallDefaults::MarkCreated(pConn, markError))
+      {
+         HM::String sentence = _T("The new database could not be marked as a new installation's (");
+         sentence += markError;
+         sentence += _T("), so --apply-new-install-defaults leaves it as the create script made it, its listeners without TLS; the setup checklist says what to do.");
+         HM::ErrorManager::Instance()->ReportError(HM::ErrorManager::Medium, 7512, "InterfaceDatabase::CreateInternalDatabase", sentence);
+      }
    
       ini_file_settings_->SetDatabaseDirectory(sDirectory);
       ini_file_settings_->SetDatabaseType(HM::DatabaseSettings::TypeMSSQLCompactEdition);
@@ -598,6 +617,23 @@ STDMETHODIMP InterfaceDatabase::CreateExternalDatabase(eDBtype ServerType, BSTR 
       HM::SQLScriptRunner scriptRunner;
       if (!scriptRunner.ExecuteScript(pConn, pSettings->GetDefaultScript(), sErrorMessage))
          return COMError::GenerateError(sErrorMessage);
+
+      // A database made here is one a new installation's defaults may secure
+      // (Common/Application/NewInstallDefaults.h), and the mark says so. Only the
+      // two create methods write it - SetDefaultDatabase, which attaches a
+      // database that already exists, does not - so the installer's run of
+      // --apply-new-install-defaults never changes a database it did not make. A
+      // mark that could not be written costs the defaults and nothing else, so it
+      // does not fail the create; it is an error in the error log (HM7512), so
+      // that the installer's exit 5 for this database has its reason written down.
+      HM::String markError;
+      if (!HM::NewInstallDefaults::MarkCreated(pConn, markError))
+      {
+         HM::String sentence = _T("The new database could not be marked as a new installation's (");
+         sentence += markError;
+         sentence += _T("), so --apply-new-install-defaults leaves it as the create script made it, its listeners without TLS; the setup checklist says what to do.");
+         HM::ErrorManager::Instance()->ReportError(HM::ErrorManager::Medium, 7512, "InterfaceDatabase::CreateExternalDatabase", sentence);
+      }
 
       ini_file_settings_->SetDatabaseDirectory("");
       ini_file_settings_->SetDatabaseType((HM::DatabaseSettings::SQLDBType) ServerType);

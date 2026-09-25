@@ -596,6 +596,7 @@
     <Compile Include="Security\AutoBan.cs" />
     <Compile Include="Security\CountryBlocking.cs" />
     <Compile Include="Security\HashPolicy.cs" />
+    <Compile Include="Security\NewInstallDefaults.cs" />
     <Compile Include="Security\OAuth2Bearer.cs" />
     <Compile Include="Security\OAuth2Jwks.cs" />
     <Compile Include="Security\PasswordScrypt.cs" />

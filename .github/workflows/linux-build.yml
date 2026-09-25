@@ -532,7 +532,12 @@ jobs:
           # As the service user, with no --config: the packaged server has to find
           # /etc/hmailserver/hMailServer.ini on its own or nothing else here means anything.
           sudo runuser -u hmailserver -- /usr/bin/hmailserver --check-config
-          sudo runuser -u hmailserver -- /usr/bin/hmailserver --create-database
+          created=$(sudo runuser -u hmailserver -- /usr/bin/hmailserver --create-database)
+          echo "${created}"
+          # Made under the packaged configuration, on a machine systemd runs, with
+          # the unit installed: the one case it says the first start secures it.
+          grep -qF 'Its first start under systemd, if it comes within a day of this, secures it:' <<<"${created}" ||
+            { echo "::error::--create-database did not say the unit's first start secures the new database."; exit 1; }
           psql -h 127.0.0.1 -U hmailserver -d hmpackage -Atc "select 'schema ' || value from hm_dbversion"
           # The listeners are rows in the database. They are left on 25, 587, 110 and
           # 143 on purpose: the unit grants CAP_NET_BIND_SERVICE ambiently and nothing
@@ -638,6 +643,58 @@ jobs:
           done
           systemctl is-active hmailserver
           sudo ss -lntp | grep -E ':(25|110|143|587|'"${REST_PORT}"')\b' || true
+
+      # A new installation's first start (docs/SecureDefaults.md): --create-database
+      # above made the database, marked it and left .new-installation in the
+      # packaged DataFolder, /var/lib/hmailserver, and the unit's ExecStartPre
+      # (--if-marked, which looks in the same DataFolder) answered it before the
+      # server listened - a self-signed certificate, STARTTLS on the
+      # four listeners, the Internet range requiring TLS for authentication and My
+      # computer as it was - and removed the file and the database's mark.
+      - name: The first start secured the new installation
+        run: |
+          set -euo pipefail
+          if sudo test -e /var/lib/hmailserver/.new-installation; then
+            echo "::error::The first start left /var/lib/hmailserver/.new-installation behind: the unit's ExecStartPre did not answer it."
+            exit 1
+          fi
+          q() { psql -h 127.0.0.1 -U hmailserver -d hmpackage -Atc "$1"; }
+          [ "$(q "select count(*) from hm_settings where settingname = 'NewInstallDefaultsPending'")" = 0 ] ||
+            { echo "::error::The database still carries its NewInstallDefaultsPending mark after the first start."; exit 1; }
+          [ "$(q "select count(*) from hm_sslcertificates where sslcertificatename = 'Self-signed (made at installation)'")" = 1 ] ||
+            { echo "::error::No certificate record 'Self-signed (made at installation)'."; exit 1; }
+          [ "$(q "select count(*) from hm_tcpipports where portconnectionsecurity <> 2")" = 0 ] ||
+            { echo "::error::A listener was left without optional STARTTLS: $(q 'select portnumber, portconnectionsecurity from hm_tcpipports')"; exit 1; }
+          internet=$(q "select rangeoptions from hm_securityranges where rangename = 'Internet'")
+          loopback=$(q "select rangeoptions from hm_securityranges where rangename = 'My computer'")
+          [ $(( internet & 131072 )) -ne 0 ] || { echo "::error::The Internet range does not require TLS for authentication (options ${internet})."; exit 1; }
+          [ $(( loopback & 131072 )) -eq 0 ] || { echo "::error::The My computer range was changed (options ${loopback})."; exit 1; }
+          key=$(sudo stat -c '%U %a' /var/lib/hmailserver/Certificates/self-signed-key.pem)
+          [ "${key}" = "hmailserver 600" ] || { echo "::error::The key is '${key}', not the service's and 0600."; exit 1; }
+          for pair in smtp:25 smtp:587 imap:143 pop3:110; do
+            echo | openssl s_client -starttls "${pair%%:*}" -connect "127.0.0.1:${pair##*:}" -brief 2>&1 | grep -q 'CONNECTION ESTABLISHED' ||
+              { echo "::error::STARTTLS did not complete on ${pair}."; exit 1; }
+          done
+          # From the runner's own address, which only the Internet range covers: no
+          # AUTH before STARTTLS and one sent anyway refused; AUTH after it. From
+          # 127.0.0.1, AUTH without TLS as before.
+          outside=$(hostname -I | awk '{print $1}')
+          python3 - "${outside}" <<'PYTHON'
+          import smtplib, ssl, sys
+          outside = sys.argv[1]
+          s = smtplib.SMTP(outside, 587, timeout=20); s.ehlo()
+          assert not s.has_extn("auth"), "AUTH offered before STARTTLS from " + outside
+          code, text = s.docmd("AUTH", "LOGIN")
+          assert code == 530, "AUTH before STARTTLS answered %d %s" % (code, text)
+          context = ssl.create_default_context(); context.check_hostname = False; context.verify_mode = ssl.CERT_NONE
+          s.starttls(context=context); s.ehlo()
+          assert s.has_extn("auth"), "AUTH not offered after STARTTLS"
+          s.quit()
+          local = smtplib.SMTP("127.0.0.1", 587, timeout=20); local.ehlo()
+          assert local.has_extn("auth"), "AUTH not offered without TLS from 127.0.0.1"
+          local.quit()
+          print("From " + outside + ": AUTH refused (530) before STARTTLS, offered after it; from 127.0.0.1, offered without TLS.")
+          PYTHON
 
       - name: The REST API answers
         run: |

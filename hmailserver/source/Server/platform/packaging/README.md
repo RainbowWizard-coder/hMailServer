@@ -18,7 +18,7 @@ from `hMailServer.sln` and installed by the Inno Setup scripts under
 
 | File | What it is |
 |---|---|
-| `hmailserver.service` | The systemd unit. `Type=simple`, running `/usr/bin/hmailserver --foreground` as the `hmailserver` user, with the hardening this program can actually tolerate. Every option it deliberately does **not** set is listed at the bottom of the file with the reason. |
+| `hmailserver.service` | The systemd unit. `Type=simple`, running `/usr/bin/hmailserver --foreground` as the `hmailserver` user, with the hardening this program can actually tolerate, and before it `--apply-new-install-defaults --if-marked`, which looks for `.new-installation` in the configured `DataFolder` and secures the database `--create-database` made at its first start and does nothing at any other. Every option it deliberately does **not** set is listed at the bottom of the file with the reason. |
 | `hMailServer.ini` | The packaged default configuration, installed to `/etc/hmailserver/hMailServer.ini`. The six `[Directories]` keys point at the packaged layout; `[Database]` is deliberately empty. |
 | `hmailserver.logrotate` | Installed as `/etc/logrotate.d/hmailserver`. Uses `copytruncate`, and the file explains at length why that and not a signal. |
 | `debian/postinst` | Creates the user, the directories and the systemd enablement. Does not start the server. |
@@ -333,6 +333,38 @@ startup line, anything written to standard error, and the operational events -
 database down, a listener that could not bind, a failed backup, the disk floor -
 which reach syslog through the `WindowsEventLogEnabled` setting. The name of that
 setting is a Windows inheritance; on this platform it means syslog.
+
+When step 3's `--create-database` made the database, the first start - if it
+comes within a day of `--create-database` - secures it before the server listens
+(`hmailserver/docs/SecureDefaults.md`). The command
+marks the database it made (the `hm_settings` row `NewInstallDefaultsPending`)
+and leaves `.new-installation` in the `DataFolder` the configuration names
+(`/var/lib/hmailserver` as shipped); the unit's `ExecStartPre` - `hmailserver
+--apply-new-install-defaults --if-marked`, as the service's user, which looks
+for that file in the same configuration's `DataFolder` - tries the database
+once, makes a self-signed certificate for this machine under
+`<DataFolder>/Certificates`, offers STARTTLS with it on
+25, 587, 110 and 143, sets the *Internet* IP range to require TLS for
+authentication, and removes the file and the mark; every later start finds no
+file and opens nothing. It changes only a marked database still as the create
+script left it - the four listeners without TLS, the two ranges, no certificate,
+no account, no domain, no route. A `DataFolder` moved outside
+`/var/lib/hmailserver` needs a drop-in adding it to the unit's `ReadWritePaths`
+before that start, as the server needs for its mail there anyway, or the step
+can neither write the certificate nor remove the file; `--create-database` says
+so when it made the database. A first start more than a day later - an image
+built with the database and first booted days after, or a clock more than a day
+off either way - leaves the database as it is and keeps the mark: run
+`sudo -u hmailserver hmailserver --apply-new-install-defaults` with the server
+stopped, which has no such limit. A database that was already there - a reinstall, a purge and
+reinstall, a move to a new machine - is neither marked nor changed, and neither
+is an upgrade. So a mail client on another machine signs in after STARTTLS, and
+one on this machine (the *My computer* range, 127.0.0.1) as before. Clients warn
+about a self-signed certificate: set up ACME (`AcmeEnabled`, `AcmeContactEmail`,
+`AcmeDomains`), and its certificate takes those listeners over when it arrives.
+Where the unit does not run - the AppImage, a server started by hand - run
+`sudo -u hmailserver hmailserver --apply-new-install-defaults` once, with the
+server stopped; it is refused as root, whose key the service could not read.
 
 **7. Administration.** There is no Control Panel here and no COM: the Windows
 administration program is an ATL application over an ATL API, and neither is in

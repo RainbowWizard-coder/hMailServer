@@ -12,10 +12,20 @@
 //      {"key": "domain", "state": "done",
 //       "findings": [{"state": "done", "code": "domain_count", "args": ["1", "1"],
 //                     "text": "Active domains: 1 of 1."}]},
+//      {"key": "sign_in_tls", "state": "action_needed",
+//       "findings": [{"state": "action_needed", "code": "sign_in_plain",
+//                     "args": ["Internet", "25, 110, 143, 587"], "text": "...",
+//                     "fix": {"method": "PUT", "path": "/api/v1/ipranges/2",
+//                             "body": {"require_tls_for_auth": true}}}]},
 //      ...]}
 //
+// A finding carries "fix" only where the server can put it right in one step, as
+// the REST request that takes the step: the Deck offers it as a button, a script
+// may send it, and the route decides, as it does for any other caller, whether the
+// credential may. Only sign_in_plain has one.
+//
 // The items, in the order a new server meets them: profile, domain, account,
-// submission, spf, dkim, dmarc, backup, second_factor. The profile item is first
+// submission, sign_in_tls, spf, dkim, dmarc, backup, second_factor. The profile item is first
 // because a profile sets thirty of the settings the rest of the first hour is
 // spent finding (Application/Profiles.h, docs/Profiles.md); it asks for one on a
 // young server - fewer than ten accounts, the sample domain's not counted - that
@@ -48,6 +58,16 @@
 //   submission_plain         Port {0} takes submission without TLS.
 //   submission_no_certificate Port {0} is set to TLS but has no certificate.
 //   submission_tls           Port {0} offers TLS with the certificate {1}.
+//   submission_self_signed   Port {0} offers TLS with {1}, the self-signed
+//                            certificate a new installation made. (action)
+//   sign_in_plain            The IP range {0} takes a password without TLS on
+//                            port {1}. (action, with a fix)
+//   sign_in_no_tls           ... and port {1} has no TLS a client could start.
+//                            (action, no fix: a certificate and STARTTLS first)
+//   sign_in_tls_required     The IP range {0} takes a password only over TLS.
+//   sign_in_tls_ports        Every port the IP range {0} may use starts TLS
+//                            before it takes a password.
+//   sign_in_local_only       Only this computer may connect. (not needed)
 //   no_active_domain         No active domain, so nothing to publish yet.
 //   record_published         {0}: the {1} record at {2} is published.
 //   record_missing           {0}: no {1} record at {2}.
@@ -70,7 +90,23 @@
 // there. A listener with STARTTLS or implicit TLS and a certificate that exists
 // is done; one with no TLS, or TLS with no certificate to start it, needs action,
 // and a plain one beside a secured one still needs action, because the plain one
-// is the one a badly configured client will use.
+// is the one a badly configured client will use. A listener whose certificate is
+// the self-signed one a new installation made (Application/NewInstallDefaults.h)
+// needs action too, of another kind: its TLS works, and every mail client warns
+// about it until a certificate authority's replaces it.
+//
+// Passwords only over TLS: every IP range that lets a client connect over SMTP,
+// POP3 or IMAP from an address other than this computer's (a range that is not
+// all loopback) is judged. One that requires TLS for authentication is done; one
+// that does not is done when every listener it may use starts TLS before a
+// password - implicit TLS, or STARTTLS required - and needs action otherwise,
+// naming the listeners that would take a password in the clear. The fix that
+// requires TLS for authentication from the range comes with it only when every one
+// of those listeners offers STARTTLS with a certificate that is there: required
+// while one of them has no TLS to start, it would refuse every client there on it,
+// so that finding (sign_in_no_tls) says to give them a certificate and STARTTLS
+// first, and carries no fix. A server whose ranges all sit on the loopback sends
+// no password across a network, and the item is not needed.
 //
 // An SPF record is a TXT at the domain beginning v=spf1; a DMARC record is a TXT
 // at _dmarc.<domain> beginning v=DMARC1; a DKIM record is a TXT at
@@ -100,10 +136,13 @@
 #include "Unicode.h"
 #include "../Application/Configuration.h"
 #include "../Application/IniFileSettings.h"
+#include "../Application/NewInstallDefaults.h"
 #include "../Application/Profiles.h"
 #include "../Application/SampleDomain.h"
 #include "../BO/Domain.h"
 #include "../BO/Domains.h"
+#include "../BO/SecurityRange.h"
+#include "../BO/SecurityRanges.h"
 #include "../BO/SSLCertificate.h"
 #include "../BO/SSLCertificates.h"
 #include "../BO/TCPIPPort.h"
@@ -112,7 +151,9 @@
 #include "../SQL/DatabaseConnectionManager.h"
 #include "../SQL/SQLCommand.h"
 #include "../TCPIP/DNSResolver.h"
+#include "../TCPIP/LocalIPAddresses.h"
 
+#include <algorithm>
 #include <ctime>
 #include <string>
 #include <vector>
@@ -140,6 +181,9 @@ namespace HM
          State state;
          AnsiString code;
          std::vector<AnsiString> args;
+         // The one step that puts it right, as a JSON object {method, path, body}
+         // written by this file; empty for a finding with none.
+         AnsiString fix;
       };
 
       struct Item
@@ -188,6 +232,12 @@ namespace HM
             { "submission_plain", "Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." },
             { "submission_no_certificate", "Port {0} is set to TLS but has no certificate, so TLS cannot start." },
             { "submission_tls", "Port {0} offers TLS with the certificate {1}." },
+            { "submission_self_signed", "Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." },
+            { "sign_in_plain", "The IP range {0} takes a password without TLS on port {1}, so a client there that signs in before STARTTLS sends it across the network in the clear." },
+            { "sign_in_no_tls", "The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." },
+            { "sign_in_tls_required", "The IP range {0} takes a password only over TLS." },
+            { "sign_in_tls_ports", "Every port the IP range {0} may use starts TLS before it takes a password." },
+            { "sign_in_local_only", "Only this computer may connect, so no password crosses a network." },
             { "no_active_domain", "No active domain, so there is nothing to publish yet." },
             { "record_published", "{0}: the {1} record at {2} is published." },
             { "record_missing", "{0}: no {1} record at {2}." },
@@ -435,7 +485,10 @@ namespace HM
                   json += ",";
                json += JsonString(finding.args[a]);
             }
-            json += "],\"text\":" + JsonString(Render(AnsiString(EnglishFor(finding.code)), finding.args)) + "}";
+            json += "],\"text\":" + JsonString(Render(AnsiString(EnglishFor(finding.code)), finding.args));
+            if (!finding.fix.empty())
+               json += ",\"fix\":" + finding.fix;
+            json += "}";
          }
          json += "]}";
          return json;
@@ -527,18 +580,19 @@ namespace HM
          Add(accountItem, StateDone, "account_count", { Number(accounts) });
       items.push_back(accountItem);
 
+      // Read from the database rather than from the collections the listeners
+      // were started from, so that a port or certificate saved a moment ago is
+      // judged before the restart that makes it listen - the checklist is about
+      // what is configured, and the restart is the next thing the page says. The
+      // submission item and the passwords item both read them.
+      TCPIPPorts ports;
+      ports.Refresh();
+      SSLCertificates certificates;
+      certificates.Refresh();
+
       Item submission;
       submission.key = "submission";
       {
-         // Read from the database rather than from the collections the listeners
-         // were started from, so that a port or certificate saved a moment ago is
-         // judged before the restart that makes it listen - the checklist is about
-         // what is configured, and the restart is the next thing the page says.
-         TCPIPPorts ports;
-         ports.Refresh();
-         SSLCertificates certificates;
-         certificates.Refresh();
-
          bool anySubmission = false;
          // owned by this call: ports is a local collection loaded above
          for (std::shared_ptr<TCPIPPort> port : ports.GetVector())
@@ -557,6 +611,8 @@ namespace HM
             std::shared_ptr<SSLCertificate> certificate = certificates.GetItemByDBID(port->GetSSLCertificateID());
             if (!certificate)
                Add(submission, StateActionNeeded, "submission_no_certificate", { portNumber });
+            else if (NewInstallDefaults::IsInstallationCertificate(certificate->GetName()))
+               Add(submission, StateActionNeeded, "submission_self_signed", { portNumber, Utf8(certificate->GetName()) });
             else
                Add(submission, StateDone, "submission_tls", { portNumber, Utf8(certificate->GetName()) });
          }
@@ -565,6 +621,111 @@ namespace HM
             Add(submission, StateActionNeeded, "submission_none");
       }
       items.push_back(submission);
+
+      Item signIn;
+      signIn.key = "sign_in_tls";
+      {
+         SecurityRanges ranges;
+         ranges.Refresh();
+
+         bool anyReachable = false;
+         for (int r = 0; r < ranges.GetCount(); r++)
+         {
+            std::shared_ptr<SecurityRange> range = ranges.GetItem(r);
+            if (!range)
+               continue;
+
+            // A range that lets nobody connect - an auto-ban's, typically - takes no
+            // password, and one on the loopback takes it from this computer alone.
+            const bool smtp = range->GetAllowSMTP();
+            const bool pop3 = range->GetAllowPOP3();
+            const bool imap = range->GetAllowIMAP();
+            if (!smtp && !pop3 && !imap)
+               continue;
+
+            if (LocalIPAddresses::Instance()->IsWithinLoopbackRange(range->GetLowerIP()) &&
+                LocalIPAddresses::Instance()->IsWithinLoopbackRange(range->GetUpperIP()))
+               continue;
+
+            anyReachable = true;
+            const AnsiString rangeName = Utf8(range->GetName());
+
+            if (range->GetRequireTLSForAuth())
+            {
+               Add(signIn, StateDone, "sign_in_tls_required", { rangeName });
+               continue;
+            }
+
+            // The listeners this range may use that take a password before TLS:
+            // none, and optional STARTTLS - which a client is free not to start.
+            // Of those, the ones a client could not start TLS on at all: no TLS, or
+            // STARTTLS with a certificate that is not there.
+            std::vector<int> plain;
+            std::vector<int> withoutTls;
+            for (int p = 0; p < ports.GetCount(); p++)
+            {
+               std::shared_ptr<TCPIPPort> port = ports.GetItem(p);
+               if (!port)
+                  continue;
+
+               const SessionType protocol = port->GetProtocol();
+               const bool reachable = (protocol == STSMTP && smtp) || (protocol == STPOP3 && pop3) || (protocol == STIMAP && imap);
+               if (!reachable)
+                  continue;
+
+               // A listener bound to a loopback address only is one no client in
+               // this range reaches, whatever it offers.
+               if (LocalIPAddresses::Instance()->IsWithinLoopbackRange(port->GetAddress()))
+                  continue;
+
+               const ConnectionSecurity security = port->GetConnectionSecurity();
+               if (security != CSNone && security != CSSTARTTLSOptional)
+                  continue;
+
+               plain.push_back(port->GetPortNumber());
+
+               if (security == CSNone || !certificates.GetItemByDBID(port->GetSSLCertificateID()))
+                  withoutTls.push_back(port->GetPortNumber());
+            }
+
+            if (plain.empty())
+            {
+               Add(signIn, StateDone, "sign_in_tls_ports", { rangeName });
+               continue;
+            }
+
+            auto listPorts = [](std::vector<int> numbers)
+            {
+               std::sort(numbers.begin(), numbers.end());
+               AnsiString listed;
+               for (size_t i = 0; i < numbers.size(); i++)
+               {
+                  if (i > 0)
+                     listed += ", ";
+                  listed += Number(numbers[i]);
+               }
+               return listed;
+            };
+
+            // Requiring TLS for sign-in from the range while a listener it uses
+            // has none to start would refuse every client there on that listener:
+            // nobody could sign in at all. So that finding carries no fix, and says
+            // to give those listeners a certificate and STARTTLS first.
+            if (!withoutTls.empty())
+            {
+               Add(signIn, StateActionNeeded, "sign_in_no_tls", { rangeName, listPorts(withoutTls) });
+               continue;
+            }
+
+            Add(signIn, StateActionNeeded, "sign_in_plain", { rangeName, listPorts(plain) });
+            signIn.findings.back().fix = "{\"method\":\"PUT\",\"path\":\"/api/v1/ipranges/" + Number(range->GetID()) +
+                                         "\",\"body\":{\"require_tls_for_auth\":true}}";
+         }
+
+         if (!anyReachable)
+            Add(signIn, StateNotNeeded, "sign_in_local_only");
+      }
+      items.push_back(signIn);
 
       Item spf;
       spf.key = "spf";

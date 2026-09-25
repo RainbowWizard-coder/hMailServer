@@ -503,6 +503,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name="A low rate on a busy server usually means the TTL is shorter than the interval between lookups of the same object; a rate of 0% with no memory in use means nothing has been looked up yet, which is not the same thing. Memory in use is measured against the size caps above, and a cache at its cap is evicting entries it would otherwise have kept." xml:space="preserve">
     <value>Matala osumaprosentti kiireisellä palvelimella tarkoittaa yleensä, että TTL on lyhyempi kuin saman kohteen hakujen väli; 0 %:n osuus ilman muistinkäyttöä tarkoittaa, ettei mitään ole vielä haettu, mikä ei ole sama asia. Muistinkäyttöä verrataan yllä oleviin kokorajoihin, ja enimmäiskoossaan oleva välimuisti poistaa merkintöjä, jotka se muuten olisi säilyttänyt.</value>
   </data>
+  <data name="A mail client signs in with a password, and from any address but this computer's the password should cross the network only inside TLS." xml:space="preserve">
+    <value>Sähköpostiohjelma kirjautuu salasanalla, ja muusta kuin tämän tietokoneen osoitteesta salasanan pitäisi kulkea verkon yli vain TLS:n sisällä.</value>
+  </data>
   <data name="A mail server usually starts with the rest of the machine, and on a machine where the database service starts second, the first few attempts fail. Together with the delay below this is the whole window: six attempts five seconds apart is half a minute. Lengthen it rather than delaying the service if the database is on another host that is slower to come up." xml:space="preserve">
     <value>Postipalvelin käynnistyy yleensä muun koneen mukana, ja koneella jolla tietokantapalvelu käynnistyy vasta sen jälkeen, ensimmäiset yritykset epäonnistuvat. Yhdessä alla olevan viiveen kanssa tämä muodostaa koko aikaikkunan: kuusi yritystä viiden sekunnin välein on puoli minuuttia. Pidennä tätä sen sijaan että viivyttäisit palvelun käynnistymistä, jos tietokanta on toisella, hitaammin käynnistyvällä koneella.</value>
   </data>
@@ -3632,6 +3635,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Jokainen viesti koosta riippumatta. Kokoraja on 0, mikä tarkoittaa tässä "ei rajaa".</value>
   </data>
+  <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
+    <value>Jokainen portti, jota IP-alue {0} saa käyttää, aloittaa TLS:n ennen kuin se ottaa vastaan salasanan.</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Jokainen roskapostitarkistus siinä järjestyksessä, jossa palvelin ajaa ne, mitä kukin lisää pistemäärään ja mitä tuo pistemäärä sitten tekee viestille.</value>
   </data>
@@ -6033,6 +6039,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
     <value>Tarvitaan vain, kun avaintiedosto on salattu: salatulla avaimella ilman tunnuslausetta avain ei lataudu (palvelinvirhe 6170) eikä yksikään tätä varmennetta käyttävä TLS-portti käynnisty - saapuva posti noissa porteissa pysähtyy. Tunnuslause on salaisuus: se tallennetaan suojattuna palvelimelle eikä sitä näytetä täällä enää koskaan, ja uuden tallentaminen korvaa aiemmin tallennetun.</value>
   </data>
+  <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
+    <value>Vain tämä tietokone voi muodostaa yhteyden, joten mikään salasana ei kulje verkon yli.</value>
+  </data>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Käytetään vain yhdessä yllä olevan käyttäjänimen kanssa</value>
   </data>
@@ -6363,6 +6372,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Passwords found in published breaches" xml:space="preserve">
     <value>Julkaistuista tietovuodoista löytyneet salasanat</value>
   </data>
+  <data name="Passwords only over TLS - from any address but this computer's" xml:space="preserve">
+    <value>Salasanat vain TLS:n kautta - kaikista osoitteista paitsi tämän tietokoneen</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Salasanat ja se, mikä saa kuljettaa niitä</value>
   </data>
@@ -6475,6 +6487,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
     <value>Portti {0} tarjoaa TLS:n varmenteella {1}.</value>
+  </data>
+  <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
+    <value>Portti {0} tarjoaa TLS:n varmenteella {1}, jonka tämä asennus loi itse allekirjoitettuna: sähköpostiohjelmat varoittavat siitä, kunnes se korvataan varmentajan myöntämällä varmenteella, jonka ACME voi hakea palvelusta Let's Encrypt.</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Portti {0} ottaa lähetyksiä vastaan ilman TLS:ää, joten salasanat ja posti kulkisivat verkossa selväkielisinä.</value>
@@ -8940,6 +8955,15 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Sähköpostin toimitus -sivun Konenimi on TYHJÄ, joten palvelin turvautuu Windows-tietokoneen nimeensä{0}. Paljas tietokoneen nimi ei ole julkinen DNS-nimi: vastaanottajat, jotka vertaavat HELO:a DNS:ään, rankaisevat siitä, eikä mikään PTR voi täsmätä siihen. Aseta ensin oikea konenimi.</value>
   </data>
+  <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
+    <value>IP-alue {0} ottaa salasanan vastaan vain TLS:n kautta.</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS on port {1}, so a client there that signs in before STARTTLS sends it across the network in the clear." xml:space="preserve">
+    <value>IP-alue {0} ottaa vastaan salasanan ilman TLS:ää portissa {1}, joten sieltä ennen STARTTLS-komentoa kirjautuva asiakas lähettää sen selväkielisenä verkon yli.</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
+    <value>IP-alue {0} ottaa vastaan salasanan ilman TLS:ää, eikä portti {1} tarjoa TLS:ää, jonka asiakas voisi aloittaa: anna ensin näille porteille varmenne ja STARTTLS, ja vaadi sitten TLS kirjautumiseen alueelta.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>LDAP-suodatin, joka valitsee henkilöt, joilla pitäisi olla postilaatikko. Oletus ottaa käytössä olevat person-objektit, joilla on sähköpostiosoite - mikä jättää tarkoituksella pois poistetut lähteneet, palvelutilit ja tietokoneet, joille kaikille laajempi suodatin loisi postilaatikot.</value>
   </data>
@@ -10514,6 +10538,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>Kun odotus päättyy tai hiekkalaatikko vastaa virheellä</value>
+  </data>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Jos alla mainitulla portilla ei ole TLS:ää, anna sille ensin varmenne ja STARTTLS TCP/IP-portit-sivulla; ota sitten IP-alueet-sivulla käyttöön Vaadi TLS todennukseen jokaiselle alla mainitulle alueelle. Tämän tietokoneen omiin asiakkaisiin tämä ei vaikuta.</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Minne se menee</value>

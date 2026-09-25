@@ -503,6 +503,9 @@ Přesto toto slabé heslo uložit?</value>
   <data name="A low rate on a busy server usually means the TTL is shorter than the interval between lookups of the same object; a rate of 0% with no memory in use means nothing has been looked up yet, which is not the same thing. Memory in use is measured against the size caps above, and a cache at its cap is evicting entries it would otherwise have kept." xml:space="preserve">
     <value>Nízká úspěšnost na vytíženém serveru obvykle znamená, že je TTL kratší než interval mezi vyhledáními téhož objektu; úspěšnost 0 % bez využité paměti znamená, že se zatím nic nevyhledávalo, což není totéž. Využitá paměť se poměřuje s limity velikosti výše a cache na svém limitu vyřazuje položky, které by jinak zachovala.</value>
   </data>
+  <data name="A mail client signs in with a password, and from any address but this computer's the password should cross the network only inside TLS." xml:space="preserve">
+    <value>Poštovní klient se přihlašuje heslem a z jakékoli adresy kromě adresy tohoto počítače by heslo mělo procházet sítí jen uvnitř TLS.</value>
+  </data>
   <data name="A mail server usually starts with the rest of the machine, and on a machine where the database service starts second, the first few attempts fail. Together with the delay below this is the whole window: six attempts five seconds apart is half a minute. Lengthen it rather than delaying the service if the database is on another host that is slower to come up." xml:space="preserve">
     <value>Poštovní server se obvykle spouští spolu se zbytkem počítače, a na počítači, kde se databázová služba spouští až po něm, prvních několik pokusů selže. Spolu s prodlevou níže tvoří toto celé okno: šest pokusů po pěti sekundách je půl minuty. Pokud je databáze na jiném hostiteli, který nabíhá pomaleji, prodlužte raději toto, než abyste odkládali start služby.</value>
   </data>
@@ -3632,6 +3635,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Every message, whatever its size. The size limit is 0, which here means &quot;no limit&quot;." xml:space="preserve">
     <value>Každá zpráva, bez ohledu na velikost. Limit velikosti je 0, což zde znamená „bez limitu“.</value>
   </data>
+  <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
+    <value>Každý port, který smí rozsah IP {0} používat, spouští TLS dřív, než přijme heslo.</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Každá kontrola spamu v pořadí, v jakém je server spouští, co každá přidává ke skóre a co pak to skóre udělá se zprávou.</value>
   </data>
@@ -6033,6 +6039,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
     <value>Potřebné pouze tehdy, když je soubor klíče šifrovaný: se šifrovaným klíčem a bez přístupového hesla se klíč nenačte (chyba serveru 6170) a žádný TLS port používající tento certifikát se nespustí – příchozí pošta na těchto portech se zastaví. Přístupové heslo je tajemství: na serveru je uloženo chráněné, zde se už nikdy znovu nezobrazí a uložení nového nahradí to, co bylo uloženo dříve.</value>
   </data>
+  <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
+    <value>Připojit se smí jen tento počítač, takže žádné heslo nepřechází sítí.</value>
+  </data>
   <data name="Only used together with the user name above" xml:space="preserve">
     <value>Používá se pouze společně s uživatelským jménem výše</value>
   </data>
@@ -6363,6 +6372,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Passwords found in published breaches" xml:space="preserve">
     <value>Hesla nalezená ve zveřejněných únicích</value>
   </data>
+  <data name="Passwords only over TLS - from any address but this computer's" xml:space="preserve">
+    <value>Hesla jen přes TLS - z jakékoli adresy kromě adresy tohoto počítače</value>
+  </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Hesla a co je smí přenášet</value>
   </data>
@@ -6475,6 +6487,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Port {0} offers TLS with the certificate {1}." xml:space="preserve">
     <value>Port {0} nabízí TLS s certifikátem {1}.</value>
+  </data>
+  <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
+    <value>Port {0} nabízí TLS s certifikátem {1}, certifikátem podepsaným sám sebou, který vytvořila tato instalace: poštovní klienti před ním varují, dokud jej nenahradí certifikát vydaný certifikační autoritou, který může ACME získat od Let's Encrypt.</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Port {0} přijímá odesílání bez TLS, takže hesla a pošta by putovaly sítí v otevřené podobě.</value>
@@ -8940,6 +8955,15 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
     <value>Název hostitele v části Doručování e-mailů je PRÁZDNÝ, takže server použije svůj název počítače ve Windows{0}. Holý název počítače není veřejný název v DNS: příjemci, kteří porovnávají HELO s DNS, jej penalizují a žádný PTR s ním nemůže souhlasit. Nejprve nastavte skutečný název hostitele.</value>
   </data>
+  <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
+    <value>Rozsah IP {0} přijímá heslo jen přes TLS.</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS on port {1}, so a client there that signs in before STARTTLS sends it across the network in the clear." xml:space="preserve">
+    <value>Rozsah IP {0} přijímá heslo bez TLS na portu {1}, takže klient odtud, který se přihlásí před STARTTLS, je posílá sítí nešifrovaně.</value>
+  </data>
+  <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
+    <value>Rozsah IP {0} přijímá heslo bez TLS a port {1} nenabízí žádné TLS, které by klient mohl spustit: nejdřív dejte těmto portům certifikát a STARTTLS, potom vyžadujte TLS pro přihlášení z tohoto rozsahu.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Filtr LDAP, který vybírá osoby, jež mají mít poštovní schránku. Výchozí filtr bere povolené objekty typu person, které nesou poštovní adresu – čímž záměrně vynechává zakázané odešlé zaměstnance, účty služeb a počítače, kterým by širší filtr poštovní schránky zřídil.</value>
   </data>
@@ -10514,6 +10538,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="When the wait ends or the sandbox answers error" xml:space="preserve">
     <value>Když čekání skončí nebo sandbox odpoví chybou</value>
+  </data>
+  <data name="Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected." xml:space="preserve">
+    <value>Pokud port uvedený níže nemá TLS, dejte mu nejdřív certifikát a STARTTLS na stránce Porty TCP/IP; potom na stránce Rozsahy IP zapněte Vyžadovat TLS pro ověření u každého rozsahu uvedeného níže. Vlastních klientů tohoto počítače se to netýká.</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Kam to jde</value>

@@ -594,6 +594,15 @@ namespace HM
       String GetBinDirectory();
       String GetProgramDirectory() const { return app_directory_; }
       String GetDataDirectory() const { return data_directory_; }
+
+      // [Directories] DataFolder as LoadSettings resolves it - against
+      // ProgramFolder, without a trailing separator - read from the file alone:
+      // nothing else is read, built, published or reported, and GetDataDirectory
+      // is not changed. For a caller that needs only where the data is before
+      // anything is loaded (NewInstallDefaults' first-start marker, looked for
+      // before every start of the Linux unit).
+      String ReadDataDirectory();
+
       String GetTempDirectory() const { return temp_directory_; }
       String GetEventDirectory() const { return event_directory_; }
       String GetDBScriptDirectory() const { return dbscript_directory_; }
@@ -1421,6 +1430,13 @@ namespace HM
       // it was; an empty one stays empty, because empty means "not set" to
       // every reader of these.
       String ResolveAgainstProgramDirectory_(const String &value) const;
+
+      // DataFolder's value resolved against a program directory that ends with
+      // the separator, as ResolveAgainstProgramDirectory_ does, and without a
+      // trailing separator: the one resolution LoadSettings and ReadDataDirectory
+      // share, so that the two can never name different directories.
+      static String ResolveDataDirectory_(const String &programDirectory, const String &configured);
+
       void WriteIniSetting_(const String &sSection, const String &sKey, int Value);
 
       // Holds a tarpit delay in [0, TARPIT_MAX_SECONDS]. A negative value is off;
