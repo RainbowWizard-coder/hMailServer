@@ -49,6 +49,41 @@ namespace HM
       AddCodePage_("windows-1257", 1257);
       AddCodePage_("windows-1258", 1258);
 
+      // ISO-8859-1 and its labels as windows-1252, as the WHATWG Encoding standard
+      // and every mail client read them: mail labelled Latin-1 routinely carries
+      // 1252's quotes and dashes in 0x80-0x9F. Until 25 September 2026 none of the
+      // ISO-8859 names was here, so they came out as code page 0 - the Windows
+      // ANSI code page, which is 1252 on a Western Windows and so looked right, and
+      // on Linux the locale's character set, which turned every Latin-1 body into
+      // replacement characters (found by the Linux suite's inbound webhook test).
+      AddCodePage_("iso-8859-1", 1252);
+      AddCodePage_("iso8859-1", 1252);
+      AddCodePage_("iso_8859-1", 1252);
+      AddCodePage_("iso_8859-1:1987", 1252);
+      AddCodePage_("iso88591", 1252);
+      AddCodePage_("latin1", 1252);
+      AddCodePage_("l1", 1252);
+      AddCodePage_("cp819", 1252);
+      AddCodePage_("ibm819", 1252);
+      AddCodePage_("iso-ir-100", 1252);
+      AddCodePage_("csisolatin1", 1252);
+
+      // The rest of the family by their own code pages, which Windows has
+      // installed and iconv knows by the same names (Unicode.cpp).
+      AddCodePage_("iso-8859-2", 28592);
+      AddCodePage_("latin2", 28592);
+      AddCodePage_("iso-8859-3", 28593);
+      AddCodePage_("iso-8859-4", 28594);
+      AddCodePage_("iso-8859-5", 28595);
+      AddCodePage_("iso-8859-6", 28596);
+      AddCodePage_("iso-8859-7", 28597);
+      AddCodePage_("iso-8859-8", 28598);
+      AddCodePage_("iso-8859-9", 28599);
+      AddCodePage_("latin5", 28599);
+      AddCodePage_("iso-8859-13", 28603);
+      AddCodePage_("iso-8859-15", 28605);
+      AddCodePage_("latin9", 28605);
+
 #ifdef HM_PLATFORM_POSIX
       // The numbers themselves. CP_UTF8 and CP_UTF7 are Windows code page
       // identifiers, and an identifier is a number rather than a behaviour: 65001

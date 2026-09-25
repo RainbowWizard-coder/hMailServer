@@ -44,6 +44,16 @@ namespace HM
          case 1257:  return "CP1257";
          case 1258:  return "CP1258";
          case 20127: return "ANSI_X3.4-1968";
+         case 28592: return "ISO-8859-2";
+         case 28593: return "ISO-8859-3";
+         case 28594: return "ISO-8859-4";
+         case 28595: return "ISO-8859-5";
+         case 28596: return "ISO-8859-6";
+         case 28597: return "ISO-8859-7";
+         case 28598: return "ISO-8859-8";
+         case 28599: return "ISO-8859-9";
+         case 28603: return "ISO-8859-13";
+         case 28605: return "ISO-8859-15";
          case 50221: return "ISO-2022-JP-2";
          case 65000: return "UTF-7";
          case 65001: return "UTF-8";

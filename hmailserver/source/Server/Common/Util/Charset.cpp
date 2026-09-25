@@ -290,6 +290,16 @@ namespace HM
             throw 0;
       }
 
+      // The ISO-8859 names decode by what they name, not by the machine's own
+      // character set: Latin-1 as windows-1252 (its quotes in 0x80-0x9F too),
+      // Latin-2 as itself. Until 25 September 2026 both came out as code page 0,
+      // right on a Western Windows by accident and wrong on Linux.
+      if (Charset::ToWideChar(AnsiString("caf\xE9"), "iso-8859-1") != String(L"café"))
+         throw 0;
+      if (Charset::ToWideChar(AnsiString("\x93q\x94"), "latin1") != String(L"“q”"))
+         throw 0;
+      if (Charset::ToWideChar(AnsiString("\xB1\xEA"), "ISO-8859-2") != String(L"ąę"))
+         throw 0;
    }
       
 }
