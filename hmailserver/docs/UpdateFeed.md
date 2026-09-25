@@ -257,22 +257,31 @@ project's to keep, and because the feed is not the project's word either:
 - **On Windows, nobody else can change a file between its check and its run.**
   The server keeps the installer, the rollback image and the helper in the
   `Updates` folder of the data directory, and that folder and its `rollback`
-  folder admit changes from SYSTEM, the Administrators and the account the
-  service runs as, and from nobody else. The server makes them so when it makes
-  them, and before every download and every apply it makes them so again: a
-  folder an earlier version made, which took its parent's permissions, is given
-  these, and the application log says what it allowed before. A folder that is a
-  link, or whose permissions the server cannot set, is refused with `HM6894`,
-  and nothing is downloaded or applied; delete it, and the server makes it
-  again. The apply then reads the SHA-256 of the installer and of the rollback
-  image while it checks them, holding each open so that the signature, the
-  version resource and the digest are all about the same bytes, and gives both
-  digests to the helper. The helper opens each file so that nothing can write,
-  rename or delete it, requires that digest, runs the program by the path
+  folder admit changes from SYSTEM and the Administrators, with full control,
+  and - where the service does not run as SYSTEM - from the service's own
+  account, `NT SERVICE\hMailServer`, with Modify, and from nobody else. The
+  server makes them so when it makes them, and before every download and every
+  apply it holds both open and checks them through that handle: while it holds
+  them, neither they nor a folder above them can be renamed or swapped for a
+  link. A folder an earlier version made, which took its parent's permissions,
+  is given these and then emptied - a file planted while others could write there
+  keeps its own owner and permissions, so it is deleted rather than kept - and
+  the application log says what the folder allowed before; the waiting download
+  goes with it and is fetched again. A folder that is a link, that is owned by
+  anyone but SYSTEM, the Administrators or the service, whose permissions the
+  server may not set, or with something in it that cannot be deleted, is refused
+  with `HM6894`, and nothing is downloaded or applied; delete it, and the server
+  makes it again. The apply then reads the SHA-256 of the installer and of the
+  rollback image while it checks them, holding each open so that the signature,
+  the version resource and the digest are all about the same bytes, and gives
+  both digests to the helper. The helper opens each file so that nothing can
+  write, rename or delete it, requires that digest, runs the program by the path
   Windows resolved that handle to, and lets go only when it has finished; a file
   with another digest is not run, and the outcome says so. The server holds its
   copy of the helper the same way, compared with the one in `Bin`, until it has
-  started it.
+  started it, and refuses to start it where Windows cannot say where that copy
+  is. The helper loads nothing from the folder it runs from: every DLL comes
+  from System32.
 
 `UpdateSigningIdentity`, `UpdateSigningIssuer` and `UpdateSourceRepository`
 replace their part of both signers, and a site that sets all three is left with

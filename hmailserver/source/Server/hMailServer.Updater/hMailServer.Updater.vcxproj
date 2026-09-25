@@ -65,6 +65,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <AdditionalDependencies>advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <!-- The helper runs as LocalSystem from the Updates folder: its imports, and theirs, come from System32 alone (LOAD_LIBRARY_SEARCH_SYSTEM32), never from beside it. -->
+      <AdditionalOptions>/DEPENDENTLOADFLAG:0x800 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -86,6 +88,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <AdditionalDependencies>advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <!-- The helper runs as LocalSystem from the Updates folder: its imports, and theirs, come from System32 alone (LOAD_LIBRARY_SEARCH_SYSTEM32), never from beside it. -->
+      <AdditionalOptions>/DEPENDENTLOADFLAG:0x800 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

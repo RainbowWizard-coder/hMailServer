@@ -290,12 +290,14 @@ namespace HM
    {
       rollbackPath.Empty();
 
-      // Apply has made it already (UpdateDownloader::PrepareUpdatesDirectory); made
-      // here the same way for any other caller, never with inherited permissions.
+      // Made safe and held by Apply (UpdateDownloader::PrepareUpdatesDirectory),
+      // which is the only caller: never made here with inherited permissions.
       String directory = UpdateDownloader::UpdatesDirectory() + FileUtilities::PathSeparator + _T("rollback");
-      String repaired;
-      if (!ProtectedFile::EnsureDirectory(directory, repaired, why))
+      if (!FileUtilities::DirectoryExists(directory))
+      {
+         why = Formatter::Format(_T("{0} is not there."), directory);
          return false;
+      }
 
       // The running version's own artefact - the installer, or the package this
       // installation came from - by the name the release flow gave it.
@@ -667,21 +669,24 @@ namespace HM
 
 #ifdef _WIN32
       // The path Windows resolved an open handle to, with the \\?\ prefix taken
-      // off an ordinary path; fallback when it cannot say. A program started by it
-      // is the file the handle holds: no link along the way is followed again.
-      String FinalPathOf_(HANDLE handle, const String &fallback)
+      // off an ordinary path; false when it cannot say, and then nothing is
+      // started - the unresolved path is the one that might lead elsewhere. A
+      // program started by it is the file the handle holds: no link along the
+      // way is followed again.
+      bool FinalPathOf_(HANDLE handle, String &resolved)
       {
-         wchar_t buffer[1024];
-         const DWORD length = GetFinalPathNameByHandleW(handle, buffer, 1024, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
-         if (length == 0 || length >= 1024)
-            return fallback;
+         std::vector<wchar_t> buffer(32768);
+         const DWORD length = GetFinalPathNameByHandleW(handle, &buffer[0], (DWORD) buffer.size(), FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
+         if (length == 0 || length >= buffer.size())
+            return false;
 
-         std::wstring path(buffer, length);
+         std::wstring path(&buffer[0], length);
          if (path.compare(0, 8, L"\\\\?\\UNC\\") == 0)
             path = L"\\\\" + path.substr(8);
          else if (path.compare(0, 4, L"\\\\?\\") == 0)
             path = path.substr(4);
-         return String(path.c_str());
+         resolved = String(path.c_str());
+         return true;
       }
 #endif
    }
@@ -741,9 +746,22 @@ namespace HM
 
       // Nobody but SYSTEM, the Administrators and the service may change what is
       // in the Updates folder - the installer, the rollback image, the helper - or
-      // a file checked below could be another by the time it runs.
-      if (!UpdateDownloader::PrepareUpdatesDirectory(error))
+      // a file checked below could be another by the time it runs. Both folders
+      // are held from here until this returns, after the helper has been started:
+      // nothing checked below can be moved from under the check by renaming a
+      // folder it is in, or one above that.
+      UpdateDownloader::UpdatesFolders folders;
+      if (!UpdateDownloader::PrepareUpdatesDirectory(folders, error))
       {
+         UpdateChecker::RecordFailure(error);
+         LOG_APPLICATION(Formatter::Format(_T("Update apply refused: {0}"), error));
+         return false;
+      }
+      // A folder others could write to is emptied when it is made safe, and the
+      // waiting installer with it: it was there while anybody could replace it.
+      if (!FileUtilities::Exists(snapshot.installer_path))
+      {
+         error = _T("The Updates folder was made safe, which removed the installer that was waiting there; download it again.");
          UpdateChecker::RecordFailure(error);
          LOG_APPLICATION(Formatter::Format(_T("Update apply refused: {0}"), error));
          return false;
@@ -911,21 +929,23 @@ namespace HM
       std::vector<unsigned char> sourceDigest;
       std::vector<unsigned char> copyDigest;
       String digestError;
+      String launchPath;
       if (heldHelper == INVALID_HANDLE_VALUE ||
           !SigstoreVerifier::Sha256File(helperSource, sourceDigest, digestError) ||
           !SigstoreVerifier::Sha256File(helper, copyDigest, digestError) ||
-          sourceDigest != copyDigest)
+          sourceDigest != copyDigest ||
+          !FinalPathOf_(heldHelper, launchPath))
       {
          if (heldHelper != INVALID_HANDLE_VALUE)
             CloseHandle(heldHelper);
          UpdateApplyToken::Revoke();
-         error = Formatter::Format(_T("The update helper at {0} is not {1} byte for byte, so it was not started."), helper, helperSource);
+         error = Formatter::Format(_T("The update helper at {0} could not be held and shown to be {1} byte for byte, so it was not started."), helper, helperSource);
          UpdateChecker::RecordFailure(error);
          LOG_APPLICATION(Formatter::Format(_T("Update apply failed: {0}"), error));
          return false;
       }
 
-      String command = Quote_(FinalPathOf_(heldHelper, helper));
+      String command = Quote_(launchPath);
       command += _T(" --installer ") + Quote_(snapshot.installer_path);
       command += _T(" --installer-sha256 ") + String(installerSha256.c_str());
       command += _T(" --version ") + snapshot.available_version;

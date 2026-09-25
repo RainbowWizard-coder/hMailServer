@@ -604,21 +604,110 @@ namespace RegressionTests.API
       [Description("An Updates folder others may write to - one an earlier version made, which inherited its parent's permissions - is given the server's own before anything is downloaded into it, and the application log says what it allowed before.")]
       public void AnUpdatesFolderOthersMayWriteToIsMadeRightBeforeADownload()
       {
+         // Owned by the Administrators, as a folder the server made is; its list
+         // widened to BUILTIN\Users, as a folder that took its parent's could be;
+         // and a DLL planted in it meanwhile, where the helper runs from.
          Directory.CreateDirectory(_updatesDirectory);
          var info = new DirectoryInfo(_updatesDirectory);
          DirectorySecurity security = info.GetAccessControl();
+         security.SetOwner(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null));
          security.SetAccessRuleProtection(false, false);
          security.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), FileSystemRights.Modify,
             InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
          info.SetAccessControl(security);
+         string planted = Paths.Combine(_updatesDirectory, "bcrypt.dll");
+         File.WriteAllText(planted, "planted while others could write here");
 
          var status = Checked();
          Assert.IsTrue(status.DownloadUpdate(), "The folder is made right, and the download goes ahead. Error: " + status.UpdateLastError);
 
          string log = LogHandler.ReadCurrentDefaultLog();
          StringAssert.Contains("Update: the permissions of " + _updatesDirectory + " were set to SYSTEM, the Administrators and the service alone; before, it lets ", log);
-         StringAssert.Contains("(S-1-5-32-545) change what is in it.", log);
+         StringAssert.Contains("(S-1-5-32-545) change what is in it; everything that was in it has been deleted.", log);
+         Assert.IsFalse(File.Exists(planted), "A file planted while others could write to the folder outlived its repair.");
          AssertOnlyTheServerMayChange(_updatesDirectory);
+      }
+
+      [Test]
+      [Description("An Updates folder owned by an account that is not SYSTEM, the Administrators or the service is refused, as HM6894: its owner may rewrite its permissions whatever they say, and may have left anything inside.")]
+      public void AnUpdatesFolderOwnedBySomebodyElseIsRefused()
+      {
+         SecurityIdentifier me;
+         using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            me = identity.User;
+         if (me.IsWellKnown(WellKnownSidType.LocalSystemSid))
+            Assert.Inconclusive("This runs as SYSTEM, which is one of the owners the server trusts, so it cannot stand in for somebody else.");
+
+         Directory.CreateDirectory(_updatesDirectory);
+         var info = new DirectoryInfo(_updatesDirectory);
+         DirectorySecurity security = info.GetAccessControl();
+         security.SetOwner(me);
+         info.SetAccessControl(security);
+         try
+         {
+            var status = Checked();
+            Assert.IsFalse(status.DownloadUpdate(), "Nothing may be downloaded into a folder somebody else owns.");
+            StringAssert.Contains("The update was refused: " + _updatesDirectory + " cannot be trusted: it is owned by ", status.UpdateLastError);
+            CustomAsserts.AssertReportedError("HM6894", "cannot be trusted: it is owned by ");
+         }
+         finally
+         {
+            // The server makes it again, its own, at the next download.
+            Directory.Delete(_updatesDirectory, true);
+         }
+      }
+
+      [Test]
+      [Description("While a download runs, the Updates folder and its rollback folder are held open, with data access and without sharing delete: neither can be renamed, so neither can be swapped for a look-alike under the server.")]
+      public void TheUpdatesFoldersCannotBeRenamedWhileADownloadRuns()
+      {
+         var status = Checked();
+         // The bundle is asked for first, and nothing is written until its answer:
+         // while it stalls, the only handles under Updates are the server's holds.
+         string bundlePath = "/download/" + _installerName + ".cosign.bundle";
+         _feed.SetStall(bundlePath, 8);
+         string rollback = Paths.Combine(_updatesDirectory, "rollback");
+         var download = System.Threading.Tasks.Task.Run(() => Http("POST", "/api/v1/update/download"));
+         try
+         {
+            DateTime deadline = DateTime.Now.AddSeconds(20);
+            while (CountRequests(_installerName + ".cosign.bundle") == 0)
+            {
+               Assert.IsTrue(DateTime.Now < deadline, "The server did not ask for the bundle.");
+               Thread.Sleep(100);
+            }
+
+            // The rollback folder has nothing held below it, so only its own hold -
+            // a handle that counts in the share check because it lists - refuses
+            // the rename; the Updates folder the same, and it has rollback below.
+            Assert.IsTrue(RenameIsRefused(rollback), "The rollback folder could be renamed while a download held it.");
+            Assert.IsTrue(RenameIsRefused(_updatesDirectory), "The Updates folder could be renamed while a download held it.");
+         }
+         finally
+         {
+            download.Wait(60000);
+            _feed.SetStall(bundlePath, 0);
+         }
+      }
+
+      // Tries to rename folder, and puts it back if that worked.
+      private static bool RenameIsRefused(string folder)
+      {
+         string moved = folder + "-moved";
+         try
+         {
+            Directory.Move(folder, moved);
+         }
+         catch (IOException)
+         {
+            return true;
+         }
+         catch (UnauthorizedAccessException)
+         {
+            return true;
+         }
+         Directory.Move(moved, folder);
+         return false;
       }
 
       [Test]
@@ -675,6 +764,15 @@ namespace RegressionTests.API
          SecurityIdentifier service = ServiceAccount();
          if (service != null)
             trusted.Add(service);
+         // The service's own SID, which a service not running as SYSTEM is given
+         // Modify by, whatever account it logs on as.
+         try
+         {
+            trusted.Add((SecurityIdentifier) new NTAccount(@"NT SERVICE\hMailServer").Translate(typeof(SecurityIdentifier)));
+         }
+         catch (IdentityNotMappedException)
+         {
+         }
 
          DirectorySecurity security = new DirectoryInfo(folder).GetAccessControl();
          Assert.IsTrue(security.AreAccessRulesProtected, folder + " takes its parent's permissions.");

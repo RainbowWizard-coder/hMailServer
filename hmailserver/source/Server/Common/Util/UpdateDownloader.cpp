@@ -57,8 +57,11 @@ namespace HM
    }
 
    bool
-   UpdateDownloader::PrepareUpdatesDirectory(String &error)
+   UpdateDownloader::PrepareUpdatesDirectory(UpdatesFolders &folders, String &error)
    {
+      folders.updates.Release();
+      folders.rollback.Release();
+
       String directory = UpdatesDirectory();
       if (directory.IsEmpty())
       {
@@ -66,13 +69,18 @@ namespace HM
          return false;
       }
 
-      const String folders[2] = { directory, directory + FileUtilities::PathSeparator + _T("rollback") };
+      // Updates first, and held, so that rollback is made - or checked - inside
+      // the folder that was.
+      const String paths[2] = { directory, directory + FileUtilities::PathSeparator + _T("rollback") };
+      HeldDirectory *held[2] = { &folders.updates, &folders.rollback };
       for (int i = 0; i < 2; i++)
       {
          String repaired;
          String why;
-         if (!ProtectedFile::EnsureDirectory(folders[i], repaired, why))
+         if (!ProtectedFile::EnsureDirectory(paths[i], *held[i], repaired, why))
          {
+            folders.updates.Release();
+            folders.rollback.Release();
             error = Formatter::Format(_T("The update was refused: {0}"), why);
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6894, "UpdateDownloader::PrepareUpdatesDirectory", error);
             return false;
@@ -81,7 +89,7 @@ namespace HM
          if (!repaired.IsEmpty())
          {
             LOG_APPLICATION(Formatter::Format(_T("Update: the permissions of {0} were set to SYSTEM, the Administrators and the service alone; before, {1}."),
-               folders[i], repaired));
+               paths[i], repaired));
          }
       }
       return true;
@@ -311,8 +319,11 @@ namespace HM
          return false;
       }
 
+      // Held until this returns: the download is written into the folder that was
+      // checked, and the folder cannot be renamed or swapped meanwhile.
       String directory = UpdatesDirectory();
-      if (!PrepareUpdatesDirectory(error))
+      UpdatesFolders folders;
+      if (!PrepareUpdatesDirectory(folders, error))
       {
          UpdateChecker::RecordFailure(error);
          LOG_APPLICATION(Formatter::Format(_T("Update download refused: {0}"), error));

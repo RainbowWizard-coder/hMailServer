@@ -99,18 +99,28 @@ namespace HM
          return sid;
       }
 
-      // SYSTEM, the local Administrators group, or the account this process runs as.
-      bool TrustedSid_(PSID sid, PSID self)
+      // The service's own SID, NT SERVICE\hMailServer, in buffer: what the
+      // low-privilege service account is granted by (ServiceAccount, docs/
+      // ServiceAccount.md), and what its token carries whatever account the
+      // service logs on as. Null when Windows does not know it - no service of
+      // that name - and then the caller uses the process's own account.
+      PSID ServiceSidBinary_(std::vector<unsigned char> &buffer)
       {
-         if (sid == nullptr || !IsValidSid(sid))
-            return false;
-         if (IsWellKnownSid(sid, WinLocalSystemSid) || IsWellKnownSid(sid, WinBuiltinAdministratorsSid))
-            return true;
-         return self != nullptr && EqualSid(sid, self) != FALSE;
+         DWORD sidSize = 0;
+         DWORD domainSize = 0;
+         SID_NAME_USE use;
+         LookupAccountNameW(nullptr, L"NT SERVICE\\hMailServer", nullptr, &sidSize, nullptr, &domainSize, &use);
+         if (sidSize == 0)
+            return nullptr;
+
+         buffer.resize(sidSize);
+         std::vector<wchar_t> domain(domainSize + 1);
+         if (!LookupAccountNameW(nullptr, L"NT SERVICE\\hMailServer", &buffer[0], &sidSize, &domain[0], &domainSize, &use))
+            return nullptr;
+         return (PSID) &buffer[0];
       }
 
-      // "BUILTIN\Users (S-1-5-32-545)", or as much of it as can be had.
-      String SidName_(PSID sid)
+      String SidText_(PSID sid)
       {
          String text;
          LPWSTR sidText = nullptr;
@@ -119,6 +129,24 @@ namespace HM
             text = sidText;
             LocalFree(sidText);
          }
+         return text;
+      }
+
+      // SYSTEM, the local Administrators group, the account this process runs as,
+      // or the service's own SID.
+      bool TrustedSid_(PSID sid, PSID self, PSID service)
+      {
+         if (sid == nullptr || !IsValidSid(sid))
+            return false;
+         if (IsWellKnownSid(sid, WinLocalSystemSid) || IsWellKnownSid(sid, WinBuiltinAdministratorsSid))
+            return true;
+         return (self != nullptr && EqualSid(sid, self) != FALSE) || (service != nullptr && EqualSid(sid, service) != FALSE);
+      }
+
+      // "BUILTIN\Users (S-1-5-32-545)", or as much of it as can be had.
+      String SidName_(PSID sid)
+      {
+         String text = SidText_(sid);
 
          wchar_t name[256];
          wchar_t domain[256];
@@ -138,41 +166,56 @@ namespace HM
       const ACCESS_MASK CHANGING_RIGHTS_ = FILE_WRITE_DATA | FILE_APPEND_DATA | FILE_WRITE_EA | FILE_DELETE_CHILD |
                                            FILE_WRITE_ATTRIBUTES | DELETE | WRITE_DAC | WRITE_OWNER | GENERIC_WRITE | GENERIC_ALL;
 
-      // True when nobody but SYSTEM, the Administrators and self can change the
-      // directory or anything made in it - inherit-only entries count, since they
-      // are what a new file gets. False with why, a clause, otherwise.
-      bool OnlyTrustedMayChange_(const String &path, PSID self, String &why)
+      // Modify (icacls M): read, write, execute and delete. What the service's
+      // own SID is given, as ServiceAccount gives it on the data folder.
+      const ACCESS_MASK MODIFY_RIGHTS_ = 0x001301BF;
+
+      enum Verdict_
+      {
+         VerdictSafe_,
+         VerdictOwner_,
+         VerdictEntries_
+      };
+
+      // The directory held by handle: VerdictSafe_ when it is owned by one of the
+      // trusted, nobody else can change it or anything made in it (inherit-only
+      // entries count, since they are what a new file gets), its list is its own,
+      // and - where service is given - the service's SID has Modify, inherited
+      // by files and folders. VerdictOwner_ or VerdictEntries_ with why, a
+      // clause, otherwise.
+      Verdict_ Inspect_(HANDLE handle, PSID self, PSID service, String &why)
       {
          PSID owner = nullptr;
          PACL dacl = nullptr;
          PSECURITY_DESCRIPTOR descriptor = nullptr;
-         const DWORD result = GetNamedSecurityInfoW(path.c_str(), SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION,
-                                                    &owner, nullptr, &dacl, nullptr, &descriptor);
+         const DWORD result = GetSecurityInfo(handle, SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION,
+                                              &owner, nullptr, &dacl, nullptr, &descriptor);
          if (result != ERROR_SUCCESS)
          {
             why = Formatter::Format(_T("its permissions could not be read (Windows error {0})"), (int) result);
-            return false;
+            return VerdictEntries_;
          }
 
-         bool only = true;
-         if (!TrustedSid_(owner, self))
+         Verdict_ verdict = VerdictSafe_;
+         bool serviceMayWrite = service == nullptr;
+         if (!TrustedSid_(owner, self, service))
          {
-            why = Formatter::Format(_T("it is owned by {0}, who can change its permissions"), SidName_(owner));
-            only = false;
+            why = Formatter::Format(_T("it is owned by {0}, who can change its permissions whatever they say"), SidName_(owner));
+            verdict = VerdictOwner_;
          }
          else if (dacl == nullptr)
          {
             why = _T("it has no access list at all, which lets everyone change it");
-            only = false;
+            verdict = VerdictEntries_;
          }
 
-         for (DWORD i = 0; only && i < dacl->AceCount; i++)
+         for (DWORD i = 0; verdict == VerdictSafe_ && i < dacl->AceCount; i++)
          {
             void *ace = nullptr;
             if (!GetAce(dacl, i, &ace) || ace == nullptr)
             {
                why = _T("an entry of its access list could not be read");
-               only = false;
+               verdict = VerdictEntries_;
                break;
             }
 
@@ -183,11 +226,16 @@ namespace HM
             {
                const ACCESS_ALLOWED_ACE *allowed = (const ACCESS_ALLOWED_ACE *) ace;
                PSID sid = (PSID) &allowed->SidStart;
-               if (!TrustedSid_(sid, self) && (allowed->Mask & CHANGING_RIGHTS_) != 0)
+               if (!TrustedSid_(sid, self, service) && (allowed->Mask & CHANGING_RIGHTS_) != 0)
                {
                   why = Formatter::Format(_T("it lets {0} change what is in it"), SidName_(sid));
-                  only = false;
+                  verdict = VerdictEntries_;
                }
+               const BYTE inherited = OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE;
+               if (service != nullptr && EqualSid(sid, service) &&
+                   ((allowed->Mask & MODIFY_RIGHTS_) == MODIFY_RIGHTS_ || (allowed->Mask & GENERIC_ALL) != 0) &&
+                   (header->AceFlags & inherited) == inherited && (header->AceFlags & INHERIT_ONLY_ACE) == 0)
+                  serviceMayWrite = true;
                break;
             }
             case ACCESS_ALLOWED_COMPOUND_ACE_TYPE:
@@ -198,7 +246,7 @@ namespace HM
                // rights are not where the plain kind keeps them; not read, so not
                // trusted either.
                why = _T("its access list grants rights in a form the server does not read");
-               only = false;
+               verdict = VerdictEntries_;
                break;
             default:
                // Denials, and entries that grant nothing.
@@ -206,19 +254,144 @@ namespace HM
             }
          }
 
+         // The service must be able to write there itself: a list with SYSTEM and
+         // the Administrators alone is safe, and useless to a service that runs as
+         // NT SERVICE\hMailServer.
+         if (verdict == VerdictSafe_ && !serviceMayWrite)
+         {
+            why = Formatter::Format(_T("it does not give the service's own account, {0}, Modify on what is in it"), SidName_(service));
+            verdict = VerdictEntries_;
+         }
+
          // And a list of its own: one that takes its parent's entries gains
          // whatever is granted on the folder above it, later, with nothing here
          // changing.
          SECURITY_DESCRIPTOR_CONTROL control = 0;
          DWORD revision = 0;
-         if (only && (!GetSecurityDescriptorControl(descriptor, &control, &revision) || (control & SE_DACL_PROTECTED) == 0))
+         if (verdict == VerdictSafe_ && (!GetSecurityDescriptorControl(descriptor, &control, &revision) || (control & SE_DACL_PROTECTED) == 0))
          {
             why = _T("it takes its permissions from the folder above it, which anyone allowed to change that folder's can widen");
-            only = false;
+            verdict = VerdictEntries_;
          }
 
          LocalFree(descriptor);
-         return only;
+         return verdict;
+      }
+
+      // The path Windows resolved an open handle to, \\?\ prefix and all, which
+      // every call below takes; empty when it cannot say.
+      std::wstring HeldPath_(HANDLE handle)
+      {
+         std::vector<wchar_t> buffer(32768);
+         const DWORD length = GetFinalPathNameByHandleW(handle, &buffer[0], (DWORD) buffer.size(), FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
+         if (length == 0 || length >= buffer.size())
+            return std::wstring();
+         return std::wstring(&buffer[0], length);
+      }
+
+      // How deep DeleteTree_ goes before it gives up: the Updates folder holds a
+      // rollback folder and files, and anything far deeper was planted.
+      const int DELETE_DEPTH_ = 16;
+
+      bool EmptyHeld_(HANDLE directory, int depth, String &why);
+
+      // Deletes what path names - a file, a link, or a folder with everything in
+      // it - without following a link anywhere. Each entry is opened as itself
+      // (FILE_FLAG_OPEN_REPARSE_POINT) and deleted through that handle; a folder
+      // is emptied while it is held, so nothing in it can be swapped for a link
+      // meanwhile, and a link is deleted, never entered.
+      bool DeleteTree_(const std::wstring &path, int depth, String &why)
+      {
+         HANDLE handle = CreateFileW(path.c_str(), DELETE | FILE_READ_ATTRIBUTES | FILE_WRITE_ATTRIBUTES | SYNCHRONIZE,
+                                     FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING,
+                                     FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
+         if (handle == INVALID_HANDLE_VALUE)
+         {
+            why = Formatter::Format(_T("{0} could not be opened to be deleted (Windows error {1})"), String(path.c_str()), (int) GetLastError());
+            return false;
+         }
+
+         bool ok = true;
+         FILE_ATTRIBUTE_TAG_INFO tag = {};
+         if (!GetFileInformationByHandleEx(handle, FileAttributeTagInfo, &tag, sizeof(tag)))
+         {
+            why = Formatter::Format(_T("{0} could not be examined (Windows error {1})"), String(path.c_str()), (int) GetLastError());
+            ok = false;
+         }
+         else if ((tag.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0 && (tag.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) == 0)
+         {
+            if (depth >= DELETE_DEPTH_)
+            {
+               why = Formatter::Format(_T("{0} is nested deeper than anything the server makes"), String(path.c_str()));
+               ok = false;
+            }
+            else
+               ok = EmptyHeld_(handle, depth + 1, why);
+         }
+
+         // A read-only file refuses to be deleted until the attribute is gone.
+         if (ok && (tag.FileAttributes & FILE_ATTRIBUTE_READONLY) != 0)
+         {
+            FILE_BASIC_INFO basic = {};
+            if (GetFileInformationByHandleEx(handle, FileBasicInfo, &basic, sizeof(basic)))
+            {
+               basic.FileAttributes &= ~FILE_ATTRIBUTE_READONLY;
+               if (basic.FileAttributes == 0)
+                  basic.FileAttributes = FILE_ATTRIBUTE_NORMAL;
+               SetFileInformationByHandle(handle, FileBasicInfo, &basic, sizeof(basic));
+            }
+         }
+
+         if (ok)
+         {
+            // Its one member is named DeleteFile, which windows.h also defines as a
+            // macro; set by position rather than by that name.
+            FILE_DISPOSITION_INFO disposition = { TRUE };
+            if (!SetFileInformationByHandle(handle, FileDispositionInfo, &disposition, sizeof(disposition)))
+            {
+               why = Formatter::Format(_T("{0} could not be deleted (Windows error {1})"), String(path.c_str()), (int) GetLastError());
+               ok = false;
+            }
+         }
+
+         CloseHandle(handle);
+         return ok;
+      }
+
+      // Deletes everything in the folder held by directory, by the path Windows
+      // resolved the handle to: the folder cannot be renamed while it is held,
+      // nor any folder above it, so that path is the folder.
+      bool EmptyHeld_(HANDLE directory, int depth, String &why)
+      {
+         const std::wstring path = HeldPath_(directory);
+         if (path.empty())
+         {
+            why = Formatter::Format(_T("Windows could not say where a folder to be emptied is (error {0})"), (int) GetLastError());
+            return false;
+         }
+
+         std::vector<std::wstring> names;
+         WIN32_FIND_DATAW entry;
+         HANDLE find = FindFirstFileExW((path + L"\\*").c_str(), FindExInfoBasic, &entry, FindExSearchNameMatch, nullptr, 0);
+         if (find == INVALID_HANDLE_VALUE)
+         {
+            why = Formatter::Format(_T("{0} could not be listed (Windows error {1})"), String(path.c_str()), (int) GetLastError());
+            return false;
+         }
+         do
+         {
+            const std::wstring name = entry.cFileName;
+            if (name != L"." && name != L"..")
+               names.push_back(name);
+         } while (FindNextFileW(find, &entry));
+         FindClose(find);
+
+         for (size_t i = 0; i < names.size(); i++)
+         {
+            if (!DeleteTree_(path + L"\\" + names[i], depth, why))
+               return false;
+         }
+         return true;
       }
 #endif
    }
@@ -323,9 +496,30 @@ namespace HM
 #endif
    }
 
-   bool
-   ProtectedFile::EnsureDirectory(const String &path, String &repaired, String &error)
+   HeldDirectory::HeldDirectory() :
+      handle_(nullptr)
    {
+   }
+
+   HeldDirectory::~HeldDirectory()
+   {
+      Release();
+   }
+
+   void
+   HeldDirectory::Release()
+   {
+#ifdef _WIN32
+      if (handle_ != nullptr && handle_ != INVALID_HANDLE_VALUE)
+         CloseHandle((HANDLE) handle_);
+#endif
+      handle_ = nullptr;
+   }
+
+   bool
+   ProtectedFile::EnsureDirectory(const String &path, HeldDirectory &held, String &repaired, String &error)
+   {
+      held.Release();
       repaired.Empty();
 
 #ifndef _WIN32
@@ -337,12 +531,23 @@ namespace HM
       std::vector<unsigned char> selfBuffer;
       PSID self = CurrentUserSidBinary_(selfBuffer);
 
-      // Write's three, inherited by files (OI) and folders (CI) made inside, and
-      // protected (P) from whatever the parent grants.
+      // The service's own SID, when this is not SYSTEM: NT SERVICE\hMailServer,
+      // or where Windows does not know that name, the account this runs as.
+      std::vector<unsigned char> serviceBuffer;
+      PSID service = nullptr;
+      if (self == nullptr || !IsWellKnownSid(self, WinLocalSystemSid))
+      {
+         service = ServiceSidBinary_(serviceBuffer);
+         if (service == nullptr)
+            service = self;
+      }
+
+      // SYSTEM and the Administrators, full control; the service, Modify; all of
+      // it inherited by files (OI) and folders (CI) made inside, and protected (P)
+      // from whatever the parent grants.
       String sddl = _T("D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)");
-      String owner = CurrentUserSid_();
-      if (!owner.IsEmpty() && owner != _T("S-1-5-18"))
-         sddl += Formatter::Format(_T("(A;OICI;FA;;;{0})"), owner);
+      if (service != nullptr)
+         sddl += Formatter::Format(_T("(A;OICI;0x1301bf;;;{0})"), SidText_(service));
 
       PSECURITY_DESCRIPTOR descriptor = nullptr;
       if (!ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl.c_str(), SDDL_REVISION_1, &descriptor, nullptr))
@@ -351,80 +556,122 @@ namespace HM
          return false;
       }
 
-      DWORD attributes = GetFileAttributesW(path.c_str());
-      if (attributes == INVALID_FILE_ATTRIBUTES)
+      // Made with those permissions from its first moment, when it is missing;
+      // whatever is there already - a folder, a file, a link - is judged below
+      // through the handle, never by the path again.
+      SECURITY_ATTRIBUTES security = {};
+      security.nLength = sizeof(security);
+      security.lpSecurityDescriptor = descriptor;
+      security.bInheritHandle = FALSE;
+      if (!CreateDirectoryW(path.c_str(), &security))
       {
-         SECURITY_ATTRIBUTES security = {};
-         security.nLength = sizeof(security);
-         security.lpSecurityDescriptor = descriptor;
-         security.bInheritHandle = FALSE;
-         if (!CreateDirectoryW(path.c_str(), &security))
+         const DWORD code = GetLastError();
+         if (code != ERROR_ALREADY_EXISTS)
          {
-            const DWORD code = GetLastError();
-            if (code != ERROR_ALREADY_EXISTS)
-            {
-               LocalFree(descriptor);
-               error = Formatter::Format(_T("{0} could not be created (Windows error {1})."), path, (int) code);
-               return false;
-            }
+            LocalFree(descriptor);
+            error = Formatter::Format(_T("{0} could not be created (Windows error {1})."), path, (int) code);
+            return false;
          }
-         attributes = GetFileAttributesW(path.c_str());
       }
 
-      if (attributes == INVALID_FILE_ATTRIBUTES || (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+      // Held from here: the link itself when it is one (OPEN_REPARSE_POINT), and
+      // shared for reading and writing but not deleting, so that neither it nor a
+      // folder above it can be renamed or swapped while it is held. Listing is
+      // asked for so that the share mode counts; WRITE_DAC where the process may
+      // have it, which a repair needs.
+      const DWORD access = FILE_LIST_DIRECTORY | FILE_TRAVERSE | FILE_READ_ATTRIBUTES | READ_CONTROL | SYNCHRONIZE;
+      const DWORD flags = FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT;
+      bool mayRepair = true;
+      HANDLE handle = CreateFileW(path.c_str(), access | WRITE_DAC, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, flags, nullptr);
+      if (handle == INVALID_HANDLE_VALUE && GetLastError() == ERROR_ACCESS_DENIED)
       {
+         mayRepair = false;
+         handle = CreateFileW(path.c_str(), access, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, flags, nullptr);
+      }
+      if (handle == INVALID_HANDLE_VALUE)
+      {
+         const DWORD code = GetLastError();
          LocalFree(descriptor);
-         error = Formatter::Format(_T("{0} is not a folder the server can use."), path);
+         error = Formatter::Format(_T("{0} could not be opened to be checked (Windows error {1}). Delete the folder, and the server makes it again."), path, (int) code);
+         return false;
+      }
+      held.handle_ = handle;
+
+      FILE_ATTRIBUTE_TAG_INFO tag = {};
+      if (!GetFileInformationByHandleEx(handle, FileAttributeTagInfo, &tag, sizeof(tag)))
+      {
+         const DWORD code = GetLastError();
+         held.Release();
+         LocalFree(descriptor);
+         error = Formatter::Format(_T("{0} could not be examined (Windows error {1})."), path, (int) code);
          return false;
       }
 
       // A junction or a symbolic link: whoever made it can point it somewhere else
       // at any moment, whatever the permissions of where it points now.
-      if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0)
+      if ((tag.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0)
       {
+         held.Release();
          LocalFree(descriptor);
          error = Formatter::Format(_T("{0} is a link to another folder, which whoever made it could point anywhere between the server's check and its run. Delete the link, and the server makes the folder itself."), path);
          return false;
       }
+      if ((tag.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+      {
+         held.Release();
+         LocalFree(descriptor);
+         error = Formatter::Format(_T("{0} is not a folder the server can use."), path);
+         return false;
+      }
 
       String why;
-      if (!OnlyTrustedMayChange_(path, self, why))
+      const Verdict_ verdict = Inspect_(handle, self, service, why);
+      if (verdict == VerdictOwner_)
       {
-         // The DACL first, which needs WRITE_DAC; then, where the owner is not one
-         // of the three, the owner - an owner can always rewrite the DACL, so one
-         // left in place could put its own entry straight back. SetNamedSecurityInfo
-         // carries the new inheritable entries down to what is already inside.
+         // Its owner may rewrite whatever the list says, and may have left
+         // anything inside: nothing in it is taken over and kept.
+         held.Release();
+         LocalFree(descriptor);
+         error = Formatter::Format(_T("{0} cannot be trusted: {1}. An installer kept there could be replaced between the server's check and its run. Delete the folder, and the server makes it again."),
+            path, why);
+         return false;
+      }
+
+      if (verdict == VerdictEntries_)
+      {
+         // The list first, which shuts everybody else out of the folder; then
+         // everything in it, since each file there keeps its own owner and its
+         // own entries, and one planted while others could write here - a DLL
+         // beside the helper, an installer beside the real one - would outlive
+         // the folder's new list. Anything that cannot be deleted refuses the
+         // folder.
          BOOL present = FALSE;
          BOOL defaulted = FALSE;
          PACL dacl = nullptr;
          GetSecurityDescriptorDacl(descriptor, &present, &dacl, &defaulted);
 
-         std::vector<wchar_t> name(path.c_str(), path.c_str() + path.GetLength());
-         name.push_back(L'\0');
-         DWORD result = SetNamedSecurityInfoW(&name[0], SE_FILE_OBJECT, DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION,
-                                              nullptr, nullptr, dacl, nullptr);
-         if (result == ERROR_SUCCESS && self != nullptr)
-         {
-            PSID currentOwner = nullptr;
-            PSECURITY_DESCRIPTOR current = nullptr;
-            if (GetNamedSecurityInfoW(path.c_str(), SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION, &currentOwner, nullptr, nullptr, nullptr, &current) == ERROR_SUCCESS)
-            {
-               if (!TrustedSid_(currentOwner, self))
-                  result = SetNamedSecurityInfoW(&name[0], SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION, self, nullptr, nullptr, nullptr);
-               LocalFree(current);
-            }
-         }
+         DWORD result = ERROR_ACCESS_DENIED;
+         if (mayRepair)
+            result = SetSecurityInfo(handle, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION, nullptr, nullptr, dacl, nullptr);
 
          String still;
-         if (!OnlyTrustedMayChange_(path, self, still))
+         String emptied;
+         if (result != ERROR_SUCCESS)
+            still = Formatter::Format(_T("its permissions could not be set (Windows error {0})"), (int) result);
+         else if (!EmptyHeld_(handle, 0, emptied))
+            still = emptied;
+         else if (Inspect_(handle, self, service, still) == VerdictSafe_)
+            still.Empty();
+         if (!still.IsEmpty())
          {
+            held.Release();
             LocalFree(descriptor);
-            error = Formatter::Format(_T("{0} could be changed by others - {1} - and its permissions could not be set to SYSTEM and the Administrators alone (Windows error {2}). An installer kept there could be replaced between the server's check and its run. Delete the folder, and the server makes it again."),
-               path, still, (int) result);
+            error = Formatter::Format(_T("{0} could be changed by others - {1} - and could not be made safe: {2}. An installer kept there could be replaced between the server's check and its run. Delete the folder, and the server makes it again."),
+               path, why, still);
             return false;
          }
 
-         repaired = why;
+         repaired = why + _T("; everything that was in it has been deleted");
       }
 
       LocalFree(descriptor);

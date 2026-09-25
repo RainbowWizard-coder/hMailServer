@@ -5,6 +5,7 @@
 #pragma once
 
 #include "SigstoreVerifier.h"
+#include "ProtectedFile.h"
 
 namespace HM
 {
@@ -29,13 +30,23 @@ namespace HM
       // <DataFolder>\Updates
       static String UpdatesDirectory();
 
-      // Updates and Updates\rollback, made - or made again - so that only SYSTEM,
-      // the Administrators and the service can change what is in them
-      // (ProtectedFile::EnsureDirectory): the installer, the rollback image and the
-      // helper wait there between the server's check and their run. False with
+      // The Updates folder and its rollback folder, held (HeldDirectory) for as
+      // long as this lives.
+      struct UpdatesFolders
+      {
+         HeldDirectory updates;
+         HeldDirectory rollback;
+      };
+
+      // Updates and Updates\rollback, made - or made again, and then emptied - so
+      // that only SYSTEM, the Administrators and the service can change what is in
+      // them (ProtectedFile::EnsureDirectory), and held in folders from before
+      // they are checked: the installer, the rollback image and the helper wait
+      // there between the server's check and their run, and neither folder, nor
+      // one above them, can be renamed or swapped while folders lives. False with
       // error, reported as HM6894, when either cannot be; nothing is downloaded or
       // applied then. A repair is written to the application log.
-      static bool PrepareUpdatesDirectory(String &error);
+      static bool PrepareUpdatesDirectory(UpdatesFolders &folders, String &error);
 
       // Fetches one installer and its bundle to installerPath (the bundle beside it as
       // .cosign.bundle) and verifies it; false with why, and nothing left, when it

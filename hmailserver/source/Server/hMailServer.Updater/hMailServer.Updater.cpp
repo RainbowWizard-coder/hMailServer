@@ -34,7 +34,13 @@
 #include <bcrypt.h>
 
 // SHA-256 from Windows itself (CNG), which is there on every system this runs on.
-#pragma comment(lib, "bcrypt.lib")
+// bcrypt.dll is NOT imported: this program runs as LocalSystem from the Updates
+// folder, and bcrypt.dll is not a KnownDLL, so an import would be looked for
+// beside the program first. It is loaded from System32 by name alone
+// (Sha256Of), after wmain has limited every load to System32
+// (SetDefaultDllDirectories), and the link sets /DEPENDENTLOADFLAG:0x800 for what
+// is imported - kernel32 and advapi32, both KnownDLLs, the C runtime being
+// static.
 
 namespace
 {
@@ -224,12 +230,28 @@ namespace
    std::wstring Sha256Of(HANDLE file)
    {
       std::wstring hex;
-      BCRYPT_ALG_HANDLE algorithm = nullptr;
-      if (!BCRYPT_SUCCESS(BCryptOpenAlgorithmProvider(&algorithm, BCRYPT_SHA256_ALGORITHM, nullptr, 0)))
+
+      // System32's bcrypt.dll and nothing else: LOAD_LIBRARY_SEARCH_SYSTEM32
+      // searches there alone, for the DLL and for what it loads.
+      HMODULE cng = LoadLibraryExW(L"bcrypt.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+      if (cng == nullptr)
          return hex;
+      decltype(&BCryptOpenAlgorithmProvider) openProvider = (decltype(&BCryptOpenAlgorithmProvider)) GetProcAddress(cng, "BCryptOpenAlgorithmProvider");
+      decltype(&BCryptCloseAlgorithmProvider) closeProvider = (decltype(&BCryptCloseAlgorithmProvider)) GetProcAddress(cng, "BCryptCloseAlgorithmProvider");
+      decltype(&BCryptCreateHash) createHash = (decltype(&BCryptCreateHash)) GetProcAddress(cng, "BCryptCreateHash");
+      decltype(&BCryptHashData) hashData = (decltype(&BCryptHashData)) GetProcAddress(cng, "BCryptHashData");
+      decltype(&BCryptFinishHash) finishHash = (decltype(&BCryptFinishHash)) GetProcAddress(cng, "BCryptFinishHash");
+      decltype(&BCryptDestroyHash) destroyHash = (decltype(&BCryptDestroyHash)) GetProcAddress(cng, "BCryptDestroyHash");
+      BCRYPT_ALG_HANDLE algorithm = nullptr;
+      if (!openProvider || !closeProvider || !createHash || !hashData || !finishHash || !destroyHash ||
+          !BCRYPT_SUCCESS(openProvider(&algorithm, BCRYPT_SHA256_ALGORITHM, nullptr, 0)))
+      {
+         FreeLibrary(cng);
+         return hex;
+      }
 
       BCRYPT_HASH_HANDLE hash = nullptr;
-      if (BCRYPT_SUCCESS(BCryptCreateHash(algorithm, &hash, nullptr, 0, nullptr, 0, 0)))
+      if (BCRYPT_SUCCESS(createHash(algorithm, &hash, nullptr, 0, nullptr, 0, 0)))
       {
          LARGE_INTEGER start;
          start.QuadPart = 0;
@@ -242,12 +264,12 @@ namespace
                ok = false;
             else if (got == 0)
                break;
-            else if (!BCRYPT_SUCCESS(BCryptHashData(hash, buffer.data(), got, 0)))
+            else if (!BCRYPT_SUCCESS(hashData(hash, buffer.data(), got, 0)))
                ok = false;
          }
 
          unsigned char digest[32];
-         if (ok && BCRYPT_SUCCESS(BCryptFinishHash(hash, digest, (ULONG) sizeof(digest), 0)))
+         if (ok && BCRYPT_SUCCESS(finishHash(hash, digest, (ULONG) sizeof(digest), 0)))
          {
             const wchar_t *digits = L"0123456789abcdef";
             for (size_t i = 0; i < sizeof(digest); i++)
@@ -256,9 +278,10 @@ namespace
                hex += digits[digest[i] & 0x0F];
             }
          }
-         BCryptDestroyHash(hash);
+         destroyHash(hash);
       }
-      BCryptCloseAlgorithmProvider(algorithm, 0);
+      closeProvider(algorithm, 0);
+      FreeLibrary(cng);
       return hex;
    }
 
@@ -565,6 +588,12 @@ namespace
 
 int wmain(int argc, wchar_t *argv[])
 {
+   // Parsing loads nothing. Then, before anything that could: every DLL this
+   // process loads from here on - bcrypt.dll for the digests, and whatever a
+   // Windows function loads on its behalf - is looked for in System32 alone,
+   // never in the Updates folder this runs from. Where that cannot be done,
+   // nothing is run: a helper that could load a planted DLL as LocalSystem must
+   // not go on.
    Arguments arguments;
    if (!Parse(argc, argv, arguments))
    {
@@ -572,6 +601,13 @@ int wmain(int argc, wchar_t *argv[])
               L"                           [--rollback <path> --rollback-sha256 <hex> --rollback-version <v>]\n"
               L"                           [--service <name>] [--token <token>] [--log <path>] [--wait <seconds>] [--app <root>]\n");
       return 2;
+   }
+
+   if (!SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_SYSTEM32))
+   {
+      WriteOutcome(arguments.outcome, L"failed " + arguments.version + L" the update helper could not limit its DLL search to System32 (Windows error " +
+         std::to_wstring(GetLastError()) + L"), so nothing was run");
+      return 3;
    }
 
    g_logPath = arguments.log;
