@@ -453,7 +453,7 @@ namespace HM
       message->SetState(Message::Delivered);
       if (!PersistentMessage::SaveObject(message))
       {
-         FileUtilities::DeleteFile(fileName);
+         MessageStore::DiscardWorkingFile(fileName);
          return BuildResponse_(500, "{\"error\":\"the message could not be stored\"}");
       }
 

@@ -999,7 +999,7 @@ namespace HM
          // no row naming it is an orphan of some earlier run; it is not
          // overwritten - nothing here deletes or rewrites what is there - and
          // the message gets a fresh name instead.
-         if (FileUtilities::Exists(destination))
+         if (MessageStore::Exists(destination))
          {
             message->SetPartialFileName(Message::GenerateFileName());
             destination = MessageStore::WorkingFile(account, message);

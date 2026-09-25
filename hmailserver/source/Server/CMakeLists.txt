@@ -452,6 +452,17 @@ add_executable(openpgp-writer ${SERVER_DIR}/platform/openpgp_writer_main.cpp)
 target_link_libraries(openpgp-writer PRIVATE hmailserver_core)
 set_target_properties(openpgp-writer PROPERTIES OUTPUT_NAME openpgp-writer)
 
+# ---------------------------------------------------------------- the object store's signatures
+#
+# ObjectStoreSignatureTester (Common/Util/ObjectStoreSignature.h) as a program of
+# its own, for the reason spf-tests is one: on Windows it runs inside the server
+# through ClassTester, which nothing reaches here. AWS Signature Version 4 against
+# AWS's published test suite and the S3 examples, and Azure's Shared Key; no
+# network, no configuration, no database. Not installed; a bench tool.
+add_executable(object-store-signature-tests ${SERVER_DIR}/platform/object_store_signature_tests_main.cpp)
+target_link_libraries(object-store-signature-tests PRIVATE hmailserver_core)
+set_target_properties(object-store-signature-tests PROPERTIES OUTPUT_NAME object-store-signature-tests)
+
 include(GNUInstallDirs)
 install(TARGETS hmailserver RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY ${SERVER_DIR}/../DBScripts/

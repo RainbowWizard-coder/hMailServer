@@ -152,6 +152,23 @@ namespace HM
       // of a missing property reports HM5015.
       property_set_->EnsureString(PROPERTY_PST_IMPORT_DIRECTORY, _T(""));
 
+      // The message store on an object store (Persistence/MessageStoreObjects.h,
+      // docs/ObjectStorage.md): no store, and new mail on the local disk. A
+      // server that never names a store reads and writes exactly as it did;
+      // every delivery asks the first two through MessageStore::Backend.
+      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_BACKEND, _T("file"));
+      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_SERVICE, _T(""));
+      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_ENDPOINT, _T(""));
+      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_REGION, _T("us-east-1"));
+      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_BUCKET, _T(""));
+      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_ADDRESSING, _T("auto"));
+      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_PREFIX, _T(""));
+      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_ACCESS_KEY, _T(""));
+      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_SECRET, _T(""));
+      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_SAS, _T(""));
+      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_CA_FILE, _T(""));
+      property_set_->EnsureLong(PROPERTY_MESSAGE_STORE_OBJECT_CACHE_MB, 32);
+
       // Greylisting, hardened (SMTP/GreyListing.h): no slide, no abuse threshold,
       // and an hour's lock that means nothing while the threshold is 0. Schema 6072
       // seeds the same three rows; these are here for the same reason as the rest.

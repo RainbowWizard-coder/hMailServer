@@ -98,6 +98,19 @@ namespace HM
                                       int timeout_seconds = 20, size_t max_response_bytes = 1024 * 1024,
                                       bool keep_head_of_long_answer = false);
 
+      // Request, for the message store's object storage (docs/ObjectStorage.md),
+      // whose endpoint may be a MinIO or a Ceph gateway behind a CA of the
+      // organisation's own. With ca_file empty it is Request exactly. With
+      // ca_file naming a PEM file, the certificate is verified against the
+      // certificates in that file (and, on Linux, the system's bundle; on
+      // Windows the file alone) rather than the machine's root store, the host
+      // name - or the address, for an endpoint written as one - and the TLS
+      // server usage checked as ever.
+      // Verification is never off, and there is no switch that turns it off.
+      static bool RequestTrusting(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
+                                  const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
+                                  int timeout_seconds, size_t max_response_bytes, const String &ca_file);
+
       // Whether a host - a name, or an address written as one - leads to no
       // link-local or metadata address, judged as RequestNotLinkLocal judges:
       // every address the name resolves to within five seconds. resolved says
@@ -139,6 +152,6 @@ namespace HM
       static bool Request_(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
                            const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
                            int timeout_seconds, size_t max_response_bytes, bool public_only, bool not_link_local,
-                           bool keep_head_of_long_answer = false);
+                           bool keep_head_of_long_answer = false, const String *ca_file = nullptr);
    };
 }

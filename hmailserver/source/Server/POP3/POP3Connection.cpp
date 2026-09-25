@@ -1717,10 +1717,26 @@ namespace HM
          return ResultNormalResponse;
       }
 
+      MessageStore::ClearUnavailable();
       PersistentMessage::EnsureFileExistance(account_, pMessage);
 
       if (!StartSendFile_(pMessage))
       {
+         // The object store the message is kept in did not answer
+         // (docs/ObjectStorage.md): RFC 3206's temporary system failure, which
+         // a client answers by asking again later.
+         if (MessageStore::Missing())
+         {
+            EnqueueWrite_("-ERR The message is missing from the message store.");
+            return ResultNormalResponse;
+         }
+
+         if (MessageStore::Unavailable())
+         {
+            EnqueueWrite_("-ERR [SYS/TEMP] The message store cannot be reached just now. Try again in a moment.");
+            return ResultNormalResponse;
+         }
+
          // The file could not be opened. Answer with an error rather than
          // starting a transfer the client will never receive - previously the
          // session was left with no response at all.
@@ -1880,6 +1896,7 @@ namespace HM
          // Recreate a missing file the same way RETR does, so a database that is
          // out of step with the message store answers with an error rather than
          // an empty body.
+         MessageStore::ClearUnavailable();
          PersistentMessage::EnsureFileExistance(account_, pMessage);
 
          String fileName = PersistentMessage::GetFileName(account_, pMessage);
@@ -1890,7 +1907,12 @@ namespace HM
          bool endedWithNewline = true;
          if (!SendFileHeader_(fileName, iNoOfLines, sResponse, endedWithNewline))
          {
-            EnqueueWrite_("-ERR Unable to read the message file");
+            if (MessageStore::Missing())
+               EnqueueWrite_("-ERR The message is missing from the message store.");
+            else if (MessageStore::Unavailable())
+               EnqueueWrite_("-ERR [SYS/TEMP] The message store cannot be reached just now. Try again in a moment.");
+            else
+               EnqueueWrite_("-ERR Unable to read the message file");
             return true;
          }
 

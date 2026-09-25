@@ -4,6 +4,7 @@
 
 #include "StdAfx.h"
 #include "RecoverableStore.h"
+#include "../Persistence/MessageStoreObjects.h"
 #include "DiscoveryHolds.h"
 #include "FileUtilities.h"
 #include "GUIDCreator.h"
@@ -135,7 +136,14 @@ namespace HM
          return !held;
 
       const String source = PersistentMessage::GetFileName(account, message);
-      if (!FileUtilities::Exists(source))
+
+      // Asked of the store, where a message an object store keeps is without a
+      // file (docs/ObjectStorage.md). A store that could not be asked is not
+      // a message that is gone: the copy is tried, and refused as any copy
+      // that cannot be made is - which a legal hold answers by refusing the
+      // delete.
+      MessageStore::ClearUnavailable();
+      if (!MessageStore::Exists(source) && !MessageStore::Unavailable())
          return true;
 
       String guid = GUIDCreator::GetGUID();
@@ -150,8 +158,19 @@ namespace HM
       // encrypted to its key - the stored container as it is, or a delivery
       // copy caught before it was stored, encrypted in memory - and never in
       // the clear (docs/EncryptionAtRest.md); any other as it is stored.
+      MessageStore::ClearUnavailable();
       if (!MessageStore::CopyIntoAccount(source, target, account))
       {
+         // An object store that did not answer is not a copy that cannot be
+         // made: the delete is refused, as a hold refuses it, and made with its
+         // copy when the store answers - the recovery window is not skipped
+         // for an outage (docs/ObjectStorage.md).
+         if (!held && MessageStore::Unavailable())
+         {
+            LOG_APPLICATION("RecoverableStore: the deleted message " + source + " could not be kept at " + target + ": the object store did not answer. It is not deleted now; it is deleted, with its copy kept, once the store answers.");
+            return false;
+         }
+
          if (held)
          {
             // The delete is refused rather than made without the copy: that is
@@ -191,6 +210,11 @@ namespace HM
             return true;
          }
       }
+
+      // Into the object store with the mailbox's mail, when new mail goes to
+      // one (docs/ObjectStorage.md): handed to the committer, and read from
+      // the local disk until the store has it.
+      MessageStore::Commit(target);
 
       // What the list of deleted items shows - but not for a mailbox encrypted
       // at rest, whose subjects and senders would be in the database in the
@@ -309,8 +333,17 @@ namespace HM
       const short flags = (short) recordset->GetLongValue("rcflags");
       const String kept = FileUtilities::Combine(Root(), relative);
 
-      if (!FileUtilities::Exists(kept))
+      // Asked of the store (docs/ObjectStorage.md), and a store that did not
+      // answer purges nothing: the kept copy is only unreachable for now.
+      MessageStore::ClearUnavailable();
+      if (!MessageStore::Exists(kept))
       {
+         if (MessageStore::Unavailable())
+         {
+            problem = _T("the message store cannot be reached just now");
+            return false;
+         }
+
          Purge(account->GetID(), id);
          problem = _T("the kept copy is gone");
          return false;
@@ -391,8 +424,9 @@ namespace HM
       if (!Application::Instance()->GetDBManager()->Execute(remove))
          return false;
 
-      if (FileUtilities::Exists(kept))
-         MessageStore::Remove(kept);
+      // Through the store, which answers for a name that is not there, and
+      // finds one an object store keeps (docs/ObjectStorage.md).
+      MessageStore::Remove(kept);
       return true;
    }
 
@@ -497,6 +531,54 @@ namespace HM
                MessageStore::Remove(file);
 
             boost::filesystem::remove_all(directory, error_code);
+         }
+      }
+
+      // The kept copies an object store holds have no directory on the disk
+      // to find (docs/ObjectStorage.md): they are listed from the store, and
+      // those of an account the database says is gone go the same way.
+      if (MessageStoreObjects::Active())
+      {
+         std::vector<String> names;
+         if (MessageStore::Backend().List(root, names))
+         {
+            std::map<__int64, std::vector<String> > byAccount;
+            for (const String &name : names)
+            {
+               if (name.GetLength() <= root.GetLength())
+                  continue;
+
+               String relative = name.Mid(root.GetLength());
+               while (relative.Left(1) == _T("\\") || relative.Left(1) == _T("/"))
+                  relative = relative.Mid(1);
+
+               int separator = relative.Find(_T("\\"));
+               const int slash = relative.Find(_T("/"));
+               if (separator < 0 || (slash >= 0 && slash < separator))
+                  separator = slash;
+               if (separator <= 0 || separator > 18)
+                  continue;
+
+               const AnsiString number = AnsiString(relative.Left(separator));
+               if (number.find_first_not_of("0123456789") != std::string::npos)
+                  continue;
+
+               const __int64 accountId = (__int64) std::stoll(std::string(number.c_str()));
+               if (accountId > 0)
+                  byAccount[accountId].push_back(name);
+            }
+
+            for (std::map<__int64, std::vector<String> >::const_iterator account = byAccount.begin(); account != byAccount.end(); ++account)
+            {
+               SQLCommand exists("select accountid from hm_accounts where accountid = @ID");
+               exists.AddParameter("@ID", account->first);
+               std::shared_ptr<DALRecordset> answer = Application::Instance()->GetDBManager()->OpenRecordset(exists);
+               if (!answer || !answer->IsEOF())
+                  continue;
+
+               for (const String &file : account->second)
+                  MessageStore::Remove(file);
+            }
          }
       }
 

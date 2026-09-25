@@ -25,6 +25,7 @@
 #include "../Common/Application/Profiles.h"
 #include "../Common/Application/WindowsEventLog.h"
 #include "../Common/Persistence/MessageStoreMaintenance.h"
+#include "../Common/Persistence/MessageStoreObjects.h"
 #include "../Common/Util/ClassTester.h"
 #include "../Common/Util/SystemInformation.h"
 #include "../Common/Util/CrashOracle.h"
@@ -1120,6 +1121,22 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       return 2;
    }
 
+   // The message store copied to an object store or back from one
+   // (Common/Persistence/MessageStoreObjects.h, docs/ObjectStorage.md), with the
+   // walk's --account and --domain, and --remove-source.
+   bool copyToObjects = false;
+   bool copyFromObjects = false;
+   bool removeSource = false;
+   for (size_t index = 0; index < vecParams.size(); index++)
+   {
+      if (vecParams[index].CompareNoCase(_T("--copy-store-to-object-storage")) == 0)
+         copyToObjects = true;
+      else if (vecParams[index].CompareNoCase(_T("--copy-store-from-object-storage")) == 0)
+         copyFromObjects = true;
+      else if (vecParams[index].CompareNoCase(_T("--remove-source")) == 0)
+         removeSource = true;
+   }
+
    _AtlModule.InitializeCom();
 
    // /Unregister is decided before anything below registers anything, because it
@@ -1520,6 +1537,40 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
 
          iRet = HM::DatabaseTls::RunCheckCommand();
       }
+   }
+   else if (copyToObjects || copyFromObjects)
+   {
+      // The copy runs beside the service; with --remove-source it changes what
+      // a running server reads, and is refused while the service runs. Exit 4.
+      AttachVerbOutput();
+
+      if (copyToObjects && copyFromObjects)
+      {
+         WriteVerbError("--copy-store-to-object-storage and --copy-store-from-object-storage go opposite ways; give one of them.\r\n");
+         iRet = 2;
+      }
+      else if (removeSource && HMailServerServiceIsRunning())
+      {
+         WriteVerbError("The hMailServer service is running. Stop it (Stop-Service hMailServer) to copy with --remove-source; the copy without it runs beside the service. Nothing was changed.\r\n");
+         iRet = 4;
+      }
+      else if (storeAccountGiven && (storeAccount.IsEmpty() || storeAccount.Left(2) == _T("--")))
+      {
+         WriteVerbError("--account needs the account's address; for example --account alice@example.com.\r\n");
+         iRet = 2;
+      }
+      else if (storeDomainGiven && (storeDomain.IsEmpty() || storeDomain.Left(2) == _T("--")))
+      {
+         WriteVerbError("--domain needs the domain's name; for example --domain example.com.\r\n");
+         iRet = 2;
+      }
+      else if (storeAccountGiven && storeDomainGiven)
+      {
+         WriteVerbError("--account and --domain each say what the copy covers; give one of them, or neither for the whole store.\r\n");
+         iRet = 2;
+      }
+      else
+         iRet = HM::MessageStoreObjects::RunCopyCommand(copyToObjects, storeAccount, storeDomain, removeSource);
    }
    else if (sLastParam.CompareNoCase(_T("RunAsService")) == 0)
    {

@@ -1099,6 +1099,118 @@ namespace
         "The smallest MIME part, in KB once decoded, held once as a blob while message_store_compression is on; 0 holds nothing once. 0 to 65536; 256 by default.",
         ROW_NUMBER(Config()->GetMessageStoreDedupMinKB()), ROW_SET(Config()->SetMessageStoreDedupMinKB((int) v.number)),
         [] (const Value &v) { return (v.number < 0 || v.number > 65536) ? String(_T("message_store_dedup_min_kb must be between 0 and 65536.")) : String(); } },
+      // The message store on an object store (Persistence/MessageStoreObjects.h,
+      // docs/ObjectStorage.md). Nothing here does anything while
+      // message_store_object_service is empty.
+      { "message_store_backend", KindString, ReadWrite, EffectNow, nullptr,
+        "Where a message placed in a mailbox is stored: file, the default, under the data directory; or object, in the object store message_store_object_service names. Either way a message that is not on the local disk is looked for in the store while one is named, so turning this back to file hides nothing. Set it to object once hmailserver --copy-store-to-object-storage has copied what is there. Taken within five seconds.",
+        ROW_TEXT(Config()->GetSettings()->GetString(PROPERTY_MESSAGE_STORE_BACKEND)),
+        ROW_SET({ String word = v.text; word.Trim(); word.MakeLower(); Config()->GetSettings()->SetString(PROPERTY_MESSAGE_STORE_BACKEND, word); }),
+        [] (const Value &v) -> String
+        {
+           String word = v.text;
+           word.Trim();
+           if (word.CompareNoCase(_T("file")) != 0 && word.CompareNoCase(_T("object")) != 0)
+              return String(_T("message_store_backend is file or object."));
+           return String();
+        } },
+      { "message_store_object_service", KindString, ReadWrite, EffectNow, nullptr,
+        "The object store the message store reads, and writes to while message_store_backend is object: s3 - AWS S3, MinIO, Wasabi, Backblaze B2's S3 API, Ceph RGW - or azure, Azure Blob Storage; empty, the default, for none.",
+        ROW_TEXT(Config()->GetSettings()->GetString(PROPERTY_MESSAGE_STORE_OBJECT_SERVICE)),
+        ROW_SET({ String word = v.text; word.Trim(); word.MakeLower(); if (word == _T("none")) word = _T(""); Config()->GetSettings()->SetString(PROPERTY_MESSAGE_STORE_OBJECT_SERVICE, word); }),
+        [] (const Value &v) -> String
+        {
+           String word = v.text;
+           word.Trim();
+           if (!word.IsEmpty() && word.CompareNoCase(_T("none")) != 0 && word.CompareNoCase(_T("s3")) != 0 && word.CompareNoCase(_T("azure")) != 0)
+              return String(_T("message_store_object_service is s3, azure, or empty for none."));
+           return String();
+        } },
+      { "message_store_object_endpoint", KindString, ReadWrite, EffectNow, nullptr,
+        "The object store's endpoint, such as https://minio.example.com:9000; for Azurite, the account's path after it (https://host:10000/devstoreaccount1). Empty, the default, is the service's own: https://s3.<region>.amazonaws.com, or https://<account>.blob.core.windows.net. https always, its certificate always verified; plain http only to this machine.",
+        ROW_TEXT(Config()->GetSettings()->GetString(PROPERTY_MESSAGE_STORE_OBJECT_ENDPOINT)),
+        ROW_SET({ String url = v.text; url.Trim(); Config()->GetSettings()->SetString(PROPERTY_MESSAGE_STORE_OBJECT_ENDPOINT, url); }),
+        [] (const Value &v) -> String
+        {
+           String url = v.text;
+           url.Trim();
+           if (url.IsEmpty())
+              return String();
+           // Written into the request line and the Host header as it is: no
+           // space, no control character, nothing outside printable ASCII.
+           for (int i = 0; i < url.GetLength(); i++)
+           {
+              const unsigned int c = (unsigned int) url[i];
+              if (c <= 0x20 || c >= 0x7F || c == '#')
+                 return String(_T("message_store_object_endpoint holds printable ASCII only - no space, no control character, no '#'."));
+           }
+           bool https = false;
+           AnsiString host;
+           AnsiString port;
+           AnsiString path;
+           if (!HttpsClient::ParseUrl(AnsiString(url), https, host, port, path))
+              return String(_T("message_store_object_endpoint is an https URL with a host, such as https://minio.example.com:9000."));
+           if (!https && !HttpsClient::IsLoopbackHost(host))
+              return String(_T("message_store_object_endpoint is https: plain http is taken only to this machine."));
+           return String();
+        } },
+      { "message_store_object_region", KindString, ReadWrite, EffectNow, nullptr,
+        "The region an S3 request is signed for; us-east-1 by default, which MinIO and Ceph take unless they were set up with another.",
+        ROW_TEXT(Config()->GetSettings()->GetString(PROPERTY_MESSAGE_STORE_OBJECT_REGION)),
+        ROW_SET({ String region = v.text; region.Trim(); Config()->GetSettings()->SetString(PROPERTY_MESSAGE_STORE_OBJECT_REGION, region); }), ROW_NO_CHECK },
+      { "message_store_object_bucket", KindString, ReadWrite, EffectNow, nullptr,
+        "The S3 bucket, or the Azure container, the messages are kept in. It has to exist: this server makes none.",
+        ROW_TEXT(Config()->GetSettings()->GetString(PROPERTY_MESSAGE_STORE_OBJECT_BUCKET)),
+        ROW_SET({ String bucket = v.text; bucket.Trim(); Config()->GetSettings()->SetString(PROPERTY_MESSAGE_STORE_OBJECT_BUCKET, bucket); }), ROW_NO_CHECK },
+      { "message_store_object_addressing", KindString, ReadWrite, EffectNow, nullptr,
+        "How an S3 bucket is named in a request: path (https://endpoint/bucket/key), virtual (https://bucket.endpoint/key), or auto, the default - virtual for AWS's own endpoint, path for one named in message_store_object_endpoint.",
+        ROW_TEXT(Config()->GetSettings()->GetString(PROPERTY_MESSAGE_STORE_OBJECT_ADDRESSING)),
+        ROW_SET({ String word = v.text; word.Trim(); word.MakeLower(); Config()->GetSettings()->SetString(PROPERTY_MESSAGE_STORE_OBJECT_ADDRESSING, word); }),
+        [] (const Value &v) -> String
+        {
+           String word = v.text;
+           word.Trim();
+           if (word.CompareNoCase(_T("auto")) != 0 && word.CompareNoCase(_T("path")) != 0 && word.CompareNoCase(_T("virtual")) != 0)
+              return String(_T("message_store_object_addressing is auto, path or virtual."));
+           return String();
+        } },
+      { "message_store_object_prefix", KindString, ReadWrite, EffectNow, nullptr,
+        "Written before every key, so that one bucket can hold more than one server's store: mail/ puts example.com/alice/... at mail/example.com/alice/.... Empty by default. Change it only with the store copied under the new prefix: what is under the old one is not looked for.",
+        ROW_TEXT(Config()->GetSettings()->GetString(PROPERTY_MESSAGE_STORE_OBJECT_PREFIX)),
+        ROW_SET({ String prefix = v.text; prefix.Trim(); Config()->GetSettings()->SetString(PROPERTY_MESSAGE_STORE_OBJECT_PREFIX, prefix); }), ROW_NO_CHECK },
+      { "message_store_object_access_key", KindString, ReadWrite, EffectNow, nullptr,
+        "For S3, the access key id; for Azure, the storage account's name.",
+        ROW_TEXT(Config()->GetSettings()->GetString(PROPERTY_MESSAGE_STORE_OBJECT_ACCESS_KEY)),
+        ROW_SET({ String key = v.text; key.Trim(); Config()->GetSettings()->SetString(PROPERTY_MESSAGE_STORE_OBJECT_ACCESS_KEY, key); }), ROW_NO_CHECK },
+      { "message_store_object_secret", KindString, WriteOnly, EffectNow, nullptr,
+        "For S3, the secret access key; for Azure, the account key (base64). Stored protected and never emitted.",
+        nullptr, ROW_SET(Config()->GetSettings()->SetString(PROPERTY_MESSAGE_STORE_OBJECT_SECRET, v.text)), ROW_NO_CHECK, nullptr, PROPERTY_MESSAGE_STORE_OBJECT_SECRET },
+      { "message_store_object_sas_token", KindString, WriteOnly, EffectNow, nullptr,
+        "For Azure, a shared access signature used instead of the account key: the query string the portal gives (sv=...&sig=...), with blob service, container and object resource types and read, add, create, write, delete and list permissions. Stored protected and never emitted.",
+        nullptr, ROW_SET(Config()->GetSettings()->SetString(PROPERTY_MESSAGE_STORE_OBJECT_SAS, v.text)),
+        [] (const Value &v) -> String
+        {
+           // Appended to every request line as it is: printable ASCII, no
+           // space, no control character, no '#'.
+           String sas = v.text;
+           sas.Trim();
+           for (int i = 0; i < sas.GetLength(); i++)
+           {
+              const unsigned int c = (unsigned int) sas[i];
+              if (c <= 0x20 || c >= 0x7F || c == '#')
+                 return String(_T("message_store_object_sas_token holds printable ASCII only - no space, no control character, no '#'."));
+           }
+           return String();
+        }, nullptr, PROPERTY_MESSAGE_STORE_OBJECT_SAS },
+      { "message_store_object_ca_file", KindString, ReadWrite, EffectNow, nullptr,
+        "A PEM file of the CA that issued the object store's certificate, for a MinIO or a Ceph gateway behind a CA of the organisation's own. When set, the certificate is verified against it instead of the machine's roots; the host name is checked either way. Empty by default.",
+        ROW_TEXT(Config()->GetSettings()->GetString(PROPERTY_MESSAGE_STORE_OBJECT_CA_FILE)),
+        ROW_SET({ String path = v.text; path.Trim(); Config()->GetSettings()->SetString(PROPERTY_MESSAGE_STORE_OBJECT_CA_FILE, path); }), ROW_NO_CHECK },
+      { "message_store_object_cache_mb", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many MB of what was read from the object store a moment ago - a message's size, its ETag, and its bytes when they are small - this server keeps for half a minute, so that one IMAP FETCH is one request and not five. 0 keeps nothing. 0 to 4096; 32 by default.",
+        ROW_NUMBER(Config()->GetSettings()->GetLong(PROPERTY_MESSAGE_STORE_OBJECT_CACHE_MB)),
+        ROW_SET(Config()->GetSettings()->SetLong(PROPERTY_MESSAGE_STORE_OBJECT_CACHE_MB, v.number)),
+        [] (const Value &v) { return (v.number < 0 || v.number > 4096) ? String(_T("message_store_object_cache_mb must be between 0 and 4096.")) : String(); } },
       // Mailbox encryption at rest (Util/MailboxKeys.h, docs/EncryptionAtRest.md).
       { "mailbox_key_idle_minutes", KindInteger, ReadWrite, EffectNow, nullptr,
         "How many minutes the mailbox key of an account encrypted at rest stays open after its last use once no IMAP or POP3 session holds it. A sign-in with the account's password opens it; while it is open the server reads the account's mail; once it closes, the mail is readable again only after the next sign-in with the password. 1 to 1440; 15 by default.",

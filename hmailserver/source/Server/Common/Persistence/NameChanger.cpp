@@ -5,6 +5,8 @@
 #include "stdafx.h"
 
 #include "NameChanger.h"
+#include "MessageStore.h"
+#include "MessageStoreObjects.h"
 #include "../Util/StorePath.h"
 #include "../BO/Domain.h"
 #include "../BO/Accounts.h"
@@ -182,6 +184,26 @@ namespace HM
       if (!RenameDirectory_(oldDirectoryName, newDirectoryName, errorMessage))
          return false;
 
+      // And the messages an object store keeps under the old name, which the
+      // directory above did not hold (docs/ObjectStorage.md). A failure part way
+      // is put back, objects and directory, since the rename is then refused and
+      // the row keeps the old name; what the store will not give back stays
+      // under the new name, never under neither, and the rename made again
+      // carries the rest.
+      unsigned int objectsMoved = 0;
+      if (!MessageStore::MoveTree(oldDirectoryName, newDirectoryName, objectsMoved, errorMessage))
+      {
+         unsigned int movedBack = 0;
+         String putBackProblem;
+         if (objectsMoved > 0 && !MessageStore::MoveTree(newDirectoryName, oldDirectoryName, movedBack, putBackProblem))
+            errorMessage += " Some of the objects moved before that could not be moved back (" + putBackProblem + "); they are under the new name until the rename is made again.";
+
+         String ignored;
+         RenameDirectory_(newDirectoryName, oldDirectoryName, ignored);
+         MessageStoreObjects::CommitTree(oldDirectoryName);
+         return false;
+      }
+
       // The account's Sieve state does not live under its mailbox directory - it
       // has its own tree - so renaming the mailbox alone left the filter behind at
       // the old address, where nothing would ever read it again. The user's mail
@@ -200,6 +222,23 @@ namespace HM
 
       if (!RenameDirectory_(oldDirectory, newDirectory, errorMessage))
          return false;
+
+      // And the messages an object store keeps under the old domain, which the
+      // directory above did not hold (docs/ObjectStorage.md). A failure part way
+      // is put back as in RenameAccount.
+      unsigned int objectsMoved = 0;
+      if (!MessageStore::MoveTree(oldDirectory, newDirectory, objectsMoved, errorMessage))
+      {
+         unsigned int movedBack = 0;
+         String putBackProblem;
+         if (objectsMoved > 0 && !MessageStore::MoveTree(newDirectory, oldDirectory, movedBack, putBackProblem))
+            errorMessage += " Some of the objects moved before that could not be moved back (" + putBackProblem + "); they are under the new name until the rename is made again.";
+
+         String ignored;
+         RenameDirectory_(newDirectory, oldDirectory, ignored);
+         MessageStoreObjects::CommitTree(oldDirectory);
+         return false;
+      }
 
       // And the domain's Sieve tree, which lives outside the mailbox tree. Without
       // this a domain rename moved every mailbox and left every account's filter

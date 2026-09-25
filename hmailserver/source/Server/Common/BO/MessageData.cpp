@@ -18,6 +18,7 @@
 // Test
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/MessageStore.h"
+#include "../Persistence/MessageStoreObjects.h"
 #include "../Util/MailboxKeys.h"
 #include "../../SMTP/RecipientParser.h"
 
@@ -123,6 +124,17 @@ namespace HM
                ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6060, "MessageData::LoadFromMessage",
                   "The message file " + message_file_name_ + " exists but could not be opened, so the message could not be loaded. It has not been treated as a new message - the caller is told the load failed, so that nothing is written over it.");
                return false;
+            }
+
+            // Not on the disk: while an object store is named the message may
+            // be there, put by the committer, and one the store could not be
+            // asked about is not taken for one being composed either - the
+            // caller is told the load failed (docs/ObjectStorage.md).
+            if (MessageStoreObjects::Active())
+            {
+               MessageStore::ClearUnavailable();
+               if (MessageStore::Exists(message_file_name_) || MessageStore::Unavailable())
+                  return false;
             }
 
             // No file at all: a message being composed from nothing.

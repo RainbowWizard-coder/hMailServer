@@ -48,6 +48,7 @@
 #include "../Common/Application/NewInstallDefaults.h"
 #include "../Common/Application/Profiles.h"
 #include "../Common/Persistence/MessageStoreMaintenance.h"
+#include "../Common/Persistence/MessageStoreObjects.h"
 #include "../Common/Application/SampleDomain.h"
 #include "../Common/Application/Logger.h"
 #include "../Common/Util/Utilities.h"
@@ -277,6 +278,19 @@ namespace
          "                    the reverse, with the domain's recovery passphrase\n"
          "                    in HMAILSERVER_RECOVERY_PASSPHRASE; the same\n"
          "                    conditions.\n"
+         "  --copy-store-to-object-storage [--account <address> | --domain <name>]\n"
+         "                    [--remove-source]\n"
+         "                    copy every stored message, kept copy and blob the\n"
+         "                    database names into the object store the settings\n"
+         "                    name (docs/ObjectStorage.md), each one verified, and\n"
+         "                    a name already there and verified left as it is -\n"
+         "                    so a run that stopped goes on where it stopped. It\n"
+         "                    runs beside the server; --remove-source removes\n"
+         "                    each local file once its copy is verified, and only\n"
+         "                    with the server stopped.\n"
+         "  --copy-store-from-object-storage [--account <address> | --domain <name>]\n"
+         "                    [--remove-source]\n"
+         "                    the reverse: every one back onto the local disk.\n"
          "  --verify-update <file>\n"
          "                    check a downloaded release file - a package or an\n"
          "                    AppImage - against the Sigstore bundle beside it\n"
@@ -1465,6 +1479,9 @@ int main(int argc, char *argv[])
    std::string new_install_marker;
    int store_verb = 0;
    bool store_decompress = false;
+   bool copy_to_objects = false;
+   bool copy_from_objects = false;
+   bool remove_source = false;
    std::string store_account;
    std::string store_domain;
 
@@ -1581,6 +1598,21 @@ int main(int argc, char *argv[])
       if (argument == "--decrypt-store")
       {
          store_verb = HM::MessageStoreMaintenance::VerbDecrypt;
+         continue;
+      }
+      if (argument == "--copy-store-to-object-storage")
+      {
+         copy_to_objects = true;
+         continue;
+      }
+      if (argument == "--copy-store-from-object-storage")
+      {
+         copy_from_objects = true;
+         continue;
+      }
+      if (argument == "--remove-source")
+      {
+         remove_source = true;
          continue;
       }
       if (argument == "--decompress")
@@ -1837,6 +1869,27 @@ int main(int argc, char *argv[])
 
       const int verb = store_decompress ? (int) HM::MessageStoreMaintenance::VerbDecompress : store_verb;
       return HM::MessageStoreMaintenance::RunCommand((HM::MessageStoreMaintenance::Verb) verb, HM::String(store_account.c_str()), HM::String(store_domain.c_str()));
+   }
+
+   // The message store copied to an object store or back from one
+   // (Common/Persistence/MessageStoreObjects.h, docs/ObjectStorage.md). The copy
+   // runs beside the server; with --remove-source it takes the store's lock, as
+   // the rewrites above do, and is refused with exit 4 while the server runs.
+   if (copy_to_objects || copy_from_objects)
+   {
+      if (copy_to_objects && copy_from_objects)
+      {
+         std::fprintf(stderr, "--copy-store-to-object-storage and --copy-store-from-object-storage go opposite ways; give one of them.\n");
+         return 2;
+      }
+
+      if (!store_account.empty() && !store_domain.empty())
+      {
+         std::fprintf(stderr, "--account and --domain each say what the copy covers; give one of them, or neither for the whole store.\n");
+         return 2;
+      }
+
+      return HM::MessageStoreObjects::RunCopyCommand(copy_to_objects, HM::String(store_account.c_str()), HM::String(store_domain.c_str()), remove_source);
    }
 
    if (!sample_domain.empty())

@@ -32,8 +32,16 @@ namespace HM
       // collection holds, as the single-message form always did.
       virtual bool UsesLiveMessages() const { return true; }
 
+      // How many messages of the range the object store confirms it does not
+      // have (MessageStore::Missing): left out of the answer, the rest fetched,
+      // and the command answered NO (IMAPCommandFetch, IMAPCommandUID) - so a
+      // message lost from the store never stops a client's sync at itself.
+      int GetLost() const { return lost_; }
+
 
    private:
+
+      int lost_ = 0;
 
       String CreateEnvelopeStructure_(MimeHeader& oHeader);
       String GetPartStructure_(std::shared_ptr<MimeBody> oPart, bool includeExtensionData, int iRecursion);

@@ -40,6 +40,7 @@
 #include "../AntiSpam/DKIM/DkimRotation.h"
 #include "../Util/DiscoveryHolds.h"
 #include "../Persistence/MessageStoreBlobs.h"
+#include "../Persistence/MessageStoreObjects.h"
 
 #include "../../IMAP/IMAPConfiguration.h"
 
@@ -1136,6 +1137,27 @@ namespace HM
          line.Format(_T("Backed up %u file(s). %u file(s) were deleted by the running server while the copy was in progress and are not in this backup."),
             outcome.copied, outcome.vanished);
 
+         Logger::Instance()->LogBackup(line);
+      }
+
+      // The messages an object store keeps (docs/ObjectStorage.md), which the
+      // copy of the data directory above did not find: read into the staged
+      // tree under the names they have there, so that the archive holds every
+      // message whichever backend holds it now. A store that cannot be read
+      // fails the backup rather than let it be taken without them. Nothing is
+      // asked while no store is configured.
+      unsigned int fetched = 0;
+      String objectProblem;
+      if (!MessageStoreObjects::StageInto(sDataBackupDir, fetched, objectProblem))
+      {
+         Logger::Instance()->LogBackup("Failed to read the messages the object store keeps into the backup. Details: " + objectProblem);
+         return false;
+      }
+
+      if (fetched > 0)
+      {
+         String line;
+         line.Format(_T("Read %u message(s) and part(s) held once from the object store into the backup."), fetched);
          Logger::Instance()->LogBackup(line);
       }
 

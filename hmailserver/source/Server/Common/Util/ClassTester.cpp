@@ -14,6 +14,7 @@
 #include "../Util/MessageOrigin.h"
 #include "../Util/ResourceBooking.h"
 #include "../Util/PasswordBreachCheck.h"
+#include "../Util/ObjectStoreSignature.h"
 #include "../Util/ContentPolicy.h"
 #include "../Util/WebPush.h"
 #include "../Util/PushSubscriptions.h"
@@ -500,6 +501,16 @@ namespace HM
       // magic kept as a container with no stages. Functions of values only.
       OutputDebugString(_T("hMailServer: Testing MessageStoreFormat\n"));
       MessageStoreFormat::Test();
+
+      // The object store's request signatures (docs/ObjectStorage.md): AWS
+      // Signature Version 4 against AWS's own test suite - the get-vanilla
+      // family - and the four S3 examples of its documentation, and Azure's
+      // Shared Key against a string to sign written out from the
+      // specification. Functions of values only; platform/
+      // object_store_signature_tests_main.cpp runs the same on Linux.
+      OutputDebugString(_T("hMailServer: Testing ObjectStoreSignature\n"));
+      ObjectStoreSignatureTester objectStoreSignatureTester;
+      objectStoreSignatureTester.Test();
 
       // Mailbox encryption at rest (docs/EncryptionAtRest.md): X25519 against
       // RFC 7748's vector, HKDF-SHA256 against RFC 5869's, and every seal and

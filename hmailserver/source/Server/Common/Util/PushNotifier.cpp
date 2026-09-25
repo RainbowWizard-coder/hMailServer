@@ -18,6 +18,7 @@
 #include "../BO/Message.h"
 #include "../Cache/CacheContainer.h"
 #include "../Mime/Mime.h"
+#include "../Persistence/MessageStore.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
@@ -293,7 +294,7 @@ namespace HM
    String
    PushNotifier::SubjectOf_(const String &fileName)
    {
-      if (fileName.IsEmpty() || !FileUtilities::Exists(fileName))
+      if (fileName.IsEmpty() || !MessageStore::Exists(fileName))
          return String();
 
       AnsiString header = PersistentMessage::LoadHeader(fileName, false);

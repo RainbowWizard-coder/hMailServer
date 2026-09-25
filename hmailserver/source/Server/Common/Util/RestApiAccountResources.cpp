@@ -987,7 +987,7 @@ namespace
    // valid whatever an old client wrote in a header.
    AnsiString HeaderJson(const Bridge &bridge, const String &fileName)
    {
-      AnsiString header = FileUtilities::Exists(fileName) ? PersistentMessage::LoadHeader(fileName, false) : AnsiString();
+      AnsiString header = MessageStore::Exists(fileName) ? PersistentMessage::LoadHeader(fileName, false) : AnsiString();
       if (header.GetLength() > MaxHeaderBytes)
          header = header.Mid(0, MaxHeaderBytes);
 
@@ -1206,7 +1206,9 @@ namespace
       message->SetState(Message::Delivered);
       if (!PersistentMessage::SaveObject(message))
       {
-         FileUtilities::DeleteFile(fileName);
+         // Through the store, which finds a message of a mailbox encrypted at
+         // rest where WriteForAccount wrote it (docs/ObjectStorage.md).
+         MessageStore::DiscardWorkingFile(fileName);
          return Refusal(bridge, 500, "the message could not be stored; see the error log");
       }
 
@@ -1231,7 +1233,7 @@ namespace
 
       AnsiString json = "{" + RowFields(bridge, row) +
          ",\"file\":\"" + bridge.escape(Utf8(fileName)) + "\"" +
-         ",\"file_exists\":" + (FileUtilities::Exists(fileName) ? "true" : "false") +
+         ",\"file_exists\":" + (MessageStore::Exists(fileName) ? "true" : "false") +
          HeaderJson(bridge, fileName) + "}";
       return bridge.respond(200, json, "");
    }
@@ -1244,8 +1246,13 @@ namespace
          return Refusal(bridge, 404, "message not found");
 
       const String fileName = PersistentMessage::GetFileName(account, row);
-      if (!FileUtilities::Exists(fileName))
+      MessageStore::ClearUnavailable();
+      if (!MessageStore::Exists(fileName))
+      {
+         if (MessageStore::Unavailable())
+            return Refusal(bridge, 503, "the message store cannot be reached just now; try again in a moment");
          return Refusal(bridge, 404, "the message file is missing");
+      }
 
       if ((__int64) MessageStore::FileSize(fileName) > MaxMessageBytes)
          return Refusal(bridge, 413, "the message is larger than 16 MB; fetch it with a mail client");

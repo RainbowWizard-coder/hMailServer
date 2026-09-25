@@ -474,6 +474,12 @@ namespace HM
       // of the command is correct. If we fail now, we should return NO.
       IMAPResult result = command_->DoForMails(pConnection, sMailNo, pArgument);
 
+      // A FETCH that left out messages the object store has lost fetched the
+      // others, and ends NO (docs/ObjectStorage.md).
+      std::shared_ptr<IMAPFetch> fetch = std::dynamic_pointer_cast<IMAPFetch>(command_);
+      if (result.GetResult() == IMAPResult::ResultOK && fetch && fetch->GetLost() > 0)
+         return IMAPResult(IMAPResult::ResultNo, "Some of the messages are missing from the message store; the others were fetched.");
+
       if (result.GetResult() == IMAPResult::ResultOK)
       {
          pConnection->SendAsciiData(pArgument->Tag() + " OK " + command_->GetUIDPlusResponseCode() + command_->GetConditionalStoreResponseCode() + "UID completed\r\n");

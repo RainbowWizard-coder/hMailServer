@@ -68,13 +68,17 @@
 // WHAT THE ROWS AFTER THIS ONE BUILD ON
 //
 // The writer is a chain of stages over a backend. The backend is where stored
-// bytes live - the local file system, MessageStoreBackend below, is the one
-// there is - and an object store is another. The stages are what is done to a
-// message's bytes on the way to the backend and undone on the way back; see
-// docs/MessageStore.md for the chain and the container that names it. The
-// listed sites and the working-file paths are what those rows audit: a working
-// file is a local path by construction today, and each of its listed callers
-// is a place a key-based backend has to hand a temporary file to instead.
+// bytes live - the local file system, MessageStoreBackend below, and an object
+// store, S3-compatible or Azure Blob Storage (MessageStoreObjects.h,
+// docs/ObjectStorage.md). The stages are what is done to a message's bytes on
+// the way to the backend and undone on the way back; see docs/MessageStore.md
+// for the chain and the container that names it. A working file is a local path
+// on either backend: an object store places every message on the local disk as
+// the file system does, reads a name there before it asks the store, and puts
+// it into the store afterwards (Commit, the committer), so every listed caller
+// that hands a working file to something by path goes on doing so; a stored
+// message a listed site must hand over by path is written out to a temporary
+// file (PlainFileFor).
 
 #pragma once
 
@@ -143,6 +147,26 @@ namespace HM
       // how many names it has (a file's hard links). False when it cannot be
       // asked.
       virtual bool Identity(const String &name, AnsiString &identity, unsigned int &names) = 0;
+
+      // ---- What an object store answers differently (MessageStoreObjects.h) --
+      //
+      // The local file system answers these as they are written here. An
+      // object store keeps a working file on the local disk until it is
+      // committed, and reads a name there before it asks the store.
+
+      // Whether the name is a file on the local disk, readable by path.
+      virtual bool IsLocal(const String &) { return true; }
+
+      // A stored message's file on the local disk, whose row is saved, handed
+      // on to be made a stored one: for an object store, queued for the
+      // committer, which puts it into the store and then removes it from the
+      // disk. Never waits for the store, and never fails the caller: a file the
+      // store does not take stays on the disk, where it is read from.
+      virtual void Commit(const String &) {}
+
+      // Every name under a directory, however deep: its files, and on an
+      // object store its objects too. False when they could not all be listed.
+      virtual bool List(const String &directory, std::vector<String> &names);
    };
 
    // A message's ORIGINAL bytes, whatever the stored file holds: the reader
@@ -254,8 +278,51 @@ namespace HM
    {
    public:
 
-      // The backend the stored bytes live in: the local file system.
+      // The backend the stored bytes live in: the object store while one is
+      // configured (MessageStoreObjects::Active), else the local file system.
       static MessageStoreBackend &Backend();
+
+      // The local file system, whichever backend holds the stored messages:
+      // what the object store's backend reads a working file with.
+      static MessageStoreBackend &LocalBackend();
+
+      // ---- An object store (docs/ObjectStorage.md) ------------------------------
+      //
+      // None of these does anything on the local file system, the default.
+
+      // A stored message's file, whose row is saved, handed to the object
+      // store's committer when that is where new mail goes: every placed
+      // message stays on the local disk - where it is read from - until the
+      // committer has put it into the store, a minute or so later, retrying
+      // with a backoff for as long as the store does not take it (reported once
+      // an hour, HM7473). PersistentMessage::SaveObject asks it for every
+      // delivered message it saves; placing never waits for the store.
+      static void Commit(const String &messageFile);
+
+      // The stored messages under one directory moved under another: an
+      // account renamed, or moved to another domain (MessageStoreObjects::
+      // MoveTree). The directory on the local disk is its callers' to move.
+      static bool MoveTree(const String &fromDirectory, const String &toDirectory, unsigned int &moved, String &problem);
+
+      // Whether a door failed on this thread because the object store could
+      // not answer for a message - not reached, this server's credentials
+      // refused, or any answer but the object or a confirmed 404 - a condition
+      // outside the message, answered as a temporary one: IMAP NO
+      // [UNAVAILABLE], POP3 -ERR [SYS/TEMP], REST 503 - rather than as a
+      // missing or damaged message. Never on the local file system.
+      // ClearUnavailable before the doors, Unavailable after them;
+      // NoteUnavailable is the backend's.
+      static bool Unavailable();
+      static void ClearUnavailable();
+      static void NoteUnavailable();
+
+      // Whether a door found on this thread a message the object store
+      // confirms it does not have (MessageStoreObjects::ReportMissing): gone
+      // for good, where Unavailable is for now. Noted with Unavailable, which
+      // every door answers already; ClearUnavailable clears both. IMAP's FETCH
+      // leaves such a message out of its answer and fetches the rest.
+      static bool Missing();
+      static void NoteMissing();
 
       // ---- The working file --------------------------------------------------
       //
@@ -529,6 +596,7 @@ namespace HM
       };
 
       static PlaceOutcome PlaceFile_(const String &messageFile, bool compress, unsigned __int64 dedupMinimumBytes, String &problem);
+
       static bool PlaceWorkingFile_(const String &messageFile, bool compress, bool &changed);
 
       // The working file encrypted to publicKey in place, and its plaintext

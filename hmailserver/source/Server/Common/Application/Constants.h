@@ -143,6 +143,26 @@
 // nothing once).
 #define PROPERTY_MESSAGE_STORE_COMPRESSION      _T("MessageStoreCompression")
 #define PROPERTY_MESSAGE_STORE_DEDUP_MIN_KB     _T("MessageStoreDedupMinKB")
+// The message store on an object store (Persistence/MessageStoreObjects.h,
+// docs/ObjectStorage.md): where a placed message goes, file or object, file;
+// the store, none, s3 or azure, none; its endpoint, signing region, bucket or
+// container, addressing (auto, path or virtual), key prefix and credentials -
+// the access key id or the Azure account name, the secret access key or the
+// Azure account key (protected), and an Azure SAS (protected); a CA file for a
+// store behind a private CA; and how many MB of what was read a moment ago are
+// kept, 32. Nothing here does anything while the service is none.
+#define PROPERTY_MESSAGE_STORE_BACKEND            _T("MessageStoreBackend")
+#define PROPERTY_MESSAGE_STORE_OBJECT_SERVICE     _T("MessageStoreObjectService")
+#define PROPERTY_MESSAGE_STORE_OBJECT_ENDPOINT    _T("MessageStoreObjectEndpoint")
+#define PROPERTY_MESSAGE_STORE_OBJECT_REGION      _T("MessageStoreObjectRegion")
+#define PROPERTY_MESSAGE_STORE_OBJECT_BUCKET      _T("MessageStoreObjectBucket")
+#define PROPERTY_MESSAGE_STORE_OBJECT_ADDRESSING  _T("MessageStoreObjectAddressing")
+#define PROPERTY_MESSAGE_STORE_OBJECT_PREFIX      _T("MessageStoreObjectPrefix")
+#define PROPERTY_MESSAGE_STORE_OBJECT_ACCESS_KEY  _T("MessageStoreObjectAccessKey")
+#define PROPERTY_MESSAGE_STORE_OBJECT_SECRET      _T("MessageStoreObjectSecret")
+#define PROPERTY_MESSAGE_STORE_OBJECT_SAS         _T("MessageStoreObjectSasToken")
+#define PROPERTY_MESSAGE_STORE_OBJECT_CA_FILE     _T("MessageStoreObjectCaFile")
+#define PROPERTY_MESSAGE_STORE_OBJECT_CACHE_MB    _T("MessageStoreObjectCacheMB")
 #define PROPERTY_MAX_NUMBER_OF_ASYNC_TASKS      _T("MaxNumberOfAsynchronousTasks")
 
 #define PROPERTY_BYPASS_GREYLISTING_ON_SPFSUCCESS  _T("BypassGreylistingOnSPFSuccess")

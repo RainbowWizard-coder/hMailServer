@@ -94,6 +94,9 @@ namespace HM
          parser_->GetShowPreview() ||
          parser_->GetPartsToLookAt().size() > 0;
 
+      // Whatever an earlier message on this thread met.
+      MessageStore::ClearUnavailable();
+
       if (willReadMessageFile)
       {
          // Ensure that the data file exists.
@@ -101,6 +104,22 @@ namespace HM
          // above. Asking under the reader's directory would find nothing and
          // rewrite the delegate a placeholder over the owner's mail.
          PersistentMessage::EnsureFileExistance(pConnection->GetAccountOwningCurrentFolder(), pMessage);
+
+         // Lost from the object store for good (HM7476): nothing of this
+         // message is sent, the rest of the range is fetched, and the command
+         // ends NO (docs/ObjectStorage.md).
+         if (MessageStore::Missing())
+         {
+            lost_++;
+            return IMAPResult();
+         }
+
+         // The object store the message is kept in did not answer
+         // (docs/ObjectStorage.md): asked here, before a byte of this message's
+         // response is sent, and answered as RFC 5530 says a subsystem that is
+         // down is - the client keeps what it has and asks again.
+         if (MessageStore::Unavailable())
+            return IMAPResult(IMAPResult::ResultNo, "[UNAVAILABLE] The message store cannot be reached just now. Try again in a moment.");
       }
 
       MimeHeader oMimeHeader;
@@ -252,11 +271,28 @@ namespace HM
 
       }
 
+      // Sometimes we need to load the entire mail into memory.
+      // If the user want's to download a specific attachment or
+      // if he wants to look at the structure of the mime message.
+      //
+      // Loaded here, before a byte of this message's response is sent: an
+      // object store that stopped answering after the existence check above
+      // leaves an empty header and an empty structure, which a client would
+      // cache as the message's for good (docs/ObjectStorage.md). Answered NO
+      // [UNAVAILABLE] instead, as the check above answers it.
+      std::shared_ptr<MimeBody> pMimeBody = LoadMimeBody_(parser_, messageFileName);
+
+      if (willReadMessageFile && MessageStore::Unavailable())
+         return IMAPResult(IMAPResult::ResultNo, "[UNAVAILABLE] The message store cannot be reached just now. Try again in a moment.");
+
       // RFC 8970: a server-generated snippet of the message body, so a client
       // can render its message list without fetching any bodies.
       if (parser_->GetShowPreview())
       {
          String previewText = CreatePreviewText_(pConnection, pMessage);
+
+         if (willReadMessageFile && MessageStore::Unavailable())
+            return IMAPResult(IMAPResult::ResultNo, "[UNAVAILABLE] The message store cannot be reached just now. Try again in a moment.");
 
          AnsiString previewUtf8;
          Unicode::WideToMultiByte(previewText, previewUtf8);
@@ -286,13 +322,6 @@ namespace HM
          pConnection->EnqueueWrite(pPreviewBuffer);
       }
 
-
-
-      // Sometimes we need to load the entire mail into memory.
-      // If the user want's to download a specific attachment or
-      // if he wants to look at the structure of the mime message.
-      std::shared_ptr<MimeBody> pMimeBody = LoadMimeBody_(parser_, messageFileName);
-      
       if (parser_->GetShowBodyStructure() ||
           parser_->GetShowBodyStructureNonExtensible())
       {
@@ -333,6 +362,8 @@ namespace HM
             }
             catch (const std::exception &)
             {
+               if (MessageStore::Unavailable())
+                  return IMAPResult(IMAPResult::ResultNo, "[UNAVAILABLE] The message store cannot be reached just now. Try again in a moment.");
                return IMAPResult(IMAPResult::ResultNo, "The message could not be read.");
             }
             

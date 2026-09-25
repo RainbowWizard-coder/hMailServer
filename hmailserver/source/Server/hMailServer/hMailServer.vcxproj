@@ -442,6 +442,8 @@ EXIT 0
     <ClCompile Include="..\Common\Persistence\MessageStoreBlobs.cpp" />
     <ClCompile Include="..\Common\Persistence\MessageStoreFormat.cpp" />
     <ClCompile Include="..\Common\Persistence\MessageStoreMaintenance.cpp" />
+    <ClCompile Include="..\Common\Persistence\MessageStoreObjectClient.cpp" />
+    <ClCompile Include="..\Common\Persistence\MessageStoreObjects.cpp" />
     <ClCompile Include="..\Common\Persistence\SchemaUpgrader.cpp" />
     <ClCompile Include="..\Common\Persistence\NameChanger.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentAccount.cpp" />
@@ -583,6 +585,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\ClientCertificateIdentity.cpp" />
     <ClCompile Include="..\Common\Util\GssapiAcceptor.cpp" />
     <ClCompile Include="..\Common\Util\HttpsClient.cpp" />
+    <ClCompile Include="..\Common\Util\ObjectStoreSignature.cpp" />
     <ClCompile Include="..\Common\Util\JsonDocument.cpp" />
     <ClCompile Include="..\Common\Util\UpdateChecker.cpp" />
     <ClCompile Include="..\Common\Util\SigstoreVerifier.cpp" />
@@ -1421,6 +1424,8 @@ EXIT 0
     <ClInclude Include="..\Common\Persistence\MessageStoreBlobs.h" />
     <ClInclude Include="..\Common\Persistence\MessageStoreFormat.h" />
     <ClInclude Include="..\Common\Persistence\MessageStoreMaintenance.h" />
+    <ClInclude Include="..\Common\Persistence\MessageStoreObjectClient.h" />
+    <ClInclude Include="..\Common\Persistence\MessageStoreObjects.h" />
     <ClInclude Include="..\Common\Persistence\SchemaUpgrader.h" />
     <ClInclude Include="..\Common\Persistence\NameChanger.h" />
     <ClInclude Include="..\Common\Persistence\PersistenceMode.h" />
@@ -1580,6 +1585,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\OAuth2TokenValidator.h" />
     <ClInclude Include="..\Common\Util\ClientCertificateIdentity.h" />
     <ClInclude Include="..\Common\Util\HttpsClient.h" />
+    <ClInclude Include="..\Common\Util\ObjectStoreSignature.h" />
     <ClInclude Include="..\Common\Util\JsonDocument.h" />
     <ClInclude Include="..\Common\Util\UpdateChecker.h" />
     <ClInclude Include="..\Common\Util\SigstoreVerifier.h" />

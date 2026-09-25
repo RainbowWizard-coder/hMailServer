@@ -35,6 +35,7 @@
 #include "../Cache/CacheContainer.h"
 
 #include "NameChanger.h"
+#include "MessageStoreObjects.h"
 
 #include "PreSaveLimitationsCheck.h"
 #include "PersistenceMode.h"
@@ -966,6 +967,29 @@ namespace HM
 
       // Refresh the BO cache
       CacheContainer::Instance()->RemoveDomain(pDomain);
+
+      // The late arrivals of a rename on an object store (docs/ObjectStorage.md):
+      // mail delivered under the old name while the domain's tree was moved -
+      // which recreated the old directory - on the local disk, or in the store
+      // under the old keys already. Moved across once the row and the cache
+      // carry the new name, as a mailbox move sweeps its own. Nothing while no
+      // store is named.
+      if (bRetVal && !renamedFromDomainName.IsEmpty())
+      {
+         const String dataDirectory = IniFileSettings::Instance()->GetDataDirectory();
+         const String oldDirectory = FileUtilities::Combine(dataDirectory, StoreDirectoryName(renamedFromDomainName));
+         const String newDirectory = FileUtilities::Combine(dataDirectory, StoreDirectoryName(pDomain->GetName()));
+
+         unsigned int lateMoved = 0;
+         String lateProblem;
+         if (!MessageStoreObjects::SweepLateArrivals(oldDirectory, newDirectory, lateMoved, lateProblem))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 7478, "PersistentDomain::SaveObject",
+               Formatter::Format(_T("The domain {0} was renamed to {1}, but mail delivered under the old name while the rename ran could not all be carried across: {2} ")
+                                 _T("Those messages are left under {3}, never under neither; they are listed for their mailboxes and cannot be read until they are moved into {4}."),
+                                 renamedFromDomainName, pDomain->GetName(), lateProblem, oldDirectory, newDirectory));
+         }
+      }
 
       return bRetVal;
    }

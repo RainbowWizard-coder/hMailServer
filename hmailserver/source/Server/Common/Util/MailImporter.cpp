@@ -298,7 +298,10 @@ namespace HM
       {
          if (restorable && !original.empty())
          {
-            if (!MessageStore::Backend().WriteAtomically(newFullPath, original))
+            // On the local disk, where the next import looks for it - never
+            // handed to an object store's committer, which would take it off
+            // the disk with no row to name it (docs/ObjectStorage.md).
+            if (!MessageStore::LocalBackend().WriteAtomically(newFullPath, original))
             {
                ErrorManager::Instance()->ReportError(ErrorManager::Medium, MailboxKeys::CodePlace, "MailImporter::Import",
                   "The message " + newFullPath + " was stored for an import and its row could not be saved, and the file could not be put back as it was: it holds the stored form, which a later import refuses.");

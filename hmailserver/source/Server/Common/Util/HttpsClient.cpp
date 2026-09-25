@@ -15,6 +15,9 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 
+#include <openssl/x509.h>
+#include <openssl/x509v3.h>
+
 #include <chrono>
 #include <condition_variable>
 #include <cstdlib>
@@ -639,6 +642,44 @@ namespace HM
          return !notAddress;
       }
 
+      // The verification RequestTrusting asks for when it is given a CA file: the
+      // chain is OpenSSL's, built to the certificates that file holds (loaded
+      // into the context beside the default paths), and the leaf must be for
+      // the host - its name, or its address when the endpoint is written as an
+      // address, which X509_check_host never matches - and be a TLS server's.
+      // The same three questions CertificateVerifier asks on Linux, asked here on
+      // both platforms, since on Windows that one asks the machine's root store,
+      // which holds no private CA.
+      struct TrustAnchorFileVerifier
+      {
+         explicit TrustAnchorFileVerifier(const AnsiString &host) : host_(host) {}
+
+         bool operator()(bool preverified, boost::asio::ssl::verify_context &ctx) const
+         {
+            if (!preverified)
+               return false;
+
+            X509_STORE_CTX *storeContext = ctx.native_handle();
+            if (X509_STORE_CTX_get_error_depth(storeContext) > 0)
+               return true;
+
+            X509 *certificate = X509_STORE_CTX_get_current_cert(storeContext);
+            if (certificate == nullptr)
+               return false;
+
+            boost::system::error_code notAddress;
+            const boost::asio::ip::address literal = boost::asio::ip::make_address(std::string(host_.c_str()), notAddress);
+            const bool isAddress = !notAddress && (literal.is_v4() || literal.is_v6());
+            const bool matches = isAddress
+               ? ::X509_check_ip_asc(certificate, host_.c_str(), 0) == 1
+               : ::X509_check_host(certificate, host_.c_str(), (size_t) host_.GetLength(), 0, nullptr) == 1;
+
+            return matches && ::X509_check_purpose(certificate, X509_PURPOSE_SSL_SERVER, 0) == 1;
+         }
+
+         AnsiString host_;
+      };
+
       // The request-target for the request line: the path, or through a proxy for
       // plain http the absolute URL, which is how a forward proxy is told where to go.
       AnsiString RequestTarget_(const AnsiString &host, const AnsiString &port, const AnsiString &path, bool https, bool via_proxy)
@@ -782,6 +823,15 @@ namespace HM
    }
 
    bool
+   HttpsClient::RequestTrusting(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
+                                const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
+                                int timeout_seconds, size_t max_response_bytes, const String &ca_file)
+   {
+      return Request_(method, url, extra_headers, content_type, body, response, error, timeout_seconds, max_response_bytes, false, false,
+                      false, &ca_file);
+   }
+
+   bool
    HttpsClient::HostIsNotLinkLocal(const AnsiString &host, bool &resolved, String &error)
    {
       resolved = false;
@@ -857,8 +907,11 @@ namespace HM
    HttpsClient::Request_(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
                          const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
                          int timeout_seconds, size_t max_response_bytes, bool public_only, bool not_link_local,
-                         bool keep_head_of_long_answer)
+                         bool keep_head_of_long_answer, const String *ca_file)
    {
+      // RequestTrusting's CA file, when it named one.
+      const bool trustFile = ca_file != nullptr && !ca_file->IsEmpty();
+
       bool https = false;
       AnsiString host, port, path;
       if (!ParseUrl(url, https, host, port, path))
@@ -940,15 +993,42 @@ namespace HM
             // protocol toggles allow, since there is no 2008-era CA, token issuer or
             // policy host to accommodate.
             sslContext.set_options(HM_TLS_CONTEXT_FLOOR);
+
+            // RequestTrusting's CA file is trusted beside the system's bundle on
+            // POSIX, and alone on Windows: there the default paths are the
+            // OpenSSL directory compiled in on the build machine, a path someone
+            // on this one may be able to create and fill with a certificate of
+            // their own. Without a CA file nothing changes - CertificateVerifier
+            // asks the machine's root store on Windows.
+#ifdef HM_PLATFORM_POSIX
             sslContext.set_default_verify_paths();
+#else
+            if (!trustFile)
+               sslContext.set_default_verify_paths();
+#endif
             SslContextInitializer::InitClient(sslContext, false);
+
+            if (trustFile)
+            {
+               const AnsiString narrowCaFile = ca_file->c_str();
+               boost::system::error_code loaded;
+               sslContext.load_verify_file(std::string(narrowCaFile.c_str()), loaded);
+               if (loaded)
+               {
+                  error = "The CA file " + *ca_file + " could not be read as PEM certificates: " + String(loaded.message().c_str());
+                  return false;
+               }
+            }
 
             boost::asio::ssl::stream<boost::asio::ip::tcp::socket> stream(ioContext, sslContext);
             if (!Connect_(ioContext, stream.next_layer(), host, port, true, proxyHost, proxyPort, deadline, error, public_only, not_link_local))
                return false;
 
             stream.set_verify_mode(boost::asio::ssl::verify_peer);
-            stream.set_verify_callback(CertificateVerifier(0, CSSSL, String(host)));
+            if (trustFile)
+               stream.set_verify_callback(TrustAnchorFileVerifier(host));
+            else
+               stream.set_verify_callback(CertificateVerifier(0, CSSSL, String(host)));
 
             // No server name for an endpoint given by its address: RFC 6066 section 3
             // allows only a host name there, and a server that holds to it refuses

@@ -6,6 +6,7 @@
 
 #include "MessageStoreMaintenance.h"
 #include "MessageStore.h"
+#include "MessageStoreObjects.h"
 #include "MessageStoreBlobs.h"
 #include "MessageStoreFormat.h"
 #include "PersistentAccount.h"
@@ -907,7 +908,12 @@ namespace HM
             file.zero_access = recordset->GetLongValue("accountzeroaccess") == 1;
             file.account_id = recordset->GetInt64Value("rcaccountid");
             file.path = FileUtilities::Combine(root, relative);
-            if (FileUtilities::Exists(file.path))
+
+            // Asked of the store: a kept copy an object store holds has no file
+            // (docs/ObjectStorage.md). One the store could not be asked about
+            // is not taken for gone.
+            MessageStore::ClearUnavailable();
+            if (MessageStore::Exists(file.path) || MessageStore::Unavailable())
                files.push_back(file);
          }
 
@@ -917,25 +923,16 @@ namespace HM
       return true;
    }
 
-   void
+   bool
    MessageStoreMaintenance::ListKeptFiles(std::vector<String> &files)
    {
       files.clear();
 
       const String root = FileUtilities::Combine(IniFileSettings::Instance()->GetDataDirectory(), _T("Recoverable"));
 
-      boost::system::error_code error;
-      const boost::filesystem::path rootPath(std::wstring(root.c_str()));
-      if (!boost::filesystem::is_directory(rootPath, error) || error)
-         return;
-
-      for (boost::filesystem::recursive_directory_iterator entry(rootPath, error);
-           !error && entry != boost::filesystem::recursive_directory_iterator(); entry.increment(error))
-      {
-         boost::system::error_code fileError;
-         if (boost::filesystem::is_regular_file(entry->path(), fileError) && !fileError)
-            files.push_back(String(entry->path().wstring()));
-      }
+      // The files under the root, and on an object store the objects too
+      // (docs/ObjectStorage.md).
+      return MessageStore::Backend().List(root, files);
    }
 
    bool
@@ -966,8 +963,18 @@ namespace HM
       for (size_t i = 0; i < files.size(); i++)
          names.push_back(files[i].path);
 
+      // A count made without every name is a count too low, and an exact one
+      // then lowers and removes the blobs of the names it did not see: a store
+      // that did not answer for any name ends the recount with nothing changed
+      // (docs/ObjectStorage.md).
       std::vector<String> kept;
-      ListKeptFiles(kept);
+      if (!ListKeptFiles(kept))
+      {
+         summary = MessageStoreObjects::Active()
+            ? String(_T("the deleted messages kept for recovery could not all be listed - the object store did not answer - so nothing was counted or changed. Run the recount again when the store answers."))
+            : String(_T("the deleted messages kept for recovery (the Recoverable directory) could not all be read, so nothing was counted or changed."));
+         return false;
+      }
       names.insert(names.end(), kept.begin(), kept.end());
 
       // Every name that references a blob counts it once: a file with several
@@ -975,9 +982,17 @@ namespace HM
       std::map<AnsiString, std::pair<unsigned __int64, __int64> > counts;
       for (size_t i = 0; i < names.size(); i++)
       {
+         MessageStore::ClearUnavailable();
          std::vector<MessageStoreReference> references;
          if (!MessageStore::GetReferences(names[i], references))
+         {
+            if (MessageStore::Unavailable())
+            {
+               summary = _T("the object store did not answer for ") + names[i] + _T(", so nothing was counted or changed. Run the recount again when the store answers.");
+               return false;
+            }
             continue;
+         }
 
          for (size_t r = 0; r < references.size(); r++)
          {
@@ -1011,18 +1026,35 @@ namespace HM
 
       std::set<AnsiString> referenced;
 
+      // A name the object store could not answer for leaves what it
+      // references unknown: no blob is then listed as unreferenced, and none
+      // as missing on the store's silence (docs/ObjectStorage.md).
+      bool complete = true;
+
       for (size_t i = 0; i < files.size(); i++)
       {
+         MessageStore::ClearUnavailable();
          std::vector<MessageStoreReference> references;
          if (!MessageStore::GetReferences(files[i].path, references))
+         {
+            if (MessageStore::Unavailable())
+               complete = false;
             continue;
+         }
 
          for (size_t r = 0; r < references.size(); r++)
          {
             referenced.insert(references[r].sha256);
 
+            MessageStore::ClearUnavailable();
             if (!MessageStoreBlobs::Exists(references[r].sha256))
             {
+               if (MessageStore::Unavailable())
+               {
+                  complete = false;
+                  continue;
+               }
+
                String line;
                line.Format(_T("%I64d\t%s\t%s (blob %s missing)"), files[i].message_id, files[i].account.c_str(),
                   files[i].path.c_str(), String(references[r].sha256).c_str());
@@ -1033,30 +1065,32 @@ namespace HM
       }
 
       std::vector<String> kept;
-      ListKeptFiles(kept);
+      if (!ListKeptFiles(kept))
+         complete = false;
       for (size_t i = 0; i < kept.size(); i++)
       {
+         MessageStore::ClearUnavailable();
          std::vector<MessageStoreReference> references;
          if (MessageStore::GetReferences(kept[i], references))
          {
             for (size_t r = 0; r < references.size(); r++)
                referenced.insert(references[r].sha256);
          }
+         else if (MessageStore::Unavailable())
+            complete = false;
       }
 
-      boost::system::error_code error;
-      const boost::filesystem::path rootPath(std::wstring(root.c_str()));
-      if (!boost::filesystem::is_directory(rootPath, error) || error)
+      if (!complete)
          return;
 
-      for (boost::filesystem::recursive_directory_iterator entry(rootPath, error);
-           !error && entry != boost::filesystem::recursive_directory_iterator(); entry.increment(error))
+      // The blobs on the disk, and on an object store in it too
+      // (docs/ObjectStorage.md): the file name is the blob's SHA-256.
+      std::vector<String> blobFiles;
+      if (!MessageStore::Backend().List(root, blobFiles))
+         return;
+      for (size_t i = 0; i < blobFiles.size(); i++)
       {
-         boost::system::error_code fileError;
-         if (!boost::filesystem::is_regular_file(entry->path(), fileError) || fileError)
-            continue;
-
-         const AnsiString name = AnsiString(String(entry->path().filename().wstring()));
+         const AnsiString name = AnsiString(FileUtilities::GetFileNameFromFullPath(blobFiles[i]));
          if (name.size() == 64 && referenced.find(name) == referenced.end())
             unreferenced.push_back(name);
       }

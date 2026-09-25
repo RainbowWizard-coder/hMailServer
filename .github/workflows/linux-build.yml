@@ -197,6 +197,13 @@ jobs:
       - name: The SNMP agent's decoder and engine
         run: ./build/linux/snmp-tests
 
+      # The object store's request signatures (Common/Util/ObjectStoreSignature.h,
+      # docs/ObjectStorage.md): AWS Signature Version 4 against AWS's own test
+      # suite and the S3 examples, and Azure's Shared Key. No network; the same
+      # tester runs inside hMailServer.exe on Windows through ClassTester.
+      - name: The object store's request signatures
+        run: ./build/linux/object-store-signature-tests
+
       # The one OpenPGP message this server writes - a zero-access mailbox's
       # delivery, encrypted to the mailbox's own key (Common/Util/OpenPgpWriter,
       # docs/ZeroAccess.md) - handed to an implementation that is not this one.

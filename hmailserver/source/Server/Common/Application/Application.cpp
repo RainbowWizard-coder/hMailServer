@@ -96,6 +96,7 @@
 #include "../Util/UpdateChecker.h"
 #include "IMAPExpungeRetentionTask.h"
 #include "MessageStoreConsistencyTask.h"
+#include "../Persistence/MessageStoreObjects.h"
 #include "WorkQueueHealthTask.h"
 #include "BounceMaintenanceTask.h"
 #include "ComplaintMaintenanceTask.h"
@@ -1202,6 +1203,11 @@ namespace HM
       consistencyTask->SetReoccurance(ScheduledTask::RunInfinitely);
       consistencyTask->SetMinutesBetweenRun(60);
       scheduler_->ScheduleTask(consistencyTask);
+
+      // The object store's committer (docs/ObjectStorage.md): every minute, the
+      // messages placed on the local disk and handed over are put into the store
+      // on the maintenance queue. Returns at once while no store is written to.
+      scheduler_->ScheduleTask(MessageStoreObjects::CommitTask());
 
       // Names the tasks holding the message-acknowledgement threads if they are
       // ever all busy at once with work queued behind them. Runs on the

@@ -6,6 +6,7 @@
 
 #include "PersistentMessage.h"
 #include "MessageStore.h"
+#include "MessageStoreObjects.h"
 #include "../Util/StorePath.h"
 #include "../Application/IniFileSettings.h"
 #include "../Util/Strings/Formatter.h"
@@ -82,6 +83,65 @@ namespace
 
 namespace HM
 {
+   namespace
+   {
+      // The header of a message an object store keeps, which has no file to
+      // open (docs/ObjectStorage.md): what LoadHeader answers for a file - up
+      // to and including the first CRLF of the blank line, or all of it when
+      // there is none - read through the store, and a container's through its
+      // own door, as LoadHeader's own read does.
+      AnsiString HeaderOfObject(const String &fileName, bool reportError)
+      {
+         const unsigned __int64 headerRead = 64 * 1024;
+
+         AnsiString start;
+         if (!MessageStore::Backend().ReadAll(fileName, start, headerRead))
+         {
+            if (reportError)
+            {
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 4403, "PersistentMessage::LoadHeader",
+                  "Could not read the message header, since the message could not be read from the object store. File: " + fileName);
+            }
+            return AnsiString();
+         }
+
+         if (MessageStoreFormat::HasMagic(start.data(), start.size()) && MessageStore::MayHoldContainer(fileName))
+            return MessageStore::ReadHeaderOfContainer(fileName, reportError);
+
+         int end = start.Find("\r\n\r\n");
+         if (end < 0 && (unsigned __int64) start.size() >= headerRead)
+         {
+            // A header longer than the first read: the whole message.
+            if (!MessageStore::Backend().ReadAll(fileName, start, 0))
+               return AnsiString();
+            end = start.Find("\r\n\r\n");
+         }
+
+         if (end < 0)
+            return start;
+
+         return start.Left(end + 2);
+      }
+
+      // What LoadBody answers for a message an object store keeps: the whole
+      // message through the store, and what follows the blank line.
+      AnsiString BodyOfObject(const String &fileName)
+      {
+         AnsiString whole;
+         if (!MessageStore::ReadAll(fileName, whole))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 4403, "PersistentMessage::LoadBody", "Could not read the message body, since the message could not be read from the object store. File: " + fileName);
+            return "";
+         }
+
+         const int end = whole.Find("\r\n\r\n");
+         if (end < 0)
+            return "";
+
+         return whole.Mid(end + 4);
+      }
+   }
+
    PersistentMessage::PersistentMessage()
    {
       
@@ -742,6 +802,24 @@ namespace HM
       if (!AddObject(pMessage))
          return false;
 
+      // A delivered message's file - placed by a delivery, an APPEND or an
+      // import, or written by path by COM's Message.Save, a script, the
+      // webmail's draft, a message put in over REST - handed to the object
+      // store's committer now that its row is saved (docs/ObjectStorage.md):
+      // it is put into the store within a minute or so and only then taken off
+      // the local disk, where it is read from until then. Nothing on the local
+      // file system, and nothing for a file that is not on the disk.
+      if (pMessage->GetState() == Message::Delivered && (pMessage->GetAccountID() > 0 || pMessage->GetFolderID() > 0) &&
+          MessageStoreObjects::WritesToStore())
+      {
+         std::shared_ptr<const Account> owner;
+         if (pMessage->GetAccountID() > 0)
+            owner = CacheContainer::Instance()->GetAccount(pMessage->GetAccountID());
+
+         if (owner || pMessage->GetAccountID() <= 0)
+            MessageStore::Commit(GetFileName(owner, pMessage));
+      }
+
       // A DELIVERED message being saved again is a message whose file may just
       // have been rewritten - the COM API lets a script set Body and Save, and
       // the rules engine edits headers. Its full-text terms now describe
@@ -1044,7 +1122,9 @@ namespace HM
       if (!FileUtilities::Exists(destinationPath))
          FileUtilities::CreateDirectory(destinationPath);
 
-      // Move the old file to the new path.
+      // Move the old file to the new path: a new name, whose row is saved
+      // after this - an object store's committer is handed it then.
+      MessageStoreObjects::Placing placing;
       if (!MessageStore::Rename(sourceLocation, destinationFileName))
          return false;
 
@@ -1068,7 +1148,9 @@ namespace HM
       if (!FileUtilities::Exists(destinationPath))
          FileUtilities::CreateDirectory(destinationPath);
 
-      // Move the old file to the new path.
+      // Move the old file to the new path: a new name, whose row is saved
+      // after this - an object store's committer is handed it then.
+      MessageStoreObjects::Placing placing;
       if (!MessageStore::Rename(sourceLocation, destinationFileName))
          return false;
 
@@ -1079,8 +1161,29 @@ namespace HM
    PersistentMessage::EnsureFileExistance(std::shared_ptr<const Account> account, std::shared_ptr<Message> pMessage)
    {
       String sFileName = GetFileName(account, pMessage);
-      if (FileUtilities::Exists(sFileName))
+
+      // Asked of the store and not of the disk: a message an object store keeps
+      // is there with no file (docs/ObjectStorage.md). And one the store could
+      // not be asked about is not missing: it is never replaced by a
+      // placeholder on the word of a store that did not answer.
+      MessageStore::ClearUnavailable();
+      if (MessageStore::Exists(sFileName) || MessageStore::Unavailable())
          return;
+
+      // Never a placeholder while an object store is named: a 404 there is
+      // not the file system's word that the message is gone - a move under
+      // way, a prefix or a bucket changed and changed back, or a store that
+      // answered 404 for a moment all look the same - and a placeholder saved
+      // would be committed over the message's own key. Said (HM7476), and
+      // answered as a store that did not answer: IMAP NO [UNAVAILABLE], POP3
+      // -ERR [SYS/TEMP].
+      if (MessageStoreObjects::Active())
+      {
+         MessageStoreObjects::ReportMissing(sFileName);
+         MessageStore::NoteUnavailable();
+         MessageStore::NoteMissing();
+         return;
+      }
 
       // File doesn't exist. We need to create it, so that we can deliver
       // something useful to the client. We start of by creating the directory
@@ -1320,7 +1423,10 @@ namespace HM
             String accountAddress = pRS->GetStringValue("accountaddress");
             String fullFileName = GetFileName(accountAddress, message);
 
-            if (!FileUtilities::Exists(fullFileName))
+            // Asked of the store: a message an object store keeps has no file.
+            // One the store could not be asked about is not reported missing.
+            MessageStore::ClearUnavailable();
+            if (!MessageStore::Exists(fullFileName) && !MessageStore::Unavailable())
             {
                String line;
                line.Format(_T("%I64d\t%s\t%s"),
@@ -1425,6 +1531,10 @@ namespace HM
       // not the message's bytes is told apart.
       if (iHeaderReadSize < 64) iHeaderReadSize = 64;
 
+      // A message an object store keeps has no file to open.
+      if (!MessageStore::Backend().IsLocal(fileName))
+         return HeaderOfObject(fileName, reportError);
+
       bool firstRead = true;
 
       String sHeaderData; 
@@ -1453,12 +1563,29 @@ namespace HM
       if (handleFile == INVALID_HANDLE_VALUE || handleFile < 0) 
 #endif
       {
-         if (reportError)
-         {
-            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 4403, "PersistentMessage::LoadHeader", "Could not read the message header, since the file was not available. File: " + fileName);
-         }
+         // Taken off the disk by the object store's committer in the moment
+         // since the question above: read from the store.
+         if (!MessageStore::Backend().IsLocal(fileName))
+            return HeaderOfObject(fileName, reportError);
 
-         return sHeaderData;
+         // Still on the disk: a file renamed over the name in the moment
+         // between - opened once more.
+#ifdef HM_PLATFORM_POSIX
+         handleFile = ::open(narrowFileName.c_str(), O_RDONLY);
+         const bool reopened = handleFile >= 0;
+#else
+         handleFile = CreateFile(fileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+         const bool reopened = handleFile != INVALID_HANDLE_VALUE;
+#endif
+         if (!reopened)
+         {
+            if (reportError)
+            {
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 4403, "PersistentMessage::LoadHeader", "Could not read the message header, since the file was not available. File: " + fileName);
+            }
+
+            return sHeaderData;
+         }
       }
 
       int iHeaderEnd = -1;
@@ -1554,6 +1681,10 @@ namespace HM
       // As in LoadHeader: enough for the first read to hold a container's magic.
       if (iBodyReadSize < 64) iBodyReadSize = 64;
 
+      // A message an object store keeps has no file to open.
+      if (!MessageStore::Backend().IsLocal(fileName))
+         return BodyOfObject(fileName);
+
       bool firstRead = true;
 
 #ifdef HM_PLATFORM_POSIX
@@ -1576,8 +1707,25 @@ namespace HM
       if (handleFile == INVALID_HANDLE_VALUE || handleFile < 0) 
 #endif
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 4403, "PersistentMessage::LoadBody", "Could not read the message body, since the file was not available. File: " + fileName);
-         return "";
+         // Taken off the disk by the object store's committer in the moment
+         // since the question above: read from the store.
+         if (!MessageStore::Backend().IsLocal(fileName))
+            return BodyOfObject(fileName);
+
+         // Still on the disk: a file renamed over the name in the moment
+         // between - opened once more.
+#ifdef HM_PLATFORM_POSIX
+         handleFile = ::open(narrowFileName.c_str(), O_RDONLY);
+         const bool reopened = handleFile >= 0;
+#else
+         handleFile = CreateFile(fileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+         const bool reopened = handleFile != INVALID_HANDLE_VALUE;
+#endif
+         if (!reopened)
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 4403, "PersistentMessage::LoadBody", "Could not read the message body, since the file was not available. File: " + fileName);
+            return "";
+         }
       }
 
       int iHeaderEnd = -1;

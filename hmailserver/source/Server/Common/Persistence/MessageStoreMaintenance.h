@@ -96,12 +96,16 @@ namespace HM
       static bool ListStoredFiles(const String &accountAddress, const String &domainName, std::vector<StoredFile> &files, String &problem);
 
       // The files the recover-deleted store keeps, which reference blobs too.
-      static void ListKeptFiles(std::vector<String> &files);
+      // False when they could not all be listed - an object store that did
+      // not answer - which a count made from them must not be made on.
+      static bool ListKeptFiles(std::vector<String> &files);
 
       // The same kept copies (hm_recoverable) as stored files of their accounts
       // - one account's, one domain's accounts', or every account's - for the
       // encryption walks: a mailbox encrypted at rest has its deleted items
-      // encrypted and decrypted with its mail (docs/EncryptionAtRest.md).
+      // encrypted and decrypted with its mail (docs/EncryptionAtRest.md). A
+      // copy the store confirms is gone is left out; one it could not be asked
+      // about is listed, for its caller to meet by name.
       static bool ListKeptFilesOf(const String &accountAddress, const String &domainName, std::vector<StoredFile> &files, String &problem);
 
       // Every blob's count set from the stored files and the kept copies. exact

@@ -369,6 +369,13 @@ namespace HM
           sPropertyName == PROPERTY_SNMP_V2C_COMMUNITY)
          return true;
 
+      // The object store's secret access key, account key and SAS
+      // (docs/ObjectStorage.md). Whoever holds them reads and writes every
+      // message this server keeps there.
+      if (sPropertyName == PROPERTY_MESSAGE_STORE_OBJECT_SECRET ||
+          sPropertyName == PROPERTY_MESSAGE_STORE_OBJECT_SAS)
+         return true;
+
       return false;
    }
 
@@ -449,10 +456,17 @@ namespace HM
          // an older boot count back would let a message recorded since be accepted
          // again, and one onto another server would give two servers one engine.
          // After a restore the passwords are entered again (docs/Snmp.md).
+         // Nor the object store's secret key and SAS token (docs/ObjectStorage.md):
+         // each reads and writes every message in the bucket, this server's
+         // future mail among them, and the archive would carry them in the
+         // clear. After a restore they are entered again; left out, a restore
+         // leaves the ones this server holds as they are.
          if (String(oProperty->GetName()).CompareNoCase(PROPERTY_SNMP_V3_AUTH_PASSWORD) == 0 ||
              String(oProperty->GetName()).CompareNoCase(PROPERTY_SNMP_V3_PRIV_PASSWORD) == 0 ||
              String(oProperty->GetName()).CompareNoCase(PROPERTY_SNMP_V2C_COMMUNITY) == 0 ||
-             SnmpAgent::IsEngineRecord(String(oProperty->GetName())))
+             SnmpAgent::IsEngineRecord(String(oProperty->GetName())) ||
+             String(oProperty->GetName()).CompareNoCase(PROPERTY_MESSAGE_STORE_OBJECT_SECRET) == 0 ||
+             String(oProperty->GetName()).CompareNoCase(PROPERTY_MESSAGE_STORE_OBJECT_SAS) == 0)
          {
             iterProperty++;
             continue;
@@ -522,10 +536,14 @@ namespace HM
 
          // Nor the SNMP agent's secrets and records, which XMLStore leaves out:
          // what this server holds stays.
+         // Nor the object store's secret key and SAS token, which XMLStore
+         // leaves out too.
          if (sName.CompareNoCase(PROPERTY_SNMP_V3_AUTH_PASSWORD) == 0 ||
              sName.CompareNoCase(PROPERTY_SNMP_V3_PRIV_PASSWORD) == 0 ||
              sName.CompareNoCase(PROPERTY_SNMP_V2C_COMMUNITY) == 0 ||
-             SnmpAgent::IsEngineRecord(sName))
+             SnmpAgent::IsEngineRecord(sName) ||
+             sName.CompareNoCase(PROPERTY_MESSAGE_STORE_OBJECT_SECRET) == 0 ||
+             sName.CompareNoCase(PROPERTY_MESSAGE_STORE_OBJECT_SAS) == 0)
             continue;
 
          // The environment's records are this server's deployment, not the archive's,

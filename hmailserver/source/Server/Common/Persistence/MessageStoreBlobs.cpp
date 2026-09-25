@@ -246,6 +246,12 @@ namespace HM
          // hash to the name, when it is not: a blob damaged on disk, or one of
          // the right length and the wrong bytes, would otherwise take this
          // message down with the others that share it.
+         //
+         // An object store that did not answer has said nothing about the blob:
+         // it is written again on the local disk from this message's bytes,
+         // which are the same bytes, and nothing is reported - the committer
+         // puts it into the store over the same bytes later (docs/ObjectStorage.md).
+         MessageStore::ClearUnavailable();
          bool writeIt = !MessageStore::Backend().Exists(path);
          if (!writeIt)
          {
@@ -253,7 +259,8 @@ namespace HM
             String damage;
             if (!Read(reference, existing, damage))
             {
-               ReportBlobError(_T("MessageStoreBlobs::Keep"), "The blob " + path + " was not the part its name says (" + damage + "); it is written again from a message that carries the part.");
+               if (!MessageStore::Unavailable())
+                  ReportBlobError(_T("MessageStoreBlobs::Keep"), "The blob " + path + " was not the part its name says (" + damage + "); it is written again from a message that carries the part.");
                writeIt = true;
             }
          }
@@ -289,7 +296,12 @@ namespace HM
       std::vector<MessageStoreReference> counted;
       for (size_t i = 0; i < references.size(); i++)
       {
-         if (!Exists(references[i].sha256))
+         // A blob a stored message references is counted, and a counted blob
+         // is not removed: one an object store could not be asked about is
+         // taken to be there, so that a copy made while the store is away is
+         // not refused for it (docs/ObjectStorage.md).
+         MessageStore::ClearUnavailable();
+         if (!Exists(references[i].sha256) && !MessageStore::Unavailable())
          {
             problem = "the blob " + String(references[i].sha256) + " it references is missing";
             Release(counted);

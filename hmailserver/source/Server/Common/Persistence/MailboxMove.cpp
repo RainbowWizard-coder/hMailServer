@@ -38,6 +38,8 @@
 #include "PersistentDistributionList.h"
 #include "PersistentDomain.h"
 #include "PersistentMessage.h"
+#include "MessageStore.h"
+#include "MessageStoreObjects.h"
 #include "PreSaveLimitationsCheck.h"
 
 #ifdef _DEBUG
@@ -530,6 +532,17 @@ namespace HM
 
          if (!MoveStore_(oldAddress, wanted, carried, errorMessage))
          {
+            // Something could not be put back (MoveStore_ says so through
+            // carried on a failure): not "nothing was changed", and audited as
+            // a move that failed.
+            if (carried)
+            {
+               ErrorManager::Instance()->ReportError(ErrorManager::High, 6940, "MailboxMove::Perform_", errorMessage);
+               CloseJournal_(journalID, StageRollbackFailed, outcome.messages, errorMessage);
+               leftBehind = true;
+               return false;
+            }
+
             CloseJournal_(journalID, StageRolledBack, outcome.messages,
                           _T("The mailbox was not moved and nothing was changed: ") + errorMessage);
             return false;
@@ -678,10 +691,46 @@ namespace HM
          return false;
       }
 
+      // An object store's messages under the old address, moved under the new
+      // one (docs/ObjectStorage.md): the directory above held none of them. A
+      // failure part way is put back like the Sieve tree's - the objects moved
+      // so far, then the two trees - since the caller keeps the account row at
+      // the old address. What cannot be put back (the store stopped answering)
+      // stays under the new address, never under neither, and the move made
+      // again, which docs/MailboxMove.md tells an administrator to do, carries
+      // the rest across to it.
+      String objectProblem;
+      unsigned int objectsMoved = 0;
+      if (!MessageStore::MoveTree(oldDirectory, newDirectory, objectsMoved, objectProblem))
+      {
+         errorMessage = Formatter::Format("The messages the object store keeps for {0} could not all be moved to {1}: {2}", oldAddress, newAddress, objectProblem);
+
+         unsigned int movedBack = 0;
+         String putBackProblem;
+         if (objectsMoved > 0 && !MessageStore::MoveTree(newDirectory, oldDirectory, movedBack, putBackProblem))
+         {
+            errorMessage += Formatter::Format(" Of the {0} moved before that, {1} could not be moved back ({2}): they are under {3} in the object store until the move is made again.",
+                                              objectsMoved, objectsMoved > movedBack ? objectsMoved - movedBack : 0u, putBackProblem, newAddress);
+            carried = true;
+         }
+
+         String ignored;
+         bool ignoredCarried = false;
+         if (sieveCarried)
+            MoveDirectory_(SieveStorage::GetAccountDirectory(newAddress), SieveStorage::GetAccountDirectory(oldAddress), ignoredCarried, ignored);
+         if (mailboxCarried)
+            MoveDirectory_(newDirectory, oldDirectory, ignoredCarried, ignored);
+
+         // The files on the local disk the committer had not taken yet are
+         // back under the old address, and handed to it there.
+         MessageStoreObjects::CommitTree(oldDirectory);
+         return false;
+      }
+
       // Either tree having moved is something to put back, which is what the
       // caller uses this for; and a mailbox that has no directory of its own but
       // does have a Sieve tree has still had its store moved.
-      carried = mailboxCarried || sieveCarried;
+      carried = mailboxCarried || sieveCarried || objectsMoved > 0;
 
       return true;
    }
@@ -714,32 +763,62 @@ namespace HM
       if (oldDirectory.CompareNoCase(newDirectory) == 0)
          return;
 
-      if (!FileUtilities::Exists(oldDirectory))
-         return;
+      // With an object store named (docs/ObjectStorage.md), its committer is
+      // held off the old directory for the sweep - once no name under it is
+      // being put - so that no late arrival is put under its old name after
+      // the objects under it are listed. Nothing on the local file system.
+      MessageStoreObjects::HoldTree hold(oldDirectory);
 
-      String errorMessage;
-
-      try
+      // The files on the local disk first, then the objects: a late arrival
+      // still on the disk is carried across before the old address's objects
+      // are listed, and one the committer put into the store before the hold is
+      // among those objects.
+      if (FileUtilities::Exists(oldDirectory))
       {
-         if (FileUtilities::CopyDirectory(oldDirectory, newDirectory, errorMessage))
+         String errorMessage;
+         bool carried = false;
+
+         try
          {
-            FileUtilities::DeleteDirectory(oldDirectory, true);
-            return;
+            if (FileUtilities::CopyDirectory(oldDirectory, newDirectory, errorMessage))
+            {
+               FileUtilities::DeleteDirectory(oldDirectory, true);
+
+               // Handed to an object store's committer under their new names;
+               // nothing on the local file system.
+               MessageStoreObjects::CommitTree(newDirectory);
+               carried = true;
+            }
+         }
+         catch (const std::exception &exception)
+         {
+            errorMessage = exception.what();
+         }
+         catch (...)
+         {
+            errorMessage = "An unknown error was raised while copying the directory.";
+         }
+
+         if (!carried)
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 6948, "MailboxMove::SweepLateArrivals_",
+               Formatter::Format(_T("{0} was moved to {1}, but mail delivered to the old address while the move was running is still in {2} and could not be carried across: {3} ")
+                                 _T("Those messages are listed for the mailbox and cannot be read until the files are moved into {4} by hand."),
+                                 oldAddress, newAddress, oldDirectory, errorMessage, newDirectory));
          }
       }
-      catch (const std::exception &exception)
-      {
-         errorMessage = exception.what();
-      }
-      catch (...)
-      {
-         errorMessage = "An unknown error was raised while copying the directory.";
-      }
 
-      ErrorManager::Instance()->ReportError(ErrorManager::High, 6948, "MailboxMove::SweepLateArrivals_",
-         Formatter::Format(_T("{0} was moved to {1}, but mail delivered to the old address while the move was running is still in {2} and could not be carried across: {3} ")
-                           _T("Those messages are listed for the mailbox and cannot be read until the files are moved into {4} by hand."),
-                           oldAddress, newAddress, oldDirectory, errorMessage, newDirectory));
+      // The late arrivals an object store holds under the old address, moved
+      // under the new one.
+      String objectProblem;
+      unsigned int objectsMoved = 0;
+      if (!MessageStore::MoveTree(oldDirectory, newDirectory, objectsMoved, objectProblem))
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 6948, "MailboxMove::SweepLateArrivals_",
+            Formatter::Format(_T("{0} was moved to {1}, but mail delivered to the old address while the move was running and kept in the object store could not all be carried across: {2} ")
+                              _T("Those messages are listed for the mailbox and cannot be read until the move is made again."),
+                              oldAddress, newAddress, objectProblem));
+      }
    }
 
    bool

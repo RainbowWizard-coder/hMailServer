@@ -230,9 +230,10 @@ REQUIRED = [
     "a migrated message is filed without placing it, so one that begins with the magic is read as a container"),
    ("Common/Util/MailImporter.cpp", "if (!MessageStore::PlaceWorkingFileAs(owner, newFullPath, encryption, publicKey, true, refusal))",
     "an imported file is adopted without placing it"),
-   ("Common/Util/MailImporter.cpp", "if (!MessageStore::Backend().WriteAtomically(newFullPath, original))",
+   ("Common/Util/MailImporter.cpp", "if (!MessageStore::LocalBackend().WriteAtomically(newFullPath, original))",
     "an import whose row could not be saved leaves its file in the stored form, which every later import refuses (HM7354) "
-    "- for a mailbox encrypted at rest, a message nobody can read back to import"),
+    "- for a mailbox encrypted at rest, a message nobody can read back to import; and on the local disk, where the "
+    "next import looks for it, not handed to an object store's committer, which would take it off the disk"),
    # Mailbox encryption at rest (docs/EncryptionAtRest.md): the doors that keep
    # an encrypted mailbox's messages out of the clear, and its words out of the
    # index.
@@ -306,6 +307,61 @@ REQUIRED = [
    ("Common/Application/MailboxRestore.cpp", "MessageStoreBlobs::DeletionHold keepBlobs(false);",
     "a replace that empties a mailbox deletes a blob only its live copies named, and then cannot put back the "
     "archived copies that need it"),
+   # Object storage (docs/ObjectStorage.md): the doors that ask the store, not
+   # the disk, whether a stored message is there - a message an object store
+   # keeps has no file - and that never take a store that did not answer for a
+   # message that is gone.
+   ("Common/Persistence/PersistentMessage.cpp", "if (MessageStore::Exists(sFileName) || MessageStore::Unavailable())",
+    "a message an object store keeps is taken for missing and replaced by a placeholder - and so is one the store "
+    "could not be asked about"),
+   ("Common/Persistence/PersistentMessage.cpp", "MessageStoreObjects::ReportMissing(sFileName);",
+    "a message an object store answered 404 for is replaced by a placeholder, which the row's save hands to the "
+    "committer, which puts it over the message's own key"),
+   ("Common/Persistence/PersistentMessage.cpp", "MessageStore::Commit(GetFileName(owner, pMessage));",
+    "a delivered message - placed on the local disk, or written by path by COM's Message.Save, a script, a webmail "
+    "draft - is never handed to the object store's committer and stays on the local disk"),
+   ("Common/Persistence/PersistentMessage.cpp", "return HeaderOfObject(fileName, reportError);",
+    "LoadHeader opens a message an object store keeps as a file, finds none, and answers an empty header"),
+   ("Common/Util/RecoverableStore.cpp", "if (!MessageStore::Exists(source) && !MessageStore::Unavailable())",
+    "a deleted message an object store keeps is deleted without its kept copy - under a legal hold too"),
+   ("Common/Util/RecoverableStore.cpp", "if (MessageStore::Unavailable())",
+    "a kept copy the object store could not be asked about is purged as gone"),
+   ("Common/Util/RecoverableStore.cpp", "if (!held && MessageStore::Unavailable())",
+    "a message deleted while the object store does not answer is deleted without its recover-deleted copy"),
+   ("Common/Persistence/MessageStore.cpp", "MessageStoreObjects::Placing placing;",
+    "a new name is handed to the object store's committer as it is written, before its row is saved - a placing "
+    "that is then refused leaves an object no row names"),
+   ("Common/Persistence/MessageStoreMaintenance.cpp", "if (!ListKeptFiles(kept))",
+    "an exact recount made while the object store does not answer counts too few and lowers the counts of blobs "
+    "still in use, which a later release then deletes"),
+   ("Common/Persistence/PersistentDomain.cpp", "MessageStoreObjects::SweepLateArrivals(oldDirectory, newDirectory, lateMoved, lateProblem)",
+    "mail delivered under a domain's old name while it was renamed is left under the old keys, unreadable"),
+   ("IMAP/IMAPFetch.cpp", "if (willReadMessageFile && MessageStore::Unavailable())",
+    "a FETCH whose message the object store stopped giving after the existence check answers OK with an empty "
+    "ENVELOPE or BODYSTRUCTURE, which the client caches"),
+   ("Common/Application/BackupExecuter.cpp", "MessageStoreObjects::StageInto(sDataBackupDir, fetched, objectProblem)",
+    "a backup with messages is taken without the messages an object store keeps, and a restore of it deletes them"),
+   ("Common/Persistence/MailboxMove.cpp", "MessageStore::MoveTree(oldDirectory, newDirectory, objectsMoved, objectProblem)",
+    "a mailbox moved to another address leaves the messages an object store keeps under the old one, unreadable"),
+   ("Common/Persistence/NameChanger.cpp", "MessageStore::MoveTree(oldDirectoryName, newDirectoryName, objectsMoved, errorMessage)",
+    "an account renamed leaves the messages an object store keeps under its old name, unreadable"),
+   ("Common/Persistence/MessageStore.cpp", "if (!isContainer && Backend().IsLocal(messageFile) && !MessageStoreObjects::Active())",
+    "a plain message an object store keeps - or one its committer may take off the disk before SpamAssassin opens "
+    "it - is handed over by a path that has no file"),
+   ("Common/Persistence/MessageStore.cpp", "if (whole || !MessageStore::Backend().IsLocal(messageFile))",
+    "a plain message the committer takes off the disk between the question and a parse by path is taken for one "
+    "being composed, and a COM Save writes it back empty"),
+   ("Common/Persistence/MessageStoreObjects.cpp", "if (LocalStampOf(aside, false) != beforeIdentity)",
+    "the file set aside is compared with its change time, which rename(2) sets on Linux: every commit is taken for "
+    "a changed file and put again for ever"),
+   ("Common/Persistence/MessageStoreObjects.cpp", "else if (!RenameQuietly(name, aside))",
+    "the committer deletes a file where it is, and a rewrite renamed over the name in the moment before is deleted "
+    "with it while the store keeps the old bytes"),
+   ("Common/Persistence/MessageStoreObjects.cpp", "in_flight_.find(item->first) != in_flight_.end()",
+    "two committer passes put the same name, and the second one's undo removes the object the first just committed"),
+   ("Common/Persistence/MailboxMove.cpp", "MessageStoreObjects::HoldTree hold(oldDirectory);",
+    "a late arrival the committer puts under its old name after the old address's objects are listed is stranded "
+    "there, unreadable"),
 ]
 
 SIZE_FROM_FILE = re.compile(r"SetSize\s*\([^;]*FileUtilities::FileSize(64)?\s*\(")

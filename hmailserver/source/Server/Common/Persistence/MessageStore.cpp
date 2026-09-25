@@ -6,6 +6,7 @@
 
 #include "MessageStore.h"
 #include "MessageStoreBlobs.h"
+#include "MessageStoreObjects.h"
 #include "PersistentMessage.h"
 
 #include "../BO/Account.h"
@@ -53,6 +54,14 @@ namespace HM
       // How much of a container's message LoadHeader decodes to find the end of
       // the header: far more than any header, and bounded.
       const size_t LongestHeader = 1024 * 1024;
+
+      // Set on this thread when a door failed because the object store could
+      // not be reached (MessageStore::Unavailable).
+      thread_local bool store_unavailable = false;
+
+      // Set on this thread when a door met a message the object store confirms
+      // it does not have (MessageStore::Missing).
+      thread_local bool store_missing = false;
 
       class LocalFileStream : public MessageStoreBackendStream
       {
@@ -569,7 +578,9 @@ namespace HM
          bool keyed = MessageStore::Backend().Identity(name, identity, names) && MessageStore::Backend().Size(name, storedSize);
          if (keyed)
          {
-            const AnsiString written = LastWrittenOf(name);
+            // An object's identity carries its ETag, which every write under
+            // its key changes; a file's last write is the local disk's to say.
+            const AnsiString written = MessageStore::Backend().IsLocal(name) ? LastWrittenOf(name) : AnsiString("object");
             keyed = !written.IsEmpty();
             identity += "@";
             identity += written;
@@ -859,8 +870,13 @@ namespace HM
       MessageStoreHeader header;
       String problem;
 
+      MessageStore::ClearUnavailable();
+
       // A file that is not there is a message being composed, which is the
-      // caller's to decide; a plain file is itself.
+      // caller's to decide; a plain file is itself. An object store that did
+      // not answer has said nothing about whether the message is there, and a
+      // message taken for one being composed would be written back empty over
+      // it: refused.
       if (!ReadStoredHeader(messageFile, isContainer, header, problem))
       {
          if (isContainer)
@@ -868,11 +884,40 @@ namespace HM
             MessageStore::ReportUnreadable(messageFile, problem);
             ready_ = false;
          }
+         else if (MessageStore::Unavailable())
+            ready_ = false;
          return;
       }
 
       if (!isContainer)
+      {
+         // A plain message in an object store is parsed from memory, as a
+         // container's original is: there is no file to parse it from. And
+         // one on the local disk too while a store is named: the committer may
+         // take the file off the disk between here and a parse by path, which
+         // would find no file and take the message for one being composed.
+         // ReadAll reads the disk first and the store after, whichever holds
+         // it at that moment (docs/ObjectStorage.md).
+         // Never a queue file or a staged one, which the committer never
+         // takes, nor one larger than a message is loaded at (MessageData,
+         // 80 MB), which is parsed where it is.
+         unsigned __int64 localSize = 0;
+         const bool whole = MessageStoreObjects::Active() && MessageStoreObjects::Keyed(messageFile) &&
+                            (!FileUtilities::FileSize64(messageFile, localSize) || localSize <= (unsigned __int64) 80 * 1024 * 1024);
+
+         if (whole || !MessageStore::Backend().IsLocal(messageFile))
+         {
+            AnsiString bytes;
+            if (!MessageStore::Backend().ReadAll(messageFile, bytes, 0))
+            {
+               ready_ = false;
+               return;
+            }
+
+            original_ = std::shared_ptr<const std::string>(new std::string(bytes.data(), bytes.size()));
+         }
          return;
+      }
 
       // Decoded into memory, checked whole, and held there: never a file.
       std::shared_ptr<const std::string> original;
@@ -900,11 +945,86 @@ namespace HM
 
    // ---- MessageStore -----------------------------------------------------------------
 
+   bool
+   MessageStoreBackend::List(const String &directory, std::vector<String> &names)
+   {
+      names.clear();
+
+      boost::system::error_code error;
+      const boost::filesystem::path rootPath(std::wstring(directory.c_str()));
+      if (!boost::filesystem::is_directory(rootPath, error) || error)
+         return true;
+
+      for (boost::filesystem::recursive_directory_iterator entry(rootPath, error);
+           !error && entry != boost::filesystem::recursive_directory_iterator(); entry.increment(error))
+      {
+         boost::system::error_code fileError;
+         if (boost::filesystem::is_regular_file(entry->path(), fileError) && !fileError)
+            names.push_back(String(entry->path().wstring()));
+      }
+
+      return !error;
+   }
+
    MessageStoreBackend &
-   MessageStore::Backend()
+   MessageStore::LocalBackend()
    {
       static LocalFileBackend backend;
       return backend;
+   }
+
+   MessageStoreBackend &
+   MessageStore::Backend()
+   {
+      // An object store while one is configured - read first from the local
+      // disk, where a working file is, and then from the store - and the local
+      // file system otherwise, which a server that never names one never
+      // leaves (docs/ObjectStorage.md).
+      MessageStoreBackend *objects = MessageStoreObjects::Active();
+      return objects ? *objects : LocalBackend();
+   }
+
+   bool
+   MessageStore::Unavailable()
+   {
+      return store_unavailable;
+   }
+
+   void
+   MessageStore::ClearUnavailable()
+   {
+      store_unavailable = false;
+      store_missing = false;
+   }
+
+   bool
+   MessageStore::Missing()
+   {
+      return store_missing;
+   }
+
+   void
+   MessageStore::NoteMissing()
+   {
+      store_missing = true;
+   }
+
+   void
+   MessageStore::NoteUnavailable()
+   {
+      store_unavailable = true;
+   }
+
+   void
+   MessageStore::Commit(const String &messageFile)
+   {
+      Backend().Commit(messageFile);
+   }
+
+   bool
+   MessageStore::MoveTree(const String &fromDirectory, const String &toDirectory, unsigned int &moved, String &problem)
+   {
+      return MessageStoreObjects::MoveTree(fromDirectory, toDirectory, moved, problem);
    }
 
    String
@@ -1073,12 +1193,35 @@ namespace HM
       String problem;
       const bool read = ReadStoredHeader(name, isContainer, header, problem);
 
-      // A plain file, or none: LoadFromFile's own answers, OpenFailed among them.
-      if (!isContainer)
-         return body.LoadFromFile(messageFile);
+      // A plain file, or none: LoadFromFile's own answers, OpenFailed among them
+      // - unless the object store's committer took the file off the disk in
+      // the moment between, when it is read from the store below.
+      if (!isContainer && Backend().IsLocal(name))
+      {
+         MimeLoadResult loaded = body.LoadFromFile(messageFile);
+
+         // Still on the disk: a file renamed over the name in the moment
+         // between - opened once more.
+         if (loaded == MimeLoadResult::OpenFailed && Backend().IsLocal(name))
+            loaded = body.LoadFromFile(messageFile);
+
+         if (loaded != MimeLoadResult::OpenFailed || Backend().IsLocal(name))
+            return loaded;
+      }
 
       std::shared_ptr<const std::string> original;
-      if (!read || !DecodedContainer(name, original, problem))
+      if (!isContainer)
+      {
+         // A plain message in an object store, parsed from memory as a
+         // container's original is. One the store did not give is OpenFailed,
+         // as a file that could not be opened is.
+         AnsiString bytes;
+         if (!read || !Backend().ReadAll(name, bytes, 0))
+            return MimeLoadResult::OpenFailed;
+
+         original = std::shared_ptr<const std::string>(new std::string(bytes.data(), bytes.size()));
+      }
+      else if (!read || !DecodedContainer(name, original, problem))
       {
          ReportUnreadable(name, problem);
          return MimeLoadResult::OpenFailed;
@@ -1111,8 +1254,33 @@ namespace HM
       MessageStoreHeader header;
       String problem;
       const bool read = ReadStoredHeader(messageFile, isContainer, header, problem);
-      if (!isContainer)
+
+      // The file itself - but not while an object store is named, whose
+      // committer may take it off the disk before the caller opens it: then a
+      // temporary copy, as below.
+      if (!isContainer && Backend().IsLocal(messageFile) && !MessageStoreObjects::Active())
          return messageFile;
+
+      // A plain message in an object store: its bytes, written out as a
+      // container's original is.
+      if (!isContainer)
+      {
+         AnsiString bytes;
+         if (!read || !Backend().ReadAll(messageFile, bytes, 0))
+            return String();
+
+         const String plain = FileUtilities::GetTempFileName();
+         if (!FileUtilities::WriteToFile(plain, bytes))
+         {
+            FileUtilities::DeleteFile(plain);
+            ReportStoreError(7351, _T("MessageStore::PlainFileFor"),
+               "A plain copy of the stored message " + messageFile + " could not be written to " + plain + ".");
+            return String();
+         }
+
+         temporary = true;
+         return plain;
+      }
 
       // A message of a mailbox encrypted at rest is not written out in the
       // clear for another process to read (docs/EncryptionAtRest.md): the
@@ -1146,6 +1314,9 @@ namespace HM
    bool
    MessageStore::CopyStored(const String &from, const String &to)
    {
+      // A new name, whose row is saved after this.
+      MessageStoreObjects::Placing placing;
+
       // Counted before the copy is made, let go of if it is not: never fewer
       // counts than names (MessageStoreBlobs.h).
       const std::vector<MessageStoreReference> references = ReferencesOf(from);
@@ -1528,6 +1699,11 @@ namespace HM
    {
       refusal = PlaceAccepted;
 
+      // A new name, whose row is saved after this: an object store's
+      // committer is handed it then (PersistentMessage::SaveObject), and the
+      // placing itself is all on the local disk.
+      MessageStoreObjects::Placing placing;
+
       const String messageFile = PersistentMessage::GetFileName(account, message);
 
       // A copy in the account's own folders - not one a rule filed into a
@@ -1584,6 +1760,9 @@ namespace HM
    {
       refusal = PlaceAccepted;
 
+      // A new name, as in PlaceAs.
+      MessageStoreObjects::Placing placing;
+
       const String messageFile = PersistentMessage::GetFileName(account, message);
 
       std::string publicKey;
@@ -1593,6 +1772,8 @@ namespace HM
 
       if (encryption == MailboxKeys::EncryptionNone)
       {
+         // Written by path, as these writers always have; the row's save
+         // commits it to an object store (PersistentMessage::SaveObject).
          if (FileUtilities::WriteToFile(messageFile, bytes))
             return true;
 
@@ -1667,6 +1848,9 @@ namespace HM
    {
       refusal = PlaceAccepted;
 
+      // A new name, as in PlaceAs.
+      MessageStoreObjects::Placing placing;
+
       if (owner)
       {
          if (encryption == MailboxKeys::EncryptionOn)
@@ -1716,6 +1900,7 @@ namespace HM
    MessageStore::PlaceEncrypted_(const String &messageFile, const std::string &publicKey, bool keepOnRefusal, PlaceRefusal &refusal)
    {
       refusal = PlaceAccepted;
+      MessageStoreObjects::Placing placing;
       String problem;
 
       unsigned __int64 size = 0;
@@ -2006,10 +2191,17 @@ namespace HM
 
             for (const Leftover &aside : asides)
             {
+               // An object store that could not say whether the name holds its
+               // message has not said the name is empty: the plaintext put back
+               // under it would hide - and then be committed over - the
+               // encrypted message the store holds. Left for the next start
+               // (docs/ObjectStorage.md).
+               ClearUnavailable();
+
                // Cut short between the two renames: the name is empty, and the
                // container staged beside it is the message, encrypted and whole
                // (it was written, atomically, before the plaintext was moved).
-               if (!Backend().Exists(aside.name))
+               if (!Backend().Exists(aside.name) && !Unavailable())
                {
                   for (std::vector<Leftover>::iterator candidate = staged.begin(); candidate != staged.end(); ++candidate)
                   {
@@ -2022,7 +2214,12 @@ namespace HM
                   }
                }
 
-               if (Backend().Exists(aside.name))
+               ClearUnavailable();
+               const bool holds = Backend().Exists(aside.name);
+               if (Unavailable())
+                  continue;
+
+               if (holds)
                {
                   Scrub(aside.path);
                   Backend().Remove(aside.path);
@@ -2061,6 +2258,9 @@ namespace HM
    bool
    MessageStore::CopyIntoAccount(const String &from, const String &to, std::shared_ptr<const Account> destination)
    {
+      // A new name, whose row - or kept copy's - is saved after this.
+      MessageStoreObjects::Placing placing;
+
       std::string sourceKey;
       IsEncrypted(from, sourceKey);
 
@@ -2167,6 +2367,7 @@ namespace HM
    MessageStore::PlaceWorkingFile_(const String &messageFile, bool compress, bool &changed)
    {
       changed = false;
+      MessageStoreObjects::Placing placing;
 
       const unsigned __int64 dedupMinimum = (unsigned __int64) Configuration::Instance()->GetMessageStoreDedupMinKB() * 1024;
 

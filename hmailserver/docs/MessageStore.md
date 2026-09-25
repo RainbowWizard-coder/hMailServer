@@ -186,15 +186,18 @@ every one of them. The callers are of three kinds:
   anywhere else, a second call in a listed file, and a message's size taken from its
   file. `MessageStore::WorkingFile(account, message)`, the working-file path that names
   an account's folder - where a stored message will be - is held to the same rule and
-  listed the same way; the object-storage and encryption-at-rest rows audit that list,
-  since each such path is a place a key-based backend hands a temporary file to instead.
+  listed the same way; the object-storage and encryption-at-rest rows audited that list:
+  each such path is a working file on the local disk, where an object store's committer
+  takes it from once its row is saved ([ObjectStorage.md](ObjectStorage.md)).
   The checker runs in GitLab CI's checkers job on every push and merge request, and in
   `MessageStoreFormat.TheSeamCheckerPasses`, which runs it in the suite.
 
 The store is a **chain of stages over a backend**. The backend, `MessageStoreBackend`,
-is where the bytes live, and the local file system is the one there is: exists, size,
-open, read, write atomically (beside the name, then renamed over it), copy, move,
-link, remove, and which object a name is. The stages are what is done to a
+is where the bytes live - the local file system, or an S3-compatible or Azure Blob
+Storage object store ([ObjectStorage.md](ObjectStorage.md)): exists, size, open, read,
+write atomically (beside the name, then renamed over it - on the local disk on either
+backend, an object store's committer putting it into the store afterwards),
+copy, move, link, remove, and which object a name is. The stages are what is done to a
 message on the way to the backend and undone on the way back, and the container
 names them, in order, by id.
 
@@ -354,15 +357,18 @@ once - every part stays inside the message's own container, compressed and encry
 it. The index holds none of its words. `--compress-store` and `--decompress` leave an
 encrypted mailbox's files to that row's `--encrypt-store` and `--decrypt-store`.
 
-**Object storage** is a second `MessageStoreBackend`. A name is a local path today and
-becomes a key; `WriteAtomically` becomes a put; `Link` answers false where the store
-has no second name for an object, and every caller already handles that by copying;
-`Identity` is what a walk uses to find the names of one object. Nothing outside the
-store and the listed sites holds a path, which is what the seam was built for - and the
-sites the checker lists (`build/check-message-store-seam.py`, `GetFileName` and the
-account-folder `WorkingFile`) are the audit that row starts from: each is a place that
-holds a local path and hands the file to something by path, which a key-based backend
-must instead hand a temporary file.
+**Object storage** is built ([ObjectStorage.md](ObjectStorage.md)): a second
+`MessageStoreBackend`, S3-compatible or Azure Blob Storage. A name is still a path, and
+its key is that path under the data directory; every write is a local one, which a
+committer puts into the store afterwards, `Move` of an object only in the store is a copy
+and a delete, `Link` answers false and every caller copies instead, and `Identity` is the
+object's ETag. A placed message stays on the local disk until the committer has put it
+into the store, and is read there first, so the listed sites that hand a working file to something by path go on
+doing so; a stored message a listed site must hand over by path is written out to a
+temporary file (`PlainFileFor`). What the audit of the listed sites found beyond the
+checker's reach - existence checks, a placeholder written for a message that was not
+missing (never written while a store is named), the recover-deleted store, a backup, a
+rename - is in that page.
 
 
 Errors

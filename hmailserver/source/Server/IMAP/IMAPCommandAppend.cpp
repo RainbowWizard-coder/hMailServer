@@ -953,9 +953,9 @@ namespace HM
       // whole rollback.
       for (const PendingMessage &pending : pending_messages_)
       {
-         // Through the store: a placed file lets go of what it references.
-         if (FileUtilities::Exists(pending.fileName))
-            MessageStore::Remove(pending.fileName);
+         // Through the store: a placed file lets go of what it references -
+         // and one in an object store has no file on the disk to find first.
+         MessageStore::Remove(pending.fileName);
       }
 
       pending_messages_.clear();

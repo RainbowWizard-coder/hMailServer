@@ -14880,8 +14880,17 @@ namespace HM
          return BuildResponse_(404, "{\"error\":\"message not found\"}");
 
       String fileName = MessageFile_(message);
-      if (!FileUtilities::Exists(fileName))
+
+      // Asked of the store: a message an object store keeps has no file, and
+      // one the store could not be asked about is not missing
+      // (docs/ObjectStorage.md).
+      MessageStore::ClearUnavailable();
+      if (!MessageStore::Exists(fileName))
+      {
+         if (MessageStore::Unavailable())
+            return BuildResponse_(503, "{\"error\":\"the message store cannot be reached just now; try again in a moment\"}");
          return BuildResponse_(404, "{\"error\":\"the message file is missing\"}");
+      }
 
       AnsiString subject, from, date;
       DescribeHeader(fileName, subject, from, date);
@@ -15555,8 +15564,17 @@ namespace HM
          return BuildResponse_(404, "{\"error\":\"message not found\"}");
 
       String fileName = MessageFile_(message);
-      if (!FileUtilities::Exists(fileName))
+
+      // Asked of the store: a message an object store keeps has no file, and
+      // one the store could not be asked about is not missing
+      // (docs/ObjectStorage.md).
+      MessageStore::ClearUnavailable();
+      if (!MessageStore::Exists(fileName))
+      {
+         if (MessageStore::Unavailable())
+            return BuildResponse_(503, "{\"error\":\"the message store cannot be reached just now; try again in a moment\"}");
          return BuildResponse_(404, "{\"error\":\"the message file is missing\"}");
+      }
 
       const __int64 MaxSourceBytes = 25 * 1024 * 1024;
       __int64 size = MessageStore::FileSize(fileName);
@@ -15773,8 +15791,17 @@ namespace HM
          return BuildResponse_(413, "{\"error\":\"the message is too large to read here\"}");
 
       String fileName = MessageFile_(message);
-      if (!FileUtilities::Exists(fileName))
+
+      // Asked of the store: a message an object store keeps has no file, and
+      // one the store could not be asked about is not missing
+      // (docs/ObjectStorage.md).
+      MessageStore::ClearUnavailable();
+      if (!MessageStore::Exists(fileName))
+      {
+         if (MessageStore::Unavailable())
+            return BuildResponse_(503, "{\"error\":\"the message store cannot be reached just now; try again in a moment\"}");
          return BuildResponse_(404, "{\"error\":\"the message file is missing\"}");
+      }
 
       MessageData messageData;
       if (!messageData.LoadFromMessage(fileName, message))
@@ -17194,8 +17221,17 @@ namespace HM
          return BuildResponse_(413, "{\"error\":\"the message is too large to read here\"}");
 
       String fileName = MessageFile_(message);
-      if (!FileUtilities::Exists(fileName))
+
+      // Asked of the store: a message an object store keeps has no file, and
+      // one the store could not be asked about is not missing
+      // (docs/ObjectStorage.md).
+      MessageStore::ClearUnavailable();
+      if (!MessageStore::Exists(fileName))
+      {
+         if (MessageStore::Unavailable())
+            return BuildResponse_(503, "{\"error\":\"the message store cannot be reached just now; try again in a moment\"}");
          return BuildResponse_(404, "{\"error\":\"the message file is missing\"}");
+      }
 
       MessageData messageData;
       if (!messageData.LoadFromMessage(MessageFile_(message), message))
@@ -17857,7 +17893,9 @@ namespace HM
 
       if (!account->SpaceAvailable(draft->GetSize()))
       {
-         FileUtilities::DeleteFile(fileName);
+         // Through the store: a draft of a mailbox encrypted at rest is written
+         // there already, in an object store too (docs/ObjectStorage.md).
+         MessageStore::DiscardWorkingFile(fileName);
          return BuildResponse_(413, "{\"error\":\"the mailbox is full\"}");
       }
 
@@ -17867,7 +17905,7 @@ namespace HM
 
       if (!PersistentMessage::SaveObject(draft))
       {
-         FileUtilities::DeleteFile(fileName);
+         MessageStore::DiscardWorkingFile(fileName);
          return BuildResponse_(500, "{\"error\":\"the draft could not be saved\"}");
       }
 

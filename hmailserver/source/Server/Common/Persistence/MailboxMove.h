@@ -263,6 +263,9 @@ namespace HM
       // carried says whether anything was actually moved: a mailbox nothing has
       // ever been delivered to has no directory, and reporting "the store was
       // moved" for it is reporting that the step ran, not that anything moved.
+      // On a failure it says instead that something could not be put back - an
+      // object store that stopped answering part way through its objects -
+      // which the caller journals as a rollback that failed.
       static bool MoveStore_(const String &oldAddress, const String &newAddress, bool &carried, String &errorMessage);
       static bool MoveDirectory_(const String &from, const String &to, bool &carried, String &errorMessage);
 
