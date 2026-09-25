@@ -346,6 +346,14 @@ namespace HM
          HANDLE handle = CreateFileW(path.c_str(), DELETE | FILE_READ_ATTRIBUTES | FILE_WRITE_ATTRIBUTES | SYNCHRONIZE,
                                      FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING,
                                      FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
+         // An entry's own list can deny writing its attributes to everybody,
+         // SYSTEM included, while the folder's list still lets it be deleted
+         // (FILE_DELETE_CHILD): without the attributes, so that one planted entry
+         // cannot refuse the folder for good. Only a read-only one then stays.
+         if (handle == INVALID_HANDLE_VALUE && GetLastError() == ERROR_ACCESS_DENIED)
+            handle = CreateFileW(path.c_str(), DELETE | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                                 FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING,
+                                 FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
          if (handle == INVALID_HANDLE_VALUE)
          {
             why = Formatter::Format(_T("{0} could not be opened to be deleted (Windows error {1})"), String(path.c_str()), (int) GetLastError());
