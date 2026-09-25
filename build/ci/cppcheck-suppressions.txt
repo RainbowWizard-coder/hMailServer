@@ -1,0 +1,18 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# What cppcheck is told not to report in the static-analysis job
+# (build/ci/static-analysis.sh), one id per line, each with its reason. A finding
+# that is a false positive in one place is suppressed there, in the source, with
+# "// cppcheck-suppress <id>" and a comment saying why - not here.
+
+# The system headers (the C and C++ libraries, Boost, OpenSSL, libpq, libldap) are
+# not given to cppcheck: reading them would multiply the run time for findings in
+# code that is not this project's. The library configurations passed with
+# --library tell it what those calls do instead. This is cppcheck saying it did
+# not read them, once per header.
+missingIncludeSystem
+
+# cppcheck's own summary of which checkers ran, not a finding.
+checkersReport

@@ -1,0 +1,115 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The clang-tidy checks the static-analysis job runs (build/ci/static-analysis.sh
+# passes this file with --config-file). It is not a .clang-tidy beside the sources
+# on purpose: an editor that finds one applies it to every file it opens, and this
+# set is chosen for a security scan, not for editing.
+#
+# The rule for choosing: a check is in when what it reports is a defect or a
+# weakness - memory and object lifetime, undefined behaviour, unchecked results and
+# conversions, thread safety, weak randomness - and out when what it reports is a
+# style the code does not follow. The counts below are what each excluded check
+# reported on a quarter of the translation units (every fourth file of the compile
+# database) on 25 September 2026, clang-tidy 21.1; the whole tree has about four
+# times as many. Style checks are not wrong, but 8,400 findings a quarter of the
+# tree is not a signal anyone can act on, and a scan nobody reads finds nothing.
+#
+# To add a check: run it by hand over the tree (build/ci/static-analysis.sh with
+# HM_TIDY_CHECKS set to the one check), read what it says, and add it here with its
+# count, in the same commit as a regenerated baseline.
+
+Checks:
+  - "-*"
+
+  # Bug-prone patterns, the family written for exactly this.
+  - "bugprone-*"
+  # 85: pairs of adjacent parameters of one type - most constructors and every
+  # (const String&, const String&) function; a design remark, not a defect.
+  - "-bugprone-easily-swappable-parameters"
+  # 81: size_t to int and the like. This code base keeps lengths in int by design
+  # (the String class, the COM API); each one is a judgement, not a finding. Revisit
+  # once the rest is triaged.
+  - "-bugprone-narrowing-conversions"
+  # 42 (with its CERT aliases below): identifiers such as _Something and __x, most
+  # of them in the vendored StdString.h and in guard macros; a naming rule.
+  - "-bugprone-reserved-identifier"
+  # 22: a forward declaration in another namespace than a same-named class; the COM
+  # layer declares its own classes of the same names on purpose.
+  - "-bugprone-forward-declaration-namespace"
+  # 5: a switch without default; the switches over enums are complete.
+  - "-bugprone-switch-missing-default-case"
+
+  # CERT's secure-coding rules: unchecked results (err33), atoi and friends (err34),
+  # rand (msc30/50), self-assignment (oop54), signed characters (str34), and more.
+  - "cert-*"
+  # 42: aliases of bugprone-reserved-identifier, above.
+  - "-cert-dcl37-c"
+  - "-cert-dcl51-cpp"
+  # 12: a static object whose constructor may throw; the static tables here are
+  # built from literals.
+  - "-cert-err58-cpp"
+  # 7: defining a C-style variadic function; the logger's and String::Format's are
+  # the only ones, and their format strings are literals checked by the compiler.
+  - "-cert-dcl50-cpp"
+
+  # The Clang static analyser: null dereferences, use after free, leaks, double
+  # frees, uninitialised reads, division by zero, the stream and C library misuse -
+  # the path-sensitive half of this scan, and most of its cost.
+  - "clang-analyzer-*"
+  # 4: struct padding (optin.performance); memory layout, not safety.
+  - "-clang-analyzer-optin.performance.*"
+  # 5: a value stored and never read; dead code, a quality finding.
+  - "-clang-analyzer-deadcode.*"
+  # Platforms and frameworks the server does not use.
+  - "-clang-analyzer-osx.*"
+  - "-clang-analyzer-optin.osx.*"
+  - "-clang-analyzer-optin.mpi.*"
+  - "-clang-analyzer-webkit.*"
+  - "-clang-analyzer-alpha.*"
+
+  # Functions that are not thread safe (strerror, localtime, rand, getenv...) in a
+  # server whose every session is a thread.
+  - "concurrency-*"
+
+  # Four of the C++ Core Guidelines' checks find defects; the other forty-odd are
+  # style (1,500 findings in the sample between magic numbers, special members and
+  # pointer arithmetic).
+  # A constructor that leaves a member uninitialised: an information leak or
+  # undefined behaviour the first time it is read.
+  - "cppcoreguidelines-pro-type-member-init"
+  # A class deleted through a base pointer without a virtual destructor.
+  - "cppcoreguidelines-virtual-class-destructor"
+  # An object copied into its base class, losing the derived part.
+  - "cppcoreguidelines-slicing"
+
+  # From misc and readability, the checks that find logic errors rather than style.
+  - "misc-redundant-expression"
+  - "misc-throw-by-value-catch-by-reference"
+  - "misc-misplaced-const"
+  - "misc-non-copyable-objects"
+  - "misc-uniqueptr-reset-release"
+  - "readability-suspicious-call-argument"
+  - "readability-misleading-indentation"
+
+  # Left out as families, each for a reason:
+  #   performance-*    speed, not safety (305 enum-size, 175 value-param, 29 range copy);
+  #   modernize-*      newer C++ spellings of working code;
+  #   readability-*    but the two above;
+  #   portability-*    573 "pragma once", which every compiler this builds with supports;
+  #   misc-*           but the five above: 1,189 const-correctness, 1,072 include-cleaner,
+  #                    795 non-private members, 171 unused parameters (COM signatures),
+  #                    18 no-recursion (the MIME and folder trees recurse by design; their
+  #                    depth limits are what matter, and the check cannot see them);
+  #   google-*, llvm-*, hicpp-*, fuchsia-*, abseil-*, android-*, altera-*, zircon-*,
+  #   objc-*, darwin-*, mpi-*, openmp-*, linuxkernel-*, llvmlibc-*, boost-* - other
+  #   projects' conventions.
+
+# Findings in the project's own headers count, once each (the job removes the
+# repeats a header gets from every file that includes it). Not QuickJS's: it is
+# vendored as released and is not ours to change (build/add-license-headers.py
+# leaves it alone for the same reason).
+HeaderFilterRegex: '.*/hmailserver/source/Server/.*'
+ExcludeHeaderFilterRegex: '.*/quickjs/.*'
+SystemHeaders: false

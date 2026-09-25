@@ -19,8 +19,10 @@ GitHub Actions. It holds for the releases that chain signed, 6.2.19 to 6.3.3,
 whose Sigstore bundles verify without GitHub, and it cannot be made for a later
 release until that chain moves, which is planned roadmap work and not yet done.
 Likewise the CodeQL, Dependabot and dependency-review checks cited below ran on
-GitHub and do not run on GitLab yet; [SECURITY.md](SECURITY.md) says what runs
-instead.
+GitHub and do not run on GitLab. Since 25 September 2026 GitLab CI has
+replacements, not yet blocking - cppcheck, clang-tidy and Semgrep for CodeQL,
+Trivy with OSV for the dependency checks - and [SECURITY.md](SECURITY.md) says
+what runs.
 
 Contents:
 

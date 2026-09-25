@@ -43,6 +43,11 @@ What runs where
 | `windows-gate` | test | bench150 | a protected ref | The whole Windows suite in the bench's own checkout (`build/ci/windows-gate.ps1`) |
 | `windows-dotnet` | test | bench150 | a protected ref | The Control Panel and the tools built with warnings as errors, published and tested, and `dotnet format` (`build/ci/windows-dotnet.ps1`) |
 | `linux-fuzz` | test | linix | a pipeline with `HM_PIPELINE=fuzz`, from its schedule | The three MIME harnesses under libFuzzer (`build/ci/linux-fuzz.sh`) |
+| `static-analysis` | test | linix | a protected ref | cppcheck and clang-tidy over the server's C++, held to a baseline ([Security scanning](#security-scanning)) |
+| `semgrep` | test | linix | a protected ref | Semgrep's open rules over the C#, Python, JavaScript and shell sources, held to a baseline |
+| `ci-image-packages` | test | linix | a protected ref | Copies the CI image's package database out, for `dependency-scan` |
+| `dependency-scan` | test | linix | a protected ref | Trivy over the lock files and the CI image, OSV over the vendored libraries |
+| `repo-hygiene` | test | linix | a protected ref | The repository checks OpenSSF Scorecard ran, answered from GitLab and the tree |
 | `release` | release | GitLab's shared runners | a `v*` tag, started by hand | A placeholder. It fails with "the release stage is the release-chain row's (137)" |
 | `installer-smoke` | release | GitLab's shared runners | a `batch*` branch or a `v*` tag, started by hand | A placeholder. It fails with a sentence saying that the installer smoke test runs from the VMware host ([The installer smoke test](#the-installer-smoke-test)) |
 
@@ -840,12 +845,18 @@ measured times after the first pipelines.
 | `windows-gate` | 2.5 to 3 h | 4 h | On 25 September 2026 the two halves took 62 minutes (1,339 tests, on bench150) and 70 minutes (2,126 tests, on the laptop), each with its build. One bench runs both, one after the other, with one build. Add any wait for the lock |
 | `windows-dotnet` | 10 to 20 min, estimated | 4 h | Two restores (cold for LocalSystem the first time), two Release builds, MIDL, the tests and five publishes; the timeout allows 200 minutes of waiting for the lock |
 | `linux-fuzz` | 65 min | 2 h | Three harnesses of 20 minutes, plus about 3 minutes to build and replay (by hand: 3.5 minutes all told with one minute a harness) |
+| `static-analysis` | 35 to 50 min | 90 min | Its script, run by hand on linix on 25 September 2026 in the job's image with four CPUs where the job has six, beside other work: 51 min 28 s, of which cppcheck took 2 min 22 s and clang-tidy 49 min for 741 files |
+| `semgrep` | 3 to 5 min | 30 min | The same, with one CPU: 2 min 36 s to 2 min 50 s, the install and the rules' download included |
+| `ci-image-packages` | under a minute | 10 min | The copy takes a second; the rest is the job's start |
+| `dependency-scan` | 1 to 2 min | 30 min | The same, with one CPU: 15 to 17 s, the vulnerability database's download included |
+| `repo-hygiene` | 1 min | 10 min | The same, with one CPU: 14 to 37 s, the apt install included |
 
 The runners' own `maximum_timeout` is four hours. GitLab lets a job's
 `timeout:` exceed the project's default of one hour, but not exceed its
 runner's maximum. linix runs one job at a time, so its jobs add up: about 12
 minutes of build, 1.5 to 2.5 hours of suite and about 10 minutes of the rest, so
-three hours or a little more. bench150's two jobs add up the same way. So a
+three hours or a little more, and the security scans add about an hour to
+that ([What they cost](#what-they-cost)). bench150's two jobs add up the same way. So a
 pipeline for a protected ref takes about three hours from start to finish, and
 the Windows gate and the Linux lane decide it between them.
 
@@ -943,6 +954,314 @@ What each job leaves behind
   `gate-results\`, a few megabytes that the next job replaces.
   `C:\bench\gate.lock` exists only while a gate holds it. The artifact expires
   after seven days.
+- **The security scans** write only into the checkout (`security/`,
+  `ci-image-packages/`) and their containers' `/tmp`, which go with the next
+  checkout and the container. linix keeps the two images they add,
+  `python:3.13-slim-trixie` and `aquasec/trivy:0.74.0`, at their digests. Their
+  artifacts expire after 30 days (`ci-image-packages` after one).
+
+Security scanning
+-----------------
+
+GitHub ran three security workflows until the account was suspended on 18
+September 2026: CodeQL, dependency review (with Dependabot's alerts), and
+OpenSSF Scorecard. Since 25 September 2026 five jobs in the test stage stand
+for them. They run on linix, for a protected ref only (`.own-runners`, like the
+builds), and **nothing they use is downloaded from GitHub**: not a tool, not a
+rule, not a database. Every job is `allow_failure: true` until its first
+findings are triaged, so none of them can fail a pipeline yet.
+
+**Proved by hand, not yet in a pipeline.** Each job's script was run on linix
+on 25 September 2026, in a container of the job's own image, with the job's own
+commands, on a copy of the tree checked out as GitLab checks it out (CRLF, the
+scripts LF). The dependency scan was run with `ghcr.io`, `github.com` and
+GitHub's content hosts resolved to 127.0.0.1, and it completed. The numbers
+below come from those runs. What they found is in the two baselines:
+
+- `static-analysis`: 1,307 findings. cppcheck made 474 of them, 378 of which
+  are `throw;` statements with no exception to rethrow, 376 of them in the
+  in-process testers. clang-tidy made 833, led by 164 constructors that leave a
+  member uninitialised and 158 multiplications done in `int` and then widened.
+  34 more, in Boost's and the C++ library's headers where the static
+  analyser's paths end, and 3 in the sources a `build/generate-*.py` writes, are
+  counted apart and not held against the tree: a finding in generated code is
+  fixed in its generator, and the flagged line moves whenever a document does.
+  The baseline was written from that run's raw output by the final
+  `security-findings.py`. Read again on Windows from the same output, in
+  another checkout, it gave the same fingerprints and nothing new.
+- `semgrep`: 85 findings, none in the C#, the webmail's scripts or the Control
+  Deck. 44 are in the packages' shell scripts: 39 unquoted expansions in
+  `autoban-hook`, all of constants or of arguments it checks to the character
+  first, and 5 in `hmailserver-update`, three of them the IFS it changes to
+  split a request into lines. 40 are in scripts under `build/`: shell quoting,
+  five Python checkers that parse the repository's own XML with the standard
+  library, and one `subprocess` call. The last is `hmctl`'s unverified TLS
+  context, which it creates only for `--insecure` to a loopback address and
+  refuses for any other host.
+
+Negative controls: two lines taken out of a baseline came back as exactly
+those findings, new (exit 1); a file clang-tidy could not parse, added to its
+output, failed the run as a hole (exit 2); and a missing cppcheck output failed
+it too (exit 2).
+
+### The old GitHub jobs and what replaced them
+
+| On GitHub | What it did | On GitLab | What is not replaced |
+|---|---|---|---|
+| `codeql.yml`, C++ | CodeQL `security-extended` over the MSVC build of the server, on every push and pull request (40 to 54 minutes) | `static-analysis`: cppcheck, and clang-tidy with the Clang static analyser, over every translation unit the Linux build compiles | The Windows-only sources (the COM API, the service host, the ADO and SQL Server Compact backends, the registry) and the Windows arm of every `#ifdef`, which only an MSVC build compiles; CodeQL's interprocedural taint tracking. `build\analyze.ps1` (MSVC `/analyze`) still covers the Windows build by hand |
+| `codeql.yml`, C# | CodeQL `security-and-quality` over the Control Panel and the setup and migration tools | `semgrep`: Semgrep's open C#, Python, JavaScript and bash rules. It also reads the Python tools, the shell scripts, the webmail's scripts and the Control Deck's page, which CodeQL did not | CodeQL's type-aware queries and its quality queries |
+| `dependency-review.yml` | Failed a pull request that added a dependency with a high or critical advisory, or a package flagged as malware | `dependency-scan`, fed by `ci-image-packages`: Trivy over the lock files and the CI image, OSV over the vendored libraries. It fails on a high or critical advisory that has a fixed version | The gate at merge-request time: a merge request from a fork never reaches linix. GitHub's malware advisories |
+| Dependabot | Alerts, and a pull request for each advisory and each new version of an action | The alerts are `dependency-scan`'s | The update pull requests. A bot that opens merge requests (Renovate runs on GitLab) needs a bot account and a token, and that is a decision of its own |
+| `scorecard.yml` | OpenSSF Scorecard, published to the OpenSSF API and the README's badge | `repo-hygiene`: Branch-Protection, Signed-Releases, Security-Policy, Pinned-Dependencies, Binary-Artifacts and Token-Permissions, answered from GitLab's public API and the tree | The checks only GitHub can answer, and the published score (below) |
+| Secret scanning with push protection | Refused a push that carried a live secret | Nothing | Push protection is a GitLab Ultimate feature. GitLab's pipeline secret detection is free, but it is not part of this row |
+
+### The jobs, and where each tool comes from
+
+| Job | Image | Tools, and where they come from | Reports | Measured on linix |
+|---|---|---|---|---|
+| `static-analysis` | the CI image | cppcheck 2.19.0 and clang-tidy 21.1.8, from Ubuntu 26.04's archive, installed as the job starts. clang-tidy is the image's own clang 21 | `gl-sast-cppcheck.json`, `gl-sast-clang-tidy.json`, `junit.xml` | 51 min 28 s on 4 CPUs |
+| `semgrep` | `python:3.13-slim-trixie`, pinned by digest (Docker Hub) | Semgrep 1.178.0 and 65 packages it needs, from PyPI, with every file's SHA-256 pinned (`build/ci/requirements.txt`, `pip --require-hashes`). The rules come from Semgrep's registry at semgrep.dev (`p/csharp`, `p/python`, `p/javascript`, `r/bash`), fetched with no account and no token | `gl-sast-semgrep.json`, `junit.xml` | under 3 min on 1 CPU |
+| `ci-image-packages` | the CI image | none | the image's `etc/os-release`, `etc/lsb-release`, dpkg status and the .NET SDK's `deps.json` files, 1.4 MB | seconds |
+| `dependency-scan` | `aquasec/trivy:0.74.0`, pinned by digest (Docker Hub) | Trivy 0.74.0; its vulnerability database from `mirror.gcr.io`, with `public.ecr.aws` as the fallback; OSV's API at `api.osv.dev`; Python from Alpine's repository | `gl-dependency-scanning-trivy.json`, `gl-dependency-scanning-osv.json`, `junit.xml` | 15 to 17 s, the database download included |
+| `repo-hygiene` | `python:3.13-slim-trixie`, pinned by digest | git and ssh-keygen, from Debian; GitLab's API, read anonymously | `junit.xml`, `repo-hygiene.json` | 14 to 37 s, the apt install included |
+
+Trivy downloads its database from `ghcr.io` unless it is told otherwise. Its
+default list is `mirror.gcr.io/aquasec/trivy-db:2` and then
+`ghcr.io/aquasecurity/trivy-db:2`, and `--db-repository` replaces the whole
+list. Trivy moves down its own list only after an error it takes for a
+temporary one: with `mirror.gcr.io` unreachable, a list of the mirror and AWS's
+copy failed at the mirror and never tried the copy (measured on 25 September
+2026). So the script downloads the database itself, naming one repository at a
+time: `mirror.gcr.io` first, then `public.ecr.aws/aquasecurity/trivy-db:2`.
+It then scans with `--skip-db-update`. Run with `mirror.gcr.io` resolved to
+127.0.0.1 as well as GitHub's hosts, the job took the database from AWS's copy
+and gave the same answer. A run that can reach neither fails; it never tries
+GitHub. Both databases, and OSV, include GitHub's advisory database among their
+sources. That is GitHub's data, not a download from GitHub.
+
+### What GitLab's free tier shows
+
+The project is on GitLab's free tier: its namespace's plan read `free` on 25
+September 2026.
+
+- **The SAST and dependency-scanning reports** are uploaded with the job as
+  reports, and are also in its ordinary artifacts (`security/`). On the free
+  tier they can be downloaded from the job's page and from the pipeline's
+  download menu, and that is all. The pipeline's *Security* tab, the
+  merge-request security widget, the vulnerability report and the dependency
+  list are GitLab Ultimate features. If the project is ever given Ultimate (GitLab
+  for Open Source grants it to qualifying projects), the same reports appear
+  there with no change to the jobs.
+- **The JUnit reports** are what the free tier shows: the pipeline's *Tests* tab
+  lists them. So every job writes one as well. The two source scans write one
+  test case per tool that fails when anything is new beyond the baseline, one
+  that fails when a file could not be analysed, and one failing test case per
+  new finding. `dependency-scan` writes one test case per lock file, for the CI
+  image and for each vendored library, skipped when the answer is unknown.
+  `repo-hygiene` writes one per check, skipped when the answer is not public.
+- **The job log** prints each job's table: counts by tool and rule, every new
+  finding, and every hole in the scan.
+
+### The baselines, and triage
+
+`static-analysis` and `semgrep` hold their findings to a committed baseline:
+`build/ci/static-analysis-baseline.txt` and `build/ci/semgrep-baseline.txt`. A
+finding's fingerprint is a hash of the tool, the rule, the file and the text of
+the flagged line with its whitespace collapsed. It is not the line number, so an
+edit elsewhere in the file does not make an old finding new. When the same rule
+fires on two identical lines of one file, their order counts too.
+`build/ci/security-findings.py` compares the fingerprints and exits with:
+
+- 0 when nothing is new;
+- 1 when something is new;
+- 2 when the scan has a hole: a tool that did not finish, a file cppcheck or
+  clang-tidy could not parse, or a Semgrep rule that timed out on a file. A hole
+  is never a pass, and no baseline excuses it.
+
+So the day `allow_failure` comes off a job, a new finding fails the pipeline and
+an old one does not.
+
+To triage a new finding:
+
+1. Read it: the job log, `new-findings.txt`, or the failing test case in the
+   *Tests* tab.
+2. If it is a defect, fix it in the change that brought it.
+3. If it is a false positive, suppress it where it is, with the reason in a
+   comment beside it: `// cppcheck-suppress <id>`, `// NOLINT(<check>)` or
+   `# nosemgrep`.
+4. If it is real but not to be fixed now, regenerate the baseline in a commit
+   that says why.
+
+To regenerate a baseline, run the job's script by hand on linix with
+`--write-baseline`, from a checkout of the commit:
+
+    docker run --rm -v "$PWD":/src -w /src hmailserver-ci/linux:<tag> bash build/ci/static-analysis.sh --write-baseline
+    docker run --rm -v "$PWD":/src -w /src python:3.13-slim-trixie bash build/ci/semgrep.sh --write-baseline
+
+Or take a job's artifacts, which hold the tools' raw output, and run
+`build/ci/security-findings.py --write-baseline` over them. Its help gives the
+command, and nothing is scanned again. A line may be deleted from a baseline by
+hand when its finding is fixed. The job reports how many of the baseline's
+findings it no longer sees.
+
+Semgrep's registry packs change without a version. A Semgrep finding can
+therefore be new because a rule is new, and not because the code changed. Each
+run keeps the rules it fetched, with their SHA-256, in its artifacts
+(`security/semgrep/rules/`), so two runs can be compared. The rules are under
+the Semgrep Rules License v1.0, which allows this use but not redistribution.
+That is why they are fetched and not committed.
+
+What each scan leaves out, and why:
+
+- **clang-tidy's checks** are chosen in `build/ci/clang-tidy.yaml`. The file
+  runs `bugprone-*`, `cert-*`, `clang-analyzer-*` and `concurrency-*`, a few
+  exclusions from each, and ten named checks. Each exclusion is written there
+  with the count it had on a quarter of the tree. The families left out
+  (`performance-*`, `modernize-*`, most of `readability-*`, `misc-*` and
+  `cppcoreguidelines-*`, and `portability-*`) produced about 8,400 style
+  findings on that quarter.
+- **cppcheck** runs its error, warning and portability checks (`--enable=warning,portability`).
+  Style and performance are left out for the same reason. The system headers
+  are not read; library configurations stand for them.
+  `build/ci/cppcheck-suppressions.txt` lists what is suppressed, with reasons.
+- **Semgrep** does not read what `build/ci/semgrepignore` names: the regression
+  suites, the tools' test projects and the two script harnesses (test code, as
+  CodeQL's configuration left out too), the vendored QuickJS and zlib, and the
+  WinForms designer's files. It does not read the C++, which is
+  `static-analysis`'s. Without that file Semgrep would apply its own default,
+  which leaves out `build/` and every `test/` directory without a word, so the
+  script puts the file at the root of the checkout for the run. Semgrep also
+  reads a file with no extension only when it is executable and starts with a
+  shebang, and git checks `hmctl` out as an ordinary file. So the script copies
+  each script with a shebang and no extension (`hmctl` and the packages'
+  maintainer scripts) under a name with one, and reports what it finds against
+  the original path.
+
+### Dependency findings, the VEX document, and what OSV cannot answer
+
+`dependency-scan` fails on a high or critical advisory that has a fixed
+version, which is [SECURITY.md](../../SECURITY.md)'s threshold for "fixed before
+the next release". A finding that does not affect the project is dismissed in
+the VEX document, `.github/hmailserver.openvex.json`, with its reason. Trivy
+reads that document (`--vex`), and so does the OSV step. A dismissed finding is
+still listed, marked as dismissed.
+
+OSV's data on C and C++ libraries is partial. So each vendored library is also
+asked about a *control* version, one a published advisory is known to affect.
+When OSV has nothing for the control either, the answer for the real version is
+UNKNOWN (a skipped test case), not clean. On 25 September 2026:
+
+| Library | Version | OSV's answer |
+|---|---|---|
+| OpenSSL | 4.0.2 | no advisory (4.0.0, the control, has 29) |
+| Boost | 1.92.0 | two OSS-Fuzz crash reports, OSV-2024-112 (Boost.Graph's graphviz reader) and OSV-2024-914 (Boost.Regex's formatter), neither with a fixed version. OSV's Boost records are OSS-Fuzz's only, and Boost's CVEs are not among them |
+| zlib (vendored) | 1.3.1 | CVE-2026-22184 (contrib/untgz, which is not vendored), CVE-2026-27171 (CPU use in `crc32_combine64`, fixed in 1.3.2) and CVE-2026-3381 (Perl's Compress::Raw::Zlib, attached to zlib's repository) |
+| MariaDB Connector/C | 3.4.9 | no advisory (3.1.7, the control, has one) |
+| libpq | 18.3 | UNKNOWN: OSV names nothing for 17.2 either, which CVE-2025-1094 affects |
+| QuickJS | 2025-04-26 | UNKNOWN: OSV has no QuickJS data |
+| 7-Zip (`7za.exe`) | 19.00 | UNKNOWN: 19.00 predates the upstream repository's first tag (22.01), so OSV cannot match it. The two advisories OSV has for 22.01 (CVE-2025-55188, CVE-2026-58052) reach back to the first commit. CVE-2023-31102 (a crafted 7z archive and the PPMd decoder, before 23.00) is in OSV only with a range it could not resolve, so no query by version finds it |
+| SQL Server Compact | 4.0 SP1 | UNKNOWN: no open database tracks it, and Microsoft ended its support in July 2021 |
+
+The CI image's scan finds Ubuntu 26.04 with 259 packages and 3,024 advisories.
+2,953 of those are kernel advisories filed against `linux-libc-dev`, the kernel
+headers that `build-essential` pulls in, which run no kernel code. One of the
+3,024 has a fixed version today: CVE-2026-57062, rated low, in `gpgv`. A rebuild
+of the image (`build/ci/build-linux-image.sh`) takes Ubuntu's fixes when they
+come.
+
+### The repository checks, and the Scorecard checks left out
+
+`repo-hygiene` (`build/ci/repo-hygiene.py`) reads GitLab's API without a token.
+It never sends one. Each check answers PASS, FAIL or UNKNOWN. UNKNOWN means
+the answer is not public, and it never counts as a pass. On 25 September 2026:
+
+- **Branch-Protection** passed. `master` and `batch*` are protected, and only
+  Maintainers push or merge. `master` refuses force pushes, while `batch*`
+  allows them, because a batch branch is re-cut while it is folded. All 44 `v*`
+  tags are protected tags. Who may create one is a setting GitLab does not show
+  anonymously.
+- **Signed-Releases** passed. The five newest `v*` releases carry Sigstore and
+  cosign bundles, two of them in-toto provenance as well. git verified the SSH
+  signature on each of their tags against `.github/allowed_signers`.
+- **Security-Policy** passed. `SECURITY.md` offers a confidential issue and an
+  address.
+- **Pinned-Dependencies** failed on four images: `python:3.13-slim-trixie` and
+  `node:22-trixie-slim` in the `checkers`, `harnesses`, `sign-off` and `release`
+  jobs are named by tags that can move. Everything else passed: every Dockerfile
+  `FROM`, every action a kept GitHub workflow uses (by commit, except the SLSA
+  generator, which must be called by its tag and which Scorecard exempts too),
+  every install in the CI scripts, and a lock file beside every NuGet project.
+  The check also notes three Python modules that a script imports and that no
+  requirements file names: PyYAML, Playwright and jsonschema.
+- **Binary-Artifacts** passed. None of the tracked files is an executable or
+  compiled file, judged by its content as well as its name.
+- **Token-Permissions** is UNKNOWN. What the tree can show passed: every job on
+  linix or bench150 extends `.own-runners`; no CI script reads `CI_JOB_TOKEN` or
+  any `*TOKEN*` or `*SECRET*` variable; `CI_DEBUG_TRACE` is set nowhere. The
+  only credential written in the file is the throwaway password of the Linux
+  suite's own PostgreSQL service. The project's job-token allowlist and who may
+  override pipeline variables are not public. A maintainer's `glab api
+  projects/86730559` read `ci_job_token_scope_enabled: false` (the allowlist,
+  "Limit access to this project", is off) and
+  `ci_pipeline_variables_minimum_override_role: no_one_allowed`.
+
+Left out of Scorecard's checks, each for a reason:
+
+- **Code-Review.** The maintainers commit to `master` without merge requests,
+  which is the project's rule, and GitLab's approval rules are a paid feature.
+- **Maintained** and **Contributors.** They measure activity and outside
+  organisations, not the repository's settings.
+- **CII-Best-Practices.** It looks up an OpenSSF Best Practices badge, which
+  the project does not hold.
+- **Webhooks.** A project's webhooks are readable only with a maintainer's
+  token.
+- **Dangerous-Workflow.** It looks for GitHub Actions' `pull_request_target` and
+  its `${{ }}` injection, which GitLab CI does not have. The same risk is covered
+  here by the own-runner rules, and by SECURITY.md's rule that a branch or tag
+  name reaches a command through the environment only.
+- **Packaging**, **SAST** and **CI-Tests.** They read GitHub's checks API. SAST
+  is this section.
+- **Fuzzing.** The harnesses are in `fuzz/`, and the nightly job stopped with
+  the account (Fuzzing.md).
+- **License.** `LICENSE` is at the root.
+- **Dependency-Update-Tool.** It could be answered, and it would fail, as the
+  table above says.
+
+The published score and its README badge are GitHub-only. The OpenSSF API
+accepts a result only from a GitHub Actions run.
+
+### What else was left out, and why
+
+- **CodeQL itself.** Its command-line tool and its query packs are published
+  only on GitHub: the tool as release assets on github.com, the packs on
+  `ghcr.io`.
+- **OSV-Scanner.** It is published on GitHub and `ghcr.io` only. Neither Debian
+  nor Ubuntu packages it (apt knows no `osv-scanner` in trixie or 26.04). The
+  OSV step calls OSV's API directly instead.
+- **Scorecard's own command-line tool.** It reads GitLab too, but its one
+  channel that is not GitHub, `gcr.io/openssf/scorecard`, answered "This API
+  method requires billing to be enabled" on 25 September 2026. Its other
+  channels are GitHub's release assets and `ghcr.io`.
+- **pip-audit and npm audit.** Neither has anything to read. The Python tools
+  use the standard library and declare no dependency (the three that import
+  more are named above), the one Python lock file in the tree is the scanners'
+  own, which Trivy reads, and there is no `package.json` in the tree: the Node
+  harnesses install nothing.
+- **A weekly scheduled scan.** A schedule would start every job whose rules
+  allow a protected ref, the Windows gate included. A schedule for the scans
+  alone needs the other own-runner jobs to skip one, and those are not this
+  row's blocks.
+
+### What they cost
+
+linix takes one job at a time, so the five jobs add their time to linix's share
+of a protected pipeline: 35 to 50 minutes for `static-analysis` (clang-tidy's
+static analyser is most of it) and about ten for the rest. linix's share becomes
+about 2.5 to 4 hours, against the Windows gate's 2.5 to 3 hours on bench150, so
+linix may now be the longer of the two. If it is, the first lever is
+`static-analysis` on `master` and `v*` only. A batch's pipeline
+runs again on `master` when the batch lands, so a new finding is still seen
+there. Making that change is one `rules:` line.
 
 What is still done by hand
 --------------------------

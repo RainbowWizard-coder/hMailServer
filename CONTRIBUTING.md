@@ -352,7 +352,9 @@ writer against GnuPG, and the `.deb` and the `.rpm`), *linux-suite* (the whole L
 PostgreSQL), *linux-cross* (every core file compiled for AArch64), *linux-sanitize* (`snmp-tests` under
 AddressSanitizer, once the option exists), *linux-db-upgrade-pgsql* and *-mysql* (`build/db-upgrade-gate.sh`),
 *linux-package-deb* and *-rpm* (the packages installed in clean containers, the `.deb` started and asked for
-the Deck), *linux-image* (the container image built, not pushed) and *linux-sbom*. On the second Windows bench:
+the Deck), *linux-image* (the container image built, not pushed), *linux-sbom*, and five
+security-scanning jobs, not yet blocking: *static-analysis* (cppcheck and clang-tidy), *semgrep*,
+*dependency-scan* (Trivy and OSV, fed by *ci-image-packages*) and *repo-hygiene*. On the second Windows bench:
 *windows-gate* (the whole Windows suite, in the bench's own checkout) and *windows-dotnet* (the Control Panel and
 the tools built with warnings as errors and tested, `generate-settings-index.ps1` held to its file, and
 `dotnet format --verify-no-changes`). A `v*` tag also gets a *release* job, which is a placeholder until the

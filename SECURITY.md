@@ -164,13 +164,23 @@ the .NET dependency graph (`build/merge-native-dependencies-into-sbom.ps1`).
 ## Vulnerability management policy
 
 What is checked, on what, and what happens when it finds something. On GitHub these checks were automatic and
-blocking. GitHub has been unavailable since 18 September 2026, and GitLab CI runs the project's own checkers
-and none of these, so for now the thresholds below are held by hand, and what actually runs is stated under each heading. A finding that is not
-fixed is suppressed only with a written reason.
+blocking. GitHub has been unavailable since 18 September 2026. Since 25 September 2026 `.gitlab-ci.yml` has
+replacements for the source and dependency scans and for OpenSSF Scorecard, which run on the project's own
+runner for `master`, `batch*` branches and release tags
+([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#security-scanning), "Security
+scanning"). They are not blocking yet: until their first findings are triaged, the thresholds below are held by
+hand, and what runs is stated under each heading. A finding that is not fixed is suppressed only with a written
+reason.
 
 ### Dependencies (software composition analysis)
 
-- **What runs now.** Nothing automatic. What holds without it: the NuGet lock files (`packages.lock.json`) are
+- **What runs now.** The *dependency-scan* job of `.gitlab-ci.yml` runs Trivy over the eleven NuGet lock files,
+  the three `packages.config` files and the scanners' own hashed Python requirements, and over the package
+  database of the image the Linux server is built in, whose OpenSSL, libpq, libldap and Boost the Linux packages
+  are built against. It asks OSV (`api.osv.dev`) about the libraries the Windows server is built with and no
+  manifest names - OpenSSL, Boost, libpq, zlib, QuickJS, MariaDB Connector/C, 7-Zip - at the versions the build
+  uses, and says UNKNOWN, not clean, for a library OSV holds no usable data on (libpq, QuickJS, 7-Zip 19.00 and
+  SQL Server Compact, today). It honours the VEX document below. What holds besides: the NuGet lock files are
   committed and the .NET projects are restored with `--locked-mode`, so a package cannot change under a build
   without a reviewed commit; the native libraries are pinned by version and by source hash, as above; and every
   third-party binary is checked against `hmailserver/docs/third-party-binaries.json`.
@@ -179,30 +189,41 @@ fixed is suppressed only with a written reason.
   required check: a change that added a dependency with a known vulnerability of severity high or critical, or a
   package flagged as malicious, could not be merged. Dependabot (`.github/dependabot.yml`) opened a pull request
   for every advisory touching a dependency in use, and for every new version of a GitHub Action the workflows pin.
-  Neither runs on GitLab.
+  Neither runs on GitLab. *dependency-scan* stands for the alerts, not for the merge-time gate (it runs for the
+  protected refs, and a merge request from a fork never reaches the runner it needs) nor for the update pull
+  requests.
 - **Remediation thresholds.** A high or critical advisory in a dependency is fixed, or the dependency replaced,
   **before the next release** and within 14 days of the advisory; moderate within 30 days; low within 90 days or
   with the next dependency refresh. A licence finding (a dependency whose licence is not compatible with
   AGPL-3.0-or-later) is treated as high.
 - **Before a release.** A release is not cut while a known advisory of high or critical severity against a
-  shipped dependency is open. Until an automated check runs again, that is checked by hand against the
+  shipped dependency is open. The *dependency-scan* report of the release's commit is read first, and every
+  component it marks UNKNOWN, with any the SBOM lists and the scan does not, is checked by hand against the
   components the release's SBOM lists (`hmailserver.spdx.json`, `hmailserver.cyclonedx.json`), which are also
   what a reader checks the shipped versions against.
 - **Not affected.** A finding in a component that does not affect this project - the vulnerable code is not
   reached, the feature is not built, the platform is not one the server runs on - is recorded as a statement in
   the project's VEX document, [`.github/hmailserver.openvex.json`](.github/hmailserver.openvex.json) (OpenVEX),
   with the reason, when it is dismissed. An empty statement list means every advisory raised against a component
-  has been fixed rather than dismissed.
+  has been fixed rather than dismissed. *dependency-scan* reads the document, so a statement there is what quiets
+  a finding the scan keeps raising.
 
 ### Source code (static analysis)
 
 - **What runs now.** The C++ server is compiled with the toolchain's warnings as errors (`/WX`), the regression
   suite runs the server under its crash oracle before every release, first on a build that keeps every internal
   assertion (RELEASE.md step 8b), and the fuzz harnesses under `fuzz/` run for a set time on the release source
-  of every minor release (step 8c). `build\analyze.ps1` runs MSVC's `/analyze` by hand.
+  of every minor release (step 8c). `build\analyze.ps1` runs MSVC's `/analyze` by hand. In `.gitlab-ci.yml`,
+  *static-analysis* runs cppcheck and clang-tidy (the Clang static analyser among its checks) over every
+  translation unit the Linux build compiles, and *semgrep* runs Semgrep's open rules over the C#, Python,
+  JavaScript and shell sources, the Control Deck's and the webmail's scripts among them. Each holds its findings
+  to a committed baseline (`build/ci/static-analysis-baseline.txt`, `build/ci/semgrep-baseline.txt`), so that it
+  can fail on a new finding only; both are allow_failure until the baselines are triaged. Neither reads the
+  Windows-only sources (the COM API, the service host, the ADO and SQL Server Compact backends), which only an
+  MSVC build compiles.
 - **What ran on GitHub.** CodeQL (`.github/workflows/codeql.yml`, configured in `.github/codeql/`) analysed the
   repository on every pull request and every push to `master`, and the `master` ruleset required its results. It
-  does not run on GitLab.
+  does not run on GitLab: its command-line tool and its query packs are published only on GitHub.
 - **Remediation thresholds.** An error-level finding, or a security finding of high or critical severity, is
   fixed before merge. A medium finding is fixed within 30 days; a low or note-level one with the next change to
   that file, or dismissed with a reason. A release is not cut with an open error-level finding.

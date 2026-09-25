@@ -1,0 +1,35 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# What the semgrep job does not read, each with its reason. build/ci/semgrep.sh
+# copies this to .semgrepignore at the root of the checkout for the run: without
+# one there, Semgrep applies its own default, which leaves out build/ and every
+# test/ directory and so would skip the checkers and the CI scripts without saying
+# so. The syntax is .gitignore's.
+
+# The regression suites and the tools' test projects: fixtures and harness code
+# that is not shipped. CodeQL's configuration (.github/codeql/codeql-config.yml)
+# left the suites out for the same reason.
+hmailserver/test/
+hmailserver/source/Tools/ControlPanel.Tests/
+hmailserver/source/Tools/ImportTool.Tests/
+# The Deck's and the webmail's script harnesses, test code of the same kind; one
+# of Semgrep's Express rules also runs past a minute on deck-script-test.js.
+build/deck-script-test.js
+build/portal-script-test.js
+
+# Third-party code, vendored as it was released.
+libraries/
+hmailserver/source/Server/quickjs/
+hmailserver/source/Server/zlib/
+
+# Generated: the WinForms designer rewrites these whole on every save, so a fix in
+# one lasts until the next (the CodeQL configuration's reason, too).
+*.Designer.cs
+*.designer.cs
+
+# Build output, where a build by hand leaves it, and the scans' own output.
+bin/
+obj/
+security/

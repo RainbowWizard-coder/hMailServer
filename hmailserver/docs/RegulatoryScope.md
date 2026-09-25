@@ -177,7 +177,11 @@ changed:
   public keys only and is off until an administrator, a domain and an account
   each say otherwise ([OpenPGP.md](OpenPGP.md)).
 * Static analysis with CodeQL, and OpenSSF Scorecard, on every push to master on
-  GitHub until 18 September 2026; neither runs on GitLab yet. A full regression suite
+  GitHub until 18 September 2026; neither runs on GitLab. Since 25 September 2026
+  GitLab CI runs replacements for `master`, `batch*` branches and release tags,
+  not yet blocking: cppcheck, clang-tidy and Semgrep, dependency scanning with
+  Trivy and OSV, and a check of the repository settings Scorecard read
+  ([ContinuousIntegration.md](ContinuousIntegration.md#security-scanning)). A full regression suite
   gating every release.
 * Release notes that name unfixed known issues rather than omitting them.
 * Security-update distribution with integrity verification, shipped in 6.2.28

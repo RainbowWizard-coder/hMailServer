@@ -871,11 +871,143 @@ linux-fuzz:
     when: always
   script:
     - bash build/ci/linux-fuzz.sh
+# ---------------------------------------------------------------- security scanning
+#
+# What replaced the three GitHub workflows that stopped with the account on 18
+# September 2026: CodeQL (.github/workflows/codeql.yml) by static-analysis and
+# semgrep, dependency review and Dependabot's alerts (dependency-review.yml) by
+# dependency-scan, OpenSSF Scorecard (scorecard.yml) by repo-hygiene. They run on
+# linix, for a protected ref only (.own-runners), and download nothing from GitHub:
+# each job's script says where each of its tools comes from, and every image is
+# pinned by digest (or is the CI image, by its Dockerfile's hash).
+#
+# Every one is allow_failure while its findings are triaged. Each publishes GitLab's
+# own report format (SAST, dependency scanning) and a JUnit report: GitLab's free
+# tier stores the first and offers it for download, and shows the second in the
+# pipeline's Tests tab (docs/ContinuousIntegration.md, "Security scanning"). The two
+# source scans hold their findings to a committed baseline, so that without
+# allow_failure they fail on a NEW finding only.
+#
+# In the test stage with needs: [] - beside the builds, not after the checks: linix
+# takes one job at a time, and the Windows gate on bench150 is longer than
+# everything linix runs, these jobs included.
+
+static-analysis:
+  extends: .linix
+  stage: test
+  needs: []
+  timeout: 90 minutes
+  allow_failure: true
+  script:
+    - bash build/ci/static-analysis.sh
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - security/static-analysis/
+    reports:
+      sast:
+        - security/static-analysis/gl-sast-cppcheck.json
+        - security/static-analysis/gl-sast-clang-tidy.json
+      junit: security/static-analysis/junit.xml
+
+semgrep:
+  extends: .own-runners
+  tags: [linix]
+  image:
+    name: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
+    pull_policy: if-not-present
+  stage: test
+  needs: []
+  timeout: 30 minutes
+  allow_failure: true
+  script:
+    - bash build/ci/semgrep.sh
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - security/semgrep/
+    reports:
+      sast: security/semgrep/gl-sast-semgrep.json
+      junit: security/semgrep/junit.xml
+
+# The CI image's package database, for dependency-scan: Trivy runs in its own image
+# and cannot open this one (a job has no Docker socket, on purpose), so the files it
+# reads to know what is installed - Ubuntu's release files and dpkg status, and the
+# .NET SDK's deps.json - are copied out of the image as an artifact, 1.4 MB.
+ci-image-packages:
+  extends: .linix
+  stage: test
+  needs: []
+  timeout: 10 minutes
+  allow_failure: true
+  script:
+    - rm -rf ci-image-packages
+    - mkdir -p ci-image-packages/etc ci-image-packages/var/lib/dpkg
+    # Trivy knows Ubuntu by lsb-release; with os-release alone it reports no OS.
+    - cp -L /etc/os-release /etc/lsb-release ci-image-packages/etc/
+    - cp /var/lib/dpkg/status ci-image-packages/var/lib/dpkg/status
+    - find /usr/share/dotnet -name '*.deps.json' -exec cp --parents {} ci-image-packages/ \;
+    - echo "$(grep -c '^Package:' ci-image-packages/var/lib/dpkg/status) dpkg packages, $(find ci-image-packages/usr -name '*.deps.json' | wc -l) deps.json files"
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - ci-image-packages/
+
+dependency-scan:
+  extends: .own-runners
+  tags: [linix]
+  image:
+    name: aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969
+    entrypoint: [""]
+    pull_policy: if-not-present
+  stage: test
+  needs: [ci-image-packages]
+  timeout: 30 minutes
+  allow_failure: true
+  before_script:
+    # Python for the script, from Alpine's own repository.
+    - apk add --no-cache --quiet python3
+  script:
+    - python3 build/ci/dependency-scan.py
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - security/dependency-scan/
+    reports:
+      dependency_scanning:
+        - security/dependency-scan/gl-dependency-scanning-trivy.json
+        - security/dependency-scan/gl-dependency-scanning-osv.json
+      junit: security/dependency-scan/junit.xml
+
+repo-hygiene:
+  extends: .own-runners
+  tags: [linix]
+  image:
+    name: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
+    pull_policy: if-not-present
+  stage: test
+  needs: []
+  timeout: 10 minutes
+  allow_failure: true
+  variables:
+    DEBIAN_FRONTEND: noninteractive
+  before_script:
+    # git and ssh-keygen verify the release tags' SSH signatures; from Debian.
+    - apt-get update -qq
+    - apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends git openssh-client ca-certificates > /dev/null
+  script:
+    - python3 build/ci/repo-hygiene.py
   artifacts:
     when: always
     expire_in: 30 days
     paths:
       - fuzz-results/
+      - security/repo-hygiene/
+    reports:
+      junit: security/repo-hygiene/junit.xml
 
 # The release stage belongs to the Roadmap2 row "The release chain off a single forge":
 # signing, the packages, publishing and the update feed. Until it is built, a v* tag
