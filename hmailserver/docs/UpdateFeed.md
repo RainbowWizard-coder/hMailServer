@@ -247,11 +247,32 @@ project's to keep, and because the feed is not the project's word either:
 - **A download a check overtook is not kept.** A check that answers while a
   download runs can change the release on offer; the finished download is then
   not kept as the one waiting, and an apply refuses an installer held to no
-  release, or to one not newer than the server's own.
-- **A version with a suffix is a pre-release.** The stable channel passes over
-  `6.3.5-rc1` whatever the feed's `prerelease` flag says, so a genuine
-  pre-release, signed for its own tag, does not reach a stable server because a
-  feed called it stable.
+  release, or to one not newer than the server's own. Nothing is downloaded
+  while an update is being installed.
+- **A version with a suffix is a pre-release.** A suffix is anything in the
+  version but digits and dots - `6.3.5-rc1`, and `6.3.5rc1` too. The stable
+  channel passes over such a version whatever the feed's `prerelease` flag says,
+  so a genuine pre-release, signed for its own tag, does not reach a stable
+  server because a feed called it stable.
+- **On Windows, nobody else can change a file between its check and its run.**
+  The server keeps the installer, the rollback image and the helper in the
+  `Updates` folder of the data directory, and that folder and its `rollback`
+  folder admit changes from SYSTEM, the Administrators and the account the
+  service runs as, and from nobody else. The server makes them so when it makes
+  them, and before every download and every apply it makes them so again: a
+  folder an earlier version made, which took its parent's permissions, is given
+  these, and the application log says what it allowed before. A folder that is a
+  link, or whose permissions the server cannot set, is refused with `HM6894`,
+  and nothing is downloaded or applied; delete it, and the server makes it
+  again. The apply then reads the SHA-256 of the installer and of the rollback
+  image while it checks them, holding each open so that the signature, the
+  version resource and the digest are all about the same bytes, and gives both
+  digests to the helper. The helper opens each file so that nothing can write,
+  rename or delete it, requires that digest, runs the program by the path
+  Windows resolved that handle to, and lets go only when it has finished; a file
+  with another digest is not run, and the outcome says so. The server holds its
+  copy of the helper the same way, compared with the one in `Bin`, until it has
+  started it.
 
 `UpdateSigningIdentity`, `UpdateSigningIssuer` and `UpdateSourceRepository`
 replace their part of both signers, and a site that sets all three is left with
@@ -345,7 +366,8 @@ finds it. The JSON escapes `<`, `>` and `&`, and the page at `/releases/`
 escapes the list again, so nothing in a release's name can run on the domain.
 
 GitLab has no pre-release flag. A release is a pre-release when its tag has a
-suffix (`v6.2.23-alpha1`), which is how every pre-release so far was published,
+suffix, anything after `v` but digits and dots (`v6.2.23-alpha1`, `v6.3.5rc1`),
+which is how every pre-release so far was published,
 and the one mark a server reads whatever the feed says. A release named as a
 pre-release whose tag has no suffix breaks that rule and is treated like a
 broken link below. `releases/latest` is the highest stable

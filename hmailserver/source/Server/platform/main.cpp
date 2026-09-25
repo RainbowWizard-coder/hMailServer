@@ -997,7 +997,9 @@ namespace
          return 2;
       }
       HM::SigstoreVerdict verdict;
-      if (!HM::SigstoreVerifier::VerifyFile(path, bundleJson, trust, verdict))
+      // No release is given here, only a file: the helper holds the package's own
+      // version to an upgrade of what is installed.
+      if (!HM::SigstoreVerifier::VerifyFileForAnyRelease(path, bundleJson, trust, verdict))
       {
          std::fprintf(stderr, "%s did not verify against its Sigstore bundle: %s\n", file.c_str(), HM::AnsiString(verdict.error).c_str());
          return 1;

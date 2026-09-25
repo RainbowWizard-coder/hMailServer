@@ -14,7 +14,11 @@ namespace HM
    // still offers it, issues the single-use token the database upgrade will present
    // (UpdateApplyToken), copies hMailServer.Updater.exe out of Bin - which the
    // installer is about to replace - into the Updates folder, and starts it there,
-   // detached. The helper does the rest: runs the installer, waits for the service
+   // detached, with the SHA-256 of the installer and of the rollback image as they
+   // were checked. The Updates folder admits changes from SYSTEM, the
+   // Administrators and the service alone, and the helper runs a file only when it
+   // has that digest, read through a handle it keeps open until the program has
+   // finished. The helper does the rest: runs the installer, waits for the service
    // to come back, runs the rollback image if it does not, and writes one line
    // saying what happened, which ReportLastOutcome reads and reports the next time
    // the service starts.

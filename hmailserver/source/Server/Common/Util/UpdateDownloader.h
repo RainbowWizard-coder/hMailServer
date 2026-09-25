@@ -20,11 +20,22 @@ namespace HM
    {
    public:
       // On the calling thread. True when the installer is in place and verified;
-      // false with error, the files gone and the verdict recorded as a failure.
+      // false with error and the files gone. The failure is recorded as the
+      // verdict (StateFailed), except where the state is not the download's to
+      // change - a check answered while it ran, or an update is being installed -
+      // when last_error alone says why.
       static bool DownloadAndVerify(String &error);
 
       // <DataFolder>\Updates
       static String UpdatesDirectory();
+
+      // Updates and Updates\rollback, made - or made again - so that only SYSTEM,
+      // the Administrators and the service can change what is in them
+      // (ProtectedFile::EnsureDirectory): the installer, the rollback image and the
+      // helper wait there between the server's check and their run. False with
+      // error, reported as HM6894, when either cannot be; nothing is downloaded or
+      // applied then. A repair is written to the application log.
+      static bool PrepareUpdatesDirectory(String &error);
 
       // Fetches one installer and its bundle to installerPath (the bundle beside it as
       // .cosign.bundle) and verifies it; false with why, and nothing left, when it

@@ -8,8 +8,10 @@
 #include "SigstoreVerifier.h"
 #include "HttpsClient.h"
 #include "FileUtilities.h"
+#include "ProtectedFile.h"
 #include "Unicode.h"
 #include "../Application/IniFileSettings.h"
+#include "../Application/ErrorManager.h"
 
 // Authenticode is a Windows code-signing scheme, and WinVerifyTrust is the only
 // implementation of it. See AuthenticodeTrusted below for what the POSIX build
@@ -52,6 +54,37 @@ namespace HM
       if (directory.Right(1) != FileUtilities::PathSeparator)
          directory += FileUtilities::PathSeparator;
       return directory + _T("Updates");
+   }
+
+   bool
+   UpdateDownloader::PrepareUpdatesDirectory(String &error)
+   {
+      String directory = UpdatesDirectory();
+      if (directory.IsEmpty())
+      {
+         error = _T("The data directory is not configured.");
+         return false;
+      }
+
+      const String folders[2] = { directory, directory + FileUtilities::PathSeparator + _T("rollback") };
+      for (int i = 0; i < 2; i++)
+      {
+         String repaired;
+         String why;
+         if (!ProtectedFile::EnsureDirectory(folders[i], repaired, why))
+         {
+            error = Formatter::Format(_T("The update was refused: {0}"), why);
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6894, "UpdateDownloader::PrepareUpdatesDirectory", error);
+            return false;
+         }
+         // Braces: LOG_APPLICATION is itself an if statement.
+         if (!repaired.IsEmpty())
+         {
+            LOG_APPLICATION(Formatter::Format(_T("Update: the permissions of {0} were set to SYSTEM, the Administrators and the service alone; before, {1}."),
+               folders[i], repaired));
+         }
+      }
+      return true;
    }
 
    bool
@@ -254,6 +287,14 @@ namespace HM
       error.Empty();
 
       UpdateChecker::Snapshot snapshot = UpdateChecker::Current();
+      // The helper may be about to run the waiting installer, or running it: a
+      // download now would put another file where it is.
+      if (snapshot.state == UpdateChecker::StateInstalling)
+      {
+         error = Formatter::Format(_T("hMailServer {0} is being installed; nothing is downloaded until its outcome is known."), snapshot.available_version);
+         UpdateChecker::RecordLastError(error);
+         return false;
+      }
       if (snapshot.available_version.IsEmpty())
       {
          error = _T("No newer release is known; run a check first.");
@@ -271,14 +312,10 @@ namespace HM
       }
 
       String directory = UpdatesDirectory();
-      if (directory.IsEmpty())
+      if (!PrepareUpdatesDirectory(error))
       {
-         error = _T("The data directory is not configured.");
-         return false;
-      }
-      if (!FileUtilities::DirectoryExists(directory) && !FileUtilities::CreateDirectory(directory))
-      {
-         error = Formatter::Format(_T("{0} could not be created."), directory);
+         UpdateChecker::RecordFailure(error);
+         LOG_APPLICATION(Formatter::Format(_T("Update download refused: {0}"), error));
          return false;
       }
 
@@ -327,6 +364,8 @@ namespace HM
          Remove_(installerPath + _T(".cosign.bundle"));
          error = Formatter::Format(_T("A check while hMailServer {0} was downloading changed the release on offer; the download is not kept. Check again, then download again."),
             snapshot.available_version);
+         // The state is the check's, and stays so; the reason is the download's.
+         UpdateChecker::RecordLastError(error);
          LOG_APPLICATION(Formatter::Format(_T("Update download not kept: {0}"), error));
          return false;
       }

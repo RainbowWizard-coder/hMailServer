@@ -126,6 +126,11 @@ namespace HM
       // A failure of a check or a download: the state becomes StateFailed and
       // last_error says why; what an earlier check learned is kept.
       static void RecordFailure(const String &reason);
+      // A request refused without changing what the snapshot says: last_error says
+      // why and the state stays as it is - a download a check overtook, whose
+      // state is the check's, or one asked for while an update is being
+      // installed, whose state is installing.
+      static void RecordLastError(const String &reason);
 
       // The installer has been handed to the helper.
       static void RecordInstalling();

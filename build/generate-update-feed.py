@@ -46,10 +46,11 @@ after the file it points to, and the package's version is the tag without its
 v. The size and the "sha256:<hex>" digest are the registry's own record of the
 file, which the server holds the download to. A Sigstore bundle is an asset like
 any other, named <artefact>.cosign.bundle, which is how the server finds it.
-GitLab has no pre-release flag: a release is one when its tag has a suffix
-(v6.2.23-alpha1), which is how every pre-release so far was published, and the
-mark a server reads whatever the feed says. A release whose name says
-"Pre-release" but whose tag has no suffix breaks that rule and is not published. A release whose tag is not v<digit>... is not
+GitLab has no pre-release flag: a release is one when its tag has a suffix -
+anything after the numbers but digits and dots, v6.2.23-alpha1 or v6.3.5rc1 -
+which is how every pre-release so far was published, and the mark a server reads
+whatever the feed says. A release whose name says "Pre-release" but whose tag
+has no suffix breaks that rule and is not published. A release whose tag is not v<digit>... is not
 a server release (build-inputs-1 carries build inputs) and is left out; so is
 one GitLab calls upcoming, whose date has not come.
 
@@ -217,17 +218,27 @@ def utc_timestamp(text):
     return moment.astimezone(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def has_suffix(version):
+    """UpdateChecker's HasSuffix_: anything in a version but digits and dots, after
+    an optional v - "-rc1", "rc1", "_rc1", ".rc1". The version comparison stops at
+    the first such character, so 6.3.5rc1 would compare as 6.3.5 if a dash were
+    the only mark."""
+    if version[:1] in ("v", "V"):
+        version = version[1:]
+    return any(c not in "0123456789." for c in version)
+
+
 def is_prerelease(release):
-    """A suffixed tag (v6.3.5-rc1). A server tells a pre-release by its version's
-    suffix whatever the feed's flag says, so the tag is the only mark a feed that
-    was tampered with cannot take off; a release named as a pre-release whose tag
-    has no suffix is refused in render_release."""
-    return "-" in release["tag_name"]
+    """A suffixed tag (v6.3.5-rc1, v6.3.5rc1). A server tells a pre-release by its
+    version's suffix whatever the feed's flag says, so the tag is the only mark a
+    feed that was tampered with cannot take off; a release named as a pre-release
+    whose tag has no suffix is refused in render_release."""
+    return has_suffix(release["tag_name"])
 
 
 def render_release(release, files, errors):
     tag = release["tag_name"]
-    if "-" not in tag and (release.get("name") or "").strip().lower().startswith("pre-release"):
+    if not has_suffix(tag) and (release.get("name") or "").strip().lower().startswith("pre-release"):
         errors.append("%s: the name says it is a pre-release but the tag has no suffix, so a server could not tell it from the "
                       "final release; tag a pre-release v<version>-<suffix>" % tag)
     assets = []
@@ -583,7 +594,7 @@ def select_release(document, prerelease_channel, platform):
         if release is None:
             continue
         any_release = True
-        if release["draft"] or ((release["prerelease"] or "-" in release["version"]) and not prerelease_channel):
+        if release["draft"] or ((release["prerelease"] or has_suffix(release["version"])) and not prerelease_channel):
             continue
         if best is None or compare_versions(release["version"], best["version"]) > 0:
             best = release
@@ -863,6 +874,19 @@ def self_test():
         r["prerelease"] = False
     flagged_stable, _ = select_release(flagged, False, "windows")
     expect(flagged_stable["version"] == "6.3.4", "a suffixed version flagged stable is still a pre-release: %s" % flagged_stable["version"])
+
+    # A suffix is anything but digits and dots, not only a dash: 6.3.9rc1, flagged
+    # stable and the highest version in the list, is still a pre-release.
+    for version, suffixed in (("6.3.5-rc1", True), ("v6.3.5rc1", True), ("6.3.5_rc1", True), ("6.3.5.rc1", True),
+                              ("v6.3.4", False), ("6.3.4.1", False)):
+        expect(has_suffix(version) == suffixed, "%s %s a suffix" % (version, "has" if suffixed else "has no"))
+    undashed = json.loads(json.dumps(flagged))
+    renamed = json.loads(json.dumps([r for r in undashed if r["tag_name"] == "v6.3.4"][0]))
+    renamed["tag_name"] = "v6.3.9rc1"
+    undashed.append(renamed)
+    undashed_stable, _ = select_release(undashed, False, "windows")
+    expect(undashed_stable["version"] == "6.3.4", "a version suffixed without a dash, flagged stable, is still a pre-release: %s"
+           % undashed_stable["version"])
 
     def of(release_list, tag):
         return [r for r in release_list if r["tag_name"] == tag][0]

@@ -4,6 +4,7 @@
 
 using System;
 using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -50,6 +51,10 @@ namespace RegressionTests.API
       [SetUp]
       public void StartFeed()
       {
+         // Every test here cleans the Updates folder, and some plant files in it,
+         // which only SYSTEM, the Administrators and the service may change.
+         RequireElevation("the Updates folder admits changes from SYSTEM, the Administrators and the service alone, and these tests clean it and plant files in it.");
+
          CompileFakeInstallers(Newer, Running);
          File.Delete(_marker);
 
@@ -77,6 +82,10 @@ namespace RegressionTests.API
       [TearDown]
       public void StopFeed()
       {
+         // An unelevated run set nothing up (RequireElevation).
+         if (!Elevated)
+            return;
+
          // An outcome the test did not ask to have reported must not be reported by
          // the reinitialize below: a non-ok one is an ERROR, and the next test's
          // setup would fail on it.
@@ -111,6 +120,12 @@ namespace RegressionTests.API
 
          Assert.IsTrue(status.InstallUpdate(), "The helper must start. Error: " + status.UpdateLastError);
          Assert.AreEqual(4, status.UpdateState, "State 4 is 'installing'.");
+
+         // No download while it installs: it would put another file where the
+         // helper is about to run this one. Refused, and the state left installing.
+         Assert.IsFalse(status.DownloadUpdate(), "A download while an update is being installed must be refused.");
+         StringAssert.Contains("hMailServer " + Newer + " is being installed; nothing is downloaded until its outcome is known.", status.UpdateLastError);
+         Assert.AreEqual(4, status.UpdateState, "The refused download leaves the state 'installing'.");
          StringAssert.Contains("Update: hMailServer " + Newer + " is being applied by " + Paths.Combine(_updatesDirectory, "hMailServer.Updater.exe"),
             LogHandler.ReadCurrentDefaultLog());
 
@@ -366,6 +381,30 @@ namespace RegressionTests.API
             BumpVersion(Newer) + ".0, not " + Newer, status.UpdateLastError);
          Assert.IsFalse(File.Exists(path));
          Assert.IsFalse(File.Exists(OutcomePath));
+      }
+
+      [Test]
+      [Description("The helper runs the installer only when it has the SHA-256 the server read at its last check, through a handle it holds while the installer runs: a file replaced between the server's check and the helper's hold is not run.")]
+      public void AnInstallerReplacedAfterTheLastCheckIsNotRun()
+      {
+         var status = Downloaded();
+         string path = status.UpdateInstallerPath;
+         Assert.IsTrue(status.InstallUpdate(), status.UpdateLastError);
+
+         // The helper waits two seconds before it holds the installer, for the
+         // service to finish the call that started it; the swap is made in them.
+         File.WriteAllBytes(path, File.ReadAllBytes(_later));
+
+         string outcome = WaitForOutcome(OutcomePath, 60);
+         StringAssert.StartsWith("failed " + Newer + " the installer was not run: ", outcome);
+         StringAssert.Contains(" is not the file the server checked: its SHA-256 is ", outcome);
+         Assert.IsFalse(File.Exists(_marker), "Nothing may have run: " + (File.Exists(_marker) ? File.ReadAllText(_marker) : ""));
+
+         // The service never stopped, so the server reads the outcome itself, leaves
+         // the drain and reports it as the failure it is.
+         WaitUntil(() => File.Exists(OutcomePath + ".reported"), 30, "The outcome was not reported while the service was still running.");
+         StringAssert.Contains("Update to hMailServer " + Newer + " did not succeed (failed)", LogHandler.ReadErrorLog());
+         LogHandler.ClearErrorLogUntilSettled();
       }
 
       [Test]
@@ -710,11 +749,11 @@ namespace RegressionTests.API
       }
 
       // apply-token is written with a DACL of SYSTEM, Administrators and the
-      // service account, and the suite runs as none of those. File.Exists then
-      // answers false whether or not the file is there, because it cannot read the
-      // attributes - so presence is read off the directory listing, which needs
-      // only the directory. Nothing in the suite can delete it; the server revokes
-      // it at start, which is what TearDown relies on.
+      // service account. An unelevated process is none of those, and File.Exists
+      // then answers false whether or not the file is there, because it cannot read
+      // the attributes - so presence is read off the directory listing, which works
+      // however this runs. An elevated run's CleanUpdates deletes the file, which
+      // revokes the token as the restart below would.
       private bool TokenListed()
       {
          return Directory.Exists(_updatesDirectory) &&
@@ -740,9 +779,9 @@ namespace RegressionTests.API
                // apply-token is written by the service with a DACL naming SYSTEM,
                // the Administrators group and the service account only - which is
                // the point of it, since it authenticates as the administrator for
-               // an hour. The suite runs as none of those, so it cannot delete the
-               // file and does not need to: the server revokes it when the apply
-               // finishes, and one never redeemed expires in an hour.
+               // an hour. This fixture runs elevated, so it can; should it not, it
+               // does not need to: the server revokes it when the apply finishes,
+               // and one never redeemed expires in an hour.
             }
          }
       }
@@ -800,6 +839,234 @@ namespace RegressionTests.API
                int separator = raw.IndexOf("\r\n\r\n", StringComparison.Ordinal);
                return (code, separator >= 0 ? raw.Substring(separator + 4) : "");
             }
+         }
+      }
+   }
+
+   /// <summary>
+   ///    hMailServer.Updater on its own, started as the server starts it but with no
+   ///    server behind it: a service name no service has, and every file in a folder
+   ///    of the test's own. The helper runs a file - the installer, the rollback
+   ///    image - only when it has the SHA-256 the server gave for it, read through a
+   ///    handle the helper keeps open while the file runs, so that nothing can
+   ///    change the file between the check and the run. Needs no elevation.
+   /// </summary>
+   [TestFixture]
+   public class UpdateHelperDigest : TestFixtureBase
+   {
+      private const string NoSuchService = "hMailServerNoSuchServiceForTheHelperTest";
+
+      private string _directory;
+      private string _marker;
+      private string _installer;
+      private string _rollback;
+
+      [SetUp]
+      public void MakePrograms()
+      {
+         Assert.IsTrue(File.Exists(HelperPath()), "hMailServer.Updater.exe is not beside the service: " + HelperPath());
+
+         // A folder of this test's own, named by a bare hex guid under the temporary
+         // folder, so that nothing appended to it can be a rooted path.
+         _directory = Paths.Combine(Path.GetTempPath(), "hm-helper-digest-" + Guid.NewGuid().ToString("N"));
+         Directory.CreateDirectory(_directory);
+         _marker = Paths.Combine(_directory, "ran.log");
+         _installer = Compile("installer", "System.Threading.Thread.Sleep(4000);");
+         _rollback = Compile("rollback", "");
+      }
+
+      [TearDown]
+      public void RemovePrograms()
+      {
+         try
+         {
+            Directory.Delete(_directory, true);
+         }
+         catch (IOException)
+         {
+            // A program the helper started may be a moment from exiting.
+         }
+         catch (UnauthorizedAccessException)
+         {
+            // The same, reported as a refusal: a running program's file.
+         }
+      }
+
+      [Test]
+      public void AnInstallerWithTheServersDigestIsRunWhileHeld()
+      {
+         // The control: the same program started directly, with nothing holding
+         // it, can be renamed while it runs - Windows opens a program's file so
+         // that it may be - so a refusal below is the helper's doing.
+         using (Process direct = Process.Start(new ProcessStartInfo(_installer) {UseShellExecute = false, CreateNoWindow = true}))
+         {
+            WaitUntil(() => File.Exists(_marker), 30, "The program did not start.");
+            try
+            {
+               File.Move(_installer, _installer + ".moved");
+               File.Move(_installer + ".moved", _installer);
+            }
+            catch (IOException e)
+            {
+               direct.WaitForExit(30000);
+               Assert.Inconclusive("A running program cannot be renamed here even with nothing holding it, so the helper's hold would show nothing: " + e.Message);
+            }
+            Assert.IsTrue(direct.WaitForExit(30000), "The program did not finish.");
+         }
+         File.Delete(_marker);
+
+         Process helper = StartHelper("--installer", _installer, "--installer-sha256", Sha256(_installer));
+         try
+         {
+            // The installer sleeps four seconds: while it runs, the helper's handle
+            // keeps it from being renamed, which a running program alone does not.
+            WaitUntil(() => File.Exists(_marker), 30, "The helper did not run the installer.");
+            Assert.Throws<IOException>(() => File.Move(_installer, _installer + ".moved"), "The installer could be renamed while it ran.");
+         }
+         finally
+         {
+            Assert.IsTrue(helper.WaitForExit(60000), "The helper did not finish.");
+            helper.Dispose();
+         }
+
+         StringAssert.StartsWith("installer ", File.ReadAllText(_marker));
+         StringAssert.StartsWith("no-rollback 9.9.9 the installer succeeded but the service was not running", Outcome());
+      }
+
+      [Test]
+      public void AnInstallerWithAnotherDigestIsNotRun()
+      {
+         string other = Sha256(_rollback);
+         RunHelper("--installer", _installer, "--installer-sha256", other);
+
+         string outcome = Outcome();
+         StringAssert.StartsWith("failed 9.9.9 the installer was not run: ", outcome);
+         StringAssert.Contains("is not the file the server checked: its SHA-256 is " + Sha256(_installer) + ", not " + other, outcome);
+         Assert.IsFalse(File.Exists(_marker), "The installer ran.");
+      }
+
+      [Test]
+      public void AnInstallerWithNoDigestIsNotRun()
+      {
+         RunHelper("--installer", _installer);
+
+         StringAssert.StartsWith("failed 9.9.9 the installer was not run: the server gave no SHA-256 for ", Outcome());
+         Assert.IsFalse(File.Exists(_marker), "The installer ran.");
+      }
+
+      [Test]
+      public void ARollbackImageWithAnotherDigestIsNotRun()
+      {
+         // The installer runs, the service - there is none - is not running after
+         // it, and the rollback image is held to its digest before it runs.
+         RunHelper("--installer", _installer, "--installer-sha256", Sha256(_installer),
+                   "--rollback", _rollback, "--rollback-sha256", Sha256(_installer), "--rollback-version", "9.9.8");
+
+         StringAssert.Contains("; the rollback image was not run: ", Outcome());
+         StringAssert.StartsWith("rollback-failed 9.9.9 ", Outcome());
+         string ran = File.ReadAllText(_marker);
+         StringAssert.Contains("installer ", ran);
+         StringAssert.DoesNotContain("rollback ", ran, "The rollback image ran.");
+      }
+
+      [Test]
+      public void ARollbackImageWithTheServersDigestIsRun()
+      {
+         RunHelper("--installer", _installer, "--installer-sha256", Sha256(_installer),
+                   "--rollback", _rollback, "--rollback-sha256", Sha256(_rollback), "--rollback-version", "9.9.8");
+
+         StringAssert.Contains("rollback ", File.ReadAllText(_marker), "The rollback image did not run.");
+         StringAssert.DoesNotContain("the rollback image was not run", Outcome());
+      }
+
+      private string Outcome()
+      {
+         return File.ReadAllText(Paths.Combine(_directory, "outcome.txt"));
+      }
+
+      private void RunHelper(params string[] arguments)
+      {
+         using (Process helper = StartHelper(arguments))
+            Assert.IsTrue(helper.WaitForExit(60000), "The helper did not finish.");
+      }
+
+      private Process StartHelper(params string[] arguments)
+      {
+         var all = new List<string>
+         {
+            "--version", "9.9.9",
+            "--outcome", Paths.Combine(_directory, "outcome.txt"),
+            "--log", Paths.Combine(_directory, "helper.log"),
+            "--service", NoSuchService,
+            "--wait", "0"
+         };
+         all.AddRange(arguments);
+         var start = new ProcessStartInfo(HelperPath(), string.Join(" ", all.Select(a => "\"" + a + "\"")))
+         {
+            UseShellExecute = false,
+            CreateNoWindow = true
+         };
+         return Process.Start(start);
+      }
+
+      // The helper beside the service's own binary, as HelperSourcePath finds it.
+      private static string HelperPath()
+      {
+         using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\hMailServer"))
+         {
+            string image = (string) key.GetValue("ImagePath");
+            image = image.StartsWith("\"") ? image.Substring(1, image.IndexOf('"', 1) - 1) : image.Split(' ')[0];
+            return Paths.Combine(Path.GetDirectoryName(image), "hMailServer.Updater.exe");
+         }
+      }
+
+      private static string Sha256(string path)
+      {
+         using (var sha = SHA256.Create())
+            return FakeSigstore.Hex(sha.ComputeHash(File.ReadAllBytes(path)));
+      }
+
+      // A console program that records its name and exits 0 - an installer, as far
+      // as the helper can tell - after doing what action says.
+      private string Compile(string name, string action)
+      {
+         string source =
+            "using System;\n" +
+            "using System.IO;\n" +
+            "class FakeInstaller\n{\n" +
+            "   static int Main(string[] args)\n   {\n" +
+            "      File.AppendAllText(@\"" + _marker + "\", \"" + name + " \" + string.Join(\" \", args) + Environment.NewLine);\n" +
+            "      " + action + "\n" +
+            "      return 0;\n" +
+            "   }\n}\n";
+
+         // name is "installer" or "rollback", so this is a file name under the
+         // test's folder, never a rooted path.
+         string path = Paths.Combine(_directory, name + ".exe");
+         using (CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp"))
+         {
+            var parameters = new CompilerParameters {GenerateExecutable = true, OutputAssembly = path, GenerateInMemory = false};
+            parameters.ReferencedAssemblies.Add("System.dll");
+            CompilerResults results = provider.CompileAssemblyFromSource(parameters, source);
+            if (results.Errors.HasErrors)
+            {
+               var errors = new StringBuilder();
+               foreach (CompilerError error in results.Errors)
+                  errors.AppendLine(error.ToString());
+               Assert.Fail("The fake installer '" + name + "' did not compile:\n" + errors);
+            }
+         }
+         return path;
+      }
+
+      private static void WaitUntil(Func<bool> condition, int seconds, string message)
+      {
+         DateTime deadline = DateTime.Now.AddSeconds(seconds);
+         while (!condition())
+         {
+            if (DateTime.Now > deadline)
+               Assert.Fail(message);
+            Thread.Sleep(100);
          }
       }
    }

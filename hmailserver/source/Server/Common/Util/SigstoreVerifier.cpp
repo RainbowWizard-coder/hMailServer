@@ -838,6 +838,28 @@ namespace HM
    SigstoreVerifier::VerifyFile(const String &path, const AnsiString &bundleJson, const SigstoreTrust &trust, SigstoreVerdict &verdict,
                                 const String &expectedVersion)
    {
+      // No release to hold the file to is no reason to let it through as one: the
+      // GitHub signer's last release and the tag a GitLab certificate names would
+      // both go unchecked. A caller with no release says so, with
+      // VerifyFileForAnyRelease.
+      if (expectedVersion.IsEmpty())
+      {
+         verdict = SigstoreVerdict();
+         return Fail_(verdict, _T("There is no release to hold the file to, so nothing shows it is the one to install."));
+      }
+      return Verify_(path, bundleJson, trust, verdict, expectedVersion);
+   }
+
+   bool
+   SigstoreVerifier::VerifyFileForAnyRelease(const String &path, const AnsiString &bundleJson, const SigstoreTrust &trust, SigstoreVerdict &verdict)
+   {
+      return Verify_(path, bundleJson, trust, verdict, String());
+   }
+
+   bool
+   SigstoreVerifier::Verify_(const String &path, const AnsiString &bundleJson, const SigstoreTrust &trust, SigstoreVerdict &verdict,
+                             const String &expectedVersion)
+   {
       verdict = SigstoreVerdict();
 
       // The trust first: a verifier with nothing to trust cannot say yes, and it

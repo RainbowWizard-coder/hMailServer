@@ -7,15 +7,19 @@
 // The service cannot run its own installer - the installer stops the service - so
 // the server copies this program out of Bin (which the installer replaces) into the
 // data directory's Updates folder and starts it there, detached, with the verified
-// installer's path, a rollback image where one could be had, and a single-use token
-// the new installer's database tool presents to authenticate the schema upgrade.
+// installer's path, a rollback image where one could be had, the SHA-256 of each as
+// the server checked it, and a single-use token the new installer's database tool
+// presents to authenticate the schema upgrade.
 //
 // Then, alone:
 //   1. end whatever is running from under the installation - a Control Panel
 //      left open - because the installer replaces those files and, silent, aborts
-//      at the first one it cannot; then run the installer silently and wait for it;
+//      at the first one it cannot; then open the installer so that nothing can
+//      change it, require its SHA-256 to be the server's, run it silently by the
+//      path Windows resolved that handle to, wait for it, and only then let go;
 //   2. wait for the service to be running again, up to --wait seconds;
-//   3. if it is not, run the rollback image and wait again;
+//   3. if it is not, run the rollback image - held and held to its SHA-256 the
+//      same way - and wait again;
 //   4. write one line to --outcome saying what happened, which the server reads and
 //      reports the next time it starts.
 //
@@ -27,14 +31,20 @@
 #include <string>
 #include <vector>
 #include <tlhelp32.h>
+#include <bcrypt.h>
+
+// SHA-256 from Windows itself (CNG), which is there on every system this runs on.
+#pragma comment(lib, "bcrypt.lib")
 
 namespace
 {
    struct Arguments
    {
       std::wstring installer;
+      std::wstring installer_sha256;
       std::wstring version;
       std::wstring rollback;
+      std::wstring rollback_sha256;
       std::wstring rollback_version;
       std::wstring service;
       std::wstring token;
@@ -81,8 +91,10 @@ namespace
          std::wstring name = argv[i];
          std::wstring value = argv[i + 1];
          if (name == L"--installer") arguments.installer = value;
+         else if (name == L"--installer-sha256") arguments.installer_sha256 = value;
          else if (name == L"--version") arguments.version = value;
          else if (name == L"--rollback") arguments.rollback = value;
+         else if (name == L"--rollback-sha256") arguments.rollback_sha256 = value;
          else if (name == L"--rollback-version") arguments.rollback_version = value;
          else if (name == L"--service") arguments.service = value;
          else if (name == L"--token") arguments.token = value;
@@ -205,6 +217,117 @@ namespace
    {
       size_t slash = path.find_last_of(L"\\/");
       return slash == std::wstring::npos ? L"." : path.substr(0, slash);
+   }
+
+   // The SHA-256 of what an open file holds, read through that handle from its
+   // first byte, as lowercase hex; empty when it could not be read.
+   std::wstring Sha256Of(HANDLE file)
+   {
+      std::wstring hex;
+      BCRYPT_ALG_HANDLE algorithm = nullptr;
+      if (!BCRYPT_SUCCESS(BCryptOpenAlgorithmProvider(&algorithm, BCRYPT_SHA256_ALGORITHM, nullptr, 0)))
+         return hex;
+
+      BCRYPT_HASH_HANDLE hash = nullptr;
+      if (BCRYPT_SUCCESS(BCryptCreateHash(algorithm, &hash, nullptr, 0, nullptr, 0, 0)))
+      {
+         LARGE_INTEGER start;
+         start.QuadPart = 0;
+         bool ok = SetFilePointerEx(file, start, nullptr, FILE_BEGIN) != FALSE;
+         std::vector<unsigned char> buffer(1024 * 1024);
+         while (ok)
+         {
+            DWORD got = 0;
+            if (!ReadFile(file, buffer.data(), (DWORD) buffer.size(), &got, nullptr))
+               ok = false;
+            else if (got == 0)
+               break;
+            else if (!BCRYPT_SUCCESS(BCryptHashData(hash, buffer.data(), got, 0)))
+               ok = false;
+         }
+
+         unsigned char digest[32];
+         if (ok && BCRYPT_SUCCESS(BCryptFinishHash(hash, digest, (ULONG) sizeof(digest), 0)))
+         {
+            const wchar_t *digits = L"0123456789abcdef";
+            for (size_t i = 0; i < sizeof(digest); i++)
+            {
+               hex += digits[digest[i] >> 4];
+               hex += digits[digest[i] & 0x0F];
+            }
+         }
+         BCryptDestroyHash(hash);
+      }
+      BCryptCloseAlgorithmProvider(algorithm, 0);
+      return hex;
+   }
+
+   // A file this program is about to run, held open from before its SHA-256 is
+   // read until the program has finished: shared for reading and nothing else, so
+   // nothing can write it, rename it or delete it meanwhile, nor rename a folder
+   // above it. It is started by path, the one Windows resolved the handle to, so
+   // no link on the way to it can be pointed elsewhere after the check either.
+   struct HeldFile
+   {
+      HANDLE handle;
+      std::wstring path;
+
+      HeldFile() : handle(INVALID_HANDLE_VALUE) {}
+      ~HeldFile()
+      {
+         if (handle != INVALID_HANDLE_VALUE)
+            CloseHandle(handle);
+      }
+
+   private:
+      HeldFile(const HeldFile &);
+      HeldFile &operator=(const HeldFile &);
+   };
+
+   // Opens file into held and requires its SHA-256 to be expected, the digest the
+   // server read when it checked it; false with why, and nothing to run, when it
+   // is not - or when the server gave none, since then nothing says what it is.
+   bool Hold(const std::wstring &file, const std::wstring &expected, HeldFile &held, std::wstring &why)
+   {
+      if (expected.size() != 64)
+      {
+         why = L"the server gave no SHA-256 for " + file + L", so nothing says it is the file the server checked";
+         return false;
+      }
+
+      held.handle = CreateFileW(file.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+      if (held.handle == INVALID_HANDLE_VALUE)
+      {
+         why = file + L" could not be opened (Windows error " + std::to_wstring(GetLastError()) + L")";
+         return false;
+      }
+
+      const std::wstring actual = Sha256Of(held.handle);
+      if (actual.empty())
+      {
+         why = L"the SHA-256 of " + file + L" could not be read";
+         return false;
+      }
+      if (_wcsicmp(actual.c_str(), expected.c_str()) != 0)
+      {
+         why = file + L" is not the file the server checked: its SHA-256 is " + actual + L", not " + expected;
+         return false;
+      }
+
+      wchar_t buffer[1024];
+      const DWORD length = GetFinalPathNameByHandleW(held.handle, buffer, 1024, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
+      if (length == 0 || length >= 1024)
+      {
+         why = L"Windows could not say where " + file + L" is (error " + std::to_wstring(GetLastError()) + L")";
+         return false;
+      }
+      std::wstring resolved(buffer, length);
+      if (resolved.compare(0, 8, L"\\\\?\\UNC\\") == 0)
+         resolved = L"\\\\" + resolved.substr(8);
+      else if (resolved.compare(0, 4, L"\\\\?\\") == 0)
+         resolved = resolved.substr(4);
+      held.path = resolved;
+      return true;
    }
 }
 
@@ -445,7 +568,8 @@ int wmain(int argc, wchar_t *argv[])
    Arguments arguments;
    if (!Parse(argc, argv, arguments))
    {
-      wprintf(L"Usage: hMailServer.Updater --installer <path> --version <v> --outcome <path> [--rollback <path> --rollback-version <v>]\n"
+      wprintf(L"Usage: hMailServer.Updater --installer <path> --installer-sha256 <hex> --version <v> --outcome <path>\n"
+              L"                           [--rollback <path> --rollback-sha256 <hex> --rollback-version <v>]\n"
               L"                           [--service <name>] [--token <token>] [--log <path>] [--wait <seconds>] [--app <root>]\n");
       return 2;
    }
@@ -465,7 +589,23 @@ int wmain(int argc, wchar_t *argv[])
       Log(L"The installation's directory is not known, so nothing running from it can be ended before the installer runs.");
    else
       Log(L"Installation: " + root + L"; " + std::to_wstring(EndProcessesUnder(root, arguments.service)) + L" program(s) running from it ended before the installer runs.");
-   int code = RunInstaller(arguments.installer, arguments.token, installLog);
+
+   // The installer as the server checked it, or nothing: held from here until it
+   // has finished, so that what runs is what has the server's digest. The service
+   // is still running when this refuses - the installer is what stops it - so
+   // the server reads the outcome and leaves the drain itself.
+   int code = 0;
+   {
+      HeldFile installer;
+      std::wstring heldWhy;
+      if (!Hold(arguments.installer, arguments.installer_sha256, installer, heldWhy))
+      {
+         WriteOutcome(arguments.outcome, L"failed " + arguments.version + L" the installer was not run: " + heldWhy);
+         return 1;
+      }
+      Log(L"The installer is the file the server checked (SHA-256 " + arguments.installer_sha256 + L"), held open until it has finished.");
+      code = RunInstaller(installer.path, arguments.token, installLog);
+   }
    const std::wstring says = code == 0 ? L"" : InstallerLogSays(installLog);
    bool running = WaitForRunning(arguments.service, arguments.wait_seconds);
 
@@ -499,7 +639,18 @@ int wmain(int argc, wchar_t *argv[])
    std::wstring rollbackLog = Directory(arguments.outcome) + L"\\rollback-" + arguments.rollback_version + L".log";
    if (!root.empty())
       EndProcessesUnder(root, arguments.service);
-   int rollbackCode = RunInstaller(arguments.rollback, L"", rollbackLog);
+   int rollbackCode = 0;
+   {
+      HeldFile rollback;
+      std::wstring heldWhy;
+      if (!Hold(arguments.rollback, arguments.rollback_sha256, rollback, heldWhy))
+      {
+         WriteOutcome(arguments.outcome, L"rollback-failed " + arguments.version + L" " + reason + L"; the rollback image was not run: " + heldWhy +
+            L"; the service is " + StateName(ServiceState(arguments.service)) + L"; see " + installLog);
+         return 1;
+      }
+      rollbackCode = RunInstaller(rollback.path, L"", rollbackLog);
+   }
    const std::wstring rollbackSays = rollbackCode == 0 ? L"" : InstallerLogSays(rollbackLog);
    bool rolledBack = WaitForRunning(arguments.service, arguments.wait_seconds);
 

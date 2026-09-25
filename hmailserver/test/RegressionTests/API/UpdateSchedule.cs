@@ -49,6 +49,10 @@ namespace RegressionTests.API
       [SetUp]
       public void StartFeed()
       {
+         // Every test here cleans the Updates folder, which only SYSTEM, the
+         // Administrators and the service may change.
+         RequireElevation("the Updates folder admits changes from SYSTEM, the Administrators and the service alone, and these tests clean it.");
+
          CompileQuietInstallers(Newer, Running);
          File.Delete(_marker);
 
@@ -81,6 +85,10 @@ namespace RegressionTests.API
       [TearDown]
       public void StopFeed()
       {
+         // An unelevated run set nothing up (RequireElevation).
+         if (!Elevated)
+            return;
+
          // Every installer here is the quiet one, so an outcome is 'ok': let the
          // reinitialize below report it, which also takes the state out of
          // 'installing' for the next test.

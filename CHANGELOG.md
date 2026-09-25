@@ -326,7 +326,10 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
   certificate issued before the suspension and a release no later than 6.3.3, and this project's GitLab CI
   pipeline for a `v*` tag, which is to sign the releases after and has signed none yet. A file signed for one
   release tag is refused as any other release; on Windows the installer's own version resource must name the
-  release it is installed as; and a version with a suffix is a pre-release whatever the feed says. **A server from 6.2.28 to 6.3.3 still looks at GitHub.** Under `[Settings]` in its `hMailServer.ini`,
+  release it is installed as; and a version with a suffix is a pre-release whatever the feed says. On Windows
+  the `Updates` folder admits changes from SYSTEM, the Administrators and the service alone, and the update
+  helper runs the installer, and the rollback image, only with the SHA-256 the server read when it checked
+  them, through a handle it holds until they have finished. **A server from 6.2.28 to 6.3.3 still looks at GitHub.** Under `[Settings]` in its `hMailServer.ini`,
   add `UpdateFeedUrl=https://updates.progressiverobot.com/releases.json`, then restart the service, and its
   update check works again. Its live update can then install the re-hosted releases up to 6.3.3. The first
   release signed on GitLab will be refused by that server's live update, which trusts only GitHub's signer:

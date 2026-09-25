@@ -10,6 +10,7 @@
 #include "SigstoreVerifier.h"
 #include "ServiceAccount.h"
 #include "FileUtilities.h"
+#include "ProtectedFile.h"
 #include "Unicode.h"
 #include "../Application/Application.h"
 #include "../Application/IniFileSettings.h"
@@ -289,12 +290,12 @@ namespace HM
    {
       rollbackPath.Empty();
 
+      // Apply has made it already (UpdateDownloader::PrepareUpdatesDirectory); made
+      // here the same way for any other caller, never with inherited permissions.
       String directory = UpdateDownloader::UpdatesDirectory() + FileUtilities::PathSeparator + _T("rollback");
-      if (!FileUtilities::DirectoryExists(directory) && !FileUtilities::CreateDirectory(directory))
-      {
-         why = Formatter::Format(_T("{0} could not be created."), directory);
+      String repaired;
+      if (!ProtectedFile::EnsureDirectory(directory, repaired, why))
          return false;
-      }
 
       // The running version's own artefact - the installer, or the package this
       // installation came from - by the name the release flow gave it.
@@ -574,6 +575,117 @@ namespace HM
    }
 #endif
 
+   namespace
+   {
+      enum CheckResult_
+      {
+         CheckPassed_,
+         CheckBundleRefused_,
+         CheckVersionRefused_,
+         CheckUnreadable_
+      };
+
+      // A file the apply hands on - the installer or the rollback image - against
+      // its bundle (<path>.cosign.bundle) and the version its resource names. With
+      // sha256 given, all of it with the file held open (FILE_SHARE_READ and
+      // nothing more, so nothing can write, rename or delete it, nor rename a
+      // folder above it, until the checks are done), and its SHA-256 read under
+      // the same hold: the digest the helper requires is then of the bytes that
+      // passed. The signature, the version resource and the digest are three reads
+      // of the file; held, they are reads of the same bytes.
+      CheckResult_ Check_(const String &path, const String &version, const SigstoreTrust &trust, std::string *sha256, String &why)
+      {
+#ifdef _WIN32
+         HANDLE held = INVALID_HANDLE_VALUE;
+         if (sha256 != nullptr)
+         {
+            held = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+            if (held == INVALID_HANDLE_VALUE)
+            {
+               why = Formatter::Format(_T("{0} could not be held open to be checked (Windows error {1})."), path, (int) GetLastError());
+               return CheckUnreadable_;
+            }
+         }
+#endif
+
+         CheckResult_ result = CheckPassed_;
+         String bundlePath = path + _T(".cosign.bundle");
+         AnsiString bundleJson;
+         if (FileUtilities::Exists(bundlePath))
+            SigstoreVerifier::ReadBundle(bundlePath, bundleJson);
+         SigstoreVerdict verdict;
+         if (!SigstoreVerifier::VerifyFile(path, bundleJson, trust, verdict, version))
+         {
+            why = verdict.error;
+            result = CheckBundleRefused_;
+         }
+         else if (!UpdateDownloader::InstallerVersionIs(path, version, why))
+            result = CheckVersionRefused_;
+         else if (sha256 != nullptr)
+         {
+            std::vector<unsigned char> digest;
+            if (SigstoreVerifier::Sha256File(path, digest, why))
+               *sha256 = SigstoreVerifier::Hex(digest);
+            else
+               result = CheckUnreadable_;
+         }
+
+#ifdef _WIN32
+         if (held != INVALID_HANDLE_VALUE)
+            CloseHandle(held);
+#endif
+         return result;
+      }
+
+      // The waiting installer, checked as Check_ does; false with error, the
+      // failure recorded and - where it is not the release it was downloaded as -
+      // the file and its bundle deleted.
+      bool CheckWaitingInstaller_(const UpdateChecker::Snapshot &snapshot, const SigstoreTrust &trust, std::string *sha256, String &error)
+      {
+         String why;
+         const CheckResult_ result = Check_(snapshot.installer_path, snapshot.available_version, trust, sha256, why);
+         if (result == CheckPassed_)
+            return true;
+
+         if (result == CheckUnreadable_)
+            error = Formatter::Format(_T("The installer could not be checked: {0}"), why);
+         else
+         {
+            String bundlePath = snapshot.installer_path + _T(".cosign.bundle");
+            FileUtilities::DeleteFile(snapshot.installer_path);
+            if (FileUtilities::Exists(bundlePath))
+               FileUtilities::DeleteFile(bundlePath);
+            if (result == CheckBundleRefused_)
+               error = Formatter::Format(_T("The installer no longer verifies against its bundle and has been deleted: {0}"), why);
+            else
+               error = Formatter::Format(_T("The installer is not the release it was downloaded as and has been deleted: {0}"), why);
+         }
+         UpdateChecker::RecordFailure(error);
+         LOG_APPLICATION(Formatter::Format(_T("Update apply refused: {0}"), error));
+         return false;
+      }
+
+#ifdef _WIN32
+      // The path Windows resolved an open handle to, with the \\?\ prefix taken
+      // off an ordinary path; fallback when it cannot say. A program started by it
+      // is the file the handle holds: no link along the way is followed again.
+      String FinalPathOf_(HANDLE handle, const String &fallback)
+      {
+         wchar_t buffer[1024];
+         const DWORD length = GetFinalPathNameByHandleW(handle, buffer, 1024, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
+         if (length == 0 || length >= 1024)
+            return fallback;
+
+         std::wstring path(buffer, length);
+         if (path.compare(0, 8, L"\\\\?\\UNC\\") == 0)
+            path = L"\\\\" + path.substr(8);
+         else if (path.compare(0, 4, L"\\\\?\\") == 0)
+            path = path.substr(4);
+         return String(path.c_str());
+      }
+#endif
+   }
+
    bool
    UpdateInstaller::Apply(String &error)
    {
@@ -627,22 +739,16 @@ namespace HM
       String directory = UpdateDownloader::UpdatesDirectory();
       String running = UpdateChecker::RunningVersion();
 
-      String rollbackPath;
-      String rollbackWhy;
-      // Braces on both branches: LOG_APPLICATION is itself an if statement.
-      if (EnsureRollbackImage_(running, rollbackPath, rollbackWhy))
+      // Nobody but SYSTEM, the Administrators and the service may change what is
+      // in the Updates folder - the installer, the rollback image, the helper - or
+      // a file checked below could be another by the time it runs.
+      if (!UpdateDownloader::PrepareUpdatesDirectory(error))
       {
-         LOG_APPLICATION(Formatter::Format(_T("Update: the rollback image for hMailServer {0} is {1}, verified."), running, rollbackPath));
-      }
-      else
-      {
-         LOG_APPLICATION(Formatter::Format(_T("Update: no rollback image for hMailServer {0} could be had ({1}); if {2} does not start, it will need a manual reinstall."),
-            running, rollbackWhy, snapshot.available_version));
+         UpdateChecker::RecordFailure(error);
+         LOG_APPLICATION(Formatter::Format(_T("Update apply refused: {0}"), error));
+         return false;
       }
 
-      // Verified once more, last, because the file has been sitting in a directory
-      // since it was, and the rollback image above may have taken minutes: what
-      // runs is what was checked, just before the drain and the helper.
       SigstoreTrust trust;
       String why;
       if (!SigstoreVerifier::ConfiguredTrust(trust, why))
@@ -650,34 +756,44 @@ namespace HM
          error = why;
          return false;
       }
-      String bundlePath = snapshot.installer_path + _T(".cosign.bundle");
-      SigstoreVerdict verdict;
-      AnsiString bundleJson;
-      if (FileUtilities::Exists(bundlePath))
-         SigstoreVerifier::ReadBundle(bundlePath, bundleJson);
-      if (!SigstoreVerifier::VerifyFile(snapshot.installer_path, bundleJson, trust, verdict, snapshot.available_version))
-      {
-         FileUtilities::DeleteFile(snapshot.installer_path);
-         if (FileUtilities::Exists(bundlePath))
-            FileUtilities::DeleteFile(bundlePath);
-         why = Formatter::Format(_T("The installer no longer verifies against its bundle and has been deleted: {0}"), verdict.error);
-         UpdateChecker::RecordFailure(why);
-         LOG_APPLICATION(Formatter::Format(_T("Update apply refused: {0}"), why));
-         error = why;
+
+      // A first look before the rollback image is fetched, which may take
+      // minutes: an installer that no longer verifies is refused without that
+      // download. It is checked again, last, below.
+      if (!CheckWaitingInstaller_(snapshot, trust, nullptr, error))
          return false;
-      }
-      String versionWhy;
-      if (!UpdateDownloader::InstallerVersionIs(snapshot.installer_path, snapshot.available_version, versionWhy))
+
+      String rollbackPath;
+      String rollbackWhy;
+      std::string rollbackSha256;
+      // The image as EnsureRollbackImage_ verified it, then held and checked once
+      // more for the digest the helper requires of it before it runs it.
+      bool rollbackReady = EnsureRollbackImage_(running, rollbackPath, rollbackWhy);
+      if (rollbackReady && Check_(rollbackPath, running, trust, &rollbackSha256, rollbackWhy) != CheckPassed_)
       {
-         FileUtilities::DeleteFile(snapshot.installer_path);
-         if (FileUtilities::Exists(bundlePath))
-            FileUtilities::DeleteFile(bundlePath);
-         why = Formatter::Format(_T("The installer is not the release it was downloaded as and has been deleted: {0}"), versionWhy);
-         UpdateChecker::RecordFailure(why);
-         LOG_APPLICATION(Formatter::Format(_T("Update apply refused: {0}"), why));
-         error = why;
-         return false;
+         rollbackReady = false;
+         rollbackPath.Empty();
       }
+      // Braces on both branches: LOG_APPLICATION is itself an if statement.
+      if (rollbackReady)
+      {
+         LOG_APPLICATION(Formatter::Format(_T("Update: the rollback image for hMailServer {0} is {1}, verified."), running, rollbackPath));
+      }
+      else
+      {
+         rollbackPath.Empty();
+         LOG_APPLICATION(Formatter::Format(_T("Update: no rollback image for hMailServer {0} could be had ({1}); if {2} does not start, it will need a manual reinstall."),
+            running, rollbackWhy, snapshot.available_version));
+      }
+
+      // Verified once more, last, because the file has been sitting in a directory
+      // since it was, and the rollback image above may have taken minutes. Held
+      // while it is checked, and its SHA-256 read under the same hold: the helper
+      // runs only a file with that digest, which it reads through a handle of its
+      // own that it keeps until the installer has finished.
+      std::string installerSha256;
+      if (!CheckWaitingInstaller_(snapshot, trust, &installerSha256, error))
+         return false;
 
       String outcome = OutcomePath();
       if (FileUtilities::Exists(outcome))
@@ -787,12 +903,36 @@ namespace HM
          return false;
       }
 
-      String command = Quote_(helper);
+      // The helper is what holds the installer to its digest, so the copy is
+      // held too, from before it is compared with Bin's own until it has been
+      // started - by the path Windows resolved the held handle to, so that no
+      // link or renamed folder along the way makes it another program.
+      HANDLE heldHelper = CreateFileW(helper.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+      std::vector<unsigned char> sourceDigest;
+      std::vector<unsigned char> copyDigest;
+      String digestError;
+      if (heldHelper == INVALID_HANDLE_VALUE ||
+          !SigstoreVerifier::Sha256File(helperSource, sourceDigest, digestError) ||
+          !SigstoreVerifier::Sha256File(helper, copyDigest, digestError) ||
+          sourceDigest != copyDigest)
+      {
+         if (heldHelper != INVALID_HANDLE_VALUE)
+            CloseHandle(heldHelper);
+         UpdateApplyToken::Revoke();
+         error = Formatter::Format(_T("The update helper at {0} is not {1} byte for byte, so it was not started."), helper, helperSource);
+         UpdateChecker::RecordFailure(error);
+         LOG_APPLICATION(Formatter::Format(_T("Update apply failed: {0}"), error));
+         return false;
+      }
+
+      String command = Quote_(FinalPathOf_(heldHelper, helper));
       command += _T(" --installer ") + Quote_(snapshot.installer_path);
+      command += _T(" --installer-sha256 ") + String(installerSha256.c_str());
       command += _T(" --version ") + snapshot.available_version;
       if (!rollbackPath.IsEmpty())
       {
          command += _T(" --rollback ") + Quote_(rollbackPath);
+         command += _T(" --rollback-sha256 ") + String(rollbackSha256.c_str());
          command += _T(" --rollback-version ") + running;
       }
       command += _T(" --service ") + String(SERVICE_NAME);
@@ -811,7 +951,9 @@ namespace HM
       command += _T(" --log ") + Quote_(directory + FileUtilities::PathSeparator + _T("apply-") + snapshot.available_version + _T(".log"));
       command += Formatter::Format(_T(" --wait {0}"), IniFileSettings::Instance()->GetUpdateServiceWaitSeconds());
 
-      if (!Launch_(command, directory, why))
+      const bool launched = Launch_(command, directory, why);
+      CloseHandle(heldHelper);
+      if (!launched)
       {
          UpdateApplyToken::Revoke();
          UpdateChecker::RecordFailure(why);

@@ -300,7 +300,11 @@ of the release being installed, which is to sign the releases after and has
 signed none yet. A GitHub-signed file is installed only as a release up to
 6.3.3, and on Windows the installer's own version resource must name the release
 it is installed as - so a substituted installer, or a genuine older one offered
-as a newer release, is refused before it is run. The feed it reads is
+as a newer release, is refused before it is run. On Windows the `Updates` folder
+that holds it admits changes from SYSTEM, the Administrators and the service
+alone, and the update helper runs the installer, and the rollback image, only
+with the SHA-256 the server read when it last checked them, through a handle it
+holds until they have finished. The feed it reads is
 https://updates.progressiverobot.com, served by GitLab Pages from the project's
 releases (`hmailserver/docs/UpdateFeed.md`).
 

@@ -8,10 +8,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Security.AccessControl;
 using System.Security.Cryptography;
+using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.Win32;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using RegressionTests.Infrastructure;
@@ -57,6 +60,10 @@ namespace RegressionTests.API
       [SetUp]
       public void StartFeed()
       {
+         // Every test here cleans the Updates folder, which only SYSTEM, the
+         // Administrators and the service may change.
+         RequireElevation("the Updates folder admits changes from SYSTEM, the Administrators and the service alone, and these tests clean it.");
+
          _sigstore = new FakeSigstore();
          _installer = FakeInstaller(Newer);
          _installerName = "hMailServer-" + Newer + "-x64.exe";
@@ -80,6 +87,10 @@ namespace RegressionTests.API
       [TearDown]
       public void StopFeed()
       {
+         // An unelevated run set nothing up (RequireElevation).
+         if (!Elevated)
+            return;
+
          WriteSetting("UpdateCheckEnabled", "0");
          WriteSetting("UpdateFeedUrl", "");
          WriteSetting("UpdateTrustRootsFile", "");
@@ -574,6 +585,127 @@ namespace RegressionTests.API
          StringAssert.Contains("\"state\":3", body);
          StringAssert.Contains("\"signer\":\"" + NewerIdentity + "\"", body);
          Assert.IsTrue(File.Exists(Paths.Combine(_updatesDirectory, _installerName)));
+      }
+
+      // ---- the Updates folder -------------------------------------------------------
+
+      [Test]
+      [Description("The Updates folder and its rollback folder admit changes from SYSTEM, the Administrators and the service alone: protected access lists, and no entry that lets anyone else write.")]
+      public void TheUpdatesFolderAdmitsChangesFromTheServerAndTheAdministratorsAlone()
+      {
+         var status = Checked();
+         Assert.IsTrue(status.DownloadUpdate(), status.UpdateLastError);
+
+         AssertOnlyTheServerMayChange(_updatesDirectory);
+         AssertOnlyTheServerMayChange(Paths.Combine(_updatesDirectory, "rollback"));
+      }
+
+      [Test]
+      [Description("An Updates folder others may write to - one an earlier version made, which inherited its parent's permissions - is given the server's own before anything is downloaded into it, and the application log says what it allowed before.")]
+      public void AnUpdatesFolderOthersMayWriteToIsMadeRightBeforeADownload()
+      {
+         Directory.CreateDirectory(_updatesDirectory);
+         var info = new DirectoryInfo(_updatesDirectory);
+         DirectorySecurity security = info.GetAccessControl();
+         security.SetAccessRuleProtection(false, false);
+         security.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), FileSystemRights.Modify,
+            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
+         info.SetAccessControl(security);
+
+         var status = Checked();
+         Assert.IsTrue(status.DownloadUpdate(), "The folder is made right, and the download goes ahead. Error: " + status.UpdateLastError);
+
+         string log = LogHandler.ReadCurrentDefaultLog();
+         StringAssert.Contains("Update: the permissions of " + _updatesDirectory + " were set to SYSTEM, the Administrators and the service alone; before, it lets ", log);
+         StringAssert.Contains("(S-1-5-32-545) change what is in it.", log);
+         AssertOnlyTheServerMayChange(_updatesDirectory);
+      }
+
+      [Test]
+      [Description("An Updates folder that is a link to another folder is refused, as HM6894: whoever made the link could point it elsewhere between the server's check and its run.")]
+      public void AnUpdatesFolderThatIsALinkIsRefused()
+      {
+         if (Directory.Exists(_updatesDirectory))
+            Directory.Delete(_updatesDirectory, true);
+         // A folder of the test's own, named by a bare hex guid under the temporary
+         // folder, for the link to point at.
+         string target = Paths.Combine(Path.GetTempPath(), "hm-updates-link-target-" + Guid.NewGuid().ToString("N"));
+         Directory.CreateDirectory(target);
+         try
+         {
+            var mklink = new System.Diagnostics.ProcessStartInfo("cmd.exe", "/c mklink /J \"" + _updatesDirectory + "\" \"" + target + "\"")
+            {
+               UseShellExecute = false,
+               CreateNoWindow = true
+            };
+            using (var process = System.Diagnostics.Process.Start(mklink))
+               Assert.IsTrue(process.WaitForExit(30000) && process.ExitCode == 0, "mklink /J did not make the junction.");
+            Assert.AreNotEqual((FileAttributes) 0, File.GetAttributes(_updatesDirectory) & FileAttributes.ReparsePoint, "The Updates folder is not a link.");
+
+            var status = Checked();
+            Assert.IsFalse(status.DownloadUpdate(), "Nothing may be downloaded into a folder that is a link.");
+            StringAssert.Contains("The update was refused: " + _updatesDirectory + " is a link to another folder", status.UpdateLastError);
+            Assert.IsEmpty(Directory.GetFileSystemEntries(target), "Something was written where the link points.");
+            CustomAsserts.AssertReportedError("HM6894", "is a link to another folder");
+         }
+         finally
+         {
+            // The junction itself, not what it points at.
+            if (Directory.Exists(_updatesDirectory) && (File.GetAttributes(_updatesDirectory) & FileAttributes.ReparsePoint) != 0)
+               Directory.Delete(_updatesDirectory);
+            Directory.Delete(target, true);
+         }
+      }
+
+      // Every allow entry on folder is SYSTEM's, the Administrators', the service
+      // account's, or grants nothing that changes the folder or what is in it; and
+      // the list does not take its parent's.
+      private static void AssertOnlyTheServerMayChange(string folder)
+      {
+         const FileSystemRights changing = FileSystemRights.WriteData | FileSystemRights.AppendData | FileSystemRights.WriteExtendedAttributes |
+                                           FileSystemRights.DeleteSubdirectoriesAndFiles | FileSystemRights.WriteAttributes | FileSystemRights.Delete |
+                                           FileSystemRights.ChangePermissions | FileSystemRights.TakeOwnership |
+                                           (FileSystemRights) 0x40000000 /* GENERIC_WRITE */ | (FileSystemRights) 0x10000000 /* GENERIC_ALL */;
+
+         var trusted = new List<SecurityIdentifier>
+         {
+            new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null),
+            new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null)
+         };
+         SecurityIdentifier service = ServiceAccount();
+         if (service != null)
+            trusted.Add(service);
+
+         DirectorySecurity security = new DirectoryInfo(folder).GetAccessControl();
+         Assert.IsTrue(security.AreAccessRulesProtected, folder + " takes its parent's permissions.");
+         foreach (FileSystemAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+         {
+            if (rule.AccessControlType != AccessControlType.Allow || trusted.Contains((SecurityIdentifier) rule.IdentityReference))
+               continue;
+            Assert.AreEqual((FileSystemRights) 0, rule.FileSystemRights & changing, folder + " lets " + rule.IdentityReference + " " + rule.FileSystemRights);
+         }
+      }
+
+      // The account the service runs as, from its registration: LocalSystem, or a
+      // named or virtual account.
+      private static SecurityIdentifier ServiceAccount()
+      {
+         using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\hMailServer"))
+         {
+            string account = key?.GetValue("ObjectName") as string;
+            if (string.IsNullOrEmpty(account) || string.Equals(account, "LocalSystem", StringComparison.OrdinalIgnoreCase))
+               return new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null);
+            if (account.StartsWith(@".\", StringComparison.Ordinal))
+               account = Environment.MachineName + account.Substring(1);
+            try
+            {
+               return (SecurityIdentifier) new NTAccount(account).Translate(typeof(SecurityIdentifier));
+            }
+            catch (IdentityNotMappedException)
+            {
+               return null;
+            }
+         }
       }
 
       // ---- the release --------------------------------------------------------------

@@ -214,6 +214,22 @@ namespace
                break;
          }
       }
+
+      // A suffix is anything in a version but digits and dots - "-rc1", "rc1",
+      // "_rc1", ".rc1" - and a version with one is a pre-release. Not only a dash:
+      // ReadRelease_ accepts letters, underscores and dots in a tag, and the
+      // version comparison stops at the first of them, so "6.3.5rc1" would
+      // otherwise compare as 6.3.5 and pass for the final release.
+      bool HasSuffix_(const String &version)
+      {
+         for (int i = 0; i < version.GetLength(); i++)
+         {
+            TCHAR c = version[i];
+            if (!((c >= '0' && c <= '9') || c == '.'))
+               return true;
+         }
+         return false;
+      }
    }
 
    boost::mutex UpdateChecker::mutex_;
@@ -394,6 +410,13 @@ namespace
       // learned: a release that was available before the feed went quiet is still
       // available, and the Control Panel can keep saying so beside the error.
       snapshot_.state = StateFailed;
+      snapshot_.last_error = reason;
+   }
+
+   void
+   UpdateChecker::RecordLastError(const String &reason)
+   {
+      boost::lock_guard<boost::mutex> guard(mutex_);
       snapshot_.last_error = reason;
    }
 
@@ -659,13 +682,14 @@ namespace
 
          // A draft is not published; a pre-release is published to those who asked
          // for it. The stable channel is everyone else. A version with a suffix
-         // (6.3.5-rc1) is a pre-release whatever the feed's flag says: the flag is
-         // the feed's word, and a genuine pre-release signed for its own tag would
-         // pass every check on its way to a stable server whose feed called it
-         // stable. The project's feed marks every suffixed tag a pre-release anyway.
+         // (6.3.5-rc1, 6.3.5rc1) is a pre-release whatever the feed's flag says:
+         // the flag is the feed's word, and a genuine pre-release signed for its
+         // own tag would pass every check on its way to a stable server whose feed
+         // called it stable. The project's feed marks every suffixed tag a
+         // pre-release anyway.
          if (candidate.draft)
             continue;
-         if ((candidate.prerelease || candidate.version.Find(_T("-")) >= 0) && !preReleaseChannel)
+         if ((candidate.prerelease || HasSuffix_(candidate.version)) && !preReleaseChannel)
             continue;
 
          if (!best.found || CompareVersions(candidate.version, best.version) > 0)

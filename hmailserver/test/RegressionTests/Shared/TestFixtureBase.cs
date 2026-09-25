@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Security.Principal;
 using hMailServer;
 using NUnit.Framework;
 using RegressionTests.Infrastructure;
@@ -71,6 +72,32 @@ namespace RegressionTests.Shared
 
          _application = SingletonProvider<TestSetup>.Instance.GetApp();
          _settings = _application.Settings;
+      }
+
+      /// <summary>
+      ///    Whether this process runs with the Administrators group in its token: an
+      ///    elevated prompt, an administrator's SSH session or a runner that is a
+      ///    service. The ordinary bench runs unelevated.
+      /// </summary>
+      protected static bool Elevated
+      {
+         get
+         {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+               return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
+         }
+      }
+
+      /// <summary>
+      ///    Ignores the test, saying why, unless the run is elevated - for a test that
+      ///    has to write where only SYSTEM and the Administrators may, the update's
+      ///    Updates folder above all. A fixture that calls this from its SetUp checks
+      ///    Elevated first in its TearDown too, since it set nothing up.
+      /// </summary>
+      protected static void RequireElevation(string why)
+      {
+         if (!Elevated)
+            Assert.Ignore("Run elevated: " + why);
       }
 
       [SetUp]

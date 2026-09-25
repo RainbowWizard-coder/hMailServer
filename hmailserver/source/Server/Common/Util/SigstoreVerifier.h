@@ -97,10 +97,16 @@ namespace HM
       // expectedVersion is the release the file is being installed as ("6.3.4"):
       // a signer with last_version accepts no file as a release after it, and a
       // signer with version_in_ref accepts a certificate whose identity names a
-      // tag only when the tag is v<expectedVersion>. Empty checks no version,
-      // which is what --verify-update does, having no release to hold it to.
+      // tag only when the tag is v<expectedVersion>. Required: an empty one is
+      // refused, since it would hold the file to no release at all.
       static bool VerifyFile(const String &path, const AnsiString &bundleJson, const SigstoreTrust &trust, SigstoreVerdict &verdict,
-                             const String &expectedVersion = String());
+                             const String &expectedVersion);
+
+      // Everything VerifyFile checks but the release: for --verify-update, which is
+      // given a file and no release to hold it to. The Linux update helper that
+      // runs it holds the package to an upgrade itself. Nothing that installs a
+      // file as a release calls this.
+      static bool VerifyFileForAnyRelease(const String &path, const AnsiString &bundleJson, const SigstoreTrust &trust, SigstoreVerdict &verdict);
 
       // The bundle's bytes, exactly as cosign wrote them, for VerifyFile. Not
       // ReadCompleteTextFile: that reads text through the wide String and back,
@@ -115,5 +121,10 @@ namespace HM
       static bool Sha256File(const String &path, std::vector<unsigned char> &digest, String &error);
       static bool Base64Decode(const std::string &text, std::vector<unsigned char> &out);
       static std::string Hex(const std::vector<unsigned char> &bytes);
+
+   private:
+      // The one verification behind both: expectedVersion empty checks no release.
+      static bool Verify_(const String &path, const AnsiString &bundleJson, const SigstoreTrust &trust, SigstoreVerdict &verdict,
+                          const String &expectedVersion);
    };
 }

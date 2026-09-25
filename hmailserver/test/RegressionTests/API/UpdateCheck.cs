@@ -244,6 +244,17 @@ namespace RegressionTests.API
          Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
          Assert.AreEqual(1, status.UpdateState, Newer + "-rc1, flagged stable, is still a pre-release.");
          Assert.IsEmpty(status.AvailableVersion);
+
+         // A suffix is anything but digits and dots, not only a dash: the version
+         // comparison stops at the first letter, so rc1 without its dash would
+         // otherwise pass for the final release.
+         foreach (string suffixed in new[] { Newer + "rc1", Newer + "_rc1" })
+         {
+            _feed.SetResponse(200, Release(suffixed, Published, prerelease: false));
+            Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
+            Assert.AreEqual(1, status.UpdateState, suffixed + ", flagged stable, is still a pre-release.");
+            Assert.IsEmpty(status.AvailableVersion);
+         }
       }
 
       [Test]
