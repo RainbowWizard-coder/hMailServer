@@ -8,8 +8,8 @@ the tests and the verification - are on its GitLab release page,
 This project is a maintained fork of hMailServer 5.7 by Martin Knafve. Its own releases begin at 6.0.0; the
 `hMailServer-5.7.0-bNNNN` tags in the repository are upstream builds, not releases of this project.
 
-**The latest release is 6.3.3, published on 15 September 2026.** Anything that arrived after it is in the tree
-after 6.3.3 and not yet released. It is listed under [Unreleased](#unreleased---in-the-tree-after-633-not-yet-released)
+**The latest release is 6.3.4, published on 26 September 2026.** Anything that arrived after it is in the tree
+after 6.3.4 and not yet released. It is listed under [Unreleased](#unreleased---in-the-tree-after-634-not-yet-released)
 and will carry a version number when a release is cut.
 
 ## Where the releases are
@@ -54,32 +54,41 @@ number is written that way here. Upstream hMailServer's numbers are written the 
 By hand. It is not generated: the project does not use GitLab's `Changelog:` commit trailers. The Unreleased
 section is updated when a batch lands on `master`, never by the commits of individual roadmap rows, which would
 make every fold of parallel work conflict on this file. A released version's section is written once, from its
-notes, when the release is published. No CI runs on GitLab yet, so nothing checks this file automatically: after
-editing it, run `python build/add-license-headers.py --check` and read the rendered page for a stray `#` number
-or `@` name.
+notes, when the release is published. GitLab CI's `checkers` job runs `python build/add-license-headers.py
+--check` on every push; after editing, run it too and read the rendered page for a stray `#` number or `@`
+name.
 
 ---
 
-## Unreleased - in the tree after 6.3.3, not yet released
+## Unreleased - in the tree after 6.3.4, not yet released
 
-Everything in this section is on `master` after the `v6.3.3` tag and in no release; a server running 6.3.3 has
-none of it ([compare `v6.3.3` with `master`](https://gitlab.com/Progressiverobot/hmailserver/-/compare/v6.3.3...master)).
-It landed between 15 and 24 September 2026. The schema moves from **6040 to 6096 in 56 steps**. Most of what is
-new is off until an administrator turns it on; what changes on upgrade without a switch comes first. The
-operator documents named below are in `hmailserver/docs`, which has 71 more of them than it had at 6.3.3.
+Nothing yet.
+
+---
+
+## [6.3.4](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.4) - 2026-09-26
+
+Everything that landed on `master` after the `v6.3.3` tag, between 15 and 26 September 2026 ([compare `v6.3.3` with
+`v6.3.4`](https://gitlab.com/Progressiverobot/hmailserver/-/compare/v6.3.3...v6.3.4)). The schema moves from **6040
+to 6103 in 63 steps**. Most of what is new is off until an administrator turns it on; what changes on upgrade
+without a switch comes first. The operator documents named below are in `hmailserver/docs`, which has 90 more of
+them than it had at 6.3.3. This release carries an Authenticode signature and no Sigstore bundle, so every server
+installs it by hand: a live update of any version that is offered it says it cannot be verified and downloads
+nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 
 ### What changes on upgrade without a switch
 
-1. **The database is the settings store, and the `[Settings]` section of `hMailServer.ini` is its copy**
-   (schema 6042). At the first start the section's keys are taken into the database, with nothing to run by
-   hand; a line edited after the old server last started, including one edited to prepare the upgrade, is
-   taken for an edit and put back, so make such a change after upgrading. From then on a line edited in the
-   file is ignored in favour of the stored value, named in the error log as `HM5804`, and put back; deleting a
-   line no longer returns a setting to its default. A setting is changed in the Control Panel, over COM
-   (`Settings.SetIniSetting`), over REST (`PUT /api/v1/settings/ini/{name}`), or on Linux with
-   `hmailserver --set-setting NAME=VALUE`. A `[SettingsOverride]` section in the file is the deliberate way
-   round a database that cannot be read, and is named as `HM5807` at every start. No new key is added to
-   `[Settings]` from now on: a new setting is a row in `hm_settings`.
+1. **The database is the settings store, and the `[Settings]` section of `hMailServer.ini` is its copy** (schema
+   6042). At the first start the section's keys are taken into the database, with nothing to run by hand; a line
+   edited after the old server last started, including one edited to prepare the upgrade, is taken for an edit and
+   put back, so make such a change after upgrading. From then on a line edited in the file is ignored in favour of
+   the stored value, named in the error log as `HM5804`, and put back; deleting a line no longer returns a setting
+   to its default. Under a service account that cannot write `hMailServer.ini` - `NT SERVICE\hMailServer`, a new
+   installation's - the copy is not refreshed and the database's values are used, said once a start in the
+   application log. A setting is changed in the Control Panel, over COM (`Settings.SetIniSetting`), over REST (`PUT
+   /api/v1/settings/ini/{name}`), or on Linux with `hmailserver --set-setting NAME=VALUE`. A `[SettingsOverride]`
+   section in the file is the deliberate way round a database that cannot be read, and is named as `HM5807` at
+   every start. No new key is added to `[Settings]` from now on: a new setting is a row in `hm_settings`.
 2. **Most saved settings take effect at once.** Every `[Settings]` key now says when a save applies it - 211
    at once, 28 at a reinitialise, 2 at a restart - and the Control Panel, the Control Deck, COM and REST list
    the ones still waiting ([SettingsApply.md](hmailserver/docs/SettingsApply.md)).
@@ -121,15 +130,68 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
     with `next_before_id`, which `before_id` continues from, and `complete` is false with a
     `next_before_id` whenever an answer is not the end. Hits are newest first across every folder by message
     id, where they were folder by folder ([Performance.md](hmailserver/docs/Performance.md)).
-12. **IMAP answers as the RFCs say, where Dovecot's imaptest found it did not.** A client that relied on the
-    old answers sees these: a mailbox that does not exist, or a right the account lacks, is refused `NO`
-    rather than `BAD`, and a failed SELECT or EXAMINE leaves no mailbox selected; an unknown LIST selection
-    or return option is `BAD`; every `BODY[<section>]` without `.PEEK` sets `\Seen`, `BODY[HEADER]` and
-    `BODY[1.MIME]` included; SORT uses every criterion, REVERSE reverses only its own, ties go to sequence
-    order and strings fold ASCII letters only, and THREAD ORDEREDSUBJECT and REFERENCES build the RFC's
-    trees, so both can order messages differently; and an APPEND stores the literal byte for byte, where it
-    used to add a CRLF, so RFC822.SIZE of a newly appended message is two octets smaller than the same
-    message appended before.
+12. **IMAP answers as the RFCs say, where Dovecot's imaptest found it did not.** A client that relied on the old
+    answers sees these: a mailbox that does not exist, or a right the account lacks, is refused `NO` rather than
+    `BAD`, and a failed SELECT or EXAMINE leaves no mailbox selected; an unknown LIST selection or return option is
+    `BAD`; every `BODY[<section>]` without `.PEEK` sets `\Seen`, `BODY[HEADER]` and `BODY[1.MIME]` included; SORT
+    uses every criterion, REVERSE reverses only its own, ties go to sequence order and an ASCII string folds ASCII
+    letters only (a string beyond ASCII is compared as before), and THREAD ORDEREDSUBJECT and REFERENCES build the
+    RFC's trees, so both can order messages differently; a session that is the first to be told of new messages
+    counts them as `\Recent` (RFC 3501 2.3.2), where it said `* 0 RECENT`; and an APPEND stores the literal byte
+    for byte, where it used to add a CRLF, so RFC822.SIZE of a newly appended message is two octets smaller than
+    the same message appended before.
+13. **MySQL and MariaDB tables become utf8mb4** (schema 6102). Every table is converted to utf8mb4 under
+    `utf8mb4_general_ci`, InnoDB and `ROW_FORMAT=DYNAMIC`, and so is the database's default. Before it, 106 of the
+    123 tables were utf8, three bytes a character, so an emoji or a CJK Extension B character in a contact, a
+    subject in the message index, a signature or a log line was refused with error 1366 or made a question mark.
+    The step rebuilds every table, which takes time on a large database; it needs MySQL 5.7.9 or MariaDB 10.2.2 or
+    later and the ALTER privilege on the database, and a step stopped part of the way is finished by running it
+    again. Two rows the old collation told apart and the new one does not - on MariaDB 11.8, `straße` and `strase`
+    in one address book; on MySQL 8.4, two names that differ only in an emoji - stop it with error 1062 until one
+    of them is removed. SQL Server, SQL Server Compact and PostgreSQL only move the version
+    ([Upgrading.md](hmailserver/docs/Upgrading.md),
+    [MigratingDatabaseBackend.md](hmailserver/docs/MigratingDatabaseBackend.md)).
+14. **The upgrade alters the message table.** Schema 6101 adds two columns to `hm_messages`, the table that has a
+    row for every stored message: the account an authenticated session submitted a message as, and the domains that
+    passed DMARC and SPF when it arrived, recorded as properties of the message and never as headers. On a large
+    store the step is not instant on every backend.
+15. **The database connection is encrypted when the database server offers TLS.** MySQL and MariaDB through MariaDB
+    Connector/C - the client bundled on Windows and the one Ubuntu packages - had never used TLS, whatever the
+    documents said; with nothing configured they now use it whenever the server offers it, without checking the
+    certificate, and connect without it when it offers none. SQL Server through MSOLEDBSQL 18 and SQL Native Client
+    now encrypts the whole session, and tries once more without encryption when the failure reads as TLS.
+    PostgreSQL is unchanged. Two `[Database]` keys choose otherwise: `TlsMode` (`prefer`, the default, `require`,
+    `verify-full` or `disable`) and `TlsCaFile`. The application log says at every start what the connection got,
+    and `--check-database` makes one connection and says the same
+    ([DatabaseTls.md](hmailserver/docs/DatabaseTls.md)).
+16. **The administrator password is hashed again at sign-in.** The Windows installer wrote it as an unsalted MD5
+    digest that nothing ever replaced. The first successful administrator sign-in - the Control Panel, COM, REST,
+    `hmctl` or the Control Deck - writes an MD5 or salted SHA-256 value, or a PBKDF2 hash with fewer iterations
+    than `PasswordHashIterations`, again as PBKDF2; a browser session made under the old hash ends once. A file the
+    service cannot write keeps the old value and says so once (`HM7494`). An upgrade seals nothing else: see
+    Encryption ([SecretsAtRest.md](hmailserver/docs/SecretsAtRest.md)).
+17. **A COM change to a shared configuration object takes effect at `Save()`.** For routes and their addresses,
+    incoming relays, DNS black lists, SURBL servers, remote-domain policies, server messages, blocked attachments,
+    SSL certificates and groups, a `put_*` now writes a copy held by the COM object, not the item every session is
+    reading, so it is not in effect until `Save()`, and one never saved changes nothing; an object read from the
+    collection before the save keeps what it read. A script that set one of these and relied on it without saving
+    must now save. The old way let a session read a string while it was being freed, the use-after-free under the
+    heap-corruption abort below; a save whose re-read fails is reported as error 7390
+    ([Upgrading.md](hmailserver/docs/Upgrading.md)).
+18. **Mail labelled ISO-8859-1 is decoded as windows-1252**, as the WHATWG Encoding standard and every mail client
+    read it, and ISO-8859-2 to -9, -13 and -15 by their own code pages. There was no ISO-8859 name in the server's
+    table at all: a Western Windows server decoded Latin-1 right by accident and decodes it as before, one with
+    another ANSI code page now decodes it right too, and on Linux Latin-1 had become replacement characters.
+19. **A restore lists the archive before it extracts anything, and refuses an unsafe one whole**: an entry with an
+    absolute path, a `..` segment or a link with somewhere to point is named in the backup log and as `HM7540`, and
+    nothing is extracted. No backup this server writes has such an entry. The Windows installer's 7-Zip is 26.03,
+    fetched from 7-zip.org, in place of 19.00, which predates the fixes for CVE-2023-31102 and CVE-2025-55188
+    ([Backup.md](hmailserver/docs/Backup.md)).
+20. **Event scripts: a rule's Run function action names a plain function.** A name that is not ASCII letters,
+    digits, `_` and `$`, not starting with a digit, is refused as `HM5018` each time the rule fires, on either
+    language, where it used to be written into the script's call as it was. On a JScript server every value a
+    handler is given - a password, a remote UID, an error text - now arrives exactly as it was, backslashes
+    included (see the fix under Security and identity).
 
 ### Delivery and SMTP
 
@@ -165,6 +227,15 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
   ([QuotaPolicy.md](hmailserver/docs/QuotaPolicy.md)).
 - **Out-of-office policy** (schema 6060): a window of days before the same sender is answered again, a text
   for colleagues and replies to colleagues only ([OutOfOffice.md](hmailserver/docs/OutOfOffice.md)).
+- **Mail in, to a webhook** (schema 6100): an address, or a whole domain this server hosts, is routed to a URL, and
+  the mail that arrives for it is posted there parsed - as `multipart/form-data` in SendGrid's inbound parse field
+  names or as one JSON document - signed with the outbound webhooks' HMAC-SHA256 recipe and retried on their
+  schedule; when the attempts run out a route keeps the message to be downloaded or retried, or returns it to its
+  sender. A route may deliver to the mailbox as well. Link-local and cloud metadata addresses are refused to
+  everybody, an API key may name only a public address, and plain `http` is taken only to this machine. Routes are
+  made over REST (`/api/v1/inbound-webhooks`) and on the Control Deck, under a new permission,
+  `manage_inbound_webhooks`, that only `serveradmin` holds; there is no COM member and no Control Panel page.
+  Nothing is on until a route is made ([InboundWebhooks.md](hmailserver/docs/InboundWebhooks.md)).
 - Fixed: an outbound bind address of one address family no longer stops delivery to the other (GitHub issue
   276); `SMTPDeliveryBindToIP` may name one address of each family, separated by a comma.
 
@@ -233,12 +304,23 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
   shared address books handed to a colleague or a whole domain (schema 6079)
   ([Contacts.md](hmailserver/docs/Contacts.md), [Directory.md](hmailserver/docs/Directory.md),
   [SharedAddressBooks.md](hmailserver/docs/SharedAddressBooks.md)).
+- **Rooms and equipment** (schema 6101): an account can be a room or a piece of equipment (`kind` over REST, the
+  Deck's account editor, `Account.Kind` over COM), which answers the invitations it is sent by itself, at delivery,
+  by its booking policy - who may book, a booking window (180 days as shipped), a longest booking, working hours,
+  conflicts and recurring meetings - and leaves what it does not decide to its delegates. It believes an organiser
+  only from what the server recorded when the message arrived - the account that submitted it, or a DMARC or SPF
+  pass for an outside domain the policy names - never from a header. A resource cannot be signed into. The
+  directory lists rooms with their capacity, and CalDAV's room finder searches them. The policy is at
+  `/api/v1/accounts/{address}/booking-policy`, with no COM or Control Panel page; nothing changes until an account
+  is given a kind ([RoomsAndEquipment.md](hmailserver/docs/RoomsAndEquipment.md)).
 - **Delegated mailboxes named in the Autodiscover answer**, in Exchange's `AlternativeMailbox` element and only
   to a request signed in as the delegate. Outlook reads that element for an Exchange account and not for an IMAP
   one, so for IMAP clients the mechanism that works is still the `#Users` namespace, which Thunderbird and
   Outlook's IMAP code show by themselves.
 - Fixed: a heap-corruption abort under concurrent IMAP `LIST` and folder changes on the same account; every
   loop over a shared collection now iterates a locked copy.
+- Fixed: an IMAP command pipelined behind an `APPEND` with a non-synchronising literal was never answered, which
+  stopped `mbsync` after one message.
 - **A folder of a hundred thousand in the webmail**: a page copies one page of the folder, never all of it;
   Oldest reaches the end in one request; a search is bounded by time as well as by files read, spared by
   the full-text index, and goes on from where it stopped across every folder; select-all hands the
@@ -263,6 +345,44 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
 - **A new password checked against published breaches** by k-anonymity, wherever a password is chosen; off by
   default ([PasswordBreachCheck.md](hmailserver/docs/PasswordBreachCheck.md)).
 - **Compromised-account detection** (schema 6071), in watch mode as above, with a review queue.
+- **Fixed: a password could run code inside the server.** On Windows, with event scripting on, the script language
+  JScript and an `OnClientValidatePassword` handler in `EventHandlers.js`, any client that could reach a sign-in -
+  SMTP AUTH, POP3, IMAP or anything else that checks an account's password - and name an existing, active account
+  could have JScript of its own run inside `hMailServer.exe`, with the rights of the service's account, before it
+  had authenticated. With `ScriptAllowedObjects` at its shipped `*`, that script could create any COM object,
+  `WScript.Shell` among them, and so run any command the service's account may. The server built each call as
+  source text and escaped the apostrophe but not the backslash before it. The same shape was open to a remote POP3
+  server through the UID it answers (`OnExternalAccountDownload`), and to a remote mail server through the error
+  text it refuses a delivery with and the failed recipient's address (`OnDeliveryFailed`), each on a JScript server
+  with that handler; and a rule's Run function action wrote its function name into the call unescaped in either
+  language, so whoever may edit a rule, a domain's own administrator included, could do the same. VBScript servers
+  were not open through a password, a UID or an error text, and the Linux builds had no script engine. The code was
+  there in every release from 6.0.0 to 6.3.3. Every JScript value is now escaped in one helper, and a rule's
+  function name must be a plain identifier ([EventScripts.md](hmailserver/docs/EventScripts.md)).
+- **A new installation is secure before anyone configures it.** A database this installation created - never an
+  upgraded or attached one - is given a self-signed certificate for the machine (RSA 2048, 825 days), STARTTLS
+  offered on 25, 587, 110 and 143, and TLS required for authentication on the Internet IP range, so that a password
+  from another machine no longer crosses the network in the clear; My computer is left as it was. The Windows
+  installer does it after the database step; on Linux `--create-database` marks the database and the unit's first
+  start within a day does it, and the AppImage and the container run `--apply-new-install-defaults` by hand. The
+  setup checklist's new Passwords only over TLS item judges every server, new or upgraded
+  ([SecureDefaults.md](hmailserver/docs/SecureDefaults.md)).
+- **A dedicated low-privilege service account on Windows.** A new installation runs the service as the virtual
+  account `NT SERVICE\hMailServer` instead of LocalSystem; an upgrade keeps the account it has, and the installer's
+  page, or `/serviceaccount=virtual|localsystem|keep`, offers the other. `hMailServer.exe /GrantServiceAccess`
+  grants the account the program folder's Data, Logs, Temp and Database folders and folders an administrator
+  approved, and nothing the configuration merely names. `hMailServer.INI` is read-only to the service, which works
+  on with the database's values. What only LocalSystem could do is refused with a sentence: the live update's apply
+  (an administrator runs the verified installer), the auto-ban's firewall rules and `Utilities.MakeDependent`.
+  `ServiceAccountName` and `ServiceAccountPassword` are retired: `/Register` takes the account from
+  `--service-account` alone ([ServiceAccount.md](hmailserver/docs/ServiceAccount.md)).
+- **What the first security scan found, fixed**: the 7-Zip and the restore above; the in-process testers' 379 bare
+  `throw;` statements, which ended the service when a check failed, now fail the test suite; MIME boundaries drawn
+  from a per-thread generator seeded from the operating system instead of `rand()` reseeded from the clock; the
+  vendored zlib 1.3.2; and VEX statements for the advisories that do not reach the server.
+- **An evidence pack for a buyer's security questionnaire**: where mail and personal data are kept, what leaves the
+  server, ISO/IEC 27001:2022 Annex A and SOC 2 mapped to what the product provides, and the supply chain, each fact
+  with the file it can be checked in and each gap named ([EvidencePack.md](hmailserver/docs/EvidencePack.md)).
 
 ### Encryption
 
@@ -285,6 +405,29 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
 - **The webmail's S/MIME made honest**: signing out takes the private keys with it, an administrator's password
   change re-wraps them, and a message that was to be sealed is refused as a draft rather than stored in the
   clear.
+- **Mailbox encryption at rest** (schema 6099): switched on per account, after the domain's recovery key has been
+  made, every message stored in the account's folders from then on is encrypted to an X25519 key of the account's
+  own, with AES-256-GCM, as the message store's last stage. Mail that arrives while nobody is signed in is
+  encrypted all the same; reading it needs the private half, which the account's own password opens at sign-in and
+  which closes `MailboxKeyIdleMinutes` (15) after the last use. App passwords are refused for such a mailbox, an
+  administrator's password reset is refused while the key is closed and goes through a recovery with the domain's
+  passphrase, and it cannot be combined with zero access or a TOTP second factor. It is on REST and the Control
+  Deck, with no webmail card and no Control Panel page, and `--encrypt-store` and `--decrypt-store` rewrite what
+  was stored before. Off on every account ([EncryptionAtRest.md](hmailserver/docs/EncryptionAtRest.md)).
+- **Secrets at rest** (schema 6103): an account's TOTP second factor and the `[Settings]` secrets (`SRSSecret`,
+  `BATVSecret`, `OAuth2HmacSecret` and the rest) are sealed with AES-256-GCM under a stored-secrets key the
+  installation's servers share, kept in each server's `hMailServer.ini` under DPAPI or the Linux key file, never in
+  the database or a backup; the database records which key it is. The Windows installer makes the key on a new
+  installation, and the container's `--create-database` on Linux; after an upgrade nothing is sealed until an
+  administrator runs `--create-stored-secrets-key`, which the setup checklist offers. `--export-stored-secrets-key`
+  and `--import-stored-secrets-key` move it to another server, the checklist stays open until it has been exported,
+  and `--forget-sealed-secrets` with a lost key's id clears only what that key sealed.
+  `ProtectStoredSecretsWithDPAPI=0` keeps everything as written. The step widens `accounttotpsecret` to 1024
+  characters. The installer now writes the administrator password as PBKDF2 itself
+  ([SecretsAtRest.md](hmailserver/docs/SecretsAtRest.md)).
+- **A certificate for an IP address is accepted on Linux**: an HTTPS endpoint given by its address - an object
+  store, a webhook, an identity provider, the update feed - was refused when its certificate named the address as
+  an iPAddress entry, which is where RFC 5280 puts it; and no server name is sent for an address.
 
 ### Administration
 
@@ -315,6 +458,21 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
 - **A person's data as one archive**, and an erasure that reaches the rest of it
   ([PersonalData.md](hmailserver/docs/PersonalData.md)); **mailbox rename and move** as one operation (schema 6056)
   ([MailboxMove.md](hmailserver/docs/MailboxMove.md)).
+- **eDiscovery** (schema 6097): a compliance officer opens a case, searches every mailbox, the deleted items and
+  the archive by person, date, words and attachment, puts the mailboxes, domains or archived copies it is about on
+  a legal hold, and exports what was found as EML and mbox with a manifest whose SHA-256s prove what was handed
+  over. A hold stops the account's and its domain's deletion, a mailbox move to another domain, a purge of its
+  deleted items, the retention sweep and a full restore, and keeps what its owner deletes among the deleted items
+  until it is released. Every search, hold, export and download is on the audit trail. Two permissions,
+  `view_discovery` (which the auditor role holds) and `manage_discovery`; the routes are `/api/v1/discovery/cases`,
+  with a view on the Control Deck and a read-only page in the Control Panel
+  ([Discovery.md](hmailserver/docs/Discovery.md)).
+- **An erasure reaches the stores beside the mailbox**: messages held for review, messages that expire,
+  password-protected messages, the recipients an account remembers writing to, the out-of-office memory and the
+  correspondents' S/MIME certificates and OpenPGP keys. Every comma-joined list is matched whole, so that erasing
+  `ann@` never touches `joann@`, and the archive index's own match is fixed the same way. A legal hold outranks the
+  erasure, and `POST /api/v1/addresses/erase` answers `held` beside `removed`
+  ([PersonalData.md](hmailserver/docs/PersonalData.md)).
 - Fixed: 72 COM classes answered a refusal as a bare HRESULT; each now says why. The message trace's search
   answered nothing on SQL Server Compact (one parameter written twice and bound once).
 
@@ -325,6 +483,17 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
   with contacts and calendars beside the mail ([Migration.md](hmailserver/docs/Migration.md)).
 - **Other accounts in the webmail** (schema 6065): POP3 and IMAP accounts fetched from the page, and an import
   from Gmail or Outlook.com with a sign-in (OAuth with PKCE).
+- **PST import**: the server reads Outlook data files itself, with a reader of this project's own written from
+  Microsoft's published specifications, as a migration of kind `pst` - one job per file into one account, with the
+  migration row's throttle, resume marks, report and Deck view. Mail, folders and their flags and categories come
+  in, and contacts, calendar items and tasks go into the account's address books and calendars as vCard and
+  iCalendar, notes and journal entries as messages. ANSI files are read, and an OST where it is a PST in all but
+  its name; the 4K-page layout, Windows Information Protection and an OST caching an Exchange mailbox are refused
+  with a sentence saying what to do. The reader runs in a process of its own, killed on a pause, a cancel or a
+  stop, so a file that crashes it costs one message, not the service. The file is copied into
+  `<PstImportDirectory>/<domain>/` - empty as shipped, so no PST job runs until an administrator names a
+  directory - and the job is started over REST (`POST /api/v1/migrations`), `hmctl` or the Deck
+  ([Migration.md](hmailserver/docs/Migration.md)).
 
 ### Lists and bounces
 
@@ -342,20 +511,24 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
 ### Operations
 
 - **The update feed is off GitHub.** The live update reads `https://updates.progressiverobot.com`, which GitLab
-  Pages serves from the project's releases, in place of GitHub's Releases API, which has answered 404 since
-  18 September 2026. It trusts two signers: the GitHub workflow that signed every release up to 6.3.3, for a
-  certificate issued before the suspension and a release no later than 6.3.3, and this project's GitLab CI
-  pipeline for a `v*` tag, which is to sign the releases after and has signed none yet. A file signed for one
-  release tag is refused as any other release; on Windows the installer's own version resource must name the
-  release it is installed as; and a version with a suffix is a pre-release whatever the feed says. On Windows
-  the `Updates` folder admits changes from SYSTEM, the Administrators and the service alone, and the update
-  helper runs the installer, and the rollback image, only with the SHA-256 the server read when it checked
-  them, through a handle it holds until they have finished. **A server from 6.2.28 to 6.3.3 still looks at GitHub.** Under `[Settings]` in its `hMailServer.ini`,
-  add `UpdateFeedUrl=https://updates.progressiverobot.com/releases.json`, then restart the service, and its
-  update check works again. Its live update can then install the re-hosted releases up to 6.3.3. The first
-  release signed on GitLab will be refused by that server's live update, which trusts only GitHub's signer:
-  install that one release by hand, and until then keep `UpdateAutoDownload` off, or the server downloads the
-  installer at every check and refuses it ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
+  Pages serves from the project's releases, in place of GitHub's Releases API, which has answered 404 since 18
+  September 2026. It trusts two signers: the GitHub workflow that signed every release up to 6.3.3, for a
+  certificate issued before the suspension and a release no later than 6.3.3, and this project's GitLab CI pipeline
+  for a `v*` tag, which is to sign the releases from 6.3.5 and has signed none yet. 6.3.4 was built and
+  Authenticode-signed by hand, before that job existed, and carries no Sigstore bundle: every server, of any
+  version, installs it by hand, and a live update offered it says it cannot be verified and downloads nothing. A
+  file signed for one release tag is refused as any other release; on Windows the installer's own version resource
+  must name the release it is installed as; and a version with a suffix is a pre-release whatever the feed says. On
+  Windows the `Updates` folder admits changes from SYSTEM, the Administrators and the service alone, and the update
+  helper runs the installer, and the rollback image, only with the SHA-256 the server read when it checked them,
+  through a handle it holds until they have finished. **A server from 6.2.28 to 6.3.3 still looks at GitHub.**
+  Under `[Settings]` in its `hMailServer.ini`, add
+  `UpdateFeedUrl=https://updates.progressiverobot.com/releases.json`, then restart the service, and its update
+  check works again. Its live update can then install the re-hosted releases up to 6.3.3. The first release signed
+  on GitLab, 6.3.5, will be refused by that server's live update, which trusts only GitHub's signer; installing
+  6.3.4 by hand first avoids it, since 6.3.4 trusts both. Until then keep `UpdateAutoDownload` off, or such a
+  server downloads a GitLab-signed installer at every check and refuses it
+  ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 - **Upgrades without a booked window**: a drain closes the listeners before it waits, the live update drains
   first, and with `UpgradeOnStart=1` in `[Database]` (a new bootstrap key, 0 by default) the service applies
   the schema steps itself as it starts ([Upgrading.md](hmailserver/docs/Upgrading.md)). A rolled-back update's
@@ -377,12 +550,52 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
   yet.
 - **HTTP**: gzip and deflate on both listeners for the answers that hold no secret
   ([ResponseCompression.md](hmailserver/docs/ResponseCompression.md)).
+- **Storage compression and attachment de-duplication** (schema 6098): with `MessageStoreCompression` on (off as
+  shipped), a message delivered or appended is stored deflated, and each MIME part of at least
+  `MessageStoreDedupMinKB` (256 KB) is kept once for every message that carries the same bytes. Every reader sees
+  the message as it arrived, and a stored file is checked by its SHA-256 before it is served; the queue is never
+  compressed. `--measure-store` says what it would save and changes nothing, `--compress-store` and `--decompress`
+  rewrite what is stored, and `GET /api/v1/store`, the Deck's dashboard and the Control Panel's Performance page
+  say what it saves. With it on, `Message.Filename` over COM names the stored form
+  ([MessageStore.md](hmailserver/docs/MessageStore.md)).
+- **Object storage for the message store**: messages on an S3-compatible store (AWS S3, MinIO, Wasabi, Backblaze
+  B2, Ceph RGW) or Azure Blob Storage, with the database as the index. A message is written to the local disk first
+  and moved into the store by a background committer, so a store that cannot be reached delays nothing and loses
+  nothing; IMAP and POP3 are told to try again for a message only the store holds. TLS to the store is always
+  verified. `--copy-store-to-object-storage` and `--copy-store-from-object-storage` copy both ways, verified and
+  resumable. Off until an administrator names a store: `MessageStoreBackend` is `file` as shipped, and a server
+  with no store reads and writes as before ([ObjectStorage.md](hmailserver/docs/ObjectStorage.md)).
+- **Event scripts on Linux**, in JavaScript, in the QuickJS engine (Fabrice Bellard's release 2025-04-26, vendored
+  as source), for the same events under the same function names with the same objects; `ScriptLanguage` takes a
+  third word, `JavaScript`. Until now a Linux server refused any script. Windows keeps VBScript and JScript and
+  refuses JavaScript at load. A script has no file, process or network access, and `ScriptTimeout` and a 64 MB
+  ceiling bound it ([EventScripts.md](hmailserver/docs/EventScripts.md)).
+- **SNMP**: a read-only SNMPv3 agent (authPriv only: HMAC-SHA-256 and AES-128, with SNMPv2c optional and off)
+  answering the mail MIB (RFC 2789) and the standard groups from the same counters `/metrics` serves. Off, and
+  answering nobody until a manager's address is in `SnmpAllowedAddresses`; its settings are on REST and applied at
+  a restart, with no COM property or Control Panel page. Its enterprise arc is RFC 5612's documentation number, not
+  one registered to this project ([Snmp.md](hmailserver/docs/Snmp.md)).
+- **The live update's files are held on Windows.** Beside what the update-feed item says, a repaired `Updates`
+  folder is emptied, one owned by another account is refused (`HM6894`), the folders are held open through the
+  apply so that nothing above them can be swapped, the service's own SID is given Modify there, and the update
+  helper loads DLLs from System32 alone ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
+- **The Windows installer**, after its first smoke test on a clean Windows Server 2025: an upgrade no longer writes
+  a Critical `HM5011` event to the Application log; the uninstaller waits for the service's process to end before
+  it deletes anything, so `hMailServer.exe` and its DLLs are no longer left in `Bin`, and a file still in use is
+  removed at the next restart; the event log source is removed; and an uninstall after an upgrade no longer leaves
+  the COM AppID behind.
+- **The product points at GitLab**: the Control Panel's About and stalled-mail links, the `Policy:` line of the
+  `security.txt` the server serves, the systemd units' `Documentation=` and the Linux packages' homepage. The
+  update feed field is labelled "Update feed URL" in all eighteen catalogues.
+- Fixed on Linux: a character-set conversion that failed read an unterminated buffer, where Windows had
+  substituted; it now gives an empty string.
 
 ### Build and tests
 
 - The native server's line coverage was measured for the first time: 73.48% over the whole Windows regression
   suite. The three MIME fuzz harnesses gained a nightly job, and the Linux regression suite was split in two
-  halves; both ran on GitHub Actions until 18 September 2026, and no CI runs on GitLab yet.
+  halves; both ran on GitHub Actions until 18 September 2026, and on GitLab CI the nightly fuzz job is `linux-fuzz`
+  and the Linux suite is one job, `linux-suite`, on the project's own runner (see the CI item below).
 - Twenty-one new checkers under `build/` hold the rules the batches added, among them `check-account-stores.py`
   (what a backup must carry), `check-com-error-info.py` (COM refusals a caller can read),
   `check-collection-iteration.py` (locked iteration over shared collections), `check-com-dispids.py`,
@@ -394,13 +607,41 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
   with the machine's details in every result; and a lab recipe that runs it against hMailServer and against
   Postfix and Dovecot on the same machine under stated fairness rules
   ([PublishedNumbers.md](hmailserver/docs/PublishedNumbers.md)). No numbers have been measured with it yet.
-- **Windows on ARM, built but not yet run.** A `Release|ARM64` configuration in the server's three projects,
-  `-Platform ARM64` in `build.ps1`, `build-tools.ps1`, the three library scripts, `get-installer-binaries.ps1`
-  and `get-dotnet-runtime.ps1`, and a second installer, `hMailServerARM64.iss` (`hMailServer-<version>-arm64.exe`),
+- **Windows on ARM, written but not yet built.** A `Release|ARM64` configuration in the server's three projects,
+  `-Platform ARM64` in `build.ps1`, `build-tools.ps1`, the three library scripts, `get-installer-binaries.ps1` and
+  `get-dotnet-runtime.ps1`, and a second installer, `hMailServerARM64.iss` (`hMailServer-<version>-arm64.exe`),
   sharing the x64 installer's sections. The ARM64 server uses SQL Server or PostgreSQL; it has no built-in
   database, since SQL Server Compact has no ARM64 build, and no bundled MySQL client. An ARM64 server's update
   check looks for the ARM64 installer, and `VersionArchitecture` says `ARM64`. Nothing of it has been compiled
-  or run on ARM64 hardware yet; the x64 build is unchanged. `hmailserver/docs/WindowsOnArm.md`.
+  yet - the build machine lacks ATL for ARM64 - let alone run on ARM64 hardware, and 6.3.4 has no ARM64 installer;
+  the x64 build and its SBOM are unchanged. `hmailserver/docs/WindowsOnArm.md`.
+- **CI on the project's own GitLab runners.** `.gitlab-ci.yml` runs the platform-neutral checkers, the Deck's and
+  the webmail's script harnesses and, for a merge request from a fork, a sign-off check on GitLab's shared runners;
+  and, for a push to `master`, a `batch*` branch or a `v*` tag only, the Linux build, its tester programs, the
+  whole Linux suite, the packages, the container image, the cross-compile for AArch64, the database upgrade gates
+  and the SBOMs on `linix`, and the Control Panel, the tools and the whole Windows suite on `bench150`. A nightly
+  pipeline fuzzes the three MIME harnesses. Nothing reached from GitHub is used
+  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)).
+- **Security scanning** on the same runner, in place of CodeQL, dependency review and Scorecard: cppcheck and
+  clang-tidy held to a committed baseline, Semgrep, Trivy and OSV over the lock files, the CI image and the
+  vendored libraries, and the repository checks Scorecard ran. Not yet blocking.
+- **Dependency updates by Renovate** on the same runner, with nothing read from GitHub; inert until the owner
+  creates its token and schedule.
+- **A test lab on `linix`**: MySQL 8.4, MariaDB 11.4, PostgreSQL 17 and SQL Server 2022, Keycloak for the OpenID
+  Connect and SAML sign-ins, Postfix and Dovecot as peers, Dovecot's `imaptest`, and Uptime Kuma
+  ([TestLab.md](hmailserver/docs/TestLab.md)). Its first runs found the unencrypted MySQL connection, the
+  certificate check that never read an iPAddress entry and the IMAP answers fixed above.
+- **The installer smoke test** installs, upgrades and uninstalls on a throwaway Windows Server 2025 VM, from a
+  snapshot, checking what the installer promises for each (`build/ci/installer-smoke.ps1`); its first run, of 6.3.2
+  upgraded to 6.3.3, found the four installer defects fixed above.
+- **Every build input pinned and named**: the .NET Desktop Runtime the installer bundles is pinned to 10.0.12 by
+  version and SHA-512, where it was whatever Microsoft's 10.0 link gave on the day; the SBOM names seventeen
+  components, among them zlib, the installer's fetched files and the Linux packages' system libraries, and
+  `build/check-sbom-inputs.py` fails when a build input is missing from it.
+- New checkers: `check-message-store-seam.py`, `check-com-shared-copies.py`, `check-mysql-charset.py`,
+  `check-installer-scripts.py`, `check-ci-image.py` and `check-sbom-inputs.py`.
+
+Full notes: [the 6.3.4 release](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.4).
 
 ---
 
