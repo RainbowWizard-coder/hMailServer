@@ -946,6 +946,8 @@ Security
 
 Please report security vulnerabilities privately, in a confidential issue on GitLab or by email to the project's Service Desk address - see [SECURITY.md](SECURITY.md).
 
+For a security or procurement questionnaire - data flows, ISO/IEC 27001 and SOC 2 mappings of the product, the supply chain, the cryptography and its defaults, and what is not in place - see [hmailserver/docs/EvidencePack.md](hmailserver/docs/EvidencePack.md). It is not an audit report.
+
 Contributing
 ============
 

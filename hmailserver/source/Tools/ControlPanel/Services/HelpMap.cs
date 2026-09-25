@@ -153,6 +153,7 @@ namespace hMailServer.ControlPanel.Services
          "DmarcReports.md",
          "EncryptionAtRest.md",
          "EnvironmentConfiguration.md",
+         "EvidencePack.md",
          "Fuzzing.md",
          "Help.md",
          "HighAvailabilityRunbook.md",

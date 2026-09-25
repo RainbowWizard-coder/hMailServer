@@ -161,6 +161,14 @@ Releases from 6.2.3 on carry an SBOM, in SPDX and in CycloneDX (the withdrawn pr
 which -pre6 superseded, aside). They were made by `.github/workflows/sbom.yml`, which adds the native libraries to
 the .NET dependency graph (`build/merge-native-dependencies-into-sbom.ps1`).
 
+## For a security questionnaire
+
+A buyer's security or procurement team will find the answers a vendor questionnaire asks for - where mail and
+personal data are kept and what leaves the server, ISO/IEC 27001 and SOC 2 control mappings of the product, the
+supply chain in one place, the cryptography with its defaults, and what is not in place - in
+[hmailserver/docs/EvidencePack.md](hmailserver/docs/EvidencePack.md), each with the file it can be checked in. It
+is not an audit report: there is none.
+
 ## Vulnerability management policy
 
 What is checked, on what, and what happens when it finds something. On GitHub these checks were automatic and
