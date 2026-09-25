@@ -1,0 +1,237 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# hMailServer's test lab on linix (192.168.11.154): the services the project's tests
+# can reach on its own machine instead of on GitHub, or instead of nothing at all.
+# docs/TestLab.md is the user's page; build/lab/README.md is the operator's.
+#
+# Run it through build/lab/lab.sh, never with a bare `docker compose`: the script
+# gives the project name (hmlab), the credentials file (~/hmlab/secrets.env, mode
+# 600, made once by `lab.sh init`) and HMLAB_HOME, and it knows which profile each
+# service is in.
+#
+# Memory decides the shape. linix has about 11 GB, and the GitLab runner, the Linux
+# bench's PostgreSQL, Forgejo and other agents' containers share it. So only the
+# core runs all the time - Uptime Kuma, about 100 MB - and every other service is in
+# a profile of its own and is started for the run that needs it and stopped after,
+# its volume kept:
+#
+#   (none)       kuma                           always on
+#   mysql        MySQL 8.4                      the database matrix
+#   mariadb      MariaDB 11.4 LTS
+#   postgresql   PostgreSQL 17 (not the host's PostgreSQL 18, which the Linux
+#                bench uses and this never touches)
+#   mssql        SQL Server 2022 (about 2 GB; the Windows server's backend: the
+#                Linux build refuses SQL Server, HM6390)
+#   idp          Keycloak, realm "hmailserver"
+#   peers        Postfix and Dovecot, the interoperability peers
+#
+# Every port is in 10300-10399, the range the lab was given; nothing else on linix
+# is touched. The images are pinned by digest and come from Docker Hub, quay.io and
+# mcr.microsoft.com only (no ghcr.io, nothing from GitHub). The measured memory of
+# each service is in docs/TestLab.md.
+
+name: hmlab
+
+x-db: &db
+  restart: "no"
+  networks: [lab]
+
+services:
+
+  # ---------------------------------------------------------------- the always-on core
+
+  kuma:
+    image: louislam/uptime-kuma:2.5.5-slim@sha256:9c56a772a7df53f444a404c579e87a27bd0c201375d00d6745a75bf8138f4342
+    restart: unless-stopped
+    environment:
+      # SQLite in the volume, so that the first start does not stop at Kuma's
+      # "choose a database" page; lab.sh kuma-setup makes the administrator and
+      # the monitors through Kuma's own socket API (kuma/setup.js).
+      UPTIME_KUMA_DB_TYPE: sqlite
+    ports: ["10300:3001"]
+    volumes:
+      - kuma-data:/app/data
+      - ./kuma:/hmlab:ro
+    mem_limit: 384m
+    networks: [lab]
+
+  # ---------------------------------------------------------------- the database matrix
+
+  mysql:
+    <<: *db
+    profiles: [mysql]
+    image: mysql:8.4@sha256:0744ee5ef89ce6ccfa13de3e579fe6b9e27f93dd70da9c06d2c908b1b193fb8d
+    environment:
+      MYSQL_ROOT_PASSWORD: ${HMLAB_MYSQL_ROOT_PASSWORD:-}
+    # A small buffer pool and no performance schema: the suite's database is tens
+    # of megabytes, and the defaults take half a gigabyte before a row is written.
+    command: ["--innodb-buffer-pool-size=128M", "--performance-schema=OFF", "--max-connections=200"]
+    ports: ["10310:3306"]
+    volumes: [mysql-data:/var/lib/mysql]
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+
+  mariadb:
+    <<: *db
+    profiles: [mariadb]
+    image: mariadb:11.4@sha256:70cc072b29b4a89ae07abb2d4da2c64678a7f2dfe092751bb51c87d67dc1338b
+    environment:
+      MARIADB_ROOT_PASSWORD: ${HMLAB_MARIADB_ROOT_PASSWORD:-}
+    command: ["--innodb-buffer-pool-size=128M", "--max-connections=200"]
+    ports: ["10311:3306"]
+    volumes: [mariadb-data:/var/lib/mysql]
+    mem_limit: 768m
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+
+  postgresql:
+    <<: *db
+    profiles: [postgresql]
+    image: postgres:17@sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${HMLAB_POSTGRES_PASSWORD:-}
+    ports: ["10312:5432"]
+    volumes: [postgresql-data:/var/lib/postgresql/data]
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "127.0.0.1"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+
+  mssql:
+    <<: *db
+    profiles: [mssql]
+    image: mcr.microsoft.com/mssql/server:2022-latest@sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090
+    environment:
+      # The Developer edition's licence terms, accepted for the lab: free for
+      # development and testing, never for production.
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${HMLAB_MSSQL_SA_PASSWORD:-}
+      # SQL Server takes most of the machine unless it is told otherwise.
+      MSSQL_MEMORY_LIMIT_MB: "2048"
+    ports: ["10313:1433"]
+    volumes: [mssql-data:/var/opt/mssql]
+    mem_limit: 2560m
+    healthcheck:
+      # The password from the container's own environment, never on a command line.
+      test: ["CMD-SHELL", "SQLCMDPASSWORD=\"$$MSSQL_SA_PASSWORD\" /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -Q 'select 1' -b -o /dev/null"]
+      interval: 5s
+      timeout: 10s
+      retries: 60
+      start_period: 20s
+
+  # ---------------------------------------------------------------- the identity provider
+
+  keycloak:
+    profiles: [idp]
+    image: quay.io/keycloak/keycloak:26.7.4@sha256:82a77884f3af238beab1e7afd63b5f530e1b5c0590bd7aa60b40a40463e29b2c
+    restart: "no"
+    # Development mode: its own H2 database in the volume, the realm imported from
+    # keycloak/hmailserver-realm.json on the first start and left alone after.
+    # HTTPS on 10321 with a certificate from the lab's own CA (lab.sh init), because
+    # the server takes plain http from nothing but a loopback address
+    # (HttpsClient.h): an issuer across the network has to be https.
+    command:
+      - start-dev
+      - --import-realm
+      - --https-certificate-file=/opt/keycloak/conf/lab/keycloak.pem
+      - --https-certificate-key-file=/opt/keycloak/conf/lab/keycloak.key
+      - --health-enabled=true
+      # The management port (9000, health only, not published) in plain HTTP; it
+      # would otherwise take HTTPS from the main listener, and the probe below
+      # speaks HTTP.
+      - --http-management-scheme=http
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${HMLAB_KEYCLOAK_ADMIN_PASSWORD:-}
+      # Half the container's 1 GB for the heap, not Keycloak's default of 70 per cent.
+      JAVA_OPTS_KC_HEAP: "-XX:MaxRAMPercentage=50"
+    ports:
+      - "10320:8080"
+      - "10321:8443"
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+      - ./keycloak/hmailserver-realm.json:/opt/keycloak/data/import/hmailserver-realm.json:ro
+      - ${HMLAB_HOME:-/nonexistent}/ca/keycloak.pem:/opt/keycloak/conf/lab/keycloak.pem:ro
+      - ${HMLAB_HOME:-/nonexistent}/ca/keycloak.key:/opt/keycloak/conf/lab/keycloak.key:ro
+    mem_limit: 1g
+    networks: [lab]
+    healthcheck:
+      # No curl in the image; bash's /dev/tcp asks the management port.
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 20s
+
+  # ---------------------------------------------------------------- the interoperability peers
+
+  # A peer MTA. It takes mail for peer.test (from anyone on the lab's networks) and
+  # hands it to Dovecot over LMTP, and it sends mail for example.test - the suite's
+  # domain - to the hMailServer under test (the bench container, alias hmailserver,
+  # SMTP on 2525). boky/postfix is a relay image; the POSTFIX_ variables below are
+  # main.cf lines it applies after its own defaults.
+  postfix:
+    profiles: [peers]
+    image: boky/postfix:5.1.0-alpine@sha256:6e761312e833947f77af755072c0e77b67d298d127595470a79e9454008dd594
+    restart: "no"
+    hostname: mx.peer.test
+    environment:
+      ALLOWED_SENDER_DOMAINS: "peer.test example.test"
+      MYNETWORKS: "127.0.0.0/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16"
+      POSTFIX_myhostname: mx.peer.test
+      POSTFIX_virtual_mailbox_domains: peer.test
+      POSTFIX_virtual_transport: "lmtp:inet:dovecot:31025"
+      POSTFIX_relay_domains: example.test
+      POSTFIX_transport_maps: "inline:{ example.test=smtp:[hmailserver]:2525 }"
+      POSTFIX_smtp_tls_security_level: may
+      POSTFIX_smtpd_tls_security_level: none
+      # The image's own list ends in reject_unknown_recipient_domain, which asks DNS
+      # about example.test and peer.test, names no DNS has: the lab's networks may
+      # send, nobody else may relay.
+      POSTFIX_smtpd_recipient_restrictions: "permit_mynetworks, reject_unauth_destination"
+    ports: ["10330:587"]
+    mem_limit: 128m
+    networks: [lab]
+
+  # A peer IMAP server: Dovecot's own image, any user at peer.test with the one
+  # password in HMLAB_PEER_PASSWORD, plain LMTP for Postfix on 31025 - the image
+  # runs as vmail and binds nothing below 1024 (dovecot/hmlab.conf).
+  dovecot:
+    profiles: [peers]
+    image: dovecot/dovecot:2.4.5@sha256:c807be4fb5a97d9c3a90770569d3a6c4cbdcb36742ad41f90409cbd929166553
+    restart: "no"
+    hostname: imap.peer.test
+    environment:
+      USER_PASSWORD: ${HMLAB_PEER_PASSWORD:-}
+    ports: ["10340:31143"]
+    volumes:
+      - dovecot-data:/srv/vmail
+      - ./dovecot/hmlab.conf:/etc/dovecot/conf.d/hmlab.conf:ro
+    mem_limit: 256m
+    networks: [lab]
+
+networks:
+  lab:
+    name: hmlab
+
+volumes:
+  kuma-data:
+  mysql-data:
+  mariadb-data:
+  postgresql-data:
+  mssql-data:
+  keycloak-data:
+  dovecot-data:

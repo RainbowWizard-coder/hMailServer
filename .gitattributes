@@ -33,6 +33,10 @@ build/*.sh text eol=lf
 # docker build read on the project's own runner (.gitlab-ci.yml).
 build/ci/*.sh text eol=lf
 build/ci/*.Dockerfile text eol=lf
+# The test lab on linix (build/lab/README.md): its scripts, which bash, node and
+# python3 run there, and the compose file and the configuration files the
+# containers read.
+build/lab/** text eol=lf
 # And the command-line client, which the .deb and the .rpm install as
 # /usr/bin/hmctl: it opens with a shebang, so a CRLF checkout ships a file that
 # fails as "bad interpreter: /usr/bin/env python3^M" on the user's machine and

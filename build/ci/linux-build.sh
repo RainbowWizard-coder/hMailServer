@@ -139,7 +139,8 @@ openpgp() {
   # 2.4.8 as Ubuntu 26.04 ships it answers "Bad passphrase" to the very next
   # --decrypt, and a fresh agent takes the same passphrase (found running this
   # script in the CI image on linix, 25 September 2026). So the next command
-  # starts a new one.
+  # starts a new one. The test lab's first build on linix found the same, as root
+  # and as an ordinary user (docs/TestLab.md).
   gpgconf --kill gpg-agent
   for who in alice bob; do
     "$writer" "$fixtures/$who.pub.asc" "$fixtures/body.bin" > "$home/to-$who.asc"

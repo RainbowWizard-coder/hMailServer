@@ -366,6 +366,39 @@ linux-suite:
     reports:
       junit: linux-suite/junit.xml
 
+# The database matrix, started by hand: the linux-build server against MySQL 8.4,
+# MariaDB 11.4 or PostgreSQL 17 in the test lab on linix (build/lab/, docs/TestLab.md)
+# instead of the PostgreSQL 16 service linux-suite runs on - the database-sensitive
+# fixtures by default, HM_SUITE_FILTER=all for the whole suite. Set HM_LAB_DB (mysql,
+# mariadb or postgresql) when starting it. The database has to be up in the lab first
+# (bash build/lab/lab.sh up <db> on linix: the lab's databases start on demand), and
+# HM_LAB_DB_PASSWORD is a protected, masked CI/CD variable of the project holding the
+# lab's HMLAB_DB_PASSWORD. The job's container reaches the lab on linix's own address
+# and the port the lab publishes (10310 mysql, 10311 mariadb, 10312 postgresql).
+db-matrix:
+  extends: .linix
+  stage: test
+  needs: [linux-build]
+  timeout: 3 hours
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"
+      when: manual
+      allow_failure: true
+  variables:
+    HM_LAB_DB: mariadb
+    HM_LAB_DB_HOST: 192.168.11.154
+    HM_LAB_DB_NAME: hmlab_ci
+    HM_SUITE_FILTER: db
+  script:
+    - bash build/lab/db-suite.sh run
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - db-matrix/
+    reports:
+      junit: db-matrix/junit.xml
+
 # The whole Windows suite in the second bench's own checkout, C:\bench\hmailserver,
 # because the bench's hMailServer service is registered from that path: GIT_STRATEGY
 # none, and the commit is fetched into that checkout from GitLab. The gate scripts

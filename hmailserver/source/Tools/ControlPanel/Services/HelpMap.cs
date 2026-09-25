@@ -182,6 +182,7 @@ namespace hMailServer.ControlPanel.Services
          "SharedAddressBooks.md",
          "Signatures.md",
          "SmimeAuthority.md",
+         "TestLab.md",
          "ThirdPartyBinaries.md",
          "UpdateFeed.md",
          "WarmStandby.md",

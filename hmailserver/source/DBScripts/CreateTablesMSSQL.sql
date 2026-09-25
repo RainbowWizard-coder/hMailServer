@@ -165,7 +165,7 @@ declare @constname	sysname,
 		@cmd		varchar(1024)
 declare curs_constraints cursor for
 	select 	name
-	from 	sysobjects ,
+	from 	sysobjects
 	where 	xtype in ('C', 'F', 'PK', 'UQ', 'D')
 	and	(status & 64) = 0
 	and     parent_obj = object_id(@tablename)
@@ -203,7 +203,7 @@ CREATE proc [dbo].[hm_drop_table_column]
 	@tablename sysname,
 	@columnname sysname
 as
-	set nocount on,
+	set nocount on
 	declare @constname sysname,
 	@cmd varchar(1024)
 	declare curs_constraints cursor for
