@@ -114,13 +114,27 @@ namespace HM
 
       std::shared_ptr<DatabaseSettings> GetSettings() {return database_settings_; }
 
+      // How this connection reaches the server, in one line - encrypted or not,
+      // with what, whether the certificate was checked and under which TlsMode
+      // (DatabaseTls::Describe) - and whether it is encrypted. Set by Connect on
+      // the three network backends; empty on SQL Server Compact, which is a file.
+      String GetTransportSecurity() const { return transport_security_; }
+      bool GetTransportEncrypted() const { return transport_encrypted_; }
+
    protected:
+
+      // Records what GetTransportSecurity answers, and notes it for the
+      // diagnostics and the application log (DatabaseTls::NoteConnection).
+      void SetTransportSecurity_(bool encrypted, const String &description);
 
       std::shared_ptr<DatabaseSettings> database_settings_;
 
    private:
 
       int try_count_;
+
+      bool transport_encrypted_;
+      String transport_security_;
    };
 
 }

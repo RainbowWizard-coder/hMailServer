@@ -66,6 +66,8 @@
 #include "../Util/RegularExpression.h"
 #include "../TCPIP/LocalIPAddresses.h"
 #include "../TCPIP/IPAddress.h"
+#include "../TCPIP/CertificateVerifier.h"
+#include "../SQL/DatabaseTls.h"
 #include "Time.h"
 #include "Utilities.h"
 #include "Parsing/AddresslistParser.h"
@@ -154,6 +156,20 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing IPAddress\n"));
       IPAddressTester ipAddressTester;
       ipAddressTester.Test();
+
+      // Whether a server certificate is for the host: an address matched against
+      // the certificate's iPAddress entries as well as its names, which is what
+      // the Linux build did not do (docs/DatabaseTls.md, "Certificates for an
+      // address").
+      OutputDebugString(_T("hMailServer: Testing CertificateVerifier\n"));
+      CertificateVerifierTester certificateVerifierTester;
+      certificateVerifierTester.Test();
+
+      // TLS to the database: the four modes and what they are refused as, and the
+      // SQL Server keywords each mode and provider comes to.
+      OutputDebugString(_T("hMailServer: Testing DatabaseTls\n"));
+      DatabaseTlsTester databaseTlsTester;
+      databaseTlsTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing MessageUtilities\n"));
       MessageUtilitiesTester messageUtilitiesTester;

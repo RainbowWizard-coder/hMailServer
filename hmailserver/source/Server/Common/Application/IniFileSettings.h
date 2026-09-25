@@ -653,13 +653,27 @@ namespace HM
       int GetNumberOfDatabaseConnectionAttempts() const;
       int GetDBConnectionAttemptsDelay() const;
 
-      // [Database] AllowUnencryptedConnection=1. The bundled MariaDB Connector/C
-      // requires TLS from a MySQL/MariaDB server and refuses one that has none; this
-      // asks it to prefer TLS and fall back to plaintext instead. Off by default, so
-      // that an encrypted database connection stays the default and a plaintext-only
-      // server is a choice written in the ini rather than a silent downgrade. See
-      // MySQLConnection::Connect for the client option it sets.
+      // [Database] AllowUnencryptedConnection=1. Kept and read, and since
+      // TlsMode it changes nothing: it was meant to let the bundled MariaDB
+      // Connector/C fall back to plaintext, on the belief that the client required
+      // TLS by default - and measured on 25 September 2026, neither the Windows
+      // client nor Ubuntu's asks for TLS at all unless told to. TlsMode's default,
+      // prefer, is what this key described. See DatabaseTls.
       bool GetDatabaseAllowUnencryptedConnection() const { return database_allow_unencrypted_connection_; }
+
+      // [Database] TlsMode and TlsCaFile: TLS to the database server, the same words
+      // on every backend - disable, prefer (the default, empty), require or
+      // verify-full - and the PEM file of CA certificates verify-full checks the
+      // server's certificate against. File keys because they say how the settings
+      // store is reached. Read and checked by DatabaseTls::FromConfiguration.
+      String GetDatabaseTlsMode() const { return database_tls_mode_; }
+      String GetDatabaseTlsCaFile() const { return database_tls_ca_file_; }
+
+      // Forgets the log directory read so far, so the next GetLogDirectory reads the
+      // configuration file again. For hMailServer.exe --check-database --config
+      // <file> on Windows, whose crash oracle read the installed file's directory
+      // before the command line named another.
+      void ForgetLogDirectory() { log_directory_.Empty(); }
 
       // [Database] UpgradeOnStart: whether the service brings an older schema
       // forward itself at its own start (Application::OnDatabaseConnected,
@@ -1535,6 +1549,8 @@ namespace HM
       String database_postgresql_ssl_mode_;
       String database_postgresql_ssl_root_cert_;
       String database_connection_string_options_;
+      String database_tls_mode_;
+      String database_tls_ca_file_;
 
       bool is_internal_database_;
 

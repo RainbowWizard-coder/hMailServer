@@ -68,59 +68,34 @@ namespace HM
          if (lDBPort == 0)
             lDBPort = 3306;
 
+         // [Database] TlsMode and TlsCaFile (DatabaseTls.h). A mode this server does
+         // not know, or a CA file verify-full cannot read, is a configuration to
+         // correct rather than a server to wait for: nothing is attempted, and the
+         // connection manager does not try again.
+         DatabaseTls::Mode tlsMode = DatabaseTls::ModeDefault;
+         String tlsCaFile;
+         if (!DatabaseTls::FromConfiguration(DatabaseSettings::TypeMYSQLServer, tlsMode, tlsCaFile, sErrorMessage))
+            return FatalError;
 
+         const DatabaseTls::Mode effectiveMode = DatabaseTls::Effective(tlsMode);
 
-         dbconn_ = MySQLInterface::Instance()->p_mysql_init(NULL);
+         unsigned int errorNumber = 0;
+         hm_MYSQL *pResult = ConnectOnce_(sServer, sUsername, sPassword, sDatabase, lDBPort, effectiveMode, tlsCaFile, sErrorMessage, errorNumber);
 
-         // Point the client authentication-plugin directory at the "plugin" sub-folder
-         // of the Bin directory, where the bundled MariaDB Connector/C auth plugins
-         // ship (caching_sha2_password for MySQL 8.0+, client_ed25519 / auth_gssapi_client
-         // / parsec for MariaDB, sha256_password, dialog, ...). This lets the one bundled
-         // client authenticate against essentially any MySQL or MariaDB account type the
-         // user has configured, instead of failing with "Authentication plugin '<x>'
-         // cannot be loaded". The default auth plugin is intentionally NOT forced, so
-         // the client negotiates whatever the account actually uses.
-#ifndef HM_PLATFORM_POSIX
-         if (MySQLInterface::Instance()->p_mysql_options != 0)
+         // prefer, the way libpq means it: TLS the two ends cannot agree on - a server
+         // that offers only TLS 1.0 or 1.1 to a client that no longer speaks them, the
+         // usual case - is a connection without TLS rather than no connection, which is
+         // what a server that worked before TlsMode existed has to go on getting. Only
+         // for the client's TLS error: a refused login is never tried a second time.
+         String tlsNotAgreed;
+         if (pResult == 0 && effectiveMode == DatabaseTls::ModePrefer && errorNumber == HM_MYSQL_CR_SSL_CONNECTION_ERROR)
          {
-            AnsiString sPluginDir = Unicode::ToANSI(MySQLInterface::Instance()->GetLibraryDirectory() + _T("\\plugin"));
-            MySQLInterface::Instance()->p_mysql_options(dbconn_, HM_MYSQL_PLUGIN_DIR, sPluginDir.c_str());
-         }
-#else
-         // Nothing is pointed anywhere on POSIX, and that is the whole of the
-         // POSIX behaviour rather than an omission. The plugin directory above
-         // exists because Windows carries its own copy of the client in the Bin
-         // directory with the plugins in a sub-folder beside it; here the client
-         // is a packaged shared object whose plugin directory was compiled into
-         // it by the packager and is already right. Overriding it with a path
-         // built from a Windows separator would take the authentication plugins
-         // away, which is the failure this branch exists to avoid.
-#endif
+            tlsNotAgreed = sErrorMessage;
+            pResult = ConnectOnce_(sServer, sUsername, sPassword, sDatabase, lDBPort, DatabaseTls::ModeDisable, String(), sErrorMessage, errorNumber);
 
-         // The bundled client is MariaDB Connector/C 3.4, which negotiates TLS and
-         // refuses to continue against a server that has none: "SSL is required, but
-         // the server does not support it". That is the right default and it is not
-         // changed here - a database connection that quietly downgraded to plaintext
-         // would be the worst kind of configuration drift. A server that genuinely has
-         // no TLS is a choice written in the ini instead: [Database]
-         // AllowUnencryptedConnection=1 asks the client to prefer TLS and fall back,
-         // which is what the old libmysql did without asking. Certificate
-         // verification is left at the client's default either way; upstream #559
-         // switches both off unconditionally.
-         if (IniFileSettings::Instance()->GetDatabaseAllowUnencryptedConnection() &&
-             MySQLInterface::Instance()->p_mysql_options != 0)
-         {
-            char enforceTls = 0;
-            MySQLInterface::Instance()->p_mysql_options(dbconn_, HM_MYSQL_OPT_SSL_ENFORCE, &enforceTls);
+            if (pResult == 0)
+               sErrorMessage = _T("With TLS: ") + tlsNotAgreed + _T(" Without TLS: ") + sErrorMessage;
          }
-
-         //MYSQL *pResult = mysql_real_connect(
-         hm_MYSQL *pResult = MySQLInterface::Instance()->p_mysql_real_connect(
-                     dbconn_,
-                     Unicode::ToANSI(sServer),
-                     Unicode::ToANSI(sUsername),
-                     Unicode::ToANSI(sPassword),
-                     Unicode::ToANSI(sDatabase), lDBPort, 0, 0);
 
          if (pResult == 0)
          {
@@ -131,11 +106,9 @@ namespace HM
             // A MYSQL* connection handle if the connection was successful, NULL if the connection was
             // unsuccessful. For a successful connection, the return value is the same as the value
             // of the first parameter.
-
-            const char *pError = MySQLInterface::Instance()->p_mysql_error(dbconn_);
-            sErrorMessage = pError;
-
-            // The bundled MariaDB Connector/C client ships the auth plugins for every
+            //
+            // ConnectOnce_ has put the client's own words in sErrorMessage. The bundled
+            // MariaDB Connector/C client ships the auth plugins for every
             // common MySQL/MariaDB account type, so "Authentication plugin '<x>' cannot
             // be loaded" should now only happen if the Bin\plugin folder is missing or
             // incomplete (a broken install). GSSAPI/SSPI "Windows authentication"
@@ -143,18 +116,23 @@ namespace HM
             // the database account, which a service running as LocalSystem/NT SERVICE
             // normally will not. In either case, translate the raw client error into
             // actionable guidance instead of dead-ending the setup wizard.
-            String sLowerError = pError;
+            String sLowerError = sErrorMessage;
             sLowerError.MakeLower();
 
-            // The client's own wording, which says what happened but not what to do.
-            if (sLowerError.Find(_T("ssl is required")) >= 0)
+            // The client's own wording says what happened with TLS but not which
+            // setting to change.
+            if (errorNumber == HM_MYSQL_CR_SSL_CONNECTION_ERROR || !tlsNotAgreed.IsEmpty())
+               sErrorMessage += _T("\r\n\r\n") + DatabaseTls::Guidance(DatabaseSettings::TypeMYSQLServer, tlsMode);
+
+            // Access denied on a connection made without TLS is also what an account
+            // created with REQUIRE SSL answers, and the server does not say which.
+            if (errorNumber == 1045u && (effectiveMode == DatabaseTls::ModeDisable || !tlsNotAgreed.IsEmpty()))
             {
                sErrorMessage += _T("\r\n\r\n"
-                  "The database server did not offer TLS, and the bundled MariaDB Connector/C requires it by "
-                  "default. Enable TLS on the database server - or, if it genuinely has none, set "
-                  "AllowUnencryptedConnection=1 under [Database] in hMailServer.ini to let the client fall "
-                  "back to an unencrypted connection.");
+                  "The connection was made without TLS. If the database account requires it (CREATE USER ... REQUIRE SSL), "
+                  "the server refuses it this way: set TlsMode under [Database] in hMailServer.ini to prefer or stronger.");
             }
+
             if (sLowerError.Find(_T("plugin")) >= 0 &&
                 (sLowerError.Find(_T("cannot be loaded")) >= 0 || sLowerError.Find(_T("gssapi")) >= 0))
             {
@@ -175,6 +153,45 @@ namespace HM
 
          if (CheckError(pResult, "mysql_real_connect()", sErrorMessage) != DALConnection::DALSuccess)
             return TemporaryFailure;
+
+         // What the session is, asked of the client: the cipher of its TLS session, or
+         // none. require is enforced here on the MariaDB client, whose options cannot
+         // say "TLS or nothing" without also checking the certificate (ApplyTlsOptions_)
+         // - so the login has been made by now, and the connection is closed before a
+         // statement crosses it. The Oracle client's REQUIRED and both clients'
+         // verification refuse before the login, and are asked again here all the same.
+         MySQLInterface *client = MySQLInterface::Instance();
+         const bool cipherKnown = client->p_mysql_get_ssl_cipher != 0;
+         const char *cipher = cipherKnown ? client->p_mysql_get_ssl_cipher(dbconn_) : nullptr;
+         const bool encrypted = cipher != nullptr && cipher[0] != 0;
+         const bool tlsRequired = effectiveMode == DatabaseTls::ModeRequire || effectiveMode == DatabaseTls::ModeVerifyFull;
+
+         if (tlsRequired && ((cipherKnown && !encrypted) || (!cipherKnown && effectiveMode == DatabaseTls::ModeRequire)))
+         {
+            sErrorMessage = cipherKnown
+               ? Formatter::Format("The MySQL/MariaDB server at {0} did not offer TLS, and TlsMode is {1}: the connection was closed before it was used.",
+                    sServer, DatabaseTls::ModeName(tlsMode))
+               : Formatter::Format("The MySQL client library cannot say whether the connection to {0} is encrypted (it has no mysql_get_ssl_cipher), "
+                    "and TlsMode is {1}: the connection was closed before it was used.", sServer, DatabaseTls::ModeName(tlsMode));
+            sErrorMessage += _T("\r\n\r\n") + DatabaseTls::Guidance(DatabaseSettings::TypeMYSQLServer, tlsMode);
+
+            client->p_mysql_close(dbconn_);
+            dbconn_ = 0;
+            return TemporaryFailure;
+         }
+
+         String transportDetail;
+         if (encrypted)
+            transportDetail = String(cipher);
+         else if (!tlsNotAgreed.IsEmpty())
+            transportDetail = _T("TLS could not be agreed on (") + tlsNotAgreed + _T("), so the connection was made without it");
+         else if (effectiveMode == DatabaseTls::ModeDisable)
+            transportDetail = _T("TLS is switched off");
+         else
+            transportDetail = _T("the server offered no TLS");
+
+         SetTransportSecurity_(encrypted, DatabaseTls::Describe(DatabaseSettings::TypeMYSQLServer, encrypted, transportDetail,
+            encrypted && effectiveMode == DatabaseTls::ModeVerifyFull, tlsMode));
 
          SetConnectionCharacterSet_();
 
@@ -208,6 +225,176 @@ namespace HM
       return Connected;
    }
 
+   hm_MYSQL *
+   MySQLConnection::ConnectOnce_(const String &server, const String &username, const String &password, const String &database, long port,
+                                 DatabaseTls::Mode mode, const String &caFile, String &error, unsigned int &errorNumber)
+   {
+      MySQLInterface *client = MySQLInterface::Instance();
+
+      error.Empty();
+      errorNumber = 0;
+
+      // A second attempt starts from a fresh handle: the options of the first stay
+      // set on the old one, which a failed mysql_real_connect leaves for mysql_close.
+      if (dbconn_)
+      {
+         client->p_mysql_close(dbconn_);
+         dbconn_ = 0;
+      }
+
+      dbconn_ = client->p_mysql_init(NULL);
+      if (dbconn_ == 0)
+      {
+         error = _T("The MySQL client library could not allocate a connection (mysql_init returned nothing).");
+         return 0;
+      }
+
+      // Point the client authentication-plugin directory at the "plugin" sub-folder
+      // of the Bin directory, where the bundled MariaDB Connector/C auth plugins
+      // ship (caching_sha2_password for MySQL 8.0+, client_ed25519 / auth_gssapi_client
+      // / parsec for MariaDB, sha256_password, dialog, ...). This lets the one bundled
+      // client authenticate against essentially any MySQL or MariaDB account type the
+      // user has configured, instead of failing with "Authentication plugin '<x>'
+      // cannot be loaded". The default auth plugin is intentionally NOT forced, so
+      // the client negotiates whatever the account actually uses. The plugins are
+      // MariaDB's and the option number is MariaDB's (MySQLInterface.h), so an Oracle
+      // libmysql.dll put in the bundled one's place is not handed either.
+#ifndef HM_PLATFORM_POSIX
+      if (client->p_mysql_options != 0 && client->IsMariaDbClient())
+      {
+         AnsiString sPluginDir = Unicode::ToANSI(client->GetLibraryDirectory() + _T("\\plugin"));
+         client->p_mysql_options(dbconn_, HM_MYSQL_PLUGIN_DIR, sPluginDir.c_str());
+      }
+#else
+      // Nothing is pointed anywhere on POSIX, and that is the whole of the
+      // POSIX behaviour rather than an omission. The plugin directory above
+      // exists because Windows carries its own copy of the client in the Bin
+      // directory with the plugins in a sub-folder beside it; here the client
+      // is a packaged shared object whose plugin directory was compiled into
+      // it by the packager and is already right. Overriding it with a path
+      // built from a Windows separator would take the authentication plugins
+      // away, which is the failure this branch exists to avoid.
+#endif
+
+      if (!ApplyTlsOptions_(mode, caFile, error))
+         return 0;
+
+      hm_MYSQL *result = client->p_mysql_real_connect(
+                  dbconn_,
+                  Unicode::ToANSI(server),
+                  Unicode::ToANSI(username),
+                  Unicode::ToANSI(password),
+                  Unicode::ToANSI(database), port, 0, 0);
+
+      if (result == 0)
+      {
+         const char *clientError = client->p_mysql_error(dbconn_);
+         error = clientError != nullptr ? String(clientError) : String(_T("mysql_real_connect failed and the client gave no reason."));
+         errorNumber = client->p_mysql_errno(dbconn_);
+      }
+
+      return result;
+   }
+
+   bool
+   MySQLConnection::ApplyTlsOptions_(DatabaseTls::Mode mode, const String &caFile, String &error)
+   {
+      MySQLInterface *client = MySQLInterface::Instance();
+
+      const bool mustApply = mode == DatabaseTls::ModeRequire || mode == DatabaseTls::ModeVerifyFull;
+
+      if (client->p_mysql_options == 0)
+      {
+         if (!mustApply)
+            return true;
+
+         error = Formatter::Format("The MySQL client library has no mysql_options, so TlsMode={0} cannot be applied to it. The connection was not attempted.",
+            DatabaseTls::ModeName(mode));
+         return false;
+      }
+
+      // The file name as the client opens it, in the system's code page as the
+      // plugin directory is: an administrator should keep it to ASCII.
+      const AnsiString caFileName = caFile.IsEmpty() ? AnsiString() : Unicode::ToANSI(caFile);
+      int refusedOption = 0;
+
+      if (client->IsMariaDbClient())
+      {
+         // MariaDB Connector/C 3.4.9, as measured on 25 September 2026 against MySQL
+         // 8.4 and MariaDB 11.4 with the Windows build hMailServer bundles and Ubuntu
+         // 26.04's alike (docs/DatabaseTls.md has the table):
+         //
+         //   ENFORCE 0, VERIFY 0   no TLS - and what both builds did when asked
+         //                         nothing, which is why both are set every time
+         //   ENFORCE 1, VERIFY 0   TLS when the server offers it and plaintext when it
+         //                         does not: prefer. require is therefore checked
+         //                         after the connection is made (Connect).
+         //   ENFORCE 1, VERIFY 1   TLS or no connection, the certificate's chain and
+         //                         its name checked; a server without TLS is refused
+         //                         before the login ("SSL is required, but the server
+         //                         does not support it"). With no CA file the system's
+         //                         store is used - and a MariaDB 11.4 server's own
+         //                         certificate is accepted when the password proves
+         //                         it, which is MariaDB's design, not a gap.
+         //   a CA file beside VERIFY 0 is not read at all.
+         char enforce = 1;
+         if (mode == DatabaseTls::ModeDisable)
+            enforce = 0;
+
+         char verify = 0;
+         if (mode == DatabaseTls::ModeVerifyFull)
+            verify = 1;
+
+         if (client->p_mysql_options(dbconn_, HM_MYSQL_OPT_SSL_ENFORCE, &enforce) != 0)
+            refusedOption = HM_MYSQL_OPT_SSL_ENFORCE;
+         else if (client->p_mysql_options(dbconn_, HM_MARIADB_OPT_SSL_VERIFY_SERVER_CERT, &verify) != 0)
+            refusedOption = HM_MARIADB_OPT_SSL_VERIFY_SERVER_CERT;
+         else if (!caFileName.IsEmpty() && client->p_mysql_options(dbconn_, HM_MARIADB_OPT_SSL_CA, caFileName.c_str()) != 0)
+            refusedOption = HM_MARIADB_OPT_SSL_CA;
+      }
+      else
+      {
+         // The Oracle client says all of it with one option, and says it before the
+         // login: DISABLED, PREFERRED (its own default), REQUIRED, VERIFY_IDENTITY -
+         // in the numbers of an 8.x client. Any other version is told nothing: its
+         // own default stands for prefer and disable, and require and verify-full,
+         // which must not be claimed without being applied, are refused.
+         const unsigned long clientVersion = client->p_mysql_get_client_version != 0 ? client->p_mysql_get_client_version() : 0;
+         if (clientVersion < 80000 || clientVersion >= 90000)
+         {
+            if (!mustApply)
+               return true;
+
+            error = Formatter::Format("The MySQL client library loaded is neither MariaDB Connector/C nor Oracle's 8.x client (it reports version {0}), and "
+               "this server does not know its TLS option numbers, so TlsMode={1} cannot be applied to it. The connection was not attempted.",
+               (__int64) clientVersion, DatabaseTls::ModeName(mode));
+            return false;
+         }
+
+         unsigned int sslMode = HM_ORACLE_SSL_MODE_PREFERRED;
+         if (mode == DatabaseTls::ModeDisable)
+            sslMode = HM_ORACLE_SSL_MODE_DISABLED;
+         else if (mode == DatabaseTls::ModeRequire)
+            sslMode = HM_ORACLE_SSL_MODE_REQUIRED;
+         else if (mode == DatabaseTls::ModeVerifyFull)
+            sslMode = HM_ORACLE_SSL_MODE_VERIFY_IDENTITY;
+
+         if (client->p_mysql_options(dbconn_, HM_ORACLE_OPT_SSL_MODE, &sslMode) != 0)
+            refusedOption = HM_ORACLE_OPT_SSL_MODE;
+         else if (!caFileName.IsEmpty() && client->p_mysql_options(dbconn_, HM_ORACLE_OPT_SSL_CA, caFileName.c_str()) != 0)
+            refusedOption = HM_ORACLE_OPT_SSL_CA;
+      }
+
+      if (refusedOption != 0 && mustApply)
+      {
+         error = Formatter::Format("The MySQL client library refused TLS option {0}, so TlsMode={1} cannot be applied to it. The connection was not attempted.",
+            refusedOption, DatabaseTls::ModeName(mode));
+         return false;
+      }
+
+      return true;
+   }
+
    bool
    MySQLConnection::CheckServerVersion(String &errorMessage)
    {
@@ -231,6 +418,10 @@ namespace HM
          dbconn_ = 0;
       }
 
+      // Was left true, as PGConnection's was, so IsConnected() went on claiming a
+      // connection that had been closed. Connect sets it again on the way back up.
+      is_connected_ = false;
+
       return true;
    }
 
@@ -248,6 +439,17 @@ namespace HM
          {
             ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5105, "MySQLConnection::TryExecute", "Could not convert string into multi-byte.");
             return DALConnection::DALUnknown;
+         }
+
+         // No handle at all: Connect refused this connection - a TlsMode it could
+         // not honour, a TlsCaFile it could not read, TLS required and not offered -
+         // and closed what it had. A reconnection made by DALConnection::Execute
+         // ends here too until Connect succeeds. A dropped connection, so Execute
+         // tries to reconnect, rather than a query handed a null handle.
+         if (dbconn_ == 0)
+         {
+            sErrorMessage = "Source: MySQLConnection::TryExecute, Description: the database connection is not open - the last attempt to connect was refused.";
+            return DALConnection::DALConnectionProblem;
          }
 
          if (MySQLInterface::Instance()->p_mysql_query(dbconn_, sQuery))

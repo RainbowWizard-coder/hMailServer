@@ -6,6 +6,7 @@
 
 #include "DALConnection.h"
 #include "DatabaseSettings.h"
+#include "DatabaseTls.h"
 #include "../Cache/CacheContainer.h"
 
 #ifdef _DEBUG
@@ -16,8 +17,9 @@
 namespace HM
 {
    DALConnection::DALConnection(std::shared_ptr<DatabaseSettings> pDatabaseSettings) :
+      database_settings_(pDatabaseSettings),
       try_count_(6),
-      database_settings_(pDatabaseSettings)
+      transport_encrypted_(false)
    {
 
    }
@@ -25,6 +27,15 @@ namespace HM
    DALConnection::~DALConnection()
    {
 
+   }
+
+   void
+   DALConnection::SetTransportSecurity_(bool encrypted, const String &description)
+   {
+      transport_encrypted_ = encrypted;
+      transport_security_ = description;
+
+      DatabaseTls::NoteConnection(description);
    }
 
    bool 

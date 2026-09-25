@@ -279,7 +279,8 @@ namespace HM
          static const TCHAR *const names[] =
          {
             _T("HM_DB_TYPE"), _T("HM_DB_HOST"), _T("HM_DB_PORT"), _T("HM_DB_NAME"), _T("HM_DB_USER"),
-            _T("HM_DB_PASSWORD"), _T("HM_DB_PASSWORD_FILE"), _T("HM_ADMIN_PASSWORD"), _T("HM_ADMIN_PASSWORD_FILE"),
+            _T("HM_DB_PASSWORD"), _T("HM_DB_PASSWORD_FILE"), _T("HM_DB_TLS_MODE"), _T("HM_DB_TLS_CA"),
+            _T("HM_ADMIN_PASSWORD"), _T("HM_ADMIN_PASSWORD_FILE"),
             _T("HM_INI"), _T("HM_CREATE_DATABASE"), _T("HM_UPGRADE_DATABASE"), _T("HM_PROFILE"), _T("HM_PROFILE_CONFIRM"),
          };
 

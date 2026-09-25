@@ -502,12 +502,13 @@ each is a line or two; the rest are reported and left alone.
    `mariadb` command-line client still connected and the server was refused
    (`Access denied`), on MariaDB 11.4 and on MySQL 8.4 alike; with `REQUIRE NONE`
    it connects, including to MySQL 8.4 just restarted, so the login itself is sound.
-   `MySQLConnection.cpp` says the client "negotiates TLS and refuses to continue
-   against a server that has none"; that describes the client bundled on Windows,
-   not Ubuntu 26.04's `libmariadb3` (1:11.8.6), which the Linux server loads and
-   which, asked nothing, does not negotiate TLS. Every query and every row then
-   crosses the network in the clear when the database is on another machine. Not
-   fixed.
+   `MySQLConnection.cpp` said the client "negotiates TLS and refuses to continue
+   against a server that has none"; that described neither client: the one bundled
+   on Windows and Ubuntu 26.04's `libmariadb3` (1:11.8.6) are both MariaDB
+   Connector/C 3.4.9, and neither asks for TLS unless told to (measured on both,
+   25 September 2026), so every query and every row crossed the network in the
+   clear when the database was on another machine. **Fixed** by row-db-tls:
+   `TlsMode` under `[Database]`, `prefer` by default ([DatabaseTls.md](DatabaseTls.md)).
 5. **An IMAP command pipelined after an APPEND with a non-synchronising literal is
    never answered.** `APPEND ... {n+}` and a `NOOP` sent in one write: the APPEND is
    answered, the NOOP never (two NOOPs in one write are both answered). mbsync
@@ -525,8 +526,10 @@ each is a line or two; the rest are reported and left alone.
    iPAddress entries. So an HTTPS endpoint the server is given by address - an
    issuer, a JWK Set - is accepted only when the address is also written as a
    dNSName, as the lab's Keycloak certificate writes it; a certificate from a public
-   CA for an address carries it as an iPAddress only. Read in the code and
-   provided for in the lab's certificate; not tested the other way. Not fixed.
+   CA for an address carries it as an iPAddress only. **Fixed** by row-db-tls: an
+   address is checked against the iPAddress entries (`X509_check_ip_asc`) first,
+   and the HTTPS client no longer sends an address as the TLS server name
+   ([DatabaseTls.md](DatabaseTls.md)).
 8. **bench150's port 25 does not answer from linix** (the monitor above). Not
    looked into: the lab touches bench150 through that check only.
 

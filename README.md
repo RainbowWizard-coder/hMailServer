@@ -141,8 +141,8 @@ Technology
 | Cryptography | OpenSSL 4.0.x. Not an LTS branch: it leaves support on 14 May 2027, and the decision is recorded here rather than left for that month. OpenSSL's release policy puts an LTS in April of every odd-numbered year, so the next lands in April 2027; the plan is to move to it within a month of its release. If anything in the 4.x line has proved unstable by then, the fallback is a step back to 3.5 LTS (supported to 8 April 2030) |
 | Async I/O | Boost 1.92 (Asio) |
 | Databases | MySQL, MariaDB, MS SQL Server, PostgreSQL 18 (libpq), and the embedded SQL CE for zero-configuration installs |
-| MySQL/MariaDB client | MariaDB Connector/C, shipped as `libmysql.dll` with auth plugins — works with MySQL 8 `caching_sha2_password` and MariaDB `ed25519`/`gssapi` out of the box. It requires TLS from the server by default; `AllowUnencryptedConnection=1` under `[Database]` lets it fall back to plaintext for a server that has none |
-| Database transport | Encrypted and verified from `hMailServer.ini`: `PostgreSQLSslMode` (libpq's `sslmode`, up to `verify-full`) and `PostgreSQLSslRootCert` for PostgreSQL, `ConnectionStringOptions` (the provider's own keywords, e.g. `Encrypt=yes;TrustServerCertificate=no`) for MS SQL Server, and TLS required by default for MySQL/MariaDB - all under `[Database]` |
+| MySQL/MariaDB client | MariaDB Connector/C, shipped as `libmysql.dll` with auth plugins — works with MySQL 8 `caching_sha2_password` and MariaDB `ed25519`/`gssapi` out of the box. On Linux the packaged `libmariadb.so.3` is loaded instead, or Oracle's `libmysqlclient` where there is none, with the TLS options in each client's own numbers |
+| Database transport | TLS to every backend from `[Database]` in `hMailServer.ini`: `TlsMode` - `prefer` by default, encrypted whenever the server offers it; `require`; `verify-full`, the server's certificate checked against `TlsCaFile` or the system's store; `disable` - and `hmailserver --check-database` to see what a connection gets before the service is given it ([DatabaseTls.md](hmailserver/docs/DatabaseTls.md)). PostgreSQL's own `PostgreSQLSslMode` and `PostgreSQLSslRootCert` still win when set, and SQL Server's `ConnectionStringOptions` is appended verbatim. Until 25 September 2026 the MySQL/MariaDB connection was never encrypted through MariaDB Connector/C, the client bundled on Windows and packaged on Ubuntu |
 | Administration GUI and tools | C# / .NET 10 (WPF, Fluent design) |
 | Extensibility | COM/IDispatch API, plus a REST administration API |
 | Schema | Database version 6102, upgradeable from every earlier hMailServer release (`REQUIRED_DB_VERSION` in `Constants.h`; `build/check-schema-versions.ps1` fails when this row disagrees with it) |
@@ -216,7 +216,7 @@ it behaves.
 How it is administered: the Control Panel and COM are Windows, so a Linux
 server is administered through its configuration file, its own command line
 (`--set-admin-password`, `--create-database`, `--upgrade-database`,
-`--set-setting`, `--check-config`), the REST API and the **Control Deck** at `/`, the browser
+`--check-database`, `--set-setting`, `--check-config`), the REST API and the **Control Deck** at `/`, the browser
 front end for that API, which the packages install. Since 6.3.3 the API writes
 a domain whole - its limits, its signature, its relay host, its DKIM signing
 (selector, key file, canonicalisation, the secondary key) and its aliases -

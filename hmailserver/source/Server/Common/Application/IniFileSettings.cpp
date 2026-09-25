@@ -244,7 +244,10 @@ namespace HM
       database_postgresql_ssl_mode_ = ReadIniSettingString_("Database", "PostgreSQLSslMode", "");
       database_postgresql_ssl_root_cert_ = ReadIniSettingString_("Database", "PostgreSQLSslRootCert", "");
       database_connection_string_options_ = ReadIniSettingString_("Database", "ConnectionStringOptions", "");
-      
+      // How the database is reached, so read before it is open: see DatabaseTls.
+      database_tls_mode_ = ReadIniSettingString_("Database", "TlsMode", "");
+      database_tls_ca_file_ = ReadIniSettingString_("Database", "TlsCaFile", "");
+
       if (sqldbtype_ == HM::DatabaseSettings::TypeMSSQLCompactEdition)
       {
          // Always use one database connection when working with SQL CE. SQL CE is supposed

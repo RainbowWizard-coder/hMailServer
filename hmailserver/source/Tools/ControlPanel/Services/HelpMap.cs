@@ -149,6 +149,7 @@ namespace hMailServer.ControlPanel.Services
          "Complaints.md",
          "ContinuousIntegration.md",
          "ControlPanelDesign.md",
+         "DatabaseTls.md",
          "DkimKeyRotation.md",
          "DmarcReports.md",
          "EncryptionAtRest.md",

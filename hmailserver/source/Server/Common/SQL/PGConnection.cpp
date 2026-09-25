@@ -7,6 +7,7 @@
 #include <cstring>
 #include "PGRecordset.h"
 #include "DatabaseSettings.h"
+#include "DatabaseTls.h"
 #include "../Util/Unicode.h"
 #include "../Application/IniFileSettings.h"
 #include "Macros/PGSQLMacroExpander.h"
@@ -63,11 +64,20 @@ namespace HM
             sConnectionString += " dbname='" + sDatabase + "'";
 
          // TLS to the server, from hMailServer.ini rather than from PGSSLMODE in the
-         // service's environment. libpq's own default is prefer: encrypted when the
-         // server offers it, verified never. A mode this code does not know is a
-         // refused connection with the reason in the log, not a silent fall-back to
-         // that default - a typo in the one setting that is supposed to require
-         // verification must not switch verification off.
+         // service's environment. Two pairs of keys say it: PostgreSQLSslMode and
+         // PostgreSQLSslRootCert, libpq's own words, which came first and win when
+         // set; and TlsMode and TlsCaFile, the words every backend takes
+         // (DatabaseTls.h). With neither set nothing is added, and libpq's own
+         // default - prefer: encrypted when the server offers it, verified never, or
+         // whatever PGSSLMODE says - stands as it always has. A mode this code does
+         // not know is a refused connection with the reason in the log, not a
+         // silent fall-back to that default - a typo in the one setting that is
+         // supposed to require verification must not switch verification off.
+         DatabaseTls::Mode tlsMode = DatabaseTls::ModeDefault;
+         String tlsCaFile;
+         if (!DatabaseTls::FromConfiguration(DatabaseSettings::TypePGServer, tlsMode, tlsCaFile, sErrorMessage))
+            return FatalError;
+
          String sslMode = IniFileSettings::Instance()->GetDatabasePostgreSQLSslMode();
          if (!sslMode.IsEmpty())
          {
@@ -88,13 +98,36 @@ namespace HM
                ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5563, "PGConnection::Connect", sErrorMessage);
                return TemporaryFailure;
             }
-
-            sConnectionString += " sslmode='" + sslMode + "'";
          }
+         else if (tlsMode != DatabaseTls::ModeDefault)
+         {
+            // libpq's sslmode has the same four words.
+            sslMode = DatabaseTls::ModeName(tlsMode);
+         }
+
+         if (!sslMode.IsEmpty())
+            sConnectionString += " sslmode='" + sslMode + "'";
 
          // A Windows path, so the backslashes have to be doubled: inside a single-quoted
          // conninfo value libpq reads a backslash as an escape.
          String sslRootCert = IniFileSettings::Instance()->GetDatabasePostgreSQLSslRootCert();
+         const bool legacySslMode = !IniFileSettings::Instance()->GetDatabasePostgreSQLSslMode().IsEmpty();
+         if (sslRootCert.IsEmpty() && !legacySslMode && tlsMode == DatabaseTls::ModeVerifyFull)
+         {
+            // FromConfiguration hands the file over for verify-full only, so that
+            // libpq's require is never quietly made verify-ca by a root file beside it.
+            sslRootCert = tlsCaFile;
+
+#ifdef HM_PLATFORM_POSIX
+            // No file named: the system's trust store, which libpq 16 and later read
+            // for sslrootcert=system. On Windows OpenSSL's store is not the Windows
+            // one, so there libpq is left to its own default and says what it looked
+            // for when it is not there.
+            if (sslRootCert.IsEmpty() && PQlibVersion() >= 160000)
+               sslRootCert = _T("system");
+#endif
+         }
+
          if (!sslRootCert.IsEmpty())
          {
             sslRootCert.Replace(_T("\\"), _T("\\\\"));
@@ -104,12 +137,87 @@ namespace HM
 
          dbconn_ = PQconnectdb(Unicode::ToANSI(sConnectionString));
 
-        
+
          if (PQstatus(dbconn_) != CONNECTION_OK)
          {
             sErrorMessage = PQerrorMessage(dbconn_);
+
+            // libpq says what went wrong with SSL in its own words; which of the
+            // settings to change is this server's to say. Not for a refusal by
+            // pg_hba.conf, which names the encryption the attempt used ("SSL
+            // encryption") and is the server's rule, not this server's setting.
+            String lowerError = sErrorMessage;
+            lowerError.MakeLower();
+            if ((lowerError.Find(_T("ssl")) >= 0 || lowerError.Find(_T("certificate")) >= 0) && lowerError.Find(_T("pg_hba.conf")) < 0)
+            {
+               // libpq ends its message with a line break of its own.
+               sErrorMessage.TrimRight();
+               sErrorMessage += _T("\r\n\r\n") + DatabaseTls::Guidance(DatabaseSettings::TypePGServer, tlsMode);
+            }
+
             return TemporaryFailure;
          }
+
+         // What the session is, as libpq has it. libpq enforced require and the two
+         // verify modes before the login; this reads the answer for the diagnostics
+         // and the log, and refuses the connection only if a mode that requires TLS
+         // somehow produced one without it.
+         const bool encrypted = PQsslInUse(dbconn_) != 0;
+
+         // The sslmode libpq used, as it has it: the one written above, or when
+         // nothing was, PGSSLMODE from this process's environment, or its own
+         // default, prefer.
+         String usedSslMode;
+         PQconninfoOption *usedOptions = PQconninfo(dbconn_);
+         if (usedOptions != nullptr)
+         {
+            for (PQconninfoOption *option = usedOptions; option->keyword != nullptr; option++)
+            {
+               if (std::strcmp(option->keyword, "sslmode") == 0 && option->val != nullptr)
+                  usedSslMode = String(option->val);
+            }
+
+            PQconninfoFree(usedOptions);
+         }
+
+         if (usedSslMode.IsEmpty())
+            usedSslMode = sslMode.IsEmpty() ? String(_T("prefer")) : sslMode;
+
+         String effectiveSslMode = usedSslMode;
+         effectiveSslMode.MakeLower();
+         const bool tlsRequired = effectiveSslMode == _T("require") || effectiveSslMode == _T("verify-ca") || effectiveSslMode == _T("verify-full");
+
+         if (tlsRequired && !encrypted)
+         {
+            sErrorMessage = Formatter::Format("The connection to the PostgreSQL server at {0} is not encrypted, and sslmode is {1}: it was closed before it was used.",
+               sServer, usedSslMode);
+            PQfinish(dbconn_);
+            dbconn_ = 0;
+            return TemporaryFailure;
+         }
+
+         String transportDetail;
+         if (encrypted)
+         {
+            const char *protocol = PQsslAttribute(dbconn_, "protocol");
+            const char *cipher = PQsslAttribute(dbconn_, "cipher");
+            transportDetail = String(protocol != nullptr ? protocol : "TLS");
+            if (cipher != nullptr)
+               transportDetail += _T(", ") + String(cipher);
+         }
+         else if (effectiveSslMode == _T("disable"))
+            transportDetail = _T("TLS is switched off");
+         else
+            transportDetail = _T("the server offered no TLS");
+
+         const bool verified = encrypted && (effectiveSslMode == _T("verify-ca") || effectiveSslMode == _T("verify-full"));
+         String description = DatabaseTls::Describe(DatabaseSettings::TypePGServer, encrypted, transportDetail, verified, tlsMode);
+         if (legacySslMode)
+            description += _T(", sslmode ") + sslMode + _T(" from PostgreSQLSslMode");
+         else if (sslMode.IsEmpty() && effectiveSslMode != _T("prefer"))
+            description += _T(", sslmode ") + usedSslMode + _T(" from libpq's environment (PGSSLMODE)");
+
+         SetTransportSecurity_(encrypted, description);
 
          is_connected_ = true;
 

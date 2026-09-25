@@ -609,6 +609,7 @@
     <Compile Include="Infrastructure\SnmpAgent.cs" />
     <Compile Include="Infrastructure\SyslogExport.cs" />
     <Compile Include="Infrastructure\DatabaseRefused.cs" />
+    <Compile Include="Infrastructure\DatabaseTlsLab.cs" />
     <Compile Include="..\..\source\Tools\DBUpdater\SchemaVerification.cs">
       <Link>Infrastructure\SchemaVerification.cs</Link>
     </Compile>
@@ -626,6 +627,7 @@
     <Compile Include="SSL\CertificateTypes.cs" />
     <Compile Include="SSL\InboundClientCertificates.cs" />
     <Compile Include="SSL\ExternalSasl.cs" />
+    <Compile Include="SSL\HttpsAddressCertificates.cs" />
     <Compile Include="SSL\SslPassphraseAndAeadPresetTests.cs" />
     <Compile Include="SSL\ScramPlus.cs" />
     <Compile Include="SSL\ScramPlusSmtp.cs" />

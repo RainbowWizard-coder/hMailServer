@@ -23,7 +23,20 @@ namespace HM
       /// Perform certificate verification.
       bool operator()(bool preverified, boost::asio::ssl::verify_context& ctx) const;
 
+      // Whether a certificate is for the host a connection was made to, the way
+      // the POSIX branch decides it: an address - an endpoint named by its IP,
+      // 192.0.2.10 or 2001:db8::10, in a URL's brackets or not - by the
+      // certificate's iPAddress entries (X509_check_ip_asc), and otherwise by
+      // X509_check_host as before - for an address, one the certificate writes as
+      // a dNSName, never through a wildcard, or as its common name when it has no
+      // iPAddress entry. The Windows branch asks CryptoAPI, whose SSL policy reads
+      // iPAddress entries itself (measured on 25 September 2026).
+      static bool MatchesHost(X509 *certificate, const AnsiString &host);
+
    private:
+
+      // Whether the certificate's subjectAltName has an iPAddress entry.
+      static bool NamesAnAddress_(X509 *certificate);
 
       bool VerifyCertificate_( PCCERT_CONTEXT certificate, LPWSTR serverName, int &windows_error_code) const;
 
@@ -73,5 +86,17 @@ namespace HM
 
       int session_id_;
       bool fail_handshake_on_error_;
+   };
+
+   // CertificateVerifier::MatchesHost against certificates made for the purpose:
+   // an address as an iPAddress entry only (IPv4 and IPv6), an address as a
+   // dNSName, an address as the common name, and a name.
+   class CertificateVerifierTester
+   {
+   public:
+      void Test();
+
+   private:
+      static bool Matches_(const char *pem, const char *host);
    };
 }

@@ -10,6 +10,14 @@
 #   HM_DB_USER, HM_DB_PASSWORD   -> the [Database] section of hMailServer.ini,
 #                                   rewritten from these on every start so the
 #                                   environment is the truth, not a stale file
+#   HM_DB_TLS_MODE (disable|prefer|require|verify-full), HM_DB_TLS_CA
+#                                -> TlsMode and TlsCaFile in that section: TLS to
+#                                   the database (docs/DatabaseTls.md). Empty is
+#                                   prefer. HM_DB_TLS_CA is the PATH of a PEM file
+#                                   of CA certificates mounted into the container,
+#                                   not a _FILE form. Written here because the
+#                                   section is rewritten at every start, so a line
+#                                   added to the file by hand would not survive one.
 #   HM_ADMIN_PASSWORD            -> [Security] AdministratorPassword, through the
 #                                   server's own --set-admin-password, so the file
 #                                   holds a PBKDF2 hash and never the password.
@@ -117,6 +125,12 @@ write_database_section() {
       printf '\n[Database]\nType=%s\nServer=%s\nPort=%s\nDatabase=%s\nUsername=%s\nPassword=%s\nPasswordencryption=0\n' \
          "$HM_DB_TYPE" "${HM_DB_HOST:-db}" "${HM_DB_PORT:-$default_port}" "${HM_DB_NAME:-hmailserver}" \
          "${HM_DB_USER:-hmailserver}" "${HM_DB_PASSWORD:-}"
+      if [ -n "${HM_DB_TLS_MODE:-}" ]; then
+         printf 'TlsMode=%s\n' "$HM_DB_TLS_MODE"
+      fi
+      if [ -n "${HM_DB_TLS_CA:-}" ]; then
+         printf 'TlsCaFile=%s\n' "$HM_DB_TLS_CA"
+      fi
    } > "$INI"
    rm -f "$tmp"
 }
@@ -184,6 +198,7 @@ applies_environment() {
    for name in $(compgen -e); do
       case "$(printf '%s' "$name" | tr '[:lower:]' '[:upper:]')" in
          HM_DB_TYPE|HM_DB_HOST|HM_DB_PORT|HM_DB_NAME|HM_DB_USER|HM_DB_PASSWORD|HM_DB_PASSWORD_FILE) ;;
+         HM_DB_TLS_MODE|HM_DB_TLS_CA) ;;
          HM_ADMIN_PASSWORD|HM_ADMIN_PASSWORD_FILE|HM_INI|HM_CREATE_DATABASE|HM_UPGRADE_DATABASE) ;;
          HM_PROFILE|HM_PROFILE_CONFIRM) ;;
          HM_*) return 0 ;;

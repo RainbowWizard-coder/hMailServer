@@ -75,6 +75,8 @@ Database PostgreSQLSslRootCert string "" restart server
 Database Provider string "" restart server
 Database Server string "" restart server
 Database ServerFailoverPartner string "" restart server
+Database TlsCaFile string "" restart server
+Database TlsMode string "" restart server
 Database Type string "" restart server
 Database UpgradeOnStart integer "0" restart server
 Database Username string "" restart server

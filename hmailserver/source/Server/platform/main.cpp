@@ -54,6 +54,7 @@
 #include "../Common/SQL/DatabaseSettings.h"
 #include "../Common/SQL/DALConnectionFactory.h"
 #include "../Common/SQL/DALConnection.h"
+#include "../Common/SQL/DatabaseTls.h"
 #include "../Common/SQL/DALRecordset.h"
 #include "../Common/SQL/SQLStatement.h"
 #include "../Common/SQL/SQLCommand.h"
@@ -146,6 +147,14 @@ namespace
          "                    run every upgrade script from the database's version\n"
          "                    to this build's, in order. What DBUpdater does on\n"
          "                    Windows. The installer's post-install step runs it.\n"
+         "  --check-database  connect once to the database [Database] names, with\n"
+         "                    its TlsMode and TlsCaFile, say whether the connection\n"
+         "                    is encrypted, with what, and whether the server's\n"
+         "                    certificate was checked - or why there is no\n"
+         "                    connection - and exit: 0 connected, 1 not, 2 not\n"
+         "                    configured. Changes nothing; runs beside a server,\n"
+         "                    and with --config tries a file before the server is\n"
+         "                    given it (docs/DatabaseTls.md).\n"
          "  --set-setting NAME=VALUE\n"
          "  --set-setting NAME\n"
          "                    store one [Settings] value in the database, which is\n"
@@ -1021,6 +1030,7 @@ int main(int argc, char *argv[])
    bool set_password = false;
    bool create_database = false;
    bool upgrade_database = false;
+   bool check_database = false;
    bool apply_environment = false;
    std::string apply_profile;
    bool revert_profile = false;
@@ -1068,6 +1078,11 @@ int main(int argc, char *argv[])
       if (argument == "--upgrade-database")
       {
          upgrade_database = true;
+         continue;
+      }
+      if (argument == "--check-database")
+      {
+         check_database = true;
          continue;
       }
       if (argument == "--apply-environment")
@@ -1288,6 +1303,12 @@ int main(int argc, char *argv[])
 
    if (!verify_update.empty())
       return VerifyUpdate(verify_update);
+
+   // One connection to the database, with its TLS settings, and a line saying how
+   // it is protected (Common/SQL/DatabaseTls, docs/DatabaseTls.md). Opens no
+   // listener and changes nothing, so it runs beside a server.
+   if (check_database)
+      return HM::DatabaseTls::RunCheckCommand();
 
    if (create_database)
       return CreateDatabase();

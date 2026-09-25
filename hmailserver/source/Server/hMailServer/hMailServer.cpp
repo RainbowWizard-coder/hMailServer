@@ -32,6 +32,7 @@
 #include "../Common/SQL/DALConnection.h"
 #include "../Common/SQL/DALConnectionFactory.h"
 #include "../Common/SQL/DatabaseSettings.h"
+#include "../Common/SQL/DatabaseTls.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -269,6 +270,76 @@ static void WriteVerbError(const char *text)
    DWORD written = 0;
    if (error && error != INVALID_HANDLE_VALUE)
       WriteFile(error, text, (DWORD) strlen(text), &written, NULL);
+}
+
+// The value after an option on the command line, "--config C:\x\y.ini",
+// "--config=C:\x\y.ini", "--config "C:\a b\y.ini"" or, as PowerShell and cmd
+// quote an argument with a space in it, ""--config=C:\a b\y.ini"" - a quoted
+// value may hold spaces, which the verbs' own split at spaces cannot give. Empty
+// when the option is not there or has no value.
+static String CommandLineValueAfter(const String &commandLine, const String &option)
+{
+   String lower = commandLine;
+   lower.MakeLower();
+   String wanted = option;
+   wanted.MakeLower();
+
+   int at = lower.Find(wanted.c_str());
+   while (at >= 0)
+   {
+      const int end = at + wanted.GetLength();
+      const bool starts = at == 0 || commandLine[at - 1] == ' ' || commandLine[at - 1] == '"';
+      const bool ends = end >= commandLine.GetLength() || commandLine[end] == ' ' || commandLine[end] == '=' || commandLine[end] == '"';
+      if (starts && ends)
+         break;
+      at = lower.Find(wanted.c_str(), end);
+   }
+
+   if (at < 0)
+      return String();
+
+   const bool optionQuoted = at > 0 && commandLine[at - 1] == '"';
+
+   int position = at + wanted.GetLength();
+   if (position < commandLine.GetLength() && commandLine[position] == '=')
+   {
+      position++;
+
+      // "--config=C:\a b\y.ini": the value runs to the quote that closes the
+      // whole argument.
+      if (optionQuoted)
+      {
+         const int close = commandLine.Find(_T("\""), position);
+         if (close < 0)
+            return commandLine.Mid(position);
+         return commandLine.Mid(position, close - position);
+      }
+   }
+   else
+   {
+      // "--config" "C:\a b\y.ini": past the quote that closes the option.
+      if (optionQuoted && position < commandLine.GetLength() && commandLine[position] == '"')
+         position++;
+
+      while (position < commandLine.GetLength() && commandLine[position] == ' ')
+         position++;
+   }
+
+   if (position >= commandLine.GetLength())
+      return String();
+
+   if (commandLine[position] == '"')
+   {
+      const int close = commandLine.Find(_T("\""), position + 1);
+      if (close < 0)
+         return commandLine.Mid(position + 1);
+      return commandLine.Mid(position + 1, close - position - 1);
+   }
+
+   const int space = commandLine.Find(_T(" "), position);
+   if (space < 0)
+      return commandLine.Mid(position);
+   return commandLine.Mid(position, space - position);
 }
 
 static int UpgradeDatabaseFromCommandLine()
@@ -610,6 +681,43 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       }
    }
 
+   // --check-database [--config <file>]: one connection to the database the
+   // configuration names, with its TLS settings, and a line saying how it is
+   // protected or why there is none (Common/SQL/DatabaseTls, docs/DatabaseTls.md).
+   // Found anywhere on the line, as the store verbs are. --config names another
+   // configuration file than the installed one, for this verb only - which is how
+   // a TlsMode is tried before the service is given it.
+   bool checkDatabaseVerb = false;
+   bool configGiven = false;
+   for (size_t index = 0; index < vecParams.size(); index++)
+   {
+      // The split at spaces keeps quotes: "--config=C:\a b\x.ini" arrives as
+      // "--config=C:\a and b\x.ini".
+      String parameter = vecParams[index];
+      if (parameter.Left(1) == _T("\""))
+         parameter = parameter.Mid(1);
+      if (parameter.Right(1) == _T("\""))
+         parameter = parameter.Left(parameter.GetLength() - 1);
+
+      if (parameter.CompareNoCase(_T("--check-database")) == 0)
+         checkDatabaseVerb = true;
+      else if (parameter.CompareNoCase(_T("--config")) == 0 || parameter.Left(9).CompareNoCase(_T("--config=")) == 0)
+         configGiven = true;
+   }
+   const String checkDatabaseConfig = CommandLineValueAfter(sCommandLine, _T("--config"));
+
+   // --config names another file for --check-database and for nothing else: every
+   // other command, and the service, read the installed file whatever the line
+   // says, so a --config beside one of them is refused rather than ignored - it
+   // would otherwise upgrade, measure or change the installed database while the
+   // administrator believed they had pointed it elsewhere.
+   if (configGiven && !checkDatabaseVerb)
+   {
+      AttachVerbOutput();
+      WriteVerbError("--config goes with --check-database only; every other command reads the installed hMailServer.ini. Nothing was done.\r\n");
+      return 2;
+   }
+
    _AtlModule.InitializeCom();
 
    // /Unregister is decided before anything below registers anything, because it
@@ -940,6 +1048,42 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       }
       else
          iRet = HM::MessageStoreMaintenance::RunCommand((HM::MessageStoreMaintenance::Verb) storeVerb, storeAccount, storeDomain);
+   }
+   else if (checkDatabaseVerb)
+   {
+      // Runs beside the service: one connection of its own, opened and closed, and
+      // nothing changed. With --config the file named is read instead of the
+      // installed one, and this process logs where that file says - the crash
+      // oracle read the installed file's log directory before the line was parsed.
+      // The lines go where the profile verb's go. Exit 0 connected, 1 not, 2 not
+      // configured.
+      AttachVerbOutput();
+
+      if (configGiven && checkDatabaseConfig.IsEmpty())
+      {
+         WriteVerbError("--config needs the configuration file's full path after it, as --config C:\\hMailServer\\check.ini. Nothing was checked.\r\n");
+         iRet = 2;
+      }
+      else if (!checkDatabaseConfig.IsEmpty() && !FileUtilities::IsFullPath(checkDatabaseConfig))
+      {
+         WriteVerbError("--config needs the configuration file's full path, for example --config C:\\hMailServer\\check.ini.\r\n");
+         iRet = 2;
+      }
+      else if (!checkDatabaseConfig.IsEmpty() && !FileUtilities::Exists(checkDatabaseConfig))
+      {
+         WriteVerbError("--config names a file that does not exist. Nothing was checked.\r\n");
+         iRet = 2;
+      }
+      else
+      {
+         if (!checkDatabaseConfig.IsEmpty())
+         {
+            HM::IniFileSettings::SetInitializationFile(checkDatabaseConfig);
+            HM::IniFileSettings::Instance()->ForgetLogDirectory();
+         }
+
+         iRet = HM::DatabaseTls::RunCheckCommand();
+      }
    }
    else if (sLastParam.CompareNoCase(_T("RunAsService")) == 0)
    {

@@ -298,6 +298,7 @@ of the names every setting has:
 | `HM_REST_CERTIFICATE_FILE` | `RestApiCertificateFile` - an alias of `HM_SETTING_RestApiCertificateFile`. The key is a path the server reads the certificate from; this is **not** a `_FILE` form. |
 | `HM_REST_PRIVATE_KEY_FILE` | `RestApiPrivateKeyFile` - an alias of `HM_SETTING_RestApiPrivateKeyFile`, a path likewise |
 | `HM_DB_TYPE`, `HM_DB_HOST`, `HM_DB_PORT`, `HM_DB_NAME`, `HM_DB_USER`, `HM_DB_PASSWORD`, `HM_DB_PASSWORD_FILE` | the `[Database]` section of the file - the bootstrap, which says where the database is and so cannot be in it |
+| `HM_DB_TLS_MODE`, `HM_DB_TLS_CA` | `TlsMode` and `TlsCaFile` in that section: TLS to the database, `disable`, `prefer` (empty, the default), `require` or `verify-full`, and the path of a PEM file of CA certificates mounted into the container - a path, not a `_FILE` form ([DatabaseTls.md](DatabaseTls.md)). Written by the entrypoint with the rest of the section, which it rewrites at every start |
 | `HM_ADMIN_PASSWORD`, `HM_ADMIN_PASSWORD_FILE` | `[Security] AdministratorPassword`, written as a hash by `--set-admin-password` |
 | `HM_INI` | where the file is |
 | `HM_CREATE_DATABASE`, `HM_UPGRADE_DATABASE` | whether the entrypoint runs `--create-database` and `--upgrade-database` |

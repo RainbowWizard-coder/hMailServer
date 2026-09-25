@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "TestInformationGatherer.h"
+#include "../SQL/DatabaseTls.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -78,6 +79,17 @@ namespace HM
       String databaseType = DatabaseSettings::GetDatabaseTypeName(IniFileSettings::Instance()->GetDatabaseType());
       formattedLine.Format(_T("Database type: %s\r\n"), databaseType.c_str());
       result.append(formattedLine);
+
+      // How the database connection is protected, as the last connection made
+      // found it: encrypted or not, with what, whether the certificate was checked,
+      // and under which TlsMode (docs/DatabaseTls.md). Nothing for SQL Server
+      // Compact, which is a file.
+      const String databaseConnection = DatabaseTls::GetLastConnection();
+      if (!databaseConnection.IsEmpty())
+      {
+         formattedLine.Format(_T("Database connection: %s\r\n"), databaseConnection.c_str());
+         result.append(formattedLine);
+      }
 
       diagResult.SetSuccess(true);
       diagResult.SetDetails(result);

@@ -27,6 +27,7 @@
 #include "../SQL/DALConnection.h"
 #include "../SQL/DALConnectionFactory.h"
 #include "../SQL/DatabaseConnectionManager.h"
+#include "../SQL/DatabaseTls.h"
 
 #include "../Util/Time.h"
 #include "../Util/ServerStatus.h"
@@ -245,6 +246,10 @@ namespace HM
       // Which settings the environment sets, said where an operator reads the
       // start: no interface will change them (docs/EnvironmentConfiguration.md).
       EnvironmentSettings::AnnounceManaged();
+
+      // How the database connection is protected, said now that the log's settings
+      // are read - the connections were made before they were (docs/DatabaseTls.md).
+      DatabaseTls::AnnounceConnection();
 
       // The firewall is made to match the auto-ban ranges before a listener is
       // open: a rule for a ban that expired while the service was down is removed

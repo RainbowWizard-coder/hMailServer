@@ -629,6 +629,16 @@ namespace HM
          return true;
       }
 
+      // Whether the host of a URL is an address rather than a name - ParseUrl has
+      // taken an IPv6 address out of its brackets - which decides whether a TLS
+      // server name is sent (RFC 6066 section 3: never an address).
+      bool IsAddressLiteral_(const AnsiString &host)
+      {
+         boost::system::error_code notAddress;
+         boost::asio::ip::make_address(std::string(host.c_str()), notAddress);
+         return !notAddress;
+      }
+
       // The request-target for the request line: the path, or through a proxy for
       // plain http the absolute URL, which is how a forward proxy is told where to go.
       AnsiString RequestTarget_(const AnsiString &host, const AnsiString &port, const AnsiString &path, bool https, bool via_proxy)
@@ -940,7 +950,11 @@ namespace HM
             stream.set_verify_mode(boost::asio::ssl::verify_peer);
             stream.set_verify_callback(CertificateVerifier(0, CSSSL, String(host)));
 
-            if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
+            // No server name for an endpoint given by its address: RFC 6066 section 3
+            // allows only a host name there, and a server that holds to it refuses
+            // the handshake. The certificate is still checked against the address
+            // (CertificateVerifier::MatchesHost). MigrationImapClient does the same.
+            if (!IsAddressLiteral_(host) && !SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
             {
                error = _T("Could not set the TLS server name.");
                return false;
@@ -1172,7 +1186,8 @@ namespace HM
                }
                stream.set_verify_mode(boost::asio::ssl::verify_peer);
                stream.set_verify_callback(CertificateVerifier(0, CSSSL, String(host)));
-               if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
+               // No server name for an address, as in Request_.
+               if (!IsAddressLiteral_(host) && !SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
                {
                   error = _T("Could not set the TLS server name.");
                   sink.close();

@@ -8,6 +8,7 @@
 #include "ADORecordset.h"
 #include "SQLCommand.h"
 #include "DatabaseSettings.h"
+#include "DatabaseTls.h"
 #include "Macros/MSSQLMacroExpander.h"
 #include "ADOInt64Helper.h"
 #include "../Util/Registry.h"
@@ -129,6 +130,27 @@ namespace HM
          return Connected;
       }
 
+      // TLS (DatabaseTls.h): the provider's own two keywords, "Use Encryption for
+      // Data" and "Trust Server Certificate", chosen for [Database] TlsMode and the
+      // provider. A mode this server does not know, or ConnectionStringOptions
+      // naming encryption beside a TlsMode, is a configuration to correct: nothing
+      // is attempted, and the connection manager does not try again. TlsCaFile is
+      // not read here - the providers check against the Windows certificate store
+      // - which FromConfiguration says once.
+      DatabaseTls::Mode tlsMode = DatabaseTls::ModeDefault;
+      String tlsCaFile;
+      if (!DatabaseTls::FromConfiguration(DatabaseSettings::TypeMSSQLServer, tlsMode, tlsCaFile, sErrorMessage))
+         return FatalError;
+
+      String sOptions = IniFileSettings::Instance()->GetDatabaseConnectionStringOptions();
+
+      String tlsKeywords;
+      if (!DatabaseTls::SqlServerKeywords(tlsMode, sProvider, sOptions, tlsKeywords, sErrorMessage))
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Critical, 7533, "ADOConnection::Connect", sErrorMessage);
+         return FatalError;
+      }
+
       String sConnectionString = "Provider=" + sProvider + ";";
       sConnectionString.append("Server=" + sServer + ";");
       sConnectionString.append("Initial Catalog=" + sDatabase + ";");
@@ -150,79 +172,71 @@ namespace HM
          sConnectionString.append("FailoverPartner=" + sServerFailoverPartner + ";");
       }
 
-      // [Database] ConnectionStringOptions, verbatim. Encrypting and verifying an MS SQL
-      // connection is a matter of the provider's own keywords - Encrypt=yes and
-      // TrustServerCertificate=no for MSOLEDBSQL - so the administrator writes those,
-      // and anything else the provider understands, rather than this code keeping a
-      // list that would only ever lag the provider.
-      String sOptions = IniFileSettings::Instance()->GetDatabaseConnectionStringOptions();
+      // [Database] ConnectionStringOptions, verbatim and last. Anything the provider
+      // understands can be written there; encryption is TlsMode's now, and
+      // SqlServerKeywords has refused the two saying it at once.
+      String sOptionsPart;
       if (!sOptions.IsEmpty())
       {
-         sConnectionString.append(sOptions);
+         sOptionsPart = sOptions;
          if (sOptions.Right(1) != _T(";"))
-            sConnectionString.append(_T(";"));
+            sOptionsPart.append(_T(";"));
       }
 
-      BSTR bsConnection = sConnectionString.AllocSysString();
-      BSTR bsUser = sUsername.AllocSysString();
-      BSTR bsPassword = sPassword.AllocSysString();
-  
-      try
-      {
-         HRESULT hr = cADOConnection->Open( bsConnection, bsUser, bsPassword, NULL );
-         cADOConnection->PutCursorLocation(adUseClient);
-      
-         if ( !SUCCEEDED( hr ) )
-         {
-            ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5027, "ADOConnection::Connect", "Open failed");
-            return TemporaryFailure;
-         }  
+      String errorDescription;
+      String errorSource;
+      int outcome = OpenOnce_(sConnectionString + tlsKeywords + sOptionsPart, sUsername, sPassword, errorDescription, errorSource);
 
+      // prefer - the default, or said explicitly - takes the keywords away again when
+      // what failed was the TLS: a SQL Server that cannot encrypt, which connected
+      // before TlsMode existed, still does. Not for require or verify-full, and not
+      // for a failure about anything else: a refused login is never tried twice.
+      String tlsNotAgreed;
+      if (outcome == OpenRefused && DatabaseTls::Effective(tlsMode) == DatabaseTls::ModePrefer && !tlsKeywords.IsEmpty() &&
+          DatabaseTls::LooksLikeTlsFailure(errorDescription))
+      {
+         tlsNotAgreed = errorDescription;
+         errorDescription.Empty();
+         errorSource.Empty();
+
+         outcome = OpenOnce_(sConnectionString + sOptionsPart, sUsername, sPassword, errorDescription, errorSource);
+         if (outcome == OpenSucceeded)
+            tlsKeywords.Empty();
       }
-      catch ( _com_error &err )
+
+      if (outcome == OpenFailed)
       {
-         _bstr_t bstrSource( err.Source() );
-         _bstr_t bstrDescription( err.Description() );
-     
-         LPCSTR lpcSource = bstrSource;
-         String sErrSource = lpcSource;
+         ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5027, "ADOConnection::Connect", "Open failed");
+         return TemporaryFailure;
+      }
 
-         LPCSTR lpcDesc = bstrDescription;
-         String sErrDesc = lpcDesc;
+      if (outcome == OpenRefused)
+      {
+         sErrorMessage = "ADO: " + errorDescription;
 
-         sErrorMessage = "ADO: " + sErrDesc;
-         
-         String sMessage = "Error when connecting to database. " + sErrSource + " " + sErrDesc + " Check your database settings in hMailServer.ini.";
+         if (!tlsNotAgreed.IsEmpty())
+            sErrorMessage = "ADO, with the connection encrypted: " + tlsNotAgreed + " Without: " + errorDescription;
+
+         if (!tlsNotAgreed.IsEmpty() || DatabaseTls::LooksLikeTlsFailure(errorDescription))
+            sErrorMessage += _T("\r\n\r\n") + DatabaseTls::Guidance(DatabaseSettings::TypeMSSQLServer, tlsMode);
+
+         String sMessage = "Error when connecting to database. " + errorSource + " " + errorDescription + " Check your database settings in hMailServer.ini.";
 
          ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5028, "ADOConnection::Connect", sMessage);
 
-         SysFreeString(bsConnection);
-         SysFreeString(bsUser);
-         SysFreeString(bsPassword);
-
          return TemporaryFailure;
-      
-
       }
-      catch( ... )
+
+      if (outcome != OpenSucceeded)
       {
          cADOConnection = 0;
-     
+
          sErrorMessage = "ADO: Unknown database connection error";
 
          ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5029, "ADOConnection::Connect", "An unknown error occurred when connecting to database. Check your database settings in hMailServer.ini.");
 
-         SysFreeString(bsConnection);
-         SysFreeString(bsUser);
-         SysFreeString(bsPassword);
-
          return TemporaryFailure;
-
       }
-
-      SysFreeString(bsConnection);
-      SysFreeString(bsUser);
-      SysFreeString(bsPassword);
 
       bConnected = true;
 
@@ -244,7 +258,149 @@ namespace HM
       SQLCommand command2(sIsolationLevel);
       TryExecute(command2, sErrorMsg, 0, 0);
 
+      // What the session is. The provider has refused before the login whatever it
+      // was asked to encrypt and could not, so a session opened with the keywords -
+      // or by MSOLEDBSQL 19 left to its own default, which encrypts - is encrypted.
+      // SQL Server's own answer is taken when there is one, and is what notices a
+      // server that forces encryption on a session nobody asked for; but it comes
+      // from sys.dm_exec_connections, which only a login with VIEW SERVER STATE reads
+      // (measured 25 September 2026 on SQL Server 2022: CONNECTIONPROPERTY has no
+      // encrypt_option and answers NULL to it), so an application's login usually
+      // gets no answer. This is for the diagnostics and the log, and refuses only a
+      // require or verify-full the server answers FALSE to.
+      String encryptOption = ReadEncryptOption_();
+
+      const DatabaseTls::ProviderKind providerKind = DatabaseTls::ClassifyProvider(sProvider);
+      const bool optionsDecide = DatabaseTls::OptionsNameEncryption(sOptions);
+      const bool providerDefaultEncrypts = providerKind == DatabaseTls::ProviderModern19 && tlsKeywords.IsEmpty() && tlsNotAgreed.IsEmpty() && !optionsDecide;
+      const bool askedToEncrypt = tlsKeywords.Find(_T("Use Encryption for Data=True")) >= 0 || providerDefaultEncrypts;
+      const bool answered = encryptOption.CompareNoCase(_T("TRUE")) == 0 || encryptOption.CompareNoCase(_T("FALSE")) == 0;
+      const bool encrypted = answered ? encryptOption.CompareNoCase(_T("TRUE")) == 0 : askedToEncrypt;
+      const DatabaseTls::Mode effectiveMode = DatabaseTls::Effective(tlsMode);
+
+      if (answered && !encrypted && (effectiveMode == DatabaseTls::ModeRequire || effectiveMode == DatabaseTls::ModeVerifyFull))
+      {
+         sErrorMessage = Formatter::Format("SQL Server at {0} says the connection is not encrypted, and TlsMode is {1}: it was closed before it was used.",
+            sServer, DatabaseTls::ModeName(tlsMode));
+         Disconnect();
+         return TemporaryFailure;
+      }
+
+      // Checked: verify-full; SQLOLEDB, which checks whenever it encrypts; and
+      // MSOLEDBSQL19 left entirely to its own default, which checks - not when
+      // ConnectionStringOptions has said something about it, which this does not
+      // read to find out what.
+      const bool verified = encrypted &&
+         (effectiveMode == DatabaseTls::ModeVerifyFull ||
+          (providerKind == DatabaseTls::ProviderLegacy && askedToEncrypt) ||
+          providerDefaultEncrypts);
+
+      String transportDetail = _T("provider ") + sProvider;
+      if (!encrypted)
+      {
+         if (!tlsNotAgreed.IsEmpty())
+            transportDetail = _T("TLS could not be agreed on (") + tlsNotAgreed + _T("), so the connection was made without it; provider ") + sProvider;
+         else if (effectiveMode == DatabaseTls::ModeDisable)
+            transportDetail = _T("TLS is switched off, and the provider still encrypts the login; provider ") + sProvider;
+         else if (providerKind == DatabaseTls::ProviderLegacy)
+            transportDetail = _T("SQLOLEDB encrypts only the login unless TlsMode is require or verify-full, and then checks the certificate; install the Microsoft OLE DB Driver for SQL Server to encrypt without that");
+         else if (!answered && optionsDecide)
+            transportDetail = _T("as far as this server can tell - ConnectionStringOptions sets the encryption, and this login may not read what it came to (VIEW SERVER STATE); provider ") + sProvider;
+         else if (!answered)
+            transportDetail = _T("the provider was not asked to encrypt, and this login may not read whether SQL Server forces it (VIEW SERVER STATE); provider ") + sProvider;
+         else
+            transportDetail = _T("the provider encrypts only the login; provider ") + sProvider;
+      }
+      else if (!answered)
+      {
+         transportDetail += _T("; the provider was set to encrypt, which it does or refuses the connection");
+      }
+
+      SetTransportSecurity_(encrypted, DatabaseTls::Describe(DatabaseSettings::TypeMSSQLServer, encrypted, transportDetail, verified, tlsMode));
+
       return Connected;
+   }
+
+   int
+   ADOConnection::OpenOnce_(const String &connectionString, const String &username, const String &password, String &errorDescription, String &errorSource)
+   {
+      BSTR bsConnection = connectionString.AllocSysString();
+      BSTR bsUser = username.AllocSysString();
+      BSTR bsPassword = password.AllocSysString();
+
+      int outcome = OpenSucceeded;
+
+      try
+      {
+         HRESULT hr = cADOConnection->Open( bsConnection, bsUser, bsPassword, NULL );
+         cADOConnection->PutCursorLocation(adUseClient);
+
+         if ( !SUCCEEDED( hr ) )
+            outcome = OpenFailed;
+      }
+      catch ( _com_error &err )
+      {
+         _bstr_t bstrSource( err.Source() );
+         _bstr_t bstrDescription( err.Description() );
+
+         LPCSTR lpcSource = bstrSource;
+         errorSource = lpcSource;
+
+         LPCSTR lpcDesc = bstrDescription;
+         errorDescription = lpcDesc;
+
+         outcome = OpenRefused;
+      }
+      catch( ... )
+      {
+         outcome = OpenUnknownError;
+      }
+
+      SysFreeString(bsConnection);
+      SysFreeString(bsUser);
+      SysFreeString(bsPassword);
+
+      return outcome;
+   }
+
+   String
+   ADOConnection::ReadEncryptOption_()
+   {
+      try
+      {
+         // Through sp_executesql, and only for a login that holds VIEW SERVER STATE:
+         // a statement that names the view is refused as it is compiled, whether or
+         // not the branch that reads it would run, and the refusal would be an error
+         // at every connection. Without the permission the answer is NULL. NOCOUNT is
+         // put back as it was, since the session is the pool's. Measured through
+         // ADO and SQLOLEDB on SQL Server 2022 on 25 September 2026: NULL for a
+         // login without the permission and FALSE for one with it, the session
+         // left with NOCOUNT off; the view's TRUE for an encrypted session was read
+         // through sqlcmd.
+         const String query =
+            _T("DECLARE @nocount int = @@OPTIONS & 512; SET NOCOUNT ON; DECLARE @e nvarchar(40); ")
+            _T("IF HAS_PERMS_BY_NAME(NULL, NULL, 'VIEW SERVER STATE') = 1 ")
+            _T("EXEC sp_executesql N'SELECT @e = encrypt_option FROM sys.dm_exec_connections WHERE session_id = @@SPID', N'@e nvarchar(40) OUTPUT', @e OUTPUT; ")
+            _T("IF @nocount = 0 SET NOCOUNT OFF; ")
+            _T("SELECT CONVERT(varchar(5), @e) AS encryptoption");
+
+         ADORecordset recordset;
+         String queryError;
+
+         if (recordset.TryOpen(shared_from_this(), SQLCommand(query), queryError) != DALConnection::DALSuccess)
+            return String();
+
+         if (recordset.IsEOF())
+            return String();
+
+         String value = recordset.GetStringValue("encryptoption");
+         value.Trim();
+         return value;
+      }
+      catch (...)
+      {
+         return String();
+      }
    }
 
    _ConnectionPtr

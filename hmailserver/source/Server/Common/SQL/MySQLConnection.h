@@ -5,6 +5,7 @@
 #pragma once
 
 #include "DALConnection.h"
+#include "DatabaseTls.h"
 #include "MySQLInterface.h"
 #include "ColumnPositionCache.h"
 
@@ -85,6 +86,18 @@ namespace HM
       virtual std::shared_ptr<IMacroExpander> CreateMacroExpander();
 
    private:
+
+      // One attempt at the server: a fresh handle (the one before it closed), the
+      // plugin directory, the TLS options for the mode, mysql_real_connect. The
+      // connected handle, or null with the client's error text in error and its
+      // error number in errorNumber (0 when nothing reached the client).
+      hm_MYSQL *ConnectOnce_(const String &server, const String &username, const String &password, const String &database, long port,
+                             DatabaseTls::Mode mode, const String &caFile, String &error, unsigned int &errorNumber);
+
+      // The TLS options for the mode, in the numbers of whichever client is loaded
+      // (MySQLInterface.h). False, with the reason, when require or verify-full
+      // cannot be applied because the client refused an option.
+      bool ApplyTlsOptions_(DatabaseTls::Mode mode, const String &caFile, String &error);
 
       DALConnection::ExecutionResult GetErrorType_(hm_MYSQL *pSQL);
 

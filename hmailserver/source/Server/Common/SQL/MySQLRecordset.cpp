@@ -51,6 +51,15 @@ namespace HM
       {
          hm_MYSQL *pMYSQL = pConn->GetConnection();
 
+         // A connection whose last Connect was refused has no handle
+         // (MySQLConnection::TryExecute says why); a dropped connection, never a
+         // query on a null handle.
+         if (pMYSQL == 0)
+         {
+            sErrorMessage = "Source: MySQLRecordset::TryOpen, Description: the database connection is not open - the last attempt to connect was refused.";
+            return DALConnection::DALConnectionProblem;
+         }
+
          AnsiString sQuery;
          if (!Unicode::WideToMultiByte(sSQL, sQuery))
          {

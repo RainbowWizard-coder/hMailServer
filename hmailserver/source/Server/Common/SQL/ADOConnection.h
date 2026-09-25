@@ -52,6 +52,24 @@ namespace HM
 
    private:
 
+      // What one Open came to: opened; refused by the provider with a COM error,
+      // whose description and source OpenOnce_ hands back; an HRESULT that was not
+      // success without an exception; anything else.
+      enum OpenOutcome
+      {
+         OpenSucceeded = 0,
+         OpenRefused = 1,
+         OpenFailed = 2,
+         OpenUnknownError = 3
+      };
+
+      int OpenOnce_(const String &connectionString, const String &username, const String &password, String &errorDescription, String &errorSource);
+
+      // sys.dm_exec_connections.encrypt_option of this session - TRUE or FALSE - or
+      // empty when the login may not read it (VIEW SERVER STATE), which is the
+      // usual case for an application's login.
+      String ReadEncryptOption_();
+
       __int64 GetIdentityFromRS_(_RecordsetPtr pRS) const;
 
       bool IsMSOLEDBSQL18OrLaterInstalled_() const;

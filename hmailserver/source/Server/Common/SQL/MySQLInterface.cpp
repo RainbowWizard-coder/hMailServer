@@ -37,7 +37,10 @@ namespace HM
       p_mysql_num_fields(0),
       p_mysql_fetch_lengths(0),
       p_mysql_fetch_field_direct(0),
-      p_mysql_get_server_version(0)
+      p_mysql_get_server_version(0),
+      p_mysql_get_ssl_cipher(0),
+      p_mysql_get_client_version(0),
+      is_mariadb_client_(false)
    {
 
    }
@@ -228,6 +231,11 @@ namespace HM
       p_mysql_fetch_lengths = (hm_mysql_fetch_lengths*) ::dlsym(library_instance_, "mysql_fetch_lengths");
       p_mysql_fetch_field_direct = (hm_mysql_fetch_field_direct*) ::dlsym(library_instance_, "mysql_fetch_field_direct");
       p_mysql_get_server_version = (hm_mysql_get_server_version*) ::dlsym(library_instance_, "mysql_get_server_version");
+      p_mysql_get_ssl_cipher = (hm_mysql_get_ssl_cipher*) ::dlsym(library_instance_, "mysql_get_ssl_cipher");
+      p_mysql_get_client_version = (hm_mysql_get_client_version*) ::dlsym(library_instance_, "mysql_get_client_version");
+
+      // Which client this is decides which option numbers it takes (MySQLInterface.h).
+      is_mariadb_client_ = ::dlsym(library_instance_, "mariadb_get_infov") != 0;
 
       return true;
 #else
@@ -266,6 +274,12 @@ namespace HM
       p_mysql_fetch_lengths = (hm_mysql_fetch_lengths*) GetProcAddress( (HMODULE)library_instance_, "mysql_fetch_lengths" );
       p_mysql_fetch_field_direct = (hm_mysql_fetch_field_direct*) GetProcAddress( (HMODULE)library_instance_, "mysql_fetch_field_direct" );
       p_mysql_get_server_version = (hm_mysql_get_server_version*) GetProcAddress( (HMODULE)library_instance_, "mysql_get_server_version" );
+      p_mysql_get_ssl_cipher = (hm_mysql_get_ssl_cipher*) GetProcAddress( (HMODULE)library_instance_, "mysql_get_ssl_cipher" );
+      p_mysql_get_client_version = (hm_mysql_get_client_version*) GetProcAddress( (HMODULE)library_instance_, "mysql_get_client_version" );
+
+      // The bundled libmysql.dll is MariaDB's; an Oracle libmysql.dll copied over it,
+      // as the old instructions told administrators to do, takes other numbers.
+      is_mariadb_client_ = GetProcAddress( (HMODULE)library_instance_, "mariadb_get_infov" ) != 0;
 
       return true;
 #endif
