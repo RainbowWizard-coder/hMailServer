@@ -156,6 +156,10 @@ public:
    STDMETHOD(get_ExternalId)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(put_ExternalId)(/*[in]*/ BSTR newVal);
 
+   // Rooms and equipment. See Common/Util/ResourceBooking.h.
+   STDMETHOD(get_Kind)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_Kind)(/*[in]*/ long newVal);
+
    // One value, three levels. See Common/Application/EffectiveSetting.h.
    STDMETHOD(get_SettingOverride)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);
    STDMETHOD(put_SettingOverride)(/*[in]*/ BSTR Name, /*[in]*/ BSTR newVal);

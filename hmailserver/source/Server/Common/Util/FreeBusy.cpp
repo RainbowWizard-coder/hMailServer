@@ -15,6 +15,8 @@
 #include "Imip.h"
 #include "Unicode.h"
 #include "GUIDCreator.h"
+#include "../BO/Account.h"
+#include "../Cache/CacheContainer.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -98,6 +100,14 @@ namespace HM
       AnsiString wanted = address;
       wanted.ToLower();
 
+      // A room's or a piece of equipment's calendar is what it holds
+      // (ResourceBooking.h): a booking is busy whatever TRANSP the organiser
+      // sent and whatever PARTSTAT the request wrote for it, and only a
+      // cancelled one is free - so that its free-busy says what its own
+      // conflict check says.
+      std::shared_ptr<const Account> owner = CacheContainer::Instance()->GetAccount(ownerAccountId);
+      const bool resource = owner && owner->IsResource();
+
       std::vector<CalendarObjectRecord> records;
       if (!CalendarStore::ListInRange(ownerAccountId, calendarId, from - 86400, to + 86400, records))
          return false;
@@ -124,14 +134,14 @@ namespace HM
             if (!component || component->name != "VEVENT")
                continue;
 
-            if (Upper(component->Value("TRANSP")) == "TRANSPARENT")
+            if (!resource && Upper(component->Value("TRANSP")) == "TRANSPARENT")
                continue;
             if (Upper(component->Value("STATUS")) == "CANCELLED")
                continue;
 
             bool attendee = false;
             AnsiString partstat = PartstatOf(*component, wanted, attendee);
-            if (attendee && partstat == "DECLINED")
+            if (!resource && attendee && partstat == "DECLINED")
                continue;
             bool tentative = attendee && (partstat == "TENTATIVE" || partstat == "NEEDS-ACTION");
 

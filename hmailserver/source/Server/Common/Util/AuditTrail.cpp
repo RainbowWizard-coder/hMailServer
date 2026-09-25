@@ -76,6 +76,9 @@ namespace HM
          { L"hm_domains",                     L"domain" },
          { L"hm_domain_aliases",              L"domain alias" },
          { L"hm_accounts",                    L"account" },
+         // A room's or a piece of equipment's booking policy (ResourceBooking.h):
+         // who may book it and when, which is an administrator's decision.
+         { L"hm_bookingpolicies",             L"booking policy" },
          { L"hm_aliases",                     L"alias" },
          { L"hm_distributionlists",           L"distribution list" },
          { L"hm_distributionlistsrecipients", L"distribution list recipient" },

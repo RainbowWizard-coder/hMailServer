@@ -741,6 +741,12 @@ namespace HM
       if (!pAccount || !pAccount->GetActive())
          return std::shared_ptr<const Account>();
 
+      // A room or a piece of equipment cannot be signed into by any means
+      // (ResourceBooking.h); SCRAM is the one password path that does not
+      // reach PasswordValidator, so it is refused here, the same way.
+      if (pAccount->IsResource())
+         return std::shared_ptr<const Account>();
+
       // Active Directory accounts authenticate via SSPI, not a stored hash.
       if (pAccount->GetIsAD())
          return std::shared_ptr<const Account>();

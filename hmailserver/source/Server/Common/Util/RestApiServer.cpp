@@ -3178,6 +3178,11 @@ namespace HM
          case RouteAccountDirectoryPhoto:
             return HandleAccountDirectory_(caller, String(route.identifier), route.kind, GetRequestBody_(request));
 
+         // Rooms and equipment: an account's booking policy and delegates.
+         case RouteAccountBookingPolicyGet:
+         case RouteAccountBookingPolicyPut:
+            return HandleAccountBookingPolicy_(caller, String(route.identifier), route.kind, GetRequestBody_(request));
+
          case RouteMeConfidential:
          case RouteMeConfidentialRevoke:
             return HandleMeConfidential_(caller, route.kind, route.record_id);
@@ -7211,6 +7216,8 @@ namespace HM
       case RoutePasskeyDelete:
       case RouteMeDirectoryOwnPut:
       case RouteAccountDirectoryPut:
+      // A booking policy saved, and a resource's delegates changed with it.
+      case RouteAccountBookingPolicyPut:
       case RouteMeConfidentialRevoke:
       case RouteMeProtectedCreate:
       case RouteMeProtectedContent:
@@ -8032,6 +8039,9 @@ namespace HM
       // administrator's note. A read of the account, with the account's reads.
       case RouteAccountDirectoryGet:
       case RouteAccountDirectoryPhoto:
+      // A room's booking policy read: how it answers and who answers for it.
+      // A read of the account, with the account's reads.
+      case RouteAccountBookingPolicyGet:
       case RouteAccountRuleList:
       case RouteDomainRuleList:
       case RouteAliasList:
@@ -8255,6 +8265,9 @@ namespace HM
       case RouteAccountDelete:
       case RouteAccountUpdate:
       case RouteAccountDirectoryPut:
+      // A room's booking policy, and who may answer for it: a change to that
+      // account, as its directory entry is.
+      case RouteAccountBookingPolicyPut:
       case RouteAccountRuleCreate:
       case RouteAccountRuleUpdate:
       case RouteAccountRuleDelete:
@@ -8765,6 +8778,9 @@ namespace HM
       case RouteAccountDirectoryGet:
       case RouteAccountDirectoryPut:
       case RouteAccountDirectoryPhoto:
+      // And a room's booking policy, named by the room's address alone.
+      case RouteAccountBookingPolicyGet:
+      case RouteAccountBookingPolicyPut:
       case RouteAccountRuleList:
       case RouteAccountRuleCreate:
       case RouteAccountRuleUpdate:
@@ -12941,9 +12957,11 @@ namespace HM
 
       // Read fresh on every request rather than remembered from sign-in: an
       // account that was deactivated or deleted after the session began is
-      // refused from the next request, and its session is dropped.
+      // refused from the next request, and its session is dropped - and so is
+      // one made a room or a piece of equipment since, which nobody may be
+      // signed into (ResourceBooking.h).
       std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
-      if (!PersistentAccount::ReadObject(account, accountId) || account->GetID() == 0 || !account->GetActive())
+      if (!PersistentAccount::ReadObject(account, accountId) || account->GetID() == 0 || !account->GetActive() || account->IsResource())
       {
          RevokeSessionsForAccount_(accountId, "");
          return false;
@@ -16949,8 +16967,11 @@ namespace HM
 
       // Sent by the signed-in account, through this route or a caller of its
       // code (Message::FlagSubmittedBySignedInUser): the attachment sandbox
-      // leaves it alone unless SandboxInternalMail says otherwise.
+      // leaves it alone unless SandboxInternalMail says otherwise. The account
+      // it is travels with it (Message::GetSubmitterAccountID), which a room
+      // reads before it answers an invitation (ResourceBooking.h).
       message->SetSubmittedBySignedInUser(true);
+      message->SetSubmitterAccountID(account->GetID());
 
       message->SetState(heldForReview ? Message::HeldForReview : Message::Delivering);
 
@@ -18405,6 +18426,7 @@ namespace HM
       openApiJson += OpenApiMailingListPaths_();
       openApiJson += OpenApiMailboxPaths_();
       openApiJson += OpenApiCalendarPaths_();
+      openApiJson += OpenApiResourceBookingPaths_();
       openApiJson += OpenApiAccountResourcesPaths_();
       openApiJson += OpenApiGroupsPaths_();
       openApiJson += OpenApiDkimRotationPaths_();

@@ -23,6 +23,7 @@
 namespace HM
 {
    class Account;
+   class Message;
    struct CalendarRecord;
    struct CalendarObjectRecord;
 
@@ -87,7 +88,20 @@ namespace HM
       // carries: a calendar part in spam is calendar spam, and a filed one
       // would be drawn on the page and counted as busy. Anything else is left
       // for the page. Never throws; says what it did in the log.
-      static void FileOnDelivery(std::shared_ptr<const Account> account, const String &fileName, bool spam);
+      //
+      // An account that is a room or a piece of equipment (Account::IsResource)
+      // takes the REQUEST and the CANCEL another way, and nothing else: they
+      // are handed to ResourceBooking::OnDelivery, which decides them after
+      // the delivery by the booking policy and answers the organiser. original
+      // is the queue message the delivery was made from, whose record of where
+      // it came from (Message::GetSubmitterAccountID) that decision reads.
+      static void FileOnDelivery(std::shared_ptr<const Account> account, const String &fileName, bool spam, std::shared_ptr<const Message> original);
+
+      // The attendee of the invitation that is the account - by its address,
+      // an alias domain's spelling of it, or an account alias (hm_aliases,
+      // one step) that points at it - as the invitation writes it. me is the
+      // account's address, lower-cased. False when none is.
+      static bool AttendeeFor(const ImipMessage &message, const AnsiString &me, ImipAttendee &attendee);
 
       // The invitation's event kept in the account's calendars: the copy that
       // holds the UID replaced when the invitation is the same or a later
@@ -125,8 +139,11 @@ namespace HM
       // The REPLY object for one attendee (RFC 5546 section 3.2.3): the
       // masters' identity, the organiser, and that one attendee with their
       // answer - nothing another attendee said. sentBy, when given, is the
-      // delegate who answered, on the ATTENDEE as SENT-BY.
-      static AnsiString ReplyObject(const ImipMessage &invitation, const AnsiString &address, const AnsiString &name, const AnsiString &partstat, const AnsiString &sentBy = AnsiString());
+      // delegate who answered, on the ATTENDEE as SENT-BY. cutype, when given,
+      // is the ATTENDEE's CUTYPE (RFC 5545 section 3.2.3): ROOM or RESOURCE
+      // for the answer a room or a piece of equipment gives.
+      static AnsiString ReplyObject(const ImipMessage &invitation, const AnsiString &address, const AnsiString &name, const AnsiString &partstat, const AnsiString &sentBy = AnsiString(),
+                                    const AnsiString &cutype = AnsiString());
 
       // A mail from the account carrying the object as text/calendar with the
       // method, and the same words as text/plain for a client without a

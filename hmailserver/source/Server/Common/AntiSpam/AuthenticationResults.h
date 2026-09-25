@@ -57,6 +57,19 @@ namespace HM
       bool IsEmpty() const;
       bool HasSpfResult() const;
 
+      // What passed, for the message's own record of where it came from
+      // (Message::GetAuthDomains, read by a room or a piece of equipment,
+      // Util/ResourceBooking.h): "dmarc=<the From domain>", lower-cased, when
+      // DMARC passed, and "" otherwise. SPF alone is not recorded: it vouches
+      // for the connecting address for an envelope domain, whatever the From
+      // says, and DMARC already counts an SPF pass aligned with the From. Never
+      // longer than 255 characters, the column it is stored in: a token that
+      // would not fit is dropped whole, as is a value that is not purely a
+      // domain's characters, since cutting or cleaning one could turn it into
+      // another domain.
+      static const int MaximumPassedDomainsLength = 255;
+      AnsiString PassedDomains() const;
+
       // The identity this server authenticates as. AuthenticationResultsIdentity if
       // set, otherwise the computer name - the same name the Received header says the
       // message was received "by". Always lower case, always a single safe token.

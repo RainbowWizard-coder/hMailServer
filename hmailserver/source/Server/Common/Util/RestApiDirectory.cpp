@@ -45,6 +45,7 @@
 #include "RestApiServer.h"
 #include "HttpServer.h"
 #include "DirectoryStore.h"
+#include "ResourceBooking.h"
 #include "JsonDocument.h"
 #include "AuditTrail.h"
 #include "Unicode.h"
@@ -113,8 +114,14 @@ namespace HM
    AnsiString
    RestApiServer::DirectoryEntryJson_(const DirectoryEntry &entry)
    {
+      // A room or a piece of equipment is listed as what it is (schema 6101,
+      // ResourceBooking.h), with the seats its booking policy says; the
+      // capacity is answered for those two kinds only.
+      const bool resource = !entry.list && (entry.kind == Account::KindRoom || entry.kind == Account::KindEquipment);
+      const AnsiString kindWord = entry.list ? AnsiString("list") : ResourceBooking::KindWord(entry.kind);
+
       AnsiString json = "{\"id\":" + Int64Text(entry.id) +
-         ",\"kind\":\"" + AnsiString(entry.list ? "list" : "person") +
+         ",\"kind\":\"" + kindWord +
          "\",\"name\":\"" + JsonEscape_(Utf8_(entry.name)) +
          "\",\"address\":\"" + JsonEscape_(Utf8_(entry.address)) +
          "\",\"title\":\"" + JsonEscape_(Utf8_(entry.record.title)) +
@@ -126,6 +133,9 @@ namespace HM
 
       if (entry.hasPhoto)
          json += ",\"photo_url\":\"/api/v1/me/directory/" + Int64Text(entry.id) + "/photo\"";
+
+      if (resource)
+         json += ",\"capacity\":" + Int64Text(entry.capacity);
 
       json += "}";
       return json;
@@ -317,7 +327,7 @@ namespace HM
    RestApiServer::OpenApiDirectoryPaths_()
    {
       static const char *paths =
-         ",\"/api/v1/me/directory\":{\"get\":{\"summary\":\"The organisation's directory: every account and list of the reader's own domain\",\"description\":\"{enabled,editable,domain,entries:[{id,kind,name,address,title,department,phone,mobile,office,has_photo,photo_url}],count}. kind is person or list. The domain is the signed-in account's own and is never taken from the request, so no spelling of this route reads another domain's names; an account that is not active, and one whose owner has opted out, is not in it. q= narrows to the entries whose name, address, title or department contains the text, case-insensitively - which is what the To, Cc and Bcc completion asks - and limit= caps the answer at 200 by default, 1000 at most. With DirectoryEnabled off, enabled is false and entries is empty. editable says whether this reader may set their own entry.\",\"responses\":{\"200\":{\"description\":\"The directory\"}}}},"
+         ",\"/api/v1/me/directory\":{\"get\":{\"summary\":\"The organisation's directory: every account and list of the reader's own domain\",\"description\":\"{enabled,editable,domain,entries:[{id,kind,name,address,title,department,phone,mobile,office,has_photo,photo_url,capacity}],count}. kind is person, room, equipment or list; a room and a piece of equipment carry capacity, the seats their booking policy says (0 when it says nothing). The domain is the signed-in account's own and is never taken from the request, so no spelling of this route reads another domain's names; an account that is not active, and one whose owner has opted out, is not in it. q= narrows to the entries whose name, address, title or department contains the text, case-insensitively - which is what the To, Cc and Bcc completion asks - and limit= caps the answer at 200 by default, 1000 at most. With DirectoryEnabled off, enabled is false and entries is empty. editable says whether this reader may set their own entry.\",\"responses\":{\"200\":{\"description\":\"The directory\"}}}},"
          "\"/api/v1/me/directory/me\":{\"get\":{\"summary\":\"The reader's own directory entry\",\"description\":\"{enabled,editable,entry:{title,department,phone,mobile,office,opt_out,has_photo,photo_type,updated}}. The administrator's note is not here; it is answered to an administrator at /api/v1/accounts/{address}/directory alone.\",\"responses\":{\"200\":{\"description\":\"The entry\"}}},"
          "\"put\":{\"summary\":\"The reader sets their own directory entry\",\"description\":\"{title,department,phone,mobile,office,photo,opt_out}, any subset; a member sent null is cleared. photo is the image bytes as base64 - a JPEG, a PNG or a GIF of at most 100 KB decoded, judged by the bytes and not by any media type - and null removes it. With DirectoryUserEditable off, every member but opt_out is refused 403 and the opt-out still goes through, because leaving the list is the person's to decide. note is never taken here.\",\"responses\":{\"200\":{\"description\":\"The entry as it now is\"},\"400\":{\"description\":\"A member of the wrong type, too long for its column, or a photo this store will not keep\"},\"403\":{\"description\":\"DirectoryUserEditable is off and a member other than opt_out was sent\"}}}},"
          "\"/api/v1/me/directory/me/photo\":{\"get\":{\"summary\":\"The reader's own directory photo\",\"description\":\"Answered whether or not the reader is listed - a person who has opted out still has to be able to see the photo they chose - and 404 when they have none.\",\"responses\":{\"200\":{\"description\":\"The image\"},\"404\":{\"description\":\"No photo\"}}}},"

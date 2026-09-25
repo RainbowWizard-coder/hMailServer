@@ -573,7 +573,8 @@ const ACCOUNT_PROPS = {
    vacation_expires: { type: 'boolean' }, vacation_expires_date: { type: 'string' }, vacation_begin_date: { type: 'string' }, vacation_abort_spam_flagged: { type: 'boolean' },
    vacation_days: { type: 'integer' }, vacation_internal_subject: { type: 'string' }, vacation_internal_message: { type: 'string' }, vacation_internal_only: { type: 'boolean' },
    ad_enabled: { type: 'boolean' }, ad_domain: { type: 'string' }, ad_username: { type: 'string' }, sieve_script: { type: 'string' },
-   openpgp_publish: { type: 'boolean' }, restricted_delivery: { type: 'integer' }
+   openpgp_publish: { type: 'boolean' }, restricted_delivery: { type: 'integer' },
+   kind: { type: 'string', enum: ['person', 'room', 'equipment'] }
 };
 const ACCOUNT_PUT = 'Any subset of active, password, max_size_mb, first_name, last_name, forward_enabled, forward_address, forward_keep_original, signature_enabled, signature_plain_text, signature_html, admin_level (user, domain or server), antispam_enabled, spam_mark_threshold and spam_delete_threshold (-1 is the server\'s own value), forward_abort_spam_flagged, message_retention_days (-1 keeps forever, 0 follows the domain), vacation_enabled, vacation_subject, vacation_message, vacation_expires, vacation_expires_date and vacation_begin_date (YYYY-MM-DD; empty means today, as the Control Panel takes them), vacation_abort_spam_flagged, ad_enabled, ad_domain, ad_username, sieve_script and openpgp_publish (publish this account\'s OpenPGP public keys in the Web Key Directory); a field the body does not name is left as it is, and an unknown field is refused by name. Scoped to the address\'s domain.';
 // An account as AccountEntryJson answers it: every field, never the password.
@@ -583,7 +584,7 @@ function accountRecord(address, active) {
       vacation_expires: false, vacation_expires_date: '', message_retention_days: 0, admin_level: 'user', antispam_enabled: true,
       spam_mark_threshold: -1, spam_delete_threshold: -1, forward_abort_spam_flagged: false, vacation_begin_date: '', vacation_abort_spam_flagged: false,
       vacation_days: 0, vacation_internal_subject: '', vacation_internal_message: '', vacation_internal_only: false,
-      ad_enabled: false, ad_domain: '', ad_username: '', sieve_script: '', openpgp_publish: false, restricted_delivery: 0,
+      ad_enabled: false, ad_domain: '', ad_username: '', sieve_script: '', openpgp_publish: false, restricted_delivery: 0, kind: 'person',
       // Read-only, and the address masked as every surface masks it: the four the
       // account GET carries since AccountRecovery.h arrived.
       recovery_address_set: true, recovery_address_verified: true, recovery_address: 'o....@e.........example',
@@ -1441,6 +1442,8 @@ const state = {
    moves: {},
    // The accounts' entries in the organisation's directory, by address.
    directory: {},
+   // The booking policies of rooms and equipment, by address.
+   bookingPolicies: {},
    assignments: [{ address: 'anna@example.com', role: 'helpdesk', domains: '' }],
    status: { version: '6.3.3', state: 3, processedMessages: 1234, spamMessages: 56, virusesRemoved: 7, sessions: { smtp: 3, imap: 12, pop3: 1 } },
    // What GET /api/v1/store answers: the message store measured, compressed.
@@ -2350,6 +2353,26 @@ function answer(method, path, headers, raw) {
    // Renaming a mailbox, and moving one to another domain: the GET says whether
    // it would be refused now and what this mailbox has been through, the POST
    // does it. The state carries the refusal so a test can ask for one.
+   // A room's or a piece of equipment's booking policy (ResourceBooking.h):
+   // state, so that a PUT changes what the next GET says; a person's is read
+   // and never written, as HandleAccountBookingPolicy_ answers it.
+   if (/^\/api\/v1\/accounts\/[^/]+\/booking-policy$/.test(path)) {
+      const address = segment(path, 4);
+      const domain = Object.keys(state.accounts).filter((d) => state.accounts[d].some((a) => a.address === address))[0];
+      if (!domain) { return json(404, { error: 'no such account' }); }
+      const record = state.accounts[domain].filter((a) => a.address === address)[0];
+      const policy = state.bookingPolicies[address] || (state.bookingPolicies[address] = { address: address, kind: 'person', stored: false,
+         auto_accept: true, window_days: 180, max_duration_minutes: 1440, working_hours_only: false, work_days: ['mon', 'tue', 'wed', 'thu', 'fri'],
+         work_start: '08:00', work_end: '17:00', time_zone: 'UTC', allow_conflicts: false, allow_recurring: true, bookers: [], capacity: 0, delegates: [] });
+      policy.kind = record.kind || 'person';
+      if (method === 'GET') { return json(200, Object.assign({}, policy)); }
+      if (method === 'PUT') {
+         if (policy.kind === 'person') { return json(409, { error: address + ' is a person, not a room or a piece of equipment' }); }
+         Object.keys(parsed || {}).forEach((k) => { policy[k] = parsed[k]; });
+         policy.stored = true;
+         return json(200, Object.assign({}, policy));
+      }
+   }
    // The account's entry in the organisation's directory (DirectoryStore.h).
    // State, because the whole of the card is that a PUT changes it and the
    // next GET says so.
@@ -4403,7 +4426,44 @@ async function main() {
    await flush();
    put = lastBody(before, 'PUT', '/api/v1/accounts/anna%40example.com/directory');
    check('and put it back', JSON.stringify(put) === '{"opt_out":false}', JSON.stringify(put));
+   check('a person has no booking policy, and the editor did not ask for one',
+      called(0, 'GET', /anna%40example\.com\/booking-policy/).length === 0 &&
+      content().querySelectorAll('h2').map((h) => h.textContent.trim()).indexOf('Booking policy') < 0, paths(0));
    // Back to the listing, which is where the block below begins.
+   click(act('accounts', { domain: 'example.com' }));
+   await flush();
+
+   // ---- a room: the account's kind, and its booking policy on its own route
+   // (ResourceBooking.h, docs/RoomsAndEquipment.md)
+   const roomRecord = state.accounts['example.com'].filter((a) => a.address === 'carla@example.com')[0];
+   roomRecord.kind = 'room';
+   before = requests.length;
+   click(act('accountedit', { address: 'carla@example.com' }));
+   await flush();
+   check('a room\'s kind is a select of the three words, and its booking policy is read on its own route and drawn as a card',
+      !!document.getElementById('acct_kind') && document.getElementById('acct_kind').tagName === 'SELECT' && document.getElementById('acct_kind').value === 'room' &&
+      document.getElementById('acct_kind').querySelectorAll('option').map((o) => o.textContent).join('|') === 'A person|A room|A piece of equipment' &&
+      called(before, 'GET', '/api/v1/accounts/carla%40example.com/booking-policy').length === 1 &&
+      content().querySelectorAll('h2').map((h) => h.textContent.trim()).indexOf('Booking policy') >= 0 &&
+      document.getElementById('bk_window').value === '180' && document.getElementById('bk_day_mon').checked && !document.getElementById('bk_day_sat').checked,
+      paths(before));
+   before = requests.length;
+   click(act('bookingsave'));
+   await flush();
+   check('saving the booking policy with nothing changed sends nothing', called(before, 'PUT', /booking-policy/).length === 0 && toastText() === 'Nothing changed', toastText());
+   setValue('bk_window', '30');
+   setChecked('bk_hours', true);
+   setChecked('bk_day_fri', false);
+   setValue('bk_bookers', 'Managers\nalice@example.com');
+   before = requests.length;
+   click(act('bookingsave'));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/accounts/carla%40example.com/booking-policy');
+   check('saving the booking policy sends only what changed, and draws what the server holds',
+      JSON.stringify(put) === '{"working_hours_only":true,"window_days":30,"work_days":["mon","tue","wed","thu"],"bookers":["Managers","alice@example.com"]}' &&
+      called(before, 'GET', '/api/v1/accounts/carla%40example.com/booking-policy').length === 1 && toastText() === 'Booking policy saved' &&
+      document.getElementById('bk_window').value === '30' && !document.getElementById('bk_day_fri').checked, JSON.stringify(put));
+   roomRecord.kind = 'person';
    click(act('accounts', { domain: 'example.com' }));
    await flush();
 

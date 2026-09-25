@@ -147,7 +147,23 @@ namespace HM
    {
       try
       {
-         if (!account || !AccountLockout::Instance()->IsHeld(account->GetAddress()))
+         if (!account)
+            return false;
+
+         // A room or a piece of equipment is never signed into, by a password
+         // (PasswordValidator refuses it) or by anything that proves identity
+         // without one - a bearer token, a Kerberos ticket, a client
+         // certificate, a passkey, single sign-on - all of which ask here.
+         // Refused as a failed logon, and charged to nothing, as a hold is.
+         if (account->IsResource())
+         {
+            LOG_DEBUG("AccountLogon - " + account->GetAddress() + " is a room or a piece of equipment, which cannot be signed into; the logon is refused.");
+            account.reset();
+            ServerStatus::Instance()->OnAuthenticationFailed();
+            return true;
+         }
+
+         if (!AccountLockout::Instance()->IsHeld(account->GetAddress()))
             return false;
 
          LOG_DEBUG("AccountLogon - " + account->GetAddress() + " is held for review by the compromised-account detection; the logon is refused.");

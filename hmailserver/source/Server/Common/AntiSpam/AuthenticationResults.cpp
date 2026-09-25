@@ -78,6 +78,54 @@ namespace HM
       return spf_result_ != ResultNotEvaluated;
    }
 
+   namespace
+   {
+      // The domain of an address, or the value itself when it is one: lower-cased,
+      // and "" unless every character is a domain's.
+      AnsiString PassedDomainOf(const AnsiString &raw)
+      {
+         AnsiString value = raw;
+         const int at = value.ReverseFind('@');
+         if (at >= 0)
+            value = value.Mid(at + 1);
+         value.TrimLeft();
+         value.TrimRight();
+         value.ToLower();
+         if (value.IsEmpty() || value.GetLength() > 253)
+            return "";
+         for (int i = 0; i < value.GetLength(); i++)
+         {
+            const char c = value.c_str()[i];
+            if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' || c == '-'))
+               return "";
+         }
+         return value;
+      }
+   }
+
+   const int AuthenticationResults::MaximumPassedDomainsLength;
+
+   AnsiString
+   AuthenticationResults::PassedDomains() const
+   {
+      AnsiString passed;
+
+      if (dmarc_result_ == ResultPass)
+      {
+         // Whole tokens only, and only one that fits the column: a domain of
+         // 250 characters or more makes a token longer than it, and one cut
+         // short would name a different domain. A DMARC pass is possible for
+         // such a name through its organisational domain's policy, so this is
+         // not a case that cannot happen.
+         const AnsiString domain = PassedDomainOf(dmarc_from_domain_);
+         const AnsiString token = domain.IsEmpty() ? AnsiString() : "dmarc=" + domain;
+         if (!token.IsEmpty() && token.GetLength() <= MaximumPassedDomainsLength)
+            passed = token;
+      }
+
+      return passed;
+   }
+
    AnsiString
    AuthenticationResults::ResultKeyword_(MethodResult result)
    {

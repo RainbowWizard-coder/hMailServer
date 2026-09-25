@@ -28,6 +28,7 @@
 #include "../Util/ProtectedMessages.h"
 #include "../Util/MessageRecall.h"
 #include "../Util/CompromiseDetector.h"
+#include "../Util/ResourceBooking.h"
 #include "../BO/MessageRecipient.h"
 #include "../Util/ContactGroups.h"
 #include "../Tracking/ChangeNotification.h"
@@ -174,6 +175,10 @@ namespace HM
    ScheduledMailTask::DoWork()
    {
       RunDue();
+      // A room's or a piece of equipment's deliveries that a stop, a
+      // Reinitialize or a crash left undecided are decided now
+      // (ResourceBooking.h): each such resource is woken.
+      ResourceBooking::WakeQueued();
       // Files sent as links that have expired go on the same minute, and so do
       // the kept copies of messages that expire (ConfidentialMessages.h).
       RestApiServer::SweepExpiredFiles();
@@ -326,8 +331,10 @@ namespace HM
       const bool heldForReview = shape.hold;
 
       // The account's own submission, as the send route marks it
-      // (Message::FlagSubmittedBySignedInUser).
+      // (Message::FlagSubmittedBySignedInUser), and as the account it is
+      // (Message::GetSubmitterAccountID).
       message->SetSubmittedBySignedInUser(true);
+      message->SetSubmitterAccountID(account->GetID());
 
       message->SetState(heldForReview ? Message::HeldForReview : Message::Delivering);
       if (!PersistentMessage::SaveObject(message))

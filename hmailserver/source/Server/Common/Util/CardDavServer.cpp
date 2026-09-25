@@ -162,6 +162,15 @@ namespace HM
          ContactRecord contact;  // KindContact only
          AnsiString slotName;    // KindContactSlot only: the name, decoded
          int directoryIndex = -1;   // KindDirectoryCard only: its place in the loaded directory
+
+         // KindPrincipal of a room or a piece of equipment of the caller's own
+         // domain rather than the caller's own principal (ResourceBooking.h):
+         // its address, its name and what it is. A room is meant to be found,
+         // as the directory lists it; a person's principal stays the person's.
+         bool otherPrincipal = false;
+         AnsiString principalAddressUtf8;
+         AnsiString principalName;
+         int principalKind = 0;
       };
 
       // A member of an address book as the responses see it: the row, the
@@ -608,6 +617,27 @@ namespace HM
          return href.IsEmpty() ? AnsiString("") : " (" + href + ")";
       }
 
+      // RFC 6638 section 2.4.2: what a calendar user is. A person is an
+      // INDIVIDUAL, a room a ROOM and a piece of equipment a RESOURCE.
+      AnsiString CalendarUserTypeOf(int kind)
+      {
+         if (kind == Account::KindRoom)
+            return "ROOM";
+         if (kind == Account::KindEquipment)
+            return "RESOURCE";
+         return "INDIVIDUAL";
+      }
+
+      void FillResourcePrincipal(const AnsiString &addressUtf8, const AnsiString &nameUtf8, int kind, Resource &resource)
+      {
+         resource.kind = KindPrincipal;
+         resource.otherPrincipal = true;
+         resource.principalAddressUtf8 = addressUtf8;
+         resource.principalName = nameUtf8;
+         resource.principalKind = kind;
+         resource.href = AnsiString(CardDavServer::ContextPath) + "principals/" + PercentEncodeSegment(addressUtf8) + "/";
+      }
+
       bool SameAddress(const Context &context, const AnsiString &segment)
       {
          String wide = Wide(segment);
@@ -659,6 +689,18 @@ namespace HM
                resource.kind = KindPrincipal;
                resource.href = context.principalHref;
                return true;
+            }
+            if (segments.size() == 3 && DirectoryStore::Enabled())
+            {
+               std::shared_ptr<const Account> other = CacheContainer::Instance()->GetAccount(Wide(segments[2]));
+               if (other && other->IsResource() && other->GetActive() && other->GetDomainID() == context.domainId)
+               {
+                  String address = other->GetAddress();
+                  address.ToLower();
+                  FillResourcePrincipal(Utf8(address), Utf8(DirectoryStore::NameOf(other->GetPersonFirstName(), other->GetPersonLastName())),
+                                        other->GetKind(), resource);
+                  return true;
+               }
             }
             return false;
          }
@@ -973,7 +1015,10 @@ namespace HM
                {
                case KindRoot: innerXml = "hMailServer"; break;
                case KindPrincipalCollection: innerXml = "Principals"; break;
-               case KindPrincipal: innerXml = XmlEscape(context.addressUtf8); break;
+               case KindPrincipal:
+                  innerXml = XmlEscape(!resource.otherPrincipal ? context.addressUtf8
+                     : (resource.principalName.IsEmpty() ? resource.principalAddressUtf8 : resource.principalName));
+                  break;
                case KindHomeCollection: innerXml = "Address books"; break;
                case KindCalendarsCollection: innerXml = "Calendars"; break;
                case KindHome: innerXml = XmlEscape("Address books of " + context.addressUtf8); break;
@@ -1005,7 +1050,7 @@ namespace HM
 
             if (property.name == "principal-URL" && kind == KindPrincipal)
             {
-               innerXml = Href(context.principalHref);
+               innerXml = Href(resource.otherPrincipal ? resource.href : context.principalHref);
                return true;
             }
 
@@ -1029,7 +1074,7 @@ namespace HM
                // person's own settings, so a phone is told plainly that it may
                // read it and nothing else - rather than being allowed to try a
                // PUT and told 403 at the end of it.
-               const bool writable = directory ? false : (kind == KindPrincipal || kind == KindHome) ? true : resource.book.writable;
+               const bool writable = directory || resource.otherPrincipal ? false : (kind == KindPrincipal || kind == KindHome) ? true : resource.book.writable;
 
                innerXml = "<D:privilege><D:read/></D:privilege>"
                           "<D:privilege><D:read-current-user-privilege-set/></D:privilege>";
@@ -1082,7 +1127,7 @@ namespace HM
 
          if (property.ns == NsCardDav)
          {
-            if (property.name == "addressbook-home-set" && (kind == KindRoot || kind == KindPrincipal))
+            if (property.name == "addressbook-home-set" && (kind == KindRoot || (kind == KindPrincipal && !resource.otherPrincipal)))
             {
                innerXml = Href(context.homeHref);
                return true;
@@ -1140,14 +1185,22 @@ namespace HM
             // The principal is one for both protocols: a calendar client
             // that walks from /dav/ finds its calendar home here, served by
             // CalDavServer.
-            if (property.name == "calendar-home-set" && (kind == KindRoot || kind == KindPrincipal))
+            if (property.name == "calendar-home-set" && (kind == KindRoot || (kind == KindPrincipal && !resource.otherPrincipal)))
             {
                innerXml = Href(CalDavServer::HomeHref(context.addressUtf8));
                return true;
             }
             if (property.name == "calendar-user-address-set" && kind == KindPrincipal)
             {
-               innerXml = Href("mailto:" + context.addressUtf8);
+               innerXml = Href("mailto:" + (resource.otherPrincipal ? resource.principalAddressUtf8 : context.addressUtf8));
+               return true;
+            }
+            // RFC 6638 section 2.4.2: a room says ROOM, a piece of equipment
+            // RESOURCE, a person INDIVIDUAL - what a client's room finder
+            // looks for (ResourceBooking.h).
+            if (property.name == "calendar-user-type" && kind == KindPrincipal)
+            {
+               innerXml = CalendarUserTypeOf(resource.otherPrincipal ? resource.principalKind : context.account->GetKind());
                return true;
             }
             return false;
@@ -1188,6 +1241,7 @@ namespace HM
             names.push_back(PropertyName(NsCardDav, "addressbook-home-set"));
             names.push_back(PropertyName(NsCalDav, "calendar-home-set"));
             names.push_back(PropertyName(NsCalDav, "calendar-user-address-set"));
+            names.push_back(PropertyName(NsCalDav, "calendar-user-type"));
             break;
          case KindHome:
             names.push_back(PropertyName(NsDav, "owner"));
@@ -2234,6 +2288,124 @@ namespace HM
          return Xml(207, xml);
       }
 
+      // The value a principal-property-search term is matched against, for
+      // the properties a room finder searches by; false for any other.
+      bool SearchedValue(const Resource &principal, const AnsiString &ns, const AnsiString &name, AnsiString &value)
+      {
+         if (ns == NsDav && name == "displayname")
+            value = principal.principalName.IsEmpty() ? principal.principalAddressUtf8 : principal.principalName;
+         else if (ns == NsCalDav && name == "calendar-user-address-set")
+            value = "mailto:" + principal.principalAddressUtf8;
+         else if (ns == NsCalDav && name == "calendar-user-type")
+            value = CalendarUserTypeOf(principal.principalKind);
+         else if (ns == NsCalendarServer && name == "email-address-set")
+            value = principal.principalAddressUtf8;
+         else
+            return false;
+         return true;
+      }
+
+      // RFC 3744 section 9.4, on /dav/principals/: the rooms and the pieces
+      // of equipment of the caller's own domain whose properties contain the
+      // texts asked for, case-insensitively - all of them (test="allof", the
+      // default) or any (test="anyof") - each answered with the properties
+      // the report's DAV:prop names. People are not searched here: the
+      // directory (DirectoryStore.h) is where a colleague is found, and this
+      // is where a client's room finder looks. Nothing is answered while the
+      // directory is switched off.
+      HttpResponse HandlePrincipalSearch(Context &context, const XmlElement &root)
+      {
+         struct Term
+         {
+            AnsiString ns;
+            AnsiString name;
+            AnsiString match;
+         };
+
+         std::vector<Term> terms;
+         for (size_t i = 0; i < root.children.size(); i++)
+         {
+            const XmlElement &search = root.children[i];
+            if (!search.Is(NsDav, "property-search"))
+               continue;
+            const XmlElement *prop = search.Child(NsDav, "prop");
+            const XmlElement *match = search.Child(NsDav, "match");
+            if (!prop || !match)
+               return Text(400, "a DAV:property-search names a DAV:prop and a DAV:match");
+            for (size_t p = 0; p < prop->children.size(); p++)
+            {
+               Term term;
+               term.ns = prop->children[p].ns;
+               term.name = prop->children[p].name;
+               term.match = Lower(Trimmed(match->text));
+               terms.push_back(term);
+            }
+         }
+         const bool anyOf = Lower(root.Attribute("test")) == "anyof";
+
+         PropertyRequest request;
+         if (const XmlElement *prop = root.Child(NsDav, "prop"))
+            ReadPropertyRequest(prop, request);
+         else
+         {
+            request.mode = ModeProp;
+            request.names.push_back(PropertyName(NsDav, "displayname"));
+            request.names.push_back(PropertyName(NsCalDav, "calendar-user-address-set"));
+            request.names.push_back(PropertyName(NsCalDav, "calendar-user-type"));
+         }
+
+         AnsiString xml = MultistatusOpen();
+
+         if (DirectoryStore::Enabled())
+         {
+            std::vector<DirectoryEntry> entries;
+            if (!DirectoryStore::List(context.domainId, entries))
+               return Text(500, "the directory could not be read");
+
+            const size_t MaxPrincipalResults = 500;
+            size_t answered = 0;
+            for (size_t i = 0; i < entries.size() && answered < MaxPrincipalResults; i++)
+            {
+               const DirectoryEntry &entry = entries[i];
+               if (entry.list || (entry.kind != Account::KindRoom && entry.kind != Account::KindEquipment))
+                  continue;
+
+               Resource principal;
+               FillResourcePrincipal(Utf8(entry.address), Utf8(entry.name), entry.kind, principal);
+
+               bool all = true;
+               bool some = false;
+               for (size_t t = 0; t < terms.size(); t++)
+               {
+                  AnsiString value;
+                  const bool matched = SearchedValue(principal, terms[t].ns, terms[t].name, value) &&
+                                       Lower(value).Find(terms[t].match) >= 0;
+                  all = all && matched;
+                  some = some || matched;
+               }
+               if (!terms.empty() && !(anyOf ? some : all))
+                  continue;
+
+               xml += ResponseFor(context, principal, nullptr, request);
+               answered++;
+            }
+         }
+
+         xml += "</D:multistatus>\r\n";
+         return Xml(207, xml);
+      }
+
+      // RFC 3744 section 9.5: what the search above searches by.
+      HttpResponse HandlePrincipalSearchSet()
+      {
+         AnsiString xml = "<D:principal-search-property-set xmlns:D=\"DAV:\" xmlns:CAL=\"urn:ietf:params:xml:ns:caldav\">"
+            "<D:principal-search-property><D:prop><D:displayname/></D:prop><D:description xml:lang=\"en\">Name</D:description></D:principal-search-property>"
+            "<D:principal-search-property><D:prop><CAL:calendar-user-address-set/></D:prop><D:description xml:lang=\"en\">Address</D:description></D:principal-search-property>"
+            "<D:principal-search-property><D:prop><CAL:calendar-user-type/></D:prop><D:description xml:lang=\"en\">Kind</D:description></D:principal-search-property>"
+            "</D:principal-search-property-set>\r\n";
+         return Xml(200, xml);
+      }
+
       HttpResponse HandleReport(Context &context, const Resource &resource)
       {
          if (resource.kind == KindContactSlot || resource.kind == KindDirectorySlot)
@@ -2243,6 +2415,17 @@ namespace HM
          AnsiString problem;
          if (!ReadBody(context.request, root, problem))
             return Text(400, "the REPORT body is not well-formed XML: " + problem);
+
+         // The principals answer the two reports of RFC 3744 a room finder
+         // uses, and nothing else.
+         if (resource.kind == KindPrincipalCollection || resource.kind == KindPrincipal)
+         {
+            if (root.Is(NsDav, "principal-property-search"))
+               return HandlePrincipalSearch(context, root);
+            if (root.Is(NsDav, "principal-search-property-set"))
+               return HandlePrincipalSearchSet();
+            return DavError(403, "<D:supported-report/>", "The reports on the principals are principal-property-search and principal-search-property-set.");
+         }
 
          bool multiget = root.Is(NsCardDav, "addressbook-multiget");
          bool query = root.Is(NsCardDav, "addressbook-query");

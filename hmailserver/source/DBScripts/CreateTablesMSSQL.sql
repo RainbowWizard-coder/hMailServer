@@ -33,6 +33,10 @@ if exists (select * from sysobjects where id = object_id('hm_confidential') and 
 if exists (select * from sysobjects where id = object_id('hm_passkeys') and objectproperty(id, 'isusertable') = 1) drop table hm_passkeys
 
 if exists (select * from sysobjects where id = object_id('hm_directory') and objectproperty(id, 'isusertable') = 1) drop table hm_directory
+if exists (select * from sysobjects where id = object_id('hm_bookingpolicies') and objectproperty(id, 'isusertable') = 1) drop table hm_bookingpolicies
+if exists (select * from sysobjects where id = object_id('hm_bookinganswers') and objectproperty(id, 'isusertable') = 1) drop table hm_bookinganswers
+if exists (select * from sysobjects where id = object_id('hm_bookingqueue') and objectproperty(id, 'isusertable') = 1) drop table hm_bookingqueue
+if exists (select * from sysobjects where id = object_id('hm_bookingdecisions') and objectproperty(id, 'isusertable') = 1) drop table hm_bookingdecisions
 if exists (select * from sysobjects where id = object_id('hm_recoverable') and objectproperty(id, 'isusertable') = 1) drop table hm_recoverable
 if exists (select * from sysobjects where id = object_id('hm_maskedaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_maskedaddresses
 if exists (select * from sysobjects where id = object_id('hm_senderaddresses') and objectproperty(id, 'isusertable') = 1) drop table hm_senderaddresses
@@ -296,7 +300,8 @@ create table hm_accounts (
 	accountopenpgppublish int not null default 0,
 	accountzeroaccess int not null default 0,
 	accountrestricteddelivery int not null default 0,
-	accountexternalid nvarchar(255) not null default ''
+	accountexternalid nvarchar(255) not null default '',
+	accountkind int not null default 0
 ) 
 
 ALTER TABLE hm_accounts ADD CONSTRAINT hm_accounts_pk PRIMARY KEY NONCLUSTERED (accountid) 
@@ -427,7 +432,9 @@ create table hm_messages (
 	messagelocked tinyint not null,
    messageuid bigint not null,
    messagemodseq bigint not null,
-   messagekeywords nvarchar(500) not null default ''
+   messagekeywords nvarchar(500) not null default '',
+   messagesubmitterid int not null default 0,
+   messageauthdomains nvarchar(255) not null default ''
 ) 
 
 ALTER TABLE hm_messages ADD CONSTRAINT hm_messages_pk PRIMARY KEY NONCLUSTERED (messageid) 
@@ -955,6 +962,72 @@ create table hm_directory
 ALTER TABLE hm_directory ADD CONSTRAINT hm_directory_pk PRIMARY KEY NONCLUSTERED (dirid)
 
 CREATE UNIQUE CLUSTERED INDEX idx_hm_directory_account ON hm_directory (diraccountid)
+
+create table hm_bookingpolicies
+(
+	bpid int identity(1,1) not null,
+	bpaccountid int not null,
+	bpautoaccept tinyint not null default 1,
+	bpwindowdays int not null default 180,
+	bpmaxminutes int not null default 1440,
+	bpworkinghoursonly tinyint not null default 0,
+	bpworkdays int not null default 31,
+	bpworkstart int not null default 480,
+	bpworkend int not null default 1020,
+	bptimezone nvarchar(64) not null default 'UTC',
+	bpallowconflicts tinyint not null default 0,
+	bpallowrecurring tinyint not null default 1,
+	bpbookers nvarchar(2000) not null default '',
+	bpcapacity int not null default 0
+)
+
+ALTER TABLE hm_bookingpolicies ADD CONSTRAINT hm_bookingpolicies_pk PRIMARY KEY NONCLUSTERED (bpid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_bookingpolicies_account ON hm_bookingpolicies (bpaccountid)
+
+create table hm_bookinganswers
+(
+	baid bigint identity(1,1) not null,
+	baaccountid int not null,
+	baorganiser nvarchar(255) not null,
+	bawindow bigint not null,
+	baanswers int not null,
+	banoticed bigint not null
+)
+
+ALTER TABLE hm_bookinganswers ADD CONSTRAINT hm_bookinganswers_pk PRIMARY KEY NONCLUSTERED (baid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_bookinganswers_account ON hm_bookinganswers (baaccountid, baorganiser)
+
+create table hm_bookingqueue
+(
+	bqid bigint identity(1,1) not null,
+	bqaccountid int not null,
+	bqqueued bigint not null,
+	bqsender nvarchar(255) not null,
+	bqsubmitterid int not null,
+	bqauthdomains nvarchar(255) not null,
+	bqautosubmitted tinyint not null,
+	bqattempts int not null default 0,
+	bqcalendar ntext not null
+)
+
+ALTER TABLE hm_bookingqueue ADD CONSTRAINT hm_bookingqueue_pk PRIMARY KEY NONCLUSTERED (bqid)
+
+CREATE CLUSTERED INDEX idx_hm_bookingqueue_account ON hm_bookingqueue (bqaccountid, bqid)
+
+create table hm_bookingdecisions
+(
+	bdid bigint identity(1,1) not null,
+	bdaccountid int not null,
+	bduid nvarchar(255) not null,
+	bdorganiser nvarchar(255) not null,
+	bddecided bigint not null
+)
+
+ALTER TABLE hm_bookingdecisions ADD CONSTRAINT hm_bookingdecisions_pk PRIMARY KEY NONCLUSTERED (bdid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_bookingdecisions_account ON hm_bookingdecisions (bdaccountid, bduid)
 
 create table hm_recoverable
 (
@@ -2081,6 +2154,14 @@ ALTER TABLE hm_recoverable ADD CONSTRAINT fk_hm_recoverable_account FOREIGN KEY 
 ALTER TABLE hm_passkeys ADD CONSTRAINT fk_hm_passkeys_account FOREIGN KEY (pkaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
 ALTER TABLE hm_directory ADD CONSTRAINT fk_hm_directory_account FOREIGN KEY (diraccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+ALTER TABLE hm_bookingpolicies ADD CONSTRAINT fk_hm_bookingpolicies_account FOREIGN KEY (bpaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+ALTER TABLE hm_bookinganswers ADD CONSTRAINT fk_hm_bookinganswers_account FOREIGN KEY (baaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+ALTER TABLE hm_bookingqueue ADD CONSTRAINT fk_hm_bookingqueue_account FOREIGN KEY (bqaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+ALTER TABLE hm_bookingdecisions ADD CONSTRAINT fk_hm_bookingdecisions_account FOREIGN KEY (bdaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
 ALTER TABLE hm_confidential ADD CONSTRAINT fk_hm_confidential_account FOREIGN KEY (cfaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
 
@@ -3216,4 +3297,4 @@ CREATE CLUSTERED INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (expo
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6100)
+insert into hm_dbversion values (6101)

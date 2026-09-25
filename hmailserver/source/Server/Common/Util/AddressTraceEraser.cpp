@@ -24,6 +24,7 @@
 #include "InboundWebhooks.h"
 #include "OrganisationCa.h"
 #include "ProtectedMessages.h"
+#include "ResourceBooking.h"
 #include "../BO/Alias.h"
 #include "../BO/DistributionList.h"
 #include "../Cache/Cache.h"
@@ -110,6 +111,18 @@ namespace HM
       count = DeleteAddressRows_("hm_distributionlistsrecipients", "distributionlistrecipientaddress", "", address);
       if (count < 0)
          failedStores.push_back(_T("distribution-list memberships"));
+      else
+         removedCount += count;
+
+      // Who may book a room or a piece of equipment (hm_bookingpolicies,
+      // ResourceBooking.h): the address taken out of every booking policy
+      // that names it, as it is taken off a list - the entries matched whole,
+      // as written or through an alias domain, so that erasing ann@ never
+      // touches joann@ - and the resources' memory of it as an organiser they
+      // answered or told their delegates of (hm_bookinganswers) forgotten.
+      count = ResourceBooking::EraseAddress(address);
+      if (count < 0)
+         failedStores.push_back(_T("the booking policies and answer memory of rooms and equipment"));
       else
          removedCount += count;
 

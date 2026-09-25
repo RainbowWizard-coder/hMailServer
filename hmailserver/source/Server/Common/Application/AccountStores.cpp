@@ -61,6 +61,25 @@ namespace HM
       // otherwise have to type again.
       { _T("hm_directory"), 0 },
 
+      // A room's or a piece of equipment's booking policy (schema 6101,
+      // Util/ResourceBooking.h): whether it answers invitations by itself, how
+      // far ahead and for how long it may be booked, in which hours, by whom,
+      // and how many it seats. A restore that dropped it would put every room
+      // back on the defaults - booked by anybody in the organisation at any
+      // hour - without anybody being told. The delegates who answer for it
+      // are the calendar's delegate shares, which the archive does not carry
+      // (hm_calendarshares in elsewhere_, below): they are named again after a
+      // restore, on the booking policy's own route.
+      { _T("hm_bookingpolicies"), 0 },
+
+      // Whom a room or a piece of equipment accepted each booking from, by the
+      // booking's UID (schema 6101, Util/ResourceBooking.h): where a delegate's
+      // later answer about the booking goes, and the only place it may go. The
+      // bookings themselves come back with the calendar (hm_calendarobjects,
+      // below); a restore that dropped these would leave every restored booking
+      // one a delegate's decline tells nobody about.
+      { _T("hm_bookingdecisions"), 0 },
+
       // The webmail's remembered choices (schema 6033). The server attaches no
       // meaning to a key, which is exactly why it must be carried verbatim.
       { _T("hm_accountprefs"), 0 },
@@ -229,6 +248,27 @@ namespace HM
       { _T("hm_directory"), _T("diroptout"),        AccountStores::RoleNumber },
       { _T("hm_directory"), _T("dirnote"),          AccountStores::RoleText },
       { _T("hm_directory"), _T("dirupdated"),       AccountStores::RoleTimestamp },
+
+      { _T("hm_bookingpolicies"), _T("bpid"),               AccountStores::RoleIdentity },
+      { _T("hm_bookingpolicies"), _T("bpaccountid"),        AccountStores::RoleAccount },
+      { _T("hm_bookingpolicies"), _T("bpautoaccept"),       AccountStores::RoleNumber },
+      { _T("hm_bookingpolicies"), _T("bpwindowdays"),       AccountStores::RoleNumber },
+      { _T("hm_bookingpolicies"), _T("bpmaxminutes"),       AccountStores::RoleNumber },
+      { _T("hm_bookingpolicies"), _T("bpworkinghoursonly"), AccountStores::RoleNumber },
+      { _T("hm_bookingpolicies"), _T("bpworkdays"),         AccountStores::RoleNumber },
+      { _T("hm_bookingpolicies"), _T("bpworkstart"),        AccountStores::RoleNumber },
+      { _T("hm_bookingpolicies"), _T("bpworkend"),          AccountStores::RoleNumber },
+      { _T("hm_bookingpolicies"), _T("bptimezone"),         AccountStores::RoleText },
+      { _T("hm_bookingpolicies"), _T("bpallowconflicts"),   AccountStores::RoleNumber },
+      { _T("hm_bookingpolicies"), _T("bpallowrecurring"),   AccountStores::RoleNumber },
+      { _T("hm_bookingpolicies"), _T("bpbookers"),          AccountStores::RoleText },
+      { _T("hm_bookingpolicies"), _T("bpcapacity"),         AccountStores::RoleNumber },
+
+      { _T("hm_bookingdecisions"), _T("bdid"),        AccountStores::RoleIdentity },
+      { _T("hm_bookingdecisions"), _T("bdaccountid"), AccountStores::RoleAccount },
+      { _T("hm_bookingdecisions"), _T("bduid"),       AccountStores::RoleText },
+      { _T("hm_bookingdecisions"), _T("bdorganiser"), AccountStores::RoleText },
+      { _T("hm_bookingdecisions"), _T("bddecided"),   AccountStores::RoleNumber },
 
       { _T("hm_accountprefs"), _T("prefid"),         AccountStores::RoleIdentity },
       { _T("hm_accountprefs"), _T("prefaccountid"),  AccountStores::RoleAccount },
@@ -497,6 +537,10 @@ namespace HM
         _T("(hm_addressbooks) with the contacts in them; the sharing is set again, and the audit trail holds who set it before.") },
       { _T("hm_autoreplies"),
         _T("The out-of-office memory of who was answered and when. Not carried: a restored account answers each sender once more, which is what the reply is for, and carrying it would revive a memory of senders the backup pre-dates.") },
+      { _T("hm_bookinganswers"),
+        _T("A room's or a piece of equipment's memory of whom it answered this hour and whose unanswered request its delegates were told of (ResourceBooking.h). Not carried, for the out-of-office memory's reason: it is an hour long, and a restored resource that answers an organiser once more has lost nothing.") },
+      { _T("hm_bookingqueue"),
+        _T("What was delivered to a room or a piece of equipment and is waiting, seconds as a rule, to be decided (ResourceBooking.h). In flight, like the delivery queue's own rows, and not carried: the backup carries mailboxes, and the messages are in the resource's.") },
       { _T("hm_imapexpunged"),
         _T("The expunge log a QRESYNC client is answered from. Restoring it would tell a client that messages the restore has just put back are gone.") },
       { _T("hm_imap_metadata"),

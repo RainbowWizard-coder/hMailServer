@@ -11,7 +11,14 @@
 //
 //    /dav/                                     the context path: PROPFIND here
 //                                              answers current-user-principal
-//    /dav/principals/<address>/                the principal: addressbook-home-set
+//    /dav/principals/<address>/                the principal: addressbook-home-set,
+//                                              and calendar-user-type (RFC 6638)
+//    /dav/principals/<room>/                   a room or a piece of equipment of
+//                                              the caller's own domain, found by
+//                                              the principal-property-search
+//                                              REPORT on /dav/principals/ while
+//                                              the directory is on - a client's
+//                                              room finder (ResourceBooking.h)
 //    /dav/addressbooks/<address>/              the home: one child collection per
 //                                              book the account can see, and the
 //                                              directory beside them

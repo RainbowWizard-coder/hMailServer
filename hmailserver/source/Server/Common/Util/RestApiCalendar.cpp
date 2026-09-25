@@ -28,6 +28,7 @@
 #include "ICalendar.h"
 #include "Imip.h"
 #include "FreeBusy.h"
+#include "ResourceBooking.h"
 #include "DavSupport.h"
 #include "JsonDocument.h"
 #include "Unicode.h"
@@ -909,9 +910,13 @@ namespace HM
          return Trimmed(U8(name));
       }
 
-      // The object written to the store: parsed again, summarised, stamped.
+      // The object written to the store: parsed again, summarised, stamped. A
+      // room's or a piece of equipment's calendar is written under the lock
+      // its bookings are decided under (ResourceCalendarGuard), so that a
+      // delegate's change never lands in the middle of a decision.
       bool Store(const Visible &visible, const ICalComponent &tree, CalendarObjectRecord &record, bool insert, AnsiString &problem)
       {
+         ResourceCalendarGuard guard(visible.calendar.accountId);
          AnsiString serialized = ICalendar::Serialize(tree);
          ICalComponent parsed;
          if (!ICalendar::Parse(serialized, parsed, problem))
@@ -1417,6 +1422,9 @@ namespace HM
          return BuildResponse_(403, "{\"error\":\"the default calendar cannot be deleted\"}");
       if (!CalendarStore::DeleteCalendar(account->GetID(), calendarId))
          return BuildResponse_(500, "{\"error\":\"the calendar could not be deleted\"}");
+      // A room's records of the bookings that went with it (an account signs
+      // in to delete one only while it is a person).
+      ResourceBooking::ForgetGoneBookings(account->GetID());
       return BuildResponse_(200, "{\"deleted\":true}");
    }
 
@@ -1887,7 +1895,15 @@ namespace HM
          if (!Store(target, tree, made, true, problem))
             return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(problem) + "\"}");
          __int64 token = 0;
-         CalendarStore::Delete(visible.calendar.accountId, visible.calendar.id, record.id, token);
+         {
+            ResourceCalendarGuard guard(visible.calendar.accountId);
+            // Moved to another account's calendar, the booking is no longer
+            // the room's, and its record goes; moved between two calendars of
+            // the same account, it is, and the record stays.
+            if (CalendarStore::Delete(visible.calendar.accountId, visible.calendar.id, record.id, token) &&
+                target.calendar.accountId != visible.calendar.accountId)
+               ResourceBooking::ForgetDecision(visible.calendar.accountId, record.uid);
+         }
          record = made;
          visible = target;
       }
@@ -1962,7 +1978,14 @@ namespace HM
       }
 
       __int64 token = 0;
-      if (!CalendarStore::Delete(visible.calendar.accountId, visible.calendar.id, record.id, token))
+      bool deleted = false;
+      {
+         ResourceCalendarGuard guard(visible.calendar.accountId);
+         deleted = CalendarStore::Delete(visible.calendar.accountId, visible.calendar.id, record.id, token);
+         if (deleted)
+            ResourceBooking::ForgetDecision(visible.calendar.accountId, record.uid);
+      }
+      if (!deleted)
          return BuildResponse_(404, "{\"error\":\"event not found\"}");
       LOG_DEBUG("Calendar: " + account->GetAddress() + " deleted " + record.uid + ".");
       return BuildResponse_(200, "{\"removed\":\"event\",\"id\":" + Int64Text(record.id) + "}");
@@ -2151,7 +2174,10 @@ namespace HM
          if (!Store(target, tree, made, true, problem))
             return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(problem) + "\"}");
          __int64 token = 0;
-         CalendarStore::Delete(visible.calendar.accountId, visible.calendar.id, record.id, token);
+         {
+            ResourceCalendarGuard guard(visible.calendar.accountId);
+            CalendarStore::Delete(visible.calendar.accountId, visible.calendar.id, record.id, token);
+         }
          record = made;
          visible = target;
       }
@@ -2546,7 +2572,40 @@ namespace HM
       bool onBehalf = !visible.mine;
       AnsiString delegateAddress = onBehalf ? Lower(Utf8_(account->GetAddress())) : AnsiString("");
       Imip::SetPartstat(tree, ownerAddress, ownerName, partstat, delegateAddress);
-      if (!Store(visible, tree, record, false, problem))
+
+      // A room's or a piece of equipment's answer goes From it only to the
+      // organiser it recorded when it accepted the booking, and only while
+      // the booking still names them (ResourceBooking::AnswerableOrganiser):
+      // anybody with a write share of its calendar can write any ORGANIZER
+      // into the stored object. A booking it did not accept - one a delegate
+      // wrote in by hand - is answered by the delegate themselves.
+      //
+      // A room or a piece of equipment holds what it agreed to and nothing it
+      // refused: a booking its delegate declines leaves its calendar, as one
+      // it declines itself does (ResourceBooking.h), since everything its
+      // calendar holds that is not cancelled is busy. Whom to tell is read
+      // under the room's lock, with the decline's delete, so that a decision
+      // written in between is never read half way.
+      AnsiString answerTo = organizer;
+      const bool takenOut = owner->IsResource() && partstat == "DECLINED";
+      if (owner->IsResource())
+      {
+         bool deleted = true;
+         {
+            ResourceCalendarGuard guard(visible.calendar.accountId);
+            answerTo = ResourceBooking::AnswerableOrganiser(*owner, record.uid, organizer);
+            if (takenOut)
+            {
+               __int64 token = 0;
+               deleted = CalendarStore::Delete(visible.calendar.accountId, visible.calendar.id, record.id, token);
+               if (deleted)
+                  ResourceBooking::ForgetDecision(visible.calendar.accountId, record.uid);
+            }
+         }
+         if (!deleted)
+            return BuildResponse_(422, "{\"error\":\"the declined booking could not be taken out of the calendar\"}");
+      }
+      if (!takenOut && !Store(visible, tree, record, false, problem))
          return BuildResponse_(422, "{\"error\":\"the event could not be stored: " + JsonEscape_(problem) + "\"}");
 
       ImipMessage described;
@@ -2568,20 +2627,29 @@ namespace HM
 
       // From the owner, Sender the delegate, and the delegate's own envelope:
       // what a mail client shows as "on behalf of".
-      AnsiString senderHeader = onBehalf ? Utf8_(FromHeader_(account)) : AnsiString("");
-      AnsiString mail = Imip::BuildMail(Utf8_(FromHeader_(owner)), organizer, subject, body, "REPLY", replyText, ownerAddress, senderHeader);
-      String to;
-      Unicode::MultiByteToWide(organizer, to);
-      AnsiString refusal;
-      int status = QueueRawMessage_(account, to, mail, refusal);
-      bool replied = status == 0;
-      if (!replied)
-         LOG_DEBUG("Calendar: the reply to " + String(organizer) + " could not be queued: " + String(refusal));
+      bool replied = false;
+      if (answerTo.IsEmpty())
+      {
+         LOG_DEBUG("Calendar: the answer of " + owner->GetAddress() + " to " + record.uid +
+            " was not mailed: it did not accept the booking from the organiser the booking names.");
+      }
+      else
+      {
+         AnsiString senderHeader = onBehalf ? Utf8_(FromHeader_(account)) : AnsiString("");
+         AnsiString mail = Imip::BuildMail(Utf8_(FromHeader_(owner)), answerTo, subject, body, "REPLY", replyText, ownerAddress, senderHeader);
+         String to;
+         Unicode::MultiByteToWide(answerTo, to);
+         AnsiString refusal;
+         int status = QueueRawMessage_(account, to, mail, refusal);
+         replied = status == 0;
+         if (!replied)
+            LOG_DEBUG("Calendar: the reply to " + String(answerTo) + " could not be queued: " + String(refusal));
+      }
 
       LOG_DEBUG("Calendar: " + account->GetAddress() + " answered " + String(partstat) + " to " + record.uid + (onBehalf ? _T(" on behalf of ") + owner->GetAddress() : String()) + ".");
       return BuildResponse_(200, "{\"event_id\":" + Int64Text(record.id) + ",\"calendar\":" + Int64Text(visible.calendar.id) +
          ",\"partstat\":\"" + partstat + "\",\"on_behalf_of\":\"" + JsonEscape_(onBehalf ? ownerAddress : AnsiString("")) +
-         "\",\"replied\":" + AnsiString(replied ? "true" : "false") + ",\"to\":\"" + JsonEscape_(organizer) + "\"}");
+         "\",\"replied\":" + AnsiString(replied ? "true" : "false") + ",\"to\":\"" + JsonEscape_(answerTo) + "\"}");
    }
 
    AnsiString
@@ -2606,7 +2674,7 @@ namespace HM
          "\"delete\":{\"summary\":\"Delete a task\",\"responses\":{\"200\":{\"description\":\"removed\"},\"404\":{\"description\":\"not found\"}}}},"
          "\"/api/v1/me/messages/{id}/invitation\":{\"get\":{\"summary\":\"The invitation a message carries\",\"description\":\"The first text/calendar part or .ics attachment, read: method (REQUEST, REPLY, CANCEL, COUNTER, ...), the event's summary, when (UTC and local), where, organizer, attendees with their answers, my_partstat, and whether the event is already in one of the caller's calendars (in_calendar, event_id, stored_partstat, stored_status). 404 for a message without one.\",\"responses\":{\"200\":{\"description\":\"the invitation\"},\"404\":{\"description\":\"no invitation\"}}}},"
          "\"/api/v1/me/messages/{id}/invitation/reply\":{\"post\":{\"summary\":\"Answer an invitation\",\"description\":\"Body: action - accept, tentative or decline keep the event in the caller's default calendar with their PARTSTAT set (updating the copy a REQUEST delivered to the account already filed there, never adding a second) and mail the organiser a METHOD:REPLY (RFC 6047), which this server files into the organiser's own event when they are on it and which Exchange, Microsoft 365 and Google file into theirs; remove takes the event out of the calendar (what a CANCEL asks for); counter, with start and optionally end and tz, mails the organiser a METHOD:COUNTER proposing that time. comment travels in the mail.\",\"responses\":{\"200\":{\"description\":\"stored, replied, or countered\"},\"400\":{\"description\":\"the action is unknown, or the caller is the organiser\"},\"404\":{\"description\":\"no invitation\"}}}},"
-         "\"/api/v1/me/calendar/events/{id}/reply\":{\"post\":{\"summary\":\"Answer an invitation that is in a calendar - as its owner, or as a delegate on the owner's behalf\",\"description\":\"Body: partstat - ACCEPTED, TENTATIVE or DECLINED - and an optional comment. Allowed to the calendar's owner and to a sharee whose share is a delegation (not to a plain writer or a reader: 403). The OWNER's PARTSTAT on the event is set and the organiser is mailed a METHOD:REPLY whose ATTENDEE is the owner; when a delegate answered, that ATTENDEE carries SENT-BY=mailto:the delegate (RFC 5545 section 3.2.18), kept in the stored event so the owner's page shows who answered, and the mail is From: the owner with Sender: the delegate, sent from the delegate's own address - what a mail client shows as on behalf of. The delegate's own calendar is not touched. 400 when the event names no organiser or the owner organises it.\",\"responses\":{\"200\":{\"description\":\"event_id, partstat, on_behalf_of, replied, to\"},\"400\":{\"description\":\"partstat is not one of the three, the owner organises the event, or the owner is not among its guests\"},\"403\":{\"description\":\"not the owner and not a delegate\"},\"404\":{\"description\":\"no such event\"}}}},"
+         "\"/api/v1/me/calendar/events/{id}/reply\":{\"post\":{\"summary\":\"Answer an invitation that is in a calendar - as its owner, or as a delegate on the owner's behalf\",\"description\":\"Body: partstat - ACCEPTED, TENTATIVE or DECLINED - and an optional comment. Allowed to the calendar's owner and to a sharee whose share is a delegation (not to a plain writer or a reader: 403). The OWNER's PARTSTAT on the event is set and the organiser is mailed a METHOD:REPLY whose ATTENDEE is the owner; when a delegate answered, that ATTENDEE carries SENT-BY=mailto:the delegate (RFC 5545 section 3.2.18), kept in the stored event so the owner's page shows who answered, and the mail is From: the owner with Sender: the delegate, sent from the delegate's own address - what a mail client shows as on behalf of. The delegate's own calendar is not touched. The owner that is a room or a piece of equipment answers only the organiser it recorded when it accepted the booking itself, while the booking still names them: for a booking it did not accept, or whose ORGANIZER was changed since, the answer is stored (a decline takes the booking out of its calendar) and nothing is mailed - replied false, to empty. 400 when the event names no organiser or the owner organises it.\",\"responses\":{\"200\":{\"description\":\"event_id, partstat, on_behalf_of, replied, to\"},\"400\":{\"description\":\"partstat is not one of the three, the owner organises the event, or the owner is not among its guests\"},\"403\":{\"description\":\"not the owner and not a delegate\"},\"404\":{\"description\":\"no such event\"}}}},"
          "\"/api/v1/me/freebusy\":{\"get\":{\"summary\":\"When an account of the caller's domain is busy\",\"description\":\"address= an account of the caller's own domain (an alias domain's spelling resolved); from= and to= the window, at most 62 days apart, as YYYY-MM-DD, YYYY-MM-DDTHH:MM[:SS] with Z or an offset, or YYYYMMDDTHHMMSSZ. The answer is the busy periods of that account's own calendars over the window - every event instance expanded, recurrences included, an event that is TRANSP:TRANSPARENT or STATUS:CANCELLED or that the account declined left out - merged and sorted, each with kind busy or tentative (tentative when the account's PARTSTAT is TENTATIVE or NEEDS-ACTION), with no title, location or description. 404 for an address that is not an active account of the caller's domain, one that does not exist, and one whose freebusy preference is nobody: one answer, so nothing is enumerated. The CalDAV free-busy-query REPORT answers the same computation as a VFREEBUSY.\",\"responses\":{\"200\":{\"description\":\"address, from, to, busy: [{start, end, kind}]\"},\"400\":{\"description\":\"the address or the window is missing, or the window is over 62 days\"},\"404\":{\"description\":\"not an account of the caller's domain that shows when it is busy\"}}}}";
    }
 }

@@ -12,6 +12,7 @@
 #include "../Util/Utilities.h"
 #include "../Util/MessageUtilities.h"
 #include "../Util/MessageOrigin.h"
+#include "../Util/ResourceBooking.h"
 #include "../Util/PasswordBreachCheck.h"
 #include "../Util/ContentPolicy.h"
 #include "../Util/WebPush.h"
@@ -442,6 +443,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing ReputationWatch\n"));
       ReputationWatchTester reputationWatchTester;
       reputationWatchTester.Test();
+
+      // Rooms and equipment: the message's own record of a DMARC pass, which a
+      // room reads before it believes an organiser from outside, never longer
+      // than its column whatever the domain - a value that did not fit would
+      // fail the message's save - and nothing but DMARC for the organiser's
+      // own domain vouching for them. Functions of values only.
+      OutputDebugString(_T("hMailServer: Testing ResourceBooking\n"));
+      ResourceBookingTester resourceBookingTester;
+      resourceBookingTester.Test();
 
       // The message store's container (docs/MessageStore.md): a large part found
       // and cut out at its wire bytes, the container encoded and decoded back to

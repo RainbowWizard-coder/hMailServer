@@ -367,6 +367,7 @@ namespace HM
       pAccount->SetZeroAccess(pRS->GetLongValue("accountzeroaccess") == 1);
       pAccount->SetRestrictedDelivery((int) pRS->GetLongValue("accountrestricteddelivery"));
       pAccount->SetExternalId(pRS->GetStringValue("accountexternalid"));
+      pAccount->SetKind((int) pRS->GetLongValue("accountkind"));
 
       pAccount->SetPasswordEncryption(pRS->GetLongValue("accountpwencryption"));
 
@@ -647,6 +648,7 @@ namespace HM
       oStatement.AddColumn("accountzeroaccess", pAccount->GetZeroAccess() ? 1 : 0);
       oStatement.AddColumn("accountrestricteddelivery", (long) pAccount->GetRestrictedDelivery());
       oStatement.AddColumn("accountexternalid", pAccount->GetExternalId());
+      oStatement.AddColumn("accountkind", (long) pAccount->GetKind());
 
       oStatement.AddColumn("accountenablesignature", pAccount->GetEnableSignature());
       oStatement.AddColumn("accountsignatureplaintext", pAccount->GetSignaturePlainText());

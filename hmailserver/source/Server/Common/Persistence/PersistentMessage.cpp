@@ -292,6 +292,9 @@ namespace HM
       pMessage->SetKeywords(pRS->GetStringValue("messagekeywords"));
       pMessage->SetUID((unsigned int) pRS->GetLongValue("messageuid"));
       pMessage->SetModSeq(pRS->GetInt64Value("messagemodseq"));
+      // Where it came from (schema 6101, Message::GetSubmitterAccountID).
+      pMessage->SetSubmitterAccountID(pRS->GetInt64Value("messagesubmitterid"));
+      pMessage->SetAuthDomains(pRS->GetStringValue("messageauthdomains"));
 
       if (bReadRecipients)
       {
@@ -817,6 +820,19 @@ namespace HM
       oStatement.AddColumn("messagesize", pMessage->GetSize());
       oStatement.AddColumn("messageflags", pMessage->GetFlags());
       oStatement.AddColumn("messagekeywords", pMessage->GetKeywords());
+      // Where it came from (schema 6101, Message::GetSubmitterAccountID) is kept
+      // on a QUEUE row only - it is what a room or a piece of equipment reads
+      // when the message is delivered to it, from the queue message in memory -
+      // and never on a mailbox row, the single-recipient delivery that reuses
+      // the queue row included. And it can never be what fails a save: a value
+      // longer than its column is not written at all, rather than refused by
+      // the database or cut into the name of another domain.
+      const bool queueRow = pMessage->GetState() != Message::Delivered;
+      String authDomains = queueRow ? pMessage->GetAuthDomains() : String();
+      if (authDomains.GetLength() > 255)
+         authDomains = _T("");
+      oStatement.AddColumnInt64("messagesubmitterid", queueRow ? pMessage->GetSubmitterAccountID() : 0);
+      oStatement.AddColumn("messageauthdomains", authDomains);
       oStatement.AddColumnInt64("messagefolderid", pMessage->GetFolderID());
     
       LOG_DEBUG("Saving message: " + pMessage->GetPartialFileName());

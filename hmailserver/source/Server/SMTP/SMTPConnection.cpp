@@ -2135,12 +2135,15 @@ namespace HM
       if (!GetDoSpamProtection_())
          return true;
 
-      // Created on first use, and only when a header is actually going to be written.
-      // With both settings off this stays null for the whole session and every
-      // recording site skips itself.
-      if (!authentication_results_ &&
-          (IniFileSettings::Instance()->GetAuthenticationResultsEnabled() ||
-           IniFileSettings::Instance()->GetReceivedSpfHeaderEnabled()))
+      // Created on first use, whether or not a header is going to be written. The
+      // headers are one reader, and AddAuthenticationResultHeaders_ asks the two
+      // settings itself before it writes one; the message's own record of which
+      // domains passed is the other (Message::GetAuthDomains, set before the
+      // message is saved), which a room or a piece of equipment reads before it
+      // believes an invitation's organiser (Util/ResourceBooking.h). Until
+      // schema 6101 this was made only when a header was on, and with both
+      // settings off every recording site skipped itself.
+      if (!authentication_results_)
       {
          authentication_results_ = std::shared_ptr<AuthenticationResults>(new AuthenticationResults);
       }
@@ -2750,6 +2753,29 @@ namespace HM
             }
          }
          const bool heldForReview = shape.hold;
+
+         // Where the message came from, as this session saw it, recorded on the
+         // message itself and never in a header a sender could have written
+         // (Message::GetSubmitterAccountID): the account an authenticated
+         // session submitted it as, or - for mail from outside - the domain
+         // DMARC passed for. A room or a piece of equipment reads it before
+         // it takes an invitation's organiser to be who sent it
+         // (Util/ResourceBooking.h).
+         if (isAuthenticated_ && !username_.IsEmpty())
+         {
+            std::shared_ptr<DomainAliases> submitterAliases = ObjectCache::Instance()->GetDomainAliases();
+            const String submitterName = DefaultDomain::ApplyDefaultDomain(username_);
+            std::shared_ptr<const Account> submitterAccount =
+               CacheContainer::Instance()->GetAccount(submitterAliases ? submitterAliases->ApplyAliasesOnAddress(submitterName) : submitterName);
+            if (submitterAccount)
+               current_message_->SetSubmitterAccountID(submitterAccount->GetID());
+         }
+         else if (!isAuthenticated_ && authentication_results_)
+         {
+            const AnsiString passed = authentication_results_->PassedDomains();
+            if (!passed.IsEmpty())
+               current_message_->SetAuthDomains(String(passed));
+         }
 
          // Add the message to the database.
          if (PersistentMessage::SaveObject(current_message_))
@@ -3974,6 +4000,28 @@ namespace HM
          {
             // Only the attributes advertised in EHLO are within the contract.
             SendResponse_(501, _T("5.5.4"), _T("Bad command parameter syntax."));
+            return;
+         }
+      }
+
+      // A room or a piece of equipment cannot be signed into by any means
+      // (Util/ResourceBooking.h), and an upstream's word that somebody
+      // authenticated as one is not a way round that: refused before anything
+      // of the session has changed, with the enhanced code a refused AUTH gets.
+      if (haveLogin && !newLogin.IsEmpty())
+      {
+         std::shared_ptr<DomainAliases> loginAliases = ObjectCache::Instance()->GetDomainAliases();
+         const String loginName = DefaultDomain::ApplyDefaultDomain(newLogin);
+         std::shared_ptr<const Account> vouchedFor =
+            CacheContainer::Instance()->GetAccount(loginAliases ? loginAliases->ApplyAliasesOnAddress(loginName) : loginName);
+         if (vouchedFor && vouchedFor->IsResource())
+         {
+            String message;
+            message.Format(_T("SMTP - XCLIENT from %s: LOGIN=%s names a room or a piece of equipment, which cannot be signed into; refused. Session: %d"),
+               String(GetTrueRemoteEndpointAddress().ToString()).c_str(), newLogin.c_str(), GetSessionID());
+            LOG_APPLICATION(message);
+
+            SendResponse_(550, _T("5.7.8"), _T("Authentication credentials invalid."));
             return;
          }
       }
@@ -5590,6 +5638,12 @@ namespace HM
 
       std::shared_ptr<const Account> pAccount = CacheContainer::Instance()->GetAccount(sAccountAddress);
       if (!pAccount || !pAccount->GetActive())
+         return std::shared_ptr<const Account>();
+
+      // A room or a piece of equipment cannot be signed into by any means
+      // (ResourceBooking.h); SCRAM is the one password path that does not
+      // reach PasswordValidator, so it is refused here, the same way.
+      if (pAccount->IsResource())
          return std::shared_ptr<const Account>();
 
       // Active Directory accounts authenticate via SSPI, not a stored hash.

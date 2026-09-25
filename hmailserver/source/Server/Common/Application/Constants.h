@@ -1104,4 +1104,49 @@
 //      as 6097 did for the discovery permissions. An upgraded server has no
 //      route, and delivers every message exactly as it did.
 //      (6099 is the encryption-at-rest row's step, built beside this one.)
-#define REQUIRED_DB_VERSION            6100
+// 6101 adds rooms and equipment (Util/ResourceBooking.h,
+//      Util/RestApiResourceBooking.cpp, docs/RoomsAndEquipment.md):
+//      hm_accounts.accountkind - 0 a person (every account there was), 1 a
+//      room, 2 a piece of equipment; a room or a piece of equipment answers
+//      the invitations it is sent by its booking policy, is in the directory
+//      as what it is, and cannot be signed into - and hm_bookingpolicies, at
+//      most one row per resource account, made on the first save (an account
+//      with no row has the defaults): bpautoaccept (1), bpwindowdays (how far
+//      ahead a booking may be, 180), bpmaxminutes (the longest booking, 1440;
+//      0 is no limit), bpworkinghoursonly (0), bpworkdays (a bit per day,
+//      Monday 1 to Sunday 64; 31 is Monday to Friday), bpworkstart and
+//      bpworkend (minutes after midnight, 480 and 1020), bptimezone (the zone
+//      the working hours are in, UTC), bpallowconflicts (0), bpallowrecurring
+//      (1), bpbookers (who may book: empty for everyone in the server's own
+//      domains, else addresses, @domains and group names) and bpcapacity (how
+//      many people a room seats, 0 for not said). The row goes with its
+//      account (ON DELETE CASCADE), is carried by the backup (AccountStores)
+//      and is on the audit trail. The same step records on a QUEUED message
+//      (never on a mailbox row) where it came from, as the server itself saw
+//      it and never as a header says: hm_messages.messagesubmitterid (the
+//      account an authenticated session - SMTP AUTH, the webmail's send -
+//      submitted it as, 0 for none) and messageauthdomains ("dmarc=<domain>"
+//      when DMARC passed for the From domain, empty otherwise, and never more
+//      than the column: a value that would not fit is not written), which is
+//      how a resource tells an organiser from somebody writing their name.
+//      hm_bookinganswers is a resource's memory per organiser, like the
+//      out-of-office reply's hm_autoreplies: the answers sent in the current
+//      hour (bawindow, baanswers) and when its delegates were last told of a
+//      request it did not honour (banoticed). hm_bookingqueue holds what was
+//      delivered to a resource until it is decided - the origin copied from
+//      the queued message and the calendar part as it arrived - so that a
+//      stop, a Reinitialize or a crash puts a decision off rather than losing
+//      it; bqattempts counts the tries, raised before each, so that one that
+//      crashes the service three times is left for the delegates and not tried
+//      again. hm_bookingdecisions records, per resource and UID (bduid), the
+//      organiser the resource believed when it accepted the booking
+//      (bdorganiser, lower-cased and resolved) and when (bddecided): a
+//      delegate's answer about the booking goes to that organiser and to
+//      nobody else, whatever the calendar object - which any writer of the
+//      calendar can change - says by then; the row goes with the booking, and
+//      is carried by the backup with the calendar it answers for. On
+//      MySQL the four tables are utf8mb4, InnoDB and ROW_FORMAT DYNAMIC from
+//      the start. An upgraded server has no resource, and delivers and
+//      answers exactly as it did.
+//      (6099 and 6100 are two other rows' steps, folded before this one.)
+#define REQUIRED_DB_VERSION            6101

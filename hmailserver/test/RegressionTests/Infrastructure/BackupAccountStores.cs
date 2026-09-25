@@ -242,6 +242,91 @@ namespace RegressionTests.Infrastructure
             "The restored account has no external id, so Account::XMLStore or XMLLoad did not carry it.");
       }
 
+      // ---------------------------------- hm_bookingpolicies, hm_accounts.accountkind
+
+      [Test]
+      [Description("hm_bookingpolicies and hm_accounts.accountkind: what the account is and a room's booking policy survive a "
+                   + "backup and a restore that deleted the domain, so a restore does not turn every room back into a person, "
+                   + "or put it back on the defaults - bookable by anybody in the organisation at any hour")]
+      public void TheBookingPolicyComesBack()
+      {
+         string admin = BasicAuth("Administrator", AdminPassword);
+         Response kind = Rest("PUT", "/api/v1/accounts/" + _address, admin, "{\"kind\":\"room\"}");
+         Assert.AreEqual(200, kind.Status, "Body: " + kind.Body);
+         Response set = Rest("PUT", "/api/v1/accounts/" + _address + "/booking-policy", admin,
+            "{\"auto_accept\":false,\"window_days\":45,\"max_duration_minutes\":90,\"work_days\":[\"tue\",\"thu\"],\"time_zone\":\"Europe/London\",\"bookers\":[\"@partner.example\"],\"capacity\":8}");
+         Assert.AreEqual(200, set.Status, "Body: " + set.Body);
+         StringAssert.Contains("\"stored\":true", set.Body, "The control: the policy is there to be backed up.");
+
+         BackupDeleteAndRestore();
+
+         Response read = Rest("GET", "/api/v1/accounts/" + _address + "/booking-policy", admin);
+         Assert.AreEqual(200, read.Status, "Body: " + read.Body);
+         StringAssert.Contains("\"kind\":\"room\"", read.Body, "The account came back a person: Account::XMLStore or XMLLoad did not carry Kind.");
+         StringAssert.Contains("\"stored\":true,\"auto_accept\":false,\"window_days\":45,\"max_duration_minutes\":90", read.Body, "The policy's row did not come back.");
+         StringAssert.Contains("\"work_days\":[\"tue\",\"thu\"]", read.Body);
+         StringAssert.Contains("\"time_zone\":\"Europe/London\"", read.Body);
+         StringAssert.Contains("\"bookers\":[\"@partner.example\"]", read.Body);
+         StringAssert.Contains("\"capacity\":8", read.Body);
+      }
+
+      // --------------------------------------------------- hm_bookingdecisions
+
+      [Test]
+      [Description("hm_bookingdecisions: whom a room accepted a booking from survives a backup and a restore that deleted the "
+                   + "domain, with the booking, so a delegate's decline of a restored booking still tells its organiser - and "
+                   + "not nobody, which is what a room answers about a booking it has no record of accepting")]
+      public void WhomARoomAcceptedABookingFromComesBack()
+      {
+         string admin = BasicAuth("Administrator", AdminPassword);
+         string organiser = "organiser@" + _domain.Name;
+         string deputy = "deputy@" + _domain.Name;
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, organiser, UserPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, deputy, UserPassword);
+         Response kind = Rest("PUT", "/api/v1/accounts/" + _address, admin, "{\"kind\":\"room\"}");
+         Assert.AreEqual(200, kind.Status, "Body: " + kind.Body);
+
+         // The organiser's own invitation, signed in, which the room believes
+         // and accepts: the booking is filed and whom it came from recorded.
+         DateTime day = DateTime.UtcNow.Date.AddDays(5);
+         string start = day.AddHours(10).ToString("yyyyMMdd'T'HHmmss'Z'", System.Globalization.CultureInfo.InvariantCulture);
+         string end = day.AddHours(11).ToString("yyyyMMdd'T'HHmmss'Z'", System.Globalization.CultureInfo.InvariantCulture);
+         string uid = "backup-booking-0001@" + _domain.Name;
+         string invitation = string.Join("\r\n", new[]
+         {
+            "From: <" + organiser + ">", "To: <" + _address + ">", "Subject: Invitation: Planning", "MIME-Version: 1.0",
+            "Content-Type: text/calendar; charset=utf-8; method=REQUEST", "",
+            "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//A client//EN", "METHOD:REQUEST", "BEGIN:VEVENT", "UID:" + uid,
+            "DTSTAMP:20260101T000000Z", "DTSTART:" + start, "DTEND:" + end, "SUMMARY:Planning", "SEQUENCE:0",
+            "ORGANIZER:mailto:" + organiser, "ATTENDEE;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:" + organiser,
+            "ATTENDEE;CUTYPE=ROOM;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:" + _address,
+            "END:VEVENT", "END:VCALENDAR", ""
+         });
+         new SmtpClientSimulator().SendRaw(organiser, UserPassword, organiser, _address, invitation);
+         Pop3ClientSimulator.AssertMessageCount(organiser, UserPassword, 1, TimeSpan.FromSeconds(30));
+         StringAssert.Contains("Accepted: Planning", Pop3ClientSimulator.AssertGetFirstMessageText(organiser, UserPassword),
+            "The control: the room accepted the booking, so there is a record to back up.");
+
+         BackupDeleteAndRestore();
+
+         // The delegate shares are the calendar's and are not carried: the
+         // delegate is named again, as after any restore.
+         Response named = Rest("PUT", "/api/v1/accounts/" + _address + "/booking-policy", admin, "{\"delegates\":[\"" + deputy + "\"]}");
+         Assert.AreEqual(200, named.Status, "Body: " + named.Body);
+
+         string window = "start=" + day.ToString("yyyyMMdd'T'HHmmss'Z'", System.Globalization.CultureInfo.InvariantCulture) +
+            "&end=" + day.AddDays(1).ToString("yyyyMMdd'T'HHmmss'Z'", System.Globalization.CultureInfo.InvariantCulture);
+         Response seen = Rest("GET", "/api/v1/me/calendar/events?" + window, BasicAuth(deputy, UserPassword));
+         Assert.AreEqual(200, seen.Status, "Body: " + seen.Body);
+         StringAssert.Contains("\"summary\":\"Planning\"", seen.Body, "The booking came back with the room's calendar.");
+         long eventId = long.Parse(Regex.Match(seen.Body.Substring(seen.Body.IndexOf("\"events\":[", StringComparison.Ordinal)), "\"id\":(\\d+)").Groups[1].Value);
+
+         Response declined = Rest("POST", "/api/v1/me/calendar/events/" + eventId + "/reply", BasicAuth(deputy, UserPassword), "{\"partstat\":\"DECLINED\"}");
+         Assert.AreEqual(200, declined.Status, "Body: " + declined.Body);
+         StringAssert.Contains("\"replied\":true,\"to\":\"" + organiser.ToLowerInvariant() + "\"", declined.Body,
+            "The record of whom the room accepted the booking from did not come back: the delegate's decline told nobody.");
+      }
+
       // ---------------------------------------------------- hm_maskedaddresses
 
       [Test]

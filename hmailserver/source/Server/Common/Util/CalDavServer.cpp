@@ -56,6 +56,7 @@
 #include "CalendarStore.h"
 #include "ICalendar.h"
 #include "FreeBusy.h"
+#include "ResourceBooking.h"
 #include "../BO/Account.h"
 #include "../Cache/CacheContainer.h"
 
@@ -1205,6 +1206,14 @@ namespace HM
          __int64 accountId = context.storeAccountId;
          __int64 calendarId = context.calendar.id;
 
+         // A room's or a piece of equipment's calendar is written under the
+         // lock its bookings are decided under (ResourceBooking.h), and the
+         // UID's uniqueness and the ETag precondition are read under it too, so
+         // that a decision written in between is never overwritten on a read
+         // made before it. Held until the write is done, and no longer: a
+         // delegate's decline is mailed after it is released.
+         std::unique_ptr<ResourceCalendarGuard> guard(new ResourceCalendarGuard(accountId));
+
          // One UID, one resource (RFC 4791 section 5.3.2.1). The other
          // resource is named, so a client that lost track of where it put an
          // event finds it rather than storing a second copy.
@@ -1230,14 +1239,75 @@ namespace HM
 
          if (resource.kind == KindObject)
          {
-            AnsiString currentEtag = Utf8(resource.object.etag);
+            // The ETag as it is now, under the lock, not as it was when the
+            // request was resolved.
+            CalendarObjectRecord current;
+            const bool currentRead = CalendarStore::FindById(resource.object.id, current);
+            AnsiString currentEtag = currentRead && !current.etag.IsEmpty() ? Utf8(current.etag) : Utf8(resource.object.etag);
             if (!PreconditionsHold(request, currentEtag))
                return Text(412, "precondition failed: the object has changed since it was read, or If-None-Match: * named an existing resource",
                   "ETag: " + currentEtag + "\r\n");
 
+            // A room holds what it agreed to and nothing it refused: a booking
+            // declined from a CalDAV client - the room's PARTSTAT written as
+            // DECLINED - leaves its calendar, as one declined through the REST
+            // reply or by the room itself does, since everything its calendar
+            // holds that is not cancelled is busy. Anybody who may write to the
+            // calendar may take a booking out of it (a DELETE does as much).
+            //
+            // Its organiser is told only when a delegate declined it - a share
+            // with delegate set, as the REST reply requires; a plain write share
+            // does not answer for the room, and the room itself never signs in
+            // - and only the organiser the room recorded when it accepted the
+            // booking, never one a PUT wrote (ResourceBooking::
+            // AnswerableOrganiser). A CalDAV client schedules nothing here, and
+            // the organiser would otherwise still hold the room's acceptance.
+            std::shared_ptr<const Account> owner = CacheContainer::Instance()->GetAccount(accountId);
+            if (owner && owner->IsResource() && ResourceBooking::DeclinedBy(tree, *owner))
+            {
+               ICalComponent held;
+               AnsiString heldProblem;
+               const bool heldRead = currentRead && ICalendar::Parse(Utf8(current.data), held, heldProblem);
+
+               CalendarShareRecord share;
+               const bool delegated = context.account &&
+                  (context.account->GetID() == accountId ||
+                   (CalendarStore::ShareOf(calendarId, context.account->GetID(), share) && share.delegate));
+
+               __int64 removedToken = 0;
+               if (!CalendarStore::Delete(accountId, calendarId, resource.object.id, removedToken))
+                  return Text(500, "the declined booking could not be taken out of the calendar");
+               if (delegated)
+               {
+                  LOG_DEBUG("CalDAV: " + String(context.addressUtf8) + " declined " + String(summary.uid) + " for " + owner->GetAddress() + ", and it left the calendar.");
+               }
+               else
+               {
+                  LOG_DEBUG("CalDAV: " + String(context.addressUtf8) + " declined " + String(summary.uid) + " for " + owner->GetAddress() +
+                     ", and it left the calendar; not a delegate, so nobody was told.");
+               }
+
+               // Whom to tell is read under the room's lock, and the room's
+               // record of the booking goes with it; the mail, built from the
+               // booking as the room held it before this PUT, is queued once
+               // the lock is released.
+               const AnsiString organiser = heldRead && delegated ? ResourceBooking::AnswerableOrganiser(*owner, held) : AnsiString();
+               const String declinedUid = currentRead && !current.uid.IsEmpty() ? current.uid : record.uid;
+               ResourceBooking::ForgetDecision(accountId, declinedUid);
+               guard.reset();
+               if (heldRead && delegated)
+                  ResourceBooking::TellOrganiserOfDecline(owner, context.account, held, organiser);
+               return Respond(204, "text/plain", "");
+            }
+
             __int64 token = 0;
             if (!CalendarStore::Update(accountId, calendarId, resource.object.id, record, token))
                return Text(500, "the object could not be saved");
+
+            // An object written back under another UID is another booking: the
+            // room's record of the one it replaced goes.
+            if (currentRead && !current.uid.IsEmpty() && current.uid != record.uid)
+               ResourceBooking::ForgetDecision(accountId, current.uid);
 
             LOG_DEBUG("CalDAV: " + String(context.addressUtf8) + " updated " + String(summary.component) + " " + String(summary.uid) + ".");
             return Respond(204, "text/plain", "", "ETag: " + Utf8(record.etag) + "\r\n");
@@ -1301,6 +1371,9 @@ namespace HM
                return Text(403, "the calendar Calendar is the account's default and cannot be deleted; the collections above it cannot either");
             if (!CalendarStore::DeleteCalendar(context.account->GetID(), resource.calendar.id))
                return Text(500, "the calendar could not be deleted");
+            // A room's records of the bookings that went with it (an account
+            // signs in to delete one only while it is a person).
+            ResourceBooking::ForgetGoneBookings(context.account->GetID());
             LOG_DEBUG("CalDAV: " + String(context.addressUtf8) + " deleted the calendar " + String(resource.calendar.name) + ".");
             return Respond(204, "text/plain", "");
          }
@@ -1319,8 +1392,10 @@ namespace HM
             return Text(500, "the calendar could not be read");
 
          __int64 token = 0;
+         ResourceCalendarGuard guard(context.storeAccountId);
          if (!CalendarStore::Delete(context.storeAccountId, context.calendar.id, resource.object.id, token))
             return NotFound();
+         ResourceBooking::ForgetDecision(context.storeAccountId, resource.object.uid);
 
          LOG_DEBUG("CalDAV: " + String(context.addressUtf8) + " deleted " + String(Utf8(resource.object.uri)) + ".");
          return Respond(204, "text/plain", "");

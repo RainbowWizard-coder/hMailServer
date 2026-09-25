@@ -61,6 +61,9 @@ namespace HM
 
       uid_ = other.uid_;
       message_modseq_ = other.message_modseq_;
+
+      submitter_account_id_ = other.submitter_account_id_;
+      auth_domains_ = other.auth_domains_;
    }
 
    std::vector<String>

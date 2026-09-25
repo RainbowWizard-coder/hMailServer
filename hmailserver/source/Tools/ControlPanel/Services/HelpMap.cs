@@ -172,6 +172,7 @@ namespace hMailServer.ControlPanel.Services
          "RelocatingAnInstallation.md",
          "ResponseCompression.md",
          "RestrictedDelivery.md",
+         "RoomsAndEquipment.md",
          "SampleDomain.md",
          "Sandbox.md",
          "Scim.md",

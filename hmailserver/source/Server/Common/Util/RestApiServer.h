@@ -560,6 +560,10 @@ namespace HM
          RouteAccountDirectoryGet,
          RouteAccountDirectoryPut,
          RouteAccountDirectoryPhoto,
+         // A room's or a piece of equipment's booking policy, administered
+         // under its address (RestApiResourceBooking.cpp).
+         RouteAccountBookingPolicyGet,
+         RouteAccountBookingPolicyPut,
          RouteMeConfidential,
          RouteMeConfidentialRevoke,
          // A password-protected message to anyone (RestApiProtectedMessages.cpp):
@@ -1898,6 +1902,11 @@ namespace HM
       static bool ReadDirectoryBody_(const AnsiString &requestBody, bool allowNote, bool allowOptOut, bool allowFields,
                                      DirectoryRecord &record, String &problem);
       static AnsiString OpenApiDirectoryPaths_();
+      // Rooms and equipment (RestApiResourceBooking.cpp): the booking policy
+      // of an account that is a room or a piece of equipment, and its
+      // delegates.
+      static HttpResponse HandleAccountBookingPolicy_(const Caller &caller, const String &address, RouteKind kind, const AnsiString &requestBody);
+      static AnsiString OpenApiResourceBookingPaths_();
       // Messages that expire, the sender's side, and the reading page a
       // recipient's notice links to (RestApiConfidential.cpp). The page is not
       // static: the grant cookie it sets is Secure over TLS.

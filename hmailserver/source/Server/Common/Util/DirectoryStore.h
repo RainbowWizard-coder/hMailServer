@@ -68,6 +68,8 @@ namespace HM
    {
       __int64 id = 0;          // the account id, or the list id for a list
       bool list = false;
+      int kind = 0;            // an account's Account::AccountKind: a person, a room or a piece of equipment
+      int capacity = 0;        // a room's seats from its booking policy, 0 when not said (ResourceBooking.h)
       String name;             // the person's name; empty when the account has none
       String address;
       bool hasPhoto = false;

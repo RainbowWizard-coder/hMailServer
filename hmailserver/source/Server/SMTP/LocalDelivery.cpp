@@ -827,8 +827,13 @@ namespace HM
       // A reply to an invitation this account organised, a cancellation of
       // one it holds, or an invitation to it, is filed into the stored event
       // (Common/Util/Imip.h); a message flagged as spam files nothing. A
-      // message without a calendar part costs the look at its header.
-      Imip::FileOnDelivery(account, PersistentMessage::GetFileName(account, accountLevelMessage), accountLevelMessage->GetFlagSpam());
+      // message without a calendar part costs the look at its header. What is
+      // delivered to a room or a piece of equipment is handed on to be decided
+      // after this delivery by its booking policy (Common/Util/ResourceBooking.h),
+      // from the queue message's own record of where it came from; this thread
+      // never waits for that decision, and nothing it decides undoes this.
+      Imip::FileOnDelivery(account, PersistentMessage::GetFileName(account, accountLevelMessage), accountLevelMessage->GetFlagSpam(),
+         original_message_);
 
       // Journalled under the QUEUE message, which is the message trace's
       // correlation key (MessageTrace.h), and not under the recipient's copy:

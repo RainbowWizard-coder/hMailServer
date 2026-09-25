@@ -1142,6 +1142,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="mkeyrecover")recoverMailboxKey();
   else if(d.act==="mrecsave")saveMailboxRecovery();
   else if(d.act==="accountdirsave")saveAccountDirectory();
+  else if(d.act==="bookingsave")saveBookingPolicy();
   else if(d.act==="aliases")showAliases(d.domain);
   else if(d.act==="aliasnew")createAlias(d.domain);
   else if(d.act==="aliasdel")deleteAlias(d.name,d.domain);
@@ -3055,7 +3056,7 @@ async function delAccount(address,domain){
    desktop dialog are not here: the external accounts have their own view,
    and the rest are not on the administrative API. */
 const ACCOUNT_GROUPS=[
-  {title:K("General"),keys:["active","first_name","last_name","password","max_size_mb","admin_level","message_retention_days"]},
+  {title:K("General"),keys:["active","kind","first_name","last_name","password","max_size_mb","admin_level","message_retention_days"]},
   {title:K("Forwarding"),keys:["forward_enabled","forward_address","forward_keep_original","forward_abort_spam_flagged"]},
   {title:K("Auto-reply"),keys:["vacation_enabled","vacation_subject","vacation_message","vacation_expires","vacation_expires_date","vacation_begin_date","vacation_abort_spam_flagged","vacation_days","vacation_internal_subject","vacation_internal_message","vacation_internal_only"]},
   {title:K("Spam"),keys:["antispam_enabled","spam_mark_threshold","spam_delete_threshold"]},
@@ -3067,6 +3068,7 @@ const ACCOUNT_GROUPS=[
 ];
 const ACCOUNT_HINTS={
   active:K("Account enabled: it receives mail and can sign in."),first_name:K("The person's first name."),last_name:K("The person's last name."),
+  kind:K("A person, a room or a piece of equipment. A room or a piece of equipment answers the invitations it is sent by its booking policy, and cannot be signed into."),
   password:K("A new password goes through the password policy, the reuse history, the breach check and the configured hash exactly as when the Control Panel sets one, and the next logon uses it."),
   max_size_mb:K("Maximum mailbox size in MB; 0 is unlimited."),
   admin_level:K("user, domain or server. Who is asking decides what it may become: a key restricted to named domains may set user or domain only."),
@@ -3088,7 +3090,8 @@ const ACCOUNT_HINTS={
   openpgp_publish:K("Publish this account's OpenPGP public keys in the Web Key Directory, so that anybody who has the address can find the key. The keys themselves are on the domain's OpenPGP page."),
   restricted_delivery:K("Follows the domain takes the domain's list of named domains. Restricted confines the account to the named domains, its own domain and the postmaster - and, when the domain names nothing, to its own domain alone. Exempt lets an account in a restricted domain exchange mail with anyone.")
 };
-const ACCOUNT_CHOICES=()=>({restricted_delivery:[{value:0,label:t("Follows the domain")},{value:1,label:t("Restricted: named domains only")},{value:2,label:t("Exempt: may exchange mail with anyone")}]});
+const ACCOUNT_CHOICES=()=>({restricted_delivery:[{value:0,label:t("Follows the domain")},{value:1,label:t("Restricted: named domains only")},{value:2,label:t("Exempt: may exchange mail with anyone")}],
+  kind:[{value:"person",label:t("A person")},{value:"room",label:t("A room")},{value:"equipment",label:t("A piece of equipment")}]});
 const ACCOUNT_LONG=["signature_plain_text","signature_html","vacation_message","vacation_internal_message","sieve_script"];
 function accountProps(){
   const props=properties("/api/v1/accounts/{address}","put"), out={};
@@ -3116,6 +3119,8 @@ async function openAccount(address,domain){
   // Whether the mailbox is encrypted at rest, on its own route and with its
   // own try, for the same reason.
   try{editing.mailboxKey=await api("/api/v1/accounts/"+encodeURIComponent(address)+"/mailbox-encryption");}catch(e){editing.mailboxKey=null;}
+  // A room's or a piece of equipment's booking policy, the same way.
+  editing.booking=await bookingOf(address,record);
   renderAccountEditor();
 }
 function renderAccountEditor(){
@@ -3132,6 +3137,7 @@ function renderAccountEditor(){
     ${zeroAccessCardHtml()}
     ${may("manage_accounts")?mailboxKeyCardHtml():""}
     ${directoryCardHtml()}
+    ${bookingCardHtml()}
     ${may("manage_accounts")?moveCardHtml():""}
     <div class="sect"><h2>${t("Setting levels")}</h2><div class="card flat" id="accountLevels">${levelsHtml("account")}</div></div>
     <div class="sect"><div class="row">
@@ -3338,6 +3344,91 @@ async function saveAccountDirectory(){
     renderAccountEditor();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_accountdir",refusalText(e));}
 }
+/* A room's or a piece of equipment's booking policy (docs/RoomsAndEquipment.md),
+   over GET and PUT /api/v1/accounts/{address}/booking-policy. Its own card, as
+   the directory entry is, because it is its own route and its own table, and
+   drawn only for an account whose kind is room or equipment: a person has none.
+   The delegates are the accounts and groups the resource's calendar is shared
+   with as a delegate; they answer for it what it does not answer by itself. */
+const BOOKING_DAYS=["mon","tue","wed","thu","fri","sat","sun"];
+async function bookingOf(address,values){
+  if(!values||!values.kind||values.kind==="person")return null;
+  try{return await api("/api/v1/accounts/"+encodeURIComponent(address)+"/booking-policy");}catch(e){return null;}
+}
+function weekdayNames(){
+  const english=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  try{
+    const format=new Intl.DateTimeFormat(language,{weekday:"short",timeZone:"UTC"});
+    return english.map((_,i)=>format.format(new Date(Date.UTC(2024,0,1+i))));
+  }catch(_){return english;}
+}
+function bookingCardHtml(){
+  const b=editing.booking;
+  if(!b)return "";
+  const names=weekdayNames();
+  const check=(id,on,label)=>`<label class="row" style="gap:6px;align-items:center"><input id="${id}" type="checkbox"${on?" checked":""}> ${escHtml(t(label))}</label>`;
+  const field=(id,value,label,width)=>`<div style="flex:1;min-width:${width}px"><label for="${id}">${escHtml(t(label))}</label><input id="${id}" value="${escHtml(String(value===undefined||value===null?"":value))}"></div>`;
+  const area=(id,values,label)=>`<label for="${id}">${escHtml(t(label))}</label><textarea id="${id}" rows="3">${escHtml((values||[]).join("\n"))}</textarea>`;
+  const days=BOOKING_DAYS.map((d,i)=>`<label class="row" style="gap:6px;align-items:center"><input id="bk_day_${d}" type="checkbox"${(b.work_days||[]).indexOf(d)>=0?" checked":""}> ${escHtml(names[i])}</label>`).join("");
+  return `<div class="sect"><h2>${t("Booking policy")}</h2>
+    <div class="card" data-enter="bookingsave">
+      <p class="note">${t("A room or a piece of equipment answers the invitations it is sent by this policy, as they are delivered: it accepts one that fits and declines one that does not, saying why. It cannot be signed into; its delegates answer for it from its calendar.")}</p>
+      ${check("bk_auto",b.auto_accept,K("Answer invitations by this policy"))}
+      <div class="row" style="gap:12px;flex-wrap:wrap;margin-top:10px">
+        ${field("bk_window",b.window_days,K("Booking window, in days ahead"),160)}
+        ${field("bk_max",b.max_duration_minutes,K("Longest booking, in minutes (0 for no limit)"),160)}
+        ${field("bk_capacity",b.capacity,K("Capacity, in people (0 if not said)"),160)}
+      </div>
+      <div style="margin-top:10px">${check("bk_hours",b.working_hours_only,K("Working hours only"))}</div>
+      <p class="note">${t("Working days")}</p>
+      <div class="row" style="gap:12px;flex-wrap:wrap">${days}</div>
+      <div class="row" style="gap:12px;flex-wrap:wrap;margin-top:10px">
+        ${field("bk_start",b.work_start,K("Working hours start (HH:MM)"),140)}
+        ${field("bk_end",b.work_end,K("Working hours end (HH:MM)"),140)}
+        ${field("bk_zone",b.time_zone,K("Time zone of the working hours"),200)}
+      </div>
+      <div class="row" style="gap:12px;flex-wrap:wrap;margin-top:10px">
+        ${check("bk_conflicts",b.allow_conflicts,K("Allow overlapping bookings"))}
+        ${check("bk_recurring",b.allow_recurring,K("Allow recurring meetings"))}
+      </div>
+      <div style="margin-top:10px">${area("bk_bookers",b.bookers,K("Who may book: addresses, @domains and group names, one to a line. Empty lets everyone in this organisation book, and nobody from outside."))}</div>
+      <div style="margin-top:10px">${area("bk_delegates",b.delegates,K("Delegates: addresses and group names, one to a line. They see this calendar and answer the invitations it does not answer by itself."))}</div>
+      <div class="row" style="margin-top:10px"><button class="btn" data-act="bookingsave">${t("Save booking policy")}</button></div>
+      <div class="err" id="err_booking"></div>
+    </div></div>`;
+}
+async function saveBookingPolicy(){
+  setErr("err_booking","");
+  const b=editing.booking||{},body={};
+  const flag=(id,key)=>{const el=$("#"+id);if(el&&el.checked!==!!b[key])body[key]=el.checked;};
+  flag("bk_auto","auto_accept");flag("bk_hours","working_hours_only");flag("bk_conflicts","allow_conflicts");flag("bk_recurring","allow_recurring");
+  const whole=(id,key)=>{
+    const el=$("#"+id);
+    if(!el)return true;
+    const raw=String(el.value).trim(),n=Number(raw);
+    if(raw===""||!isFinite(n)||Math.floor(n)!==n){setErr("err_booking",tf("{0} must be a whole number.",humanise(key)));return false;}
+    if(n!==b[key])body[key]=n;
+    return true;
+  };
+  if(!whole("bk_window","window_days")||!whole("bk_max","max_duration_minutes")||!whole("bk_capacity","capacity"))return;
+  const text=(id,key)=>{const el=$("#"+id);if(el&&el.value.trim()!==String(b[key]||""))body[key]=el.value.trim();};
+  text("bk_start","work_start");text("bk_end","work_end");text("bk_zone","time_zone");
+  const days=BOOKING_DAYS.filter(d=>{const el=$("#bk_day_"+d);return !!(el&&el.checked);});
+  if(days.join(",")!==(b.work_days||[]).join(","))body.work_days=days;
+  const lines=id=>{const el=$("#"+id);return el?String(el.value).split("\n").map(s=>s.trim()).filter(Boolean):[];};
+  const bookers=lines("bk_bookers"),delegates=lines("bk_delegates");
+  if(bookers.join("\n")!==(b.bookers||[]).join("\n"))body.bookers=bookers;
+  if(delegates.join("\n")!==(b.delegates||[]).join("\n"))body.delegates=delegates;
+  if(!Object.keys(body).length){toast(t("Nothing changed"));return;}
+  try{
+    await api("/api/v1/accounts/"+encodeURIComponent(editing.address)+"/booking-policy",{method:"PUT",body:JSON.stringify(body)});
+    // Read back, as the directory entry is, so what is drawn is what the
+    // server holds: the bookers in their stored form, the delegates as shared.
+    editing.booking=await api("/api/v1/accounts/"+encodeURIComponent(editing.address)+"/booking-policy");
+    toast(t("Booking policy saved"));
+    renderAccountEditor();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_booking",refusalText(e));}
+}
 /* Renaming a mailbox, and moving it to another domain on this server, are one
    operation and one route: POST /api/v1/accounts/{address}/move. It is here
    rather than in the account's form because the address is not a field that is
@@ -3395,6 +3486,9 @@ async function saveAccount(){
     // The account as the server holds it now, read back rather than taken
     // from the answer, and the editor redrawn from that.
     editing.values=await api("/api/v1/accounts/"+encodeURIComponent(address));
+    // Made a room or a piece of equipment, or a person again: its booking
+    // policy card comes or goes with it.
+    editing.booking=await bookingOf(address,editing.values);
     toast(t("Account saved"));
     renderAccountEditor();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_accountedit",refusalText(e));}

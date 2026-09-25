@@ -1563,6 +1563,11 @@ interface IInterfaceAccount : IDispatch
    // SCIM provisioning. See Common/Util/RestApiScim.cpp and docs/Scim.md.
    [propget, id(87), helpstring("The organisation's identity provider's own id for the person this account is - SCIM's externalId, which an identity provider matches its users by (Entra's object id, Okta's user id). Empty on an account nothing provisioned. See docs/Scim.md.")] HRESULT ExternalId([out, retval] BSTR *pVal);
    [propput, id(87), helpstring("The identity provider's id for the person this account is: at most 255 characters, on one line, compared exactly. Saved by Save.")] HRESULT ExternalId([in] BSTR newVal);
+
+   // Rooms and equipment. See Common/Util/ResourceBooking.h and
+   // docs/RoomsAndEquipment.md. The booking policy is on REST and the Deck.
+   [propget, id(88), helpstring("What the account is: 0 a person (the default), 1 a meeting room, 2 a piece of equipment. A room or a piece of equipment answers the invitations it is sent by its booking policy (GET and PUT /api/v1/accounts/{address}/booking-policy), is in the directory as what it is, and cannot be signed into by any protocol.")] HRESULT Kind([out, retval] long *pVal);
+   [propput, id(88), helpstring("What the account is: 0 a person, 1 a room, 2 a piece of equipment; anything else is refused. Saved by Save.")] HRESULT Kind([in] long newVal);
 };
 
 

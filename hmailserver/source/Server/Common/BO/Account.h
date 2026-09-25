@@ -21,6 +21,19 @@ namespace HM
          ServerAdmin = 2
       };
 
+      // What the account is (schema 6101, Util/ResourceBooking.h,
+      // docs/RoomsAndEquipment.md): a person, as every account was before, or
+      // a resource - a meeting room or a piece of equipment - which answers
+      // the invitations it is sent by its booking policy, is in the directory
+      // as what it is, and cannot be signed into: it is administered, and its
+      // delegates answer for it from its calendar.
+      enum AccountKind
+      {
+         KindPerson = 0,
+         KindRoom = 1,
+         KindEquipment = 2
+      };
+
       Account();
       Account(const String &address, AdminLevel adminLevel);
       Account(const Account &oldAccount);
@@ -242,6 +255,12 @@ namespace HM
       String GetExternalId() const { return external_id_; }
       void SetExternalId(const String &newVal) { external_id_ = newVal; }
 
+      // A person (KindPerson), a room or a piece of equipment. COM
+      // Account.Kind, REST kind. A value outside the three is kept as a person.
+      int GetKind() const { return kind_; }
+      void SetKind(int newVal) { kind_ = (newVal == KindRoom || newVal == KindEquipment) ? newVal : KindPerson; }
+      bool IsResource() const { return kind_ == KindRoom || kind_ == KindEquipment; }
+
       bool GetEnableSignature() const;
       void SetEnableSignature(bool bEnabled);
 
@@ -306,6 +325,7 @@ namespace HM
       bool openpgp_publish_;
       bool zero_access_;
       int restricted_delivery_;
+      int kind_;
       bool active_;
       bool is_ad_;
       bool vacation_message_is_on_;

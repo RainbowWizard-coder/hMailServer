@@ -64,6 +64,11 @@ namespace HM
       if (!pAccount || !pAccount->GetActive())
          return pEmpty;
 
+      // A room or a piece of equipment is administered and never signed
+      // into (Util/ResourceBooking.h): there is no logon to look it up for.
+      if (pAccount->IsResource())
+         return pEmpty;
+
       String sDomain = StringParser::ExtractDomain(sAccountAddress);
       std::shared_ptr<const Domain> pDomain = CacheContainer::Instance()->GetDomain(sDomain);
 
@@ -133,6 +138,11 @@ namespace HM
       if (!pAccount->GetActive())
          return pEmpty;
 
+      // Nor as the identity a logon acts as: a room is not signed into by
+      // way of somebody else's password either.
+      if (pAccount->IsResource())
+         return pEmpty;
+
       // Check that the domain is active as well.
 
       sDomain = StringParser::ExtractDomain(sAccountAddress);
@@ -157,6 +167,16 @@ namespace HM
          *matchedAppPasswordName = String();
       if (secondFactor)
          secondFactor->matched_recovery_code = 0;
+
+      // A room or a piece of equipment cannot be signed into, whatever the
+      // password - Exchange's resource mailbox is a disabled user for the same
+      // reason. It is administered, and its delegates answer for it from its
+      // calendar (Util/ResourceBooking.h, docs/RoomsAndEquipment.md). Before
+      // the script hook, so that no OnClientValidatePassword can let one in,
+      // and before any hash is spent on it; the refusal is the ordinary
+      // invalid-credentials one, as for an inactive account.
+      if (pAccount && pAccount->IsResource())
+         return false;
 
       // Let a script override the password validation
       auto eventResult = Events::FireOnClientValidatePassword(pAccount, sPassword);

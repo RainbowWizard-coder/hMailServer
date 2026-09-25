@@ -2316,6 +2316,44 @@ STDMETHODIMP InterfaceAccount::put_ExternalId(BSTR newVal)
    }
 }
 
+STDMETHODIMP InterfaceAccount::get_Kind(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = object_->GetKind();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAccount::put_Kind(long newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      // The same three values, in the same sentence, as kind on PUT
+      // /api/v1/accounts/{address}: 0 a person, 1 a room, 2 a piece of
+      // equipment (Common/Util/ResourceBooking.h).
+      if (newVal < HM::Account::KindPerson || newVal > HM::Account::KindEquipment)
+         return COMError::GenerateError("Kind must be 0 (a person), 1 (a room) or 2 (a piece of equipment).");
+
+      object_->SetKind((int) newVal);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 STDMETHODIMP InterfaceAccount::put_OpenPGPPublish(VARIANT_BOOL newVal)
 {
    try

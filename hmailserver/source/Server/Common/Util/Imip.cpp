@@ -28,6 +28,7 @@
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/MessageStore.h"
 #include "../Application/Logger.h"
+#include "ResourceBooking.h"
 
 namespace HM
 {
@@ -424,7 +425,8 @@ namespace HM
    }
 
    AnsiString
-   Imip::ReplyObject(const ImipMessage &invitation, const AnsiString &address, const AnsiString &name, const AnsiString &partstat, const AnsiString &sentBy)
+   Imip::ReplyObject(const ImipMessage &invitation, const AnsiString &address, const AnsiString &name, const AnsiString &partstat, const AnsiString &sentBy,
+                     const AnsiString &cutype)
    {
       ICalComponent reply;
       reply.name = "VCALENDAR";
@@ -474,6 +476,8 @@ namespace HM
       attendee.name = "ATTENDEE";
       if (!name.IsEmpty())
          attendee.parameters.push_back(std::make_pair(AnsiString("CN"), name));
+      if (!cutype.IsEmpty())
+         attendee.parameters.push_back(std::make_pair(AnsiString("CUTYPE"), cutype));
       attendee.parameters.push_back(std::make_pair(AnsiString("PARTSTAT"), partstat));
       if (!sentBy.IsEmpty())
          attendee.parameters.push_back(std::make_pair(AnsiString("SENT-BY"), "mailto:" + Lower(sentBy)));
@@ -664,36 +668,6 @@ namespace HM
          }
       }
 
-      // Whether one of the invitation's attendees is the account: its own
-      // address, an alias domain's spelling of it, or an account alias
-      // (hm_aliases, one step) that points at it - what RecipientParser
-      // resolves on the way in, read from the same caches. me is the account's
-      // address, lower-cased.
-      bool NamesAccount(const ImipMessage &message, const AnsiString &me)
-      {
-         std::shared_ptr<DomainAliases> domainAliases = ObjectCache::Instance()->GetDomainAliases();
-         for (size_t i = 0; i < message.attendees.size(); i++)
-         {
-            String address;
-            Unicode::MultiByteToWide(message.attendees[i].address, address);
-            String primary = domainAliases ? domainAliases->ApplyAliasesOnAddress(address) : address;
-            primary.ToLower();
-            if (Utf8Of(primary) == me)
-               return true;
-
-            std::shared_ptr<const Alias> alias = CacheContainer::Instance()->GetAlias(primary);
-            if (alias && alias->GetIsActive())
-            {
-               String value = alias->GetValue();
-               value = domainAliases ? domainAliases->ApplyAliasesOnAddress(value) : value;
-               value.ToLower();
-               if (Utf8Of(value) == me)
-                  return true;
-            }
-         }
-         return false;
-      }
-
       void MarkCancelled(ICalComponent &tree)
       {
          for (size_t i = 0; i < tree.children.size(); i++)
@@ -719,6 +693,38 @@ namespace HM
             }
          }
       }
+   }
+
+   bool
+   Imip::AttendeeFor(const ImipMessage &message, const AnsiString &me, ImipAttendee &attendee)
+   {
+      std::shared_ptr<DomainAliases> domainAliases = ObjectCache::Instance()->GetDomainAliases();
+      for (size_t i = 0; i < message.attendees.size(); i++)
+      {
+         String address;
+         Unicode::MultiByteToWide(message.attendees[i].address, address);
+         String primary = domainAliases ? domainAliases->ApplyAliasesOnAddress(address) : address;
+         primary.ToLower();
+         if (Utf8Of(primary) == me)
+         {
+            attendee = message.attendees[i];
+            return true;
+         }
+
+         std::shared_ptr<const Alias> alias = CacheContainer::Instance()->GetAlias(primary);
+         if (alias && alias->GetIsActive())
+         {
+            String value = alias->GetValue();
+            value = domainAliases ? domainAliases->ApplyAliasesOnAddress(value) : value;
+            value.ToLower();
+            if (Utf8Of(value) == me)
+            {
+               attendee = message.attendees[i];
+               return true;
+            }
+         }
+      }
+      return false;
    }
 
    bool
@@ -834,7 +840,7 @@ namespace HM
    }
 
    void
-   Imip::FileOnDelivery(std::shared_ptr<const Account> account, const String &fileName, bool spam)
+   Imip::FileOnDelivery(std::shared_ptr<const Account> account, const String &fileName, bool spam, std::shared_ptr<const Message> original)
    {
       try
       {
@@ -859,6 +865,17 @@ namespace HM
          String uid;
          Unicode::MultiByteToWide(message.uid, uid);
 
+         // A room or a piece of equipment takes a REQUEST and a CANCEL by its
+         // booking policy, decided after this delivery (ResourceBooking.h),
+         // and nothing else: it organises nothing, so a REPLY is nobody's to
+         // file in its calendar.
+         if (account->IsResource())
+         {
+            if (message.method == "REQUEST" || message.method == "CANCEL")
+               ResourceBooking::OnDelivery(account, message, fileName, original);
+            return;
+         }
+
          if (message.method == "REQUEST")
          {
             // An invitation, kept as it arrived in the default calendar of an
@@ -873,11 +890,13 @@ namespace HM
             // Only an invitation that names the account is the account's to
             // keep: a forwarded one, one to a list the account is in, and
             // anything sent to see what sticks name somebody else, or nobody.
-            if (!NamesAccount(message, meUtf8))
+            ImipAttendee attendee;
+            if (!AttendeeFor(message, meUtf8, attendee))
             {
                LOG_DEBUG("iMIP: a REQUEST for " + uid + " does not name " + account->GetAddress() + " as a guest and was not filed.");
                return;
             }
+
             CalendarRecord calendar;
             if (!CalendarStore::DefaultIfAny(account->GetID(), calendar))
                return;

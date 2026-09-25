@@ -218,8 +218,11 @@ namespace HM
       }
 
       message->SetSize((int) MessageStore::FileSize(fileName));
-      // The account's own submission (Message::FlagSubmittedBySignedInUser).
+      // The account's own submission (Message::FlagSubmittedBySignedInUser),
+      // and the account it is (Message::GetSubmitterAccountID): an invitation
+      // the page sends a room is the organiser's own (ResourceBooking.h).
       message->SetSubmittedBySignedInUser(true);
+      message->SetSubmitterAccountID(account->GetID());
       message->SetState(Message::Delivering);
       if (!PersistentMessage::SaveObject(message))
       {

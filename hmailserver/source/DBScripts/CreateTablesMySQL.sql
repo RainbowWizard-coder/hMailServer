@@ -54,6 +54,14 @@ drop table if exists hm_passkeys;
 
 drop table if exists hm_directory;
 
+drop table if exists hm_bookingpolicies;
+
+drop table if exists hm_bookinganswers;
+
+drop table if exists hm_bookingqueue;
+
+drop table if exists hm_bookingdecisions;
+
 drop table if exists hm_recoverable;
 
 drop table if exists hm_maskedaddresses;
@@ -227,7 +235,8 @@ create table hm_accounts
 	accountopenpgppublish int not null default 0,
 	accountzeroaccess int not null default 0,
 	accountrestricteddelivery int not null default 0,
-	accountexternalid varchar(255) not null default ''
+	accountexternalid varchar(255) not null default '',
+	accountkind int not null default 0
 ) DEFAULT CHARSET=utf8;
 
 CREATE INDEX idx_hm_accounts ON hm_accounts (accountaddress);
@@ -348,7 +357,9 @@ create table hm_messages
 	messagelocked tinyint not null,
    messageuid bigint not null,
    messagemodseq bigint not null default 1,
-   messagekeywords varchar(500) not null default ''
+   messagekeywords varchar(500) not null default '',
+   messagesubmitterid int not null default 0,
+   messageauthdomains varchar(255) not null default ''
 ) DEFAULT CHARSET=utf8;
 
 CREATE INDEX idx_hm_messages ON hm_messages (messageaccountid, messagefolderid);
@@ -811,6 +822,64 @@ create table hm_directory
 ) DEFAULT CHARSET=utf8;
 
 CREATE UNIQUE INDEX idx_hm_directory_account ON hm_directory (diraccountid);
+
+create table hm_bookingpolicies
+(
+	bpid int auto_increment not null, primary key(`bpid`), unique(`bpid`),
+	bpaccountid int not null,
+	bpautoaccept tinyint not null default 1,
+	bpwindowdays int not null default 180,
+	bpmaxminutes int not null default 1440,
+	bpworkinghoursonly tinyint not null default 0,
+	bpworkdays int not null default 31,
+	bpworkstart int not null default 480,
+	bpworkend int not null default 1020,
+	bptimezone varchar(64) not null default 'UTC',
+	bpallowconflicts tinyint not null default 0,
+	bpallowrecurring tinyint not null default 1,
+	bpbookers varchar(2000) not null default '',
+	bpcapacity int not null default 0
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE UNIQUE INDEX idx_hm_bookingpolicies_account ON hm_bookingpolicies (bpaccountid);
+
+create table hm_bookinganswers
+(
+	baid bigint auto_increment not null, primary key(`baid`), unique(`baid`),
+	baaccountid int not null,
+	baorganiser varchar(255) character set utf8mb4 collate utf8mb4_bin not null,
+	bawindow bigint not null,
+	baanswers int not null,
+	banoticed bigint not null
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE UNIQUE INDEX idx_hm_bookinganswers_account ON hm_bookinganswers (baaccountid, baorganiser);
+
+create table hm_bookingqueue
+(
+	bqid bigint auto_increment not null, primary key(`bqid`), unique(`bqid`),
+	bqaccountid int not null,
+	bqqueued bigint not null,
+	bqsender varchar(255) not null,
+	bqsubmitterid int not null,
+	bqauthdomains varchar(255) not null,
+	bqautosubmitted tinyint not null,
+	bqattempts int not null default 0,
+	bqcalendar mediumtext not null
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE INDEX idx_hm_bookingqueue_account ON hm_bookingqueue (bqaccountid, bqid);
+
+create table hm_bookingdecisions
+(
+	bdid bigint auto_increment not null, primary key(`bdid`), unique(`bdid`),
+	bdaccountid int not null,
+	bduid varchar(255) character set utf8mb4 collate utf8mb4_bin not null,
+	bdorganiser varchar(255) not null,
+	bddecided bigint not null
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE UNIQUE INDEX idx_hm_bookingdecisions_account ON hm_bookingdecisions (bdaccountid, bduid);
 
 create table hm_recoverable
 (
@@ -1957,6 +2026,14 @@ ALTER TABLE hm_passkeys ADD CONSTRAINT fk_hm_passkeys_account FOREIGN KEY (pkacc
 
 ALTER TABLE hm_directory ADD CONSTRAINT fk_hm_directory_account FOREIGN KEY (diraccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
+ALTER TABLE hm_bookingpolicies ADD CONSTRAINT fk_hm_bookingpolicies_account FOREIGN KEY (bpaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_bookinganswers ADD CONSTRAINT fk_hm_bookinganswers_account FOREIGN KEY (baaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_bookingqueue ADD CONSTRAINT fk_hm_bookingqueue_account FOREIGN KEY (bqaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+ALTER TABLE hm_bookingdecisions ADD CONSTRAINT fk_hm_bookingdecisions_account FOREIGN KEY (bdaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
 ALTER TABLE hm_confidential ADD CONSTRAINT fk_hm_confidential_account FOREIGN KEY (cfaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
 
 ALTER TABLE hm_dmarcreports ADD CONSTRAINT fk_hm_dmarcreports_domain FOREIGN KEY (drdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
@@ -3081,4 +3158,4 @@ ALTER TABLE hm_discoveryexports ENGINE=InnoDB;
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6100);
+insert into hm_dbversion values (6101);

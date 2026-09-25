@@ -99,6 +99,7 @@
 #include "../Util/AlertManager.h"
 #include "../Util/PushNotifier.h"
 #include "../Util/InboundWebhooks.h"
+#include "../Util/ResourceBooking.h"
 #include "../Util/WebhookManager.h"
 #include "DkimRotationTask.h"
 #include "ReputationWatchTask.h"
@@ -186,6 +187,11 @@ namespace HM
       // Start a random thread queue that can run different 
       // types of background tasks, such as backups etc.
       WorkQueueManager::Instance()->CreateWorkQueue(5, maintenance_queue_);
+
+      // The rooms' and equipment's decisions (Util/ResourceBooking.h): a queue
+      // of their own, so that a backlog for a room never holds a thread the
+      // SMTP finalisation or a backup waits for.
+      WorkQueueManager::Instance()->CreateWorkQueue(ResourceBooking::DrainThreads, ResourceBooking::WorkQueueName());
 
       // Language needed for COM API
       Languages::Instance()->Load();
@@ -403,6 +409,9 @@ namespace HM
 
       // Close work queue
       WorkQueueManager::Instance()->RemoveQueue(maintenance_queue_);
+
+      // What a room had not decided stays in hm_bookingqueue for the next start.
+      WorkQueueManager::Instance()->RemoveQueue(ResourceBooking::WorkQueueName());
 
       // Normally already gone: StopServers removes these while io_service_ is still
       // alive, which is the only ordering that is safe. Kept here as a backstop for

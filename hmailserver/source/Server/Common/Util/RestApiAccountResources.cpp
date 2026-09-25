@@ -1573,6 +1573,18 @@ namespace HM
          return route.kind != RouteUnknown;
       }
 
+      // /booking-policy: a room's or a piece of equipment's booking policy
+      // and its delegates. The handlers are in RestApiResourceBooking.cpp.
+      if (tail == "/booking-policy")
+      {
+         if (method == "GET")
+            route.kind = RouteAccountBookingPolicyGet;
+         else if (method == "PUT")
+            route.kind = RouteAccountBookingPolicyPut;
+
+         return route.kind != RouteUnknown;
+      }
+
       // /address-books and /address-books/<id>/shares/<target>: the shape of
       // an account's sharing, read by an administrator, and one share removed.
       // The handlers are in RestApiAddressBooks.cpp; the parsing is here

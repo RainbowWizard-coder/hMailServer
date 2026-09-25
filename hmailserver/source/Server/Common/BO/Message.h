@@ -208,6 +208,23 @@ namespace HM
             flags_ &= ~FlagSubmittedBySignedInUser;
       }
 
+      // Where the message came from, as the server itself saw it (schema 6101):
+      // what a room or a piece of equipment reads before it believes that the
+      // organiser an invitation names is who sent it (Util/ResourceBooking.h).
+      // Set by the server where it creates the message and never read from
+      // anything a sender wrote. The submitter is the account an authenticated
+      // session submitted it as - SMTP AUTH, and the webmail's own sends - or
+      // 0; the domains are what the inbound checks vouched for in mail from
+      // outside, "dmarc=example.com" (AuthenticationResults::PassedDomains),
+      // or empty. Persisted in hm_messages.messagesubmitterid and
+      // messageauthdomains on a queue row only (PersistentMessage::SaveObject),
+      // so that a delivery made after a restart still knows and a mailbox row
+      // never carries them.
+      __int64 GetSubmitterAccountID() const { return submitter_account_id_; }
+      void SetSubmitterAccountID(__int64 accountId) { submitter_account_id_ = accountId; }
+      String GetAuthDomains() const { return auth_domains_; }
+      void SetAuthDomains(const String &domains) { auth_domains_ = domains; }
+
       bool GetBinaryMime() const { return (flags_ & FlagBinaryMime) != 0; }
       void SetBinaryMime(bool bNewVal)
       {
@@ -278,6 +295,10 @@ namespace HM
       __int64 message_modseq_;
 
       __int64 copied_from_id_ = 0;
+
+      // See GetSubmitterAccountID.
+      __int64 submitter_account_id_ = 0;
+      String auth_domains_;
 
    private:
 

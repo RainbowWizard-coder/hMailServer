@@ -35,6 +35,7 @@
 #include "../Application/Configuration.h"
 #include "../Application/EffectiveSetting.h"
 #include "../Application/Constants.h"
+#include "../BO/Account.h"
 #include "Encoding/Base64.h"
 
 #ifdef _DEBUG
@@ -369,11 +370,15 @@ namespace HM
       // opted out is not in it either; the left join is what lets an account
       // with no row be listed at all.
       {
+         // A room or a piece of equipment is in the directory as what it is,
+         // with the seats its booking policy says (schema 6101,
+         // ResourceBooking.h): the one place a colleague looks for a room.
          SQLCommand command(
-            "select a.accountid, a.accountaddress, a.accountpersonfirstname, a.accountpersonlastname, "
+            "select a.accountid, a.accountaddress, a.accountpersonfirstname, a.accountpersonlastname, a.accountkind, "
             "d.dirtitle, d.dirdepartment, d.dirphone, d.dirmobile, d.diroffice, d.dirphototype, "
-            "d.diroptout, d.dirupdated "
+            "d.diroptout, d.dirupdated, b.bpcapacity "
             "from hm_accounts a left join hm_directory d on d.diraccountid = a.accountid "
+            "left join hm_bookingpolicies b on b.bpaccountid = a.accountid "
             "where a.accountdomainid = @DOMAINID and a.accountactive = 1");
          command.AddParameter("@DOMAINID", domainId);
 
@@ -389,6 +394,8 @@ namespace HM
             entry.address.ToLower();
             entry.name = NameOf(recordset->GetStringValue("accountpersonfirstname"),
                                 recordset->GetStringValue("accountpersonlastname"));
+            entry.kind = static_cast<int>(recordset->GetLongValue("accountkind"));
+            entry.capacity = static_cast<int>(recordset->GetLongValue("bpcapacity"));
 
             DirectoryRecord &record = entry.record;
             record.accountId = entry.id;
@@ -502,6 +509,14 @@ namespace HM
       else
       {
          card += VCard::Fold("N:" + VCard::Escape(family) + ";" + VCard::Escape(given) + ";;;") + "\r\n";
+
+         // A room or a piece of equipment says what it is, in RFC 6350's
+         // words (location, and RFC 6869's device), which a client that knows
+         // them shows apart from the people.
+         if (entry.kind == Account::KindRoom)
+            card += "KIND:location\r\n";
+         else if (entry.kind == Account::KindEquipment)
+            card += "KIND:device\r\n";
 
          const DirectoryRecord &record = entry.record;
          if (!record.title.IsEmpty())

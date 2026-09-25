@@ -11,8 +11,11 @@
 // module's own ceilings holding - and each instance is a busy period unless
 // the event is TRANSP:TRANSPARENT, STATUS:CANCELLED, or the account declined
 // it; it is tentative when the account's PARTSTAT on it is TENTATIVE or
-// NEEDS-ACTION. No title, location or description leaves this unit: a period
-// is two instants and a kind.
+// NEEDS-ACTION. A room's or a piece of equipment's calendar is read by the
+// rule its bookings are decided by (ResourceBooking.h): only STATUS:CANCELLED
+// frees a time, whatever the TRANSP and whatever PARTSTAT the request wrote.
+// No title, location or description leaves this unit: a period is two
+// instants and a kind.
 //
 // Not RFC 6638 scheduling: there is no schedule-outbox, no schedule-inbox
 // and no free-busy across servers. What is answered is what this server's
