@@ -35,6 +35,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "Mime.h"
 #include <stdlib.h>
 #include <time.h>
+#include <atomic>
+#include <chrono>
+#include <functional>
+#include <random>
+#include <thread>
 
 #include "../Util/ByteBuffer.h"
 #include "../Util/File.h"
@@ -798,18 +803,72 @@ namespace HM
          pfd->SetParameter(CMimeConst::Name(), pszName);
    }
 
+   // The generator MIME boundaries are drawn from: one per thread, so no state
+   // is shared between the threads that assemble mail, seeded once from the
+   // operating system's random source (std::random_device: rand_s, so
+   // RtlGenRandom, under MSVC; getrandom or the CPU's generator under
+   // libstdc++) rather than a device opened for every boundary. Should that
+   // source fail - std::random_device may throw where it has none - the seed is
+   // the clock, the thread and a process-wide count, which still gives every
+   // thread a sequence of its own.
+   static std::mt19937_64 &BoundaryGenerator_()
+   {
+      thread_local std::mt19937_64 generator = []() -> std::mt19937_64
+      {
+         try
+         {
+            std::random_device source;
+            std::seed_seq seed{ source(), source(), source(), source(), source(), source(), source(), source() };
+            return std::mt19937_64(seed);
+         }
+         catch (...)
+         {
+            static std::atomic<unsigned long long> fallbacks(0);
+            const unsigned long long now = (unsigned long long) std::chrono::high_resolution_clock::now().time_since_epoch().count();
+            const unsigned long long threadHash = (unsigned long long) std::hash<std::thread::id>()(std::this_thread::get_id());
+            std::seed_seq seed{ (unsigned int) now, (unsigned int) (now >> 32), (unsigned int) threadHash, (unsigned int) (threadHash >> 32), (unsigned int) fallbacks.fetch_add(1) };
+            return std::mt19937_64(seed);
+         }
+      }();
+
+      return generator;
+   }
+
    // set 'boundary' parameter (for multipart) of Content-Type field
    void MimeHeader::SetBoundary(const char* pszBoundary/*=NULL*/)
    {
-      static int s_nPartNumber = 0;
       char buf[80];
-      if (!pszBoundary)          // generate a new boundary delimeter
+      if (!pszBoundary)          // generate a new boundary delimiter
       {
-         unsigned __int64 value = (unsigned __int64)::time(NULL) ^ (unsigned __int64)this;
-         ::srand((unsigned int) value);
-         ::sprintf_s(buf, 80, "__=_Part_Boundary_%03d_%06d.%06d", ++s_nPartNumber, rand(), rand());
-         if (s_nPartNumber >= 9)
-            s_nPartNumber = 0;
+         // "__=_Part_Boundary_", a part number from 1 to 9 as three digits, and
+         // two six-digit numbers: 35 characters, every one of them a bchar of
+         // RFC 2046 section 5.1.1, and "=_", which quoted-printable never writes,
+         // so that no encoded body can contain the line. The shape is the one
+         // this has always written; what changed on 25 September 2026 is where
+         // the numbers come from.
+         //
+         // They were rand(), reseeded on every call from the time and this
+         // object's address. Two boundaries drawn in the same second by the same
+         // object - a message with nested multiparts built in a loop - were the
+         // same two numbers with only the part number between them; anyone who
+         // knew roughly when a message was built could guess its boundary and
+         // write the line into a part it wraps; and srand and rand are one
+         // shared state that every thread assembling mail reseeded at once, as
+         // the static part counter was one shared int. Now the numbers come from
+         // a generator of this thread's own, seeded once from the operating
+         // system's random source (BoundaryGenerator_), and each draw covers all
+         // six digits where rand() gave at most 32767. It is not OpenSSL's
+         // RAND_bytes or GUIDCreator, because the fuzz targets compile this file
+         // and link neither. The part counter is atomic.
+         static std::atomic<unsigned int> s_nPartNumber(0);
+         const int partNumber = (int) (s_nPartNumber.fetch_add(1) % 9) + 1;
+
+         std::mt19937_64 &generator = BoundaryGenerator_();
+         std::uniform_int_distribution<int> sixDigits(0, 999999);
+         const int first = sixDigits(generator);
+         const int second = sixDigits(generator);
+
+         ::sprintf_s(buf, 80, "__=_Part_Boundary_%03d_%06d.%06d", partNumber, first, second);
          pszBoundary = buf;
       }
 

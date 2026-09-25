@@ -48,6 +48,14 @@ namespace RegressionTests.Infrastructure
    ///      * TestAnArchiveFromANewerVersionIsRefused - the Version attribute has been
    ///        written into every archive since 2010 and nothing had ever read it.
    ///
+   ///      * TestAnArchiveWithAnEntryThatClimbsOutIsRefused, ...WithAnAbsoluteEntry...
+   ///        and ...WithALink... - archives crafted with the bundled 7za (rn, -spf)
+   ///        and a tar with a symbolic link. Each opened, and the restore handed
+   ///        every entry to the archiver to place as it saw fit; now the entries
+   ///        are listed first and the archive refused (HM7540). Each test opens
+   ///        the same archive without the entry first, so the refusal is the
+   ///        entry's.
+   ///
    ///      * TestSecondBackupSucceedsWithAStagingFolderAlreadyPresent - not a restore
    ///        at all. FileUtilities::CopyDirectory copies with the throwing overload of
    ///        boost::filesystem::copy_file and no copy_options, so a destination file
@@ -279,6 +287,151 @@ namespace RegressionTests.Infrastructure
          return archive;
       }
 
+      // Runs the bundled 7za - the archiver the restore itself runs - in a
+      // directory of this test's, and fails the test if it fails.
+      private void Run7Za(string arguments, string workingDirectory)
+      {
+         var startInfo = new ProcessStartInfo(Locate7Za(), arguments)
+         {
+            WorkingDirectory = workingDirectory,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+         };
+
+         using (var process = Process.Start(startInfo))
+         {
+            Assert.IsNotNull(process, "7za.exe could not be started.");
+
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+
+            Assert.AreEqual(0, process.ExitCode, "7za.exe " + arguments + " failed: " + output);
+         }
+      }
+
+      // The index of an archive this server would open and restore: Mode 11, as
+      // an archive taken with BackupMessages off says, and a version older than
+      // the running one. UTF-16 with a BOM, as the executer writes it.
+      private string WriteRestorableIndex(string stagingDirectory)
+      {
+         Directory.CreateDirectory(stagingDirectory);
+
+         string index = Paths.Combine(stagingDirectory, "hMailServerBackup.xml");
+
+         // settings-store-exempt: writes a crafted archive's backup index, not hMailServer.ini.
+         File.WriteAllText(index, "<Backup><BackupInformation Mode=\"11\" Version=\"6.0.0-B1\"/></Backup>", Encoding.Unicode);
+
+         return index;
+      }
+
+      // A 7z archive holding that index alone, built with the bundled 7za from a
+      // staging directory of its own. It opens: the tests below check that first,
+      // so that what refuses the archive afterwards is the entry they add to it.
+      private string CreateRestorableArchive(string name, out string stagingDirectory)
+      {
+         stagingDirectory = Paths.Combine(_backupDirectory, name + "-staging");
+         WriteRestorableIndex(stagingDirectory);
+
+         string archive = Paths.Combine(_backupDirectory, name + ".7z");
+         Run7Za("a \"" + archive + "\" hMailServerBackup.xml -t7z -mx1", stagingDirectory);
+
+         return archive;
+      }
+
+      // One ustar header: the fields a reader uses, octal numbers, the checksum
+      // over the header with its own field read as spaces.
+      private static byte[] TarHeader(string name, char type, long size, string linkName)
+      {
+         var header = new byte[512];
+
+         void Put(int offset, int length, string text)
+         {
+            byte[] bytes = Encoding.ASCII.GetBytes(text);
+            Array.Copy(bytes, 0, header, offset, Math.Min(bytes.Length, length));
+         }
+
+         Put(0, 100, name);
+         Put(100, 8, "0000777");
+         Put(108, 8, "0000000");
+         Put(116, 8, "0000000");
+         Put(124, 12, Convert.ToString(size, 8).PadLeft(11, '0'));
+         Put(136, 12, "00000000000");
+         Put(148, 8, "        ");
+         header[156] = (byte) type;
+         Put(157, 100, linkName ?? string.Empty);
+         Put(257, 6, "ustar");
+         Put(263, 2, "00");
+
+         int checksum = 0;
+         foreach (byte b in header)
+            checksum += b;
+
+         Put(148, 8, Convert.ToString(checksum, 8).PadLeft(6, '0') + "\0 ");
+         return header;
+      }
+
+      // A tar a restore can be pointed at like any archive - 7za opens tar as well
+      // as 7z - holding the index and, when linkTarget is given, a symbolic link
+      // beside it. Written by hand because a tar's link needs no privilege to
+      // make, where a Windows symbolic link to store in a 7z archive does.
+      private string CreateTarBackup(string name, string linkTarget)
+      {
+         string stagingDirectory = Paths.Combine(_backupDirectory, name + "-staging");
+         byte[] index = File.ReadAllBytes(WriteRestorableIndex(stagingDirectory));
+
+         string archive = Paths.Combine(_backupDirectory, name + ".tar");
+
+         using (var stream = File.Create(archive))
+         {
+            byte[] header = TarHeader("hMailServerBackup.xml", '0', index.Length, null);
+            stream.Write(header, 0, header.Length);
+            stream.Write(index, 0, index.Length);
+
+            int padding = (512 - index.Length % 512) % 512;
+            stream.Write(new byte[padding], 0, padding);
+
+            if (linkTarget != null)
+            {
+               header = TarHeader("DataBackup", '2', 0, linkTarget);
+               stream.Write(header, 0, header.Length);
+            }
+
+            stream.Write(new byte[1024], 0, 1024);
+         }
+
+         return archive;
+      }
+
+      // LoadBackup, which every restore begins with, refusing the archive: no
+      // Backup object, the reason in the backup log, and HM7540 in the ERROR log.
+      private void AssertArchiveIsRefused(string archive, string expectedInLog)
+      {
+         CustomAsserts.AssertDeleteFile(_application.Settings.Backup.LogFile);
+
+         // No assertion inside the try: Assert's own exception would be caught
+         // as the refusal (see TestATruncatedArchiveCannotBeOpened).
+         Exception thrown = null;
+         try
+         {
+            var backup = _application.BackupManager.LoadBackup(archive);
+            Console.WriteLine("LoadBackup returned an object for a crafted archive: " + backup);
+         }
+         catch (Exception e) when (!ExceptionPolicy.IsFatal(e))
+         {
+            thrown = e;
+         }
+
+         Assert.IsNotNull(thrown, archive + " should have been refused. Backup log: " + ReadBackupLog());
+
+         Assert.IsTrue(WaitForBackupLog(expectedInLog, 30),
+            "The backup log should name the entry the archive was refused for. Backup log: " + ReadBackupLog());
+
+         // Unlike an archive that cannot be read, which is an ordinary mistake, an
+         // archive built to write where a restore must not is reported.
+         CustomAsserts.AssertReportedError("HM7540", "Nothing was extracted from it");
+      }
+
       private void AssertTestDomainIsIntact(string accountAddress)
       {
          Assert.AreEqual(1, _application.Domains.Count,
@@ -502,6 +655,70 @@ namespace RegressionTests.Infrastructure
             "The backup log should say the archive is from a newer version. Backup log: " + ReadBackupLog());
 
          CustomAsserts.AssertNoReportedError();
+      }
+
+      [Test]
+      [Description("An archive with an entry named ..\\something is refused before anything in it is extracted.")]
+      public void TestAnArchiveWithAnEntryThatClimbsOutIsRefused()
+      {
+         string staging;
+         string archive = CreateRestorableArchive("climbing", out staging);
+
+         // The control: the same archive before the entry is added opens.
+         Assert.IsNotNull(_application.BackupManager.LoadBackup(archive),
+            "The archive holding only a sound index should have opened. Backup log: " + ReadBackupLog());
+
+         // What 7za rn makes: an entry whose stored name climbs out of wherever the
+         // archive is extracted - here, out of the restore's temporary directory
+         // into the server's temp directory itself.
+         string escapeName = "escaped-" + TestSetup.UniqueString() + ".txt";
+         // settings-store-exempt: writes a file to put in a crafted archive, not hMailServer.ini.
+         File.WriteAllText(Paths.Combine(staging, escapeName), "written outside the target");
+         Run7Za("a \"" + archive + "\" \"" + escapeName + "\" -t7z -mx1", staging);
+         Run7Za("rn \"" + archive + "\" \"" + escapeName + "\" \"..\\" + escapeName + "\"", staging);
+
+         string escaped = Paths.Combine(_application.Settings.Directories.TempDirectory, escapeName);
+
+         AssertArchiveIsRefused(archive, "..\\" + escapeName + " - a path that leads out of the directory it is extracted to");
+
+         Assert.IsFalse(File.Exists(escaped), escaped + " was written by a restore that was refused.");
+      }
+
+      [Test]
+      [Description("An archive with an entry stored under an absolute path is refused before anything in it is extracted.")]
+      public void TestAnArchiveWithAnAbsoluteEntryIsRefused()
+      {
+         string staging;
+         string archive = CreateRestorableArchive("absolute", out staging);
+
+         Assert.IsNotNull(_application.BackupManager.LoadBackup(archive),
+            "The archive holding only a sound index should have opened. Backup log: " + ReadBackupLog());
+
+         // What 7za -spf makes: the entry keeps its whole path, drive and all.
+         string absolute = Paths.Combine(staging, "absolute-" + TestSetup.UniqueString() + ".txt");
+         // settings-store-exempt: writes a file to put in a crafted archive, not hMailServer.ini.
+         File.WriteAllText(absolute, "stored under its full path");
+         Run7Za("a -spf \"" + archive + "\" \"" + absolute + "\" -t7z -mx1", staging);
+
+         // The file name and not the whole path: the temp directory's may be
+         // written in its short form on the bench, and 7za keeps what it was given.
+         AssertArchiveIsRefused(archive, Path.GetFileName(absolute) + " - a path that leads out of the directory it is extracted to");
+      }
+
+      [Test]
+      [Description("An archive holding a symbolic link is refused before anything in it is extracted.")]
+      public void TestAnArchiveWithALinkIsRefused()
+      {
+         // The control: a tar holding the index alone opens, so what refuses the
+         // second is its link and not its format.
+         Assert.IsNotNull(_application.BackupManager.LoadBackup(CreateTarBackup("unlinked", null)),
+            "A tar holding only a sound index should have opened. Backup log: " + ReadBackupLog());
+
+         // DataBackup as a link to the Windows directory: a restore that staged the
+         // message store through it would write the store's files there.
+         string archive = CreateTarBackup("linked", "C:/Windows");
+
+         AssertArchiveIsRefused(archive, "DataBackup - a link to C:/Windows");
       }
 
       [Test]

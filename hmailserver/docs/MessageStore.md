@@ -222,7 +222,7 @@ in the order listed. The stages:
 
 | Id | Stage | Parameters |
 |---|---|---|
-| 1 | deflate, zlib-wrapped so the Adler-32 is checked (the vendored zlib 1.3.1) | the level, one byte (6) |
+| 1 | deflate, zlib-wrapped so the Adler-32 is checked (the vendored zlib, 1.3.2) | the level, one byte (6) |
 | 2 | reserved for zstd | |
 | 3 | encryption to the account's key, *Mailbox encryption at rest* ([EncryptionAtRest.md](EncryptionAtRest.md)), always the last stage, run after compression. A container with it names no reference, and its SHA-256 field is 32 zeros | 93 bytes: the version (1), the account's X25519 public key, the ephemeral public key made for the file, the AES-256-GCM nonce and tag |
 

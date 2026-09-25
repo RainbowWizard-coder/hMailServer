@@ -726,178 +726,178 @@ namespace HM
       DateTime dt1 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt1.GetYear() != 2004 || dt1.GetMonth() != 4 || dt1.GetDay() != 5 ||
           dt1.GetHour() != 19 || dt1.GetMinute() != 42 || dt1.GetSecond() != 41)
-          throw;
+          HM_TEST_FAILED();
 
       sDate1 = "Tue, 19 Nov 2002 08:54:18 +0000";
       DateTime dt2 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt2.GetYear() != 2002 || dt2.GetMonth() != 11 || dt2.GetDay() != 19 ||
          dt2.GetHour() != 8 || dt2.GetMinute() != 54 || dt2.GetSecond() != 18)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "06 Oct 2005 08:10:26 GMT";
       DateTime dt3 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt3.GetYear() != 2005 || dt3.GetMonth() != 10 || dt3.GetDay() != 6 ||
          dt3.GetHour() != 8 || dt3.GetMinute() != 10 || dt3.GetSecond() != 26)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "Mon, 1 Sep 2003 21:58:23 +0200 (CEST)";
       DateTime dt4 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt4.GetYear() != 2003 || dt4.GetMonth() != 9 || dt4.GetDay() != 1 ||
          dt4.GetHour() != 19 || dt4.GetMinute() != 58 || dt4.GetSecond() != 23)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "Fri, 11 Feb 2005 10:47:55 +0100";
       DateTime dt5 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt5.GetYear() != 2005 || dt5.GetMonth() != 2 || dt5.GetDay() != 11 ||
          dt5.GetHour() != 9 || dt5.GetMinute() != 47 || dt5.GetSecond() != 55)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "Mon, 11 Jul 2005 19:10:32 +0200";
       DateTime dt6 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt6.GetYear() != 2005 || dt6.GetMonth() != 7 || dt6.GetDay() != 11 ||
          dt6.GetHour() != 17 || dt6.GetMinute() != 10 || dt6.GetSecond() != 32)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "11 Oct 2005 21:54:12 -0000";
       DateTime dt7 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt7.GetYear() != 2005 || dt7.GetMonth() != 10 || dt7.GetDay() != 11 ||
          dt7.GetHour() != 21 || dt7.GetMinute() != 54 || dt7.GetSecond() != 12)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "Thu, 8 Oct 1998 6:54:12 +0100";
       DateTime dt8 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt8.GetYear() != 1998 || dt8.GetMonth() != 10 || dt8.GetDay() != 8 ||
          dt8.GetHour() != 5 || dt8.GetMinute() != 54 || dt8.GetSecond() != 12)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "Mon, 23 Mar 1998 16:34:40 +0100";
       DateTime dt10 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt10.GetYear() != 1998 || dt10.GetMonth() != 3 || dt10.GetDay() != 23 ||
          dt10.GetHour() != 15 || dt10.GetMinute() != 34 || dt10.GetSecond() != 40)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "11 Oct 2005 21:54:12 -0000";
       DateTime dt11 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt11.GetYear() != 2005 || dt11.GetMonth() != 10 || dt11.GetDay() != 11 ||
          dt11.GetHour() != 21 || dt11.GetMinute() != 54 || dt11.GetSecond() != 12)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "Mon, 23 Mar 1998 16:34:40";
       DateTime dt12 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt12.GetYear() != 1998 || dt12.GetMonth() != 3 || dt12.GetDay() != 23 ||
          dt12.GetHour() != 16 || dt12.GetMinute() != 34 || dt12.GetSecond() != 40)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "23 Mar 1998 16:34:40";
       DateTime dt13 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt13.GetYear() != 1998 || dt13.GetMonth() != 3 || dt13.GetDay() != 23 ||
          dt13.GetHour() != 16 || dt13.GetMinute() != 34 || dt13.GetSecond() != 40)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "Fri, 1 Oct 99 08:01:24 +0300";
       DateTime dt14 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt14.GetYear() != 1999 || dt14.GetMonth() != 10 || dt14.GetDay() != 1 ||
          dt14.GetHour() != 5 || dt14.GetMinute() != 1 || dt14.GetSecond() != 24)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "Fri, 1 Oct 99 07:58:23 +0300";
       DateTime dt15 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt15.GetYear() != 1999 || dt15.GetMonth() != 10 || dt15.GetDay() != 1 ||
          dt15.GetHour() != 4 || dt15.GetMinute() != 58 || dt15.GetSecond() != 23)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "Mon, 25 Aug 03 18:31:06 +0200";
       DateTime dt16 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt16.GetYear() != 2003 || dt16.GetMonth() != 8 || dt16.GetDay() != 25 ||
          dt16.GetHour() != 16 || dt16.GetMinute() != 31 || dt16.GetSecond() != 06)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "Wed, 10 Jun 98 11:20:39 +0300";
       DateTime dt17 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt17.GetYear() != 1998 || dt17.GetMonth() != 6 || dt17.GetDay() != 10 ||
          dt17.GetHour() != 8 || dt17.GetMinute() != 20 || dt17.GetSecond() != 39)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "28 Oct 02 13:59:18 CET";
       DateTime dt18 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt18.GetYear() != 2002 || dt18.GetMonth() != 10 || dt18.GetDay() != 28 ||
          dt18.GetHour() != 12 || dt18.GetMinute() != 59 || dt18.GetSecond() != 18)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "Wed, 10 Jun 99 11:20:39 +0300";
       DateTime dt19 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt19.GetYear() != 1999 || dt19.GetMonth() != 6 || dt19.GetDay() != 10 ||
          dt19.GetHour() != 8 || dt19.GetMinute() != 20 || dt19.GetSecond() != 39)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "Wed, 10 Jun 00 11:20:39 +0300";
       DateTime dt20 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt20.GetYear() != 2000 || dt20.GetMonth() != 6 || dt20.GetDay() != 10 ||
          dt20.GetHour() != 8 || dt20.GetMinute() != 20 || dt20.GetSecond() != 39)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "Wed, 10 Jun 01 11:20:39 +0300";
       DateTime dt21 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt21.GetYear() != 2001 || dt21.GetMonth() != 6 || dt21.GetDay() != 10 ||
          dt21.GetHour() != 8 || dt21.GetMinute() != 20 || dt21.GetSecond() != 39)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "07 March 2005";
       DateTime dt22 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt22.GetYear() != 2005 || dt22.GetMonth() != 3 || dt22.GetDay() != 7 ||
          dt22.GetHour() != 0 || dt22.GetMinute() != 0 || dt22.GetSecond() != 0)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "07 Marcha 2005";
       DateTime dt23 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (dt23.status_ == DateTime::valid)
-         throw;
+         HM_TEST_FAILED();
 
 
       if (dt6 < dt5) // 2005-07 < 2005-02
-         throw;
+         HM_TEST_FAILED();
       if (dt5 > dt6 ) // 2005-02 > 2005-07 
-         throw;
+         HM_TEST_FAILED();
       if (dt1 < dt2 ) // 2004-04 > 2002-11
-         throw;
+         HM_TEST_FAILED();
       if (dt11 <  dt10) // 2005-10 < 1998-23
-         throw;
+         HM_TEST_FAILED();
 
       // Test some time stamps
       sDate1 = "11 Oct 2005 21:54:12 -0000";
       DateTime d1 = Time::GetDateFromMimeHeader(sDate1);
       if (d1.GetYear() != 2005 || d1.GetMonth() != 10 || d1.GetDay() != 11)
-         throw;
+         HM_TEST_FAILED();
 
       sDate1 = "Mon, 23 Mar 1998 16:34:40 +0100";
       DateTime d2 = Time::GetDateTimeFromMimeHeader(sDate1);
       if (d2.GetYear() != 1998 || d2.GetMonth() != 3 || d2.GetDay() != 23)
-         throw;
+         HM_TEST_FAILED();
 
       // Test that GetTimeAdjustForTimezone sets iMinutes for named timezones.
       // Initialize iMinutes to a non-zero sentinel to detect if it's left unset.
       int iHours = 99, iMinutes = 99;
       if (!Time::GetTimeAdjustForTimezone(_T("EST"), iHours, iMinutes))
-         throw;
+         HM_TEST_FAILED();
       if (iHours != 5 || iMinutes != 0)
-         throw;
+         HM_TEST_FAILED();
 
       iHours = 99; iMinutes = 99;
       if (!Time::GetTimeAdjustForTimezone(_T("GMT"), iHours, iMinutes))
-         throw;
+         HM_TEST_FAILED();
       if (iHours != 0 || iMinutes != 0)
-         throw;
+         HM_TEST_FAILED();
 
       iHours = 99; iMinutes = 99;
       if (!Time::GetTimeAdjustForTimezone(_T("CET"), iHours, iMinutes))
-         throw;
+         HM_TEST_FAILED();
       if (iHours != -1 || iMinutes != 0)
-         throw;
+         HM_TEST_FAILED();
 
       // GetInternalDateFromIMAPInternalDate. The well-formed form first, so the
       // cases below cannot pass by the function having stopped working.
       if (Time::GetInternalDateFromIMAPInternalDate(_T("30-Apr-2004 17:38:48 +0200")) != _T("2004-04-30 17:38:48"))
-         throw;
+         HM_TEST_FAILED();
 
       // A time with no seconds, and one with no time at all. Against the code
       // before this was fixed, both read one or two elements past the end of the
@@ -906,19 +906,19 @@ namespace HM
       // reachable from an IMAP APPEND, where the internal date is any quoted word
       // the client sends.
       if (Time::GetInternalDateFromIMAPInternalDate(_T("01-Jan-2020 12:30")) != _T("2020-01-01 12:30:00"))
-         throw;
+         HM_TEST_FAILED();
       if (Time::GetInternalDateFromIMAPInternalDate(_T("01-Jan-2020 12")) != _T("2020-01-01 12:00:00"))
-         throw;
+         HM_TEST_FAILED();
       if (Time::GetInternalDateFromIMAPInternalDate(_T("01-Jan-2020 +0000")) != _T("2020-01-01 00:00:00"))
-         throw;
+         HM_TEST_FAILED();
 
       // Still refused: a date that is not three dash-separated fields, and a value
       // with nothing after the date. Unchanged behaviour, pinned so the tolerance
       // added above does not quietly grow.
       if (Time::GetInternalDateFromIMAPInternalDate(_T("01-Jan 12:30:00")) != _T(""))
-         throw;
+         HM_TEST_FAILED();
       if (Time::GetInternalDateFromIMAPInternalDate(_T("01-Jan-2020")) != _T(""))
-         throw;
+         HM_TEST_FAILED();
 
       // A date that does not exist. Every one of these used to be formatted and
       // returned - "2020-01-01 99:99:99", or a month of 00 for a month name that
@@ -927,22 +927,22 @@ namespace HM
       // told OK for a message that acquired no row at all. "" makes the save
       // substitute the current time, which keeps the message.
       if (Time::GetInternalDateFromIMAPInternalDate(_T("01-Jan-2020 99:99:99")) != _T(""))
-         throw;
+         HM_TEST_FAILED();
       if (Time::GetInternalDateFromIMAPInternalDate(_T("01-Jan-2020 24:00:00")) != _T(""))
-         throw;
+         HM_TEST_FAILED();
       if (Time::GetInternalDateFromIMAPInternalDate(_T("01-Marcha-2020 10:00:00")) != _T(""))
-         throw;
+         HM_TEST_FAILED();
       if (Time::GetInternalDateFromIMAPInternalDate(_T("32-Jan-2020 10:00:00")) != _T(""))
-         throw;
+         HM_TEST_FAILED();
       if (Time::GetInternalDateFromIMAPInternalDate(_T("30-Feb-2020 10:00:00")) != _T(""))
-         throw;
+         HM_TEST_FAILED();
       if (Time::GetInternalDateFromIMAPInternalDate(_T("01-Jan-1700 10:00:00")) != _T(""))
-         throw;
+         HM_TEST_FAILED();
 
       // ...and a real leap day is still accepted, so the range check above is a
       // range check and not a blanket refusal.
       if (Time::GetInternalDateFromIMAPInternalDate(_T("29-Feb-2020 10:00:00")) != _T("2020-02-29 10:00:00"))
-         throw;
+         HM_TEST_FAILED();
 
       // The per-minute rate-limiter window is driven by time(0), and a clock that
       // steps backwards used to leave a bucket permanently at its ceiling. The
@@ -965,15 +965,15 @@ namespace HM
       // Ordinary behaviour first: two events fill a ceiling of two, and the third is
       // refused.
       if (!RateLimiter::Instance()->TryConsumeAt(key, 2, base))
-         throw;
+         HM_TEST_FAILED();
       if (!RateLimiter::Instance()->TryConsumeAt(key, 2, base))
-         throw;
+         HM_TEST_FAILED();
       if (RateLimiter::Instance()->TryConsumeAt(key, 2, base))
-         throw;
+         HM_TEST_FAILED();
 
       // Past the window, the bucket is free again.
       if (!RateLimiter::Instance()->TryConsumeAt(key, 2, base + 61))
-         throw;
+         HM_TEST_FAILED();
 
       RateLimiter::Instance()->Clear();
 
@@ -982,14 +982,14 @@ namespace HM
       // machine or a mis-set BIOS clock leaves behind once the time is put right.
       const time_t future = base + (24 * 3600);
       if (!RateLimiter::Instance()->TryConsumeAt(key, 2, future))
-         throw;
+         HM_TEST_FAILED();
       if (!RateLimiter::Instance()->TryConsumeAt(key, 2, future))
-         throw;
+         HM_TEST_FAILED();
 
       // At the corrected clock the bucket is still full, which is correct either way:
       // two events were recorded and nothing has aged out yet.
       if (RateLimiter::Instance()->TryConsumeAt(key, 2, base))
-         throw;
+         HM_TEST_FAILED();
 
       // This is the assertion that separates fixed from unfixed. A window later the
       // bucket must be usable again. Before the fix the two events kept their future
@@ -998,14 +998,14 @@ namespace HM
       // remote IP address or destination domain here, and unbounded for a clock that
       // had been set years ahead.
       if (!RateLimiter::Instance()->TryConsumeAt(key, 2, base + 61))
-         throw;
+         HM_TEST_FAILED();
 
       // ...and it is a working window again rather than simply open: the event above
       // still counts, one more fills it, and the next is refused.
       if (!RateLimiter::Instance()->TryConsumeAt(key, 2, base + 61))
-         throw;
+         HM_TEST_FAILED();
       if (RateLimiter::Instance()->TryConsumeAt(key, 2, base + 61))
-         throw;
+         HM_TEST_FAILED();
 
       RateLimiter::Instance()->Clear();
    }

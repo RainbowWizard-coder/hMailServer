@@ -201,84 +201,84 @@ namespace HM
    {
       // Single argument
       if (Formatter::Format(_T("{0}"), 25) != _T("25"))
-         throw;
+         HM_TEST_FAILED();
       
       // Argument sorting.
       if (Formatter::Format(_T("{0} {1}"), 25, 100) != _T("25 100"))
-         throw;
+         HM_TEST_FAILED();
 
       if (Formatter::Format(_T("{1} {0}"), 25, 100) != _T("100 25"))
-         throw;
+         HM_TEST_FAILED();
 
       // Ansi String parameters.
       if (Formatter::Format(_T("{0} {1}"), 25, "Test") != _T("25 Test"))
-         throw;
+         HM_TEST_FAILED();
 
       if (Formatter::Format(_T("{0}, {1}"), "String 1", "String 2") != _T("String 1, String 2"))
-         throw;
+         HM_TEST_FAILED();
 
       // Explicit ansi strings.
       if (Formatter::Format(_T("{0} {1}"), 25, AnsiString("Test")) != _T("25 Test"))
-         throw;
+         HM_TEST_FAILED();
 
       if (Formatter::Format(_T("{0}, {1}"), AnsiString("String 1"), AnsiString("String 2")) != _T("String 1, String 2"))
-         throw;
+         HM_TEST_FAILED();
 
       // Unicode strings
       if (Formatter::Format(_T("{0} {1}"), 25, _T("Test")) != _T("25 Test"))
-         throw;
+         HM_TEST_FAILED();
 
       if (Formatter::Format(_T("{0}, {1}"), _T("String 1"), _T("String 2")) != _T("String 1, String 2"))
-         throw;
+         HM_TEST_FAILED();
 
       // Explicit unicode strings
       if (Formatter::Format(_T("{0} {1}"), 25, String("Test")) != _T("25 Test"))
-         throw;
+         HM_TEST_FAILED();
 
       if (Formatter::Format(_T("{0}, {1}"), String("String 1"), String("String 2")) != _T("String 1, String 2"))
-         throw;
+         HM_TEST_FAILED();
 
       // Invalid format strings. These are only tested in debug mode since
       // format string validation isn't made in release for performance reasons.
 #ifdef DEBUG
 
       if (Formatter::Format(_T("{0"), "Test") != _T(""))
-         throw;
+         HM_TEST_FAILED();
 
       if (Formatter::Format(_T("}"), "Test") != _T(""))
-         throw;
+         HM_TEST_FAILED();
 
       if (Formatter::Format(_T("{0}, {1}"), "Test") != _T(""))
-         throw;
+         HM_TEST_FAILED();
 #endif
 
       // Large numeric values.
       if (Formatter::Format(_T("{0}"), INT_MAX) != _T("2147483647"))
-         throw;
+         HM_TEST_FAILED();
 
       if (Formatter::Format(_T("{0}"), UINT_MAX) != _T("4294967295"))
-         throw;
+         HM_TEST_FAILED();
 
       // UINT64 max. Suffixed, because a literal too large for a long long is an
       // unsigned long long on MSVC and an __int128 on GCC, and the second matches
       // no FormatArgument constructor better than any other.
       if (Formatter::Format(_T("{0}"), 18446744073709551614ULL) != _T("18446744073709551614"))
-         throw;
+         HM_TEST_FAILED();
 
       // INT64 max. The LL suffix is what keeps this an __int64 everywhere: on Windows
       // a long is 32 bits, so the unsuffixed literal was already a long long, but on
       // an LP64 build it fits in a long - and long is not one of FormatArgument's
       // constructor types and is no closer to one of them than to the others.
       if (Formatter::Format(_T("{0}"), 9223372036854775807LL) != _T("9223372036854775807"))
-         throw;
+         HM_TEST_FAILED();
 
       // Max parameter count.
       if (Formatter::Format(_T("{0}, {1}, {2}, {3}"), "Test", 1, _T("Test"), 0xff) != _T("Test, 1, Test, 255"))
-         throw;
+         HM_TEST_FAILED();
 
       // Boolean
       if (Formatter::Format(_T("{0} {1}"), true, false) != _T("True False"))
-         throw;
+         HM_TEST_FAILED();
 
    }
 }

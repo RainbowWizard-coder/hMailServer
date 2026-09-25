@@ -151,6 +151,11 @@
 // same semantics: live under -Asserts, nothing otherwise.
 #define HM_ASSERT(exp) ASSERT(exp)
 
+// The server's failed-check macro (StdAfx.h HM_TEST_FAILED), because
+// StringParser.cpp is compiled whole and its tester uses it. Never reached from
+// a fuzz target: nothing here calls StringParserTester.
+#define HM_TEST_FAILED() throw std::logic_error(std::string("a check failed at line ") + std::to_string(__LINE__) + " of " + __FILE__)
+
 // HM::String / HM::AnsiString and the TCHAR plumbing. Real header, unmodified.
 #include "Util/StdString.h"
 

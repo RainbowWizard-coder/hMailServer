@@ -1,0 +1,31 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# The Python packages a script under build/ imports beyond the standard library,
+# by hand-chosen version: the versions those scripts were last run with. Nothing
+# the build or the checkers need is here - they use the standard library alone -
+# and none of these is installed by any job:
+#
+#   PyYAML      build/check-package-manifests.py (the winget manifests) and
+#               hmailserver/source/Server/SMTP/SPF/Conformance/Generate-SPFConformanceSuite.py
+#   jsonschema  build/check-package-manifests.py (the winget schemas)
+#   playwright  build/readme-shots/shots.py (the README's webmail screenshots),
+#               which then needs its browser: python -m playwright install chromium
+#
+# build/requirements-dev.txt is made from this file, with every package they pull
+# in pinned and every file's SHA-256, as build/ci/requirements.txt is for the
+# scanners; install from it with
+#
+#   python -m pip install --require-hashes -r build/requirements-dev.txt
+#
+# To move a version, change it here and regenerate the pinned file (uv, from
+# PyPI; --universal so that one file holds for Windows and Linux alike):
+#
+#   uv pip compile --universal --generate-hashes --python-version 3.13 \
+#       --output-file build/requirements-dev.txt build/requirements-dev.in
+#
+# then put this file's three header lines back at the top of the output.
+PyYAML==6.0.3
+jsonschema==4.26.0
+playwright==1.61.0

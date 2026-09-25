@@ -327,7 +327,7 @@ namespace HM
          if (vecResult.size() != 2)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          // Go to the second and check that it's right...
@@ -337,19 +337,19 @@ namespace HM
          if ((*iterFirst)->sPersonalName != _T("Test2 Testar"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if ((*iterFirst)->sMailboxName != _T("testa"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if ((*iterFirst)->sDomainName != _T("testy.com"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
 
@@ -367,7 +367,7 @@ namespace HM
          if (vecResult.size() != 2)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          // Go to the second and check that it's right...
@@ -377,19 +377,19 @@ namespace HM
          if ((*iterFirst)->sPersonalName != _T("Test2 Testar"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if ((*iterFirst)->sMailboxName != _T("testa"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if ((*iterFirst)->sDomainName != _T("testy.com"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
 
@@ -407,7 +407,7 @@ namespace HM
          if (vecResult.size() != 2)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          // Go to the second and check that it's right...
@@ -416,19 +416,19 @@ namespace HM
          if ((*iterFirst)->sPersonalName != _T("Christopher Holloway"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if ((*iterFirst)->sMailboxName != _T("chris"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if ((*iterFirst)->sDomainName != _T("example.test"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          iterFirst++;
@@ -436,19 +436,19 @@ namespace HM
          if ((*iterFirst)->sPersonalName != _T("Test2 Testar"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if ((*iterFirst)->sMailboxName != _T("testa"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if ((*iterFirst)->sDomainName != _T("testy.com"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
 
@@ -466,7 +466,7 @@ namespace HM
          if (vecResult.size() != 2)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          // Go to the second and check that it's right...
@@ -475,19 +475,19 @@ namespace HM
          if ((*iterFirst)->sPersonalName != _T("ChristopherHolloway"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if ((*iterFirst)->sMailboxName != _T("chris"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if ((*iterFirst)->sDomainName != _T("example.test"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          iterFirst++;
@@ -495,19 +495,19 @@ namespace HM
          if ((*iterFirst)->sPersonalName != _T("EyyAo"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if ((*iterFirst)->sMailboxName != _T("testa"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if ((*iterFirst)->sDomainName != _T("testy.com"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
 
@@ -522,16 +522,16 @@ namespace HM
          if (vecResult.size() != 1)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          auto iterFirst = vecResult.begin();
 
          if ((*iterFirst)->sMailboxName != _T("webmaster"))
-            throw;
+            HM_TEST_FAILED();
 
          if ((*iterFirst)->sDomainName != _T("phiphi.org"))
-            throw;
+            HM_TEST_FAILED();
 
          delete pParser;
       }
@@ -548,7 +548,7 @@ namespace HM
          if (vecResult.size() != 5)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          // Go to the second and check that it's right...
@@ -562,19 +562,19 @@ namespace HM
          if ((*iterFirst)->sPersonalName != _T("Kalle"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if ((*iterFirst)->sMailboxName != _T(""))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if ((*iterFirst)->sDomainName != _T(""))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          delete pParser;
@@ -593,7 +593,7 @@ namespace HM
       if (vecResult.size() != 1)
       {
          HM_ASSERT(0);
-         throw;
+         HM_TEST_FAILED();
       }
 
       auto iterFirst = vecResult.begin();
@@ -601,19 +601,19 @@ namespace HM
       if ((*iterFirst)->sPersonalName != sFullname)
       {
          HM_ASSERT(0);
-         throw;
+         HM_TEST_FAILED();
       }
 
       if ((*iterFirst)->sMailboxName != sUser)
       {
          HM_ASSERT(0);
-         throw;
+         HM_TEST_FAILED();
       }
 
       if ((*iterFirst)->sDomainName != sDomain)
       {
          HM_ASSERT(0);
-         throw;
+         HM_TEST_FAILED();
       }
 
       delete pParser;

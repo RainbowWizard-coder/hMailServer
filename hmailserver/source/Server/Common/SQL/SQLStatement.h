@@ -32,14 +32,17 @@ namespace HM
       };
 
 
+      // Every AddColumn fills in the fields its kind of column uses and copies the
+      // rest as they stand, so the rest start at a value: a string column's iInt
+      // was copied uninitialised (the security scan of 25 September 2026).
       struct Column
       {
          String sName;
          
          String sString;
-         __int64 iInt;
+         __int64 iInt = 0;
 
-         eColType iType;
+         eColType iType = ColTypeUnknown;
       };
 
       SQLStatement();
@@ -128,6 +131,7 @@ namespace HM
       void TestUnknownTokensAreLeftAlone_();
       void TestRepeatedAndCaseSensitiveTokens_();
       void TestGeneratedNamesDoNotCollide_();
+      void TestColumnStartsEmpty_();
 
       static void AssertQuery_(const SQLCommand &command, const String &expected);
    };

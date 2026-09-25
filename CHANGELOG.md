@@ -26,7 +26,8 @@ One release is not a version of the server and has no section here:
 holds the three third-party files the Windows installer build downloads instead of keeping them in git - the
 7-Zip 19.00 console, the MariaDB Connector/C 3.4.9 client and the SQL Server Compact 4.0 SP1 x64 runtime. Each is
 recorded by SHA-256 in `hmailserver/docs/third-party-binaries.json` and fetched by
-`build/get-installer-binaries.ps1`.
+`build/get-installer-binaries.ps1`. Since 25 September 2026 the 7-Zip console is 26.03, fetched from 7-zip.org itself, and
+the release's 7-Zip 19.00 is no longer used.
 
 ## How to read a section
 

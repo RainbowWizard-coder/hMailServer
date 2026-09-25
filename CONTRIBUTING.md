@@ -403,7 +403,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-mnemonics.py` | Every static Control Panel caption has an Alt-key mnemonic, with no clash on one screen | `--list` |
 | `check-mysql-charset.py` | Every MySQL table is `utf8mb4` under `utf8mb4_general_ci`, InnoDB and DYNAMIC: every CREATE TABLE in the create script and in the upgrade scripts from 6102 on, the 6102 step's conversion of every table, the index lengths at four bytes a character, and the table and database the server creates itself | `--self-test` |
 | `check-openapi-blocks.py` | Exactly one comma between the OpenAPI path blocks | |
-| `check-package-manifests.py` | The winget and Chocolatey manifests against their schemas | Needs the `jsonschema` and `pyyaml` packages and manifests rendered by `build/make-package-manifests.ps1`, and checks that the installer URL is a release asset on GitHub. Not usable until the release host moves |
+| `check-package-manifests.py` | The winget and Chocolatey manifests against their schemas | Needs the `jsonschema` and `pyyaml` packages (pinned with their hashes in `build/requirements-dev.txt`) and manifests rendered by `build/make-package-manifests.ps1`, and checks that the installer URL is a release asset on GitHub. Not usable until the release host moves |
 | `check-password-choice-sites.py` | Every place a password is chosen asks the policy and the breach check | `--self-test` |
 | `check-portal-languages.py` | The webmail's catalogues against its page, and `PortalLanguagesData.cpp` equal to what the generator writes | `--keys`, `--print` |
 | `check-portal-script.py` | Runs the webmail's script against a small DOM and a stubbed API | Needs `node`; `--no-node` runs the static checks only |

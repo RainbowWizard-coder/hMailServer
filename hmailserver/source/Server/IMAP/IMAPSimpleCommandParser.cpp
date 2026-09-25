@@ -398,13 +398,13 @@ namespace HM
          if (pParser->WordCount() != 3)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          if (pParser->Word(1)->Value() != _T("PARAM1") || pParser->Word(2)->Value() != _T("PARAM2"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          delete pParser;
@@ -420,13 +420,13 @@ namespace HM
          if (pParser->WordCount() != 3)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
         
          if (pParser->Word(1)->Value() != _T("PARAM1") || pParser->Word(2)->Value() != _T("PARAM2"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          delete pParser;
@@ -443,13 +443,13 @@ namespace HM
          if (pParser->WordCount() != 3)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
         
          if (pParser->Word(1)->Value() != _T("PARAM1") || pParser->Word(2)->Value() != _T("PARAM2"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          delete pParser;
@@ -465,13 +465,13 @@ namespace HM
          if (pParser->WordCount() != 3)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
         
          if (pParser->Word(1)->Value() != _T("PARAM1") || pParser->Word(2)->Value() != _T("PARAM2"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          delete pParser;
@@ -487,13 +487,13 @@ namespace HM
          if (pParser->WordCount() != 2)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
         
          if (pParser->Word(1)->Value() != _T("PARAM1"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          delete pParser;
@@ -509,13 +509,13 @@ namespace HM
          if (pParser->WordCount() != 2)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
         
          if (pParser->Word(1)->Value() != _T("PARAMTEST"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          delete pParser;
@@ -531,13 +531,13 @@ namespace HM
          if (pParser->WordCount() != 3)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
         
          if (pParser->Word(2)->Value() != _T("I AM SICK"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          delete pParser;
@@ -553,13 +553,13 @@ namespace HM
          if (pParser->WordCount() != 2)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
         
          if (pParser->Word(1)->Value() != _T("INBOX*"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          delete pParser;
@@ -576,13 +576,13 @@ namespace HM
          if (pParser->WordCount() != 2)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
         
          if (pParser->Word(1)->Value() != _T("INBOX.\"Hej\""))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          delete pParser;
@@ -599,13 +599,13 @@ namespace HM
          if (pParser->WordCount() != 2)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
         
          if (pParser->Word(1)->Value() != _T("INBOX.\""))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          delete pParser;
@@ -621,7 +621,7 @@ namespace HM
          if (pParser->WordCount() != 0)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          
@@ -639,13 +639,13 @@ namespace HM
          if (pParser->WordCount() != 2)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
         
          if (pParser->Word(1)->Value() != _T("TEST"))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          delete pParser;
@@ -662,13 +662,13 @@ namespace HM
          if (pParser->WordCount() != 2)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
         
          if (pParser->Word(1)->Value() != _T("\"TEST\""))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          delete pParser;
@@ -685,13 +685,13 @@ namespace HM
          if (pParser->WordCount() != 2)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
         
          if (pParser->Word(1)->Value() != _T("\"TE\"()\"ST\""))
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
          
          delete pParser;
@@ -707,7 +707,7 @@ namespace HM
          if (pParser->WordCount() != 0)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          
@@ -725,7 +725,7 @@ namespace HM
          if (pParser->WordCount() != 0)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
          
@@ -743,7 +743,7 @@ namespace HM
          if (pParser->WordCount() != 2)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
 
 

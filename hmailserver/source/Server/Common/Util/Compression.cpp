@@ -12,6 +12,9 @@
 #include <boost/filesystem.hpp>
 
 #include <fstream>
+#include <set>
+#include <sstream>
+#include <string>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -23,7 +26,8 @@ namespace HM
 
    Compression::Compression() :
       maximum_run_time_ms_(0),
-      last_run_timed_out_(false)
+      last_run_timed_out_(false),
+      last_run_output_failed_(false)
    {
       
    }
@@ -198,6 +202,7 @@ namespace HM
    //
    // Checked against 7za 19.00: an archive written with -p -mhe=on has a 62-byte
    // encoded header carrying that id, and one written without has a plain header.
+   // Checked again against 26.03 on 25 September 2026: the same 62 bytes and id.
    // Anything that cannot be read as an archive at all - no file, no signature, a
    // next header past the end of a truncated file - is EncryptionUnknown, and the
    // caller then lets 7-Zip say what is wrong with it, as before.
@@ -278,16 +283,374 @@ namespace HM
       }
    }
 
+   namespace
+   {
+      // A POSIX mode as 7-Zip prints it, "lrwxrwxrwx", of a symbolic link: the
+      // type letter first (kPosixTypes, where l is a link and no other type is),
+      // then the nine permission letters.
+      bool IsLinkMode_(const std::string &token)
+      {
+         if (token.size() != 10 || token[0] != 'l')
+            return false;
+
+         const std::string permissions = "-rwxsStT";
+
+         for (size_t i = 1; i < token.size(); i++)
+         {
+            if (permissions.find(token[i]) == std::string::npos)
+               return false;
+         }
+
+         return true;
+      }
+
+      // The value of an "Attributes = " line: 7-Zip's Windows attribute letters,
+      // where L - and only L, of every letter it prints - is a reparse point, a
+      // symbolic link or a junction among them ("DL" for a directory); then, for
+      // an entry that carries one, a space and its POSIX mode, which p7zip 16.02
+      // prints too ("A_ lrwxrwxrwx", "_ lrwxrwxrwx" for a zip's, measured on
+      // 25 September 2026). The POSIX mode has no L, only the l that starts a
+      // link's.
+      bool HasReparseLetter_(const std::string &value)
+      {
+         const std::string letters = value.substr(0, value.find(' '));
+         return letters.find('L') != std::string::npos;
+      }
+
+      // A POSIX link mode anywhere in the value of an "Attributes = " line, or of
+      // a "Mode = " line (a tar entry's mode alone).
+      bool HasPosixLinkMode_(const std::string &value)
+      {
+         std::istringstream tokens(value);
+         std::string token;
+
+         while (tokens >> token)
+         {
+            if (IsLinkMode_(token))
+               return true;
+         }
+
+         return false;
+      }
+
+      bool ListingProperty_(const std::string &line, const char *name, std::string &value)
+      {
+         const std::string prefix = std::string(name) + " = ";
+
+         if (line.compare(0, prefix.size(), prefix) != 0)
+            return false;
+
+         value = line.substr(prefix.size());
+         return true;
+      }
+
+      // A "Size = " value, when it is a number.
+      bool ListingSize_(const std::string &value, unsigned long long &size)
+      {
+         if (value.empty() || value.size() > 19)
+            return false;
+
+         size = 0;
+
+         for (size_t i = 0; i < value.size(); i++)
+         {
+            if (value[i] < '0' || value[i] > '9')
+               return false;
+
+            size = size * 10 + (unsigned long long) (value[i] - '0');
+         }
+
+         return true;
+      }
+   }
+
    bool
-   Compression::LaunchCommand_(const String &commandLine, const String &passphrase)
+   Compression::IsUnsafeEntryPath(const AnsiString &path)
+   {
+      const std::string text(path.c_str());
+
+      if (text.empty())
+         return false;
+
+      // From the root: a leading separator, which is also how a UNC path
+      // (\\server\share) and a Win32 device path (\\?\C:\...) begin.
+      if (text[0] == '/' || text[0] == '\\')
+         return true;
+
+      // A drive, with a separator after it or not: "C:x" is relative to that
+      // drive's current directory, which is no nearer the target.
+      const char drive = text[0];
+      if (text.size() >= 2 && text[1] == ':' && ((drive >= 'A' && drive <= 'Z') || (drive >= 'a' && drive <= 'z')))
+         return true;
+
+      // Each segment, between either separator: 7-Zip prints \ on Windows and
+      // p7zip / on Linux. ".." climbs out, and so may any segment of nothing but
+      // dots and spaces with two dots or more, because Windows drops the trailing
+      // dots and spaces of a name. No backup this server writes has either.
+      size_t start = 0;
+
+      while (start <= text.size())
+      {
+         size_t end = text.find_first_of("/\\", start);
+         if (end == std::string::npos)
+            end = text.size();
+
+         size_t dots = 0;
+         bool onlyDotsAndSpaces = end > start;
+
+         for (size_t i = start; i < end; i++)
+         {
+            if (text[i] == '.')
+               dots++;
+            else if (text[i] != ' ')
+            {
+               onlyDotsAndSpaces = false;
+               break;
+            }
+         }
+
+         if (onlyDotsAndSpaces && dots >= 2)
+            return true;
+
+         start = end + 1;
+      }
+
+      return false;
+   }
+
+   bool
+   Compression::FindUnsafeEntry(std::istream &listing, AnsiString &unsafeEntry)
+   {
+      unsafeEntry = "";
+
+      bool inEntries = false;
+      bool haveEntry = false;
+      std::string line;
+
+      // What is known of the entry being read: its lines come one property each,
+      // from its "Path = " line to the next entry's.
+      std::string path;
+      std::string reparseAttribute;
+      std::string posixLink;
+      bool haveSize = false;
+      unsigned long long size = 0;
+      std::set<std::string> properties;
+
+      // A link is refused when it has a target to link to, and a link's target
+      // is its data. A POSIX link (a mode starting l) is refused whenever it has
+      // any: p7zip writes the entry out as a file and then makes a link of its
+      // first line (convert_to_symlink), so "/etc" padded to any length with
+      // NULs is a link to /etc - measured with p7zip 16.02 on 25 September 2026.
+      // A Windows reparse point (L) is refused when its data is under 16 KiB,
+      // the most a reparse buffer can be (MAXIMUM_REPARSE_DATA_BUFFER_SIZE);
+      // 7-Zip makes one of nothing longer. With no data there is nothing to link
+      // to: 7za 19.00, archiving a store that holds a junction, followed it and
+      // kept the reparse bit on the directory it stored, which lists as "DL"
+      // with "Size = 0" - an archive to restore, not to refuse. At 16 KiB or more
+      // a reparse bit is on a file's content (a deduplicated or tiered file keeps
+      // it). With no size in the listing at all, either is refused.
+      auto linkWithTarget = [&]() -> std::string
+      {
+         if (!posixLink.empty() && (!haveSize || size > 0))
+            return posixLink;
+
+         if (!reparseAttribute.empty() && (!haveSize || (size > 0 && size < 16384)))
+            return reparseAttribute;
+
+         return std::string();
+      };
+
+      while (std::getline(listing, line))
+      {
+         if (!line.empty() && line[line.size() - 1] == '\r')
+            line.erase(line.size() - 1);
+
+         if (!inEntries)
+         {
+            // The archive's own block comes first - its path, which is wherever
+            // the administrator keeps it and so usually absolute, its type and
+            // its size - and ends at this line. Every line after it is an entry's.
+            if (line == "----------")
+               inEntries = true;
+
+            continue;
+         }
+
+         std::string value;
+         std::string problem;
+
+         // What only an archive can have written into the listing. p7zip 16.02
+         // prints a name or a comment as it is, newlines and all (measured: a zip
+         // entry's comment "x\nSize = 65536" printed a second Size line), so a
+         // property that comes twice in one entry, or a value on several lines -
+         // a line starting "{" or a value that is "{" - is a listing that cannot
+         // be read one way only. No backup of this server's has either.
+         const size_t equals = line.find(" = ");
+         const std::string name = equals == std::string::npos ? std::string() : line.substr(0, equals);
+
+         if (!line.empty() && line[0] == '{')
+            problem = "a listing with a value on several lines, which only the archive can have put there";
+         else if (!name.empty() && line.compare(equals + 3, std::string::npos, "{") == 0)
+            problem = "a listing whose " + name + " is on several lines, which only the archive can have put there";
+         else if (haveEntry && !name.empty() && name != "Path" && !properties.insert(name).second)
+            problem = "a listing with two " + name + " lines for one entry, which only the archive can have put there";
+         else if (ListingProperty_(line, "Path", value))
+         {
+            // The entry before this one is complete.
+            const std::string link = haveEntry ? linkWithTarget() : std::string();
+
+            if (!link.empty())
+            {
+               unsafeEntry = AnsiString((path + " - a link (" + link + ")").c_str());
+               return true;
+            }
+
+            haveEntry = true;
+            path = value;
+            reparseAttribute.clear();
+            posixLink.clear();
+            haveSize = false;
+            size = 0;
+            properties.clear();
+
+            if (IsUnsafeEntryPath(AnsiString(value.c_str())))
+               problem = "a path that leads out of the directory it is extracted to";
+         }
+         else if (ListingProperty_(line, "Size", value))
+         {
+            haveSize = ListingSize_(value, size);
+         }
+         else if (ListingProperty_(line, "Attributes", value))
+         {
+            if (HasReparseLetter_(value))
+               reparseAttribute = "Attributes = " + value;
+
+            if (HasPosixLinkMode_(value))
+               posixLink = "Attributes = " + value;
+         }
+         else if (ListingProperty_(line, "Mode", value) || ListingProperty_(line, "Posix Attributes", value))
+         {
+            if (HasPosixLinkMode_(value))
+               posixLink = "mode " + value;
+         }
+         else if (ListingProperty_(line, "Symbolic Link", value) || ListingProperty_(line, "Hard Link", value) ||
+                  ListingProperty_(line, "Copy Link", value) || ListingProperty_(line, "Link", value))
+         {
+            // Named outright (a tar's link, whose target is in its header rather
+            // than its data), so refused whatever its size.
+            if (!value.empty())
+               problem = "a link to " + value;
+         }
+
+         if (!problem.empty())
+         {
+            // One is enough: the archive is refused whole at the first, and the
+            // administrator is told which.
+            unsafeEntry = AnsiString((path + " - " + problem).c_str());
+            return true;
+         }
+      }
+
+      const std::string link = haveEntry ? linkWithTarget() : std::string();
+
+      if (!link.empty())
+      {
+         unsafeEntry = AnsiString((path + " - a link (" + link + ")").c_str());
+         return true;
+      }
+
+      return false;
+   }
+
+   Compression::EntryCheck
+   Compression::CheckEntries(const String &zipFile, const String &scratchDirectory, const String &passphrase, String &unsafeEntry)
+   {
+      unsafeEntry.Empty();
+
+      const String listingFile = FileUtilities::Combine(scratchDirectory, _T("hMailServer-entries.txt"));
+
+      // l -slt: every property of every entry, one "Name = value" line each,
+      // which is what FindUnsafeEntry reads; the plain listing's attribute column
+      // has no room for a link. -sccUTF-8 on Windows, where 7-Zip otherwise writes
+      // a name in the console's code page: the rule needs only the ASCII in it,
+      // but the entry named in a refusal should read as it was written. Not on
+      // POSIX, where the output is the locale's (UTF-8 on any server) and p7zip's
+      // reading of -scc is not one to depend on. Checked against 7za 26.03.
+#ifdef HM_PLATFORM_POSIX
+      String commandLine = Formatter::Format("\"{0}\" l \"{1}\" -slt",
+         GetExecutableFullPath_(), zipFile);
+#else
+      String commandLine = Formatter::Format("\"{0}\" l \"{1}\" -slt -sccUTF-8",
+         GetExecutableFullPath_(), zipFile);
+#endif
+
+      const bool listed = LaunchCommand_(commandLine, passphrase, listingFile);
+
+      bool read = false;
+      bool unsafe = false;
+      AnsiString found;
+
+      if (listed)
+      {
+         // In a scope of its own, so that the file is closed before it is deleted:
+         // on Windows an open file cannot be, and DeleteFile would retry for five
+         // seconds and then report HM5047.
+         try
+         {
+            const boost::filesystem::path path(listingFile.c_str());
+            std::ifstream listing(path.c_str(), std::ios::in | std::ios::binary);
+
+            if (listing.is_open())
+            {
+               read = true;
+               unsafe = FindUnsafeEntry(listing, found);
+            }
+         }
+         catch (boost::thread_interrupted const &)
+         {
+            // The service is shutting down; Task::Run handles this one.
+            throw;
+         }
+         catch (...)
+         {
+            read = false;
+         }
+      }
+
+      FileUtilities::DeleteFile(listingFile);
+
+      // The listing had nowhere to go: a fault of the scratch directory's, not
+      // the archive's, and said as such (HM7541 has said why).
+      if (!listed && last_run_output_failed_)
+         return EntriesListingNotWritten;
+
+      if (!listed || !read)
+         return EntriesUnlisted;
+
+      if (unsafe)
+      {
+         Unicode::MultiByteToWide(found, unsafeEntry);
+         return EntriesUnsafe;
+      }
+
+      return EntriesSound;
+   }
+
+   bool
+   Compression::LaunchCommand_(const String &commandLine, const String &passphrase, const String &outputFile)
    {
       unsigned int exitCode = 0;
       last_run_timed_out_ = false;
+      last_run_output_failed_ = false;
 
       ProcessLauncher processLauncher(commandLine);
 
       // Always a standard input, even an empty one. See PassphraseInput_.
       processLauncher.SetStandardInput(PassphraseInput_(passphrase));
+
+      // What the archiver prints, when the caller reads it (CheckEntries).
+      if (!outputFile.IsEmpty())
+         processLauncher.SetStandardOutputFile(outputFile);
 
       // Only when a caller asked for one. Writing a backup does not, and must not:
       // see SetMaximumRunTime.
@@ -299,6 +662,7 @@ namespace HM
       if (!processLauncher.Launch(exitCode, failureReason))
       {
          last_run_timed_out_ = failureReason == ProcessLauncher::FailureReason::TimedOut;
+         last_run_output_failed_ = failureReason == ProcessLauncher::FailureReason::OutputFileFailed;
          return false;
       }
 
@@ -349,5 +713,128 @@ namespace HM
       String binDir = IniFileSettings::Instance()->GetBinDirectory();
       return FileUtilities::Combine(binDir, ZipExecutable);
 #endif
+   }
+
+   namespace
+   {
+      // A listing as 7za 26.03 writes one with -slt: the archive's own block,
+      // whose path is absolute and is not an entry, then the entries given.
+      bool ListingRefused_(const std::string &entries, AnsiString &named)
+      {
+         const std::string listing =
+            "\r\n7-Zip (a) 26.03 (x64) : Copyright (c) 1999-2026 Igor Pavlov : 2026-09-03\r\n\r\n"
+            "Scanning the drive for archives:\r\n1 file, 240 bytes (1 KiB)\r\n\r\n"
+            "Listing archive: C:\\Backups\\HMBackup 2026-09-25 101500.7z\r\n\r\n--\r\n"
+            "Path = C:\\Backups\\HMBackup 2026-09-25 101500.7z\r\nType = 7z\r\nPhysical Size = 240\r\n"
+            "Headers Size = 216\r\nMethod = LZMA2:12\r\nSolid = -\r\nBlocks = 2\r\n\r\n"
+            "----------\r\n" + entries;
+
+         std::istringstream stream(listing);
+         return Compression::FindUnsafeEntry(stream, named);
+      }
+
+      // One entry's lines, as a 7z archive's are listed.
+      std::string EntryLines_(const std::string &path, const std::string &size, const std::string &attributes)
+      {
+         return "Path = " + path + "\r\nSize = " + size + "\r\nPacked Size = 0\r\nModified = 2026-09-25 14:20:14.5191295\r\n"
+            "Attributes = " + attributes + "\r\nCRC = \r\nEncrypted = -\r\nMethod = LZMA2:12\r\nBlock = 0\r\n\r\n";
+      }
+
+      void ExpectListing_(bool refused, const std::string &entries, const std::string &what)
+      {
+         AnsiString named;
+
+         if (ListingRefused_(entries, named) == refused)
+            return;
+
+         throw std::logic_error("Compression::FindUnsafeEntry " + std::string(refused ? "let through " : "refused ") + what +
+            (named.IsEmpty() ? std::string() : " (it named " + std::string(named.c_str()) + ")"));
+      }
+   }
+
+   void
+   CompressionTester::Test()
+   {
+      // What a backup holds: the index, the message store's directories and
+      // files. Nothing refused - and not the archive's own absolute path above
+      // the entries either.
+      const std::string backup =
+         EntryLines_("DataBackup", "0", "D") +
+         EntryLines_("DataBackup\\example.test", "0", "D") +
+         EntryLines_("DataBackup\\example.test\\user\\{3A1B}\\{3A1B2C3D-0000-4000-8000-000000000001}.eml", "6", "A") +
+         EntryLines_("hMailServerBackup.xml", "10", "A");
+      ExpectListing_(false, backup, "an ordinary backup");
+
+      AnsiString named;
+      if (!ListingRefused_(backup + EntryLines_("..\\escaped.eml", "6", "A"), named) || named.Find("..\\escaped.eml") < 0)
+         throw std::logic_error("Compression::FindUnsafeEntry did not name the entry it refused: " + std::string(named.c_str()));
+
+      // Out of the target: what 7za rn and -spf make.
+      ExpectListing_(true, EntryLines_("..\\escaped.eml", "6", "A"), "an entry named ..\\escaped.eml");
+      ExpectListing_(true, EntryLines_("DataBackup\\..\\..\\escaped.eml", "6", "A"), "a .. segment inside a path");
+      ExpectListing_(true, EntryLines_("DataBackup/../../escaped.eml", "6", "A"), "a .. segment with forward slashes (p7zip's listing)");
+      ExpectListing_(true, EntryLines_("C:\\Windows\\System32\\evil.dll", "6", "A"), "an absolute path with a drive");
+      ExpectListing_(true, EntryLines_("c:evil.dll", "6", "A"), "a path relative to a drive");
+      ExpectListing_(true, EntryLines_("\\rooted.xml", "6", "A"), "a path from the root");
+      ExpectListing_(true, EntryLines_("/etc/cron.d/evil", "6", "A"), "a POSIX absolute path");
+      ExpectListing_(true, EntryLines_("\\\\server\\share\\evil", "6", "A"), "a UNC path");
+      ExpectListing_(true, EntryLines_("DataBackup\\.. \\escaped.eml", "6", "A"), "a segment Windows trims to ..");
+      ExpectListing_(true, EntryLines_("..", "0", "D"), "a directory named ..");
+
+      // Names that only look like it.
+      ExpectListing_(false, EntryLines_("DataBackup\\a..b\\..eml", "6", "A"), "dots inside names");
+      ExpectListing_(false, EntryLines_("DataBackup\\.\\.hidden", "6", "A"), "a single-dot segment");
+
+      // Links: a symbolic link or a junction stored with its target (7z, from
+      // Windows or from Linux), and the ones a tar names outright.
+      ExpectListing_(true, EntryLines_("link.txt", "72", "AL"), "a reparse point with data");
+      ExpectListing_(true, EntryLines_("DataBackup\\example.test", "40", "DL"), "a junction with its target");
+      ExpectListing_(true, EntryLines_("link", "11", "A lrwxrwxrwx"), "a POSIX symbolic link");
+      ExpectListing_(true, "Path = link\r\nMode = lrwxrwxrwx\r\nAttributes = \r\n\r\n", "a link with no size in the listing");
+      ExpectListing_(true, "Path = evil\r\nFolder = -\r\nSize = 10\r\nMode = lrw-r--r--\r\nSymbolic Link = C:/Windows\r\nHard Link = \r\n\r\n",
+         "a tar's symbolic link");
+      ExpectListing_(true, "Path = hard\r\nFolder = -\r\nSize = 0\r\nMode = -rw-r--r--\r\nSymbolic Link = \r\nHard Link = /etc/shadow\r\n\r\n",
+         "a tar's hard link");
+
+      // Not links: the bit with nothing to link to (7za 19.00 kept it on a
+      // directory it reached through a junction and stored as a directory), a
+      // file of 16 KiB or more that keeps it (deduplicated or tiered), and the
+      // empty link properties every tar entry lists.
+      ExpectListing_(false, backup + EntryLines_("DataBackup\\moved.test", "0", "DL"), "a directory stored through a junction");
+      ExpectListing_(false, EntryLines_("DataBackup\\big.eml", "65536", "AL"), "a large file that keeps the reparse bit");
+      ExpectListing_(false, EntryLines_("file", "6", "A -rw-r--r--"), "a POSIX regular file");
+      ExpectListing_(false, "Path = file\r\nFolder = -\r\nSize = 9\r\nMode = -rw-r--r--\r\nSymbolic Link = \r\nHard Link = \r\n\r\n",
+         "a tar's ordinary file");
+
+      // The last entry is judged at the end of the listing, and LF alone is read
+      // as a line end as well as CRLF.
+      ExpectListing_(true, "Path = last\nSize = 20\nAttributes = AL\n", "a link as the last entry, with LF line ends");
+
+      // p7zip 16.02's forms (measured): the mode after "A_" or "_", and a POSIX
+      // link refused at any size, since p7zip links to the data's first line -
+      // "/etc" padded with NULs to 20000 bytes made a link to /etc.
+      ExpectListing_(true, EntryLines_("s/link", "4", "A_ lrwxrwxrwx"), "p7zip's link in a 7z");
+      ExpectListing_(true, EntryLines_("padded-link", "20000", "_ lrwxrwxrwx"), "a POSIX link padded past 16 KiB");
+      ExpectListing_(false, EntryLines_("s/file.txt", "6", "A_ -rw-r--r--"), "p7zip's ordinary file");
+
+      // What a raw name or comment writes into p7zip 16.02's listing: a second
+      // Size after a reparse point's (a zip comment "x\nSize = 65536"), a Size
+      // before the real one (a name "named\nSize = 0"), a value on several lines.
+      ExpectListing_(true, "Path = x\r\nSize = 100\r\nAttributes = AL\r\nComment = y\r\nSize = 65536\r\n\r\n",
+         "a Size written into the listing by a comment");
+      ExpectListing_(true, "Path = named\r\nSize = 0\r\nSize = 4\r\nAttributes = _ lrwxrwxrwx\r\n\r\n",
+         "a Size written into the listing by a name");
+      ExpectListing_(true, EntryLines_("a", "1", "A") + "Path = b\r\nComment = {\r\nx\r\n}\r\n", "a value on several lines");
+      ExpectListing_(true, EntryLines_("a", "1", "A") + "{\r\n", "a line starting {");
+
+      // Before the separator nothing is an entry: a listing with none.
+      std::istringstream noEntries("Path = /etc/passwd\r\nType = 7z\r\n");
+      AnsiString none;
+      if (Compression::FindUnsafeEntry(noEntries, none))
+         throw std::logic_error("Compression::FindUnsafeEntry read the archive's own block as an entry.");
+
+      if (Compression::IsUnsafeEntryPath("") || Compression::IsUnsafeEntryPath("hMailServerBackup.xml") ||
+          !Compression::IsUnsafeEntryPath("a\\..") || !Compression::IsUnsafeEntryPath("a/../b"))
+         throw std::logic_error("Compression::IsUnsafeEntryPath misjudged a bare path.");
    }
 }

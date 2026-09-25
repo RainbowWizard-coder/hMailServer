@@ -112,13 +112,16 @@ namespace HM
       if (pBuffer == 0)
       {
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5411, "TransparentTransmissionBuffer::Append", "pBuffer is NULL");
-         throw;
+
+         // A real exception, which the connection's handler catches and reports. A
+         // bare "throw;" here, with no exception being handled, was std::terminate.
+         throw std::logic_error("TransparentTransmissionBuffer::Append was given no data to append.");
       }
 
       if (buffer_ == 0)
       {
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5412, "TransparentTransmissionBuffer::Append", "buffer_ is NULL");
-         throw;
+         throw std::logic_error("TransparentTransmissionBuffer::Append was called before the buffer was created.");
       }
 
       data_sent_+= iBufferSize;

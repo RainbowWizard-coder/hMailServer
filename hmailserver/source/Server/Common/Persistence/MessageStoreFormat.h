@@ -37,7 +37,7 @@
 // out, put through each stage in the order listed; the reader undoes them in the
 // reverse order. A stage this reader does not know refuses the file.
 //
-//    1   deflate (zlib 1.3.1's, zlib-wrapped so the adler32 is checked);
+//    1   deflate (the vendored zlib's, zlib-wrapped so the adler32 is checked);
 //        parameter: the level, one byte.
 //    2   reserved for zstd.
 //    3   encryption to the account's key (docs/EncryptionAtRest.md,

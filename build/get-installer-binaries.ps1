@@ -25,6 +25,10 @@
                which holds the exact bytes that were committed before, with their
                provenance in its notes. A release rather than the vendor's URL
                because two of the three have no stable first-party download left.
+               The third, 7-Zip's console, is fetched from 7-zip.org itself since
+               25 September 2026: a build input whose "release" is an https
+               address is the publisher's download directory, and the asset is
+               taken from there, with no redirect followed.
 
    Fetched files are verified against the manifest hashes, and gathered files are
    checked for compatible Visual Studio runtime version before the script reports
@@ -164,19 +168,35 @@ New-Item -ItemType Directory -Force $Cache | Out-Null
 $assets = @{}
 foreach ($a in $fetched) {
    # source is "<release>/<asset>[#<member>]": the asset to download and, for an
-   # archive, the member inside it that becomes this path.
+   # archive, the member inside it that becomes this path. The build input is
+   # found by that "<release>/<asset>", which is also how an https release reads
+   # (https://www.7-zip.org/a/7z2603-extra.7z).
    $parts = $a.source -split '#', 2
    $assetRef = $parts[0]
    $member = if ($parts.Count -gt 1) { $parts[1] } else { $null }
-   $release, $asset = $assetRef -split '/', 2
+   $buildInput = @($manifest.build_inputs | Where-Object { ('{0}/{1}' -f $_.release, $_.asset) -eq $assetRef }) | Select-Object -First 1
+   if (-not $buildInput) { throw "The manifest's build_inputs has no entry for $assetRef" }
+   $release = [string]$buildInput.release
+   $asset = [string]$buildInput.asset
+   $fromPublisher = $release -match '^https://'
    $local = Join-Path $Cache $asset
    if (-not $assets.ContainsKey($assetRef)) {
-      $expectedAsset = ($manifest.build_inputs | Where-Object { $_.release -eq $release -and $_.asset -eq $asset }).sha256
+      $expectedAsset = $buildInput.sha256
       if (-not $expectedAsset) { throw "The manifest's build_inputs has no hash for $assetRef" }
       if (-not (Test-Path -LiteralPath $local) -or (Get-Sha256 $local) -ne $expectedAsset.ToLower()) {
-         $url = "$releaseBase/$release/$asset"
-         Write-Host "Downloading $url"
-         Invoke-WebRequest -Uri $url -OutFile $local -UseBasicParsing
+         if ($fromPublisher) {
+            # The publisher's own address, and nowhere it redirects to: 7-zip.org's
+            # download page links a release's files to GitHub, which this project
+            # does not download from, while its /a/ directory serves them itself.
+            # A redirect is a refusal, and the hash below refuses anything else.
+            $url = "$release/$asset"
+            Write-Host "Downloading $url"
+            Invoke-WebRequest -Uri $url -OutFile $local -UseBasicParsing -MaximumRedirection 0
+         } else {
+            $url = "$releaseBase/$release/$asset"
+            Write-Host "Downloading $url"
+            Invoke-WebRequest -Uri $url -OutFile $local -UseBasicParsing
+         }
       }
       Assert-Matches $local $expectedAsset "release asset $assetRef"
       $assets[$assetRef] = $local
@@ -187,7 +207,20 @@ foreach ($a in $fetched) {
       $extract = Join-Path $Cache ($asset + '.extracted')
       if (-not (Test-Path -LiteralPath (Join-Path $extract $member))) {
          if (Test-Path -LiteralPath $extract) { [IO.Directory]::Delete($extract, $true) }
-         Expand-Archive -LiteralPath $local -DestinationPath $extract -Force
+         if ($asset -like '*.7z') {
+            # A 7z archive (7-Zip's own packages are), which Expand-Archive cannot
+            # open. Windows' tar.exe is bsdtar, and its libarchive reads 7z (on
+            # Windows 11 it is built with liblzma); checked on 25 September 2026
+            # against 7z1900-extra.7z, whose x64/7za.exe came out byte for byte
+            # the file this manifest pinned. Only the member is extracted.
+            $tar = Join-Path $env:SystemRoot 'System32\tar.exe'
+            if (-not (Test-Path -LiteralPath $tar)) { throw "$asset is a 7z archive, and this Windows has no $tar to open it with." }
+            New-Item -ItemType Directory -Force $extract | Out-Null
+            & $tar -x -f $local -C $extract $member
+            if ($LASTEXITCODE -ne 0) { throw "$tar could not extract $member from $local (exit code $LASTEXITCODE); a Windows whose tar.exe cannot read 7z archives cannot place this file." }
+         } else {
+            Expand-Archive -LiteralPath $local -DestinationPath $extract -Force
+         }
       }
       Copy-Item -LiteralPath (Join-Path $extract $member) -Destination $target -Force
    } else {

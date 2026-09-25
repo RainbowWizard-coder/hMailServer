@@ -36,6 +36,7 @@
 #include "../AntiSpam/DKIM/DkimRotationPlan.h"
 #include "../../SMTP/BounceClassifier.h"
 #include "BrandLogo.h"
+#include "Compression.h"
 #include "ReaderOAuth.h"
 #include "MigrationImapClient.h"
 #include "MigrationSources.h"
@@ -226,6 +227,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing MailboxRestore\n"));
       MailboxRestoreTester mailboxRestoreTester;
       mailboxRestoreTester.Test();
+
+      // The restore's check of an archive's entries before anything is
+      // extracted: an absolute path, a ".." segment or a link with a target,
+      // found in the "7za l -slt" listing, and what a backup holds let through.
+      OutputDebugString(_T("hMailServer: Testing Compression\n"));
+      CompressionTester compressionTester;
+      compressionTester.Test();
 
       // The per-destination back-off: the signal table, the window and its
       // doubling to the ceiling, the probe, all against a clock the test moves.
@@ -1698,7 +1706,7 @@ namespace HM
       XNode *pBackupNode = oDoc.GetChild(_T("Config"));
 
       if (!pBackupNode)
-         throw;
+         HM_TEST_FAILED();
 
       mime_data_path_ = pBackupNode->GetChildValue(_T("MimeDataPath"));
    }

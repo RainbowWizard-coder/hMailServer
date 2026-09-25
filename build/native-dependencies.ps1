@@ -153,7 +153,7 @@ $installerComponents = @{
       Id      = '7-zip'
       Purl    = 'pkg:generic/7-zip@{0}'
       Cpe     = 'cpe:2.3:a:7-zip:7-zip:{0}:*:*:*:*:*:*:*'
-      License = 'LGPL-2.1-or-later'
+      License = 'LGPL-2.1-or-later AND BSD-3-Clause AND BSD-2-Clause'
       Website = 'https://www.7-zip.org/'
       Why     = 'the standalone console, 7za.exe, which the backup writes and reads its archives with'
    }

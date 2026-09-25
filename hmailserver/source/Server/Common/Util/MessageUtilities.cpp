@@ -487,16 +487,16 @@ namespace HM
       bool result = MessageUtilities::RetrieveOriginatingAddress(headerLines, hostName, address);
       
       if (result == false)
-         throw;
+         HM_TEST_FAILED();
 
       if (hostName != _T("host.edu"))
-         throw;
+         HM_TEST_FAILED();
 
       if (address.ToString() != "1.2.3.4")
-         throw;
+         HM_TEST_FAILED();
 
       if (address.IsAny())
-         throw;
+         HM_TEST_FAILED();
 
       // If the message
       headerLines.clear();
@@ -507,17 +507,17 @@ namespace HM
       result = MessageUtilities::RetrieveOriginatingAddress(headerLines, hostName, address);
 
       if (result == false)
-         throw;
+         HM_TEST_FAILED();
 
       if (hostName != _T("e113.en25.com"))
-         throw;
+         HM_TEST_FAILED();
 
       if (address.ToString() != "209.167.231.113")
-         throw;
+         HM_TEST_FAILED();
 
 
       if (address.IsAny())
-         throw;
+         HM_TEST_FAILED();
 
 
       // We are unable to parse this because the IP address isn't within brackets ([]).
@@ -528,16 +528,16 @@ namespace HM
       result = MessageUtilities::RetrieveOriginatingAddress(headerLines, hostName, address);
 
       if (result == true)
-         throw;
+         HM_TEST_FAILED();
 
       if (hostName != _T(""))
-         throw;
+         HM_TEST_FAILED();
 
       if (address.ToString() != "0.0.0.0")
-         throw;
+         HM_TEST_FAILED();
 
       if (!address.IsAny())
-         throw;
+         HM_TEST_FAILED();
 
       TestHeloDependentOriginatingAddress_();
    }

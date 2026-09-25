@@ -47,11 +47,11 @@ Where the build gets them
 
 * **fetched** - downloaded from the `build-inputs-1` release, which holds the
   exact bytes that were committed before 11 September 2026, and checked against
-  the manifest's SHA-256 before it is placed. Three release assets: 7-Zip's
-  console, an archive of the MariaDB client and its nine plugins (placed twice,
-  see below), and the SQL Server Compact 4.0 SP1 x64 runtime. A release rather
-  than the vendors' URLs, because two of the three have no stable first-party
-  download left.
+  the manifest's SHA-256 before it is placed. Two release assets: an archive of
+  the MariaDB client and its nine plugins (placed twice, see below), and the SQL
+  Server Compact 4.0 SP1 x64 runtime - a release rather than the vendors' URLs,
+  because neither has a stable first-party download left. 7-Zip is fetched from
+  7-zip.org itself, over https with no redirect followed, since 25 September 2026.
 * **gathered** - the MSVC runtime, copied from the build machine's Visual Studio
   (`%VCToolsRedistDir%\x64\Microsoft.VC145.CRT`) and checked by major and minor
   version against the toolset that built the server, since a runtime pinned to
@@ -88,7 +88,7 @@ outside the tree under `%hMailServerLibs%`, and
 DLLs into the output directory. Since 11 September 2026 every other binary the
 build uses has followed the same model.
 
-Two native dependencies are in the tree by design. zlib 1.3.1 is vendored as source
+Two native dependencies are in the tree by design. zlib 1.3.2 (1.3.1 until 25 September 2026) is vendored as source
 under `hmailserver/source/Server/zlib` (its own LICENSE beside it, the text also
 under `docs/Licenses/`) and compiled straight into `hMailServer.exe` for IMAP
 COMPRESS=DEFLATE - new in 6.2.28.
@@ -191,7 +191,7 @@ Grouped by component. Per-file hashes are in
 |---|---|---|
 | MariaDB Connector/C 3.4.9 (`libmysql.dll` and nine plugins) | 20 | The MySQL/MariaDB client. `MySQLInterface.cpp` builds a path beside the running executable and loads `libmysql.dll` from there at runtime, together with the nine authentication plugins found through `MYSQL_PLUGIN_DIR`. Without the full plugin set, common MySQL 8 and MariaDB account types cannot authenticate. Placed twice from the same archive: under `libraries/mariadb-connector-c-3.4.9/`, which the post-build step copies beside the server, and under `installation/Extras/`, which the installer ships. The second copy is redundant - repointing `section_files_common.iss` at `libraries/` would remove it - and the manifest says so. Provenance: see below. |
 | SQL Server Compact 4.0 SP1 x64 (`installation/SQLCE/SSCERuntime_x64-ENU.msi`) | 1 | The built-in database backend. Identity read from the MSI itself: "Microsoft SQL Server Compact 4.0 SP1 x64 ENU", Microsoft Corporation, built 2012-04-06, validly signed. **Microsoft has withdrawn the download**, so the release copy is the archive of record - there is no upstream left to fetch it from. |
-| 7-Zip standalone console (`installation/Extras/7za.exe`) | 1 | 7-Zip **19.00**, from 2019; upstream is 26.02. Run from `{app}\Bin` by `Compression::GetExecutableFullPath_()` on Windows (the Linux packages use the system's archiver). Nothing here says 19.00 is exploitable, but a seven-year-old unsigned executable that the server invokes is the build input most overdue a refresh: update it, publish it as a new build-inputs release, and re-record the hash. |
+| 7-Zip standalone console (`installation/Extras/7za.exe`) | 1 | 7-Zip standalone console **26.03** (3 September 2026), the `x64/7za.exe` of the 7-Zip Extra package, unsigned as 7-Zip's files always are. Run from `{app}\Bin` by `Compression::GetExecutableFullPath_()` to write, list and extract the backup's archives, as the service account. **Moved from 19.00 on 25 September 2026**, which the first security scan named its most serious finding: 19.00 (2019) predated the fixes for CVE-2023-31102 (a crafted 7z archive and the PPMd decoder) and CVE-2025-55188 (symbolic links written during extraction), and a restore extracts whatever archive an administrator points it at. Fetched from `https://www.7-zip.org/a/7z2603-extra.7z` itself - 7-zip.org's download page links a release to a GitHub release (`ip7z/7zip`), and its `/a/` directory serves the same file with no redirect - pinned by the package's SHA-256 and the member's, and taken out of the package with Windows' own `tar.exe`, which reads 7z. Every switch the server passes (`a`, `x`, `l`, `-r`, `-t7z`, `-mmt`, `-mx1`, `-w`, `-p`, `-mhe=on`, `-o`, `-y`, `-scsUTF-8`, `-slt`, `-sccUTF-8`, `@listfile`) is in 26.03's own usage text, and 26.01's new `-spo` only changes what an `*` in `-o` means, which the server never writes. The licence gained BSD 3-clause and 2-clause parts (the ZSTD decoder, XXH64); both texts are in `Licenses/License - 7Zip.rtf` and in the installer's `License.rtf`. |
 
 ### Gathered from the build machine
 
@@ -290,8 +290,9 @@ CycloneDX document to the same rule.
 | Input | Fetched by, from | Pinned by | In the SBOM |
 |---|---|---|---|
 | OpenSSL 4.0.2, Boost 1.92.0 and PostgreSQL 18.3's libpq, as source | `libraries/build-openssl.ps1`, `build-boost.ps1` and `build-pgsql.ps1`, from each project's own release server (OpenSSL's is its GitHub releases) | The archive's SHA-256, in the script; the version, by the include paths in `hMailServer.vcxproj` | Yes, at the include paths' version |
-| zlib 1.3.1 and QuickJS 2025-04-26 | Vendored as source in the tree | git | Yes; zlib since 25 September 2026 |
-| 7-Zip 19.00, MariaDB Connector/C 3.4.9, SQL Server Compact 4.0 SP1 | `build/get-installer-binaries.ps1`, from the `build-inputs-1` release (the script still names its GitHub address; the copy on GitLab is byte for byte) | SHA-256 in `third-party-binaries.json`, of each archive and each file | Yes, with the archive's SHA-256, since 25 September 2026 |
+| zlib 1.3.2 and QuickJS 2025-04-26 | Vendored as source in the tree | git | Yes; zlib since 25 September 2026 |
+| 7-Zip 26.03 | `build/get-installer-binaries.ps1`, from `https://www.7-zip.org/a/7z2603-extra.7z` | SHA-256 in `third-party-binaries.json`, of the package and of the member | Yes, with the package's SHA-256 |
+| MariaDB Connector/C 3.4.9, SQL Server Compact 4.0 SP1 | `build/get-installer-binaries.ps1`, from the `build-inputs-1` release (the script still names its GitHub address; the copy on GitLab is byte for byte) | SHA-256 in `third-party-binaries.json`, of each archive and each file | Yes, with the archive's SHA-256, since 25 September 2026 |
 | The MSVC v145 runtime, 14.51.36231.0 | The same script, from the build machine's Visual Studio | Its version (major.minor), against the toolset | Yes, by version, since 25 September 2026 |
 | The .NET Desktop Runtime 10.0.12 | `build/get-dotnet-runtime.ps1`, from builds.dotnet.microsoft.com | The SHA-512 in Microsoft's release metadata, in `third-party-binaries.json`. Until 25 September 2026: whatever aka.ms/dotnet/10.0 served that day, if it was larger than 40 MB | Yes, with the SHA-512, since 25 September 2026 |
 | The Linux packages' libraries: glibc, libstdc++, OpenSSL 3.0 or later, zlib, libpq, OpenLDAP, and Boost 1.83 or later (static) | The distribution, and the build image's Boost | Not pinned: the Linux build's log records the versions it built against (RELEASE.md, step 8) | Yes, by name and with no version, since 25 September 2026 |
@@ -395,7 +396,6 @@ Honest list of what this document does not cover.
   row), so a clean machine fetches them by hand, as above.
 - **Nothing re-verifies anything automatically.** The provenance workflow and its
   Windows signature job ran on GitHub only.
-- **7-Zip is 19.00.** The refresh needs a new build-inputs release.
 - **The Connector/C files are placed twice.** One installer line pointed at
   `libraries/` removes the second copy.
 - **The MSVC runtime's signature is recorded, not checked.** A hosted runner does

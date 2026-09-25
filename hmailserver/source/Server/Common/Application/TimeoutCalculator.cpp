@@ -63,7 +63,7 @@ namespace HM
       int result = calc.Calculate(10, 5, 1800); // 30 minutes
 
       if (result != 1800)
-         throw;
+         HM_TEST_FAILED();
 
       // Basic test. Since the connection count equals to the threshold, the default timeout should be used.
       result = calc.Calculate(10000, 100, 1800); // 30 minutes

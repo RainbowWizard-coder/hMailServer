@@ -1050,35 +1050,35 @@ namespace HM
       // Handles dates starting 1970.
       DateTime time1 (1960,01,01, 00, 00, 00);
       if (time1.ToInt() != 0)
-         throw;
+         HM_TEST_FAILED();
 
       DateTime time2 (1970,01,01, 00, 00, 00);
       if (time2.ToInt() != 0)
-         throw;
+         HM_TEST_FAILED();
 
       DateTime time3 (1970,01,01, 00, 00, 05);
       if (time3.ToInt() != 5)
-         throw;
+         HM_TEST_FAILED();
 
       DateTime time4 (1970,01,02, 00, 00, 00);
       if (time4.ToInt() != 86400) // seconds of a day.
-         throw;
+         HM_TEST_FAILED();
       
       DateTime time5 (1971,01,01, 00, 00, 00);
       if (time5.ToInt() != 365 * 24 * 3600) // seconds of a day.
-         throw;
+         HM_TEST_FAILED();
 
       DateTime time6 (2009,05,14, 22, 02, 00);
       if (time6.ToInt() != 1242338520)
-         throw;
+         HM_TEST_FAILED();
 
       DateTime time7 (2020,12,31, 23, 59, 00);
       if (time7.ToInt() != 1609459140 )
-         throw;
+         HM_TEST_FAILED();
 
       DateTime timea (2030,01,01, 00, 00, 00);
       if (timea.ToInt() == 0)
-         throw;
+         HM_TEST_FAILED();
 
 
    }

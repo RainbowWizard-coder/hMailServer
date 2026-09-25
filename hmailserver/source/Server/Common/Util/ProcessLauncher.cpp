@@ -163,6 +163,15 @@ namespace HM
       standard_input_ = input;
    }
 
+   void
+   ProcessLauncher::SetStandardOutputFile(const String &path)
+   {
+      // The standard handles are set together on Windows, so an output file means
+      // a standard input too: the caller's, or none at all (an empty one).
+      redirect_standard_input_ = true;
+      standard_output_file_ = path;
+   }
+
    ProcessLauncher::~ProcessLauncher(void)
    {
       // The backstop for the wipe in Launch: a launcher that was given a standard
@@ -311,12 +320,40 @@ namespace HM
          }
       }
 
+      // The standard output, when the caller named a file for it
+      // (SetStandardOutputFile): opened here, before the fork, so that the child
+      // only has to dup2 it, and O_CLOEXEC for the same reason as the pipe above.
+      int outputFile = -1;
+
+      if (!standard_output_file_.IsEmpty())
+      {
+         const AnsiString narrowOutputFile(standard_output_file_);
+         outputFile = ::open(narrowOutputFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600);
+
+         if (outputFile < 0)
+         {
+            const int outputError = errno;
+
+            if (inputPipe[0] >= 0)
+               ::close(inputPipe[0]);
+
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7541, "ProcessLauncher::Launch",
+               Formatter::Format("An external process was not started: the file for its output, {0}, could not be created. Error code: {1}", standard_output_file_, outputError));
+
+            failureReason = FailureReason::OutputFileFailed;
+            return false;
+         }
+      }
+
       int failurePipe[2] = { -1, -1 };
 
       if (::pipe(failurePipe) != 0)
       {
          if (inputPipe[0] >= 0)
             ::close(inputPipe[0]);
+
+         if (outputFile >= 0)
+            ::close(outputFile);
 
          String errorMessage = Formatter::Format("There was an error launching external process {0}. Process start failed. Error code: {1}", command_line_, (int) GetLastError());
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5401, "ProcessLauncher::Launch", errorMessage);
@@ -341,6 +378,9 @@ namespace HM
          if (inputPipe[0] >= 0)
             ::close(inputPipe[0]);
 
+         if (outputFile >= 0)
+            ::close(outputFile);
+
          String errorMessage = Formatter::Format("There was an error launching external process {0}. Process start failed. Error code: {1}", command_line_, forkError);
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5401, "ProcessLauncher::Launch", errorMessage);
 
@@ -360,6 +400,9 @@ namespace HM
 
          if (inputPipe[0] >= 0)
             ::dup2(inputPipe[0], 0);
+
+         if (outputFile >= 0)
+            ::dup2(outputFile, 1);
 
          if (!workingDirectory.empty() && ::chdir(workingDirectory.c_str()) != 0)
          {
@@ -382,6 +425,9 @@ namespace HM
       // The child has its copy; this was only ever for it.
       if (inputPipe[0] >= 0)
          ::close(inputPipe[0]);
+
+      if (outputFile >= 0)
+         ::close(outputFile);
 
       int childError = 0;
       ssize_t errorBytes = 0;
@@ -543,7 +589,8 @@ namespace HM
       // it is meant to have.
       HANDLE inputRead = NULL;
       HANDLE nullOutput = INVALID_HANDLE_VALUE;
-      HANDLE inheritList[2] = { NULL, NULL };
+      HANDLE fileOutput = INVALID_HANDLE_VALUE;
+      HANDLE inheritList[3] = { NULL, NULL, NULL };
       std::vector<BYTE> attributeBuffer;
       LPPROC_THREAD_ATTRIBUTE_LIST attributeList = NULL;
 
@@ -597,8 +644,24 @@ namespace HM
                inputFailure = Formatter::Format("the null device could not be opened for its output. Windows error code: {0}", (int) GetLastError());
          }
 
-         if (inputFailure.IsEmpty())
+         // The file the caller named for the standard output, when it named one
+         // (SetStandardOutputFile). Its own code, because it names a file of the
+         // caller's rather than a pipe of this class's.
+         String outputFailure;
+
+         if (inputFailure.IsEmpty() && !standard_output_file_.IsEmpty())
          {
+            fileOutput = CreateFile(standard_output_file_.c_str(), GENERIC_WRITE, FILE_SHARE_READ, &inheritable, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+            if (fileOutput == INVALID_HANDLE_VALUE)
+               outputFailure = Formatter::Format("the file for its output, {0}, could not be created. Windows error code: {1}", standard_output_file_, (int) GetLastError());
+         }
+
+         if (inputFailure.IsEmpty() && outputFailure.IsEmpty())
+         {
+            // Every handle in the list is one the child is to inherit, and each only
+            // once: the null device, and the output file beside it when there is one.
+            const DWORD inheritCount = fileOutput != INVALID_HANDLE_VALUE ? 3 : 2;
+
             SIZE_T attributeSize = 0;
             InitializeProcThreadAttributeList(NULL, 1, 0, &attributeSize);
             attributeBuffer.resize(attributeSize > 0 ? attributeSize : 1);
@@ -606,19 +669,20 @@ namespace HM
 
             inheritList[0] = inputRead;
             inheritList[1] = nullOutput;
+            inheritList[2] = fileOutput != INVALID_HANDLE_VALUE ? fileOutput : NULL;
 
             if (!InitializeProcThreadAttributeList(attributeList, 1, 0, &attributeSize))
             {
                attributeList = NULL;
                inputFailure = Formatter::Format("the list of handles it may inherit could not be made. Windows error code: {0}", (int) GetLastError());
             }
-            else if (!UpdateProcThreadAttribute(attributeList, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST, inheritList, sizeof(inheritList), NULL, NULL))
+            else if (!UpdateProcThreadAttribute(attributeList, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST, inheritList, inheritCount * sizeof(HANDLE), NULL, NULL))
             {
                inputFailure = Formatter::Format("the list of handles it may inherit could not be made. Windows error code: {0}", (int) GetLastError());
             }
          }
 
-         if (!inputFailure.IsEmpty())
+         if (!inputFailure.IsEmpty() || !outputFailure.IsEmpty())
          {
             if (attributeList)
                DeleteProcThreadAttributeList(attributeList);
@@ -626,11 +690,17 @@ namespace HM
                CloseHandle(inputRead);
             if (nullOutput != INVALID_HANDLE_VALUE)
                CloseHandle(nullOutput);
+            if (fileOutput != INVALID_HANDLE_VALUE)
+               CloseHandle(fileOutput);
 
-            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6920, "ProcessLauncher::Launch",
-               "An external process was not started: " + inputFailure);
+            if (!outputFailure.IsEmpty())
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7541, "ProcessLauncher::Launch",
+                  "An external process was not started: " + outputFailure);
+            else
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6920, "ProcessLauncher::Launch",
+                  "An external process was not started: " + inputFailure);
 
-            failureReason = FailureReason::StartFailed;
+            failureReason = outputFailure.IsEmpty() ? FailureReason::StartFailed : FailureReason::OutputFileFailed;
             return false;
          }
 
@@ -638,7 +708,7 @@ namespace HM
          si.cb = sizeof(siex);
          si.dwFlags |= STARTF_USESTDHANDLES;
          si.hStdInput = inputRead;
-         si.hStdOutput = nullOutput;
+         si.hStdOutput = fileOutput != INVALID_HANDLE_VALUE ? fileOutput : nullOutput;
          si.hStdError = nullOutput;
 
          inheritHandles = TRUE;
@@ -665,6 +735,9 @@ namespace HM
          DeleteProcThreadAttributeList(attributeList);
          CloseHandle(inputRead);
          CloseHandle(nullOutput);
+
+         if (fileOutput != INVALID_HANDLE_VALUE)
+            CloseHandle(fileOutput);
       }
 
       if (!started)

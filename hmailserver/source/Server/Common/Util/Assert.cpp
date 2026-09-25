@@ -16,14 +16,14 @@ namespace HM
    Assert::IsTrue(bool argument)
    {
       if (!argument)
-         throw;
+         HM_TEST_FAILED();
    }
 
    void
    Assert::IsFalse(bool argument)
    {
       if (argument)
-         throw;
+         HM_TEST_FAILED();
    }
 
 
@@ -31,7 +31,7 @@ namespace HM
    Assert::AreEqual(const String &str1, const String &str2)
    {
       if (str1 != str2)
-         throw;
+         HM_TEST_FAILED();
 
    }
 

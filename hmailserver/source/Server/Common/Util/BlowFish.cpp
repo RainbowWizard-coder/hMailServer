@@ -386,7 +386,7 @@ namespace HM
          if (pBL->DecryptFromString(pBL->EncryptToString(sPassword)).CompareNoCase(sPassword) != 0)
          {
             HM_ASSERT(0);
-            throw;
+            HM_TEST_FAILED();
          }
       }
 

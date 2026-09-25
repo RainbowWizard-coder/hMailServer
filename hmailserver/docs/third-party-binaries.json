@@ -22,19 +22,19 @@
     },
     {
       "path": "hmailserver/installation/Extras/7za.exe",
-      "sha256": "8117e40ee7f824f63373a4f5625bb62749f69159d0c449b3ce2f35aad3b83549",
-      "size": 1152000,
+      "sha256": "edbee35370e14030e4c785cf88200f42dc651c1eb4217c1e3963c38a12f099b0",
+      "size": 1335296,
       "component": "7-Zip standalone console (7za.exe)",
-      "version": "19.00",
+      "version": "26.03",
       "publisher": "Igor Pavlov",
-      "license": "LGPL-2.1-or-later - text at hmailserver/docs/Licenses/License - 7Zip.rtf",
-      "upstream": "https://www.7-zip.org/a/7z1900-extra.7z",
+      "license": "LGPL-2.1-or-later AND BSD-3-Clause AND BSD-2-Clause - text at hmailserver/docs/Licenses/License - 7Zip.rtf (the package's License.txt)",
+      "upstream": "https://www.7-zip.org/a/7z2603-extra.7z - the 7-Zip Extra package of 7-Zip 26.03 (3 September 2026), served by 7-zip.org itself; the member x64/7za.exe",
       "authenticode": "NotSigned",
       "authenticode_signer": null,
       "disposition": "fetched",
-      "used_by": "Compression::GetExecutableFullPath_() in hmailserver/source/Server/Common/Util/Compression.cpp line 81; run from {app}\\Bin",
-      "why": "Used to create archives. Version 19.00 dates from 2019; upstream is 26.02. Update it and re-record the hash - this is the committed binary most overdue a refresh.",
-      "source": "build-inputs-1/7za-19.00.exe"
+      "used_by": "Compression::GetExecutableFullPath_() in hmailserver/source/Server/Common/Util/Compression.cpp; run from {app}\\Bin to write, list and extract the backup's archives",
+      "why": "Writes and restores the backup's archives, as the service account. 19.00 (2019) predated the fixes for CVE-2023-31102 (a crafted 7z archive, the PPMd decoder) and CVE-2025-55188 (symbolic links written during extraction), and the security scan of 25 September 2026 named it the most serious finding; moved to 26.03 that day. Every switch the server passes is in 26.03's own usage text, and the restore lists an archive's entries before it extracts any (Compression::CheckEntries). Fetched from 7-zip.org and not from the GitHub release its download page links to; the package is a 7z archive, which build/get-installer-binaries.ps1 opens with Windows' own tar.exe.",
+      "source": "https://www.7-zip.org/a/7z2603-extra.7z#x64/7za.exe"
     },
     {
       "path": "hmailserver/installation/Extras/libmysql.dll",
@@ -582,10 +582,10 @@
   ],
   "build_inputs": [
     {
-      "release": "build-inputs-1",
-      "asset": "7za-19.00.exe",
-      "sha256": "8117e40ee7f824f63373a4f5625bb62749f69159d0c449b3ce2f35aad3b83549",
-      "size": 1152000
+      "release": "https://www.7-zip.org/a",
+      "asset": "7z2603-extra.7z",
+      "sha256": "191894e6acb3647ffb69ce630479ff318523b2e2b9890aa7f05c1127c2e59b8f",
+      "size": 1764178
     },
     {
       "release": "build-inputs-1",

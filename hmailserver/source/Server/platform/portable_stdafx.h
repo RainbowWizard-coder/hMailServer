@@ -51,6 +51,7 @@
 #include <queue>
 #include <set>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <thread>
 #include <vector>
@@ -81,6 +82,11 @@ namespace HM
 #ifndef ASSERT
    #define ASSERT(expression) HM_ASSERT(expression)
 #endif
+
+// A failed check in an in-process tester: a std::logic_error naming the line and
+// the file, never a bare "throw;" (std::terminate). The Windows precompiled
+// header says why; the definition is the same.
+#define HM_TEST_FAILED() throw std::logic_error(std::string("a check failed at line ") + std::to_string(__LINE__) + " of " + __FILE__)
 
 // The same common headers the Windows precompiled header ends with, in the same
 // order, because every translation unit is written expecting them: String and

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <iosfwd>
+
 namespace HM
 {
    class Compression
@@ -81,12 +83,78 @@ namespace HM
       // passphrase: whether it can be opened without one.
       static ArchiveEncryption GetArchiveEncryption(const String &zipFile);
 
+      enum EntryCheck
+      {
+         // Listed, and no entry would be written anywhere but under the directory
+         // it is extracted to.
+         EntriesSound = 0,
+         // An entry names an absolute path, climbs out with a ".." segment, or is
+         // a link; unsafeEntry names it.
+         EntriesUnsafe = 1,
+         // The archiver could not list the archive: not an archive, damaged, the
+         // wrong passphrase, or stopped by SetMaximumRunTime (GetLastRunTimedOut
+         // says which of those it was not).
+         EntriesUnlisted = 2,
+         // The listing had nowhere to go: the file for it could not be created in
+         // the scratch directory (HM7541 says why). Nothing about the archive.
+         EntriesListingNotWritten = 3
+      };
+
+      // Lists every entry of the archive ("7za l -slt", which reads only its
+      // headers) and says whether extracting it could write anywhere but under
+      // the target: an absolute path, a ".." segment, or a link - symbolic, hard,
+      // or a Windows reparse point, which is a link or a junction - that has a
+      // target to link to (FindUnsafeEntry says which do). The restore
+      // asks this before it extracts anything (BackupRestorer), whatever the
+      // archiver would itself do with such an entry: 7-Zip 26.03 drops the ".."
+      // and the drive and checks where a link points, older ones and the p7zip
+      // some Linux machines have did less, and none of that is this server's to
+      // rely on.
+      //
+      // The listing is written to a file in scratchDirectory - the caller's own
+      // temporary directory - and removed once read. The passphrase opens an
+      // archive whose headers are encrypted, as it does for extracting.
+      EntryCheck CheckEntries(const String &zipFile, const String &scratchDirectory, const String &passphrase, String &unsafeEntry);
+
+      // The rule CheckEntries applies, over "7za l -slt" output: true when an
+      // entry must not be extracted, with the entry - its path, and what is wrong
+      // with it - in unsafeEntry. Only what follows the "----------" line is
+      // entries; the archive's own path, before it, is not one. A link named
+      // outright ("Symbolic Link = ", "Hard Link = ") is refused. A POSIX link
+      // (a mode starting l) is refused whenever it has data or no size is listed:
+      // p7zip makes a link of the data's first line, however long the data. A
+      // Windows reparse point (the L attribute) is refused when it has data
+      // under 16 KiB - its target - or no size at all, and not when its size is
+      // 0, which is what 7za 19.00 wrote for a directory it reached through a
+      // junction. And a listing that cannot be read one way only is refused:
+      // p7zip 16.02 prints a name or a comment as it is, newlines and all, so a
+      // property that comes twice in one entry, or a line starting "{" or a value
+      // that is "{" (a value on several lines), is taken for one written into the
+      // listing by the archive. Public for the in-process tester.
+      static bool FindUnsafeEntry(std::istream &listing, AnsiString &unsafeEntry);
+
+      // One path inside an archive: absolute (a leading separator, a drive letter,
+      // a UNC or \\?\ prefix), or holding a segment that is ".." - or only dots
+      // and spaces with two dots or more, which Windows trims down to "..".
+      static bool IsUnsafeEntryPath(const AnsiString &path);
+
    private:
 
-      bool LaunchCommand_(const String &commandLine, const String &passphrase);
+      bool LaunchCommand_(const String &commandLine, const String &passphrase, const String &outputFile = String());
       String GetExecutableFullPath_();
 
       unsigned int maximum_run_time_ms_;
       bool last_run_timed_out_;
+      bool last_run_output_failed_;
+   };
+
+   // Compression::FindUnsafeEntry and IsUnsafeEntryPath on listings written out
+   // as 7-Zip prints them: the entries a backup has, and each shape of entry a
+   // restore refuses. Run by ClassTester (Utilities.RunTestSuite, and
+   // --test-internals on Linux).
+   class CompressionTester
+   {
+   public:
+      void Test();
    };
 }

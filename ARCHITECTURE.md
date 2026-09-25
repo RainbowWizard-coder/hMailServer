@@ -47,7 +47,7 @@ Server/
                      counterpart is `platform/packaging/hmailserver-update`, a
                      shell script run as root by `hmailserver-update.path` and
                      `.service` when the server writes its request
-  zlib/              Vendored zlib 1.3.1 for IMAP COMPRESS=DEFLATE (new in 6.2.28)
+  zlib/              Vendored zlib 1.3.2 for IMAP COMPRESS=DEFLATE (new in 6.2.28)
   IMAP/              IMAP
   POP3/              POP3
   SMTP/              SMTP, delivery queue, outbound transport security

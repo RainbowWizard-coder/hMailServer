@@ -165,79 +165,79 @@ namespace HM
    {
       String s = ModifiedUTF7::Encode(_T("test"));
       if (s.Compare(_T("test")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Encode(_T("&"));
       if (s.Compare(_T("&-")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Encode(_T("TEST"));
       if (s.Compare(_T("TEST")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Encode(_T(""));
       if (s.Compare(_T("")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Encode(_T("TE\\ST"));
       if (s.Compare(_T("TE\\ST")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Encode(_T("TEåäöST"));
       if (s.Compare(_T("TE&AOUA5AD2-ST")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Encode(_T("T"));
       if (s.Compare(_T("T")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Encode(_T("Å"));
       if (s.Compare(_T("&AMU-")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Encode(_T("Ä"));
       if (s.Compare(_T("&AMQ-")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Encode(_T("ÄÄÄÄÄÄÄÄÄÄÄÄÄ"));
       if (s.Compare(_T("&AMQAxADEAMQAxADEAMQAxADEAMQAxADEAMQ-")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Encode(_T("ABCDEFGHIJKLMNOPQRSTUVXYZÅÄÖ,.<>-1234567890!¤%&/()=?"));
       if (s.Compare(_T("ABCDEFGHIJKLMNOPQRSTUVXYZ&AMUAxADW-,.<>-1234567890!&AKQ-%&-/()=?")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Decode(ModifiedUTF7::Encode(_T("TEST")));
       if (s.Compare(_T("TEST")))
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Decode(ModifiedUTF7::Encode(_T("ÅÄÖ")));
       if (s.Compare(_T("ÅÄÖ")))
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Decode(ModifiedUTF7::Encode(_T("1234567890ABCDEFGHIJKLMNOPQRSTUVXYZÅÄÖ!#¤&%&()=?,<>")));
       if (s.Compare(_T("1234567890ABCDEFGHIJKLMNOPQRSTUVXYZÅÄÖ!#¤&%&()=?,<>")))
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Decode("&AMQAxADEAMQAxADEAMQAxADEAMQAxADEAMQ-");
       if (s.Compare(_T("ÄÄÄÄÄÄÄÄÄÄÄÄÄ")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Decode("&AMU-");
       if (s.Compare(_T("Å")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Decode("&AMQ-");
       if (s.Compare(_T("Ä")) != 0)
-         throw;
+         HM_TEST_FAILED();
  
       s = ModifiedUTF7::Decode(ModifiedUTF7::Encode(_T("Ελληνικά")));
       if (s.Compare(_T("Ελληνικά")))
-         throw;
+         HM_TEST_FAILED();
 
       s = ModifiedUTF7::Decode(ModifiedUTF7::Encode(_T("&&&&----&")));
       if (s.Compare(_T("&&&&----&")))
-         throw;
+         HM_TEST_FAILED();
    }
 
 

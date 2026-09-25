@@ -18,7 +18,8 @@ namespace HM
       {
          None,           // Launch returned true.
          StartFailed,    // CreateProcess itself failed - bad path, permissions.
-         TimedOut        // Ran past ExternalProcessTimeout and was terminated.
+         TimedOut,       // Ran past ExternalProcessTimeout and was terminated.
+         OutputFileFailed // Not started: SetStandardOutputFile's file could not be created (HM7541).
       };
 
       ProcessLauncher(const String &commandLine, const String &workingDirectory);
@@ -70,6 +71,20 @@ namespace HM
       // MaximumStandardInput bytes, and Launch refuses more.
       void SetStandardInput(const AnsiString &input);
 
+      // Sends the process's standard output to this file, created or emptied
+      // first, instead of where SetStandardInput's comment says it goes; its
+      // standard error goes where it went before. For a program whose answer is
+      // what it prints - "7za l -slt", which the restore reads to check an
+      // archive's entries before anything is extracted - written to a file of the
+      // caller's own scratch directory rather than read through a pipe, so that
+      // no output of any size can leave either process waiting on the other.
+      //
+      // It gives the process a standard input as well: the one SetStandardInput
+      // gave, or an empty one, because Windows sets the standard handles all
+      // together or not at all. A file that cannot be created is a process not
+      // started (HM7541).
+      void SetStandardOutputFile(const String &path);
+
       static const int MaximumStandardInput = 4096;
 
    private:
@@ -82,5 +97,7 @@ namespace HM
 
       bool redirect_standard_input_;
       AnsiString standard_input_;
+
+      String standard_output_file_;
    };
 }

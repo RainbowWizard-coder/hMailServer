@@ -532,21 +532,21 @@ namespace HM
 
       Utilities utilities;
       if (utilities.IsValidIPAddress("127.0.0.A"))
-         throw;
+         HM_TEST_FAILED();
 
       if (!utilities.IsValidIPAddress("127.0.0"))
-         throw;
+         HM_TEST_FAILED();
 
       if (Configuration::Instance()->IsIPv6Available())
       {
          if (!utilities.IsValidIPAddress("2001:0db8:0000:0000:0000:0000:1428:07ab"))
-            throw;
+            HM_TEST_FAILED();
 
          if (!utilities.IsValidIPAddress("001:0db8:0000:0000:0000::1428:07ab"))
-            throw;
+            HM_TEST_FAILED();
 
          if (!utilities.IsValidIPAddress("2001:db8::1428:7ab"))
-            throw;
+            HM_TEST_FAILED();
 
       }
    }
@@ -557,20 +557,20 @@ namespace HM
       String sHeader = "from host.edu (host.edu [1.2.3.4]) by mail.host.edu (8.8.5) id 004A21; Tue, Mar 18 1997 14:36:17 -0800 (PST)";
       String sRecipient = Utilities::GetRecipientFromReceivedHeader(sHeader);
       if (sRecipient != _T(""))
-         throw;
+         HM_TEST_FAILED();
 
       String hostName = Utilities::GetHostNameFromReceivedHeader(sHeader);
       if (hostName != _T("host.edu"))
-            throw;
+            HM_TEST_FAILED();
 
       sHeader = "from host.edu (host.edu [1.2.3.4]) by mailhost.host.edu (8.8.5/8.7.2) with ESMTP id LAA20869 for <tmh@host.edu>; Tue, 18 Mar 1997 14:39:24 -0800 (PST)";
       sRecipient = Utilities::GetRecipientFromReceivedHeader(sHeader);
       if (sRecipient != _T("tmh@host.edu"))
-         throw;
+         HM_TEST_FAILED();
 
       hostName = Utilities::GetHostNameFromReceivedHeader(sHeader);
       if (hostName != _T("host.edu"))
-         throw;
+         HM_TEST_FAILED();
 
       sHeader = "Received: from unknown (HELO mail-***.icp-***-irony4.*****.***.au) ([123.123.123.123])\r\n "
                 "(envelope-sender <sender@sender.com>)\r\n"
@@ -579,11 +579,11 @@ namespace HM
 
       sRecipient = Utilities::GetRecipientFromReceivedHeader(sHeader);
       if (sRecipient != _T("sender@sender.com"))
-         throw;
+         HM_TEST_FAILED();
 
       hostName = Utilities::GetHostNameFromReceivedHeader(sHeader);
       if (hostName != _T("unknown"))
-         throw;
+         HM_TEST_FAILED();
 
       sHeader = "Received: from mail.lysator.liu.se (mail.lysator.liu.se [130.236.254.3]) "
                 "by j218.ryd.student.liu.se (Postfix) with ESMTP id D84F433035 "
@@ -591,11 +591,11 @@ namespace HM
 
       sRecipient = Utilities::GetRecipientFromReceivedHeader(sHeader);
       if (sRecipient != _T("email@student.liu.se"))
-         throw;
+         HM_TEST_FAILED();
 
       hostName = Utilities::GetHostNameFromReceivedHeader(sHeader);
       if (hostName != _T("mail.lysator.liu.se"))
-         throw;
+         HM_TEST_FAILED();
 
       sHeader = "Received: from mail.lysator.liu.se (mail.lysator.liu.se [130.236.254.3]) "
          "by j218.ryd.student.liu.se (Postfix) with ESMTP id D84F433035 "
@@ -608,11 +608,11 @@ namespace HM
           dtTime.GetHour() != 20 ||
           dtTime.GetMinute() != 39 ||
           dtTime.GetSecond() != 17)
-         throw;
+         HM_TEST_FAILED();
 
       hostName = Utilities::GetHostNameFromReceivedHeader(sHeader);
       if (hostName != _T("mail.lysator.liu.se"))
-         throw;
+         HM_TEST_FAILED();
 
       // Test IP Address parsing
       sHeader = "Received: from mail.lysator.liu.se (mail.lysator.liu.se [130.236.254.3]) "
@@ -621,20 +621,20 @@ namespace HM
 
       String sIPAddress = Utilities::GetIPAddressFromReceivedHeader(sHeader).ToString();
       if (sIPAddress != _T("130.236.254.3"))
-         throw;
+         HM_TEST_FAILED();
 
       hostName = Utilities::GetHostNameFromReceivedHeader(sHeader);
          if (hostName != _T("mail.lysator.liu.se"))
-            throw;
+            HM_TEST_FAILED();
       
       sHeader = "from host.edu (host.edu [1.2.3.4]) by mail.host.edu (8.8.5) id 004A21; Tue, Mar 18 1997 14:36:17 -0800 (PST)";
       sIPAddress = Utilities::GetIPAddressFromReceivedHeader(sHeader).ToString();
       if (sIPAddress != _T("1.2.3.4"))
-         throw;
+         HM_TEST_FAILED();
 
       hostName = Utilities::GetHostNameFromReceivedHeader(sHeader);
       if (hostName != _T("host.edu"))
-         throw;
+         HM_TEST_FAILED();
 
       sHeader = "Received: from unknown (HELO mail-***.icp-***-irony4.*****.***.au) ([123.123.123.125])\r\n "
          "(envelope-sender <sender@sender.com>)\r\n"
@@ -642,11 +642,11 @@ namespace HM
          "for <sender@sender.com>; 20 Oct 2006 04:42:47 -0000\r\n";
       sIPAddress = Utilities::GetIPAddressFromReceivedHeader(sHeader).ToString();
       if (sIPAddress != _T("123.123.123.125"))
-         throw;
+         HM_TEST_FAILED();
 
       hostName = Utilities::GetHostNameFromReceivedHeader(sHeader);
       if (hostName != _T("unknown"))
-        throw;
+        HM_TEST_FAILED();
 
       sHeader = "Received: from outbound1.den.paypal.com ([216.113.188.96])\r\n"
                 "  by mail.hmailserver.com\r\n"
@@ -654,11 +654,11 @@ namespace HM
       
       sIPAddress = Utilities::GetIPAddressFromReceivedHeader(sHeader).ToString();
       if (sIPAddress != _T("216.113.188.96"))
-         throw;
+         HM_TEST_FAILED();
 
       hostName = Utilities::GetHostNameFromReceivedHeader(sHeader);
       if (hostName != _T("outbound1.den.paypal.com"))
-         throw;
+         HM_TEST_FAILED();
 
       TestHeloDependentReceivedHeaderParse_();
       TestMalformedReceivedHeaderParse_();

@@ -312,6 +312,44 @@ password among them — because a restore has to be able to put them back. An
 unencrypted archive hands those to whoever can read the destination folder.
 
 
+What a restore will not extract
+-------------------------------
+
+A restore extracts whatever archive it is pointed at, as the service account —
+`LocalSystem` on Windows. So since 25 September 2026 every way a restore opens
+an archive — loading it, a whole restore, the check of the archive a backup has
+just written, and a mailbox or a message restored from one — first lists its
+entries (`7za l -slt`, which reads only the archive's headers, with the
+passphrase when the headers are encrypted) and refuses the whole archive,
+before anything in it is extracted, when an entry:
+
+- has an absolute path: a leading `\` or `/`, a drive (`C:`), a UNC path;
+- has a `..` segment, or a segment of nothing but dots and spaces that Windows
+  would read as one;
+- is a link with somewhere to point: a tar's symbolic or hard link, or an entry
+  whose attributes mark it a symbolic link, a junction or another reparse point
+  and which carries the link's target as its data. A directory that 7-Zip 19.00
+  archived by following a junction keeps the mark with no data, and is not
+  refused.
+
+A listing that an archive has written into — a name or a comment printed with
+its newlines, as p7zip 16.02 prints them — is refused as well, and the check is
+made again just before each later extraction from the archive, since each
+opens it again by its path.
+
+The server never writes such an entry into a backup, so an archive that holds
+one was made or changed somewhere else. The refusal names the entry and goes to
+the backup log like any other, and it is also reported as an error, **HM7540**,
+because unlike an archive that cannot be read it is not an ordinary mistake.
+Nothing is extracted and nothing on the server is changed.
+
+This is defence in depth. The 7-Zip the Windows installer ships moved from 19.00
+to **26.03** on the same day — 19.00 predated the fixes for CVE-2023-31102 and
+CVE-2025-55188 — and 26.03 itself drops a `..` and a drive from what it
+extracts and checks where a link points. The check does not depend on that, nor
+on which 7-Zip or p7zip a Linux server has.
+
+
 Restoring one mailbox, or one message
 -------------------------------------
 

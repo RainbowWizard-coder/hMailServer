@@ -22,9 +22,9 @@
 # apt-get is absent; the .rpm with dnf and its rollback through rpm --oldpackage;
 # the AppImage swap and its rollback; the refusals a root helper owes an
 # unprivileged requester (a package outside the Updates directory, a symlink,
-# a unit that is not the server's, an unknown key, an outcome path elsewhere) -
-# each refused in the journal alone, with nothing written into the requester's
-# directory; the symlinks a requester might plant where root is about to write,
+# a unit that is not the server's, an unknown key, an outcome path elsewhere, a
+# line that is a wildcard) - each refused in the journal alone, with nothing
+# written into the requester's directory; the symlinks a requester might plant where root is about to write,
 # followed by nothing; the root re-verification refusing a tampered file; the
 # version rule (a signed package that is not newer than the installed one is
 # not installed, the request's version line is not believed over the package's,
@@ -591,6 +591,24 @@ expect_rc 0
 expect_output "ignoring a key this program does not know: helper"
 expect_call "systemctl stop hmailserver.service"
 expect_call "systemctl start hmailserver.service"
+
+# A request's lines are read as written, never as patterns. The request is split
+# by an unquoted expansion with IFS a newline, and without set -f a line holding
+# a wildcard was expanded against the helper's working directory: here one that
+# holds a file named "kind=deb", which turned the line "kind=de?" into kind=deb
+# and applied the update. Read as written, the kind is refused.
+setup no-pathname-expansion
+write_request
+sed -i 's/^kind=.*/kind=de?/' "${REQUEST}"
+mkdir -p "${WORK}/${CASE}/cwd"
+: > "${WORK}/${CASE}/cwd/kind=deb"
+test_directory="$(pwd)"
+cd "${WORK}/${CASE}/cwd" || exit 2
+run_helper
+cd "${test_directory}" || exit 2
+expect_rc 4
+expect_output "kind must be deb, rpm or appimage: 'de?'"
+expect_no_call "systemctl"
 
 setup refused-outcome-elsewhere
 write_request

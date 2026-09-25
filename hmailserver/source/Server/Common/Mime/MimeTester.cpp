@@ -10,6 +10,9 @@
 #include "../BO/MessageData.h"
 #include "../Persistence/PersistentMessage.h"
 
+#include <set>
+#include <thread>
+
 #ifdef _DEBUG
    #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
    #define new DEBUG_NEW
@@ -545,6 +548,99 @@ namespace HM
          // so only "UTF-8" was captured and "hello.dll" would be absent.
          return val.Find("hello.dll") >= 0;
       }
+
+      // The shape SetBoundary writes: "__=_Part_Boundary_", three digits, "_", six
+      // digits, ".", six digits - 35 characters, all of them bchars (RFC 2046
+      // section 5.1.1).
+      bool IsGeneratedBoundaryShape(const std::string &boundary)
+      {
+         const std::string prefix = "__=_Part_Boundary_";
+
+         if (boundary.size() != 35 || boundary.compare(0, prefix.size(), prefix) != 0)
+            return false;
+
+         for (size_t i = prefix.size(); i < boundary.size(); i++)
+         {
+            const char c = boundary.at(i);
+
+            if (i == 21)
+            {
+               if (c != '_')
+                  return false;
+            }
+            else if (i == 28)
+            {
+               if (c != '.')
+                  return false;
+            }
+            else if (c < '0' || c > '9')
+               return false;
+         }
+
+         return true;
+      }
+
+      // Boundaries drawn at once on several threads, each thread drawing many
+      // from one header object: every one different, and every one the shape and
+      // the length the generator has always written. Against the rand() the
+      // generator used until 25 September 2026 this fails at once - reseeded
+      // from the time and the object's address on every call, one object drew
+      // the same two numbers all second, so its tenth boundary repeated its first
+      // - and the shared srand/rand state and part counter were raced by the
+      // threads besides. A thread's exception is caught and counted here: one
+      // escaping a std::thread would end the service, not fail this test.
+      bool TestGeneratedBoundariesAreUniqueAcrossThreads()
+      {
+         const int threadCount = 8;
+         int boundariesPerThread = 200;
+
+         std::vector<std::vector<std::string> > drawn(threadCount);
+         std::vector<int> failed(threadCount, 0);
+         std::vector<std::thread> threads;
+
+         for (int t = 0; t < threadCount; t++)
+         {
+            threads.push_back(std::thread([&drawn, &failed, t, boundariesPerThread]()
+            {
+               try
+               {
+                  MimeHeader header;
+
+                  for (int i = 0; i < boundariesPerThread; i++)
+                  {
+                     header.SetBoundary(NULL);
+                     drawn[t].push_back(header.GetBoundary());
+                  }
+               }
+               catch (...)
+               {
+                  failed[t] = 1;
+               }
+            }));
+         }
+
+         for (size_t t = 0; t < threads.size(); t++)
+            threads[t].join();
+
+         std::set<std::string> seen;
+
+         for (int t = 0; t < threadCount; t++)
+         {
+            if (failed[t] || drawn[t].size() != (size_t) boundariesPerThread)
+               return false;
+
+            for (size_t i = 0; i < drawn[t].size(); i++)
+            {
+               if (!IsGeneratedBoundaryShape(drawn[t][i]))
+                  return false;
+
+               if (!seen.insert(drawn[t][i]).second)
+                  return false;
+            }
+         }
+
+         return seen.size() == (size_t) (threadCount * boundariesPerThread);
+      }
    }
 
    MimeTester::MimeTester(void)
@@ -559,96 +655,99 @@ namespace HM
    MimeTester::Test()
    {
      if (!TestFindStringEdgeCases())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestMultipartWithoutFinalCrlf())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestMultipartWithFinalCrlf())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestMultipartWithoutClosingBoundary())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestMultipartWithClosingBoundaryMissingSeparator())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestMultipartWithPartBoundaryMissingCrlf())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeEmpty())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeSinglePrintableChar())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeEqualsSign())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeNonAscii())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeCRLF())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeBareLF())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeTrailingSpace())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeTrailingTab())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeSpaceBeforeHardBreak())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeTabBeforeHardBreak())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeSmtpDotQuoted())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeDotNotQuotedMidLine())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeDotAtEndOfInputNotQuoted())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncode75CharsNoSoftBreak())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncode76CharsTriggersSoftBreak())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeNoTrailingWhitespaceBeforeSoftBreakHighCostNextChar())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPEncodeNoTrailingWhitespaceBeforeSoftBreak())
-         throw;
+         HM_TEST_FAILED();
       if (!TestGetParameterWithQuotedSemicolon())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestGetParameterNeighboringParamUnaffectedByQuotedSemicolon())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestRemoveParameterRemovesSimpleParam())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestRemoveParameterRemovesRfc2231Continuations())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestSetFileNameReplacesRfc2231ContinuationFilename())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestSetFileNameReplacesEncodedFilenameVariant())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestSetFileNameReplacesContentTypeNameVariant())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestRfc2231ApostropheInUnquotedValue())
-         throw;
+         HM_TEST_FAILED();
+
+      if (!TestGeneratedBoundariesAreUniqueAcrossThreads())
+         HM_TEST_FAILED();
 
    }
 }

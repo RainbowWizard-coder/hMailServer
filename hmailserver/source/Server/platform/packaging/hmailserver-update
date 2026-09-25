@@ -199,9 +199,14 @@ read_request()
    text="$(head -c 65536 -- "$REQUEST")"
    rm -f "$REQUEST" 2>/dev/null || true
 
+   # Split into lines by an unquoted expansion with IFS a newline - and with
+   # pathname expansion off while that is done (set -f), so that a line is read
+   # as written: otherwise root would expand a line holding *, ? or [ against
+   # its working directory, and read whatever names matched as request lines.
    old_ifs=$IFS
    IFS='
 '
+   set -f
    for line in $text; do
       IFS=$old_ifs
       case "$line" in
@@ -226,6 +231,7 @@ read_request()
          *) say "ignoring a key this program does not know: $key" ;;
       esac
    done
+   set +f
    IFS=$old_ifs
 }
 

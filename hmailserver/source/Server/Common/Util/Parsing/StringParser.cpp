@@ -958,176 +958,176 @@ namespace HM
    void Assert(bool result)
    {
       if (result == false)
-         throw;
+         HM_TEST_FAILED();
    }
 
    void StringParserTester::Test()
    {  
       String s = "AAAA";
-      if (s.CompareNoCase(_T("aaaa")) != 0) throw;
+      if (s.CompareNoCase(_T("aaaa")) != 0) HM_TEST_FAILED();
 
       s = "AAAA";
-      if (s.CompareNoCase(_T("bbbb")) == 0) throw;
+      if (s.CompareNoCase(_T("bbbb")) == 0) HM_TEST_FAILED();
 
       s = "AAAA";
-      if (s.Equals(_T("aaaa"), true)) throw;
+      if (s.Equals(_T("aaaa"), true)) HM_TEST_FAILED();
 
       s = "AAAA";
-      if (!s.Equals(_T("aaaa"), false)) throw;
+      if (!s.Equals(_T("aaaa"), false)) HM_TEST_FAILED();
 
       s = "ZZZZZ";
-      if (!s.Equals(_T("ZZZZZ"), false)) throw;
+      if (!s.Equals(_T("ZZZZZ"), false)) HM_TEST_FAILED();
 
       s = "";
-      if (!s.Equals(_T(""), false)) throw;
+      if (!s.Equals(_T(""), false)) HM_TEST_FAILED();
 
       // Test a few String functions
       String sTest = "TEST";
       sTest.Replace(_T("TEST"), _T("test"));
-      if (sTest != _T("test")) throw;
+      if (sTest != _T("test")) HM_TEST_FAILED();
 
       sTest = "test";
       sTest.Replace(_T("TEST"), _T("dummy"));
-      if (sTest != _T("test")) throw;
+      if (sTest != _T("test")) HM_TEST_FAILED();
 
       sTest = "test";
       sTest.ReplaceNoCase(_T("TEST"), _T("TEST"));
-      if (sTest != _T("TEST")) throw;
+      if (sTest != _T("TEST")) HM_TEST_FAILED();
 
       sTest = "TeSt";
       sTest.ReplaceNoCase(_T("TEST"), _T("TEST"));
-      if (sTest != _T("TEST")) throw;
+      if (sTest != _T("TEST")) HM_TEST_FAILED();
 
       sTest = "TestDummy";
       sTest.ReplaceNoCase(_T("testdummy"), _T("TestDummyReplaced"));
-      if (sTest != _T("TestDummyReplaced")) throw;
+      if (sTest != _T("TestDummyReplaced")) HM_TEST_FAILED();
 
       sTest = "TestDummy";
       sTest.ReplaceNoCase(_T("test"), _T("TestA"));
-      if (sTest != _T("TestADummy")) throw;
+      if (sTest != _T("TestADummy")) HM_TEST_FAILED();
 
       sTest = "Test Test Test Test";
       sTest.ReplaceNoCase(_T("Test"), _T("TEST"));
-      if (sTest != _T("TEST TEST TEST TEST")) throw;
+      if (sTest != _T("TEST TEST TEST TEST")) HM_TEST_FAILED();
       
       sTest = "Test TestA Test Test";
       sTest.ReplaceNoCase(_T("TestA"), _T("TESTB"));
-      if (sTest != _T("Test TESTB Test Test")) throw;
+      if (sTest != _T("Test TESTB Test Test")) HM_TEST_FAILED();
  
       // Check email addresses
 
-      if (StringParser::IsValidEmailAddress("@")) throw;
-      if (StringParser::IsValidEmailAddress("a")) throw;      
-      if (StringParser::IsValidEmailAddress("test@")) throw;
-      if (StringParser::IsValidEmailAddress("@.com")) throw;
-      if (StringParser::IsValidEmailAddress("\"va@ff\"@test.co.uk")) throw;
-      if (StringParser::IsValidEmailAddress("some one@test.co.uk")) throw;
-      if (StringParser::IsValidEmailAddress("<someone@test.co.uk>")) throw;
-      if (StringParser::IsValidEmailAddress("va ff@test.co.uk")) throw;
-      if (!StringParser::IsValidEmailAddress("test@example.test")) throw;
-      if (!StringParser::IsValidEmailAddress("test@hmailserver.com")) throw;
-      if (!StringParser::IsValidEmailAddress("test_test@hmailserver.com")) throw;
-      if (!StringParser::IsValidEmailAddress("bill@microsoft.com")) throw;
-      if (!StringParser::IsValidEmailAddress("chris.holloway@progressiverobot.com")) throw;
-      if (!StringParser::IsValidEmailAddress("vaff@test.co.uk")) throw;
-      if (!StringParser::IsValidEmailAddress("va'ff@test.co.uk")) throw;
-      if (!StringParser::IsValidEmailAddress("\"va ff\"@test.co.uk")) throw;
+      if (StringParser::IsValidEmailAddress("@")) HM_TEST_FAILED();
+      if (StringParser::IsValidEmailAddress("a")) HM_TEST_FAILED();      
+      if (StringParser::IsValidEmailAddress("test@")) HM_TEST_FAILED();
+      if (StringParser::IsValidEmailAddress("@.com")) HM_TEST_FAILED();
+      if (StringParser::IsValidEmailAddress("\"va@ff\"@test.co.uk")) HM_TEST_FAILED();
+      if (StringParser::IsValidEmailAddress("some one@test.co.uk")) HM_TEST_FAILED();
+      if (StringParser::IsValidEmailAddress("<someone@test.co.uk>")) HM_TEST_FAILED();
+      if (StringParser::IsValidEmailAddress("va ff@test.co.uk")) HM_TEST_FAILED();
+      if (!StringParser::IsValidEmailAddress("test@example.test")) HM_TEST_FAILED();
+      if (!StringParser::IsValidEmailAddress("test@hmailserver.com")) HM_TEST_FAILED();
+      if (!StringParser::IsValidEmailAddress("test_test@hmailserver.com")) HM_TEST_FAILED();
+      if (!StringParser::IsValidEmailAddress("bill@microsoft.com")) HM_TEST_FAILED();
+      if (!StringParser::IsValidEmailAddress("chris.holloway@progressiverobot.com")) HM_TEST_FAILED();
+      if (!StringParser::IsValidEmailAddress("vaff@test.co.uk")) HM_TEST_FAILED();
+      if (!StringParser::IsValidEmailAddress("va'ff@test.co.uk")) HM_TEST_FAILED();
+      if (!StringParser::IsValidEmailAddress("\"va ff\"@test.co.uk")) HM_TEST_FAILED();
 
       // Dot validation in unquoted local part
-      if (StringParser::IsValidEmailAddress(".user@example.test")) throw;          // leading dot rejected
-      if (StringParser::IsValidEmailAddress("user.@example.test")) throw;          // trailing dot rejected
-      if (StringParser::IsValidEmailAddress("us..er@example.test")) throw;         // consecutive dots rejected
-      if (StringParser::IsValidEmailAddress("...@example.test")) throw;            // only dots rejected
-      if (!StringParser::IsValidEmailAddress("us.er@example.test")) throw;         // valid single dot
-      if (!StringParser::IsValidEmailAddress("a.b.c.d@example.test")) throw;       // multiple valid dots
-      if (!StringParser::IsValidEmailAddress("\"us..er\"@example.test")) throw;    // consecutive dots in quoted string allowed
-      if (!StringParser::IsValidEmailAddress("\".user\"@example.test")) throw;     // leading dot in quoted string allowed
-      if (!StringParser::IsValidEmailAddress("\"user.\"@example.test")) throw;     // trailing dot in quoted string allowed
+      if (StringParser::IsValidEmailAddress(".user@example.test")) HM_TEST_FAILED();          // leading dot rejected
+      if (StringParser::IsValidEmailAddress("user.@example.test")) HM_TEST_FAILED();          // trailing dot rejected
+      if (StringParser::IsValidEmailAddress("us..er@example.test")) HM_TEST_FAILED();         // consecutive dots rejected
+      if (StringParser::IsValidEmailAddress("...@example.test")) HM_TEST_FAILED();            // only dots rejected
+      if (!StringParser::IsValidEmailAddress("us.er@example.test")) HM_TEST_FAILED();         // valid single dot
+      if (!StringParser::IsValidEmailAddress("a.b.c.d@example.test")) HM_TEST_FAILED();       // multiple valid dots
+      if (!StringParser::IsValidEmailAddress("\"us..er\"@example.test")) HM_TEST_FAILED();    // consecutive dots in quoted string allowed
+      if (!StringParser::IsValidEmailAddress("\".user\"@example.test")) HM_TEST_FAILED();     // leading dot in quoted string allowed
+      if (!StringParser::IsValidEmailAddress("\"user.\"@example.test")) HM_TEST_FAILED();     // trailing dot in quoted string allowed
 
       // Local-part length: RFC 5321 limits to 64 chars, but we allow longer for
       // backwards compatibility with existing accounts.
-      if (!StringParser::IsValidEmailAddress("a@example.test")) throw;             // 1-char local part accepted
-      if (!StringParser::IsValidEmailAddress("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.test")) throw;  // 65-char local part allowed
+      if (!StringParser::IsValidEmailAddress("a@example.test")) HM_TEST_FAILED();             // 1-char local part accepted
+      if (!StringParser::IsValidEmailAddress("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.test")) HM_TEST_FAILED();  // 65-char local part allowed
 
       // Overall email length limit (RFC 5321: max 254 chars)
       // Build a 255-char email: 64-char local + @ + 190-char domain = 255
-      if (StringParser::IsValidEmailAddress("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")) throw;
+      if (StringParser::IsValidEmailAddress("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")) HM_TEST_FAILED();
 
       // IPv6 address literal support
-      if (!StringParser::IsValidEmailAddress("user@[IPv6:2001:0db8:85a3:0000:0000:8a2e:0370:7334]")) throw;
-      if (StringParser::IsValidEmailAddress("user@[IPv6:invalid]")) throw;         // invalid IPv6 rejected
-      if (StringParser::IsValidEmailAddress("user@[IPv6:]")) throw;                // empty IPv6 rejected
-      if (StringParser::IsValidEmailAddress("user@[IPv6:2001:0db8:85a3]")) throw;  // too few groups rejected
-      if (StringParser::IsValidEmailAddress("user@[IPv6:ZZZZ:0db8:85a3:0000:0000:8a2e:0370:7334]")) throw; // non-hex rejected
+      if (!StringParser::IsValidEmailAddress("user@[IPv6:2001:0db8:85a3:0000:0000:8a2e:0370:7334]")) HM_TEST_FAILED();
+      if (StringParser::IsValidEmailAddress("user@[IPv6:invalid]")) HM_TEST_FAILED();         // invalid IPv6 rejected
+      if (StringParser::IsValidEmailAddress("user@[IPv6:]")) HM_TEST_FAILED();                // empty IPv6 rejected
+      if (StringParser::IsValidEmailAddress("user@[IPv6:2001:0db8:85a3]")) HM_TEST_FAILED();  // too few groups rejected
+      if (StringParser::IsValidEmailAddress("user@[IPv6:ZZZZ:0db8:85a3:0000:0000:8a2e:0370:7334]")) HM_TEST_FAILED(); // non-hex rejected
 
       // IPv4 literal
-      if (!StringParser::IsValidEmailAddress("user@[192.168.1.1]")) throw;
-      if (StringParser::IsValidEmailAddress("user@[1.2.3]")) throw;                // too few octets rejected
-      if (StringParser::IsValidEmailAddress("user@[]")) throw;                     // empty brackets rejected
+      if (!StringParser::IsValidEmailAddress("user@[192.168.1.1]")) HM_TEST_FAILED();
+      if (StringParser::IsValidEmailAddress("user@[1.2.3]")) HM_TEST_FAILED();                // too few octets rejected
+      if (StringParser::IsValidEmailAddress("user@[]")) HM_TEST_FAILED();                     // empty brackets rejected
 
       // Domain validation edge cases
-      if (StringParser::IsValidEmailAddress("user@-example.test")) throw;          // domain label starting with hyphen
-      if (StringParser::IsValidEmailAddress("user@example-.test")) throw;          // domain label ending with hyphen
-      if (StringParser::IsValidEmailAddress("user@.example.test")) throw;          // domain starting with dot
-      if (!StringParser::IsValidEmailAddress("user@sub.example.test")) throw;      // subdomain valid
-      if (!StringParser::IsValidEmailAddress("user@a.b.c.d.example.test")) throw;  // deep subdomain valid
+      if (StringParser::IsValidEmailAddress("user@-example.test")) HM_TEST_FAILED();          // domain label starting with hyphen
+      if (StringParser::IsValidEmailAddress("user@example-.test")) HM_TEST_FAILED();          // domain label ending with hyphen
+      if (StringParser::IsValidEmailAddress("user@.example.test")) HM_TEST_FAILED();          // domain starting with dot
+      if (!StringParser::IsValidEmailAddress("user@sub.example.test")) HM_TEST_FAILED();      // subdomain valid
+      if (!StringParser::IsValidEmailAddress("user@a.b.c.d.example.test")) HM_TEST_FAILED();  // deep subdomain valid
 
       // Domain name validation: IPv6 support
-      if (!StringParser::IsValidDomainName("[IPv6:2001:0db8:85a3:0000:0000:8a2e:0370:7334]")) throw;
-      if (StringParser::IsValidDomainName("[IPv6:invalid]")) throw;
-      if (StringParser::IsValidDomainName("[IPv6:]")) throw;                       // empty IPv6 rejected
-      if (StringParser::IsValidDomainName("[IPv6:2001:0db8:85a3]")) throw;         // too few groups rejected
+      if (!StringParser::IsValidDomainName("[IPv6:2001:0db8:85a3:0000:0000:8a2e:0370:7334]")) HM_TEST_FAILED();
+      if (StringParser::IsValidDomainName("[IPv6:invalid]")) HM_TEST_FAILED();
+      if (StringParser::IsValidDomainName("[IPv6:]")) HM_TEST_FAILED();                       // empty IPv6 rejected
+      if (StringParser::IsValidDomainName("[IPv6:2001:0db8:85a3]")) HM_TEST_FAILED();         // too few groups rejected
       // IPv4 literal still works
-      if (!StringParser::IsValidDomainName("[192.168.1.1]")) throw;
+      if (!StringParser::IsValidDomainName("[192.168.1.1]")) HM_TEST_FAILED();
       // Domain edge cases
-      if (StringParser::IsValidDomainName("-example.test")) throw;                 // leading hyphen rejected
-      if (StringParser::IsValidDomainName(".example.test")) throw;                 // leading dot rejected
-      if (!StringParser::IsValidDomainName("sub.example.test")) throw;             // subdomain valid
+      if (StringParser::IsValidDomainName("-example.test")) HM_TEST_FAILED();                 // leading hyphen rejected
+      if (StringParser::IsValidDomainName(".example.test")) HM_TEST_FAILED();                 // leading dot rejected
+      if (!StringParser::IsValidDomainName("sub.example.test")) HM_TEST_FAILED();             // subdomain valid
 
-      if (StringParser::ExtractAddress("\"va@ff\"@test.co.uk").Compare(_T("\"va@ff\"")) != 0) throw;
-      if (StringParser::ExtractAddress("test@test.co.uk").Compare(_T("test")) != 0) throw;
-      if (StringParser::ExtractAddress("t'est@test.co.uk").Compare(_T("t'est")) != 0) throw;
-      if (StringParser::ExtractAddress("\"t@es@\"@test.co.uk").Compare(_T("\"t@es@\"")) != 0) throw;
-      if (StringParser::ExtractAddress("test@test").Compare(_T("test")) != 0) throw;
-      if (StringParser::ExtractAddress("t\"est@example.test").Compare(_T("t\"est")) != 0) throw;
+      if (StringParser::ExtractAddress("\"va@ff\"@test.co.uk").Compare(_T("\"va@ff\"")) != 0) HM_TEST_FAILED();
+      if (StringParser::ExtractAddress("test@test.co.uk").Compare(_T("test")) != 0) HM_TEST_FAILED();
+      if (StringParser::ExtractAddress("t'est@test.co.uk").Compare(_T("t'est")) != 0) HM_TEST_FAILED();
+      if (StringParser::ExtractAddress("\"t@es@\"@test.co.uk").Compare(_T("\"t@es@\"")) != 0) HM_TEST_FAILED();
+      if (StringParser::ExtractAddress("test@test").Compare(_T("test")) != 0) HM_TEST_FAILED();
+      if (StringParser::ExtractAddress("t\"est@example.test").Compare(_T("t\"est")) != 0) HM_TEST_FAILED();
 
-      if (StringParser::ExtractDomain("t\"est@example.test").Compare(_T("example.test")) != 0) throw;
-      if (StringParser::ExtractDomain("t'est@test.co.uk").Compare(_T("test.co.uk")) != 0) throw;
-      if (StringParser::ExtractDomain("\"t@est\"@test.co.uk").Compare(_T("test.co.uk")) != 0) throw;
-      if (StringParser::ExtractDomain("\"t@es@\"@test.co.uk").Compare(_T("test.co.uk")) != 0) throw;
-      if (StringParser::ExtractDomain("test@example.test").Compare(_T("example.test")) != 0) throw;
+      if (StringParser::ExtractDomain("t\"est@example.test").Compare(_T("example.test")) != 0) HM_TEST_FAILED();
+      if (StringParser::ExtractDomain("t'est@test.co.uk").Compare(_T("test.co.uk")) != 0) HM_TEST_FAILED();
+      if (StringParser::ExtractDomain("\"t@est\"@test.co.uk").Compare(_T("test.co.uk")) != 0) HM_TEST_FAILED();
+      if (StringParser::ExtractDomain("\"t@es@\"@test.co.uk").Compare(_T("test.co.uk")) != 0) HM_TEST_FAILED();
+      if (StringParser::ExtractDomain("test@example.test").Compare(_T("example.test")) != 0) HM_TEST_FAILED();
 
-      if (!StringParser::WildcardMatch("Test", "Test")) throw;
-      if (!StringParser::WildcardMatch("", "")) throw;
-      if (!StringParser::WildcardMatch("Test*", "Testar")) throw;
-      if (!StringParser::WildcardMatch("Test*", "Test")) throw;
-      if (StringParser::WildcardMatch("Test*", "Te")) throw;
+      if (!StringParser::WildcardMatch("Test", "Test")) HM_TEST_FAILED();
+      if (!StringParser::WildcardMatch("", "")) HM_TEST_FAILED();
+      if (!StringParser::WildcardMatch("Test*", "Testar")) HM_TEST_FAILED();
+      if (!StringParser::WildcardMatch("Test*", "Test")) HM_TEST_FAILED();
+      if (StringParser::WildcardMatch("Test*", "Te")) HM_TEST_FAILED();
 
-     if (!StringParser::WildcardMatch("*two*", "one-two-three")) throw;
-     if (StringParser::WildcardMatch("*two*", "one-three")) throw;
-     if (StringParser::WildcardMatch("?two?", "one-two-three")) throw;
-     if (!StringParser::WildcardMatch("?two?", "-two-")) throw;
+     if (!StringParser::WildcardMatch("*two*", "one-two-three")) HM_TEST_FAILED();
+     if (StringParser::WildcardMatch("*two*", "one-three")) HM_TEST_FAILED();
+     if (StringParser::WildcardMatch("?two?", "one-two-three")) HM_TEST_FAILED();
+     if (!StringParser::WildcardMatch("?two?", "-two-")) HM_TEST_FAILED();
 
      // Short strings.
-     if (!StringParser::WildcardMatch("?", "A")) throw;
-     if (StringParser::WildcardMatch("?", "AA")) throw;
-     if (!StringParser::WildcardMatch("*", "A")) throw;
-     if (!StringParser::WildcardMatch("*", "AA")) throw;
-     if (!StringParser::WildcardMatch("*", "")) throw;
-     if (StringParser::WildcardMatch("?", "")) throw;
+     if (!StringParser::WildcardMatch("?", "A")) HM_TEST_FAILED();
+     if (StringParser::WildcardMatch("?", "AA")) HM_TEST_FAILED();
+     if (!StringParser::WildcardMatch("*", "A")) HM_TEST_FAILED();
+     if (!StringParser::WildcardMatch("*", "AA")) HM_TEST_FAILED();
+     if (!StringParser::WildcardMatch("*", "")) HM_TEST_FAILED();
+     if (StringParser::WildcardMatch("?", "")) HM_TEST_FAILED();
 
      // Unicode strings
-     if (!StringParser::WildcardMatch(_T("??語"), _T("標準語"))) throw;
-     if (StringParser::WildcardMatch(_T("?語"), _T("標準語"))) throw;
-     if (!StringParser::WildcardMatch(_T("?準?"), _T("標準語"))) throw;
-     if (StringParser::WildcardMatch(_T("?準"), _T("標準語"))) throw;
-     if (!StringParser::WildcardMatch(_T("標*"), _T("標準語"))) throw;
+     if (!StringParser::WildcardMatch(_T("??語"), _T("標準語"))) HM_TEST_FAILED();
+     if (StringParser::WildcardMatch(_T("?語"), _T("標準語"))) HM_TEST_FAILED();
+     if (!StringParser::WildcardMatch(_T("?準?"), _T("標準語"))) HM_TEST_FAILED();
+     if (StringParser::WildcardMatch(_T("?準"), _T("標準語"))) HM_TEST_FAILED();
+     if (!StringParser::WildcardMatch(_T("標*"), _T("標準語"))) HM_TEST_FAILED();
 
      // Matching email addresses
-     if (!StringParser::WildcardMatch("test@*", "test@example.test")) throw;
-     if (!StringParser::WildcardMatch("test@test.co.*", "test@test.co.uk")) throw;
-     if (StringParser::WildcardMatch("test@test.co.*", "test@example.test")) throw;
-     if (StringParser::WildcardMatch("test@test.co.*", "test@test.co")) throw;
+     if (!StringParser::WildcardMatch("test@*", "test@example.test")) HM_TEST_FAILED();
+     if (!StringParser::WildcardMatch("test@test.co.*", "test@test.co.uk")) HM_TEST_FAILED();
+     if (StringParser::WildcardMatch("test@test.co.*", "test@example.test")) HM_TEST_FAILED();
+     if (StringParser::WildcardMatch("test@test.co.*", "test@test.co")) HM_TEST_FAILED();
 
      // Long strings.
      String k10String;
@@ -1138,34 +1138,34 @@ namespace HM
      for (int i = 0; i < 31; i++)
         s310CharString  += "AAAAAAAAAA";
 
-     if (!StringParser::WildcardMatch(_T("*"), k10String)) throw;
-     if (!StringParser::WildcardMatch(s310CharString, s310CharString)) throw;
+     if (!StringParser::WildcardMatch(_T("*"), k10String)) HM_TEST_FAILED();
+     if (!StringParser::WildcardMatch(s310CharString, s310CharString)) HM_TEST_FAILED();
 
      char *p = 0;
      p = StringParser::Search("test", 4, "e");
-     if (*p != 'e') throw;
+     if (*p != 'e') HM_TEST_FAILED();
      p = StringParser::Search("test", 4, "es");
-     if (*p != 'e') throw;     
+     if (*p != 'e') HM_TEST_FAILED();     
      p = StringParser::Search("test", 4, "n");
-     if (p != 0) throw;      
+     if (p != 0) HM_TEST_FAILED();      
      p = StringParser::Search("test", 4, "t");
-     if (*p != 't') throw; 
+     if (*p != 't') HM_TEST_FAILED(); 
      p = StringParser::Search("test ", 5, " ");
-     if (*p != ' ') throw;  
+     if (*p != ' ') HM_TEST_FAILED();  
      p = StringParser::Search("lest ", 5, "l");
-     if (*p != 'l') throw; 
+     if (*p != 'l') HM_TEST_FAILED(); 
      p = StringParser::Search("testp", 4, "p");
-     if (p != 0) throw;  
+     if (p != 0) HM_TEST_FAILED();  
      p = StringParser::Search("testp", 5, "");
-     if (*p != 't') throw;  
+     if (*p != 't') HM_TEST_FAILED();  
      p = StringParser::Search("", 0, "test");
-     if (p != 0) throw;  
+     if (p != 0) HM_TEST_FAILED();  
      p = StringParser::Search("", 0, "");
-     if (p != 0) throw;  
+     if (p != 0) HM_TEST_FAILED();  
      p = StringParser::Search("test", 4, "p");
-     if (p != 0) throw;  
+     if (p != 0) HM_TEST_FAILED();  
      p = StringParser::Search("test", 4, "feb");
-     if (p != 0) throw;
+     if (p != 0) HM_TEST_FAILED();
 
       // RESULT:
       /*
@@ -1179,12 +1179,12 @@ namespace HM
      String input = _T("A B C");
      std::vector<String> result = StringParser::SplitString(input, _T(" "));
      if (result.size() != 3)
-        throw;
+        HM_TEST_FAILED();
 
      input = "A B";
      result = StringParser::SplitString(input, " ");
      if (result.size() != 2)
-        throw;
+        HM_TEST_FAILED();
 
      // Test Contains and ContainsNoCase
      String s1 = "Test";

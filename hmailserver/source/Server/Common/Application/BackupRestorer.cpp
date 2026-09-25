@@ -11,6 +11,8 @@
 #include "../Util/Compression.h"
 #include "../Util/Utilities.h"
 
+#include <chrono>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -76,6 +78,87 @@ namespace HM
       return true;
    }
 
+   // The sentence for an archive refused for one of its entries (see
+   // ExtractIndex_), reported as HM7540: unlike an archive that cannot be read,
+   // which is an ordinary mistake, this is an archive built to write where a
+   // restore must not.
+   static String
+   RefuseUnsafeEntry_(const String &archiveFile, const String &unsafeEntry)
+   {
+      const String reason = Formatter::Format("The backup archive {0} holds an entry that would be written outside the directory it is extracted to, or that is a link: {1}. hMailServer never writes such an entry into a backup, so this archive was made or changed somewhere else. Nothing was extracted from it, and nothing has been changed on this server.",
+         archiveFile, unsafeEntry);
+
+      ErrorManager::Instance()->ReportError(ErrorManager::High, 7540, "BackupRestorer", reason);
+      return reason;
+   }
+
+   // A listing that had nowhere to go says so, and not that the archive is bad.
+   static String
+   ListingNotWritten_(const String &archiveFile, const String &scratchDirectory)
+   {
+      return Formatter::Format("The entries of the backup archive {0} could not be checked before it was read: the file their listing is written to could not be created in {1}, and HM7541 in the error log says why. That is not a verdict on the archive. Nothing has been changed on this server.",
+         archiveFile, scratchDirectory);
+   }
+
+   static unsigned int
+   RemainingOf_(unsigned int timeoutMilliseconds, const std::chrono::steady_clock::time_point &started)
+   {
+      const long long elapsed = (long long) std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started).count();
+      return elapsed >= (long long) timeoutMilliseconds ? 1 : timeoutMilliseconds - (unsigned int) elapsed;
+   }
+
+   static bool
+   EntriesStillSound_(Compression &compression, const String &archiveFile, const String &scratchDirectory, const String &passphrase,
+                      unsigned int timeoutMilliseconds, bool *timedOut, String &failureReason)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The check ExtractIndex_ makes, made again just before a later extraction
+   // from the same archive. Each extraction opens the archive again by its path,
+   // so an archive replaced after it was opened would otherwise be extracted
+   // unchecked; now what is extracted is what was listed a moment before. The
+   // listing shares the caller's bound with the extraction after it.
+   //---------------------------------------------------------------------------()
+   {
+      const std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+
+      String unsafeEntry;
+      const Compression::EntryCheck entries = compression.CheckEntries(archiveFile, scratchDirectory, passphrase, unsafeEntry);
+
+      if (entries == Compression::EntriesUnsafe)
+      {
+         failureReason = RefuseUnsafeEntry_(archiveFile, unsafeEntry);
+         return false;
+      }
+
+      if (entries == Compression::EntriesListingNotWritten)
+      {
+         failureReason = ListingNotWritten_(archiveFile, scratchDirectory);
+         return false;
+      }
+
+      if (entries != Compression::EntriesSound)
+      {
+         if (compression.GetLastRunTimedOut())
+         {
+            if (timedOut)
+               *timedOut = true;
+
+            failureReason = Formatter::Format("The backup archive {0} could not be listed again within the {1} seconds this way of asking allows. That is not a verdict on the archive. Nothing has been changed on this server.",
+               archiveFile, (int) (timeoutMilliseconds / 1000));
+            return false;
+         }
+
+         failureReason = Formatter::Format("The backup archive {0} could not be listed again before it was read: it has been changed, or has become unreadable, since it was opened. Nothing has been changed on this server.",
+            archiveFile);
+         return false;
+      }
+
+      if (timeoutMilliseconds > 0)
+         compression.SetMaximumRunTime(RemainingOf_(timeoutMilliseconds, started));
+
+      return true;
+   }
+
    static bool
    ExtractIndex_(const String &archiveFile, const String &targetDirectory, const String &passphrase, unsigned int timeoutMilliseconds, String &failureReason, bool *timedOut)
    //---------------------------------------------------------------------------()
@@ -120,12 +203,59 @@ namespace HM
       if (timeoutMilliseconds > 0)
          compression.SetMaximumRunTime(timeoutMilliseconds);
 
-      // Checked, unlike before. LoadBackup discarded this result and then read the
-      // file it was meant to have produced, so a truncated or half-copied archive -
-      // the exact case a restore has to survive - produced an empty read and a
-      // Backup object that claimed to contain nothing at all, with no error
-      // anywhere.
-      if (!compression.UncompressMember(archiveFile, targetDirectory, BACKUP_INDEX_FILE_NAME, passphrase))
+      // Every entry is checked before anything is extracted, this one small file
+      // into this run's own directory included, because every way a restore opens
+      // an archive comes through here first - LoadBackup, a whole restore
+      // (Prepare), the check of the archive a backup has just written, and a
+      // mailbox or a message restored from one (OpenIndex) - and what those go on
+      // to extract is extracted from the same archive by the same object. An
+      // entry with an absolute path, a ".." segment, or a link with a target is
+      // not something this server ever writes into a backup: an archive that holds
+      // one was made or changed elsewhere, and it is refused whole, whatever the
+      // archiver would itself have done with that entry (7-Zip 26.03 drops the
+      // ".." and the drive and checks where a link points; 19.00, which this
+      // installer shipped until 25 September 2026, predates CVE-2025-55188's fix,
+      // and a Linux machine's p7zip may be older still). Refused here, before the
+      // index is read, it is refused before anything on the server is touched.
+      //
+      // The listing and the extraction after it share the caller's bound, so a
+      // REST caller's two minutes stay two minutes.
+      const std::chrono::steady_clock::time_point listingStarted = std::chrono::steady_clock::now();
+
+      String unsafeEntry;
+      const Compression::EntryCheck entries = compression.CheckEntries(archiveFile, targetDirectory, passphrase, unsafeEntry);
+
+      if (entries == Compression::EntriesUnsafe)
+      {
+         failureReason = RefuseUnsafeEntry_(archiveFile, unsafeEntry);
+         return false;
+      }
+
+      if (entries == Compression::EntriesListingNotWritten)
+      {
+         failureReason = ListingNotWritten_(archiveFile, targetDirectory);
+         return false;
+      }
+
+      // An archive the archiver could not list is one it could not extract from
+      // either: the reasons below say why, from what that run found - a timeout,
+      // an encrypted archive, a damaged one.
+      bool extracted = false;
+
+      if (entries == Compression::EntriesSound)
+      {
+         if (timeoutMilliseconds > 0)
+            compression.SetMaximumRunTime(RemainingOf_(timeoutMilliseconds, listingStarted));
+
+         // Checked, unlike before. LoadBackup discarded this result and then read
+         // the file it was meant to have produced, so a truncated or half-copied
+         // archive - the exact case a restore has to survive - produced an empty
+         // read and a Backup object that claimed to contain nothing at all, with
+         // no error anywhere.
+         extracted = compression.UncompressMember(archiveFile, targetDirectory, BACKUP_INDEX_FILE_NAME, passphrase);
+      }
+
+      if (!extracted)
       {
          if (compression.GetLastRunTimedOut())
          {
@@ -500,6 +630,9 @@ namespace HM
          if (archiveOpenTimeoutMilliseconds > 0)
             compression.SetMaximumRunTime(archiveOpenTimeoutMilliseconds);
 
+         if (!EntriesStillSound_(compression, archiveFile, staging_directory_, passphrase_, archiveOpenTimeoutMilliseconds, timedOut, failureReason))
+            return false;
+
          if (!compression.UncompressMembers(archiveFile, staging_directory_, members, passphrase_))
          {
             if (compression.GetLastRunTimedOut())
@@ -601,6 +734,10 @@ namespace HM
          }
 
          Compression compression;
+
+         if (!EntriesStillSound_(compression, archiveFile, staging_directory_, passphrase_, 0, nullptr, failureReason))
+            return false;
+
          if (!compression.UncompressMembers(archiveFile, staging_directory_, members, passphrase_))
          {
             failureReason = "The parts the mailbox's messages hold once could not be extracted from " + archiveFile + ". Nothing has been changed on this server.";
@@ -740,6 +877,10 @@ namespace HM
          }
 
          Compression compression;
+
+         if (!EntriesStillSound_(compression, archiveFile, staging_directory_, passphrase_, 0, nullptr, failureReason))
+            return false;
+
          if (!compression.UncompressAll(archiveFile, staging_directory_, passphrase_))
          {
             failureReason = "Restore refused: the messages could not be extracted from " + archiveFile + ". Nothing has been changed on this server.";

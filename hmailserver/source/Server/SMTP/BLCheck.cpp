@@ -192,31 +192,31 @@ namespace HM
    {
 
       if (BLCheck::GetRevertedIP(_T("1.2.3.4")) != _T("4.3.2.1"))
-         throw;
+         HM_TEST_FAILED();
 
       if (BLCheck::GetRevertedIP(_T("255.255.255.0")) != _T("0.255.255.255"))
-         throw;
+         HM_TEST_FAILED();
 
       // IPv6
       if (BLCheck::GetRevertedIP(_T("::1")) != _T("1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0"))
-         throw;
+         HM_TEST_FAILED();
 
       std::set<String> expandedaddresses = BLCheck::ExpandAddresses("127.0.0.*");
 
       if (expandedaddresses.find("127.0.0.*") == expandedaddresses.end())
-         throw;
+         HM_TEST_FAILED();
       if (expandedaddresses.size() != 1)
-         throw;
+         HM_TEST_FAILED();
 
       expandedaddresses = BLCheck::ExpandAddresses("127.0.0.1-3");
 
       if (expandedaddresses.find("127.0.0.1") == expandedaddresses.end() ||
           expandedaddresses.find("127.0.0.2") == expandedaddresses.end() ||
           expandedaddresses.find("127.0.0.3") == expandedaddresses.end())
-         throw;
+         HM_TEST_FAILED();
 
       if (expandedaddresses.find("127.0.0.4") != expandedaddresses.end())
-         throw;
+         HM_TEST_FAILED();
 
       expandedaddresses = BLCheck::ExpandAddresses("127.0.0.1-3|127.0.0.5");
 
@@ -224,31 +224,31 @@ namespace HM
          expandedaddresses.find("127.0.0.2") == expandedaddresses.end() ||
          expandedaddresses.find("127.0.0.3") == expandedaddresses.end() ||
          expandedaddresses.find("127.0.0.5") == expandedaddresses.end())
-         throw; 
+         HM_TEST_FAILED(); 
 
       if (expandedaddresses.find("127.0.0.4") != expandedaddresses.end() || 
           expandedaddresses.find("127.0.0.6") != expandedaddresses.end())
-         throw;
+         HM_TEST_FAILED();
 
       expandedaddresses = BLCheck::ExpandAddresses("127.0.0.1|127.0.0.255");
 
       if (expandedaddresses.find("127.0.0.1") == expandedaddresses.end() ||
          expandedaddresses.find("127.0.0.255") == expandedaddresses.end())
-         throw; 
+         HM_TEST_FAILED(); 
 
       if (expandedaddresses.find("127.0.0.3") != expandedaddresses.end() || 
          expandedaddresses.find("127.0.0.4") != expandedaddresses.end())
-         throw;
+         HM_TEST_FAILED();
 
       expandedaddresses = BLCheck::ExpandAddresses("127.0.0.1 | 127.0.0.255");
 
       if (expandedaddresses.find("127.0.0.1") == expandedaddresses.end() ||
          expandedaddresses.find("127.0.0.255") == expandedaddresses.end())
-         throw; 
+         HM_TEST_FAILED(); 
 
       if (expandedaddresses.find("127.0.0.3") != expandedaddresses.end() || 
          expandedaddresses.find("127.0.0.4") != expandedaddresses.end())
-         throw;
+         HM_TEST_FAILED();
 
       expandedaddresses = BLCheck::ExpandAddresses("127.0.0.2-8|127.0.0.10-11");
 
@@ -261,26 +261,26 @@ namespace HM
           expandedaddresses.find("127.0.0.8") == expandedaddresses.end() ||
           expandedaddresses.find("127.0.0.10") == expandedaddresses.end() ||
           expandedaddresses.find("127.0.0.11") == expandedaddresses.end())
-         throw; 
+         HM_TEST_FAILED(); 
 
       if (expandedaddresses.find("127.0.0.1") != expandedaddresses.end() || 
           expandedaddresses.find("127.0.0.9") != expandedaddresses.end() ||
           expandedaddresses.find("127.0.0.12") != expandedaddresses.end())
-         throw;
+         HM_TEST_FAILED();
 
       expandedaddresses = BLCheck::ExpandAddresses("127.0.0.1-1");
 
       if (expandedaddresses.find("127.0.0.1") == expandedaddresses.end())
-         throw;
+         HM_TEST_FAILED();
       if (expandedaddresses.size() != 1)
-         throw;
+         HM_TEST_FAILED();
 
       expandedaddresses = BLCheck::ExpandAddresses("127.0.0.2");
 
       if (expandedaddresses.find("127.0.0.2") == expandedaddresses.end())
-         throw;
+         HM_TEST_FAILED();
       if (expandedaddresses.size() != 1)
-         throw;
+         HM_TEST_FAILED();
    }
 
 }

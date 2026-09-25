@@ -848,6 +848,31 @@ namespace HM
       TestUnknownTokensAreLeftAlone_();
       TestRepeatedAndCaseSensitiveTokens_();
       TestGeneratedNamesDoNotCollide_();
+      TestColumnStartsEmpty_();
+   }
+
+   /*
+      A column made with no initialiser starts empty: no name, no text, iInt 0
+      and the type unknown. That is where every AddColumn starts from before it
+      fills in what its kind uses and copies the whole column into the statement,
+      and a string column used to carry an iInt nothing had written. Against the
+      old declaration this reads an uninitialised value, which is undefined rather
+      than reliably wrong, so it pins the initialisers rather than proving their
+      absence.
+   */
+   void
+   SQLStatementTester::TestColumnStartsEmpty_()
+   {
+      SQLStatement::Column column;
+
+      if (column.iInt != 0 || column.iType != SQLStatement::ColTypeUnknown || !column.sName.IsEmpty() || !column.sString.IsEmpty())
+         HM_TEST_FAILED();
+
+      std::vector<SQLStatement::Column> copies;
+      copies.push_back(column);
+
+      if (copies[0].iInt != 0 || copies[0].iType != SQLStatement::ColTypeUnknown)
+         HM_TEST_FAILED();
    }
 
    /*

@@ -57,31 +57,31 @@ namespace HM
       AnsiString input = "Test";
       s = Base64::Encode(input.GetBuffer(), input.GetLength());
       if (s.Compare(_T("VGVzdA==")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       input = "Test test test test test test test!!!!";
       s = Base64::Encode(input, input.GetLength());
       if (s.Compare(_T("VGVzdCB0ZXN0IHRlc3QgdGVzdCB0ZXN0IHRlc3QgdGVzdCEhISE=")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       input = "hMailServer is a free e-mail server for Microsoft Windows. It's used by Internet service providers, companies, governments, schools and enthusiasts in all parts of the world. It supports the common e-mail protocols (IMAP, SMTP and POP3) and can easily be integrated with many existing web mail systems. It has flexible score-based spam protection and can attach to your virus scanner to scan all incoming and outgoing email.";
       s = Base64::Encode(input, input.GetLength());
       if (s.Compare(_T("aE1haWxTZXJ2ZXIgaXMgYSBmcmVlIGUtbWFpbCBzZXJ2ZXIgZm9yIE1pY3Jvc29mdCBXaW5kb3dzLiBJdCdzIHVzZWQgYnkgSW50ZXJuZXQgc2VydmljZSBwcm92aWRlcnMsIGNvbXBhbmllcywgZ292ZXJubWVudHMsIHNjaG9vbHMgYW5kIGVudGh1c2lhc3RzIGluIGFsbCBwYXJ0cyBvZiB0aGUgd29ybGQuIEl0IHN1cHBvcnRzIHRoZSBjb21tb24gZS1tYWlsIHByb3RvY29scyAoSU1BUCwgU01UUCBhbmQgUE9QMykgYW5kIGNhbiBlYXNpbHkgYmUgaW50ZWdyYXRlZCB3aXRoIG1hbnkgZXhpc3Rpbmcgd2ViIG1haWwgc3lzdGVtcy4gSXQgaGFzIGZsZXhpYmxlIHNjb3JlLWJhc2VkIHNwYW0gcHJvdGVjdGlvbiBhbmQgY2FuIGF0dGFjaCB0byB5b3VyIHZpcnVzIHNjYW5uZXIgdG8gc2NhbiBhbGwgaW5jb21pbmcgYW5kIG91dGdvaW5nIGVtYWlsLg==")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       input = "VGVzdA==";
       s = Base64::Decode(input, input.GetLength());
       if (s.Compare(_T("Test")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       input = "VGVzdCB0ZXN0IHRlc3QgdGVzdCB0ZXN0IHRlc3QgdGVzdCEhISE=";
       s = Base64::Decode(input, input.GetLength());
       if (s.Compare(_T("Test test test test test test test!!!!")) != 0)
-         throw;
+         HM_TEST_FAILED();
 
       input = "aE1haWxTZXJ2ZXIgaXMgYSBmcmVlIGUtbWFpbCBzZXJ2ZXIgZm9yIE1pY3Jvc29mdCBXaW5kb3dzLiBJdCdzIHVzZWQgYnkgSW50ZXJuZXQgc2VydmljZSBwcm92aWRlcnMsIGNvbXBhbmllcywgZ292ZXJubWVudHMsIHNjaG9vbHMgYW5kIGVudGh1c2lhc3RzIGluIGFsbCBwYXJ0cyBvZiB0aGUgd29ybGQuIEl0IHN1cHBvcnRzIHRoZSBjb21tb24gZS1tYWlsIHByb3RvY29scyAoSU1BUCwgU01UUCBhbmQgUE9QMykgYW5kIGNhbiBlYXNpbHkgYmUgaW50ZWdyYXRlZCB3aXRoIG1hbnkgZXhpc3Rpbmcgd2ViIG1haWwgc3lzdGVtcy4gSXQgaGFzIGZsZXhpYmxlIHNjb3JlLWJhc2VkIHNwYW0gcHJvdGVjdGlvbiBhbmQgY2FuIGF0dGFjaCB0byB5b3VyIHZpcnVzIHNjYW5uZXIgdG8gc2NhbiBhbGwgaW5jb21pbmcgYW5kIG91dGdvaW5nIGVtYWlsLg==";
       s = Base64::Decode(input, input.GetLength());
       if (s.Compare(_T("hMailServer is a free e-mail server for Microsoft Windows. It's used by Internet service providers, companies, governments, schools and enthusiasts in all parts of the world. It supports the common e-mail protocols (IMAP, SMTP and POP3) and can easily be integrated with many existing web mail systems. It has flexible score-based spam protection and can attach to your virus scanner to scan all incoming and outgoing email.")) != 0)
-         throw;
+         HM_TEST_FAILED();
    }
 }

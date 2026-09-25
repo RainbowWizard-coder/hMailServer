@@ -67,6 +67,8 @@
 #include <queue>
 #include <functional>
 #include <memory>
+#include <stdexcept>
+#include <string>
 
 
 //
@@ -131,6 +133,17 @@ namespace HM
 #ifndef ASSERT
    #define ASSERT(expression) HM_ASSERT(expression)
 #endif
+
+// A failed check in one of the in-process testers ClassTester::DoTests runs,
+// which the regression suite reaches over COM (Utilities.RunTestSuite) inside
+// the service. It throws a std::logic_error naming the line and the file, and
+// RunTestSuite returns that sentence to its caller as a COM error. The testers
+// used to write a bare "throw;" here, and with no exception being handled a
+// bare throw calls std::terminate: one failing check ended the service instead
+// of failing the test. The security scan of 25 September 2026 counted 376.
+// A throw expression rather than a call, so that the compiler still knows the
+// path goes no further.
+#define HM_TEST_FAILED() throw std::logic_error(std::string("a check failed at line ") + std::to_string(__LINE__) + " of " + __FILE__)
 
 // Start: Common files
    #include "../Common/Util/StdString.h"
