@@ -205,6 +205,12 @@ namespace RegressionTests.Infrastructure
          return _expectedErrors.Any(contents => contents.All(line.Contains));
       }
 
+      // HM4316 as ErrorManager writes a line's own code. Matched this way, not as
+      // the bare number anywhere in the line: that also dropped HM7150, whose
+      // sentence tells the administrator that "the error log names it (HM4316)",
+      // so DrainAndUpgrade's test of that line could never find it.
+      private const string ListenerBindNoise = "Code: HM4316,";
+
       /// <summary>
       ///    The ERROR log lines written since MarkErrorLog, without the one line that
       ///    is noise on a shared machine: HM4316, a listener that could not bind
@@ -225,7 +231,7 @@ namespace RegressionTests.Infrastructure
                fresh = now.Skip(at + 1);
          }
 
-         return fresh.Where(line => line.Trim().Length > 0 && !line.Contains("HM4316")).ToArray();
+         return fresh.Where(line => line.Trim().Length > 0 && !line.Contains(ListenerBindNoise)).ToArray();
       }
 
       /// <summary>

@@ -70,13 +70,17 @@ namespace HM
       // Answered from a short-lived cache rather than a syscall per message. The
       // first time it goes from true to false it reports HM6230, so an
       // administrator hears about it at the moment mail starts being refused
-      // rather than at the next tick of the monitor task.
+      // rather than at the next tick of the monitor task - and again only if the
+      // floor is changed while the volume is still below it, since HM6230 names
+      // the floor.
       static bool DataDirectoryHasRoomForMail();
 
       // The periodic administrator warning. Refreshes the reading, then reports
-      // whichever band the volume is in - and only when the band CHANGES, so a
-      // server that sits just under the warning line writes one log line and not
-      // one per hour for ever.
+      // whichever band the volume is in - and only when the band CHANGES, or a
+      // threshold the band's announcement names does, so a server that sits just
+      // under the warning line writes one log line and not one per hour for ever,
+      // and one whose thresholds were changed is told where it stands against the
+      // new ones.
       static void CheckAndReportDataDirectory();
 
       // Drops the cached reading. For self-tests and for a configuration reload.

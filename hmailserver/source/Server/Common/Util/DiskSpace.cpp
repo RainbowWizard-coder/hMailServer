@@ -96,6 +96,20 @@ namespace HM
          // genuine change for the worse.
          boost::mutex band_mutex;
          DiskSpaceBand last_band = BandOk;
+
+         // The floor and the warning threshold that band was judged against. The
+         // band alone was the latch until 25 September 2026, and it outlives a
+         // reinitialise, because this state is the process's: a server already in
+         // the warning band when an administrator raised the threshold - or when
+         // logging was still off at start, so the one line went nowhere - was
+         // judged again against the new numbers, found in the same band and said
+         // nothing, and the only sentence about it named a threshold no longer
+         // configured. Both numbers are in the warning's sentence and the floor is
+         // in HM6230's, so a change to a number the band's announcement names is
+         // a new announcement to make. A healthy server still says nothing: BandOk
+         // announces only a recovery from another band.
+         unsigned __int64 last_floor_bytes = 0;
+         unsigned __int64 last_warn_bytes = 0;
       };
 
       DiskSpaceState &State()
@@ -189,7 +203,9 @@ namespace HM
          return BandOk;
       }
 
-      // Announces a band, once, on the transition into it.
+      // Announces a band, once, on the transition into it - or again, in the same
+      // band, when a number its announcement names has changed since it was
+      // announced (DiskSpaceState says why).
       //
       // No lock is held while reporting: ErrorManager::ReportError fires the
       // OnError script event, which runs administrator code, and holding a mutex
@@ -205,11 +221,22 @@ namespace HM
          {
             boost::lock_guard<boost::mutex> guard(state.band_mutex);
 
-            if (state.last_band == band)
+            // The numbers the band's own announcement names: the floor for HM6230,
+            // both for the warning line, and none for the other two - so an
+            // ERROR record is never repeated for a change it does not mention.
+            bool namedNumbersChanged = false;
+            if (band == BandBelowFloor)
+               namedNumbersChanged = state.last_floor_bytes != floorBytes;
+            else if (band == BandWarning)
+               namedNumbersChanged = state.last_floor_bytes != floorBytes || state.last_warn_bytes != warnBytes;
+
+            if (state.last_band == band && !namedNumbersChanged)
                return;
 
             previous = state.last_band;
             state.last_band = band;
+            state.last_floor_bytes = floorBytes;
+            state.last_warn_bytes = warnBytes;
          }
 
          switch (band)

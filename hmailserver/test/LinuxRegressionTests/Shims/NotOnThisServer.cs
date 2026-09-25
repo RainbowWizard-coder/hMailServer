@@ -264,6 +264,20 @@ namespace RegressionTests.Shared
       public const string NoSecretReadback =
          "reads a stored secret back through a COM property; the REST API writes a secret and never answers one";
 
+      /// <summary>
+      ///    AdministratorTwoFactor reads the administrator's TOTP secret out of
+      ///    hMailServer.ini and asserts the Windows DPAPI envelope on it. That prefix
+      ///    is written by DPAPI and nothing else: this build stores a protected
+      ///    secret as LINUX1: under its key file (Crypt::ProtectSecret), and the
+      ///    Linux benches run with ProtectStoredSecretsWithDPAPI=0, where it is the
+      ///    legacy Blowfish value. Between the enrolment and the assertion the test
+      ///    touches no shim member, so it is stopped here, by name, before it starts;
+      ///    the CI job used to leave it out of its filter instead, which a run with
+      ///    any other filter did not.
+      /// </summary>
+      public const string WindowsSecretEnvelope =
+         "asserts the Windows DPAPI: envelope on the stored administrator TOTP secret, which only DPAPI writes; this build stores a protected secret as LINUX1: under its key file, and as the legacy Blowfish value with ProtectStoredSecretsWithDPAPI=0";
+
       public const string NoIpRangeCreate =
          "needs an IP range, and this server's REST API has no POST /api/v1/ipranges";
 
@@ -438,7 +452,14 @@ namespace RegressionTests.Shared
          { "RegressionTests.Infrastructure.DatabaseFailureHandling.RestoringDefaultPortsReportsFailureRatherThanClaimingSuccess", NoPortDefaults },
          { "RegressionTests.API.RestApiSrvRecords.SrvRecordsCoverEnabledServicesAndOmitDisabled", StandardPortNumbers },
          { "RegressionTests.Security.PasswordPepper.TestPasswordPepperAffectsArgon2idVerification", NoArgon2id },
-         { "RegressionTests.Security.PasswordHashCost.NewArgon2idHashCarriesTheConfiguredMemoryAndPasses", NoArgon2id },
+         // It reads the stored hash through Account.Password, as the four tests of
+         // its fixture below do, and was registered for Argon2id alone - so on a
+         // build that HAS Argon2id it ran, and was handed the shim's copy of the
+         // password the account was made with, which is not what the server stored
+         // (the REST routes never answer a password or its hash). Registered for
+         // the readback, which no build answers, so it skips on every one.
+         { "RegressionTests.Security.PasswordHashCost.NewArgon2idHashCarriesTheConfiguredMemoryAndPasses", NoSecretReadback },
+         { "RegressionTests.Security.AdministratorTwoFactor.TheSecretIsNotReadableAfterEnrolment", WindowsSecretEnvelope },
          { "RegressionTests.SSL.PostQuantumKeyExchange.ConfiguredGroupList_IsHonoured", ClassicalKeyExchangeOnly },
          { "RegressionTests.SSL.PostQuantumKeyExchange.DefaultConfiguration_PrefersHybridPostQuantumGroupOnEveryListener", ClassicalKeyExchangeOnly },
          { "RegressionTests.Sieve.ManageSieveTls.StartTlsUsesTheSharedKeyExchangeGroups", ClassicalKeyExchangeOnly },

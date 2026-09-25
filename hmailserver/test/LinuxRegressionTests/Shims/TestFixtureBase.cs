@@ -43,6 +43,12 @@ namespace RegressionTests.Shared
 
          _application = SingletonProvider<TestSetup>.Instance.GetApp();
          _settings = _application.Settings;
+
+         // Before the fixture's own OneTimeSetUp, which NUnit runs after this one:
+         // [Settings] as the run found them, so that what the fixture stores there
+         // for all of its tests stays stored until its OneTimeTearDown
+         // (TestSetup.BeginFixture says why this is not done per test).
+         SingletonProvider<TestSetup>.Instance.BeginFixture();
       }
 
       /// <summary>

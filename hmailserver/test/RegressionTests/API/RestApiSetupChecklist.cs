@@ -182,9 +182,16 @@ namespace RegressionTests.API
       [Description("The submission port is judged from the port table: the stock port 587 without TLS needs action, and a port with STARTTLS and a certificate that exists is done, named with its certificate.")]
       public void TheSubmissionPortNeedsTlsWithACertificate()
       {
+         // The submission listener's port as this bench has it: 587 on the Windows
+         // bench and the CI job, and whatever HMTEST_SUBMISSION_PORT names on a bench
+         // that cannot bind a privileged port. The checklist judges every SMTP port
+         // but 25 as submission, so the finding is for that listener, whatever its
+         // number.
+         string submissionPort = TestPorts.Actual(587).ToString();
+
          JsonDocument stock = Get(Path);
          ClassicAssert.AreEqual("action_needed", StateOf(stock.RootElement, "submission"));
-         ClassicAssert.IsTrue(HasFinding(stock.RootElement, "submission", "submission_plain", "587"), Item(stock.RootElement, "submission").ToString());
+         ClassicAssert.IsTrue(HasFinding(stock.RootElement, "submission", "submission_plain", submissionPort), Item(stock.RootElement, "submission").ToString());
 
          string sslPath = SslSetup.GetSslCertPath();
          SSLCertificate certificate = _settings.SSLCertificates.Add();
@@ -203,7 +210,7 @@ namespace RegressionTests.API
 
          JsonDocument withTls = Get(Path);
          ClassicAssert.IsTrue(HasFinding(withTls.RootElement, "submission", "submission_tls", TlsPort.ToString(), CertificateName), Item(withTls.RootElement, "submission").ToString());
-         ClassicAssert.AreEqual("action_needed", StateOf(withTls.RootElement, "submission"), "The plain port 587 still needs action beside the secured one.");
+         ClassicAssert.AreEqual("action_needed", StateOf(withTls.RootElement, "submission"), "The plain port " + submissionPort + " still needs action beside the secured one.");
 
          // A port with no certificate at all cannot be saved over COM, so the
          // case is the one an administrator meets: the certificate it names is gone.

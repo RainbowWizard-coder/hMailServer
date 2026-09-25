@@ -713,6 +713,13 @@ namespace hMailServer
             RequireSSLTLSForAuth = Flag(element, "require_tls_for_auth"),
             SpamProtection = Flag(element, "spam_protection"),
             VirusProtection = Flag(element, "virus_protection"),
+            // The expiry every range route reports. Read since 25 September 2026:
+            // before, Expires was false for every range read back, so an auto-ban
+            // range the server had made to expire - SmtpPolicy's null-sender ban -
+            // was reported to the fixture as permanent.
+            Expires = Flag(element, "expires"),
+            ExpiresAsRead = Flag(element, "expires"),
+            ExpiresTime = SecurityRange.ParseExpiryTime(ServerApi.StringOf(element, "expires_time")),
             Existing = true
          };
       }
@@ -817,6 +824,29 @@ namespace hMailServer
       public bool Expires { get; set; }
       public DateTime ExpiresTime { get; set; }
 
+      /// <summary>Whether the range expired as the server last reported it: what Save compares against.</summary>
+      internal bool ExpiresAsRead;
+
+      // The form the range routes read and write an expiry in: the server's
+      // clock, to the second (RestApiServer::ParseExpiryTime_).
+      private const string ExpiryTimeFormat = "yyyy-MM-dd HH:mm:ss";
+
+      /// <summary>
+      ///    expires_time as the routes answer it. Empty for a range that does not
+      ///    expire, which is read as DateTime's default: the route does not report
+      ///    the placeholder such a range carries, because it is not a fact about it.
+      /// </summary>
+      internal static DateTime ParseExpiryTime(string text)
+      {
+         DateTime parsed;
+         if (!string.IsNullOrWhiteSpace(text) &&
+             DateTime.TryParseExact(text.Trim(), ExpiryTimeFormat, System.Globalization.CultureInfo.InvariantCulture,
+                                    System.Globalization.DateTimeStyles.None, out parsed))
+            return parsed;
+
+         return default(DateTime);
+      }
+
       /// <summary>
       ///    Answered from the four RequireSMTPAuth* the range enforces, as the COM
       ///    object answers them since 5.1 - a read, not a write.
@@ -849,6 +879,19 @@ namespace hMailServer
          Add(body, "require_tls_for_auth", RequireSSLTLSForAuth);
          Add(body, "spam_protection", SpamProtection);
          Add(body, "virus_protection", VirusProtection);
+
+         // The expiry, as the COM Save writes it: the flag, and with it the time.
+         // Only for a range that expires or did when it was read, so that a range
+         // that never expired is saved in the body it always was. A range made to
+         // expire with no time set is sent without one, and the route's refusal is
+         // the COMException below, in the route's words.
+         if (Expires || ExpiresAsRead)
+         {
+            Add(body, "expires", Expires);
+            if (Expires && ExpiresTime != default(DateTime))
+               body.Append(",\"expires_time\":").Append(ServerApi.Quote(ExpiresTime.ToString(ExpiryTimeFormat, System.Globalization.CultureInfo.InvariantCulture)));
+         }
+
          body.Append('}');
 
          var answer = Existing
@@ -861,6 +904,7 @@ namespace hMailServer
          answer.Expect(Existing ? 200 : 201, (Existing ? "PUT /api/v1/ipranges/" + ID + " " : "POST /api/v1/ipranges ") + Name);
          ID = ServerApi.LongOf(answer.Json.Value, "id");
          Existing = true;
+         ExpiresAsRead = Expires;
       }
 
       private static void Add(StringBuilder body, string name, bool value)

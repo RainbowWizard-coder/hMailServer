@@ -32,10 +32,10 @@ namespace RegressionTests.Shared
       public static readonly int SmtpPort = Read("HMTEST_SMTP_PORT", 2525);
 
       /// <summary>
-      ///    The submission port. The CI tree keeps it on the stock 587, because the
-      ///    setup checklist judges that listener by its number and
-      ///    API/RestApiSetupChecklist asserts the finding for 587; a bench that
-      ///    cannot bind a privileged port names its own here.
+      ///    The submission port. The CI tree keeps it on the stock 587; a bench that
+      ///    cannot bind a privileged port - the lab VM runs the server as an ordinary
+      ///    user, on 5870 - names its own here, and API/RestApiSetupChecklist asks
+      ///    the checklist about this port rather than about 587, so either passes.
       /// </summary>
       public static readonly int SubmissionPort = Read("HMTEST_SUBMISSION_PORT", 587);
 

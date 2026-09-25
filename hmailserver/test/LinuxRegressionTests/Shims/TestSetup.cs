@@ -703,43 +703,101 @@ namespace RegressionTests.Shared
       // key the run did not start with is deleted, and the file follows. Only the
       // [Settings] section: nothing else in the file is stored, and no linked
       // fixture writes another section on this platform.
+      //
+      // TWO BASELINES, because a fixture's OneTimeSetUp is part of the fixture.
+      // Until 25 September 2026 every test's SetUp put [Settings] back to how the
+      // RUN found them, which also undid what the fixture's own OneTimeSetUp had
+      // stored for all of its tests - AuthenticatedSenderCheck and
+      // AuthorisationChokePoint store SmtpAuthenticatedSenderCheck=1 there, and the
+      // first test's SetUp deleted it again. While a stored value waited for the
+      // next reinitialise that went unseen; since the server applies a key marked
+      // "now" the moment it is saved (docs/SettingsApply.md), the delete switched
+      // the sender check off before the first test sent anything, and four send-as
+      // tests were accepted where a 550 was the point. So: the run's baseline is
+      // put back when a fixture BEGINS - TestFixtureBase's OneTimeSetUp, which NUnit
+      // runs before the fixture's own - so what one fixture left behind is not the
+      // next one's starting point; and before every test the section is put back
+      // to how that fixture's first test found it, OneTimeSetUp included.
 
       private static string _iniPath;
       private static Dictionary<string, string> _settingsAtStart;
+      private static Dictionary<string, string> _settingsAtFixtureStart;
+
+      /// <summary>
+      ///    Called from TestFixtureBase's OneTimeSetUp, before the fixture's own: the
+      ///    [Settings] section put back to how the run found it, and the next test's
+      ///    SetUp told to take the fixture's baseline afresh.
+      /// </summary>
+      public void BeginFixture()
+      {
+         var now = ReadServerIniSettings();
+
+         _settingsAtFixtureStart = null;
+
+         if (now == null)
+            return;
+
+         if (_settingsAtStart == null)
+         {
+            _settingsAtStart = now;
+            return;
+         }
+
+         PutBack(_settingsAtStart, now, "the value the run started with", "a setting the run did not start with");
+      }
 
       private static void RestoreServerIni()
+      {
+         var now = ReadServerIniSettings();
+
+         if (now == null)
+            return;
+
+         // A fixture that does not derive from TestFixtureBase never called
+         // BeginFixture, and neither did the first one on a run that began here.
+         if (_settingsAtStart == null)
+            _settingsAtStart = now;
+
+         if (_settingsAtFixtureStart == null)
+         {
+            _settingsAtFixtureStart = now;
+            return;
+         }
+
+         PutBack(_settingsAtFixtureStart, now, "the value this fixture's first test found", "a setting this fixture's first test did not find");
+      }
+
+      /// <summary>The [Settings] section of the server's ini, or null where there is none to read or no route to write it back through.</summary>
+      private static Dictionary<string, string> ReadServerIniSettings()
       {
          var path = Environment.GetEnvironmentVariable("HMTEST_SERVER_INI");
 
          if (string.IsNullOrWhiteSpace(path) || !File.Exists(path.Trim()))
-            return;
+            return null;
 
          if (!ServerApi.HasRoute(SettingsApi.Ini, "get"))
-            return;
+            return null;
 
          _iniPath = path.Trim();
 
-         if (_settingsAtStart == null)
-         {
-            _settingsAtStart = SettingsSectionOf(File.ReadAllText(_iniPath));
-            return;
-         }
+         return SettingsSectionOf(File.ReadAllText(_iniPath));
+      }
 
-         var now = SettingsSectionOf(File.ReadAllText(_iniPath));
-
-         foreach (var original in _settingsAtStart)
+      private static void PutBack(Dictionary<string, string> wanted, Dictionary<string, string> now, string changedReason, string addedReason)
+      {
+         foreach (var original in wanted)
          {
             string current;
             if (now.TryGetValue(original.Key, out current) && current == original.Value)
                continue;
 
             ServerApi.Put(SettingsApi.Ini + "/" + original.Key, "{\"value\":" + ServerApi.Quote(original.Value) + "}")
-               .Expect(200, "PUT " + SettingsApi.Ini + "/" + original.Key + " (putting back the value the run started with)");
+               .Expect(200, "PUT " + SettingsApi.Ini + "/" + original.Key + " (putting back " + changedReason + ")");
          }
 
-         foreach (var added in now.Keys.Where(key => !_settingsAtStart.ContainsKey(key)))
+         foreach (var added in now.Keys.Where(key => !wanted.ContainsKey(key)).ToArray())
             ServerApi.Delete(SettingsApi.Ini + "/" + added)
-               .Expect(200, "DELETE " + SettingsApi.Ini + "/" + added + " (a setting the run did not start with)");
+               .Expect(200, "DELETE " + SettingsApi.Ini + "/" + added + " (" + addedReason + ")");
       }
 
       // The [Settings] section of an ini text as name -> value, read the way the
