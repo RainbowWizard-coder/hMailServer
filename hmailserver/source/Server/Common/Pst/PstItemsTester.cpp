@@ -959,8 +959,22 @@ namespace HM
          // A zone's name is cut to 100 bytes at a character, never inside one.
          PstAppointment longZone = monthly;
          longZone.zone.name = std::string(99, 'a') + "\xC3\xA9";
-         Expect(PstItems::AppointmentText(longZone, "pst-x", text, word, problem) &&
-                Contains(text, ("TZID:" + std::string(99, 'a') + "\r\n").c_str()),
+         // The TZID line is longer than iCalendar's 75 octets, so the writer
+         // folds it (ICalendar::Fold); the name is compared with the fold undone.
+         bool zoneWritten = PstItems::AppointmentText(longZone, "pst-x", text, word, problem);
+         std::string unfolded;
+         for (size_t i = 0; i < text.size(); i++)
+         {
+            if (text[i] == '\r' && i + 2 < text.size() && text[i + 1] == '\n' && (text[i + 2] == ' ' || text[i + 2] == '\t'))
+            {
+               i += 2;
+               continue;
+            }
+            unfolded += text[i];
+         }
+         // SafeName cuts with PstFormat::CutUtf8, which keeps 97 bytes at a
+         // character boundary and marks the cut with "...".
+         Expect(zoneWritten && Contains(unfolded, ("TZID:" + std::string(97, 'a') + "...\r\n").c_str()),
                 "A two-byte character that would end past 100 bytes is left out whole.");
 
          // A zone whose transitions are dates, a year given: read as those
