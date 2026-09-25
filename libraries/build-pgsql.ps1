@@ -45,6 +45,15 @@
     auto-detects it from hMailServer.vcxproj (the openssl-<ver> the project currently
     links against).
 
+.PARAMETER Platform
+    x64 (the default, and the build every x64 server links against) or ARM64, for
+    Windows on ARM (hmailserver/docs/WindowsOnArm.md). An ARM64 build is
+    cross-compiled on an x64 machine with Visual Studio's ARM64 build tools, into a
+    tree of its own named with -arm64 (postgresql-<Version>-arm64), so it never
+    touches the x64 tree, and linked against openssl-<OpenSSLVersion>-arm64: the
+    dumpbin check at the end looks for libssl-4-arm64.dll. Meson is given a cross
+    file, because what the compiler writes cannot run on the machine that builds it.
+
 .PARAMETER Sha256
     The SHA-256 of postgresql-<Version>.tar.gz, for a version the digest table below
     does not know yet. Take it from the .sha256 file published beside the archive.
@@ -55,6 +64,9 @@
 .EXAMPLE
     # Auto-detect the OpenSSL version from hMailServer.vcxproj:
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.3
+
+.EXAMPLE
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.3 -OpenSSLVersion 4.0.2 -Platform ARM64
 #>
 [CmdletBinding()]
 param(
@@ -68,7 +80,11 @@ param(
 
     [Parameter(Mandatory = $false)]
     [ValidatePattern('^[0-9a-fA-F]{64}$')]
-    [string]$Sha256
+    [string]$Sha256,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateSet('x64', 'ARM64')]
+    [string]$Platform = 'x64'
 )
 
 $ErrorActionPreference = "Stop"
@@ -94,14 +110,27 @@ $Digests = @{
 # and a full transcript to inspect if a step fails.
 . (Join-Path -Path $PSScriptRoot -ChildPath "build-common.ps1")
 
-$logPath = Join-Path -Path $PSScriptRoot -ChildPath "build-pgsql.log"
-Start-BuildLog -LogPath $logPath -Title "PostgreSQL $Version (libpq) build log"
+# The ARM64 build has a log of its own, so that it does not overwrite the x64 one.
+$logName = if ($Platform -eq 'ARM64') { "build-pgsql-arm64.log" } else { "build-pgsql.log" }
+$logPath = Join-Path -Path $PSScriptRoot -ChildPath $logName
+Start-BuildLog -LogPath $logPath -Title "PostgreSQL $Version (libpq, $Platform) build log"
 
 # --- Resolve the library folder -------------------------------------------------
 
 $libsPath = Resolve-HMailServerLibs
 
 $srcDir = Join-Path -Path $libsPath -ChildPath "postgresql-$Version"
+# ARM64: a tree of its own beside the x64 one.
+$targetDir = $null
+if ($Platform -eq 'ARM64')
+{
+    $targetDir = Join-Path -Path $libsPath -ChildPath "postgresql-$Version-arm64"
+}
+$archiveDir = $srcDir
+if ($targetDir)
+{
+    $srcDir = $targetDir
+}
 $buildDir = Join-Path -Path $srcDir -ChildPath "builddir"
 $libpqDir = Join-Path -Path $buildDir -ChildPath "src\interfaces\libpq"
 
@@ -126,17 +155,19 @@ if ([string]::IsNullOrEmpty($OpenSSLVersion))
     Write-Log "Auto-detected OpenSSL version $OpenSSLVersion from hMailServer.vcxproj"
 }
 
-$openSslOut = Join-Path -Path $libsPath -ChildPath "openssl-$OpenSSLVersion\out64"
+$openSslTree = if ($Platform -eq 'ARM64') { "openssl-$OpenSSLVersion-arm64" } else { "openssl-$OpenSSLVersion" }
+$openSslOut = Join-Path -Path $libsPath -ChildPath "$openSslTree\out64"
 $openSslMajor = $OpenSSLVersion.Split('.')[0]
+$openSslSuffix = if ($Platform -eq 'ARM64') { 'arm64' } else { 'x64' }
 
 if (!(Test-Path (Join-Path -Path $openSslOut -ChildPath "lib\libssl.lib")))
 {
-    Throw "The OpenSSL build to link libpq against was not found at $openSslOut. Build it first with build-openssl.ps1 -Version $OpenSSLVersion. Without it libpq would be built without SSL support."
+    Throw "The OpenSSL build to link libpq against was not found at $openSslOut. Build it first with build-openssl.ps1 -Version $OpenSSLVersion -Platform $Platform. Without it libpq would be built without SSL support."
 }
 
 # --- Locate the Visual Studio build environment via vswhere --------------------
 
-$vsInstall = Resolve-VcVars64
+$vsInstall = Resolve-VcVars64 -Platform $Platform
 
 # --- Verify the build tools are available ---------------------------------------
 
@@ -165,7 +196,14 @@ foreach ($tool in $tools)
 
 $digest = Get-PinnedDigest -Digests $Digests -Version $Version -Library 'PostgreSQL' -Override $Sha256
 $tarUrl = "https://ftp.postgresql.org/pub/source/v$Version/postgresql-$Version.tar.gz"
-Get-SourceArchive -Url $tarUrl -SrcDir $srcDir -LibsPath $libsPath -Sha256 $digest
+if ($targetDir)
+{
+    Get-SourceArchive -Url $tarUrl -SrcDir $archiveDir -LibsPath $libsPath -Sha256 $digest -TargetDir $targetDir
+}
+else
+{
+    Get-SourceArchive -Url $tarUrl -SrcDir $srcDir -LibsPath $libsPath -Sha256 $digest
+}
 
 if (!(Test-Path (Join-Path -Path $srcDir -ChildPath "meson.build")))
 {
@@ -176,7 +214,7 @@ if (!(Test-Path (Join-Path -Path $srcDir -ChildPath "meson.build")))
 
 # libpq is a C library consumed through an import library and a DLL, so its ABI does not
 # depend on the toolset; the Visual Studio 2026 default is used.
-Import-VsEnvironment -VsInstall $vsInstall
+Import-VsEnvironment -VsInstall $vsInstall -Platform $Platform
 
 # Meson picks the first C compiler it finds. Strawberry Perl puts a gcc on PATH, and a
 # libpq compiled by it would carry a MinGW runtime the server does not ship - so cl is
@@ -200,8 +238,31 @@ Write-Log "Progress is being logged to $logPath (tail it with: Get-Content `"$lo
 Push-Location $srcDir
 try
 {
-    Invoke-BuildStep "Configuring PostgreSQL $Version with Meson (release, OpenSSL only)" {
-        meson setup builddir --buildtype=release -Dssl=openssl -Dauto_features=disabled "-Dextra_include_dirs=$openSslOut\include" "-Dextra_lib_dirs=$openSslOut\lib"
+    # ARM64 is a cross build: the cl.exe the cross environment put on PATH writes code
+    # this machine cannot run, so Meson is told so with a cross file. Without one it
+    # would try to run what it compiles to check the compiler, and stop there.
+    $mesonCross = @()
+    if ($Platform -eq 'ARM64')
+    {
+        $crossFile = Join-Path -Path $srcDir -ChildPath "hmailserver-arm64.cross"
+        Set-Content -Path $crossFile -Encoding ASCII -Value @(
+            "[binaries]",
+            "c = 'cl'",
+            "cpp = 'cl'",
+            "ar = 'lib'",
+            "windres = 'rc'",
+            "",
+            "[host_machine]",
+            "system = 'windows'",
+            "cpu_family = 'aarch64'",
+            "cpu = 'aarch64'",
+            "endian = 'little'"
+        )
+        $mesonCross = @("--cross-file=$crossFile")
+    }
+
+    Invoke-BuildStep "Configuring PostgreSQL $Version with Meson (release, OpenSSL only, $Platform)" {
+        meson setup builddir @mesonCross --buildtype=release -Dssl=openssl -Dauto_features=disabled "-Dextra_include_dirs=$openSslOut\include" "-Dextra_lib_dirs=$openSslOut\lib"
     }
     if ($LastExitCode -ne 0)
     {
@@ -247,7 +308,7 @@ if ($LastExitCode -ne 0)
     Throw "dumpbin /dependents failed with exit code $LastExitCode on $libpqDll."
 }
 
-foreach ($dll in @("libssl-$openSslMajor-x64.dll", "libcrypto-$openSslMajor-x64.dll"))
+foreach ($dll in @("libssl-$openSslMajor-$openSslSuffix.dll", "libcrypto-$openSslMajor-$openSslSuffix.dll"))
 {
     if ($dependents -notmatch [regex]::Escape($dll))
     {
@@ -255,4 +316,4 @@ foreach ($dll in @("libssl-$openSslMajor-x64.dll", "libcrypto-$openSslMajor-x64.
     }
 }
 
-Write-Log "libpq from PostgreSQL $Version built successfully into $libpqDir, linked against OpenSSL $OpenSSLVersion"
+Write-Log "libpq from PostgreSQL $Version ($Platform) built successfully into $libpqDir, linked against OpenSSL $OpenSSLVersion"

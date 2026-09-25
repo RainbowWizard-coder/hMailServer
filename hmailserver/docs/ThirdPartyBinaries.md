@@ -333,6 +333,18 @@ Not pinned, and why:
   are and are never redistributed, so they are not in the SBOM; the runtime the
   headers describe is, as SQL Server Compact.
 
+### The ARM64 installer's entries
+
+The entries marked `"platform": "arm64"` are the ARM64 installer's
+([WindowsOnArm.md](WindowsOnArm.md)): the ARM64 C++ runtime, 7-Zip's ARM64
+console (the `arm64/7za.exe` member of the same pinned 7-Zip Extra archive) and
+the `win-arm64` .NET Desktop Runtime of the same release as the x64 one, all
+under `hmailserver/installation/ARM64`. `get-installer-binaries.ps1` and
+`get-dotnet-runtime.ps1` place them only with `-Platform ARM64`, and without it
+they skip them, so the x64 build and its `-Verify` are what they were. Moving
+the .NET pin moves both runtimes: the ARM64 entry's SHA-512 is in the same
+release metadata, under `windowsdesktop-runtime-win-arm64.exe`.
+
 ### Moving the .NET runtime pin
 
 The installer's runtime moves when Microsoft ships a servicing release of .NET

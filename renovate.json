@@ -121,11 +121,13 @@
     },
     {
       "customType": "regex",
-      "description": "OpenSSL, where the Windows build names it: the include and library paths of hMailServer.vcxproj, the installer's DLL path and the post-build copy.",
+      "description": "OpenSSL, where the Windows build names it: the include and library paths of hMailServer.vcxproj, the installers' DLL paths, the post-build copy and build.ps1's copy of the ARM64 DLLs.",
       "managerFilePatterns": [
         "/^hmailserver/source/Server/hMailServer/hMailServer\\.vcxproj$/",
         "/^hmailserver/installation/hMailServer64\\.iss$/",
-        "/^hmailserver/source/Server/hMailServer/post-build\\.bat$/"
+        "/^hmailserver/installation/hMailServerARM64\\.iss$/",
+        "/^hmailserver/source/Server/hMailServer/post-build\\.bat$/",
+        "/^build/build\\.ps1$/"
       ],
       "matchStrings": ["openssl-(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
       "depNameTemplate": "openssl",
@@ -147,11 +149,13 @@
     },
     {
       "customType": "regex",
-      "description": "The PostgreSQL client library (libpq), where the Windows build names it: hMailServer.vcxproj, the installer and the post-build copy.",
+      "description": "The PostgreSQL client library (libpq), where the Windows build names it: hMailServer.vcxproj, the installers, the post-build copy and build.ps1's copy of the ARM64 DLLs.",
       "managerFilePatterns": [
         "/^hmailserver/source/Server/hMailServer/hMailServer\\.vcxproj$/",
         "/^hmailserver/installation/hMailServer64\\.iss$/",
-        "/^hmailserver/source/Server/hMailServer/post-build\\.bat$/"
+        "/^hmailserver/installation/hMailServerARM64\\.iss$/",
+        "/^hmailserver/source/Server/hMailServer/post-build\\.bat$/",
+        "/^build/build\\.ps1$/"
       ],
       "matchStrings": ["postgresql-(?<currentValue>\\d+\\.\\d+)"],
       "depNameTemplate": "postgresql",

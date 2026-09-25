@@ -156,11 +156,21 @@ function Resolve-HMailServerLibs
 # Visual Studio on the GitHub Actions windows-2025-vs2026 image.
 #
 # Pass $null or an empty array to fall back to 'vswhere -latest'.
+#
+# -Platform ARM64 asks for an instance that also has the ARM64 build tools
+# (Microsoft.VisualStudio.Component.VC.Tools.ARM64), and returns beside vcvars64.bat
+# the x64-to-ARM64 cross environment's script, vcvarsamd64_arm64.bat, as VcVarsCross.
+# The libraries are cross-compiled on an x64 machine: the compilers run on x64 and
+# write ARM64 code. The default, x64, asks for what it always asked for.
 function Resolve-VcVars64
 {
     param(
         [Parameter(Mandatory = $false)]
-        [string[]]$VersionRanges = @('[18.0,19.0)')
+        [string[]]$VersionRanges = @('[18.0,19.0)'),
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('x64', 'ARM64')]
+        [string]$Platform = 'x64'
     )
 
     $vsWhere = Join-Path -Path ${env:ProgramFiles(x86)} -ChildPath "Microsoft Visual Studio\Installer\vswhere.exe"
@@ -176,6 +186,11 @@ function Resolve-VcVars64
     foreach ($range in $rangesToTry)
     {
         $vsWhereArgs = @('-products', '*', '-requires', 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64', '-format', 'json')
+        if ($Platform -eq 'ARM64')
+        {
+            # One -requires, every id after it: the instance must have them all.
+            $vsWhereArgs = @('-products', '*', '-requires', 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64', 'Microsoft.VisualStudio.Component.VC.Tools.ARM64', '-format', 'json')
+        }
         if ($range)
         {
             $vsWhereArgs += @('-version', $range)
@@ -207,6 +222,10 @@ function Resolve-VcVars64
     if (-not $instance)
     {
         $wanted = if ($VersionRanges) { " in version " + ($VersionRanges -join ' or ') } else { "" }
+        if ($Platform -eq 'ARM64')
+        {
+            Throw "No Visual Studio installation with both the x64 C++ toolchain (VC.Tools.x86.x64) and the ARM64 build tools (VC.Tools.ARM64$wanted) was found. Add 'MSVC v145 - ARM64/ARM64EC build tools' in the Visual Studio Installer (hmailserver/docs/WindowsOnArm.md)."
+        }
         Throw "No Visual Studio installation with the x64 C++ toolchain (VC.Tools.x86.x64$wanted) was found. hMailServer's projects need Visual Studio 2026 (PlatformToolset v145)."
     }
 
@@ -217,8 +236,19 @@ function Resolve-VcVars64
         Throw "vcvars64.bat was not found at $vcvars64."
     }
 
+    $vcvarsCross = $null
+    if ($Platform -eq 'ARM64')
+    {
+        $vcvarsCross = Join-Path -Path $instance.installationPath -ChildPath "VC\Auxiliary\Build\vcvarsamd64_arm64.bat"
+        if (!(Test-Path $vcvarsCross))
+        {
+            Throw "vcvarsamd64_arm64.bat was not found at $vcvarsCross. The ARM64 build tools are not installed in this Visual Studio."
+        }
+    }
+
     return [PSCustomObject]@{
         VcVars64     = $vcvars64
+        VcVarsCross  = $vcvarsCross
         InstallPath  = $instance.installationPath
         Version      = $instance.installationVersion
         MajorVersion = [int]($instance.installationVersion -split '\.')[0]
@@ -235,22 +265,39 @@ function Resolve-VcVars64
 #
 # No -vcvars_ver: the projects want the compiler Visual Studio 2026 selects by default
 # (v145), so the default environment is the right one.
+#
+# -Platform ARM64 imports the x64-to-ARM64 cross environment instead
+# (vcvarsamd64_arm64.bat, from Resolve-VcVars64 -Platform ARM64): cl.exe is then the
+# compiler that runs on x64 and writes ARM64 code, and LIB names the ARM64 libraries
+# of the CRT and the Windows SDK.
 function Import-VsEnvironment
 {
     param(
         [Parameter(Mandatory = $true)]
-        [object]$VsInstall
+        [object]$VsInstall,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('x64', 'ARM64')]
+        [string]$Platform = 'x64'
     )
 
     # Accept either the object Resolve-VcVars64 returns or a bare vcvars64.bat path.
     $vcVars64 = if ($VsInstall -is [string]) { $VsInstall } else { $VsInstall.VcVars64 }
+    if ($Platform -eq 'ARM64')
+    {
+        if ($VsInstall -is [string] -or -not $VsInstall.VcVarsCross)
+        {
+            Throw "Import-VsEnvironment -Platform ARM64 needs the object Resolve-VcVars64 -Platform ARM64 returns."
+        }
+        $vcVars64 = $VsInstall.VcVarsCross
+    }
 
-    Write-Log "Importing the VS x64 build environment from $vcVars64"
+    Write-Log "Importing the VS $Platform build environment from $vcVars64"
 
     $vcVarsOutput = cmd /c "call `"$vcVars64`" >nul 2>&1 && set"
     if ($LastExitCode -ne 0)
     {
-        Throw "Failed to initialize the VS x64 build environment via $vcVars64 (exit code $LastExitCode)."
+        Throw "Failed to initialize the VS $Platform build environment via $vcVars64 (exit code $LastExitCode)."
     }
 
     foreach ($line in $vcVarsOutput)
@@ -263,7 +310,7 @@ function Import-VsEnvironment
 
     if (-not (Get-Command cl.exe -ErrorAction SilentlyContinue))
     {
-        Throw "cl.exe is not on PATH after importing $vcVars64. The Visual Studio installation has no x64 C++ compiler."
+        Throw "cl.exe is not on PATH after importing $vcVars64. The Visual Studio installation has no $Platform C++ compiler."
     }
 }
 
@@ -342,6 +389,12 @@ function Get-PinnedDigest
 # Every run starts from a clean tree: any existing $SrcDir is deleted first, then the
 # archive is downloaded, verified, extracted and removed. This makes each build a full
 # delete/download/verify/unzip/build with no reuse of stale, possibly cross-toolset output.
+#
+# -TargetDir puts the tree somewhere other than where the archive extracts to: the
+# archive is extracted into a scratch folder under $LibsPath and its $SrcDir is moved
+# to -TargetDir, which is what is cleaned first instead. The ARM64 libraries use it
+# (openssl-4.0.2-arm64 beside openssl-4.0.2), so that an ARM64 build never deletes
+# the x64 tree the x64 build links against. Without it nothing changes.
 function Get-SourceArchive
 {
     param(
@@ -356,8 +409,37 @@ function Get-SourceArchive
 
         [Parameter(Mandatory = $true)]
         [ValidatePattern('^[0-9a-fA-F]{64}$')]
-        [string]$Sha256
+        [string]$Sha256,
+
+        [Parameter(Mandatory = $false)]
+        [string]$TargetDir
     )
+
+    if ($TargetDir)
+    {
+        if (Test-Path $TargetDir)
+        {
+            Write-Log "Removing existing source folder $TargetDir for a clean build"
+            Remove-Item -LiteralPath $TargetDir -Recurse -Force
+        }
+        # Extracted apart from $LibsPath's own trees, then moved into place.
+        $extractRoot = Join-Path -Path $LibsPath -ChildPath (".extract-" + [guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $extractRoot | Out-Null
+        try
+        {
+            Get-SourceArchive -Url $Url -SrcDir (Join-Path -Path $extractRoot -ChildPath (Split-Path -Leaf $SrcDir)) -LibsPath $extractRoot -Sha256 $Sha256
+            Move-Item -LiteralPath (Join-Path -Path $extractRoot -ChildPath (Split-Path -Leaf $SrcDir)) -Destination $TargetDir
+        }
+        finally
+        {
+            if (Test-Path $extractRoot)
+            {
+                Remove-Item -LiteralPath $extractRoot -Recurse -Force
+            }
+        }
+        Write-Log "Source tree moved to $TargetDir"
+        return
+    }
 
     if (Test-Path $SrcDir)
     {

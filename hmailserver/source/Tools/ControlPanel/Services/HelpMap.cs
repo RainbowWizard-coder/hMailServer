@@ -194,6 +194,7 @@ namespace hMailServer.ControlPanel.Services
          "ThirdPartyBinaries.md",
          "UpdateFeed.md",
          "WarmStandby.md",
+         "WindowsOnArm.md",
          "ZeroAccess.md",
       };
 

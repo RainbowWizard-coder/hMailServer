@@ -192,6 +192,15 @@ $installerComponents = @{
       Website     = 'https://dotnet.microsoft.com/'
       Why         = 'the .NET runtime and Windows Desktop runtime the Control Panel and the database tools run on, installed by the installer where no .NET 10 is present; pinned to one release by build/get-dotnet-runtime.ps1'
    }
+   'Microsoft .NET Windows Desktop Runtime (ARM64 installer)' = @{
+      Id          = 'dotnet-windowsdesktop-runtime-arm64'
+      Purl        = 'pkg:generic/dotnet-windowsdesktop-runtime@{0}?arch=arm64'
+      Cpe         = 'cpe:2.3:a:microsoft:.net:{0}:*:*:*:*:*:*:*'
+      License     = 'NOASSERTION'
+      LicenseName = 'Microsoft .NET runtime licence terms'
+      Website     = 'https://dotnet.microsoft.com/'
+      Why         = 'the same runtime for Windows on ARM, carried by the ARM64 installer (hmailserver/docs/WindowsOnArm.md); pinned to the same release by build/get-dotnet-runtime.ps1 -Platform ARM64'
+   }
 }
 
 # ---------------------------------------------------------------------------------
@@ -344,6 +353,9 @@ foreach ($buildInput in @($manifest.build_inputs)) { $buildInputs[('{0}/{1}' -f 
 $byComponent = [ordered]@{}
 foreach ($artifact in @($manifest.artifacts)) {
    if ($pinnedDispositions -notcontains $artifact.disposition) { continue }
+   # The x64 release's SBOM: an artifact tagged with a platform (ARM64) ships in
+   # the ARM64 installer only, which will have an SBOM of its own.
+   if ($artifact.platform) { continue }
    $key = '{0}|{1}' -f $artifact.component, $artifact.version
    if (-not $byComponent.Contains($key)) { $byComponent[$key] = @() }
    $byComponent[$key] += $artifact

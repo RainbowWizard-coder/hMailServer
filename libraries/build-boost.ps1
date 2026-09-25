@@ -37,12 +37,24 @@
     Number of parallel compilations (b2 -j). Defaults to the number of logical
     processors.
 
+.PARAMETER Platform
+    x64 (the default, and the build every x64 server links against) or ARM64, for
+    Windows on ARM (hmailserver/docs/WindowsOnArm.md). An ARM64 build is
+    cross-compiled on an x64 machine with Visual Studio's ARM64 build tools, into a
+    tree of its own named with -arm64 (boost_<ver>-arm64, with stage\lib holding
+    libboost_thread-vc145-mt-a64-1_92.lib and the rest: -a64 is the tag Boost's
+    auto-linking pragma asks for when _M_ARM64 is defined), so it never touches the
+    x64 tree.
+
 .PARAMETER Sha256
     The SHA-256 of boost_<underscored-Version>.tar.gz, for a version the digest table
     below does not know yet. Take it from the .json file published beside the archive.
 
 .EXAMPLE
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-boost.ps1 -Version 1.92.0
+
+.EXAMPLE
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-boost.ps1 -Version 1.92.0 -Platform ARM64
 #>
 [CmdletBinding()]
 param(
@@ -59,7 +71,11 @@ param(
 
     [Parameter(Mandatory = $false)]
     [ValidatePattern('^[0-9a-fA-F]{64}$')]
-    [string]$Sha256
+    [string]$Sha256,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateSet('x64', 'ARM64')]
+    [string]$Platform = 'x64'
 )
 
 $ErrorActionPreference = "Stop"
@@ -86,8 +102,10 @@ $Digests = @{
 # and a full transcript to inspect if a step fails.
 . (Join-Path -Path $PSScriptRoot -ChildPath "build-common.ps1")
 
-$logPath = Join-Path -Path $PSScriptRoot -ChildPath "build-boost.log"
-Start-BuildLog -LogPath $logPath -Title "Boost $Version build log"
+# The ARM64 build has a log of its own, so that it does not overwrite the x64 one.
+$logName = if ($Platform -eq 'ARM64') { "build-boost-arm64.log" } else { "build-boost.log" }
+$logPath = Join-Path -Path $PSScriptRoot -ChildPath $logName
+Start-BuildLog -LogPath $logPath -Title "Boost $Version ($Platform) build log"
 
 # --- Resolve the library folder -------------------------------------------------
 
@@ -96,6 +114,13 @@ $libsPath = Resolve-HMailServerLibs
 # Boost's source folder / tarball use underscores (boost_1_92_0), not dots.
 $underscored = $Version -replace '\.', '_'
 $srcDir = Join-Path -Path $libsPath -ChildPath "boost_$underscored"
+# ARM64: a tree of its own beside the x64 one (headers and stage\lib), so that this
+# build's clean start never deletes the x64 libraries.
+$targetDir = $null
+if ($Platform -eq 'ARM64')
+{
+    $targetDir = Join-Path -Path $libsPath -ChildPath "boost_$underscored-arm64"
+}
 
 if ($Jobs -lt 1)
 {
@@ -119,10 +144,21 @@ $vsInstall = Resolve-VcVars64
 
 $digest = Get-PinnedDigest -Digests $Digests -Version $Version -Library 'Boost' -Override $Sha256
 $tarUrl = "https://archives.boost.io/release/$Version/source/boost_$underscored.tar.gz"
-Get-SourceArchive -Url $tarUrl -SrcDir $srcDir -LibsPath $libsPath -Sha256 $digest
+if ($targetDir)
+{
+    Get-SourceArchive -Url $tarUrl -SrcDir $srcDir -LibsPath $libsPath -Sha256 $digest -TargetDir $targetDir
+    $srcDir = $targetDir
+}
+else
+{
+    Get-SourceArchive -Url $tarUrl -SrcDir $srcDir -LibsPath $libsPath -Sha256 $digest
+}
 
 # --- Import the VS x64 build environment ---------------------------------------
 
+# x64 for ARM64 too: bootstrap.bat compiles b2 itself, which has to run on this
+# machine. b2 then sets up the cross compiler for architecture=arm on its own
+# (its msvc toolset calls vcvarsall with the x64-to-ARM64 target).
 Import-VsEnvironment -VsInstall $vsInstall
 
 # --- Bootstrap and build (each step checked individually) -----------------------
@@ -161,6 +197,11 @@ try
             "toolset=$Toolset", 'address-model=64', 'stage', '--build-dir=out64', '-j', $Jobs,
             'define=BOOST_USE_WINAPI_VERSION=0x0A00'
         )
+        if ($Platform -eq 'ARM64')
+        {
+            # 64-bit ARM: the libraries are tagged -a64 rather than -x64.
+            $b2Arguments += 'architecture=arm'
+        }
 
         .\b2 @b2Arguments
     }
@@ -192,12 +233,13 @@ if (!(Test-Path $stageLib))
 # The staged libs are named like libboost_thread-vc145-mt-x64-1_91.lib (release) and
 # libboost_thread-vc145-mt-gd-x64-1_91.lib (debug). Confirm each requested library
 # produced both, with the tag the server's auto-linking pragma looks for.
+$archTag = if ($Platform -eq 'ARM64') { 'a64' } else { 'x64' }
 $expectedLibs = @("thread", "filesystem", "regex", "chrono", "atomic")
 foreach ($lib in $expectedLibs)
 {
     foreach ($variant in @("mt", "mt-gd"))
     {
-        $pattern = "libboost_$lib-$libraryTag-$variant-x64-*.lib"
+        $pattern = "libboost_$lib-$libraryTag-$variant-$archTag-*.lib"
         $found = @(Get-ChildItem -Path $stageLib -Filter $pattern -ErrorAction SilentlyContinue)
         if ($found.Count -eq 0)
         {
@@ -207,4 +249,4 @@ foreach ($lib in $expectedLibs)
     }
 }
 
-Write-Log "Boost $Version built successfully. Headers: $boostHeaders  Libs: $stageLib"
+Write-Log "Boost $Version ($Platform) built successfully. Headers: $boostHeaders  Libs: $stageLib"

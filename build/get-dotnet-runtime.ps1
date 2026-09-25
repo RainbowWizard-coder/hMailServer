@@ -54,12 +54,19 @@
    The manifest the pin is read from. Default:
    hmailserver/docs/third-party-binaries.json. build/test-get-dotnet-runtime.ps1
    passes one of its own.
+
+.PARAMETER Platform
+   x64 (the default): the runtime hMailServer64.iss carries, as always. ARM64: the
+   win-arm64 runtime of the same release that hMailServerARM64.iss carries, pinned
+   by its own manifest entry (hmailserver/docs/WindowsOnArm.md).
 #>
 [CmdletBinding()]
 param(
    [switch] $Verify,
    [string] $Path,
-   [string] $Manifest
+   [string] $Manifest,
+   [ValidateSet('x64', 'ARM64')]
+   [string] $Platform = 'x64'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -72,6 +79,13 @@ if (-not $Manifest) {
 # The one manifest entry this script places, by its path. build/check-sbom-inputs.py
 # reads this line to find the pin, and holds the SBOM to naming it.
 $pinnedPath = 'hmailserver/installation/DotNet/windowsdesktop-runtime-10.0-win-x64.exe'
+# The ARM64 installer's runtime, placed with -Platform ARM64 instead.
+$pinnedPathArm64 = 'hmailserver/installation/ARM64/DotNet/windowsdesktop-runtime-10.0-win-arm64.exe'
+$runtimeIdentifier = 'win-x64'
+if ($Platform -eq 'ARM64') {
+   $pinnedPath = $pinnedPathArm64
+   $runtimeIdentifier = 'win-arm64'
+}
 
 function Get-Sha512([string] $file) {
    (Get-FileHash -LiteralPath $file -Algorithm SHA512).Hash.ToLowerInvariant()
@@ -92,6 +106,7 @@ function Get-RuntimePin([string] $manifestFile) {
    $sha512 = ([string] $entry.sha512).ToLowerInvariant()
    $source = [string] $entry.source
    $channel = [regex]::Match($pinnedPath, 'windowsdesktop-runtime-(\d+\.\d+)-').Groups[1].Value
+   $fileName = "windowsdesktop-runtime-$version-$runtimeIdentifier.exe"
 
    $problems = @()
    if ($entry.disposition -ne 'downloaded') { $problems += "its disposition is '$($entry.disposition)', not 'downloaded'" }
@@ -99,8 +114,8 @@ function Get-RuntimePin([string] $manifestFile) {
    elseif (-not $version.StartsWith($channel + '.')) { $problems += "its version $version is not in the $channel channel the file is named for and the installer probes" }
    if ($sha512 -notmatch '^[0-9a-f]{128}$') { $problems += "its sha512 '$sha512' is not a SHA-512 (128 hexadecimal digits)" }
    if ($source -notmatch '^https?://') { $problems += "its source '$source' is not an http or https address" }
-   elseif ($version -and -not $source.EndsWith("/windowsdesktop-runtime-$version-win-x64.exe")) {
-      $problems += "its source '$source' does not name windowsdesktop-runtime-$version-win-x64.exe, so it is not an address for that one version (a moving link such as aka.ms is not a pin)"
+   elseif ($version -and -not $source.EndsWith("/$fileName")) {
+      $problems += "its source '$source' does not name $fileName, so it is not an address for that one version (a moving link such as aka.ms is not a pin)"
    }
    if ($problems.Count) {
       throw ("The .NET Desktop Runtime pin in {0} is not a pin: {1}. build/show-dotnet-runtime-pin.ps1 prints the fields for a version." -f $manifestFile, ($problems -join '; '))
@@ -148,7 +163,7 @@ New-Item -ItemType Directory -Force $directory | Out-Null
 $partial = "$Path.download"
 if (Test-Path -LiteralPath $partial) { Remove-Item -LiteralPath $partial -Force }
 
-Write-Host "downloading the .NET Desktop Runtime $($pin.Version) (x64) from $($pin.Source)"
+Write-Host "downloading the .NET Desktop Runtime $($pin.Version) ($runtimeIdentifier) from $($pin.Source)"
 # Windows PowerShell 5.1 redraws a progress bar for every chunk it receives,
 # which turns a 60 MB download from seconds into minutes. Off for the download.
 $previousProgress = $ProgressPreference

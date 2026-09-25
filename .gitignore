@@ -43,6 +43,10 @@ hmailserver/test/RegressionTests/TestResult.xml
 hmailserver/source/Server/hMailServer.Minidump/x64/*
 hmailserver/source/Server/hMailServer.Updater/Release/*
 hmailserver/source/Server/hMailServer.Updater/x64/*
+# The Windows on ARM build's output (build.ps1 -Platform ARM64, hmailserver/docs/WindowsOnArm.md).
+hmailserver/source/Server/hMailServer/ARM64/*
+hmailserver/source/Server/hMailServer.Minidump/ARM64/*
+hmailserver/source/Server/hMailServer.Updater/ARM64/*
 /hmailserver/installation/Output/*
 /hmailserver/test/packages/*
 /hmailserver/test/RegressionTests/packages/*
@@ -71,6 +75,7 @@ CLAUDE.md
 /hmailserver/source/Tools/ControlPanel/bin/
 /hmailserver/source/Tools/ControlPanel/obj/
 /hmailserver/source/Tools/*/publish/
+/hmailserver/source/Tools/*/publish-arm64/
 /hmailserver/installation/DotNet/
 
 # Code coverage output
@@ -121,6 +126,9 @@ hmailserver/test/LinuxRegressionTests/obj/
 /hmailserver/installation/Extras/libmysql.dll
 /hmailserver/installation/Extras/plugin/
 /hmailserver/installation/SQLCE/
+# The ARM64 installer's own: the ARM64 runtime, 7-Zip's ARM64 console and the
+# ARM64 .NET Desktop Runtime (get-installer-binaries.ps1 and get-dotnet-runtime.ps1 -Platform ARM64).
+/hmailserver/installation/ARM64/
 /libraries/mariadb-connector-c-3.4.9/libmysql.dll
 /libraries/mariadb-connector-c-3.4.9/plugin/
 # The ADO 2.8 type libraries the server #imports: Windows' own files, copied

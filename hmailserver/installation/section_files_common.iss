@@ -6,7 +6,13 @@ Source: "License.rtf"; DestDir: "{app}\Bin"; Flags: ignoreversion; Components: s
 ; and the installer smoke test proves the result installs. atl70.dll (ATL 7.0, Visual
 ; Studio .NET 2003) is no longer shipped: nothing on a v145 build links it, and the
 ; smoke test on a clean runner is what says so.
+;
+; HM_ARM64 is defined by hMailServerARM64.iss alone: the ARM64 installer carries its
+; own 7-Zip console and no MySQL client (section_files_arm64.iss says why). For
+; hMailServer64.iss these lines are what they always were.
+#ifndef HM_ARM64
 Source: ".\Extras\7za.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion; Components: server;
+#endif
 
 ; Database scripts
 Source: "..\source\DBScripts\*.sql"; DestDir: "{app}\DBScripts";Flags: ignoreversion recursesubdirs; Components: server;
@@ -23,6 +29,7 @@ Source: "..\source\Translations\*"; Excludes: "CVS,.cvsignore,.#*"; DestDir: "{a
 Source: ".\Extras\tlds.txt"; DestDir: "{app}\Bin";  Flags: ignoreversion; Components: server;
 Source: ".\Extras\dh2048.pem"; DestDir: "{app}\Bin";  Flags: ignoreversion; Components: server;
 
+#ifndef HM_ARM64
 ; MySQL/MariaDB client library (x64) - MariaDB Connector/C, loaded at runtime as libmysql.dll
 ; when the database type is MySQL/MariaDB. Talks to both MySQL and MariaDB servers.
 Source: ".\Extras\libmysql.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion uninsrestartdelete; Components: server;
@@ -30,3 +37,4 @@ Source: ".\Extras\libmysql.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion unin
 ; single bundled client authenticate every common account type: caching_sha2_password (MySQL 8.0+
 ; default), sha256_password, client_ed25519 / auth_gssapi_client / parsec (MariaDB), dialog, etc.
 Source: ".\Extras\plugin\*.dll"; DestDir: "{app}\Bin\plugin"; Flags: ignoreversion uninsrestartdelete; Components: server;
+#endif

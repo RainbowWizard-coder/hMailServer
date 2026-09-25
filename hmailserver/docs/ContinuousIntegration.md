@@ -1496,6 +1496,10 @@ What is still done by hand
   Compact.
 - The Linux build under GCC and on AArch64 hardware
   (`bash build/linux-tu-census.sh --cc g++` is the GCC census), and the AppImage.
+- The Windows ARM64 build: the ARM64 libraries, `build.ps1 -Platform ARM64`,
+  `build-tools.ps1 -Platform ARM64` and `hMailServerARM64.iss`. No job builds it:
+  bench150 is x64 and has no ARM64 compilers, and no runner is an ARM64 Windows
+  machine to test it on ([WindowsOnArm.md](WindowsOnArm.md) has the commands).
 - Signing, publishing the packages, the image and the SBOMs, the release's
   manifests, and the update feed. These belong to the Roadmap2 row "The release
   chain off a single forge". The `release` stage is its placeholder.

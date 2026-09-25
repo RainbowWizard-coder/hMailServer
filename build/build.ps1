@@ -8,7 +8,14 @@ Param(
 	# Keep the server's assertions in a Release build, reported through the ERROR log
 	# (HM6364) rather than compiled out. The dynamic-analysis build: run the full suite
 	# on it before a release and expect no HM6364 line. Never the binary that ships.
-	[switch]$Asserts
+	[switch]$Asserts,
+	# The processor the server is built for. x64 is the build that ships and that
+	# every gate runs, and stays the default; ARM64 is Windows on ARM
+	# (hmailserver/docs/WindowsOnArm.md): cross-compiled on an x64 machine, Release
+	# only, and linked against the ARM64 libraries that libraries\build-*.ps1
+	# -Platform ARM64 build.
+	[ValidateSet('x64', 'ARM64')]
+	[string]$Platform = 'x64'
 )
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
@@ -25,19 +32,35 @@ if (-not (Test-Path $logsDir)) { New-Item -Path $logsDir -ItemType Directory -Fo
 
 # Use shared msbuild locator
 . (Join-Path $scriptRoot "Find-MsBuild.ps1")
-$msbuild = Find-MsBuild
-if (-not $msbuild) {
-	Write-Error "MSBuild not found. Install Visual Studio 2026 (Build Tools) or ensure msbuild is on PATH."
-	exit 2
+if ($Platform -eq 'ARM64') {
+	if ($Configuration -ne 'Release') {
+		Write-Error "The ARM64 build has a Release configuration only (-Configuration Release)."
+		exit 3
+	}
+	# The ARM64 compilers and ATL for ARM64, in the same instance as MSBuild: the
+	# server is an ATL project, and an instance with the ARM64 compilers but not
+	# ATL for them fails at the first #include <atlbase.h>.
+	$msbuild = Find-MsBuild -Requires 'Microsoft.VisualStudio.Component.VC.Tools.ARM64', 'Microsoft.VisualStudio.Component.VC.ATL.ARM64'
+	if (-not $msbuild) {
+		Write-Error "No Visual Studio 2026 instance has MSBuild, the ARM64 build tools (Microsoft.VisualStudio.Component.VC.Tools.ARM64) and ATL for ARM64 (Microsoft.VisualStudio.Component.VC.ATL.ARM64) together. Add the two components in the Visual Studio Installer; hmailserver/docs/WindowsOnArm.md has the command."
+		exit 2
+	}
+} else {
+	$msbuild = Find-MsBuild
+	if (-not $msbuild) {
+		Write-Error "MSBuild not found. Install Visual Studio 2026 (Build Tools) or ensure msbuild is on PATH."
+		exit 2
+	}
 }
 
 Write-Host "Using MSBuild: $msbuild"
 Write-Host "Building solution: $solution"
 Write-Host "Configuration: $Configuration"
+Write-Host "Platform: $Platform"
 
 if ($Clean) {
 	Write-Host "Cleaning..."
-	& "$msbuild" $solution '/t:Clean' "/p:Configuration=$Configuration" '/p:Platform=x64' *>&1
+	& "$msbuild" $solution '/t:Clean' "/p:Configuration=$Configuration" "/p:Platform=$Platform" *>&1
 	if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
@@ -45,7 +68,7 @@ $msbuildArgs = @(
 	$solution
 	'/m'
 	"/p:Configuration=$Configuration"
-	'/p:Platform=x64'
+	"/p:Platform=$Platform"
 	'/p:PreBuildEventUseInBuild=false'
 	'/p:PostBuildEventUseInBuild=false'
 )
@@ -67,7 +90,9 @@ $sw = [System.Diagnostics.Stopwatch]::StartNew()
 # emits warnings worth grepping after the fact, and a failure worth reading once
 # the console has scrolled, so the output goes to a file as well as the terminal.
 # $LASTEXITCODE still carries MSBuild's own exit code through the pipeline.
-$msbuildLog = Join-Path $logsDir "build-$Configuration$logSuffix.log"
+# The x64 log keeps its name; another platform's is named for it.
+$platformSuffix = if ($Platform -eq 'x64') { '' } else { "-$Platform" }
+$msbuildLog = Join-Path $logsDir "build-$Configuration$platformSuffix$logSuffix.log"
 
 & "$msbuild" @msbuildArgs *>&1 | Tee-Object -FilePath $msbuildLog
 
@@ -87,7 +112,7 @@ Write-Host "Build succeeded. Build log: $msbuildLog"
 # suite runs against serves its "not installed" placeholder and no test can see
 # the page.
 $webAdminSource = Join-Path $scriptRoot '..\hmailserver\installation\WebAdmin\index.html'
-$webAdminDir = Join-Path $scriptRoot "..\hmailserver\source\Server\hMailServer\x64\$Configuration\WebAdmin"
+$webAdminDir = Join-Path $scriptRoot "..\hmailserver\source\Server\hMailServer\$Platform\$Configuration\WebAdmin"
 New-Item -ItemType Directory -Force -Path $webAdminDir | Out-Null
 Copy-Item -Force -Path $webAdminSource -Destination $webAdminDir
 Write-Host "Control Deck page copied to $webAdminDir"
@@ -110,14 +135,34 @@ Write-Host "Control Deck catalogues copied to $webAdminLanguageDir"
 # cannot be compiled after a clean build - ISCC stops on
 # "Source file ...hMailServer.tlb does not exist" - and the only reason that was
 # ever survivable is an older IDE build having left one behind.
-$typeLibSource = Join-Path $scriptRoot "..\hmailserver\source\Server\hMailServer\hMailServer\x64\$Configuration\hMailServer.tlb"
-$typeLibTarget = Join-Path $scriptRoot "..\hmailserver\source\Server\hMailServer\x64\$Configuration"
+$typeLibSource = Join-Path $scriptRoot "..\hmailserver\source\Server\hMailServer\hMailServer\$Platform\$Configuration\hMailServer.tlb"
+$typeLibTarget = Join-Path $scriptRoot "..\hmailserver\source\Server\hMailServer\$Platform\$Configuration"
 
 if (Test-Path $typeLibSource) {
     Copy-Item -Force -Path $typeLibSource -Destination $typeLibTarget
     Write-Host "Type library copied to $typeLibTarget"
 } else {
     Write-Warning "MIDL produced no type library at $typeLibSource - the installer will not compile until it does."
+}
+
+# The DLLs post-build.bat copies beside the server in an IDE build, which this
+# build does not run (post-build events are off): for ARM64 they are copied here
+# from the ARM64 libraries, so that ARM64\Release is a complete Bin for an ARM64
+# machine. The x64 build is left as it always was.
+if ($Platform -eq 'ARM64') {
+	$armOut = Join-Path $scriptRoot "..\hmailserver\source\Server\hMailServer\ARM64\$Configuration"
+	$libs = $env:hMailServerLibs
+	foreach ($dll in @(
+		"$libs\openssl-4.0.2-arm64\out64\bin\libcrypto-4-arm64.dll",
+		"$libs\openssl-4.0.2-arm64\out64\bin\libssl-4-arm64.dll",
+		"$libs\postgresql-18.3-arm64\builddir\src\interfaces\libpq\libpq.dll")) {
+		if (Test-Path $dll) {
+			Copy-Item -Force -Path $dll -Destination $armOut
+			Write-Host "Copied $dll to $armOut"
+		} else {
+			Write-Warning "$dll is not there; build the ARM64 libraries first (hmailserver/docs/WindowsOnArm.md)."
+		}
+	}
 }
 
 # The COM wrapper the .NET tools compile against, from the type library this

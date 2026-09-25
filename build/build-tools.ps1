@@ -10,8 +10,17 @@
 # RELEASE.md step 8. This script covers "hMailServer Tools.sln" only, and a
 # release that skips that separate step ships whatever hMailCP.dll the previous
 # build left behind, because nothing deletes it first.
+#
+# -Platform ARM64 publishes the same tools, and the Control Panel with them, for
+# Windows on ARM (hmailserver/docs/WindowsOnArm.md): win-arm64, into publish-arm64
+# beside each project's publish folder, which hMailServerARM64.iss ships. Their
+# NuGet lock files are packages.arm64.lock.json, so that an ARM64 restore never
+# rewrites the win-x64 lock files CI restores in locked mode. The default, x64,
+# does exactly what it always did.
 Param(
-    [string]$Configuration = 'Release'
+    [string]$Configuration = 'Release',
+    [ValidateSet('x64', 'ARM64')]
+    [string]$Platform = 'x64'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,6 +36,27 @@ $toolsDir = Resolve-Path (Join-Path $scriptRoot '..\hmailserver\source\Tools')
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 $publishProjects = 'DBSetup', 'DBSetupQuick', 'DBUpdater', 'DataDirectorySynchronizer', 'ImportTool'
+
+if ($Platform -eq 'ARM64') {
+    # The Control Panel too: for x64 it is RELEASE.md step 8's own publish.
+    $publishProjects += 'ControlPanel'
+    foreach ($project in $publishProjects) {
+        $csproj = Join-Path $toolsDir "$project\$project.csproj"
+        $output = Join-Path $toolsDir "$project\publish-arm64"
+        if (Test-Path $output) { Remove-Item -Recurse -Force $output }
+
+        Write-Host "Publishing $project (win-arm64) -> $output"
+        # The projects name x64 as their platform and win-x64 as their runtime;
+        # both are overridden here, for this publish and the projects it references.
+        # Its own bin and obj as well: the compiler's incremental check does not look
+        # at the platform, and an x64 publish after this one must not find ARM64
+        # assemblies in obj and ship them.
+        dotnet publish $csproj -c $Configuration -o $output -r win-arm64 --self-contained false -p:PlatformTarget=ARM64 -p:NuGetLockFilePath=packages.arm64.lock.json "-p:OutputPath=bin\ARM64\$Configuration\\" "-p:IntermediateOutputPath=obj\ARM64\$Configuration\\"
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+    Write-Host "All tools published for ARM64."
+    exit 0
+}
 
 foreach ($project in $publishProjects) {
     $csproj = Join-Path $toolsDir "$project\$project.csproj"

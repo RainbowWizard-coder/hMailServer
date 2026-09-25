@@ -71,6 +71,9 @@ namespace
          // nothing on the release page replaces what is running.
          return std::string();
       }
+#elif defined(_M_ARM64)
+      // hMailServerARM64.iss's OutputBaseFilename: the ARM64 installer.
+      return "hMailServer-" + tag + "-arm64.exe";
 #else
       return "hMailServer-" + tag + "-x64.exe";
 #endif
@@ -153,7 +156,11 @@ namespace
       return name;
 #else
       (void) version;
+#if defined(_M_ARM64)
+      return _T("ARM64 installer");
+#else
       return _T("x64 installer");
+#endif
 #endif
    }
 

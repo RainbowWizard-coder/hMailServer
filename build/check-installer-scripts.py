@@ -69,7 +69,8 @@ SERVER = os.path.join(ROOT, 'hmailserver', 'source', 'Server')
 
 EXTENSION = 'hMailServerInnoExtension.iss'
 UNINSTALL_RUN = 'section_uninstallrun.iss'
-FILES = ('section_files_64.iss', 'section_files_common.iss')
+# The ARM64 installer's files (hMailServerARM64.iss) are held to the same rule.
+FILES = ('section_files_64.iss', 'section_files_common.iss', 'section_files_arm64.iss')
 MAIN = 'hMailServer/hMailServer.cpp'
 EVENT_LOG = 'Common/Application/WindowsEventLog.cpp'
 
@@ -78,7 +79,7 @@ EVENT_LOG = 'Common/Application/WindowsEventLog.cpp'
 # uninsrestartdelete.
 LOADED_BY_THE_SERVER = [
     ('hMailServer.exe', re.compile(r'\\hMailServer\.exe$', re.I)),
-    ('the C++ runtime', re.compile(r'^Microsoft\.VC\d+\.CRT\\\*$', re.I)),
+    ('the C++ runtime', re.compile(r'^(?:ARM64\\)?Microsoft\.VC\d+\.CRT\\\*$', re.I)),
     ('libcrypto', re.compile(r'\\libcrypto-[\w-]+\.dll$', re.I)),
     ('libssl', re.compile(r'\\libssl-[\w-]+\.dll$', re.I)),
     ('libpq', re.compile(r'POSTGRESQL_LIBPQ_PATH\}\\\*\.dll$', re.I)),

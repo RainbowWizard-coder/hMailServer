@@ -27,12 +27,23 @@
 .PARAMETER Version
     The OpenSSL version to build, e.g. 4.0.2. Must match 4.x.y.
 
+.PARAMETER Platform
+    x64 (the default, and the build every x64 server links against) or ARM64, for
+    Windows on ARM (hmailserver/docs/WindowsOnArm.md). An ARM64 build is
+    cross-compiled on an x64 machine with Visual Studio's ARM64 build tools, into a
+    tree of its own named with -arm64 (openssl-<Version>-arm64\out64, with
+    libcrypto-4-arm64.dll and libssl-4-arm64.dll; target VC-WIN64-ARM), so it never touches the
+    x64 tree.
+
 .PARAMETER Sha256
     The SHA-256 of openssl-<Version>.tar.gz, for a version the digest table below does
     not know yet. Take it from the .sha256 file published beside the release.
 
 .EXAMPLE
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2
+
+.EXAMPLE
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2 -Platform ARM64
 #>
 [CmdletBinding()]
 param(
@@ -42,7 +53,11 @@ param(
 
     [Parameter(Mandatory = $false)]
     [ValidatePattern('^[0-9a-fA-F]{64}$')]
-    [string]$Sha256
+    [string]$Sha256,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateSet('x64', 'ARM64')]
+    [string]$Platform = 'x64'
 )
 
 $ErrorActionPreference = "Stop"
@@ -69,19 +84,34 @@ $Digests = @{
 # and a full transcript to inspect if a step fails.
 . (Join-Path -Path $PSScriptRoot -ChildPath "build-common.ps1")
 
-$logPath = Join-Path -Path $PSScriptRoot -ChildPath "build-openssl.log"
-Start-BuildLog -LogPath $logPath -Title "OpenSSL $Version build log"
+# The ARM64 build has a log of its own, so that it does not overwrite the x64 one.
+$logName = if ($Platform -eq 'ARM64') { "build-openssl-arm64.log" } else { "build-openssl.log" }
+$logPath = Join-Path -Path $PSScriptRoot -ChildPath $logName
+Start-BuildLog -LogPath $logPath -Title "OpenSSL $Version ($Platform) build log"
 
 # --- Resolve the library folder -------------------------------------------------
 
 $libsPath = Resolve-HMailServerLibs
 
 $srcDir = Join-Path -Path $libsPath -ChildPath "openssl-$Version"
+# ARM64: a tree of its own beside the x64 one, with the same out64 layout inside it.
+$targetDir = $null
+if ($Platform -eq 'ARM64')
+{
+    $targetDir = Join-Path -Path $libsPath -ChildPath "openssl-$Version-arm64"
+    $srcDir = $targetDir
+}
 $outDir = Join-Path -Path $srcDir -ChildPath "out64"
+
+# VC-WIN64A for x64, as always. VC-WIN64-ARM for ARM64 (Configurations/50-win-onecore.conf,
+# whose multilib suffix names the DLLs libcrypto-4-arm64.dll and libssl-4-arm64.dll).
+# no-asm for both: no NASM for x64, and no armasm64 step for ARM64.
+$target = if ($Platform -eq 'ARM64') { 'VC-WIN64-ARM' } else { 'VC-WIN64A' }
+$dllSuffix = if ($Platform -eq 'ARM64') { 'arm64' } else { 'x64' }
 
 # --- Locate the Visual Studio build environment via vswhere --------------------
 
-$vsInstall = Resolve-VcVars64
+$vsInstall = Resolve-VcVars64 -Platform $Platform
 
 # --- Verify a Windows-native Perl is available ----------------------------------
 
@@ -91,11 +121,18 @@ Resolve-NativePerl
 
 $digest = Get-PinnedDigest -Digests $Digests -Version $Version -Library 'OpenSSL' -Override $Sha256
 $tarUrl = "https://github.com/openssl/openssl/releases/download/openssl-$Version/openssl-$Version.tar.gz"
-Get-SourceArchive -Url $tarUrl -SrcDir $srcDir -LibsPath $libsPath -Sha256 $digest
+if ($targetDir)
+{
+    Get-SourceArchive -Url $tarUrl -SrcDir (Join-Path -Path $libsPath -ChildPath "openssl-$Version") -LibsPath $libsPath -Sha256 $digest -TargetDir $targetDir
+}
+else
+{
+    Get-SourceArchive -Url $tarUrl -SrcDir $srcDir -LibsPath $libsPath -Sha256 $digest
+}
 
 # --- Import the VS x64 build environment ---------------------------------------
 
-Import-VsEnvironment -VsInstall $vsInstall
+Import-VsEnvironment -VsInstall $vsInstall -Platform $Platform
 
 # --- Configure and build (each step checked individually) ----------------------
 
@@ -105,8 +142,8 @@ Write-Log "Progress is being logged to $logPath (tail it with: Get-Content `"$lo
 Push-Location $srcDir
 try
 {
-    Invoke-BuildStep "Configuring OpenSSL $Version for target VC-WIN64A" {
-        perl Configure no-asm VC-WIN64A "--prefix=$outDir" "--openssldir=$outDir" '-D_WIN32_WINNT=0x0A00'
+    Invoke-BuildStep "Configuring OpenSSL $Version for target $target" {
+        perl Configure no-asm $target "--prefix=$outDir" "--openssldir=$outDir" '-D_WIN32_WINNT=0x0A00'
     }
     if ($LastExitCode -ne 0)
     {
@@ -136,12 +173,13 @@ finally
 
 # --- Verify the expected output -------------------------------------------------
 
-# The DLL names carry the major version: libcrypto-4-x64.dll for 4.x.
+# The DLL names carry the major version and the target: libcrypto-4-x64.dll for 4.x,
+# libcrypto-4-arm64.dll for 4.x on ARM64.
 $major = $Version.Split('.')[0]
 
 $expected = @(
-    "bin\libcrypto-$major-x64.dll",
-    "bin\libssl-$major-x64.dll",
+    "bin\libcrypto-$major-$dllSuffix.dll",
+    "bin\libssl-$major-$dllSuffix.dll",
     "lib\libcrypto.lib",
     "lib\libssl.lib",
     "include\openssl\ssl.h"
@@ -155,4 +193,4 @@ foreach ($item in $expected)
     }
 }
 
-Write-Log "OpenSSL $Version built successfully into $outDir"
+Write-Log "OpenSSL $Version ($Platform) built successfully into $outDir"

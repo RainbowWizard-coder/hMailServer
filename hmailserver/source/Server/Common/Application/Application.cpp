@@ -147,7 +147,9 @@ namespace HM
    String
    Application::GetVersionArchitecture() const
    {
-#if _WIN64
+#if defined(_M_ARM64)
+      return "ARM64";
+#elif _WIN64
       return "x64";
 #else
       return "x86";

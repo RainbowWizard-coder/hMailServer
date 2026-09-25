@@ -394,6 +394,13 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
   with the machine's details in every result; and a lab recipe that runs it against hMailServer and against
   Postfix and Dovecot on the same machine under stated fairness rules
   ([PublishedNumbers.md](hmailserver/docs/PublishedNumbers.md)). No numbers have been measured with it yet.
+- **Windows on ARM, built but not yet run.** A `Release|ARM64` configuration in the server's three projects,
+  `-Platform ARM64` in `build.ps1`, `build-tools.ps1`, the three library scripts, `get-installer-binaries.ps1`
+  and `get-dotnet-runtime.ps1`, and a second installer, `hMailServerARM64.iss` (`hMailServer-<version>-arm64.exe`),
+  sharing the x64 installer's sections. The ARM64 server uses SQL Server or PostgreSQL; it has no built-in
+  database, since SQL Server Compact has no ARM64 build, and no bundled MySQL client. An ARM64 server's update
+  check looks for the ARM64 installer, and `VersionArchitecture` says `ARM64`. Nothing of it has been compiled
+  or run on ARM64 hardware yet; the x64 build is unchanged. `hmailserver/docs/WindowsOnArm.md`.
 
 ---
 

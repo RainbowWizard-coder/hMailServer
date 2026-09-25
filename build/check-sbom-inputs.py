@@ -250,6 +250,9 @@ def analyse(model):
         kind = artifact.get("disposition")
         if kind not in PINNED:
             continue
+        # ARM64 artifacts belong to the ARM64 installer, not the x64 release's SBOM.
+        if artifact.get("platform"):
+            continue
         component, version = artifact.get("component"), artifact.get("version")
         identifier = producer["installer"].get(component)
         if not identifier:

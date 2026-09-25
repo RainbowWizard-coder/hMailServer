@@ -1210,6 +1210,12 @@ begin
      TabOrder := 0;
      Checked := g_bUseInternal;
      OnClick := @rdoUseInternal_Click;
+#ifdef HM_ARM64
+     // SQL Server Compact has no ARM64 build (docs/WindowsOnArm.md).
+     Caption := 'The built-in database engine (SQL Server Compact) is not available on ARM64';
+     Enabled := False;
+     Checked := False;
+#endif
    end;
 
    { external database }
@@ -1225,6 +1231,11 @@ begin
      TabOrder := 1;
      Checked := not g_bUseInternal;
      OnClick := @rdoUseExternal_Click;
+#ifdef HM_ARM64
+     // MySQL and MariaDB need an ARM64 libmysql.dll that this installer does not carry.
+     Caption := 'Use an external database engine (Microsoft SQL Server or PostgreSQL; MySQL/MariaDB needs an ARM64 client)';
+     Checked := True;
+#endif
    end;
 
    moreInfoLink := TNewStaticText.Create(g_pageDBType);
@@ -1322,6 +1333,11 @@ begin
       g_bUseInternal := true
    else
       g_bUseInternal := false;
+#ifdef HM_ARM64
+   // No built-in database on ARM64, whatever the command line says: a new
+   // installation is set up against an external database by DBSetup.
+   g_bUseInternal := false;
+#endif
 
    OverrideInstallationFolder();
 
@@ -1734,6 +1750,14 @@ begin
    if not (bNewInstallationWithSQLCE or bUpgradeWithSQLCE) then
       Exit;
 
+#ifdef HM_ARM64
+   // Unreachable: InitializeWizard never chooses the built-in database on ARM64,
+   // and PrepareToInstall refuses an upgrade of one. Said, not attempted, if it is.
+   SuppressibleMsgBox('The built-in database (SQL Server Compact) is not available on ARM64.', mbError, MB_OK, IDOK);
+   Result := false;
+   Exit;
+#endif
+
    // x64 only: ArchitecturesAllowed=x64 in section_setup_64.iss, so IsWin64 is
    // always true here. The x86 branch that used to be here pointed at
    // SSCERuntime_x86-ENU.msi, which section_files_64.iss does not ship into {tmp} -
@@ -2125,6 +2149,37 @@ begin
       g_pageServiceAccount.SubCaptionLabel.Caption := g_pageServiceAccount.SubCaptionLabel.Caption + szSentence;
    g_bMssqlSentenceAdded := true;
 end;
+
+#ifdef HM_ARM64
+// The ARM64 installer only (hMailServerARM64.iss). Inno calls this after the last
+// wizard page and before any file is installed, in a silent install too, and a
+// non-empty answer ends the installation with that sentence. It is here and not in
+// InitializeSetup because the settings file is found through {app}, which is not
+// known until the directory has been chosen.
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+   Result := '';
+
+   // The ARM64 server cannot open SQL Server Compact: there is no ARM64 build of it,
+   // and an ARM64 process cannot load the x64 provider. Installed over a server that
+   // uses the built-in database, it would leave that server unable to start.
+   if (GetCurrentDatabaseType() = 'mssqlce') then
+   begin
+      Result := 'This hMailServer uses the built-in database (SQL Server Compact), which the ARM64 build cannot use. ' +
+                'Move its data to Microsoft SQL Server or PostgreSQL with the x64 build first (MigratingDatabaseBackend.md in the documentation), ' +
+                'then run this installer again. Nothing has been changed.';
+      Exit;
+   end;
+
+   // MySQL and MariaDB: the ARM64 server needs an ARM64 build of the client
+   // (libmysql.dll), which this installer does not carry. A libmysql.dll an x64
+   // installation left in Bin is the x64 one, and does not load either.
+   if (GetCurrentDatabaseType() = 'mysql') then
+      SuppressibleMsgBox('This hMailServer uses MySQL or MariaDB. The ARM64 build needs an ARM64 build of the MariaDB client, libmysql.dll, in its Bin folder; ' +
+             'this installer does not carry one, and an x64 libmysql.dll does not load into the ARM64 server. ' +
+             'The service will not start until an ARM64 one is there (WindowsOnArm.md in the documentation says how to build it).', mbInformation, MB_OK, IDOK);
+end;
+#endif
 
 function NextButtonClick(CurPage : Integer): boolean;
 var

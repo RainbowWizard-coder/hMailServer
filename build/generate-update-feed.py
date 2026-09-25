@@ -526,6 +526,7 @@ def installer_names(tag):
     """UpdateChecker.cpp's PlatformInstallerName_, for each kind of installation."""
     return {
         "windows": "hMailServer-%s-x64.exe" % tag,
+        "windows-arm64": "hMailServer-%s-arm64.exe" % tag,
         "deb-amd64": "hmailserver_%s_amd64.deb" % tag,
         "deb-arm64": "hmailserver_%s_arm64.deb" % tag,
         "rpm-x86_64": "hmailserver-%s-1.x86_64.rpm" % tag,

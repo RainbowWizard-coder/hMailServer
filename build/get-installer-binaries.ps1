@@ -41,6 +41,14 @@
 
 .PARAMETER Cache
    Where downloads are kept between runs. Default: %LOCALAPPDATA%\hmailserver\build-inputs.
+
+.PARAMETER Platform
+   x64 (the default): every artifact the manifest lists without a "platform", which
+   is what it always did. ARM64: the artifacts marked "platform": "arm64" - the ARM64
+   installer's runtime and 7-Zip console, under hmailserver\installation\ARM64 - and
+   the system artifacts the server compiles against (hmailserver/docs/WindowsOnArm.md).
+   The ARM64 runtime is gathered from the Visual Studio instance with the ARM64
+   build tools, from %VCToolsRedistDir%\arm64.
 #>
 [CmdletBinding()]
 param(
@@ -48,7 +56,9 @@ param(
    # Place only the "system" artifacts - Windows' own files the server compiles
    # against - and stop. What the hosted server build needs, and nothing else.
    [switch]$SystemOnly,
-   [string]$Cache = (Join-Path $env:LOCALAPPDATA 'hmailserver\build-inputs')
+   [string]$Cache = (Join-Path $env:LOCALAPPDATA 'hmailserver\build-inputs'),
+   [ValidateSet('x64', 'ARM64')]
+   [string]$Platform = 'x64'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -65,8 +75,14 @@ function Assert-Matches([string]$path, [string]$expected, [string]$what) {
    if ($actual -ne $expected.ToLower()) { throw "$what does not match the manifest.`n  path:     $path`n  expected: $expected`n  actual:   $actual" }
 }
 
-$fetched = @($manifest.artifacts | Where-Object { $_.disposition -eq 'fetched' })
-$gathered = @($manifest.artifacts | Where-Object { $_.disposition -eq 'gathered' })
+# An artifact marked "platform": "arm64" is the ARM64 installer's, and is placed
+# only with -Platform ARM64; every other one is the x64 installer's, as before.
+function Test-ForPlatform($artifact) {
+   if ($Platform -eq 'ARM64') { return ([string]$artifact.platform -eq 'arm64') }
+   return -not $artifact.platform
+}
+$fetched = @($manifest.artifacts | Where-Object { $_.disposition -eq 'fetched' } | Where-Object { Test-ForPlatform $_ })
+$gathered = @($manifest.artifacts | Where-Object { $_.disposition -eq 'gathered' } | Where-Object { Test-ForPlatform $_ })
 $system = @($manifest.artifacts | Where-Object { $_.disposition -eq 'system' })
 Write-Host ("{0} fetched, {1} gathered and {2} system artifact(s) in the manifest." -f $fetched.Count, $gathered.Count, $system.Count)
 
@@ -141,7 +157,7 @@ if ($gathered.Count) {
       # Only VCToolsRedistDir is wanted, so vcvars64.bat is asked for that one
       # value rather than the whole environment being imported.
       . (Join-Path $repo 'libraries\build-common.ps1')
-      $vsInstall = Resolve-VcVars64
+      $vsInstall = Resolve-VcVars64 -Platform $Platform
       $vcVars = if ($vsInstall -is [string]) { $vsInstall } else { $vsInstall.VcVars64 }
       if (-not $vcVars -or -not (Test-Path -LiteralPath $vcVars)) { throw "vcvars64.bat was not found (Resolve-VcVars64 answered '$vcVars')." }
       # Delayed expansion, or cmd expands the variable before vcvars64 has set it.
@@ -149,8 +165,9 @@ if ($gathered.Count) {
       if ($line) { $env:VCToolsRedistDir = $line.Substring('VCToolsRedistDir='.Length) }
    }
    if (-not $env:VCToolsRedistDir) { throw 'VCToolsRedistDir is not set and Visual Studio could not be found; the MSVC runtime cannot be gathered.' }
-   $crt = Get-ChildItem (Join-Path $env:VCToolsRedistDir 'x64') -Directory -Filter 'Microsoft.VC*.CRT' | Select-Object -First 1
-   if (-not $crt) { throw "No Microsoft.VC*.CRT directory under $env:VCToolsRedistDir\x64" }
+   $redistArchitecture = if ($Platform -eq 'ARM64') { 'arm64' } else { 'x64' }
+   $crt = Get-ChildItem (Join-Path $env:VCToolsRedistDir $redistArchitecture) -Directory -Filter 'Microsoft.VC*.CRT' -ErrorAction SilentlyContinue | Select-Object -First 1
+   if (-not $crt) { throw "No Microsoft.VC*.CRT directory under $env:VCToolsRedistDir\$redistArchitecture" }
    Write-Host "Gathering the MSVC runtime from $($crt.FullName)"
    foreach ($a in $gathered) {
       $target = Join-Path $repo $a.path
