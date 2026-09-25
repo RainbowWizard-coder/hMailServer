@@ -824,6 +824,11 @@ EXIT 0
     <ClCompile Include="..\Common\Util\OutgoingFooters.cpp" />
     <ClCompile Include="..\Common\Util\SealedMessage.cpp" />
     <ClCompile Include="..\Common\Util\SignatureAdder.cpp" />
+    <ClCompile Include="..\Common\Util\SnmpAgent.cpp" />
+    <ClCompile Include="..\Common\Util\SnmpBer.cpp" />
+    <ClCompile Include="..\Common\Util\SnmpEngine.cpp" />
+    <ClCompile Include="..\Common\Util\SnmpTester.cpp" />
+    <ClCompile Include="..\Common\Util\SnmpUsm.cpp" />
     <ClCompile Include="..\Common\Util\SSPIValidation.cpp" />
     <ClCompile Include="..\Common\Util\Strings\FormatArgument.cpp" />
     <ClCompile Include="..\Common\Util\Strings\Formatter.cpp" />
@@ -1718,6 +1723,11 @@ EXIT 0
     <ClInclude Include="..\Common\Util\SealedMessage.h" />
     <ClInclude Include="..\Common\Util\SignatureAdder.h" />
     <ClInclude Include="..\Common\Util\Singleton.h" />
+    <ClInclude Include="..\Common\Util\SnmpAgent.h" />
+    <ClInclude Include="..\Common\Util\SnmpBer.h" />
+    <ClInclude Include="..\Common\Util\SnmpEngine.h" />
+    <ClInclude Include="..\Common\Util\SnmpTester.h" />
+    <ClInclude Include="..\Common\Util\SnmpUsm.h" />
     <ClInclude Include="..\Common\Util\SSPIValidation.h" />
     <ClInclude Include="..\Common\Util\StdString.h" />
     <ClInclude Include="..\Common\Util\StorePath.h" />

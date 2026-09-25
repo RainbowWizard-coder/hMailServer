@@ -49,6 +49,7 @@
 #include "../../SMTP/BounceTracker.h"
 #include "../../SMTP/DestinationBackoffTester.h"
 #include "../../SMTP/WarmupPlanTester.h"
+#include "SnmpTester.h"
 #include "../Persistence/SchemaUpgrader.h"
 #include "../Persistence/MessageStoreFormat.h"
 #include "MailboxCrypto.h"
@@ -220,6 +221,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing WarmupPlan\n"));
       WarmupPlanTester warmupPlanTester;
       warmupPlanTester.Test();
+
+      // The SNMP agent's decoder and engine: the BER both ways and its bounds,
+      // the USM cryptography (AES against NIST's vectors, HMAC-SHA-256 and the
+      // SHA-256 key localisation against values computed independently),
+      // SNMPv2c and SNMPv3 exchanges against a clock the test sets, and packets
+      // truncated, malformed and turned over - none unanswerable, none uncounted.
+      OutputDebugString(_T("hMailServer: Testing SNMP\n"));
+      SnmpTester snmpTester;
+      snmpTester.Test();
 
       // The upgrade chain walked in-process: the next script found by its
       // shape, and - on a Compact database of the tester's own, with a chain of

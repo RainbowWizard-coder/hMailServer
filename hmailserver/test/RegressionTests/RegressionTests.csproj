@@ -605,6 +605,7 @@
     <Compile Include="Infrastructure\ArchiveIndexTests.cs" />
     <Compile Include="Infrastructure\ReferentialIntegrity.cs" />
     <Compile Include="Infrastructure\SchemaProbes.cs" />
+    <Compile Include="Infrastructure\SnmpAgent.cs" />
     <Compile Include="Infrastructure\SyslogExport.cs" />
     <Compile Include="Infrastructure\DatabaseRefused.cs" />
     <Compile Include="..\..\source\Tools\DBUpdater\SchemaVerification.cs">

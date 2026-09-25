@@ -258,6 +258,17 @@ smtprelayerconnectionsecurity server
 smtprelayerpassword server
 smtprelayerport server
 smtprelayerusername server
+SnmpAllowedAddresses server
+SnmpBindAddress server
+SnmpContact server
+SnmpEnabled server
+SnmpLocation server
+SnmpPort server
+SnmpV2cCommunity server
+SnmpV2cEnabled server
+SnmpV3AuthPassword server
+SnmpV3PrivPassword server
+SnmpV3User server
 spamassassinenabled server
 spamassassinhost server
 spamassassinmergescore server

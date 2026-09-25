@@ -13,6 +13,7 @@
 #include "SettingsDefaults.h"
 #include "EnvironmentSettings.h"
 #include "Profiles.h"
+#include "../Util/SnmpAgent.h"
 #include "../Util/Unicode.h"
 
 #ifdef _DEBUG
@@ -234,6 +235,14 @@ namespace HM
             // entries nobody can act on at the top of every upgraded installation's
             // list.
             if (!ThisBuildReads(name))
+               continue;
+
+            // The SNMP agent's engine records - the seed and every engine's boot
+            // count - are the server's bookkeeping and not settings. They are not
+            // in the names this build reads, so the line above already leaves them
+            // out; this says so by the same rule the backup uses, so that a
+            // property named after one could not bring them in.
+            if (SnmpAgent::IsEngineRecord(name))
                continue;
 
             SettingsDiff::Entry entry;

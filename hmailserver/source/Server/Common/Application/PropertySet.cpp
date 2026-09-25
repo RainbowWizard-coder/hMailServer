@@ -9,6 +9,7 @@
 #include "../Util/AuditTrail.h"
 #include "EnvironmentSettings.h"
 #include "Profiles.h"
+#include "../Util/SnmpAgent.h"
 
 #include <algorithm>
 
@@ -357,6 +358,14 @@ namespace HM
       if (sPropertyName == PROPERTY_SANDBOX_TOKEN)
          return true;
 
+      // The SNMP agent's two passwords and its community (Util/SnmpAgent.h).
+      // Whoever holds the passwords can read everything the agent serves as its
+      // user; whoever holds the community, while SNMPv2c is on, can read it too.
+      if (sPropertyName == PROPERTY_SNMP_V3_AUTH_PASSWORD ||
+          sPropertyName == PROPERTY_SNMP_V3_PRIV_PASSWORD ||
+          sPropertyName == PROPERTY_SNMP_V2C_COMMUNITY)
+         return true;
+
       return false;
    }
 
@@ -428,6 +437,24 @@ namespace HM
             continue;
          }
 
+         // Nor the SNMP agent's (Util/SnmpAgent.h): its two passwords and its
+         // community, which are credentials no interface reads back, on the
+         // sandbox token's terms; and its engine seed and every engine's boot
+         // count (SnmpAgent::IsEngineRecord: the seed's name, a boots row's name,
+         // and the single boots row of the agent's first, unreleased commit),
+         // which are this installation's engines. A restore that brought
+         // an older boot count back would let a message recorded since be accepted
+         // again, and one onto another server would give two servers one engine.
+         // After a restore the passwords are entered again (docs/Snmp.md).
+         if (String(oProperty->GetName()).CompareNoCase(PROPERTY_SNMP_V3_AUTH_PASSWORD) == 0 ||
+             String(oProperty->GetName()).CompareNoCase(PROPERTY_SNMP_V3_PRIV_PASSWORD) == 0 ||
+             String(oProperty->GetName()).CompareNoCase(PROPERTY_SNMP_V2C_COMMUNITY) == 0 ||
+             SnmpAgent::IsEngineRecord(String(oProperty->GetName())))
+         {
+            iterProperty++;
+            continue;
+         }
+
          // Nor the records of which settings the environment manages and which of
          // their values a file supplied: they describe the deployment this database
          // runs under, which a restore onto another server does not bring with it,
@@ -478,6 +505,14 @@ namespace HM
          // Nor the sandbox's token, which XMLStore leaves out too: the token
          // this server holds stays until an administrator enters another.
          if (sName.CompareNoCase(PROPERTY_SANDBOX_TOKEN) == 0)
+            continue;
+
+         // Nor the SNMP agent's secrets and records, which XMLStore leaves out:
+         // what this server holds stays.
+         if (sName.CompareNoCase(PROPERTY_SNMP_V3_AUTH_PASSWORD) == 0 ||
+             sName.CompareNoCase(PROPERTY_SNMP_V3_PRIV_PASSWORD) == 0 ||
+             sName.CompareNoCase(PROPERTY_SNMP_V2C_COMMUNITY) == 0 ||
+             SnmpAgent::IsEngineRecord(sName))
             continue;
 
          // The environment's records are this server's deployment, not the archive's,

@@ -427,6 +427,24 @@
 #define PROPERTY_SANDBOX_CACHE_HOURS            _T("SandboxCacheHours")
 #define PROPERTY_SANDBOX_INTERNAL_MAIL          _T("SandboxInternalMail")
 #define PROPERTY_SANDBOX_MAX_FILES              _T("SandboxMaxFiles")
+// The SNMP agent (Util/SnmpAgent.h, docs/Snmp.md). OFF, and when on it answers
+// nobody until SnmpAllowedAddresses names a manager: the switch, the UDP port
+// (161), the address to bind (empty, every address), the allow list, the one
+// SNMPv3 user and its two passwords - stored protected, never emitted - the
+// SNMPv2c switch (off, even with the agent on) and its community (protected
+// too), and sysContact and sysLocation. Read when the agent starts. The engine's
+// seed and boot count are the agent's own records, not settings (SnmpAgent.h).
+#define PROPERTY_SNMP_ENABLED                   _T("SnmpEnabled")
+#define PROPERTY_SNMP_PORT                      _T("SnmpPort")
+#define PROPERTY_SNMP_BIND_ADDRESS              _T("SnmpBindAddress")
+#define PROPERTY_SNMP_ALLOWED_ADDRESSES         _T("SnmpAllowedAddresses")
+#define PROPERTY_SNMP_V3_USER                   _T("SnmpV3User")
+#define PROPERTY_SNMP_V3_AUTH_PASSWORD          _T("SnmpV3AuthPassword")
+#define PROPERTY_SNMP_V3_PRIV_PASSWORD          _T("SnmpV3PrivPassword")
+#define PROPERTY_SNMP_V2C_ENABLED               _T("SnmpV2cEnabled")
+#define PROPERTY_SNMP_V2C_COMMUNITY             _T("SnmpV2cCommunity")
+#define PROPERTY_SNMP_CONTACT                   _T("SnmpContact")
+#define PROPERTY_SNMP_LOCATION                  _T("SnmpLocation")
 // Zero-access mailboxes (docs/ZeroAccess.md). OFF: an administrator has to
 // allow the opt-in before any account can make it, because a mailbox with this
 // on is one the administrator cannot read, search, export or recover, and a

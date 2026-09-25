@@ -62,6 +62,7 @@
 #include "PstImportPath.h"
 #include "CompromiseDetector.h"
 #include "../AntiVirus/Sandbox.h"
+#include "SnmpAgent.h"
 #include "SessionPolicies.h"
 #include "SamlSignIn.h"
 #include "../Application/IniSettingStore.h"
@@ -720,6 +721,57 @@ namespace
         "The most files one message may send to the sandbox. A message with more to submit is not held: sandbox_timeout_action decides it at once, with a header saying why. 1 to 100; 10 by default.",
         ROW_NUMBER(Config()->GetSandboxMaxFiles()), ROW_SET(Config()->SetSandboxMaxFiles((int) v.number)),
         [] (const Value &v) { return (v.number < 1 || v.number > 100) ? String(_T("sandbox_max_files must be between 1 and 100.")) : String(); } },
+
+      // The SNMP agent (Util/SnmpAgent.h, docs/Snmp.md). Every row waits for a
+      // restart: the agent reads them when it starts, at a service start or a
+      // Reinitialize. The checks are SnmpAgent's own. The two passwords and the
+      // community are write-only, as the relayer's password is. There is no COM
+      // property for any of them, as there is none for the metrics listener.
+      { "snmp_enabled", KindBoolean, ReadWrite, EffectRestart, nullptr,
+        "Whether the read-only SNMP agent runs: SNMPv3 at authPriv, and SNMPv2c only while snmp_v2c_enabled is on as well. Off by default. On, it still answers nobody until snmp_allowed_addresses names a manager.",
+        ROW_FLAG(Config()->GetSnmpEnabled()), ROW_SET(Config()->SetSnmpEnabled(v.flag)), ROW_NO_CHECK },
+      { "snmp_port", KindInteger, ReadWrite, EffectRestart, nullptr,
+        "The UDP port the agent answers on. 161 by default; 1 to 65535.",
+        ROW_NUMBER(Config()->GetSnmpPort()), ROW_SET(Config()->SetSnmpPort((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 65535) ? String(_T("snmp_port must be between 1 and 65535.")) : String(); } },
+      { "snmp_bind_address", KindString, ReadWrite, EffectRestart, nullptr,
+        "The address the agent listens on: empty for every address, or one IPv4 or IPv6 address of this machine. 127.0.0.1 is the careful choice when the manager runs on the same machine; otherwise an address on a management network.",
+        ROW_TEXT(Config()->GetSnmpBindAddress()), ROW_SET(Config()->SetSnmpBindAddress(v.text)),
+        [] (const Value &v) { return SnmpAgent::BindAddressProblem(v.text); } },
+      { "snmp_allowed_addresses", KindString, ReadWrite, EffectRestart, nullptr,
+        "The managers the agent answers: addresses and ranges in CIDR form separated by commas, such as 192.0.2.10, 192.0.2.11. Empty answers nobody. A datagram from any other address is dropped unanswered before it is read. Name the managers one by one rather than by range: the list judges a datagram's source address, which UDP does not prove.",
+        ROW_TEXT(Config()->GetSnmpAllowedAddresses()), ROW_SET(Config()->SetSnmpAllowedAddresses(v.text)),
+        [] (const Value &v) { return SnmpAgent::AllowedAddressesProblem(v.text); } },
+      { "snmp_v3_user", KindString, ReadWrite, EffectRestart, nullptr,
+        "The one SNMPv3 user, answered at authPriv only: HMAC-SHA-256 authentication (usmHMAC192SHA256AuthProtocol, RFC 7860) and AES-128 privacy (RFC 3826). Empty for none. At most 32 visible ASCII characters.",
+        ROW_TEXT(Config()->GetSnmpV3User()), ROW_SET(Config()->SetSnmpV3User(v.text)),
+        [] (const Value &v) { return SnmpAgent::UserProblem(v.text); } },
+      { "snmp_v3_auth_password", KindString, WriteOnly, EffectRestart, nullptr,
+        "The SNMPv3 user's authentication password, 8 to 64 ASCII characters. Stored protected, never emitted and left out of the backup archive.",
+        nullptr, ROW_SET(Config()->SetSnmpV3AuthPassword(v.text)),
+        [] (const Value &v) { return SnmpAgent::PasswordProblem(v.text, _T("snmp_v3_auth_password")); },
+        nullptr, PROPERTY_SNMP_V3_AUTH_PASSWORD },
+      { "snmp_v3_priv_password", KindString, WriteOnly, EffectRestart, nullptr,
+        "The SNMPv3 user's privacy password, 8 to 64 ASCII characters. Stored protected, never emitted and left out of the backup archive.",
+        nullptr, ROW_SET(Config()->SetSnmpV3PrivPassword(v.text)),
+        [] (const Value &v) { return SnmpAgent::PasswordProblem(v.text, _T("snmp_v3_priv_password")); },
+        nullptr, PROPERTY_SNMP_V3_PRIV_PASSWORD },
+      { "snmp_v2c_enabled", KindBoolean, ReadWrite, EffectRestart, nullptr,
+        "Whether SNMPv2c is answered as well, for a monitoring system that cannot do SNMPv3. Off by default, even with the agent on. Its community crosses the network in the clear with every request, so anyone who can see that traffic can read everything the agent serves.",
+        ROW_FLAG(Config()->GetSnmpV2cEnabled()), ROW_SET(Config()->SetSnmpV2cEnabled(v.flag)), ROW_NO_CHECK },
+      { "snmp_v2c_community", KindString, WriteOnly, EffectRestart, nullptr,
+        "The SNMPv2c community, at most 64 visible ASCII characters. Stored protected, never emitted and left out of the backup archive; empty answers no SNMPv2c request.",
+        nullptr, ROW_SET(Config()->SetSnmpV2cCommunity(v.text)),
+        [] (const Value &v) { return SnmpAgent::CommunityProblem(v.text); },
+        nullptr, PROPERTY_SNMP_V2C_COMMUNITY },
+      { "snmp_contact", KindString, ReadWrite, EffectRestart, nullptr,
+        "sysContact: who to ask about this server, as a manager shows it. One line of printable ASCII, at most 255 characters (a DisplayString).",
+        ROW_TEXT(Config()->GetSnmpContact()), ROW_SET(Config()->SetSnmpContact(v.text)),
+        [] (const Value &v) { return SnmpAgent::TextProblem(v.text, _T("snmp_contact")); } },
+      { "snmp_location", KindString, ReadWrite, EffectRestart, nullptr,
+        "sysLocation: where this server is, as a manager shows it. One line of printable ASCII, at most 255 characters (a DisplayString).",
+        ROW_TEXT(Config()->GetSnmpLocation()), ROW_SET(Config()->SetSnmpLocation(v.text)),
+        [] (const Value &v) { return SnmpAgent::TextProblem(v.text, _T("snmp_location")); } },
 
       // Inbound SMTP behaviour.
       { "allow_smtp_auth_plain", KindBoolean, ReadWrite, EffectNow, nullptr,

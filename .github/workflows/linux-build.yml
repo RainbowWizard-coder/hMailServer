@@ -188,6 +188,15 @@ jobs:
       - name: The JavaScript event-script binding
         run: ./build/linux/script-binding-tests
 
+      # The SNMP agent's decoder and engine (Common/Util/SnmpTester.h): the BER and
+      # its bounds, the SNMPv3 USM cryptography (AES against NIST's vectors, the
+      # rest against values computed independently), SNMPv2c and SNMPv3
+      # exchanges, and packets truncated, malformed and turned over. On
+      # Windows ClassTester runs the same tester inside the service; here there is
+      # no COM to reach it by, so this step does. No server, no socket, no network.
+      - name: The SNMP agent's decoder and engine
+        run: ./build/linux/snmp-tests
+
       # The one OpenPGP message this server writes - a zero-access mailbox's
       # delivery, encrypted to the mailbox's own key (Common/Util/OpenPgpWriter,
       # docs/ZeroAccess.md) - handed to an implementation that is not this one.

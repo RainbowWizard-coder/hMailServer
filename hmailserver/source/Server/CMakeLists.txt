@@ -102,6 +102,27 @@ add_compile_options(
    -ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.
    -fno-common)
 
+# A build under AddressSanitizer and UndefinedBehaviorSanitizer, for the test
+# programs that feed a decoder bytes nobody meant it to see - snmp-tests above
+# all. Off, and never for a package. Every unit is instrumented, not only the
+# program's, because the code under test lives in the core library; so it is a
+# build directory of its own:
+#
+#   cmake -S hmailserver/source/Server -B build/linux-sanitize -DHM_SANITIZE=ON \
+#         -DCMAKE_BUILD_TYPE=RelWithDebInfo
+#   cmake --build build/linux-sanitize --target snmp-tests
+#   ASAN_OPTIONS=abort_on_error=1 UBSAN_OPTIONS=print_stacktrace=1 \
+#         ./build/linux-sanitize/snmp-tests
+#
+# An undefined behaviour stops the run rather than being printed and passed
+# over, so a finding fails the job that ran it: the linux-sanitize CI job,
+# which builds this directory and runs snmp-tests in it.
+option(HM_SANITIZE "Build with -fsanitize=address,undefined, for the test programs" OFF)
+if(HM_SANITIZE)
+   add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer)
+   add_link_options(-fsanitize=address,undefined)
+endif()
+
 # ---------------------------------------------------------------- the sources
 
 set(SERVER_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -398,6 +419,25 @@ set_target_properties(spf-tests PROPERTIES OUTPUT_NAME spf-tests)
 add_executable(script-binding-tests ${SERVER_DIR}/platform/script_binding_tests_main.cpp)
 target_link_libraries(script-binding-tests PRIVATE hmailserver_core)
 set_target_properties(script-binding-tests PROPERTIES OUTPUT_NAME script-binding-tests)
+
+# ---------------------------------------------------------------- the SNMP agent's tests
+#
+# SnmpTester (Common/Util/SnmpTester.h) as a program of its own, for the reason
+# spf-tests is one: on Windows it runs inside hMailServer.exe through
+# ClassTester, which is reached only through COM, so here this program is what
+# runs it. The agent's own units (Common/Util/Snmp*.cpp) are in the core by the
+# glob above, like every other unit; this adds only the program. It feeds the
+# BER decoder and the SNMPv3 engine requests it built and packets it broke -
+# truncated at every length and one element at a time inside true lengths,
+# malformed in each way the decoder refuses, nested too deep, too long, turned
+# over byte by byte - and checks the USM cryptography: AES-128-CFB against NIST
+# SP 800-38A, HMAC-SHA-256-192 and the SHA-256 key localisation against values
+# computed independently. No database, no configuration, no socket, no network.
+# Not installed; a bench tool. Built under HM_SANITIZE (above), it is the
+# program the linux-sanitize CI job runs.
+add_executable(snmp-tests ${SERVER_DIR}/platform/snmp_tests_main.cpp)
+target_link_libraries(snmp-tests PRIVATE hmailserver_core)
+set_target_properties(snmp-tests PROPERTIES OUTPUT_NAME snmp-tests)
 
 # ---------------------------------------------------------------- the OpenPGP writer
 #

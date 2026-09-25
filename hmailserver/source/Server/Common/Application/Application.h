@@ -23,6 +23,7 @@ namespace HM
    class NotificationServer;
    class FolderManager;
    class MetricsServer;
+   class SnmpAgent;
    class RestApiServer;
    class WebServicesServer;
    class ManageSieveServer;
@@ -248,6 +249,11 @@ namespace HM
       std::shared_ptr<IOService> io_service_;
       std::shared_ptr<FolderManager> folder_manager_;
       std::shared_ptr<MetricsServer> metrics_server_;
+
+      // The SNMP agent (Util/SnmpAgent.h): made and started with the servers
+      // when SnmpEnabled is on, stopped with them, as the metrics listener is.
+      std::shared_ptr<SnmpAgent> snmp_agent_;
+
       std::shared_ptr<RestApiServer> rest_api_server_;
       std::shared_ptr<WebServicesServer> web_services_server_;
       std::shared_ptr<ManageSieveServer> manage_sieve_server_;

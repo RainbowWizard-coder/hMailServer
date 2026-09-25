@@ -217,6 +217,9 @@ namespace HM
          // in its path or its query, the whole of a capability URL - and the
          // trail is read by every holder of view_audit.
          L"ihurl",
+         // An SNMPv2c community (SnmpV2cCommunity): the whole of that version's
+         // authentication, a password in all but name.
+         L"community",
       };
 
       // Settings whose NAME carries one of the fragments above and whose value

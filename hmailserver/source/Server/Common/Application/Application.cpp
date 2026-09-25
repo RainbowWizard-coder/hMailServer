@@ -34,6 +34,7 @@
 #include "../Util/Utilities.h"
 #include "../Util/MetricsServer.h"
 #include "../Util/MailboxKeys.h"
+#include "../Util/SnmpAgent.h"
 #include "../Util/RateLimiter.h"
 #include "../Util/JwksKeySet.h"
 #include "../Util/DiscoverySearch.h"
@@ -645,6 +646,16 @@ namespace HM
       {
          metrics_server_ = std::shared_ptr<MetricsServer>(new MetricsServer());
          metrics_server_->Start(IniFileSettings::Instance()->GetMetricsServerBindAddress(), metricsPort);
+      }
+
+      // The read-only SNMP agent, beside the metrics endpoint and on its
+      // lifecycle, answering from the same counters (Util/SnmpAgent.h). Off by
+      // default; a start that fails has said why, and the server runs without it.
+      if (Configuration::Instance()->GetSnmpEnabled())
+      {
+         snmp_agent_ = std::shared_ptr<SnmpAgent>(new SnmpAgent());
+         if (!snmp_agent_->Start())
+            snmp_agent_.reset();
       }
 
       // Start the OpenTelemetry exporters - one per OTLP signal, each a no-op
@@ -1453,6 +1464,12 @@ namespace HM
       {
          metrics_server_->Stop();
          metrics_server_.reset();
+      }
+
+      if (snmp_agent_)
+      {
+         snmp_agent_->Stop();
+         snmp_agent_.reset();
       }
 
       // Stop the OpenTelemetry exporters (each flushes what it has queued). The

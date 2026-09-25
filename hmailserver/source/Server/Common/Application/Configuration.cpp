@@ -312,6 +312,24 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_SANDBOX_INTERNAL_MAIL, 0);
       property_set_->EnsureLong(PROPERTY_SANDBOX_MAX_FILES, 10);
 
+      // The SNMP agent (Util/SnmpAgent.h): OFF, and even when it is switched on
+      // it answers nobody until a manager's address is in the allow list - an
+      // empty list is not "everyone". Port 161, every address, no SNMPv3 user,
+      // SNMPv2c off with no community, and no contact or location. No schema step
+      // seeds these; the agent reads them at every start, and a read of a missing
+      // property reports HM5015 every time.
+      property_set_->EnsureLong(PROPERTY_SNMP_ENABLED, 0);
+      property_set_->EnsureLong(PROPERTY_SNMP_PORT, 161);
+      property_set_->EnsureString(PROPERTY_SNMP_BIND_ADDRESS, _T(""));
+      property_set_->EnsureString(PROPERTY_SNMP_ALLOWED_ADDRESSES, _T(""));
+      property_set_->EnsureString(PROPERTY_SNMP_V3_USER, _T(""));
+      property_set_->EnsureString(PROPERTY_SNMP_V3_AUTH_PASSWORD, _T(""));
+      property_set_->EnsureString(PROPERTY_SNMP_V3_PRIV_PASSWORD, _T(""));
+      property_set_->EnsureLong(PROPERTY_SNMP_V2C_ENABLED, 0);
+      property_set_->EnsureString(PROPERTY_SNMP_V2C_COMMUNITY, _T(""));
+      property_set_->EnsureString(PROPERTY_SNMP_CONTACT, _T(""));
+      property_set_->EnsureString(PROPERTY_SNMP_LOCATION, _T(""));
+
       // Zero-access mailboxes: OFF. A mailbox with this on is one the
       // administrator cannot read, search, export or recover, and a lost
       // password without the recovery key is the mail lost; an installation
@@ -2720,6 +2738,144 @@ namespace HM
    Configuration::SetSandboxMaxFiles(int files)
    {
       GetSettings()->SetLong(PROPERTY_SANDBOX_MAX_FILES, ClampSetting(files, 1, 100));
+   }
+
+   bool
+   Configuration::GetSnmpEnabled()
+   {
+      return GetSettings()->GetBool(PROPERTY_SNMP_ENABLED);
+   }
+
+   void
+   Configuration::SetSnmpEnabled(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_SNMP_ENABLED, enabled);
+   }
+
+   int
+   Configuration::GetSnmpPort()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_SNMP_PORT), 1, 65535);
+   }
+
+   void
+   Configuration::SetSnmpPort(int port)
+   {
+      GetSettings()->SetLong(PROPERTY_SNMP_PORT, ClampSetting(port, 1, 65535));
+   }
+
+   String
+   Configuration::GetSnmpBindAddress()
+   {
+      return GetSettings()->GetString(PROPERTY_SNMP_BIND_ADDRESS);
+   }
+
+   void
+   Configuration::SetSnmpBindAddress(const String &address)
+   {
+      String trimmed = address;
+      trimmed.Trim();
+      GetSettings()->SetString(PROPERTY_SNMP_BIND_ADDRESS, trimmed);
+   }
+
+   String
+   Configuration::GetSnmpAllowedAddresses()
+   {
+      return GetSettings()->GetString(PROPERTY_SNMP_ALLOWED_ADDRESSES);
+   }
+
+   void
+   Configuration::SetSnmpAllowedAddresses(const String &addresses)
+   {
+      String trimmed = addresses;
+      trimmed.Trim();
+      GetSettings()->SetString(PROPERTY_SNMP_ALLOWED_ADDRESSES, trimmed);
+   }
+
+   String
+   Configuration::GetSnmpV3User()
+   {
+      return GetSettings()->GetString(PROPERTY_SNMP_V3_USER);
+   }
+
+   void
+   Configuration::SetSnmpV3User(const String &user)
+   {
+      String trimmed = user;
+      trimmed.Trim();
+      GetSettings()->SetString(PROPERTY_SNMP_V3_USER, trimmed);
+   }
+
+   String
+   Configuration::GetSnmpV3AuthPassword()
+   {
+      return GetSettings()->GetString(PROPERTY_SNMP_V3_AUTH_PASSWORD);
+   }
+
+   void
+   Configuration::SetSnmpV3AuthPassword(const String &password)
+   {
+      GetSettings()->SetString(PROPERTY_SNMP_V3_AUTH_PASSWORD, password);
+   }
+
+   String
+   Configuration::GetSnmpV3PrivPassword()
+   {
+      return GetSettings()->GetString(PROPERTY_SNMP_V3_PRIV_PASSWORD);
+   }
+
+   void
+   Configuration::SetSnmpV3PrivPassword(const String &password)
+   {
+      GetSettings()->SetString(PROPERTY_SNMP_V3_PRIV_PASSWORD, password);
+   }
+
+   bool
+   Configuration::GetSnmpV2cEnabled()
+   {
+      return GetSettings()->GetBool(PROPERTY_SNMP_V2C_ENABLED);
+   }
+
+   void
+   Configuration::SetSnmpV2cEnabled(bool enabled)
+   {
+      GetSettings()->SetBool(PROPERTY_SNMP_V2C_ENABLED, enabled);
+   }
+
+   String
+   Configuration::GetSnmpV2cCommunity()
+   {
+      return GetSettings()->GetString(PROPERTY_SNMP_V2C_COMMUNITY);
+   }
+
+   void
+   Configuration::SetSnmpV2cCommunity(const String &community)
+   {
+      GetSettings()->SetString(PROPERTY_SNMP_V2C_COMMUNITY, community);
+   }
+
+   String
+   Configuration::GetSnmpContact()
+   {
+      return GetSettings()->GetString(PROPERTY_SNMP_CONTACT);
+   }
+
+   void
+   Configuration::SetSnmpContact(const String &contact)
+   {
+      GetSettings()->SetString(PROPERTY_SNMP_CONTACT, contact);
+   }
+
+   String
+   Configuration::GetSnmpLocation()
+   {
+      return GetSettings()->GetString(PROPERTY_SNMP_LOCATION);
+   }
+
+   void
+   Configuration::SetSnmpLocation(const String &location)
+   {
+      GetSettings()->SetString(PROPERTY_SNMP_LOCATION, location);
    }
 
    bool

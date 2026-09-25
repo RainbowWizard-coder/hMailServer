@@ -644,6 +644,37 @@ namespace HM
       int GetSandboxMaxFiles();                    // 1 to 100: the files one message may submit
       void SetSandboxMaxFiles(int files);
 
+      // The SNMP agent (Util/SnmpAgent.h, docs/Snmp.md). Eleven rows in
+      // hm_settings, read when the agent starts, so a change is saved at once and
+      // applied at the next start or Reinitialize. The setters store what they are
+      // given: every interface refuses a value SnmpAgent's checks refuse before it
+      // gets here, in the same sentence. The addresses and the user are stored
+      // trimmed.
+      bool GetSnmpEnabled();
+      void SetSnmpEnabled(bool enabled);
+      int GetSnmpPort();                           // 1 to 65535; 161
+      void SetSnmpPort(int port);
+      String GetSnmpBindAddress();                 // empty: every address
+      void SetSnmpBindAddress(const String &address);
+      String GetSnmpAllowedAddresses();            // empty: nobody is answered
+      void SetSnmpAllowedAddresses(const String &addresses);
+      String GetSnmpV3User();
+      void SetSnmpV3User(const String &user);
+      // The three secrets: protected at rest (PropertySet::IsCryptedProperty_),
+      // never emitted by any interface and left out of the backup archive.
+      String GetSnmpV3AuthPassword();
+      void SetSnmpV3AuthPassword(const String &password);
+      String GetSnmpV3PrivPassword();
+      void SetSnmpV3PrivPassword(const String &password);
+      bool GetSnmpV2cEnabled();
+      void SetSnmpV2cEnabled(bool enabled);
+      String GetSnmpV2cCommunity();
+      void SetSnmpV2cCommunity(const String &community);
+      String GetSnmpContact();                     // sysContact
+      void SetSnmpContact(const String &contact);
+      String GetSnmpLocation();                    // sysLocation
+      void SetSnmpLocation(const String &location);
+
       // Web Push (see Common/Util/WebPush.h). Seven rows in hm_settings; the
       // getters clamp, so a hand-edited row cannot make a time to live of a year
       // or an attempt count of none.

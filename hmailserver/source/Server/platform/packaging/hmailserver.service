@@ -92,7 +92,9 @@ RuntimeDirectoryMode=0750
 # Ports 25, 110, 143, 465, 587, 993 and 995 are all below 1024 and the process
 # never runs as root, so the one capability it needs is granted ambiently and the
 # bounding set is emptied of everything else. Ambient capabilities survive
-# NoNewPrivileges, which is why both can be set.
+# NoNewPrivileges, which is why both can be set. The same capability is what
+# lets the SNMP agent (SnmpEnabled, off by default) bind UDP 161; nothing more
+# is needed for it, since AF_INET and AF_INET6 below are TCP and UDP alike.
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 NoNewPrivileges=yes
