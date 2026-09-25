@@ -39,6 +39,13 @@ namespace HM
       DeliveryPossibility CheckDeliveryPossibility(bool bSenderIsAuthed, String sSender, const String &sOriginalRecipient, String &sErrMsg, bool &bTreatSecurityAsLocal, int iRecursionLevel, bool checkRecipientQuota = false);
       void CreateMessageRecipientList(const String &sRecipientAddress, std::shared_ptr<MessageRecipients> pRecipients, bool &recipientOK);
 
+      // An address routed to a URL (Util/InboundWebhooks.h) is, by default, one
+      // recipient of its own with no account behind it. An address whose route
+      // is one of these - the routes a message has been taken by already - is
+      // expanded as though it had no route; a route that is not one of them
+      // still makes a recipient of its own.
+      void SetRoutesTaken(const std::set<__int64> &routeIds) { routes_taken_ = routeIds; }
+
    private:
 
       void CreateMessageRecipientList_(const String &recipientAddress, const String &sOriginalAddress, long lRecurse, std::shared_ptr<MessageRecipients> pRecipients, bool &recipientOK);
@@ -98,6 +105,14 @@ namespace HM
       // than believed.
       std::set<String> memo_added_;
       size_t memo_added_count_;
+
+      // Set by InboundWebhooks alone, on a parser of its own, when it expands
+      // the address of a route that delivers as well as posts: the address as
+      // it would be with no route, so that the mailbox's own recipients come
+      // back rather than the route's recipient again - and a route the message
+      // has been posted to is never reached a second time through an alias or
+      // a list. Empty on every other parser.
+      std::set<__int64> routes_taken_;
 
   };
 }

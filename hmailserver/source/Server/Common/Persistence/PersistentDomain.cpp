@@ -42,6 +42,7 @@
 #include "../AntiSpam/DKIM/DkimRotation.h"
 #include "../Util/ImpersonationCheck.h"
 #include "../Util/DiscoveryHolds.h"
+#include "../Util/InboundWebhooks.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -527,6 +528,22 @@ namespace HM
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7310, "PersistentDomain::DeleteObject",
                Formatter::Format("Domain {0} is being deleted but its own setting values could not be, and will be left behind referring to a domain that no longer exists.",
                   iDomainID));
+         }
+
+         // The domain's inbound webhooks (Util/InboundWebhooks.h): its own route
+         // and its addresses', their queues and what the queues kept - so that a
+         // domain made again under the name does not find its mail posted to a
+         // URL somebody set for the one before. Routes name a domain by its name,
+         // not its id, so nothing else would ever remove them. A restore, which
+         // deletes every domain before it puts the backup's back and whose backup
+         // holds no route, leaves them: the guard BackupExecuter holds across that
+         // delete for the DKIM rotation's keys says it is one.
+         if (!DkimRotation::KeepKeysOnDomainDelete::Active() &&
+             !InboundWebhooks::Instance()->DeleteRoutesOfDomain(pDomain->GetName()))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7409, "PersistentDomain::DeleteObject",
+               Formatter::Format("Domain {0} is being deleted but its inbound webhooks could not be, and are left behind: a domain made again under the name would find its mail posted by them. Remove them at /api/v1/inbound-webhooks.",
+                  pDomain->GetName()));
          }
 
          // The key files the domain's DKIM rotation generated go with it, as its

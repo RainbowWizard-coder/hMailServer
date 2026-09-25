@@ -173,6 +173,13 @@ PATH_SCOPE = {
     'searches': ['Discovery'],
     'holds': ['Discovery'],
     'exports': ['Discovery'],
+    # Inbound webhooks (/api/v1/inbound-webhooks, a route by its address, and
+    # the queue's deliveries under it): no COM interface is behind them and the
+    # desktop program has no page for them. Scoped to a name no interface has,
+    # as eDiscovery is. The deliveries are keyed with their parent, since the
+    # outbound webhooks' queue ends in the same word and is no scope's.
+    'inbound-webhooks': ['InboundWebhook'],
+    'inbound-webhooks/deliveries': ['InboundWebhook'],
     'app-passwords': ['AppPassword'],
     'groups': ['Group'],
     'folders': ['IMAPFolder'],
@@ -722,6 +729,9 @@ def route_scope(path):
     if not segments:
         return []
     last = segments[-1]
+    # A word two resources end in is keyed with the one before it.
+    if len(segments) >= 2 and segments[-2] + '/' + last in PATH_SCOPE:
+        return list(PATH_SCOPE[segments[-2] + '/' + last])
     if last in PATH_SCOPE:
         return list(PATH_SCOPE[last])
     return None

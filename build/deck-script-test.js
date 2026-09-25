@@ -804,6 +804,26 @@ const WEBHOOK_PROPS = {
 const WEBHOOKS_POST = 'Body: name (required), url (required), secret (required), events, domains and addresses, ' +
    'enabled (default true), include_subject (default false) and max_per_minute (0 for the server\'s WebhookMaxPerMinute).';
 
+// The inbound webhooks' create schema and prose (RestApiInboundWebhooks.cpp,
+// docs/InboundWebhooks.md): the defaults the Deck's editor starts from are read
+// out of the prose, as the server writes it.
+const INBOUND_PROPS = {
+   address: { type: 'string', description: 'user@example.com, or example.com for every address of the domain.' },
+   url: { type: 'string', description: 'https://host/path, with no space or control character.' },
+   secret: { type: 'string', writeOnly: true, description: 'Write-only. Each request is signed under it; an empty string in a change keeps the one that is set.' },
+   deliver: { type: 'boolean', description: 'Deliver to the address\'s mailbox as well, where it has one.' },
+   on_failure: { type: 'string', enum: ['keep', 'bounce'], description: 'What a message the endpoint never accepted becomes.' },
+   format: { type: 'string', enum: ['form', 'json'] },
+   attachments: { type: 'string', enum: ['include', 'names', 'none'] },
+   include_raw: { type: 'boolean' },
+   max_size_kb: { type: 'integer', minimum: 0, maximum: 81920 },
+   enabled: { type: 'boolean' }
+};
+const INBOUND_POST = 'Body: address (required; an address or a whole domain of a domain this server hosts), url (required), secret (required), ' +
+   'deliver (default false: the route alone receives the address\'s mail), on_failure (keep or bounce; default keep - a message the endpoint did not accept is kept, or returned to its sender), ' +
+   'format (form or json; default form), attachments (include, names or none; default include), include_raw (default false), ' +
+   'max_size_kb (default 10240: a message larger than this is not posted; at most 81920) and enabled (default true).';
+
 // The migration's create schema and descriptions as RestApiMigrations.cpp
 // emits them (docs/Migration.md, "Five hundred mailboxes: migration jobs").
 const MIGRATION_PROPS = {
@@ -1011,6 +1031,20 @@ const spec = {
       '/api/v1/webhooks/deliveries': { get: { summary: 'The webhook delivery queue' } },
       '/api/v1/webhooks/run': { post: { summary: 'Run one webhook delivery pass now' } },
       '/api/v1/webhooks/test': { post: { summary: 'Raise a webhook event on request' } },
+      '/api/v1/inbound-webhooks': {
+         get: { summary: 'The inbound webhooks', description: 'Each address or domain whose mail this server posts to a URL.' },
+         post: { summary: 'Route an address or a domain to a URL', description: INBOUND_POST, requestBody: body(INBOUND_PROPS, ['address', 'url', 'secret']) }
+      },
+      '/api/v1/inbound-webhooks/{address}': {
+         get: { summary: 'One inbound webhook' },
+         put: { summary: 'Change an inbound webhook', description: 'Any subset of the fields the create takes but the address; a field left out keeps its value, and an empty secret keeps the one that is set.', requestBody: body(INBOUND_PROPS) },
+         delete: { summary: 'Remove an inbound webhook' }
+      },
+      '/api/v1/inbound-webhooks/deliveries': { get: { summary: 'The inbound webhook queue' } },
+      '/api/v1/inbound-webhooks/deliveries/{id}': { delete: { summary: 'Remove an inbound webhook delivery' } },
+      '/api/v1/inbound-webhooks/deliveries/{id}/retry': { post: { summary: 'Try an inbound webhook delivery again' } },
+      '/api/v1/inbound-webhooks/deliveries/{id}/message': { get: { summary: 'The message an inbound webhook delivery kept' } },
+      '/api/v1/inbound-webhooks/run': { post: { summary: 'Run one inbound webhook pass now' } },
       '/api/v1/routes': {
          get: { summary: 'List the SMTP routes', description: 'The routes the running server delivers by, as the Control Panel lists them.' },
          post: { summary: 'Create an SMTP route', description: ROUTES_POST, requestBody: body(ROUTE_PROPS, ['domain_name', 'target_smtp_host']) }
@@ -1744,6 +1778,17 @@ const state = {
    webhookQueue: [
       { id: 9, created: 1789000100, attempts: 1, next_attempt: 1789000160, webhook: 'billing', event: 'message.bounced',
         state: 'pending', error: 'the endpoint answered 502', body: '{"event":"message.bounced"}' }
+   ],
+   inboundHooks: [
+      { address: 'support@example.com', url: 'https://helpdesk.example/hooks/mail', secret_set: true, deliver: false, on_failure: 'keep',
+        format: 'form', attachments: 'include', include_raw: false, private_network: false, enabled: true, max_size_kb: 10240,
+        created: 1789000000, pending: 1, delivered: 3, kept: 1, bounced: 0 }
+   ],
+   inboundQueue: [
+      { id: 41, created: 1789000100, attempts: 5, next_attempt: 0, queue_id: 700, size: 2048, route: 'support@example.com', state: 'kept',
+        sender: 'someone@example.net', recipients: 'support@example.com', spam: false, message_kept: true, error: 'the endpoint answered 503' },
+      { id: 42, created: 1789000200, attempts: 1, next_attempt: 0, queue_id: 701, size: 1024, route: 'support@example.com', state: 'delivered',
+        sender: 'other@example.net', recipients: 'support@example.com', spam: false, message_kept: false, error: '' }
    ],
    rules: [
       { id: 1, name: 'Spam to junk', active: true, all_criteria: true,
@@ -3339,6 +3384,51 @@ function answer(method, path, headers, raw) {
    }
    if (path === '/api/v1/webhooks/test' && method === 'POST') {
       return json(200, { queued: state.webhooks.filter((w) => w.enabled).length });
+   }
+   if (path === '/api/v1/inbound-webhooks' && method === 'GET') {
+      return json(200, { inbound_webhooks: state.inboundHooks });
+   }
+   if (path === '/api/v1/inbound-webhooks' && method === 'POST') {
+      if (state.inboundHooks.some((h) => h.address === parsed.address)) { return json(409, { error: 'an inbound webhook for ' + parsed.address + ' exists already' }); }
+      const route = Object.assign({ secret_set: !!parsed.secret, private_network: true, created: 1789000300, pending: 0, delivered: 0, kept: 0, bounced: 0 }, parsed);
+      delete route.secret;
+      state.inboundHooks.push(route);
+      return json(201, route);
+   }
+   if (/^\/api\/v1\/inbound-webhooks\/deliveries(\?|$)/.test(path) && method === 'GET') {
+      return json(200, { deliveries: state.inboundQueue });
+   }
+   if (/^\/api\/v1\/inbound-webhooks\/deliveries\/[^/]+\/retry$/.test(path) && method === 'POST') {
+      const id = Number(segment(path, 5));
+      const delivery = state.inboundQueue.filter((d) => d.id === id)[0];
+      if (!delivery) { return json(404, { error: 'no such delivery' }); }
+      delivery.state = 'pending';
+      delivery.attempts = 0;
+      return json(200, { retried: true });
+   }
+   if (/^\/api\/v1\/inbound-webhooks\/deliveries\/[^/]+$/.test(path) && method === 'DELETE') {
+      const id = Number(segment(path, 5));
+      const at = state.inboundQueue.findIndex((d) => d.id === id);
+      if (at < 0) { return json(404, { error: 'no such delivery' }); }
+      state.inboundQueue.splice(at, 1);
+      return json(200, { deleted: true });
+   }
+   if (path === '/api/v1/inbound-webhooks/run' && method === 'POST') {
+      return json(200, { delivered: 2, removed: 0, running: false });
+   }
+   if (/^\/api\/v1\/inbound-webhooks\/[^/]+$/.test(path)) {
+      const address = decodeURIComponent(segment(path, 4));
+      const at = state.inboundHooks.findIndex((h) => h.address === address);
+      if (at < 0) { return json(404, { error: 'no inbound webhook routes that address' }); }
+      if (method === 'GET') { return json(200, state.inboundHooks[at]); }
+      if (method === 'PUT') {
+         const changed = Object.assign({}, state.inboundHooks[at], parsed);
+         if (parsed && parsed.secret !== undefined) { changed.secret_set = true; }
+         delete changed.secret;
+         state.inboundHooks[at] = changed;
+         return json(200, changed);
+      }
+      if (method === 'DELETE') { state.inboundHooks.splice(at, 1); return json(200, { deleted: true }); }
    }
    if (/^\/api\/v1\/webhooks\/[^/]+$/.test(path)) {
       const name = decodeURIComponent(segment(path, 4));
@@ -7142,6 +7232,107 @@ async function main() {
       content().textContent.indexOf('no mail event leaves this server') >= 0, content().textContent.slice(0, 200));
    state.webhooks = keptWebhooks;
 
+   // ---- inbound webhooks
+   before = requests.length;
+   await goTo('inboundwebhooks');
+   check('the inbound webhooks view reads the routes and the last twenty-five deliveries, each once',
+      called(before, 'GET', '/api/v1/inbound-webhooks').length === 1 &&
+      called(before, 'GET', /^\/api\/v1\/inbound-webhooks\/deliveries\?limit=25$/).length === 1, paths(before));
+   check('one row per route, saying it posts only and naming its URL, its queue in words',
+      rows()[0].textContent.indexOf('support@example.com') >= 0 && rows()[0].textContent.indexOf('posted only') >= 0 &&
+      rows()[0].textContent.indexOf('helpdesk.example') >= 0 && rows()[0].textContent.indexOf('1 waiting') >= 0 &&
+      rows()[0].textContent.indexOf('3 sent') >= 0 && rows()[0].textContent.indexOf('1 kept') >= 0, rows()[0].textContent);
+   check('a kept delivery says why it has not arrived and offers Download, Retry and Remove',
+      rows()[1].textContent.indexOf('kept') >= 0 && rows()[1].textContent.indexOf('503') >= 0 &&
+      content().querySelectorAll('a[download]').length === 1 &&
+      content().querySelectorAll('a[download]')[0].attributes.href === '/api/v1/inbound-webhooks/deliveries/41/message' &&
+      content().querySelectorAll('button[data-act="inhookretry"]').length === 1, rows()[1].textContent);
+   check('a delivered one keeps no message, so it offers no Download and no Retry but a Remove',
+      content().querySelectorAll('button[data-act="inhookdrop"]').length === 2, String(content().querySelectorAll('button[data-act="inhookdrop"]').length));
+   check('a credential that reaches every domain is offered the pass', content().querySelectorAll('button[data-act="inhookrun"]').length === 1);
+   check('no shared secret is anywhere on the page', content().textContent.indexOf('secret_set') < 0 &&
+      content().innerHTML.indexOf('"secret"') < 0, content().textContent.slice(0, 160));
+
+   before = requests.length;
+   click(act('inhooknew'));
+   await flush();
+   check('the inbound editor is built from the schema of the create route',
+      document.getElementById('inhook_address') !== null && document.getElementById('inhook_url') !== null &&
+      document.getElementById('inhook_on_failure') !== null && document.getElementById('inhook_max_size_kb') !== null,
+      content().textContent.slice(0, 160));
+   check('its secret is a write-only box', document.getElementById('inhook_secret') !== null &&
+      document.getElementById('inhook_secret').type === 'password',
+      document.getElementById('inhook_secret') ? document.getElementById('inhook_secret').type : 'no box');
+   check('and it starts from the defaults the create route states in prose: posts only, keeps, 10240 KB, on',
+      document.getElementById('inhook_deliver').checked === false && document.getElementById('inhook_on_failure').value === 'keep' &&
+      document.getElementById('inhook_max_size_kb').value === '10240' && document.getElementById('inhook_enabled').checked === true &&
+      document.getElementById('inhook_format').value === 'form',
+      'deliver=' + document.getElementById('inhook_deliver').checked + ' on_failure=' + document.getElementById('inhook_on_failure').value +
+      ' max=' + document.getElementById('inhook_max_size_kb').value);
+
+   setValue('inhook_address', 'orders@example.com');
+   setValue('inhook_url', 'https://crm.example/inbound');
+   setValue('inhook_secret', 'an-inbound-secret');
+   setChecked('inhook_deliver', true);
+   click(act('inhooksave'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/inbound-webhooks');
+   check('a new route is sent with its address, URL, secret and what was changed from the defaults',
+      posted && posted.address === 'orders@example.com' && posted.url === 'https://crm.example/inbound' &&
+      posted.secret === 'an-inbound-secret' && posted.deliver === true && posted.max_size_kb === 10240,
+      JSON.stringify(posted));
+   check('and the list comes back with it', content().textContent.indexOf('orders@example.com') >= 0 &&
+      content().textContent.indexOf('posted and delivered') >= 0, content().textContent.slice(0, 300));
+
+   before = requests.length;
+   click(act('inhookedit', { id: 'support@example.com' }));
+   await flush();
+   check('editing one fills the form from what the server holds and hides the address',
+      document.getElementById('inhook_url').value === 'https://helpdesk.example/hooks/mail' && document.getElementById('inhook_address') === null,
+      content().textContent.slice(0, 160));
+   setChecked('inhook_enabled', false);
+   click(act('inhooksave'));
+   await flush();
+   put = lastBody(before, 'PUT', '/api/v1/inbound-webhooks/support%40example.com');
+   check('a change is a PUT to its own address, and an untouched secret box sends no secret',
+      put !== null && put.enabled === false && put.secret === undefined && put.address === undefined, JSON.stringify(put) + ' ' + paths(before));
+
+   before = requests.length;
+   click(act('inhookretry', { id: '41' }));
+   await flush();
+   check('Retry posts to the delivery\'s own retry route',
+      called(before, 'POST', '/api/v1/inbound-webhooks/deliveries/41/retry').length === 1, paths(before));
+
+   before = requests.length;
+   click(act('inhookdrop', { id: '42' }));
+   await flush();
+   check('Remove asks first and deletes the delivery by its number',
+      called(before, 'DELETE', '/api/v1/inbound-webhooks/deliveries/42').length === 1, paths(before));
+
+   before = requests.length;
+   click(act('inhookrun'));
+   await flush();
+   check('the pass button runs one and says what it sent',
+      called(before, 'POST', '/api/v1/inbound-webhooks/run').length === 1 && toastText().indexOf('2') >= 0, toastText());
+
+   before = requests.length;
+   click(act('inhookdel', { id: 'orders@example.com' }));
+   await flush();
+   check('removing a route names it in the question and deletes it by its address',
+      confirmations[confirmations.length - 1].indexOf('orders@example.com') >= 0 &&
+      called(before, 'DELETE', '/api/v1/inbound-webhooks/orders%40example.com').length === 1, paths(before));
+
+   const keptInbound = state.inboundHooks;
+   const keptInboundQueue = state.inboundQueue;
+   state.inboundHooks = [];
+   state.inboundQueue = [];
+   await goTo('inboundwebhooks');
+   check('with no route the page says every message goes to a mailbox as it always has',
+      content().textContent.indexOf('every message goes to a mailbox as it always has') >= 0 &&
+      content().textContent.indexOf('Nothing has been queued yet') >= 0, content().textContent.slice(0, 200));
+   state.inboundHooks = keptInbound;
+   state.inboundQueue = keptInboundQueue;
+
    /* ---- the eight pages the Deck gained last ------------------------------
       API keys, the quarantine, the archive and its holds, the metric history,
       the update, the DNS records, a folder's access-control list and the
@@ -8948,6 +9139,17 @@ async function main() {
       $('#nav button[data-view="audit"]').hidden);
    check('but the reports, which are scoped to its domain rather than refused', !$('#nav button[data-view="reports"]').hidden);
    check('and not eDiscovery, which it holds no view_discovery for', $('#nav button[data-view="discovery"]').hidden);
+   check('a domain administrator is shown the inbound webhooks, which view_configuration reads in its own domain',
+      !$('#nav button[data-view="inboundwebhooks"]').hidden);
+   state.inboundQueue.forEach((d) => { if (d.id === 41) { d.state = 'kept'; d.message_kept = true; } });
+   await goTo('inboundwebhooks');
+   check('and is offered the Download a kept message\'s view_mailbox allows, and not Add, Edit, Retry, Remove or the pass',
+      content().querySelectorAll('a[download]').length >= 1 &&
+      content().querySelectorAll('button[data-act="inhooknew"]').length === 0 &&
+      content().querySelectorAll('button[data-act="inhookedit"]').length === 0 &&
+      content().querySelectorAll('button[data-act="inhookretry"]').length === 0 &&
+      content().querySelectorAll('button[data-act="inhookdrop"]').length === 0 &&
+      content().querySelectorAll('button[data-act="inhookrun"]').length === 0, content().textContent.slice(0, 300));
 
    // The arrow keys walk the views that are shown and never stop on one that is not.
    $('#nav button[data-view="domains"]').focus();
@@ -9000,6 +9202,9 @@ async function main() {
    await signIn();
    check('a role holding view_configuration and not view_message_trace is not shown the reports, which name who mails whom',
       $('#nav button[data-view="reports"]').hidden && !$('#nav button[data-view="settings"]').hidden);
+   await goTo('inboundwebhooks');
+   check('and is shown the inbound webhooks without the Download of a kept message, which is view_mailbox',
+      rows().length >= 1 && content().querySelectorAll('a[download]').length === 0, content().textContent.slice(0, 300));
 
    click($('#logoutBtn'));
    await flush();

@@ -25,6 +25,8 @@ select hm_drop_table('hm_alertrules');
 
 select hm_drop_table('hm_webhookqueue');
 select hm_drop_table('hm_webhooks');
+select hm_drop_table('hm_inboundhookqueue');
+select hm_drop_table('hm_inboundhooks');
 select hm_drop_table('hm_alertevents');
 select hm_drop_table('hm_remotedomainpolicies');
 
@@ -2020,7 +2022,7 @@ ALTER TABLE hm_roleassignments ADD CONSTRAINT fk_hm_roleassignments_account FORE
 
 ALTER TABLE hm_roleassignments ADD CONSTRAINT fk_hm_roleassignments_role FOREIGN KEY (raroleid) REFERENCES hm_roles (roleid);
 
-insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('serveradmin', 'Every permission, in every domain.', 1, 'administer_server,administer_domain,view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_queue,manage_quarantine,manage_archive,manage_settings,manage_domains,manage_server,manage_roles,send_through_api,provision,view_discovery,manage_discovery');
+insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('serveradmin', 'Every permission, in every domain.', 1, 'administer_server,administer_domain,view_configuration,view_accounts,view_mailbox,view_queue,view_quarantine,view_archive,view_logs,view_message_trace,view_audit,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_queue,manage_quarantine,manage_archive,manage_settings,manage_domains,manage_server,manage_roles,send_through_api,provision,view_discovery,manage_discovery,manage_inbound_webhooks');
 
 insert into hm_roles (rolename, roledescription, rolebuiltin, rolepermissions) values ('domainadmin', 'The accounts, mailboxes and quarantine of named domains.', 1, 'administer_domain,view_configuration,view_accounts,view_mailbox,view_quarantine,view_message_trace,manage_accounts,reset_password,unlock_account,manage_mailbox,manage_quarantine');
 
@@ -2319,6 +2321,50 @@ insert into hm_settings (settingname, settingstring, settinginteger) values ('We
 insert into hm_settings (settingname, settingstring, settinginteger) values ('WebhookMaxPerMinute', '', 60);
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('WebhookRetentionDays', '', 7);
+
+create table hm_inboundhooks
+(
+	ihid bigserial not null primary key,
+	ihaddress varchar(255) not null,
+	ihurl varchar(1024) not null,
+	ihsecret varchar(1024) not null,
+	ihdeliver int not null,
+	ihonfailure int not null,
+	ihformat int not null,
+	ihattachments int not null,
+	ihincluderaw int not null,
+	ihmaxsizekb int not null,
+	ihprivatenetwork int not null,
+	ihenabled int not null,
+	ihcreated bigint not null
+);
+
+CREATE UNIQUE INDEX idx_hm_inboundhooks_address ON hm_inboundhooks (ihaddress);
+
+create table hm_inboundhookqueue
+(
+	iqid bigserial not null primary key,
+	iqhookid bigint not null,
+	iqcreated bigint not null,
+	iqstate int not null,
+	iqtries int not null,
+	iqnext bigint not null,
+	iqerror varchar(255) not null,
+	iqfile varchar(255) not null,
+	iqqueueid bigint not null,
+	iqsender varchar(255) not null,
+	iqrecipients text not null,
+	iqquiet text not null,
+	iqsenderip varchar(64) not null,
+	iqspam int not null,
+	iqsize bigint not null
+);
+
+CREATE INDEX idx_hm_inboundhookqueue_due ON hm_inboundhookqueue (iqstate, iqnext);
+
+CREATE INDEX idx_hm_inboundhookqueue_hook ON hm_inboundhookqueue (iqhookid, iqid);
+
+ALTER TABLE hm_inboundhookqueue ADD CONSTRAINT fk_hm_inboundhookqueue_hook FOREIGN KEY (iqhookid) REFERENCES hm_inboundhooks (ihid) ON DELETE CASCADE;
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('MigrationConnectionsPerHost', '', 4);
 
@@ -2841,4 +2887,4 @@ CREATE INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (exportcaseid);
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6099);
+insert into hm_dbversion values (6100);

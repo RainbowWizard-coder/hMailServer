@@ -832,6 +832,8 @@
     <Compile Include="API\RestApiOperator.cs" />
     <Compile Include="API\RestApiAuditRevert.cs" />
     <Compile Include="API\RestApiWebhooks.cs" />
+    <Compile Include="API\InboundWebhooks.cs" />
+    <Compile Include="API\InboundWebhooksLists.cs" />
     <Compile Include="API\RestApiAccountImport.cs" />
     <Compile Include="API\RestApiBounces.cs" />
     <Compile Include="API\RestApiCompression.cs" />

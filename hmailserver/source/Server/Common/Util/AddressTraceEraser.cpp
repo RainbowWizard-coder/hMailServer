@@ -21,6 +21,7 @@
 #include "CompromiseDetector.h"
 #include "ConfidentialMessages.h"
 #include "DiscoveryHolds.h"
+#include "InboundWebhooks.h"
 #include "OrganisationCa.h"
 #include "ProtectedMessages.h"
 #include "../BO/Alias.h"
@@ -83,6 +84,15 @@ namespace HM
       count = ApiSends::EraseAddress(address);
       if (count < 0)
          failedStores.push_back(_T("the send API's record of sends"));
+      else
+         removedCount += count;
+
+      // The inbound webhooks' queue (InboundWebhooks.h): the deliveries the
+      // address sent, with the messages they kept - a kept one is never swept -
+      // and the address taken out of the recipients of the rest.
+      count = InboundWebhooks::Instance()->EraseAddress(address);
+      if (count < 0)
+         failedStores.push_back(_T("the inbound webhooks' queue"));
       else
          removedCount += count;
 

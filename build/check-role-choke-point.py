@@ -171,9 +171,17 @@ REQUIRED = [
 #                 no other administrative route hands over; and an export of a
 #                 search that read the archive needs view_archive as well,
 #                 which the handler asks (CallerMayReadArchive_).
+#
+#   RouteInboundWebhookDeliveryMessage
+#                 GET /api/v1/inbound-webhooks/deliveries/{id}/message hands over
+#                 a message an inbound webhook kept because its endpoint never
+#                 accepted it - the mail itself - so reading the routes is not
+#                 enough: view_mailbox beside view_configuration (24 September
+#                 2026, docs/InboundWebhooks.md). The auditor holds both.
 SECOND_REQUIRED = {
     "RouteReport": "ViewMessageTrace",
     "RouteDiscoveryExportGet": "ViewMailbox",
+    "RouteInboundWebhookDeliveryMessage": "ViewMailbox",
 }
 
 # Refused to every credential but the administrator password before any

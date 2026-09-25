@@ -60,6 +60,7 @@ The configuration tables recorded, and the object type each is recorded as:
 | `hm_securityranges`, `hm_tcpipports`, `hm_sslcertificates` | `ip range`, `tcp/ip port`, `ssl certificate` |
 | `hm_incoming_relays`, `hm_remotedomainpolicies` | `incoming relay`, `remote domain policy` |
 | `hm_warmup` | `warm-up schedule` - an IP warm-up schedule ([IpWarmup.md](IpWarmup.md)); its daily counts, `hm_warmupcounts`, are the queue's own writes and are not recorded |
+| `hm_inboundhooks` | `inbound webhook` - an address or a domain whose mail is posted to a URL ([InboundWebhooks.md](InboundWebhooks.md)), under whoever made, changed or removed it, an API key among them, and named by its address; its secret and its URL - a receiver's URL often carries a token - are recorded as changed, never by their values. Its queue, `hm_inboundhookqueue`, is traffic and is not recorded, but a kept message downloaded, retried or removed is recorded as an event (`inbound webhook delivery`, `downloaded`, `retried`, `removed`) |
 | `hm_dnsbl`, `hm_surblservers` | `dns blacklist`, `surbl server` |
 | `hm_whitelist`, `hm_greylisting_whiteaddresses` | `white list address`, `greylisting white address` |
 | `hm_blocked_attachments`, `hm_blocked_senders` | `blocked attachment`, `blocked sender` |

@@ -77,6 +77,7 @@
 #include "InlineImageParts.h"
 #include "RecoverableStore.h"
 #include "DiscoveryHolds.h"
+#include "InboundWebhooks.h"
 #include "AccountRecovery.h"
 #include "PasswordValidator.h"
 #include "PasskeyStore.h"
@@ -2671,6 +2672,17 @@ namespace HM
          case RouteWebhookRun:
          case RouteWebhookTest:
             return HandleWebhooks_(caller, route, GetRequestBody_(request));
+         case RouteInboundWebhookList:
+         case RouteInboundWebhookCreate:
+         case RouteInboundWebhookGet:
+         case RouteInboundWebhookUpdate:
+         case RouteInboundWebhookDelete:
+         case RouteInboundWebhookDeliveryList:
+         case RouteInboundWebhookDeliveryRetry:
+         case RouteInboundWebhookDeliveryDelete:
+         case RouteInboundWebhookDeliveryMessage:
+         case RouteInboundWebhookRun:
+            return HandleInboundWebhooks_(caller, route, GetRequestBody_(request));
          case RouteMigrationList:
          case RouteMigrationCreate:
          case RouteMigrationGet:
@@ -6954,6 +6966,88 @@ namespace HM
          return;
       }
 
+      // Inbound webhooks. A route's address is the identifier: an address or a
+      // domain always has a dot in it, so none can be "deliveries" or "run",
+      // which are matched first. A delivery is named by its number.
+      {
+         const AnsiString inboundPath = "/api/v1/inbound-webhooks";
+         const AnsiString deliveriesPath = inboundPath + "/deliveries";
+
+         if (method == "GET" && path == deliveriesPath)
+         {
+            route.kind = RouteInboundWebhookDeliveryList;
+            return;
+         }
+
+         if (method == "POST" && path == inboundPath + "/run")
+         {
+            route.kind = RouteInboundWebhookRun;
+            return;
+         }
+
+         if (path.StartsWith(deliveriesPath + "/"))
+         {
+            AnsiString rest = path.Mid(deliveriesPath.GetLength() + 1);
+            AnsiString verb;
+
+            const int slash = rest.Find("/");
+            if (slash >= 0)
+            {
+               verb = rest.Mid(slash + 1);
+               rest = rest.Mid(0, slash);
+            }
+
+            bool numeric = !rest.IsEmpty() && rest.GetLength() <= 18;
+            for (int i = 0; numeric && i < rest.GetLength(); i++)
+               numeric = rest[i] >= '0' && rest[i] <= '9';
+
+            if (numeric)
+            {
+               if (verb.IsEmpty() && method == "DELETE")
+                  route.kind = RouteInboundWebhookDeliveryDelete;
+               else if (verb == "retry" && method == "POST")
+                  route.kind = RouteInboundWebhookDeliveryRetry;
+               else if (verb == "message" && method == "GET")
+                  route.kind = RouteInboundWebhookDeliveryMessage;
+
+               if (route.kind != RouteUnknown)
+                  route.record_id = _atoi64(rest.c_str());
+            }
+
+            return;
+         }
+
+         if (path == inboundPath)
+         {
+            if (method == "GET")
+               route.kind = RouteInboundWebhookList;
+            else if (method == "POST")
+               route.kind = RouteInboundWebhookCreate;
+
+            return;
+         }
+
+         if (path.StartsWith(inboundPath + "/"))
+         {
+            AnsiString address = path.Mid(inboundPath.GetLength() + 1);
+
+            if (!address.IsEmpty() && address.Find("/") < 0)
+            {
+               if (method == "GET")
+                  route.kind = RouteInboundWebhookGet;
+               else if (method == "PUT")
+                  route.kind = RouteInboundWebhookUpdate;
+               else if (method == "DELETE")
+                  route.kind = RouteInboundWebhookDelete;
+
+               if (route.kind != RouteUnknown)
+                  route.identifier = address;
+            }
+
+            return;
+         }
+      }
+
       if (method == "GET" && path == "/api/v1/openapi.json")
          route.kind = RouteOpenApi;
    }
@@ -7070,6 +7164,14 @@ namespace HM
       case RouteWebhookDelete:
       case RouteWebhookRun:
       case RouteWebhookTest:
+      // An inbound webhook made, changed or removed, a kept delivery tried
+      // again or removed with its message, and a pass run now.
+      case RouteInboundWebhookCreate:
+      case RouteInboundWebhookUpdate:
+      case RouteInboundWebhookDelete:
+      case RouteInboundWebhookDeliveryRetry:
+      case RouteInboundWebhookDeliveryDelete:
+      case RouteInboundWebhookRun:
       // A migration made, started, paused, resumed or deleted; a job added,
       // retried or cancelled; a sign-in link minted. Each writes rows, and the
       // start sets this server copying mail into accounts.
@@ -7532,6 +7634,24 @@ namespace HM
    RestApiServer::CallerMayReadArchive_(const Caller &caller)
    {
       return RoleManager::Allows(caller.grant, RolePermission::ViewArchive);
+   }
+
+   bool
+   RestApiServer::CallerMayRouteToPrivateNetwork_(const Caller &caller)
+   {
+      // Not a key, whatever its role: a key is a credential an application
+      // holds, and an application's route reaches public addresses only.
+      if (caller.result == AuthenticatedWithApiKey)
+         return false;
+
+      return caller.domains.empty() &&
+             RoleManager::Allows(caller.grant, RolePermission::ManageServer);
+   }
+
+   bool
+   RestApiServer::CallerManagesInboundWebhooks_(const Caller &caller)
+   {
+      return RoleManager::Allows(caller.grant, RolePermission::ManageInboundWebhooks);
    }
 
    void
@@ -8060,6 +8180,33 @@ namespace HM
       case RouteDiscoveryExportCreate:
          return RolePermission::ManageDiscovery;
 
+      // Inbound webhooks (RestApiInboundWebhooks.cpp, docs/InboundWebhooks.md):
+      // which addresses and domains are routed to which URLs, and what their
+      // queue holds - configuration, and no secret in any answer - and a kept
+      // message, which needs view_mailbox beside it (SecondPermissionFor_)
+      // since it hands over the mail itself. The auditor holds both. A route
+      // names its domain in the path; the listings and the queue are narrowed
+      // to a confined credential's domains by the handler.
+      case RouteInboundWebhookList:
+      case RouteInboundWebhookGet:
+      case RouteInboundWebhookDeliveryList:
+      case RouteInboundWebhookDeliveryMessage:
+         return RolePermission::ViewConfiguration;
+
+      // Routing an address or a domain to a URL, changing or removing a route,
+      // trying a kept delivery again or removing it, and a pass run now: what
+      // an application's API key is given, and the auditor does not hold. As
+      // much as reading every message the route takes, which is why it is a
+      // permission of its own and no built-in role but the server
+      // administrator's holds it.
+      case RouteInboundWebhookCreate:
+      case RouteInboundWebhookUpdate:
+      case RouteInboundWebhookDelete:
+      case RouteInboundWebhookDeliveryRetry:
+      case RouteInboundWebhookDeliveryDelete:
+      case RouteInboundWebhookRun:
+         return RolePermission::ManageInboundWebhooks;
+
       // The logs, which carry every domain's traffic and are therefore never
       // a domain-confined role's.
       case RouteLogList:
@@ -8487,6 +8634,14 @@ namespace HM
          permission = RolePermission::ViewMailbox;
          return true;
 
+      // A message an inbound webhook kept because its endpoint never accepted
+      // it is the mail itself, byte for byte: a role that may read the routes
+      // is not thereby a role that may read what they carry. The auditor holds
+      // both permissions.
+      case RouteInboundWebhookDeliveryMessage:
+         permission = RolePermission::ViewMailbox;
+         return true;
+
       case RouteSpamTrapDomainList:
       case RouteSpamTrapDomainCreate:
       case RouteSpamTrapDomainHits:
@@ -8694,6 +8849,15 @@ namespace HM
          // one path segment - the classic identifier-in-the-path authorisation
          // bypass, against a route that destroys mail.
          return StringParser::ExtractDomain(String(route.identifier));
+
+      // An inbound webhook is named by its address - or its domain - in the
+      // path, and is scoped to that domain: without this a key issued for one
+      // domain could read, repoint or remove the route that carries another
+      // domain's mail by editing one path segment.
+      case RouteInboundWebhookGet:
+      case RouteInboundWebhookUpdate:
+      case RouteInboundWebhookDelete:
+         return InboundWebhooks::DomainOf(String(route.identifier));
 
       default:
          break;
@@ -8945,6 +9109,16 @@ namespace HM
       if (route.kind == RouteStoreStatus || route.kind == RouteStoreMeasure)
       {
          refusalReason = "this credential is restricted to named domains, and the message store is server-wide";
+         return AuthorizationForbidden;
+      }
+
+      // One inbound webhook pass attempts every route's queue at once, and so
+      // makes this server connect to every domain's endpoints. The routes and
+      // the queue themselves are narrowed to the credential's domains - by the
+      // path, or by the handler where no path names one.
+      if (route.kind == RouteInboundWebhookRun)
+      {
+         refusalReason = "this credential is restricted to named domains, and an inbound webhook pass is every domain's";
          return AuthorizationForbidden;
       }
 
@@ -18249,6 +18423,7 @@ namespace HM
       openApiJson += OpenApiRolesPaths_();
       openApiJson += OpenApiOpenPgpPaths_();
       openApiJson += OpenApiWebhooksPaths_();
+      openApiJson += OpenApiInboundWebhooksPaths_();
       openApiJson += OpenApiMigrationsPaths_();
       openApiJson += OpenApiMailboxMovePaths_();
       openApiJson += OpenApiMessageRecallPaths_();

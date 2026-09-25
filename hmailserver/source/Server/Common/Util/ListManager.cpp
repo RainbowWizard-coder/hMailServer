@@ -779,7 +779,8 @@ namespace HM
    }
 
    void
-   ListManager::TakeListRecipients(std::shared_ptr<Message> message, std::vector<std::shared_ptr<MessageRecipient> > &held)
+   ListManager::TakeListRecipients(std::shared_ptr<Message> message, std::vector<std::shared_ptr<MessageRecipient> > &held,
+                                   const std::vector<std::shared_ptr<MessageRecipient> > *notMine)
    {
       if (!message)
          return;
@@ -818,6 +819,24 @@ namespace HM
             const String domainName = StringParser::ExtractDomain(recipient->GetAddress());
             if (domainName.IsEmpty() || !CacheContainer::Instance()->GetDomain(domainName))
                continue;
+
+            // Held by another part of the delivery path for the message's
+            // retry, and not the manager's to answer.
+            if (notMine != nullptr)
+            {
+               bool heldElsewhere = false;
+               for (const std::shared_ptr<MessageRecipient> &other : *notMine)
+               {
+                  if (other == recipient)
+                  {
+                     heldElsewhere = true;
+                     break;
+                  }
+               }
+
+               if (heldElsewhere)
+                  continue;
+            }
 
             Taken entry;
             if (!ParseAddress(recipient->GetAddress(), entry.command, entry.list, entry.verp_member))

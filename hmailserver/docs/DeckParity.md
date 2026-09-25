@@ -18,8 +18,8 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
 | desktop pages read | 69 |
-| REST routes (path and method) | 573, 252 of them writes |
-| Deck views | 39 |
+| REST routes (path and method) | 583, 256 of them writes |
+| Deck views | 40 |
 
 ## Missing over REST, by interface
 
@@ -923,6 +923,10 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/groups` | Group | `domain`, `group`, `keys`, `name`, `read`, `to` | yes |
 | `PUT /api/v1/groups/{id}` | Group | `domain`, `group`, `keep`, `keys`, `name`, `permissions`, `read`, `to` | yes |
 | `POST /api/v1/groups/{id}/members` | DistributionListRecipient, GroupMember | `account`, `account_id`, `address`, `domain`, `force`, `keys`, `name`, `read` | yes |
+| `POST /api/v1/inbound-webhooks` | InboundWebhook | `address`, `addresses`, `attachments`, `body`, `credential`, `deliver`, `domain`, `enabled`, `format`, `include_raw`, `keep`, `key`, `mailbox`, `manage_inbound_webhooks`, `max_size_kb`, `message`, `on_failure`, `recipient`, `secret`, `sender`, `to`, `url`, `webhook` | yes |
+| `POST /api/v1/inbound-webhooks/deliveries/{id}/retry` | InboundWebhook | `manage_inbound_webhooks` | yes |
+| `POST /api/v1/inbound-webhooks/run` | InboundWebhook | `manage_inbound_webhooks` | yes |
+| `PUT /api/v1/inbound-webhooks/{address}` | InboundWebhook | `address`, `addresses`, `attachments`, `body`, `credential`, `deliver`, `domain`, `enabled`, `format`, `include_raw`, `keep`, `key`, `mailbox`, `manage_inbound_webhooks`, `max_size_kb`, `message`, `on_failure`, `recipient`, `secret`, `sender`, `to`, `url`, `webhook` | yes |
 | `POST /api/v1/incoming-relays` | IncomingRelay | `domain`, `force`, `keys`, `lower_ip`, `name`, `read`, `upper_ip` | yes |
 | `PUT /api/v1/incoming-relays/{id}` | IncomingRelay | `body`, `domain`, `field`, `force`, `keys`, `lower_ip`, `name`, `read`, `upper_ip`, `value` | - |
 | `POST /api/v1/ipranges` | SecurityRange | `allow_imap`, `allow_pop3`, `allow_smtp`, `deliver_local_to_local`, `deliver_local_to_remote`, `deliver_remote_to_local`, `deliver_remote_to_remote`, `domain`, `expires`, `expires_time`, `keys`, `lower`, `name`, `passes`, `priority`, `read`, `require_auth_local_to_local`, `require_auth_local_to_remote`, `require_auth_remote_to_local`, `require_auth_remote_to_remote`, `require_tls_for_auth`, `spam_protection`, `upper`, `virus_protection` | yes |
@@ -1126,6 +1130,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `reports` | `GET /api/v1/domains`, `GET /api/v1/reports`, `GET /api/v1/reports/summary?{}` |
 | `audit` | `GET /api/v1/audit/verify`, `POST /api/v1/audit/{}/revert`, `GET /api/v1/audit{}` |
 | `webhooks` | `GET /api/v1/openapi.json`, `GET /api/v1/session`, `GET /api/v1/status`, `GET /api/v1/webhooks`, `POST /api/v1/webhooks`, `GET /api/v1/webhooks/deliveries?limit={}`, `POST /api/v1/webhooks/run`, `POST /api/v1/webhooks/test`, `DELETE /api/v1/webhooks/{}`, `PUT /api/v1/webhooks/{}` |
+| `inboundwebhooks` | `GET /api/v1/inbound-webhooks`, `POST /api/v1/inbound-webhooks`, `DELETE /api/v1/inbound-webhooks/deliveries/{}`, `POST /api/v1/inbound-webhooks/deliveries/{}/retry`, `GET /api/v1/inbound-webhooks/deliveries?limit={}`, `POST /api/v1/inbound-webhooks/run`, `DELETE /api/v1/inbound-webhooks/{}`, `PUT /api/v1/inbound-webhooks/{}`, `GET /api/v1/openapi.json` |
 | `quarantine` | `GET /api/v1/quarantine`, `GET /api/v1/quarantine/{}` |
 | `review` | `GET /api/v1/accounts/{}/review`, `PUT /api/v1/accounts/{}/review`, `POST /api/v1/accounts/{}/review/unlock`, `GET /api/v1/review`, `GET /api/v1/review/{}` |
 | `archive` | `GET /api/v1/archive/{}/hold`, `GET /api/v1/archive?{}`, `GET /api/v1/domains` |

@@ -23,6 +23,13 @@ namespace HM
 
       static void DeliverMessage(std::shared_ptr<Message> pMessage);
 
+      // The non-delivery report, for a failure found after the message left the
+      // delivery queue: an inbound webhook's endpoint that never accepted it
+      // (Util/InboundWebhooks.h). originalMessage names the file the report
+      // quotes the headers of, the sender it goes to and the id it is logged
+      // under; the report is the one SubmitErrorLog_ builds for every failure.
+      static void ReturnToSender(std::shared_ptr<Message> originalMessage, std::vector<DeliveryFailure> &failures);
+
    private:
 
       // deferDelivery distinguishes "abort this delivery" (the message is deleted,

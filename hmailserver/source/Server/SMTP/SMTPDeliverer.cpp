@@ -66,6 +66,7 @@
 #include "ComplaintTracker.h"
 #include "../Common/Util/DomainReports.h"
 #include "../Common/Util/ListManager.h"
+#include "../Common/Util/InboundWebhooks.h"
 #include "../Common/Util/WebhookManager.h"
 
 #ifdef _DEBUG
@@ -409,6 +410,22 @@ namespace HM
       // message is delivered unchanged either way. See DomainReports.
       DomainReports::InspectIncomingReport(pMessage);
 
+      // An address or a domain routed to a URL (Util/InboundWebhooks.h). Its
+      // recipients are taken off the message here, after the rules, the scan
+      // and the sandbox, and before the list manager and local delivery - the
+      // order RCPT TO asks in, so that a route on a managed list's address
+      // takes its mail as it took the RCPT. Each route's share is queued with a
+      // copy of the message for the inbound webhook pass to POST - never from
+      // this thread. A route that delivers as well puts back what the address
+      // reaches without it, a managed list among them, for the list manager
+      // below. A recipient whose copy could not be kept stays through local
+      // delivery, so that the message is never taken for a single local
+      // recipient's copy, is set aside after it, and is tried again with the
+      // message; the list manager is told to leave it alone. A message with no
+      // recipient a route could have made costs one look at its recipients.
+      std::vector<std::shared_ptr<MessageRecipient> > heldForInboundWebhooks;
+      InboundWebhooks::Instance()->TakeRoutedRecipients(pMessage, heldForInboundWebhooks);
+
       // A managed list, and the addresses it answers of its own - subscribe,
       // unsubscribe, request, bounces - are recipients with no account behind
       // them. The list manager answers each here, where a list's moderation
@@ -422,7 +439,7 @@ namespace HM
       // which would move its file away - and is set aside before anything is
       // sent outside. The message is then tried again below.
       std::vector<std::shared_ptr<MessageRecipient> > heldForLists;
-      ListManager::TakeListRecipients(pMessage, heldForLists);
+      ListManager::TakeListRecipients(pMessage, heldForLists, &heldForInboundWebhooks);
 
       std::vector<DeliveryFailure> saErrorMessages;
 
@@ -432,6 +449,7 @@ namespace HM
       otelDelivery.AddEvent("delivery.local");
 
       ListManager::SetAside(pMessage, heldForLists);
+      InboundWebhooks::SetAside(pMessage, heldForInboundWebhooks);
 
       bool messageRescheduled = false;
 
@@ -475,6 +493,10 @@ namespace HM
       // sender is told, below, as for any failure.
       if (!heldForLists.empty())
          messageRescheduled = ListManager::HoldForRetry(pMessage, heldForLists, messageRescheduled, saErrorMessages);
+
+      // The routed recipients whose copy could not be kept, the same way.
+      if (!heldForInboundWebhooks.empty())
+         messageRescheduled = InboundWebhooks::HoldForRetry(pMessage, heldForInboundWebhooks, messageRescheduled, saErrorMessages);
 
       // If an error has occurred, now is the time to send an error
       // message back to the author of the email message.
@@ -614,6 +636,15 @@ namespace HM
 
    }
 
+
+   void
+   SMTPDeliverer::ReturnToSender(std::shared_ptr<Message> originalMessage, std::vector<DeliveryFailure> &failures)
+   {
+      if (!originalMessage || failures.empty())
+         return;
+
+      SubmitErrorLog_(originalMessage, failures);
+   }
 
    void
    SMTPDeliverer::SubmitErrorLog_(std::shared_ptr<Message> pOrigMessage, std::vector<DeliveryFailure> &saErrorMessages)

@@ -379,6 +379,7 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
         <button data-view="reports" data-needs="view_configuration view_message_trace" title="Reports"><span class="ico">▤</span><span>Reports</span></button>
         <button data-view="audit" data-serverwide="1" data-needs="view_audit" title="Audit trail"><span class="ico">⚷</span><span>Audit trail</span></button>
         <button data-view="webhooks" data-serverwide="1" data-needs="view_configuration" title="Webhooks"><span class="ico">↱</span><span>Webhooks</span></button>
+        <button data-view="inboundwebhooks" data-needs="view_configuration" title="Inbound webhooks"><span class="ico">↲</span><span>Inbound webhooks</span></button>
         <button data-view="quarantine" data-serverwide="1" data-needs="view_quarantine" title="Quarantine"><span class="ico">⛔</span><span>Quarantine</span></button>
         <button data-view="review" data-serverwide="1" data-needs="view_queue" title="Held for review"><span class="ico">⚠</span><span>Held for review</span></button>
         <button data-view="archive" data-needs="view_archive" title="Archive and holds"><span class="ico">⌸</span><span>Archive and holds</span></button>
@@ -833,7 +834,7 @@ $("#nav").addEventListener("click",e=>{
   $("#deckSearch").value="";
   view=b.dataset.view;editing=null;discoveryCase=0;render();
 });
-const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),migrations:K("Migrations"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps"),journal:K("Journaling"),quarantine:K("Quarantine"),review:K("Held for review"),archive:K("Archive and holds"),discovery:K("Discovery"),folders:K("Shared folders"),dns:K("DNS records"),diagnostics:K("Diagnostics"),metrics:K("Metrics history"),update:K("Update"),apikeys:K("API keys"),passkeys:K("Passkeys")};
+const titles={dash:K("Dashboard"),checklist:K("Checklist"),domains:K("Domains"),groups:K("Groups"),ipranges:K("IP ranges"),fetch:K("Fetch accounts"),migrations:K("Migrations"),lists:K("Lists"),queue:K("Delivery queue"),tlsa:K("DANE / TLSA"),settings:K("Settings"),backup:K("Backup"),messages:K("Server messages"),rules:K("Rules"),routes:K("Routes"),remotedomains:K("Remote domains"),certs:K("Certificates"),ports:K("Ports"),roles:K("Roles"),logs:K("Logs"),reports:K("Reports"),audit:K("Audit trail"),webhooks:K("Webhooks"),inboundwebhooks:K("Inbound webhooks"),devices:K("Devices"),changed:K("Changed from stock"),reputation:K("Outbound reputation"),spamtraps:K("Spam traps"),journal:K("Journaling"),quarantine:K("Quarantine"),review:K("Held for review"),archive:K("Archive and holds"),discovery:K("Discovery"),folders:K("Shared folders"),dns:K("DNS records"),diagnostics:K("Diagnostics"),metrics:K("Metrics history"),update:K("Update"),apikeys:K("API keys"),passkeys:K("Passkeys")};
 
 async function render(silent){
   $("#viewTitle").textContent=t(titles[view]);
@@ -867,6 +868,7 @@ async function render(silent){
     else if(view==="logs")await renderLogs();
     else if(view==="audit")await renderAudit();
     else if(view==="webhooks")await renderWebhooks();
+    else if(view==="inboundwebhooks")await renderInboundWebhooks();
     else if(view==="quarantine")await renderQuarantine();
     else if(view==="review")await renderReview();
     else if(view==="archive")await renderArchive();
@@ -1327,6 +1329,13 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="hooksave")saveWebhook();
   else if(d.act==="hookrun")runWebhookPass();
   else if(d.act==="hooktest")sendTestWebhook();
+  else if(d.act==="inhooknew")openInboundWebhook("");
+  else if(d.act==="inhookedit")openInboundWebhook(d.id);
+  else if(d.act==="inhookdel")deleteInboundWebhook(d.id);
+  else if(d.act==="inhooksave")saveInboundWebhook();
+  else if(d.act==="inhookrun")runInboundWebhookPass();
+  else if(d.act==="inhookretry")retryInboundDelivery(d.id);
+  else if(d.act==="inhookdrop")deleteInboundDelivery(d.id);
   else if(d.act==="mignew")openNewMigration();
   else if(d.act==="migsave")saveMigration();
   else if(d.act==="migopen"){migrationOpen=Number(d.id)||0;migrationReport=null;migrationLinks=[];editing=null;render();}
@@ -1829,6 +1838,7 @@ const HELP_MAP={
   reports:["Reports.md"],
   audit:["AlertsAndAuditTrail.md","The audit trail"],
   webhooks:["Webhooks.md"],
+  inboundwebhooks:["InboundWebhooks.md"],
   quarantine:["SenderListsAndDigests.md","The quarantine digest"],
   review:["CompromisedAccounts.md","Reviewing"],
   archive:["Journaling.md"],
@@ -7811,6 +7821,144 @@ async function migrationSignInLink(job){
     migrationLinks=[{user:owner?owner.source_user:String(job),url:answer.signin_url}];
     await render();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_migjob_"+job,e.message);}
+}
+
+/* ---------- Inbound webhooks ----------
+   The other direction: an address, or a whole domain, whose mail this server
+   posts to a URL (docs/InboundWebhooks.md). The routes, what each does with the
+   mailbox, and its queue in words; below them the last deliveries, with the
+   reason one has not arrived, and - for a message the endpoint never accepted
+   and the server kept - Retry, Download and Remove.
+
+   The editor is built from the schema of POST /api/v1/inbound-webhooks, as the
+   outbound webhooks' is, so its fields, their choices and their help are the
+   server's own words, and the secret is a write-only box. What a role may do is
+   what it is offered: view_configuration reads, manage_inbound_webhooks acts,
+   and the download needs view_mailbox beside it, as the route does. */
+const INBOUND_DELIVERIES=25;
+let inboundHooks=[];
+function inboundStateWord(word){
+  if(word==="delivered")return t("delivered");
+  if(word==="kept")return t("kept");
+  if(word==="bounced")return t("bounced");
+  return t("pending");
+}
+function inboundQueueText(h){
+  const parts=[];
+  if(Number(h.pending))parts.push(tf("{0} waiting",Number(h.pending)));
+  if(Number(h.delivered))parts.push(tf("{0} sent",Number(h.delivered)));
+  if(Number(h.kept))parts.push(tf("{0} kept",Number(h.kept)));
+  if(Number(h.bounced))parts.push(tf("{0} returned",Number(h.bounced)));
+  return parts.length?parts.join(", "):t("nothing yet");
+}
+async function renderInboundWebhooks(){
+  await loadSpec();
+  inboundHooks=asList(await api("/api/v1/inbound-webhooks"),"inbound_webhooks");
+  if(editing&&editing.kind==="inboundwebhook"){renderInboundWebhookEditor();return;}
+  const queue=asList(await api("/api/v1/inbound-webhooks/deliveries?limit="+INBOUND_DELIVERIES),"deliveries");
+  const manage=may("manage_inbound_webhooks");
+  const rows=inboundHooks.map(h=>`
+    <tr><td><b>${escHtml(h.address)}</b>${h.enabled?"":' <span class="badge warn">'+t("Off")+'</span>'}
+            <span class="badge info">${h.deliver?t("posted and delivered"):t("posted only")}</span>
+            <div class="hint muted"><code>${escHtml(h.url)}</code></div></td>
+        <td>${escHtml(inboundQueueText(h))}</td>
+        <td style="text-align:right;white-space:nowrap">${manage?`
+          <button class="btn ghost sm" data-act="inhookedit" data-id="${escHtml(h.address)}">${t("Edit")}</button>
+          <button class="btn danger sm" data-act="inhookdel" data-id="${escHtml(h.address)}">${t("Delete")}</button>`:""}
+          <div class="err" id="err_inhook_${escHtml(h.address)}"></div></td></tr>`).join("");
+  const queueRows=queue.map(d=>`
+    <tr><td>${escHtml(auditWhen(d.created))}</td><td>${escHtml(d.route||"—")}</td>
+        <td style="word-break:break-all">${escHtml(d.recipients||"")}</td>
+        <td>${escHtml(inboundStateWord(d.state))}</td><td>${escHtml(String(d.attempts||0))}</td>
+        <td>${escHtml(d.error||"")}<div class="err" id="err_indel_${escHtml(d.id)}"></div></td>
+        <td style="text-align:right;white-space:nowrap">${d.message_kept&&may("view_mailbox")?`<a class="btn ghost sm" href="/api/v1/inbound-webhooks/deliveries/${encodeURIComponent(d.id)}/message" download="inbound-webhook-delivery-${escHtml(d.id)}.eml">${t("Download")}</a>`:""}${manage&&d.message_kept&&(d.state==="kept"||d.state==="pending")?`
+          <button class="btn ghost sm" data-act="inhookretry" data-id="${escHtml(d.id)}">${t("Retry")}</button>`:""}${manage?`
+          <button class="btn danger sm" data-act="inhookdrop" data-id="${escHtml(d.id)}">${t("Remove")}</button>`:""}</td></tr>`).join("");
+  $("#content").innerHTML=`<div class="view">
+    <div class="card flat">
+      <p class="note">${escHtml(operation("/api/v1/inbound-webhooks","get").description||"")}</p>
+      <div class="tablewrap"><table><thead><tr><th>${t("Address")}</th><th>${t("Queue")}</th><th></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="3" class="empty">'+t("No address or domain is routed to a URL, so every message goes to a mailbox as it always has.")+'</td></tr>'}</tbody></table></div>
+      ${manage?`<div class="row" style="margin-top:16px">
+        <button class="btn" data-act="inhooknew">${t("Add an inbound webhook")}</button>
+        ${!confined?`<button class="btn ghost" data-act="inhookrun">${t("Run a delivery pass")}</button>`:""}
+        <div class="err" id="err_inhooks"></div>
+      </div>`:""}
+    </div>
+    <div class="sect"><h2>${t("Recent deliveries")}</h2>
+      <div class="card flat">
+        <div class="tablewrap"><table><thead><tr><th>${t("When")}</th><th>${t("Address")}</th><th>${t("Recipients")}</th>
+          <th>${t("State")}</th><th>${t("Attempts")}</th><th>${t("Error")}</th><th></th></tr></thead>
+        <tbody>${queueRows||'<tr><td colspan="7" class="empty">'+t("Nothing has been queued yet.")+'</td></tr>'}</tbody></table></div>
+      </div></div></div>`;
+}
+function openInboundWebhook(address){
+  const existing=inboundHooks.filter(h=>h.address===address)[0];
+  const values=existing
+    ? JSON.parse(JSON.stringify(existing))
+    : documentedDefaults("/api/v1/inbound-webhooks","post",properties("/api/v1/inbound-webhooks","post"));
+  editing={kind:"inboundwebhook",id:address||"",values:values};
+  renderInboundWebhookEditor();
+}
+function inboundWebhookFormOptions(){
+  return {required:requiredOf("/api/v1/inbound-webhooks","post"),
+          skip:editing.id?["address"]:[],
+          passwordHint:t("left unchanged unless filled")};
+}
+function renderInboundWebhookEditor(){
+  const props=properties("/api/v1/inbound-webhooks","post");
+  $("#content").innerHTML=`<div class="view">
+    <button class="btn ghost sm" data-act="cancel">${t("‹ All inbound webhooks")}</button>
+    <div class="sect"><h2>${editing.id?tf("Edit the inbound webhook for {0}",escHtml(editing.id)):t("New inbound webhook")}</h2>
+      <div class="card flat">
+        <p class="note">${escHtml(operation(editing.id?"/api/v1/inbound-webhooks/{address}":"/api/v1/inbound-webhooks",editing.id?"put":"post").description||"")}</p>
+        <div class="form">${formHtml("inhook",props,editing.values,inboundWebhookFormOptions())}</div>
+        <div class="row" style="margin-top:18px">
+          <button class="btn" data-act="inhooksave">${t("Save the inbound webhook")}</button>
+          <button class="btn ghost" data-act="cancel">${t("Cancel")}</button>
+          <div class="err" id="err_inhookedit"></div>
+        </div>
+      </div></div></div>`;
+}
+async function saveInboundWebhook(){
+  setErr("err_inhookedit","");
+  const props=properties("/api/v1/inbound-webhooks","post");
+  let body;
+  try{body=readForm("inhook",props,inboundWebhookFormOptions());}catch(e){setErr("err_inhookedit",e.message);return;}
+  try{
+    if(editing.id)await api("/api/v1/inbound-webhooks/"+encodeURIComponent(editing.id),{method:"PUT",body:JSON.stringify(body)});
+    else await api("/api/v1/inbound-webhooks",{method:"POST",body:JSON.stringify(body)});
+    editing=null;toast(t("Inbound webhook saved"));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_inhookedit",e.message);}
+}
+async function deleteInboundWebhook(address){
+  if(!confirm(tf("Remove the inbound webhook for {0}? The messages its queue still holds go with it.",address)))return;
+  setErr("err_inhook_"+address,"");
+  try{await api("/api/v1/inbound-webhooks/"+encodeURIComponent(address),{method:"DELETE"});toast(t("Inbound webhook removed"));await render();}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_inhook_"+address,e.message);}
+}
+async function runInboundWebhookPass(){
+  setErr("err_inhooks","");
+  try{
+    const answer=await api("/api/v1/inbound-webhooks/run",{method:"POST",body:"{}"});
+    toast(tf("{0} delivered, {1} removed",Number(answer.delivered)||0,Number(answer.removed)||0));
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_inhooks",e.message);}
+}
+async function retryInboundDelivery(id){
+  setErr("err_indel_"+id,"");
+  try{
+    await api("/api/v1/inbound-webhooks/deliveries/"+encodeURIComponent(id)+"/retry",{method:"POST",body:"{}"});
+    toast(t("Queued again"));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_indel_"+id,e.message);}
+}
+async function deleteInboundDelivery(id){
+  if(!confirm(t("Remove this delivery and the message it kept?")))return;
+  setErr("err_indel_"+id,"");
+  try{
+    await api("/api/v1/inbound-webhooks/deliveries/"+encodeURIComponent(id),{method:"DELETE"});
+    toast(t("Delivery removed"));await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_indel_"+id,e.message);}
 }
 
 /* ---------- Webhooks ----------

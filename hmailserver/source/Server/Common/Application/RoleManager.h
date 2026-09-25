@@ -128,6 +128,20 @@ namespace HM
       ViewDiscovery,
       ManageDiscovery,
 
+      // Inbound webhooks (docs/InboundWebhooks.md, Util/InboundWebhooks.h):
+      // routing an address or a domain to a URL, changing and removing such a
+      // route, and retrying or removing what it could not post. Held by an API
+      // key's role - it is what an application that receives mail is given -
+      // and judged in the route's domain, so a key confined to a domain routes
+      // that domain's addresses and no other. It is as much as reading every
+      // message the route takes, and no other built-in role holds it; a custom
+      // role may be given it. Reading the routes is view_configuration's, and
+      // reading a kept message view_mailbox's beside it. A route made by any
+      // credential but the server's administrator reaches public addresses
+      // only. Appended, not inserted: the token is what hm_roles stores, and
+      // the position is the bit.
+      ManageInboundWebhooks,
+
       Count
    };
 
@@ -144,7 +158,7 @@ namespace HM
       // administrative authority at all.
       String name;
 
-      // A bit per RolePermission. RolePermission::Count is 26, so a 64-bit
+      // A bit per RolePermission. RolePermission::Count is 27, so a 64-bit
       // word is the whole set with room to spare; a static assertion in the
       // .cpp holds that true.
       unsigned __int64 permissions;

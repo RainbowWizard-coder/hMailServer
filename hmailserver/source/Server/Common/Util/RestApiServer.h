@@ -981,6 +981,22 @@ namespace HM
          RouteWebhookDeliveryList,
          RouteWebhookRun,
          RouteWebhookTest,
+         // Inbound webhooks (RestApiInboundWebhooks.cpp, Util/InboundWebhooks.h):
+         // an address or a domain whose mail is posted to a URL, and what its
+         // queue has kept. A route's address is the identifier, and a delivery's
+         // id the record_id. view_configuration reads, view_mailbox beside it
+         // reads a kept message, and manage_inbound_webhooks changes - which an
+         // API key's role may hold, confined to the domains of the key.
+         RouteInboundWebhookList,
+         RouteInboundWebhookCreate,
+         RouteInboundWebhookGet,
+         RouteInboundWebhookUpdate,
+         RouteInboundWebhookDelete,
+         RouteInboundWebhookDeliveryList,
+         RouteInboundWebhookDeliveryRetry,
+         RouteInboundWebhookDeliveryDelete,
+         RouteInboundWebhookDeliveryMessage,
+         RouteInboundWebhookRun,
          // Migration jobs (RestApiMigrations.cpp, Application/MigrationManager.h):
          // a batch of mailboxes copied from another server. The migration id is
          // the route's identifier and a job's id its record_id. Account
@@ -1342,6 +1358,20 @@ namespace HM
       // because RoleManager::Allows is named in this file and no other of the
       // REST API's (build/check-role-choke-point.py).
       static bool CallerMayReadArchive_(const Caller &caller);
+
+      // True when the request may route mail to this server's own network: the
+      // server's administrator - a credential that is not an API key, holds
+      // manage_server and reaches every domain. Any other credential that may
+      // make an inbound webhook routes mail to public addresses only
+      // (RestApiInboundWebhooks.cpp). Here, beside the choke point, for the
+      // reason CallerMayReadArchive_ is.
+      static bool CallerMayRouteToPrivateNetwork_(const Caller &caller);
+
+      // True when the request may change inbound webhooks (manage_inbound_webhooks):
+      // such a credential is answered a route's whole URL, and any other reader of
+      // the routes its scheme and host alone, since a receiver's URL often carries
+      // a token of its own.
+      static bool CallerManagesInboundWebhooks_(const Caller &caller);
 
       // The domain a route acts inside, or nothing when it acts on the server.
       // One reading of the path for both decisions made about it.
@@ -2497,6 +2527,10 @@ namespace HM
       // RestApiWebhooks.cpp.
       HttpResponse HandleWebhooks_(const Caller &caller, const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiWebhooksPaths_();
+
+      // The inbound webhooks and their queue. In RestApiInboundWebhooks.cpp.
+      HttpResponse HandleInboundWebhooks_(const Caller &caller, const Route &route, const AnsiString &requestBody);
+      static AnsiString OpenApiInboundWebhooksPaths_();
 
       // Migration jobs. In RestApiMigrations.cpp: the routes; the page a job's
       // sign-in link opens, before any credential (it sends the browser to the

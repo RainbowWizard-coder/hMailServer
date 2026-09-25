@@ -150,6 +150,7 @@ ALLOWED = {
       "COM/InterfaceBackupManager.cpp",             # BackupManager.RestoreMailbox and RestoreMessage
       "Common/Util/RestApiBackupMailbox.cpp",       # POST /api/v1/backup/{archive}/mailboxes/{address}/restore
       "Common/Util/RestApiDiscovery.cpp",           # GET /api/v1/discovery/cases/{id}/exports/{export}: an export downloaded writes no row
+      "Common/Util/RestApiInboundWebhooks.cpp",     # a message an inbound webhook kept read, retried or removed: its queue is traffic
       "Common/Util/RestApiSettings.cpp",            # POST /api/v1/settings/logon-failures/clear
       "COM/InterfaceSettings.cpp",                  # Settings.ClearLogonFailureList
       "Common/Util/RestApiSpamTraps.cpp",           # DELETE /api/v1/spam-traps/hits
@@ -444,6 +445,9 @@ NOT_AUDITED = {
    "hm_webhookqueue": "the outbound webhook delivery queue, written by the paths that raise an event and by the delivery pass. "
                        "Traffic, and the server's own writes - there is no actor on an SMTP thread, so a listed table would record every "
                        "accepted message as a change nobody made. The subscriptions the rows belong to (hm_webhooks) ARE recorded.",
+   "hm_inboundhookqueue": "the inbound webhook queue: one row per message a route took, written by the delivery path with no actor and "
+                          "by the pass that posts it. Traffic, as the outbound webhooks' queue is. The routes (hm_inboundhooks) ARE "
+                          "recorded, and a kept message read, retried or removed over REST is recorded through AuditTrail::RecordEvent.",
    "hm_migrationfolders": "a migration job's resume marks - a source folder's UIDVALIDITY and the highest UID copied - written by the "
                           "job's own thread every fifty messages under no actor, and removed with the job. The migrations and their "
                           "jobs (hm_migrations, hm_migrationjobs) ARE recorded.",

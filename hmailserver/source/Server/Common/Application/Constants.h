@@ -1053,4 +1053,33 @@
 //      stores and reads every message as it did.
 //      (6098 is the storage compression row's step; the step after this one
 //      is another row's.)
-#define REQUIRED_DB_VERSION            6099
+// 6100 adds hm_inboundhooks and hm_inboundhookqueue (Util/InboundWebhooks.h,
+//      Util/RestApiInboundWebhooks.cpp, docs/InboundWebhooks.md): mail in, to a
+//      webhook. hm_inboundhooks is a route - an address or a domain of a hosted
+//      domain (ihaddress, lower case, unique), the URL its mail is posted to,
+//      the shared secret the requests are signed under (ihsecret, protected at
+//      rest by Crypt::ProtectSecret, as whsecret is), whether the address's
+//      mailbox receives the message as well (ihdeliver), what a message the
+//      endpoint never accepted becomes (ihonfailure: 0 kept, 1 returned to its
+//      sender), the body's shape (ihformat: 0 SendGrid's multipart/form-data,
+//      1 JSON), the attachments (ihattachments: 0 carried, 1 named only, 2 left
+//      out), whether the raw message goes too (ihincluderaw), a size ceiling in
+//      KB (ihmaxsizekb, at most 81920, and 0 for none of the route's own, which
+//      is then 81920 - the 80 MB MessageData parses), whether the route may reach this server's
+//      own network (ihprivatenetwork: set when the server's administrator saved
+//      it, and a route anybody else saved reaches public addresses only), a
+//      switch and when it was made. hm_inboundhookqueue is one message a route
+//      took: the route (removed with it by the foreign key), when, the state
+//      (1 pending, 2 delivered, 3 kept, 4 returned to its sender), the
+//      attempts, when the next is due, the last failure, the partial name of
+//      the copy kept for it in the queue directory ('' once it is gone), the
+//      delivery queue's id for the message, the envelope sender, the route's
+//      share of the recipients and those of them whose DSN NOTIFY leaves out
+//      FAILURE (iqquiet), the connecting address, whether it was classified as
+//      spam and its size. The routes are on the audit trail, their URL withheld
+//      as a secret is; the queue is traffic. It also appends manage_inbound_webhooks to the
+//      serveradmin row of hm_roles, kept in step for anybody reading the table
+//      as 6097 did for the discovery permissions. An upgraded server has no
+//      route, and delivers every message exactly as it did.
+//      (6099 is the encryption-at-rest row's step, built beside this one.)
+#define REQUIRED_DB_VERSION            6100

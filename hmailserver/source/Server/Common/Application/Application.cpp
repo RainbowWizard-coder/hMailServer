@@ -97,6 +97,7 @@
 #include "../Util/DiskSpace.h"
 #include "../Util/AlertManager.h"
 #include "../Util/PushNotifier.h"
+#include "../Util/InboundWebhooks.h"
 #include "../Util/WebhookManager.h"
 #include "DkimRotationTask.h"
 #include "ReputationWatchTask.h"
@@ -1181,11 +1182,25 @@ namespace HM
       // who has just configured an endpoint does not wait for it, because
       // POST /api/v1/webhooks/run makes the same pass at once. With no
       // subscription configured - which is every installation until somebody
-      // makes one - each pass is one select that finds nothing.
+      // makes one - each minute is two selects that find nothing: the pass's
+      // due rows, and the retention sweep's count.
       std::shared_ptr<WebhookTask> webhookTask = std::shared_ptr<WebhookTask>(new WebhookTask);
       webhookTask->SetReoccurance(ScheduledTask::RunInfinitely);
       webhookTask->SetMinutesBetweenRun(1);
       scheduler_->ScheduleTask(webhookTask);
+
+      // Inbound webhooks (Util/InboundWebhooks.h), the other direction: mail for
+      // a routed address is queued by the delivery path and POSTed from here -
+      // and from a drain posted when it is queued, so that an endpoint hears of
+      // it in seconds - and the minute is what catches the retries. With no
+      // route configured each minute is two selects that find nothing, the
+      // pass's due rows and the retention sweep's count, as for the outbound
+      // webhooks; and the routes themselves are read at most twice a minute
+      // while mail for a hosted domain is arriving.
+      std::shared_ptr<InboundWebhookTask> inboundWebhookTask = std::shared_ptr<InboundWebhookTask>(new InboundWebhookTask);
+      inboundWebhookTask->SetReoccurance(ScheduledTask::RunInfinitely);
+      inboundWebhookTask->SetMinutesBetweenRun(1);
+      scheduler_->ScheduleTask(inboundWebhookTask);
 
       // DKIM keys that rotate. Registered unconditionally and twice, like log
       // retention: once at start-up, so a record published while the server was
@@ -1690,6 +1705,13 @@ namespace HM
       // (Util/DiscoverySearch.h). The rows it left running are failed when the
       // runner next starts.
       DiscoverySearch::Forget();
+
+      // The inbound webhook routes are read again - a restore may have put the
+      // database back under them - and a drain posted to the asynchronous queue
+      // ExitInstance has just taken away is forgotten, since it will never run
+      // and would otherwise keep every later message from posting one
+      // (Util/InboundWebhooks.h).
+      InboundWebhooks::Instance()->Forget();
 
       String sErrorMessage;
       if (!InitInstance(sErrorMessage))

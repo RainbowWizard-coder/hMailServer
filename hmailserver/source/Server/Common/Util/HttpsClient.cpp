@@ -238,11 +238,15 @@ namespace HM
          return lookup->endpoints;
       }
 
+      // The whole answer, up to max_response_bytes. Past it, false - unless
+      // stop_at_limit, when the read stops there, what was read is kept to be
+      // parsed, and truncated says so.
       template <typename ReadSome>
-      bool ReadWholeResponse_(ReadSome read_some, size_t max_response_bytes, std::string &raw)
+      bool ReadWholeResponse_(ReadSome read_some, size_t max_response_bytes, std::string &raw, bool stop_at_limit, bool &truncated)
       {
          char buffer[4096];
          boost::system::error_code errorCode;
+         truncated = false;
 
          for (;;)
          {
@@ -250,11 +254,25 @@ namespace HM
             if (bytesRead > 0)
                raw.append(buffer, bytesRead);
 
+            // The end of the answer first, as it always was: a last read that
+            // arrives with the end may run past the cap without failing.
             if (errorCode)
                break;
 
             if (raw.size() > max_response_bytes)
-               return false;
+            {
+               if (!stop_at_limit)
+                  return false;
+
+               truncated = true;
+               break;
+            }
+         }
+
+         if (stop_at_limit && raw.size() > max_response_bytes)
+         {
+            raw.resize(max_response_bytes);
+            truncated = true;
          }
 
          return true;
@@ -454,6 +472,62 @@ namespace HM
          return true;
       }
 
+      // An IPv4 address no endpoint an administrator names may be, even one on
+      // this server's own network: link-local, where every cloud answers its
+      // instance metadata, and the metadata addresses the clouds keep outside
+      // that range. The credentials a metadata service hands out are the
+      // machine's, and a request this server makes on somebody's say-so must not
+      // be the way to them.
+      bool IsLinkLocalOrMetadataV4(unsigned long v)
+      {
+         const unsigned a = (v >> 24) & 0xff, b = (v >> 16) & 0xff;
+         if (a == 169 && b == 254)                            // 169.254/16; 169.254.169.254 among them
+            return true;
+         if (v == 0x646464C8UL)                               // 100.100.100.200, Alibaba Cloud's metadata
+            return true;
+         if (v == 0xA83F8110UL)                               // 168.63.129.16, Azure's host endpoint
+            return true;
+         if (v == 0xC00000C0UL)                               // 192.0.0.192, Oracle Cloud Classic's metadata
+            return true;
+         return false;
+      }
+
+      // The same for either family. An IPv6 address that carries an IPv4 one is
+      // judged as that IPv4 address, as IsPublicAddress judges it.
+      bool IsLinkLocalOrMetadataAddress(const boost::asio::ip::address &address)
+      {
+         if (address.is_v4())
+            return IsLinkLocalOrMetadataV4(address.to_v4().to_uint());
+
+         const boost::asio::ip::address_v6::bytes_type b = address.to_v6().to_bytes();
+         const auto v4At = [&b](size_t at)
+         {
+            return ((unsigned long) b[at] << 24) | ((unsigned long) b[at + 1] << 16) | ((unsigned long) b[at + 2] << 8) | b[at + 3];
+         };
+         bool zeroTo10 = true;
+         for (size_t i = 0; i < 10; i++)
+            zeroTo10 = zeroTo10 && b[i] == 0;
+         if (zeroTo10 && ((b[10] == 0xff && b[11] == 0xff) || (b[10] == 0 && b[11] == 0)))
+            return IsLinkLocalOrMetadataV4(v4At(12));        // v4-mapped and v4-compatible
+         bool nat64 = b[0] == 0 && b[1] == 0x64 && b[2] == 0xff && b[3] == 0x9b;
+         for (size_t i = 4; nat64 && i < 12; i++)
+            nat64 = b[i] == 0;
+         if (nat64)
+            return IsLinkLocalOrMetadataV4(v4At(12));
+         if (b[0] == 0x20 && b[1] == 0x02)
+            return IsLinkLocalOrMetadataV4(v4At(2));
+         if (b[0] == 0xfe && (b[1] & 0xc0) == 0x80)           // fe80::/10 link-local
+            return true;
+
+         // fd00:ec2::254, the Amazon instance metadata service over IPv6.
+         static const unsigned char awsMetadata[16] =
+            { 0xfd, 0x00, 0x0e, 0xc2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x02, 0x54 };
+         bool metadata = true;
+         for (size_t i = 0; i < 16; i++)
+            metadata = metadata && b[i] == awsMetadata[i];
+         return metadata;
+      }
+
       // Connects socket to host:port by deadline - directly, or through the proxy
       // when proxy_host is not empty. For an https target the proxy is asked to
       // CONNECT and the TLS handshake then runs inside the tunnel, so the proxy sees
@@ -465,25 +539,40 @@ namespace HM
       // and to no other - so a name that answers a public address to one lookup
       // and a private one to the next gains nothing. Never through the proxy,
       // which would resolve the name itself, out of sight of this.
+      //
+      // not_link_local (RequestNotLinkLocal): the same, with the line drawn at
+      // link-local and the metadata addresses instead of at every private one.
       bool Connect_(boost::asio::io_context &io, boost::asio::ip::tcp::socket &socket, const AnsiString &host,
                     const AnsiString &port, bool https, const std::string &proxy_host, const std::string &proxy_port,
-                    const Clock::time_point &deadline, String &error, bool public_only = false)
+                    const Clock::time_point &deadline, String &error, bool public_only = false, bool not_link_local = false)
       {
-         if (public_only)
+         if (public_only || not_link_local)
          {
             std::vector<boost::asio::ip::tcp::endpoint> vetted;
             std::string refused;
             for (const boost::asio::ip::tcp::endpoint &endpoint : ResolveWithin_(std::string(host.c_str()), std::string(port.c_str()), deadline))
             {
-               if (IsPublicAddress(endpoint.address()))
+               const bool allowed = public_only
+                  ? IsPublicAddress(endpoint.address())
+                  : !IsLinkLocalOrMetadataAddress(endpoint.address());
+
+               if (allowed)
                   vetted.push_back(endpoint);
                else if (refused.empty())
                   refused = endpoint.address().to_string();
             }
             if (vetted.empty())
             {
-               error = Formatter::Format(_T("{0} is not a public address (loopback, private, link-local or reserved), and this request reaches only public ones."),
-                  refused.empty() ? String(host) : String(refused.c_str()));
+               if (public_only)
+               {
+                  error = Formatter::Format(_T("{0} is not a public address (loopback, private, link-local or reserved), and this request reaches only public ones."),
+                     refused.empty() ? String(host) : String(refused.c_str()));
+               }
+               else
+               {
+                  error = Formatter::Format(_T("{0} is a link-local or cloud metadata address, which this request never reaches."),
+                     refused.empty() ? String(host) : String(refused.c_str()));
+               }
                return false;
             }
             ConnectWithin_(io, socket, vetted, deadline);
@@ -670,7 +759,49 @@ namespace HM
                         const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
                         int timeout_seconds, size_t max_response_bytes)
    {
-      return Request_(method, url, extra_headers, content_type, body, response, error, timeout_seconds, max_response_bytes, false);
+      return Request_(method, url, extra_headers, content_type, body, response, error, timeout_seconds, max_response_bytes, false, false);
+   }
+
+   bool
+   HttpsClient::RequestNotLinkLocal(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
+                                    const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
+                                    int timeout_seconds, size_t max_response_bytes, bool keep_head_of_long_answer)
+   {
+      return Request_(method, url, extra_headers, content_type, body, response, error, timeout_seconds, max_response_bytes, false, true,
+                      keep_head_of_long_answer);
+   }
+
+   bool
+   HttpsClient::HostIsNotLinkLocal(const AnsiString &host, bool &resolved, String &error)
+   {
+      resolved = false;
+
+      try
+      {
+         const Clock::time_point deadline = Clock::now() + std::chrono::seconds(5);
+         const std::vector<boost::asio::ip::tcp::endpoint> endpoints = ResolveWithin_(std::string(host.c_str()), "443", deadline);
+
+         resolved = !endpoints.empty();
+
+         for (const boost::asio::ip::tcp::endpoint &endpoint : endpoints)
+         {
+            if (IsLinkLocalOrMetadataAddress(endpoint.address()))
+            {
+               error = Formatter::Format(_T("{0} is at {1}, a link-local or cloud metadata address, which this server never posts to."),
+                  String(host), String(endpoint.address().to_string().c_str()));
+               return false;
+            }
+         }
+
+         return true;
+      }
+      catch (...)
+      {
+         // Not resolved now, which is not a refusal: the connection judges the
+         // addresses again when it is made.
+         resolved = false;
+         return true;
+      }
    }
 
    bool
@@ -706,15 +837,17 @@ namespace HM
    bool
    HttpsClient::RequestPublic(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
                               const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
-                              int timeout_seconds, size_t max_response_bytes)
+                              int timeout_seconds, size_t max_response_bytes, bool keep_head_of_long_answer)
    {
-      return Request_(method, url, extra_headers, content_type, body, response, error, timeout_seconds, max_response_bytes, true);
+      return Request_(method, url, extra_headers, content_type, body, response, error, timeout_seconds, max_response_bytes, true, false,
+                      keep_head_of_long_answer);
    }
 
    bool
    HttpsClient::Request_(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
                          const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
-                         int timeout_seconds, size_t max_response_bytes, bool public_only)
+                         int timeout_seconds, size_t max_response_bytes, bool public_only, bool not_link_local,
+                         bool keep_head_of_long_answer)
    {
       bool https = false;
       AnsiString host, port, path;
@@ -733,7 +866,7 @@ namespace HM
       std::string proxyHost, proxyPort;
       if (!ProxySetting_(proxyHost, proxyPort, error))
          return false;
-      if (public_only || !ThroughProxy_(proxyHost, host))
+      if (public_only || not_link_local || !ThroughProxy_(proxyHost, host))
       {
          proxyHost.clear();
          proxyPort.clear();
@@ -788,6 +921,7 @@ namespace HM
          boost::asio::io_context ioContext;
 
          std::string raw;
+         bool truncated = false;
 
          if (https)
          {
@@ -800,7 +934,7 @@ namespace HM
             SslContextInitializer::InitClient(sslContext, false);
 
             boost::asio::ssl::stream<boost::asio::ip::tcp::socket> stream(ioContext, sslContext);
-            if (!Connect_(ioContext, stream.next_layer(), host, port, true, proxyHost, proxyPort, deadline, error, public_only))
+            if (!Connect_(ioContext, stream.next_layer(), host, port, true, proxyHost, proxyPort, deadline, error, public_only, not_link_local))
                return false;
 
             stream.set_verify_mode(boost::asio::ssl::verify_peer);
@@ -820,7 +954,7 @@ namespace HM
                return ReadSomeWithin_(ioContext, stream.next_layer(), stream, data, size, deadline, ec);
             };
 
-            if (!ReadWholeResponse_(readSome, max_response_bytes, raw))
+            if (!ReadWholeResponse_(readSome, max_response_bytes, raw, keep_head_of_long_answer, truncated))
             {
                error = _T("The response exceeded the size limit.");
                return false;
@@ -829,7 +963,7 @@ namespace HM
          else
          {
             boost::asio::ip::tcp::socket socket(ioContext);
-            if (!Connect_(ioContext, socket, host, port, false, proxyHost, proxyPort, deadline, error, public_only))
+            if (!Connect_(ioContext, socket, host, port, false, proxyHost, proxyPort, deadline, error, public_only, not_link_local))
                return false;
 
             WriteWithin_(ioContext, socket, socket, request.c_str(), (size_t) request.GetLength(), deadline);
@@ -839,14 +973,18 @@ namespace HM
                return ReadSomeWithin_(ioContext, socket, socket, data, size, deadline, ec);
             };
 
-            if (!ReadWholeResponse_(readSome, max_response_bytes, raw))
+            if (!ReadWholeResponse_(readSome, max_response_bytes, raw, keep_head_of_long_answer, truncated))
             {
                error = _T("The response exceeded the size limit.");
                return false;
             }
          }
 
-         return ParseResponse_(raw, response, error);
+         if (!ParseResponse_(raw, response, error))
+            return false;
+
+         response.truncated = truncated;
+         return true;
       }
       catch (const std::exception &e)
       {

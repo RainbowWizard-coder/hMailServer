@@ -529,7 +529,8 @@ a role without `view_archive` is refused a search of the archive and the hits of
 one while it searches the mailboxes, and a key confined to a domain names no
 custodian outside it, is listed the empty case it opened and not one somebody
 else opened, and is answered `404` for a case that searched outside it.
-`API/Roles.cs` counts twenty-six permissions. The schema probes for 6097 succeed,
+`API/Roles.cs` counts the permissions (twenty-six when this row landed; the inbound
+webhooks' `manage_inbound_webhooks` made twenty-seven). The schema probes for 6097 succeed,
 and the negative control fails as a missing column.
 
 Not proved by a test, and read in the code instead: a copy that cannot be kept

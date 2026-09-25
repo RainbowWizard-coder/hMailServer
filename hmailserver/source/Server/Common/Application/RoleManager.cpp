@@ -73,7 +73,8 @@ namespace HM
          "send_through_api",
          "provision",
          "view_discovery",
-         "manage_discovery"
+         "manage_discovery",
+         "manage_inbound_webhooks"
       };
 
       static_assert(sizeof(PermissionTokens) / sizeof(PermissionTokens[0]) == static_cast<size_t>(RolePermission::Count),

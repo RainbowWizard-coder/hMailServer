@@ -1422,10 +1422,10 @@ namespace
       // subscriptions themselves are rows in hm_webhooks reached at
       // /api/v1/webhooks rather than settings, exactly as the alert rules are.
       { "webhooks_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
-        "The master switch for outbound webhooks. It opens nothing on its own: a server with no subscription at /api/v1/webhooks raises no event and makes no request. Switch it off to silence every receiver at once without deleting what names them.",
+        "The master switch for outbound webhooks. It opens nothing on its own: a server with no subscription at /api/v1/webhooks raises no event and makes no request. Switch it off to silence every receiver at once without deleting what names them. The inbound webhooks (/api/v1/inbound-webhooks, docs/InboundWebhooks.md) are not silenced by it: each of their routes is switched on or off by itself.",
         ROW_FLAG(Config()->GetWebhooksEnabled()), ROW_SET(Config()->SetWebhooksEnabled(v.flag)), ROW_NO_CHECK },
       { "webhook_max_attempts", KindInteger, ReadWrite, EffectNow, nullptr,
-        "How many times a webhook delivery is attempted before it is dead-lettered with its body and the reason kept. 1 to 20.",
+        "How many times a webhook delivery is attempted before it is dead-lettered with its body and the reason kept - and an inbound webhook's message before it is kept or returned to its sender, as its route says (docs/InboundWebhooks.md). 1 to 20.",
         ROW_NUMBER(Config()->GetWebhookMaxAttempts()), ROW_SET(Config()->SetWebhookMaxAttempts((int) v.number)),
         [] (const Value &v) { return (v.number < 1 || v.number > 20) ? String(WebhookMaxAttemptsRefusal) : String(); } },
       { "webhook_max_per_minute", KindInteger, ReadWrite, EffectNow, nullptr,
@@ -1433,7 +1433,7 @@ namespace
         ROW_NUMBER(Config()->GetWebhookMaxPerMinute()), ROW_SET(Config()->SetWebhookMaxPerMinute((int) v.number)),
         [] (const Value &v) { return (v.number < 1 || v.number > 100000) ? String(WebhookMaxPerMinuteRefusal) : String(); } },
       { "webhook_retention_days", KindInteger, ReadWrite, EffectNow, nullptr,
-        "Days of delivered and dead-lettered webhook rows to keep. 0 keeps everything, which for a per-message stream is a decision rather than a default. 0 to 3650.",
+        "Days of delivered and dead-lettered webhook rows to keep, and of an inbound webhook's delivered and returned ones - its kept messages are never swept (docs/InboundWebhooks.md). 0 keeps everything, which for a per-message stream is a decision rather than a default. 0 to 3650.",
         ROW_NUMBER(Config()->GetWebhookRetentionDays()), ROW_SET(Config()->SetWebhookRetentionDays((int) v.number)),
         [] (const Value &v) { return (v.number < 0 || v.number > 3650) ? String(WebhookRetentionDaysRefusal) : String(); } },
 

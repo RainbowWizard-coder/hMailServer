@@ -29,11 +29,16 @@ namespace HM
 
       struct Response
       {
-         Response() : status_code(0) {}
+         Response() : status_code(0), truncated(false) {}
 
          int status_code;
          AnsiString headers;   // the raw header block, for callers that need one
          AnsiString body;
+
+         // Set only for a caller that asked for the head of a long answer
+         // (keep_head_of_long_answer): the answer ran past max_response_bytes,
+         // and body is what was read up to there.
+         bool truncated;
       };
 
       // method is GET or POST. extra_headers are complete lines without the CRLF.
@@ -63,9 +68,43 @@ namespace HM
       // itself, out of sight of this. Shorter deadline and cap than Request's, since
       // the caller is a REST worker with a request of its own to answer. Otherwise
       // the server could be made to reach what only it can reach.
+      //
+      // keep_head_of_long_answer is for a caller that judges an answer by its
+      // status alone (an inbound webhook's POST): an answer longer than
+      // max_response_bytes is read that far, its status line and headers parsed
+      // from what was read, and returned with truncated set - rather than taken
+      // for no answer at all, which would post the same message again to an
+      // endpoint that took it and said so at length.
       static bool RequestPublic(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
                                 const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
-                                int timeout_seconds = 10, size_t max_response_bytes = 32 * 1024);
+                                int timeout_seconds = 10, size_t max_response_bytes = 32 * 1024,
+                                bool keep_head_of_long_answer = false);
+
+      // Request, for an endpoint the administrator named that may be on this
+      // server's own network - an inbound webhook's (InboundWebhooks.h) - but
+      // never on a link-local address: loopback and the private ranges are
+      // reached, while 169.254/16 and fe80::/10, where the clouds answer their
+      // instance metadata, and the metadata addresses outside them
+      // (100.100.100.200, 168.63.129.16, 192.0.0.192, fd00:ec2::254) are refused.
+      // Judged by the ADDRESSES the name resolves to, as RequestPublic judges, an
+      // IPv4 address carried inside an IPv6 one judged as the IPv4, and the
+      // connection is made to the addresses that passed, so a second lookup
+      // cannot answer differently. Not through HttpProxy, which would resolve the
+      // name itself, out of sight of this. Like Request, it follows no redirect:
+      // a 3xx is an answer for the caller to judge, never a second connection.
+      // keep_head_of_long_answer as for RequestPublic.
+      static bool RequestNotLinkLocal(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
+                                      const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
+                                      int timeout_seconds = 20, size_t max_response_bytes = 1024 * 1024,
+                                      bool keep_head_of_long_answer = false);
+
+      // Whether a host - a name, or an address written as one - leads to no
+      // link-local or metadata address, judged as RequestNotLinkLocal judges:
+      // every address the name resolves to within five seconds. resolved says
+      // whether it resolved at all; a name that does not resolve is not refused
+      // here (true, resolved false), since the check that holds is the one made
+      // at each connection. False with error set when an address is refused.
+      static bool HostIsNotLinkLocal(const AnsiString &host, bool &resolved, String &error);
 
       // GET url to a file, following up to five redirects (to https, or to plain http
       // on a loopback address, as Request accepts), the body streamed to the file
@@ -99,6 +138,7 @@ namespace HM
    private:
       static bool Request_(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
                            const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
-                           int timeout_seconds, size_t max_response_bytes, bool public_only);
+                           int timeout_seconds, size_t max_response_bytes, bool public_only, bool not_link_local,
+                           bool keep_head_of_long_answer = false);
    };
 }

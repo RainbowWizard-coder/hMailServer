@@ -127,12 +127,13 @@ namespace RegressionTests.API
             Assert.IsFalse(Permissions(byName["auditor"]).Any(p => !p.StartsWith("view_")),
                "An auditor holds a permission that is not a read: " + byName["auditor"].GetProperty("permissions").GetString());
 
-            // Twenty-six since 24 September 2026: send_through_api, the send API's
-            // (docs/SendApi.md), provision, SCIM's (docs/Scim.md), and view_discovery
-            // and manage_discovery, eDiscovery's (docs/Discovery.md), each appended
-            // to the vocabulary and held by serveradmin.
-            Assert.AreEqual(26, document.RootElement.GetProperty("permissions").GetArrayLength());
-            Assert.AreEqual(26, Permissions(byName["serveradmin"]).Length);
+            // Twenty-seven since 24 September 2026: send_through_api, the send API's
+            // (docs/SendApi.md), provision, SCIM's (docs/Scim.md), view_discovery
+            // and manage_discovery, eDiscovery's (docs/Discovery.md), and
+            // manage_inbound_webhooks (docs/InboundWebhooks.md), each appended to
+            // the vocabulary and held by serveradmin.
+            Assert.AreEqual(27, document.RootElement.GetProperty("permissions").GetArrayLength());
+            Assert.AreEqual(27, Permissions(byName["serveradmin"]).Length);
             CollectionAssert.Contains(Permissions(byName["serveradmin"]), "send_through_api");
             CollectionAssert.DoesNotContain(Permissions(byName["auditor"]), "send_through_api", "An auditor sends nothing.");
             CollectionAssert.Contains(Permissions(byName["serveradmin"]), "provision");
@@ -141,6 +142,10 @@ namespace RegressionTests.API
             CollectionAssert.Contains(Permissions(byName["serveradmin"]), "manage_discovery");
             CollectionAssert.Contains(Permissions(byName["auditor"]), "view_discovery", "An auditor reads the discovery cases.");
             CollectionAssert.DoesNotContain(Permissions(byName["auditor"]), "manage_discovery", "An auditor searches, holds and exports nothing.");
+            CollectionAssert.Contains(Permissions(byName["serveradmin"]), "manage_inbound_webhooks");
+            CollectionAssert.DoesNotContain(Permissions(byName["auditor"]), "manage_inbound_webhooks", "An auditor routes no mail to a URL.");
+            CollectionAssert.DoesNotContain(Permissions(byName["domainadmin"]), "manage_inbound_webhooks",
+               "Routing a domain's mail to a URL is as much as reading all of it, which a domain administrator is not given by default.");
          }
       }
 

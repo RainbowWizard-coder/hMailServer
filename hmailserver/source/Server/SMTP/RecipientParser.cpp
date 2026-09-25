@@ -16,6 +16,7 @@
 #include "../Common/Util/MaskedAddresses.h"
 #include "../Common/Util/DistributionListMembership.h"
 #include "../Common/Util/ListManager.h"
+#include "../Common/Util/InboundWebhooks.h"
 #include "../Common/SQL/DatabaseUnavailableMarker.h"
 
 #include "../Common/BO/Domain.h"
@@ -70,6 +71,25 @@ namespace HM
       sSender = pDA->ApplyAliasesOnAddress(sSender);
 
       String recipientAddress = sOriginalRecipient;
+
+      // Set when the address, or one it led to, is routed to a URL by a route
+      // that delivers to the mailbox as well (Util/InboundWebhooks.h): the
+      // route makes the address one this server takes whether or not a mailbox
+      // is found for it below.
+      bool routedAlsoDelivered = false;
+
+      // What an address that is not there - or is switched off - is answered
+      // with: unknown, unless such a route has already made it one this server
+      // takes, when the route alone receives it.
+      auto unknownUnlessRouted = [&]() -> DeliveryPossibility
+      {
+         if (!routedAlsoDelivered)
+            return DP_RecipientUnknown;
+
+         sErrMsg.Empty();
+         bDomainIsLocal = true;
+         return DP_Possible;
+      };
 
       while (true)
       {
@@ -158,6 +178,31 @@ namespace HM
                return DP_RecipientUnknown;
             }
 
+            // An address, or a whole domain, routed to a URL (InboundWebhooks.h).
+            // Asked first, before the list manager's addresses, the accounts,
+            // the aliases and the lists: the route is the administrator saying
+            // where this address's mail goes, and a route that posts only takes
+            // it whether or not a mailbox has the address - a list's posting
+            // rules included, since the list never sees the message. One that
+            // delivers as well goes on to the mailbox below, and so to a list's
+            // posting rules, and is taken even when there is none. A route the
+            // message has been posted to already (routes_taken_) is passed over.
+            // One lock and an empty map on a server with no route.
+            {
+               InboundWebhooks::Route inboundRoute;
+               if (InboundWebhooks::Instance()->FindRoute(primaryAddressWithoutPlusaddressing, inboundRoute) &&
+                   routes_taken_.find(inboundRoute.id) == routes_taken_.end())
+               {
+                  if (!inboundRoute.deliver)
+                  {
+                     bDomainIsLocal = true;
+                     return DP_Possible;
+                  }
+
+                  routedAlsoDelivered = true;
+               }
+            }
+
             // The addresses a managed list answers of its own (ListManager.h):
             // name-subscribe@, -unsubscribe@, -request@, -bounces@ with its VERP
             // form, and -owner@. Asked of the address as the RCPT gave it, before
@@ -218,7 +263,7 @@ namespace HM
                else
                {
                   sErrMsg = "Account is not active.";
-                  return DP_RecipientUnknown;
+                  return unknownUnlessRouted();
                }
             }
 
@@ -234,7 +279,7 @@ namespace HM
                else
                {
                   sErrMsg = "Alias is not active.";
-                  return DP_RecipientUnknown;
+                  return unknownUnlessRouted();
                }
             }
 
@@ -245,7 +290,7 @@ namespace HM
                if (!pList->GetActive())
                {
                   sErrMsg = "Distribution list is not active.";
-                  return DP_RecipientUnknown;
+                  return unknownUnlessRouted();
                }
 
                String moderationKey = primaryAddress;
@@ -299,7 +344,7 @@ namespace HM
                if (!owner)
                {
                   sErrMsg = CONST_UNKNOWN_USER;
-                  return DP_RecipientUnknown;
+                  return unknownUnlessRouted();
                }
 
                recipientAddress = owner->GetAddress();
@@ -327,7 +372,7 @@ namespace HM
             {
                // The recipient is not configured in the route, and the domain is external.
                sErrMsg = "Recipient not in route list.";
-               return DP_RecipientUnknown;
+               return unknownUnlessRouted();
             }
          }
 
@@ -355,7 +400,7 @@ namespace HM
          }
 
          sErrMsg = CONST_UNKNOWN_USER;
-         return DP_RecipientUnknown;
+         return unknownUnlessRouted();
       }
    }
 
@@ -432,6 +477,32 @@ namespace HM
          // First check if this domain is really active.
          if (!pDomain->GetIsActive())
             return;
+
+         // An address routed to a URL (InboundWebhooks.h): one recipient with no
+         // account behind it, written as the RCPT gave it - a plus tag kept, for
+         // the application it is posted to - which InboundWebhooks takes off the
+         // message in the delivery path, before the list manager and local
+         // delivery. A route that delivers as well puts back what the address
+         // reaches without it, from a parser told which routes have the message
+         // already. Before the list manager's addresses and the accounts, as
+         // CheckDeliveryPossibility asks.
+         {
+            InboundWebhooks::Route inboundRoute;
+            if (InboundWebhooks::Instance()->FindRoute(addressBeforePlus, inboundRoute) &&
+                routes_taken_.find(inboundRoute.id) == routes_taken_.end())
+            {
+               std::shared_ptr<MessageRecipient> routedRecipient = std::shared_ptr<MessageRecipient>(new MessageRecipient);
+               routedRecipient->SetAddress(addressBeforePlus);
+               routedRecipient->SetOriginalAddress(sOriginalAddress);
+               routedRecipient->SetLocalAccountID(0);
+               routedRecipient->SetIsLocalName(true);
+
+               recipientOK = true;
+
+               AddRecipient_(pRecipients, routedRecipient);
+               return;
+            }
+         }
 
          // An address a managed list answers of its own (ListManager.h): one
          // recipient with no account behind it, which the list manager answers

@@ -635,12 +635,14 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiPortal.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSettings.cpp" />
     <ClCompile Include="..\Common\Util\RestApiWebhooks.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiInboundWebhooks.cpp" />
     <ClCompile Include="..\Common\Util\RestApiAudit.cpp" />
     <ClCompile Include="..\Common\Util\RestApiBounces.cpp" />
     <ClCompile Include="..\Common\Util\RestApiComplaints.cpp" />
     <ClCompile Include="..\Common\Util\AuditTrail.cpp" />
     <ClCompile Include="..\Common\Util\AlertManager.cpp" />
     <ClCompile Include="..\Common\Util\WebhookManager.cpp" />
+    <ClCompile Include="..\Common\Util\InboundWebhooks.cpp" />
     <ClCompile Include="..\Common\Util\WebPush.cpp" />
     <ClCompile Include="..\Common\Util\PushSubscriptions.cpp" />
     <ClCompile Include="..\Common\Util\PushNotifier.cpp" />
@@ -1657,6 +1659,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\AuditTrail.h" />
     <ClInclude Include="..\Common\Util\AlertManager.h" />
     <ClInclude Include="..\Common\Util\WebhookManager.h" />
+    <ClInclude Include="..\Common\Util\InboundWebhooks.h" />
     <ClInclude Include="..\Common\Util\SessionPolicies.h" />
     <ClInclude Include="..\Common\Util\SignInStore.h" />
     <ClInclude Include="..\Common\Util\WebPush.h" />

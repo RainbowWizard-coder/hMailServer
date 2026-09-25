@@ -369,10 +369,10 @@ Four rows in `hm_settings` — none of them in `hMailServer.ini`.
 
 | Setting | REST key | Default | What it does |
 |---|---|---|---|
-| `WebhooksEnabled` | `webhooks_enabled` | on | The master switch. It opens nothing on its own; it is what silences every receiver at once without deleting the subscriptions that name them |
-| `WebhookMaxAttempts` | `webhook_max_attempts` | 5 | Attempts before a delivery is dead-lettered. 1 to 20 |
+| `WebhooksEnabled` | `webhooks_enabled` | on | The master switch. It opens nothing on its own; it is what silences every receiver at once without deleting the subscriptions that name them. It does not silence the inbound webhooks ([InboundWebhooks.md](InboundWebhooks.md)), each of whose routes is on or off by itself |
+| `WebhookMaxAttempts` | `webhook_max_attempts` | 5 | Attempts before a delivery is dead-lettered - and before an inbound webhook's message is kept or returned to its sender, as its route says. 1 to 20 |
 | `WebhookMaxPerMinute` | `webhook_max_per_minute` | 60 | The ceiling for a subscription that names none of its own. 1 to 100000 |
-| `WebhookRetentionDays` | `webhook_retention_days` | 7 | Days of delivered and dead-lettered rows to keep. 0 keeps everything. 0 to 3650 |
+| `WebhookRetentionDays` | `webhook_retention_days` | 7 | Days of delivered and dead-lettered rows to keep - and of an inbound webhook's delivered and returned ones; its kept messages are never swept. 0 keeps everything. 0 to 3650 |
 
 On COM they are `Settings.WebhooksEnabled`, `.WebhookMaxAttempts`,
 `.WebhookMaxPerMinute` and `.WebhookRetentionDays`. A value outside a range is
@@ -451,8 +451,11 @@ administrator's.
 ## What this does not do
 
 - **It does not carry the message.** See the top of this document.
-- **There is no inbound webhook.** Nothing here lets another program tell this
-  server to do something; that is the REST API, which is authenticated.
+- **It does not post mail.** Nothing here hands another program a message; an
+  address or a domain whose mail is posted to a URL is an inbound webhook
+  ([InboundWebhooks.md](InboundWebhooks.md)), which signs with this recipe and
+  retries on this schedule. Nothing here lets another program tell this server to
+  do something either; that is the REST API, which is authenticated.
 - **There is no per-subscription retry policy.** The ladder and the attempt
   count are the server's, and the attempt count is a setting for the whole
   server rather than for one subscription.

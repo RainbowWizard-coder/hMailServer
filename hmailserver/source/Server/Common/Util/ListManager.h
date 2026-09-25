@@ -142,7 +142,13 @@ namespace HM
       // message, so that local delivery never reuses the message's file for a
       // single local recipient beside it. SetAside takes the held recipients off
       // the message after local delivery, and HoldForRetry reschedules it.
-      static void TakeListRecipients(std::shared_ptr<Message> message, std::vector<std::shared_ptr<MessageRecipient> > &held);
+      //
+      // notMine, when given, is recipients another part of the delivery path
+      // is holding the same way - an inbound webhook's whose copy could not be
+      // kept (InboundWebhooks.h) - which have the same shape as the manager's
+      // and are left alone.
+      static void TakeListRecipients(std::shared_ptr<Message> message, std::vector<std::shared_ptr<MessageRecipient> > &held,
+                                     const std::vector<std::shared_ptr<MessageRecipient> > *notMine = nullptr);
 
       // Takes the held recipients off the message, leaving their rows.
       static void SetAside(std::shared_ptr<Message> message, const std::vector<std::shared_ptr<MessageRecipient> > &held);

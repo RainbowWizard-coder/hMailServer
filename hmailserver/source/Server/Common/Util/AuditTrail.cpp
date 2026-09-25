@@ -149,6 +149,13 @@ namespace HM
          // it is recorded like the routes are. The secret itself is not: the
          // column is called whsecret and SecretFragments matches "secret".
          { L"hm_webhooks",                    L"webhook subscription" },
+         // An inbound webhook: an address or a domain whose mail is posted to a
+         // URL. Making one is the change that hands somebody else's program the
+         // mail itself, so it is recorded under whoever made it - an API key's
+         // name among them. The secret is not: the column is ihsecret. Its queue
+         // is traffic (NOT_AUDITED); a kept message read, retried or removed is
+         // recorded as an event by the routes that do it.
+         { L"hm_inboundhooks",                L"inbound webhook" },
          // An OpenPGP public key held for an account, which this server may publish
          // to the whole internet from its Web Key Directory. Who put a key under
          // somebody's address, and who took one away, is the question that matters
@@ -205,6 +212,11 @@ namespace HM
          // what is changed from stock and this table must not answer the PEM
          // back either.
          L"idpcertificate",
+         // An inbound webhook's URL (ihurl, Util/InboundWebhooks.h). Not a secret
+         // by its name, but a receiver's URL very often carries one - a token
+         // in its path or its query, the whole of a capability URL - and the
+         // trail is read by every holder of view_audit.
+         L"ihurl",
       };
 
       // Settings whose NAME carries one of the fragments above and whose value
