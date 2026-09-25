@@ -34,7 +34,6 @@
 #include "../BO/MessageRecipients.h"
 #include "../BO/ServerMessages.h"
 #include "../Cache/CacheContainer.h"
-#include "../Application/IniFileSettings.h"
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/MessageStore.h"
@@ -987,12 +986,6 @@ namespace HM
       const long retries = smtp ? smtp->GetNoOfRetries() : 0;
       long minutes = smtp ? smtp->GetMinutesBetweenTry() : 60;
 
-      // The queue's quick retries first, where it has them, as an outside
-      // recipient's deferral and local delivery's hold take them.
-      const int quickRetries = IniFileSettings::Instance()->GetQuickRetries();
-      const int quickMinutes = IniFileSettings::Instance()->GetQuickRetriesMinutes();
-      if (quickRetries > 0 && quickMinutes > 0 && (int) message->GetNoOfRetries() < quickRetries)
-         minutes = quickMinutes;
 
       if (minutes < 1)
          minutes = 1;

@@ -330,6 +330,12 @@ namespace RegressionTests.Infrastructure
          string plain = AddAccount("atrest-token-plain");
          SwitchOn(keyed);
 
+         // AUTHENTICATE answers only while SASL is on (IMAPCommandAuthenticate.cpp);
+         // the bench leaves it off, so the refusal asserted below was never reached.
+         bool saslFound = _application.Settings.IMAPSASLPlainEnabled;
+         putBack_.Add(() => { _application.Settings.IMAPSASLPlainEnabled = saslFound; });
+         _application.Settings.IMAPSASLPlainEnabled = true;
+
          SetIni("OAuth2Enabled", "1");
          SetIni("OAuth2RequireTLS", "0");
          SetIni("OAuth2AllowedAlgorithms", "HS256");
@@ -671,7 +677,10 @@ namespace RegressionTests.Infrastructure
             string report = FetchLiteral(sender, Password, "INBOX", 1, "BODY.PEEK[]");
             ClassicAssert.IsNotNull(report, "The report to the sender could not be read.");
             StringAssert.Contains(damaged, report);
-            StringAssert.Contains("confirm=forfeit", report, "The report does not name the forfeit.");
+            // The bounce's text part is quoted-printable: its "=" is =3D and its long
+            // lines end in soft breaks, so the raw message never holds the phrase.
+            string reportText = report.Replace("=\r\n", "").Replace("=3D", "=");
+            StringAssert.Contains("confirm=forfeit", reportText, "The report does not name the forfeit.");
             ClassicAssert.AreEqual(0, Inbox(damaged).Messages.Count, "A message was stored for an account whose key row holds no key.");
             ClassicAssert.AreEqual(0, TestSetup.GetNumberOfMessagesInDeliveryQueue(), "The damaged recipient's message was held in the queue rather than bounced at once.");
 

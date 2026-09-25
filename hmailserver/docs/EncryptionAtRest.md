@@ -227,7 +227,8 @@ never a guess:
 * a **delivery** to such an account waits in the queue: the recipient's row stays, and
   the message is tried again - at the queue's quick-retry interval for its first tries
   when the queue has one (`QuickRetries`, `QuickRetriesMinutes`), then on the SMTP retry
-  schedule - as a posting the list manager could not read is; the sender is told -
+  schedule (a posting the list manager could not read waits the SMTP retry interval
+  instead, as it always has); the sender is told -
   4.3.0, this server's own failure - only when the retries run out. It is never bounced
   while retries are left, never discarded, and never stored in the clear. An outside
   recipient of the same message whose own retries ran out meanwhile is reported once
