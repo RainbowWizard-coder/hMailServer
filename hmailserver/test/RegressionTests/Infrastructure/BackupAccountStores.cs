@@ -105,7 +105,9 @@ namespace RegressionTests.Infrastructure
          IniFileSetting.Write("WebServicesHttpPort", "0");
          // Put back whatever a test turned on, whether it reached its own last line
          // or not: a setting left behind here runs every fixture after this one.
-         IniFileSetting.Write("PasswordPolicyHistoryCount", "0");
+         // Deleted, not written as 0: the stock server has no such line, and
+         // pre-flight rightly reports an explicit 0 as a test's leftover.
+         IniFileSetting.Delete("PasswordPolicyHistoryCount");
          RestListener.Stop();
          _application.Reinitialize();
 
