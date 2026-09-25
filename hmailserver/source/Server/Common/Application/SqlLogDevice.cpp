@@ -728,6 +728,14 @@ namespace HM
       // TABLE - because that is the form known to work on SQL Server Compact,
       // where an inline PRIMARY KEY on an identity column is not something this
       // schema has ever relied on.
+      //
+      // The MySQL table carries the options every table of CreateTablesMySQL.sql
+      // carries since schema 6102: utf8mb4, so that a log line quoting a subject
+      // or an address with a character outside the Basic Multilingual Plane is
+      // written rather than refused (error 1366 under strict mode) - MySQL's utf8
+      // is three bytes a character - and utf8mb4_general_ci, the same collation
+      // as every other table. build/check-mysql-charset.py holds this statement
+      // to it, and the 6102 step converts a table an earlier build created.
       switch (IniFileSettings::Instance()->GetDatabaseType())
       {
       case DatabaseSettings::TypeMYSQLServer:
@@ -743,7 +751,7 @@ namespace HM
             _T("   logsession int not null,")
             _T("   logremoteip varchar(64) not null,")
             _T("   logtext varchar(3000) not null")
-            _T(") DEFAULT CHARSET=utf8 /* [IGNORE-ERRORS] */"));
+            _T(") ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci /* [IGNORE-ERRORS] */"));
 
          statements.push_back(
             _T("create index idx_hm_log_logtime on hm_log (logtime) /* [IGNORE-ERRORS] */"));

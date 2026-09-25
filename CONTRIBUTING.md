@@ -401,6 +401,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-installer-scripts.py` | The Windows installer runs each uninstall step once, waits for the server's process before it replaces or deletes a file, marks every file that process loads `uninsrestartdelete`, and starts the service for an upgrade's database step with the argument the server reads; `hMailServer.exe /Unregister` creates nothing and removes the event source | Proves its own negative controls on every run |
 | `check-localisation.py` | The Control Panel's catalogues agree with the translation marks, and the 17 complete languages are complete | **Rewrites** `Strings.resx` and every catalogue with `--write`; `--inventory` lists what is untranslated |
 | `check-mnemonics.py` | Every static Control Panel caption has an Alt-key mnemonic, with no clash on one screen | `--list` |
+| `check-mysql-charset.py` | Every MySQL table is `utf8mb4` under `utf8mb4_general_ci`, InnoDB and DYNAMIC: every CREATE TABLE in the create script and in the upgrade scripts from 6102 on, the 6102 step's conversion of every table, the index lengths at four bytes a character, and the table and database the server creates itself | `--self-test` |
 | `check-openapi-blocks.py` | Exactly one comma between the OpenAPI path blocks | |
 | `check-package-manifests.py` | The winget and Chocolatey manifests against their schemas | Needs the `jsonschema` and `pyyaml` packages and manifests rendered by `build/make-package-manifests.ps1`, and checks that the installer URL is a release asset on GitHub. Not usable until the release host moves |
 | `check-password-choice-sites.py` | Every place a password is chosen asks the policy and the breach check | `--self-test` |
@@ -456,7 +457,7 @@ something which already exists.
 |---|---|
 | Anything | `add-license-headers.py --check`, `check-project-items.py` |
 | C++ in the server | The server build (`/WX`); `check-collection-iteration.py`, `check-audit-choke-point.py`, `check-role-choke-point.py`, `check-authz-choke-point.py`, `check-com-dispids.py`, `check-com-error-info.py`, `check-password-choice-sites.py`, `check-setting-levels.py` where they apply; the Linux build or census if the file is in the Linux core |
-| SQL or the schema | `check-schema-versions.ps1`, `check-db-scripts.ps1`, `check-sql-separators.py`, `check-sql-parameters.py`, `check-upgrade-inserts.py`, `check-settings-rows.py`, `check-account-stores.py`, `generate-settings-defaults.py --check` |
+| SQL or the schema | `check-schema-versions.ps1`, `check-db-scripts.ps1`, `check-mysql-charset.py`, `check-sql-separators.py`, `check-sql-parameters.py`, `check-upgrade-inserts.py`, `check-settings-rows.py`, `check-account-stores.py`, `generate-settings-defaults.py --check` |
 | A REST route | `check-role-choke-point.py`, `check-openapi-blocks.py`, `check-audit-choke-point.py`, `check-deck-parity.py`, `check-cli.py` if a client verb changed |
 | The Control Panel | Its build and tests, `check-mnemonics.py`, `check-localisation.py`, `check-catalogues.py`, `check-ini-coverage.py`, `check-help-map.py`, `generate-settings-index.ps1`, `dotnet format` |
 | The Control Deck | `check-deck-script.py`, `check-deck-languages.py`, `check-help-map.py`, `check-deck-parity.py` |

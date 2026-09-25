@@ -423,7 +423,12 @@ namespace HM
          sSQL.Format(_T("create database %s"), sDatabaseName.c_str());
          break;
       case DatabaseSettings::TypeMYSQLServer:
-         sSQL.Format(_T("create database %s character set 'utf8'"), sDatabaseName.c_str());
+         // utf8mb4 under utf8mb4_general_ci, what every table of CreateTablesMySQL.sql
+         // names for itself since schema 6102: MySQL's utf8 is three bytes a
+         // character and refuses anything outside the Basic Multilingual Plane.
+         // The tables do not depend on this default; a table that names nothing
+         // would, and build/check-mysql-charset.py refuses such a table.
+         sSQL.Format(_T("create database %s character set utf8mb4 collate utf8mb4_general_ci"), sDatabaseName.c_str());
          break;
       case DatabaseSettings::TypePGServer:
          sSQL.Format(_T("create database \"%s\" ENCODING = 'UTF8'"), sDatabaseName.c_str());

@@ -1149,4 +1149,27 @@
 //      the start. An upgraded server has no resource, and delivers and
 //      answers exactly as it did.
 //      (6099 and 6100 are two other rows' steps, folded before this one.)
-#define REQUIRED_DB_VERSION            6101
+// 6102 moves every MySQL table to utf8mb4 (DBScripts/Upgrade6101to6102MySQL.sql,
+//      docs/MigratingDatabaseBackend.md). MySQL's utf8 is utf8mb3, three bytes a
+//      character, and 106 of the create script's 123 tables were in it, fifteen
+//      took the database's default and two were utf8mb4 under whatever collation
+//      the server preferred - while the connection has said SET NAMES utf8mb4 for
+//      years - so an emoji or a CJK Extension B character in a contact, a folder,
+//      a subject or a setting was refused with error 1366 under strict mode, or
+//      made a question mark without it. The step converts every table, and the
+//      SQL log device's hm_log where an earlier build made it, to utf8mb4 under
+//      utf8mb4_general_ci - utf8_general_ci's own twin, so every comparison and
+//      unique index over what the tables can already hold compares as before -
+//      with ENGINE=InnoDB and ROW_FORMAT=DYNAMIC, because a varchar(255) key is
+//      1020 bytes at four a character, over MyISAM's 1000 and COMPACT's 767. The
+//      three utf8_bin columns (hm_knownsenders.ksaddress, hm_autoreplies.arsender,
+//      hm_domainsamples.dsdomain) become utf8mb4_bin, and the database's default
+//      becomes utf8mb4 too. It needs MySQL 5.7.9 or MariaDB 10.2.2; on an older
+//      server its first table fails and nothing is changed. It lifts MariaDB's
+//      statement time limit for its own connection, since that limit stops an
+//      ALTER TABLE and the runner sets it to half an hour. SQL Server, SQL
+//      Server Compact and PostgreSQL store every character already (nvarchar,
+//      UTF-8), and their scripts only move the version.
+//      (6099, 6100 and 6101 are the encryption-at-rest, inbound-webhook and rooms
+//      rows' steps, folded before this one.)
+#define REQUIRED_DB_VERSION            6102

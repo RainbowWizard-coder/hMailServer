@@ -316,9 +316,10 @@ nothing of it is uploaded: each file is a submission against the sandbox's quota
 and a request at every poll. `SandboxTimeoutAction` decides it at once, with
 `not examined: <n> files to submit, more than SandboxMaxFiles (<m>)`.
 
-A file name is stored as it can be kept in every database this server runs on: a
-character outside the Basic Multilingual Plane - an emoji - is a question mark in
-the held list and the log, since MySQL's `utf8` would refuse it.
+A file name is stored with a character outside the Basic Multilingual Plane - an
+emoji - as a question mark, in the held list and the log. The rule was made for
+MySQL, whose tables were three-byte `utf8` and refused such a character until
+schema 6102 moved them to `utf8mb4`; it has not been lifted since.
 
 An encrypted message's ciphertext is one attachment by its media type
 (`smime.p7m`, `encrypted.asc`); it is submitted only if its extension or type is

@@ -257,6 +257,16 @@ sudo -u postgres createuser --pwprompt hmailserver                # the tidier p
 sudo -u postgres createdb --owner hmailserver hmailserver         # step 4b fills the empty database
 ```
 
+MySQL 5.7.9 or MariaDB 10.2.2 or later, with the database in `utf8mb4` if you
+create it yourself - [MigratingDatabaseBackend.md](../../../../docs/MigratingDatabaseBackend.md#mysql-and-mariadb)
+says why:
+
+```sh
+sudo mariadb -e "CREATE DATABASE hmailserver CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+  CREATE USER 'hmailserver'@'localhost' IDENTIFIED BY '<password>';
+  GRANT ALL PRIVILEGES ON hmailserver.* TO 'hmailserver'@'localhost';"
+```
+
 **3. Edit the configuration.**
 
 ```sh

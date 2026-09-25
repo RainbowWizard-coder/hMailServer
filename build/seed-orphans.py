@@ -72,7 +72,11 @@ UNIQUE_VALUES = {
 def parse_tables(sql):
     """table name -> list of (column, type, nullable, has_default, is_identity)."""
     tables = {}
-    for m in re.finditer(r"create\s+table\s+`?(\w+)`?\s*\((.*?)\)\s*(?:DEFAULT\s+CHARSET\s*=\s*\w+\s*)?;", sql, re.S | re.I):
+    # The table options, if any, hold no parenthesis: MySQL's since schema 6102 are
+    # "ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=...", and
+    # a pattern that knew only DEFAULT CHARSET ran on past them into the next
+    # statement's parentheses.
+    for m in re.finditer(r"create\s+table\s+`?(\w+)`?\s*\((.*?)\)\s*[^;()]*;", sql, re.S | re.I):
         name = m.group(1).lower()
         cols = []
         for raw in re.split(r",\s*\n", m.group(2)):

@@ -328,6 +328,45 @@ without the Control Panel. The runtime is bundled as
 when it is missing, and the setup tools (`DBSetup`, `DBSetupQuick`, `DBUpdater`)
 need it as well as the Control Panel does.
 
+**MySQL and MariaDB: schema 6102 rebuilds every table.** The step converts every
+table to `utf8mb4` under `utf8mb4_general_ci`, InnoDB and `ROW_FORMAT=DYNAMIC`, so
+that a character outside the Basic Multilingual Plane - an emoji - is stored instead
+of refused; [MigratingDatabaseBackend.md](MigratingDatabaseBackend.md#mysql-and-mariadb)
+says why each of the three. What it means for the upgrade:
+
+* **It takes as long as copying the database.** Each table is rebuilt, one after the
+  other, and the largest - `hm_messages`, `hm_message_metadata`,
+  `hm_messageindexterms`, `hm_messagerecipients`, `hm_audit` - take the time. With
+  the schema empty it is one to five seconds; on a large installation plan minutes
+  or more, and have free disk space of the order of the largest table, since InnoDB
+  writes the new copy before it drops the old.
+* **It needs MySQL 5.7.9 or MariaDB 10.2.2.** On an older server its first statement
+  fails with error 1071 and nothing has been changed; upgrade the database server,
+  then the schema.
+* **It needs the ALTER privilege on the database**, not only on its tables, because
+  it also changes the database's default character set. An account granted
+  `ALL PRIVILEGES ON <database>.*` has it.
+* **It can stop at a duplicate.** Most tables compared under `utf8_general_ci`, of
+  which `utf8mb4_general_ci` is the twin, and a unique index over them cannot meet a
+  duplicate it did not meet before. Some compared under a collation that tells apart
+  a few things `utf8mb4_general_ci` does not: every `utf8` table on MariaDB 11.5 and
+  later (`utf8mb3_uca1400_ai_ci`, which keeps `straße` apart from `strase`), the
+  tables that were `utf8mb4` already - the calendar tables, and the IMAP metadata
+  table of a database upgraded through 6014 - under the server's own `utf8mb4`
+  collation (`utf8mb4_0900_ai_ci` on MySQL 8, `utf8mb4_uca1400_ai_ci` on MariaDB 11.4
+  and 11.8, both of which keep apart two names that differ only in an emoji), and,
+  in a database an administrator made, the fifteen
+  tables that named no character set and took the server's default
+  (`latin1_swedish_ci`, for one, keeps `Ä` apart from `A`). Two such rows under one
+  unique index stop the step with error 1062, which names the index and the value.
+  Rename or remove one and run the upgrade again: every statement of the step can
+  run twice, a table already converted is converted again at no harm, and the step
+  finishes.
+* **Afterwards a `text` column may read `mediumtext`**, and a `mediumtext` one
+  `longtext`: MySQL widens a column it converts to four bytes a character so that it
+  holds as many characters as it did. A fresh database keeps the declared types; the
+  server reads both alike.
+
 **Scripts that change the configuration over COM.** From the release after 6.3.3, a
 COM change to a route (and a route's addresses), an incoming relay, a DNS black
 list, a SURBL server, a remote domain policy, a server message, a blocked

@@ -192,6 +192,10 @@ drop table if exists hm_incoming_relays;
 
 drop table if exists hm_logon_failures;
 
+-- Every table is utf8mb4 under utf8mb4_general_ci, InnoDB and DYNAMIC (schema 6102), so that a
+-- character outside the Basic Multilingual Plane is stored rather than refused; the indexes fit
+-- InnoDB's DYNAMIC limits at four bytes a character. build/check-mysql-charset.py holds every
+-- table in this script, and every table a MySQL upgrade script creates from 6102 on, to it.
 create table hm_accounts 
 (
 	accountid int auto_increment not null, primary key(`accountid`), unique(`accountid`),
@@ -237,7 +241,7 @@ create table hm_accounts
 	accountrestricteddelivery int not null default 0,
 	accountexternalid varchar(255) not null default '',
 	accountkind int not null default 0
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_accounts ON hm_accounts (accountaddress);
 
@@ -250,7 +254,7 @@ create table hm_aliases
 	aliasname varchar (255) not null, unique(`aliasname`),
 	aliasvalue varchar (255) not null ,
 	aliasactive tinyint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_aliases ON hm_aliases (aliasdomainid, aliasname);
 
@@ -328,7 +332,7 @@ create table hm_domains
 	domainimpersonationaction int not null default 0,
 	domainprotectedpersons varchar(2000) not null default '',
 	domainprotectedpartners varchar(2000) not null default ''
-)  DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_domains ON hm_domains (domainname);
 
@@ -337,7 +341,7 @@ create table hm_domain_aliases
 	daid int auto_increment not null, primary key(`daid`), unique(`daid`),
 	dadomainid int not null ,
 	daalias varchar(255) not null
-)  DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_messages 
 (
@@ -360,7 +364,7 @@ create table hm_messages
    messagekeywords varchar(500) not null default '',
    messagesubmitterid int not null default 0,
    messageauthdomains varchar(255) not null default ''
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_messages ON hm_messages (messageaccountid, messagefolderid);
 
@@ -373,7 +377,7 @@ create table hm_storeblobs
 	sbsize bigint not null,
 	sbrefs int not null,
 	sbcreated bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_storeblobs_sha256 ON hm_storeblobs (sbsha256);
 
@@ -390,7 +394,7 @@ create table hm_message_metadata
    metadata_subject varchar(255) not null,
    metadata_to varchar(255) not null,
    metadata_cc varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_message_metadata_unique ON hm_message_metadata (`metadata_accountid`,  `metadata_folderid`, `metadata_messageid`);
 
@@ -402,7 +406,7 @@ create table hm_settings
 	settingname varchar (30) not null, unique(`settingname`),
 	settingstring varchar (4000) not null ,
 	settinginteger int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_inisettings
 (
@@ -410,12 +414,12 @@ create table hm_inisettings
 	inisettingname varchar (100) not null, unique(`inisettingname`),
 	inisettingvalue text not null,
 	inisettingfilevalue text not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_dbversion 
 (
 	value int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_distributionlists 
 (
@@ -443,7 +447,7 @@ create table hm_distributionlists
 	distributionlistverp int not null default 0,
 	distributionlistowner varchar(255) not null default '',
 	distributionlistsecret varchar(64) not null default ''
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_distributionlists ON hm_distributionlists (distributionlistdomainid);
 
@@ -461,7 +465,7 @@ create table hm_distributionlistsrecipients
 	distributionlistrecipientsoftsince bigint not null default 0,
 	distributionlistrecipientlastbounce bigint not null default 0,
 	distributionlistrecipientreason varchar(255) not null default ''
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_distributionlistsrecipients ON hm_distributionlistsrecipients (distributionlistrecipientlistid);
 
@@ -475,7 +479,7 @@ create table hm_messagerecipients
 	recipientlocalaccountid int not null,
 	recipientoriginaladdress varchar(255) not null,
 	recipientdsnnotify int not null default 0
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_messagerecipients ON hm_messagerecipients (recipientmessageid);
 
@@ -490,7 +494,7 @@ create table hm_imapfolders
   foldercurrentuid bigint NOT NULL,
   foldercurrentmodseq bigint NOT NULL default 1,
   folderspecialuse int NOT NULL default 0
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_imapfolders ON hm_imapfolders (folderaccountid);
 
@@ -502,7 +506,7 @@ create table hm_imapexpunged
   expungedfolderid int not null,
   expungeduid bigint not null,
   expungedmodseq bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_imapexpunged ON hm_imapexpunged (expungedfolderid, expungedmodseq);
 
@@ -522,14 +526,14 @@ create table hm_routes
   routetreatsecurityaslocal tinyint NOT NULL,
   routeconnectionsecurity tinyint not null,
   routetreatsenderaslocaldomain tinyint NOT NULL
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_routeaddresses
 (
   routeaddressid mediumint(9) NOT NULL auto_increment, primary key(routeaddressid), unique(routeaddressid),
   routeaddressrouteid int NOT NULL,
   routeaddressaddress varchar(255) NOT NULL
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_securityranges
 (
@@ -543,7 +547,7 @@ create table hm_securityranges
 	rangename varchar (100) not null, unique(`rangename`),
    rangeexpires tinyint not null,
 	rangeexpirestime datetime not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_dnsbl
 (
@@ -553,7 +557,7 @@ create table hm_dnsbl
 	sblresult varchar(255) not null,
 	sblrejectmessage varchar(255) not null,
 	sblscore int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_fetchaccounts
 (	
@@ -582,7 +586,7 @@ create table hm_fetchaccounts
 	faoauthtoken text not null,
 	famirrorskip text not null,
 	famirrorseen text not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_fetchaccounts_uids
 (
@@ -590,7 +594,7 @@ create table hm_fetchaccounts_uids
 	uidfaid int not null,
 	uidvalue varchar(255) not null,
 	uidtime datetime not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_fetchaccounts_uids ON hm_fetchaccounts_uids (uidfaid);
 
@@ -604,7 +608,7 @@ create table hm_apppasswords
 	apcreated datetime not null,
 	aplastused datetime null,
 	apactive tinyint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_apppasswords ON hm_apppasswords (apaccountid);
 
@@ -620,7 +624,7 @@ create table hm_contacts
 	contactuid varchar(255) not null default '',
 	contactvcard mediumtext not null,
 	contactbookid int not null default 0
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_contacts_account ON hm_contacts (contactaccountid, contactaddress);
 
@@ -632,7 +636,7 @@ create table hm_addressbooks
 	bookaccountid int not null,
 	bookname varchar(255) not null,
 	bookcreated bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_addressbooks_account ON hm_addressbooks (bookaccountid, bookname);
 
@@ -644,7 +648,7 @@ create table hm_addressbookshares
 	sharedomainid int not null,
 	sharewrite int not null,
 	sharecreated bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_addressbookshares_target ON hm_addressbookshares (sharebookid, shareaccountid, sharedomainid);
 
@@ -654,7 +658,7 @@ create table hm_accountprefs
 	prefaccountid int not null,
 	prefname varchar(64) not null,
 	prefvalue varchar(4000) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_accountprefs_name ON hm_accountprefs (prefaccountid, prefname);
 
@@ -667,7 +671,7 @@ create table hm_scheduled
 	schedat datetime not null,
 	schedfolderid bigint not null,
 	schedcreated datetime not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_scheduled_account ON hm_scheduled (schedaccountid);
 
@@ -685,7 +689,7 @@ create table hm_files
 	fileexpires bigint not null,
 	filepasswordhash varchar(64) not null,
 	filedownloads int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_files_account ON hm_files (fileaccountid);
 
@@ -705,7 +709,7 @@ create table hm_smimekeys
 	smimenotafter bigint not null,
 	smimecreated bigint not null,
 	smimeauthority tinyint not null default 0
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_smimekeys_account ON hm_smimekeys (smimeaccountid);
 
@@ -720,7 +724,7 @@ create table hm_calendars
 	calendarsynctoken bigint not null,
 	calendarcreated bigint not null,
 	calendarcolor varchar(16) not null default ''
-) DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_calendars_account ON hm_calendars (calendaraccountid, calendarname);
 
@@ -741,7 +745,7 @@ create table hm_calendarobjects
 	objectlast bigint not null,
 	objectdeleted tinyint not null,
 	objectmodified bigint not null
-) DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_calendarobjects_uri ON hm_calendarobjects (objectcalendarid, objecturi);
 
@@ -755,7 +759,7 @@ create table hm_calendarshares
 	sharewrite int not null,
 	sharegroupid int not null default 0,
 	sharedelegate int not null default 0
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_calendarshares_pair ON hm_calendarshares (sharecalendarid, shareaccountid, sharegroupid);
 
@@ -767,7 +771,7 @@ create table hm_senderaddresses
 	saname varchar(255) not null,
 	saverified tinyint not null,
 	sacreated datetime not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_senderaddresses_address ON hm_senderaddresses (saaccountid, saaddress);
 
@@ -780,7 +784,7 @@ create table hm_maskedaddresses
 	maactive tinyint not null,
 	mareceived int not null,
 	macreated datetime not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_maskedaddresses_address ON hm_maskedaddresses (maaddress);
 
@@ -799,7 +803,7 @@ create table hm_passkeys
 	pkaaguid varchar(64) not null,
 	pkcreated bigint not null,
 	pklastused bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_passkeys_account ON hm_passkeys (pkaccountid);
 
@@ -819,7 +823,7 @@ create table hm_directory
 	diroptout tinyint not null default 0,
 	dirnote varchar(255) not null default '',
 	dirupdated datetime not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_directory_account ON hm_directory (diraccountid);
 
@@ -893,7 +897,7 @@ create table hm_recoverable
 	rcfrom varchar(255) not null,
 	rcflags int not null,
 	rcdeleted bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_recoverable_account ON hm_recoverable (rcaccountid);
 
@@ -912,7 +916,7 @@ create table hm_confidential
 	cfopened bigint not null,
 	cfopenedby varchar(255) not null,
 	cfrevoked int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_confidential_token ON hm_confidential (cftoken);
 
@@ -941,7 +945,7 @@ create table hm_dmarcreports
 	drrecords int not null,
 	drmsgdmarc varchar(16) not null,
 	drmsgfrom varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_dmarcreports_key ON hm_dmarcreports (drkey);
 
@@ -962,7 +966,7 @@ create table hm_dmarcreportrecords
 	rrenvelopefrom varchar(255) not null,
 	rrdkimauth varchar(500) not null,
 	rrspfauth varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_dmarcreportrecords_report ON hm_dmarcreportrecords (rrreportid);
 
@@ -983,7 +987,7 @@ create table hm_tlsreports
 	trfailures varchar(2000) not null,
 	trreceived bigint not null,
 	trsource varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_tlsreports_key ON hm_tlsreports (trkey);
 
@@ -1004,7 +1008,7 @@ create table hm_accountactivity
 	acsource int not null,
 	acmessageid bigint not null,
 	acheld int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_accountactivity_account ON hm_accountactivity (acaccountid, actime);
 
@@ -1016,7 +1020,7 @@ create table hm_accountrecipients
 	arcfirst bigint not null,
 	arclast bigint not null,
 	arccount int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_accountrecipients_address ON hm_accountrecipients (arcaccountid, arcaddress);
 
@@ -1033,7 +1037,7 @@ create table hm_accountreview
 	arvscore int not null,
 	arvsignals varchar(255) not null,
 	arvreason varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_accountreview_account ON hm_accountreview (arvaccountid);
 
@@ -1049,7 +1053,7 @@ create table hm_heldmessages
 	hmsubject varchar(255) not null,
 	hmsize bigint not null,
 	hmreason varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_heldmessages_account ON hm_heldmessages (hmaccountid);
 
@@ -1077,7 +1081,7 @@ create table hm_remotedomainpolicies
 	policyencrypt int not null default 0,
 	policyencryptkey text not null,
 	policyencryptfallback int not null default 0
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_remotedomainpolicies_domain ON hm_remotedomainpolicies (policydomainname);
 
@@ -1090,7 +1094,7 @@ create table hm_rules
 	ruleactive tinyint not null,
 	ruleuseand tinyint not null,
 	rulesortorder int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_rules ON hm_rules (ruleaccountid);
 
@@ -1104,7 +1108,7 @@ create table hm_rule_criterias
 	criteriamatchtype tinyint not null,
 	criteriamatchvalue varchar(2000) not null
 	
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_rules_criterias ON hm_rule_criterias (criteriaruleid);
 
@@ -1126,7 +1130,7 @@ create table hm_rule_actions
 	actionvalue varchar(255) not null,
     actionrouteid int not null,
 	actionabortspamflagged tinyint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_rules_actions ON hm_rule_actions (actionruleid);
 
@@ -1138,7 +1142,7 @@ create table hm_surblservers
 	surblrejectmessage varchar(255) not null,
 	surblresult varchar(255) not null default '',
 	surblscore int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_greylisting_triplets
 (
@@ -1154,7 +1158,7 @@ create table hm_greylisting_triplets
 	glpassedcount int not null,
 	glsenderhash varchar(32) null,
 	glrecipienthash varchar(32) null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_greylisting_triplets_key ON hm_greylisting_triplets (glipaddress1, glipaddress2, glsenderhash, glrecipienthash);
 
@@ -1163,7 +1167,7 @@ create table hm_greylisting_whiteaddresses
 	whiteid bigint auto_increment not null, primary key(whiteid), unique(whiteid),
 	whiteipaddress varchar(255) not null,
 	whiteipdescription varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_greylisting_bypass
 (
@@ -1172,21 +1176,21 @@ create table hm_greylisting_bypass
 	glbmatch int not null,
 	glbrequire int not null,
 	glbnote varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_blocked_attachments
 (
 	baid bigint auto_increment not null, primary key(baid), unique(baid),
 	bawildcard varchar(255) not null,
 	badescription varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_servermessages
 (
 	smid int auto_increment not null, primary key(smid), unique(smid), 
 	smname varchar(255) not null,
 	smtext text not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_tcpipports
 (
@@ -1199,7 +1203,7 @@ create table hm_tcpipports
 	portsslcertificateid bigint not null,
 	portclientcertificatepolicy tinyint not null default 0,
 	portclientcertificatecafile varchar(255) not null default ''
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_whitelist
 (
@@ -1210,7 +1214,7 @@ create table hm_whitelist
    whiteupperipaddress2 bigint null,
 	whiteemailaddress varchar(255) not null,
 	whitedescription varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_blocked_senders
 (
@@ -1219,7 +1223,7 @@ create table hm_blocked_senders
 	bsscore int not null,
 	bsdescription varchar(255) not null,
 	unique u_bsaddress (bsaddress)
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_sslcertificates
 (
@@ -1229,20 +1233,20 @@ create table hm_sslcertificates
 	sslprivatekeyfile varchar(255) not null,
 	sslprivatekeypassword varchar(1024) not null
 	
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_groups
 (
 	groupid bigint auto_increment not null, primary key(`groupid`), unique(`groupid`),
     groupname varchar(255)
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_group_members
 (
 	memberid bigint auto_increment not null, primary key(`memberid`), unique(`memberid`),
 	membergroupid bigint not null,
 	memberaccountid bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_acl
 (
@@ -1253,7 +1257,7 @@ create table hm_acl
 	aclpermissionaccountid bigint not null,
 	aclvalue bigint not null,
 	unique(aclsharefolderid, aclpermissiontype, aclpermissiongroupid, aclpermissionaccountid)
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_incoming_relays
 (
@@ -1263,14 +1267,14 @@ create table hm_incoming_relays
    relaylowerip2 bigint null,
    relayupperip1 bigint not null,
    relayupperip2 bigint null
-) DEFAULT CHARSET=utf8; 
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_logon_failures
 (
    ipaddress1 bigint not null,
    ipaddress2 bigint null,
    failuretime datetime not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_logon_failures_ipaddress ON hm_logon_failures (ipaddress1, ipaddress2);
 
@@ -1635,7 +1639,7 @@ create table hm_imap_metadata
 	metadataentryname varchar(255) not null,
 	metadatavalue varchar(2048) not null,
 	unique(metadataaccountid, metadatafolderid, metadataentryname)
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_quarantine
 (
@@ -1648,7 +1652,7 @@ create table hm_quarantine
 	quarantinescore int not null,
 	quarantinesize int not null,
 	quarantinecreated datetime not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_quarantine_created ON hm_quarantine (quarantinecreated);
 
@@ -1663,7 +1667,7 @@ create table hm_senderlist
 	slexpires tinyint not null,
 	slexpirestime datetime not null,
 	slcreated datetime not null
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_senderlist_scope ON hm_senderlist (slscope, slownerid);
 
@@ -1676,7 +1680,7 @@ create table hm_digeststate
 	dssenttime datetime not null,
 	dslastid int not null,
 	dsoptout tinyint not null
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_digeststate_account ON hm_digeststate (dsaccountid);
 
@@ -1692,7 +1696,7 @@ create table hm_digesttokens
 	dtexpirestime datetime not null,
 	dtused tinyint not null,
 	dtcreated datetime not null
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_digesttokens_token ON hm_digesttokens (dttoken);
 
@@ -1705,7 +1709,7 @@ create table hm_passwordhistory
 	phhash varchar(255) not null,
 	phencryption int not null,
 	phchanged datetime not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_passwordhistory ON hm_passwordhistory (phaccountid);
 
@@ -1720,7 +1724,7 @@ create table hm_messagetrace
 	mtsourceip varchar(64) not null,
 	mtstatuscode int not null,
 	mtdetail varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_messagetrace ON hm_messagetrace (mtoccurred);
 
@@ -1733,7 +1737,7 @@ create table hm_messageindexterms
 	mitmessageid bigint not null,
 	mitaccountid int not null,
 	mitterm varchar(64) not null
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_messageindexterms_lookup ON hm_messageindexterms (mitaccountid, mitterm);
 
@@ -1743,7 +1747,7 @@ create table hm_messageindexstate
 (
 	misaccountid int not null,
 	mishighwatermark bigint not null
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_messageindexstate ON hm_messageindexstate (misaccountid);
 
@@ -1753,7 +1757,7 @@ create table hm_metricsamples
 	metricsampletime datetime not null,
 	metricsamplename varchar(64) not null,
 	metricsamplevalue double not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_metricsamples_name_time ON hm_metricsamples (metricsamplename, metricsampletime);
 
@@ -1771,7 +1775,7 @@ create table hm_archiveindex
 	archivepath varchar(1000) not null,
 	archivesize bigint not null,
 	archivehold int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_archiveindex_domain_time ON hm_archiveindex (archivedomain, archivetime);
 
@@ -1913,11 +1917,11 @@ create table hm_knownsenders
 (
 	ksid bigint auto_increment not null, primary key(`ksid`), unique(`ksid`),
 	ksaccountid int not null,
-	ksaddress varchar(255) character set utf8 collate utf8_bin not null,
+	ksaddress varchar(255) character set utf8mb4 collate utf8mb4_bin not null,
 	kscount int not null,
 	ksfirstseen varchar(32) not null,
 	kslastseen varchar(32) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_knownsenders_account ON hm_knownsenders (ksaccountid, ksaddress);
 
@@ -1925,9 +1929,9 @@ create table hm_autoreplies
 (
 	arid bigint auto_increment not null, primary key(`arid`), unique(`arid`),
 	araccountid int not null,
-	arsender varchar(255) character set utf8 collate utf8_bin not null,
+	arsender varchar(255) character set utf8mb4 collate utf8mb4_bin not null,
 	arsent bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_autoreplies_account ON hm_autoreplies (araccountid, arsender);
 
@@ -1935,12 +1939,12 @@ create table hm_domainsamples
 (
 	dsid int auto_increment not null, primary key(`dsid`), unique(`dsid`),
 	dsday varchar(10) not null,
-	dsdomain varchar(255) character set utf8 collate utf8_bin not null,
+	dsdomain varchar(255) character set utf8mb4 collate utf8mb4_bin not null,
 	dsspam int not null,
 	dsviruses int not null,
 	dsstorebytes bigint not null,
 	dsstoremessages bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_domainsamples_day_domain ON hm_domainsamples (dsday, dsdomain);
 
@@ -1975,7 +1979,7 @@ create table hm_dkimrotations
 	dkrretiredkeyfile varchar(255) not null,
 	dkrlasterror varchar(255) not null,
 	dkrlasterrortime bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_dkimrotations_domain ON hm_dkimrotations (dkrdomainid);
 
@@ -1985,7 +1989,7 @@ create table hm_spamtraps
 	stdomainid int not null,
 	stlocalpart varchar(64) not null,
 	stcreated datetime not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_spamtraps_address ON hm_spamtraps (stdomainid, stlocalpart);
 
@@ -2002,7 +2006,7 @@ create table hm_spamtraphits
 	sthbanned tinyint not null,
 	sthblocked tinyint not null,
 	sthnote varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_spamtraphits_time ON hm_spamtraphits (sthtime);
 
@@ -2094,7 +2098,7 @@ create table hm_audit
 	auditdetail mediumtext not null,
 	auditprevhash varchar(64) not null,
 	audithash varchar(64) not null
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE hm_audit ENGINE=InnoDB;
 
@@ -2114,7 +2118,7 @@ create table hm_alertrules
 	alertrulesecret varchar(255) not null,
 	alertrulecooldown int not null,
 	alertruledigest tinyint not null
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE hm_alertrules ENGINE=InnoDB;
 
@@ -2134,7 +2138,7 @@ create table hm_alertevents
 	alerteventhookstate int not null,
 	alerteventhooktries int not null,
 	alerteventhooknext bigint not null
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE hm_alertevents ENGINE=InnoDB;
 
@@ -2172,7 +2176,7 @@ create table hm_reputationchecks
 	rcchecked bigint not null,
 	rclistedsince bigint not null,
 	rcconfirmed bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE hm_reputationchecks ENGINE=InnoDB;
 
@@ -2201,7 +2205,7 @@ create table hm_roles
 	roledescription varchar(255) not null,
 	rolebuiltin tinyint not null,
 	rolepermissions varchar(1000) not null
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_roles_name ON hm_roles (rolename);
 
@@ -2213,7 +2217,7 @@ create table hm_roleassignments
 	raaccountid int not null,
 	raroleid int not null,
 	radomains varchar(1000) not null
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_roleassignments_account ON hm_roleassignments (raaccountid);
 
@@ -2246,7 +2250,7 @@ create table hm_signins
 	sicount int not null,
 	sirevoked tinyint not null,
 	sirevokedtime datetime null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_signins_device ON hm_signins (siaccountid, sidevice);
 
@@ -2264,7 +2268,7 @@ create table hm_bouncesuppressions
 	bsremotemta varchar(255) not null,
 	bscreated varchar(32) not null,
 	bsexpires varchar(32) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_bouncesuppressions_address ON hm_bouncesuppressions (bsdomainid, bsaddress);
 
@@ -2285,7 +2289,7 @@ create table hm_bouncecounts
 	bclastbounce varchar(32) not null,
 	bclastdelivered varchar(32) not null,
 	bclastcomplaint varchar(32) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_bouncecounts_address ON hm_bouncecounts (bcdomainid, bcaddress);
 
@@ -2297,7 +2301,7 @@ create table hm_bouncereportkeys
 	brksent varchar(32) not null,
 	brkaddress varchar(64) not null,
 	brkrun int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_bouncereportkeys_key ON hm_bouncereportkeys (brkkey);
 
@@ -2326,7 +2330,7 @@ create table hm_pgpkeys
 	pgpkkey mediumtext not null,
 	pgpkuploaded bigint not null,
 	pgpkuploadedby varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_pgpkeys_account ON hm_pgpkeys (pgpkaccountid);
 
@@ -2360,7 +2364,7 @@ create table hm_pgpring
 	pgrchangedfrom varchar(64) not null default '',
 	pgrchangedat bigint not null default 0,
 	pgraccepted int not null default 0
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_pgpring_account ON hm_pgpring (pgraccountid);
 
@@ -2386,7 +2390,7 @@ create table hm_protectedmessages
 	pmopened bigint not null,
 	pmrevoked int not null,
 	pmreplyto varchar(32) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_protectedmessages_token ON hm_protectedmessages (pmtoken);
 
@@ -2410,7 +2414,7 @@ create table hm_zeroaccess
 	zasecret mediumtext not null,
 	zarecovery mediumtext not null,
 	zaenabledat bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_zeroaccess_account ON hm_zeroaccess (zaaccountid);
 
@@ -2432,7 +2436,7 @@ create table hm_accountkeys
 	akpending varchar(2000) not null,
 	akcreated bigint not null,
 	akchanged bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_accountkeys_account ON hm_accountkeys (akaccountid);
 
@@ -2450,7 +2454,7 @@ create table hm_domainrecovery
 	drcreated bigint not null,
 	drprevpublic varchar(64) not null,
 	drprevsealed varchar(512) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_domainrecovery_domain ON hm_domainrecovery (drdomainid);
 
@@ -2471,7 +2475,7 @@ create table hm_recall
 	recallcreated bigint not null,
 	recallrecalledat bigint not null,
 	recalloutcome int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_recall_sender ON hm_recall (recallsenderid);
 
@@ -2508,7 +2512,7 @@ create table hm_webhooks
 	whmaxperminute int not null,
 	whincludesubject int not null,
 	whcreated bigint not null
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_webhooks_name ON hm_webhooks (whname);
 
@@ -2523,7 +2527,7 @@ create table hm_webhookqueue
 	wqnext bigint not null,
 	wqerror varchar(255) not null,
 	wqbody text not null
-);
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_webhookqueue_due ON hm_webhookqueue (wqstate, wqnext);
 
@@ -2558,7 +2562,7 @@ create table hm_inboundhooks
 	ihprivatenetwork int not null,
 	ihenabled int not null,
 	ihcreated bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_inboundhooks_address ON hm_inboundhooks (ihaddress);
 
@@ -2581,7 +2585,7 @@ create table hm_inboundhookqueue
 	iqsenderip varchar(64) not null,
 	iqspam int not null,
 	iqsize bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_inboundhookqueue_due ON hm_inboundhookqueue (iqstate, iqnext);
 
@@ -2616,7 +2620,7 @@ create table hm_pushsubscriptions
 	psquietfrom int not null,
 	psquietto int not null,
 	psquietoffset int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_pushsubscriptions_endpoint ON hm_pushsubscriptions (psaccountid, psendpointhash);
 
@@ -2640,7 +2644,7 @@ create table hm_complaints
 	cpsubject varchar(255) not null,
 	cparrival varchar(32) not null,
 	cpreceived varchar(32) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_complaints_key ON hm_complaints (cpkey);
 
@@ -2657,7 +2661,7 @@ create table hm_complaintvolume
 	cvday varchar(10) not null,
 	cvsent bigint not null,
 	cvcomplaints int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_complaintvolume_day ON hm_complaintvolume (cvdomainid, cvday);
 
@@ -2679,7 +2683,7 @@ create table hm_mailboxmoves
 	mmstarted varchar(32) not null,
 	mmfinished varchar(32) not null,
 	mmdetail varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_mailboxmoves_account ON hm_mailboxmoves (mmaccountid);
 
@@ -2695,7 +2699,7 @@ create table hm_domainpolicylist
 	dplaction int not null,
 	dplnote varchar(255) not null,
 	dplcreated datetime not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_domainpolicylist_pattern ON hm_domainpolicylist (dplpattern, dplmatchon);
 
@@ -2712,7 +2716,7 @@ create table hm_journalrules
 	jrmode int not null,
 	jrenabled tinyint not null,
 	jrnote varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_journalrules_domain ON hm_journalrules (jrdomainid);
 
@@ -2730,7 +2734,7 @@ create table hm_accountrecovery
 	acrverified int not null,
 	acrcreated bigint not null,
 	acrupdated bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_accountrecovery_account ON hm_accountrecovery (acraccountid);
 
@@ -2746,7 +2750,7 @@ create table hm_recoverytokens
 	rtexpires bigint not null,
 	rtused bigint not null,
 	rtcreated bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_recoverytokens_token ON hm_recoverytokens (rttoken);
 
@@ -2762,7 +2766,7 @@ create table hm_recoverycodes
 	rkencryption int not null,
 	rkused bigint not null,
 	rkcreated bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_recoverycodes_account ON hm_recoverycodes (rkaccountid);
 
@@ -2783,7 +2787,7 @@ create table hm_settingoverrides
 	soownerid bigint not null,
 	soname varchar(30) not null,
 	sovalue varchar(4000) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_settingoverrides_owner ON hm_settingoverrides (soscope, soownerid, soname);
 
@@ -2800,7 +2804,7 @@ create table hm_apisends
 	apssender varchar(255) not null,
 	apsrecipients varchar(4000) not null,
 	apscreated datetime not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_apisends_key ON hm_apisends (apskeyid, apsid);
 
@@ -2830,7 +2834,7 @@ create table hm_migrations
 	migrationcreated bigint not null,
 	migrationstartedat bigint not null,
 	migrationfinishedat bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_migrationjobs
 (
@@ -2854,7 +2858,7 @@ create table hm_migrationjobs
 	mjstartedat bigint not null,
 	mjfinishedat bigint not null,
 	mjreport text not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_migrationjobs_migration ON hm_migrationjobs (mjmigrationid, mjid);
 
@@ -2870,7 +2874,7 @@ create table hm_migrationfolders
 	mflastuid bigint not null,
 	mfmessages int not null,
 	mfdone int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_migrationfolders_job ON hm_migrationfolders (mfjobid, mfid);
 
@@ -2893,7 +2897,7 @@ create table hm_sandboxverdicts
 	svdetail varchar(255) not null,
 	svanswered bigint not null,
 	svexpires bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_sandboxverdicts_sha256 ON hm_sandboxverdicts (svsha256);
 
@@ -2912,7 +2916,7 @@ create table hm_sandboxholds
 	shdetail varchar(255) not null,
 	sherrors int not null,
 	shdecision int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_sandboxholds_message ON hm_sandboxholds (shmessageid);
 
@@ -2958,7 +2962,7 @@ create table hm_listarchive
 	lafile varchar(255) not null,
 	lamonth varchar(7) not null,
 	laarchived int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_listarchive_list ON hm_listarchive (lalistid, lasent);
 
@@ -3003,7 +3007,7 @@ create table hm_warmup
 	warmupstarted bigint not null,
 	warmupplan int not null,
 	warmupenabled int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_warmup_address ON hm_warmup (warmupaddress);
 
@@ -3019,7 +3023,7 @@ create table hm_warmupcounts
 	wcdeferred int not null,
 	wcceiling int not null,
 	wcplanday int not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_warmupcounts_day ON hm_warmupcounts (wcwarmupid, wcday, wcprovider);
 
@@ -3039,7 +3043,7 @@ create table hm_smimeca
 	cacreated bigint not null,
 	caretired bigint not null,
 	caserial bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_smimeca_domain ON hm_smimeca (cadomainid);
 
@@ -3063,7 +3067,7 @@ create table hm_smimeissued
 	issuedreason varchar(255) not null,
 	issuedcertificate text not null,
 	issuedpending tinyint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE UNIQUE INDEX idx_hm_smimeissued_serial ON hm_smimeissued (issuedcaid, issuedserial);
 
@@ -3087,7 +3091,7 @@ create table hm_discoverycases
 	casecreated bigint not null,
 	caseclosedby varchar(255) not null,
 	caseclosed bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE hm_discoverycases ENGINE=InnoDB;
 
@@ -3106,7 +3110,7 @@ create table hm_discoverysearches
 	searchtruncated int not null,
 	searcherror varchar(1000) not null,
 	searchresultfile varchar(255) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_discoverysearches_case ON hm_discoverysearches (searchcaseid);
 
@@ -3125,7 +3129,7 @@ create table hm_discoveryholds
 	holdplaced bigint not null,
 	holdreleasedby varchar(255) not null,
 	holdreleased bigint not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_discoveryholds_case ON hm_discoveryholds (holdcaseid);
 
@@ -3150,7 +3154,7 @@ create table hm_discoveryexports
 	exportrequested bigint not null,
 	exportfinished bigint not null,
 	exporterror varchar(1000) not null
-) DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (exportcaseid);
 
@@ -3158,4 +3162,4 @@ ALTER TABLE hm_discoveryexports ENGINE=InnoDB;
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6101);
+insert into hm_dbversion values (6102);

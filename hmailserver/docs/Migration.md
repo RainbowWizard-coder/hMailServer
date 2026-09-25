@@ -460,6 +460,14 @@ port that is not IMAP is said to be so, without what it answered.
   and a recurring series without the occurrences that were moved or cancelled on
   their own.
 
+**On MySQL, the limit on names is gone from schema 6102.** Until then the tables
+that hold a job's folders, contacts and address books were in MySQL's three-byte
+`utf8`, and a name holding a character outside the Basic Multilingual Plane - an
+emoji, some CJK - was refused there. Schema 6102 moves every table to `utf8mb4`,
+and such a name is kept as it came, as it always was on SQL Server, SQL Server
+Compact and PostgreSQL; see
+[MigratingDatabaseBackend.md](MigratingDatabaseBackend.md#mysql-and-mariadb).
+
 ### Which route to use
 
 - **One person moving their own mailbox**: the webmail's **Other accounts** (above).

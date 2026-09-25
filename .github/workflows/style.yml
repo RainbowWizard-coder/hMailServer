@@ -103,6 +103,8 @@ jobs:
       # other would make that list confidently wrong.
       - name: The shipped hm_settings defaults the server carries are current
         run: python3 build/generate-settings-defaults.py --check
+      - name: Every MySQL table is utf8mb4 under utf8mb4_general_ci, InnoDB and DYNAMIC
+        run: python3 build/check-mysql-charset.py
       - name: Every statement in a MySQL script ends with a blank line
         run: python3 build/check-sql-separators.py
       - name: An upgrade step adds a setting row only if it is not already there

@@ -3297,4 +3297,4 @@ CREATE CLUSTERED INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (expo
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6101)
+insert into hm_dbversion values (6102)

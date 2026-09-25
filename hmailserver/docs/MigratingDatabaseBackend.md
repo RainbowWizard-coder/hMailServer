@@ -60,11 +60,64 @@ Choosing a target
 |---|---|
 | **MS SQL Server** (including Express and LocalDB) | You already run SQL Server, or you want the strongest transaction support of the four. Note that the session runs at READ UNCOMMITTED. Encryption is the provider's own keywords: `ConnectionStringOptions=Encrypt=yes;TrustServerCertificate=no` under `[Database]` is appended verbatim to the connection string. |
 | **PostgreSQL** | You want the best-behaved backend in this codebase. It is the only one of the four where DDL is transactional, so a failed schema upgrade rolls back cleanly. To require and verify TLS to it, set `PostgreSQLSslMode=verify-full` and `PostgreSQLSslRootCert=<path to the CA file>` under `[Database]`; without them libpq encrypts when the server offers it and verifies nothing. |
-| **MySQL / MariaDB** | You already run it. Make sure every table ends up InnoDB — the server only issues transactions if they all report it at connect time, and silently does not if any table does not. The bundled client requires TLS from the server by default and says so if it is missing; a server that genuinely has none needs `AllowUnencryptedConnection=1` under `[Database]` in hMailServer.ini. |
+| **MySQL / MariaDB** | You already run it. It must be MySQL 5.7.9 or MariaDB 10.2.2 or later, and every table is `utf8mb4` - see [MySQL and MariaDB](#mysql-and-mariadb) below. Make sure every table ends up InnoDB — the server only issues transactions if they all report it at connect time, and silently does not if any table does not. The bundled client requires TLS from the server by default and says so if it is missing; a server that genuinely has none needs `AllowUnencryptedConnection=1` under `[Database]` in hMailServer.ini. |
 | **SQL Server Compact** | Only if you are migrating *to* a test rig. It is the default and it is the one real dependency liability in this tree; see the SQL Server Compact row in [Roadmap.md](../../Roadmap.md) for the three defects that are specific to it. |
 
 The schema is created for you either way — you do not need to run the SQL scripts
 by hand.
+
+### MySQL and MariaDB
+
+**MySQL 5.7.9 or MariaDB 10.2.2, or later.** Since schema 6102 every table is
+`utf8mb4` under `utf8mb4_general_ci`, InnoDB, with `ROW_FORMAT=DYNAMIC`, and a key
+over a `varchar(255)` - an account's address, a folder's name - is 1020 bytes at
+four bytes a character. That is more than an InnoDB key part may be in the older
+COMPACT rows (767 bytes) and more than a whole MyISAM key (1000), and those two
+releases are the first whose InnoDB, as it ships, takes a key part of up to 3072
+bytes and makes its tables DYNAMIC. The longest key in the schema is 1060 bytes.
+The schema was proven on MySQL 5.7.44 and 8.4.11 and on MariaDB 10.6.28, 11.4.13
+and 11.8.9 on 25 September 2026. On an older server as it ships, the create script
+and the 6102 upgrade step both stop at their first table - with error 1071,
+"Specified key was too long; max key length is 767 bytes", on a MySQL 5.7 set up as
+5.6 shipped - and the upgrade step has then changed nothing.
+
+**Why `utf8mb4`.** MySQL's `utf8` is `utf8mb3`: three bytes a character, so nothing
+outside Unicode's Basic Multilingual Plane fits in it - no emoji, and none of the
+CJK Extension B characters some names are written in. The server has always spoken
+`utf8mb4` to MySQL (`SET NAMES utf8mb4`), so before schema 6102 such a character in
+a contact, an address book, a folder, a subject in the message index, a webmail
+setting or a signature was refused with error 1366 ("Incorrect string value") under
+strict mode, the default since MySQL 5.7.5 and MariaDB 10.2.4, and was made a
+question mark where strict mode is off. SQL Server, SQL Server Compact and
+PostgreSQL always stored it.
+
+**Why `utf8mb4_general_ci`.** It is the twin of `utf8_general_ci`, the collation
+the tables had: case-insensitive and accent-insensitive, and the same answer for
+every character a `utf8` table could hold, so an address, a name or a folder
+compares as it did and no unique index sees a duplicate it did not see before. The
+Unicode collations would not: `utf8mb4_unicode_ci` takes `ß` for `ss` and a
+full-width letter for its ordinary one, and `utf8mb4_0900_ai_ci` exists only on
+MySQL 8 and counts trailing spaces. What `utf8mb4_general_ci` does not do is tell
+characters outside the Basic Multilingual Plane apart: it gives them all one
+weight. Two address books of one account called `Family 👪` and `Family 🎉` are one
+name to its unique index, and the second is refused as a duplicate - as it was
+refused before, when neither could be stored at all. Three columns compare exactly
+(`utf8mb4_bin`), as they did in `utf8_bin`: a known sender's address, the address
+an automatic reply went to, and the domain of a day's statistics.
+
+**Creating the database yourself.** Make it `utf8mb4` too, and give the account the
+server connects with every privilege on it:
+
+```sql
+CREATE DATABASE hmailserver CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+GRANT ALL PRIVILEGES ON hmailserver.* TO 'hmailserver'@'%';
+```
+
+Every table names its own character set, so a database made with another default
+still works, but the upgrade steps create, alter and index tables, and the 6102
+step also changes the database's own default character set, which needs the ALTER
+privilege on the database. A database the server creates itself (DBSetup, or
+`hmailserver --create-database`) is made `utf8mb4` already.
 
 Before you start
 ----------------
@@ -170,7 +223,8 @@ the same place, so your ordinary scheduled backups go back to including the file
 ### 3. Create the new database
 
 Create an **empty** database on the target server, and a login with rights to
-create tables in it. Do not create any tables — the next step does that.
+create tables in it. Do not create any tables — the next step does that. On MySQL
+or MariaDB, make it `utf8mb4`, as [MySQL and MariaDB](#mysql-and-mariadb) shows.
 
 Then edit `hMailServer.ini` to point at it:
 
