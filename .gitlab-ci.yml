@@ -815,3 +815,21 @@ release:
   script:
     - echo "the release stage is the release-chain row's (137)"
     - exit 1
+
+# The installer smoke test: the Windows installer installed, upgraded and uninstalled on
+# a throwaway VM reverted to a clean snapshot before and after. The VM runs in VMware
+# Workstation on the maintainer's laptop, which is not a runner, and reverting it takes
+# vmrun on that host. Until a runner there exists, a batch* branch and a v* tag end with
+# a button that says where the test is run from (docs/ContinuousIntegration.md, "The
+# installer smoke test").
+installer-smoke:
+  stage: release
+  image: python:3.13-slim-trixie
+  needs: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true" && ($CI_COMMIT_TAG =~ /^v/ || $CI_COMMIT_BRANCH =~ /^batch/)
+      when: manual
+      allow_failure: true
+  script:
+    - echo "The installer smoke test runs from the VMware host with build/ci/installer-smoke-run.sh, not on a runner, until a runner on that host exists (docs/ContinuousIntegration.md, 'The installer smoke test')."
+    - exit 1

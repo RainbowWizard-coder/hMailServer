@@ -42,6 +42,7 @@ What runs where
 | `windows-dotnet` | test | bench150 | a protected ref | The Control Panel and the tools built with warnings as errors, published and tested, and `dotnet format` (`build/ci/windows-dotnet.ps1`) |
 | `linux-fuzz` | test | linix | a pipeline with `HM_PIPELINE=fuzz`, from its schedule | The three MIME harnesses under libFuzzer (`build/ci/linux-fuzz.sh`) |
 | `release` | release | GitLab's shared runners | a `v*` tag, started by hand | A placeholder. It fails with "the release stage is the release-chain row's (137)" |
+| `installer-smoke` | release | GitLab's shared runners | a `batch*` branch or a `v*` tag, started by hand | A placeholder. It fails with a sentence saying that the installer smoke test runs from the VMware host ([The installer smoke test](#the-installer-smoke-test)) |
 
 `linux-build`, `windows-gate`, `windows-dotnet`, `linux-cross`, `linux-sanitize`
 and `linux-sbom` start as soon as the pipeline does. They do not wait for the
@@ -69,12 +70,12 @@ Which pipeline runs what
 
 | Push or event | Pipeline | Jobs |
 |---|---|---|
-| `master` | the branch's | all of them but `release` and `linux-fuzz` |
-| a `batch*` branch | the branch's | all of them but `release` and `linux-fuzz`: this is the gate a batch passes before it lands |
+| `master` | the branch's | all of them but `release`, `linux-fuzz` and `installer-smoke` |
+| a `batch*` branch | the branch's | all of them but `release` and `linux-fuzz`, with `installer-smoke` manual: this is the gate a batch passes before it lands |
 | any other branch, no open merge request | the branch's | `checkers`, `harnesses`, `editorconfig`, and the four path-bound checks whose files changed |
 | any other branch, with an open merge request | the merge request's | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, and `sign-off` when the branch is in a fork |
 | a merge request from `master` or a `batch*` branch | none; the branch's own pipeline stands for it | as for the branch |
-| a `v*` tag | the tag's | all of them but `linux-fuzz`, and the manual `release` |
+| a `v*` tag | the tag's | all of them but `linux-fuzz`, with `release` and `installer-smoke` manual |
 | any other tag | none | |
 | the fuzz schedule (`HM_PIPELINE=fuzz`, on `master`) | the schedule's | `linux-fuzz` alone |
 
@@ -582,6 +583,193 @@ things, each fixed in the same change:
   the foreign key no longer needs - and renames the new one.
 - The first Linux fuzz replay: see [Fuzzing.md](Fuzzing.md), "The nightly job".
 
+The installer smoke test
+------------------------
+
+The real Windows installer is installed, upgraded and uninstalled on a
+throwaway machine, and every promise it makes is checked. This replaces
+GitHub's `.github/workflows/installer-smoke.yml`, which ran on a hosted runner
+that was thrown away after the job. Running the installer on the laptop or on
+bench150 would take over their service and their COM registration, so it runs
+on neither.
+
+**Where it runs.** The test runs on a Windows Server 2025 VM, "Win server 2025
+small", at 192.168.11.175, with 4 vCPUs and 8 GB of memory. The VM runs in
+VMware Workstation on the maintainer's laptop, and its `.vmx` is
+`C:\Users\chris\Documents\Virtual Machines\Win server 2025 small\Win server 2025 small.vmx`.
+It has one snapshot, `firstsnapshot`, which was taken after SSH was enabled
+and before anything else was installed. The VM is reverted to that snapshot
+before every run and again after it, whether the run passed or failed. That
+host is not a GitLab runner, and reverting the VM needs `vmrun` on that host.
+So the `installer-smoke` job in the CI file is only a placeholder: in a
+`batch*` or `v*` pipeline it is a manual button that fails with a sentence
+saying where the test runs from. It becomes a real job when a runner exists on
+that host.
+
+**How to run it.** Run it from Git Bash on the VMware host. The first installer
+is installed, the second is installed over it as the upgrade, and then
+everything is uninstalled:
+
+    # a release: the previous release, then the new one
+    bash build/ci/installer-smoke-run.sh \
+       /c/Users/chris/Downloads/hmailserver/6.3.2/hMailServer-6.3.2-x64.exe \
+       /c/Users/chris/Downloads/hmailserver/v6.3.3-1/hMailServer-6.3.3-x64.exe
+
+    # a batch: the latest release, then the installer built from the batch
+    bash build/ci/installer-smoke-run.sh --allow-unsigned \
+       /c/Users/chris/Downloads/hmailserver/v6.3.3-1/hMailServer-6.3.3-x64.exe \
+       hmailserver/installation/Output/hMailServer-6.3.3-x64.exe
+
+With a single installer, the test installs it and uninstalls it. The script
+takes these options: `--vmx`, `--snapshot`, `--mac`, `--host`, `--user`,
+`--key` and `--out`, and each has an `HM_SMOKE_*` variable with the same
+meaning. `--keep-vm` leaves the VM as the run left it, so that a failure can
+be examined; the next run reverts it anyway.
+
+The script does the following:
+
+1. It checks that the `.vmx` carries the smoke VM's MAC address and that it has
+   the snapshot. This comes before any revert, so a wrong `--vmx` cannot revert
+   another machine.
+2. It reverts the VM to the snapshot, starts it and waits for SSH.
+3. It checks that the address answers ARP with the same MAC. This comes before
+   anything is copied, so a wrong `--host` cannot install on bench150 or linix.
+4. It copies the installers and `build/ci/installer-smoke.ps1` to `C:\smoke`,
+   runs the script there under Windows PowerShell 5.1, and copies back
+   `C:\smoke\logs`. That folder holds `smoke.log`, Inno's `install.log`,
+   `upgrade.log` and `uninstall.log`, and any server logs.
+5. It reverts the VM again. From the first revert to the last, a run takes
+   about two minutes.
+
+Only the SSH key is used, never a password. The administrator password given to
+the installer is made on the VM and never printed. The output is one line per
+check, starting PASS, FAIL, SKIP or INFO. The exit code is 0 when every check
+passed, 1 when a check failed, 3 when the VM could not be identified, reverted
+or reached, and 4 when the script did not run to a result.
+
+**The switches.** The switches are the installer's own, from
+`hMailServerInnoExtension.iss`. The first install gets
+`/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /TYPE=full /adminpassword=<password> /LOG=<file>`.
+`/adminpassword=` is the only way a silent install sets the administrator
+password. The upgrade needs it too: DBUpdater authenticates as the
+administrator before it moves the schema, and under `/silent` it fails rather
+than asks. The upgrade gets no `/TYPE`, because winget and Chocolatey pass none
+([PackageManagers.md](PackageManagers.md)), and the test checks that Inno kept
+the components already installed. Each installer and the uninstaller get ten
+minutes. When one fails or runs out of time, the test prints the tail of Inno's
+log. When the install fails, it also runs DBSetupQuick again, because the
+database step's real error goes only to that tool's stderr.
+
+**What it checks.** Everything that GitHub's workflow checked is still checked:
+the service registered on the installed `hMailServer.exe`, the ports 25, 110
+and 143, the COM object, the time bound and the kept log. The test adds these
+checks:
+
+- **Each installer.** Its Authenticode signature is valid. With
+  `--allow-unsigned`, an installer with no signature at all is a SKIP, but a
+  signature that is present and not valid still fails. Its SHA-256 and the
+  version it claims (the version resource's ProductVersion, which Inno fills
+  from `AppVersion`) are printed.
+- **After the install, and again after the upgrade:**
+  - the uninstall entry's DisplayVersion, the file version of `hMailServer.exe`
+    and the COM object's `Version` all agree with the version the installer
+    claims;
+  - the service is registered on the installed binary, set to Automatic, has
+    three restart actions (ConfigureServiceRecovery) and is running without
+    being started by the test;
+  - SMTP, POP3 and IMAP answer their banners;
+  - the password given with `/adminpassword` authenticates;
+  - the database is SQL Server Compact, its schema is the one the server
+    requires, and the create script that was installed makes that same version;
+  - `Software\hMailServer` InstallLocation is in the 32-bit view;
+  - the ProgID, the class's LocalServer32, the type library and the AppID are
+    registered on the installed binary;
+  - the Start menu group exists;
+  - the .NET 10 Desktop Runtime and SQL Server Compact 4.0 are installed;
+  - nothing new appears in `ERROR_*.log` or in the Application event log under
+    the source `hMailServer`.
+- **Before the upgrade**, the test creates a domain, an account with its own
+  settings, a server setting (the SMTP greeting) and a message delivered over
+  SMTP, and reads the message back over POP3 and IMAP.
+- **After the upgrade:**
+  - the schema has moved to the newer build's;
+  - there is one uninstaller, and the Control Panel is still installed;
+  - the domain, the account, both settings and the message are kept, and the
+    message's file is byte for byte the same;
+  - POP3 and IMAP log the account on with its password and find the message;
+  - the SMTP banner is the greeting that was set before the upgrade;
+  - `[Database]` and `[Security]` in `hMailServer.INI` are unchanged.
+- **After the uninstall:**
+  - the service and its key are gone, and no process is left running;
+  - every file left under the installation directory is one that the installer
+    keeps on purpose;
+  - the Start menu group, the uninstall entry and `Software\hMailServer` are
+    gone;
+  - every COM key the install registered is gone (647 for 6.3.3);
+  - the event log source and any scheduled task naming hMailServer are gone;
+  - no registry key naming hMailServer is left that the clean machine did not
+    have. Other new keys are listed as INFO: they belong to the .NET runtime
+    and SQL Server Compact, which the installer installs when they are missing
+    and never removes.
+
+**What the uninstall keeps.** It keeps what the `.iss` keeps, and nothing else:
+
+- `Bin\hMailServer.INI`, because its `[INI]` entries carry no
+  `uninsdeleteentry`;
+- the event and addon scripts under `Events` and `Addons`, which are marked
+  `uninsneveruninstall`, apart from the two tools' folders under `Addons`;
+- `Database`, `Data` and `Logs`, because the database tools and the server
+  wrote their contents, not the installer, and `[Dirs]` removes a folder only
+  when it is empty.
+
+The database file, the message (unchanged) and every event and addon script
+must still be there. Any other file left under the installation directory fails
+the check.
+
+**What it found on 25 September 2026.** Two runs of 6.3.2 then 6.3.3 with the
+finished script gave the same result both times: 60 checks passed and 5
+failed. Install took 24 to 26 seconds, the upgrade 8 to 10 seconds and the
+uninstall 1 second. Apart from item 1 below, every install and upgrade check
+passed, including the data and settings that the upgrade has to keep. The five
+failures were the product's, not the test's:
+
+1. *The upgrade writes a Critical error to the Application event log.* During
+   the upgrade, DBUpdater's COM activation starts the new server against the
+   old schema. The server reports HM5011, "The database is too old", as event
+   2010, before DBUpdater moves the schema from 6038 to 6040. Every silent
+   upgrade across a schema step does this, and the write also registers the
+   event source that item 3 is about.
+2. *The uninstall leaves `hMailServer.exe` and six DLLs in `Bin`:
+   `libcrypto-4-x64.dll`, `libssl-4-x64.dll`, `libpq.dll`, `msvcp140.dll`,
+   `vcruntime140.dll` and `vcruntime140_1.dll`.* Inno's log records "Failed to
+   delete the file; it may be in use (5)", then "Removed all? No". Nothing is
+   scheduled for removal at the next restart. `section_uninstallrun.iss` stops
+   the service with `net stop`, which returns when the service reports
+   STOPPED. The process then lives about 1.1 seconds longer: four stops
+   measured 1,091 to 1,128 ms, with `net stop` itself taking 63 to 114 ms. The
+   uninstaller starts deleting about 0.7 seconds after `net stop` returns.
+   When the service is stopped and its process has exited before the uninstall
+   starts, the log says "Removed all? Yes".
+3. *The event log source is left behind.* The server creates
+   `HKLM\SYSTEM\CurrentControlSet\Services\EventLog\Application\hMailServer`
+   the first time it writes to the Application log (item 1). The uninstaller
+   never removes it.
+4. *After an upgrade, the uninstall leaves `HKCR\AppID\{5EDEC473-39E0-43F6-A234-1947071721C8}`,
+   holding `LocalService=hMailServer`, in both registry views.* The
+   `[UninstallRun]` entries have no `RunOnceId`, so every install recorded
+   them. After one upgrade they run twice, and so does `hMailServer.exe
+   /Unregister`. `hMailServer.exe` calls `RegisterAppID()` before it reads its
+   command line, so the second `/Unregister`, which finds nothing registered,
+   writes the AppID again and leaves it there. Running `/Unregister` by hand
+   on a machine with nothing registered does the same. An uninstall without an
+   earlier upgrade removes the AppID.
+5. The registry comparison with the clean machine finds the key from item 3.
+   This is the same leftover, found a second way.
+
+A run of 6.3.3 on its own, with no upgrade, gave 37 passed and 1 failed. The
+one failure was item 2. With no upgrade, the event log source is never
+created and the AppID is removed.
+
 How long each job takes
 -----------------------
 
@@ -680,6 +868,10 @@ What is still done by hand
 - Signing, publishing the packages, the image and the SBOMs, the release's
   manifests, and the update feed. These belong to the Roadmap2 row "The release
   chain off a single forge". The `release` stage is its placeholder.
+- The installer smoke test, which runs from the VMware host with
+  `build/ci/installer-smoke-run.sh`. A batch runs it before it lands, and a
+  release runs it before it is published (see [The installer smoke
+  test](#the-installer-smoke-test)).
 - Building the Linux job image when its Dockerfile changes (see [The
   image](#the-image)), and creating the fuzz schedule once (see [The fuzz
   schedule](#the-fuzz-schedule)).
