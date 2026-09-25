@@ -94,8 +94,9 @@ cmake --build build/linux --target spf-tests
 ./build/linux/spf-tests
 ```
 
-`.github/workflows/linux-build.yml` runs exactly that on x86-64 and on AArch64,
-under clang and under GCC. The binary prints one line per failure and the number
+GitLab CI's `linux-build` job runs exactly that, on x86-64 under clang, for every
+push of a protected ref (`build/ci/linux-build.sh`); `.github/workflows/linux-build.yml`
+ran it on x86-64 and on AArch64, under clang and under GCC, until GitHub went. The binary prints one line per failure and the number
 of cases decided either way, and exits non-zero if the count has fallen below the
 203 the table holds - a case that stops being recognised would otherwise look
 exactly like a suite with nothing wrong with it.

@@ -21,6 +21,7 @@ server writes in OpenPGP - a delivery to a zero-access mailbox, encrypted to
 the mailbox's key) made over a small message to Alice, through the Linux
 build's `openpgp-writer` tool with `--mime`. `check-portal-openpgp.js` opens
 it with Alice's key in the page's module and, where it finds `gpg`, hands
-its armour to GnuPG as well; `linux-build.yml` runs the tool itself against
-GnuPG on every push. Remake it after changing the writer:
+its armour to GnuPG as well; GitLab CI's `linux-build` job
+(`build/ci/linux-build.sh`) runs the tool itself against GnuPG on every push of
+a protected ref, as GitHub's `linux-build.yml` did on every push. Remake it after changing the writer:
 `build/linux/openpgp-writer build/fixtures/openpgp/alice.pub.asc <message.eml> --mime`.

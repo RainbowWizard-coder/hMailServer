@@ -15,9 +15,11 @@ change is held to, and how a change reaches `master`. By taking part you agree t
 18 September 2026, so every link to github.com/Progressiverobot - in older notes, commit messages and
 documents - answers 404. **GitLab CI runs the platform-neutral checks** (`.gitlab-ci.yml`) on every push and
 every merge request: the Python checkers, the generators' check modes, the Deck's and the webmail's harnesses,
-and the sign-off of a merge request from a fork. **The builds, both regression suites and the Windows-only
-checks are still run by hand**: by you before you open a merge request, and by the maintainer before a change
-lands. [The checkers](#the-checkers) says which is which.
+and the sign-off of a merge request from a fork. **The builds and both regression suites run on the project's
+own two machines, for `master`, `batch*` branches and `v*` tags only** - never for a merge request, and never
+for a fork ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)). So for
+your branch they are still run by hand, by you before you open a merge request, and so are the Windows-only
+checks everywhere. [The checkers](#the-checkers) says which is which.
 
 Contents:
 
@@ -299,7 +301,8 @@ The server's address and ports come from the environment: `HMTEST_HOST`, `HMTEST
 `HMTEST_POP3_PORT` (1110), `HMTEST_IMAP_PORT` (1143), `HMTEST_SUBMISSION_PORT` (587), `HMTEST_REST_PORT`
 (8045), `HMTEST_ADMIN_PASSWORD`, `HMTEST_SERVER_INI` and `HMTEST_NO_FAKE_DNS`. RegressionEnvironment.md,
 section *On Linux*, has the recipe for the server: PostgreSQL, `--create-database`, the listeners moved off the
-privileged ports, auto-ban off and `--set-admin-password` from a pipe.
+privileged ports, auto-ban off and `--set-admin-password` from a pipe. `build/ci/linux-suite.sh` is the same
+recipe as the CI job runs it, whole suite included, and runs by hand in the job's image.
 
 The schema-upgrade gate: `bash build/db-upgrade-gate.sh pgsql` (or `mysql`) creates a database at this build's
 schema, winds it back to 6029 with orphaned rows, and upgrades it through the real scripts on a real backend. It
@@ -337,7 +340,16 @@ the seven `--self-test` modes, `add-license-headers.py --check`, every generator
 [Sign-off](#sign-off)). Each script is started as `python3 build/...`, `node build/...` or `bash build/...`,
 never by its shebang, because the tree checks out CRLF.
 
-**What stays by hand:** the builds, the Windows and the Linux regression suites, `check-package-manifests.py`,
+**On the project's own runners**, for a push to `master`, to a `batch*` branch or of a `v*` tag, and for
+nothing else: *linux-build* and *linux-suite* on the Linux lab machine (the server with clang, its tester
+programs, then the whole Linux suite against it on PostgreSQL), and *windows-gate* on the second Windows bench
+(the whole Windows suite, in the bench's own checkout). A `v*` tag also gets a *release* job, which is a
+placeholder until the release chain is built. The two machines never take a job for a merge request, above
+all not one from a fork; [hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)
+says why, and how the runners, their image and the bench's gate lock work.
+
+**What stays by hand:** for any branch that is not protected, the builds and the Windows and the Linux
+regression suites; everywhere, `check-package-manifests.py`,
 the PowerShell checks (`check-schema-versions.ps1`, `check-db-scripts.ps1`, `check-roadmap.ps1`,
 `generate-settings-index.ps1`), `editorconfig-checker` and `dotnet format`. Run those from the repository root
 before you open a merge request, and say in it which ones you ran; the ones CI runs are worth running first too,

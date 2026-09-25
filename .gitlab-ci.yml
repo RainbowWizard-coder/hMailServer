@@ -2,9 +2,9 @@
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# The checks GitLab runs on a push and on a merge request.
+# The checks GitLab runs on a push, on a merge request and on a release tag.
 #
-# Three jobs, all in one stage:
+# On GitLab's shared runners, in every pipeline:
 #
 #   checkers    every build/check-*.py that needs nothing but Python and git, the
 #               self-tests, the generators' --check, and the two that rewrite a
@@ -16,28 +16,55 @@
 #   sign-off    on a merge request from a fork, every commit carries a Signed-off-by
 #               trailer naming its author (CONTRIBUTING.md, "Sign-off").
 #
-# What is not here, and is still run by hand (CONTRIBUTING.md, "The checkers"): the
-# builds, both regression suites, check-package-manifests.py (it needs manifests
-# rendered by a PowerShell script from a released installer), the PowerShell checks
-# (check-schema-versions.ps1, check-db-scripts.ps1, which needs SQL Server Compact,
-# check-roadmap.ps1, generate-settings-index.ps1), editorconfig-checker and dotnet
-# format. The Linux build and the Linux suite belong to the Roadmap2 row "The release
-# chain off a single forge".
+# On the project's own two machines, for a protected ref only - master, a batch*
+# branch, a v* tag - and never for a merge request:
 #
-# Every script is started through python3, node or bash by name. The tree checks out
-# CRLF on every platform (.gitattributes), and a shebang line ending in a carriage
-# return names an interpreter that does not exist.
+#   linux-build   linix: the Linux server with clang, its tester programs, and the
+#                 OpenPGP writer against GnuPG (build/ci/linux-build.sh);
+#   linux-suite   linix: the whole of LinuxRegressionTests against that server on
+#                 PostgreSQL (build/ci/linux-suite.sh);
+#   windows-gate  bench150: the whole Windows suite in the bench's own checkout,
+#                 which its hMailServer service runs from (build/ci/windows-gate.ps1);
+#   release       a v* tag only, by hand: a placeholder for the release-chain row.
+#
+# Why protected refs only: the two runners are registered ref_protected, so GitLab
+# gives them no job for anything else, and the rules below do not even create one.
+# A merge request - above all one from a fork - runs code nobody has reviewed, and
+# none of it reaches a machine of the project's (docs/ContinuousIntegration.md).
+#
+# What is still run by hand (CONTRIBUTING.md, "The checkers"): check-package-manifests.py
+# (it needs manifests rendered by a PowerShell script from a released installer), the
+# PowerShell checks (check-schema-versions.ps1, check-db-scripts.ps1, which needs SQL
+# Server Compact, check-roadmap.ps1, generate-settings-index.ps1), editorconfig-checker
+# and dotnet format; and the builds and both suites for any branch that is not
+# protected. Signing, packaging, publishing and the update feed are the Roadmap2 row
+# "The release chain off a single forge".
+#
+# Every script is started through python3, node, bash or PowerShell, never by its
+# shebang. The tree checks out CRLF on every platform (.gitattributes, but for
+# build/ci/*.sh and the Dockerfile), and a shebang line ending in a carriage return
+# names an interpreter that does not exist.
 
 stages:
   - check
+  - build
+  - test
+  - release
 
-# One pipeline per change: a merge request's pipeline when the branch has an open
-# merge request, the branch's own pipeline otherwise (master included), and none for
-# a tag.
+# One pipeline per change. A protected branch of this project (master, batch*) always
+# runs its own branch pipeline, which is the one with the builds and the suites, and a
+# merge request from it runs none beside it. Any other branch runs a merge request's
+# pipeline while it has an open merge request, and its own branch pipeline otherwise.
+# A v* tag runs one; any other tag none.
 workflow:
   rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_PROJECT_ID == $CI_PROJECT_ID && $CI_MERGE_REQUEST_SOURCE_BRANCH_PROTECTED == "true"
+      when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+    - if: $CI_COMMIT_TAG =~ /^v/
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_COMMIT_REF_PROTECTED != "true"
       when: never
     - if: $CI_COMMIT_BRANCH
 
@@ -195,3 +222,181 @@ sign-off:
         exit 1
       fi
       echo "Every commit carries its author's sign-off."
+
+# ---------------------------------------------------------------- the project's own runners
+#
+# linix (tags linux, docker, linix) and bench150 (tags windows, bench, bench150) are
+# project runners registered ref_protected with run_untagged off, and a job reaches
+# one only by its tag. These rules keep every such job out of any pipeline that is not
+# for a protected ref, and out of every merge request pipeline whatever its source.
+.own-runners:
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"
+
+# The Linux jobs run in an image built ON linix from build/ci/linux.Dockerfile and never
+# pulled: its tag is made from the Dockerfile's own hash, build/check-ci-image.py holds
+# the line below to it, and build/ci/build-linux-image.sh builds it
+# (docs/ContinuousIntegration.md, "The image").
+.linix:
+  extends: .own-runners
+  tags: [linix]
+  image:
+    name: hmailserver-ci/linux:26.04-ebbef5d9caeb
+    pull_policy: if-not-present
+
+# Started at once rather than after the checks: the runner is otherwise idle, and
+# the suite waits for it.
+linux-build:
+  extends: .linix
+  stage: build
+  needs: []
+  timeout: 1 hour
+  script:
+    - bash build/ci/linux-build.sh
+  artifacts:
+    when: always
+    expire_in: 3 days
+    paths:
+      - linux-build/
+
+linux-suite:
+  extends: .linix
+  stage: test
+  needs: [linux-build]
+  timeout: 3 hours
+  services:
+    # The same PostgreSQL the Linux suite has always run against, by digest.
+    - name: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
+      alias: postgres
+      pull_policy: if-not-present
+      variables:
+        POSTGRES_USER: hmailserver
+        POSTGRES_PASSWORD: hmtest
+        POSTGRES_DB: hmtest
+  variables:
+    HM_PG_HOST: postgres
+    # The script is stopped ten minutes before the job's timeout, so that after_script
+    # still runs: GitLab runs no after_script for a job that reached its own timeout.
+    RUNNER_SCRIPT_TIMEOUT: 2h50m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 5m
+  script:
+    - bash build/ci/linux-suite.sh
+  after_script:
+    # Perhaps in a new container, with the checkout (the tree is in it for that reason):
+    # the server's logs into the artifacts and the test tree removed, whether the run
+    # passed, failed, ran out of time or was cancelled.
+    - bash build/ci/linux-suite.sh collect
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - linux-suite/
+    reports:
+      junit: linux-suite/junit.xml
+
+# The whole Windows suite in the second bench's own checkout, C:\bench\hmailserver,
+# because the bench's hMailServer service is registered from that path: GIT_STRATEGY
+# none, and the commit is fetched into that checkout from GitLab. The gate scripts
+# are this commit's, taken out of the object store (git archive) before the checkout
+# is touched, so that the gate lock is held - by this commit's own gate-lock.ps1 -
+# before anything in the bench's working tree changes. The lock is released by the
+# script, and again by after_script for a job that was cancelled (GitLab 17.0 and
+# later run after_script then) or ran out of time (RUNNER_SCRIPT_TIMEOUT below).
+#
+# HM_GATE_WHERE, empty, is the whole suite in one run; an NUnit --where expression
+# runs that subset instead, which is how a second Windows runner would take half.
+windows-gate:
+  extends: .own-runners
+  stage: test
+  tags: [bench150]
+  needs: []
+  timeout: 4 hours
+  variables:
+    GIT_STRATEGY: none
+    HM_BENCH_DIR: 'C:\bench\hmailserver'
+    HM_GATE_REPOSITORY: https://gitlab.com/Progressiverobot/hmailserver.git
+    HM_GATE_WHERE: ""
+    HM_GATE_LOCK: 'C:\bench\gate.lock'
+    HM_GATE_LOCK_WAIT_MINUTES: "90"
+    # No prompt for a credential, ever: under LocalSystem there is nobody to answer it.
+    GIT_TERMINAL_PROMPT: "0"
+    GCM_INTERACTIVE: "Never"
+    # No MSBuild worker left running as LocalSystem after the job.
+    MSBUILDDISABLENODEREUSE: "1"
+    # Ten minutes before the job's timeout the script is stopped and after_script
+    # still runs, to release the lock; at the job's own timeout it would not.
+    RUNNER_SCRIPT_TIMEOUT: 3h50m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 5m
+  script:
+    - |
+      $sha = $env:CI_COMMIT_SHA
+      $bench = $env:HM_BENCH_DIR
+      $holder = "gitlab-pipeline-$($env:CI_PIPELINE_ID)-job-$($env:CI_JOB_ID)"
+      # The scripts below are started with the PowerShell running this, by its path:
+      # LocalSystem has the machine PATH only.
+      $shell = (Get-Process -Id $PID).Path
+      "== windows-gate of $sha in $bench as $([Security.Principal.WindowsIdentity]::GetCurrent().Name), under $shell"
+      # GIT_STRATEGY none cleans nothing: an earlier job's scripts go first, so that
+      # nothing below, and no after_script, runs another commit's.
+      Remove-Item -Recurse -Force gate, gate.zip -ErrorAction SilentlyContinue
+      # The commit's objects into the bench's checkout. A fetch writes under .git only
+      # and changes no file of the working tree, so it may run before the lock is ours.
+      git -C $bench -c credential.helper= -c gc.auto=0 fetch --quiet --no-tags $env:HM_GATE_REPOSITORY $sha
+      if ($LASTEXITCODE -ne 0) {
+        $ref = if ($env:CI_COMMIT_TAG) { "refs/tags/$($env:CI_COMMIT_TAG)" } else { "refs/heads/$($env:CI_COMMIT_BRANCH)" }
+        "fetching $sha by its id was refused; fetching $ref"
+        git -C $bench -c credential.helper= -c gc.auto=0 fetch --quiet --no-tags $env:HM_GATE_REPOSITORY $ref
+      }
+      git -C $bench cat-file -e "$sha^{commit}"
+      if ($LASTEXITCODE -ne 0) { "FETCH FAILED: $sha is not in $bench after a fetch from $($env:HM_GATE_REPOSITORY) - no gate"; exit 11 }
+      git -C $bench archive --format=zip -o "$env:CI_PROJECT_DIR\gate.zip" $sha build/ci
+      if ($LASTEXITCODE -ne 0) { "$sha has no build/ci - no gate"; exit 12 }
+      Expand-Archive gate.zip -DestinationPath gate
+      $ci = "$env:CI_PROJECT_DIR\gate\build\ci"
+      & $shell -NoProfile -ExecutionPolicy Bypass -File "$ci\gate-lock.ps1" -Take -Holder $holder -Path $env:HM_GATE_LOCK -WaitMinutes $env:HM_GATE_LOCK_WAIT_MINUTES
+      if ($LASTEXITCODE -ne 0) { "the gate lock is not ours - no gate"; exit 10 }
+      $code = 4
+      try {
+        & $shell -NoProfile -ExecutionPolicy Bypass -File "$ci\windows-gate.ps1" -Commit $sha -BenchDir $bench -ResultsDirectory "$env:CI_PROJECT_DIR\gate-results"
+        $code = $LASTEXITCODE
+      } finally {
+        & $shell -NoProfile -ExecutionPolicy Bypass -File "$ci\gate-lock.ps1" -Release -Holder $holder -Path $env:HM_GATE_LOCK
+      }
+      exit $code
+  after_script:
+    - |
+      $holder = "gitlab-pipeline-$($env:CI_PIPELINE_ID)-job-$($env:CI_JOB_ID)"
+      $lock = "$env:CI_PROJECT_DIR\gate\build\ci\gate-lock.ps1"
+      if (Test-Path $lock) {
+        & (Get-Process -Id $PID).Path -NoProfile -ExecutionPolicy Bypass -File $lock -Release -Holder $holder -Path $env:HM_GATE_LOCK
+        # A job cancelled mid-build leaves the service stopped. Started again only when
+        # the lock was still this job's (exit 0): after a normal end the script has
+        # released it already (5, none), and another holder's (4) may have stopped the
+        # service on purpose.
+        if ($LASTEXITCODE -eq 0 -and (Get-Service hMailServer -ErrorAction SilentlyContinue).Status -ne 'Running') {
+          Start-Service hMailServer -ErrorAction SilentlyContinue
+          "the hMailServer service was stopped; now $((Get-Service hMailServer).Status)"
+        }
+      }
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - gate-results/
+    reports:
+      junit: gate-results/junit.xml
+
+# The release stage belongs to the Roadmap2 row "The release chain off a single forge":
+# signing, the packages, publishing and the update feed. Until it is built, a v* tag
+# pipeline ends here, with a button that says so.
+release:
+  stage: release
+  image: python:3.13-slim-trixie
+  needs: [checkers, harnesses, linux-suite, windows-gate]
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
+      when: manual
+      allow_failure: true
+  script:
+    - echo "the release stage is the release-chain row's (137)"
+    - exit 1

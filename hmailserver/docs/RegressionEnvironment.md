@@ -210,8 +210,15 @@ Installation and Shared on one, Security, Infrastructure, SMTP, AntiVirus, SSL
 and ExternalAccounts on the other, each through `run-tests.ps1 -Where` with a
 class pattern, started together and reported together. Both halves are the
 gate; a run that reports one is not one. The same split, by the same rule,
-runs the Linux suite in CI as two matrix halves of the `regression-on-linux`
-job, after the whole suite grew past the job's ninety-minute limit.
+ran the Linux suite on GitHub as two matrix halves of the `regression-on-linux`
+job, after the whole suite grew past that job's ninety-minute limit.
+
+Since 25 September 2026 GitLab CI runs the whole suite, in one run, on the
+second bench itself for `master`, `batch*` branches and release tags: the
+`windows-gate` job, `build/ci/windows-gate.ps1`. The job and the split gate
+take one lock, `C:\bench\gate.lock`, so that neither checks a commit out under
+the other's running suite ([ContinuousIntegration.md](ContinuousIntegration.md)).
+GitLab CI runs the Linux suite whole as well, on the project's Linux runner.
 
 A faster bench finds what a slower one cannot: the first split run found a
 fixture that waited for a restore by watching a stamp of one-second resolution
@@ -263,14 +270,17 @@ keeps under that on its own.
 
 The server it runs against is any hMailServer with the REST listener on, on any
 host; the defaults are the PostgreSQL-backed tree the CI job lays out
-(`.github/workflows/linux-build.yml`, job `regression-on-linux`, run as two halves), which is also
+(`build/ci/linux-suite.sh`, run by the `linux-suite` job of `.gitlab-ci.yml`;
+before that, `.github/workflows/linux-build.yml`'s `regression-on-linux`), which is also
 the recipe for a hand-made one: `DBScripts` from the checkout beside the binary,
 `tlds.txt` and `dh2048.pem` from `installation/Extras`, an INI with
 `Type=PostgreSQL` and `RestApiPort=8045`, `--create-database`, the SMTP, POP3
 and IMAP listeners moved off the privileged ports with an `UPDATE` of
-`hm_tcpipports` (the submission listener keeps its stock 587, which the setup
-checklist judges by number and `API/RestApiSetupChecklist` asserts; the job
-lets the runner bind from port 53 up before the server starts), the
+`hm_tcpipports` (the submission listener keeps its stock 587 where the server
+may bind it - the CI job runs as root in its container, which also lets the
+suite serve its DNS zone on port 53; a bench run as an ordinary user moves it,
+to 5870 on the lab VM, and names it in `HMTEST_SUBMISSION_PORT`, the port
+`API/RestApiSetupChecklist` asks about), the
 auto-ban switched off with an `UPDATE` of `hm_settings`
 (`AutoBanOnLogonFailureEnabled` to 0 - the suite fails logons on purpose, and
 three of them ban the test host for an hour; the Windows setup switches it off

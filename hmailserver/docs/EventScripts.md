@@ -438,8 +438,9 @@ contain it: Windows runs VBScript and JScript, unchanged.
 from read/write; values both ways and what `Result` refuses; the timeout, the
 ceiling, the stack and the sandbox), which one thing runs: the bench program
 `script-binding-tests`, which the CMake build makes beside `spf-tests` and
-`.github/workflows/linux-build.yml` runs. Nothing inside the server runs the tester
-and neither regression suite runs the program, so where that workflow does not run
+GitLab CI's `linux-build` job runs, with every other `*-tests` program
+(`build/ci/linux-build.sh`). Nothing inside the server runs the tester
+and neither regression suite runs the program, so where that job does not run
 it is run by hand from the build directory. And by the regression fixture
 `API/EventsJavaScript.cs`, which the Linux suite runs: one test for each event
 `API/Events.cs` tests on Windows, with a handler mirroring the VBScript or JScript

@@ -174,7 +174,8 @@ arrived, since the webmail makes Ed25519 and RSA keys and GnuPG signs its own.
 inside the server (`MainOperations.TestInternals`): the X25519 arithmetic against RFC
 7748's vector, the packets' shape against RFC 9580, the message opened again with the
 session key the test fixed. The Linux build's `openpgp-writer` tool hands what the
-writer makes to GnuPG 2.4 on every CI run (`linux-build.yml`), once to the Curve25519
+writer makes to GnuPG on every CI run of a protected ref (the `linux-build` job,
+`build/ci/linux-build.sh`), once to the Curve25519
 fixture key and once to the RSA one, and gpg's plaintext must be byte for byte the
 input; and `build/fixtures/openpgp/server-sealed-to-alice.eml`, a delivery the writer
 sealed, is opened by the page's own module and by gpg in `check-portal-openpgp.js`.

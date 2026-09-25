@@ -125,8 +125,9 @@ well:
   `Utilities.RunTestSuite`. Under Visual Studio, set the hMailServer project's
   debug command line to `/Test` and every case can be stepped through.
 * **As a program of its own on Linux.** The CMake build makes `spf-tests` from
-  `platform/spf_tests_main.cpp`, and `.github/workflows/linux-build.yml` runs it on
-  x86-64 and AArch64, under clang and under GCC. That route exists because the
+  `platform/spf_tests_main.cpp`, and GitLab CI's `linux-build` job runs it on x86-64
+  under clang (`build/ci/linux-build.sh`), as `.github/workflows/linux-build.yml` ran
+  it on x86-64 and AArch64, under clang and under GCC. That route exists because the
   first one does not here: `RunTestSuite` is a COM method and the Linux suite's
   shim skips it.
 
