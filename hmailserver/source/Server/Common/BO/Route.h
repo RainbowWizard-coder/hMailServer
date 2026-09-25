@@ -59,7 +59,16 @@ namespace HM
       void SetConnectionSecurity(ConnectionSecurity connectio_security) {connection_security_ = connectio_security; }
 
       std::shared_ptr<RouteAddresses> GetAddresses();
-   
+
+      // A new route with every field of this one, its id included, and no
+      // address list of its own until one is asked for (GetAddresses then loads
+      // it by the id). A route is not copied by a copy constructor, since it
+      // holds the lock below. REST's route update and COM's InterfaceRoute write
+      // a change onto such a copy and save it, and the route in
+      // SMTPConfiguration's shared collection is replaced by the refresh that
+      // follows, never written in place.
+      std::shared_ptr<Route> CopyFields() const;
+
       bool XMLStore(XNode *pRoutesNode, int iOptions);
       bool XMLLoad(XNode *pNode, int iOptions);
       bool XMLLoadSubItems(XNode *pNode, int iOptions);

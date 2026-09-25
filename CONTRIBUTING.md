@@ -339,6 +339,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-collection-iteration.py` | Every loop over a shared collection iterates a locked copy (`GetSnapshot()`) | `--self-test` |
 | `check-com-dispids.py` | No two members of one COM interface share a dispatch id | |
 | `check-com-error-info.py` | Every COM class that raises errors answers `ISupportErrorInfo` | `--self-test` |
+| `check-com-shared-copies.py` | A COM change to an item of one of the running server's collections is written onto a copy, and every hand-out attaches the shared collection | `--self-test` |
 | `check-deck-languages.py` | The Control Deck's catalogues against its page | `--keys` |
 | `check-deck-parity.py` | A census of the desktop Control Panel's writes against the REST API and the Deck | **Rewrites** `hmailserver/docs/DeckParity.md` by default; `--no-doc` prints only; `--strict` exits 1 when anything is missing. After a change, run it and commit `DeckParity.md` if it moved |
 | `check-deck-script.py` | Runs the Deck's script against a small DOM and a recorded server | Needs `node`; `--extract-only` does without |

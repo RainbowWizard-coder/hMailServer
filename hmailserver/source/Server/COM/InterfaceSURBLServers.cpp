@@ -74,7 +74,7 @@ InterfaceSURBLServers::get_Item(long Index, IInterfaceSURBLServer **pVal)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceSURBLServer->AttachItem(pDNSBlackList);
-      pInterfaceSURBLServer->AttachParent(surbl_servers_, true);
+      pInterfaceSURBLServer->AttachSharedParent(surbl_servers_, true);
       pInterfaceSURBLServer->AddRef();
       *pVal = pInterfaceSURBLServer;
    
@@ -122,7 +122,7 @@ InterfaceSURBLServers::get_ItemByDBID(long lDBID, IInterfaceSURBLServer **pVal)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceSURBLServer->AttachItem(pDNSBlackList);
-      pInterfaceSURBLServer->AttachParent(surbl_servers_, true);
+      pInterfaceSURBLServer->AttachSharedParent(surbl_servers_, true);
       pInterfaceSURBLServer->AddRef();
    
       *pVal = pInterfaceSURBLServer;
@@ -152,7 +152,7 @@ InterfaceSURBLServers::Add(IInterfaceSURBLServer **pVal)
       std::shared_ptr<HM::SURBLServer> pDNSBL = std::shared_ptr<HM::SURBLServer>(new HM::SURBLServer);
    
       pInterfaceSURBLServer->AttachItem(pDNSBL);
-      pInterfaceSURBLServer->AttachParent(surbl_servers_, false);
+      pInterfaceSURBLServer->AttachSharedParent(surbl_servers_, false);
    
       pInterfaceSURBLServer->AddRef();
    
@@ -182,7 +182,7 @@ InterfaceSURBLServers::get_ItemByDNSHost(BSTR ItemName, IInterfaceSURBLServer **
          return S_FALSE;
    
       pInterfaceSURBLServer->AttachItem(pDNSBL);
-      pInterfaceSURBLServer->AttachParent(surbl_servers_, true);
+      pInterfaceSURBLServer->AttachSharedParent(surbl_servers_, true);
       pInterfaceSURBLServer->AddRef();
    
       *pVal = pInterfaceSURBLServer;

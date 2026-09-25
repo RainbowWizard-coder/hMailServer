@@ -1063,7 +1063,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/settings/ini/{name}` | - | `database`, `domain`, `file`, `from`, `key`, `keys`, `log`, `read`, `start`, `to`, `until`, `value` | - |
 | `PUT /api/v1/settings/logging` | Logging | `device`, `enabled`, `keep_files_open`, `log_application`, `log_awstats`, `log_debug`, `log_format`, `log_imap`, `log_pop3`, `log_smtp`, `log_tcpip`, `syslog_enabled`, `syslog_facility`, `syslog_host`, `syslog_log_application`, `syslog_log_debug`, `syslog_log_imap`, `syslog_log_pop3`, `syslog_log_smtp`, `syslog_log_tcpip`, `syslog_minimum_severity`, `syslog_port`, `syslog_transport` | yes |
 | `POST /api/v1/settings/logon-failures/clear` | - | - | - |
-| `PUT /api/v1/settings/messages/{name}` | ServerMessage | `domain`, `keys`, `read`, `text` | yes |
+| `PUT /api/v1/settings/messages/{name}` | ServerMessage | `domain`, `keys`, `log`, `read`, `text` | yes |
 | `PUT /api/v1/settings/openpgp` | Settings | `key_maximum_bytes`, `keys_per_account`, `keyserver_url`, `lookup_keyserver`, `lookup_timeout`, `lookup_wkd`, `portal_enabled`, `protected_message_days`, `require_address_in_user_id`, `web_key_directory_enabled`, `zero_access_allowed` | yes |
 | `POST /api/v1/settings/profiles/decline` | ? | `manage_settings`, `profile_declined` | yes |
 | `POST /api/v1/settings/profiles/discard` | ? | `manage_settings` | yes |

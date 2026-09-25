@@ -1141,10 +1141,10 @@ namespace HM
    //---------------------------------------------------------------------------()
    {
       // What the policy says, read once: one batch is sealed to one key with
-      // one fallback. The record is the collection's; a REST save replaces it
-      // with a new one and this batch keeps the one it was given, while a COM
-      // save still writes into it (Roadmap2, "A COM change to a shared
-      // configuration object is written onto a copy").
+      // one fallback. The record is the collection's; a REST or a COM save
+      // replaces it with a new one and this batch keeps the one it was given
+      // (COM/COMCollection.h, "A change to an item of a shared collection is
+      // written onto a copy").
       const RemoteEncryption method = encryption->GetEncrypt();
       const String key = encryption->GetEncryptKey();
       const RemoteEncryptFallback fallback = encryption->GetEncryptFallback();

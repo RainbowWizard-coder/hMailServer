@@ -230,11 +230,12 @@ text (`policyencryptkey=(changed)`).
 **A refused save.** Over REST a policy is changed on a copy, saved, and reaches
 delivery by the collection being read again, so a refused body changes nothing and a
 delivery in progress keeps the record it started with. Over COM - the Control
-Panel's path - the object handed out *is* the running record delivery reads, and its
-setters write into it before `Save`; a refused save puts it back as the database
-holds it, so a refused key never governs a delivery. That COM writes into the running
-record at all is the general problem of the roadmap row *A COM change to a shared
-configuration object is written onto a copy*, which this does not solve.
+Panel's path - it is the same: the first setter called on a policy handed out of
+the collection copies it, the object writes and reads its copy from then on, and
+`Save` saves the copy and reads the policies again. So a change is not in effect
+until `Save`, a refused key never governs a delivery, and after a refused save the
+object is read back as the database holds it - what it reads is the policy in
+effect.
 
 **What is encrypted, and what is not.** The *whole* original message goes under the
 key - every header and the body, exactly as it would have been sent, this server's

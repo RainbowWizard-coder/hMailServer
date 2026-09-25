@@ -8,11 +8,39 @@
 #include "InterfaceRouteAddresses.h"
 #include "InterfaceRouteAddress.h"
 
+#include "../Common/BO/Route.h"
+#include "../Common/BO/Routes.h"
+#include "../SMTP/SMTPConfiguration.h"
+
 void
 InterfaceRouteAddresses::Attach(std::shared_ptr<HM::RouteAddresses> pRouteAddresses)
 {
    route_addresses_ = pRouteAddresses;
 } 
+
+void
+InterfaceRouteAddresses::ReachRunningRoute(std::shared_ptr<HM::RouteAddresses> list)
+{
+   // The running route's list is found by the route's id, as a session finds
+   // the route by its name, and read again only when it is another object:
+   // the list InterfaceRoute::get_Addresses hands out is the running route's
+   // while the route is running, and an add or a delete through it is in
+   // effect already.
+   if (!list || list->GetRouteID() == 0)
+      return;
+
+   std::shared_ptr<HM::Routes> routes = HM::Configuration::Instance()->GetSMTPConfiguration()->GetRoutes();
+   if (!routes)
+      return;
+
+   std::shared_ptr<HM::Route> running = routes->GetItemByDBID(list->GetRouteID());
+   if (!running)
+      return;
+
+   std::shared_ptr<HM::RouteAddresses> runningList = running->GetAddresses();
+   if (runningList && runningList != list)
+      runningList->Refresh();
+}
 
 STDMETHODIMP 
 InterfaceRouteAddresses::get_Count(long *pVal)
@@ -49,7 +77,7 @@ InterfaceRouteAddresses::get_Item(long Index, IInterfaceRouteAddress **pVal)
          return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
       pInterfaceRouteAddress->AttachItem(pRouteAddress);
-      pInterfaceRouteAddress->AttachParent(route_addresses_, true);
+      pInterfaceRouteAddress->AttachSharedParent(route_addresses_, true);
       pInterfaceRouteAddress->AddRef();
       *pVal = pInterfaceRouteAddress;
    
@@ -72,6 +100,7 @@ InterfaceRouteAddresses::DeleteByDBID(long DBID)
          return GetAccessDenied();
 
       route_addresses_->DeleteItemByDBID(DBID);
+      ReachRunningRoute(route_addresses_);
    
       return S_OK;
    }
@@ -91,6 +120,7 @@ InterfaceRouteAddresses::DeleteByAddress(BSTR bstrAddress)
 
       HM::String sAddress = bstrAddress;
       route_addresses_->DeleteByAddress(sAddress);
+      ReachRunningRoute(route_addresses_);
    
       return S_OK;
    }
@@ -119,7 +149,7 @@ InterfaceRouteAddresses::Add(IInterfaceRouteAddress **pVal)
       // Set the ID of the new route.
       pRouteAddress->SetRouteID(route_addresses_->GetRouteID());
    
-      pRouteAddressInterface->AttachParent(route_addresses_, false);
+      pRouteAddressInterface->AttachSharedParent(route_addresses_, false);
       pRouteAddressInterface->AttachItem(pRouteAddress);
    
       pRouteAddressInterface->AddRef();
@@ -149,7 +179,7 @@ InterfaceRouteAddresses::get_ItemByDBID(long lDBID, IInterfaceRouteAddress **pVa
       if (pRouteAddress)
       {
          pInterfaceRouteAddress->AttachItem(pRouteAddress);
-         pInterfaceRouteAddress->AttachParent(route_addresses_, true);
+         pInterfaceRouteAddress->AttachSharedParent(route_addresses_, true);
          pInterfaceRouteAddress->AddRef();
          *pVal = pInterfaceRouteAddress;
       }

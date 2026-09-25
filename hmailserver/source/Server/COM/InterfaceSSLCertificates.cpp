@@ -110,7 +110,7 @@ InterfaceSSLCertificates::get_Item(long Index, IInterfaceSSLCertificate **pVal)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceSSLCertificate->AttachItem(pBA);
-      pInterfaceSSLCertificate->AttachParent(ssl_certificates_, true);
+      pInterfaceSSLCertificate->AttachSharedParent(ssl_certificates_, true);
       pInterfaceSSLCertificate->AddRef();
       *pVal = pInterfaceSSLCertificate;
    
@@ -158,7 +158,7 @@ InterfaceSSLCertificates::get_ItemByDBID(long lDBID, IInterfaceSSLCertificate **
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceSSLCertificate->AttachItem(pBA);
-      pInterfaceSSLCertificate->AttachParent(ssl_certificates_, true);
+      pInterfaceSSLCertificate->AttachSharedParent(ssl_certificates_, true);
       pInterfaceSSLCertificate->AddRef();
    
       *pVal = pInterfaceSSLCertificate;
@@ -188,7 +188,7 @@ InterfaceSSLCertificates::Add(IInterfaceSSLCertificate **pVal)
       std::shared_ptr<HM::SSLCertificate> pBA = std::shared_ptr<HM::SSLCertificate>(new HM::SSLCertificate);
    
       pInterfaceSSLCertificate->AttachItem(pBA);
-      pInterfaceSSLCertificate->AttachParent(ssl_certificates_, false);
+      pInterfaceSSLCertificate->AttachSharedParent(ssl_certificates_, false);
       pInterfaceSSLCertificate->AddRef();
    
       *pVal = pInterfaceSSLCertificate;

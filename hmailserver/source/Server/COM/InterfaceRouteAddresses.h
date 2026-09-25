@@ -57,6 +57,15 @@ END_COM_MAP()
 
    void Attach(std::shared_ptr<HM::RouteAddresses> pRouteAddresses);
 
+   // After an address is saved or deleted through list: when list is not the
+   // running route's own - it was read from the route before a refresh of the
+   // routes (a route's COM Save, Routes.Refresh, a REST update) replaced the
+   // route - the running route's list is read again, so the change is in
+   // effect as it would have been through the running list. The list itself
+   // still reads as it was, with its own change; Addresses read again from
+   // the route is the running list.
+   static void ReachRunningRoute(std::shared_ptr<HM::RouteAddresses> list);
+
 public:
 
    std::shared_ptr<HM::RouteAddresses> route_addresses_;

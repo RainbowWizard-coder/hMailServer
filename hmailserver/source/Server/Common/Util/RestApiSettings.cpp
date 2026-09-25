@@ -3452,19 +3452,27 @@ namespace
       if (!Unicode::MultiByteToWide(AnsiString(member->AsString().c_str()), text))
          return Refusal(bridge, 400, "text is not valid UTF-8");
 
-      // The object is the one the server reads, so the new text is in use the
-      // moment it is set; the row is what InterfaceServerMessage::Save writes.
-      String before = message->GetText();
-      message->SetText(text);
-      if (!PersistentServerMessage::SaveObject(message))
-      {
-         message->SetText(before);
+      // Onto a copy, which is saved, and then the messages are read again - as
+      // the route and list updates do it, and InterfaceServerMessage::Save. The
+      // object in the collection is the one the server reads: a bounce or a
+      // virus notice being written copies its text while this runs, and a text
+      // assigned under that copy frees the buffer being copied. The refresh
+      // swaps in new messages under the collection's lock, and a notice being
+      // written keeps the one it holds. A refused save changes nothing.
+      std::shared_ptr<ServerMessage> changed(new ServerMessage(*message));
+      changed->SetText(text);
+      if (!PersistentServerMessage::SaveObject(changed))
          return Refusal(bridge, 500, "the server message could not be saved; see the error log");
+
+      if (!messages->Refresh())
+      {
+         LOG_APPLICATION("RestApi: Server message " + name + " was saved, but the server messages could not be read again; "
+            "the running server keeps the previous text until they can be.");
       }
 
       LOG_APPLICATION("RestApi: Server message " + name + " changed.");
 
-      return bridge.respond(200, ServerMessageJson(message, bridge), "");
+      return bridge.respond(200, ServerMessageJson(changed, bridge), "");
    }
 
    // ---------------------------------------------------------------------
@@ -3589,7 +3597,7 @@ namespace
       ",\"/api/v1/settings/scripting/reload\":{\"post\":{\"summary\":\"Load the event-handler script again\",\"description\":\"What Scripting.Reload does over COM: the script file is read again and the handlers it defines take over from the next event. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"200\":{\"description\":\"{reloaded: true}\"}}}},"
       "\"/api/v1/settings/scripting/check\":{\"post\":{\"summary\":\"Check the event-handler script's syntax\",\"description\":\"What Scripting.CheckSyntax does over COM: result is empty when the script parses, and the parser's message otherwise. Nothing is changed. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"{result: the parser's message, or empty}\"}}}},"
       "\"/api/v1/settings/messages\":{\"get\":{\"summary\":\"The server's message texts\",\"description\":\"The texts the server puts in the mail it writes itself - Settings.ServerMessages over COM. Each entry: id, name, text. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of {id, name, text}\"}}}},"
-      "\"/api/v1/settings/messages/{name}\":{\"put\":{\"summary\":\"Change one server message text\",\"description\":\"Body: text. The name is the table's own, as the listing shows it. In use at once. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"text\"],\"properties\":{\"text\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{id, name, text} as saved\"},\"400\":{\"description\":\"text missing or not a string\"},\"404\":{\"description\":\"No message of that name\"}}}},"
+      "\"/api/v1/settings/messages/{name}\":{\"put\":{\"summary\":\"Change one server message text\",\"description\":\"Body: text. The name is the table's own, as the listing shows it. In use once the messages are read again after the save, which is at once unless that read fails, and the application log says when it does. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"text\"],\"properties\":{\"text\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{id, name, text} as saved\"},\"400\":{\"description\":\"text missing or not a string\"},\"404\":{\"description\":\"No message of that name\"}}}},"
       "\"/api/v1/sieve/evaluate\":{\"post\":{\"summary\":\"Try a Sieve script against a message, without delivering anything\",\"description\":\"Body: script (RFC 5228 Sieve) and message (the raw message, headers and body). result is the action list the script decided on - keep, fileinto:Folder, discard, redirect:address, and so on - or error: followed by the parser's message. What Utilities.EvaluateSieveScript does over COM: nothing is filed, sent or recorded. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"script\",\"message\"],\"properties\":{\"script\":{\"type\":\"string\"},\"message\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{result}\"},\"400\":{\"description\":\"script or message missing\"}}}},"
       "\"/api/v1/calendar/expand\":{\"post\":{\"summary\":\"Expand an iCalendar object's recurrence over a window, without storing anything\",\"description\":\"Body: calendar (one iCalendar object, VEVENT or VTODO, with any VTIMEZONE it needs), start and end (UTC, YYYYMMDDTHHMMSSZ; the window, unbounded when absent) and limit (instances, 1 to 10000, 1000 by default). Answers what the CalDAV calendar-query computes for the object: uid, component, recurring, first and last (the span; last empty for a recurrence with no end), count, truncated, and instances - each with start, end, all_day, recurrence_id, overridden and summary. An object the server would refuse on PUT - a rule it does not expand, a zone it cannot place - is a 400 with the reason. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"calendar\"],\"properties\":{\"calendar\":{\"type\":\"string\"},\"start\":{\"type\":\"string\"},\"end\":{\"type\":\"string\"},\"limit\":{\"type\":\"integer\"}}}}}},\"responses\":{\"200\":{\"description\":\"{uid, component, recurring, first, last, count, truncated, instances: [{start, end, all_day, recurrence_id, overridden, summary}]}\"},\"400\":{\"description\":\"calendar missing, not one iCalendar object, or one this server cannot expand (the reason is in error)\"}}}}";
 

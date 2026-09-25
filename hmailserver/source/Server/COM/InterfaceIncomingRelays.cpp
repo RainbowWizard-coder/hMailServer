@@ -102,7 +102,7 @@ STDMETHODIMP InterfaceIncomingRelays::get_Item(long Index, IInterfaceIncomingRel
       if (pRange)
       {
          pRangeInt->AttachItem(pRange);
-         pRangeInt->AttachParent(incoming_relays_, true);
+         pRangeInt->AttachSharedParent(incoming_relays_, true);
          pRangeInt->AddRef();
          *pVal = pRangeInt;
       }
@@ -136,7 +136,7 @@ STDMETHODIMP InterfaceIncomingRelays::get_ItemByDBID(long DBID, IInterfaceIncomi
       if (pRange)
       {
          pRangeInt->AttachItem(pRange);
-         pRangeInt->AttachParent(incoming_relays_, true);
+         pRangeInt->AttachSharedParent(incoming_relays_, true);
          pRangeInt->AddRef();
          *pVal = pRangeInt;
       }
@@ -169,7 +169,7 @@ STDMETHODIMP InterfaceIncomingRelays::Add(IInterfaceIncomingRelay **pVal)
       std::shared_ptr<HM::IncomingRelay> pRange = std::shared_ptr<HM::IncomingRelay>(new HM::IncomingRelay); 
    
       pInterfaceRange->AttachItem(pRange);
-      pInterfaceRange->AttachParent(incoming_relays_, false);
+      pInterfaceRange->AttachSharedParent(incoming_relays_, false);
    
       pInterfaceRange->AddRef();
       *pVal = pInterfaceRange;
@@ -197,7 +197,7 @@ STDMETHODIMP InterfaceIncomingRelays::get_ItemByName(BSTR sName, IInterfaceIncom
       if (pRange)
       {
          pRangeInt->AttachItem(pRange);
-         pRangeInt->AttachParent(incoming_relays_, true);
+         pRangeInt->AttachSharedParent(incoming_relays_, true);
          pRangeInt->AddRef();
          *pVal = pRangeInt;
       }

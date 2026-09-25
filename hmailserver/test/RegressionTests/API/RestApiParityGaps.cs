@@ -266,6 +266,12 @@ namespace RegressionTests.API
          (int putStatus, string putBody) = Http("PUT", "/api/v1/blocked-attachments/" + id, "{\"description\":\"rest, changed\"}");
          Assert.AreEqual(200, putStatus, putBody);
          StringAssert.Contains("\"description\":\"rest, changed\"", putBody);
+
+         // The update saved a copy and read the list again: the item the COM object read
+         // before it - the one the virus scanner was comparing names with - was never
+         // written, and the running list has a new one (COM/COMCollection.h).
+         Assert.AreEqual("rest", viaCom.Description, "The update wrote the running item in place.");
+
          viaCom = _settings.AntiVirus.BlockedAttachments.get_ItemByDBID(int.Parse(id));
          Assert.AreEqual("rest, changed", viaCom.Description);
          Assert.AreEqual("*.rest-blocked", viaCom.Wildcard, "Left out, so left alone.");

@@ -61,6 +61,29 @@ namespace HM
       return addresses_;
    }
 
+   std::shared_ptr<Route>
+   Route::CopyFields() const
+   {
+      std::shared_ptr<Route> copy = std::shared_ptr<Route>(new Route());
+
+      copy->SetID(id_);
+      copy->domain_name_ = domain_name_;
+      copy->description_ = description_;
+      copy->target_smtphost_ = target_smtphost_;
+      copy->target_smtpport_ = target_smtpport_;
+      copy->number_of_tries_ = number_of_tries_;
+      copy->minutes_between_try_ = minutes_between_try_;
+      copy->to_all_addresses_ = to_all_addresses_;
+      copy->relayer_requires_authentication_ = relayer_requires_authentication_;
+      copy->relayer_auth_username_ = relayer_auth_username_;
+      copy->relayer_auth_password_ = relayer_auth_password_;
+      copy->connection_security_ = connection_security_;
+      copy->treat_recipient_as_local_domain_ = treat_recipient_as_local_domain_;
+      copy->treat_sender_as_local_domain_ = treat_sender_as_local_domain_;
+
+      return copy;
+   }
+
    bool 
    Route::XMLStore(XNode *pRoutesNode, int iOptions)
    {

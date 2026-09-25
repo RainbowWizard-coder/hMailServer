@@ -56,7 +56,7 @@ STDMETHODIMP InterfaceRoutes::get_Item(long Index, IInterfaceRoute **pVal)
       if (pRoute)
       {
          pInterfaceRoute->AttachItem(pRoute);
-         pInterfaceRoute->AttachParent(routes_, true);
+         pInterfaceRoute->AttachSharedParent(routes_, true);
          pInterfaceRoute->AddRef();
          *pVal = pInterfaceRoute;
       }
@@ -109,7 +109,7 @@ STDMETHODIMP InterfaceRoutes::Add(IInterfaceRoute **pVal)
       std::shared_ptr<HM::Route> pRoute = std::shared_ptr<HM::Route>(new HM::Route);
    
       pRouteInterface->AttachItem(pRoute);
-      pRouteInterface->AttachParent(routes_, false);
+      pRouteInterface->AttachSharedParent(routes_, false);
    
       pRouteInterface->AddRef();
       *pVal = pRouteInterface;
@@ -138,7 +138,7 @@ InterfaceRoutes::get_ItemByName(BSTR ItemName, IInterfaceRoute **pVal)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pRouteInterface->AttachItem(pRoute);
-      pRouteInterface->AttachParent(routes_, true);
+      pRouteInterface->AttachSharedParent(routes_, true);
    
       pRouteInterface->AddRef();
       *pVal = pRouteInterface;
@@ -167,7 +167,7 @@ InterfaceRoutes::get_ItemByDBID(long lDBID, IInterfaceRoute **pVal)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pRouteInterface->AttachItem(pRoute);
-      pRouteInterface->AttachParent(routes_, true);
+      pRouteInterface->AttachSharedParent(routes_, true);
    
       pRouteInterface->AddRef();
       *pVal = pRouteInterface;

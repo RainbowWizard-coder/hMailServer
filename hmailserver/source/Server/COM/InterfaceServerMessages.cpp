@@ -77,6 +77,7 @@ InterfaceServerMessages::get_Item(long Index, IInterfaceServerMessage **pVal)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceServerMessage->AttachItem(pSM);
+      pInterfaceServerMessage->AttachSharedParent(server_messages_, true);
       pInterfaceServerMessage->AddRef();
       *pVal = pInterfaceServerMessage;
    
@@ -105,6 +106,7 @@ InterfaceServerMessages::get_ItemByDBID(long lDBID, IInterfaceServerMessage **pV
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceServerMessage->AttachItem(pSM);
+      pInterfaceServerMessage->AttachSharedParent(server_messages_, true);
       pInterfaceServerMessage->AddRef();
    
       *pVal = pInterfaceServerMessage;
@@ -134,6 +136,7 @@ InterfaceServerMessages::get_ItemByName(BSTR sName, IInterfaceServerMessage **pV
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceServerMessage->AttachItem(pSM);
+      pInterfaceServerMessage->AttachSharedParent(server_messages_, true);
       pInterfaceServerMessage->AddRef();
    
       *pVal = pInterfaceServerMessage;

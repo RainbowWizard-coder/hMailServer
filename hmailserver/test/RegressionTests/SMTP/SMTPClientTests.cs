@@ -50,6 +50,10 @@ namespace RegressionTests.SMTP
             route.RelayerAuthUsername = "user@example.com";
             route.SetRelayerAuthPassword("MySecretPassword");
 
+            // A route's change is in effect from its Save: the put_* calls above write the
+            // COM object's own copy of the running route (COMCollection.h).
+            route.Save();
+
             // Send message to this route.
             var smtp = new SmtpClientSimulator();
             var recipients = new List<string>();

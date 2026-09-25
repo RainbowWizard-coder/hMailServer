@@ -845,7 +845,7 @@ namespace RegressionTests.SMTP
       }
 
       [Test]
-      [Description("A save refused over COM - the Control Panel's path - leaves the running policy as the database holds it: the object COM hands out is the running record, and the refused key must not govern delivery. The partner still gets the message enveloped to the key saved before.")]
+      [Description("A save refused over COM - the Control Panel's path - leaves the running policy as the database holds it: the object COM hands out writes a copy of the running record, the refused key must not govern delivery, and the object reads the policy in effect after the refusal. The partner still gets the message enveloped to the key saved before.")]
       public void ARefusedComSaveLeavesTheRunningPolicyAsItWas()
       {
          X509Certificate2 good = GatewayCertificate_("CN=gateway." + PartnerDomain, "gateway@" + PartnerDomain,
@@ -856,17 +856,17 @@ namespace RegressionTests.SMTP
 
          AddPolicy_(PartnerDomain, EncryptSmime, Pem_(good), FallbackRefuse);
 
-         // The running record, as the Control Panel edits it.
+         // The running record, as the Control Panel edits it: the first put_* copies it.
          dynamic attached = _settings.RemoteDomainPolicies.get_ItemByName(PartnerDomain);
 
          attached.EncryptKey = Pem_(expired);
          COMException expiredRefused = Assert.Throws<COMException>(() => attached.Save());
          StringAssert.Contains("the certificate expired on", expiredRefused.Message);
-         Assert.AreEqual(goodFingerprint, (string) attached.EncryptKeyFingerprint, "The refused key stayed on the running policy.");
+         Assert.AreEqual(goodFingerprint, (string) attached.EncryptKeyFingerprint, "The object kept the refused key after its save was refused.");
 
          attached.Encrypt = EncryptOpenPgp;
          Assert.Throws<COMException>(() => attached.Save(), "A certificate was saved as an OpenPGP key.");
-         Assert.AreEqual(EncryptSmime, (int) attached.Encrypt, "The refused method stayed on the running policy.");
+         Assert.AreEqual(EncryptSmime, (int) attached.Encrypt, "The object kept the refused method after its save was refused.");
 
          const string body = "Enveloped to the key that was saved, not to the one that was refused.";
 

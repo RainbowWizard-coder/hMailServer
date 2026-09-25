@@ -25,7 +25,7 @@ namespace HM
    }
 
 
-   void 
+   bool 
    ServerMessages::Refresh()
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
@@ -33,7 +33,7 @@ namespace HM
    //---------------------------------------------------------------------------()
    {
       String sSQL = "select * from hm_servermessages order by smname asc";
-      DBLoad_(sSQL);
+      return DBLoad_(sSQL);
    }
 
    String 

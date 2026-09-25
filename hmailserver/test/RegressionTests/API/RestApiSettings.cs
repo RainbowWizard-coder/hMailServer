@@ -1068,6 +1068,10 @@ namespace RegressionTests.API
          const string name = "VIRUS_FOUND";
          string original = _settings.ServerMessages.get_ItemByName(name).Text;
 
+         // Read before the PUT: the message the running server holds, which the PUT
+         // saves a copy of and never writes (COM/COMCollection.h).
+         ServerMessage heldBefore = _settings.ServerMessages.get_ItemByName(name);
+
          (int listStatus, string list) = Http("GET", "/api/v1/settings/messages");
          Assert.AreEqual(200, listStatus, list);
          StringAssert.Contains("\"name\":\"" + name + "\"", list);
@@ -1079,6 +1083,7 @@ namespace RegressionTests.API
             Assert.AreEqual(200, putStatus, putBody);
             StringAssert.Contains("\"text\":\"Virus found (over the route)\"", putBody);
             Assert.AreEqual("Virus found (over the route)", _settings.ServerMessages.get_ItemByName(name).Text, "COM reads what the API wrote.");
+            Assert.AreEqual(original, heldBefore.Text, "The PUT wrote the running message in place.");
 
             (int unknownStatus, string unknownBody) = Http("PUT", "/api/v1/settings/messages/NO_SUCH_MESSAGE", "{\"text\":\"x\"}");
             Assert.AreEqual(404, unknownStatus, unknownBody);

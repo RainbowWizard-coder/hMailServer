@@ -48,10 +48,18 @@ InterfaceGroup::Save()
          return GetAccessDenied();
 
       HM::String sErrorMessage;
+
+      // Onto a copy even when nothing was put before it: the running item is
+      // never what the persister is handed, and neither is one a refresh has
+      // replaced since this object was given it (COMCollection.h).
+      Writable_();
+
       if (HM::PersistentGroup::SaveObject(object_, sErrorMessage, HM::PersistenceModeNormal))
       {
-         // Add to parent collection
-         AddToParentCollection();
+         // A new item joins the running collection; a changed one - this
+         // object's copy - reaches it by the collection being read again
+         // (COMCollection.h).
+         PublishSaved_("InterfaceGroup::Save");
          return S_OK;
       }
       
@@ -103,7 +111,7 @@ STDMETHODIMP InterfaceGroup::put_Name(BSTR sVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetName(sVal);
+      Writable_()->SetName(sVal);
       return S_OK;
    }
    catch (...)

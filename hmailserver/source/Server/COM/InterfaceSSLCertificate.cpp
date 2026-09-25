@@ -22,10 +22,17 @@ InterfaceSSLCertificate::Save()
       if (!authentication_->GetIsServerAdmin())
          return authentication_->GetAccessDenied();
    
+      // Onto a copy even when nothing was put before it: the running item is
+      // never what the persister is handed, and neither is one a refresh has
+      // replaced since this object was given it (COMCollection.h).
+      Writable_();
+
       if (HM::PersistentSSLCertificate::SaveObject(object_))
       {
-         // Add to parent collection
-         AddToParentCollection();
+         // A new item joins the running collection; a changed one - this
+         // object's copy - reaches it by the collection being read again
+         // (COMCollection.h).
+         PublishSaved_("InterfaceSSLCertificate::Save");
       }
    
       return S_OK;
@@ -82,7 +89,7 @@ STDMETHODIMP InterfaceSSLCertificate::put_Name(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetName(newVal);
+      Writable_()->SetName(newVal);
       return S_OK;
    }
    catch (...)
@@ -114,7 +121,7 @@ STDMETHODIMP InterfaceSSLCertificate::put_CertificateFile(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetCertificateFile(newVal);
+      Writable_()->SetCertificateFile(newVal);
       return S_OK;
    }
    catch (...)
@@ -146,7 +153,7 @@ STDMETHODIMP InterfaceSSLCertificate::put_PrivateKeyFile(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetPrivateKeyFile(newVal);
+      Writable_()->SetPrivateKeyFile(newVal);
       return S_OK;
    }
    catch (...)
@@ -178,7 +185,7 @@ STDMETHODIMP InterfaceSSLCertificate::put_PrivateKeyPassword(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetPrivateKeyPassword(newVal);
+      Writable_()->SetPrivateKeyPassword(newVal);
       return S_OK;
    }
    catch (...)

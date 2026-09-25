@@ -21,7 +21,7 @@ namespace HM
    }
 
 
-   void 
+   bool 
    DNSBlackLists::Refresh()
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
@@ -30,6 +30,6 @@ namespace HM
    {
 
       String sSQL = "select * from hm_dnsbl order by sblid asc";
-      DBLoad_(sSQL);
+      return DBLoad_(sSQL);
    }
 }

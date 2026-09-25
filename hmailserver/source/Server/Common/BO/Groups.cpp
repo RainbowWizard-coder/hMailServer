@@ -24,7 +24,7 @@ namespace HM
    {
    }
 
-   void 
+   bool 
    Groups::Refresh()
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
@@ -33,6 +33,6 @@ namespace HM
    {
       String sSQL = "select * from hm_groups order by groupname asc";
 
-      DBLoad_(sSQL);
+      return DBLoad_(sSQL);
    }
 }

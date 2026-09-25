@@ -693,10 +693,12 @@ namespace HM
       // expires the policy's other fields - the fallback above all, which
       // exists for exactly that day - can still be saved; the listing's
       // encrypt_key_problem says what is wrong with the key held. The record
-      // compared with is read from the database afresh: over COM the object
-      // being saved is the running record itself (InterfaceRemoteDomainPolicy
-      // hands out the collection's own item), so the collection would compare
-      // it with itself. A key given while the policy encrypts nothing is
+      // compared with is read from the database afresh: the collection's item
+      // is the one the object being saved was copied from, and holds no more
+      // than the database does. The policy handed in is never the running
+      // record - COM and REST save a copy (COM/COMCollection.h), a restore a
+      // record of its own - so trimming its key below writes nothing a
+      // delivery reads. A key given while the policy encrypts nothing is
       // judged as what it looks like (GatewayEncryption::MethodOfKey), so that
       // a key kept for later is one that will work; switching encryption OFF
       // judges nothing. A key that names no address in the partner's domain

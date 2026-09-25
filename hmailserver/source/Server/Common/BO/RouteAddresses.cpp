@@ -23,13 +23,13 @@ namespace HM
 
    }
 
-   void 
+   bool 
    RouteAddresses::Refresh()
    {
       String sSQL;
       sSQL.Format(_T("select * from hm_routeaddresses where routeaddressrouteid = %I64d"), route_id_);;
 
-      DBLoad_(sSQL);
+      return DBLoad_(sSQL);
    }
 
    void

@@ -345,11 +345,20 @@ namespace
       if (!PersistentGroup::SaveObject(changed, error, PersistenceModeNormal))
          return SaveRefused(bridge, error);
 
-      group->SetName(changed->GetName());
+      // Not written back onto the collection's own object: that is the one an
+      // IMAP session looks a group up in by name (GETACL, SETACL), and a name
+      // assigned under that comparison frees the buffer being read. The groups
+      // are read again instead, which swaps in new ones under the collection's
+      // lock (COM/COMCollection.h does the same for InterfaceGroup).
+      if (!collection->Refresh())
+      {
+         LOG_APPLICATION("RestApi: Group " + changed->GetName() + " was saved, but the groups could not be read again; "
+            "the running server keeps the previous name until they can be.");
+      }
 
-      LOG_APPLICATION("RestApi: Group " + group->GetName() + " updated.");
+      LOG_APPLICATION("RestApi: Group " + changed->GetName() + " updated.");
 
-      return bridge.respond(200, GroupJson(bridge, group), "");
+      return bridge.respond(200, GroupJson(bridge, changed), "");
    }
 
    HttpResponse Delete(const Bridge &bridge, __int64 id)

@@ -24,7 +24,7 @@ namespace HM
    }
 
 
-   void 
+   bool 
    BlockedAttachments::Refresh()
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
@@ -32,7 +32,7 @@ namespace HM
    //---------------------------------------------------------------------------()
    {
       String sSQL = _T("select * from hm_blocked_attachments order by bawildcard asc");
-      DBLoad_(sSQL);
+      return DBLoad_(sSQL);
    }
 
 }

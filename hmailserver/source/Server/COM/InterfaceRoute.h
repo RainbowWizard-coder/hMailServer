@@ -110,6 +110,9 @@ END_COM_MAP()
 
 private:
 
+   // The route a put_* writes: this object's own copy of a route in the
+   // running configuration (COMCollection.h), made by Route::CopyFields.
+   std::shared_ptr<HM::Route> WritableRoute_();
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(Route), InterfaceRoute)

@@ -2,6 +2,8 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+#pragma once
+
 #include "Collection.h"
 
 #include "../Persistence/PersistentRouteAddress.h"
@@ -15,7 +17,9 @@ namespace HM
       RouteAddresses(__int64 iRouteID);
       virtual ~RouteAddresses();
 
-      void Refresh();
+      // Refreshes this collection from the database. False when the read failed,
+      // and the collection is then left as it was (Collection::DBLoad_).
+      bool Refresh();
 
       void DeleteByAddress(const String &sAddress);
 

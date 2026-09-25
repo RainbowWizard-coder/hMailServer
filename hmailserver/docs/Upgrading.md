@@ -328,6 +328,22 @@ without the Control Panel. The runtime is bundled as
 when it is missing, and the setup tools (`DBSetup`, `DBSetupQuick`, `DBUpdater`)
 need it as well as the Control Panel does.
 
+**Scripts that change the configuration over COM.** From the release after 6.3.3, a
+COM change to a route (and a route's addresses), an incoming relay, a DNS black
+list, a SURBL server, a remote domain policy, a server message, a blocked
+attachment, an SSL certificate or a group takes effect when the object's `Save()` is
+called, and not before. Setting a property writes the object's own copy of the item;
+`Save()` writes the copy to the database and the server reads the list again. Two
+things a script written for an earlier release may have relied on no longer happen:
+a property set and never saved used to change the running server until the next
+restart, and now changes nothing; and another object for the same item, read before
+the `Save()`, used to show the new value, and now keeps the value it read - read the
+item again from its collection after the save. The Control Panel already reads,
+changes and saves each item in turn, and is not affected. The reason is in
+[ARCHITECTURE.md](../../ARCHITECTURE.md) ("A COM change to an item of a shared
+collection is written onto a copy"): the old behaviour wrote the fields of the very
+object the server's sessions were reading.
+
 Verified against the code
 -------------------------
 

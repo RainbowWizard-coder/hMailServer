@@ -335,6 +335,7 @@
     <Compile Include="Installation\EnvironmentConfiguration.cs" />
     <Compile Include="Installation\InstallerPackaging.cs" />
     <Compile Include="API\ComPropertyValidation.cs" />
+    <Compile Include="API\ComWritesOntoCopies.cs" />
     <Compile Include="API\MessageHeaderObjects.cs" />
     <Compile Include="API\RestApiAuthorization.cs" />
     <Compile Include="API\Roles.cs" />
@@ -627,6 +628,7 @@
     <Compile Include="SSL\ScramPlusPop3.cs" />
     <Compile Include="Stress\StabilitySanityTests.cs" />
     <Compile Include="Stress\SharedCollections.cs" />
+    <Compile Include="Stress\SharedCollectionsOverCom.cs" />
     <Compile Include="Stress\IMAP\ConcurrentConnectionsStressTests.cs" />
     <Compile Include="Stress\IMAP\NotificationThreadingStressTests.cs" />
   </ItemGroup>

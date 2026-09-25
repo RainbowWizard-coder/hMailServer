@@ -18,8 +18,9 @@ namespace HM
       SURBLServers();
       ~SURBLServers(void);
 
-      // Refreshes this collection from the database.
-      void Refresh();
+      // Refreshes this collection from the database. False when the read failed,
+      // and the collection is then left as it was (Collection::DBLoad_).
+      bool Refresh();
 
    protected:
       virtual String GetCollectionName() const {return String("SURBLServers"); }

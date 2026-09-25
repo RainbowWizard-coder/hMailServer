@@ -220,7 +220,12 @@ namespace
          return Refusal(bridge, 404, "blocked attachment not found");
 
       // Read onto a copy, so that a refusal - the route's or the persistence
-      // layer's - leaves the collection's own object as it was.
+      // layer's - leaves the collection's own object as it was. And a saved
+      // copy is not written back onto that object: it is the one the virus
+      // scanner compares every attachment's name with, from its snapshot, and
+      // a wildcard assigned under that comparison frees the buffer being read.
+      // The collection is read again instead, which swaps in new items under
+      // its lock (COM/COMCollection.h does the same for InterfaceBlockedAttachment).
       std::shared_ptr<BlockedAttachment> changed(new BlockedAttachment(*item));
       String error;
       if (!ReadFields(body, changed, error))
@@ -229,12 +234,15 @@ namespace
       if (!PersistentBlockedAttachment::SaveObject(changed, error, PersistenceModeNormal))
          return Refusal(bridge, error.IsEmpty() ? 500 : 400, error.IsEmpty() ? String("the blocked attachment could not be saved; see the error log") : error);
 
-      item->SetWildcard(changed->GetWildcard());
-      item->SetDescription(changed->GetDescription());
+      if (!collection->Refresh())
+      {
+         LOG_APPLICATION("RestApi: Blocked attachment " + changed->GetWildcard() + " was saved, but the blocked attachments could not be read again; "
+            "the running server keeps the previous list until they can be.");
+      }
 
-      LOG_APPLICATION("RestApi: Blocked attachment " + item->GetWildcard() + " updated.");
+      LOG_APPLICATION("RestApi: Blocked attachment " + changed->GetWildcard() + " updated.");
 
-      return bridge.respond(200, EntryJson(bridge, item), "");
+      return bridge.respond(200, EntryJson(bridge, changed), "");
    }
 
    HttpResponse Delete(const Bridge &bridge, __int64 id)

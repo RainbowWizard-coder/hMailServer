@@ -787,10 +787,22 @@ namespace RegressionTests.Shared
          var surblServers = antiSpam.SURBLServers;
 
          for (var i = surblServers.Count - 1; i >= 0; i--)
+         {
             if (surblServers[i].DNSHost != "multi.surbl.org")
+            {
                surblServers.DeleteByDBID(surblServers[i].ID);
-            else
-               surblServers[i].Active = false;
+            }
+            else if (surblServers[i].Active)
+            {
+               // Saved. A put_* on an item of a collection the running server reads is
+               // written onto a copy and is in effect only from its Save (COMCollection.h);
+               // this used to switch the running server off in memory alone, while the
+               // database - and so the next start - kept it on.
+               var server = surblServers[i];
+               server.Active = false;
+               server.Save();
+            }
+         }
 
          if (surblServers.Count == 0)
          {

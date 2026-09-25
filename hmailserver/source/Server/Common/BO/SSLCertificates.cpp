@@ -24,7 +24,7 @@ namespace HM
    }
 
 
-   void
+   bool
    SSLCertificates::Refresh()
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
@@ -32,7 +32,7 @@ namespace HM
    //---------------------------------------------------------------------------()
    {
       String sSQL = "select * from hm_sslcertificates order by sslcertificatename asc";
-      DBLoad_(sSQL);
+      return DBLoad_(sSQL);
    }
 
 }

@@ -53,10 +53,18 @@ InterfaceBlockedAttachment::Save()
       // and the domain's do, rather than an S_OK over a row that was not
       // written.
       HM::String result;
+
+      // Onto a copy even when nothing was put before it: the running item is
+      // never what the persister is handed, and neither is one a refresh has
+      // replaced since this object was given it (COMCollection.h).
+      Writable_();
+
       if (HM::PersistentBlockedAttachment::SaveObject(object_, result, HM::PersistenceModeNormal))
       {
-         // Add to parent collection
-         AddToParentCollection();
+         // A new item joins the running collection; a changed one - this
+         // object's copy - reaches it by the collection being read again
+         // (COMCollection.h).
+         PublishSaved_("InterfaceBlockedAttachment::Save");
 
          return S_OK;
       }
@@ -93,7 +101,7 @@ STDMETHODIMP InterfaceBlockedAttachment::put_Wildcard(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetWildcard(newVal);
+      Writable_()->SetWildcard(newVal);
       return S_OK;
    }
    catch (...)
@@ -126,7 +134,7 @@ STDMETHODIMP InterfaceBlockedAttachment::put_Description(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetDescription(newVal);
+      Writable_()->SetDescription(newVal);
       return S_OK;
    }
    catch (...)

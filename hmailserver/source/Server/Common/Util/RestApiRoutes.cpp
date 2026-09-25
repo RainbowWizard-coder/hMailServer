@@ -419,26 +419,6 @@ namespace HM
          return entry;
       }
 
-      // Every scalar of a route, id included. Used to work on a copy while the
-      // running route stays as it was until the save has succeeded.
-      void CopyRouteScalars(const HM::Route &from, HM::Route &to)
-      {
-         to.SetID(from.GetID());
-         to.DomainName(from.DomainName());
-         to.SetDescription(from.GetDescription());
-         to.TargetSMTPHost(from.TargetSMTPHost());
-         to.TargetSMTPPort(from.TargetSMTPPort());
-         to.NumberOfTries(from.NumberOfTries());
-         to.MinutesBetweenTry(from.MinutesBetweenTry());
-         to.ToAllAddresses(from.ToAllAddresses());
-         to.SetRelayerRequiresAuth(from.GetRelayerRequiresAuth());
-         to.SetRelayerAuthUsername(from.GetRelayerAuthUsername());
-         to.SetRelayerAuthPassword(from.GetRelayerAuthPassword());
-         to.SetTreatRecipientAsLocalDomain(from.GetTreatRecipientAsLocalDomain());
-         to.SetTreatSenderAsLocalDomain(from.GetTreatSenderAsLocalDomain());
-         to.SetConnectionSecurity(from.GetConnectionSecurity());
-      }
-
       // The whole record from the body onto route: what a POST creates and what
       // a PUT replaces. Every member the body does not name takes the default
       // the Control Panel gives a new route (RoutesView: port 25, three tries
@@ -1034,12 +1014,11 @@ namespace HM
       if (!ParseObjectBody(requestBody, body, error))
          return BuildResponse_(400, ErrorBody(quote, String(error)));
 
-      // The body is applied to a copy and the copy is what is saved. COM's
-      // setters write straight into the running route and Save() can then
-      // refuse it, leaving delivery using values the database never accepted;
-      // here a refused body leaves the running route untouched.
-      std::shared_ptr<HM::Route> updated = std::shared_ptr<HM::Route>(new HM::Route());
-      CopyRouteScalars(*existing, *updated);
+      // The body is applied to a copy and the copy is what is saved, as COM's
+      // InterfaceRoute does it: a refused body leaves the running route
+      // untouched, and a session reading the running route never reads a
+      // field while it is written (Route::CopyFields).
+      std::shared_ptr<HM::Route> updated = existing->CopyFields();
 
       std::vector<String> addresses;
 

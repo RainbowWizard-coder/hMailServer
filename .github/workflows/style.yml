@@ -211,6 +211,17 @@ jobs:
           python3 build/check-collection-iteration.py
           python3 build/check-collection-iteration.py --self-test
 
+      # The elements as well as the vector: an item COM hands out of one of
+      # the running server's collections is written onto a copy at its first
+      # put_*, Save() copies before it saves and reads the collection again
+      # after, and every hand-out attaches the shared collection
+      # (COM/COMCollection.h). The self-test proves the old shape of each is
+      # reported and the old code quoted in a comment or a string is not.
+      - name: A COM change to a shared item is written onto a copy
+        run: |
+          python3 build/check-com-shared-copies.py
+          python3 build/check-com-shared-copies.py --self-test
+
       # A message's bytes are reached through the message store
       # (Persistence/MessageStore.h): the stored file's path comes from
       # PersistentMessage::GetFileName only in the store and in the listed

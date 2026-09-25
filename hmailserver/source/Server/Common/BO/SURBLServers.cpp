@@ -22,7 +22,7 @@ namespace HM
    }
 
 
-   void 
+   bool 
    SURBLServers::Refresh()
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
@@ -30,6 +30,6 @@ namespace HM
    //---------------------------------------------------------------------------()
    {
       String sSQL = String("select * from hm_surblservers order by surblid asc");
-      DBLoad_(sSQL);
+      return DBLoad_(sSQL);
    }
 }

@@ -352,12 +352,16 @@ InterfaceIMAPFolderPermission::get_Group(IInterfaceGroup **pVal)
       CComObject<InterfaceGroup>* pInterfaceGroup = new CComObject<InterfaceGroup>();
       pInterfaceGroup->SetAuthentication(authentication_);
    
-      std::shared_ptr<HM::Group> pGroup = HM::Configuration::Instance()->GetIMAPConfiguration()->GetGroups()->GetItemByDBID(object_->GetPermissionGroupID());
-   
+      std::shared_ptr<HM::Groups> groups = HM::Configuration::Instance()->GetIMAPConfiguration()->GetGroups();
+      std::shared_ptr<HM::Group> pGroup = groups->GetItemByDBID(object_->GetPermissionGroupID());
+
       if (!pGroup)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
-   
+
+      // The running server's group, as InterfaceGroups hands it out: a put_*
+      // on it writes a copy, and Save reads the groups again (COMCollection.h).
       pInterfaceGroup->AttachItem(pGroup);
+      pInterfaceGroup->AttachSharedParent(groups, true);
       pInterfaceGroup->AddRef();
       *pVal = pInterfaceGroup;
    

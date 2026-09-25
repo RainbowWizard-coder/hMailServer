@@ -285,10 +285,9 @@ use-after-free, one level down. So a change to an element of a shared configurat
 collection is written onto a new object, which is saved, and the collection is then
 refreshed, swapping in new elements under its lock while readers keep the ones they
 hold. REST does that for a route (`PUT /api/v1/routes/{id}`), a DNS black list or
-SURBL server and an incoming relay. COM does not yet: the `put_*` methods of
-`InterfaceRoute`, `InterfaceIncomingRelay`, `InterfaceDNSBlackList` and
-`InterfaceSURBLServer` write the live shared object, which is Roadmap2's row "A COM
-change to a shared configuration object is written onto a copy". An element's own
+SURBL server, an incoming relay, a remote domain policy, a server message, a blocked
+attachment and a group, and COM does it for every item of such a collection (below).
+An element's own
 children are loaded before it is published - `PersistentRule::ReadObject` loads a
 rule's criteria and actions, and `PersistentRoute::ReadObject` a route's addresses,
 inside the refresh that builds the collection - and `Route::GetAddresses`' lazy path,
@@ -357,6 +356,111 @@ members, which COM calls on its own collections, never ObjectCache's) and
 `TCPIPPorts` are only ever used by the call or the COM object that loaded them, and
 `DomainAliases::ApplyAliasesOnAddress` is the exception above. Nothing outside a
 collection reaches into its `vecObjects`.
+
+**A COM change to an item of a shared collection is written onto a copy.** COM hands
+out the running server's own collections for the SMTP configuration's routes,
+incoming relays and remote domain policies, the anti-spam configuration's DNS black
+lists and SURBL servers, the server messages, the blocked attachments, the SSL
+certificates, the IMAP groups and a running route's addresses, and each item it
+hands out of one is the object every session reads. `COMCollectionItem`
+(`COM/COMCollection.h`) keeps the rule for all of them: a collection that is one of
+these attaches its items with `AttachSharedParent`, and the first `put_*` on such an
+item copies it - from the collection's item with its id as the running server has it
+now, so a refresh since the item was handed out is not undone - after which the COM
+object holds and writes the copy and its `get_*` read it. `Save()` saves the copy and
+reads the collection again (`PublishSaved_`), which swaps in new items under the
+collection's lock while a session keeps the one it holds. A `Save()` with nothing put
+before it copies first as well, so the object a persister is handed is never the
+running item - `PreSaveLimitationsCheck` trims a remote domain policy's key on the
+object it saves - and an object handed out before a refresh replaced its item saves
+the running item's values rather than writing back the ones it was handed. A new
+item - `Add()` - is nobody else's until its `Save()` appends it, and is written directly
+until then; after that it is an item of the collection like any other. A route cannot
+be copied by its copy constructor (it holds the lock over its lazily loaded
+addresses), so `Route::CopyFields` makes the copy for COM and for REST's route update
+alike. `InterfaceRoute::get_Addresses` hands out the running route's list whether or
+not the route object holds a copy, so an address added or deleted is in effect at once,
+as it always was; an address changed in place is copied like any other item. A route's
+`Addresses` read before a refresh of the routes replaced the route - the route's own
+COM `Save()`, `Routes.Refresh()`, a REST update - is the retired route's list; an
+address saved or deleted through it is saved or deleted in the database and then
+`InterfaceRouteAddresses::ReachRunningRoute` reads the running route's list again, so
+it is in effect as it would have been through the running list. The retired list itself
+goes on reading as it was, with its own change; `Addresses` read again is the running
+list.
+
+A read of the collection that fails after a successful save leaves the change in the
+database and not yet in effect, and COM reports it as error 7390; its `Save()` still
+answers success, since the save did. Until the list is next read, a later change to the
+same item starts from the running item, which still has the old values, and its save
+writes them back over the first change - the error text says so. REST's updates log a
+failed re-read in the application log and answer as the save did; they do not report
+7390.
+
+What a COM caller sees, which is why this was a row of its own: a `put_*` is not in
+effect until `Save()` - the running server, and any other COM object read from the
+collection before the save, keep the values they had - and a `put_*` never followed
+by a `Save()` changes nothing at all. After the save, an object read from the
+collection again has the saved values, and one read before it keeps what it read.
+A `Save()` the database refuses leaves the running item as it was; the object keeps
+the refused values to be corrected and saved again, except a remote domain policy,
+which is read back as the database holds it, as it was before the copy existed. Two
+places in the suite relied on the old behaviour and now save: the basic setup's
+switching off of `multi.surbl.org` (a `put_*` with no `Save`, which had switched it
+off in memory while the database kept it on) and `SMTPClientTests`'s relay
+credentials. REST's server message update wrote the running item before saving it,
+and its blocked attachment and group updates wrote the saved values back onto the
+running item; all three now save a copy and read their collection again.
+`build/check-com-shared-copies.py` holds the ten item classes to this: no `put_*`
+writes the item, `Save()` copies before it saves and publishes after, and every place
+that hands one of them out attaches the shared collection; its `--self-test` proves
+each is reported, and against the COM sources before the row it reports all 59 puts
+and all 38 hand-outs.
+
+Swept on 24 September 2026, every COM class that wraps an item of a collection:
+
+| Class | Verdict | Why |
+|---|---|---|
+| `InterfaceRoute`, `InterfaceIncomingRelay`, `InterfaceDNSBlackList`, `InterfaceSURBLServer` | fixed: onto a copy | the row's four; SMTPConfiguration's and the anti-spam configuration's shared collections, read by every session |
+| `InterfaceRouteAddress` | fixed | a running route's addresses, asked by every session through `GetItemByName` |
+| `InterfaceRemoteDomainPolicy` | fixed | SMTPConfiguration's policies, read by every delivery; its refused save used to put the running record back by reading it in place |
+| `InterfaceServerMessage` | fixed | `Configuration`'s messages, copied by every bounce and virus notice; it was attached with no parent at all |
+| `InterfaceBlockedAttachment` | fixed | `Configuration`'s list, compared with every attachment's name by the virus scanner |
+| `InterfaceSSLCertificate` | fixed | `Configuration`'s certificates, read by the listeners at start, the alert check, the metrics scrape and REST |
+| `InterfaceGroup` | fixed | IMAPConfiguration's groups, looked up by name by IMAP sessions (GETACL, SETACL) - and handed out by `InterfaceIMAPFolderPermission::get_Group` as well, with no parent before |
+| `InterfaceTCPIPPort`, `InterfaceSecurityRange`, `InterfaceWhiteListAddress`, `InterfaceGreyListingWhiteAddress`, `InterfaceGreyListingBypassEntry`, `InterfaceBlockedSender`, `InterfaceSenderListEntry` | safe | the collection is loaded new for the COM object (`GetTCPIPPorts`, `SecurityRanges::Refresh`, the anti-spam configuration's getters); sessions read caches that copy under a lock of their own |
+| `InterfaceDomain`, `InterfaceAccount`, `InterfaceAlias`, `InterfaceDistributionList`, `InterfaceDistributionListRecipient`, `InterfaceDomainAlias`, `InterfaceRule`, `InterfaceRuleCriteria`, `InterfaceRuleAction`, `InterfaceFetchAccount`, `InterfaceAppPassword`, `InterfaceGroupMember`, `InterfaceIMAPFolderPermission` | safe | loaded by COM for itself; the caches hold objects of their own (`const` domains and accounts, ObjectCache's rules and aliases), and group members and permissions are loaded new for every question |
+| `InterfaceIMAPFolder`, `InterfaceMessage` | left | an account's or the public folders' cached tree and messages, which the IMAP server itself writes in place (a RENAME sets the folder's name, a STORE its flags) and REST's mailbox rename too: a copy on the COM side would not make the folder safe, and the folder's own fields want a lock of their own, which is another row |
+
+`API/ComWritesOntoCopies.cs` proves the caller's side for each of the ten classes: a
+`put_*` read back from its own object, the running item unchanged before `Save()`, the
+saved values after it, and an object read before the save keeping what it read - each
+of those tests fails against the code before the row, which is traced in the fixture's
+summary (the group's reads go through one `Groups` object, since `Settings.Groups`
+reads the groups from the database every time and would show the old name either
+way). Beside them: a refused route save leaving the running route alone, an address
+added through a route object that holds a copy going into the running route's list, an
+address added and deleted through a list held across the route's save reaching the
+running route, a `Save()` with nothing put not writing back what the object was handed,
+and a save whose list cannot be read again (the database fault injector failing the
+DNS black lists' read alone) succeeding, reporting HM7390 and not in effect until the
+next read. REST's blocked attachment and server message updates are held to it by
+`RestApiParityGaps.BlockedAttachmentsRoundTrip` and
+`RestApiSettings.ServerMessagesRoundTripThroughCom`, each reading a COM object before the
+PUT and finding it unchanged after; the group update is proven by reading only, since
+the REST groups route reads the groups again before every request and no object from
+outside can hold a group across it.
+
+`Stress/SharedCollectionsOverCom.cs` (REST port 10170, in the Windows suite) flips a
+route, a DNS black list, a SURBL server, an incoming relay, a remote domain policy, a
+group, a blocked attachment and a server message between two whole states over COM for
+thirty seconds a race, pausing after each put, while the send route resolves past the
+routes and the REST listings read every field - the listings are the only readers in
+the two races without routes - and asserts every listing shows each item whole in one
+state or the other, and the process, the crash oracle and the error log clean. Against
+the old code, where each put wrote the running item, the pauses make a mix visible for
+most of every write of the six multi-field items; the group and the message have one
+field each and are survival tests only. Not run against the old code.
 
 Tests
 -----

@@ -61,7 +61,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicies::get_Item(long Index, IInterfaceRemot
       item->SetAuthentication(authentication_);
 
       item->AttachItem(policy);
-      item->AttachParent(policies_, true);
+      item->AttachSharedParent(policies_, true);
       item->AddRef();
       *pVal = item;
 
@@ -105,7 +105,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicies::Add(IInterfaceRemoteDomainPolicy **p
       std::shared_ptr<HM::RemoteDomainPolicy> policy = std::shared_ptr<HM::RemoteDomainPolicy>(new HM::RemoteDomainPolicy);
 
       item->AttachItem(policy);
-      item->AttachParent(policies_, false);
+      item->AttachSharedParent(policies_, false);
 
       item->AddRef();
       *pVal = item;
@@ -137,7 +137,7 @@ InterfaceRemoteDomainPolicies::get_ItemByName(BSTR ItemName, IInterfaceRemoteDom
       item->SetAuthentication(authentication_);
 
       item->AttachItem(policy);
-      item->AttachParent(policies_, true);
+      item->AttachSharedParent(policies_, true);
 
       item->AddRef();
       *pVal = item;
@@ -166,7 +166,7 @@ InterfaceRemoteDomainPolicies::get_ItemByDBID(long lDBID, IInterfaceRemoteDomain
       item->SetAuthentication(authentication_);
 
       item->AttachItem(policy);
-      item->AttachParent(policies_, true);
+      item->AttachSharedParent(policies_, true);
 
       item->AddRef();
       *pVal = item;
@@ -201,7 +201,7 @@ InterfaceRemoteDomainPolicies::get_PolicyForDomain(BSTR DomainName, IInterfaceRe
       item->SetAuthentication(authentication_);
 
       item->AttachItem(policy);
-      item->AttachParent(policies_, true);
+      item->AttachSharedParent(policies_, true);
 
       item->AddRef();
       *pVal = item;

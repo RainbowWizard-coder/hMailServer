@@ -86,7 +86,7 @@ InterfaceBlockedAttachments::get_Item(long Index, IInterfaceBlockedAttachment **
       pInterfaceBlockedAttachment->SetAuthentication(authentication_);
 
       pInterfaceBlockedAttachment->AttachItem(pBA);
-      pInterfaceBlockedAttachment->AttachParent(blocked_attachments_, true);
+      pInterfaceBlockedAttachment->AttachSharedParent(blocked_attachments_, true);
       pInterfaceBlockedAttachment->AddRef();
       *pVal = pInterfaceBlockedAttachment;
    
@@ -134,7 +134,7 @@ InterfaceBlockedAttachments::get_ItemByDBID(long lDBID, IInterfaceBlockedAttachm
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceBlockedAttachment->AttachItem(pBA);
-      pInterfaceBlockedAttachment->AttachParent(blocked_attachments_, true);
+      pInterfaceBlockedAttachment->AttachSharedParent(blocked_attachments_, true);
       pInterfaceBlockedAttachment->AddRef();
    
       *pVal = pInterfaceBlockedAttachment;
@@ -164,7 +164,7 @@ InterfaceBlockedAttachments::Add(IInterfaceBlockedAttachment **pVal)
       std::shared_ptr<HM::BlockedAttachment> pBA = std::shared_ptr<HM::BlockedAttachment>(new HM::BlockedAttachment);
    
       pInterfaceBlockedAttachment->AttachItem(pBA);
-      pInterfaceBlockedAttachment->AttachParent(blocked_attachments_, false);
+      pInterfaceBlockedAttachment->AttachSharedParent(blocked_attachments_, false);
    
       pInterfaceBlockedAttachment->AddRef();
    

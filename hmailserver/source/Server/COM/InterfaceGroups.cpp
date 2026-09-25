@@ -73,7 +73,7 @@ InterfaceGroups::get_Item(long Index, IInterfaceGroup **pVal)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceGroup->AttachItem(pBA);
-      pInterfaceGroup->AttachParent(groups_, true);
+      pInterfaceGroup->AttachSharedParent(groups_, true);
       pInterfaceGroup->AddRef();
       *pVal = pInterfaceGroup;
    
@@ -121,7 +121,7 @@ InterfaceGroups::get_ItemByDBID(long lDBID, IInterfaceGroup **pVal)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceGroup->AttachItem(pBA);
-      pInterfaceGroup->AttachParent(groups_, true);
+      pInterfaceGroup->AttachSharedParent(groups_, true);
       pInterfaceGroup->AddRef();
    
       *pVal = pInterfaceGroup;
@@ -151,7 +151,7 @@ InterfaceGroups::get_ItemByName(BSTR sName, IInterfaceGroup **pVal)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       pInterfaceGroup->AttachItem(pBA);
-      pInterfaceGroup->AttachParent(groups_, true);
+      pInterfaceGroup->AttachSharedParent(groups_, true);
       pInterfaceGroup->AddRef();
    
       *pVal = pInterfaceGroup;
@@ -181,7 +181,7 @@ InterfaceGroups::Add(IInterfaceGroup **pVal)
       std::shared_ptr<HM::Group> pBA = std::shared_ptr<HM::Group>(new HM::Group);
    
       pInterfaceGroup->AttachItem(pBA);
-      pInterfaceGroup->AttachParent(groups_, false);
+      pInterfaceGroup->AttachSharedParent(groups_, false);
    
       pInterfaceGroup->AddRef();
    

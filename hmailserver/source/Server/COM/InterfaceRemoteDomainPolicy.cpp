@@ -95,7 +95,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_DomainName(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetDomainName(newVal);
+      Writable_()->SetDomainName(newVal);
       return S_OK;
    }
    catch (...)
@@ -127,7 +127,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_Description(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetDescription(newVal);
+      Writable_()->SetDescription(newVal);
       return S_OK;
    }
    catch (...)
@@ -159,7 +159,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_Active(VARIANT_BOOL newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetActive(newVal == VARIANT_TRUE);
+      Writable_()->SetActive(newVal == VARIANT_TRUE);
       return S_OK;
    }
    catch (...)
@@ -199,7 +199,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_OutboundTls(eRemoteTlsRequirement 
       if (newVal < HM::RemoteTlsDefault || newVal > HM::RemoteTlsDane)
          return COMError::GenerateError("Invalid TLS requirement. Use 0 (none), 1 (encrypted), 2 (verified) or 3 (DANE).");
 
-      object_->SetOutboundTlsRequirement((HM::RemoteTlsRequirement) newVal);
+      Writable_()->SetOutboundTlsRequirement((HM::RemoteTlsRequirement) newVal);
       return S_OK;
    }
    catch (...)
@@ -231,7 +231,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_RequireInboundTls(VARIANT_BOOL new
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetRequireInboundTls(newVal == VARIANT_TRUE);
+      Writable_()->SetRequireInboundTls(newVal == VARIANT_TRUE);
       return S_OK;
    }
    catch (...)
@@ -266,7 +266,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_MaxMessageSizeKB(long newVal)
       if (newVal < 0)
          return COMError::GenerateError("The maximum message size cannot be negative. 0 means no limit.");
 
-      object_->SetMaxMessageSizeKB(newVal);
+      Writable_()->SetMaxMessageSizeKB(newVal);
       return S_OK;
    }
    catch (...)
@@ -301,7 +301,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_MaxConnections(long newVal)
       if (newVal < 0)
          return COMError::GenerateError("The maximum number of connections cannot be negative. 0 means unlimited.");
 
-      object_->SetMaxConnections(newVal);
+      Writable_()->SetMaxConnections(newVal);
       return S_OK;
    }
    catch (...)
@@ -336,7 +336,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_MaxMessagesPerMinute(long newVal)
       if (newVal < 0)
          return COMError::GenerateError("The message rate cannot be negative. 0 means unlimited.");
 
-      object_->SetMaxMessagesPerMinute(newVal);
+      Writable_()->SetMaxMessagesPerMinute(newVal);
       return S_OK;
    }
    catch (...)
@@ -368,7 +368,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_AllowAutomaticReplies(VARIANT_BOOL
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetAllowAutomaticReplies(newVal == VARIANT_TRUE);
+      Writable_()->SetAllowAutomaticReplies(newVal == VARIANT_TRUE);
       return S_OK;
    }
    catch (...)
@@ -400,7 +400,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_AllowForwarding(VARIANT_BOOL newVa
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetAllowForwarding(newVal == VARIANT_TRUE);
+      Writable_()->SetAllowForwarding(newVal == VARIANT_TRUE);
       return S_OK;
    }
    catch (...)
@@ -432,7 +432,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_CalloutEnabled(VARIANT_BOOL newVal
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetCalloutEnabled(newVal == VARIANT_TRUE);
+      Writable_()->SetCalloutEnabled(newVal == VARIANT_TRUE);
       return S_OK;
    }
    catch (...)
@@ -464,7 +464,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_CalloutHost(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetCalloutHost(newVal);
+      Writable_()->SetCalloutHost(newVal);
       return S_OK;
    }
    catch (...)
@@ -499,7 +499,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_CalloutPort(long newVal)
       if (newVal < 1 || newVal > 65535)
          return COMError::GenerateError("The verification port must be between 1 and 65535.");
 
-      object_->SetCalloutPort(newVal);
+      Writable_()->SetCalloutPort(newVal);
       return S_OK;
    }
    catch (...)
@@ -537,7 +537,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_CalloutTimeoutSeconds(long newVal)
       if (newVal < 1 || newVal > HM::RecipientCallout::CalloutMaxTimeoutSeconds)
          return COMError::GenerateError("The verification timeout must be between 1 and 60 seconds. It is spent inside an SMTP session that a sender is waiting on.");
 
-      object_->SetCalloutTimeoutSeconds(newVal);
+      Writable_()->SetCalloutTimeoutSeconds(newVal);
       return S_OK;
    }
    catch (...)
@@ -572,7 +572,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_CalloutCacheMinutes(long newVal)
       if (newVal < 0)
          return COMError::GenerateError("The verification cache lifetime cannot be negative.");
 
-      object_->SetCalloutCacheMinutes(newVal);
+      Writable_()->SetCalloutCacheMinutes(newVal);
       return S_OK;
    }
    catch (...)
@@ -607,7 +607,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_CalloutMaxPerMinute(long newVal)
       if (newVal < 0)
          return COMError::GenerateError("The verification rate cannot be negative. 0 means unlimited, which is not recommended.");
 
-      object_->SetCalloutMaxPerMinute(newVal);
+      Writable_()->SetCalloutMaxPerMinute(newVal);
       return S_OK;
    }
    catch (...)
@@ -646,7 +646,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_Encrypt(eRemoteEncryption newVal)
       if (value < (int) HM::RemoteEncryptNone || value > (int) HM::RemoteEncryptSmime)
          return COMError::GenerateError("Invalid encryption. Use 0 (none), 1 (OpenPGP) or 2 (S/MIME).");
 
-      object_->SetEncrypt((HM::RemoteEncryption) value);
+      Writable_()->SetEncrypt((HM::RemoteEncryption) value);
       return S_OK;
    }
    catch (...)
@@ -687,7 +687,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_EncryptKey(BSTR newVal)
       // private-key material and an over-long paste are refused whatever the
       // method, and a key that differs from the one the database holds must be
       // one a message can be encrypted to. Only white space removes the key.
-      object_->SetEncryptKey(newVal);
+      Writable_()->SetEncryptKey(newVal);
       return S_OK;
    }
    catch (...)
@@ -722,7 +722,7 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::put_EncryptFallback(long newVal)
       if (newVal != (long) HM::RemoteEncryptFallbackRefuse && newVal != (long) HM::RemoteEncryptFallbackSendUnencrypted)
          return COMError::GenerateError("Invalid encryption fallback. Use 0 (refuse the message and tell the sender) or 1 (send it unencrypted and log it).");
 
-      object_->SetEncryptFallback((HM::RemoteEncryptFallback) newVal);
+      Writable_()->SetEncryptFallback((HM::RemoteEncryptFallback) newVal);
       return S_OK;
    }
    catch (...)
@@ -796,25 +796,31 @@ STDMETHODIMP InterfaceRemoteDomainPolicy::Save()
          return authentication_->GetAccessDenied();
 
       HM::String errorMessage;
+
+      // Onto a copy even when nothing was put before it: the running item is
+      // never what the persister is handed, and neither is one a refresh has
+      // replaced since this object was given it (COMCollection.h).
+      Writable_();
+
       if (HM::PersistentRemoteDomainPolicy::SaveObject(object_, errorMessage, HM::PersistenceModeNormal))
       {
-         AddToParentCollection();
+         // A new policy joins the running collection; a changed one - this
+         // object's copy - reaches delivery by the policies being read again
+         // (COMCollection.h), and a delivery in progress keeps the record it
+         // was given.
+         PublishSaved_("InterfaceRemoteDomainPolicy::Save");
 
          return S_OK;
       }
 
-      // A refused save puts the policy back as the database holds it. The
-      // object a saved policy is handed out as over COM is the running record
-      // delivery reads (InterfaceRemoteDomainPolicies attaches the collection's
-      // own item), and its setters wrote into it before Save was called: left
-      // as it is, a refused key - an expired certificate, a key with nothing to
-      // encrypt to, a method with no key - would govern every message to the
-      // partner until the service restarted, refused by the fallback. A policy
-      // never saved (id 0) is in no collection, and has nothing to go back to.
-      // The general fix, a COM change written onto a copy and swapped in on
-      // save, is its own roadmap row ("A COM change to a shared configuration
-      // object is written onto a copy").
-      if (object_->GetID() != 0)
+      // A refused save leaves the running policy as it was: the setters wrote
+      // this object's copy, never the record delivery reads, so a refused key -
+      // an expired certificate, a key with nothing to encrypt to, a method with
+      // no key - governs nothing. The copy itself is put back as the database
+      // holds it, so that what this object reads after a refusal is the policy
+      // in effect, as it did before the copy existed. A policy never saved (id
+      // 0) holds no copy and has nothing to go back to.
+      if (HoldsCopy_() && object_->GetID() != 0)
          HM::PersistentRemoteDomainPolicy::ReadObject(object_, (long) object_->GetID());
 
       return COMError::GenerateError(errorMessage);

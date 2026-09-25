@@ -40,10 +40,10 @@ namespace HM
       // This is SMTPConfiguration's collection, asked by every session and
       // delivery, and changed in place by the Control Panel (InterfaceRoutes
       // holds this very object) and by REST. The lock protects the vector, not
-      // the routes in it: REST saves a changed route as a new object and
-      // refreshes the collection, but COM's setters still write the fields of
-      // the running route (Roadmap2, "A COM change to a shared configuration
-      // object is written onto a copy").
+      // the routes in it: REST and COM save a changed route as a new object and
+      // refresh the collection, so nothing writes the fields of a route in it
+      // (COM/COMCollection.h, "A change to an item of a shared collection is
+      // written onto a copy").
       boost::lock_guard<boost::recursive_mutex> guard(_mutex);
 
       auto iter = vecObjects.begin();
