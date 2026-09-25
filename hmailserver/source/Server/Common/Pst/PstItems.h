@@ -303,6 +303,12 @@ namespace HM
       // An Outlook date of none: Outlook writes 4501-01-01 for "no date".
       static bool IsNoDate(uint64_t fileTime);
 
+      // A class and its sub-classes, without regard to case: "IPM.Contact" and
+      // "IPM.Contact.x", not "IPM.Contacts". What the contacts and calendars
+      // phases take an item or a folder by, in the service and in the reader's
+      // process alike.
+      static bool IsOfClass(const std::string &value, const char *base);
+
       // The most a recurrence blob, a photo, a card or event, and a body's
       // RTF once decompressed may be.
       static const size_t MaximumRecurrenceBytes = 1024 * 1024;

@@ -201,6 +201,14 @@ namespace HM
       bool FileExhausted() const { return file_exhausted_; }
       uint64_t UnitItemsUsed() const { return unit_items_; }
 
+      // What the whole file has cost so far in this run of a phase, and that
+      // cost given to a new budget: the reader's process started again after
+      // one ended (PstReaderProcess.h) goes on from where the last one left the
+      // file's budget, rather than from nothing.
+      uint64_t FileItemsUsed() const { return file_items_; }
+      uint64_t FileBytesUsed() const { return file_bytes_; }
+      void SetFileUsed(uint64_t bytes, uint64_t items) { file_bytes_ = bytes; file_items_ = items; }
+
       static const uint64_t UnitBytes = 512ULL * 1024 * 1024;
       static const uint64_t UnitItems = 4000000;
 

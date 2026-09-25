@@ -495,6 +495,10 @@ EXIT 0
     <ClCompile Include="..\Common\Pst\PstItemsTester.cpp" />
     <ClCompile Include="..\Common\Pst\PstLtp.cpp" />
     <ClCompile Include="..\Common\Pst\PstMime.cpp" />
+    <ClCompile Include="..\Common\Pst\PstReaderChild.cpp" />
+    <ClCompile Include="..\Common\Pst\PstReaderProcess.cpp" />
+    <ClCompile Include="..\Common\Pst\PstReaderWire.cpp" />
+    <ClCompile Include="..\Common\Pst\PstReaderWireTester.cpp" />
     <ClCompile Include="..\Common\Pst\PstRtf.cpp" />
     <ClCompile Include="..\Common\Pst\PstSource.cpp" />
     <ClCompile Include="..\Common\Pst\PstStore.cpp" />
@@ -1477,6 +1481,10 @@ EXIT 0
     <ClInclude Include="..\Common\Pst\PstItemsTester.h" />
     <ClInclude Include="..\Common\Pst\PstLtp.h" />
     <ClInclude Include="..\Common\Pst\PstMime.h" />
+    <ClInclude Include="..\Common\Pst\PstReaderChild.h" />
+    <ClInclude Include="..\Common\Pst\PstReaderProcess.h" />
+    <ClInclude Include="..\Common\Pst\PstReaderWire.h" />
+    <ClInclude Include="..\Common\Pst\PstReaderWireTester.h" />
     <ClInclude Include="..\Common\Pst\PstRtf.h" />
     <ClInclude Include="..\Common\Pst\PstSource.h" />
     <ClInclude Include="..\Common\Pst\PstStore.h" />

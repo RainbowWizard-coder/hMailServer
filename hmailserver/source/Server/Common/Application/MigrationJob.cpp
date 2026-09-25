@@ -598,7 +598,8 @@ namespace HM
                 ",\"not_mail_folders\":" + ReasonsJson(pst.notMailFolders) +
                 ",\"not_mail_messages\":" + ReasonsJson(pst.notMail) +
                 ",\"refusal\":" + MigrationJob::JsonString(pst.refusal) +
-                ",\"list_attempts\":" + Number(pst.listAttempts) + "}";
+                ",\"list_attempts\":" + Number(pst.listAttempts) +
+                ",\"reader_restarts\":" + Number(pst.readerRestarts) + "}";
       }
 
       void ReadReasons(const JsonValue *object, std::map<AnsiString, int> &reasons)
@@ -797,6 +798,7 @@ namespace HM
             report.pst.crypt = encoding == "permute" ? 1 : (encoding == "cyclic" ? 2 : 0);
             report.pst.refusal = AnsiString(pst->GetString("refusal").c_str());
             report.pst.listAttempts = (int) pst->GetInt64("list_attempts");
+            report.pst.readerRestarts = (int) pst->GetInt64("reader_restarts");
             ReadReasons(pst->Get("not_mail_folders"), report.pst.notMailFolders);
             ReadReasons(pst->Get("not_mail_messages"), report.pst.notMail);
             if (const JsonValue *notRead = pst->Get("not_read"))
@@ -1762,6 +1764,7 @@ namespace HM
       pstReport.pst.notMailFolders["IPM.Appointment"] = 3;
       pstReport.pst.notRead.push_back("The folder 0x8042 could not be read.");
       pstReport.pst.listAttempts = 1;
+      pstReport.pst.readerRestarts = 2;
       J::FolderTally pstFolder;
       pstFolder.source = "Inbox";
       pstFolder.warnings["attachment_not_imported"] = 3;
@@ -1771,7 +1774,8 @@ namespace HM
       Expect(pstBack.isPst && pstBack.pst.file == "archive.pst" && pstBack.pst.size == 271360 && pstBack.pst.crypt == 2 &&
              pstBack.pst.version == 23 && pstBack.pst.notMailFolders["IPF.Contact"] == 2 && pstBack.pst.notMail.size() == 1 &&
              pstBack.pst.notMail["IPM.Appointment"] == 1 && pstBack.pst.notMailFolders["IPM.Appointment"] == 3 && pstBack.pst.notRead.size() == 1 &&
-             pstBack.pst.listAttempts == 1 && pstBack.folders.size() == 1 && pstBack.folders[0].warnings["attachment_not_imported"] == 3,
+             pstBack.pst.listAttempts == 1 && pstBack.pst.readerRestarts == 2 && pstBack.folders.size() == 1 &&
+             pstBack.folders[0].warnings["attachment_not_imported"] == 3,
              "A PST job's part of the report, and a folder's warnings, read back.");
       Expect(back.isPst == false && J::ReportJson(job, "ann@example.test", report).Find("\"pst\"") < 0,
              "A report of a job from a server has no PST part.");

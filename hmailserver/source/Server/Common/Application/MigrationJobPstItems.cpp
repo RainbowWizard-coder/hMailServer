@@ -50,14 +50,22 @@
 // recurrence cannot be read (recurrence_unreadable) or that has no time
 // (no_start); an object whose UID the calendar holds is not stored again.
 //
+// THE READER is the mail phase's, in a process of its own
+// (Pst/PstReaderProcess.h): each phase starts one for the file, and it reads each
+// item and writes it as the vCard or iCalendar text this server keeps
+// (Pst/PstItems.h) there; the service parses and stores what it is handed. An
+// item the reader ends on twice is left out (reader_failed) and named, and the
+// phase goes on with a new reader; the store, the folder list and the default
+// folders ended on twice skip the phase, a folder's list that folder.
+//
 // RESUME AND THE GUARD are the mail phase's (MigrationJobPst.cpp): each folder
 // has its own row in hm_migrationfolders, keyed by the first eight digits of the
 // store's record key, the folder's NID and ":c" (contacts) or ":e" (calendar
 // items and tasks); an item
 // is read in NID order, the last one dealt with is its row's mark, and before an
-// item or a folder's list is read the row says so ("/<nid>.N", "/l.N"), so a
-// reader that ended the service is let in once more there and the second time
-// the item is left out (reader_stopped) and named.
+// item or a folder's list is read the row says so ("/<nid>.N", "/l.N"), so an
+// item the service ended on - storing it, or for any other reason - is let in
+// once more there and the second time left out (reader_stopped) and named.
 //
 // AN ITEM THE STORE REFUSES is held, its count kept in the folder's row, and the
 // mark moves on past it: the items after it show whether the store works. One
@@ -82,12 +90,14 @@
 //
 // THE BUDGET is the mail phase's too: each phase opens the file with a work
 // budget of its own, the same size as the mail phase's for the file's size
-// (Pst/PstFormat.h, PstBudget), and the job's stop is asked at every read. The
+// (Pst/PstFormat.h, PstBudget), carried from one reader to the next, and the
+// job's stop ends the reader. The
 // store opened, the folder list, the root folder's names for the default
 // folders, each folder's list of items and each item read - its recurrence and
 // its time zones with it - are each a unit of it. A stop - a pause, a cancel,
-// the service stopping - ends the phase between two reads with the marks put
-// back where the last item left them (PstStopped); an item past its unit is
+// the service stopping - kills the reader where it stands and ends the phase
+// with the marks put back where the last item left them (PstStopped); an item
+// past its unit is
 // counted too_large; the whole file's budget spent fails the job with what it
 // copied kept, and a retry goes on from the marks. Memory that runs short is
 // the server's: the mark stays before the item, and the job tries again.
@@ -98,6 +108,7 @@
 
 #include "../BO/Account.h"
 #include "../Pst/PstItems.h"
+#include "../Pst/PstReaderProcess.h"
 #include "../Pst/PstSource.h"
 #include "../Pst/PstStore.h"
 #include "../Util/AddressBookStore.h"
@@ -254,29 +265,15 @@ namespace HM
          return true;
       }
 
-      bool StartsWithNoCase(const std::string &text, const char *prefix)
-      {
-         for (size_t i = 0; prefix[i] != '\0'; i++)
-         {
-            if (i >= text.size())
-               return false;
-            char a = text[i];
-            char b = prefix[i];
-            if (a >= 'A' && a <= 'Z') a = (char) (a - 'A' + 'a');
-            if (b >= 'A' && b <= 'Z') b = (char) (b - 'A' + 'a');
-            if (a != b)
-               return false;
-         }
-         return true;
-      }
-
       // A class and its sub-classes: "IPM.Contact" and "IPM.Contact.x", not
-      // "IPM.Contacts".
+      // "IPM.Contacts" - the rule the reader's process takes items by.
       bool OfClass(const std::string &value, const char *base)
       {
-         const size_t length = strlen(base);
-         return StartsWithNoCase(value, base) && (value.size() == length || value[length] == '.');
+         return PstItems::IsOfClass(value, base);
       }
+
+      // The reader keeps a contact's picture out of a card larger than this.
+      static_assert(MaxItemBytes == PstItems::MaximumItemTextBytes, "The reader's ceiling on a card is the address book's.");
 
       // A folder's path as the mail phase names it in the report, so that
       // both phases count one folder on one line.
@@ -350,27 +347,27 @@ namespace HM
       // there). not_saved is the store's failure, target_failed the book's,
       // folder_left_out a deleted folder with no book of its own - none of them
       // the contact's.
-      const char *ImportContact(PstStore &store, uint32_t nid, __int64 accountId, const std::function<ItemTarget(bool, __int64 &)> &target,
+      const char *ImportContact(PstReaderProcess &store, uint32_t nid, __int64 accountId, const std::function<ItemTarget(bool, __int64 &)> &target,
                                 const std::string &recordKey, std::string &why, std::vector<std::string> &notes)
       {
-         PstContact contact;
+         // Read, and made its card - without its picture where the card with
+         // it would be larger than a megabyte - in the reader's process.
+         PstContactRead contact;
          store.ReadContact(nid, contact);
 
-         if (OfClass(contact.messageClass, "IPM.DistList"))
+         if (contact.outcome == PstContactRead::DistributionList)
             return "distribution_list";
-         if (!OfClass(contact.messageClass, "IPM.Contact"))
+         if (contact.outcome != PstContactRead::Card)
             return "not_a_contact";
 
-         for (const PstWarning &warning : contact.warnings)
-            notes.push_back(warning.detail);
+         for (const std::string &note : contact.notes)
+            notes.push_back(note);
 
          const std::string uid = "pst-" + recordKey + "-" + PstFormat::Hex32(nid);
-         std::string card = PstItems::ContactText(contact, uid, true);
-         if (card.size() > MaxItemBytes)
-         {
-            card = PstItems::ContactText(contact, uid, false);
+         std::string card;
+         card.swap(contact.card);
+         if (contact.photoLeftOut)
             notes.push_back("the contact's picture, since the card with it is larger than a megabyte");
-         }
          if (card.size() > MaxItemBytes)
             return "too_large";
 
@@ -446,42 +443,33 @@ namespace HM
       // One appointment or task into the calendar, the same way. A deleted
       // folder's copy is looked for across every calendar of the account, in
       // one query, so that it never lands beside the live one.
-      const char *ImportCalendarItem(PstStore &store, uint32_t nid, bool taskFolder, const std::vector<__int64> *accountCalendars,
-                                     __int64 accountId, const std::function<ItemTarget(bool, __int64 &)> &target, const std::string &recordKey,
+      const char *ImportCalendarItem(PstReaderProcess &store, uint32_t nid, bool taskFolder, const std::vector<__int64> *accountCalendars,
+                                     __int64 accountId, const std::function<ItemTarget(bool, __int64 &)> &target,
                                      std::string &why, std::vector<std::string> &notes)
       {
-         const std::string fallbackUid = "pst-" + recordKey + "-" + PstFormat::Hex32(nid);
+         // Read, and written as a VTODO or a VEVENT - under the file's budget,
+         // its recurrence and its zones with it - in the reader's process, with
+         // "pst-<record key>-<nid>" as the UID of one that has none.
+         PstCalendarRead item;
+         store.ReadCalendarItem(nid, taskFolder, item);
+         if (item.outcome == PstCalendarRead::NotAnItem)
+            return "not_an_item";
+
+         for (const std::string &note : item.notes)
+            notes.push_back(note);
+
+         if (item.outcome == PstCalendarRead::Refused)
+         {
+            why = item.why;
+            if (item.word == "no_start")
+               return "no_start";
+            if (item.word == "too_large")
+               return "too_large";
+            return "recurrence_unreadable";
+         }
+
          std::string text;
-
-         if (taskFolder)
-         {
-            PstTask task;
-            store.ReadTask(nid, task);
-            if (!OfClass(task.messageClass, "IPM.Task"))
-               return "not_an_item";
-            for (const PstWarning &warning : task.warnings)
-               notes.push_back(warning.detail);
-            text = PstItems::TaskText(task, fallbackUid);
-         }
-         else
-         {
-            PstAppointment appointment;
-            store.ReadAppointment(nid, appointment);
-            if (!OfClass(appointment.messageClass, "IPM.Appointment") && !OfClass(appointment.messageClass, "IPM.Schedule.Meeting.Request"))
-               return "not_an_item";
-            for (const PstWarning &warning : appointment.warnings)
-               notes.push_back(warning.detail);
-
-            std::string word;
-            if (!PstItems::AppointmentText(appointment, fallbackUid, text, word, why, &store.Budget()))
-            {
-               if (word == "no_start")
-                  return "no_start";
-               if (word == "too_large")
-                  return "too_large";
-               return "recurrence_unreadable";
-            }
-         }
+         text.swap(item.text);
 
          if (text.size() > MaxItemBytes)
             return "too_large";
@@ -587,10 +575,16 @@ namespace HM
       if (!finalPath.IsEmpty() && !PstImportPath::IsInside(finalPath, directory))
          return skip("the file changed between the check and the read");
 
-      // The budget and the stop, as the mail phase's.
-      PstStore store(source);
-      store.Budget().SetFileLimitsFor(source->Size());
-      store.Budget().SetStop([this]() { return StopRequested_(); });
+      // The reader, in a process of its own, as the mail phase's: the budget
+      // counted there, and the stop ending it (Pst/PstReaderProcess.h).
+      PstReaderProcess::TestHook hook;
+      String hookSaid;
+      if (PstReaderProcess::ReadTestHook(file, directory, hook, hookSaid))
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7553, "MigrationJob::RunPstItems_", Formatter::Format(_T("Migration job {0}: {1}"), job_id_, hookSaid));
+
+      PstReaderProcess store(source, [this]() { return StopRequested_(); },
+                             Formatter::Format(_T("Migration job {0} ({1})"), job_id_, PstImportPath::RelativeName(file, directory)),
+                             [this]() { report_.pst.readerRestarts++; }, hook);
 
       const String spentSentence = _T("Reading this file has cost more work than any PST Outlook writes needs for its size: it is damaged, or built to exhaust the reader, and it is not read further. What the job copied stays; retry the job to go on from where it stopped, or repair the file with Outlook's Inbox Repair Tool (scanpst.exe).");
 
@@ -603,8 +597,7 @@ namespace HM
       {
          store.Open(std::string(ItemUtf8(job_.sourceSecret).c_str()));
          store.ListFolders(folders, unread);
-         store.DefaultItemFolders(defaultContacts, defaultCalendar, defaultTasks);
-         store.ReadNames();
+         store.ReadItemFolders(defaultContacts, defaultCalendar, defaultTasks);
       }
       catch (PstStopped &)
       {
@@ -613,7 +606,7 @@ namespace HM
       }
       catch (PstError &error)
       {
-         if (store.Budget().FileExhausted())
+         if (store.FileExhausted())
          {
             problem = spentSentence;
             return OutcomeFailed;
@@ -625,8 +618,15 @@ namespace HM
          problem = _T("The server ran short of memory reading the file.");
          return OutcomeRetry;
       }
+      catch (PstReaderUnavailable &unavailable)
+      {
+         problem = ItemWide(unavailable.what());
+         return OutcomeRetry;
+      }
       catch (std::exception &error)
       {
+         // A PstReaderFailed among them: the reader ended twice on the store,
+         // its folders or its default folders.
          return skip(AnsiString("the file could not be read: ") + AnsiString(ItemReportText(error.what(), 500)));
       }
 
@@ -1125,7 +1125,7 @@ namespace HM
          }
          catch (PstError &error)
          {
-            if (store.Budget().FileExhausted())
+            if (store.FileExhausted())
                return spent(row, rest());
             listProblem = error.what();
          }
@@ -1134,6 +1134,18 @@ namespace HM
             row.uidValidity = rest();
             MigrationStore::SaveFolder(row);
             problem = _T("The server ran short of memory reading a folder's list of items.");
+            return OutcomeRetry;
+         }
+         catch (PstReaderFailed &)
+         {
+            listProblem = "the PST reader's process ended twice while reading it";
+         }
+         catch (PstReaderUnavailable &unavailable)
+         {
+            row.uidValidity = rest();
+            MigrationStore::SaveFolder(row);
+            Save_();
+            problem = ItemWide(unavailable.what());
             return OutcomeRetry;
          }
          catch (std::exception &error)
@@ -1185,7 +1197,7 @@ namespace HM
             try
             {
                return calendars ? ImportCalendarItem(store, itemNid, planned.taskFolder, planned.deleted ? &accountCalendars : nullptr, accountId,
-                                                     target, recordKey, whyNot, notes)
+                                                     target, whyNot, notes)
                                 : ImportContact(store, itemNid, accountId, target, recordKey, whyNot, notes);
             }
             catch (PstStopped &)
@@ -1195,7 +1207,7 @@ namespace HM
             }
             catch (PstTooLarge &error)
             {
-               if (store.Budget().FileExhausted())
+               if (store.FileExhausted())
                {
                   ended = true;
                   outcome = spent(row, rest());
@@ -1206,7 +1218,7 @@ namespace HM
             }
             catch (PstError &error)
             {
-               if (store.Budget().FileExhausted())
+               if (store.FileExhausted())
                {
                   ended = true;
                   outcome = spent(row, rest());
@@ -1214,6 +1226,33 @@ namespace HM
                }
                whyNot = error.what();
                return "unreadable";
+            }
+            catch (PstReaderFailed &error)
+            {
+               // The reader ended on it twice: that item's failure, and a new
+               // reader for the next - unless the file ends it on everything.
+               whyNot = error.what();
+               if (store.FailuresInARow() >= PstReaderProcess::MaximumFailuresInARow)
+               {
+                  row.uidValidity = rest();
+                  MigrationStore::SaveFolder(row);
+                  Save_();
+                  problem = Formatter::Format(_T("The PST reader's process ended on {0} items in a row, each read twice, and the file is not read further: it is damaged throughout, or built to end the reader. What the job copied stays; repair the file with Outlook's Inbox Repair Tool (scanpst.exe) and retry the job to go on from where it stopped."),
+                     PstReaderProcess::MaximumFailuresInARow);
+                  ended = true;
+                  outcome = OutcomeFailed;
+                  return nullptr;
+               }
+               return "reader_failed";
+            }
+            catch (PstReaderUnavailable &unavailable)
+            {
+               row.uidValidity = rest();
+               MigrationStore::SaveFolder(row);
+               Save_();
+               problem = ItemWide(unavailable.what());
+               ended = true;
+               outcome = OutcomeRetry;
             }
             catch (std::bad_alloc &)
             {

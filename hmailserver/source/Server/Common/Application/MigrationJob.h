@@ -62,9 +62,10 @@
 //
 // A PST FILE (kind pst, MigrationJobPst.cpp) is a job of its own shape: its
 // source is a file in the target domain's PST import directory rather than a
-// mailbox on a server, read by this server's own PST reader (Common/Pst) and
-// filed through the same import entry, with the same marks, report and
-// throttle; MigrationJobPst.cpp has the whole of it. Its contacts, calendar
+// mailbox on a server, read by this server's own PST reader (Common/Pst) in a
+// process of its own (Pst/PstReaderProcess.h) and filed through the same import
+// entry, with the same marks, report and throttle; MigrationJobPst.cpp has the
+// whole of it. Its contacts, calendar
 // items and tasks are the contacts and calendars phases, read from the same
 // file into the same stores (MigrationJobPstItems.cpp).
 
@@ -138,7 +139,7 @@ namespace HM
       // together, so that the part stays small whatever the file holds.
       struct PstSummary
       {
-         PstSummary() : size(0), version(0), crypt(0), listAttempts(0) { }
+         PstSummary() : size(0), version(0), crypt(0), listAttempts(0), readerRestarts(0) { }
 
          AnsiString file;            // UTF-8, the name the job carries
          __int64 size;
@@ -156,7 +157,8 @@ namespace HM
          std::map<AnsiString, int> notMailFolders;
          std::map<AnsiString, int> notMail;
          AnsiString refusal;
-         int listAttempts;           // store-and-list passes begun and not finished: the reader stopped in one
+         int listAttempts;           // store-and-list passes begun and not finished: the service stopped in one
+         int readerRestarts;         // readers started after one ended mid-request, across the job's runs and phases
       };
 
       struct Report

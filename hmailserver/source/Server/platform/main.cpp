@@ -70,6 +70,7 @@
 #include "../Common/Util/DataProtector.h"
 #include "../Common/Util/ProtectedFile.h"
 #include "../Common/Util/Unicode.h"
+#include "../Common/Pst/PstReaderChild.h"
 
 namespace
 {
@@ -1454,6 +1455,14 @@ namespace
 
 int main(int argc, char *argv[])
 {
+   // --pst-read <descriptor>: this program as the PST reader's process, which
+   // only the service starts (Common/Pst/PstReaderChild.h, PstReaderProcess.h).
+   // Asked before anything else, so that the reader installs no handler, arms no
+   // crash oracle, reads no configuration and opens no database: it has the
+   // file's descriptor and two pipes, and nothing else of the service's.
+   if (argc == 3 && std::strcmp(argv[1], "--pst-read") == 0)
+      return HM::PstReaderChild::Run(argv[2]);
+
    std::string configuration;
    std::string set_setting;
    std::string sample_domain;

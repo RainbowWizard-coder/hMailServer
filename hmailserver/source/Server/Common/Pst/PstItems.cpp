@@ -1031,6 +1031,26 @@ namespace HM
       return seconds >= DaysFromCivil(4500, 1, 1) * 86400;
    }
 
+   bool
+   PstItems::IsOfClass(const std::string &value, const char *base)
+   {
+      const size_t length = strlen(base);
+      if (value.size() < length)
+         return false;
+
+      for (size_t i = 0; i < length; i++)
+      {
+         char a = value[i];
+         char b = base[i];
+         if (a >= 'A' && a <= 'Z') a = (char) (a - 'A' + 'a');
+         if (b >= 'A' && b <= 'Z') b = (char) (b - 'A' + 'a');
+         if (a != b)
+            return false;
+      }
+
+      return value.size() == length || value[length] == '.';
+   }
+
    std::string
    PstItems::UidOfGlobalObjectId(const std::string &goid)
    {

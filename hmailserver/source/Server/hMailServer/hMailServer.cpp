@@ -38,6 +38,7 @@
 #include "../Common/Util/StoredSecrets.h"
 #include "../Common/Util/ProtectedFile.h"
 #include "../Common/Util/FileUtilities.h"
+#include "../Common/Pst/PstReaderChild.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -935,9 +936,42 @@ static int SetAdministratorPasswordFromInput()
    return 0;
 }
 
-extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 
+// --pst-read <handle>: this program as the PST reader's process, which only the
+// service starts (Common/Pst/PstReaderChild.h, PstReaderProcess.h). Asked
+// before anything else is done, so that the reader arms no crash oracle, reads
+// no configuration, registers nothing and opens no database: it has the file's
+// handle and two pipes, and nothing else of the service's. False, with nothing
+// done, for any other command line.
+static bool RunAsPstReader(int &exitCode)
+{
+   int count = 0;
+   LPWSTR *arguments = CommandLineToArgvW(GetCommandLineW(), &count);
+   if (arguments == NULL)
+      return false;
+
+   const bool reader = count == 3 && lstrcmpiW(arguments[1], L"--pst-read") == 0;
+   std::string handle;
+   if (reader)
+   {
+      for (const wchar_t *digit = arguments[2]; *digit != L'\0'; digit++)
+         handle += (*digit >= L'0' && *digit <= L'9') ? (char) *digit : '?';
+   }
+   LocalFree(arguments);
+
+   if (!reader)
+      return false;
+
+   exitCode = HM::PstReaderChild::Run(handle);
+   return true;
+}
+
+extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/,
                                 LPTSTR lpCmdLine, int nShowCmd)
 {
+   int readerExitCode = 0;
+   if (RunAsPstReader(readerExitCode))
+      return readerExitCode;
+
    // Arm the crash oracle before anything else runs. Both of its hooks are
    // process-wide, so installing them here covers every thread the server creates
    // later, including the ones the service control manager and boost::asio start on

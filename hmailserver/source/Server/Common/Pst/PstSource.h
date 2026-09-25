@@ -62,6 +62,17 @@ namespace HM
       // empty where the platform cannot say.
       std::wstring FinalPath() const;
 
+      // The handle (Windows) or the descriptor (POSIX) the file is open on, for
+      // the service to hand to the reader's process; -1 when none is.
+      intptr_t Native() const;
+
+      // A handle or descriptor another process opened and handed over, taken
+      // as this source's own - closed with it, and closed at once when it is
+      // not a regular file of some size (OpenFailed). The reader's process
+      // (PstReaderChild.h) reads the file the service opened and checked this
+      // way, and never opens it by a name that could be swapped.
+      OpenResult Adopt(intptr_t native);
+
       virtual uint64_t Size() const { return size_; }
       virtual bool Read(uint64_t offset, size_t length, std::string &bytes);
 

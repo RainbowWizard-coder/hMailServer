@@ -27,6 +27,13 @@ namespace RegressionTests.API
    ///    target domain's subdirectory of pst_import_directory and filed as the IMAP
    ///    migration files a message.
    ///
+   ///    The reader runs in a process of its own - hMailServer.exe --pst-read, which the
+   ///    service starts for each phase of a job and ends with it - so every test here
+   ///    reads through it, and a test that has seen its job settle or pause also sees
+   ///    the service as one process again (AssertTheServiceAlone). The reader's test hook,
+   ///    a file named after the PST with ".reader-test" beside it, makes it end itself on
+   ///    the messages it names, as a crash would.
+   ///
    ///    The files are build/fixtures/pst/*.pst, which build/generate-pst-fixtures.py
    ///    writes from Microsoft's [MS-PST] with the standard library alone; the script's
    ///    --check proves the committed bytes are its output. Each test copies what it
@@ -148,6 +155,7 @@ namespace RegressionTests.API
          Start(migration);
          JsonElement job = WaitForJobs(migration, all => all.All(Settled), "the job to finish")[0];
          Assert.AreEqual("done", Text(job, "state"), Describe(job));
+         AssertTheServiceAlone("once the job had finished");
 
          string d = _settings.IMAPHierarchyDelimiter;
 
@@ -310,6 +318,7 @@ namespace RegressionTests.API
          StringAssert.Contains("filed into its ancestor", Text(Folder(report, string.Join(" / ", new[] { "Deep" }.Concat(
             Enumerable.Range(2, 26).Select(i => "L" + i.ToString("00"))))), "note"));
          Assert.AreEqual(34, Number(job, "messages_copied"));
+         Assert.AreEqual(0, Number(pst, "reader_restarts"), "No reader of this file ended while it read.");
 
          // The contacts and calendars phases read the file's contacts and
          // calendar folders: the fixture's two contacts have no e-mail address,
@@ -630,6 +639,7 @@ namespace RegressionTests.API
          JsonElement paused = WaitForJobs(migration, all => Text(all[0], "state") == "paused" || all.All(Settled), "the job to pause")[0];
          Assert.AreEqual("paused", Text(paused, "state"), "The job finished before it could be paused; the test proves nothing. " + Describe(paused));
          Assert.AreEqual(0, Number(paused, "folders_done"), "The job had finished the Inbox before the pause; the test proves nothing.");
+         AssertTheServiceAlone("once the job had paused in the middle of its Inbox");
          long jobId = Number(paused, "id");
          Mark(jobId, "80c2", "86a4.2");
          Mark(jobId, "80e2", "86c4.1");
@@ -654,6 +664,69 @@ namespace RegressionTests.API
          Assert.AreEqual(2, Number(notMail, "IPF.Contact"), notMail.ToString());
          Assert.AreEqual(1, Number(notMail, "IPF.Appointment"), notMail.ToString());
          Assert.AreEqual(1, Number(notMail, "IPM.Appointment"), notMail.ToString());
+      }
+
+      [Test]
+      [Description("A reader that ends in the middle of a message costs that message and not the service. The test hook beside each file ends the reader's process, as a crash would: for one file every time it is asked for MINI3, for a copy of it only the first time it is asked for MINI1. The service stays the one process it was; MINI3 is left out as reader_failed after a second reader ended on it too, and is named, and MINI1, MINI2 and the Archive's MINI4 arrive; in the copy MINI1 arrives from the reader started after the first ended, once, with everything else; the reports count the readers started again, two and one; and the error log says each end (HM7551) and the hook (HM7553). Each end is charged a whole unit of the file's work budget, so a phase of these small files can end its reader twice and no more before the budget is spent.")]
+      public void AReaderThatEndsCostsOneMessageAndNotTheService()
+      {
+         Target("ended");
+         Target("once");
+         string file = Place("mini-permute.pst");
+         string copy = Path.Combine(_directory, "example.test", "once.pst");
+         File.Copy(Fixture("mini-permute.pst"), copy);
+
+         // mini-permute.pst's Inbox holds 0x8084 (MINI1), 0x80a4 (MINI2) and 0x80c4
+         // (MINI3), and its Archive 0x8124 (MINI4), as the fixture script gives them.
+         File.WriteAllText(file + ".reader-test", "end-at 0x80c4\r\n");
+         File.WriteAllText(copy + ".reader-test", "end-once-at 0x8084\r\n");
+
+         long migration = CreateMigration("Ended", ",\"concurrency\":1");
+         AddJobs(migration, "mini-permute.pst,,ended@example.test\r\nonce.pst,,once@example.test", 2);
+         Start(migration);
+         List<JsonElement> jobs = WaitForJobs(migration, all => all.All(Settled), "the jobs to finish");
+         AssertTheServiceAlone("after the readers that ended");
+
+         // Every time: MINI3 left out, the rest arriving.
+         JsonElement ended = jobs.Single(j => Text(j, "source_user") == "mini-permute.pst");
+         Assert.AreEqual("done", Text(ended, "state"), Describe(ended));
+         List<Fetched> inbox = FetchAll("ended@example.test", "INBOX");
+         Assert.AreEqual(2, inbox.Count, "MINI1 and MINI2, and not MINI3.");
+         Assert.AreEqual(1, inbox.Count(m => m.Text.Contains("PSTTOKEN-MINI1\r\n")));
+         Assert.AreEqual(1, inbox.Count(m => m.Text.Contains("PSTTOKEN-MINI2\r\n")));
+         Assert.AreEqual(0, inbox.Count(m => m.Text.Contains("PSTTOKEN-MINI3")), "The message every reader ended on was filed.");
+         Assert.AreEqual(1, OnlyToken("ended@example.test", "Archive", "MINI4").Count, "The folder after the one a reader failed in arrives.");
+
+         JsonElement report = Report(migration, Number(ended, "id"));
+         JsonElement inboxTally = Folder(report, "Inbox");
+         Assert.AreEqual(2, Number(inboxTally, "copied"));
+         Assert.AreEqual(1, Reason(inboxTally, "reader_failed"));
+         Assert.AreEqual(1, Number(Folder(report, "Archive"), "copied"));
+         string errors = report.GetProperty("errors").ToString();
+         StringAssert.Contains("0x80c4 in Inbox was not imported", errors);
+         StringAssert.Contains("ended twice while reading the message 0x80c4", errors);
+         Assert.AreEqual(2, Number(report.GetProperty("pst"), "reader_restarts"),
+            "A reader after MINI3's first end, and one for the Archive after its second.");
+         Assert.AreEqual(3, Number(ended, "messages_copied"));
+
+         // The first time only: MINI1 from the second reader, once, and nothing
+         // left out.
+         JsonElement once = jobs.Single(j => Text(j, "source_user") == "once.pst");
+         Assert.AreEqual("done", Text(once, "state"), Describe(once));
+         List<Fetched> onceInbox = FetchAll("once@example.test", "INBOX");
+         Assert.AreEqual(3, onceInbox.Count);
+         Assert.AreEqual(1, onceInbox.Count(m => m.Text.Contains("PSTTOKEN-MINI1\r\n")), "The message the first reader ended on arrives from the second, once.");
+         Assert.AreEqual(1, OnlyToken("once@example.test", "Archive", "MINI4").Count);
+         JsonElement onceReport = Report(migration, Number(once, "id"));
+         JsonElement onceInboxTally = Folder(onceReport, "Inbox");
+         Assert.AreEqual(3, Number(onceInboxTally, "copied"));
+         Assert.AreEqual(0, Reason(onceInboxTally, "reader_failed"));
+         Assert.AreEqual(0, Reason(onceInboxTally, "duplicate"), "The message read again after its reader ended was filed twice.");
+         Assert.AreEqual(1, Number(onceReport.GetProperty("pst"), "reader_restarts"));
+
+         // HM7553 at each phase's start (the mail, the contacts, the calendars) and
+         // HM7551 at each end: read, and the error log emptied for the next test.
+         CustomAsserts.AssertReportedError("HM7553", "HM7551", "reader-test", "reading the message 0x8084", "reading the message 0x80c4");
       }
 
       [Test]
@@ -1225,6 +1298,25 @@ namespace RegressionTests.API
       {
          (int status, string body) set = Admin("PUT", "/api/v1/settings", "{\"pst_import_directory\":\"" + directory.Replace("\\", "\\\\") + "\"}");
          Assert.AreEqual(200, set.status, set.body);
+      }
+
+      // The service, one process and the one it was: a job's PST readers end with
+      // their phase, before the job writes that it settled or paused, and a reader
+      // that ended in the middle of a message took nothing of the service with it.
+      private static void AssertTheServiceAlone(string when)
+      {
+         Process[] servers = Process.GetProcessesByName("hmailserver");
+         try
+         {
+            Assert.AreEqual(1, servers.Length, "hMailServer.exe processes " + when + ": " + servers.Length + ". A PST reader outlived its job, or the service is not running.");
+            if (ServiceRestartDetector.ExpectedProcessId.HasValue)
+               Assert.AreEqual(ServiceRestartDetector.ExpectedProcessId.Value, servers[0].Id, "The service is not the process it was " + when + ": it restarted.");
+         }
+         finally
+         {
+            foreach (Process server in servers)
+               server.Dispose();
+         }
       }
 
       private void Mark(long jobId, string folderNid, string marker)

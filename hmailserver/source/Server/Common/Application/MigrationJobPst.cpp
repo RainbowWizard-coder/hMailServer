@@ -18,27 +18,37 @@
 // whose store this account has already been given by a finished job, fails it
 // with the reason, which the report keeps as its refusal.
 //
-// THE READING is this server's own PST reader (Common/Pst), in the service: the
-// store, the folders under the IPM subtree, and each message read whole and
-// rebuilt as Internet mail (Pst/PstMime.h), deterministically. What a file can
-// make the reader do is bounded twice over: by the limits each structure is read
-// with, and by the WORK BUDGET (Pst/PstFormat.h, PstBudget) - every page, block,
-// heap allocation, table cell, subnode, attachment and embedded message read is
-// counted, per message (4,000,000 reads, 512 MB decoded) and for the whole file
-// in one run (10,000,000 reads and one more for every 4 bytes of the file; 1 GB
-// decoded and 64 times the file's size), and the job's stop is asked at every
-// one of them, so a pause, a cancel or a service stop waits for one read, not
-// for a file. A message past its budget is left out as too_large; a file past
-// its own fails the job, what was copied kept, and a retry goes on from the
-// marks with a budget of its own. What neither can bound - a defect in the
-// reader that ends the process - is what the MARKERS below are for, so that one
-// file cannot stop the service at every start. Before the store is opened and
-// its folders listed, and before each folder's list of messages and each
-// message, the job writes where it is into its report or into the folder's row;
-// after, it writes that it got past. A run that finds such a marker still
-// standing knows the service ended while it was there, and takes it once more;
-// a second time, it leaves that message out - or that folder, or the file - and
-// says so, rather than trying again for ever.
+// THE READING is this server's own PST reader (Common/Pst), in a PROCESS OF ITS
+// OWN (Pst/PstReaderProcess.h): the store, the folders under the IPM subtree,
+// and each message read whole and rebuilt as Internet mail (Pst/PstMime.h),
+// deterministically, by this program started as the reader with the handle the
+// job opened and checked, and nothing else of the service's. What a file can
+// make the reader do is bounded as it was when the reader ran in the service:
+// by the limits each structure is read with, and by the WORK BUDGET
+// (Pst/PstFormat.h, PstBudget) - every page, block, heap allocation, table cell,
+// subnode, attachment and embedded message read is counted, per message
+// (4,000,000 reads, 512 MB decoded) and for the whole file in one run
+// (10,000,000 reads and one more for every 4 bytes of the file; 1 GB decoded and
+// 64 times the file's size), carried from one reader to the next. A message
+// past its budget is left out as too_large; a file past its own fails the job,
+// what was copied kept, and a retry goes on from the marks with a budget of its
+// own. A pause, a cancel or a service stop kills the reader, and the job's
+// thread, waiting for it, writes its marks at once. What neither bound can rule
+// out - a defect in the reader that ends its process - now ends the reader and
+// not the service: the job starts another and asks for the message again, and a
+// message the reader ends on twice is left out as reader_failed, named, and the
+// job goes on from the next with a new reader. The store and the folder list
+// ended on twice fail the file; a folder's list, that folder.
+//
+// THE MARKERS stay, as the guard of what still runs in the service - the filing
+// of each message, and a service that ends for any other reason while a message
+// is in hand: before the store is opened and its folders listed, and before each
+// folder's list of messages and each message, the job writes where it is into its
+// report or into the folder's row; after, it writes that it got past. A run that
+// finds such a marker still standing knows the service ended while it was there,
+// and takes it once more; a second time, it leaves that message out
+// (reader_stopped) - or that folder, or the file - and says so, rather than
+// trying again for ever.
 //
 // THE FILING is the import entry every importer of a mailbox shares,
 // MailImporter::ImportMessage, as archived mail: the 2 GB ceiling (and not the
@@ -80,7 +90,7 @@
 #include "../BO/IMAPFolders.h"
 #include "../BO/Message.h"
 #include "../Persistence/MessageStore.h"
-#include "../Pst/PstMime.h"
+#include "../Pst/PstReaderProcess.h"
 #include "../Pst/PstSource.h"
 #include "../Pst/PstStore.h"
 #include "../Util/Encoding/ModifiedUTF7.h"
@@ -536,12 +546,19 @@ namespace HM
       report_.pst.listAttempts++;
       Save_();
 
-      // What reading the file may cost in this run, and the stop that a pause,
-      // a cancel or the service's own stop sets, asked between every two reads
-      // (Pst/PstFormat.h, PstBudget).
-      PstStore store(source);
-      store.Budget().SetFileLimitsFor(source->Size());
-      store.Budget().SetStop([this]() { return StopRequested_(); });
+      // The reader, in a process of its own, given this file's handle; the stop
+      // that a pause, a cancel or the service's own stop sets ends it
+      // (Pst/PstReaderProcess.h). What reading the file may cost in this run is
+      // the reader's to count, and each reader started after one ended goes on
+      // from what the last had counted. The test hook, when an administrator
+      // has put one beside the file, is said in the error log.
+      PstReaderProcess::TestHook hook;
+      String hookSaid;
+      if (PstReaderProcess::ReadTestHook(file, directory, hook, hookSaid))
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7553, "MigrationJob::RunPst_", Formatter::Format(_T("Migration job {0}: {1}"), job_id_, hookSaid));
+
+      PstReaderProcess store(source, [this]() { return StopRequested_(); }, Formatter::Format(_T("Migration job {0} ({1})"), job_id_, shown),
+                             [this]() { report_.pst.readerRestarts++; }, hook);
 
       // A way out of the store or the list that is not the reader ending the
       // service: the guard's count goes back to nothing, and is saved with the
@@ -579,6 +596,19 @@ namespace HM
       {
          listEnded();
          problem = _T("The server ran short of memory opening the file.");
+         return OutcomeRetry;
+      }
+      catch (PstReaderFailed &)
+      {
+         listEnded();
+         problem = _T("The PST reader's process ended twice while opening this file's store, and the file is not read again; repair it with Outlook's Inbox Repair Tool (scanpst.exe), or export its folders to a new PST in Outlook.");
+         report_.pst.refusal = Utf8Of(problem);
+         return OutcomeFailed;
+      }
+      catch (PstReaderUnavailable &unavailable)
+      {
+         listEnded();
+         problem = WideOf(unavailable.what());
          return OutcomeRetry;
       }
       catch (std::exception &error)
@@ -642,6 +672,19 @@ namespace HM
       {
          listEnded();
          problem = _T("The server ran short of memory reading the file's folders.");
+         return OutcomeRetry;
+      }
+      catch (PstReaderFailed &)
+      {
+         listEnded();
+         problem = _T("The PST reader's process ended twice while reading this file's list of folders, and the file is not read again; repair it with Outlook's Inbox Repair Tool (scanpst.exe), or export its folders to a new PST in Outlook.");
+         report_.pst.refusal = Utf8Of(problem);
+         return OutcomeFailed;
+      }
+      catch (PstReaderUnavailable &unavailable)
+      {
+         listEnded();
+         problem = WideOf(unavailable.what());
          return OutcomeRetry;
       }
       catch (std::exception &error)
@@ -1008,7 +1051,7 @@ namespace HM
          }
          catch (PstError &error)
          {
-            if (store.Budget().FileExhausted())
+            if (store.FileExhausted())
                return spent(row, planned.key);
             listProblem = error.what();
          }
@@ -1017,6 +1060,18 @@ namespace HM
             row.uidValidity = planned.key;
             MigrationStore::SaveFolder(row);
             problem = _T("The server ran short of memory reading a folder's list of messages.");
+            return OutcomeRetry;
+         }
+         catch (PstReaderFailed &)
+         {
+            listProblem = "the PST reader's process ended twice while reading it";
+         }
+         catch (PstReaderUnavailable &unavailable)
+         {
+            row.uidValidity = planned.key;
+            MigrationStore::SaveFolder(row);
+            Save_();
+            problem = WideOf(unavailable.what());
             return OutcomeRetry;
          }
          catch (std::exception &error)
@@ -1087,19 +1142,19 @@ namespace HM
                      job_id_, folderName));
             }
 
-            // Read, whole; one that cannot be is that message's failure. A
-            // note or a journal entry is taken as a message here, under the
-            // same budget and the same catches (PstStore::AsMessage).
-            PstMessage message;
+            // Read, whole, and rebuilt as Internet mail, in the reader's
+            // process; one that cannot be is that message's failure. A note or
+            // a journal entry is taken as a message there, under the same
+            // budget and the same failures (PstStore::AsMessage). A message the
+            // reader ends on twice is that message's failure too.
+            PstMailRead mail;
+            PstMessage &message = mail.message;
             const char *skipReason = nullptr;
             std::string why;
             bool shortOfMemory = false;
-            bool messageLike = false;
             try
             {
-               store.ReadMessage(nid, message);
-               if (!PstStore::IsMailMessageClass(message.messageClass))
-                  messageLike = store.AsMessage(nid, message);
+               store.ReadMail(nid, mail);
             }
             catch (PstStopped &)
             {
@@ -1110,14 +1165,14 @@ namespace HM
             }
             catch (PstTooLarge &error)
             {
-               if (store.Budget().FileExhausted())
+               if (store.FileExhausted())
                   return spent(row, planned.key);
                skipReason = "too_large";
                why = error.what();
             }
             catch (PstError &error)
             {
-               if (store.Budget().FileExhausted())
+               if (store.FileExhausted())
                   return spent(row, planned.key);
                skipReason = "unreadable";
                why = error.what();
@@ -1126,37 +1181,49 @@ namespace HM
             {
                shortOfMemory = true;
             }
+            catch (PstReaderFailed &error)
+            {
+               skipReason = "reader_failed";
+               why = error.what();
+            }
+            catch (PstReaderUnavailable &unavailable)
+            {
+               row.uidValidity = planned.key;
+               MigrationStore::SaveFolder(row);
+               Save_();
+               problem = WideOf(unavailable.what());
+               return OutcomeRetry;
+            }
             catch (std::exception &error)
             {
                skipReason = "unreadable";
                why = error.what();
             }
 
-            if (!skipReason && !shortOfMemory && !PstStore::IsMailMessageClass(message.messageClass) && !messageLike)
+            if (!skipReason && !shortOfMemory && mail.outcome == PstMailRead::NotMail)
             {
                // An appointment, a contact, a task in a mail folder: counted by
                // class, not imported. A note or a journal entry was taken as a
-               // message above.
+               // message by the reader.
                skipReason = "not_mail";
                CountClass(report_.pst.notMail, message.messageClass, 1);
             }
 
             std::string mime;
-            std::vector<PstWarning> warnings = message.warnings;
+            std::vector<PstWarning> warnings;
             if (!skipReason && !shortOfMemory)
             {
-               try
-               {
-                  mime = PstMime::Build(message, recordKey.substr(0, 8) + "x" + PstFormat::Hex32(nid), warnings);
-               }
-               catch (std::bad_alloc &)
-               {
+               if (mail.outcome == PstMailRead::NotBuiltShortOfMemory)
                   shortOfMemory = true;
-               }
-               catch (std::exception &error)
+               else if (mail.outcome == PstMailRead::NotBuilt)
                {
                   skipReason = "unreadable";
-                  why = std::string("it could not be written as Internet mail: ") + error.what();
+                  why = "it could not be written as Internet mail: " + mail.why;
+               }
+               else
+               {
+                  mime.swap(mail.mime);
+                  warnings.swap(mail.warnings);
                }
             }
 
@@ -1179,6 +1246,17 @@ namespace HM
                row.lastUid = nid;
                row.uidValidity = planned.key;
                MigrationStore::SaveFolder(row);
+
+               // A file that ends the reader on message after message is not
+               // read on by starting two readers for each of the rest.
+               if (strcmp(skipReason, "reader_failed") == 0 && store.FailuresInARow() >= PstReaderProcess::MaximumFailuresInARow)
+               {
+                  problem = Formatter::Format(_T("The PST reader's process ended on {0} messages in a row, each read twice, and the file is not read further: it is damaged throughout, or built to end the reader. What the job copied stays; repair the file with Outlook's Inbox Repair Tool (scanpst.exe) and retry the job to go on from where it stopped."),
+                     PstReaderProcess::MaximumFailuresInARow);
+                  report_.pst.refusal = Utf8Of(problem);
+                  Save_();
+                  return OutcomeFailed;
+               }
                continue;
             }
 

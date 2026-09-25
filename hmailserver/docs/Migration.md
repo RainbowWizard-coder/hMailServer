@@ -529,9 +529,10 @@ ANSI files, OSTs that are PSTs in all but name, contacts, calendar items, tasks,
 and journal entries. A PST - the file Outlook keeps a mailbox or an archive in - is
 read by this server itself, as a migration of kind `pst`: a job per file, each into
 one account, with the migrations' state, throttle, resume marks and report (*Five
-hundred mailboxes* above). The reader runs inside the service, not in a child process
-the service could end - that is still to come - and *Resume, the reader's guard, and
-the report* below says what bounds it meanwhile.
+hundred mailboxes* above). The reader runs in a process of its own, which the service
+starts for each phase of a job, gives the file and nothing else, and ends on a pause,
+a cancel or a stop: a defect in the reader that ends its process costs one message,
+not the service (*The reader's process*, below).
 
 The reader is this project's own, written from Microsoft's published specifications
 and nothing else: [MS-PST] for the file (its pages, blocks and B-trees - the Unicode
@@ -942,6 +943,91 @@ files written here: no password-protected PST from Outlook was at hand.
   nothing in the file is encrypted with it - and the job asks for it only because the
   file's owner set it.
 
+### The reader's process
+
+The service does not read a PST itself. Each phase of a PST job - the mail, then the
+contacts, then the calendar items and tasks - starts this server's own program as the
+reader (`hMailServer.exe --pst-read <handle>` on Windows, `hmailserver --pst-read
+<descriptor>` on Linux; not a command for an administrator), and asks it for the
+store, the folders, a folder's list of messages and each message, a request and a
+reply at a time over the reader's standard input and output. The reader opens nothing
+by name: it is handed the handle (or descriptor) the job opened and checked against
+the domain's import directory, so the file cannot be swapped between the check and
+the read, and it has nothing else of the service's - no configuration, no database,
+no log, no other handle. It reads with the same reader, limits and work budget as
+before (below), rebuilds each message as Internet mail, and writes each contact, event
+and task as the vCard or iCalendar text this server keeps; the service files and
+stores what it is handed, through the same import and the same stores as ever.
+
+**This is crash containment, not a sandbox.** The reader runs as the service's own
+account - on Windows LocalSystem (or the service's virtual account) at the service's
+own integrity level, on Linux the service's user - and can reach whatever that account
+can reach on the machine. What the process boundary gives is that a defect in the
+reader ends the reader and not the service, that a pause or a stop can end it at
+once, and the limits below; it does not keep a reader that a hostile file had taken
+over away from the machine. What bounds it:
+
+| | Windows | Linux |
+|---|---|---|
+| Its account | The service's own, SYSTEM or the virtual account, at the service's integrity level; its token has every privilege removed but the one that lets a process walk a path | The service's user; no new privileges, no ambient capability (the service's `CAP_NET_BIND_SERVICE` is not passed on) |
+| What it may start | Nothing: a job object of one process | - |
+| Memory | 2 GB committed | 4 GB of address space |
+| Files | None of the service's handles but the PST's; its errors to the null device | Every descriptor of the service's closed but the PST's; its errors to `/dev/null`; nothing it may write (`RLIMIT_FSIZE` 0), no core file |
+| Priority | Below normal | nice 10 |
+| Its desktop | The desktop, the clipboard, global atoms and other processes' windows closed to it | - |
+| When the service ends | Killed with it (the job object's handle closes) | Killed with it (`PR_SET_PDEATHSIG`), in a process group of its own |
+
+It does not run at a lower integrity level on Windows: the program is a Windows one,
+and at low integrity it could not attach to the service's desktop to start at all.
+Should a start with those rights fail on a host - the token refused, or the reader
+ending before it says hello - one start without them is tried (on Windows still in
+a job object of its own where the system allows one, on Linux still in its own
+process group and ended with the service),
+and if that one works every reader starts so until the service restarts, and `HM7552`
+says so once. A reader that cannot be started at all pauses the job (`HM7550`) with
+the usual back-off.
+
+**A pause, a cancel, a restart or the service stopping** kills the reader at once -
+a watchdog asks the job's stop every tenth of a second while it lives - and the job,
+which was waiting for the reader's answer, writes its marks as it always did; the next
+run goes on from them with a new reader. The same watchdog ends a reader that has not
+answered one request in ten minutes (the work budget below bounds a message well
+inside that) or that has not said hello in one minute.
+
+**A reader that ends in the middle of a request** - a crash, a kill for time, an answer
+that is not the protocol's - has failed on what it was asked. The service says so in
+the error log (`HM7551`, at most ten a phase), starts a new reader, opens the store in
+it again with what the file has cost so far - and a whole unit of the work budget more
+(4,000,000 reads and 512 MB) for the request it ended in, whose work was never
+answered - and asks once more. Ended a second time on
+the same thing:
+
+- **a message** is left out, counted `reader_failed` and named, and the job goes on
+  from the next message with a new reader; so is **a contact, a calendar item or a
+  task**;
+- **a folder's list of messages** or of items leaves that folder uncopied, with that
+  said;
+- **the store or the list of folders** fails the file in the mail phase, and skips the
+  phase in the contacts and calendars phases (the mail is copied by then);
+- ten messages or items in a row fail the file: it ends the reader on everything, and
+  is not read on by starting two readers for each of the rest.
+
+The report's `pst` part counts the readers started again after one ended
+(`reader_restarts`), across the job's runs and phases.
+
+**One reader a job, four at once.** A job's phase has one reader at a time, those
+started again included; the server runs at most four readers at once, and a PST job
+that finds four running waits for one to end, asking its stop meanwhile.
+
+**The test hook.** A file named after the PST with `.reader-test` added, beside it in
+the domain's directory - `archive.pst.reader-test` - with lines `end-at 0x<nid>` or
+`end-once-at 0x<nid>`, makes the reader end itself, as a crash would, when it is asked
+for that message, item or folder: every time, or the first time in each phase. It is
+how the regression fixture shows the service surviving a reader's crash, and it is
+never there unless an administrator of the server put it there; every phase that finds
+it says so in the error log (`HM7553`), naming the file and the node ids. Remove it to
+import those messages.
+
 ### Resume, the reader's guard, and the report
 
 A folder's messages are taken in the order of their node ids, and the job writes the
@@ -950,7 +1036,8 @@ pause, the service stopping - goes on from the next. A job that ran before also 
 back what it filed, and the import's duplicate check keeps anything from arriving
 twice.
 
-The reader runs in the service, and what a file can make it do is bounded twice over.
+What a file can make the reader do is bounded twice over, in its process as it was in
+the service.
 Every size, offset, count and level is checked against the block it is in and the
 limit it is read with before anything is allocated from it, and every tree it walks -
 the node and block B-trees, a data tree, a subnode tree, a heap's B-trees, the
@@ -977,22 +1064,30 @@ changed occurrence) and its time zones (each rule).
 A message past its budget is counted `too_large` and named, and so is a contact, a
 calendar item or a task; a file past its own fails the job - *Reading this file has
 cost more work than any PST Outlook writes needs for its size* - with what it copied
-kept, and a retry goes on from the marks with a budget of its own. Every read also
-asks whether the job has been told to stop, so a pause, a cancel, a restart or the
-service stopping waits for one read, never for a file; the phase that was reading
-puts its mark back where the last message or item left it. Memory that runs short
-is the server's, not the file's: the mark stays before the message or item, and the
-job tries again.
+kept, and a retry goes on from the marks with a budget of its own. A reader started
+again after one ended goes on from what the file had cost the one before, so no file
+earns work past its budget by ending the reader: each end is charged as the most one
+request may cost, a whole unit (4,000,000 reads and 512 MB), which a large file's
+budget has room for many times over and a very small one's for about twice in a
+phase before the file is not read further. A pause, a cancel, a restart or the service
+stopping ends the reader where it stands, never waiting for a file; the phase that
+was reading puts its mark back where the last message or item left it. Memory that
+runs short in the reader's process is its own ceiling reached (2 GB on Windows, 4 GB
+of address space on Linux), which the same message or item would reach again: it is
+counted `too_large`. Memory that runs short in the service is the server's, not the
+file's: the mark stays before the message or item, and the job tries again.
 
-What no bound can rule out is a defect in the reader itself that ends the process; so
-before the job opens the store and lists its folders, before a folder's list of
-messages and before each message, it writes where it is, and after, that it got past.
-A run that finds that mark still standing takes the thing once more; the second time,
-it leaves that message out (`reader_stopped`: the service stopped twice while it was
-being read or filed), or that folder, or fails the file, and says so - so that no file
-can stop the service at every start through the reader. A crash is still a crash of
-the service, which is what the child process this row has still to build is for.
-The contacts and calendars phases keep the same marks and the same guard, each
+What no bound can rule out is a defect in the reader itself that ends its process,
+and that ends the reader, not the service (*The reader's process*, above). What still
+runs in the service - the filing of each message, the storing of each contact and
+event - keeps the guard it had while the reader ran there, as the fallback for a
+service that ends for any reason while a message is in hand: before the job opens the
+store and lists its folders, before a folder's list of messages and before each
+message, it writes where it is, and after, that it got past. A run that finds that mark
+still standing takes the thing once more; the second time, it leaves that message out
+(`reader_stopped`: the service stopped twice while it was being read or filed), or that
+folder, or fails the file, and says so - so that no file can stop the service at every
+start. The contacts and calendars phases keep the same marks and the same guard, each
 contacts, calendar or tasks folder with a row of its own, so an interrupted phase
 goes on from the item after the last one it dealt with and stores nothing twice.
 
@@ -1003,20 +1098,20 @@ counted and not imported by
 class (`not_mail`: the folders that are not mail by their container class, counted
 afresh at every pass, and the messages in mail folders that are not mail by their
 message class, counted once each - `not_mail_folders` and `not_mail_messages` are the
-two parts), the refusal, if the file was refused, and `list_attempts`, the guard's
-count. Every string from the file is cut to a couple of hundred bytes with no control
+two parts), the refusal, if the file was refused, `list_attempts`, the guard's
+count, and `reader_restarts`, the readers started again after one ended. Every string from the file is cut to a couple of hundred bytes with no control
 characters in it, and at most twenty classes are named in each count, the rest
 together; the contacts, calendar and tasks folders among `not_mail_folders` are what
 the next two phases take. The report's `contacts` and `calendars` parts say what those
 phases copied and what they skipped and why (`no_address`, `already_there`,
 `distribution_list`, `not_a_contact`, `no_start`, `recurrence_unreadable`,
 `not_storable`, `not_an_item`, `too_large`, `unreadable`, `not_saved`, `folder_left_out`,
-`reader_stopped`), or why a
+`reader_failed`, `reader_stopped`), or why a
 phase was skipped whole (*the file has no contacts
 folder*); each contacts, calendar and tasks folder has the same counts, and the address
 book or calendar it went into, as its target. Each folder has its source path, its
 target, its special use, the messages the file says it holds, what was copied, what was skipped and why (`duplicate`,
-`too_large`, `unreadable`, `not_mail`, `reader_stopped`), what a message came in
+`too_large`, `unreadable`, `not_mail`, `reader_failed`, `reader_stopped`), what a message came in
 without (`warnings`: `attachment_not_imported`, `attachment_unreadable`,
 `attachments_unreadable`, `recipients_unreadable`, `recipients_left_out`,
 `embedded_too_deep`, `rtf_body_kept`, `rtf_unreadable`, `html_charset_unknown`,
@@ -1025,8 +1120,8 @@ without (`warnings`: `attachment_not_imported`, `attachment_unreadable`,
 `submit_time_out_of_range`, `date_missing`, `warnings_left_out`) and the renames.
 
 The application log names every message and folder not imported, with the reason -
-too large for the reader or for the 2 GB ceiling, unreadable, left out by the guard -
-and the first fifty warnings of a run. The report's `errors` keep the most recent fifty
+too large for the reader or for the 2 GB ceiling, unreadable, ended on twice by the
+reader, left out by the guard - and the first fifty warnings of a run. The report's `errors` keep the most recent fifty
 of those entries, and of the retries, as many as fit in the report. Duplicates (what a
 job meets again after an interruption) and items that are not mail are counted, not
 named.
@@ -1118,13 +1213,17 @@ names of its folders and its store - for which it names none - in Windows-1252:
 
 ### Windows and Linux
 
-The reader and the job are the same code on both. On Linux the import directory is a
+The reader and the job are the same code on both, and so is the reader's process:
+started from the service's own program file (on Linux by `/proc/self/exe`, so that a
+package upgrade that replaces the file on disk still starts the very program the
+service runs), given the file's handle or descriptor, and killed on a stop - through a
+job object on Windows and a process group on Linux. On Linux the import directory is a
 POSIX path and the file's final path is read from `/proc/self/fd`. There is no Import
 Tool on Linux, and on Windows the Import Tool does not read PST files: the file goes
 into the import directory, and REST, hmctl or the Control Deck start the job. The row
-was written without a compiler at hand, and so was its extension of 25 September; the
-bench's build and the regression fixture `API.PstImport` are what prove it on
-Windows, and no Linux test runs it.
+was written without a compiler at hand, and so were its extension of 25 September and
+its reader's process; the bench's build and the regression fixture `API.PstImport` are
+what prove it on Windows, and no Linux test runs it.
 
 ### Outlook over IMAP, still
 

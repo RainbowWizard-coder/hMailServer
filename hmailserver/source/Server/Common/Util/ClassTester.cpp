@@ -44,6 +44,7 @@
 #include "../Application/MigrationJob.h"
 #include "../Pst/PstTester.h"
 #include "../Pst/PstItemsTester.h"
+#include "../Pst/PstReaderWireTester.h"
 #include "WebAuthn.h"
 #include "PasskeyStore.h"
 #include "MaskedAddresses.h"
@@ -401,6 +402,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the PST reader's ANSI files, contacts, calendar and tasks\n"));
       PstItemsTester pstItemsTester;
       pstItemsTester.Test();
+
+      // What the PST reader's process and the service say to each other: each
+      // record written and read back, frames read from a stream in pieces,
+      // what a reply cut short, a count past its payload or a header that
+      // claims 300 MB is refused with, and each status thrown in the service as
+      // what the reader threw.
+      OutputDebugString(_T("hMailServer: Testing the PST reader's protocol\n"));
+      PstReaderWireTester pstReaderWireTester;
+      pstReaderWireTester.Test();
 
       // Passkeys: the CBOR attestation object, the COSE key inside it, the
       // authenticator data, the two signature algorithms and what each reader

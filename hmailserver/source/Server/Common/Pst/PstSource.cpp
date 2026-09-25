@@ -95,6 +95,33 @@ namespace HM
       return OpenDone;
    }
 
+   intptr_t
+   PstFileSource::Native() const
+   {
+      return descriptor_ < 0 ? (intptr_t) -1 : (intptr_t) descriptor_;
+   }
+
+   PstFileSource::OpenResult
+   PstFileSource::Adopt(intptr_t native)
+   {
+      Close_();
+
+      if (native < 0 || native > (intptr_t) INT_MAX)
+         return OpenFailed;
+
+      const int descriptor = (int) native;
+      struct stat status;
+      if (::fstat(descriptor, &status) != 0 || !S_ISREG(status.st_mode) || status.st_size <= 0)
+      {
+         ::close(descriptor);
+         return OpenFailed;
+      }
+
+      descriptor_ = descriptor;
+      size_ = (uint64_t) status.st_size;
+      return OpenDone;
+   }
+
    std::wstring
    PstFileSource::FinalPath() const
    {
@@ -179,6 +206,38 @@ namespace HM
       LARGE_INTEGER size;
       BY_HANDLE_FILE_INFORMATION information;
       if (!GetFileSizeEx(handle, &size) || size.QuadPart <= 0 ||
+          !GetFileInformationByHandle(handle, &information) ||
+          (information.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+      {
+         CloseHandle(handle);
+         return OpenFailed;
+      }
+
+      handle_ = handle;
+      size_ = (uint64_t) size.QuadPart;
+      return OpenDone;
+   }
+
+   intptr_t
+   PstFileSource::Native() const
+   {
+      return handle_ == INVALID_HANDLE_VALUE ? (intptr_t) -1 : (intptr_t) handle_;
+   }
+
+   PstFileSource::OpenResult
+   PstFileSource::Adopt(intptr_t native)
+   {
+      Close_();
+
+      HANDLE handle = (HANDLE) native;
+      if (handle == NULL || handle == INVALID_HANDLE_VALUE)
+         return OpenFailed;
+
+      // A file on a disk, not a pipe or a device, of some size, and not a
+      // directory: what Open takes, asked of the handle.
+      LARGE_INTEGER size;
+      BY_HANDLE_FILE_INFORMATION information;
+      if (GetFileType(handle) != FILE_TYPE_DISK || !GetFileSizeEx(handle, &size) || size.QuadPart <= 0 ||
           !GetFileInformationByHandle(handle, &information) ||
           (information.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
       {
