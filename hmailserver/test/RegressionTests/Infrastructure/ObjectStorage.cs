@@ -188,6 +188,14 @@ namespace RegressionTests.Infrastructure
                azureRelay_.Dispose();
             RestListener.Stop();
             Guarded(() => _application.Reinitialize());
+
+            // A pass the committer or the recount began against the store before the
+            // settings were put back runs on with the client it took, and meets the
+            // relays this teardown has just closed: its HM7470 is this fixture's
+            // doing, and would fail the next fixture's SetUp. Given a moment to end,
+            // and then taken out of the error log.
+            Thread.Sleep(3000);
+            LogHandler.DeleteErrorLog();
          }
       }
 
@@ -269,8 +277,10 @@ namespace RegressionTests.Infrastructure
          WaitFor(() => store.Head(copyKey) == 404, "The expunged copy is still in the store.", 20);
 
          // Read again after a restart: the settings and the store are the server's.
+         // The address first: the account object is the old process's.
+         string address = account.Address;
          RestartServerAndReacquireCom();
-         ClassicAssert.AreEqual(fetched, FetchLiteral(account.Address, "Moved", 1), "After a restart the moved message does not read from the store.");
+         ClassicAssert.AreEqual(fetched, FetchLiteral(address, "Moved", 1), "After a restart the moved message does not read from the store.");
       }
 
       // ---- an outage ---------------------------------------------------------------

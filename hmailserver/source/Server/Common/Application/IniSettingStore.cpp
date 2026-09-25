@@ -1028,11 +1028,21 @@ namespace HM
       if (!database)
          return false;
 
-      SQLCommand command("update hm_inisettings set inisettingvalue = @VALUE, inisettingfilevalue = @FILEVALUE where inisettingname = @NAME and inisettingvalue = @WAS");
+      // The value is compared here, not in the WHERE clause: inisettingvalue is ntext
+      // on SQL Server and SQL Server Compact, which refuse an ntext column in an
+      // equality, so "and inisettingvalue = @WAS" failed the statement outright on
+      // both. The verb runs with the service stopped, so nothing writes the row
+      // between the read and the update.
+      SQLCommand select("select inisettingvalue from hm_inisettings where inisettingname = @NAME");
+      select.AddParameter("@NAME", name);
+      std::shared_ptr<DALRecordset> recordset = database->OpenRecordset(select);
+      if (!recordset || recordset->IsEOF() || recordset->GetStringValue("inisettingvalue") != asStored)
+         return false;
+
+      SQLCommand command("update hm_inisettings set inisettingvalue = @VALUE, inisettingfilevalue = @FILEVALUE where inisettingname = @NAME");
       command.AddParameter("@VALUE", String());
       command.AddParameter("@FILEVALUE", String());
       command.AddParameter("@NAME", name);
-      command.AddParameter("@WAS", asStored);
 
       if (!database->Execute(command))
          return false;

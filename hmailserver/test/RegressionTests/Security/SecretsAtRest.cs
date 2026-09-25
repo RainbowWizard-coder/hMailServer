@@ -167,14 +167,21 @@ namespace RegressionTests.Security
             IniFileSetting.WriteFileOnly("Security", "AdministratorPassword", Md5Hex(AdminPassword));
             _application.Reinitialize();
 
+            // Read from the file by its path from here on. AdministratorLine finds
+            // the file through COM's Settings.Directories, which reloads the bootstrap
+            // sections - the administrator password among them - and would itself
+            // give the running service the newer password this test is about.
+            string iniPath = IniFileSetting.ExistingIniFiles().First();
+            ServerExecutable();
+
             Verb set = RunSetAdminPassword(null, Newer);
             ClassicAssert.AreEqual(0, set.ExitCode, set.Output);
-            string newerLine = AdministratorLine();
+            string newerLine = IniFile.GetValue("Security", "AdministratorPassword", string.Empty, iniPath);
             StringAssert.StartsWith("$h1$", newerLine, "The verb wrote the newer password.");
 
             ClassicAssert.IsNotNull(new hMailServer.Application().Authenticate("Administrator", AdminPassword),
                "The running service still verifies the password it loaded.");
-            ClassicAssert.AreEqual(newerLine, AdministratorLine(),
+            ClassicAssert.AreEqual(newerLine, IniFile.GetValue("Security", "AdministratorPassword", string.Empty, iniPath),
                "The old password's sign-in wrote itself back over the newer password in the file. A password reset because the old one leaked would be undone by whoever holds it.");
 
             _application.Reinitialize();
@@ -708,6 +715,7 @@ namespace RegressionTests.Security
 
          try
          {
+            ServerExecutable();
             StopService();
             try
             {
@@ -865,14 +873,24 @@ namespace RegressionTests.Security
          }
       }
 
+      // Found once, while the service runs: the verbs that need it stopped ask for
+      // it after it has gone, when COM has nobody to answer.
+      private static string serverExecutable_;
+
       /// <summary>The hMailServer.exe the service runs, from the program directory it reports.</summary>
       private string ServerExecutable()
       {
+         if (serverExecutable_ != null)
+            return serverExecutable_;
+
          string program = _settings.Directories.ProgramDirectory;
          foreach (string candidate in new[] { Path.Combine(program, "hMailServer.exe"), Path.Combine(program, "Bin", "hMailServer.exe") })
          {
             if (File.Exists(candidate))
+            {
+               serverExecutable_ = candidate;
                return candidate;
+            }
          }
 
          Assert.Ignore("hMailServer.exe is not in the program directory the server reports (" + program + "), so the verb cannot be run here.");

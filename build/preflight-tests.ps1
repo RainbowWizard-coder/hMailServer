@@ -360,7 +360,7 @@ if (Test-Path $dataFolder) {
     # them failed pre-flight, and -Clean deleted them - generated DKIM keys and
     # recoverable items included - as if they were orphan domains.
     $reserved = @('Quarantine', 'Sieve', 'Temp', 'Events', 'Updates',
-                  'ACME', 'Blobs', 'Confidential', 'Discovery', 'DKIM', 'Files', 'Lists', 'Protected', 'Recoverable')
+                  'ACME', 'Blobs', 'Confidential', 'Discovery', 'DKIM', 'Files', 'Lists', 'Protected', 'Recoverable', '_ObjectStore')
 
     # 'Certificates' is NOT reserved. It holds the self-signed pair a new
     # installation's defaults make (NewInstallDefaults.cpp, docs/SecureDefaults.md),
