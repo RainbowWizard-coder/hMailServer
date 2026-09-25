@@ -19,6 +19,7 @@
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/EnvironmentSettings.h"
 #include "../Common/Application/Profiles.h"
+#include "../Common/Application/WindowsEventLog.h"
 #include "../Common/Persistence/MessageStoreMaintenance.h"
 #include "../Common/Util/ClassTester.h"
 #include "../Common/Util/SystemInformation.h"
@@ -182,7 +183,7 @@ namespace HM
       // so that a client's CreateObject("hMailServer.Application") reaches the
       // class objects this process registers instead of asking the service
       // control manager to start the service. RegisterAppID puts the value back
-      // on the next start of any kind, so nothing is left behind.
+      // on the next start of any kind but /Unregister, so nothing is left behind.
       //------------------------------------------------------------------------//
       {
          CRegKey keyAppID;
@@ -453,12 +454,38 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
 
    _AtlModule.InitializeCom();
 
+   // /Unregister is decided before anything below registers anything, because it
+   // removes what they write. Until 25 September 2026 it came after the
+   // RegisterAppID call below, so every /Unregister first wrote
+   // HKCR\AppID\{5EDEC473-39E0-43F6-A234-1947071721C8} with LocalService=hMailServer,
+   // and one that found nothing else registered - UnregisterServer then fails, and
+   // UnregisterAppId was skipped when it did - left that key behind. An uninstall
+   // after an upgrade runs /Unregister twice, once for each installation's
+   // [UninstallRun] entries, and that is how the installer smoke test found it.
+   // Now it creates nothing: the service, the COM server and the AppID are removed,
+   // the AppID whether or not the type library was still registered, and then the
+   // Application log's event source (WindowsEventLog::UnregisterSource), last, so
+   // that nothing on this path can write an event after it and put it back.
+   if (sLastParam.CompareNoCase(_T("/Unregister")) == 0)
+   {
+      // ---  Unregister the hMailServer service.
+      HM::ServiceManager hSCM;
+      hSCM.UnregisterService("hMailServer");
+
+      _AtlModule.UnregisterServer(TRUE);
+      _AtlModule.UnregisterAppId();
+
+      HM::WindowsEventLog::UnregisterSource();
+
+      return 0;
+   }
+
    // Register app id so that client can create instances
    // of us even when running as a service under the local
    // system account.
    _AtlModule.RegisterAppID();
 
-   // Run registration / unregistration of the server and service.
+   // Run registration of the server and service (/Unregister is above).
    bool bRegisterService = sLastParam.CompareNoCase(_T("/Register")) == 0;
    bool bRegisterTypelib = bRegisterService || (sLastParam.CompareNoCase(_T("/RegisterTypeLib")) == 0);
    if (bRegisterService)
@@ -508,20 +535,6 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       {
          return -1;
       }
-
-      return 0;
-   }
-
-   if (sLastParam.CompareNoCase(_T("/Unregister")) == 0)
-   {
-      // ---  Unregister the hMailServer service.
-      HM::ServiceManager hSCM;
-      hSCM.UnregisterService("hMailServer");
-
-      HRESULT res = _AtlModule.UnregisterServer(TRUE);
-
-      if (SUCCEEDED(res))
-         _AtlModule.UnregisterAppId();
 
       return 0;
    }
@@ -745,8 +758,8 @@ ReportServiceStatus(DWORD dwState, DWORD dwControlsAccepted)
    SetServiceStatus (ServiceStatusHandle,  &ServiceStatus);
 }
 
-static void WINAPI 
-ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
+static void WINAPI
+ServiceMain(DWORD dwArgc, LPTSTR* lpszArgv)
 //------------------------------------------------------------------------//
 // The main entry point for SCM.
 //------------------------------------------------------------------------//
@@ -767,6 +780,26 @@ ServiceMain(DWORD /*dwArgc*/, LPTSTR* /*lpszArgv*/)
    // notified the SCM about the status (which is right about now). 
    if (SystemInformation::GetOperatingSystem() == SystemInformation::Windows2003)
       _AtlModule.RegisterObjects();
+
+   // The arguments of the start, which the service controller passes here and
+   // not on the command line: none from net start, services.msc, a boot or a
+   // COM activation, and --for-database-upgrade from the installer's start
+   // for the database step of an upgrade (StartServiceForDatabaseUpgrade in
+   // hMailServerInnoExtension.iss, "sc start hMailServer --for-database-upgrade").
+   // That start expects a database older than this binary, and the next
+   // OnDatabaseConnected refuses it without reporting HM5011
+   // (Application::SetStartedForDatabaseUpgrade). Every entry is read,
+   // the first included, because whether the controller puts the service's
+   // name first is not something to rely on.
+   for (DWORD index = 0; lpszArgv != nullptr && index < dwArgc; index++)
+   {
+      if (lpszArgv[index] == nullptr)
+         continue;
+
+      String argument = lpszArgv[index];
+      if (argument.CompareNoCase(_T("--for-database-upgrade")) == 0)
+         HM::Application::Instance()->SetStartedForDatabaseUpgrade();
+   }
 
    // Connect to the database and create configuration objects.
    // We need to do this AFTER we have registered the COM objects

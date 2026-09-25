@@ -133,6 +133,11 @@ namespace HM
       // POSIX - openlog is told the identity instead, and an unused constant here
       // would only draw a warning - so it is declared where it is used.
       const wchar_t *EVENT_SOURCE_NAME = L"hMailServer";
+
+      // The source's registration: made by EnsureSourceRegistered_ the first time
+      // an event is written, removed by UnregisterSource. One spelling for both,
+      // so that what /Unregister removes is what the first event created.
+      const wchar_t *EVENT_SOURCE_KEY = L"SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\hMailServer";
 #endif
    }
 
@@ -230,9 +235,11 @@ namespace HM
    // written all the same, and only the rendering degrades. Failure must not be
    // REPORTED - this runs under ErrorManager::ReportError_, so reporting would
    // re-enter it - which is why the one note it leaves goes to the application
-   // log. An installer could create this key at install time instead (and remove
-   // it at uninstall), which would also cover servers run under restricted
-   // accounts; this code then finds the value present and touches nothing.
+   // log. The key is this class's: made here and removed by UnregisterSource,
+   // which hMailServer.exe /Unregister calls, so an uninstall takes it away with
+   // the service and the COM registration. A message file an administrator
+   // pointed the source at is never overwritten here, and goes at an uninstall
+   // with everything else hMailServer registered.
    //---------------------------------------------------------------------------
    {
 #ifdef HM_PLATFORM_POSIX
@@ -267,8 +274,7 @@ namespace HM
       {
          HKEY key = nullptr;
 
-         LONG result = RegCreateKeyEx(HKEY_LOCAL_MACHINE,
-            _T("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\hMailServer"),
+         LONG result = RegCreateKeyEx(HKEY_LOCAL_MACHINE, EVENT_SOURCE_KEY,
             0, nullptr, REG_OPTION_NON_VOLATILE, KEY_QUERY_VALUE | KEY_SET_VALUE, nullptr, &key, nullptr);
 
          if (result != ERROR_SUCCESS)
@@ -324,6 +330,27 @@ namespace HM
             "Events are still written to the Application log, but Event Viewer will show "
             "\"the description for the event id cannot be found\" above each one.", (int) failure));
       }
+#endif
+   }
+
+   void
+   WindowsEventLog::UnregisterSource()
+   //---------------------------------------------------------------------------
+   // DESCRIPTION:
+   // Removes the source EnsureSourceRegistered_ registers. hMailServer.exe
+   // /Unregister calls it last, and the uninstaller runs /Unregister once the
+   // service's process has exited, so nothing is left to write an event and
+   // put the key back. Until 25 September 2026 nothing removed it, and the
+   // installer smoke test found the key still there after the uninstall of
+   // every server that had ever written an event. A key already gone - a
+   // second /Unregister, a server that never wrote one - is not an error, and
+   // nothing here is reported: the event log is what is being taken away.
+   //---------------------------------------------------------------------------
+   {
+#ifndef HM_PLATFORM_POSIX
+      // RegDeleteKey removes a key with no subkeys, and the source's key holds
+      // only its two values.
+      RegDeleteKey(HKEY_LOCAL_MACHINE, EVENT_SOURCE_KEY);
 #endif
    }
 

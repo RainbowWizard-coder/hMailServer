@@ -706,7 +706,9 @@ checks:
   - the Start menu group, the uninstall entry and `Software\hMailServer` are
     gone;
   - every COM key the install registered is gone (647 for 6.3.3);
-  - the event log source and any scheduled task naming hMailServer are gone;
+  - the event log source and any scheduled task naming hMailServer are gone.
+    When the server wrote no event during the run, the test registers the
+    source first, as the server does, so that its removal is still checked;
   - no registry key naming hMailServer is left that the clean machine did not
     have. Other new keys are listed as INFO: they belong to the .NET runtime
     and SQL Server Compact, which the installer installs when they are missing
@@ -769,6 +771,44 @@ failures were the product's, not the test's:
 A run of 6.3.3 on its own, with no upgrade, gave 37 passed and 1 failed. The
 one failure was item 2. With no upgrade, the event log source is never
 created and the AppID is removed.
+
+**What was done about them.** All five are fixed in the tree after 6.3.3. The
+proof is the smoke test of an installer built from that tree, installed over
+6.3.3 with `--allow-unsigned`: every check should pass, and the unsigned
+installer's signature is a SKIP.
+
+1. The installer starts the service for the database step of an upgrade
+   itself, with `sc start hMailServer --for-database-upgrade`, before it runs
+   DBSetupQuick. `ServiceMain` reads the argument. When that start finds the
+   database older than the binary, it refuses as before, and DBUpdater reads
+   the refusal from `Connect()` as it always has, but HM5011 is not reported.
+   Inno's log says the installer made that start. Only that one start is
+   marked. A start by the service controller at boot, by `net start`, by
+   services.msc or by a COM activation still reports HM5011, and so does a
+   database newer than the binary.
+2. The uninstaller stops the service at `usUninstall`, which comes before
+   `[UninstallRun]` and before any file is deleted, and it waits for the
+   process to exit. The stop gets `ShutdownDrainSeconds` plus 30 seconds, and
+   the process gets 30 seconds more. The upgrade's stop at the Ready page does
+   the same. Every file the server's process loads is marked
+   `uninsrestartdelete`, so a file still in use when the wait ends is queued
+   for deletion at the next restart, and the uninstaller says so.
+3. `hMailServer.exe /Unregister` removes the event source, and does it last.
+   The server still creates the source at its first event, so the key belongs
+   to the server from that event until the uninstall.
+4. Every `[UninstallRun]` entry has a `RunOnceId`. `/Unregister` is now decided
+   before `RegisterAppID()` runs, so it creates nothing, and it removes the
+   AppID even when the type library was already gone. An uninstall log written
+   by an earlier installer still runs that installer's entries once more,
+   which is now harmless.
+5. This one goes with item 3.
+
+`build/check-installer-scripts.py` holds each fix in the text of the scripts and
+the server, and CI runs it on every push. The installer's own comments had the
+.NET runtime's order backwards, and they are corrected too: Inno runs a `[Run]`
+entry that is not `postinstall` before `ssPostInstall`. So the runtime is
+installed from `section_run.iss`, and `InstallDotNetRuntime` at `ssPostInstall`
+is the second attempt.
 
 How long each job takes
 -----------------------

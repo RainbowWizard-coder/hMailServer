@@ -392,6 +392,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-environment-names.py` | Every `HM_SETTING_` and `HM_PROPERTY_` name in the container files and documents is a real setting | |
 | `check-help-map.py` | Every page of the three surfaces has help, and every help entry names a real document and heading | `--self-test` |
 | `check-ini-coverage.py` | Every `[Settings]` key the server reads has a Control Panel editor or a recorded reason for having none, no new `[Settings]` key appears (see [a new setting](#a-new-setting-goes-in-the-database)), and no section beyond the three it records is read around `IniFileSettings` | **Rewrites** `build/ini-settings-baseline.txt` and `IniSettingsBaseline.h` with `--write-baseline`, for a key legitimately removed |
+| `check-installer-scripts.py` | The Windows installer runs each uninstall step once, waits for the server's process before it replaces or deletes a file, marks every file that process loads `uninsrestartdelete`, and starts the service for an upgrade's database step with the argument the server reads; `hMailServer.exe /Unregister` creates nothing and removes the event source | Proves its own negative controls on every run |
 | `check-localisation.py` | The Control Panel's catalogues agree with the translation marks, and the 17 complete languages are complete | **Rewrites** `Strings.resx` and every catalogue with `--write`; `--inventory` lists what is untranslated |
 | `check-mnemonics.py` | Every static Control Panel caption has an Alt-key mnemonic, with no clash on one screen | `--list` |
 | `check-openapi-blocks.py` | Exactly one comma between the OpenAPI path blocks | |
@@ -454,6 +455,7 @@ something which already exists.
 | The Control Panel | Its build and tests, `check-mnemonics.py`, `check-localisation.py`, `check-catalogues.py`, `check-ini-coverage.py`, `check-help-map.py`, `generate-settings-index.ps1`, `dotnet format` |
 | The Control Deck | `check-deck-script.py`, `check-deck-languages.py`, `check-help-map.py`, `check-deck-parity.py` |
 | The webmail | `generate-portal-page.py --check`, `check-portal-script.py`, `check-portal-languages.py`, `check-help-map.py`; the S/MIME and OpenPGP pairs if those modules changed |
+| The Windows installer | `check-installer-scripts.py`; then an installer build and the installer smoke test ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#the-installer-smoke-test)) |
 | `hmailserver/docs/` | `generate-help-pages.py --check`, `check-help-map.py`, `check-environment-names.py` |
 | A setting | `check-ini-coverage.py`, `check-settings-rows.py`, `generate-settings-defaults.py --check`, `check-setting-levels.py`, `check-environment-names.py`, `check-test-settings-writes.py` |
 | `Roadmap2.md` or `Roadmap.md` | `check-roadmap2.py`, `check-roadmap.ps1` |

@@ -1,13 +1,23 @@
 [Files]
+; uninsrestartdelete marks every file the server's process loads: hMailServer.exe,
+; the C++ runtime, OpenSSL and libpq here, and the MySQL client and its plugins in
+; section_files_common.iss. The uninstaller stops the service and waits for the
+; process to exit before it deletes anything (CurUninstallStepChanged in
+; hMailServerInnoExtension.iss), so normally none of them is in use by then; if the
+; process has not exited when the bounded wait ends, a file still in use is queued
+; for deletion at the next restart and the uninstaller asks for one, instead of
+; being left in Bin without a word - which is what happened to all seven of these
+; files on 25 September 2026, when net stop alone was the wait.
+;
 ; Main server
-Source: "..\source\server\hMailServer\x64\Release\hMailServer.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion; Components: server admintools;
+Source: "..\source\server\hMailServer\x64\Release\hMailServer.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;
 Source: "..\source\server\hMailServer\x64\Release\hMailServer.tlb"; DestDir: "{app}\Bin"; Flags: ignoreversion; Components: server admintools;
 Source: "..\source\server\hMailServer\x64\Release\hMailServer.Minidump.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion; Components: server;
 Source: "..\source\server\hMailServer\x64\Release\hMailServer.Updater.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion; Components: server;
 ; Visual C++ runtime matching the build toolset (v145). Shipping an older
 ; app-local msvcp140 than the toolset the binaries were built with crashes
 ; the service on startup (e.g. constexpr std::mutex changes).
-Source: "Microsoft.VC145.CRT\*"; DestDir: "{app}\Bin"; Flags: ignoreversion; Components: server admintools;
+Source: "Microsoft.VC145.CRT\*"; DestDir: "{app}\Bin"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;
 
 ; Web administration SPA (served by the REST API listener at GET /), and its
 ; catalogues - one JSON file per language, which the listener serves at
@@ -19,8 +29,9 @@ Source: "WebAdmin\languages\*.json"; DestDir: "{app}\WebAdmin\languages"; Flags:
 Source: "..\source\Tools\ControlPanel\publish\*"; DestDir: "{app}\ControlPanel"; Flags: ignoreversion recursesubdirs; Components: controlpanel;
 ; .NET {#DOTNET_MAJOR} Desktop Runtime, installed silently when missing. The server
 ; component needs it too: DBSetup/DBSetupQuick/DBUpdater are .NET {#DOTNET_MAJOR}
-; apps that run during installation (from [Code], before [Run] executes - see
-; InstallDotNetRuntime in hMailServerInnoExtension.iss).
+; apps that run during installation, from [Code] at ssPostInstall. The [Run] entry
+; in section_run.iss installs it first - Inno runs it before ssPostInstall - and
+; InstallDotNetRuntime in hMailServerInnoExtension.iss tries again when that failed.
 ; (file is downloaded by build\get-dotnet-runtime.ps1; not in the repository)
 ; The filename comes from DOTNET_RUNTIME_FILE in hMailServer64.iss so that this
 ; entry, the [Run] entry and the installed-version probe cannot name different
@@ -48,8 +59,8 @@ Source: "..\source\Tools\DataDirectorySynchronizer\publish\*"; DestDir: "{app}\A
 Source: "..\source\Tools\ImportTool\publish\*"; DestDir: "{app}\Addons\ImportTool"; Flags: ignoreversion recursesubdirs; Components: server;
 
 ; OpenSSL
-Source: "{#OPENSSL_LIBS_PATH}\libcrypto-4-x64.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion; Components: server admintools;
-Source: "{#OPENSSL_LIBS_PATH}\libssl-4-x64.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion; Components: server admintools;
+Source: "{#OPENSSL_LIBS_PATH}\libcrypto-4-x64.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;
+Source: "{#OPENSSL_LIBS_PATH}\libssl-4-x64.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;
 
 ; PQSQL (PostgreSQL client)
-Source: "{#POSTGRESQL_LIBPQ_PATH}\*.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion; Components: server admintools;
+Source: "{#POSTGRESQL_LIBPQ_PATH}\*.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;

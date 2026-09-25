@@ -37,6 +37,21 @@ type
     	dwCheckPoint				: cardinal;
     	dwWaitHint					: cardinal;
 	end;
+	// What QueryServiceStatusEx answers for SC_STATUS_PROCESS_INFO: SERVICE_STATUS
+	// with the id of the service's process and its flags after it, nine DWORDs,
+	// 36 bytes. The process id is how the stop below waits for the process itself
+	// rather than for the service's word that it has stopped.
+	SERVICE_STATUS_PROCESS = record
+		dwServiceType				: cardinal;
+		dwCurrentState				: cardinal;
+		dwControlsAccepted			: cardinal;
+		dwWin32ExitCode				: cardinal;
+		dwServiceSpecificExitCode	: cardinal;
+		dwCheckPoint				: cardinal;
+		dwWaitHint					: cardinal;
+		dwProcessId					: cardinal;
+		dwServiceFlags				: cardinal;
+	end;
 	HANDLE = cardinal;
 	
 const
@@ -68,6 +83,20 @@ const
 	SERVICE_CONTINUE_PENDING    = $5;
 	SERVICE_PAUSE_PENDING       = $6;
 	SERVICE_PAUSED              = $7;
+
+	// For the wait on the service's process (StopHMailServerAndWaitForExit). The
+	// Windows names are SC_STATUS_PROCESS_INFO, SYNCHRONIZE and WAIT_OBJECT_0; these
+	// are named apart from them on purpose, because a constant Inno predefines
+	// cannot be declared again - a duplicate identifier fails the compile, as
+	// FILE_ATTRIBUTE_DIRECTORY did on 15 August 2026 (see below).
+	SERVICE_STATUS_PROCESS_INFO = 0;
+	SERVICE_STATUS_PROCESS_SIZE = 36;
+	PROCESS_WAIT_ACCESS         = $00100000;
+	PROCESS_WAIT_SIGNALLED      = 0;
+	// How long the process may take to exit once the service has said it stopped.
+	// About 1.1 seconds was measured on 25 September 2026; the bound is for the
+	// process that does not go at all.
+	PROCESS_EXIT_BUDGET_MS      = 30000;
 
   // Every dialog in this script is a SuppressibleMsgBox, and the reason is the
 // 6.2.19 release: the database setup failed on a clean machine, the failure
@@ -113,6 +142,21 @@ external 'OpenSCManagerA@advapi32.dll stdcall';
 
 function QueryServiceStatus(hService :HANDLE;var ServiceStatus :SERVICE_STATUS) : boolean;
 external 'QueryServiceStatus@advapi32.dll stdcall';
+
+// The service's process, opened and waited on (StopHMailServerAndWaitForExit).
+// Named apart from the Windows functions for the reason the constants above are;
+// BOOL parameters are passed as cardinal, which is their width.
+function QueryServiceStatusProcess(hService: HANDLE; InfoLevel: cardinal; var Buffer: SERVICE_STATUS_PROCESS; cbBufSize: cardinal; var pcbBytesNeeded: cardinal): boolean;
+external 'QueryServiceStatusEx@advapi32.dll stdcall';
+
+function OpenProcessForWait(dwDesiredAccess: cardinal; bInheritHandle: cardinal; dwProcessId: cardinal): HANDLE;
+external 'OpenProcess@kernel32.dll stdcall';
+
+function WaitForProcessExit(hHandle: HANDLE; dwMilliseconds: cardinal): cardinal;
+external 'WaitForSingleObject@kernel32.dll stdcall';
+
+function CloseProcessForWait(hObject: HANDLE): boolean;
+external 'CloseHandle@kernel32.dll stdcall';
 
 // Ports 25, 110 and 143 in use by something other than hMailServer. A bind test
 // over WinSock, which is what the ISC.DLL this replaced did: a 45 KB unsigned DLL
@@ -318,50 +362,91 @@ begin
   Result := Length(g_szAdminPassword) > 0;
 end;
 
-// Stops the hMailServer service and waits, with a bound, for it to reach STOPPED.
-// Returns False when it is still running - the caller must not let the
-// installation proceed in that case.
-//
-// This replaces "while not IsServiceStopped do Sleep(250)" with no limit, which
-// had two failure modes, and the second one is the reason this returns a value:
-//
-//   * A service stuck in STOP_PENDING - or a StopService() that failed outright,
-//     which the old code did not look at either - froze the wizard forever with no
-//     message, no progress and a dead Cancel button.
-//   * If the service is still running when the file copy starts, Inno cannot
-//     replace Bin\hMailServer.exe and offers Retry/Ignore. Choosing Ignore leaves
-//     the OLD server binary in place while DBSetupQuick/DBUpdater take the schema
-//     to the new version, and Application::OnDatabaseConnected then refuses to
-//     start the server at all ("The database is too new for this version of
-//     hMailServer"). Refusing to move past the Ready page is the only point at
-//     which that outcome can still be prevented.
-//
-// The budget is derived from ShutdownDrainSeconds rather than guessed: that
-// setting deliberately holds the stop open while sessions finish, so a fixed
-// timeout would have been wrong on exactly the installations that use it.
-function StopHMailServerService() : Boolean;
+// The time the hMailServer service is given to stop, derived from
+// ShutdownDrainSeconds rather than guessed: that setting deliberately holds the
+// stop open while sessions finish, so a fixed timeout would have been wrong on
+// exactly the installations that use it. 30 seconds of headroom on top of the
+// configured drain period.
+function GetServiceStopBudgetMs() : Integer;
 var
    szIniFile   : AnsiString;
    drainSeconds: Integer;
-   waitedMs    : Integer;
-   budgetMs    : Integer;
 begin
-   Result := true;
-
-   if (IsServiceRunning('hMailServer') = false) then
-      Exit;
-
-   StopService('hMailServer');
-
    drainSeconds := 0;
    szIniFile := GetInifile();
    if (Length(szIniFile) > 0) then
       drainSeconds := GetIniInt('Settings', 'ShutdownDrainSeconds', 0, 0, 3600, szIniFile);
 
-   // 30 seconds of headroom on top of the configured drain period.
-   budgetMs := (drainSeconds + 30) * 1000;
-   waitedMs := 0;
+   Result := (drainSeconds + 30) * 1000;
+end;
 
+// The id of the process the hMailServer service runs in, while it has one: 0 once
+// the service has stopped, and when it is not installed or cannot be asked.
+function GetHMailServerProcessId() : cardinal;
+var
+	hSCM	: HANDLE;
+	hService: HANDLE;
+	Status	: SERVICE_STATUS_PROCESS;
+	needed	: cardinal;
+begin
+	Result := 0;
+	hSCM := OpenServiceManager();
+	if hSCM <> 0 then begin
+		hService := OpenService(hSCM,'hMailServer',SERVICE_QUERY_STATUS);
+		if hService <> 0 then begin
+			if QueryServiceStatusProcess(hService, SERVICE_STATUS_PROCESS_INFO, Status, SERVICE_STATUS_PROCESS_SIZE, needed) then
+				Result := Status.dwProcessId;
+			CloseServiceHandle(hService)
+		end;
+		CloseServiceHandle(hSCM)
+	end
+end;
+
+// Stops the hMailServer service and waits, with bounds, until its PROCESS has
+// exited - not only until the service says it has stopped. Returns False when the
+// service did not stop within budgetMs, or its process did not exit within
+// PROCESS_EXIT_BUDGET_MS after that; True when both happened, and when there is no
+// service to stop. Called before the program files are replaced (StopHMailServerService,
+// at wpReady) and before they are deleted (CurUninstallStepChanged, at usUninstall).
+//
+// The service reports STOPPED from TerminateServer (hMailServer.cpp) once the
+// servers are down and the database is closed, and the process then takes about
+// 1.1 seconds more to unload and exit: four stops measured 1,091 to 1,128 ms on
+// 25 September 2026, while net stop itself returned in 63 to 114 ms. Every file
+// the process has loaded - hMailServer.exe, the C++ runtime, OpenSSL, libpq - is in
+// use until it has gone, so whatever deletes or replaces them on the strength of
+// STOPPED alone runs that race. The uninstall lost it and left seven files in Bin.
+// The upgrade ran the same race here, and won it only because Restart Manager's
+// scan happened to take 2.5 seconds between the stop and the first file.
+//
+// The process is opened before the stop is asked for: once the service has
+// stopped, the service controller no longer names it, and an id looked up after
+// that could already belong to another process. When a service that was not
+// stopped has no process this can open - the id could not be read, or the process
+// refused the handle - three seconds, about three times the lag measured, stand
+// in for the wait, and the log says so.
+function StopHMailServerAndWaitForExit(budgetMs: Integer) : Boolean;
+var
+   processId  : cardinal;
+   hProcess   : HANDLE;
+   waitedMs   : Integer;
+   wasStopped : Boolean;
+begin
+   Result := true;
+
+   if (IsServiceInstalled('hMailServer') = false) then
+      Exit;
+
+   hProcess := 0;
+   processId := GetHMailServerProcessId();
+   if (processId <> 0) then
+      hProcess := OpenProcessForWait(PROCESS_WAIT_ACCESS, 0, processId);
+
+   wasStopped := IsServiceStopped('hMailServer');
+   if (wasStopped = false) then
+      StopService('hMailServer');
+
+   waitedMs := 0;
    while (IsServiceStopped('hMailServer') = false) and (waitedMs < budgetMs) do
    begin
       Sleep(250);
@@ -370,10 +455,65 @@ begin
 
    if (IsServiceStopped('hMailServer') = false) then
    begin
-      SuppressibleMsgBox('The hMailServer service did not stop within ' + IntToStr(budgetMs div 1000) + ' seconds.' + #13#10#13#10 +
-             'Setup cannot continue: replacing the program files while the service is running would leave the old ' +
+      Log('The hMailServer service did not stop within ' + IntToStr(budgetMs div 1000) + ' seconds.');
+      Result := false;
+   end
+   else if (hProcess <> 0) then
+   begin
+      if (WaitForProcessExit(hProcess, PROCESS_EXIT_BUDGET_MS) <> PROCESS_WAIT_SIGNALLED) then
+      begin
+         Log('The hMailServer service stopped, but its process did not exit within ' + IntToStr(PROCESS_EXIT_BUDGET_MS div 1000) + ' seconds.');
+         Result := false;
+      end
+      else
+         Log('The hMailServer service has stopped and its process has exited.');
+   end
+   else if (wasStopped = false) then
+   begin
+      Log('The hMailServer service has stopped. Its process could not be found or opened to wait for, so three seconds stand in for the wait.');
+      Sleep(3000);
+   end;
+
+   if (hProcess <> 0) then
+      CloseProcessForWait(hProcess);
+end;
+
+// Stops the hMailServer service before any program file is replaced, and waits,
+// with bounds, until its process has exited (StopHMailServerAndWaitForExit).
+// Returns False when it has not - the caller must not let the installation
+// proceed in that case.
+//
+// This replaces "while not IsServiceStopped do Sleep(250)" with no limit, which
+// had two failure modes, and the second one is the reason this returns a value:
+//
+//   * A service stuck in STOP_PENDING - or a StopService() that failed outright,
+//     which the old code did not look at either - froze the wizard forever with no
+//     message, no progress and a dead Cancel button.
+//   * If the service is still running when the file copy starts - or its process
+//     is still exiting, which the service's STOPPED does not rule out - Inno cannot
+//     replace Bin\hMailServer.exe and offers Retry/Ignore. Choosing Ignore leaves
+//     the OLD server binary in place while DBSetupQuick/DBUpdater take the schema
+//     to the new version, and Application::OnDatabaseConnected then refuses to
+//     start the server at all ("The database is too new for this version of
+//     hMailServer"). Refusing to move past the Ready page is the only point at
+//     which that outcome can still be prevented.
+function StopHMailServerService() : Boolean;
+var
+   budgetMs: Integer;
+begin
+   Result := true;
+
+   if (IsServiceInstalled('hMailServer') = false) then
+      Exit;
+
+   budgetMs := GetServiceStopBudgetMs();
+
+   if (StopHMailServerAndWaitForExit(budgetMs) = false) then
+   begin
+      SuppressibleMsgBox('The hMailServer service did not stop, or its process did not exit, within ' + IntToStr((budgetMs + PROCESS_EXIT_BUDGET_MS) div 1000) + ' seconds.' + #13#10#13#10 +
+             'Setup cannot continue: replacing the program files while the server is running would leave the old ' +
              'server binary installed alongside an upgraded database, and hMailServer would then refuse to start at all.' + #13#10#13#10 +
-             'Stop the hMailServer service manually (services.msc), then run this installation again.', mbError, MB_OK, IDOK);
+             'Stop the hMailServer service manually (services.msc), make sure no hMailServer.exe process is left in Task Manager, then run this installation again.', mbError, MB_OK, IDOK);
       Result := false;
    end;
 end;
@@ -420,10 +560,10 @@ end;
 //     through something that read it as an octal escape. A glob containing a
 //     control character matches nothing, so DotNetDesktopMissing() returned True
 //     unconditionally: the bundled runtime installer ran on every install, twice
-//     (once here at ssPostInstall and again from [Run], whose Check never went
-//     false), and on a machine that already had a newer 10.x the bundle's 1638
-//     exit code produced a bogus "installation failed" error at the end of an
-//     otherwise successful install.
+//     (once from [Run], whose Check never went false, and again at ssPostInstall
+//     from InstallDotNetRuntime), and on a machine that already had a newer 10.x
+//     the bundle's 1638 exit code produced a bogus "installation failed" error at
+//     the end of an otherwise successful install.
 //
 // Matching on the major version only is deliberate rather than lax: a
 // framework-dependent .NET app rolls forward across minor and patch versions but
@@ -450,9 +590,19 @@ end;
 
 // Installs the bundled .NET {#DOTNET_MAJOR} Desktop Runtime when it is missing.
 // Called from RunPostInstallTasks before the database tools are executed - they
-// are .NET {#DOTNET_MAJOR} apps and run from [Code] at ssPostInstall, which is
-// earlier than the [Run] section where the runtime is otherwise installed for the
-// Control Panel component.
+// are .NET {#DOTNET_MAJOR} apps and run from [Code] at ssPostInstall.
+//
+// This is the second attempt, not the first, whatever this comment used to say.
+// Inno processes a [Run] entry without the postinstall flag BEFORE ssPostInstall
+// ("Installation process succeeded", then the [Run] entries, then ssPostInstall:
+// the smoke test's install log of 25 September 2026 shows the runtime's [Run]
+// entry finishing, eleven seconds on, before the database step began). So it is
+// normally installed by section_run.iss's entry, and DotNetDesktopMissing() finds
+// it here and returns at once. That order is the safe one and is kept: the
+// runtime is in place before the database tools run either way, and when the
+// [Run] entry's install failed, this tries again and says so, which the [Run]
+// entry does not. Making the [Run] entry postinstall instead would turn it into a
+// checkbox on the last page of an interactive install.
 procedure InstallDotNetRuntime();
 	var
 		ResultCode: Integer;
@@ -557,25 +707,19 @@ var
    szProfile: String;
    szWhy: String;
    ResultCode: Integer;
-   waitedMs: Integer;
 begin
    szProfile := GetChosenProfile();
    if szProfile = '' then
       Exit;
 
+   // Stopped, and its process waited for, as the uninstall and the upgrade do:
+   // the verb below opens the database the service's process had open, and the
+   // service reports STOPPED about a second before that process has gone.
    if (IsServiceRunning('hMailServer') = true) then
    begin
-      StopService('hMailServer');
-      waitedMs := 0;
-      while (IsServiceStopped('hMailServer') = false) and (waitedMs < 90000) do
+      if (StopHMailServerAndWaitForExit(90000) = false) then
       begin
-         Sleep(250);
-         waitedMs := waitedMs + 250;
-      end;
-
-      if (IsServiceStopped('hMailServer') = false) then
-      begin
-         SayProfileNotApplied(szProfile, 'the hMailServer service, which the database step started, did not stop within 90 seconds, and a profile is not applied under a running server.');
+         SayProfileNotApplied(szProfile, 'the hMailServer service, which the database step started, did not stop, or its process did not exit, within ' + IntToStr((90000 + PROCESS_EXIT_BUDGET_MS) div 1000) + ' seconds, and a profile is not applied under a running server.');
          Exit;
       end;
    end;
@@ -985,6 +1129,35 @@ begin
 	ConfigureServiceRecovery();
 end;
 
+// Starts the hMailServer service for the database step of an upgrade, with the one
+// argument that says so: "sc start hMailServer --for-database-upgrade". The service
+// reads it in ServiceMain (hMailServer.cpp), and when that start finds the database
+// older than the new binary - the normal state of an upgrade across a schema step,
+// until DBUpdater has moved it - it refuses the start as before, and DBUpdater reads
+// the refusal from Connect() as it always has, but HM5011 is not reported. The
+// line this writes to the setup log is the record of that start.
+//
+// Until 25 September 2026 the service was started here by DBSetupQuick's COM
+// activation, as any start: every silent upgrade across a schema step wrote HM5011
+// to the Application event log as a Critical event 2010, which also registered the
+// event source that nothing removed. The installer smoke test found both. The COM
+// activation that follows now finds the service running and waits for it, as it
+// did whenever the service was already up. A start refused here changes nothing
+// else: DBSetupQuick's activation then starts the service as it always did, and
+// the refusal is reported as before - the log says why.
+procedure StartServiceForDatabaseUpgrade();
+	var
+		ResultCode: Integer;
+begin
+	if (Exec(ExpandConstant('{sys}\sc.exe'), 'start hMailServer --for-database-upgrade',
+	         '', SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
+		Log('Could not run sc.exe to start the hMailServer service for the database upgrade: ' + SysErrorMessage(ResultCode))
+	else if (ResultCode <> 0) then
+		Log('sc.exe start returned ' + IntToStr(ResultCode) + '; the database step starts the hMailServer service itself, and an old database is reported as HM5011.')
+	else
+		Log('Started the hMailServer service for the database upgrade (--for-database-upgrade).');
+end;
+
 
 function DeleteOldFiles() : Boolean;
 begin
@@ -1079,8 +1252,9 @@ begin
          ProgressPage.SetProgress(1,6);
 
          // The database tools below are .NET {#DOTNET_MAJOR} apps; make sure the
-         // runtime is in place before they are executed. ([Run] would install it
-         // too, but that section runs after this code.)
+         // runtime is in place before they are executed. section_run.iss's [Run]
+         // entry has normally installed it already - Inno runs it before
+         // ssPostInstall - and this is the second attempt when it did not.
          InstallDotNetRuntime();
 
          ProgressPage.SetText('Initializing database backend...', '');
@@ -1131,6 +1305,13 @@ begin
          // install (the service would run against a missing or outdated schema).
          else if ((GetCurrentDatabaseType() <> '') or g_bUseInternal) then
          begin
+            // An existing database - an upgrade, or a repair over one - meets the
+            // new binary here, before DBUpdater has moved it: the service is
+            // started with the argument that says so (StartServiceForDatabaseUpgrade).
+            // A new installation has no database for the service to find yet.
+            if (IsNewDatabase() = false) and (bServiceRegistered = true) then
+               StartServiceForDatabaseUpgrade();
+
             if (Exec(ExpandConstant('{app}\Bin\DBSetupQuick.exe'), szParameters, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) = False) then
             begin
                SuppressibleMsgBox(SysErrorMessage(ResultCode), mbError, MB_OK, IDOK);
@@ -1423,6 +1604,37 @@ begin
 
 	end;
 
+end;
+
+// The uninstaller's own step before [UninstallRun] and before any file is deleted:
+// Inno reaches usUninstall first. The service is stopped here and its process
+// waited for (StopHMailServerAndWaitForExit), so that the [UninstallRun] entries
+// and the file deletions after them meet a server that has gone, rather than one
+// that has only said it is going: net stop alone left hMailServer.exe and six DLLs
+// in Bin (section_uninstallrun.iss says how).
+//
+// When the process does not exit within the bounds, the uninstall carries on: the
+// files the server loads are marked uninsrestartdelete (section_files_64.iss and
+// section_files_common.iss), so Inno queues any it cannot delete for deletion when
+// Windows next starts and asks for that restart itself, and this says why first -
+// nothing is left behind without a word. Under /SUPPRESSMSGBOXES the note goes to
+// the log only.
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+   budgetMs: Integer;
+begin
+   if CurUninstallStep = usUninstall then
+   begin
+      budgetMs := GetServiceStopBudgetMs();
+
+      if (StopHMailServerAndWaitForExit(budgetMs) = false) then
+      begin
+         Log('The hMailServer service or its process was still running when the files were to be removed; any file it still holds is queued for deletion when Windows next restarts (uninsrestartdelete).');
+         SuppressibleMsgBox('The hMailServer service did not stop, or its process did not exit, within ' + IntToStr((budgetMs + PROCESS_EXIT_BUDGET_MS) div 1000) + ' seconds.' + #13#10#13#10 +
+                'The uninstallation continues. A program file the server still holds open when its turn comes is queued ' +
+                'for deletion when Windows next restarts, and the uninstaller asks whether to restart at the end.', mbInformation, MB_OK, IDOK);
+      end;
+   end;
 end;
 
 

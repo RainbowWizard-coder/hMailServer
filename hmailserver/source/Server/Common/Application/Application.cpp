@@ -156,6 +156,12 @@ namespace HM
    {
       initialized_ = false;
 
+      // The installer's start for the database step of an upgrade is this start
+      // only (SetStartedForDatabaseUpgrade): spent here, whether or not the
+      // database is reached, so that no later one inherits it.
+      const bool databaseUpgradeExpected = started_for_database_upgrade_;
+      started_for_database_upgrade_ = false;
+
       VirusScanner::ResetCounter();
 
       OutOfMemoryHandler::Initialize();
@@ -194,7 +200,7 @@ namespace HM
          return false;
       }
       
-      if (!OnDatabaseConnected(sErrorMessage))
+      if (!OnDatabaseConnected(sErrorMessage, databaseUpgradeExpected))
       {
          return false;
       }
@@ -296,7 +302,7 @@ namespace HM
 
 
    bool
-   Application::OnDatabaseConnected(String &sErrorMessage)
+   Application::OnDatabaseConnected(String &sErrorMessage, bool databaseUpgradeExpected)
    {
       LOG_DEBUG("Application::OnDatabaseConnected()");
 
@@ -356,6 +362,25 @@ namespace HM
          sErrorMessage += sVersionInfo;
          
          last_connect_error_message_ = sErrorMessage;
+
+         // Expected, not an error, on the start the installer makes for the
+         // database step of an upgrade (SetStartedForDatabaseUpgrade): the new
+         // binary is in place and DBUpdater is about to move the schema through
+         // this process's hMailServer.Database. Until 25 September 2026 that
+         // start was DBSetupQuick's COM activation, and every silent upgrade
+         // across a schema step wrote this refusal to the error log and to the
+         // Application event log, as a Critical event 2010 that also registered
+         // the event source. The refusal stands: nothing is loaded, and the
+         // message above is what Connect() answers, which DBUpdater reads and
+         // expects. It is not reported, and not logged either - the log mask is
+         // not loaded until Configuration::Load, which a refused start never
+         // reaches - so the record of this start is the installer's log, which
+         // says it made it. A start made any other way - the service controller
+         // at boot, net start, services.msc, a COM activation - still reports
+         // it, and so does a database newer than the binary, which no upgrade
+         // puts right.
+         if (databaseUpgradeExpected && iDBVersion < Configuration::Instance()->GetRequiredDBVersion())
+            return false;
 
          ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5011, "Application::OnDatabaseConnected", sErrorMessage);
 

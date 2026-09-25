@@ -401,7 +401,10 @@ namespace RegressionTests.Installation
             "The uninstaller runs hMailServer.exe /Unregister before stopping the service. DeleteService on " +
             "a running service only marks it for deletion and leaves the process running, so the uninstaller " +
             "then starts deleting a directory whose files the server still has open, and COM is unregistered " +
-            "from under a live server. net.exe stop is synchronous - stopping first is what makes the rest safe.");
+            "from under a live server. Stopping first is what makes the rest safe - with the wait for the process " +
+            "that CurUninstallStepChanged does before these entries run, because net stop returns when the service " +
+            "reports STOPPED and the process lives about a second longer. build/check-installer-scripts.py holds " +
+            "that wait, and a RunOnceId on every entry.");
 
          var unguarded = entries
             .Where(line => line.IndexOf("{app}", StringComparison.OrdinalIgnoreCase) >= 0 &&

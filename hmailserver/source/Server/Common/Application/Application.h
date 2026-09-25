@@ -63,6 +63,15 @@ namespace HM
       // refused rather than made.
       bool IsInitialized() const { return initialized_; }
 
+      // The start the installer makes for the database step of an upgrade
+      // (ServiceMain, --for-database-upgrade): the database is expected to be
+      // older than this build, because DBUpdater is about to move it through
+      // this process. The next InitInstance spends it, whatever it finds, and
+      // when its OnDatabaseConnected finds the database older it refuses the
+      // start as before without reporting HM5011. Once, so a reinitialise or
+      // any later start reports the refusal again.
+      void SetStartedForDatabaseUpgrade() { started_for_database_upgrade_ = true; }
+
       bool StartServers();
       void StopServers();
       void SubmitPendingEmail();
@@ -135,7 +144,9 @@ namespace HM
 
       void OnPropertyChanged(std::shared_ptr<Property> pProperty);
 
-      bool OnDatabaseConnected(String &sErrorMessage);
+      // databaseUpgradeExpected: the start is the one SetStartedForDatabaseUpgrade
+      // marked, and a database older than this build is refused, not reported.
+      bool OnDatabaseConnected(String &sErrorMessage, bool databaseUpgradeExpected = false);
 
       boost::signals2::signal<void()> OnServerStopped;
 
@@ -197,6 +208,11 @@ namespace HM
       
       String last_connect_error_message_;
       bool initialized_;
+
+      // SetStartedForDatabaseUpgrade. Set before the first InitInstance, on the
+      // thread that makes it, and spent by that InitInstance whether or not it
+      // reaches the database; no other thread reaches it before then.
+      bool started_for_database_upgrade_ = false;
 
       std::shared_ptr<DatabaseConnectionManager> db_manager_;
    

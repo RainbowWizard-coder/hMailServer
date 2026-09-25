@@ -894,6 +894,29 @@ function Test-SmokeDataKept([string] $Phase) {
 
 # ------------------------------------------------------------------ the uninstall
 
+# The server registers the Application log's event source the first time it writes an
+# event (WindowsEventLog::EnsureSourceRegistered_), and hMailServer.exe /Unregister,
+# which the uninstaller runs, removes it. A run in which the server wrote no event -
+# the normal case since the upgrade stopped reporting HM5011 on 25 September 2026 -
+# would leave that removal unchecked, so a missing source is registered here the way
+# the server registers it: the .NET Framework's EventLogMessages.dll as the message
+# file and the three event types.
+function Register-EventSourceIfMissing {
+   $path = "SYSTEM\CurrentControlSet\Services\EventLog\Application\$ServiceName"
+   if (Test-RegistryKey 'Registry64' $path) { return 'the server registered it during the run' }
+   $base = Open-LocalMachine 'Registry64'
+   try {
+      $key = $base.CreateSubKey($path)
+      try {
+         $key.SetValue('EventMessageFile', '%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\EventLogMessages.dll', [Microsoft.Win32.RegistryValueKind]::ExpandString)
+         $key.SetValue('TypesSupported', 7, [Microsoft.Win32.RegistryValueKind]::DWord)
+      }
+      finally { $key.Close() }
+   }
+   finally { $base.Close() }
+   return 'the server wrote no event during the run, so the test registered the source as the server does, for the uninstall to remove'
+}
+
 function Invoke-Uninstall {
    $entry = Get-UninstallEntry
    if ($null -eq $entry -or -not $entry.UninstallString) { throw 'there is no uninstall entry to run' }
@@ -1033,7 +1056,7 @@ function Test-Uninstalled {
          $path = "SYSTEM\CurrentControlSet\Services\EventLog\Application\$ServiceName"
          if (Test-RegistryKey 'Registry64' $path) {
             $file = [string] (Get-RegistryValue 'Registry64' $path 'EventMessageFile')
-            throw "HKLM\$path is still there (EventMessageFile '$file'): the server registers it the first time it writes to the Application log, and the uninstaller does not remove it"
+            throw "HKLM\$path is still there (EventMessageFile '$file'): the server registers it the first time it writes to the Application log, and hMailServer.exe /Unregister, which the uninstaller runs, did not remove it"
          }
          'no Application log source hMailServer'
       })
@@ -1173,6 +1196,8 @@ else {
 if ($null -ne (Get-UninstallEntry)) {
    Write-Section 'Uninstall'
    Copy-ServerLogs $State.App 'before-uninstall'
+   try { Write-Info 'uninstall: the hMailServer event log source before the uninstall' (Register-EventSourceIfMissing) }
+   catch { Write-Info 'uninstall: the hMailServer event log source before the uninstall' "could not be registered by the test: $($_.Exception.Message)" }
    [GC]::Collect()
    [GC]::WaitForPendingFinalizers()
    [void] (Test-Step 'uninstall: the uninstaller ran silently and returned 0' { Invoke-Uninstall })

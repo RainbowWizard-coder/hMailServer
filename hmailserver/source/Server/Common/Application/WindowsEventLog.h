@@ -116,6 +116,9 @@ namespace HM
    // entire text as ONE insertion string. If registration is not possible (no
    // rights, no DLL), events are still written and carry the same text; only the
    // rendering degrades. An existing EventMessageFile value is never overwritten.
+   // hMailServer.exe /Unregister, which the uninstaller runs, removes the key
+   // again (UnregisterSource): the registration is this class's, from its first
+   // event to the uninstall.
    class WindowsEventLog : public Singleton<WindowsEventLog>
    {
    public:
@@ -150,6 +153,12 @@ namespace HM
       // in the middle of producing), and must not call ErrorManager or Logger's
       // error path (this is called FROM there; the loop would be immediate).
       void OnError(int severity, int hmErrorId, const String &source, const String &description);
+
+      // Removes the event source's registration, the key the first event made
+      // (EnsureSourceRegistered_), under the Application log's key in
+      // HKLM\SYSTEM\CurrentControlSet\Services\EventLog. Called by hMailServer.exe
+      // /Unregister, last. Nothing on POSIX, where syslog has no registration.
+      static void UnregisterSource();
 
    private:
 
