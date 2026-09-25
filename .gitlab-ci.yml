@@ -95,10 +95,12 @@ variables:
 # The nightly fuzz pipeline is started by a pipeline schedule that sets
 # HM_PIPELINE=fuzz (docs/ContinuousIntegration.md, "The fuzz schedule"). It runs
 # linux-fuzz and no other job: every job on the shared runners takes these rules,
-# and .own-runners below begins with the same refusal.
+# and .own-runners below begins with the same refusal. The same refusal keeps the
+# checks out of every other scheduled pipeline too - the update feed's and
+# Renovate's - each of which runs only the job its own rules name.
 .not-a-fuzz-pipeline:
   rules:
-    - if: $HM_PIPELINE == "fuzz"
+    - if: $HM_PIPELINE == "fuzz" || $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - when: on_success
 
@@ -163,6 +165,9 @@ checkers:
                   help-map password-choice-sites role-choke-point; do
         check python3 "build/check-$name.py" --self-test
       done
+      # The update feed's generator, against canned answers: no network, one loopback
+      # socket, and the compiled feed addresses read out of UpdateChecker.cpp.
+      check python3 build/generate-update-feed.py --self-test
 
       # Generated source is what its generator writes now.
       check python3 build/add-license-headers.py --check
@@ -251,6 +256,41 @@ sign-off:
       fi
       echo "Every commit carries its author's sign-off."
 
+# ---------------------------------------------------------------- the update feed
+#
+# https://updates.progressiverobot.com, the release feed installed servers read
+# (docs/UpdateFeed.md): GitLab Pages from this project, a job named pages whose
+# public/ artifact GitLab deploys. build/generate-update-feed.py renders it from the
+# project's releases and package registry through the public API, with no token and
+# nothing from the commit but the script, so any run publishes what the releases say
+# at that moment. It runs for a push to the default branch, for a v* tag, and for a
+# pipeline schedule on the default branch, which is what picks up a release made or
+# edited after its tag's pipeline ran; a schedule's pipeline runs this job alone, the
+# checks and the own runners' jobs each skipping a pipeline whose source is a schedule
+# (docs/ContinuousIntegration.md, "The update feed", says how the schedule is made).
+# Never for a merge request: a fork's code must not publish the feed. On the shared
+# runners, like the checks.
+pages:
+  stage: release
+  image: python:3.13-slim-trixie
+  needs: []
+  timeout: 15 minutes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - if: $HM_PIPELINE == "fuzz"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
+  script:
+    - python3 build/generate-update-feed.py --self-test
+    - python3 build/generate-update-feed.py --output public
+    - python3 build/generate-update-feed.py --serve-check public
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - public
+
 # ---------------------------------------------------------------- the project's own runners
 #
 # linix (tags linux, docker, linix) and bench150 (tags windows, bench, bench150) are
@@ -259,8 +299,9 @@ sign-off:
 # for a protected ref, and out of every merge request pipeline whatever its source.
 .own-runners:
   rules:
-    # A fuzz pipeline (HM_PIPELINE=fuzz, from its schedule) runs linux-fuzz and nothing else.
-    - if: $HM_PIPELINE == "fuzz"
+    # A fuzz pipeline (HM_PIPELINE=fuzz, from its schedule) runs linux-fuzz and nothing else,
+    # and no other scheduled pipeline runs a job here either.
+    - if: $HM_PIPELINE == "fuzz" || $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"
 
@@ -459,7 +500,7 @@ chart-and-compose:
   image: alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
   timeout: 10 minutes
   rules:
-    - if: $HM_PIPELINE == "fuzz"
+    - if: $HM_PIPELINE == "fuzz" || $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - changes:
         - hmailserver/source/Server/platform/packaging/helm/**/*
@@ -505,7 +546,7 @@ update-helper:
   image: ubuntu:26.04@sha256:513c074113a871b51a8d16ab445c88779d6452d937a164fb5cc479f32668a41d
   timeout: 10 minutes
   rules:
-    - if: $HM_PIPELINE == "fuzz"
+    - if: $HM_PIPELINE == "fuzz" || $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - changes:
         - hmailserver/source/Server/platform/packaging/hmailserver-update
@@ -547,7 +588,7 @@ package-templates:
   image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:2fa828c68761b1b8c23d7662dc134421b9d3b59fe1425fdbc80804e390cdb24d
   timeout: 10 minutes
   rules:
-    - if: $HM_PIPELINE == "fuzz"
+    - if: $HM_PIPELINE == "fuzz" || $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - changes:
         - hmailserver/installation/winget/**/*
@@ -570,7 +611,7 @@ roadmap:
   image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:2fa828c68761b1b8c23d7662dc134421b9d3b59fe1425fdbc80804e390cdb24d
   timeout: 5 minutes
   rules:
-    - if: $HM_PIPELINE == "fuzz"
+    - if: $HM_PIPELINE == "fuzz" || $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - changes:
         - Roadmap.md

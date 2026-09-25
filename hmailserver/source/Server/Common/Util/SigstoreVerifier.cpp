@@ -7,6 +7,7 @@
 #include "JsonDocument.h"
 #include "FileUtilities.h"
 #include "Unicode.h"
+#include "UpdateChecker.h"
 #include "../Application/IniFileSettings.h"
 
 #include <openssl/bio.h>
@@ -70,17 +71,72 @@ namespace HM
          "kBbmLSGtks4L3qX6yYY0zufBnhC8Ur/iy55GhWP/9A/bY2LhC30M9+RYtw==\n"
          "-----END PUBLIC KEY-----\n";
 
-      // This repository's release workflow, as Fulcio names it in the certificate's
-      // subject alternative name (the ref after @ is the branch the workflow ran
-      // from), GitHub's token service as the issuer, and the repository itself.
-      const char *RELEASE_IDENTITY_PREFIX = "https://github.com/Progressiverobot/hmailserver/.github/workflows/sign-release.yml@";
+      // The signers a release is accepted from. Each is a pin: one repository, one
+      // workflow, one issuer, compared whole - never a pattern a stranger's
+      // repository or workflow could also satisfy.
+      //
+      // Every release up to 6.3.3: this repository's GitHub Actions workflow, as
+      // Fulcio names it in the certificate's subject alternative name (the ref
+      // after @ is the branch or tag the workflow ran from), GitHub's token service
+      // as the issuer, the repository, and the repository's numeric id, which
+      // GitHub never reuses. GitHub suspended the account on 18 September 2026 and
+      // nothing can be signed there by this project any more; the entry stays for
+      // the bundles already made, which are re-hosted on GitLab byte for byte and
+      // are what a rollback to one of those releases verifies. It is held to them:
+      // a certificate issued from the suspension on is refused, so that whoever
+      // might one day hold the name cannot sign as it. All 80 bundles on the
+      // re-hosted releases (6.2.19 to 6.3.3) carry the id 1267388815 and were
+      // issued by 2026-09-15T01:00:18Z. The cut-off is the certificate's notBefore,
+      // which Fulcio signs, and not the log's integratedTime, which a bundle with
+      // an inclusion proof alone carries unsigned; the time is inside the
+      // certificate's ten minutes in any case (step 4).
+      //
+      // And it is held to the releases it signed. The cut-off stops new
+      // certificates, not old files: 79 of the 80 bundles on the feed were made by
+      // a workflow run from a branch (refs/heads/master), so their identity names
+      // no release,
+      // and without this a feed that was tampered with could offer the genuine
+      // 6.2.19 installer as "6.3.9" to a server on 6.3.4 - every check would pass,
+      // and the server would install a release too old for its own database. No
+      // file this signer made is a release after 6.3.3, so none is installed as
+      // one; a server on 6.3.3 still rolls back to its own GitHub-signed release.
+      const char *GITHUB_IDENTITY_PREFIX = "https://github.com/Progressiverobot/hmailserver/.github/workflows/sign-release.yml@";
       const char *GITHUB_ISSUER = "https://token.actions.githubusercontent.com";
-      const char *REPOSITORY = "https://github.com/Progressiverobot/hmailserver";
+      const char *GITHUB_REPOSITORY = "https://github.com/Progressiverobot/hmailserver";
+      const char *GITHUB_REPOSITORY_ID = "1267388815";
+      const __int64 GITHUB_ISSUED_BEFORE = 1789689600;   // 2026-09-18T00:00:00Z
+      const char *GITHUB_LAST_VERSION = "6.3.3";
+
+      // Every release after 6.3.3 is to be signed by a job of this project's
+      // GitLab CI pipeline for a v* tag. None has been yet: this entry is compiled
+      // in from Fulcio's documented GitLab form, and the first signed release is
+      // what proves it (docs/UpdateFeed.md, "What the signing job must produce").
+      // Fulcio names a GitLab CI job by the ci_config_ref_uri claim of its ID token,
+      // "https://" + gitlab.com/<project path>//<CI file>@<ref>, records
+      // https://gitlab.com as the issuer, https://gitlab.com/<project path> as the
+      // source repository and the project's id as the source repository
+      // identifier. The prefix is anchored three ways: the double slash ends the
+      // project path, so no subgroup or project whose path merely begins with this
+      // one matches; the CI file is the project's own .gitlab-ci.yml; and the ref
+      // is a tag beginning with v, which only a maintainer can push (v* is a
+      // protected tag), so a branch, a merge request's ref or a fork's pipeline
+      // presents another identity and is refused. The project id, 86730559, holds
+      // it to this project and not to whichever takes the path after a rename or a
+      // transfer of the namespace. The id is checked when the certificate carries
+      // one: no GitLab-issued certificate has been seen here yet, and a server that
+      // refused every one for lacking an extension Fulcio turned out not to write
+      // could install nothing; the path, the issuer and the repository are
+      // required either way.
+      const char *GITLAB_IDENTITY_PREFIX = "https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v";
+      const char *GITLAB_ISSUER = "https://gitlab.com";
+      const char *GITLAB_REPOSITORY = "https://gitlab.com/Progressiverobot/hmailserver";
+      const char *GITLAB_REPOSITORY_ID = "86730559";
 
       // Fulcio's certificate extensions (github.com/sigstore/fulcio/blob/main/docs/oid-info.md).
       const char *OID_ISSUER_V1 = "1.3.6.1.4.1.57264.1.1";          // raw string
       const char *OID_ISSUER_V2 = "1.3.6.1.4.1.57264.1.8";          // DER UTF8String
       const char *OID_SOURCE_REPOSITORY_URI = "1.3.6.1.4.1.57264.1.12"; // DER UTF8String
+      const char *OID_SOURCE_REPOSITORY_IDENTIFIER = "1.3.6.1.4.1.57264.1.15"; // DER UTF8String
 
       struct X509Free { void operator()(X509 *x) const { X509_free(x); } };
       struct PkeyFree { void operator()(EVP_PKEY *k) const { EVP_PKEY_free(k); } };
@@ -412,6 +468,84 @@ namespace HM
          verdict.error = why;
          return false;
       }
+
+      SigstoreSigner MakeSigner_(const char *identityPrefix, const char *issuer, const char *repository, const char *repositoryId,
+                                 bool repositoryIdOptional, __int64 issuedBefore, const char *lastVersion)
+      {
+         SigstoreSigner signer;
+         signer.identity_prefix = identityPrefix;
+         signer.issuer = issuer;
+         signer.repository = repository;
+         signer.repository_id = repositoryId;
+         signer.repository_id_optional = repositoryIdOptional;
+         signer.issued_before = issuedBefore;
+         signer.last_version = lastVersion;
+         signer.version_in_ref = true;
+         return signer;
+      }
+
+      // The same identity, issuer and repository: what picks a signer and what it
+      // must record, whatever else it checks.
+      bool SameIdentity_(const SigstoreSigner &left, const SigstoreSigner &right)
+      {
+         return std::string(left.identity_prefix.c_str()) == std::string(right.identity_prefix.c_str()) &&
+                std::string(left.issuer.c_str()) == std::string(right.issuer.c_str()) &&
+                std::string(left.repository.c_str()) == std::string(right.repository.c_str());
+      }
+
+      bool SameSigner_(const SigstoreSigner &left, const SigstoreSigner &right)
+      {
+         return SameIdentity_(left, right) &&
+                std::string(left.repository_id.c_str()) == std::string(right.repository_id.c_str()) &&
+                left.repository_id_optional == right.repository_id_optional &&
+                left.issued_before == right.issued_before &&
+                std::string(left.last_version.c_str()) == std::string(right.last_version.c_str()) &&
+                left.version_in_ref == right.version_in_ref;
+      }
+
+      // The tag a workflow identity names after its first "@" - "v6.3.4" from
+      // ".../.gitlab-ci.yml@refs/tags/v6.3.4" - or empty when the ref there is not
+      // a tag (a GitHub workflow run from a branch). The first "@", because the
+      // path before it has none and a tag may.
+      std::string TaggedRef_(const std::string &identity)
+      {
+         const std::string tags = "refs/tags/";
+         const size_t at = identity.find('@');
+         if (at == std::string::npos)
+            return std::string();
+         const std::string ref = identity.substr(at + 1);
+         if (ref.compare(0, tags.size(), tags) != 0)
+            return std::string();
+         return ref.substr(tags.size());
+      }
+
+      // Unix seconds as ISO 8601 UTC, by arithmetic alone (the days-to-civil
+      // conversion of Howard Hinnant's date algorithms), so that nothing here
+      // depends on a platform's gmtime.
+      std::string UtcText_(__int64 seconds)
+      {
+         __int64 days = seconds / 86400;
+         __int64 rest = seconds % 86400;
+         if (rest < 0)
+         {
+            rest += 86400;
+            days -= 1;
+         }
+         days += 719468;
+         const __int64 era = (days >= 0 ? days : days - 146096) / 146097;
+         const __int64 dayOfEra = days - era * 146097;
+         const __int64 yearOfEra = (dayOfEra - dayOfEra / 1460 + dayOfEra / 36524 - dayOfEra / 146096) / 365;
+         const __int64 dayOfYear = dayOfEra - (365 * yearOfEra + yearOfEra / 4 - yearOfEra / 100);
+         const __int64 monthIndex = (5 * dayOfYear + 2) / 153;
+         const __int64 day = dayOfYear - (153 * monthIndex + 2) / 5 + 1;
+         const __int64 month = monthIndex < 10 ? monthIndex + 3 : monthIndex - 9;
+         const __int64 year = yearOfEra + era * 400 + (month <= 2 ? 1 : 0);
+
+         char text[40];
+         sprintf_s(text, sizeof(text), "%04d-%02d-%02dT%02d:%02d:%02dZ", (int) year, (int) month, (int) day,
+            (int) (rest / 3600), (int) (rest % 3600 / 60), (int) (rest % 60));
+         return std::string(text);
+      }
    }
 
    SigstoreTrust
@@ -421,9 +555,9 @@ namespace HM
       trust.ca_pems.push_back(FULCIO_ROOT_PEM);
       trust.ca_pems.push_back(FULCIO_INTERMEDIATE_PEM);
       trust.log_key_pem = REKOR_PUBLIC_KEY_PEM;
-      trust.identity_prefix = RELEASE_IDENTITY_PREFIX;
-      trust.issuer = GITHUB_ISSUER;
-      trust.repository = REPOSITORY;
+      trust.signers.push_back(MakeSigner_(GITHUB_IDENTITY_PREFIX, GITHUB_ISSUER, GITHUB_REPOSITORY, GITHUB_REPOSITORY_ID, false,
+                                          GITHUB_ISSUED_BEFORE, GITHUB_LAST_VERSION));
+      trust.signers.push_back(MakeSigner_(GITLAB_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_REPOSITORY, GITLAB_REPOSITORY_ID, true, 0, ""));
       return trust;
    }
 
@@ -469,21 +603,99 @@ namespace HM
          trust.log_key_pem = pem;
       }
 
+      // Each of the three replaces its part of every signer in the list: a site
+      // that signs its own releases sets all three and is left with one signer, its
+      // own; one that sets only the repository check off keeps both of this
+      // project's workflows without it. The repository check can be switched off
+      // with "-"; an empty setting keeps the default, so that the default is what a
+      // blank INI gets. What belongs to this project's own signers goes with the
+      // part it belongs to: the repository's id with the repository; the GitHub
+      // cut-off and the last release it signed with the identity and the issuer
+      // they were set for; and the tag the identity must name with the identity,
+      // since a site's workflow names its refs its own way.
+      //
+      // A setting that restates a signer's own value changes nothing about that
+      // signer, and keeps everything that goes with it: restating this project's
+      // values must not weaken what they pin. And where a setting makes one signer
+      // name what another names unchanged - the three GitLab values
+      // docs/UpdateFeed.md gives a server from 6.2.28 to 6.3.3, still set after
+      // it is upgraded, turn the GitHub entry into GitLab's identity, issuer and
+      // repository without GitLab's checks - the stronger is kept and the weaker
+      // dropped, since signers are tried in order and a copy first in the list
+      // would take a certificate the real one refuses. Stronger: the one whose
+      // identity was not replaced (it keeps its release check and its limits),
+      // then the one nothing was replaced in; between equals, the first.
       String identity = settings->GetUpdateSigningIdentity();
-      if (!identity.IsEmpty())
-         trust.identity_prefix = AnsiString(identity);
-
       String issuer = settings->GetUpdateSigningIssuer();
-      if (!issuer.IsEmpty())
-         trust.issuer = AnsiString(issuer);
-
-      // The repository check can be switched off with "-"; an empty setting keeps
-      // the default, so that the default is what a blank INI gets.
       String repository = settings->GetUpdateSourceRepository();
-      if (repository == _T("-"))
-         trust.repository = "";
-      else if (!repository.IsEmpty())
-         trust.repository = AnsiString(repository);
+      const std::string identityText = Utf8Of_(identity);
+      const std::string issuerText = Utf8Of_(issuer);
+      const std::string repositoryText = Utf8Of_(repository);
+
+      std::vector<SigstoreSigner> signers;
+      std::vector<int> weakness;   // 2 for a replaced identity, 1 for any other part replaced
+      for (size_t i = 0; i < trust.signers.size(); i++)
+      {
+         SigstoreSigner signer = trust.signers[i];
+         bool replaced = false;
+         bool identityReplaced = false;
+         if (!identityText.empty() && identityText != std::string(signer.identity_prefix.c_str()))
+         {
+            signer.identity_prefix = identityText.c_str();
+            signer.version_in_ref = false;
+            signer.issued_before = 0;
+            signer.last_version = "";
+            replaced = true;
+            identityReplaced = true;
+         }
+         if (!issuerText.empty() && issuerText != std::string(signer.issuer.c_str()))
+         {
+            signer.issuer = issuerText.c_str();
+            signer.issued_before = 0;
+            signer.last_version = "";
+            replaced = true;
+         }
+         if (repositoryText == "-")
+         {
+            if (!signer.repository.IsEmpty() || !signer.repository_id.IsEmpty())
+            {
+               signer.repository = "";
+               signer.repository_id = "";
+               signer.repository_id_optional = false;
+               replaced = true;
+            }
+         }
+         else if (!repositoryText.empty() && repositoryText != std::string(signer.repository.c_str()))
+         {
+            signer.repository = repositoryText.c_str();
+            signer.repository_id = "";
+            signer.repository_id_optional = false;
+            replaced = true;
+         }
+
+         const int signerWeakness = (identityReplaced ? 2 : 0) + (replaced ? 1 : 0);
+         bool known = false;
+         for (size_t j = 0; j < signers.size() && !known; j++)
+         {
+            if (SameSigner_(signers[j], signer))
+               known = true;
+            else if (SameIdentity_(signers[j], signer))
+            {
+               known = true;
+               if (signerWeakness < weakness[j])
+               {
+                  signers[j] = signer;
+                  weakness[j] = signerWeakness;
+               }
+            }
+         }
+         if (!known)
+         {
+            signers.push_back(signer);
+            weakness.push_back(signerWeakness);
+         }
+      }
+      trust.signers = signers;
 
       return true;
    }
@@ -623,7 +835,8 @@ namespace HM
    }
 
    bool
-   SigstoreVerifier::VerifyFile(const String &path, const AnsiString &bundleJson, const SigstoreTrust &trust, SigstoreVerdict &verdict)
+   SigstoreVerifier::VerifyFile(const String &path, const AnsiString &bundleJson, const SigstoreTrust &trust, SigstoreVerdict &verdict,
+                                const String &expectedVersion)
    {
       verdict = SigstoreVerdict();
 
@@ -890,45 +1103,96 @@ namespace HM
       if (X509_get_ext_by_NID(leaf.get(), NID_ext_key_usage, -1) < 0 || (X509_get_extended_key_usage(leaf.get()) & XKU_CODE_SIGN) == 0)
          return Fail_(verdict, _T("The signing certificate is not a code-signing certificate."));
 
-      // 5. Whose certificate it is.
+      // 5. Whose certificate it is: one trusted signer's, whole. The subject
+      // alternative name picks the signer - this project's two prefixes are
+      // disjoint, one on github.com and one on gitlab.com - and then that signer's
+      // issuer, repository and repository id must be the certificate's too, so a
+      // certificate with one signer's identity and another's issuer is nobody's.
+      // Then the signer's cut-off, and the release: a signer that signed its last
+      // release long ago signed no later one, and a workflow that ran for a v*
+      // tag signed that tag's release and no other, so a feed that offered its
+      // file as another version is refused. When no signer takes it, the refusal
+      // is the first signer's whose identity it did name, or, when it named none,
+      // the identity it did name.
       std::vector<std::string> uris;
       SanUris_(leaf.get(), uris);
-      std::string prefix = trust.identity_prefix.c_str();
-      std::string identity;
-      for (size_t i = 0; i < uris.size(); i++)
+
+      std::string issuer;
+      bool issuerMalformed = false;
+      std::string repository;
+      bool repositoryRecorded = false;
+      std::string repositoryId;
+      bool repositoryIdPresent = false;
+      bool repositoryIdMalformed = false;
       {
-         if (!prefix.empty() && uris[i].compare(0, prefix.size(), prefix) == 0)
+         std::string extension;
+         if (ExtensionValue_(leaf.get(), OID_ISSUER_V2, extension))
+            issuerMalformed = !DerUtf8String_(extension, issuer);
+         else if (ExtensionValue_(leaf.get(), OID_ISSUER_V1, extension))
+            issuer = extension;
+         repositoryRecorded = ExtensionValue_(leaf.get(), OID_SOURCE_REPOSITORY_URI, extension) && DerUtf8String_(extension, repository);
+         repositoryIdPresent = ExtensionValue_(leaf.get(), OID_SOURCE_REPOSITORY_IDENTIFIER, extension);
+         repositoryIdMalformed = repositoryIdPresent && !DerUtf8String_(extension, repositoryId);
+      }
+
+      const std::string expectedTag = expectedVersion.IsEmpty() ? std::string() : "v" + Utf8Of_(expectedVersion);
+
+      std::string identity;
+      String refusal;
+      for (size_t s = 0; s < trust.signers.size() && identity.empty(); s++)
+      {
+         const SigstoreSigner &signer = trust.signers[s];
+         const std::string prefix = signer.identity_prefix.c_str();
+         if (prefix.empty())
+            continue;
+
+         std::string named;
+         for (size_t i = 0; i < uris.size() && named.empty(); i++)
          {
-            identity = uris[i];
-            break;
+            if (uris[i].compare(0, prefix.size(), prefix) == 0)
+               named = uris[i];
          }
+         if (named.empty())
+            continue;
+
+         String why;
+         if (issuerMalformed)
+            why = _T("The certificate's issuer extension is malformed.");
+         else if (issuer != std::string(signer.issuer.c_str()))
+            why = Formatter::Format(_T("The certificate was issued on a token from {0}, not {1}."),
+               String(issuer.empty() ? "no issuer" : issuer.c_str()), String(signer.issuer));
+         else if (!signer.repository.IsEmpty() && !repositoryRecorded)
+            why = _T("The certificate names no source repository.");
+         else if (!signer.repository.IsEmpty() && repository != std::string(signer.repository.c_str()))
+            why = Formatter::Format(_T("The certificate is for {0}, not {1}."), String(repository.c_str()), String(signer.repository));
+         else if (!signer.repository_id.IsEmpty() && repositoryIdMalformed)
+            why = _T("The certificate's source repository identifier is malformed.");
+         else if (!signer.repository_id.IsEmpty() && !repositoryIdPresent && !signer.repository_id_optional)
+            why = _T("The certificate names no source repository identifier.");
+         else if (!signer.repository_id.IsEmpty() && repositoryIdPresent && repositoryId != std::string(signer.repository_id.c_str()))
+            why = Formatter::Format(_T("The certificate is for the repository with the id {0}, not {1}."), String(repositoryId.c_str()), String(signer.repository_id));
+         else if (signer.issued_before > 0 && ASN1_TIME_cmp_time_t(X509_get0_notBefore(leaf.get()), (time_t) signer.issued_before) != -1)
+            why = Formatter::Format(_T("The certificate names {0}, a signer this server trusts only for certificates issued before {1}, and this one was issued later."),
+               String(named.c_str()), String(UtcText_(signer.issued_before).c_str()));
+         else if (!signer.last_version.IsEmpty() && !expectedVersion.IsEmpty() &&
+                  UpdateChecker::CompareVersions(expectedVersion, String(signer.last_version)) > 0)
+            why = Formatter::Format(_T("The certificate names {0}, which signed no release after {1}; this file is offered as {2}."),
+               String(named.c_str()), String(signer.last_version), expectedVersion);
+         else if (signer.version_in_ref && !expectedTag.empty() && !TaggedRef_(named).empty() && TaggedRef_(named) != expectedTag)
+            why = Formatter::Format(_T("The certificate was made for the tag {0}, not for {1}, the release being installed."),
+               String(TaggedRef_(named).c_str()), String(expectedTag.c_str()));
+
+         if (why.IsEmpty())
+            identity = named;
+         else if (refusal.IsEmpty())
+            refusal = why;
       }
       if (identity.empty())
       {
+         if (!refusal.IsEmpty())
+            return Fail_(verdict, refusal);
          std::string named = uris.empty() ? std::string("nobody") : uris[0];
          return Fail_(verdict, Formatter::Format(_T("The certificate names {0}, not this repository's release workflow."), String(named.c_str())));
-      }
-
-      std::string issuer;
-      std::string extension;
-      if (ExtensionValue_(leaf.get(), OID_ISSUER_V2, extension))
-      {
-         if (!DerUtf8String_(extension, issuer))
-            return Fail_(verdict, _T("The certificate's issuer extension is malformed."));
-      }
-      else if (ExtensionValue_(leaf.get(), OID_ISSUER_V1, extension))
-         issuer = extension;
-      if (issuer != std::string(trust.issuer.c_str()))
-         return Fail_(verdict, Formatter::Format(_T("The certificate was issued on a token from {0}, not {1}."),
-            String(issuer.empty() ? "no issuer" : issuer.c_str()), String(trust.issuer)));
-
-      if (!trust.repository.IsEmpty())
-      {
-         std::string repository;
-         if (!ExtensionValue_(leaf.get(), OID_SOURCE_REPOSITORY_URI, extension) || !DerUtf8String_(extension, repository))
-            return Fail_(verdict, _T("The certificate names no source repository."));
-         if (repository != std::string(trust.repository.c_str()))
-            return Fail_(verdict, Formatter::Format(_T("The certificate is for {0}, not {1}."), String(repository.c_str()), String(trust.repository)));
       }
 
       // 6. The signature itself.

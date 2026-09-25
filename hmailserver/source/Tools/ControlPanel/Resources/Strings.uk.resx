@@ -4319,8 +4319,8 @@
   <data name="I_P address" xml:space="preserve">
     <value>I_P-адреса</value>
   </data>
-  <data name="Identity provider that issued the signing certificate (empty = GitHub's)" xml:space="preserve">
-    <value>Провайдер ідентифікації, який видав сертифікат підписування (порожньо = провайдер GitHub)</value>
+  <data name="Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)" xml:space="preserve">
+    <value>Провайдер ідентифікації, який видав сертифікат підписування (порожньо = провайдер GitHub або GitLab)</value>
   </data>
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Ідентичність, під якою записуються результати (порожньо = ім'я цього комп'ютера)</value>
@@ -8386,8 +8386,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Signing _algorithm" xml:space="preserve">
     <value>Алгоритм _підписування</value>
   </data>
-  <data name="Signing identity the certificate must begin with (empty = this project's release workflow)" xml:space="preserve">
-    <value>Ідентичність підписування, з якої має починатися сертифікат (порожньо = робочий процес випуску цього проєкту)</value>
+  <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
+    <value>Ідентичність підписування, з якої має починатися сертифікат (порожньо = два робочі процеси випуску цього проєкту)</value>
   </data>
   <data name="Signing in…" xml:space="preserve">
     <value>Вхід…</value>
@@ -9349,8 +9349,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Остання спроба не вдалася {0}: {1}</value>
   </data>
-  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
-    <value>Останні п'ять параметрів на цій картці призначені для інсталяції, яка збирає власні випуски й підписує їх власним Sigstore, або яка дзеркалить випуски цього проєкту. Залиште їх усі порожніми — і сервер довірятиме рівно одному: інсталятору, підписаному власним робочим процесом випуску цього проєкту й записаному в публічному журналі прозорості. Задання будь-якого з них звужує або замінює цю довіру, а помилка в одному означає або відмову справжнім випускам, або довіру до чужих.</value>
+  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
+    <value>Останні п'ять параметрів на цій картці призначені для інсталяції, яка збирає власні випуски й підписує їх власним Sigstore, або яка дзеркалить випуски цього проєкту. Залиште їх усі порожніми — і сервер довірятиме лише інсталятору, підписаному одним із двох робочих процесів випуску цього проєкту (на GitHub — для випусків до 6.3.3, на GitLab — для наступних) і записаному в публічному журналі прозорості. Задання будь-якого з них звужує або замінює цю довіру для обох, а помилка в одному означає або відмову справжнім випускам, або довіру до чужих.</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>Останній крок оновлення не вдався: {0}</value>

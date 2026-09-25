@@ -28,6 +28,54 @@ namespace RegressionTests.Shared
       public const string ReleaseIdentity = "https://github.com/Progressiverobot/hmailserver/.github/workflows/sign-release.yml@refs/heads/master";
       public const string GitHubIssuer = "https://token.actions.githubusercontent.com";
       public const string Repository = "https://github.com/Progressiverobot/hmailserver";
+      // The GitHub repository's numeric id, as every re-hosted bundle's certificate
+      // records it in Fulcio's source repository identifier extension.
+      public const string GitHubRepositoryId = "1267388815";
+
+      // The server trusts the GitHub signer only for certificates issued before
+      // GitHub suspended the account (2026-09-18T00:00:00Z), so a bundle in that
+      // signer's name is made, by default, at the time the real 6.3.3 was signed.
+      public static readonly DateTimeOffset GitHubSuspension = new DateTimeOffset(2026, 9, 18, 0, 0, 0, TimeSpan.Zero);
+      public static readonly DateTimeOffset GitHubSigningTime = new DateTimeOffset(2026, 9, 15, 1, 0, 0, TimeSpan.Zero);
+
+      // The second signer the server trusts: a job of this project's GitLab CI
+      // pipeline for a v* tag, as Fulcio names it ("https://" and the ID token's
+      // ci_config_ref_uri claim), with GitLab as the issuer, the GitLab project as
+      // the repository and the project's id as its identifier. The tag's version
+      // follows the prefix.
+      public const string GitLabReleaseIdentityPrefix = "https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v";
+      public const string GitLabIssuer = "https://gitlab.com";
+      public const string GitLabRepository = "https://gitlab.com/Progressiverobot/hmailserver";
+      public const string GitLabRepositoryId = "86730559";
+
+      // The newest release the GitHub workflow signed: the server installs no file
+      // it signed as a later one.
+      public const string GitHubLastVersion = "6.3.3";
+
+      // The authority must be valid at GitHubSigningTime whenever the suite runs.
+      private static readonly DateTimeOffset AuthorityFrom = new DateTimeOffset(2025, 9, 1, 0, 0, 0, TimeSpan.Zero);
+
+      /// <summary>
+      ///    How this project's release of version is signed: by the GitLab CI pipeline
+      ///    for its own tag after 6.3.3, now; by the GitHub workflow, run from a branch
+      ///    before the suspension, for 6.3.3 and before - which is the only way the
+      ///    server accepts that signer. version is a plain "6.3.4".
+      /// </summary>
+      public static Options ReleaseSigning(string version)
+      {
+         if (new Version(version) > new Version(GitHubLastVersion))
+         {
+            return new Options
+            {
+               Identity = GitLabReleaseIdentityPrefix + version,
+               Issuer = GitLabIssuer,
+               Repository = GitLabRepository,
+               RepositoryId = GitLabRepositoryId,
+               SignedAt = DateTimeOffset.UtcNow
+            };
+         }
+         return new Options();
+      }
 
       private readonly ECDsa _rootKey = ECDsa.Create(ECCurve.NamedCurves.nistP384);
       private readonly ECDsa _intermediateKey = ECDsa.Create(ECCurve.NamedCurves.nistP384);
@@ -42,7 +90,7 @@ namespace RegressionTests.Shared
          rootRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
          rootRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, true));
          rootRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(rootRequest.PublicKey, false));
-         _root = rootRequest.CreateSelfSigned(DateTimeOffset.UtcNow.AddYears(-1), DateTimeOffset.UtcNow.AddYears(5));
+         _root = rootRequest.CreateSelfSigned(Earlier(DateTimeOffset.UtcNow.AddYears(-1), AuthorityFrom), DateTimeOffset.UtcNow.AddYears(5));
 
          var intermediateRequest = new CertificateRequest("O=" + name + ", CN=" + name + "-intermediate", _intermediateKey, HashAlgorithmName.SHA384);
          intermediateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, true, 0, true));
@@ -50,7 +98,7 @@ namespace RegressionTests.Shared
          intermediateRequest.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection {new Oid("1.3.6.1.5.5.7.3.3")}, false));
          intermediateRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(intermediateRequest.PublicKey, false));
          _intermediate = intermediateRequest.Create(_root.SubjectName, X509SignatureGenerator.CreateForECDsa(_rootKey),
-            DateTimeOffset.UtcNow.AddMonths(-6), DateTimeOffset.UtcNow.AddYears(4), Serial());
+            Earlier(DateTimeOffset.UtcNow.AddMonths(-6), AuthorityFrom.AddDays(1)), DateTimeOffset.UtcNow.AddYears(4), Serial());
 
          using (var sha = SHA256.Create())
             LogId = sha.ComputeHash(SubjectPublicKeyInfoP256(_logKey));
@@ -88,8 +136,14 @@ namespace RegressionTests.Shared
          public string Repository = Repository_;
          private const string Repository_ = FakeSigstore.Repository;
 
-         /// <summary>When the log recorded the signature. The certificate is valid for ten minutes around SignedAt.</summary>
-         public DateTimeOffset SignedAt = DateTimeOffset.UtcNow;
+         /// <summary>Fulcio's source repository identifier (1.3.6.1.4.1.57264.1.15); null leaves the extension off.</summary>
+         public string RepositoryId = GitHubRepositoryId;
+
+         /// <summary>
+         /// When the log recorded the signature. The certificate is valid for ten minutes around SignedAt.
+         /// By default the time the real 6.3.3 was signed, before the GitHub signer's cut-off.
+         /// </summary>
+         public DateTimeOffset SignedAt = GitHubSigningTime;
          public DateTimeOffset? IntegratedAt;
 
          /// <summary>The bytes the signature is over, when not the content itself.</summary>
@@ -142,6 +196,8 @@ namespace RegressionTests.Shared
             request.CertificateExtensions.Add(new X509Extension(new Oid("1.3.6.1.4.1.57264.1.8"), DerUtf8String(options.Issuer), false));
             if (options.Repository != null)
                request.CertificateExtensions.Add(new X509Extension(new Oid("1.3.6.1.4.1.57264.1.12"), DerUtf8String(options.Repository), false));
+            if (options.RepositoryId != null)
+               request.CertificateExtensions.Add(new X509Extension(new Oid("1.3.6.1.4.1.57264.1.15"), DerUtf8String(options.RepositoryId), false));
 
             X509Certificate2 leaf = request.Create(_intermediate.SubjectName, X509SignatureGenerator.CreateForECDsa(_intermediateKey),
                options.SignedAt.AddMinutes(-5), options.SignedAt.AddMinutes(5), Serial());
@@ -289,6 +345,11 @@ namespace RegressionTests.Shared
       }
 
       // ---- encodings ---------------------------------------------------------------------
+
+      private static DateTimeOffset Earlier(DateTimeOffset left, DateTimeOffset right)
+      {
+         return left < right ? left : right;
+      }
 
       private static byte[] Serial()
       {

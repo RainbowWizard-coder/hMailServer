@@ -4319,8 +4319,8 @@
   <data name="I_P address" xml:space="preserve">
     <value>IP アドレス(_P)</value>
   </data>
-  <data name="Identity provider that issued the signing certificate (empty = GitHub's)" xml:space="preserve">
-    <value>署名証明書を発行した ID プロバイダー (空 = GitHub のもの)</value>
+  <data name="Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)" xml:space="preserve">
+    <value>署名証明書を発行した ID プロバイダー (空 = GitHub または GitLab のもの)</value>
   </data>
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>結果を書き込む際の ID (空 = このコンピューターの名前)</value>
@@ -8386,8 +8386,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Signing _algorithm" xml:space="preserve">
     <value>署名アルゴリズム(_A)</value>
   </data>
-  <data name="Signing identity the certificate must begin with (empty = this project's release workflow)" xml:space="preserve">
-    <value>証明書が先頭に持っていなければならない署名 ID (空 = このプロジェクトのリリース ワークフロー)</value>
+  <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
+    <value>証明書が先頭に持っていなければならない署名 ID (空 = このプロジェクトの 2 つのリリース ワークフロー)</value>
   </data>
   <data name="Signing in…" xml:space="preserve">
     <value>サインイン中…</value>
@@ -9349,8 +9349,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>前回の試行は {0} に失敗しました: {1}</value>
   </data>
-  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
-    <value>このカードの最後の 5 つの設定は、自分でリリースをビルドして自分の Sigstore で署名しているサイト、またはこのプロジェクトのリリースをミラーしているサイトのためのものです。これらをすべて空のままにすると、サーバーが信頼するのはただ 1 つ、このプロジェクト自身のリリース ワークフローによって署名され、公開の透明性ログに記録されたインストーラーだけです。いずれかを設定すると、その信頼はより狭くなるか、別のものに置き換わります。1 つでも間違えると、正規のリリースを拒否するか、誰か別の人のリリースを信頼するかのどちらかになります。</value>
+  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
+    <value>このカードの最後の 5 つの設定は、自分でリリースをビルドして自分の Sigstore で署名しているサイト、またはこのプロジェクトのリリースをミラーしているサイトのためのものです。これらをすべて空のままにすると、サーバーが信頼するのは、このプロジェクトの 2 つのリリース ワークフロー (6.3.3 までのリリースには GitHub のもの、それ以降のリリースには GitLab のもの) のいずれかによって署名され、公開の透明性ログに記録されたインストーラーだけです。いずれかを設定すると、両方について、その信頼はより狭くなるか、別のものに置き換わります。1 つでも間違えると、正規のリリースを拒否するか、誰か別の人のリリースを信頼するかのどちらかになります。</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>最後の更新ステップが失敗しました: {0}</value>

@@ -4319,8 +4319,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="I_P address" xml:space="preserve">
     <value>Ad_resa IP</value>
   </data>
-  <data name="Identity provider that issued the signing certificate (empty = GitHub's)" xml:space="preserve">
-    <value>Poskytovatel identity, který vydal podpisový certifikát (prázdné = poskytovatel GitHubu)</value>
+  <data name="Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)" xml:space="preserve">
+    <value>Poskytovatel identity, který vydal podpisový certifikát (prázdné = poskytovatel GitHubu nebo GitLabu)</value>
   </data>
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Identita, pod kterou se zapisují výsledky (prázdné = název tohoto počítače)</value>
@@ -8386,8 +8386,8 @@ Restartovat ji nyní?</value>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>P_odpisový algoritmus</value>
   </data>
-  <data name="Signing identity the certificate must begin with (empty = this project's release workflow)" xml:space="preserve">
-    <value>Podpisová identita, kterou musí certifikát začínat (prázdné = workflow vydání tohoto projektu)</value>
+  <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
+    <value>Podpisová identita, kterou musí certifikát začínat (prázdné = dva workflow vydání tohoto projektu)</value>
   </data>
   <data name="Signing in…" xml:space="preserve">
     <value>Přihlašování…</value>
@@ -9349,8 +9349,8 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Poslední pokus selhal {0}: {1}</value>
   </data>
-  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
-    <value>Posledních pět nastavení na této kartě je pro pracoviště, které si sestavuje vlastní vydání a podepisuje je vlastním Sigstore, nebo které zrcadlí vydání tohoto projektu. Nechte je všechna prázdná a server bude důvěřovat přesně jedné věci: instalačnímu programu podepsanému vlastním workflow vydání tohoto projektu a zaznamenanému ve veřejném logu transparentnosti. Nastavením kteréhokoli z nich to zúžíte nebo nahradíte a chyba v kterémkoli z nich znamená buď odmítání pravých vydání, nebo důvěru cizím.</value>
+  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
+    <value>Posledních pět nastavení na této kartě je pro pracoviště, které si sestavuje vlastní vydání a podepisuje je vlastním Sigstore, nebo které zrcadlí vydání tohoto projektu. Nechte je všechna prázdná a server bude důvěřovat jen instalačnímu programu podepsanému jedním ze dvou workflow vydání tohoto projektu – workflow na GitHubu pro vydání do 6.3.3, workflow na GitLabu pro vydání pozdější – a zaznamenanému ve veřejném logu transparentnosti. Nastavením kteréhokoli z nich to pro oba zúžíte nebo nahradíte a chyba v kterémkoli z nich znamená buď odmítání pravých vydání, nebo důvěru cizím.</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>Poslední krok aktualizace selhal: {0}</value>

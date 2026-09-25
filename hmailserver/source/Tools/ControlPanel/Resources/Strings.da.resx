@@ -4319,8 +4319,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="I_P address" xml:space="preserve">
     <value>I_P-adresse</value>
   </data>
-  <data name="Identity provider that issued the signing certificate (empty = GitHub's)" xml:space="preserve">
-    <value>Identitetsudbyder, der udstedte signeringscertifikatet (tom = GitHubs)</value>
+  <data name="Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)" xml:space="preserve">
+    <value>Identitetsudbyder, der udstedte signeringscertifikatet (tom = GitHubs eller GitLabs)</value>
   </data>
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Identitet, som resultaterne skrives under (tomt = denne computers navn)</value>
@@ -8386,8 +8386,8 @@ Genstart den nu?</value>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>S_igneringsalgoritme</value>
   </data>
-  <data name="Signing identity the certificate must begin with (empty = this project's release workflow)" xml:space="preserve">
-    <value>Signeringsidentitet, som certifikatet skal begynde med (tom = dette projekts udgivelsesarbejdsgang)</value>
+  <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
+    <value>Signeringsidentitet, som certifikatet skal begynde med (tom = dette projekts to udgivelsesarbejdsgange)</value>
   </data>
   <data name="Signing in…" xml:space="preserve">
     <value>Logger på…</value>
@@ -9349,8 +9349,8 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Det seneste forsøg mislykkedes {0}: {1}</value>
   </data>
-  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
-    <value>De sidste fem indstillinger på dette kort er til en installation, der bygger sine egne udgivelser og signerer dem med sin egen Sigstore, eller som spejler dette projekts. Lad hver eneste af dem være tom, så stoler serveren på præcis én ting: et installationsprogram signeret af dette projekts egen udgivelsesarbejdsgang, registreret i den offentlige gennemsigtighedslog. At sætte en af dem indsnævrer eller erstatter det, og at få en af dem forkert betyder enten at afvise ægte udgivelser eller at stole på en andens.</value>
+  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
+    <value>De sidste fem indstillinger på dette kort er til en installation, der bygger sine egne udgivelser og signerer dem med sin egen Sigstore, eller som spejler dette projekts. Lad hver eneste af dem være tom, så stoler serveren kun på et installationsprogram signeret af en af dette projekts to udgivelsesarbejdsgange - den på GitHub for udgivelserne til og med 6.3.3, den på GitLab for de senere - og registreret i den offentlige gennemsigtighedslog. At sætte en af dem indsnævrer eller erstatter det for dem begge, og at få en af dem forkert betyder enten at afvise ægte udgivelser eller at stole på en andens.</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>Det seneste opdateringstrin mislykkedes: {0}</value>

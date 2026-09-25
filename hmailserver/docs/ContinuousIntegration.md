@@ -22,8 +22,8 @@ What runs where
 
 | Job | Stage | Runs on | Runs for | What it does |
 |---|---|---|---|---|
-| `checkers` | check | GitLab's shared runners | every pipeline | Every Python checker, the self-tests, the generators' `--check` ([CONTRIBUTING.md](../../CONTRIBUTING.md), "The checkers") |
-| `harnesses` | check | GitLab's shared runners | every pipeline | The Control Deck's and the webmail's script harnesses, and the S/MIME and OpenPGP checks |
+| `checkers` | check | GitLab's shared runners | every pipeline but a schedule's | Every Python checker, the self-tests, the generators' `--check` ([CONTRIBUTING.md](../../CONTRIBUTING.md), "The checkers") |
+| `harnesses` | check | GitLab's shared runners | every pipeline but a schedule's | The Control Deck's and the webmail's script harnesses, and the S/MIME and OpenPGP checks |
 | `sign-off` | check | GitLab's shared runners | a merge request from a fork | Every commit carries its author's `Signed-off-by` |
 | `editorconfig` | check | GitLab's shared runners | every pipeline | Every text file against `.editorconfig`, and a negative control |
 | `chart-and-compose` | check | GitLab's shared runners | a change to the Helm chart or the Compose file | The chart linted and rendered, the Compose file resolved |
@@ -31,6 +31,7 @@ What runs where
 | `package-templates` | check | GitLab's shared runners | a change to the winget or Chocolatey templates | The templates render and agree, checked offline |
 | `roadmap` | check | GitLab's shared runners | a change to `Roadmap.md` | `build/check-roadmap.ps1` |
 | `linux-build` | build | linix | a protected ref | The Linux server with clang, every `*-tests` program the CMake build makes, the OpenPGP writer against GnuPG, and the `.deb` and the `.rpm` (`build/ci/linux-build.sh`) |
+| `pages` | release | GitLab's shared runners | `master`, a `v*` tag, a schedule on `master` | Renders the update feed from the project's releases and GitLab Pages publishes it at https://updates.progressiverobot.com (see [The update feed](#the-update-feed)) |
 | `linux-suite` | test | linix | a protected ref | The whole of `LinuxRegressionTests` against that server on PostgreSQL 16 (`build/ci/linux-suite.sh`) |
 | `linux-cross` | test | linix | a protected ref | Every core translation unit compiled for AArch64 (`build/ci/linux-cross.sh`) |
 | `linux-sanitize` | test | linix | a protected ref | `snmp-tests` under AddressSanitizer; says SKIPPED and passes while the tree has no `HM_SANITIZE` (`build/ci/linux-sanitize.sh`) |
@@ -71,13 +72,14 @@ Which pipeline runs what
 | Push or event | Pipeline | Jobs |
 |---|---|---|
 | `master` | the branch's | all of them but `release`, `linux-fuzz` and `installer-smoke` |
-| a `batch*` branch | the branch's | all of them but `release` and `linux-fuzz`, with `installer-smoke` manual: this is the gate a batch passes before it lands |
+| a `batch*` branch | the branch's | all of them but `release`, `linux-fuzz` and `pages`, with `installer-smoke` manual: this is the gate a batch passes before it lands |
 | any other branch, no open merge request | the branch's | `checkers`, `harnesses`, `editorconfig`, and the four path-bound checks whose files changed |
 | any other branch, with an open merge request | the merge request's | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, and `sign-off` when the branch is in a fork |
 | a merge request from `master` or a `batch*` branch | none; the branch's own pipeline stands for it | as for the branch |
 | a `v*` tag | the tag's | all of them but `linux-fuzz`, with `release` and `installer-smoke` manual |
 | any other tag | none | |
 | the fuzz schedule (`HM_PIPELINE=fuzz`, on `master`) | the schedule's | `linux-fuzz` alone |
+| any other pipeline schedule on `master` | the schedule's | `pages` alone (see [The update feed](#the-update-feed)), or the one job the schedule's variable names |
 
 The four path-bound checks - `chart-and-compose`, `update-helper`,
 `package-templates` and `roadmap` - run when a file they check, or
@@ -109,8 +111,8 @@ off and `locked`. GitLab gives them a job only when all three of these hold:
 2. the job names one of the runner's tags (`linix`, `bench150`);
 3. the job's `rules:` created it. `.own-runners` in the CI file creates its
    jobs only when `$CI_COMMIT_REF_PROTECTED` is `"true"` and the pipeline is not
-   a merge request's (and not the fuzz pipeline, which `linux-fuzz`'s own rule
-   also holds to a protected ref).
+   a merge request's, not the fuzz pipeline (which `linux-fuzz`'s own rule
+   also holds to a protected ref) and not a scheduled one.
 
 A merge request from a fork runs in the fork's context, on an unprotected ref,
 with code nobody here has reviewed. The code could build anything, and both
@@ -846,6 +848,56 @@ three hours or a little more. bench150's two jobs add up the same way. So a
 pipeline for a protected ref takes about three hours from start to finish, and
 the Windows gate and the Linux lane decide it between them.
 
+The update feed
+---------------
+
+The `pages` job publishes https://updates.progressiverobot.com, the release feed
+installed servers read ([UpdateFeed.md](UpdateFeed.md)). In the Python image it
+runs `build/generate-update-feed.py` three times: the self-test, the render of
+the project's releases into `public/`, and `--serve-check` of what it wrote,
+which reads every address a server builds from the tree served as GitLab Pages
+serves it. GitLab Pages deploys `public/` when the job passes. The script reads
+GitLab's public API and needs no token and no variable. What it publishes is
+what the releases say at that moment, whichever commit ran it.
+
+It runs for a push to `master`, for a `v*` tag, and for a pipeline schedule on
+`master`, and never for a merge request, a `batch*` branch or any other branch.
+A release is created on GitLab after its tag is pushed, so the tag's own run
+can miss it. The schedule is what brings the feed up to date without a push.
+Until there is one, running a pipeline on `master` by hand after a release is
+published does the same (Build, Pipelines, Run pipeline), along with every other
+`master` job.
+
+**A schedule's pipeline runs `pages` alone.** A scheduled pipeline is a
+pipeline on `master` to every job in the file, so each of the others says it is
+not for one: `.own-runners` (and so every job on linix and bench150) and
+`.not-a-fuzz-pipeline` (and so `checkers`, `harnesses` and `editorconfig`)
+begin with `- if: $HM_PIPELINE == "fuzz" || $CI_PIPELINE_SOURCE == "schedule"`
+with `when: never`, and the four path-bound checks carry the same rule. `pages`
+itself skips the fuzz pipeline. Without them each scheduled run would start the whole Windows gate
+on bench150 and the Linux suite on linix. A new job added to the file needs the
+same, or a schedule starts it too.
+
+The `checkers` job runs the generator's self-test, which reads the compiled feed
+addresses out of `UpdateChecker.cpp` and serves a tree the way Pages does, so a
+change that breaks one fails in its own pipeline, on a `batch*` branch included,
+and not first in `pages` on `master`.
+
+**Making it.** In the project, Build, Pipeline schedules, New schedule. Set the
+target branch to `master` and the interval to once a day (`17 6 * * *`, UTC),
+and leave it active. The same from a shell with `glab` signed in as a maintainer:
+
+```sh
+glab api --method POST projects/86730559/pipeline_schedules \
+  -f description="update feed" -f ref=master -f cron="17 6 * * *" -f cron_timezone=UTC
+```
+
+The schedule runs as the maintainer who owns it.
+
+**Checking the deployed feed.** `python3 build/generate-update-feed.py --check
+--site https://updates.progressiverobot.com` fails when the site is not what
+the releases say now, and names each file that differs.
+
 What each job leaves behind
 ---------------------------
 
@@ -912,6 +964,22 @@ What is still done by hand
   `build/ci/installer-smoke-run.sh`. A batch runs it before it lands, and a
   release runs it before it is published (see [The installer smoke
   test](#the-installer-smoke-test)).
+- The builds and both suites for any branch that is not protected. A
+  contributor runs them before opening a merge request, and the maintainer runs
+  them before a change lands, as [CONTRIBUTING.md](../../CONTRIBUTING.md)
+  describes.
+- `check-package-manifests.py`, the PowerShell checks (`check-schema-versions.ps1`,
+  `check-db-scripts.ps1`, `check-roadmap.ps1`, `generate-settings-index.ps1`),
+  editorconfig-checker and `dotnet format`.
+- The Linux build under GCC, the AArch64 build and the cross-compile census.
+  GitHub's `linux-build.yml` ran them, and linix is one x86-64 machine.
+  `build/linux-tu-census.sh` runs the census by hand.
+- The schema-upgrade gate (`build/db-upgrade-gate.sh`), the Control Panel's
+  tests and the tools' tests.
+- Signing, the `.deb`, `.rpm` and AppImage packages, the container image and
+  publishing; the update feed is the `pages` job's. These belong to the
+  Roadmap2 row "The release chain off a single forge". The `release` stage is
+  its placeholder.
 - Building the Linux job image when its Dockerfile changes (see [The
   image](#the-image)), and creating the fuzz schedule once (see [The fuzz
   schedule](#the-fuzz-schedule)).

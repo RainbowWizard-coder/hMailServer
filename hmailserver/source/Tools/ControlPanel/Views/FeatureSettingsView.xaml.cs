@@ -1905,7 +1905,7 @@ namespace hMailServer.ControlPanel.Views
                      new BoolSetting { Key = "UpdateCheckEnabled", Default = false, Label = L("Check for a new release once a day (UpdateCheckEnabled)") },
                      new TextSetting { Key = "UpdateCheckHours", Default = "24", Label = L("Hours between checks (1 to 168)"), Placeholder = "24" },
                      new TextSetting { Key = "UpdateChannel", Default = "stable", Label = L("Channel: stable, or prerelease to run ahead on a test machine"), Placeholder = "stable" },
-                     new TextSetting { Key = "UpdateFeedUrl", Label = L("Update feed URL (empty = the built-in feed; set for a mirror)"), Placeholder = "https://updates.example.net/hmailserver/releases" },
+                     new TextSetting { Key = "UpdateFeedUrl", Label = L("Update feed URL (empty = the built-in feed; set for a mirror)"), Placeholder = "https://updates.progressiverobot.com/releases.json" },
                      new TextSetting { Key = "HttpProxy", Label = L("Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)"), Placeholder = "proxy.example.net:3128" },
                      new BoolSetting { Key = "UpdateAutoDownload", Default = false, Label = L("Download and verify the installer as soon as a release is found") },
                      new TextSetting
@@ -1928,20 +1928,20 @@ namespace hMailServer.ControlPanel.Views
                      {
                         Key = "UpdateSourceRepository",
                         Label = L("Repository the signing certificate must name (empty = this project; - = do not check)"),
-                        Placeholder = "Progressiverobot/hmailserver", // no-loc
-                        Blurb = L("The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's.")
+                        Placeholder = "https://gitlab.example.net/mail/hmailserver", // no-loc
+                        Blurb = L("The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's.")
                      },
                      new TextSetting
                      {
                         Key = "UpdateSigningIdentity",
-                        Label = L("Signing identity the certificate must begin with (empty = this project's release workflow)"),
-                        Placeholder = "https://github.com/Progressiverobot/hmailserver/.github/workflows/sign-release.yml" // no-loc
+                        Label = L("Signing identity the certificate must begin with (empty = this project's two release workflows)"),
+                        Placeholder = "https://gitlab.example.net/mail/hmailserver//.gitlab-ci.yml@refs/tags/v" // no-loc
                      },
                      new TextSetting
                      {
                         Key = "UpdateSigningIssuer",
-                        Label = L("Identity provider that issued the signing certificate (empty = GitHub's)"),
-                        Placeholder = "https://token.actions.githubusercontent.com" // no-loc
+                        Label = L("Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)"),
+                        Placeholder = "https://gitlab.example.net" // no-loc
                      },
                      new TextSetting
                      {

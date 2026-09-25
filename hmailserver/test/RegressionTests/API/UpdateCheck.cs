@@ -17,11 +17,12 @@ namespace RegressionTests.API
 {
    /// <summary>
    /// The update check: the first part of the roadmap's live update. The server reads
-   /// the project's release feed - the GitHub Releases API, or whatever UpdateFeedUrl
-   /// names, which here is a fake on the loopback - compares the newest release the
-   /// channel accepts with its own version, and says what it found through
-   /// Status.UpdateState and friends, GET /api/v1/update and one application-log
-   /// line. Nothing is downloaded and nothing runs; that is the next part.
+   /// the project's release feed - https://updates.progressiverobot.com, in the GitHub
+   /// Releases API's shape, or whatever UpdateFeedUrl names, which here is a fake on
+   /// the loopback - compares the newest release the channel accepts with its own
+   /// version, and says what it found through Status.UpdateState and friends,
+   /// GET /api/v1/update and one application-log line. Nothing is downloaded and
+   /// nothing runs; that is the next part.
    ///
    /// The feed documents are shaped as GitHub shapes them, author object and asset
    /// array included, because those share key names ("name", "html_url", "url",
@@ -177,7 +178,12 @@ namespace RegressionTests.API
          Assert.AreEqual(2, status.UpdateState, textuallyOlder + " is newer than " + Running + " as a version number.");
          Assert.AreEqual(textuallyOlder, status.AvailableVersion);
 
-         // A tag with a leading v and a version with a build suffix compare on their numbers alone.
+         // A tag with a leading v and a version with a build suffix compare on their
+         // numbers alone. On the pre-release channel: the stable one passes over any
+         // version with a suffix before it compares it.
+         WriteSetting("UpdateChannel", "prerelease");
+         _application.Reinitialize();
+         status = _application.Status;
          _feed.SetResponse(200, Release("v" + Running + "-B1", Published));
          Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
          Assert.AreEqual(1, status.UpdateState, "v" + Running + "-B1 is the running version, spelled as a tag.");
@@ -230,6 +236,14 @@ namespace RegressionTests.API
          Assert.AreEqual(1, status.UpdateState, "A pre-release is not an update on the stable channel.");
          Assert.IsEmpty(status.AvailableVersion);
          StringAssert.Contains("the feed's only release is a pre-release and the channel is stable", LogHandler.ReadCurrentDefaultLog());
+
+         // A version with a suffix is a pre-release whatever the feed's flag says: a
+         // genuine pre-release signed for its own tag must not reach a stable server
+         // because a feed called it stable.
+         _feed.SetResponse(200, Release(Newer + "-rc1", Published, prerelease: false));
+         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
+         Assert.AreEqual(1, status.UpdateState, Newer + "-rc1, flagged stable, is still a pre-release.");
+         Assert.IsEmpty(status.AvailableVersion);
       }
 
       [Test]
@@ -263,6 +277,50 @@ namespace RegressionTests.API
          Assert.AreEqual(2, status.UpdateState);
          Assert.AreEqual(preRelease, status.AvailableVersion, "The newest published release, pre-release or not; a draft is not published.");
          StringAssert.Contains("Update check: hMailServer " + preRelease + " is available", LogHandler.ReadCurrentDefaultLog());
+      }
+
+      [Test]
+      public void TheProjectsOwnFeedIsReadAsItIsPublished()
+      {
+         // What build/generate-update-feed.py writes for GitLab Pages: only the fields
+         // the parser reads; releases/latest a file without an extension, which Pages
+         // serves as text/plain; releases.json the list of every release. The paths
+         // are the site's, on the fake. This pins the published shape and the one
+         // value docs/UpdateFeed.md gives; it cannot test the compiled default
+         // addresses, which are on the real site - the generator's --self-test and
+         // --serve-check read those out of UpdateChecker.cpp and request each one.
+         string preRelease = Bump(Newer) + "-rc1";
+         string latest = PublishedRelease(Newer, false);
+         string list = "[" + PublishedRelease(preRelease, true) + "," + latest + "," + PublishedRelease(Running, false) + "]";
+         _feed.SetResponse("/releases/latest", 200, Encoding.UTF8.GetBytes(latest), "text/plain; charset=utf-8");
+         _feed.SetResponse("/releases.json", 200, Encoding.UTF8.GetBytes(list), "application/json");
+
+         WriteSetting("UpdateFeedUrl", _feed.UrlFor("/releases/latest"));
+         _application.Reinitialize();
+         var status = _application.Status;
+         Assert.IsTrue(status.CheckForUpdate(), "releases/latest is read whatever its Content-Type. Error: " + status.UpdateLastError);
+         Assert.AreEqual(Newer, status.AvailableVersion);
+         Assert.AreEqual("https://gitlab.com/Progressiverobot/hmailserver/-/releases/v" + Newer, status.AvailableVersionUrl);
+         StringAssert.StartsWith("GET /releases/latest HTTP/1.0", _feed.Requests[_feed.Requests.Count - 1]);
+         string body = Http("GET", "/api/v1/update").body;
+         string registry = "https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/" + Newer + "/hMailServer-" + Newer + "-x64.exe";
+         StringAssert.Contains("\"url\":\"" + registry + "\"", body, "The installer is downloaded from the package registry.");
+         StringAssert.Contains("\"bundleUrl\":\"" + registry + ".cosign.bundle\"", body, "And its Sigstore bundle beside it.");
+
+         // The one value docs/UpdateFeed.md gives a server from 6.2.28 to 6.3.3 serves
+         // both channels.
+         WriteSetting("UpdateFeedUrl", _feed.UrlFor("/releases.json"));
+         _application.Reinitialize();
+         status = _application.Status;
+         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
+         Assert.AreEqual(Newer, status.AvailableVersion, "The stable channel passes over the pre-release in the list.");
+         StringAssert.StartsWith("GET /releases.json HTTP/1.0", _feed.Requests[_feed.Requests.Count - 1]);
+
+         WriteSetting("UpdateChannel", "prerelease");
+         _application.Reinitialize();
+         status = _application.Status;
+         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
+         Assert.AreEqual(preRelease, status.AvailableVersion, "The pre-release channel takes it.");
       }
 
       [Test]
@@ -417,6 +475,31 @@ namespace RegressionTests.API
             "\"assets\":[" + assets + "]," +
             "\"tarball_url\":\"https://api.github.com/repos/Progressiverobot/hmailserver/tarball/" + tag + "\"," +
             "\"body\":\"Notes with a quote \\\" a backslash \\\\ a tab \\t and a surrogate pair \\ud83d\\ude80.\\n\"" +
+            "}";
+      }
+
+      // One release as build/generate-update-feed.py writes it: the parser's fields
+      // and no other, the GitLab release page, the files in the package registry.
+      private static string PublishedRelease(string version, bool prerelease)
+      {
+         string tag = "v" + version;
+         string download = "https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/" + version + "/";
+         string installer = "hMailServer-" + version + "-x64.exe";
+         return "{\n" +
+            " \"tag_name\": \"" + tag + "\",\n" +
+            " \"name\": \"" + (prerelease ? "Pre-release: " : "") + "hMailServer " + version + "\",\n" +
+            " \"html_url\": \"https://gitlab.com/Progressiverobot/hmailserver/-/releases/" + tag + "\",\n" +
+            " \"published_at\": \"2026-09-15T01:02:52Z\",\n" +
+            " \"draft\": false,\n" +
+            " \"prerelease\": " + (prerelease ? "true" : "false") + ",\n" +
+            " \"assets\": [\n" +
+            "  {\n   \"name\": \"" + installer + "\",\n   \"size\": 79942248,\n" +
+            "   \"digest\": \"sha256:3188be2fa16a4c43d3b43ddbd7274e4cfe878c082343ef25ffbd00489610a057\",\n" +
+            "   \"browser_download_url\": \"" + download + installer + "\"\n  },\n" +
+            "  {\n   \"name\": \"" + installer + ".cosign.bundle\",\n   \"size\": 10811,\n" +
+            "   \"digest\": \"sha256:654b658b9ce70396f76ff158247de4018e1021296d15fd0643e6f43b0b4a064e\",\n" +
+            "   \"browser_download_url\": \"" + download + installer + ".cosign.bundle\"\n  }\n" +
+            " ]\n" +
             "}";
       }
 

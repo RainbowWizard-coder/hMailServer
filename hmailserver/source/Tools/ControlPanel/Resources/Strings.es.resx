@@ -4319,8 +4319,8 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="I_P address" xml:space="preserve">
     <value>Dir_ección IP</value>
   </data>
-  <data name="Identity provider that issued the signing certificate (empty = GitHub's)" xml:space="preserve">
-    <value>Proveedor de identidad que emitió el certificado de firma (vacío = el de GitHub)</value>
+  <data name="Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)" xml:space="preserve">
+    <value>Proveedor de identidad que emitió el certificado de firma (vacío = el de GitHub o el de GitLab)</value>
   </data>
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Identidad bajo la que se escriben los resultados (vacío = nombre de este equipo)</value>
@@ -8386,8 +8386,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Signing _algorithm" xml:space="preserve">
     <value>Algoritmo de _firma</value>
   </data>
-  <data name="Signing identity the certificate must begin with (empty = this project's release workflow)" xml:space="preserve">
-    <value>Identidad de firma con la que debe empezar el certificado (vacío = el flujo de trabajo de publicación de este proyecto)</value>
+  <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
+    <value>Identidad de firma con la que debe empezar el certificado (vacío = los dos flujos de trabajo de publicación de este proyecto)</value>
   </data>
   <data name="Signing in…" xml:space="preserve">
     <value>Iniciando sesión…</value>
@@ -9349,8 +9349,8 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>El último intento falló el {0}: {1}</value>
   </data>
-  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
-    <value>Los cinco últimos ajustes de esta tarjeta son para una instalación que compila sus propias versiones y las firma con su propio Sigstore, o que replica las de este proyecto. Déjelos todos vacíos y el servidor confía exactamente en una cosa: un instalador firmado por el flujo de trabajo de publicación propio de este proyecto, anotado en el registro público de transparencia. Definir cualquiera de ellos restringe o sustituye eso, y equivocarse en uno significa o bien rechazar versiones auténticas o bien confiar en las de otro.</value>
+  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
+    <value>Los cinco últimos ajustes de esta tarjeta son para una instalación que compila sus propias versiones y las firma con su propio Sigstore, o que replica las de este proyecto. Déjelos todos vacíos y el servidor solo confía en un instalador firmado por uno de los dos flujos de trabajo de publicación de este proyecto - el de GitHub para las versiones hasta la 6.3.3, el de GitLab para las posteriores - y anotado en el registro público de transparencia. Definir cualquiera de ellos restringe o sustituye eso para ambos, y equivocarse en uno significa o bien rechazar versiones auténticas o bien confiar en las de otro.</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>El último paso de actualización falló: {0}</value>

@@ -303,10 +303,16 @@ Sigstore bundle into `Data\Updates` and checks the installer against the bundle
 without cosign and without the network: the file's SHA-256 is the one signed and
 the one the transparency log recorded; the signing certificate chains to Sigstore's
 Fulcio authority at the moment the log recorded the signature (the only moment a
-ten-minute certificate is valid); the certificate names this repository's
-`sign-release` workflow, issued on a GitHub token, for this repository; the
-signature verifies under the certificate's key; and the log vouches for the entry
-under its own key. A file that fails any of that is deleted and the reason is in
+ten-minute certificate is valid); the certificate is one of this project's two
+release signers, whole - the GitHub Actions workflow `sign-release.yml` on a
+GitHub token, issued before GitHub suspended the account, for the releases up to
+6.3.3, or this project's GitLab CI pipeline on a GitLab token, for the `v*` tag
+of the release being installed, for the ones after (compiled in; no release has
+been signed there yet); the signature verifies under
+the certificate's key; and the log vouches for the entry under its own key. A
+GitHub-signed file is installed only as a release up to 6.3.3, and on Windows
+the installer's own version resource must name the release it is installed as. A
+file that fails any of that is deleted and the reason is in
 `Status.UpdateLastError` and the log. `UpdateRequireAuthenticode=1` adds a Windows
 Authenticode check on top. Nothing is run: applying the installer is the next part.
 
@@ -339,9 +345,13 @@ that moves the schema; the notes of every release say whether it does.
 
 It is off until you opt in, because a server must not call out to anyone until its
 administrator says it may; when it is on, the request is a plain `GET` of the
-GitHub Releases API with nothing but the `User-Agent` the server always sends - no
-identifier, no configuration, no counts. `UpdateFeedUrl` points it at a mirror on a
-network without Internet access.
+project's feed, `https://updates.progressiverobot.com`, with nothing but the
+`User-Agent` the server always sends - no identifier, no configuration, no counts.
+`UpdateFeedUrl` points it at a mirror on a network without Internet access. A server
+from 6.2.28 to 6.3.3 still reads GitHub's Releases API, which has answered 404 since
+18 September 2026; one line points it at the feed, and
+[UpdateFeed.md](hmailserver/docs/UpdateFeed.md) says which, and what such a server
+can then install.
 
 **Through a proxy, where that is the only way out.** `HttpProxy=host:port` (or
 `[ipv6]:port`) sends every web request this server makes as a client through a
@@ -634,7 +644,9 @@ Administration and monitoring:
                                  ; POST /api/v1/update/check run a check on demand regardless
    UpdateChannel=stable          ; prerelease to be told about pre-releases as well
    UpdateCheckHours=24
-   UpdateFeedUrl=                ; a feed other than the GitHub Releases API (a mirror; the tests' fake)
+   UpdateFeedUrl=                ; a feed other than the project's own, https://updates.progressiverobot.com
+                                 ; (a mirror; the tests' fake). A server from 6.2.28 to 6.3.3 needs
+                                 ; https://updates.progressiverobot.com/releases.json here (docs/UpdateFeed.md)
    HttpProxy=                    ; forward proxy (host:port, or [ipv6]:port) for EVERY web request the server
                                  ; makes as a client: the feed and its downloads, JWKS, token introspection.
                                  ; CONNECT for https, the absolute URL for http. Empty = direct. No credentials.
@@ -642,9 +654,11 @@ Administration and monitoring:
    UpdateTrustRootsFile=         ; PEM certificates trusted to have issued the release's signing certificate
                                  ; (empty = Sigstore's public Fulcio root and intermediate, embedded)
    UpdateLogPublicKeyFile=       ; the transparency log's public key (empty = Sigstore's public Rekor, embedded)
-   UpdateSigningIdentity=        ; the workflow the signing certificate must name (empty = this repository's
-                                 ; sign-release workflow); UpdateSigningIssuer= the OIDC issuer (empty = GitHub's);
-                                 ; UpdateSourceRepository= the repository it must record (empty = this one, - = any)
+   UpdateSigningIdentity=        ; the workflow the signing certificate must name (empty = this project's two
+                                 ; release signers: GitHub's sign-release.yml up to 6.3.3, the GitLab CI pipeline
+                                 ; for a v* tag after); UpdateSigningIssuer= the OIDC issuer (empty = each signer's
+                                 ; own); UpdateSourceRepository= the repository it must record (empty = each
+                                 ; signer's, - = any). Each replaces its part of every signer
    UpdateRequireAuthenticode=0   ; 1: the installer must also carry an Authenticode signature Windows trusts
                               ; (WinVerifyTrust at download, no revocation check, no publisher pin). The
                               ; installers have been signed since 6.3.1; earlier ones carry none, and 1 refuses them.

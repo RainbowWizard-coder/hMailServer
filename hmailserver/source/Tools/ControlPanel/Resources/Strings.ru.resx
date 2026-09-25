@@ -4319,8 +4319,8 @@ Control Panel может читать файлы сообщений только
   <data name="I_P address" xml:space="preserve">
     <value>IP-_адрес</value>
   </data>
-  <data name="Identity provider that issued the signing certificate (empty = GitHub's)" xml:space="preserve">
-    <value>Поставщик удостоверений, выдавший сертификат подписи (пусто — поставщик GitHub)</value>
+  <data name="Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)" xml:space="preserve">
+    <value>Поставщик удостоверений, выдавший сертификат подписи (пусто — поставщик GitHub или GitLab)</value>
   </data>
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Идентификатор, от имени которого записываются результаты (пусто — имя этого компьютера)</value>
@@ -8386,8 +8386,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Signing _algorithm" xml:space="preserve">
     <value>_Алгоритм подписи</value>
   </data>
-  <data name="Signing identity the certificate must begin with (empty = this project's release workflow)" xml:space="preserve">
-    <value>Удостоверение подписи, с которого должен начинаться сертификат (пусто — рабочий процесс выпуска этого проекта)</value>
+  <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
+    <value>Удостоверение подписи, с которого должен начинаться сертификат (пусто — два рабочих процесса выпуска этого проекта)</value>
   </data>
   <data name="Signing in…" xml:space="preserve">
     <value>Выполняется вход…</value>
@@ -9349,8 +9349,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Последняя попытка не удалась {0}: {1}</value>
   </data>
-  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
-    <value>Последние пять параметров на этой карточке предназначены для площадки, которая сама собирает свои выпуски и подписывает их собственным Sigstore, — или которая зеркалирует выпуски этого проекта. Оставьте их все пустыми — и сервер будет доверять ровно одному: установщику, подписанному собственным рабочим процессом выпуска этого проекта и зарегистрированному в общедоступном журнале прозрачности. Задание любого из них сужает или заменяет это, а ошибка в одном из них означает либо отказ от подлинных выпусков, либо доверие к чужим.</value>
+  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
+    <value>Последние пять параметров на этой карточке предназначены для площадки, которая сама собирает свои выпуски и подписывает их собственным Sigstore, — или которая зеркалирует выпуски этого проекта. Оставьте их все пустыми — и сервер будет доверять только установщику, подписанному одним из двух рабочих процессов выпуска этого проекта (на GitHub — для выпусков до 6.3.3, на GitLab — для последующих) и зарегистрированному в общедоступном журнале прозрачности. Задание любого из них сужает или заменяет это для обоих, а ошибка в одном из них означает либо отказ от подлинных выпусков, либо доверие к чужим.</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>Последний шаг обновления не удался: {0}</value>

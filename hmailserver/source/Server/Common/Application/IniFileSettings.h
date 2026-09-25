@@ -1040,8 +1040,9 @@ namespace HM
       bool GetDaneEnabled() const { return Current()->dane_enabled_; }
       bool GetDnssecValidationEnabled() const { return Current()->dnssec_validation_enabled_; }
       String GetDnssecTrustAnchors() const { return Current()->dnssec_trust_anchors_; }
-      // The update check: off until an administrator opts in, the GitHub Releases API
-      // unless UpdateFeedUrl says otherwise, stable unless UpdateChannel=prerelease.
+      // The update check: off until an administrator opts in, the project's feed
+      // (https://updates.progressiverobot.com) unless UpdateFeedUrl says otherwise,
+      // stable unless UpdateChannel=prerelease.
       bool GetUpdateCheckEnabled() const { return Current()->update_check_enabled_; }
       String GetUpdateChannel() const { return Current()->update_channel_; }
       String GetUpdateFeedUrl() const { return Current()->update_feed_url_; }
@@ -1060,7 +1061,8 @@ namespace HM
       // RFC 4978 COMPRESS=DEFLATE on IMAP; on unless an operator says otherwise.
       bool GetImapCompressionEnabled() const { return Current()->imap_compression_enabled_; }
       // The verify: what the installer's Sigstore bundle is checked against. Empty
-      // means the public Sigstore instance and this repository's release workflow.
+      // means the public Sigstore instance and this project's release signers (the
+      // GitHub workflow up to 6.3.3, the GitLab CI pipeline for a v* tag after).
       String GetUpdateTrustRootsFile() const { return Current()->update_trust_roots_file_; }
       String GetUpdateLogPublicKeyFile() const { return Current()->update_log_public_key_file_; }
       String GetUpdateSigningIdentity() const { return Current()->update_signing_identity_; }

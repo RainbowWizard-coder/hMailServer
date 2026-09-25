@@ -11,12 +11,15 @@ namespace HM
    // Does the project have a newer release than the one running.
    //
    // The first of the four parts of the roadmap's live update: the check. The feed
-   // is the GitHub Releases API - releases/latest on the stable channel, which
-   // GitHub already keeps free of drafts and pre-releases, or the release list on
-   // the pre-release channel - unless UpdateFeedUrl names another, which is how the
-   // tests point it at a fake and how a site without Internet access could point it
-   // at a mirror. Nothing but the request goes out: no identifier, no configuration,
-   // just a GET with the User-Agent the client always sends.
+   // is the project's own, https://updates.progressiverobot.com, static files in
+   // the GitHub Releases API's shape - releases/latest on the stable channel, the
+   // newest release that is not a pre-release, or releases.json, the list, on the
+   // pre-release channel - unless UpdateFeedUrl names another, which is how the
+   // tests point it at a fake, how a site without Internet access could point it at
+   // a mirror, and how a server from 6.2.28 to 6.3.3, built to read the GitHub
+   // Releases API, is pointed at this one (docs/UpdateFeed.md). Nothing but the
+   // request goes out: no identifier, no configuration, just a GET with the
+   // User-Agent the client always sends.
    //
    // The verdict is kept here, process-wide, and read by the Status COM object, the
    // REST route /api/v1/update and the Control Panel; every check writes one
@@ -100,7 +103,7 @@ namespace HM
       // recording the failure, when it was not. Either way one application-log line.
       static bool CheckNow(String &error);
 
-      // The feed's URL: UpdateFeedUrl, or the GitHub Releases API for the channel.
+      // The feed's URL: UpdateFeedUrl, or the project's feed for the channel.
       static AnsiString FeedUrl();
       static bool IsPreReleaseChannel();
 
@@ -114,8 +117,12 @@ namespace HM
 
       static const char *StateName(State state);
 
-      // The download's outcome, recorded by UpdateDownloader.
-      static void RecordDownloaded(const String &path, const AnsiString &identity, __int64 integratedTime);
+      // The download's outcome, recorded by UpdateDownloader: version is the release
+      // the file was downloaded and verified as. False, and nothing recorded, when
+      // that is no longer the release the snapshot offers - a check answered while
+      // the download ran - since a file kept as "downloaded" is installed as
+      // available_version, and one verified as another release must not be.
+      static bool RecordDownloaded(const String &path, const String &version, const AnsiString &identity, __int64 integratedTime);
       // A failure of a check or a download: the state becomes StateFailed and
       // last_error says why; what an earlier check learned is kept.
       static void RecordFailure(const String &reason);

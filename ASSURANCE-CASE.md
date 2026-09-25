@@ -289,9 +289,18 @@ noticed" gap that a diff review cannot catch.
 New in 6.2.28, the server's own update path applies the same verification. `UpdateChecker` reads the release feed and
 `SigstoreVerifier` checks the installer against its `.cosign.bundle` in-process -
 the file's SHA-256 is the one signed and the one Rekor recorded, the certificate
-chains to the embedded Sigstore trust root, and its identity must be this
-repository's `sign-release.yml` workflow issued by GitHub's token service - so a
-substituted installer is refused before it is run.
+chains to the embedded Sigstore trust root, and its identity must be one of this
+project's two release signers, whole: the `sign-release.yml` workflow issued by
+GitHub's token service, which signed every release up to 6.3.3 and is trusted
+only for certificates issued before the account's suspension on 18 September
+2026, or this project's GitLab CI pipeline issued by GitLab's, for the `v*` tag
+of the release being installed, which is to sign the releases after and has
+signed none yet. A GitHub-signed file is installed only as a release up to
+6.3.3, and on Windows the installer's own version resource must name the release
+it is installed as - so a substituted installer, or a genuine older one offered
+as a newer release, is refused before it is run. The feed it reads is
+https://updates.progressiverobot.com, served by GitLab Pages from the project's
+releases (`hmailserver/docs/UpdateFeed.md`).
 
 ---
 

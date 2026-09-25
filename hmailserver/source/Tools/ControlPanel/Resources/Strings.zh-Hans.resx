@@ -4319,8 +4319,8 @@
   <data name="I_P address" xml:space="preserve">
     <value>IP 地址(_P)</value>
   </data>
-  <data name="Identity provider that issued the signing certificate (empty = GitHub's)" xml:space="preserve">
-    <value>颁发签名证书的身份提供方（留空 = GitHub 的）</value>
+  <data name="Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)" xml:space="preserve">
+    <value>颁发签名证书的身份提供方（留空 = GitHub 或 GitLab 的）</value>
   </data>
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>写入结果时所用的身份（留空 = 本计算机的名称）</value>
@@ -8386,8 +8386,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Signing _algorithm" xml:space="preserve">
     <value>签名算法(_A)</value>
   </data>
-  <data name="Signing identity the certificate must begin with (empty = this project's release workflow)" xml:space="preserve">
-    <value>证书必须以其开头的签名身份（留空 = 本项目的发布工作流）</value>
+  <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
+    <value>证书必须以其开头的签名身份（留空 = 本项目的两个发布工作流）</value>
   </data>
   <data name="Signing in…" xml:space="preserve">
     <value>正在登录…</value>
@@ -9349,8 +9349,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>上次尝试于 {0} 失败：{1}</value>
   </data>
-  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
-    <value>本卡片上最后五项设置是为这样的站点准备的：它自己构建发行版并用自己的 Sigstore 为其签名，或者它镜像了本项目的发行版。把它们全部留空，服务器就只信任一样东西：由本项目自己的发布工作流签名、并记录在公共透明日志中的安装程序。设置其中任何一项都会收窄或取代这一点，而弄错其中一项就意味着要么拒绝真正的发行版，要么信任别人的发行版。</value>
+  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
+    <value>本卡片上最后五项设置是为这样的站点准备的：它自己构建发行版并用自己的 Sigstore 为其签名，或者它镜像了本项目的发行版。把它们全部留空，服务器就只信任由本项目两个发布工作流之一（6.3.3 及以前的发行版用 GitHub 上的，之后的用 GitLab 上的）签名、并记录在公共透明日志中的安装程序。设置其中任何一项都会对两者收窄或取代这一点，而弄错其中一项就意味着要么拒绝真正的发行版，要么信任别人的发行版。</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>上一个更新步骤失败: {0}</value>

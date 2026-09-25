@@ -320,6 +320,18 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
 
 ### Operations
 
+- **The update feed is off GitHub.** The live update reads `https://updates.progressiverobot.com`, which GitLab
+  Pages serves from the project's releases, in place of GitHub's Releases API, which has answered 404 since
+  18 September 2026. It trusts two signers: the GitHub workflow that signed every release up to 6.3.3, for a
+  certificate issued before the suspension and a release no later than 6.3.3, and this project's GitLab CI
+  pipeline for a `v*` tag, which is to sign the releases after and has signed none yet. A file signed for one
+  release tag is refused as any other release; on Windows the installer's own version resource must name the
+  release it is installed as; and a version with a suffix is a pre-release whatever the feed says. **A server from 6.2.28 to 6.3.3 still looks at GitHub.** Under `[Settings]` in its `hMailServer.ini`,
+  add `UpdateFeedUrl=https://updates.progressiverobot.com/releases.json`, then restart the service, and its
+  update check works again. Its live update can then install the re-hosted releases up to 6.3.3. The first
+  release signed on GitLab will be refused by that server's live update, which trusts only GitHub's signer:
+  install that one release by hand, and until then keep `UpdateAutoDownload` off, or the server downloads the
+  installer at every check and refuses it ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 - **Upgrades without a booked window**: a drain closes the listeners before it waits, the live update drains
   first, and with `UpgradeOnStart=1` in `[Database]` (a new bootstrap key, 0 by default) the service applies
   the schema steps itself as it starts ([Upgrading.md](hmailserver/docs/Upgrading.md)). A rolled-back update's

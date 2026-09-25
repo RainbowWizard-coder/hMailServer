@@ -1,0 +1,1032 @@
+#!/usr/bin/env python3
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+"""The update feed an installed server reads, rendered from the GitLab releases.
+
+A server's live update (Common/Util/UpdateChecker.cpp) reads a release feed in
+the GitHub Releases API's shape. It read GitHub's own until GitHub suspended the
+project's account on 18 September 2026; since then it reads
+https://updates.progressiverobot.com, which GitLab Pages serves from this
+project, and which this script makes from the project's GitLab releases (the
+public API, no token: the project is public) and the files they link to in the
+generic package registry. The files it writes, under public/:
+
+  releases/latest         the newest release that is not a pre-release, as one
+                          release object: the stable channel's default
+  releases.json           every release, newest first, as a list: the
+                          pre-release channel's default, and the one value of
+                          UpdateFeedUrl that serves both channels
+                          (docs/UpdateFeed.md)
+  releases/index.html     a page showing that list, for a browser that follows
+                          Pages' 302 from /releases to /releases/; HTML, with
+                          the list escaped, so nothing in a release's name runs
+                          on the updates domain
+  releases/tags/<tag>     one release object per release: the rollback's lookup
+  index.html              a page for a person who opens the address
+
+Every URL the server derives is a FILE there, answered 200 with no redirect,
+because HttpsClient::Request follows none. GitLab Pages serves a path that is a
+file as it is; answers a directory's path without the slash with a 302 to the
+path with it, and with the slash with its index.html; and tries <path>.html
+for a path that is neither. It ignores the query string. So /releases/latest,
+/releases.json and /releases/tags/v6.3.3 are 200, and the bare /releases -
+a directory here, since releases/latest is in it - and /releases?per_page=10,
+GitHub's list address, are a 302 a server would report as "The update feed
+answered HTTP 302."; neither is a default or in the documentation.
+
+What a release object holds is exactly what UpdateChecker::ReadRelease_ reads
+and nothing else: tag_name, name, html_url, published_at, draft, prerelease and
+assets, each asset its name, browser_download_url, size and digest. The URL is
+the release link's own, a file of the project's generic package registry
+(.../packages/generic/hmailserver/<version>/<file>, anonymous for a public
+project), and the convention every release follows is held: the link is named
+after the file it points to, and the package's version is the tag without its
+v. The size and the "sha256:<hex>" digest are the registry's own record of the
+file, which the server holds the download to. A Sigstore bundle is an asset like
+any other, named <artefact>.cosign.bundle, which is how the server finds it.
+GitLab has no pre-release flag: a release is one when its tag has a suffix
+(v6.2.23-alpha1), which is how every pre-release so far was published, and the
+mark a server reads whatever the feed says. A release whose name says
+"Pre-release" but whose tag has no suffix breaks that rule and is not published. A release whose tag is not v<digit>... is not
+a server release (build-inputs-1 carries build inputs) and is left out; so is
+one GitLab calls upcoming, whose date has not come.
+
+A release with a link that breaks those rules is left out of the feed with a
+warning, so that one old release cannot hold every later one back - except the
+newest stable release, which a feed without it would misstate, and which stops
+the render instead. The JSON escapes <, > and & so that no file of the site
+carries markup from a release's name.
+
+Usage, from the repository root:
+  python3 build/generate-update-feed.py [--output DIR]
+      write the tree (default public/); refuses a non-empty DIR that is not one
+  python3 build/generate-update-feed.py --check [--output DIR | --site URL]
+      exit 1 when DIR, or the site at URL, is not what the API says now
+  python3 build/generate-update-feed.py --serve-check DIR
+      serve DIR as GitLab Pages would and read every URL a server derives,
+      both channels and a rollback, with a copy of the server's parser
+  python3 build/generate-update-feed.py --self-test
+      the above against canned API answers, with no network
+"""
+import argparse
+import datetime
+import html
+import http.server
+import json
+import os
+import re
+import shutil
+import socketserver
+import sys
+import threading
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CHECKER_SOURCE = os.path.join(ROOT, "hmailserver", "source", "Server", "Common", "Util", "UpdateChecker.cpp")
+
+PROJECT_ID = "86730559"
+PROJECT_URL = "https://gitlab.com/Progressiverobot/hmailserver"
+API = "https://gitlab.com/api/v4/projects/" + PROJECT_ID
+SITE = "https://updates.progressiverobot.com"
+DOCUMENT_URL = PROJECT_URL + "/-/blob/master/hmailserver/docs/UpdateFeed.md"
+
+# A link of a release is a file of this project's generic package registry.
+REGISTRY_LINK = re.compile(r"^https://gitlab\.com/api/v4/projects/" + PROJECT_ID + r"/packages/generic/([^/?#]+)/([^/?#]+)/([^/?#]+)$")
+# A server release's tag: v, a digit, then what the server accepts in a tag.
+SERVER_TAG = re.compile(r"^v[0-9][A-Za-z0-9._-]{0,62}$")
+TIMESTAMP = re.compile(r"^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})(?:\.\d+)?(Z|[+-]\d{2}:\d{2})$")
+
+RELEASE_KEYS = ["tag_name", "name", "html_url", "published_at", "draft", "prerelease", "assets"]
+ASSET_KEYS = ["name", "size", "digest", "browser_download_url"]
+
+
+class FeedError(Exception):
+    pass
+
+
+# ---------------------------------------------------------------- the API
+
+def http_get(url, attempts=5):
+    """GET url anonymously: (body bytes, headers). Retries a 429 or a 5xx."""
+    request = urllib.request.Request(url, headers={"User-Agent": "hmailserver-update-feed", "Accept": "application/json"})
+    for attempt in range(attempts):
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return response.read(), dict((k.lower(), v) for k, v in response.headers.items())
+        except urllib.error.HTTPError as e:
+            if (e.code == 429 or e.code >= 500) and attempt < attempts - 1:
+                wait = e.headers.get("Retry-After", "")
+                time.sleep(int(wait) if wait.isdigit() else 5 * (attempt + 1))
+                continue
+            raise FeedError("%s answered HTTP %d" % (url, e.code))
+        except (urllib.error.URLError, OSError) as e:
+            if attempt < attempts - 1:
+                time.sleep(5 * (attempt + 1))
+                continue
+            raise FeedError("%s could not be read: %s" % (url, e))
+    raise FeedError("%s could not be read" % url)
+
+
+def get_all(get, path):
+    """Every item of a paginated API list, following X-Next-Page."""
+    items = []
+    page = "1"
+    for _ in range(100):
+        separator = "&" if "?" in path else "?"
+        body, headers = get(API + path + separator + "per_page=100&page=" + page)
+        chunk = json.loads(body.decode("utf-8"))
+        if not isinstance(chunk, list):
+            raise FeedError("%s is not a list" % path)
+        items.extend(chunk)
+        page = (headers.get("x-next-page") or "").strip()
+        if not page:
+            return items
+    raise FeedError("%s has more than a hundred pages" % path)
+
+
+def load(get):
+    """The releases, and the registry's record of every file they link to."""
+    releases = get_all(get, "/releases?order_by=released_at&sort=desc")
+
+    wanted = set()
+    for release in releases:
+        for link in (release.get("assets") or {}).get("links") or []:
+            match = REGISTRY_LINK.match(link.get("url") or "")
+            if match:
+                wanted.add((urllib.parse.unquote(match.group(1)), urllib.parse.unquote(match.group(2))))
+
+    packages = get_all(get, "/packages?package_type=generic&status=default")
+    ids = {}
+    for package in packages:
+        key = (package.get("name"), package.get("version"))
+        if key in wanted:
+            ids.setdefault(key, []).append(package["id"])
+
+    files = {}
+    for key in sorted(ids):
+        record = {}
+        for package_id in sorted(ids[key]):
+            for entry in get_all(get, "/packages/%d/package_files" % package_id):
+                # A file uploaded twice is served as the later upload.
+                name = entry.get("file_name")
+                if name not in record or entry.get("id", 0) > record[name].get("id", 0):
+                    record[name] = entry
+        files[key] = record
+    return releases, files
+
+
+# ---------------------------------------------------------------- the feed
+
+def parse_version(text):
+    """UpdateChecker.cpp's ParseVersion_: four numbers, from after an optional v
+    to the first character that is neither a digit nor a dot."""
+    components = [0, 0, 0, 0]
+    position = 1 if text[:1] in ("v", "V") else 0
+    index = 0
+    while position < len(text) and index < 4:
+        c = text[position]
+        if "0" <= c <= "9":
+            if components[index] < 100000000:
+                components[index] = components[index] * 10 + ord(c) - ord("0")
+            position += 1
+        elif c == ".":
+            index += 1
+            position += 1
+        else:
+            break
+    return components
+
+
+def compare_versions(left, right):
+    a, b = parse_version(left), parse_version(right)
+    return (a > b) - (a < b)
+
+
+def utc_timestamp(text):
+    """GitLab's released_at as GitHub wrote published_at: 2026-09-15T01:02:52Z."""
+    match = TIMESTAMP.match(text or "")
+    if not match:
+        raise FeedError("released_at %r is not an ISO 8601 time" % text)
+    moment = datetime.datetime.fromisoformat(match.group(1) + "T" + match.group(2) + (
+        "+00:00" if match.group(3) == "Z" else match.group(3)))
+    return moment.astimezone(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def is_prerelease(release):
+    """A suffixed tag (v6.3.5-rc1). A server tells a pre-release by its version's
+    suffix whatever the feed's flag says, so the tag is the only mark a feed that
+    was tampered with cannot take off; a release named as a pre-release whose tag
+    has no suffix is refused in render_release."""
+    return "-" in release["tag_name"]
+
+
+def render_release(release, files, errors):
+    tag = release["tag_name"]
+    if "-" not in tag and (release.get("name") or "").strip().lower().startswith("pre-release"):
+        errors.append("%s: the name says it is a pre-release but the tag has no suffix, so a server could not tell it from the "
+                      "final release; tag a pre-release v<version>-<suffix>" % tag)
+    assets = []
+    seen = set()
+    for link in sorted((release.get("assets") or {}).get("links") or [], key=lambda l: l.get("name") or ""):
+        name = link.get("name") or ""
+        url = link.get("url") or ""
+        match = REGISTRY_LINK.match(url)
+        if not match:
+            errors.append("%s: the link %r goes to %s, which is not this project's package registry" % (tag, name, url))
+            continue
+        package = (urllib.parse.unquote(match.group(1)), urllib.parse.unquote(match.group(2)))
+        file_name = urllib.parse.unquote(match.group(3))
+        entry = files.get(package, {}).get(file_name)
+        if entry is None:
+            errors.append("%s: the link %r names %s %s/%s, which the registry does not have" % (tag, name, file_name, package[0], package[1]))
+            continue
+        # The link is the file it names, of this release's own package: a link
+        # named for one release's installer that points at another's would have a
+        # server install the other and find the "newer" release again next time.
+        if file_name != name:
+            errors.append("%s: the link %r points at the file %s, which has another name" % (tag, name, file_name))
+            continue
+        if package != ("hmailserver", tag[1:]):
+            errors.append("%s: the link %r is a file of the package %s %s, not of hmailserver %s" % (tag, name, package[0], package[1], tag[1:]))
+            continue
+        if name in seen:
+            errors.append("%s: two links are named %r" % (tag, name))
+            continue
+        seen.add(name)
+        digest = (entry.get("file_sha256") or "").lower()
+        if not re.match(r"^[0-9a-f]{64}$", digest):
+            errors.append("%s: the registry has no SHA-256 for %s" % (tag, file_name))
+            continue
+        assets.append({
+            "name": name,
+            "size": int(entry.get("size") or 0),
+            "digest": "sha256:" + digest,
+            "browser_download_url": url,
+        })
+    links = release.get("_links") or {}
+    return {
+        "tag_name": tag,
+        "name": release.get("name") or tag,
+        "html_url": links.get("self") or (PROJECT_URL + "/-/releases/" + urllib.parse.quote(tag)),
+        "published_at": utc_timestamp(release.get("released_at")),
+        "draft": False,
+        "prerelease": is_prerelease(release),
+        "assets": assets,
+    }
+
+
+def feed_bytes(value):
+    text = json.dumps(value, ensure_ascii=False, indent=1)
+    # No file of the site carries markup, whatever a release's name holds; every
+    # JSON reader, the server's among them, reads the escapes back as the three
+    # characters.
+    text = text.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    return (text + "\n").encode("utf-8")
+
+
+def render(releases, files):
+    """The tree, as {relative path: bytes}, the release releases/latest is, and a
+    warning for each release left out. A release that cannot be published as it
+    is - a link outside the registry, to a file it lacks, or that breaks the
+    naming convention - is left out, unless it is the newest stable release: a
+    feed without that one would tell every stable server something false, so it
+    stops the render (FeedError) and the site keeps what it had."""
+    candidates = [r for r in releases if SERVER_TAG.match(r.get("tag_name") or "") and not r.get("upcoming_release")]
+    if not candidates:
+        raise FeedError("there is no server release to publish")
+
+    newest_stable = None
+    for release in candidates:
+        if is_prerelease(release):
+            continue
+        if newest_stable is None or compare_versions(release["tag_name"], newest_stable["tag_name"]) > 0:
+            newest_stable = release
+
+    rendered = []
+    warnings = []
+    for release in candidates:
+        errors = []
+        try:
+            item = render_release(release, files, errors)
+        except FeedError as e:
+            errors.append("%s: %s" % (release["tag_name"], e))
+        if errors:
+            if release is newest_stable:
+                raise FeedError("the newest stable release, %s, cannot be published as it is:\n  %s" % (
+                    release["tag_name"], "\n  ".join(errors)))
+            warnings.append("%s is left out of the feed:\n  %s" % (release["tag_name"], "\n  ".join(errors)))
+            continue
+        rendered.append(item)
+
+    tags = [r["tag_name"] for r in rendered]
+    if len(set(tags)) != len(tags):
+        raise FeedError("a tag is published twice: %s" % ", ".join(sorted(t for t in set(tags) if tags.count(t) > 1)))
+
+    # Newest first, as GitHub listed them; equal dates by version, then by tag.
+    rendered.sort(key=lambda r: (r["published_at"], parse_version(r["tag_name"]), r["tag_name"]), reverse=True)
+
+    stable = [r for r in rendered if not r["prerelease"]]
+    if not stable:
+        raise FeedError("every release is a pre-release, so releases/latest would have nothing to say")
+    # The newest stable VERSION, whatever its date: a maintenance release of an
+    # older line published after a newer one must not become every server's latest.
+    latest = stable[0]
+    for candidate in stable[1:]:
+        if compare_versions(candidate["tag_name"], latest["tag_name"]) > 0:
+            latest = candidate
+
+    tree = {
+        "releases/latest": feed_bytes(latest),
+        "releases.json": feed_bytes(rendered),
+        "releases/index.html": releases_page(rendered).encode("utf-8"),
+        "index.html": index_page(latest, rendered).encode("utf-8"),
+    }
+    for release in rendered:
+        tree["releases/tags/" + release["tag_name"]] = feed_bytes(release)
+    return tree, latest, warnings
+
+
+def releases_page(rendered):
+    """/releases/: the list as a page, for a browser. No server reads it."""
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hMailServer releases</title>
+<style>body{{font:16px/1.5 system-ui,sans-serif;max-width:60rem;margin:2rem auto;padding:0 16px}}pre{{white-space:pre-wrap;word-break:break-all}}</style>
+</head>
+<body>
+<h1>hMailServer releases</h1>
+<p>Every release in the update feed, newest first, as <a href="../releases.json"><code>releases.json</code></a> gives it to a server.</p>
+<pre>{listing}</pre>
+</body>
+</html>
+""".format(listing=html.escape(feed_bytes(rendered).decode("utf-8")))
+
+
+def index_page(latest, rendered):
+    e = html.escape
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hMailServer update feed</title>
+<style>body{{font:16px/1.5 system-ui,sans-serif;max-width:46rem;margin:2rem auto;padding:0 16px}}code{{word-break:break-all}}</style>
+</head>
+<body>
+<h1>hMailServer update feed</h1>
+<p>The release feed an installed hMailServer reads to find out whether a newer release exists.
+It is made from the <a href="{project}/-/releases">project's releases on GitLab</a>, and the files it names are downloaded from the project's package registry.</p>
+<p>The newest release that is not a pre-release is <a href="{latest_url}">{latest_name}</a>, published {latest_date}. The feed lists {count} releases.</p>
+<ul>
+<li><a href="releases/latest"><code>releases/latest</code></a>: the newest release that is not a pre-release, which a server on the stable channel reads.</li>
+<li><a href="releases.json"><code>releases.json</code></a>: every release, which a server on the pre-release channel reads.</li>
+<li><code>releases/tags/v&lt;version&gt;</code>: one release, which a server reads to roll back to the version it runs.</li>
+</ul>
+<p>A server from 6.2.28 to 6.3.3 still looks for its updates on GitHub. One line in its <code>hMailServer.ini</code> points it here:
+<code>UpdateFeedUrl={site}/releases.json</code>. <a href="{document}">How, and what it changes</a>.</p>
+</body>
+</html>
+""".format(project=e(PROJECT_URL), latest_url=e(latest["html_url"]), latest_name=e(latest["name"]),
+           latest_date=e(latest["published_at"][:10]), count=len(rendered), site=e(SITE), document=e(DOCUMENT_URL))
+
+
+# ---------------------------------------------------------------- writing and checking
+
+def read_tree(directory):
+    tree = {}
+    for base, _, names in os.walk(directory):
+        for name in names:
+            path = os.path.join(base, name)
+            relative = os.path.relpath(path, directory).replace(os.sep, "/")
+            with open(path, "rb") as f:
+                tree[relative] = f.read()
+    return tree
+
+
+def write_tree(tree, directory):
+    if os.path.isdir(directory) and os.listdir(directory):
+        if not os.path.isfile(os.path.join(directory, "releases.json")):
+            raise FeedError("%s is not empty and is not an update feed; nothing was written" % directory)
+        shutil.rmtree(directory)
+    for relative in sorted(tree):
+        path = os.path.join(directory, *relative.split("/"))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "wb") as f:
+            f.write(tree[relative])
+
+
+def site_path(relative):
+    """The URL path Pages answers a file at: index.html at its directory's."""
+    if relative == "index.html":
+        return "/"
+    if relative.endswith("/index.html"):
+        return "/" + relative[:-len("index.html")]
+    return "/" + relative
+
+
+class NoRedirects(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def fetch_no_redirect(url):
+    """(status, body, headers) for one GET, a redirect answered as it is."""
+    handlers = [NoRedirects]
+    if urllib.parse.urlparse(url).hostname == "127.0.0.1":
+        # The loopback server is this process's own; no proxy in the environment
+        # can reach it.
+        handlers.append(urllib.request.ProxyHandler({}))
+    opener = urllib.request.build_opener(*handlers)
+    request = urllib.request.Request(url, headers={"User-Agent": "hMailServer", "Accept": "application/json"})
+    try:
+        with opener.open(request, timeout=30) as response:
+            return response.status, response.read(), dict((k.lower(), v) for k, v in response.headers.items())
+    except urllib.error.HTTPError as e:
+        return e.code, e.read(), dict((k.lower(), v) for k, v in e.headers.items())
+
+
+def differences(expected, actual, actual_name):
+    problems = []
+    for relative in sorted(expected):
+        if relative not in actual:
+            problems.append("missing from %s: %s" % (actual_name, relative))
+        elif actual[relative] != expected[relative]:
+            problems.append("differs in %s: %s" % (actual_name, relative))
+    for relative in sorted(set(actual) - set(expected)):
+        problems.append("in %s but not in the releases: %s" % (actual_name, relative))
+    return problems
+
+
+def check_site(tree, site):
+    problems = []
+    for relative in sorted(tree):
+        url = site.rstrip("/") + site_path(relative)
+        status, body, _ = fetch_no_redirect(url)
+        if status != 200:
+            problems.append("%s answered HTTP %d" % (url, status))
+        elif body != tree[relative]:
+            problems.append("%s is not what the releases say" % url)
+    return problems
+
+
+# ---------------------------------------------------------------- the server's side of it
+
+def server_constants(source=None):
+    """The compiled feed addresses, read from UpdateChecker.cpp itself."""
+    if source is None:
+        with open(CHECKER_SOURCE, encoding="utf-8") as f:
+            source = f.read()
+    constants = {}
+    for name in ("STABLE_FEED", "PRERELEASE_FEED", "RELEASES_BASE"):
+        match = re.search(r"const char \*" + name + r' = "([^"]+)";', source)
+        if not match:
+            raise FeedError("UpdateChecker.cpp has no %s" % name)
+        constants[name] = match.group(1)
+    return constants
+
+
+def feed_url(constants, configured, prerelease_channel):
+    """UpdateChecker::FeedUrl."""
+    if configured:
+        return configured
+    return constants["PRERELEASE_FEED"] if prerelease_channel else constants["STABLE_FEED"]
+
+
+def by_tag_url(constants, configured, version):
+    """UpdateChecker::ReleaseByTagUrl, the same in every release from 6.2.28."""
+    tag = "/tags/v" + version
+    if not configured:
+        return constants["RELEASES_BASE"] + tag
+    at = configured.find("/releases")
+    if at < 0:
+        return configured + tag
+    return configured[:at + 9] + tag
+
+
+def installer_names(tag):
+    """UpdateChecker.cpp's PlatformInstallerName_, for each kind of installation."""
+    return {
+        "windows": "hMailServer-%s-x64.exe" % tag,
+        "deb-amd64": "hmailserver_%s_amd64.deb" % tag,
+        "deb-arm64": "hmailserver_%s_arm64.deb" % tag,
+        "rpm-x86_64": "hmailserver-%s-1.x86_64.rpm" % tag,
+        "rpm-aarch64": "hmailserver-%s-1.aarch64.rpm" % tag,
+        "appimage-x86_64": "hMailServer-%s-x86_64.AppImage" % tag,
+        "appimage-aarch64": "hMailServer-%s-aarch64.AppImage" % tag,
+    }
+
+
+def text_member(value, key):
+    member = value.get(key)
+    return member if isinstance(member, str) else ""
+
+
+def read_release(value, platform):
+    """UpdateChecker::ReadRelease_, field for field: None where it returns false."""
+    if not isinstance(value, dict):
+        return None
+    tag = text_member(value, "tag_name")
+    if not tag:
+        return None
+    if tag[0] in ("v", "V"):
+        tag = tag[1:]
+    allowed = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-")
+    if len(tag) > 64 or any(c not in allowed for c in tag) or tag[:1] in (".", "-"):
+        return None
+    release = {
+        "version": tag,
+        "name": text_member(value, "name"),
+        "url": text_member(value, "html_url"),
+        "published_at": text_member(value, "published_at"),
+        "draft": value.get("draft") is True,
+        "prerelease": value.get("prerelease") is True,
+        "installer_name": "", "installer_url": "", "installer_size": 0, "installer_digest": "", "bundle_url": "",
+    }
+    installer = installer_names(tag)[platform]
+    assets = value.get("assets")
+    if isinstance(assets, list):
+        for asset in assets:
+            if not isinstance(asset, dict):
+                continue
+            name = text_member(asset, "name")
+            if name == installer:
+                size = asset.get("size")
+                release["installer_name"] = name
+                release["installer_url"] = text_member(asset, "browser_download_url")
+                release["installer_size"] = int(size) if isinstance(size, (int, float)) and not isinstance(size, bool) else 0
+                release["installer_digest"] = text_member(asset, "digest")
+            elif name == installer + ".cosign.bundle":
+                release["bundle_url"] = text_member(asset, "browser_download_url")
+    return release
+
+
+def select_release(document, prerelease_channel, platform):
+    """UpdateChecker::SelectRelease_: (release or None, error or None)."""
+    if isinstance(document, dict):
+        candidates = [document]
+    elif isinstance(document, list):
+        candidates = document
+    else:
+        return None, "The update feed is neither a release nor a list of releases."
+    any_release = False
+    best = None
+    for candidate in candidates:
+        release = read_release(candidate, platform)
+        if release is None:
+            continue
+        any_release = True
+        if release["draft"] or ((release["prerelease"] or "-" in release["version"]) and not prerelease_channel):
+            continue
+        if best is None or compare_versions(release["version"], best["version"]) > 0:
+            best = release
+    if not any_release:
+        return None, "The update feed has no release in it."
+    return best, None
+
+
+# ---------------------------------------------------------------- GitLab Pages, locally
+
+def pages_resolve(root, url_path):
+    """gitlab-pages' reader (internal/serving/disk/reader.go, tryFile) for one
+    path: (status, file or None, location or None). The query is not its business."""
+    path = urllib.parse.unquote(url_path.split("?", 1)[0])
+    if ".." in path.split("/"):
+        return 404, None, None
+    full = os.path.join(root, *[p for p in path.split("/") if p])
+    if os.path.isdir(full):
+        if not path.endswith("/"):
+            query = url_path[len(url_path.split("?", 1)[0]):]
+            return 302, None, path + "/" + query
+        index = os.path.join(full, "index.html")
+        return (200, index, None) if os.path.isfile(index) else (404, None, None)
+    if os.path.isfile(full):
+        return 200, full, None
+    if not path.endswith("/") and os.path.isfile(full + ".html"):
+        return 200, full + ".html", None
+    return 404, None, None
+
+
+class PagesServer(object):
+    """A loopback HTTP server that answers as GitLab Pages would from root."""
+
+    def __init__(self, root):
+        tree_root = root
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                status, path, location = pages_resolve(tree_root, self.path)
+                self.send_response(status)
+                if location:
+                    self.send_header("Location", location)
+                body = b""
+                if path:
+                    with open(path, "rb") as f:
+                        body = f.read()
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *args):
+                pass
+
+        self.server = socketserver.ThreadingTCPServer(("127.0.0.1", 0), Handler)
+        self.server.daemon_threads = True
+        self.port = self.server.server_address[1]
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+
+    def __enter__(self):
+        self.thread.start()
+        return self
+
+    def __exit__(self, *exc):
+        self.server.shutdown()
+        self.server.server_close()
+
+
+def serve_check(directory, constants, out=print):
+    """Every URL a server derives, read from directory served as Pages serves it,
+    and each answer read as the server reads it. Returns the problems found."""
+    problems = []
+    with PagesServer(directory) as pages:
+        base = "http://127.0.0.1:%d" % pages.port
+
+        def local(url):
+            return url.replace(SITE, base, 1) if url.startswith(SITE) else url
+
+        def read(url, prerelease_channel, platform="windows", by_tag=False):
+            status, body, _ = fetch_no_redirect(local(url))
+            if status != 200:
+                problems.append("%s answered HTTP %d" % (url, status))
+                out("  %-3d %s" % (status, url))
+                return None
+            try:
+                document = json.loads(body.decode("utf-8"))
+            except ValueError as e:
+                problems.append("%s is not JSON: %s" % (url, e))
+                return None
+            if by_tag:
+                release = read_release(document, platform)
+                error = None if release else "not a release"
+            else:
+                release, error = select_release(document, prerelease_channel, platform)
+            if error:
+                problems.append("%s: %s" % (url, error))
+                return None
+            if release is None:
+                # Every server on that channel would call itself up to date.
+                problems.append("%s gives the %s channel no release it takes" % (url, "pre-release" if prerelease_channel else "stable"))
+                out("  200 %s -> no release the channel takes" % url)
+                return None
+            out("  200 %s -> %s %s, installer %s (%d bytes, %s), bundle %s" % (
+                url, "pre-release" if release["prerelease"] else "release", release["version"],
+                release["installer_name"] or "none", release["installer_size"],
+                release["installer_digest"][:15] + "..." if release["installer_digest"] else "no digest",
+                "yes" if release["bundle_url"] else "none"))
+            return release
+
+        configured = SITE + "/releases.json"
+        out("the compiled defaults:")
+        stable = read(feed_url(constants, "", False), False)
+        preview = read(feed_url(constants, "", True), True)
+        if stable and not (stable["installer_url"] and stable["bundle_url"]):
+            problems.append("%s, the stable channel's release, carries no Windows installer with its Sigstore bundle, so no Windows server could install it" % stable["version"])
+        out("UpdateFeedUrl=%s, the value docs/UpdateFeed.md gives:" % configured)
+        stable_configured = read(feed_url(constants, configured, False), False)
+        preview_configured = read(feed_url(constants, configured, True), True)
+        if stable and stable_configured and stable["version"] != stable_configured["version"]:
+            problems.append("the stable channel finds %s by default and %s through UpdateFeedUrl" % (stable["version"], stable_configured["version"]))
+        if preview and preview_configured and preview["version"] != preview_configured["version"]:
+            problems.append("the pre-release channel finds %s by default and %s through UpdateFeedUrl" % (preview["version"], preview_configured["version"]))
+
+        out("the rollback's lookup, for every release, by default and through UpdateFeedUrl:")
+        tags = sorted(n[len("releases/tags/"):] for n in read_tree(directory) if n.startswith("releases/tags/"))
+        looked_up = 0
+        for tag in tags:
+            version = tag[1:]
+            for configured_value in ("", configured):
+                url = by_tag_url(constants, configured_value, version)
+                status, body, _ = fetch_no_redirect(local(url))
+                release = read_release(json.loads(body.decode("utf-8")), "windows") if status == 200 else None
+                if release is None or release["version"] != version:
+                    problems.append("%s does not answer release %s" % (url, version))
+                else:
+                    looked_up += 1
+        out("  %d of %d lookups answered with the release asked for" % (looked_up, 2 * len(tags)))
+        if stable:
+            for configured_value in ("", configured):
+                read(by_tag_url(constants, configured_value, stable["version"]), False, by_tag=True)
+
+        out("the addresses a server must not be pointed at:")
+        for path in ("/releases", "/releases?per_page=10"):
+            status, _, headers = fetch_no_redirect(base + path)
+            out("  %-3d %s%s" % (status, SITE + path, " -> " + headers.get("location", "") if status in (301, 302) else ""))
+    return problems
+
+
+# ---------------------------------------------------------------- the self-test
+
+def self_test():
+    import tempfile
+
+    registry = API + "/packages/generic/hmailserver/"
+
+    def link(version, name):
+        return {"name": name, "url": registry + version + "/" + urllib.parse.quote(name), "link_type": "other"}
+
+    def release(tag, name, released, links, upcoming=False):
+        return {"tag_name": tag, "name": name, "released_at": released, "upcoming_release": upcoming,
+                "_links": {"self": PROJECT_URL + "/-/releases/" + tag},
+                "assets": {"count": len(links), "sources": [], "links": links}, "description": "notes"}
+
+    def files_for(version):
+        return [link(version, n) for n in (
+            "hMailServer-%s-x64.exe" % version, "hMailServer-%s-x64.exe.cosign.bundle" % version,
+            "hmailserver_%s_amd64.deb" % version, "hmailserver_%s_amd64.deb.cosign.bundle" % version)]
+
+    markup = "hMailServer 6.3.3 <script>alert(1)</script> & co"
+    releases = [
+        release("v6.3.5-rc1", "Pre-release: hMailServer 6.3.5 RC 1", "2026-10-02T09:00:00.000Z", files_for("6.3.5-rc1")),
+        release("v6.3.4", "hMailServer 6.3.4", "2026-10-01T12:00:00.000+01:00", files_for("6.3.4") + [link("6.3.4", "notes with space+plus.txt")]),
+        release("v6.2.29", "hMailServer 6.2.29", "2026-10-01T12:30:00.000Z", files_for("6.2.29")),
+        release("build-inputs-1", "build inputs", "2026-09-11T04:26:16.000Z", []),
+        release("v6.3.3", markup, "2026-09-15T01:02:52.000Z", files_for("6.3.3")),
+        release("v6.9.0", "hMailServer 6.9.0", "2027-01-01T00:00:00.000Z", files_for("6.9.0"), upcoming=True),
+        release("v6.2.22-pre1", "Pre-release: hMailServer 6.2.22 pre-release 1", "2026-08-16T22:33:58.000Z", []),
+        release("v6.0.0-B4", "Pre-release: hMailServer 6.0.0-B4", "2026-06-12T20:44:23.000Z", []),
+    ]
+    package_ids = {}
+    package_files = {}
+    next_id = [1000]
+    for r in releases:
+        for l in r["assets"]["links"]:
+            m = REGISTRY_LINK.match(l["url"])
+            version = urllib.parse.unquote(m.group(2))
+            package_ids.setdefault(version, 500 + len(package_ids))
+            next_id[0] += 1
+            name = urllib.parse.unquote(m.group(3))
+            package_files.setdefault(package_ids[version], []).append(
+                {"id": next_id[0], "file_name": name, "size": len(name) * 1000, "file_sha256": ("%064x" % (len(name) * 7919))})
+    # An earlier upload of the same file, which the registry no longer serves.
+    package_files[package_ids["6.3.4"]].insert(0, {"id": 1, "file_name": "hMailServer-6.3.4-x64.exe", "size": 1, "file_sha256": "0" * 64})
+    packages = [{"id": i, "name": "hmailserver", "version": v} for v, i in package_ids.items()]
+    packages.append({"id": 999, "name": "build-inputs", "version": "1"})
+
+    requests = []
+
+    def fake_get(url):
+        requests.append(url)
+        parsed = urllib.parse.urlparse(url)
+        query = urllib.parse.parse_qs(parsed.query)
+        page = int(query.get("page", ["1"])[0])
+        path = parsed.path[len("/api/v4/projects/" + PROJECT_ID):]
+        if path == "/releases":
+            items, size = releases, 3          # three to a page: the pagination is exercised
+        elif path == "/packages":
+            items, size = packages, 100
+        else:
+            m = re.match(r"^/packages/(\d+)/package_files$", path)
+            assert m, url
+            items, size = package_files.get(int(m.group(1)), []), 100
+        chunk = items[(page - 1) * size:page * size]
+        more = page * size < len(items)
+        return json.dumps(chunk).encode("utf-8"), {"x-next-page": str(page + 1) if more else ""}
+
+    failures = []
+
+    def expect(condition, what):
+        if not condition:
+            failures.append(what)
+
+    loaded, files = load(fake_get)
+    expect(len(loaded) == len(releases), "every page of releases is read")
+    expect(sum(1 for u in requests if "/releases?" in u) == 3, "the releases are read three to a page")
+    tree, latest, warnings = render(loaded, files)
+    expect(warnings == [], "nothing is left out of a feed whose releases are all publishable: %s" % warnings)
+
+    tags = sorted(n for n in tree if n.startswith("releases/tags/"))
+    expect(tags == sorted("releases/tags/" + t for t in ("v6.3.5-rc1", "v6.3.4", "v6.2.29", "v6.3.3", "v6.2.22-pre1", "v6.0.0-B4")),
+           "a tag file for every server release, none for build-inputs-1 or the upcoming 6.9.0: %s" % tags)
+    expect(set(tree) == set(tags) | {"releases/latest", "releases.json", "releases/index.html", "index.html"}, "the tree is the documented files")
+    expect(latest["tag_name"] == "v6.3.4", "releases/latest is the highest stable version, not the latest date (6.2.29 was published after 6.3.4): %s"
+           % latest["tag_name"])
+    expect(tree["releases/index.html"].startswith(b"<!DOCTYPE html>") and b"releases.json" in tree["releases/index.html"],
+           "releases/ is a page that shows the list")
+
+    # Markup in a release's name is text everywhere on the site: nothing to run on the domain.
+    for relative, content in sorted(tree.items()):
+        expect(b"<script" not in content and b"</script" not in content, "%s carries no markup from a release's name" % relative)
+    listing = json.loads(tree["releases.json"].decode("utf-8"))
+    expect([r["name"] for r in listing if r["tag_name"] == "v6.3.3"] == [markup], "the name reads back as it was written")
+
+    expect([r["tag_name"] for r in listing] == ["v6.3.5-rc1", "v6.2.29", "v6.3.4", "v6.3.3", "v6.2.22-pre1", "v6.0.0-B4"],
+           "the list is newest first, by the UTC time: %s" % [r["tag_name"] for r in listing])
+    pre_releases = {"v6.3.5-rc1", "v6.2.22-pre1", "v6.0.0-B4"}
+    for r in listing:
+        expect(list(r) == RELEASE_KEYS, "%s has exactly the keys the server reads: %s" % (r["tag_name"], list(r)))
+        expect(r["prerelease"] == (r["tag_name"] in pre_releases),
+               "%s is a pre-release exactly when its tag has a suffix" % r["tag_name"])
+        expect(r["draft"] is False, "nothing published is a draft")
+        for a in r["assets"]:
+            expect(list(a) == ASSET_KEYS, "an asset of %s has exactly the keys the server reads: %s" % (r["tag_name"], list(a)))
+            expect(re.match(r"^sha256:[0-9a-f]{64}$", a["digest"]) is not None, "a digest is sha256:<hex>")
+    v634 = [r for r in listing if r["tag_name"] == "v6.3.4"][0]
+    expect(v634["published_at"] == "2026-10-01T11:00:00Z", "released_at is written in UTC as GitHub wrote it: %s" % v634["published_at"])
+    exe = [a for a in v634["assets"] if a["name"] == "hMailServer-6.3.4-x64.exe"][0]
+    expect(exe["size"] == len("hMailServer-6.3.4-x64.exe") * 1000, "a file uploaded twice is described as its later upload")
+    spaced = [a for a in v634["assets"] if a["name"] == "notes with space+plus.txt"]
+    expect(len(spaced) == 1 and spaced[0]["browser_download_url"].endswith("/notes%20with%20space%2Bplus.txt"),
+           "a file name that needs escaping is found in the registry and linked escaped")
+
+    # What the server makes of it: the parser, both channels, every platform.
+    stable, error = select_release(json.loads(tree["releases/latest"].decode("utf-8")), False, "windows")
+    expect(error is None and stable["version"] == "6.3.4" and stable["installer_url"] and stable["bundle_url"],
+           "the stable channel reads 6.3.4 with its installer and bundle from releases/latest")
+    expect(stable["installer_digest"].startswith("sha256:") and stable["installer_size"] > 0, "with the size and digest the download is held to")
+    listed_stable, _ = select_release(listing, False, "windows")
+    expect(listed_stable["version"] == "6.3.4", "the stable channel reading the list passes over 6.3.5-rc1 and takes 6.3.4")
+    preview, _ = select_release(listing, True, "deb-amd64")
+    expect(preview["version"] == "6.3.5-rc1" and preview["installer_name"] == "hmailserver_6.3.5-rc1_amd64.deb" and preview["bundle_url"],
+           "the pre-release channel takes 6.3.5-rc1 and a Debian server finds its package and bundle")
+
+    # The copy of the server's parser passes over a suffixed version on the stable
+    # channel even when the feed flags it stable, as the server does.
+    flagged = json.loads(json.dumps(listing))
+    for r in flagged:
+        r["prerelease"] = False
+    flagged_stable, _ = select_release(flagged, False, "windows")
+    expect(flagged_stable["version"] == "6.3.4", "a suffixed version flagged stable is still a pre-release: %s" % flagged_stable["version"])
+
+    def of(release_list, tag):
+        return [r for r in release_list if r["tag_name"] == tag][0]
+
+    # An unpublishable link in the newest stable release stops the render: the
+    # site keeps what it had rather than tell stable servers something false.
+    broken = json.loads(json.dumps(loaded))
+    newest = of(broken, "v6.3.4")["assets"]["links"]
+    newest.append({"name": "elsewhere.exe", "url": "https://example.com/elsewhere.exe"})
+    newest.append(link("6.3.4", "never-uploaded.txt"))
+    # Named for one file, pointing at another: a server would install the file and
+    # find the "newer" release again next time.
+    renamed = link("6.3.4", "hMailServer-6.3.4-x64.exe")
+    renamed["name"] = "hMailServer-6.3.5-x64.exe"
+    newest.append(renamed)
+    # Another release's file, under its own name.
+    newest.append(link("6.3.3", "hMailServer-6.3.3-x64.exe"))
+    try:
+        render(broken, files)
+        failures.append("an unpublishable link in the newest stable release stops the render")
+    except FeedError as e:
+        text = str(e)
+        expect("v6.3.4" in text and "example.com" in text and "never-uploaded.txt" in text, "the render names every link it cannot publish: %s" % text)
+        expect("hMailServer-6.3.5-x64.exe" in text and "which has another name" in text, "a link named for another file is refused: %s" % text)
+        expect("of the package hmailserver 6.3.3, not of hmailserver 6.3.4" in text, "another release's file is refused: %s" % text)
+
+    # A release named as a pre-release whose tag has no suffix: a server could not
+    # tell it from the final release. The highest version of all, so it would be
+    # the newest stable release, and it stops the render.
+    broken = json.loads(json.dumps(loaded))
+    named = json.loads(json.dumps(of(broken, "v6.3.4")))
+    named.update({"tag_name": "v6.3.6", "name": "Pre-release: hMailServer 6.3.6"})
+    named["assets"]["links"] = files_for("6.3.4")[:0]
+    broken.append(named)
+    try:
+        render(broken, files)
+        failures.append("a pre-release by its name alone, the highest version, stops the render")
+    except FeedError as e:
+        expect("v6.3.6" in str(e) and "the tag has no suffix" in str(e), "the render says why: %s" % e)
+    named.update({"tag_name": "v6.2.30"})
+    left_out = render(broken, files)
+    expect("releases/tags/v6.2.30" not in left_out[0] and any("v6.2.30 is left out" in w for w in left_out[2]),
+           "an older one is left out with a warning: %s" % left_out[2])
+
+    # In an older release it leaves that release out, with a warning, and the feed
+    # is published without it.
+    broken = json.loads(json.dumps(loaded))
+    of(broken, "v6.3.3")["assets"]["links"].append({"name": "elsewhere.exe", "url": "https://example.com/elsewhere.exe"})
+    partial, partial_latest, partial_warnings = render(broken, files)
+    expect("releases/tags/v6.3.3" not in partial and partial_latest["tag_name"] == "v6.3.4", "v6.3.3 is left out and the rest is published")
+    expect(len(partial_warnings) == 1 and "v6.3.3 is left out" in partial_warnings[0] and "example.com" in partial_warnings[0],
+           "the warning names the release and the link: %s" % partial_warnings)
+
+    # The server's compiled addresses are files of this tree, and GitLab Pages
+    # answers each without a redirect.
+    constants = server_constants()
+    for name, value in sorted(constants.items()):
+        expect(value.startswith(SITE + "/"), "UpdateChecker.cpp's %s is on %s: %s" % (name, SITE, value))
+    with tempfile.TemporaryDirectory() as directory:
+        write_tree(tree, directory)
+        expect(read_tree(directory) == tree, "the tree written is the tree rendered")
+        expect(pages_resolve(directory, "/releases")[0] == 302, "Pages answers the bare /releases with a redirect")
+        expect(pages_resolve(directory, "/releases?per_page=10")[2] == "/releases/?per_page=10", "and keeps the query")
+        expect(pages_resolve(directory, "/releases/")[1].endswith("index.html"), "and /releases/ with its index.html")
+        expect(pages_resolve(directory, "/nothing")[0] == 404, "and a path that is nothing with 404")
+        lines = []
+        problems = serve_check(directory, constants, out=lines.append)
+        expect(not problems, "every URL a server derives answers 200 with a release it reads: %s" % problems)
+
+        # A releases/latest the stable channel would not take - here a
+        # pre-release - leaves every stable server saying it is up to date.
+        latest_path = os.path.join(directory, "releases", "latest")
+        with open(latest_path, "wb") as f:
+            f.write(tree["releases/tags/v6.3.5-rc1"])
+        problems = serve_check(directory, constants, out=lambda line: None)
+        expect(any("gives the stable channel no release it takes" in p for p in problems),
+               "serve-check fails when the stable default yields no release: %s" % problems)
+
+        # One without the Windows installer and its bundle leaves every Windows server where it is.
+        bare = json.loads(tree["releases/latest"].decode("utf-8"))
+        bare["assets"] = [a for a in bare["assets"] if not a["name"].startswith("hMailServer-6.3.4-x64.exe")]
+        with open(latest_path, "wb") as f:
+            f.write(feed_bytes(bare))
+        problems = serve_check(directory, constants, out=lambda line: None)
+        expect(any("carries no Windows installer" in p for p in problems),
+               "serve-check fails when the stable release has no Windows installer: %s" % problems)
+        with open(latest_path, "wb") as f:
+            f.write(tree["releases/latest"])
+        try:
+            os.makedirs(os.path.join(directory, "stranger"))
+            with open(os.path.join(directory, "stranger", "file.txt"), "w") as f:
+                f.write("x")
+            write_tree(tree, os.path.join(directory, "stranger"))
+            failures.append("a directory that is not a feed is not overwritten")
+        except FeedError:
+            pass
+
+    for failure in failures:
+        print("FAILED: " + failure)
+    print("self-test: %d failure(s)" % len(failures))
+    return 1 if failures else 0
+
+
+# ---------------------------------------------------------------- main
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--output", default=os.path.join(ROOT, "public"), help="the tree to write or check (default: public/ at the repository root)")
+    parser.add_argument("--check", action="store_true", help="exit 1 when the tree, or the site, is not what the API says")
+    parser.add_argument("--site", help="with --check: the deployed feed to compare instead of a directory")
+    parser.add_argument("--serve-check", metavar="DIR", help="serve DIR as GitLab Pages would and read it as a server would")
+    parser.add_argument("--self-test", action="store_true", help="test this script against canned answers, with no network")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return self_test()
+
+    try:
+        if args.serve_check:
+            problems = serve_check(args.serve_check, server_constants())
+            for problem in problems:
+                print("PROBLEM: " + problem)
+            print("serve-check: %d problem(s)" % len(problems))
+            return 1 if problems else 0
+
+        releases, files = load(http_get)
+        tree, latest, warnings = render(releases, files)
+        for warning in warnings:
+            print("WARNING: " + warning)
+        tags = sum(1 for n in tree if n.startswith("releases/tags/"))
+
+        if args.check:
+            if args.site:
+                problems = check_site(tree, args.site)
+                where = args.site
+            else:
+                if not os.path.isdir(args.output):
+                    print("%s does not exist: write it first (no --check), or pass --site to check a deployed feed." % args.output)
+                    return 1
+                problems = differences(tree, read_tree(args.output), args.output)
+                where = args.output
+            for problem in problems:
+                print(problem)
+            if problems:
+                print("%s is not the feed the releases make now (%d difference(s)); run this script without --check." % (where, len(problems)))
+                return 1
+            print("%s is the feed the releases make: %d files, %d releases, latest %s." % (where, len(tree), tags, latest["tag_name"]))
+            return 0
+
+        write_tree(tree, args.output)
+        for relative in sorted(tree):
+            print("%9d  %s" % (len(tree[relative]), relative))
+        print("%d files, %d releases, releases/latest is %s, written to %s." % (len(tree), tags, latest["tag_name"], args.output))
+        names = installer_names(latest["tag_name"][1:])
+        have = set(a["name"] for a in latest["assets"])
+        missing = [n for n in (names["windows"], names["windows"] + ".cosign.bundle") if n not in have]
+        if missing:
+            print("WARNING: %s carries no %s, so no Windows server can install it; --serve-check fails on it." % (
+                latest["tag_name"], " and no ".join(missing)))
+        return 0
+    except FeedError as e:
+        print("generate-update-feed: %s" % e)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

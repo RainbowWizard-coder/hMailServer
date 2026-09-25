@@ -4319,8 +4319,8 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="I_P address" xml:space="preserve">
     <value>Indiri_zzo IP</value>
   </data>
-  <data name="Identity provider that issued the signing certificate (empty = GitHub's)" xml:space="preserve">
-    <value>Provider di identità che ha emesso il certificato di firma (vuoto = quello di GitHub)</value>
+  <data name="Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)" xml:space="preserve">
+    <value>Provider di identità che ha emesso il certificato di firma (vuoto = quello di GitHub o di GitLab)</value>
   </data>
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Identità con cui vengono scritti i risultati (vuoto = nome di questo computer)</value>
@@ -8386,8 +8386,8 @@ Riavviarlo ora?</value>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>Alg_oritmo di firma</value>
   </data>
-  <data name="Signing identity the certificate must begin with (empty = this project's release workflow)" xml:space="preserve">
-    <value>Identità di firma con cui il certificato deve iniziare (vuoto = il flusso di lavoro di rilascio di questo progetto)</value>
+  <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
+    <value>Identità di firma con cui il certificato deve iniziare (vuoto = i due flussi di lavoro di rilascio di questo progetto)</value>
   </data>
   <data name="Signing in…" xml:space="preserve">
     <value>Accesso in corso…</value>
@@ -9349,8 +9349,8 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>L'ultimo tentativo non è riuscito il {0}: {1}</value>
   </data>
-  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
-    <value>Le ultime cinque impostazioni di questa scheda sono per un'installazione che crea le proprie release e le firma con il proprio Sigstore, o che rispecchia quelle di questo progetto. Lasciandole tutte vuote il server si fida di una cosa soltanto: un programma di installazione firmato dal flusso di lavoro di rilascio di questo stesso progetto, annotato nel registro di trasparenza pubblico. Impostarne una qualsiasi restringe o sostituisce quella fiducia, e sbagliarne una significa rifiutare release autentiche oppure fidarsi di quelle di qualcun altro.</value>
+  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
+    <value>Le ultime cinque impostazioni di questa scheda sono per un'installazione che crea le proprie release e le firma con il proprio Sigstore, o che rispecchia quelle di questo progetto. Lasciandole tutte vuote il server si fida soltanto di un programma di installazione firmato da uno dei due flussi di lavoro di rilascio di questo progetto - quello su GitHub per le release fino alla 6.3.3, quello su GitLab per le successive - e annotato nel registro di trasparenza pubblico. Impostarne una qualsiasi restringe o sostituisce quella fiducia per entrambi, e sbagliarne una significa rifiutare release autentiche oppure fidarsi di quelle di qualcun altro.</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>L'ultimo passaggio di aggiornamento è fallito: {0}</value>

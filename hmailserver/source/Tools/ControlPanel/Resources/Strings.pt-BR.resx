@@ -4319,8 +4319,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="I_P address" xml:space="preserve">
     <value>_Endereço IP</value>
   </data>
-  <data name="Identity provider that issued the signing certificate (empty = GitHub's)" xml:space="preserve">
-    <value>Provedor de identidade que emitiu o certificado de assinatura (vazio = o do GitHub)</value>
+  <data name="Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)" xml:space="preserve">
+    <value>Provedor de identidade que emitiu o certificado de assinatura (vazio = o do GitHub ou o do GitLab)</value>
   </data>
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Identidade sob a qual os resultados são escritos (vazio = o nome deste computador)</value>
@@ -8386,8 +8386,8 @@ Reiniciá-lo agora?</value>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>Alg_oritmo de assinatura</value>
   </data>
-  <data name="Signing identity the certificate must begin with (empty = this project's release workflow)" xml:space="preserve">
-    <value>Identidade de assinatura com que o certificado deve começar (vazio = o fluxo de trabalho de publicação de versões deste projeto)</value>
+  <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
+    <value>Identidade de assinatura com que o certificado deve começar (vazio = os dois fluxos de trabalho de publicação de versões deste projeto)</value>
   </data>
   <data name="Signing in…" xml:space="preserve">
     <value>Entrando…</value>
@@ -9349,8 +9349,8 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>A última tentativa falhou em {0}: {1}</value>
   </data>
-  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
-    <value>As últimas cinco configurações deste cartão são para uma instalação que gera as próprias versões e as assina com o próprio Sigstore, ou que espelha as deste projeto. Deixe todas elas vazias e o servidor confia em exatamente uma coisa: um instalador assinado pelo próprio fluxo de trabalho de publicação de versões deste projeto, registrado no log de transparência público. Definir qualquer uma delas restringe ou substitui isso, e errar uma significa ou recusar versões genuínas ou confiar nas de outra pessoa.</value>
+  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
+    <value>As últimas cinco configurações deste cartão são para uma instalação que gera as próprias versões e as assina com o próprio Sigstore, ou que espelha as deste projeto. Deixe todas elas vazias e o servidor confia apenas em um instalador assinado por um dos dois fluxos de trabalho de publicação de versões deste projeto - o do GitHub para as versões até a 6.3.3, o do GitLab para as posteriores - e registrado no log de transparência público. Definir qualquer uma delas restringe ou substitui isso para ambos, e errar uma significa ou recusar versões genuínas ou confiar nas de outra pessoa.</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>A última etapa de atualização falhou: {0}</value>

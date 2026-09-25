@@ -4319,8 +4319,8 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="I_P address" xml:space="preserve">
     <value>I_P-Adresse</value>
   </data>
-  <data name="Identity provider that issued the signing certificate (empty = GitHub's)" xml:space="preserve">
-    <value>Identitätsanbieter, der das Signaturzertifikat ausgestellt hat (leer = der von GitHub)</value>
+  <data name="Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)" xml:space="preserve">
+    <value>Identitätsanbieter, der das Signaturzertifikat ausgestellt hat (leer = der von GitHub oder GitLab)</value>
   </data>
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Identität, unter der die Ergebnisse geschrieben werden (leer = Name dieses Computers)</value>
@@ -8386,8 +8386,8 @@ Jetzt neu starten?</value>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>Signatur_algorithmus</value>
   </data>
-  <data name="Signing identity the certificate must begin with (empty = this project's release workflow)" xml:space="preserve">
-    <value>Signaturidentität, mit der das Zertifikat beginnen muss (leer = der Release-Workflow dieses Projekts)</value>
+  <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
+    <value>Signaturidentität, mit der das Zertifikat beginnen muss (leer = die beiden Release-Workflows dieses Projekts)</value>
   </data>
   <data name="Signing in…" xml:space="preserve">
     <value>Anmeldung läuft…</value>
@@ -9349,8 +9349,8 @@ konnte nicht geladen werden. Die Nachricht wurde wahrscheinlich zugestellt und i
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Der letzte Versuch ist am {0} fehlgeschlagen: {1}</value>
   </data>
-  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
-    <value>Die letzten fünf Einstellungen auf dieser Karte sind für eine Installation, die ihre eigenen Versionen baut und sie mit ihrem eigenen Sigstore signiert, oder die die Versionen dieses Projekts spiegelt. Lassen Sie jede einzelne davon leer, und der Server vertraut genau einer Sache: einem Installer, der vom eigenen Release-Workflow dieses Projekts signiert und im öffentlichen Transparenzprotokoll verzeichnet ist. Eine davon zu setzen engt das ein oder ersetzt es, und eine davon falsch zu setzen bedeutet, entweder echte Versionen abzulehnen oder denen von jemand anderem zu vertrauen.</value>
+  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
+    <value>Die letzten fünf Einstellungen auf dieser Karte sind für eine Installation, die ihre eigenen Versionen baut und sie mit ihrem eigenen Sigstore signiert, oder die die Versionen dieses Projekts spiegelt. Lassen Sie jede einzelne davon leer, und der Server vertraut nur einem Installer, der von einem der beiden Release-Workflows dieses Projekts signiert ist - dem auf GitHub für die Versionen bis 6.3.3, dem auf GitLab für die späteren - und im öffentlichen Transparenzprotokoll verzeichnet ist. Eine davon zu setzen engt das für beide ein oder ersetzt es, und eine davon falsch zu setzen bedeutet, entweder echte Versionen abzulehnen oder denen von jemand anderem zu vertrauen.</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>Der letzte Aktualisierungsschritt schlug fehl: {0}</value>

@@ -41,7 +41,7 @@ namespace RegressionTests.API
       private const string AdminPassword = "testar";
       private const string LatestPath = "/repos/Progressiverobot/hmailserver/releases/latest";
 
-      private static string _quiet, _stopper, _starter, _failing, _loud, _ager, _marker;
+      private static string _quiet, _stopper, _starter, _failing, _loud, _ager, _later, _marker;
 
       private FakeHttpEndpoint _feed;
       private FakeSigstore _sigstore;
@@ -50,7 +50,7 @@ namespace RegressionTests.API
       [SetUp]
       public void StartFeed()
       {
-         CompileFakeInstallers();
+         CompileFakeInstallers(Newer, Running);
          File.Delete(_marker);
 
          _sigstore = new FakeSigstore();
@@ -330,6 +330,101 @@ namespace RegressionTests.API
       }
 
       [Test]
+      public void AnInstallerWhoseBundleIsSwappedForAnotherReleasesIsRefusedAtTheApply()
+      {
+         // Verified at the download, then the bundle beside it replaced by one the
+         // same pipeline made for another tag: the apply verifies once more, against
+         // the release it installs, and refuses.
+         var status = Downloaded();
+         string path = status.UpdateInstallerPath;
+         string another = BumpVersion(Newer);
+         File.WriteAllText(path + ".cosign.bundle",
+            _sigstore.Bundle(File.ReadAllBytes(path), FakeSigstore.ReleaseSigning(another)), new UTF8Encoding(false));
+
+         Assert.IsFalse(status.InstallUpdate(), "A file signed for another release must not run as this one.");
+         StringAssert.Contains("The installer no longer verifies against its bundle and has been deleted: The certificate was made for the tag v" + another +
+            ", not for v" + Newer, status.UpdateLastError);
+         Assert.IsFalse(File.Exists(path));
+         Assert.IsFalse(File.Exists(OutcomePath));
+      }
+
+      [Test]
+      public void AnInstallerReplacedByAnotherReleasesIsRefusedAtTheApply()
+      {
+         // Verified at the download, then the installer replaced by another
+         // release's, with a bundle that verifies it as this one - a certificate the
+         // signature check accepts. The program says it is the later release, so
+         // the apply, reading its version resource once more, refuses it.
+         var status = Downloaded();
+         string path = status.UpdateInstallerPath;
+         byte[] later = File.ReadAllBytes(_later);
+         File.WriteAllBytes(path, later);
+         File.WriteAllText(path + ".cosign.bundle", _sigstore.Bundle(later, FakeSigstore.ReleaseSigning(Newer)), new UTF8Encoding(false));
+
+         Assert.IsFalse(status.InstallUpdate(), "Another release's installer must not run as this one.");
+         StringAssert.Contains("The installer is not the release it was downloaded as and has been deleted: The installer says it is version " +
+            BumpVersion(Newer) + ".0, not " + Newer, status.UpdateLastError);
+         Assert.IsFalse(File.Exists(path));
+         Assert.IsFalse(File.Exists(OutcomePath));
+      }
+
+      [Test]
+      public void ACachedRollbackImageThatSaysItIsAnotherVersionIsFetchedAgain()
+      {
+         // A rollback image left from an earlier apply, whose bundle verifies it as
+         // the running version but whose program says it is the newer one. It is not
+         // the running version's, so it is deleted and the image fetched again from
+         // the feed.
+         string running = Running;
+         string rollbackName = "hMailServer-" + running + "-x64.exe";
+         var status = Downloaded();
+         string rollbackDirectory = Paths.Combine(_updatesDirectory, "rollback");
+         Directory.CreateDirectory(rollbackDirectory);
+         string cached = Paths.Combine(rollbackDirectory, rollbackName);
+         byte[] wrong = File.ReadAllBytes(_quiet);
+         File.WriteAllBytes(cached, wrong);
+         File.WriteAllText(cached + ".cosign.bundle", _sigstore.Bundle(wrong, FakeSigstore.ReleaseSigning(running)), new UTF8Encoding(false));
+
+         Assert.IsTrue(status.InstallUpdate(), status.UpdateLastError);
+         Assert.AreEqual(1, _feed.CountRequests("GET", "/download/" + rollbackName), "The cached image was refused, so the feed's was fetched.");
+         Assert.AreEqual(File.ReadAllBytes(_starter), File.ReadAllBytes(cached), "The rollback image is now the running version's own.");
+         StringAssert.Contains("Update: the rollback image for hMailServer " + running + " is " + cached + ", verified.", LogHandler.ReadCurrentDefaultLog());
+         StringAssert.StartsWith("ok ", WaitForOutcome(OutcomePath, 60));
+      }
+
+      [Test]
+      public void ARollbackImageSignedForAnotherReleaseIsNotUsed()
+      {
+         // The feed's entry for the running version carries a file signed for the
+         // next tag. It is not the running version's, so there is no rollback image,
+         // and the apply goes ahead without one and says so.
+         string running = Running;
+         string another = BumpVersion(running);
+         ServeRelease(_quiet, _starter, FakeSigstore.ReleaseSigning(another));
+         var status = Downloaded();
+         Assert.IsTrue(status.InstallUpdate(), status.UpdateLastError);
+         StringAssert.Contains("Update: no rollback image for hMailServer " + running + " could be had (", LogHandler.ReadCurrentDefaultLog());
+         StringAssert.Contains("made for the tag v" + another + ", not for v" + running, LogHandler.ReadCurrentDefaultLog());
+         Assert.IsFalse(File.Exists(Paths.Combine(_updatesDirectory, "rollback", "hMailServer-" + running + "-x64.exe")), "Nothing that failed is kept.");
+         StringAssert.StartsWith("ok ", WaitForOutcome(OutcomePath, 60));
+      }
+
+      [Test]
+      public void ARollbackImageThatSaysItIsAnotherVersionIsNotUsed()
+      {
+         // The running version's entry carries the newer release's installer,
+         // signed as the running version: the signature is in order, but the
+         // program says it is the newer version, so it is not the running one's.
+         string running = Running;
+         ServeRelease(_quiet, _quiet);
+         var status = Downloaded();
+         Assert.IsTrue(status.InstallUpdate(), status.UpdateLastError);
+         StringAssert.Contains("Update: no rollback image for hMailServer " + running + " could be had (", LogHandler.ReadCurrentDefaultLog());
+         StringAssert.Contains("The installer says it is version " + Newer + ".0, not " + running + ", the release it was offered as.", LogHandler.ReadCurrentDefaultLog());
+         StringAssert.StartsWith("ok ", WaitForOutcome(OutcomePath, 60));
+      }
+
+      [Test]
       public void TheTokenExpiresAfterAnHour()
       {
          // The "installer" here ages the token file by two hours: it runs as the
@@ -443,7 +538,11 @@ namespace RegressionTests.API
 
       // ---- the fixture's installers ---------------------------------------------------
 
-      private static void CompileFakeInstallers()
+      // Each fake carries the version resource a real installer does (Inno Setup
+      // writes <version>.0 from VersionInfoVersion), which the server holds to the
+      // release it fetches the file as: the installers say the newer version, and
+      // the starter - always the rollback image here - the running one.
+      private static void CompileFakeInstallers(string newer, string running)
       {
          if (_quiet != null)
             return;
@@ -452,30 +551,34 @@ namespace RegressionTests.API
          Directory.CreateDirectory(directory);
          _marker = Paths.Combine(directory, "ran.log");
 
-         _quiet = Compile(directory, "quiet", "", 0);
+         _quiet = Compile(directory, "quiet", "", 0, newer);
          _stopper = Compile(directory, "stopper",
-            "using (var s = new System.ServiceProcess.ServiceController(\"hMailServer\")) { s.Stop(); s.WaitForStatus(System.ServiceProcess.ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(90)); }", 0);
+            "using (var s = new System.ServiceProcess.ServiceController(\"hMailServer\")) { s.Stop(); s.WaitForStatus(System.ServiceProcess.ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(90)); }", 0, newer);
          _starter = Compile(directory, "starter",
-            "using (var s = new System.ServiceProcess.ServiceController(\"hMailServer\")) { s.Start(); s.WaitForStatus(System.ServiceProcess.ServiceControllerStatus.Running, TimeSpan.FromSeconds(90)); }", 0);
-         _failing = Compile(directory, "failing", "", 1);
+            "using (var s = new System.ServiceProcess.ServiceController(\"hMailServer\")) { s.Start(); s.WaitForStatus(System.ServiceProcess.ServiceControllerStatus.Running, TimeSpan.FromSeconds(90)); }", 0, running);
+         _failing = Compile(directory, "failing", "", 1, newer);
          // Fails the way the real one did on 14 September 2026 - exit code 5, and a
          // log in Inno Setup's shape saying which file it could not replace and why.
          _loud = Compile(directory, "loud",
-            @"foreach (string a in args) if (a.StartsWith(""/LOG="")) File.WriteAllText(a.Substring(5).Trim('""'), ""2026-09-14 01:38:20.001   Dest filename: C:\\Program Files\\hMailServer\\ControlPanel\\hMailCP.exe\r\n2026-09-14 01:38:20.002   Message box (Abort/Retry/Ignore):\r\n   C:\\Program Files\\hMailServer\\ControlPanel\\hMailCP.exe\r\n\r\nAn error occurred while trying to replace the existing file:\r\nDeleteFile failed; code 32.\r\nThe process cannot access the file because it is being used by another process.\r\n2026-09-14 01:38:20.003   User chose Abort.\r\n"");", 5);
+            @"foreach (string a in args) if (a.StartsWith(""/LOG="")) File.WriteAllText(a.Substring(5).Trim('""'), ""2026-09-14 01:38:20.001   Dest filename: C:\\Program Files\\hMailServer\\ControlPanel\\hMailCP.exe\r\n2026-09-14 01:38:20.002   Message box (Abort/Retry/Ignore):\r\n   C:\\Program Files\\hMailServer\\ControlPanel\\hMailCP.exe\r\n\r\nAn error occurred while trying to replace the existing file:\r\nDeleteFile failed; code 32.\r\nThe process cannot access the file because it is being used by another process.\r\n2026-09-14 01:38:20.003   User chose Abort.\r\n"");", 5, newer);
          // Runs as the service account, so it can do what the suite cannot: age the
          // token file, which only SYSTEM, Administrators and that account may touch.
          _ager = Compile(directory, "ager",
-            "File.SetLastWriteTimeUtc(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, \"apply-token\"), DateTime.UtcNow.AddHours(-2));", 0);
+            "File.SetLastWriteTimeUtc(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, \"apply-token\"), DateTime.UtcNow.AddHours(-2));", 0, newer);
+         // The quiet program built as the release after the newer one: another
+         // release's installer, which is never run.
+         _later = Compile(directory, "later", "", 0, BumpVersion(newer));
       }
 
       // A console program that records its name and arguments, does what it is told to
       // the service, and exits with the code it was given: an installer as far as the
       // helper can tell.
-      private static string Compile(string directory, string name, string action, int exitCode)
+      private static string Compile(string directory, string name, string action, int exitCode, string version)
       {
          string source =
             "using System;\n" +
             "using System.IO;\n" +
+            "[assembly: System.Reflection.AssemblyFileVersion(\"" + version + ".0\")]\n" +
             "class FakeInstaller\n{\n" +
             "   static int Main(string[] args)\n   {\n" +
             "      File.AppendAllText(@\"" + _marker + "\", \"" + name + " \" + string.Join(\" \", args) + Environment.NewLine);\n" +
@@ -483,8 +586,8 @@ namespace RegressionTests.API
             "      return " + exitCode + ";\n" +
             "   }\n}\n";
 
-         // The name is one of the five words CompileFakeInstallers passes - "quiet",
-         // "stopper", "starter", "failing", "ager" - so what is appended here is a file
+         // The name is one of the words CompileFakeInstallers passes - "quiet",
+         // "stopper", "starter", "failing", "loud", "ager", "later" - so what is appended here is a file
          // name, never a rooted path that would displace the directory.
          string path = Paths.Combine(directory, name + ".exe");
          using (CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp"))
@@ -520,6 +623,12 @@ namespace RegressionTests.API
          }
       }
 
+      private static string BumpVersion(string version)
+      {
+         string[] parts = version.Split('.');
+         return parts[0] + "." + parts[1] + "." + (int.Parse(parts[2]) + 1);
+      }
+
       private string OutcomePath
       {
          get { return Paths.Combine(_updatesDirectory, "last-apply.txt"); }
@@ -538,14 +647,20 @@ namespace RegressionTests.API
       // The newer release's installer is the program at installerExe; the running
       // version's release - the rollback image - is the program at rollbackExe, or
       // absent from the feed when null.
-      private void ServeRelease(string installerExe, string rollbackExe)
+      //
+      // Each release is signed as the project signs it (FakeSigstore.ReleaseSigning):
+      // the newer one on GitLab for its own tag, the running one by whichever signed
+      // that version - the GitHub workflow for 6.3.3. rollbackSigning replaces the
+      // rollback image's.
+      private void ServeRelease(string installerExe, string rollbackExe, FakeSigstore.Options rollbackSigning = null)
       {
          byte[] installer = File.ReadAllBytes(installerExe);
          string name = "hMailServer-" + Newer + "-x64.exe";
 
          _feed.ClearRoutes();
          _feed.SetResponse("/download/" + name, 200, installer);
-         _feed.SetResponse("/download/" + name + ".cosign.bundle", 200, Encoding.UTF8.GetBytes(_sigstore.Bundle(installer)), "application/json");
+         _feed.SetResponse("/download/" + name + ".cosign.bundle", 200,
+            Encoding.UTF8.GetBytes(_sigstore.Bundle(installer, FakeSigstore.ReleaseSigning(Newer))), "application/json");
          _feed.SetResponse(200, Release(Newer, name, installer));
 
          if (rollbackExe != null)
@@ -553,7 +668,8 @@ namespace RegressionTests.API
             byte[] rollback = File.ReadAllBytes(rollbackExe);
             string rollbackName = "hMailServer-" + Running + "-x64.exe";
             _feed.SetResponse("/download/" + rollbackName, 200, rollback);
-            _feed.SetResponse("/download/" + rollbackName + ".cosign.bundle", 200, Encoding.UTF8.GetBytes(_sigstore.Bundle(rollback)), "application/json");
+            _feed.SetResponse("/download/" + rollbackName + ".cosign.bundle", 200,
+               Encoding.UTF8.GetBytes(_sigstore.Bundle(rollback, rollbackSigning ?? FakeSigstore.ReleaseSigning(Running))), "application/json");
             _feed.SetResponse("/repos/Progressiverobot/hmailserver/releases/tags/v" + Running, 200, Encoding.UTF8.GetBytes(Release(Running, rollbackName, rollback)), "application/json");
          }
          else

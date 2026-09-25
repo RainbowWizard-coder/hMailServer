@@ -38,7 +38,7 @@ namespace RegressionTests.API
       private const string AdminPassword = "testar";
       private const string LatestPath = "/repos/Progressiverobot/hmailserver/releases/latest";
 
-      private static string _quiet, _marker;
+      private static string _quiet, _quietRollback, _marker;
 
       private FakeHttpEndpoint _feed;
       private FakeSigstore _sigstore;
@@ -49,7 +49,7 @@ namespace RegressionTests.API
       [SetUp]
       public void StartFeed()
       {
-         CompileQuietInstaller();
+         CompileQuietInstallers(Newer, Running);
          File.Delete(_marker);
 
          _sigstore = new FakeSigstore();
@@ -235,18 +235,29 @@ namespace RegressionTests.API
 
       // ---- the fixture ---------------------------------------------------------------
 
-      private static void CompileQuietInstaller()
+      // The quiet program twice: as the newer release's installer and as the running
+      // version's, the rollback image. Each carries the version resource a real
+      // installer does (Inno Setup writes <version>.0 from VersionInfoVersion), and
+      // the server holds each file to the release it is fetched as.
+      private static void CompileQuietInstallers(string newer, string running)
       {
          if (_quiet != null)
             return;
          string directory = Paths.Combine(Path.GetTempPath(), "hm-fake-installers");
          Directory.CreateDirectory(directory);
          _marker = Paths.Combine(directory, "ran-schedule.log");
+         _quiet = CompileQuiet(Paths.Combine(directory, "quiet-schedule.exe"), newer);
+         _quietRollback = CompileQuiet(Paths.Combine(directory, "quiet-schedule-rollback.exe"), running);
+      }
+
+      private static string CompileQuiet(string path, string version)
+      {
          string source =
-            "using System;\nusing System.IO;\nclass FakeInstaller\n{\n   static int Main(string[] args)\n   {\n" +
+            "using System;\nusing System.IO;\n" +
+            "[assembly: System.Reflection.AssemblyFileVersion(\"" + version + ".0\")]\n" +
+            "class FakeInstaller\n{\n   static int Main(string[] args)\n   {\n" +
             "      File.AppendAllText(@\"" + _marker + "\", \"quiet \" + string.Join(\" \", args) + Environment.NewLine);\n" +
             "      return 0;\n   }\n}\n";
-         string path = Paths.Combine(directory, "quiet-schedule.exe");
          using (CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp"))
          {
             var parameters = new CompilerParameters {GenerateExecutable = true, OutputAssembly = path, GenerateInMemory = false};
@@ -255,7 +266,7 @@ namespace RegressionTests.API
             if (results.Errors.HasErrors)
                Assert.Fail("The fake installer did not compile: " + results.Errors[0]);
          }
-         _quiet = path;
+         return path;
       }
 
       private string Running
@@ -297,20 +308,26 @@ namespace RegressionTests.API
          return minutes >= fromHour * 60 + fromMinute && minutes < toHour * 60 + toMinute;
       }
 
+      // Each release signed as the project signs it (FakeSigstore.ReleaseSigning):
+      // the newer one on GitLab for its own tag, the running one by whichever signed
+      // that version.
       private void ServeRelease(string installerExe)
       {
          byte[] installer = File.ReadAllBytes(installerExe);
+         byte[] rollback = File.ReadAllBytes(_quietRollback);
          string name = "hMailServer-" + Newer + "-x64.exe";
          string rollbackName = "hMailServer-" + Running + "-x64.exe";
 
          _feed.ClearRoutes();
          _feed.SetResponse("/download/" + name, 200, installer);
-         _feed.SetResponse("/download/" + name + ".cosign.bundle", 200, Encoding.UTF8.GetBytes(_sigstore.Bundle(installer)), "application/json");
+         _feed.SetResponse("/download/" + name + ".cosign.bundle", 200,
+            Encoding.UTF8.GetBytes(_sigstore.Bundle(installer, FakeSigstore.ReleaseSigning(Newer))), "application/json");
          _feed.SetResponse(200, Release(Newer, name, installer));
-         // The same quiet program as the rollback image, so the apply has one.
-         _feed.SetResponse("/download/" + rollbackName, 200, installer);
-         _feed.SetResponse("/download/" + rollbackName + ".cosign.bundle", 200, Encoding.UTF8.GetBytes(_sigstore.Bundle(installer)), "application/json");
-         _feed.SetResponse("/repos/Progressiverobot/hmailserver/releases/tags/v" + Running, 200, Encoding.UTF8.GetBytes(Release(Running, rollbackName, installer)), "application/json");
+         // The quiet program built as the running version, so the apply has a rollback image.
+         _feed.SetResponse("/download/" + rollbackName, 200, rollback);
+         _feed.SetResponse("/download/" + rollbackName + ".cosign.bundle", 200,
+            Encoding.UTF8.GetBytes(_sigstore.Bundle(rollback, FakeSigstore.ReleaseSigning(Running))), "application/json");
+         _feed.SetResponse("/repos/Progressiverobot/hmailserver/releases/tags/v" + Running, 200, Encoding.UTF8.GetBytes(Release(Running, rollbackName, rollback)), "application/json");
       }
 
       private string Release(string version, string name, byte[] installer)

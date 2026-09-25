@@ -4319,8 +4319,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="I_P address" xml:space="preserve">
     <value>I_P adresi</value>
   </data>
-  <data name="Identity provider that issued the signing certificate (empty = GitHub's)" xml:space="preserve">
-    <value>İmzalama sertifikasını veren kimlik sağlayıcısı (boş = GitHub'ınki)</value>
+  <data name="Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)" xml:space="preserve">
+    <value>İmzalama sertifikasını veren kimlik sağlayıcısı (boş = GitHub'ınki veya GitLab'ınki)</value>
   </data>
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Sonuçların altına yazıldığı kimlik (boş = bu bilgisayarın adı)</value>
@@ -8386,8 +8386,8 @@ Devam edilsin mi?</value>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>_İmzalama algoritması</value>
   </data>
-  <data name="Signing identity the certificate must begin with (empty = this project's release workflow)" xml:space="preserve">
-    <value>Sertifikanın başında bulunması gereken imzalama kimliği (boş = bu projenin sürüm iş akışı)</value>
+  <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
+    <value>Sertifikanın başında bulunması gereken imzalama kimliği (boş = bu projenin iki sürüm iş akışı)</value>
   </data>
   <data name="Signing in…" xml:space="preserve">
     <value>Oturum açılıyor…</value>
@@ -9349,8 +9349,8 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Son deneme {0} tarihinde başarısız oldu: {1}</value>
   </data>
-  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
-    <value>Bu karttaki son beş ayar, kendi sürümlerini üretip kendi Sigstore'uyla imzalayan ya da bu projeninkileri yansılayan bir kuruluş içindir. Hepsini boş bırakın; sunucu tam olarak tek bir şeye güvenir: bu projenin kendi sürüm iş akışı tarafından imzalanmış ve genel şeffaflık günlüğüne kaydedilmiş bir kurulum programına. Bunlardan herhangi birini ayarlamak bunu daraltır ya da bunun yerine geçer ve birini yanlış yapmak, ya gerçek sürümleri reddetmek ya da başkasınınkilere güvenmek demektir.</value>
+  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
+    <value>Bu karttaki son beş ayar, kendi sürümlerini üretip kendi Sigstore'uyla imzalayan ya da bu projeninkileri yansılayan bir kuruluş içindir. Hepsini boş bırakın; sunucu yalnızca bu projenin iki sürüm iş akışından biri tarafından (6.3.3'e kadarki sürümler için GitHub'daki, sonrakiler için GitLab'daki) imzalanmış ve genel şeffaflık günlüğüne kaydedilmiş bir kurulum programına güvenir. Bunlardan herhangi birini ayarlamak bunu her ikisi için daraltır ya da bunun yerine geçer ve birini yanlış yapmak, ya gerçek sürümleri reddetmek ya da başkasınınkilere güvenmek demektir.</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>Son güncelleştirme adımı başarısız oldu: {0}</value>

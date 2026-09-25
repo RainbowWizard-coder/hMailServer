@@ -18,7 +18,9 @@
 #ifdef _MSC_VER
 #include <wintrust.h>
 #include <softpub.h>
+#include <winver.h>
 #pragma comment(lib, "wintrust.lib")
+#pragma comment(lib, "version.lib")
 #endif
 
 #ifdef _DEBUG
@@ -118,8 +120,68 @@ namespace HM
    }
 
    bool
+   UpdateDownloader::InstallerVersionIs(const String &path, const String &expectedVersion, String &why)
+   {
+#ifndef _MSC_VER
+      // A package names its version in the package, and the Linux update helper
+      // reads it there and installs nothing that is not an upgrade of what is
+      // installed (hmailserver-update). There is no version resource to read.
+      (void) path;
+      (void) expectedVersion;
+      why.Empty();
+      return true;
+#else
+      // No release to hold the file to is no reason to let it through: every
+      // caller names one, and an empty one means the snapshot lost it.
+      if (expectedVersion.IsEmpty())
+      {
+         why = _T("There is no release to hold the installer to, so nothing shows it is the one to install.");
+         return false;
+      }
+
+      // The installer's own word on what it installs: the fixed file version Inno
+      // Setup writes from VersionInfoVersion (<version>.0, section_setup_64.iss),
+      // which every installer since 6.2.19 carries. The Sigstore bundle has
+      // already bound these bytes to the signer, so the resource is the signer's
+      // own statement; where UpdateRequireAuthenticode is on, the Authenticode
+      // signature covers it as well. A file that says another release is not the
+      // release the feed offered it as, whatever the feed calls it - the check a
+      // signer whose identity names no release (the GitHub workflow, run from a
+      // branch) cannot make itself.
+      DWORD ignored = 0;
+      const DWORD size = GetFileVersionInfoSizeW(path.c_str(), &ignored);
+      if (size == 0)
+      {
+         why = Formatter::Format(_T("The installer carries no version resource, so nothing in it says it is release {0}."), expectedVersion);
+         return false;
+      }
+      std::vector<unsigned char> data(size);
+      VS_FIXEDFILEINFO *info = nullptr;
+      UINT length = 0;
+      if (!GetFileVersionInfoW(path.c_str(), 0, size, data.data()) ||
+          !VerQueryValueW(data.data(), L"\\", reinterpret_cast<LPVOID *>(&info), &length) ||
+          info == nullptr || length < sizeof(VS_FIXEDFILEINFO) || info->dwSignature != 0xFEEF04BD)
+      {
+         why = Formatter::Format(_T("The installer's version resource cannot be read, so nothing in it says it is release {0}."), expectedVersion);
+         return false;
+      }
+
+      String version;
+      version.Format(_T("%u.%u.%u.%u"), (unsigned) HIWORD(info->dwFileVersionMS), (unsigned) LOWORD(info->dwFileVersionMS),
+         (unsigned) HIWORD(info->dwFileVersionLS), (unsigned) LOWORD(info->dwFileVersionLS));
+      if (UpdateChecker::CompareVersions(version, expectedVersion) != 0)
+      {
+         why = Formatter::Format(_T("The installer says it is version {0}, not {1}, the release it was offered as."), version, expectedVersion);
+         return false;
+      }
+      return true;
+#endif
+   }
+
+   bool
    UpdateDownloader::FetchVerified(const String &installerUrl, const String &bundleUrl, const String &installerPath, __int64 expectedSize,
-                                   const String &expectedDigest, const SigstoreTrust &trust, SigstoreVerdict &verdict, String &why)
+                                   const String &expectedDigest, const String &expectedVersion, const SigstoreTrust &trust,
+                                   SigstoreVerdict &verdict, String &why)
    {
       String bundlePath = installerPath + _T(".cosign.bundle");
       String partialPath = installerPath + _T(".partial");
@@ -158,8 +220,11 @@ namespace HM
                {
                   AnsiString bundleJson;
                   SigstoreVerifier::ReadBundle(bundlePath, bundleJson);
-                  if (!SigstoreVerifier::VerifyFile(partialPath, bundleJson, trust, verdict))
+                  String versionWhy;
+                  if (!SigstoreVerifier::VerifyFile(partialPath, bundleJson, trust, verdict, expectedVersion))
                      why = Formatter::Format(_T("The installer did not verify against its Sigstore bundle: {0}"), verdict.error);
+                  else if (!InstallerVersionIs(partialPath, expectedVersion, versionWhy))
+                     why = Formatter::Format(_T("The installer is not the release it was offered as: {0}"), versionWhy);
                   else if (IniFileSettings::Instance()->GetUpdateRequireAuthenticode() && !AuthenticodeTrusted(partialPath, why))
                      why = Formatter::Format(_T("The installer's Authenticode signature was refused: {0}."), why);
                   else
@@ -244,7 +309,8 @@ namespace HM
       String installerPath = directory + FileUtilities::PathSeparator + snapshot.installer_name;
       SigstoreVerdict verdict;
       String why;
-      if (!FetchVerified(snapshot.installer_url, snapshot.bundle_url, installerPath, snapshot.installer_size, snapshot.installer_digest, trust, verdict, why))
+      if (!FetchVerified(snapshot.installer_url, snapshot.bundle_url, installerPath, snapshot.installer_size, snapshot.installer_digest,
+                         snapshot.available_version, trust, verdict, why))
       {
          UpdateChecker::RecordFailure(why);
          LOG_APPLICATION(Formatter::Format(_T("Update download failed for hMailServer {0}: {1}"), snapshot.available_version, why));
@@ -252,7 +318,18 @@ namespace HM
          return false;
       }
 
-      UpdateChecker::RecordDownloaded(installerPath, verdict.identity, verdict.integrated_time);
+      if (!UpdateChecker::RecordDownloaded(installerPath, snapshot.available_version, verdict.identity, verdict.integrated_time))
+      {
+         // A check answered while the file was coming down, and the release it
+         // offers is no longer this one. The file is verified - as this release -
+         // and is not kept as the one waiting to be installed.
+         Remove_(installerPath);
+         Remove_(installerPath + _T(".cosign.bundle"));
+         error = Formatter::Format(_T("A check while hMailServer {0} was downloading changed the release on offer; the download is not kept. Check again, then download again."),
+            snapshot.available_version);
+         LOG_APPLICATION(Formatter::Format(_T("Update download not kept: {0}"), error));
+         return false;
+      }
       LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} downloaded to {1} and verified: signed by {2}, recorded by the transparency log at {3}."),
          snapshot.available_version, installerPath, String(verdict.identity), UpdateChecker::FormatUnixTime(verdict.integrated_time)));
       return true;

@@ -4319,8 +4319,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="I_P address" xml:space="preserve">
     <value>Adre_sse IP</value>
   </data>
-  <data name="Identity provider that issued the signing certificate (empty = GitHub's)" xml:space="preserve">
-    <value>Fournisseur d'identité qui a émis le certificat de signature (vide = celui de GitHub)</value>
+  <data name="Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)" xml:space="preserve">
+    <value>Fournisseur d'identité qui a émis le certificat de signature (vide = celui de GitHub ou de GitLab)</value>
   </data>
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Identité sous laquelle les résultats sont écrits (vide = nom de cet ordinateur)</value>
@@ -8386,8 +8386,8 @@ Le redémarrer maintenant ?</value>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>Alg_orithme de signature</value>
   </data>
-  <data name="Signing identity the certificate must begin with (empty = this project's release workflow)" xml:space="preserve">
-    <value>Identité de signature par laquelle le certificat doit commencer (vide = le workflow de publication de ce projet)</value>
+  <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
+    <value>Identité de signature par laquelle le certificat doit commencer (vide = les deux workflows de publication de ce projet)</value>
   </data>
   <data name="Signing in…" xml:space="preserve">
     <value>Connexion en cours…</value>
@@ -9349,8 +9349,8 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>La dernière tentative a échoué le {0} : {1}</value>
   </data>
-  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
-    <value>Les cinq derniers réglages de cette carte sont destinés à un site qui construit ses propres versions et les signe avec son propre Sigstore, ou qui met en miroir celles de ce projet. Laissez-les tous les cinq vides et le serveur ne fait confiance qu'à une seule chose : un installateur signé par le workflow de publication propre à ce projet, consigné dans le journal de transparence public. En définir un quelconque restreint ou remplace cela, et se tromper sur l'un d'eux signifie soit refuser de vraies versions, soit faire confiance à celles de quelqu'un d'autre.</value>
+  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
+    <value>Les cinq derniers réglages de cette carte sont destinés à un site qui construit ses propres versions et les signe avec son propre Sigstore, ou qui met en miroir celles de ce projet. Laissez-les tous les cinq vides et le serveur ne fait confiance qu'à un installateur signé par l'un des deux workflows de publication de ce projet - celui de GitHub pour les versions jusqu'à la 6.3.3, celui de GitLab pour les suivantes - et consigné dans le journal de transparence public. En définir un quelconque restreint ou remplace cela pour les deux, et se tromper sur l'un d'eux signifie soit refuser de vraies versions, soit faire confiance à celles de quelqu'un d'autre.</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>La dernière étape de mise à jour a échoué : {0}</value>

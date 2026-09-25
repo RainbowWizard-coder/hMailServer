@@ -159,8 +159,17 @@ namespace
 
    namespace
    {
-      const char *STABLE_FEED = "https://api.github.com/repos/Progressiverobot/hmailserver/releases/latest";
-      const char *PRERELEASE_FEED = "https://api.github.com/repos/Progressiverobot/hmailserver/releases?per_page=10";
+      // The project's own feed: static files GitLab Pages serves from the project
+      // (build/generate-update-feed.py, docs/UpdateFeed.md), in the GitHub Releases
+      // API's shape that ReadRelease_ reads. releases/latest is the newest stable
+      // release as one object; releases.json is every release as a list, which the
+      // pre-release channel reads; RELEASES_BASE + /tags/v<version> is one release,
+      // which the rollback reads. Each is a file on the site, answered 200 with no
+      // redirect - HttpsClient::Request follows none, and Pages answers the bare
+      // /releases, a directory there, with a 302.
+      const char *STABLE_FEED = "https://updates.progressiverobot.com/releases/latest";
+      const char *PRERELEASE_FEED = "https://updates.progressiverobot.com/releases.json";
+      const char *RELEASES_BASE = "https://updates.progressiverobot.com/releases";
 
       // A release list with ten entries and their notes is a few hundred kilobytes;
       // a feed that sends more than this is not the one this reader is for.
@@ -362,16 +371,19 @@ namespace
       return true;
    }
 
-   void
-   UpdateChecker::RecordDownloaded(const String &path, const AnsiString &identity, __int64 integratedTime)
+   bool
+   UpdateChecker::RecordDownloaded(const String &path, const String &version, const AnsiString &identity, __int64 integratedTime)
    {
       boost::lock_guard<boost::mutex> guard(mutex_);
+      if (version.IsEmpty() || !(snapshot_.available_version == version))
+         return false;
       snapshot_.state = StateDownloaded;
       snapshot_.installer_path = path;
       snapshot_.signer_identity = identity;
       snapshot_.integrated_time = integratedTime;
       snapshot_.verified_at = Time::GetCurrentDateTime();
       snapshot_.last_error.Empty();
+      return true;
    }
 
    void
@@ -432,7 +444,7 @@ namespace
       std::string configured = std::string(AnsiString(IniFileSettings::Instance()->GetUpdateFeedUrl()).c_str());
       std::string tag = "/tags/v" + std::string(AnsiString(version).c_str());
       if (configured.empty())
-         return AnsiString(("https://api.github.com/repos/Progressiverobot/hmailserver/releases" + tag).c_str());
+         return AnsiString((std::string(RELEASES_BASE) + tag).c_str());
       size_t releases = configured.find("/releases");
       if (releases == std::string::npos)
          return AnsiString((configured + tag).c_str());
@@ -646,10 +658,14 @@ namespace
          anyRelease = true;
 
          // A draft is not published; a pre-release is published to those who asked
-         // for it. The stable channel is everyone else.
+         // for it. The stable channel is everyone else. A version with a suffix
+         // (6.3.5-rc1) is a pre-release whatever the feed's flag says: the flag is
+         // the feed's word, and a genuine pre-release signed for its own tag would
+         // pass every check on its way to a stable server whose feed called it
+         // stable. The project's feed marks every suffixed tag a pre-release anyway.
          if (candidate.draft)
             continue;
-         if (candidate.prerelease && !preReleaseChannel)
+         if ((candidate.prerelease || candidate.version.Find(_T("-")) >= 0) && !preReleaseChannel)
             continue;
 
          if (!best.found || CompareVersions(candidate.version, best.version) > 0)

@@ -287,7 +287,9 @@ namespace HM
          SigstoreVerdict verdict;
          AnsiString bundleJson;
          SigstoreVerifier::ReadBundle(bundlePath, bundleJson);
-         if (SigstoreVerifier::VerifyFile(path, bundleJson, trust, verdict))
+         String versionWhy;
+         if (SigstoreVerifier::VerifyFile(path, bundleJson, trust, verdict, runningVersion) &&
+             UpdateDownloader::InstallerVersionIs(path, runningVersion, versionWhy))
          {
             rollbackPath = path;
             return true;
@@ -306,7 +308,8 @@ namespace HM
       }
 
       SigstoreVerdict verdict;
-      if (!UpdateDownloader::FetchVerified(assets.installer_url, assets.bundle_url, path, assets.installer_size, assets.installer_digest, trust, verdict, why))
+      if (!UpdateDownloader::FetchVerified(assets.installer_url, assets.bundle_url, path, assets.installer_size, assets.installer_digest,
+                                           runningVersion, trust, verdict, why))
          return false;
 
       rollbackPath = path;
@@ -569,29 +572,16 @@ namespace HM
          return false;
       }
 
-      // Verified once more, now, because the file has been sitting in a directory
-      // since it was: what runs is what was checked.
-      SigstoreTrust trust;
-      String why;
-      if (!SigstoreVerifier::ConfiguredTrust(trust, why))
+      // The release the waiting installer was downloaded as, which every check
+      // below holds it to. Empty or not newer, it is held to nothing - a check that
+      // answered while a download ran could once leave it so - and nothing is
+      // installed as it.
+      if (snapshot.available_version.IsEmpty() || UpdateChecker::CompareVersions(snapshot.available_version, UpdateChecker::RunningVersion()) <= 0)
       {
-         error = why;
-         return false;
-      }
-      String bundlePath = snapshot.installer_path + _T(".cosign.bundle");
-      SigstoreVerdict verdict;
-      AnsiString bundleJson;
-      if (FileUtilities::Exists(bundlePath))
-         SigstoreVerifier::ReadBundle(bundlePath, bundleJson);
-      if (!SigstoreVerifier::VerifyFile(snapshot.installer_path, bundleJson, trust, verdict))
-      {
-         FileUtilities::DeleteFile(snapshot.installer_path);
-         if (FileUtilities::Exists(bundlePath))
-            FileUtilities::DeleteFile(bundlePath);
-         why = Formatter::Format(_T("The installer no longer verifies against its bundle and has been deleted: {0}"), verdict.error);
-         UpdateChecker::RecordFailure(why);
-         LOG_APPLICATION(Formatter::Format(_T("Update apply refused: {0}"), why));
-         error = why;
+         error = Formatter::Format(_T("The waiting installer is not for a release newer than this server's {0}; check for an update and download it again."),
+            UpdateChecker::RunningVersion());
+         UpdateChecker::RecordFailure(error);
+         LOG_APPLICATION(Formatter::Format(_T("Update apply refused: {0}"), error));
          return false;
       }
 
@@ -609,6 +599,45 @@ namespace HM
       {
          LOG_APPLICATION(Formatter::Format(_T("Update: no rollback image for hMailServer {0} could be had ({1}); if {2} does not start, it will need a manual reinstall."),
             running, rollbackWhy, snapshot.available_version));
+      }
+
+      // Verified once more, last, because the file has been sitting in a directory
+      // since it was, and the rollback image above may have taken minutes: what
+      // runs is what was checked, just before the drain and the helper.
+      SigstoreTrust trust;
+      String why;
+      if (!SigstoreVerifier::ConfiguredTrust(trust, why))
+      {
+         error = why;
+         return false;
+      }
+      String bundlePath = snapshot.installer_path + _T(".cosign.bundle");
+      SigstoreVerdict verdict;
+      AnsiString bundleJson;
+      if (FileUtilities::Exists(bundlePath))
+         SigstoreVerifier::ReadBundle(bundlePath, bundleJson);
+      if (!SigstoreVerifier::VerifyFile(snapshot.installer_path, bundleJson, trust, verdict, snapshot.available_version))
+      {
+         FileUtilities::DeleteFile(snapshot.installer_path);
+         if (FileUtilities::Exists(bundlePath))
+            FileUtilities::DeleteFile(bundlePath);
+         why = Formatter::Format(_T("The installer no longer verifies against its bundle and has been deleted: {0}"), verdict.error);
+         UpdateChecker::RecordFailure(why);
+         LOG_APPLICATION(Formatter::Format(_T("Update apply refused: {0}"), why));
+         error = why;
+         return false;
+      }
+      String versionWhy;
+      if (!UpdateDownloader::InstallerVersionIs(snapshot.installer_path, snapshot.available_version, versionWhy))
+      {
+         FileUtilities::DeleteFile(snapshot.installer_path);
+         if (FileUtilities::Exists(bundlePath))
+            FileUtilities::DeleteFile(bundlePath);
+         why = Formatter::Format(_T("The installer is not the release it was downloaded as and has been deleted: {0}"), versionWhy);
+         UpdateChecker::RecordFailure(why);
+         LOG_APPLICATION(Formatter::Format(_T("Update apply refused: {0}"), why));
+         error = why;
+         return false;
       }
 
       String outcome = OutcomePath();

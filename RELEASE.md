@@ -236,6 +236,12 @@ gate lands on `master` by fast-forward, with no pull request.
     it has any assets. Every tag up to `v6.2.23-alpha1` was either lightweight or annotated but
     unsigned; there was nothing to verify and nothing stopped a `v*` ref being moved.
 
+    A pre-release's tag carries a suffix - `v6.3.5-rc1`, never `v6.3.5` with
+    "Pre-release" in its title. The update feed and every server built after
+    6.3.3 tell a pre-release by that suffix alone, since neither the feed's flag
+    nor a title is the signer's word, and the feed does not publish a release
+    titled as a pre-release whose tag has none (docs/UpdateFeed.md).
+
     Then publish **as a draft first** - this repository has
     immutable releases enabled, so a published release refuses every further asset
     upload and would be stuck with whatever it was created with:

@@ -4319,8 +4319,8 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="I_P address" xml:space="preserve">
     <value>Adres I_P</value>
   </data>
-  <data name="Identity provider that issued the signing certificate (empty = GitHub's)" xml:space="preserve">
-    <value>Dostawca tożsamości, który wystawił certyfikat podpisujący (puste = dostawca GitHub)</value>
+  <data name="Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)" xml:space="preserve">
+    <value>Dostawca tożsamości, który wystawił certyfikat podpisujący (puste = dostawca GitHub lub GitLab)</value>
   </data>
   <data name="Identity the results are written under (empty = this computer's name)" xml:space="preserve">
     <value>Tożsamość, pod którą zapisywane są wyniki (puste = nazwa tego komputera)</value>
@@ -8386,8 +8386,8 @@ Uruchomić ją ponownie teraz?</value>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>Alg_orytm podpisywania</value>
   </data>
-  <data name="Signing identity the certificate must begin with (empty = this project's release workflow)" xml:space="preserve">
-    <value>Tożsamość podpisująca, od której musi się zaczynać certyfikat (puste = przepływ pracy wydania tego projektu)</value>
+  <data name="Signing identity the certificate must begin with (empty = this project's two release workflows)" xml:space="preserve">
+    <value>Tożsamość podpisująca, od której musi się zaczynać certyfikat (puste = dwa przepływy pracy wydania tego projektu)</value>
   </data>
   <data name="Signing in…" xml:space="preserve">
     <value>Logowanie…</value>
@@ -9349,8 +9349,8 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   <data name="The last attempt failed at {0}: {1}" xml:space="preserve">
     <value>Ostatnia próba nie powiodła się {0}: {1}</value>
   </data>
-  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts exactly one thing: an installer signed by this project's own release workflow, recorded in the public transparency log. Setting any of them narrows or replaces that, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
-    <value>Pięć ostatnich ustawień na tej karcie jest przeznaczonych dla instalacji, która buduje własne wydania i podpisuje je własnym Sigstore, albo która jest kopią lustrzaną wydań tego projektu. Gdy wszystkie pozostaną puste, serwer ufa dokładnie jednej rzeczy: instalatorowi podpisanemu przez własny przepływ pracy wydania tego projektu i odnotowanemu w publicznym dzienniku przejrzystości. Ustawienie któregokolwiek z nich zawęża to zaufanie albo je zastępuje, a pomyłka w którymkolwiek oznacza albo odrzucanie prawdziwych wydań, albo zaufanie cudzym.</value>
+  <data name="The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's." xml:space="preserve">
+    <value>Pięć ostatnich ustawień na tej karcie jest przeznaczonych dla instalacji, która buduje własne wydania i podpisuje je własnym Sigstore, albo która jest kopią lustrzaną wydań tego projektu. Gdy wszystkie pozostaną puste, serwer ufa tylko instalatorowi podpisanemu przez jeden z dwóch przepływów pracy wydania tego projektu – na GitHubie dla wydań do 6.3.3, na GitLabie dla późniejszych – i odnotowanemu w publicznym dzienniku przejrzystości. Ustawienie któregokolwiek z nich zawęża to zaufanie albo je zastępuje dla obu, a pomyłka w którymkolwiek oznacza albo odrzucanie prawdziwych wydań, albo zaufanie cudzym.</value>
   </data>
   <data name="The last update step failed: {0}" xml:space="preserve">
     <value>Ostatni krok aktualizacji nie powiódł się: {0}</value>

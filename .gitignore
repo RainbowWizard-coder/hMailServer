@@ -75,6 +75,10 @@ CLAUDE.md
 
 # Code coverage output
 /coverage/
+
+# The update feed build/generate-update-feed.py writes for GitLab Pages. The CI
+# file's pages job makes it afresh on every run; nothing keeps it in the tree.
+/public/
 /hmailserver/source/Tools/ControlPanel.Tests/bin/
 /hmailserver/source/Tools/ControlPanel.Tests/obj/
 /hmailserver/source/Tools/ControlPanel.Core/bin/
