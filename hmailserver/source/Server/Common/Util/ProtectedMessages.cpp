@@ -5,6 +5,7 @@
 #include "StdAfx.h"
 #include "ProtectedMessages.h"
 #include "ConfidentialMessages.h"
+#include "DiscoveryHolds.h"
 #include "Unicode.h"
 #include "Utilities.h"
 #include "FileUtilities.h"
@@ -406,6 +407,19 @@ namespace HM
       if (!FileUtilities::DirectoryExists(folder) && !FileUtilities::CreateDirectory(folder))
          return Failed;
 
+      // The row again, under the lock: the route read it outside, and a
+      // withdrawal or an address's erasure that ended it in between - each
+      // under this lock too - took the row, or marked it withdrawn, and deleted
+      // the file. Appending now would write back a file no row names, which
+      // no sweep would ever find.
+      {
+         SQLCommand live("select pmrevoked from hm_protectedmessages where pmid = @ID");
+         live.AddParameter("@ID", entry.id);
+         std::shared_ptr<DALRecordset> row = Application::Instance()->GetDBManager()->OpenRecordset(live);
+         if (!row || row->IsEOF() || row->GetLongValue("pmrevoked") != 0)
+            return Failed;
+      }
+
       // The file is the truth about where the upload has reached. The route
       // read the row outside this lock; a second chunk for the same offset
       // that also passed there meets the bytes the first one wrote here.
@@ -803,7 +817,11 @@ namespace HM
       // The row is what the fetch refuses on, so it goes first; the file's
       // column is cleared only once the file is gone, so the sweep - which
       // selects every withdrawn row still naming a file - retries a delete
-      // that fails here.
+      // that fails here. Under the upload's lock, so that a chunk waiting for
+      // it meets the withdrawn row and writes nothing, rather than putting the
+      // file back after it was deleted.
+      std::lock_guard<std::mutex> guard(append_mutex);
+
       SQLCommand update("update hm_protectedmessages set pmrevoked = 1 where pmid = @ID and pmaccountid = @ACCOUNTID");
       update.AddParameter("@ID", id);
       update.AddParameter("@ACCOUNTID", accountId);
@@ -813,6 +831,85 @@ namespace HM
       if (!entry.file.IsEmpty() && DeleteStored(entry.id, entry.file, "ProtectedMessages::Revoke"))
          ClearFileColumn(entry.id);
       return true;
+   }
+
+   int
+   ProtectedMessages::EraseAddress(const String &address, int &held)
+   {
+      held = 0;
+
+      const String wanted = Lower(address);
+      if (wanted.IsEmpty())
+         return 0;
+
+      // One recipient a row, written lower-cased by Create: the address is the
+      // whole column or it is not there.
+      SQLCommand command(String(_T("select ")) + String(Columns) + _T(" from hm_protectedmessages where pmrecipient = @RECIPIENT"));
+      command.AddParameter("@RECIPIENT", wanted);
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return -1;
+
+      std::vector<Entry> entries;
+      while (!recordset->IsEOF())
+      {
+         entries.push_back(ReadEntry(recordset));
+         recordset->MoveNext();
+      }
+
+      int removed = 0;
+      bool failed = false;
+
+      for (const Entry &entry : entries)
+      {
+         // A legal hold outranks the erasure: the ciphertext is the held
+         // account's message, kept elsewhere.
+         if (DiscoveryHolds::IsAccountHeld(entry.account_id))
+         {
+            held++;
+            continue;
+         }
+
+         // Withdrawn first, which is what the fetch refuses on; then the file;
+         // then the row, once nothing names the file. Under the upload's lock,
+         // as a withdrawal is: a chunk of this message waiting for the lock
+         // then finds no row and writes nothing, where without it the chunk
+         // could recreate the file after its delete, with no row left to name it.
+         std::lock_guard<std::mutex> guard(append_mutex);
+
+         SQLCommand revoke("update hm_protectedmessages set pmrevoked = 1 where pmid = @ID");
+         revoke.AddParameter("@ID", entry.id);
+         if (!Application::Instance()->GetDBManager()->Execute(revoke))
+         {
+            failed = true;
+            continue;
+         }
+
+         if (!entry.file.IsEmpty() && !DeleteStored(entry.id, entry.file, "ProtectedMessages::EraseAddress"))
+         {
+            failed = true;
+            continue;
+         }
+
+         SQLCommand remove("delete from hm_protectedmessages where pmid = @ID");
+         remove.AddParameter("@ID", entry.id);
+         if (!Application::Instance()->GetDBManager()->Execute(remove))
+         {
+            failed = true;
+            continue;
+         }
+
+         removed++;
+      }
+
+      if (removed > 0)
+      {
+         String line;
+         line.Format(_T("ProtectedMessages: %d password-protected message(s) or replies ended by an address's erasure."), removed);
+         LOG_APPLICATION(line);
+      }
+
+      return failed ? -1 : removed;
    }
 
    void

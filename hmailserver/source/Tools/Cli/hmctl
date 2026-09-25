@@ -739,6 +739,8 @@ def privacy_command(client, arguments):
         body = {"address": arguments.address, "include_archive": bool(arguments.archive), "include_logs": bool(arguments.logs)}
         answer = client.request("POST", "/api/v1/addresses/erase", body) or {}
         print("erased %s trace(s) of %s." % (answer.get("removed", 0), arguments.address))
+        if answer.get("held", 0):
+            print("%s item(s) were left in place under a legal hold." % answer.get("held"))
     return EXIT_OK
 
 

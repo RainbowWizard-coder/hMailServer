@@ -4,6 +4,7 @@
 
 #include "StdAfx.h"
 #include "ConfidentialMessages.h"
+#include "DiscoveryHolds.h"
 #include "Unicode.h"
 #include "Utilities.h"
 #include "FileUtilities.h"
@@ -631,6 +632,227 @@ namespace HM
       for (auto it = grants.begin(); it != grants.end();)
          it = it->second.token == entry.token ? grants.erase(it) : std::next(it);
       return true;
+   }
+
+   // The address a From header names: what lies between its last < and the >
+   // after it, or the header itself when it is a bare address. Lower-cased, as
+   // the recipients are kept.
+   static String AddressInHeader(const String &header)
+   {
+      const int open = header.ReverseFind(_T("<"));
+      if (open >= 0)
+      {
+         const String rest = header.Mid(open + 1);
+         const int close = rest.Find(_T(">"));
+         if (close >= 0)
+            return Lower(rest.Mid(0, close));
+      }
+      return Lower(header);
+   }
+
+   int
+   ConfidentialMessages::EraseAddress(const String &address, int &held)
+   {
+      held = 0;
+
+      const String wanted = Lower(address);
+      if (wanted.IsEmpty())
+         return 0;
+
+      // LIKE finds the candidates - the recipients are one comma-separated
+      // column, and the sender is the From header as it was sent, a display
+      // name and all - and each is matched whole below, since LIKE alone finds
+      // ann@example.test inside joann@example.test. A wildcard in the address
+      // only widens what LIKE finds, except [, which opens a character class on
+      // SQL Server and Compact (the address validator admits it in a local part
+      // and in a domain literal): it goes in as _, any one character, on every
+      // dialect, and the whole match below decides.
+      String like = wanted;
+      like.Replace(_T("["), _T("_"));
+      const String pattern = _T("%") + like + _T("%");
+      SQLCommand command(String(_T("select ")) + String(Columns) + _T(" from hm_confidential where lower(cfsender) like @SENDER or cfrecipients like @RECIPIENTS or lower(cfopenedby) = @OPENEDBY"));
+      command.AddParameter("@SENDER", pattern);
+      command.AddParameter("@RECIPIENTS", pattern);
+      command.AddParameter("@OPENEDBY", wanted);
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return -1;
+
+      // Each row, and its recipients column as it was read - the value the
+      // rewrite below is conditional on.
+      std::vector<std::pair<Entry, String> > candidates;
+      while (!recordset->IsEOF())
+      {
+         candidates.push_back(std::make_pair(ReadEntry(recordset), recordset->GetStringValue("cfrecipients")));
+         recordset->MoveNext();
+      }
+
+      int changed = 0;
+      bool failed = false;
+      std::set<AnsiString> ended;
+
+      for (const std::pair<Entry, String> &candidate : candidates)
+      {
+         const Entry &entry = candidate.first;
+
+         const bool sent = AddressInHeader(entry.sender).Compare(wanted) == 0;
+         const bool named = entry.IsRecipient(wanted);
+         const bool opened = Lower(entry.opened_by).Compare(wanted) == 0;
+         if (!sent && !named && !opened)
+            continue;
+
+         // A legal hold outranks the erasure: the kept copy is the held
+         // account's mail, kept elsewhere, and its row the record of whom it
+         // went to.
+         if (DiscoveryHolds::IsAccountHeld(entry.account_id))
+         {
+            held++;
+            continue;
+         }
+
+         std::vector<String> remaining;
+         for (const String &recipient : entry.recipients)
+         {
+            if (recipient.Compare(wanted) != 0)
+               remaining.push_back(recipient);
+         }
+
+         if (sent || remaining.empty())
+         {
+            // Ended as a withdrawal ends it: the row says so first, which is
+            // what the page refuses on; then the kept copy; then the row, once
+            // nothing names the file. A copy that cannot be deleted leaves the
+            // row withdrawn and naming it, and the sweep tries the file again
+            // every minute - but the row still names the address, so the
+            // erasure says it failed and is run again.
+            SQLCommand revoke("update hm_confidential set cfrevoked = 1 where cfid = @ID");
+            revoke.AddParameter("@ID", entry.id);
+            if (!Application::Instance()->GetDBManager()->Execute(revoke))
+            {
+               failed = true;
+               continue;
+            }
+            ended.insert(entry.token);
+
+            if (!entry.file.IsEmpty() && !DeleteKept(entry.id, entry.file, "ConfidentialMessages::EraseAddress"))
+            {
+               failed = true;
+               continue;
+            }
+
+            SQLCommand remove("delete from hm_confidential where cfid = @ID");
+            remove.AddParameter("@ID", entry.id);
+            if (!Application::Instance()->GetDBManager()->Execute(remove))
+            {
+               failed = true;
+               continue;
+            }
+
+            changed++;
+            continue;
+         }
+
+         // Somebody else's message to others as well: the address comes out of
+         // its recipients, and out of who opened it, where the row then says a
+         // recipient did and that the name was erased.
+         //
+         // Each change is conditional on what it replaces, so that nothing
+         // written in between is overwritten with the snapshot read above: the
+         // recipients only while they are still the column as it was read (a
+         // second erasure of another recipient of the same message, running at
+         // the same moment, would otherwise put this one's address back), and
+         // who opened it in a statement of its own, only while it still names
+         // the address (so a first opening recorded in between is kept).
+         if (named)
+         {
+            String joined;
+            for (const String &recipient : remaining)
+               joined += (joined.IsEmpty() ? String() : String(_T(","))) + recipient;
+
+            SQLCommand update("update hm_confidential set cfrecipients = @RECIPIENTS where cfid = @ID and cfrecipients = @WAS");
+            update.AddParameter("@RECIPIENTS", joined);
+            update.AddParameter("@ID", entry.id);
+            update.AddParameter("@WAS", candidate.second);
+            if (!Application::Instance()->GetDBManager()->Execute(update))
+            {
+               failed = true;
+               continue;
+            }
+         }
+
+         if (opened)
+         {
+            SQLCommand erase("update hm_confidential set cfopenedby = @ERASED where cfid = @ID and lower(cfopenedby) = @WANTED");
+            erase.AddParameter("@ERASED", String(_T("[erased]")));
+            erase.AddParameter("@ID", entry.id);
+            erase.AddParameter("@WANTED", wanted);
+            if (!Application::Instance()->GetDBManager()->Execute(erase))
+            {
+               failed = true;
+               continue;
+            }
+         }
+
+         // The DAL answers success, not rows changed, so the row is read again:
+         // one that still names the address - its recipients changed under the
+         // conditional update - is an erasure that did not finish, and says so
+         // rather than answering done. Run again, it starts from the new row.
+         SQLCommand reread(String(_T("select ")) + String(Columns) + _T(" from hm_confidential where cfid = @ID"));
+         reread.AddParameter("@ID", entry.id);
+         std::shared_ptr<DALRecordset> after = Application::Instance()->GetDBManager()->OpenRecordset(reread);
+         if (!after)
+         {
+            failed = true;
+            continue;
+         }
+         if (!after->IsEOF())
+         {
+            const Entry reread_entry = ReadEntry(after);
+            if (reread_entry.IsRecipient(wanted) || Lower(reread_entry.opened_by).Compare(wanted) == 0)
+            {
+               failed = true;
+               continue;
+            }
+         }
+
+         changed++;
+      }
+
+      // What memory holds of the address: its one-time codes, for any message,
+      // and the reading grants it proved itself for; and everything of a message
+      // that was ended.
+      {
+         const AnsiString suffix = "|" + Utf8(wanted);
+
+         std::lock_guard<std::mutex> guard(state_mutex);
+         for (auto it = codes.begin(); it != codes.end();)
+         {
+            const AnsiString &key = it->first;
+            const int bar = key.Find("|");
+            const AnsiString token = bar >= 0 ? key.Mid(0, bar) : key;
+            const bool drop = ended.count(token) > 0 || key.EndsWith(suffix.c_str());
+            it = drop ? codes.erase(it) : std::next(it);
+         }
+         for (auto it = grants.begin(); it != grants.end();)
+         {
+            const bool drop = ended.count(it->second.token) > 0 || Lower(it->second.by).Compare(wanted) == 0;
+            it = drop ? grants.erase(it) : std::next(it);
+         }
+         for (const AnsiString &token : ended)
+         {
+            budgets.erase(token);
+            guesses.erase(token);
+         }
+      }
+
+      if (changed > 0)
+      {
+         String line;
+         line.Format(_T("ConfidentialMessages: %d message(s) that expire changed or ended by an address's erasure."), changed);
+         LOG_APPLICATION(line);
+      }
+
+      return failed ? -1 : changed;
    }
 
    void

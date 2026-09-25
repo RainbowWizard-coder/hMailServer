@@ -119,6 +119,19 @@ namespace HM
       // the delete fails, since the row keeps naming the file until it is gone.
       static bool Revoke(__int64 accountId, __int64 id);
 
+      // An erasure of an address (AddressTraceEraser). A message somebody else
+      // sent to it has the address taken out of its recipients - matched whole,
+      // never inside a longer address - and out of opened_by, which then reads
+      // [erased]; the other recipients go on reading it. A message the address
+      // sent (its From), or one left with no recipient, is ended: withdrawn,
+      // its kept copy deleted, and its row removed. The one-time codes and the
+      // reading grants the address holds go too. A message whose account is
+      // under a legal hold (DiscoveryHolds.h) is left as it is and counted in
+      // held. The number of rows changed or removed, or -1 when the rows could
+      // not be read or one could not be changed - a kept copy that cannot be
+      // deleted leaves its row withdrawn, for the sweep to retry the file.
+      static int EraseAddress(const String &address, int &held);
+
       static void MarkOpened(const Entry &entry, const String &by);
 
       // One-time codes, sent to a recipient's address; kept in memory for ten

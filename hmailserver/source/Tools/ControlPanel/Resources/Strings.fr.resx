@@ -3548,8 +3548,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Erase _traces..." xml:space="preserve">
     <value>Effacer les _traces...</value>
   </data>
-  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
-    <value>Effacer chaque trace enregistrée de {0} : entrées de quarantaine, lignes de suivi, greylisting, appartenances aux listes, alias, entrées dans les carnets d'adresses d'autrui et mémoire de premier contact, l'arborescence d'archive (copies sous conservation exceptées) et les lignes de journal qui la nomment ? Irréversible.</value>
+  <data name="Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone." xml:space="preserve">
+    <value>Effacer chaque trace enregistrée de {0} ? Entrées de quarantaine, lignes de suivi, greylisting, appartenances aux listes, alias, les entrées de carnet d'adresses, certificats, clés et mémoires que d'autres comptes gardent d'elle, les messages hors de toute boîte aux lettres qui la nomment - retenus pour examen (écartés pour tous les destinataires), à expiration ou protégés par mot de passe -, l'arborescence d'archive et les lignes de journal qui nomment l'adresse. Ce qu'une conservation légale couvre reste en place. Irréversible.</value>
   </data>
   <data name="Erase traces" xml:space="preserve">
     <value>Effacer les traces</value>

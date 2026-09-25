@@ -678,7 +678,11 @@ plaintext; nor is it also signed or encrypted to a key.
 that name this server and end on a timer, a restore elsewhere could not serve
 them, the sender's copy of the notice is in the Sent folder the backup does
 carry, and what the recipient read is theirs. It is not on the audit trail:
-it is traffic, and ciphertext this server cannot open.
+it is traffic, and ciphertext this server cannot open. An address's erasure
+([PersonalData.md](PersonalData.md)) ends every message to the address and every
+reply it wrote - the ciphertext deleted, the row gone - unless the sending
+account is under a legal hold. A message the address's own account sent is not
+reached: its row names its recipient and no sender, and goes with the account.
 
 `API/RestApiProtectedMessages` proves the server's half - the bytes stored are
 the ciphertext, what does not have the shape is discarded (a plaintext, a
@@ -787,6 +791,11 @@ would fail at the moment it happened.
 
 It is **not** on the audit trail. It is the account's own data, written by the
 account in its own browser, like its address book and its S/MIME keys.
+
+A correspondent's key names its owner in its user id, so an address's erasure
+([PersonalData.md](PersonalData.md)) removes the correspondent rows filed under
+the address from every account's ring, as it removes the certificates other
+accounts keep of it. An account's own keys go with the account.
 
 The routes
 ----------

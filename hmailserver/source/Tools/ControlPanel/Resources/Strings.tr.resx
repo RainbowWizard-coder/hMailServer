@@ -3548,8 +3548,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Erase _traces..." xml:space="preserve">
     <value>_İzleri sil...</value>
   </data>
-  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
-    <value>{0} adresinin saklanan her izi silinsin mi: karantina kayıtları, izleme satırları, greylisting, liste üyelikleri, takma adlar, başkalarının adres defteri kayıtları ve ilk temas belleği, arşiv ağacı (bekletme altındaki kopyalar hariç) ve onu anan günlük satırları? Geri alınamaz.</value>
+  <data name="Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone." xml:space="preserve">
+    <value>{0} adresinin saklanan her izi silinsin mi? Karantina kayıtları, izleme satırları, greylisting, liste üyelikleri, takma adlar, diğer hesapların bu adres için tuttuğu adres defteri kayıtları, sertifikalar, anahtarlar ve bellekler, adresi anan ve hiçbir posta kutusunda olmayan iletiler - inceleme için bekletilenler (tüm alıcılar için atılır), süresi dolanlar veya parolayla korunanlar -, arşiv ağacı ve adresi anan günlük satırları. Yasal saklama kapsamındakiler yerinde bırakılır. Geri alınamaz.</value>
   </data>
   <data name="Erase traces" xml:space="preserve">
     <value>İzleri sil</value>

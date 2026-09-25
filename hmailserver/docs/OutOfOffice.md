@@ -43,7 +43,8 @@ before.
 
 The memory of who was answered when is a table, `hm_autoreplies`, one row per
 account and sender with a unix-time stamp, kept until the reply is switched off
-or the account is deleted. It used to be held in process memory, which meant a
+or the account is deleted - or the sender's address is erased
+([PersonalData.md](PersonalData.md)), after which the reply answers it again. It used to be held in process memory, which meant a
 restart repeated every reply and "N days" could only mean "since the service
 started". Two messages from the same sender delivered at the same moment can
 both find no row; the loser's duplicate is ignored, and the sender was answered

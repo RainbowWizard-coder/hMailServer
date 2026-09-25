@@ -40,7 +40,9 @@ made. Closing a case releases every hold of it that is still live - each
 release on the audit trail - and a closed case runs no search, places no hold
 and makes no export; its searches, holds and exports stay readable, and its
 exports downloadable. A case is never deleted: the record of what was looked
-for is the point.
+for is the point. Nor does an address's erasure reach it: the custodians its
+queries name, what its holds hold and what its results and exports list are
+that record ([PersonalData.md](PersonalData.md)).
 
 The files a case makes are under the data directory, in
 `Discovery\case-<id>\`: `search-<id>.json` for each search's results and
@@ -232,7 +234,7 @@ drops a message the account's own filters were given, found by reading the code:
 | **Moving the account to another domain**: `POST /api/v1/accounts/{address}/move`, `Account.Move` and `Utilities.MoveMailbox` over COM, SCIM's rename, `Account.Address` saved | Refused while the account is held, on itself or through its domain: `409` over REST and SCIM, an error over COM, with the sentence. A domain hold is kept by the domain, so a move out of it would take the account out of the hold; a rename inside the domain goes ahead, and so does a move of an account under no hold into a held domain, which the hold then covers |
 | **The account's deletion**: `DELETE /api/v1/accounts/{address}`, SCIM's `DELETE /scim/v2/Users/{id}`, `Account.Delete`, `Accounts.Delete` and `DeleteByDBID` | Refused, `409` (SCIM: in its error shape) or an error over COM, with the sentence; `PersistentAccount::DeleteObject` refuses whatever path reaches it. SCIM's removal of a held account also **suspends** it and ends its sessions and connections, since the person the identity provider removed has left: the account and its mail stay, and the identity provider hears `409` until the hold is released. The one deletion let by is the undoing of an account the same request made a moment before - an inbox that could not be made, a SCIM create whose alias was refused - which nothing was ever in |
 | **The domain's deletion**: `DELETE /api/v1/domains/{domain}`, `Domain.Delete`, `Domains.DeleteByDBID` | Refused while the domain or any account in it is held, before any account of it is deleted |
-| **The archive's retention sweep** (`ArchiveRetentionDays`) and **an address's erasure** (`POST /api/v1/addresses/erase`) | A held copy - by a hold on it, on its account or on its domain - keeps its file and its index row. A file the index has no row for is judged by the directories it lies in |
+| **The archive's retention sweep** (`ArchiveRetentionDays`) and **an address's erasure** (`POST /api/v1/addresses/erase`) | A held copy - by a hold on it, on its account or on its domain - keeps its file and its index row. A file the index has no row for is judged by the directories it lies in. The erasure also leaves a held account's messages held for review, messages that expire and password-protected messages as they are, and its answer counts what a hold kept (`held`, [PersonalData.md](PersonalData.md)) |
 
 A hold does not stop what is not a deletion: a message moved to another folder
 **of the same account** - over IMAP `MOVE`, the webmail's move, or to Trash by
@@ -252,10 +254,13 @@ What a hold does **not** reach:
   account's copy there when it is on - and what the quarantine discards is
   deleted from there.
 * **The queue.** A message still in the delivery queue is not in a mailbox yet.
+  An address's erasure is the one exception: it leaves a held account's
+  messages held for review where they are, as it leaves its archived copies.
 * **The stores beside the mailbox.** A message the custodian sent in confidential
   mode or with a password is kept for its recipients under
   `<data directory>\Confidential` and `\Protected`, and the sender's revoke and
   those stores' own expiry delete it whatever a hold says. Neither is searched.
+  An address's erasure does not delete it: a held account's kept copies stay.
 * **Archived copies with no index row** in the archive's `Error` folder - a bounce
   or a report with a null sender: the archive's sweep judges them by the directory
   they lie in, which names no account, so a hold on an account or a domain does
@@ -277,7 +282,9 @@ made elsewhere. A read that fails is answered **held for everything** and said
 in the error log once a minute (HM7332): a hold that could not be read is not a
 hold that was released. The same goes for an account whose domain cannot be read
 while a domain hold stands, and the retention sweep says in one line that the
-holds could not be read rather than naming a hold on every account.
+holds could not be read rather than naming a hold on every account. An address's
+erasure that meets holds it could not read fails, naming them as a store to retry,
+rather than count what it left as kept by a hold ([PersonalData.md](PersonalData.md)).
 
 ## Exports
 
@@ -467,7 +474,8 @@ changes.
   archived copies held by one request.
 * **No hold on the server's or a domain's rules**, on spam and virus deletion
   before a message is the account's, on what the quarantine discards, on the
-  queue, on the confidential and password-protected stores, on archived copies
+  queue, on the confidential and password-protected stores (but for an
+  address's erasure, which leaves a held account's), on archived copies
   with no index row, or - when `ArchiveDir` is inside the data directory - on
   held archived copies against a full restore.
 * **No silent hold**: the custodian can see what a hold kept (above).
@@ -498,7 +506,10 @@ nothing, refuses a restore's replace and the account's deletion over REST and
 COM, is found by a search, and its placing and release are on the audit trail;
 released, the deletion proceeds. An IMAP `MOVE` of a held account's message into
 a public folder keeps its original, where a move within the account and the same
-move out of an unheld account keep nothing. A domain hold keeps an expunge in
+move out of an unheld account keep nothing. `API/RestApiErasureStores.cs`: an
+address's erasure leaves a held account's message held for review, message that
+expires and password-protected message, counts them in `held`, and ends them once
+the case is closed. A domain hold keeps an expunge in
 the domain where another domain's account keeps nothing, refuses the domain's
 deletion over REST and COM and a move of its account to another domain, and lets
 an unheld account move in and holds it there. A Sieve discard under a hold is

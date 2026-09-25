@@ -334,43 +334,87 @@ namespace HM
    }
 
    int
-   PersistentArchiveIndex::RemoveByAddress(const String &address)
+   PersistentArchiveIndex::RemoveByAddress(const String &address, std::vector<String> &heldPaths)
    {
       // Rows whose sender is the address, or whose recipient list names it.
       // The count is what the eraser reports; rows for held copies are kept,
       // because a hold is a promise that nothing removes the record.
       String lowered = address;
+      lowered.Trim();
       lowered.ToLower();
+      if (lowered.IsEmpty())
+         return 0;
+
+      // LIKE only finds the candidates, with the address as it is rather than
+      // escaped: Contains() writes SQL Server's [_], which MySQL and PostgreSQL
+      // read as three literal characters, so an address with an underscore in
+      // it was never found there. A wildcard that matches too much is harmless,
+      // because each candidate is matched whole below - except [, which opens a
+      // character class on SQL Server and Compact, so an address holding one
+      // (a local part may, and a domain literal does) would never be found: it
+      // goes in as _, any one character, on every dialect. Both sides
+      // lower-cased: the archiver writes the envelope as it came, and
+      // PostgreSQL compares case.
+      String like = lowered;
+      like.Replace(_T("["), _T("_"));
+      SQLCommand candidates(_T("select archiveid, archivedomain, archivemailbox, archivesender, archiverecipients, archivepath, archivehold from hm_archiveindex where lower(archivesender) = @ADDRESS or lower(archiverecipients) like @PATTERN"));
+      candidates.AddParameter("@ADDRESS", lowered);
+      candidates.AddParameter("@PATTERN", _T("%") + like + _T("%"));
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(candidates);
+      if (!recordset)
+         return -1;
 
       // The rows one at a time rather than in one delete: a row an eDiscovery
       // hold covers - by its own hold, its account's or its domain's - is kept
       // as a flagged one is, and only the question can tell which those are.
-      SQLCommand candidates(_T("select archiveid, archivedomain, archivemailbox from hm_archiveindex where archivehold = 0 and (archivesender = @ADDRESS or archiverecipients like @CONTAINS)"));
-      candidates.AddParameter("@ADDRESS", lowered);
-      candidates.AddParameter("@CONTAINS", Contains(lowered));
-      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(candidates);
-      if (!recordset)
-         return 0;
-
       std::vector<__int64> removable;
       while (!recordset->IsEOF())
       {
-         const __int64 id = recordset->GetInt64Value("archiveid");
-         if (!DiscoveryHolds::IsArchiveEntryHeld(id, recordset->GetStringValue("archivedomain"), recordset->GetStringValue("archivemailbox")))
-            removable.push_back(id);
+         String sender = recordset->GetStringValue("archivesender");
+         sender.Trim();
+         bool names = sender.CompareNoCase(lowered) == 0;
+
+         // The recipients are written comma-separated and cut at 1,000
+         // characters; an address cut in half at the end is not the address.
+         if (!names)
+         {
+            for (String recipient : StringParser::SplitString(recordset->GetStringValue("archiverecipients"), _T(",")))
+            {
+               recipient.Trim();
+               if (recipient.CompareNoCase(lowered) == 0)
+               {
+                  names = true;
+                  break;
+               }
+            }
+         }
+
+         if (names)
+         {
+            const __int64 id = recordset->GetInt64Value("archiveid");
+            if (recordset->GetLongValue("archivehold") != 0 ||
+                DiscoveryHolds::IsArchiveEntryHeld(id, recordset->GetStringValue("archivedomain"), recordset->GetStringValue("archivemailbox")))
+               heldPaths.push_back(recordset->GetStringValue("archivepath"));
+            else
+               removable.push_back(id);
+         }
+
          recordset->MoveNext();
       }
 
       int rows = 0;
+      bool failed = false;
       for (const __int64 id : removable)
       {
          SQLCommand remove(_T("delete from hm_archiveindex where archiveid = @ID and archivehold = 0"));
          remove.AddParameter("@ID", id);
          if (Application::Instance()->GetDBManager()->Execute(remove))
             rows++;
+         else
+            failed = true;
       }
 
-      return rows;
+      return failed ? -1 : rows;
    }
 
    AnsiString

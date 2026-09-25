@@ -181,12 +181,15 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
-      [Description("Erasing an address's traces forgets its archive rows along with its files, except a row on hold.")]
+      [Description("Erasing an address's traces forgets its archive rows along with its files, except a row on hold - and not the rows of a longer address it is part of, which LIKE alone would match.")]
       public void ErasingAnAddressForgetsItsRowsExceptAHeldOne()
       {
          // Addresses as strings: an Account proxy does not survive the restart below.
          string alice = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "alice@example.test", "test").Address;
          string carol = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "carol@example.test", "test").Address;
+         // "carol@example.test" is inside "mcarol@example.test": the negative control
+         // for the whole-entry match.
+         string mcarol = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "mcarol@example.test", "test").Address;
 
          ServerIniFile.SetSetting("ArchiveDir", archiveRoot_);
          RestartServerAndReacquireCom();
@@ -194,6 +197,11 @@ namespace RegressionTests.Infrastructure
          string needle = UniqueNeedle();
          ArchiveOneMessage(alice, carol, needle + " first");
          ArchiveOneMessage(alice, carol, needle + " second");
+
+         // Its own subject, so that no count about carol's rows below sees it.
+         string otherNeedle = UniqueNeedle();
+         ArchiveOneMessage(alice, mcarol, otherNeedle + " third");
+         Assert.AreEqual(2, Count(Search(recipient: mcarol, subject: otherNeedle), "\"id\":"), "Alice's Sent row and mcarol's received row.");
 
          string carols = Search(domain: "example.test", mailbox: "carol", subject: needle);
          Assert.AreEqual(2, Count(carols, "\"id\":"), carols);
@@ -208,6 +216,33 @@ namespace RegressionTests.Infrastructure
          string remaining = Search(recipient: "carol@example.test", subject: needle);
          Assert.AreEqual(1, Count(remaining, "\"id\":"), "Only the held row survives an erasure: " + remaining);
          StringAssert.Contains("\"hold\":true", remaining);
+
+         string longer = Search(recipient: mcarol, subject: otherNeedle);
+         Assert.AreEqual(2, Count(longer, "\"id\":"), "The rows naming mcarol are not carol's, and stay: " + longer);
+      }
+
+      [Test]
+      [Description("An erasure finds an address's archive rows whatever case the envelope wrote it in, and with an underscore in it - which the erasure's old escape, SQL Server's [_], never found on MySQL or PostgreSQL, whose LIKE reads it as three characters.")]
+      public void ErasingAnAddressFindsItsRowsWhateverTheEnvelopesCaseAndWithAnUnderscore()
+      {
+         // Addresses as strings: an Account proxy does not survive the restart below.
+         string alice = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "alice@example.test", "test").Address;
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "car_ol@example.test", "test");
+
+         ServerIniFile.SetSetting("ArchiveDir", archiveRoot_);
+         RestartServerAndReacquireCom();
+
+         // The envelope as a client may write it, the case kept in the index: as the
+         // sender of one message and as the recipient of another.
+         string needle = UniqueNeedle();
+         ArchiveOneMessage("Car_Ol@example.test", alice, needle + " from");
+         ArchiveOneMessage(alice, "CAR_OL@example.test", needle + " to");
+         Assert.AreEqual(4, Count(Search(subject: needle), "\"id\":"), "A Sent and a received row for each message.");
+
+         _application.Utilities.EraseAddressTraces("car_ol@example.test", true);
+
+         string remaining = Search(subject: needle);
+         Assert.AreEqual(0, Count(remaining, "\"id\":"), "Every row naming the address is gone, whatever its case: " + remaining);
       }
    }
 }

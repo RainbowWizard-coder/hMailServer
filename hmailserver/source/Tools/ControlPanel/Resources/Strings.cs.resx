@@ -3548,8 +3548,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Erase _traces..." xml:space="preserve">
     <value>Smazat s_topy...</value>
   </data>
-  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
-    <value>Smazat každou uloženou stopu adresy {0}: položky karantény, řádky trasování, greylisting, členství v seznamech, aliasy, záznamy v adresářích ostatních lidí a paměť prvního kontaktu, strom archivu (kromě kopií pod zadržením) a řádky logu, které ji jmenují? Nelze vrátit zpět.</value>
+  <data name="Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone." xml:space="preserve">
+    <value>Smazat každou uloženou stopu adresy {0}? Položky karantény, řádky trasování, greylisting, členství v seznamech, aliasy, záznamy v adresářích, certifikáty, klíče a paměť, které o ní vedou jiné účty, zprávy mimo schránky, které ji jmenují - zadržené ke kontrole (zahozené pro všechny příjemce), s vypršením platnosti nebo chráněné heslem - strom archivu a řádky logu, které adresu jmenují. Co kryje právní zadržení, zůstane na místě. Nelze vrátit zpět.</value>
   </data>
   <data name="Erase traces" xml:space="preserve">
     <value>Smazat stopy</value>

@@ -326,9 +326,14 @@ namespace HM
       // finds the candidates and each is matched whole in memory - LIKE alone would
       // also match inside a longer address (ann@ in joann@). Each is rewritten
       // without the address, keeping the key's record of the others, and a row
-      // left naming nobody goes.
+      // left naming nobody goes. A [ in the address goes into the pattern as _:
+      // on SQL Server and Compact it would open a character class and the row
+      // would never be a candidate, where _ matches it on every dialect and the
+      // whole match decides.
+      String like = lowered;
+      like.Replace(_T("["), _T("_"));
       SQLCommand candidates("select apsid, apsrecipients from hm_apisends where apsrecipients like @PATTERN");
-      candidates.AddParameter("@PATTERN", _T("%") + lowered + _T("%"));
+      candidates.AddParameter("@PATTERN", _T("%") + like + _T("%"));
 
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(candidates);
       if (!recordset)

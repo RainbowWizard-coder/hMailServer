@@ -3548,8 +3548,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Erase _traces..." xml:space="preserve">
     <value>Sporen _wissen...</value>
   </data>
-  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
-    <value>Elk opgeslagen spoor van {0} wissen: quarantaine-items, traceerrijen, greylisting, lijstlidmaatschappen, aliassen, adresboekvermeldingen van anderen en het eerste-contactgeheugen, de archiefboom (kopieën onder bewaarplicht uitgezonderd) en de logregels die het noemen? Dit kan niet ongedaan worden gemaakt.</value>
+  <data name="Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone." xml:space="preserve">
+    <value>Elk opgeslagen spoor van {0} wissen? Quarantaine-items, traceerrijen, greylisting, lijstlidmaatschappen, aliassen, de adresboekvermeldingen, certificaten, sleutels en herinneringen die andere accounts ervan bewaren, de berichten buiten elke mailbox die het noemen - vastgehouden ter beoordeling (voor alle ontvangers verworpen), verlopend of met een wachtwoord beveiligd -, de archiefboom en de logregels die het adres noemen. Wat onder een bewaarplicht valt, blijft staan. Dit kan niet ongedaan worden gemaakt.</value>
   </data>
   <data name="Erase traces" xml:space="preserve">
     <value>Sporen wissen</value>

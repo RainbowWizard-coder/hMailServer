@@ -144,6 +144,12 @@ goes. The directory of an account that no longer exists is removed by the retent
 task's sweep - decided by asking the database for that account, never by a lookup that
 came back empty - and no sweep touches a file while the database does not answer.
 
+An address's erasure ([PersonalData.md](PersonalData.md)) takes the address out of the
+recipients of a message another account sent, and out of who opened it, which then
+reads `[erased]`; the other recipients go on reading it. A message the address sent, or
+one left with no recipient, is ended as a withdrawal ends it, and its row goes at once.
+A message whose account is under a legal hold is left as it is.
+
 The copies are not in the backup: the sender's own copy is in the mailbox the backup
 carries, and a message kept to be deleted at a time is not one to carry into an
 archive that outlives it. The table is listed in `AccountStores` under *elsewhere*

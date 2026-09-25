@@ -3548,8 +3548,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Erase _traces..." xml:space="preserve">
     <value>Poista _jäljet...</value>
   </data>
-  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
-    <value>Poistetaanko jokainen tallennettu jälki osoitteesta {0}: karanteenimerkinnät, jäljitysrivit, greylisting, listajäsenyydet, aliakset, muiden ihmisten osoitekirjamerkinnät ja ensikontaktimuisti, arkistopuu (pidätettyjä kopioita lukuun ottamatta) ja lokirivit, jotka sen nimeävät? Tätä ei voi perua.</value>
+  <data name="Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone." xml:space="preserve">
+    <value>Poistetaanko jokainen tallennettu jälki osoitteesta {0}? Karanteenimerkinnät, jäljitysrivit, greylisting, listajäsenyydet, aliakset, osoitekirjamerkinnät, varmenteet, avaimet ja muistit, joita muut tilit siitä säilyttävät, postilaatikoiden ulkopuoliset viestit, jotka nimeävät sen - tarkistettavaksi pidätetyt (hylätään kaikilta vastaanottajilta), vanhenevat tai salasanalla suojatut - arkistopuu ja lokirivit, jotka nimeävät osoitteen. Oikeudellisen säilytysvelvoitteen kattama jää paikalleen. Tätä ei voi perua.</value>
   </data>
   <data name="Erase traces" xml:space="preserve">
     <value>Poista jäljet</value>

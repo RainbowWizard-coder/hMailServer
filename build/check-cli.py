@@ -210,7 +210,7 @@ ANSWERS = {
          "next_try": "", "locked": False, "tries": 0, "held": "sandbox", "held_since": 1789445400, "submissions": ["job-1"]}]},
     ("POST", "/api/v1/queue/12/retry"): {"queued": True},
     ("POST", "/api/v1/accounts/ann@example.com/export"): {"exported": 3, "folders": 2, "contacts": 1, "calendar_objects": 0, "log_lines": 4, "archive": "C:\\exports\\ann.zip"},
-    ("POST", "/api/v1/addresses/erase"): {"removed": 7, "include_archive": True, "include_logs": True},
+    ("POST", "/api/v1/addresses/erase"): {"removed": 7, "include_archive": True, "include_logs": True, "held": 2},
     ("GET", "/api/v1/quarantine"): {"messages": [
         {"id": 3, "recipient": "ann@example.com", "from_address": "spam@away.test",
          "subject": "Held", "reason": "virus", "received": "2026-09-15T04:00:00Z"}]},
@@ -893,7 +893,7 @@ CASES = [
     ("privacy export", ["privacy", "export", "ann@example.com", "--archive", "C:\\exports\\ann.zip"],
      "POST", "/api/v1/accounts/ann@example.com/export", {"archive": "C:\\exports\\ann.zip"}, ["exported 3 message(s)", "1 contact(s)"]),
     ("privacy erase", ["privacy", "erase", "ann@example.com", "--archive", "--logs"],
-     "POST", "/api/v1/addresses/erase", {"address": "ann@example.com", "include_archive": True, "include_logs": True}, ["erased 7 trace(s)"]),
+     "POST", "/api/v1/addresses/erase", {"address": "ann@example.com", "include_archive": True, "include_logs": True}, ["erased 7 trace(s)", "2 item(s) were left in place under a legal hold"]),
     ("quarantine list", ["quarantine", "list"], "GET", "/api/v1/quarantine", None, ["spam@away.test"]),
     ("quarantine release", ["quarantine", "release", "3"], "POST", "/api/v1/quarantine/3/release", None, ["released"]),
     ("settings get", ["settings", "get"], "GET", "/api/v1/settings", None, ["max_message_size_kb"]),

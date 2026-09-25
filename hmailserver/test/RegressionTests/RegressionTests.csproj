@@ -321,6 +321,7 @@
     <Compile Include="Infrastructure\Utf16FileFormat.cs" />
     <Compile Include="Infrastructure\PrivacyTools.cs" />
     <Compile Include="API\RestApiPersonExport.cs" />
+    <Compile Include="API\RestApiErasureStores.cs" />
     <Compile Include="API\RestApiHelp.cs" />
     <Compile Include="IMAP\CapabilityAuthAdvertisement.cs" />
     <Compile Include="IMAP\Utf8Append.cs" />

@@ -3548,8 +3548,8 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Erase _traces..." xml:space="preserve">
     <value>B_orrar rastros...</value>
   </data>
-  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
-    <value>¿Borrar cada rastro almacenado de {0}: entradas de cuarentena, filas de seguimiento, greylisting, pertenencias a listas, alias, entradas en las libretas de otras personas y la memoria de primer contacto, el árbol del archivo (salvo las copias retenidas) y las líneas de registro que la nombran? No se puede deshacer.</value>
+  <data name="Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone." xml:space="preserve">
+    <value>¿Borrar cada rastro almacenado de {0}? Entradas de cuarentena, filas de seguimiento, greylisting, pertenencias a listas, alias, las entradas de libreta, los certificados, las claves y los recuerdos que otras cuentas guardan de ella, los mensajes fuera de cualquier buzón que la nombran - retenidos para revisión (descartados para todos los destinatarios), que caducan o protegidos con contraseña -, el árbol del archivo y las líneas de registro que nombran la dirección. Lo que cubre una retención legal se queda en su sitio. No se puede deshacer.</value>
   </data>
   <data name="Erase traces" xml:space="preserve">
     <value>Borrar rastros</value>

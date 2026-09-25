@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -240,9 +241,17 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("An erasure with the archive included sweeps the person's archive tree file by file: a copy under legal hold keeps its file and its row, and the rest go.")]
+      [Description("An erasure with the archive included sweeps the person's archive tree file by file: a copy under legal hold keeps its file and its row, and the rest go; the answer counts the held copy once, for its file and its row together.")]
       public void AHeldCopySurvivesAnErasure()
       {
+         // The index rows earlier runs left naming bob outlive their files, and a held
+         // one among them would be counted here: their holds are released first, so
+         // that this run's erasure removes them rather than counting them.
+         (int status, string body) stale = Http("GET", "/api/v1/archive?domain=example.test&hold=1&recipient=" + Uri.EscapeDataString("bob@example.test"));
+         ClassicAssert.AreEqual(200, stale.status, stale.body);
+         foreach (System.Text.RegularExpressions.Match row in System.Text.RegularExpressions.Regex.Matches(stale.body, "\"id\":([0-9]+),"))
+            Http("DELETE", "/api/v1/archive/" + row.Groups[1].Value + "/hold");
+
          string held = Unique("Hold me");
          string swept = Unique("Sweep me");
          ArchiveMessages(held, swept);
@@ -256,12 +265,18 @@ namespace RegressionTests.API
          Assert.IsTrue(Directory.Exists(bobsTree), "Bob's archive tree is where the archiver writes it: " + bobsTree);
          Assert.AreEqual(2, Directory.GetFiles(bobsTree, "*", SearchOption.AllDirectories).Length, "Two received copies before the erasure.");
 
-         int removed = _application.Utilities.EraseAddressTraces("bob@example.test", true);
-         ClassicAssert.Greater(removed, 0);
+         (int status, string body) erased = Http("POST", "/api/v1/addresses/erase", null, "{\"address\":\"bob@example.test\",\"include_archive\":true}");
+         ClassicAssert.AreEqual(200, erased.status, erased.body);
+         Dictionary<string, object> answer = MiniJson.Object(erased.body);
+         ClassicAssert.Greater(MiniJson.Number(answer, "removed"), 0);
+         ClassicAssert.AreEqual(1, MiniJson.Number(answer, "held"), "One copy is held, and its file and its row are one copy: " + erased.body);
 
          Assert.AreEqual(1, Directory.GetFiles(bobsTree, "*", SearchOption.AllDirectories).Length, "The held copy's file stays; the other went.");
          StringAssert.Contains("\"hold\":true", Http("GET", "/api/v1/archive/" + heldId).body, "The held row stays too.");
          StringAssert.DoesNotContain(swept, Http("GET", "/api/v1/archive?domain=example.test&mailbox=bob").body, "The swept copy's row went with its file.");
+
+         // Released, so that the row this run leaves is not held in the next.
+         ClassicAssert.AreEqual(200, Http("DELETE", "/api/v1/archive/" + heldId + "/hold").status);
       }
 
       [Test]

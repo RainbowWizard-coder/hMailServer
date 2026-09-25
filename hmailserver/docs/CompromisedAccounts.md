@@ -135,11 +135,19 @@ discarded by the retention sweep, and the sweep is where the baseline forgets
 what the window no longer covers; a held message younger than ten minutes is
 left alone by the sweep's orphan pass whatever its rows say, since its review
 row may still be on its way. An account being deleted takes its held mail with
-it: nobody is left to release it.
+it: nobody is left to release it. An address's erasure ([PersonalData.md](PersonalData.md))
+discards a held message the address sent or is one of the recipients of - as the
+queue would deliver to it, or as it was addressed, an alias included - unless the
+account is under a legal hold, and takes the address out of every account's
+remembered recipients.
 
-Every one of these is on the audit trail: a release or a discard names the
+Every release, discard, change or unlock an administrator makes from the review
+routes or the Deck's page is on the audit trail: a release or a discard names the
 message, the sender, the recipients and the subject; a change of exemption or
-sensitivity names the account; an unlock says which lock was cleared.
+sensitivity names the account; an unlock says which lock was cleared. The
+server's own discards are not: the retention sweep's, an account deletion's and
+an erasure's are on the application log alone - an erasure's by count, since an
+audit row would write the erased address into the hash-chained trail.
 
 The routes
 ----------

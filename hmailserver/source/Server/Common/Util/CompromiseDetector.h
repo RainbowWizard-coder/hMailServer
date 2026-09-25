@@ -208,9 +208,20 @@ namespace HM
       // or the message could not be moved. A released message the webmail sent
       // gets its \Sent copy here (MessageUtilities::CopyToDesignatedSent), not
       // when it was held: a copy of a message that was then discarded would
-      // say it was sent.
+      // say it was sent. Discard answers true only when the message's row, its
+      // recipient rows, its queue file and the review row are all gone.
       static bool Release(__int64 id, String &problem);
       static bool Discard(__int64 id, String &problem);
+
+      // An erasure of an address (AddressTraceEraser): every held message whose
+      // queued message names the address - its envelope sender, or a recipient
+      // row as delivered to or as addressed (hm_messagerecipients) - or whose
+      // review row does, matched whole, is discarded as Discard does: the
+      // quarantine's rule, since the message itself names the address. One
+      // whose account is under a legal hold (DiscoveryHolds.h) is left and
+      // counted in held. The number discarded, or -1 when the held messages
+      // could not be read or one could not be discarded (HM7380).
+      static int EraseAddress(const String &address, int &held);
 
       struct Review
       {

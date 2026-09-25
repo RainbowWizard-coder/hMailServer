@@ -6,6 +6,7 @@
 #include "CompromiseDetector.h"
 #include "AccountLockout.h"
 #include "AlertManager.h"
+#include "DiscoveryHolds.h"
 #include "MessageUtilities.h"
 #include "WebhookManager.h"
 #include "RestApiServer.h"
@@ -892,20 +893,165 @@ namespace HM
          return false;
       }
 
+      // The queue file's name, taken while the message's row still says it.
+      // The queue's removal deletes the row first and the file last, and
+      // answers nothing: a recipients delete or a file delete that failed after
+      // the row went would leave the recipients or the file - the message's
+      // headers and body - with no row to find them by.
+      String file;
+      {
+         std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message());
+         if (PersistentMessage::ReadObject(message, held.message_id) && message->GetID() > 0)
+            file = MessageStore::WorkingFile(message);
+      }
+
       // The queue's own removal: read, lock, delete the row and the file.
       DeliveryQueue::Remove(held.message_id);
 
       SQLCommand check("select messagetype from hm_messages where messageid = @MESSAGEID");
       check.AddParameter("@MESSAGEID", held.message_id);
       std::shared_ptr<DALRecordset> recordset = Open(check);
-      if (recordset && !recordset->IsEOF())
+      if (!recordset)
+      {
+         problem = _T("whether the message was removed could not be read; it may still be held");
+         return false;
+      }
+      if (!recordset->IsEOF())
       {
          problem = _T("the message could not be removed; it is still held");
          return false;
       }
 
-      DeleteHeldRow(id);
+      // Whatever the removal left once the row was gone: its recipients, and
+      // its file. A discard answers success only when neither is left.
+      SQLCommand recipients("delete from hm_messagerecipients where recipientmessageid = @MESSAGEID");
+      recipients.AddParameter("@MESSAGEID", held.message_id);
+      if (!Execute(recipients))
+      {
+         problem = _T("the message's recipients could not be removed");
+         return false;
+      }
+
+      if (!file.IsEmpty() && MessageStore::Exists(file) && !MessageStore::DiscardWorkingFile(file))
+      {
+         problem = _T("the message's file could not be deleted: ") + file;
+         return false;
+      }
+
+      if (!DeleteHeldRow(id))
+      {
+         problem = _T("the message is gone but its review row could not be removed");
+         return false;
+      }
+
       return true;
+   }
+
+   int
+   CompromiseDetector::EraseAddress(const String &address, int &held)
+   {
+      held = 0;
+
+      const String wanted = Folded(address);
+      if (wanted.IsEmpty())
+         return 0;
+
+      // The held messages whose queued message itself names the address: the
+      // envelope sender, or a recipient as the queue will deliver to it or as
+      // it was addressed (an alias, a list). The review row's recipients are a
+      // display copy - the original addresses, cut at 2,000 characters - and a
+      // surge to a few hundred strangers, or an address reached through an
+      // alias, is not all in it; a release would deliver to every recipient
+      // row, so the rows are what decide.
+      std::set<__int64> namedByQueue;
+      {
+         SQLCommand byRecipient("select h.hmid from hm_heldmessages h inner join hm_messagerecipients r on r.recipientmessageid = h.hmmessageid "
+                                "where lower(r.recipientaddress) = @ADDRESS or lower(r.recipientoriginaladdress) = @ORIGINAL");
+         byRecipient.AddParameter("@ADDRESS", wanted);
+         byRecipient.AddParameter("@ORIGINAL", wanted);
+         std::shared_ptr<DALRecordset> recordset = Open(byRecipient);
+         if (!recordset)
+            return -1;
+         while (!recordset->IsEOF())
+         {
+            namedByQueue.insert(recordset->GetInt64Value("hmid"));
+            recordset->MoveNext();
+         }
+      }
+      {
+         SQLCommand bySender("select h.hmid from hm_heldmessages h inner join hm_messages m on m.messageid = h.hmmessageid "
+                             "where lower(m.messagefrom) = @SENDER");
+         bySender.AddParameter("@SENDER", wanted);
+         std::shared_ptr<DALRecordset> recordset = Open(bySender);
+         if (!recordset)
+            return -1;
+         while (!recordset->IsEOF())
+         {
+            namedByQueue.insert(recordset->GetInt64Value("hmid"));
+            recordset->MoveNext();
+         }
+      }
+
+      // Every held message, as the review page lists them: they are few - a
+      // takeover's surge, reviewed or discarded within CompromiseHeldDays. The
+      // review row's own sender and recipients are matched too, whole and in
+      // memory as the quarantine's are, for a row whose message has already
+      // left the queue.
+      std::vector<Held> entries;
+      if (!ListHeld(entries))
+         return -1;
+
+      int discarded = 0;
+      bool failed = false;
+
+      for (const Held &entry : entries)
+      {
+         bool names = namedByQueue.count(entry.id) > 0 || Folded(entry.sender) == wanted;
+         if (!names)
+         {
+            for (const String &recipient : StringParser::SplitString(entry.recipients, _T(",")))
+            {
+               if (Folded(recipient) == wanted)
+               {
+                  names = true;
+                  break;
+               }
+            }
+         }
+
+         if (!names)
+            continue;
+
+         // A legal hold outranks the erasure, as it outranks every other
+         // deletion of the account's mail: what the account submitted stays for
+         // the review, and the case.
+         if (DiscoveryHolds::IsAccountHeld(entry.account_id))
+         {
+            held++;
+            continue;
+         }
+
+         String problem;
+         if (Discard(entry.id, problem))
+         {
+            discarded++;
+         }
+         else
+         {
+            // Named by its id alone: the account that sent it may be the very
+            // address being erased, whose log lines the erasure may be about
+            // to rewrite.
+            failed = true;
+            Report(7380, "CompromiseDetector::EraseAddress",
+               _T("The message ") + StringParser::IntToString(entry.message_id) + _T(" held for review (review row ") + StringParser::IntToString(entry.id) +
+               _T(") names an address being erased but could not be discarded, and the erasure fails until it is: ") + problem);
+         }
+      }
+
+      if (discarded > 0)
+         LOG_APPLICATION("CompromiseDetector: " + StringParser::IntToString(discarded) + " message(s) held for review were discarded by an address's erasure.");
+
+      return failed ? -1 : discarded;
    }
 
    bool

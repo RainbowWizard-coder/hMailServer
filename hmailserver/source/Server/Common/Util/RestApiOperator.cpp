@@ -249,16 +249,21 @@ namespace HM
       const bool includeLogs = logs && logs->IsBool() && logs->AsBool();
 
       int removed = 0;
-      if (!AddressTraceEraser::Erase(address, includeArchive, includeLogs, removed))
+      int held = 0;
+      if (!AddressTraceEraser::Erase(address, includeArchive, includeLogs, removed, held))
          return BuildResponse_(500, "{\"error\":\"Some traces could not be removed - the hMailServer error log names the stores to retry. What could be removed was; run the erasure again once the cause is dealt with.\"}");
 
+      // The line names no address: with include_logs every line that named it
+      // has just been rewritten, and this one would put it back.
       String logMessage;
-      logMessage.Format(_T("Erased %d trace(s) of %s on an operator's request over the REST API%s%s."), removed, address.c_str(),
-         includeArchive ? _T(", the archive included") : _T(""), includeLogs ? _T(", the logs rewritten") : _T(""));
+      logMessage.Format(_T("Erased %d trace(s) of an address on an operator's request over the REST API%s%s; %d left under a legal hold."), removed,
+         includeArchive ? _T(", the archive included") : _T(""), includeLogs ? _T(", the logs rewritten") : _T(""), held);
       LOG_APPLICATION(logMessage);
 
+      // held: what a legal hold kept in place (docs/Discovery.md) - said, so that
+      // the operator answering the person can tell them what was kept and why.
       AnsiString answer;
-      answer.Format("{\"removed\":%d,\"include_archive\":%s,\"include_logs\":%s}", removed, includeArchive ? "true" : "false", includeLogs ? "true" : "false");
+      answer.Format("{\"removed\":%d,\"include_archive\":%s,\"include_logs\":%s,\"held\":%d}", removed, includeArchive ? "true" : "false", includeLogs ? "true" : "false", held);
       return BuildResponse_(200, answer);
    }
 
@@ -316,9 +321,9 @@ namespace HM
          "\"requestBody\":{\"required\":true,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"directory\":{\"type\":\"string\"},\"archive\":{\"type\":\"string\",\"description\":\"The path of the .zip to write on the server's disk; what GET /export.zip downloads, with no size ceiling. One of directory and archive.\"}}}}}},"
          "\"responses\":{\"200\":{\"description\":\"exported (the count) and directory\"},\"400\":{\"description\":\"No directory\"},\"404\":{\"description\":\"Unknown account\"},\"500\":{\"description\":\"A file could not be copied; the export is incomplete\"}}}}"
          ",\"/api/v1/addresses/erase\":{\"post\":{\"summary\":\"Erase every trace of an address that deleting its account leaves\","
-         "\"description\":\"Quarantine entries, message-trace rows, greylisting triplets, distribution-list memberships and aliases on either side, the rows naming the address in other accounts' address books and first-contact memory, with include_archive the address's archive tree (copies under legal hold keep their files and rows), and with include_logs the server's own log files rewritten so that every occurrence of the address reads [erased] - what Utilities.EraseAddressTraces and Utilities.EraseAddressLogLines do over COM. Nothing found is success with removed 0; 500 means a step failed and the error log names the store to retry. The administrator password's alone: it reaches every domain's tables.\","
+         "\"description\":\"Quarantine entries, message-trace rows, greylisting triplets, distribution-list memberships and aliases on either side, the rows naming the address in other accounts' address books and first-contact memory, the messages held for review it sent or is a recipient of (discarded), the messages that expire (the address taken out of the recipients of another sender's, which the others go on reading; its own, and one left with no recipient, ended), the password-protected messages to it and the replies it wrote (ended), the recipients other accounts remember writing to, the out-of-office memory, and the S/MIME certificates and OpenPGP keys other accounts keep of it as a correspondent; with include_archive the address's archive tree; and with include_logs the server's own log files rewritten so that every occurrence of the address reads [erased] - what Utilities.EraseAddressTraces and Utilities.EraseAddressLogLines do over COM. A legal hold outranks it: an archived copy a hold covers, and a message held for review, that expires or is password-protected of a held account, stays, and held counts them; when the holds themselves cannot be read the erasure fails with 500, naming them, rather than count what it left as held. Nothing found is success with removed 0; 500 means a step failed and the error log names the store to retry. The administrator password's alone: it reaches every domain's tables.\","
          "\"requestBody\":{\"required\":true,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"address\":{\"type\":\"string\"},\"include_archive\":{\"type\":\"boolean\"},\"include_logs\":{\"type\":\"boolean\"}},\"required\":[\"address\"]}}}},"
-         "\"responses\":{\"200\":{\"description\":\"removed (the count) and include_archive\"},\"400\":{\"description\":\"No address, or include_archive not a boolean\"},\"500\":{\"description\":\"A store could not be cleared\"}}}}"
+         "\"responses\":{\"200\":{\"description\":\"removed (the count), include_archive, include_logs, and held (what a legal hold kept in place)\"},\"400\":{\"description\":\"No address, or include_archive not a boolean\"},\"500\":{\"description\":\"A store could not be cleared\"}}}}"
          ",\"/api/v1/administrator/second-factor\":{"
          "\"get\":{\"summary\":\"Whether the administrator password has a second factor\",\"description\":\"enrolled: true when a one-time code is asked for beside the administrator password. The administrator password's alone.\",\"responses\":{\"200\":{\"description\":\"enrolled\"}}},"
          "\"post\":{\"summary\":\"Enrol a second factor on the administrator password\",\"description\":\"Generates the secret, stores it, and answers the otpauth URI an authenticator app scans - the only moment the secret leaves the server. Enforced from this moment. Refused with 409 while no administrator password is set, and while a factor is already enrolled: disable it first, because a second enrolment would replace the secret every authenticator app holds. What Settings.EnrolAdministratorTOTP does over COM.\",\"responses\":{\"200\":{\"description\":\"enrolled: true and uri\"},\"409\":{\"description\":\"No administrator password, or already enrolled\"},\"500\":{\"description\":\"The secret could not be stored\"}}},"

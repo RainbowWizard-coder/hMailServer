@@ -3548,8 +3548,8 @@
   <data name="Erase _traces..." xml:space="preserve">
     <value>Стерти с_ліди...</value>
   </data>
-  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
-    <value>Стерти кожен збережений слід адреси {0}: записи карантину, рядки трасування, greylisting, членство в списках, псевдоніми, записи в адресних книгах інших людей і пам'ять першого контакту, дерево архіву (крім копій під утриманням) і рядки журналу, що його називають? Скасувати не можна.</value>
+  <data name="Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone." xml:space="preserve">
+    <value>Стерти кожен збережений слід адреси {0}? Записи карантину, рядки трасування, greylisting, членство в списках, псевдоніми, записи адресних книг, сертифікати, ключі та пам'ять, які про неї зберігають інші облікові записи, повідомлення поза поштовими скриньками, що її називають, - затримані для перевірки (відкидаються для всіх одержувачів), з терміном дії або захищені паролем, - дерево архіву і рядки журналу, що називають адресу. Те, що охоплює юридичне утримання, лишається на місці. Скасувати не можна.</value>
   </data>
   <data name="Erase traces" xml:space="preserve">
     <value>Стерти сліди</value>

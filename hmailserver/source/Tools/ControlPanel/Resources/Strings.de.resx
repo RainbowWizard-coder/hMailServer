@@ -3548,8 +3548,8 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Erase _traces..." xml:space="preserve">
     <value>Spuren lös_chen...</value>
   </data>
-  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
-    <value>Jede gespeicherte Spur von {0} löschen: Quarantäneeinträge, Nachverfolgungszeilen, Greylisting, Listenmitgliedschaften, Aliasse, Adressbucheinträge anderer und das Erstkontakt-Gedächtnis, den Archivbaum (Kopien unter Aufbewahrungspflicht ausgenommen) und die Protokollzeilen, die sie nennen? Das lässt sich nicht rückgängig machen.</value>
+  <data name="Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone." xml:space="preserve">
+    <value>Jede gespeicherte Spur von {0} löschen? Quarantäneeinträge, Nachverfolgungszeilen, Greylisting, Listenmitgliedschaften, Aliasse, die Adressbucheinträge, Zertifikate, Schlüssel und Erinnerungen, die andere Konten von ihr haben, die Nachrichten außerhalb jedes Postfachs, die sie nennen - zur Prüfung zurückgehalten (für alle Empfänger verworfen), ablaufend oder kennwortgeschützt -, den Archivbaum und die Protokollzeilen, die die Adresse nennen. Was eine Aufbewahrungspflicht erfasst, bleibt erhalten. Das lässt sich nicht rückgängig machen.</value>
   </data>
   <data name="Erase traces" xml:space="preserve">
     <value>Spuren löschen</value>

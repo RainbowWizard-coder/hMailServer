@@ -3548,8 +3548,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Erase _traces..." xml:space="preserve">
     <value>Sl_et spor...</value>
   </data>
-  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
-    <value>Slet hvert gemt spor af {0}: karantæneposter, sporingsrækker, greylisting, listemedlemskaber, aliasser, andres adressebogsposter og førstekontakt-hukommelse, arkivtræet (kopier under tilbageholdelse undtaget) og loglinjerne, der nævner den? Dette kan ikke fortrydes.</value>
+  <data name="Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone." xml:space="preserve">
+    <value>Slet hvert gemt spor af {0}? Karantæneposter, sporingsrækker, greylisting, listemedlemskaber, aliasser, de adressebogsposter, certifikater, nøgler og erindringer, andre konti har om den, beskederne uden for enhver postkasse, der nævner den - tilbageholdt til gennemsyn (kasseret for alle modtagere), udløbende eller adgangskodebeskyttede - arkivtræet og loglinjerne, der nævner adressen. Det, et retligt tilbagehold dækker, bliver liggende. Dette kan ikke fortrydes.</value>
   </data>
   <data name="Erase traces" xml:space="preserve">
     <value>Slet spor</value>

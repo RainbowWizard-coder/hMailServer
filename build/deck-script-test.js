@@ -3164,7 +3164,7 @@ function answer(method, path, headers, raw) {
       state.review.splice(at, 1);
       return json(200, { discarded: true });
    }
-   if (path === '/api/v1/addresses/erase' && method === 'POST') { state.erasures = (state.erasures || 0) + 1; return json(200, { removed: 7, include_archive: true, include_logs: true }); }
+   if (path === '/api/v1/addresses/erase' && method === 'POST') { state.erasures = (state.erasures || 0) + 1; return json(200, { removed: 7, include_archive: true, include_logs: true, held: 2 }); }
    if (/^\/api\/v1\/accounts\/[^/]+\/push$/.test(path) && method === 'DELETE') { return json(200, { removed: 2 }); }
    if (/^\/api\/v1\/accounts\/[^/]+\/recovery\/codes$/.test(path) && method === 'DELETE') { return json(200, { codes_cleared: 10 }); }
    if (/^\/api\/v1\/accounts\/[^/]+\/recovery$/.test(path) && method === 'DELETE') { return json(200, { address_set: false }); }
@@ -4109,6 +4109,10 @@ async function main() {
       confirmations[confirmations.length - 1].indexOf('bob@example.com') >= 0 && put && put.address === 'bob@example.com' && put.include_archive === true && put.include_logs === true,
       paths(before));
    check('and says how many traces went', toastText().indexOf('7') >= 0 && toastText().indexOf('bob@example.com') >= 0, toastText());
+   check('the confirmation names the messages outside a mailbox it will discard or end, and that a legal hold outranks it',
+      confirmations[confirmations.length - 1].indexOf('held for review') >= 0 && confirmations[confirmations.length - 1].indexOf('legal hold') >= 0,
+      confirmations[confirmations.length - 1]);
+   check('and what a legal hold kept in place, counted', toastText().indexOf('2 item(s) left in place under a legal hold') >= 0, toastText());
 
    confirmAnswer = false;
    before = requests.length;

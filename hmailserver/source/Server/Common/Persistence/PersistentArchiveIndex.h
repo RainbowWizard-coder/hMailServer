@@ -87,9 +87,14 @@ namespace HM
       static bool IsHeld(const String &path);
       static bool RemoveByPath(const String &path);
 
-      // The address eraser's: forget every copy that names this address. Rows
-      // for held copies - by the flag or by an eDiscovery hold - are kept.
-      static int RemoveByAddress(const String &address);
+      // The address eraser's: forget every copy that names this address - as
+      // its sender, or as one whole entry of its comma-separated recipients,
+      // since LIKE alone finds "ann@example.test" inside "joann@example.test".
+      // Rows for held copies - by the flag or by an eDiscovery hold - are kept,
+      // and each one's path is added to heldPaths, so that the eraser can say
+      // what a hold kept. The number of rows removed, or -1 when the database
+      // did not answer or a row could not be removed.
+      static int RemoveByAddress(const String &address, std::vector<String> &heldPaths);
 
       // The JSON the COM and REST callers hand out, one shape for both.
       static AnsiString ToJson(const std::vector<Entry> &entries);

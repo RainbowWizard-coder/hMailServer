@@ -154,6 +154,17 @@ namespace HM
       // the delete fails, since the row keeps naming the file until it is gone.
       static bool Revoke(__int64 accountId, __int64 id);
 
+      // An erasure of an address (AddressTraceEraser): every message to it, and
+      // every reply it wrote - the rows whose recipient is the address - ended
+      // as a withdrawal ends one, the ciphertext deleted and the row removed,
+      // under the upload's lock. A message the address's own account sent is
+      // not reached: the row names no sender, and goes with its account.
+      // A message whose account is under a legal hold (DiscoveryHolds.h) is
+      // left as it is and counted in held. The number removed, or -1 when the
+      // rows could not be read or one could not be ended - ciphertext that
+      // cannot be deleted leaves its row withdrawn, for the sweep to retry.
+      static int EraseAddress(const String &address, int &held);
+
       static void MarkOpened(const Entry &entry);
 
       // The notice a recipient gets in the message's place, from the sender:

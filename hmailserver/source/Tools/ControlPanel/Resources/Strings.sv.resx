@@ -3548,8 +3548,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Erase _traces..." xml:space="preserve">
     <value>Radera s_pår...</value>
   </data>
-  <data name="Erase every stored trace of {0}: quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines naming it? This cannot be undone." xml:space="preserve">
-    <value>Radera varje lagrat spår av {0}: karantänposter, spårningsrader, greylisting, listmedlemskap, alias, andras adressboksposter och förstakontaktminnet, arkivträdet (kopior under kvarhållning undantagna) och loggraderna som nämner den? Detta kan inte ångras.</value>
+  <data name="Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone." xml:space="preserve">
+    <value>Radera varje lagrat spår av {0}? Karantänposter, spårningsrader, greylisting, listmedlemskap, alias, de adressboksposter, certifikat, nycklar och minnen som andra konton har om den, meddelandena utanför varje brevlåda som nämner den - kvarhållna för granskning (kasserade för alla mottagare), som upphör att gälla eller lösenordsskyddade - arkivträdet och loggraderna som nämner adressen. Det som en rättslig kvarhållning omfattar lämnas kvar. Detta kan inte ångras.</value>
   </data>
   <data name="Erase traces" xml:space="preserve">
     <value>Radera spår</value>

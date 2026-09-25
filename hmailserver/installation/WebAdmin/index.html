@@ -2938,13 +2938,14 @@ async function resetPassword(domain){
    excepted) and the log lines naming it - what Utilities.EraseAddressTraces and
    EraseAddressLogLines do over COM. Asked first, because nothing brings it
    back. The administrator password's alone: a role session is refused by the
-   server and told so. */
+   server and told so. What a legal hold kept in place (the answer's held) is
+   said in the toast, for whoever answers the person. */
 async function eraseTraces(address){
   setErr("err_accountrow","");
-  if(!confirm(tf("Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, other people's address-book entries and first-contact memory, the archive tree (copies under hold excepted) and the log lines that name the address. This cannot be undone.",address)))return;
+  if(!confirm(tf("Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone.",address)))return;
   try{
     const answer=await api("/api/v1/addresses/erase",{method:"POST",body:JSON.stringify({address:address,include_archive:true,include_logs:true})});
-    toast(tf("Erased {0} trace(s) of {1}.",answer.removed,address));
+    toast(answer.held>0?tf("Erased {0} trace(s) of {1}; {2} item(s) left in place under a legal hold.",answer.removed,address,answer.held):tf("Erased {0} trace(s) of {1}.",answer.removed,address));
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_accountrow",e.message);}
 }
 async function unlockAccount(address){
