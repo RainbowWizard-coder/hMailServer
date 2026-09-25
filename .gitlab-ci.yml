@@ -278,7 +278,8 @@ pages:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
-    - if: $HM_PIPELINE == "fuzz"
+    # Not the fuzz schedule's pipeline nor Renovate's, each of which runs its one job.
+    - if: $HM_PIPELINE == "fuzz" || $RUN_RENOVATE == "1"
       when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
@@ -297,6 +298,7 @@ pages:
 # project runners registered ref_protected with run_untagged off, and a job reaches
 # one only by its tag. These rules keep every such job out of any pipeline that is not
 # for a protected ref, and out of every merge request pipeline whatever its source.
+# A scheduled pipeline is renovate's alone (below): it must not start the gates.
 .own-runners:
   rules:
     # A fuzz pipeline (HM_PIPELINE=fuzz, from its schedule) runs linux-fuzz and nothing else,
@@ -1008,6 +1010,58 @@ repo-hygiene:
       - security/repo-hygiene/
     reports:
       junit: security/repo-hygiene/junit.xml
+
+# Dependency updates by the project's own bot (docs/ContinuousIntegration.md,
+# "Dependency updates"): Renovate, from Docker Hub by digest, on linix, in a scheduled
+# pipeline and in nothing else. It reads renovate.json from the default branch, opens
+# and updates its merge requests on GitLab with RENOVATE_TOKEN, and keeps its dashboard
+# issue current. The owner creates the three things it needs once: the token, the
+# masked and protected CI variable RENOVATE_TOKEN that holds it, and a pipeline
+# schedule for master with the variable RUN_RENOVATE=1. A protected variable reaches a
+# protected ref only, and the rules ask for one.
+#
+# Nothing it downloads comes from GitHub. The advisories behind renovate.json's
+# osvVulnerabilityAlerts are built from OSV's own export on Google Cloud Storage by
+# build/ci/osv-offline-db.py, instead of the GitHub release Renovate's OSV package
+# fetches by default. The .NET SDK it installs to rewrite the NuGet lock files does not
+# come from GitHub either: the dry run of 25 September 2026 installed it with every
+# GitHub host unreachable.
+renovate:
+  stage: check
+  tags: [linix]
+  image:
+    name: renovate/renovate:44.115.2@sha256:62af1deb6f45883afb105b22cb4b4d2503071e12794b6e297628e40c798349b4
+    pull_policy: if-not-present
+  needs: []
+  timeout: 1 hour
+  # A push to master while it runs does not stop it halfway through its branches.
+  interruptible: false
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $RUN_RENOVATE == "1" && $CI_COMMIT_REF_PROTECTED == "true"
+  variables:
+    RENOVATE_PLATFORM: gitlab
+    RENOVATE_ENDPOINT: $CI_API_V4_URL
+    RENOVATE_REPOSITORIES: $CI_PROJECT_PATH
+    # renovate.json is on the default branch: no onboarding merge request, and a
+    # repository without the file is left alone.
+    RENOVATE_ONBOARDING: "false"
+    RENOVATE_REQUIRE_CONFIG: required
+    RENOVATE_BINARY_SOURCE: install
+    OSV_OFFLINE_DISABLE_DOWNLOAD: "true"
+    OSV_OFFLINE_ROOT_DIR: /tmp/osv-offline
+    LOG_LEVEL: info
+    RENOVATE_LOG_FILE: $CI_PROJECT_DIR/renovate-log.ndjson
+    RENOVATE_LOG_FILE_LEVEL: debug
+  script:
+    - python3 build/ci/osv-offline-db.py "$OSV_OFFLINE_ROOT_DIR" NuGet
+    - renovate
+  artifacts:
+    when: always
+    expire_in: 7 days
+    # The debug log names every dependency and branch; the project's members read it.
+    access: developer
+    paths:
+      - renovate-log.ndjson
 
 # The release stage belongs to the Roadmap2 row "The release chain off a single forge":
 # signing, the packages, publishing and the update feed. Until it is built, a v* tag

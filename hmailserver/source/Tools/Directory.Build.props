@@ -26,7 +26,11 @@
       transitive dependency or a re-published package version changes what
       ships without a commit saying so. On a developer machine a plain
       restore updates the lock file when a package reference changes; commit
-      it with the change. Dependabot updates lock files with its bumps.
+      it with the change. Renovate updates lock files with its bumps, from a
+      restore on Linux, which for a net10.0-windows project lists packages a
+      restore on Windows leaves out; its merge request says to restore on
+      Windows before merging (docs/ContinuousIntegration.md, "Dependency
+      updates").
     -->
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>

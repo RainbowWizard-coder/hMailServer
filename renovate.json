@@ -1,0 +1,321 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "Dependency updates by the project's own bot: Renovate, run by the scheduled renovate job of .gitlab-ci.yml on linix (docs/ContinuousIntegration.md, 'Dependency updates').",
+    "Every datasource below is off GitHub: api.nuget.org, Microsoft's .NET release metadata, Docker Hub and mcr.microsoft.com, registry.npmjs.org, pypi.org, and the upstream projects' own release listings. hostRules refuses github.com, githubusercontent.com and ghcr.io outright, and fetchChangeLogs is off, because release notes are read from GitHub.",
+    "Nothing merges itself: there is no automerge anywhere in this file."
+  ],
+  "extends": ["config:recommended"],
+  "timezone": "Europe/London",
+  "schedule": ["* * * * 1"],
+  "updateNotScheduled": false,
+  "labels": ["dependencies"],
+  "semanticCommits": "disabled",
+  "dependencyDashboardTitle": "Dependency updates (Renovate)",
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 10,
+  "rebaseWhen": "conflicted",
+  "pinDigests": true,
+  "fetchChangeLogs": "off",
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "description": "A security fix goes to the newest fixed release (in the same major version where there is one), not the lowest. With two NuGet advisories on one package, Renovate 44.115 can choose the lower fix: the dry run proposed System.Text.Json 8.0.4 for advisories fixed in 8.0.4 and 8.0.5, which leaves the second open.",
+    "labels": ["dependencies", "security"],
+    "vulnerabilityFixStrategy": "highest"
+  },
+  "dependencyDashboardOSVVulnerabilitySummary": "all",
+  "ignorePaths": ["**/node_modules/**", ".github/**"],
+  "enabledManagers": [
+    "nuget",
+    "dockerfile",
+    "gitlabci",
+    "docker-compose",
+    "npm",
+    "pip_requirements",
+    "pep621",
+    "custom.regex"
+  ],
+  "hostRules": [
+    {
+      "description": "The project takes nothing from GitHub (its account was suspended on 18 September 2026): no lookup, release note or digest is read from there.",
+      "matchHost": "github.com",
+      "enabled": false
+    },
+    {
+      "matchHost": "githubusercontent.com",
+      "enabled": false
+    },
+    {
+      "matchHost": "ghcr.io",
+      "enabled": false
+    }
+  ],
+  "customDatasources": {
+    "openssl": {
+      "description": "OpenSSL's own source page. Its links point at the release archives, which are hosted on GitHub; only the page on openssl-library.org is read, never an archive.",
+      "defaultRegistryUrlTemplate": "https://openssl-library.org/source/",
+      "format": "html",
+      "transformTemplates": [
+        "{\"releases\": [$distinct(releases[$contains(version, /openssl-[0-9]+\\.[0-9]+\\.[0-9]+\\.tar\\.gz$/)].$replace(version, /^.*openssl-([0-9]+\\.[0-9]+\\.[0-9]+)\\.tar\\.gz$/, \"$1\")).{\"version\": $}]}"
+      ]
+    },
+    "boost": {
+      "description": "Boost's release archive. The versions are written with underscores (1_92_0), the form the build's paths use.",
+      "defaultRegistryUrlTemplate": "https://archives.boost.io/release/",
+      "format": "html",
+      "transformTemplates": [
+        "{\"releases\": [$distinct(releases[$contains(version, /^[0-9]+\\.[0-9]+\\.[0-9]+\\/$/)].$replace($replace(version, \"/\", \"\"), \".\", \"_\")).{\"version\": $}]}"
+      ]
+    },
+    "postgresql": {
+      "description": "PostgreSQL's source directory: one v<major>.<minor>/ per release.",
+      "defaultRegistryUrlTemplate": "https://ftp.postgresql.org/pub/source/",
+      "format": "html",
+      "transformTemplates": [
+        "{\"releases\": [$distinct(releases[$contains(version, /^v[0-9]+\\.[0-9]+\\/$/)].$replace(version, /^v([0-9]+\\.[0-9]+)\\/$/, \"$1\")).{\"version\": $}]}"
+      ]
+    },
+    "zlib": {
+      "description": "zlib's archive of every release, the current one included.",
+      "defaultRegistryUrlTemplate": "https://zlib.net/fossils/",
+      "format": "html",
+      "transformTemplates": [
+        "{\"releases\": [$distinct(releases[$contains(version, /^zlib-[0-9]+\\.[0-9]+(\\.[0-9]+)?\\.tar\\.gz$/)].$replace(version, /^zlib-([0-9.]+)\\.tar\\.gz$/, \"$1\")).{\"version\": $}]}"
+      ]
+    },
+    "quickjs": {
+      "description": "Fabrice Bellard's QuickJS page, which links the newest release.",
+      "defaultRegistryUrlTemplate": "https://bellard.org/quickjs/",
+      "format": "html",
+      "transformTemplates": [
+        "{\"releases\": [$distinct(releases[$contains(version, /quickjs-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.tar\\.xz$/)].$replace(version, /^.*quickjs-([0-9]{4}-[0-9]{2}-[0-9]{2})\\.tar\\.xz$/, \"$1\")).{\"version\": $}]}"
+      ]
+    },
+    "mariadb-connector-c": {
+      "description": "MariaDB's download API: every Connector/C release.",
+      "defaultRegistryUrlTemplate": "https://downloads.mariadb.org/rest-api/connector-c/all-releases/",
+      "format": "json",
+      "transformTemplates": [
+        "{\"releases\": [releases[status = \"stable\"].{\"version\": release_number}]}"
+      ]
+    },
+    "7-zip": {
+      "description": "7-Zip's download page. The 'extra' package (7z<NNNN>-extra.7z) is the one 7za.exe comes from; its links point at GitHub, and only the page on 7-zip.org is read.",
+      "defaultRegistryUrlTemplate": "https://www.7-zip.org/download.html",
+      "format": "html",
+      "transformTemplates": [
+        "{\"releases\": [$distinct(releases[$contains(version, /7z[0-9]{4}-extra\\.7z$/)].$replace(version, /^.*7z([0-9]{2})([0-9]{2})-extra\\.7z$/, \"$1.$2\")).{\"version\": $}]}"
+      ]
+    }
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "NuGet packages of the three projects that still use packages.config (RegressionTests, StressTest, VMTestRunner.Console). Renovate's nuget manager reads PackageReference only. A version in packages.config is exact, but NuGet versioning reads a bare version as a minimum, and Renovate applies no rangeStrategy to a custom manager: every package looked current. So the version is handed to Renovate as NuGet's exact range, [x.y.z], and written back without the brackets.",
+      "managerFilePatterns": ["/(^|/)packages\\.config$/"],
+      "matchStrings": ["<package\\s+id=\"(?<depName>[^\"]+)\"\\s+version=\"(?<exactVersion>[^\"]+)\""],
+      "currentValueTemplate": "[{{{exactVersion}}}]",
+      "autoReplaceStringTemplate": "<package id=\"{{{depName}}}\" version=\"{{{replace '^\\[|\\]$' '' newValue}}}\"",
+      "datasourceTemplate": "nuget",
+      "versioningTemplate": "nuget"
+    },
+    {
+      "customType": "regex",
+      "description": "OpenSSL, where the Windows build names it: the include and library paths of hMailServer.vcxproj, the installer's DLL path and the post-build copy.",
+      "managerFilePatterns": [
+        "/^hmailserver/source/Server/hMailServer/hMailServer\\.vcxproj$/",
+        "/^hmailserver/installation/hMailServer64\\.iss$/",
+        "/^hmailserver/source/Server/hMailServer/post-build\\.bat$/"
+      ],
+      "matchStrings": ["openssl-(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "openssl",
+      "datasourceTemplate": "custom.openssl",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Boost, where the Windows build names it: the server's and the minidump tool's include and library paths, and the fuzz build's default.",
+      "managerFilePatterns": [
+        "/^hmailserver/source/Server/hMailServer/hMailServer\\.vcxproj$/",
+        "/^hmailserver/source/Server/hMailServer\\.Minidump/hMailServer\\.Minidump\\.vcxproj$/",
+        "/^fuzz/build-fuzz\\.ps1$/"
+      ],
+      "matchStrings": ["boost_(?<currentValue>\\d+_\\d+_\\d+)"],
+      "depNameTemplate": "boost",
+      "datasourceTemplate": "custom.boost",
+      "versioningTemplate": "regex:^(?<major>\\d+)_(?<minor>\\d+)_(?<patch>\\d+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "The PostgreSQL client library (libpq), where the Windows build names it: hMailServer.vcxproj, the installer and the post-build copy.",
+      "managerFilePatterns": [
+        "/^hmailserver/source/Server/hMailServer/hMailServer\\.vcxproj$/",
+        "/^hmailserver/installation/hMailServer64\\.iss$/",
+        "/^hmailserver/source/Server/hMailServer/post-build\\.bat$/"
+      ],
+      "matchStrings": ["postgresql-(?<currentValue>\\d+\\.\\d+)"],
+      "depNameTemplate": "postgresql",
+      "datasourceTemplate": "custom.postgresql",
+      "versioningTemplate": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "zlib, vendored as source for COMPRESS=DEFLATE and the message store's compression: the version its own zlib.h declares.",
+      "managerFilePatterns": ["/^hmailserver/source/Server/zlib/zlib\\.h$/"],
+      "matchStrings": ["#define ZLIB_VERSION \"(?<currentValue>[0-9.]+)\""],
+      "depNameTemplate": "zlib",
+      "datasourceTemplate": "custom.zlib",
+      "versioningTemplate": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)(?:\\.(?<patch>\\d+))?$"
+    },
+    {
+      "customType": "regex",
+      "description": "QuickJS, vendored as source for the event scripts on Linux: the VERSION file its release ships, which CMake and the SBOM both read.",
+      "managerFilePatterns": ["/^hmailserver/source/Server/quickjs/VERSION$/"],
+      "matchStrings": ["^(?<currentValue>\\d{4}-\\d{2}-\\d{2})"],
+      "depNameTemplate": "quickjs",
+      "datasourceTemplate": "custom.quickjs",
+      "versioningTemplate": "regex:^(?<major>\\d{4})-(?<minor>\\d{2})-(?<patch>\\d{2})$"
+    },
+    {
+      "customType": "regex",
+      "description": "The MariaDB client (Connector/C) the Windows server loads for MySQL and MariaDB: its directory under libraries/, where the build, the test runner, git and the binary manifest name it.",
+      "managerFilePatterns": [
+        "/^hmailserver/source/Server/hMailServer/post-build\\.bat$/",
+        "/^hmailserver/test/VMTestRunner\\.Console/Configuration/TestEnvironments\\.cs$/",
+        "/^\\.gitignore$/",
+        "/^CONTRIBUTING\\.md$/",
+        "/^hmailserver/docs/third-party-binaries\\.json$/"
+      ],
+      "matchStrings": ["mariadb-connector-c-(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "mariadb-connector-c",
+      "datasourceTemplate": "custom.mariadb-connector-c",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "7-Zip's standalone console (7za.exe), which the installer carries: the build input the binary manifest names.",
+      "managerFilePatterns": ["/^hmailserver/docs/third-party-binaries\\.json$/"],
+      "matchStrings": ["7za-(?<currentValue>\\d+\\.\\d+)\\.exe"],
+      "depNameTemplate": "7-zip",
+      "datasourceTemplate": "custom.7-zip",
+      "versioningTemplate": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)$"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "NuGet in the SDK-style projects - the Control Panel, the tools, their tests and LinuxRegressionTests - and global.json's .NET SDK: one merge request a week. Renovate rewrites each project's packages.lock.json with 'dotnet restore --force-evaluate' on Linux, which for the net10.0-windows projects is not what Windows writes (the note says why), so the merge request is finished on Windows.",
+      "matchManagers": ["nuget"],
+      "groupName": "NuGet packages and the .NET SDK",
+      "groupSlug": "nuget",
+      "prBodyNotes": [
+        "**Before merging, restore on Windows.** Renovate rewrote the lock files with a restore on Linux, and for the projects that target net10.0-windows a Linux restore lists packages the Windows Desktop runtime already carries (System.CodeDom under System.Management, System.Diagnostics.EventLog under System.ServiceProcess.ServiceController), which a restore on Windows leaves out: the dry run of 25 September 2026 showed it on master with the same SDK. On a Windows machine, on this branch, run `dotnet restore hmailserver/source/Tools/ControlPanel.sln` and `dotnet restore \"hmailserver/source/Tools/hMailServer Tools.sln\"`, and commit the lock files they rewrite. Otherwise the Windows gate's build rewrites them on the bench and leaves its checkout modified."
+      ]
+    },
+    {
+      "description": "global.json names the SDK every build uses.",
+      "matchDatasources": ["dotnet-version"],
+      "matchPackageNames": ["dotnet-sdk"],
+      "prBodyNotes": [
+        "**global.json names a new .NET SDK.** Install {{{newVersion}}}, or a later 10.0 feature band, on every Windows build machine and on both benches before this merges. The Linux jobs take theirs from Microsoft's SDK image in build/ci/linux.Dockerfile: land the container-images merge request that moves its digest, and rebuild the image on linix, first."
+      ]
+    },
+    {
+      "description": "Placeholder for the .NET runtime the installer bundles. build/get-dotnet-runtime.ps1 takes the newest 10.0 from aka.ms by channel today, so there is no pin to update. When the supply-chain row pins it to an exact version, add a customManager for that line with datasourceTemplate dotnet-version and depNameTemplate dotnet-runtime; this rule then puts it in the NuGet merge request, and the rule below keeps it on .NET 10.",
+      "matchDatasources": ["dotnet-version"],
+      "matchPackageNames": ["dotnet-runtime"],
+      "groupName": "NuGet packages and the .NET SDK",
+      "groupSlug": "nuget"
+    },
+    {
+      "description": "The .NET major version moves by hand, in one commit: global.json, every TargetFramework, DOTNET_MAJOR in hMailServer64.iss and the SDK image of build/ci/linux.Dockerfile (global.json's own comment says so).",
+      "matchDatasources": ["dotnet-version"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "The packages.config projects. Visual Studio's package manager changes three things together - packages.config, the HintPath and Import paths in the .csproj and the assembly version in each Reference - and Renovate can change only the first. So a routine update waits on the dependency dashboard, and a merge request, when one is opened, is a notice. One proposal per package, the newest stable release: a security fix for these packages is placed after Renovate's version lookup, so it takes the first proposal there is, and with the patch release kept apart that was 12.0.3 for an advisory fixed in 13.0.1.",
+      "matchManagers": ["custom.regex"],
+      "matchFileNames": ["**/packages.config"],
+      "groupName": "NuGet packages of the packages.config projects",
+      "groupSlug": "nuget-packages-config",
+      "dependencyDashboardApproval": true,
+      "separateMajorMinor": false,
+      "prBodyNotes": [
+        "**This merge request is a notice; do not merge it as it is.** {{{packageFile}}} belongs to a project that uses packages.config, and Renovate changed that file alone. Update the package in Visual Studio (Manage NuGet Packages for Solution, Updates) on a branch of your own: that rewrites packages.config, the HintPath and Import paths and the assembly versions in the .csproj together. Then close this merge request."
+      ]
+    },
+    {
+      "description": "Container images - the Dockerfiles, .gitlab-ci.yml's images and services, and the packaging compose file - from Docker Hub and mcr.microsoft.com: one merge request a week, and each image pinned by digest.",
+      "matchDatasources": ["docker"],
+      "groupName": "container images",
+      "groupSlug": "docker"
+    },
+    {
+      "description": "Microsoft's .NET SDK image moves with global.json (above).",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["mcr.microsoft.com/dotnet/**"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "The container image's Ubuntu is the release the .deb was built on (its Dockerfile says why): a new Ubuntu there follows the Linux packages' builder, by hand.",
+      "matchFileNames": ["hmailserver/source/Server/platform/packaging/docker/Dockerfile"],
+      "matchPackageNames": ["ubuntu"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Images that are not looked up: the project's own on ghcr.io (the release-chain row's, and GitHub is refused anyway), and the Linux CI image, which is built on linix from build/ci/linux.Dockerfile and never pushed.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/**", "hmailserver-ci/**"],
+      "enabled": false
+    },
+    {
+      "description": "An edit to build/ci/linux.Dockerfile is a new image tag.",
+      "matchFileNames": ["build/ci/linux.Dockerfile"],
+      "prBodyNotes": [
+        "**build/ci/linux.Dockerfile changed, so the Linux jobs' image tag changes.** On this branch, put the tag `python build/check-ci-image.py` prints into .gitlab-ci.yml (the checkers job fails until then), and build the image on linix with `bash build/ci/build-linux-image.sh` before the pipeline for the merged commit reaches it (docs/ContinuousIntegration.md, 'The image')."
+      ]
+    },
+    {
+      "description": "npm and Python: no manifest in the tree today (the harnesses use Node's and Python's standard libraries only). A package.json or a requirements file added later is covered, one merge request a week each.",
+      "matchDatasources": ["npm"],
+      "groupName": "npm packages",
+      "groupSlug": "npm"
+    },
+    {
+      "matchDatasources": ["pypi"],
+      "groupName": "Python packages",
+      "groupSlug": "python"
+    },
+    {
+      "description": "A new release waits three days before it is proposed, so that a release pulled soon after it was published is never offered. Security fixes do not wait.",
+      "matchDatasources": ["nuget", "npm", "pypi"],
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "The native libraries the Windows build compiles against, built from source on each build machine by libraries/build-*.ps1: one merge request a week.",
+      "matchManagers": ["custom.regex"],
+      "matchDepNames": ["openssl", "boost", "postgresql"],
+      "groupName": "native libraries",
+      "groupSlug": "native",
+      "prBodyNotes": [
+        "**A native library: this merge request changes the build's paths, and the build needs the library built first.** On every Windows build machine and the bench, build {{{depName}}} {{{newVersion}}} with its script (libraries/build-openssl.ps1, build-boost.ps1 with the version in dots, build-pgsql.ps1), passing -Sha256 the digest published beside the release, and add that digest to the script's digest table on this branch. Then change the version where the documents name it (`git grep` the old one: README.md, hmailserver/docs) and run `python build/generate-help-pages.py`. The Linux build uses the distribution's packages and is not affected."
+      ]
+    },
+    {
+      "description": "The C++ libraries stay on their major version. A major upgrade is a decision, not a weekly bump: change this rule by hand to take one.",
+      "matchDepNames": ["openssl", "boost", "postgresql", "zlib", "mariadb-connector-c"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Vendored source and fetched binaries: a new release is listed on the dependency dashboard and waits there, because the upgrade is a new copy of the source or a new build input, which Renovate cannot make.",
+      "matchDepNames": ["zlib", "quickjs", "mariadb-connector-c", "7-zip"],
+      "dependencyDashboardApproval": true,
+      "prBodyNotes": [
+        "**This merge request is a notice; do not merge it as it is.** Renovate changed the version string of {{{depName}}}, not what the build uses. zlib and QuickJS are vendored as source (hmailserver/source/Server/zlib, hmailserver/source/Server/quickjs): replace the sources with the release's. The MariaDB client and 7za.exe are build inputs (hmailserver/docs/third-party-binaries.json, build/get-installer-binaries.ps1): publish the new files as a build-inputs release and record their hashes. Then close this merge request."
+      ]
+    }
+  ]
+}

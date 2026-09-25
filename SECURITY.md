@@ -180,7 +180,10 @@ reason.
   are built against. It asks OSV (`api.osv.dev`) about the libraries the Windows server is built with and no
   manifest names - OpenSSL, Boost, libpq, zlib, QuickJS, MariaDB Connector/C, 7-Zip - at the versions the build
   uses, and says UNKNOWN, not clean, for a library OSV holds no usable data on (libpq, QuickJS, 7-Zip 19.00 and
-  SQL Server Compact, today). It honours the VEX document below. What holds besides: the NuGet lock files are
+  SQL Server Compact, today). It honours the VEX document below. Renovate (`renovate.json`, the scheduled `renovate` job) is built to open
+  a merge request at once for every OSV advisory against a dependency in use, and a weekly one per ecosystem; it
+  waits for the owner's token and schedule ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
+  "Dependency updates"). What holds besides: the NuGet lock files are
   committed and the .NET projects are restored with `--locked-mode`, so a package cannot change under a build
   without a reviewed commit; the native libraries are pinned by version and by source hash, as above; and every
   third-party binary is checked against `hmailserver/docs/third-party-binaries.json`.

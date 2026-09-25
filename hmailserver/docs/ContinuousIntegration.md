@@ -50,6 +50,7 @@ What runs where
 | `repo-hygiene` | test | linix | a protected ref | The repository checks OpenSSF Scorecard ran, answered from GitLab and the tree |
 | `release` | release | GitLab's shared runners | a `v*` tag, started by hand | A placeholder. It fails with "the release stage is the release-chain row's (137)" |
 | `installer-smoke` | release | GitLab's shared runners | a `batch*` branch or a `v*` tag, started by hand | A placeholder. It fails with a sentence saying that the installer smoke test runs from the VMware host ([The installer smoke test](#the-installer-smoke-test)) |
+| `renovate` | check | linix | a pipeline schedule for `master` with `RUN_RENOVATE=1`, and nothing else | Renovate's dependency updates ([Dependency updates](#dependency-updates)) |
 
 `linux-build`, `windows-gate`, `windows-dotnet`, `linux-cross`, `linux-sanitize`
 and `linux-sbom` start as soon as the pipeline does. They do not wait for the
@@ -85,7 +86,8 @@ Which pipeline runs what
 | a `v*` tag | the tag's | all of them but `linux-fuzz`, with `release` and `installer-smoke` manual |
 | any other tag | none | |
 | the fuzz schedule (`HM_PIPELINE=fuzz`, on `master`) | the schedule's | `linux-fuzz` alone |
-| any other pipeline schedule on `master` | the schedule's | `pages` alone (see [The update feed](#the-update-feed)), or the one job the schedule's variable names |
+| the Renovate schedule (`RUN_RENOVATE=1`, on `master`) | the schedule's | `renovate` alone ([Dependency updates](#dependency-updates)) |
+| any other pipeline schedule on `master` (the update feed's) | the schedule's | `pages` alone (see [The update feed](#the-update-feed)) |
 
 The four path-bound checks - `chart-and-compose`, `update-helper`,
 `package-templates` and `roadmap` - run when a file they check, or
@@ -818,6 +820,217 @@ entry that is not `postinstall` before `ssPostInstall`. So the runtime is
 installed from `section_run.iss`, and `InstallDotNetRuntime` at `ssPostInstall`
 is the second attempt.
 
+Dependency updates
+------------------
+
+Renovate proposes the project's dependency updates as merge requests on GitLab,
+the work Dependabot did on GitHub. Dependabot's updater comes from GitHub's own
+registry, and this project takes nothing from GitHub. Renovate is open source, its
+image is on Docker Hub (`renovate/renovate`, pinned by digest in the CI file), and
+it supports GitLab itself. `renovate.json` at the repository root is its
+configuration. The `renovate` job runs it on linix, in a scheduled pipeline and in
+nothing else.
+
+**It has not run on GitLab yet.** The job needs a token, a CI variable and a
+schedule that only the owner can create ([The owner's one-time
+steps](#the-owners-one-time-steps)). Until they exist, GitLab creates no
+`renovate` job. What it will propose is known from the dry runs of 25 September
+2026 ([Reading a dry run](#reading-a-dry-run)).
+
+### What it covers
+
+Every datasource is off GitHub. `renovate.json` also refuses `github.com`,
+`githubusercontent.com` and `ghcr.io` outright (`hostRules`), and reads no release
+notes (`fetchChangeLogs` off), because release notes come from GitHub.
+
+| What | Where it is named | Renovate's manager | Where new versions are read (datasource) | How it arrives |
+|---|---|---|---|---|
+| NuGet, the SDK-style projects | the Control Panel, the tools, their tests, `LinuxRegressionTests` | `nuget` | `nuget`: api.nuget.org | "NuGet packages and the .NET SDK", weekly, with the lock files |
+| The .NET SDK | `global.json` | `nuget` | `dotnet-version`: Microsoft's release metadata | in the NuGet merge request; never a new major version |
+| NuGet, the `packages.config` projects | RegressionTests, StressTest, VMTestRunner.Console | a regex manager | `nuget`: api.nuget.org | waits on the dashboard |
+| Container images | `build/ci/linux.Dockerfile`, `.gitlab-ci.yml`, the packaging Dockerfile and compose file, `test/Docker/Dockerfile` | `dockerfile`, `gitlabci`, `docker-compose` | `docker`: Docker Hub and mcr.microsoft.com | "container images", weekly, every image pinned by digest; a new major version in a merge request of its own |
+| npm and Python | nothing in the tree today | `npm`, `pip_requirements`, `pep621` | `npm`: registry.npmjs.org; `pypi`: pypi.org | one merge request each, weekly, once a manifest exists |
+| OpenSSL | `hMailServer.vcxproj`, `hMailServer64.iss`, `post-build.bat` | a regex manager | `custom.openssl`: openssl-library.org/source/, the page only (its archive links point at GitHub and are never followed) | "native libraries", weekly, same major version |
+| Boost | the server's and the minidump tool's `.vcxproj`, `fuzz/build-fuzz.ps1` | a regex manager | `custom.boost`: archives.boost.io/release/ | "native libraries" |
+| The PostgreSQL client, libpq | `hMailServer.vcxproj`, `hMailServer64.iss`, `post-build.bat` | a regex manager | `custom.postgresql`: ftp.postgresql.org/pub/source/ | "native libraries" |
+| zlib, vendored | `Server/zlib/zlib.h` | a regex manager | `custom.zlib`: zlib.net/fossils/ | waits on the dashboard |
+| QuickJS, vendored | `Server/quickjs/VERSION` | a regex manager | `custom.quickjs`: bellard.org/quickjs/ | waits on the dashboard |
+| The MariaDB client, a build input | `post-build.bat`, `TestEnvironments.cs`, `.gitignore`, `CONTRIBUTING.md`, `third-party-binaries.json` | a regex manager | `custom.mariadb-connector-c`: downloads.mariadb.org's API | waits on the dashboard |
+| 7-Zip's `7za.exe`, a build input | `third-party-binaries.json` | a regex manager | `custom.7-zip`: 7-zip.org/download.html, the page only | waits on the dashboard |
+
+Not covered, each for a reason: the MSVC runtime (gathered from the build
+machine's Visual Studio), the ADO type library (copied from Windows), SQL Server
+Compact (retired, with no release to follow), the Linux build's libraries (the
+distribution's packages, which move with the image's digest), the dead `.github/`
+tree, the project's own image on ghcr.io, and `hmailserver-ci/linux`, which is
+built on linix and never pushed. The .NET runtime the installer bundles has no pin
+yet: `build/get-dotnet-runtime.ps1` takes the newest 10.0 by channel. A placeholder
+rule in `renovate.json` says what to add when the supply-chain row pins it.
+
+### How updates arrive
+
+- **Once a week, one merge request per ecosystem.** The schedule runs the job
+  every day, and `renovate.json` lets routine updates through on Mondays (London
+  time) only. It allows the whole day, so a gate that holds linix all night does
+  not cost a week. An open merge request is not refreshed on other days either
+  (`updateNotScheduled` off). A new major version, where one is allowed, comes in
+  a second merge request of its own, never beside routine bumps.
+- **Security fixes at once.** `osvVulnerabilityAlerts` is on. A dependency whose
+  version has a published advisory gets a merge request of its own, labelled
+  `security` and marked `[SECURITY]`, on the next daily run, whatever the day. It
+  goes to the newest fixed release, in the same major version where there is one.
+  Renovate's default, the lowest fixed release, can stop short when a package has
+  two advisories. The dashboard lists every advisory found, fixed or not. The advisories come from OSV's own export on Google
+  Cloud Storage: `build/ci/osv-offline-db.py` builds Renovate's database from it
+  before each run, because Renovate's OSV package would otherwise download it from a
+  GitHub release.
+- **Nothing merges itself.** There is no automerge. A Renovate merge request is
+  reviewed and folded into a batch like any other branch.
+- **What stays put.** OpenSSL, Boost, libpq, zlib and the MariaDB client stay on
+  their major version, and so do the .NET SDK and Microsoft's SDK image, which move
+  with `global.json`. The container image's Ubuntu follows the `.deb` builder by
+  hand. A rule in `renovate.json` holds each one, and changing that rule is the way
+  to take the upgrade.
+- **The dependency dashboard.** An issue, "Dependency updates (Renovate)", lists
+  everything pending. Some updates wait there for a tick, because Renovate cannot
+  make the upgrade: the `packages.config` packages, zlib, QuickJS, the MariaDB
+  client and 7-Zip.
+- **A new release waits three days** before it is proposed (NuGet, npm, PyPI), so
+  a release that is pulled soon after publication is never offered. Security fixes
+  do not wait.
+- **Few pipelines.** A Renovate branch is rebased only when it conflicts. Its
+  merge request runs `checkers` and `harnesses` on the shared runners, like any
+  other. A `renovate/*` branch is not protected, so no job of its reaches linix or
+  bench150.
+
+### What a merge request still needs from a person
+
+Each merge request carries its own note of these steps.
+
+- **NuGet: restore on Windows before merging.** Renovate rewrites the lock files
+  with a restore on Linux. For the projects that target `net10.0-windows`, a Linux
+  restore lists packages the Windows Desktop runtime already carries
+  (`System.CodeDom`, `System.Diagnostics.EventLog`), which a restore on Windows
+  leaves out. On 25 September 2026 a Linux restore of an untouched `master`, with
+  the SDK `global.json` names, rewrote the ControlPanel and DBSetup lock files that
+  way. On Windows, on the branch, run
+  `dotnet restore hmailserver/source/Tools/ControlPanel.sln` and
+  `dotnet restore "hmailserver/source/Tools/hMailServer Tools.sln"`, and commit
+  what they write. Otherwise the Windows gate's build rewrites them on bench150 and
+  leaves the bench's checkout modified.
+- **A new SDK in `global.json`**: install it on every Windows build machine and
+  on both benches first. Land the container-images merge request that moves the
+  SDK image, and rebuild the Linux image, before it too.
+- **`build/ci/linux.Dockerfile` changed**: the Linux jobs' image tag changes (see
+  [The image](#the-image)).
+- **Native libraries**: build the new version on every Windows build machine with
+  `libraries/build-openssl.ps1`, `build-boost.ps1` or `build-pgsql.ps1`, passing
+  `-Sha256` the digest published beside the release. Add that digest to the
+  script's table, change the version where the documents name it, and run
+  `python build/generate-help-pages.py`.
+- **The dashboard's items**: a merge request, once ticked, is a notice. Update a
+  `packages.config` package in Visual Studio, which also rewrites the `.csproj`'s
+  HintPath and Import paths and its assembly versions; Renovate can change only
+  `packages.config`. Replace a vendored library's sources, or publish a new
+  build-inputs release with its hashes. Then close the merge request.
+
+### The owner's one-time steps
+
+1. **A token.** On gitlab.com, open the avatar menu, then Edit profile, then
+   Access tokens (the older menus call it Preferences, then Access tokens). Choose
+   Add new token, with the name `renovate`, an expiry date (gitlab.com allows a
+   year at most, so set a reminder) and the scope **`api`**. That scope covers the
+   API and Git over HTTPS, which Renovate pushes its branches with. Copy the token.
+   Renovate's commits and merge requests are authored as the token's user, so a
+   personal token puts the owner's name on them. A project access token (project,
+   Settings, Access tokens, role Developer, scope `api`) gives Renovate a bot user
+   of its own, but gitlab.com offers project access tokens on the Premium and
+   Ultimate plans only. The free alternative is a separate GitLab account for the
+   bot, made a Developer of the project, with a personal token of its own.
+2. **The CI variable.** In the project, open Settings, then CI/CD, then
+   Variables, and choose Add variable. Set the type to Variable, the environments
+   to all, and the visibility to **Masked** (or Masked and hidden). Turn **Protect
+   variable** on and Expand variable reference off. Set the key to
+   `RENOVATE_TOKEN` and the value to the token. A protected variable reaches only
+   a protected ref, and the job asks for one.
+3. **The schedule.** Open Build, then Pipeline schedules, and choose New
+   schedule. Set the description to `Renovate`, a custom interval pattern of
+   `30 2 * * *`, the cron timezone London, and the target branch `master`. Add the
+   variable `RUN_RENOVATE` with the value `1`, leave it Activated, and save. Daily
+   is for the security fixes: the weekly updates wait for Monday's run anyway.
+4. **Issues** stay enabled on the project (they are by default), for the dashboard.
+5. **The first run.** Start it from the schedule's Run button rather than waiting
+   for 02:30. The job log names each branch and merge request. The debug log is the
+   job's artifact.
+
+To pause Renovate, deactivate the schedule. To replace the token, make a new one
+and change the variable's value.
+
+### Reading a dry run
+
+A dry run does everything but write. It clones, reads every file, looks every
+version up, computes each branch with its file changes, and says what it would
+have done. On 25 September 2026 it ran on linix, with the pinned image, against the
+lab Forgejo's copy of the repository
+(`--platform=gitea --endpoint=http://192.168.11.154:3000/api/v1 --dry-run=full`),
+with a read-only token. There were four dry runs: `master` as mirrored; the
+branch's own tree, which carries this CI file and the Linux image's Dockerfile;
+that tree with every box on the dashboard ticked; and that tree with a probe, a
+`packages.config` and a project naming Newtonsoft.Json 12.0.1 and System.Text.Json
+8.0.0, versions with published advisories. The
+Forgejo copy is a pull mirror with merge requests switched off, and Renovate
+refuses both before it reads a file. So a small proxy in the container answered
+the repository's record as the real project's (not a mirror, merge requests on),
+refused every request that was not a read, and logged every request. None was
+refused. Every GitHub host was made unreachable inside the container, and nothing
+failed for it. `renovate.json` went in through `RENOVATE_X_STATIC_REPO_CONFIG_FILE`,
+which reads it as the repository's own configuration. The schedule was forced
+open, to show Monday's run.
+
+Run with `LOG_FORMAT=json` and `LOG_LEVEL=debug`, as the job's artifact is. These
+are the records to read:
+
+- `Dependency extraction complete` counts the files and dependencies each manager
+  found. On the branch's tree: 31 files and 197 dependencies (nuget 6 and 19, regex
+  20 and 139, dockerfile 3 and 30, gitlabci 1 and 7, docker-compose 1 and 2).
+- `packageFiles with updates` lists every dependency, with its `currentValue` and
+  the `updates` a lookup found. The rules have not been applied there yet: a major
+  version a rule disables is still listed.
+- `DRY-RUN: Would commit files to branch <name>` is a branch Renovate would
+  create. Its debug twin carries each changed file whole (`rawContents`), which is
+  the diff to read.
+- `Branch <name> creation is disabled because dependencyDashboardApproval=true` is
+  an update that waits on the dashboard.
+- `Vulnerability <id> affects <package> <version>` is an advisory that applies,
+  and a branch ending in `-vulnerability` is its fix.
+- `Repository finished` with `"result": "done"` means the run went to the end.
+- A warning about an internal host is the dry run's own proxy. The job does not
+  print it.
+
+What the runs proposed:
+
+- **Container images**, weekly: a digest pin for `python:3.13-slim-trixie` (three
+  jobs), `node:22-trixie-slim` and the compose file's `postgres:16`. Python moves to
+  3.14. New digests for `postgres:16` in `.gitlab-ci.yml`, for `ubuntu:26.04` and
+  `mcr.microsoft.com/dotnet/sdk:10.0` in the Linux image's Dockerfile, for the
+  packaging image's `ubuntu:24.04`, and for `windows/servercore:ltsc2022`.
+- **Container images, major**: `node` 22 to 24 and `postgres` 16 to 18, in the CI
+  file and the compose file. The SDK image's 11.0 and the packaging image's Ubuntu
+  26.04 were held back by their rules.
+- **NuGet and the .NET SDK**: `global.json` from 10.0.303 to 10.0.401, and
+  Microsoft.NET.Test.Sdk from 18.10.0 to 18.10.1 in three projects, with their
+  lock files.
+- **Native libraries**: libpq from 18.3 to 18.6. OpenSSL 4.0.2, Boost 1.92.0 and
+  the MariaDB client 3.4.9 were current.
+- **Waiting on the dashboard**: zlib from 1.3.1 to 1.3.2, QuickJS from 2025-04-26
+  to 2026-06-04, and 7-Zip from 19.00 to 26.03. Fifteen `packages.config`
+  packages, among them NLog 6.2.1, OpenTelemetry 1.19.1 and Microsoft.Identity.Client
+  4.90.0.
+- **Advisories**: none against any dependency in the tree. The probe's three were
+  found (GHSA-5crp-9r3c-p9vr, GHSA-hh2w-p6rv-4g7w, GHSA-8g4q-xg66-9fp4), each with
+  its `[SECURITY]` branch to a fixed version. That is the check that the database
+  built from OSV's export is read.
+
 How long each job takes
 -----------------------
 
@@ -850,6 +1063,7 @@ measured times after the first pipelines.
 | `ci-image-packages` | under a minute | 10 min | The copy takes a second; the rest is the job's start |
 | `dependency-scan` | 1 to 2 min | 30 min | The same, with one CPU: 15 to 17 s, the vulnerability database's download included |
 | `repo-hygiene` | 1 min | 10 min | The same, with one CPU: 14 to 37 s, the apt install included |
+| `renovate` | 2 to 5 min | 1 h | The dry runs of 25 September 2026 on linix: 5 s for the advisory database, 9 s to install the .NET SDK, 1 to 1.5 min for Renovate. The first run also pulls its image, about 450 MB |
 
 The runners' own `maximum_timeout` is four hours. GitLab lets a job's
 `timeout:` exceed the project's default of one hour, but not exceed its
@@ -886,7 +1100,7 @@ not for one: `.own-runners` (and so every job on linix and bench150) and
 `.not-a-fuzz-pipeline` (and so `checkers`, `harnesses` and `editorconfig`)
 begin with `- if: $HM_PIPELINE == "fuzz" || $CI_PIPELINE_SOURCE == "schedule"`
 with `when: never`, and the four path-bound checks carry the same rule. `pages`
-itself skips the fuzz pipeline. Without them each scheduled run would start the whole Windows gate
+itself skips the fuzz pipeline and Renovate's, and `renovate` runs in Renovate's alone. Without them each scheduled run would start the whole Windows gate
 on bench150 and the Linux suite on linix. A new job added to the file needs the
 same, or a schedule starts it too.
 
@@ -959,6 +1173,11 @@ What each job leaves behind
   checkout and the container. linix keeps the two images they add,
   `python:3.13-slim-trixie` and `aquasec/trivy:0.74.0`, at their digests. Their
   artifacts expire after 30 days (`ci-image-packages` after one).
+- **`renovate`** leaves its image on linix (about 2 GB unpacked) and nothing else
+  there: the .NET SDK it installs and the advisory database it builds live in the
+  job's container. On GitLab it leaves its `renovate/*` branches, their merge
+  requests and the dashboard issue, and `renovate-log.ndjson`, its debug log, as an
+  artifact that the project's members can read for seven days.
 
 Security scanning
 -----------------

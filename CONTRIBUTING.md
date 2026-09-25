@@ -84,6 +84,7 @@ The tree:
 | `fuzz/` | The libFuzzer harnesses |
 | `.gitlab/` | The issue and merge-request templates GitLab offers |
 | `.gitlab-ci.yml` | The checks GitLab CI runs on a push and a merge request ([the checkers](#the-checkers)) |
+| `renovate.json` | What Renovate, the project's dependency-update bot, keeps current, and how ([Dependency updates](hmailserver/docs/ContinuousIntegration.md#dependency-updates)) |
 | `.github/` | GitHub's workflows, templates and settings, kept in case GitHub returns. GitLab reads none of it and none of it runs. Two files there are not GitHub's: `allowed_signers`, the SSH keys release tags are signed with, and `hmailserver.openvex.json`, the project's VEX document |
 
 ## Reporting, asking and proposing
@@ -362,7 +363,10 @@ release chain is built, and a pipeline schedule runs *linux-fuzz*, the MIME harn
 night. The two machines never take a job for a merge request, above all not one from a fork;
 [hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) says why, what each old
 GitHub workflow became, where every tool comes from, and how the runners, their image and the bench's gate
-lock work.
+lock work. A scheduled pipeline with `RUN_RENOVATE=1` runs *renovate* on the lab machine and nothing else:
+Renovate opens a merge request a week per ecosystem, and one at once for a dependency with a published advisory,
+from a `renovate/*` branch. Such a merge request is reviewed and landed like yours, after the step its
+description names ([Dependency updates](hmailserver/docs/ContinuousIntegration.md#dependency-updates)).
 
 **What stays by hand:** for any branch that is not protected, everything the project's own runners run - the
 builds, both regression suites, the .NET build and tests with `dotnet format`, and the Linux jobs that apply to
